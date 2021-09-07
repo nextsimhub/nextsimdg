@@ -1,7 +1,5 @@
 .. Copyright (c) 2021, Nansen Environmental and Remote Sensing Center
 
-.. image:: xtensor.svg
-   :alt: xtensor
 
 neXtSIM_DG : the next generation sea-ice model with a Discontinuous Galerkin method
 
