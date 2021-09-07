@@ -1,8 +1,7 @@
-/*
- * Iterator.cpp
- *
- *  Created on: 11 Aug 2021
- *      Author: Tim Spain, <timothy.spain@nersc.no>
+/**
+ * @file Iterator.cpp
+ * @date 11 Aug 2021
+ * @author Tim Spain, <timothy.spain@nersc.no>
  */
 
 #include "Iterator.hpp"

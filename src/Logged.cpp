@@ -1,8 +1,7 @@
-/*
- * Logged.cpp
- *
- *  Created on: 12 Aug 2021
- *      Author: Tim Spain, <timothy.spain@nersc.no>
+/**
+ * @file Logged.cpp
+ * @date 12 Aug 2021
+ * @author Tim Spain, <timothy.spain@nersc.no>
  */
 
 #include "Logged.hpp"

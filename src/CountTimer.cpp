@@ -1,8 +1,7 @@
-/*
- * CountTimer.cpp
- *
- *  Created on: 11 Aug 2021
- *      Author: Tim Spain, <timothy.spain@nersc.no>
+/**
+ * @file CountTimer.cpp
+ * @date 11 Aug 2021
+ * @author Tim Spain, <timothy.spain@nersc.no>
  */
 
 #include "Timer.hpp"
@@ -44,4 +43,3 @@ std::string Timer::report() const {
 	return builder.str();
 }
 }
-
