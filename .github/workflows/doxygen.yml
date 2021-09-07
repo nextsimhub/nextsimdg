@@ -30,10 +30,13 @@ jobs:
         # Working directory
         working-directory: "./docs" # default is .
 
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Deploy to GitHub Pages
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v2
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        # Default Doxyfile build documentation to html directory.
-        # Change the directory if changes in Doxyfile
-        publish_dir: ./html
+        target_branch: gh-pages
+        build_dir: docs/html
+        jekyll: false
+        keep_history: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
