@@ -1,8 +1,7 @@
-/*
- * Timed.h
- *
- *  Created on: 11 Aug 2021
- *      Author: Tim Spain, <timothy.spain@nersc.no>
+/*!
+ * @file Timed.h
+ * @date 11 Aug 2021
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SRC_INCLUDE_TIMED_HPP
@@ -16,13 +15,13 @@ namespace Nextsim {
 
 class Timed {
 public:
-	static void tick(const std::string& timerName);
-	static void tock(const std::string& timerName);
-	static std::string report();
+    static void tick(const std::string& timerName);
+    static void tock(const std::string& timerName);
+    static std::string report();
 protected:
-	Timed();
+    Timed();
 private:
-	static Timer& timer;
+    static Timer& timer;
 };
 
 } /* namespace Nextsim */

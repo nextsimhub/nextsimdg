@@ -1,8 +1,7 @@
-/*
- * Model.hpp
- *
- *  Created on: 12 Aug 2021
- *      Author: Tim Spain, <timothy.spain@nersc.no>
+/*!
+ * @file Model.hpp
+ * @date 12 Aug 2021
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SRC_INCLUDE_MODEL_HPP
@@ -17,16 +16,16 @@ namespace Nextsim {
 
 class Model: public Timed, public Logged {
 public:
-	Model(); // TODO add arguments to pass the desired
-			 // environment and configuration to the model
-	~Model(); // Finalize the model. Collect data and so on.
-	void run();
+    Model(); // TODO add arguments to pass the desired
+             // environment and configuration to the model
+    ~Model(); // Finalize the model. Collect data and so on.
+    void run();
 
 private:
-	Iterator iterator;
-	Iterator::Iterant* iterant; // FIXME smart pointer
+    Iterator iterator;
+    Iterator::Iterant* iterant; // FIXME smart pointer
 
-	bool deleteIterant;
+    bool deleteIterant;
 };
 
 } /* namespace Nextsim */
