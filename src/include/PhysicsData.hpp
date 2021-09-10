@@ -41,6 +41,11 @@ public:
     {
         return m_sphuma;
     }
+    //! Mixing ratio of water vapour in the air [kg kg⁻¹]
+    inline double mixingRatio( )
+    {
+        return m_sphuma / (1 - m_sphuma);
+    }
     //! Pressure due to wind drag [Pa]
     inline double& dragPressure()
     {

@@ -40,6 +40,28 @@ private:
     static void massFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
     static void momentumFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
     static void heatFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
+
+    static class SpecificHumidity {
+    public:
+        SpecificHumidity();
+        double operator()(double temperature, double pressure);
+        double operator()(double temperature, double pressure, double salinity);
+    protected:
+        double m_a;
+        double m_b;
+        double m_c;
+        double m_d;
+        double m_bigA;
+        double m_bigB;
+        double m_bigC;
+        double alpha;
+        double beta;
+    } specificHumidityWater;
+
+    static class SpecificHumidityIce : public SpecificHumidity {
+        SpecificHumidityIce();
+        double operator()(double temperature, double pressure);
+    } specificHumidityIce;
 };
 
 } /* namespace Nextsim */
