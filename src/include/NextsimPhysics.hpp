@@ -7,10 +7,12 @@
 #ifndef SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 #define SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 
+#include "ElementData.hpp"
+
 namespace Nextsim {
 
-class ElementData;
 class PrognosticData;
+class ExternalData;
 class PhysicsData;
 
 class NextsimPhysics {
@@ -20,7 +22,7 @@ public:
 
     inline void updateDerivedData(ElementData& data)
     {
-        updateDerivedData(data, data);
+        updateDerivedData(data, data, data);
     }
     inline void massFluxOpenWater(ElementData& data)
     {
@@ -35,33 +37,41 @@ public:
         heatFluxOpenWater(data, data);
     };
 
+    class SpecificHumidity {
+    public:
+        SpecificHumidity();
+        double operator()(const double temperature, const double pressure) const;
+        double operator()(const double temperature, const double pressure, const double salinity) const;
+    protected:
+        SpecificHumidity(double, double, double, double, double, double, double);
+        double f(const double pressurePa, const double temperature) const;
+        double est(const double temperature, const double salinity) const;
+        const double m_a;
+        const double m_b;
+        const double m_c;
+        const double m_d;
+        const double m_bigA;
+        const double m_bigB;
+        const double m_bigC;
+        const double m_alpha;
+        const double m_beta;
+    };
+    class SpecificHumidityIce : public SpecificHumidity {
+    public:
+           SpecificHumidityIce();
+    protected:
+           double operator()(const double temperature, const double pressure) const;
+           double dq_dT(const double temperature, const double pressure) const;
+    };
 private:
-    static void updateDerivedData(const PrognosticData& prog, PhysicsData& phys);
+    static void updateDerivedData(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
     static void massFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
     static void momentumFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
     static void heatFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
 
-    static class SpecificHumidity {
-    public:
-        SpecificHumidity();
-        double operator()(double temperature, double pressure);
-        double operator()(double temperature, double pressure, double salinity);
-    protected:
-        double m_a;
-        double m_b;
-        double m_c;
-        double m_d;
-        double m_bigA;
-        double m_bigB;
-        double m_bigC;
-        double alpha;
-        double beta;
-    } specificHumidityWater;
+    static SpecificHumidity specificHumidityWater;
 
-    static class SpecificHumidityIce : public SpecificHumidity {
-        SpecificHumidityIce();
-        double operator()(double temperature, double pressure);
-    } specificHumidityIce;
+    static SpecificHumidityIce specificHumidityIce;
 };
 
 } /* namespace Nextsim */

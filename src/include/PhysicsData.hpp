@@ -7,7 +7,7 @@
 #ifndef SRC_INCLUDE_PHYSICSDATA_HPP
 #define SRC_INCLUDE_PHYSICSDATA_HPP
 
-#include <BaseElementData.hpp>
+#include "BaseElementData.hpp"
 
 namespace Nextsim {
 

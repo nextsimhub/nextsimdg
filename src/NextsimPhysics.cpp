@@ -8,13 +8,15 @@
 
 #include <cmath>
 #include "include/PrognosticData.hpp"
+#include "include/ExternalData.hpp"
 #include "include/PhysicsData.hpp"
 
 namespace Nextsim {
 
+NextsimPhysics::SpecificHumidity NextsimPhysics::specificHumidityWater;
+NextsimPhysics::SpecificHumidityIce NextsimPhysics::specificHumidityIce;
+
 NextsimPhysics::NextsimPhysics()
-    : specificHumidityWater()
-    , specificHumidityIce()
 {
     // TODO Auto-generated constructor stub
 
@@ -25,9 +27,17 @@ NextsimPhysics::~NextsimPhysics()
     // TODO Auto-generated destructor stub
 }
 
-void NextsimPhysics::updateDerivedData(const PrognosticData& prog, PhysicsData& phys)
+void NextsimPhysics::updateDerivedData(
+        const PrognosticData& prog,
+        const ExternalData& exter,
+        PhysicsData& phys)
 {
+    phys.specificHumidityAir() = specificHumidityWater(exter.airTemperature(), exter.airPressure());
+    phys.specificHumidityWater() = specificHumidityWater(prog.seaSurfaceTemperature(), exter.airPressure(), prog.seaSurfaceSalinity());
 
+    // TODO implement and use constants
+    // TODO implement and use K->˚C conversion
+    phys.airDensity() = exter.airPressure() / (287.058 * (exter.airTemperature() + 273.16));
 }
 
 void NextsimPhysics::massFluxOpenWater(const PrognosticData& prog, PhysicsData& phys)
@@ -48,46 +58,74 @@ void NextsimPhysics::heatFluxOpenWater(const PrognosticData& prog, PhysicsData& 
 }
 
 NextsimPhysics::SpecificHumidity::SpecificHumidity()
-    : m_a(6.1121e2)
-    , m_b(18.729)
-    , m_c(257.87)
-    , m_d(227.3)
-    , m_bigA(7.2e-4)
-    , m_bigB(3.20e-6)
-    , m_bigC(5.9e-10)
-    , alpha(0.62197)
-    , beta(1-alpha)
+    : SpecificHumidity(
+            6.1121e2, 18.729, 257.87, 227.3,
+            7.2e-4, 3.20e-6, 5.9e-10)
 { }
 
-double NextsimPhysics::SpecificHumidity::operator()(double temperature, double pressure)
+// alpha (and beta) are consistent between both ice and water
+NextsimPhysics::SpecificHumidity::SpecificHumidity(
+        double a, double b, double c, double d,
+        double bigA, double bigB, double bigC)
+    : m_a(a)
+    , m_b(b)
+    , m_c(c)
+    , m_d(d)
+    , m_bigA(bigA)
+    , m_bigB(bigB)
+    , m_bigC(bigC)
+    , m_alpha(0.62197)
+    , m_beta(1 - m_alpha)
+{ }
+
+double NextsimPhysics::SpecificHumidity::operator()(const double temperature, const double pressure) const
 {
     return this->operator ()(temperature, 0); // Zero salinity
 }
 
-double NextsimPhysics::SpecificHumidity::operator()(double temperature, double pressure, double salinity)
+double NextsimPhysics::SpecificHumidity::operator()(const double temperature, const double pressure, const double salinity) const
 {
-    double p_mb = pressure * 0.01; // Convert from kPa to mbar
-    double f = 1 + m_bigA + p_mb * (m_bigB + m_bigC * temperature * temperature);
-    double est = m_a * exp( (m_b - temperature / m_d) * temperature / (temperature + m_c) ) *
-            ( 1 - 5.37e-4 * salinity);
-    double sphum = alpha * f * est / (pressure - beta * f * est);
+    double estCalc = est(temperature, salinity);
+    double fCalc = f(temperature, pressure);
+    double sphum = m_alpha * fCalc * estCalc / (pressure - m_beta * fCalc * estCalc);
 
     return sphum;
 }
 
 NextsimPhysics::SpecificHumidityIce::SpecificHumidityIce()
-    : SpecificHumidity()
-    , m_a(6.1115e2)
-    , m_b(23.036)
-    , m_c(279.82)
-    , m_d(333.7)
-    , m_bigA(2.2e-4)
-    , m_bigB(3.83e-6)
-    , m_bigC(6.4e-10)
+    : SpecificHumidity(
+    6.1115e2, 23.036, 279.82, 333.7,
+    2.2e-4, 3.83e-6, 6.4e-10)
 { }
 
-double NextsimPhysics::SpecificHumidityIce::operator()(double temperature, double pressure)
+double NextsimPhysics::SpecificHumidityIce::operator()(const double temperature, const double pressure) const
 {
     return this->SpecificHumidity::operator()(temperature, pressure);
+}
+
+double NextsimPhysics::SpecificHumidityIce::dq_dT(const double temperature, const double pressure) const
+{
+    double df_dT = 2 * m_bigC * m_bigB * temperature;
+    double numerator = m_a * m_b * m_c - temperature * (2 * m_c + temperature);
+    double denominator = m_d * pow(m_c + temperature, 2);
+    double estCalc = est(temperature, 0);
+    double fCalc = f(pressure, temperature);
+    double dest_dT = numerator / denominator * estCalc;
+    numerator = m_alpha * pressure * (fCalc * dest_dT + estCalc * df_dT);
+    denominator = pow(pressure - m_beta * estCalc * fCalc, 2);
+    return numerator / denominator;
+}
+
+// Specific humidity terms
+double NextsimPhysics::SpecificHumidity::f(const double pressurePa, const double temperature) const
+{
+    double pressure_mb = pressurePa * 0.01;
+    return 1 + m_bigA + pressure_mb * (m_bigB + m_bigC * temperature * temperature);
+}
+
+double NextsimPhysics::SpecificHumidity::est(const double temperature, const double salinity) const
+{
+    double salFactor = 1 - 5.37e-4 * salinity;
+    return m_a * exp( (m_b - temperature / m_d) * temperature / (temperature + m_c) ) * salFactor;
 }
 } /* namespace Nextsim */

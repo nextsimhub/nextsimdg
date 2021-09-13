@@ -7,7 +7,7 @@
 #ifndef SRC_INCLUDE_PROGNOSTICDATA_HPP
 #define SRC_INCLUDE_PROGNOSTICDATA_HPP
 
-#include <BaseElementData.hpp>
+#include "BaseElementData.hpp"
 
 namespace Nextsim {
 
@@ -16,10 +16,29 @@ public:
     PrognosticData( );
     virtual ~PrognosticData( );
 
-    const double& iceThickness( ); //!< Effective Ice thickness [m]
-    const double& iceConcentration( ); //!< Ice concentration [1]
-    const double& seaSurfaceTemperature( ); //!< Sea surface temperature [˚C]
-    const double& seaSurfaceSalinity( ); //!< Sea surface salinity [psu]
+    //! Effective Ice thickness [m]
+    inline const double& iceThickness( ) const
+    {
+        return m_thick;
+    }
+
+    //! Ice concentration [1]
+    inline const double& iceConcentration( ) const
+    {
+        return m_conc;
+    }
+
+    //! Sea surface temperature [˚C]
+    inline const double& seaSurfaceTemperature( ) const
+    {
+        return m_sst;
+    }
+
+    //! Sea surface salinity [psu]
+    const double& seaSurfaceSalinity( ) const
+    {
+        return m_sss;
+    }
 
 private:
     double m_thick; //!< Effective Ice thickness [m]
