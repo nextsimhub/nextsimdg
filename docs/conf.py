@@ -7,7 +7,7 @@ import subprocess
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 if on_rtd:
-    subprocess.call('cd ..; doxygen', shell=True)
+    subprocess.call('doxygen', shell=True)
 
 import sphinx_rtd_theme
 
@@ -19,7 +19,7 @@ def setup(app):
     app.add_stylesheet("main_stylesheet.css")
 
 extensions = ['breathe']
-breathe_projects = { 'nextsimdg': '../xml' }
+breathe_projects = { 'nextsimdg': 'xml' }
 templates_path = ['_templates']
 html_static_path = ['_static']
 source_suffix = '.rst'
