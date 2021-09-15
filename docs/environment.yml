@@ -8,4 +8,3 @@ dependencies:
   # annoying bug regarding resolution of
   # template overloads
   - breathe==4.16.0
-  - exhale
