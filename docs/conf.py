@@ -21,8 +21,7 @@ def setup(app):
 extensions = ['breathe']
 breathe_projects = { 'nextsimdg': 'xml' }
 templates_path = ['_templates']
-html_static_path = ['_static']
-html_extra_path = ['build/xml']
+html_extra_path = ['xml']
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'nextsimdg'
