@@ -44,4 +44,4 @@ limitations under the License.
    :caption: API REFERENCE
    :maxdepth: 2
 
-   api/library_root
+   html/index.html
