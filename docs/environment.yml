@@ -5,3 +5,5 @@ channels:
 
 dependencies:
   - breathe==4.16.0
+  - pip :
+    - exhale
