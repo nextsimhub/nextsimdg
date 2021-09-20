@@ -52,19 +52,29 @@ public:
         return (m_mixrat >= 0) && (m_mixrat <= 1);
     };
 
-    inline double& inboundShortwave()
+    inline double& incomingShortwave()
     {
         return m_Qsw_in;
     }
-    inline const double& inboundShortwave() const
+    inline const double& incomingShortwave() const
     {
         return m_Qsw_in;
+    }
+
+    inline double& incomingLongwave()
+    {
+        return m_Qlw_in;
+    }
+    inline const double& incomingLongwave() const
+    {
+        return m_Qlw_in;
     }
 private:
     double m_tair;
     double m_slp;
     double m_mixrat;
     double m_Qsw_in;
+    double m_Qlw_in;
 };
 
 } /* namespace Nextsim */

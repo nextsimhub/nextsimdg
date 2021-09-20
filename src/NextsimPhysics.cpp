@@ -18,6 +18,9 @@ namespace Nextsim {
 NextsimPhysics::SpecificHumidity NextsimPhysics::specificHumidityWater;
 NextsimPhysics::SpecificHumidityIce NextsimPhysics::specificHumidityIce;
 double NextsimPhysics::dragOcean_q;
+
+double stefanBoltzmannLaw(double temperature);
+
 NextsimPhysics::NextsimPhysics()
 {
     // TODO Auto-generated constructor stub
@@ -63,10 +66,10 @@ void NextsimPhysics::heatFluxOpenWater(const PrognosticData& prog, const Externa
             (prog.seaSurfaceTemperature() - exter.airTemperature());
 
     // Shortwave flux
-    phys.QShortwave() = -exter.inboundShortwave() * (1 - phys.oceanAlbedo());
+    phys.QShortwave() = -exter.incomingShortwave() * (1 - phys.oceanAlbedo());
 
     // Longwave flux
-    phys.QLongwave() = PhysicalConstants::sigma * std::pow(kelvin(prog.seaSurfaceTemperature()), 4);
+    phys.QLongwave() = stefanBoltzmannLaw(prog.seaSurfaceTemperature()) - exter.incomingLongwave();
 
     // Total flux
     phys.QOpenWater() = phys.QLatentHeat() +
@@ -170,5 +173,10 @@ double NextsimPhysics::SpecificHumidity::est(const double temperature, const dou
 {
     double salFactor = 1 - 5.37e-4 * salinity;
     return m_a * exp( (m_b - temperature / m_d) * temperature / (temperature + m_c) ) * salFactor;
+}
+
+double stefanBoltzmannLaw(double temperatureC)
+{
+    return PhysicalConstants::sigma * std::pow(kelvin(temperatureC), 4);
 }
 } /* namespace Nextsim */
