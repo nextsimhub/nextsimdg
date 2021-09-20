@@ -34,7 +34,7 @@ public:
     };
     inline void heatFluxOpenWater(ElementData& data)
     {
-        heatFluxOpenWater(data, data);
+        heatFluxOpenWater(data, data, data);
     };
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
