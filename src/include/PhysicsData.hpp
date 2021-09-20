@@ -51,13 +51,6 @@ public:
     {
         return m_tau;
     }
-    //! Ocean drag scaling factor for humidity [s] (apparently)
-    static inline double& dragOcean_q()
-    {
-        return m_drag_ocean_q;
-    }
-    //! Specific drag from density to pressure [m s⁻²]
-    double dragOcean_m();
 private:
     double m_evap;
     double m_rho;
@@ -65,8 +58,6 @@ private:
     double m_sphumw;
     double m_sphuma;
     double m_tau;
-
-    static double m_drag_ocean_q;
 };
 
 } /* namespace Nextsim */

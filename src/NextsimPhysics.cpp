@@ -15,7 +15,7 @@ namespace Nextsim {
 
 NextsimPhysics::SpecificHumidity NextsimPhysics::specificHumidityWater;
 NextsimPhysics::SpecificHumidityIce NextsimPhysics::specificHumidityIce;
-
+double NextsimPhysics::dragOcean_q;
 NextsimPhysics::NextsimPhysics()
 {
     // TODO Auto-generated constructor stub
@@ -43,13 +43,13 @@ void NextsimPhysics::updateDerivedData(
 void NextsimPhysics::massFluxOpenWater(const PrognosticData& prog, PhysicsData& phys)
 {
     double specificHumidityDifference = phys.specificHumidityWater() - phys.specificHumidityAir();
-    phys.evaporationRate() = phys.dragOcean_q() * phys.airDensity() * phys.windSpeed()
+    phys.evaporationRate() = dragOcean_q * phys.airDensity() * phys.windSpeed()
             * specificHumidityDifference;
 }
 
 void NextsimPhysics::momentumFluxOpenWater(const PrognosticData& prog, PhysicsData& phys)
 {
-    phys.dragPressure() = phys.airDensity() * phys.dragOcean_m();
+    phys.dragPressure() = phys.airDensity() * dragOcean_m(phys.windSpeed());
 }
 
 void NextsimPhysics::heatFluxOpenWater(const PrognosticData& prog, PhysicsData& phys)
@@ -57,6 +57,21 @@ void NextsimPhysics::heatFluxOpenWater(const PrognosticData& prog, PhysicsData& 
 
 }
 
+void NextsimPhysics::setDragOcean_q(double doq)
+{
+    dragOcean_q = doq;
+}
+
+void NextsimPhysics::setDragOcean_t(double dot)
+{
+    dragOcean_t = dot;
+}
+
+double NextsimPhysics::dragOcean_m(double windSpeed)
+{
+    // Drag coefficient from Gill(1982) / Smith (1980)
+    return 1e-3 * std::max(1.0, std::min(2.0, 0.61 + 0.063 * windSpeed));
+}
 NextsimPhysics::SpecificHumidity::SpecificHumidity()
     : SpecificHumidity(
             6.1121e2, 18.729, 257.87, 227.3,
