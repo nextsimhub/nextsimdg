@@ -25,5 +25,13 @@ void Physics1dBase::physics1d<T>(ElementData& data) {
     T::massFluxOpenWater(data);
     T::momentumFluxOpenWater(data);
     T::heatFluxOpenWater(data);
+
+    T::massFluxIceAtmosphere(data);
+    // Ice momentum fluxes are handled by the dynamics
+    T::heatFluxIceAtmosphere(data);
+
+    T::massFluxIceOcean(data);
+    // Ice momentum fluxes are handled by the dynamics
+    T::heatFluxIceOcean(data);
 }
 } /* namespace Nextsim */
