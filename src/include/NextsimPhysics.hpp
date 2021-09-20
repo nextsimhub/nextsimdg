@@ -36,6 +36,22 @@ public:
     {
         heatFluxOpenWater(data, data, data);
     };
+    inline void massFluxIceAtmosphere(ElementData& data)
+    {
+        massFluxIceAtmosphere(data, data, data);
+    };
+    inline void heatFluxIceAtmosphere(ElementData& data)
+    {
+        heatFluxIceAtmosphere(data, data, data);
+    };
+    inline void massFluxIceOcean(ElementData& data)
+    {
+        massFluxIceOcean(data, data, data);
+    };
+    inline void heatFluxIceOcean(ElementData& data)
+    {
+        heatFluxIceOcean(data, data, data);
+    };
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
 
@@ -67,9 +83,15 @@ public:
     };
 private:
     static void updateDerivedData(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+
     static void massFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
     static void momentumFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
     static void heatFluxOpenWater(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+
+    static void massFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void heatFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void massFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void heatFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
 
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);

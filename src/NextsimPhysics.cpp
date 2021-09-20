@@ -78,6 +78,26 @@ void NextsimPhysics::heatFluxOpenWater(const PrognosticData& prog, const Externa
             phys.QShortwave();
 }
 
+void massFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
+{
+
+}
+
+void heatFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
+{
+
+}
+
+void massFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
+{
+
+}
+
+void heatFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
+{
+
+}
+
 void NextsimPhysics::setDragOcean_q(double doq)
 {
     dragOcean_q = doq;
