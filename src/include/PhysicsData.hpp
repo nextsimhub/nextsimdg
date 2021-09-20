@@ -51,6 +51,36 @@ public:
     {
         return m_tau;
     }
+    //! Total heat flux over open water [W m⁻²]
+    inline double& QOpenWater()
+    {
+        return m_Qow;
+    }
+    //! Ocean to atmosphere longwave heat flux [W m⁻²]
+    inline double& QLongwave()
+    {
+        return m_Qlw;
+    }
+    //! Ocean to atmosphere longwave heat flux [W m⁻²]
+    inline double& QShortwave()
+    {
+        return m_Qsw;
+    }
+    //! Ocean to atmosphere longwave heat flux [W m⁻²]
+    inline double& QLatentHeat()
+    {
+        return m_Qlh;
+    }
+    //! Ocean to atmosphere longwave heat flux [W m⁻²]
+    inline double& QSensibleHeat()
+    {
+        return m_Qsh;
+    }
+
+    inline double& oceanAlbedo()
+    {
+        return m_oceanAlbedo;
+    }
 private:
     double m_evap;
     double m_rho;
@@ -58,6 +88,16 @@ private:
     double m_sphumw;
     double m_sphuma;
     double m_tau;
+
+    // Heat fluxes
+    double m_Qow;
+    double m_Qlw;
+    double m_Qsw;
+    double m_Qlh;
+    double m_Qsh;
+
+    // Ocean albedo
+    static double m_oceanAlbedo;
 };
 
 } /* namespace Nextsim */

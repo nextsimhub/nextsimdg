@@ -9,6 +9,8 @@
 
 namespace Nextsim {
 
+double PhysicsData::m_oceanAlbedo;
+
 PhysicsData::PhysicsData()
 {
     // TODO Auto-generated constructor stub

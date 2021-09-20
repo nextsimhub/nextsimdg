@@ -38,11 +38,7 @@ public:
     };
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
-private:
-    static double dragOcean_q;
-    static double dragOcean_m(double windSpeed);
-    static double dragOcean_t;
-public:
+
     class SpecificHumidity {
     public:
         SpecificHumidity();
@@ -73,8 +69,13 @@ private:
     static void updateDerivedData(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
     static void massFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
     static void momentumFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
-    static void heatFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
+    static void heatFluxOpenWater(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
 
+    static double dragOcean_q;
+    static double dragOcean_m(double windSpeed);
+    static double dragOcean_t;
+
+    static double latentHeatWater(double temperature);
     static SpecificHumidity specificHumidityWater;
 
     static SpecificHumidityIce specificHumidityIce;

@@ -11,6 +11,8 @@
 #include "include/ExternalData.hpp"
 #include "include/PhysicsData.hpp"
 
+#include "include/constants.hpp"
+
 namespace Nextsim {
 
 NextsimPhysics::SpecificHumidity NextsimPhysics::specificHumidityWater;
@@ -35,9 +37,7 @@ void NextsimPhysics::updateDerivedData(
     phys.specificHumidityAir() = specificHumidityWater(exter.airTemperature(), exter.airPressure());
     phys.specificHumidityWater() = specificHumidityWater(prog.seaSurfaceTemperature(), exter.airPressure(), prog.seaSurfaceSalinity());
 
-    // TODO implement and use constants
-    // TODO implement and use K->˚C conversion
-    phys.airDensity() = exter.airPressure() / (287.058 * (exter.airTemperature() + 273.16));
+    phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
 }
 
 void NextsimPhysics::massFluxOpenWater(const PrognosticData& prog, PhysicsData& phys)
@@ -52,9 +52,27 @@ void NextsimPhysics::momentumFluxOpenWater(const PrognosticData& prog, PhysicsDa
     phys.dragPressure() = phys.airDensity() * dragOcean_m(phys.windSpeed());
 }
 
-void NextsimPhysics::heatFluxOpenWater(const PrognosticData& prog, PhysicsData& phys)
+void NextsimPhysics::heatFluxOpenWater(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
 {
+    // Latent heat flux from evaporation and latent heat
+    phys.QLatentHeat() = phys.evaporationRate() * latentHeatWater(prog.seaSurfaceTemperature());
 
+    // Sensible heat
+    double heatCapacity = Air::cp + phys.specificHumidityAir()*Water::cp;
+    phys.QSensibleHeat() = dragOcean_t * phys.airDensity() * heatCapacity * phys.windSpeed *
+            (prog.seaSurfaceTemperature() - exter.airTemperature());
+
+    // Shortwave flux
+    phys.QShortwave() = -exter.inboundShortwave() * (1 - phys.oceanAlbedo());
+
+    // Longwave flux
+    phys.QLongwave() = PhysicalConstants::sigma * std::pow(kelvin(prog.seaSurfaceTemperature()), 4);
+
+    // Total flux
+    phys.QOpenWater() = phys.QLatentHeat() +
+            phys.QSensibleHeat() +
+            phys.QLongwave() +
+            phys.QShortwave();
 }
 
 void NextsimPhysics::setDragOcean_q(double doq)
@@ -72,6 +90,16 @@ double NextsimPhysics::dragOcean_m(double windSpeed)
     // Drag coefficient from Gill(1982) / Smith (1980)
     return 1e-3 * std::max(1.0, std::min(2.0, 0.61 + 0.063 * windSpeed));
 }
+
+double NextsimPhysics::latentHeatWater(double temperature)
+{
+    // Polynomial approximation expressed using Horner's scheme
+    return Water::Lv0 +
+            temperature * (-2.36418e3 +
+                    temperature * (1.58927 +
+                            temperature * (- 6.14342e-2)));
+}
+
 NextsimPhysics::SpecificHumidity::SpecificHumidity()
     : SpecificHumidity(
             6.1121e2, 18.729, 257.87, 227.3,
