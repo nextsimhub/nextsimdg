@@ -23,7 +23,7 @@ double NextsimPhysics::dragOcean_t;
 
 double stefanBoltzmannLaw(double temperature);
 
-void updateDerivedDataImpl(
+void NextsimPhysics::updateDerivedDataStatic(
         const PrognosticData& prog,
         const ExternalData& exter,
         PhysicsData& phys)
@@ -33,32 +33,20 @@ void updateDerivedDataImpl(
 
     phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
 }
-void NextsimPhysics::updateDerivedDataStatic(ElementData<NextsimPhysics>& data)
-{
-    updateDerivedDataImpl(data, data, data);
-}
 
-void massFluxOpenWaterImpl(const PrognosticData& prog, PhysicsData& phys)
+void NextsimPhysics::massFluxOpenWaterStatic(PhysicsData& phys)
 {
     double specificHumidityDifference = phys.specificHumidityWater() - phys.specificHumidityAir();
     phys.evaporationRate() = NextsimPhysics::dragOcean_q * phys.airDensity() * phys.windSpeed()
             * specificHumidityDifference;
 }
-void NextsimPhysics::massFluxOpenWaterStatic(ElementData<NextsimPhysics>& data)
-{
-    massFluxOpenWaterImpl(data, data);
-}
 
-void momentumFluxOpenWaterImpl(const PrognosticData& prog, PhysicsData& phys)
+void NextsimPhysics::momentumFluxOpenWaterStatic(PhysicsData& phys)
 {
     phys.dragPressure() = phys.airDensity() * NextsimPhysics::dragOcean_m(phys.windSpeed());
 }
-void NextsimPhysics::momentumFluxOpenWaterStatic(ElementData<NextsimPhysics>& data)
-{
-    momentumFluxOpenWaterImpl(data, data);
-}
 
-void heatFluxOpenWaterImpl(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
+void NextsimPhysics::heatFluxOpenWaterStatic(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
 {
     // Latent heat flux from evaporation and latent heat
     phys.QLatentHeat() = phys.evaporationRate() * NextsimPhysics::latentHeatWater(prog.seaSurfaceTemperature());
@@ -80,43 +68,23 @@ void heatFluxOpenWaterImpl(const PrognosticData& prog, const ExternalData &exter
             phys.QLongwave() +
             phys.QShortwave();
 }
-void NextsimPhysics::heatFluxOpenWaterStatic(ElementData<NextsimPhysics>& data)
-{
-    heatFluxOpenWaterImpl(data, data, data);
-}
 
-void massFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
-{
-
-}
-void NextsimPhysics::massFluxIceAtmosphereStatic(ElementData<NextsimPhysics>& data)
+void NextsimPhysics::massFluxIceAtmosphereStatic(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
 {
 
 }
 
-void heatFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
-{
-
-}
-void NextsimPhysics::heatFluxIceAtmosphereStatic(ElementData<NextsimPhysics>& data)
+void NextsimPhysics::heatFluxIceAtmosphereStatic(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
 {
 
 }
 
-void massFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
-{
-
-}
-void NextsimPhysics::massFluxIceOceanStatic(ElementData<NextsimPhysics>& data)
+void NextsimPhysics::massFluxIceOceanStatic(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
 {
 
 }
 
-void heatFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
-{
-
-}
-void NextsimPhysics::heatFluxIceOceanStatic(ElementData<NextsimPhysics>& data)
+void NextsimPhysics::heatFluxIceOceanStatic(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
 {
 
 }

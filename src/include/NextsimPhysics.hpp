@@ -14,6 +14,7 @@ namespace Nextsim {
 class PrognosticData;
 class PhysicsData;
 class ExternalData;
+class UnusedData;
 
 template<class Phys>
 class ElementData;
@@ -25,37 +26,69 @@ public:
     NextsimPhysics() = default;
     ~NextsimPhysics() = default;
 
-    inline static void updateDerivedData(ElementData<NextsimPhysics>& data)
+    inline static void updateDerivedData(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys,
+            const UnusedData&)
     {
-        updateDerivedDataStatic(data);
+        updateDerivedDataStatic(prog, exter, phys);
     }
-    inline static void massFluxOpenWater(ElementData<NextsimPhysics>& data)
+    inline static void massFluxOpenWater(
+            const UnusedData&,
+            const UnusedData&,
+            PhysicsData& phys,
+            const UnusedData&)
     {
-        massFluxOpenWaterStatic(data);
+        massFluxOpenWaterStatic(phys);
     };
-    inline static void momentumFluxOpenWater(ElementData<NextsimPhysics>& data)
+    inline static void momentumFluxOpenWater(
+            const UnusedData&,
+            const UnusedData&,
+            PhysicsData& phys,
+            const UnusedData&)
     {
-        momentumFluxOpenWaterStatic(data);
+        momentumFluxOpenWaterStatic(phys);
     };
-    inline static void heatFluxOpenWater(ElementData<NextsimPhysics>& data)
+    inline static void heatFluxOpenWater(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys,
+            UnusedData&)
     {
-        heatFluxOpenWaterStatic(data);
+        heatFluxOpenWaterStatic(prog, exter, phys);
+    }
+    inline static void massFluxIceAtmosphere(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys,
+            UnusedData&)
+    {
+        massFluxIceAtmosphereStatic(prog, exter, phys);
     };
-    inline static void massFluxIceAtmosphere(ElementData<NextsimPhysics>& data)
+    inline static void heatFluxIceAtmosphere(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys,
+            UnusedData&)
     {
-        massFluxIceAtmosphereStatic(data);
+        heatFluxIceAtmosphereStatic(prog, exter, phys);
     };
-    inline static void heatFluxIceAtmosphere(ElementData<NextsimPhysics>& data)
+    inline static void massFluxIceOcean(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys,
+            UnusedData&)
     {
-        heatFluxIceAtmosphereStatic(data);
+        massFluxIceOceanStatic(prog, exter, phys);
     };
-    inline static void massFluxIceOcean(ElementData<NextsimPhysics>& data)
+    inline static void heatFluxIceOcean(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys,
+            UnusedData&)
     {
-        massFluxIceOceanStatic(data);
-    };
-    inline static void heatFluxIceOcean(ElementData<NextsimPhysics>& data)
-    {
-        heatFluxIceOceanStatic(data);
+        heatFluxIceOceanStatic(prog, exter, phys);
     };
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
@@ -87,17 +120,34 @@ public:
            double dq_dT(const double temperature, const double pressure) const;
     };
 private:
-    static void updateDerivedDataStatic(ElementData<NextsimPhysics>&);
+    static void updateDerivedDataStatic(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys);
 
+    static void massFluxOpenWaterStatic(PhysicsData& phys);
+    static void momentumFluxOpenWaterStatic(PhysicsData& phys);
+    static void heatFluxOpenWaterStatic(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys);
 
-    static void massFluxOpenWaterStatic(ElementData<NextsimPhysics>&);
-    static void momentumFluxOpenWaterStatic(ElementData<NextsimPhysics>&);
-    static void heatFluxOpenWaterStatic(ElementData<NextsimPhysics>&);
-
-    static void massFluxIceAtmosphereStatic(ElementData<NextsimPhysics>&);
-    static void heatFluxIceAtmosphereStatic(ElementData<NextsimPhysics>&);
-    static void massFluxIceOceanStatic(ElementData<NextsimPhysics>&);
-    static void heatFluxIceOceanStatic(ElementData<NextsimPhysics>&);
+    static void massFluxIceAtmosphereStatic(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys);
+    static void heatFluxIceAtmosphereStatic(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys);
+    static void massFluxIceOceanStatic(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys);
+    static void heatFluxIceOceanStatic(
+            const PrognosticData& prog,
+            const ExternalData& exter,
+            PhysicsData& phys);
 public:
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);

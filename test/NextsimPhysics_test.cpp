@@ -20,7 +20,7 @@ TEST_CASE("Outgoing LW (OW)", "[NextsimPhysics]")
     const double t = 280.; // kelvin
     data = PrognosticData::generate(0., 0., celsius(t), 0.);
 
-    NextsimPhysics::heatFluxOpenWater(data);
+    NextsimPhysics::heatFluxOpenWater(data, data, data, data);
 
     double target = PhysicalConstants::sigma * t * t * t * t;
 

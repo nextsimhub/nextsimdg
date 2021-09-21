@@ -13,11 +13,16 @@
 
 namespace Nextsim {
 
+class UnusedData: public BaseElementData {
+
+};
+
 template<class Phys>
 class ElementData: public PrognosticData,
                    public PhysicsData,
                    public ExternalData,
-                   public Phys {
+                   public Phys,
+                   public UnusedData {
 public:
     ElementData() = default;
     ~ElementData() = default;
