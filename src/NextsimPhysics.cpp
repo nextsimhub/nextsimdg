@@ -88,8 +88,16 @@ void massFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter
 {
 
 }
+void NextsimPhysics::massFluxIceAtmosphereStatic(ElementData<NextsimPhysics>& data)
+{
+
+}
 
 void heatFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
+{
+
+}
+void NextsimPhysics::heatFluxIceAtmosphereStatic(ElementData<NextsimPhysics>& data)
 {
 
 }
@@ -98,8 +106,16 @@ void massFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, Phy
 {
 
 }
+void NextsimPhysics::massFluxIceOceanStatic(ElementData<NextsimPhysics>& data)
+{
+
+}
 
 void heatFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
+{
+
+}
+void NextsimPhysics::heatFluxIceOceanStatic(ElementData<NextsimPhysics>& data)
 {
 
 }
