@@ -13,8 +13,8 @@ namespace Nextsim {
 
 class PrognosticData: public BaseElementData {
 public:
-    PrognosticData( );
-    virtual ~PrognosticData( );
+    PrognosticData( ) = default;
+    ~PrognosticData( ) = default;
 
     //! Effective Ice thickness [m]
     inline const double& iceThickness( ) const

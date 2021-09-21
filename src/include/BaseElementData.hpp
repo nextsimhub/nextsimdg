@@ -16,9 +16,9 @@ namespace Nextsim {
  */
 class BaseElementData {
 public:
-    BaseElementData();
+    BaseElementData() = default;
     // TODO: implement output handling
-    virtual ~BaseElementData();
+    ~BaseElementData() = default;
 };
 
 } /* namespace Nextsim */

@@ -13,8 +13,8 @@ namespace Nextsim {
 
 class ExternalData: public BaseElementData {
 public:
-    ExternalData();
-    virtual ~ExternalData();
+    ExternalData() = default;
+    ~ExternalData() = default;
 
     //! Air temperature at 2 m [˚C]
     inline double& airTemperature()

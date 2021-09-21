@@ -17,8 +17,8 @@ class ElementData: public PrognosticData,
                    public PhysicsData,
                    public ExternalData {
 public:
-    ElementData();
-    virtual ~ElementData();
+    ElementData() = default;
+    ~ElementData() = default;
 
     using PrognosticData::operator=;
     using PhysicsData::operator=;

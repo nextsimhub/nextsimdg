@@ -13,8 +13,8 @@ namespace Nextsim {
 
 class PhysicsData: public BaseElementData {
 public:
-    PhysicsData();
-    virtual ~PhysicsData();
+    PhysicsData() = default;
+    ~PhysicsData() = default;
 
     //! Rate of evaporation (+ve) or condensation (-ve) [kg s⁻¹ m⁻²]
     inline double& evaporationRate()
