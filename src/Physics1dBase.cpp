@@ -19,19 +19,19 @@ Physics1dBase::~Physics1dBase()
     // TODO Auto-generated destructor stub
 }
 
-template <class T>
-void Physics1dBase::physics1d<T>(ElementData& data) {
-    T::updateDerivedData(data);
-    T::massFluxOpenWater(data);
-    T::momentumFluxOpenWater(data);
-    T::heatFluxOpenWater(data);
+template <class Phys>
+void Physics1dBase::physics1d<Phys>(ElementData<Phys>& data) {
+    Phys::updateDerivedData(data);
+    Phys::massFluxOpenWater(data);
+    Phys::momentumFluxOpenWater(data);
+    Phys::heatFluxOpenWater(data);
 
-    T::massFluxIceAtmosphere(data);
+    Phys::massFluxIceAtmosphere(data);
     // Ice momentum fluxes are handled by the dynamics
-    T::heatFluxIceAtmosphere(data);
+    Phys::heatFluxIceAtmosphere(data);
 
-    T::massFluxIceOcean(data);
+    Phys::massFluxIceOcean(data);
     // Ice momentum fluxes are handled by the dynamics
-    T::heatFluxIceOcean(data);
+    Phys::heatFluxIceOcean(data);
 }
 } /* namespace Nextsim */

@@ -15,44 +15,47 @@ class PrognosticData;
 class PhysicsData;
 class ExternalData;
 
+template<class Phys>
 class ElementData;
+
+class NextsimPhysics;
 
 class NextsimPhysics : public BaseElementData {
 public:
     NextsimPhysics() = default;
     ~NextsimPhysics() = default;
 
-    inline void updateDerivedData(ElementData& data)
+    inline void updateDerivedData(ElementData<NextsimPhysics>& data)
     {
         updateDerivedDataStatic(data);
     }
-    inline void massFluxOpenWater(ElementData& data)
+    inline void massFluxOpenWater(ElementData<NextsimPhysics>& data)
     {
-        massFluxOpenWaterStatic(data);//
+        massFluxOpenWaterStatic(data);
     };
-    inline void momentumFluxOpenWater(ElementData& data)
+    inline void momentumFluxOpenWater(ElementData<NextsimPhysics>& data)
     {
-        momentumFluxOpenWaterStatic(data);//(data, data);
+        momentumFluxOpenWaterStatic(data);
     };
-    inline void heatFluxOpenWater(ElementData& data)
+    inline void heatFluxOpenWater(ElementData<NextsimPhysics>& data)
     {
-        heatFluxOpenWaterStatic(data);//(data, data, data);
+        heatFluxOpenWaterStatic(data);
     };
-    inline void massFluxIceAtmosphere(ElementData& data)
+    inline void massFluxIceAtmosphere(ElementData<NextsimPhysics>& data)
     {
-        massFluxIceAtmosphereStatic(data);//(data, data, data);
+        massFluxIceAtmosphereStatic(data);
     };
-    inline void heatFluxIceAtmosphere(ElementData& data)
+    inline void heatFluxIceAtmosphere(ElementData<NextsimPhysics>& data)
     {
-        heatFluxIceAtmosphereStatic(data);//(data, data, data);
+        heatFluxIceAtmosphereStatic(data);
     };
-    inline void massFluxIceOcean(ElementData& data)
+    inline void massFluxIceOcean(ElementData<NextsimPhysics>& data)
     {
-        massFluxIceOceanStatic(data);//(data, data, data);
+        massFluxIceOceanStatic(data);
     };
-    inline void heatFluxIceOcean(ElementData& data)
+    inline void heatFluxIceOcean(ElementData<NextsimPhysics>& data)
     {
-        heatFluxIceOceanStatic(data);//(data, data, data);
+        heatFluxIceOceanStatic(data);
     };
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
@@ -84,17 +87,17 @@ public:
            double dq_dT(const double temperature, const double pressure) const;
     };
 private:
-    static void updateDerivedDataStatic(ElementData&);
-    //static void updateDerivedData(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void updateDerivedDataStatic(ElementData<NextsimPhysics>&);
 
-    static void massFluxOpenWaterStatic(ElementData&);//const PrognosticData& prog, PhysicsData& phys);
-    static void momentumFluxOpenWaterStatic(ElementData&);//(const PrognosticData& prog, PhysicsData& phys);
-    static void heatFluxOpenWaterStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
 
-    static void massFluxIceAtmosphereStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
-    static void heatFluxIceAtmosphereStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
-    static void massFluxIceOceanStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
-    static void heatFluxIceOceanStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void massFluxOpenWaterStatic(ElementData<NextsimPhysics>&);
+    static void momentumFluxOpenWaterStatic(ElementData<NextsimPhysics>&);
+    static void heatFluxOpenWaterStatic(ElementData<NextsimPhysics>&);
+
+    static void massFluxIceAtmosphereStatic(ElementData<NextsimPhysics>&);
+    static void heatFluxIceAtmosphereStatic(ElementData<NextsimPhysics>&);
+    static void massFluxIceOceanStatic(ElementData<NextsimPhysics>&);
+    static void heatFluxIceOceanStatic(ElementData<NextsimPhysics>&);
 public:
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);

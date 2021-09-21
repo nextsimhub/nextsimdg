@@ -11,24 +11,13 @@
 #include "PrognosticData.hpp"
 #include "ExternalData.hpp"
 
-#if 1 // TODO: A more sophisticated system of selecting class that implements the physics.
-#include "NextsimPhysics.hpp"
-typedef Nextsim::NextsimPhysics PhysicsImpl;
-#else
-namespace Nextsim {
-class NoPhysics: public BaseElementData {
-
-};
-typedef NoPhysics PhysicsImpl;
-}
-#endif
-
 namespace Nextsim {
 
+template<class Phys>
 class ElementData: public PrognosticData,
                    public PhysicsData,
                    public ExternalData,
-                   public PhysicsImpl {
+                   public Phys {
 public:
     ElementData() = default;
     ~ElementData() = default;
@@ -36,6 +25,7 @@ public:
     using PrognosticData::operator=;
     using PhysicsData::operator=;
     using ExternalData::operator=;
+    using Phys::operator=;
 };
 
 } /* namespace Nextsim */

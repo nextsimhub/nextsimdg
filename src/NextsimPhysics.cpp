@@ -22,17 +22,6 @@ double NextsimPhysics::dragOcean_q;
 
 double stefanBoltzmannLaw(double temperature);
 
-//NextsimPhysics::NextsimPhysics()
-//{
-//    // TODO Auto-generated constructor stub
-//
-//}
-//
-//NextsimPhysics::~NextsimPhysics()
-//{
-//    // TODO Auto-generated destructor stub
-//}
-
 void updateDerivedDataImpl(
         const PrognosticData& prog,
         const ExternalData& exter,
@@ -43,7 +32,7 @@ void updateDerivedDataImpl(
 
     phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
 }
-void NextsimPhysics::updateDerivedDataStatic(ElementData& data)
+void NextsimPhysics::updateDerivedDataStatic(ElementData<NextsimPhysics>& data)
 {
     updateDerivedDataImpl(data, data, data);
 }
@@ -54,7 +43,7 @@ void massFluxOpenWaterImpl(const PrognosticData& prog, PhysicsData& phys)
     phys.evaporationRate() = NextsimPhysics::dragOcean_q * phys.airDensity() * phys.windSpeed()
             * specificHumidityDifference;
 }
-void NextsimPhysics::massFluxOpenWaterStatic(ElementData& data)
+void NextsimPhysics::massFluxOpenWaterStatic(ElementData<NextsimPhysics>& data)
 {
     massFluxOpenWaterImpl(data, data);
 }
@@ -63,7 +52,7 @@ void momentumFluxOpenWaterImpl(const PrognosticData& prog, PhysicsData& phys)
 {
     phys.dragPressure() = phys.airDensity() * NextsimPhysics::dragOcean_m(phys.windSpeed());
 }
-void NextsimPhysics::momentumFluxOpenWaterStatic(ElementData& data)
+void NextsimPhysics::momentumFluxOpenWaterStatic(ElementData<NextsimPhysics>& data)
 {
     momentumFluxOpenWaterImpl(data, data);
 }
@@ -90,7 +79,7 @@ void heatFluxOpenWaterImpl(const PrognosticData& prog, const ExternalData &exter
             phys.QLongwave() +
             phys.QShortwave();
 }
-void NextsimPhysics::heatFluxOpenWaterStatic(ElementData& data)
+void NextsimPhysics::heatFluxOpenWaterStatic(ElementData<NextsimPhysics>& data)
 {
     heatFluxOpenWaterImpl(data, data, data);
 }
