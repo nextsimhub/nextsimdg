@@ -25,35 +25,35 @@ public:
     NextsimPhysics() = default;
     ~NextsimPhysics() = default;
 
-    inline void updateDerivedData(ElementData<NextsimPhysics>& data)
+    inline static void updateDerivedData(ElementData<NextsimPhysics>& data)
     {
         updateDerivedDataStatic(data);
     }
-    inline void massFluxOpenWater(ElementData<NextsimPhysics>& data)
+    inline static void massFluxOpenWater(ElementData<NextsimPhysics>& data)
     {
         massFluxOpenWaterStatic(data);
     };
-    inline void momentumFluxOpenWater(ElementData<NextsimPhysics>& data)
+    inline static void momentumFluxOpenWater(ElementData<NextsimPhysics>& data)
     {
         momentumFluxOpenWaterStatic(data);
     };
-    inline void heatFluxOpenWater(ElementData<NextsimPhysics>& data)
+    inline static void heatFluxOpenWater(ElementData<NextsimPhysics>& data)
     {
         heatFluxOpenWaterStatic(data);
     };
-    inline void massFluxIceAtmosphere(ElementData<NextsimPhysics>& data)
+    inline static void massFluxIceAtmosphere(ElementData<NextsimPhysics>& data)
     {
         massFluxIceAtmosphereStatic(data);
     };
-    inline void heatFluxIceAtmosphere(ElementData<NextsimPhysics>& data)
+    inline static void heatFluxIceAtmosphere(ElementData<NextsimPhysics>& data)
     {
         heatFluxIceAtmosphereStatic(data);
     };
-    inline void massFluxIceOcean(ElementData<NextsimPhysics>& data)
+    inline static void massFluxIceOcean(ElementData<NextsimPhysics>& data)
     {
         massFluxIceOceanStatic(data);
     };
-    inline void heatFluxIceOcean(ElementData<NextsimPhysics>& data)
+    inline static void heatFluxIceOcean(ElementData<NextsimPhysics>& data)
     {
         heatFluxIceOceanStatic(data);
     };
