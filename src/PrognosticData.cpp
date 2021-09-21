@@ -8,15 +8,4 @@
 
 namespace Nextsim {
 
-PrognosticData::PrognosticData()
-{
-    // TODO Auto-generated constructor stub
-
-}
-
-PrognosticData::~PrognosticData()
-{
-    // TODO Auto-generated destructor stub
-}
-
 } /* namespace Nextsim */

@@ -8,15 +8,4 @@
 
 namespace Nextsim {
 
-BaseElementData::BaseElementData()
-{
-    // TODO Auto-generated constructor stub
-
-}
-
-BaseElementData::~BaseElementData()
-{
-    // TODO Auto-generated destructor stub
-}
-
 } /* namespace Nextsim */
