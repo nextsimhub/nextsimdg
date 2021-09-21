@@ -48,3 +48,10 @@ add_executable(testSimpleIter
 	"${INCLUDE_DIR}/Logged.hpp"
 	)
 target_link_libraries(testSimpleIter PRIVATE Catch2::Catch2)
+
+add_executable(testNextsimPhysics
+    "NextsimPhysics_test.cpp"
+    "${SRC_DIR}/NextsimPhysics.cpp"
+    "${SRC_DIR}/PhysicsData.cpp"
+    )
+target_link_libraries(testNextsimPhysics PRIVATE Catch2::Catch2)
