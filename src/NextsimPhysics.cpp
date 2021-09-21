@@ -133,7 +133,7 @@ void NextsimPhysics::setDragOcean_t(double dot)
 double NextsimPhysics::dragOcean_m(double windSpeed)
 {
     // Drag coefficient from Gill(1982) / Smith (1980)
-    return 1e-3 * std::max(1.0, std::min(2.0, 0.61 + 0.063 * windSpeed));
+    return 1e-3 * std::fmax(1.0, std::fmin(2.0, 0.61 + 0.063 * windSpeed));
 }
 
 double NextsimPhysics::latentHeatWater(double temperature)
