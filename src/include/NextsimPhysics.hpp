@@ -4,49 +4,55 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#include "BaseElementData.hpp"
+
 #ifndef SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 #define SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 
-#include "ElementData.hpp"
-
 namespace Nextsim {
 
-class NextsimPhysics {
+class PrognosticData;
+class PhysicsData;
+class ExternalData;
+
+class ElementData;
+
+class NextsimPhysics : public BaseElementData {
 public:
-    NextsimPhysics();
-    virtual ~NextsimPhysics();
+    NextsimPhysics() = default;
+    ~NextsimPhysics() = default;
 
     inline void updateDerivedData(ElementData& data)
     {
-        updateDerivedData(data, data, data);
+        updateDerivedDataStatic(data);
     }
     inline void massFluxOpenWater(ElementData& data)
     {
-        massFluxOpenWater(data, data);
+        massFluxOpenWaterStatic(data);//
     };
     inline void momentumFluxOpenWater(ElementData& data)
     {
-        momentumFluxOpenWater(data, data);
+        momentumFluxOpenWaterStatic(data);//(data, data);
     };
     inline void heatFluxOpenWater(ElementData& data)
     {
-        heatFluxOpenWater(data, data, data);
+        heatFluxOpenWaterStatic(data);//(data, data, data);
     };
     inline void massFluxIceAtmosphere(ElementData& data)
     {
-        massFluxIceAtmosphere(data, data, data);
+        massFluxIceAtmosphereStatic(data);//(data, data, data);
     };
     inline void heatFluxIceAtmosphere(ElementData& data)
     {
-        heatFluxIceAtmosphere(data, data, data);
+        heatFluxIceAtmosphereStatic(data);//(data, data, data);
     };
     inline void massFluxIceOcean(ElementData& data)
     {
-        massFluxIceOcean(data, data, data);
+        massFluxIceOceanStatic(data);//(data, data, data);
     };
     inline void heatFluxIceOcean(ElementData& data)
     {
-        heatFluxIceOcean(data, data, data);
+        heatFluxIceOceanStatic(data);//(data, data, data);
     };
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
@@ -78,24 +84,25 @@ public:
            double dq_dT(const double temperature, const double pressure) const;
     };
 private:
-    static void updateDerivedData(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void updateDerivedDataStatic(ElementData&);
+    //static void updateDerivedData(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
 
-    static void massFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
-    static void momentumFluxOpenWater(const PrognosticData& prog, PhysicsData& phys);
-    static void heatFluxOpenWater(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void massFluxOpenWaterStatic(ElementData&);//const PrognosticData& prog, PhysicsData& phys);
+    static void momentumFluxOpenWaterStatic(ElementData&);//(const PrognosticData& prog, PhysicsData& phys);
+    static void heatFluxOpenWaterStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
 
-    static void massFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
-    static void heatFluxIceAtmosphere(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
-    static void massFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
-    static void heatFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
-
+    static void massFluxIceAtmosphereStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void heatFluxIceAtmosphereStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void massFluxIceOceanStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+    static void heatFluxIceOceanStatic(ElementData&);//(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys);
+public:
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);
     static double dragOcean_t;
 
     static double latentHeatWater(double temperature);
-    static SpecificHumidity specificHumidityWater;
 
+    static SpecificHumidity specificHumidityWater;
     static SpecificHumidityIce specificHumidityIce;
 };
 
