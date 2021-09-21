@@ -35,9 +35,20 @@ public:
     }
 
     //! Sea surface salinity [psu]
-    const double& seaSurfaceSalinity( ) const
+    inline const double& seaSurfaceSalinity( ) const
     {
         return m_sss;
+    }
+
+    inline static PrognosticData generate(double h, double c, double t, double s)
+    {
+        PrognosticData data;
+        data.m_thick = h;
+        data.m_conc = c;
+        data.m_sst = t;
+        data.m_sss = s;
+
+        return data;
     }
 
 private:
