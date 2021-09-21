@@ -20,7 +20,7 @@ Physics1dBase::~Physics1dBase()
 }
 
 template <class Phys>
-void Physics1dBase::physics1d<Phys>(ElementData<Phys>& data) {
+void Physics1dBase::physics1d(ElementData<Phys>& data) {
     Phys::updateDerivedData(data);
     Phys::massFluxOpenWater(data);
     Phys::momentumFluxOpenWater(data);
