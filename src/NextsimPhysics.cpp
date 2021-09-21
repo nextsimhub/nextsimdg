@@ -62,7 +62,7 @@ void NextsimPhysics::heatFluxOpenWater(const PrognosticData& prog, const Externa
 
     // Sensible heat
     double heatCapacity = Air::cp + phys.specificHumidityAir()*Water::cp;
-    phys.QSensibleHeat() = dragOcean_t * phys.airDensity() * heatCapacity * phys.windSpeed *
+    phys.QSensibleHeat() = dragOcean_t * phys.airDensity() * heatCapacity * phys.windSpeed() *
             (prog.seaSurfaceTemperature() - exter.airTemperature());
 
     // Shortwave flux

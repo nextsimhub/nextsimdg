@@ -11,10 +11,6 @@
 
 namespace Nextsim {
 
-class PrognosticData;
-class ExternalData;
-class PhysicsData;
-
 class NextsimPhysics {
 public:
     NextsimPhysics();
