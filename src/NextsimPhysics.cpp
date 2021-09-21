@@ -19,6 +19,7 @@ namespace Nextsim {
 NextsimPhysics::SpecificHumidity NextsimPhysics::specificHumidityWater;
 NextsimPhysics::SpecificHumidityIce NextsimPhysics::specificHumidityIce;
 double NextsimPhysics::dragOcean_q;
+double NextsimPhysics::dragOcean_t;
 
 double stefanBoltzmannLaw(double temperature);
 
