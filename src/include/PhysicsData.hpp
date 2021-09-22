@@ -21,6 +21,11 @@ public:
     {
         return m_evap;
     };
+    //! Rate of sublimation ice to vapour [kg s⁻¹ m⁻²]
+    inline double& sublimationRate()
+    {
+        return m_subl;
+    }
     //! Density of air at the current temperature and humidity [kg m⁻³]
     inline double& airDensity()
     {
@@ -36,6 +41,11 @@ public:
     {
         return m_sphumw;
     }
+    //! Specific humidity over the ice [kg kg⁻¹]
+    inline double& specificHumidityIce()
+    {
+        return m_sphumi;
+    }
     //! Specific humidity of the air [kg kg⁻¹]
     inline double& specificHumidityAir()
     {
@@ -45,6 +55,11 @@ public:
     inline double mixingRatio( )
     {
         return m_sphuma / (1 - m_sphuma);
+    }
+    //! Specific heat capacity of wet air
+    inline double& heatCapacityWetAir()
+    {
+        return m_cspec;
     }
     //! Pressure due to wind drag [Pa]
     inline double& dragPressure()
@@ -56,25 +71,51 @@ public:
     {
         return m_Qow;
     }
-    //! Ocean to atmosphere longwave heat flux [W m⁻²]
-    inline double& QLongwave()
+    //! Ocean to atmosphere longwave heat flux over open water [W m⁻²]
+    inline double& QLongwaveOpenWater()
     {
-        return m_Qlw;
+        return m_Qlwow;
     }
-    //! Ocean to atmosphere longwave heat flux [W m⁻²]
-    inline double& QShortwave()
+    //! Ocean to atmosphere longwave heat flux over open water [W m⁻²]
+    inline double& QShortwaveOpenWater()
     {
-        return m_Qsw;
+        return m_Qswow;
     }
-    //! Ocean to atmosphere longwave heat flux [W m⁻²]
-    inline double& QLatentHeat()
+    //! Ocean to atmosphere longwave heat flux over open water [W m⁻²]
+    inline double& QLatentHeatOpenWater()
     {
-        return m_Qlh;
+        return m_Qlhow;
     }
-    //! Ocean to atmosphere longwave heat flux [W m⁻²]
-    inline double& QSensibleHeat()
+    //! Ocean to atmosphere longwave heat flux over open water [W m⁻²]
+    inline double& QSensibleHeatOpenWater()
     {
-        return m_Qsh;
+        return m_Qshow;
+    }
+
+    //! Total heat flux over ice [W m⁻²]
+    inline double& QIce()
+    {
+        return m_Qi;
+    }
+    //! Ocean to atmosphere longwave heat flux over ice [W m⁻²]
+    inline double& QLongwaveIce()
+    {
+        return m_Qlwi;
+    }
+    //! Ocean to atmosphere longwave heat flux over ice [W m⁻²]
+    inline double& QShortwaveIce()
+    {
+        return m_Qswi;
+    }
+    //! Ocean to atmosphere longwave heat flux over ice [W m⁻²]
+    inline double& QLatentHeatIce()
+    {
+        return m_Qlhi;
+    }
+    //! Ocean to atmosphere longwave heat flux over ice [W m⁻²]
+    inline double& QSensibleHeatIce()
+    {
+        return m_Qshi;
     }
 
     inline double& oceanAlbedo()
@@ -83,18 +124,28 @@ public:
     }
 private:
     double m_evap;
+    double m_subl;
     double m_rho;
     double m_wspeed;
     double m_sphumw;
+    double m_sphumi;
     double m_sphuma;
+    double m_cspec;
     double m_tau;
 
-    // Heat fluxes
+    // Open water heat fluxes
     double m_Qow;
-    double m_Qlw;
-    double m_Qsw;
-    double m_Qlh;
-    double m_Qsh;
+    double m_Qlwow;
+    double m_Qswow;
+    double m_Qlhow;
+    double m_Qshow;
+
+    // Ice heat fluxes
+    double m_Qi;
+    double m_Qlwi;
+    double m_Qswi;
+    double m_Qlhi;
+    double m_Qshi;
 
     // Ocean albedo
     static double m_oceanAlbedo;

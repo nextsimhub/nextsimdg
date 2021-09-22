@@ -92,6 +92,8 @@ public:
     };
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
+    static void setDragIce_t(double dragIce_t);
+    static void setI0(double I0);
 
     class SpecificHumidity {
     public:
@@ -115,7 +117,6 @@ public:
     class SpecificHumidityIce : public SpecificHumidity {
     public:
            SpecificHumidityIce();
-    protected:
            double operator()(const double temperature, const double pressure) const;
            double dq_dT(const double temperature, const double pressure) const;
     };
@@ -148,12 +149,18 @@ private:
             const PrognosticData& prog,
             const ExternalData& exter,
             PhysicsData& phys);
-public:
+
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);
     static double dragOcean_t;
-
+    static double dragIce_t;
+public:
+    static double I_0;
+private:
     static double latentHeatWater(double temperature);
+    static double latentHeatIce(double temperature);
+
+    static double albedo(double temperature, double snowThickness);
 
     static SpecificHumidity specificHumidityWater;
     static SpecificHumidityIce specificHumidityIce;

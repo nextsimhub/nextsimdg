@@ -8,8 +8,11 @@
 #define SRC_INCLUDE_PROGNOSTICDATA_HPP
 
 #include "BaseElementData.hpp"
+#include <array>
 
 namespace Nextsim {
+
+const int N_ICE_TEMPERATURES = 3;
 
 class PrognosticData: public BaseElementData {
 public:
@@ -40,6 +43,18 @@ public:
         return m_sss;
     }
 
+    //! Ice temperatures [˚C]
+    inline const std::array<double, N_ICE_TEMPERATURES>& iceTemperatures( ) const
+    {
+        return m_tice;
+    }
+
+    //! Mean snow thickness [m]
+    inline const double& snowThickness( ) const
+    {
+        return m_snow;
+    }
+
     inline static PrognosticData generate(double h, double c, double t, double s)
     {
         PrognosticData data;
@@ -56,6 +71,8 @@ private:
     double m_conc; //!< Ice concentration [1]
     double m_sst; //!< Sea surface temperature [˚C]
     double m_sss; //!< Sea surface salinity [psu]
+    std::array<double, N_ICE_TEMPERATURES> m_tice; //!< Ice temperature [˚C]
+    double m_snow; //!< Mean snow thickness [m]
 };
 
 } /* namespace Nextsim */
