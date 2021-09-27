@@ -40,6 +40,4 @@ limitations under the License.
    getting_started
 
 
-.. doxygenclass:: nextsimdg
-   :project: nextsimdg
-   :members:
+.. doxygenindex::
