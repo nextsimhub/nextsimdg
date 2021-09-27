@@ -39,5 +39,9 @@ limitations under the License.
 
    getting_started
 
+.. toctree::
+   :caption: API Documentation
+   :maxdepth: 3
+   
+   api
 
-.. doxygenindex::
