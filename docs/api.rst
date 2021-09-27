@@ -5,4 +5,9 @@
 API documentation
 =================
 
+.. doxygenindex::
+.. doxygenfunction::
 .. doxygenstruct::
+.. doxygenenum::
+.. doxygentypedef::
+.. doxygenclass::
