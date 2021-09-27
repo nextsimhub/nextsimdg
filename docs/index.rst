@@ -42,6 +42,11 @@ limitations under the License.
 .. toctree::
    :caption: API Documentation
    :maxdepth: 3
-   
-   api
+
+   api/index
+   api/function
+   api/structure
+   api/num
+   api/typedef
+   api/classes
 
