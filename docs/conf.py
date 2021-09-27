@@ -20,7 +20,8 @@ def setup(app):
 
 extensions = ['breathe','exhale']
 breathe_projects = { 'nextsimdg': 'xml' }
- # Setup the exhale extension
+breathe_default_project = "netxsimdg"
+# Setup the exhale extension
 exhale_args = {
     # These arguments are required
     "containmentFolder":     "./api",
