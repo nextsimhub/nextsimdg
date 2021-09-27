@@ -20,7 +20,7 @@ def setup(app):
 
 extensions = ['breathe','exhale']
 breathe_projects = { 'nextsimdg': 'xml' }
-breathe_default_project = "netxsimdg"
+breathe_default_project = "nextsimdg"
 # Setup the exhale extension
 exhale_args = {
     # These arguments are required
