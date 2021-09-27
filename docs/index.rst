@@ -40,8 +40,6 @@ limitations under the License.
    getting_started
 
 
-.. toctree::
-   :caption: API REFERENCE
-   :maxdepth: 2
-
-   html/index.html
+.. doxygenclass:: nextsimdg
+   :project: nextsimdg
+   :members:
