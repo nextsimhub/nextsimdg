@@ -3,4 +3,6 @@
 Classes 
 -------
 
-.. doxygenclass:: model
+.. doxygenclass:: nextsim::model
+   :project: nextsimdg
+   :members:
