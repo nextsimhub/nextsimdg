@@ -27,3 +27,10 @@ set(NextsimSources
 
 add_executable(nextsim ${NextsimSources})
 target_include_directories(nextsim PRIVATE "include")
+
+# Build the module loader files. Defines the 'parse_modules' target
+set(ModuleLoaderIppTargetDirectory
+"${CMAKE_CURRENT_SOURCE_DIR}/")
+add_subdirectory(modules)
+
+add_dependencies(nextsim parse_modules)
