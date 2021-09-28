@@ -1,2 +1,10 @@
 [
+    {
+    "name": "Nextsim::IICeAlbedo",
+    "implementations": [
+        "Nextsim::SMUIceAlbedo",
+        "Nextsim::SMU2IceAlbedo",
+        "Nextsim::CCSMIceAlbedo"
+        ]
+    }
 ]

@@ -5,7 +5,7 @@
  * @author Tim Spain
  */
 
-#include "include/IceAlbedo.hpp"
+#include "include/CCSMIceAlbedo.hpp"
 
 #include <cmath>
 
@@ -22,7 +22,7 @@ namespace Nextsim {
 const double ICE_ALBEDO = 0.538;
 const double SNOW_ALBEDO = 0.8256;
 
-double IceAlbedo::albedo(double temperature, double snowThickness)
+double CCSMIceAlbedo::albedo(double temperature, double snowThickness)
 {
     const double tLimit = -1.;
     double iceAlbedo = ICE_ALBEDO - std::fmax(0., 0.075 * (temperature - tLimit));

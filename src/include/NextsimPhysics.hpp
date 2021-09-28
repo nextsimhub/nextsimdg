@@ -4,7 +4,10 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#include <memory>
+
 #include "BaseElementData.hpp"
+#include "IIceAlbedo.hpp"
 
 #ifndef SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 #define SRC_INCLUDE_NEXTSIMPHYSICS_HPP
@@ -160,10 +163,10 @@ private:
     static double latentHeatWater(double temperature);
     static double latentHeatIce(double temperature);
 
-    static double albedo(double temperature, double snowThickness);
-
     static SpecificHumidity specificHumidityWater;
     static SpecificHumidityIce specificHumidityIce;
+
+    static std::unique_ptr<IIceAlbedo> iIceAlbedoImpl;
 };
 
 } /* namespace Nextsim */

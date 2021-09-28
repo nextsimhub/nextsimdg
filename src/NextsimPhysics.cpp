@@ -12,7 +12,7 @@
 #include "include/PhysicsData.hpp"
 #include "include/ElementData.hpp"
 
-#include "include/IceAlbedo.hpp"
+#include "include/IIceAlbedo.hpp"
 
 #include "include/constants.hpp"
 
@@ -25,7 +25,7 @@ double NextsimPhysics::dragOcean_t;
 double NextsimPhysics::dragIce_t;
 double NextsimPhysics::I_0;
 
-IceAlbedo iceAlbedo;
+IIceAlbedo* NextsimPhysics::iIceAlbedoImpl;
 
 double stefanBoltzmannLaw(double temperature);
 
@@ -94,7 +94,7 @@ void NextsimPhysics::heatFluxIceAtmosphereStatic(const PrognosticData& prog, con
             (prog.iceTemperatures()[0] - exter.airTemperature());
 
     // Shortwave flux
-    double albedoValue = albedo(prog.iceTemperatures()[0], (prog.iceConcentration() > 0) ? (prog.snowThickness() / prog.iceConcentration()) : 0.);
+    double albedoValue = iIceAlbedoImpl->albedo(prog.iceTemperatures()[0], (prog.iceConcentration() > 0) ? (prog.snowThickness() / prog.iceConcentration()) : 0.);
     phys.QShortwaveIce() = -exter.incomingShortwave() * (1. - I_0) * albedoValue;
 
     // Longwave flux
@@ -155,11 +155,6 @@ double NextsimPhysics::latentHeatIce(double temperature)
     return Water::Lv0 + Water::Lf - 240. +
             temperature * (-290. +
                     temperature * (-4.));
-}
-
-double albedo(double temperature, double snowThickness)
-{
-    return iceAlbedo.albedo(temperature, snowThickness);
 }
 
 NextsimPhysics::SpecificHumidity::SpecificHumidity()

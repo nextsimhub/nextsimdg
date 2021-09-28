@@ -2,10 +2,10 @@
  * @file SMUIceAlbedo.cpp
  *
  * @date Sep 22, 2021
- * @author Tim Spain
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/IceAlbedo.hpp"
+#include "include/SMUIceAlbedo.hpp"
 #include "include/NextsimPhysics.hpp"
 
 namespace Nextsim {
@@ -16,7 +16,7 @@ namespace Nextsim {
 const double ICE_ALBEDO = 0.64;
 const double SNOW_ALBEDO = 0.85;
 
-double IceAlbedo::albedo(double temperature, double snowThickness)
+double SMUIceAlbedo::albedo(double temperature, double snowThickness)
 {
     if (snowThickness > 0.) {
         return SNOW_ALBEDO;
