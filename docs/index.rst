@@ -40,23 +40,23 @@ limitations under the License.
    getting_started
 
 
-.. toctree
-  :caption: API Documentation by files
-  :maxdepth: 2
+.. toctree::
+   :caption: API Documentation by files
+   :maxdepth: 2
 
-  api/counttimercpp
-  api/iteratorcpp
-  api/loggedcpp
-  api/maincpp
-  api/modelcpp
-  api/simpleiterantcpp
-  api/timedcpp
-  api/iteratorhpp
-  api/loggedhpp
-  api/modelhpp
-  api/simpleiteranthpp
-  api/timedhpp
-  api/timerhpp
+   api/counttimercpp
+   api/iteratorcpp
+   api/loggedcpp
+   api/maincpp
+   api/modelcpp
+   api/simpleiterantcpp
+   api/timedcpp
+   api/iteratorhpp
+   api/loggedhpp
+   api/modelhpp
+   api/simpleiteranthpp
+   api/timedhpp
+   api/timerhpp
 
 All `Doxygen documentation`_
 
