@@ -52,4 +52,5 @@ limitations under the License.
    api/files
 
 All `Doxygen documentation`_
-.. _documentation : https://nextsimdg.github.io/nextsimdg/index.html
+
+.. _Doxygen documentation : https://nextsimdg.github.io/nextsimdg/index.html
