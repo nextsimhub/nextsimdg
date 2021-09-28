@@ -49,4 +49,5 @@ limitations under the License.
    api/num
    api/typedef
    api/class
+   api/files
 
