@@ -5,7 +5,9 @@ Files
 
 
 .. toctree
-   .caption: Files
+   :caption: Files
+   :maxdepth: 2
+
    counttimercpp
    iteratorcpp
    loggedcpp
