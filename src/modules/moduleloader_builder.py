@@ -1,12 +1,5 @@
 """This module generates the inclusion .ipp files for the C++ ModuleLoader."""
 
-def get_iname(name):
-    """Returns the name of the interface class, given its string name. Input
-    can be namespaced or not, output is similar."""
-    components = name.split(":")
-    components[-1] = f"I{components[-1]}"
-    return ":".join(components)
-
 def denamespace(nname):
     """Returns the last element of the name, without any of the qualifying
     namespaces."""
@@ -15,7 +8,7 @@ def denamespace(nname):
 def get_pname(full_name):
     """Returns the name of the function pointer for the interface, given its
     namespaced class name."""
-    return f"p_{get_iname(denamespace(full_name))}"
+    return f"p_{denamespace(full_name)}"
 
 def get_fname(impl):
     """Returns the function name for the implementation, given its namespaced string name."""
@@ -25,11 +18,11 @@ def headers(all_implementations, ipp_prefix, hpp_prefix):
     """Generates the moduleLoaderHeaders.ipp file."""
     with open(f"{ipp_prefix}moduleLoaderHeaders.ipp", "w", encoding="utf-8") as fil:
         for interface in all_implementations:
-            i_name = get_iname(denamespace(interface["name"]))
-            fil.write(f"#include \"{hpp_prefix}{i_name}.hpp\"\n")
+            header_name = denamespace(interface["name"])
+            fil.write(f"#include \"{hpp_prefix}{header_name}.hpp\"\n")
             for impl in interface["implementations"]:
-                i_name = denamespace(impl)
-                fil.write(f"#include \"{hpp_prefix}{i_name}.hpp\"\n")
+                header_name = denamespace(impl)
+                fil.write(f"#include \"{hpp_prefix}{header_name}.hpp\"\n")
             # An extra line between interfaces
             fil.write("\n")
 
@@ -38,14 +31,13 @@ def functions(all_implementations, ipp_prefix):
     with open(f"{ipp_prefix}moduleLoaderFunctions.ipp", "w", encoding="utf-8") as fil:
         for interface in all_implementations:
             # Define the pointer to function
-            full_name = interface["name"]
-            i_name = get_iname(full_name)
-            p_name = get_pname(full_name)
-            fil.write(f"std::unique_ptr<{i_name}> (*{p_name})();\n")
+            name = interface["name"]
+            p_name = get_pname(name)
+            fil.write(f"std::unique_ptr<{name}> (*{p_name})();\n")
             # Define function that call the function pointer
             fil.write(
                 "template<>\n"
-                f"std::unique_ptr<{i_name}> ModuleLoader::getImplementation() const\n"
+                f"std::unique_ptr<{name}> ModuleLoader::getImplementation() const\n"
                 "{\n"
                 f"    return (*{p_name})();\n"
                 "}\n"
@@ -53,7 +45,7 @@ def functions(all_implementations, ipp_prefix):
             for impl in interface["implementations"]:
                 # The function that return the new unique_ptr for each implementation
                 fil.write(
-                    f"std::unique_ptr<{i_name}> {get_fname(impl)}()\n"
+                    f"std::unique_ptr<{name}> {get_fname(impl)}()\n"
                     "{\n"
                     f"    return std::unique_ptr<{impl}>(new {impl});\n"
                     "}\n"
