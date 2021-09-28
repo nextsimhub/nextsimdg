@@ -3,4 +3,4 @@
 Classes 
 -------
 
-.. doxygenclass::
+.. doxygenclass:: Model
