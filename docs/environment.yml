@@ -1,0 +1,9 @@
+name: netxsimdg-docs
+
+channels:
+  - conda-forge
+
+dependencies:
+  - breathe==4.16.0
+  - pip :
+    - exhale

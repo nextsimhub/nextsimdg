@@ -43,3 +43,5 @@ limitations under the License.
 .. toctree::
    :caption: API REFERENCE
    :maxdepth: 2
+
+   html/index.html

@@ -1,6 +1,6 @@
 PROJECT_NAME = "netxsimdg"
 XML_OUTPUT = xml
-INPUT = missing_macro.hpp ../src
+INPUT = ../src
 GENERATE_LATEX = NO
 GENERATE_MAN = NO
 GENERATE_RTF = NO
