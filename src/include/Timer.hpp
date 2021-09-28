@@ -1,8 +1,7 @@
-/*
- * Timer.hpp
- *
- *  Created on: 11 Aug 2021
- *      Author: Tim Spain, <timothy.spain@nersc.no>
+/*!
+ * @file Timer.hpp
+ * @date 11 Aug 2021
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SRC_INCLUDE_TIMER_HPP
@@ -14,11 +13,11 @@ namespace Nextsim {
 
 class Timer {
 public:
-	Timer();
+    Timer();
 
-	void tick(const std::string& timerName);
-	void tock(const std::string& timerName);
-	std::string report() const;
+    void tick(const std::string& timerName);
+    void tock(const std::string& timerName);
+    std::string report() const;
 };
 
 } /* namespace Nextsim */

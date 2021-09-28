@@ -1,8 +1,7 @@
-/*
- * Logged_test.cpp
- *
- *  Created on: 12 Aug 2021
- *      Author: work
+/*!
+ * @file Logged_test.cpp
+ * @date 12 Aug 2021
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "Logged.hpp"
