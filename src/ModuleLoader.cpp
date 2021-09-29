@@ -31,9 +31,11 @@ void ModuleLoader::init(const VariablesMap& map)
 
     // Load the named implementations from the provided map
     for (const auto& i : map) {
-        std::string module = i.first;
-        std::string impl = i.second;
-
-#include "moduleLoaderAssignments.ipp"
+        setImplementation(i.first, i.second);
     }
+}
+
+void ModuleLoader::setImplementation(const std::string& module, const std::string& impl)
+{
+#include "moduleLoaderAssignments.ipp"
 }
