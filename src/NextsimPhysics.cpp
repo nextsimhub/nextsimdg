@@ -42,6 +42,8 @@ void NextsimPhysics::updateDerivedDataStatic(
     phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
 
     phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir()*Water::cp;
+
+    phys.QDerivativeWRTTemperature() = 0;
 }
 
 void NextsimPhysics::massFluxOpenWaterStatic(PhysicsData& phys)
@@ -89,10 +91,14 @@ void NextsimPhysics::heatFluxIceAtmosphereStatic(const PrognosticData& prog, con
 {
     // Latent heat flux from sublimation
     phys.QLatentHeatIce() = phys.sublimationRate() * latentHeatIce(prog.iceTemperatures()[0]);
+    double dmdot_dT = dragIce_t * phys.airDensity() * phys.windSpeed() *
+            specificHumidityIce.dq_dT(prog.iceTemperatures()[0], exter.airPressure());
+    phys.QDerivativeWRTTemperature() += latentHeatIce(prog.iceTemperatures()[0]) * dmdot_dT;
 
     //Sensible heat flux
     phys.QSensibleHeatIce() = dragIce_t * phys.airDensity() * phys.heatCapacityWetAir() * phys.windSpeed() *
             (prog.iceTemperatures()[0] - exter.airTemperature());
+    phys.QDerivativeWRTTemperature() += dragIce_t * phys.airDensity() * phys.heatCapacityWetAir() * phys.windSpeed();
 
     // Shortwave flux
     double albedoValue = iIceAlbedoImpl->albedo(prog.iceTemperatures()[0], (prog.iceConcentration() > 0) ? (prog.snowThickness() / prog.iceConcentration()) : 0.);
@@ -100,6 +106,7 @@ void NextsimPhysics::heatFluxIceAtmosphereStatic(const PrognosticData& prog, con
 
     // Longwave flux
     phys.QLongwaveIce() = stefanBoltzmannLaw(prog.iceTemperatures()[0]) - exter.incomingLongwave();
+    phys.QDerivativeWRTTemperature() += 4 * prog.iceTemperatures()[0] * stefanBoltzmannLaw(prog.iceTemperatures()[0]);
 
     // Total flux
     phys.QIce() = phys.QLatentHeatIce() +
