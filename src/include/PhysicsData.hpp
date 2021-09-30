@@ -8,6 +8,7 @@
 #define SRC_INCLUDE_PHYSICSDATA_HPP
 
 #include "BaseElementData.hpp"
+#include "PrognosticData.hpp"
 
 namespace Nextsim {
 
@@ -118,6 +119,30 @@ public:
         return m_Qshi;
     }
 
+    //! Ice to ocean heat flux [W m⁻²]
+    inline double& QIceOceanHeat()
+    {
+        return m_Qio;
+    }
+
+    //! Mean thickness of ice (averaged over ice covered fraction) [m]
+    inline double& iceTrueThickness()
+    {
+        return m_hi;
+    }
+
+    //! Mean thickness of snow (averaged over ice covered fraction) [m]
+    inline double& snowTrueThickness()
+    {
+        return m_hs;
+    }
+
+    //! Updated value of the ice surface temperature [˚C]
+    inline double &updatedIceSurfaceTemperature()
+    {
+        return m_TiceNew[0];
+    }
+
     inline double& oceanAlbedo()
     {
         return m_oceanAlbedo;
@@ -146,6 +171,14 @@ private:
     double m_Qswi;
     double m_Qlhi;
     double m_Qshi;
+
+    // ice-ocean fluxes
+    double m_Qio;
+
+    // thermodynamic values
+    double m_hi;
+    double m_hs;
+    std::array<double, N_ICE_TEMPERATURES> m_TiceNew;
 
     // Ocean albedo
     static double m_oceanAlbedo;
