@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "BaseElementData.hpp"
-#include "IIceAlbedo.hpp"
 
 #ifndef SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 #define SRC_INCLUDE_NEXTSIMPHYSICS_HPP
@@ -18,6 +17,9 @@ class PrognosticData;
 class PhysicsData;
 class ExternalData;
 class UnusedData;
+
+class IIceAlbedo;
+class IThermodynamics;
 
 template<class Phys>
 class ElementData;
@@ -167,6 +169,7 @@ private:
     static SpecificHumidityIce specificHumidityIce;
 
     static std::unique_ptr<IIceAlbedo> iIceAlbedoImpl;
+    static std::unique_ptr<IThermodynamics> iThermo;
 };
 
 } /* namespace Nextsim */

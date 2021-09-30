@@ -25,7 +25,8 @@ double NextsimPhysics::dragOcean_t;
 double NextsimPhysics::dragIce_t;
 double NextsimPhysics::I_0;
 
-IIceAlbedo* NextsimPhysics::iIceAlbedoImpl;
+std::unique_ptr<IIceAlbedo> NextsimPhysics::iIceAlbedoImpl;
+std::unique_ptr<IThermodynamics> NextsimPhysics::iThermo;
 
 double stefanBoltzmannLaw(double temperature);
 
