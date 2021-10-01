@@ -118,6 +118,11 @@ public:
     {
         return m_Qshi;
     }
+    //! Derivative of ice-atmosphere heat flux with respect to ice surface temperature [W m⁻² K⁻¹]
+    inline double& QDerivativeWRTTemperature()
+    {
+        return m_dQ_dT;
+    }
 
     //! Ice to ocean heat flux [W m⁻²]
     inline double& QIceOceanHeat()
@@ -125,6 +130,11 @@ public:
         return m_Qio;
     }
 
+    //! Total ice-atmosphere heat flux [W m⁻²]
+    inline double& QIceAtmosphere()
+    {
+        return m_Qia;
+    }
     //! Mean thickness of ice (averaged over ice covered fraction) [m]
     inline double& iceTrueThickness()
     {
@@ -138,9 +148,15 @@ public:
     }
 
     //! Updated value of the ice surface temperature [˚C]
-    inline double &updatedIceSurfaceTemperature()
+    inline double& updatedIceSurfaceTemperature()
     {
         return m_TiceNew[0];
+    }
+
+    //! Total amount of ice that resulted from the flooding of snow [m]
+    inline double& totalIceFromSnow()
+    {
+        return m_hifroms;
     }
 
     inline double& oceanAlbedo()
@@ -171,14 +187,19 @@ private:
     double m_Qswi;
     double m_Qlhi;
     double m_Qshi;
+    double m_dQ_dT;
 
     // ice-ocean fluxes
     double m_Qio;
+
+    //! ice-atmosphere fluxes
+    double m_Qia;
 
     // thermodynamic values
     double m_hi;
     double m_hs;
     std::array<double, N_ICE_TEMPERATURES> m_TiceNew;
+    double m_hifroms;
 
     // Ocean albedo
     static double m_oceanAlbedo;

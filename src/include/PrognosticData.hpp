@@ -55,6 +55,17 @@ public:
         return m_snow;
     }
 
+    //! Timestep [s]
+    inline const double& timestep() const
+    {
+        return m_dt;
+    }
+    //! Set a new value for the timestep
+    void setTimestep(double newDt)
+    {
+        m_dt = newDt;
+    }
+
     inline static PrognosticData generate(double h, double c, double t, double s)
     {
         PrognosticData data;
@@ -73,6 +84,8 @@ private:
     double m_sss; //!< Sea surface salinity [psu]
     std::array<double, N_ICE_TEMPERATURES> m_tice; //!< Ice temperature [˚C]
     double m_snow; //!< Mean snow thickness [m]
+
+    static double m_dt; //!< Current timestep, shared by all elements
 };
 
 } /* namespace Nextsim */

@@ -69,12 +69,30 @@ public:
     {
         return m_Qlw_in;
     }
+
+    inline const double& iceBottomTemperature() const
+    {
+        return m_tbot;
+    }
+
+    inline double& snowfall() // [kg m⁻² s⁻¹]
+    {
+        return m_snowfall;
+    }
+    inline const double& snowfall() const
+    {
+        return m_snowfall;
+    }
+
 private:
     double m_tair;
     double m_slp;
     double m_mixrat;
     double m_Qsw_in;
     double m_Qlw_in;
+    double m_tbot;
+
+    double m_snowfall;
 };
 
 } /* namespace Nextsim */
