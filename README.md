@@ -169,7 +169,7 @@ Note :
 5. Branch only from main (hotfixes), develop (features and issues) or feature branches (feature related-issues).
 6. Create pull requests for your branches and always assign a reviewer to merge and delete the branch, and close the issue. Commit messages should be formatted as a short description, followed by an empty line, followed by a detailed description. Line wrapping at 80 characters is preferred.
 7. Every commit must compile.
-  - With one exception: If it is necessary to commit code that does not compile, for example as part of a large refactor, then the commit message must be prefixed by WIP (for Work In Progress). This will make it clear to other developers that it is a commit that does not compile.
+    - With one exception: If it is necessary to commit code that does not compile, for example as part of a large refactor, then the commit message must be prefixed by WIP (for Work In Progress). This will make it clear to other developers that it is a commit that does not compile.
 
   
 ### How to report and handle new issues (bugs, improvements, new features, etc.)
@@ -182,22 +182,22 @@ If you have been assigned an issue on https://github.com/nextsimdg/nextsimdf/iss
 
 1. Branching off from main, create an issue branch on your local system named **hotfix**```<NNN>_<short-heading>``` where NNN is the issue number from GitHub. This will be the main (short living) working area.
 2. Write the necessary code.
-    a. Make sure you test your modifications well. 
-    b. Feel free to commit and push your issue branch often
+    - a. Make sure you test your modifications well. 
+    - b. Feel free to commit and push your issue branch often
 3. Once the issue is fixed merge the **main** branch back into your issue branch and resolve any conflicts.
 4. Create a pull request on GitHub to merge the issue branch back into **main**,  always include at least one reviewer who will then merge and delete the issue branch.
 5. Merge the **main** branch into **develop** in your local repository, resolve conflicts, test, and push the updated **develop** branch.
 6. Tag the merge by incrementing the patch number of the version number.
-    a. Do this on the command line with ```git tag LABEL```.
-    b. See the existing tags with ```git tag -l```.
+    - a. Do this on the command line with ```git tag LABEL```.
+    - b. See the existing tags with ```git tag -l```.
 7. Close the issue.
 
 For issues not requiring a hotfix (less urgent bug-fixes and feature requests):
 
 1. Branching off from **develop**, create an issue branch on your local system named **issue**```<NNN>_<short-heading>``` where NNN is the issue number from GitHub. This will be the main (short living) working area.
 2. Write the necessary code.
-    a. Make sure you test your modifications well. 
-    b. Feel free to commit and push your issue branch often
+    - a. Make sure you test your modifications well. 
+    - b. Feel free to commit and push your issue branch often
 3. Once the issue is fixed merge the **develop** branch back into your issue branch and resolve any conflicts.
 4. Create a pull request on GitHub to merge the issue branch back into **develop**. Always include at least one reviewer who will then merge and delete the issue branch, and close the issue.
 
