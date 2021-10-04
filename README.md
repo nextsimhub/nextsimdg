@@ -5,7 +5,10 @@
 
 Here you will find the sources for neXtSIM_DG sea-ice model.
 
-Below are some conventions that every contributors to this model must apply in order to have the most efficient and consistent workflow for the model developments.
+Below are some conventions that every contributors to this model must apply in order to have the most efficient and consistent workflow for the model developments. These conventions deal with :
+  - [coding](#coding-conventions)
+  - [commenting](#commenting-conventions-for-a-nice-automatic-documentation)
+  - [code management](#code-managment-on-github)
 
 ## Coding conventions
 
@@ -138,7 +141,7 @@ lsst::afw::image::Image<double> loadImage(std::string const & fileName);
 
 The comments providing automatic documentation should be supplemented with ordinary explanatory and internal comments using the standard comment syntax of ```/*``` and ```//```. These will not be picked up by the automatic documentation and can take a more general format.
 
-## Code managment on github
+## Code management on github
 
 
 ### Version numbering
