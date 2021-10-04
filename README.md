@@ -182,22 +182,22 @@ If you have been assigned an issue on https://github.com/nextsimdg/nextsimdf/iss
 
 1. Branching off from main, create an issue branch on your local system named **hotfix**```<NNN>_<short-heading>``` where NNN is the issue number from GitHub. This will be the main (short living) working area.
 2. Write the necessary code.
-  a. Make sure you test your modifications well. 
-  b. Feel free to commit and push your issue branch often
+    a. Make sure you test your modifications well. 
+    b. Feel free to commit and push your issue branch often
 3. Once the issue is fixed merge the **main** branch back into your issue branch and resolve any conflicts.
 4. Create a pull request on GitHub to merge the issue branch back into **main**,  always include at least one reviewer who will then merge and delete the issue branch.
 5. Merge the **main** branch into **develop** in your local repository, resolve conflicts, test, and push the updated **develop** branch.
 6. Tag the merge by incrementing the patch number of the version number.
-  a. Do this on the command line with ```git tag LABEL```.
-  b. See the existing tags with ```git tag -l```.
+    a. Do this on the command line with ```git tag LABEL```.
+    b. See the existing tags with ```git tag -l```.
 7. Close the issue.
 
 For issues not requiring a hotfix (less urgent bug-fixes and feature requests):
 
 1. Branching off from **develop**, create an issue branch on your local system named **issue**```<NNN>_<short-heading>``` where NNN is the issue number from GitHub. This will be the main (short living) working area.
 2. Write the necessary code.
-  a. Make sure you test your modifications well. 
-  b. Feel free to commit and push your issue branch often
+    a. Make sure you test your modifications well. 
+    b. Feel free to commit and push your issue branch often
 3. Once the issue is fixed merge the **develop** branch back into your issue branch and resolve any conflicts.
 4. Create a pull request on GitHub to merge the issue branch back into **develop**. Always include at least one reviewer who will then merge and delete the issue branch, and close the issue.
 
