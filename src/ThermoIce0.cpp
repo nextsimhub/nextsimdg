@@ -35,11 +35,14 @@ void ThermoIce0::calculate(
         phys.iceTrueThickness() = 0;
         phys.snowTrueThickness() = 0;
         phys.updatedIceSurfaceTemperature() = freezingPointIce;
-    } else {
-        // Calculate the true slab thickness from the effective thickness
-        phys.iceTrueThickness() = prog.iceThickness() / prog.iceConcentration();
-        phys.snowTrueThickness() = prog.snowThickness() / prog.iceConcentration();
+
+        return;
     }
+
+    // Calculate the true slab thickness from the effective thickness
+    phys.iceTrueThickness() = prog.iceThickness() / prog.iceConcentration();
+    phys.snowTrueThickness() = prog.snowThickness() / prog.iceConcentration();
+
     double oldIceThickness = phys.iceTrueThickness();
 
     double iceTemperature = prog.iceTemperatures()[0];
@@ -117,7 +120,7 @@ void ThermoIce0::calculate(
         // No ice, no snow and the surface temperature is the melting point of ice
         phys.iceTrueThickness() = 0;
         phys.snowTrueThickness() = 0;
-        phys.updatedIceSurfaceTemperature = freezingPointIce;
+        phys.updatedIceSurfaceTemperature() = freezingPointIce;
     }
 }
 

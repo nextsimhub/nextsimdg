@@ -13,8 +13,8 @@
 namespace Nextsim {
 
 class PrognosticData;
-class ExternalData;
 class PhysicsData;
+class ExternalData;
 class NextsimPhysics;
 
 class ThermoIce0: public IThermodynamics {

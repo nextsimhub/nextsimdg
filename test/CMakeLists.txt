@@ -55,3 +55,10 @@ add_executable(testNextsimPhysics
     "${SRC_DIR}/PhysicsData.cpp"
     )
 target_link_libraries(testNextsimPhysics PRIVATE Catch2::Catch2)
+
+add_executable(testThermoIce0
+    "ThermoIce0_test.cpp"
+    "${SRC_DIR}/ThermoIce0.cpp"
+    "${SRC_DIR}/PrognosticData.cpp"
+    )
+target_link_libraries(testThermoIce0 PRIVATE Catch2::Catch2)

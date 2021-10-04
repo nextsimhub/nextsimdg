@@ -61,18 +61,22 @@ public:
         return m_dt;
     }
     //! Set a new value for the timestep
-    void setTimestep(double newDt)
+    static void setTimestep(double newDt)
     {
         m_dt = newDt;
     }
 
-    inline static PrognosticData generate(double h, double c, double t, double s)
+    inline static PrognosticData generate(double h, double c, double t, double s, double hs,
+            std::array<double, N_ICE_TEMPERATURES> tice)
     {
         PrognosticData data;
         data.m_thick = h;
         data.m_conc = c;
         data.m_sst = t;
         data.m_sss = s;
+        data.m_snow = hs;
+        data.m_tice = tice;
+
 
         return data;
     }

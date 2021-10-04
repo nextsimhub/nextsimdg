@@ -8,6 +8,7 @@
 #ifndef SRC_INCLUDE_ITHERMODYNAMICS_HPP
 #define SRC_INCLUDE_ITHERMODYNAMICS_HPP
 
+namespace Nextsim {
 class PrognosticData;
 class PhysicsData;
 class ExternalData;
@@ -21,9 +22,9 @@ public:
             const PrognosticData& prog,
             const ExternalData& exter,
             PhysicsData& phys,
-            NextsimPhysics& nsphys);
+            NextsimPhysics& nsphys) = 0;
 };
 
-
+}
 
 #endif /* SRC_INCLUDE_ITHERMODYNAMICS_HPP */

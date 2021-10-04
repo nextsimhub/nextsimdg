@@ -7,5 +7,5 @@
 #include "include/PrognosticData.hpp"
 
 namespace Nextsim {
-
+double PrognosticData::m_dt;
 } /* namespace Nextsim */
