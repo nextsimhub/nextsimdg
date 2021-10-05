@@ -13,6 +13,7 @@
 #include "include/ElementData.hpp"
 
 #include "include/IIceAlbedo.hpp"
+#include "IThermodynamics.hpp"
 
 #include "include/constants.hpp"
 
