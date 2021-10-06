@@ -44,6 +44,7 @@ limitations under the License.
    :caption: API Documentation
    :maxdepth: 2
 
+   api/library_root
    api/index
 
 
