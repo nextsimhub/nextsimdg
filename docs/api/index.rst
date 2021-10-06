@@ -4,3 +4,6 @@ Index
 -----
 
 .. doxygenindex::
+   :project: nextsimdg
+   :outline:
+   :no-link:
