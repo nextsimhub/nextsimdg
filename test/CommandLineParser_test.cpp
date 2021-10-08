@@ -31,6 +31,7 @@ public:
             pc[len] = '\0';
             ppc[i] = pc;
         }
+        // Ensure argv[argc] = "\0", as required by the standard.
         char* pnull = new char[1];
         pnull[0] = '\0';
         ppc[nStrings] = pnull;
@@ -50,7 +51,7 @@ public:
 
     int argc()
     {
-        return nStrings + 1;
+        return nStrings;
     }
 private:
     int nStrings;
@@ -66,8 +67,17 @@ TEST_CASE("Parse config file names", "[CommandLineParser]")
     std::vector<std::string> cfgs = clp1.getConfigFileNames();
 
     REQUIRE(cfgs.size() == 1);
-    REQUIRE(cfgs[0] == std::string(argv1()[argv1.argc() - 2]));
+    REQUIRE(cfgs[0] == std::string(argv1()[argv1.argc() - 1]));
 
+    cfgs.clear();
+    std::string finalFileName = "final.cfg";
+    ArgV argv2({"nextsimdg", "--config-file", "config.cfg", "--config-files", "test.cfg", "more.cfg", finalFileName});
+
+    CommandLineParser clp2(argv2.argc(), argv2());
+    cfgs = clp2.getConfigFileNames();
+
+    REQUIRE(cfgs.size() == 4);
+    REQUIRE(cfgs[cfgs.size() - 1] == finalFileName);
 }
 
 } /* namespace Nextsim */
