@@ -26,4 +26,5 @@ set(NextsimSources
 	)
 
 add_executable(nextsim ${NextsimSources})
-target_include_directories(nextsim PRIVATE "include")
+target_include_directories(nextsim PRIVATE "include" ${Boost_INCLUDE_DIRS})
+target_link_libraries(nextsim LINK_PUBLIC ${Boost_Libraries})
