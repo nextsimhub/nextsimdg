@@ -21,7 +21,7 @@ public:
     ArgV(std::vector<std::string> vs)
     {
         nStrings = vs.size();
-        ppc = new char*[nStrings];
+        ppc = new char*[nStrings + 1]; // Add 1 for the conventional final \0
         for (int i = 0; i < nStrings; ++i) {
             int len = vs[i].size();
             char* pc = new char[len + 1];
@@ -31,7 +31,9 @@ public:
             pc[len] = '\0';
             ppc[i] = pc;
         }
-
+        char* pnull = new char[1];
+        pnull[0] = '\0';
+        ppc[nStrings] = pnull;
     }
     ~ArgV()
     {
@@ -45,6 +47,11 @@ public:
     {
         return ppc;
     }
+
+    int argc()
+    {
+        return nStrings + 1;
+    }
 private:
     int nStrings;
     char** ppc;
@@ -53,14 +60,14 @@ private:
 TEST_CASE("Parse config file names", "[CommandLineParser]")
 {
     // Parse one file
-    const int argc1 = 4;
-    ArgV argv1({"nextsimdg", "--config-file", "config.cfg", ""});
+    ArgV argv1({"nextsimdg", "--config-file", "config.cfg"});
 
-    CommandLineParser clp1(argc1, argv1());
+    CommandLineParser clp1(argv1.argc(), argv1());
     std::vector<std::string> cfgs = clp1.getConfigFileNames();
 
     REQUIRE(cfgs.size() == 1);
-    REQUIRE(cfgs[0] == std::string(argv1()[argc1 - 2]));
+    REQUIRE(cfgs[0] == std::string(argv1()[argv1.argc() - 2]));
+
 }
 
 } /* namespace Nextsim */
