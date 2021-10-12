@@ -14,13 +14,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: installs
-      run: 
+      run: |
         sudo apt-get update
         sudo apt-get install netcdf
         sudo apt-get boost
         sudo apt-get catch2
         sudo apt-get cmake
     - name: make
-      run: 
+      run: |
         cmake
         make
