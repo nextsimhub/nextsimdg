@@ -22,5 +22,5 @@ jobs:
         sudo apt-get install cmake
     - name: make
       run: |
-        cmake
+        cmake .
         make
