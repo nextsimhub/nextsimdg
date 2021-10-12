@@ -20,14 +20,24 @@ boost::program_options::variables_map Configurator::parse(const boost::program_o
     boost::program_options::variables_map vm;
 
     // Parse the command file for any overrides
+    int use_argc;
+    char** use_argv;
     if (m_argc && m_argv) {
-        auto parsed = boost::program_options::command_line_parser(m_argc, m_argv)
-                                          .options(opt)
-                                          .style(boost::program_options::command_line_style::unix_style)// | po::command_line_style::allow_long_disguise)
-                                          .allow_unregistered()
-                                          .run();
-        boost::program_options::store(parsed, vm);
+        use_argc = m_argc;
+        use_argv = m_argv;
+    } else {
+    // Use a fake command line to ensure at least one parse happens in all cases
+        use_argc = 1;
+        char name[] = {'n', 'e', 'x', 't', 's', 'i', 'm', 'd', 'g', '\0'};
+        char* fake_argv[] = {name, nullptr};
+        use_argv = fake_argv;
     }
+    auto parsed = boost::program_options::command_line_parser(use_argc, use_argv)
+                                                  .options(opt)
+                                                  .style(boost::program_options::command_line_style::unix_style)// | po::command_line_style::allow_long_disguise)
+                                                  .allow_unregistered()
+                                                  .run();
+    boost::program_options::store(parsed, vm);
 
     // Parse the named streams for configuration
     for (auto iter = sources.begin(); iter != sources.end(); ++iter) {

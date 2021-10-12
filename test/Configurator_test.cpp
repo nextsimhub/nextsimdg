@@ -32,12 +32,11 @@ public:
 
         boost::program_options::options_description opt("Options");
         opt.add_options()
-                (valueKey.c_str(), boost::program_options::value<int>()->default_value(1), "Specify a value")
+                (valueKey.c_str(), boost::program_options::value<int>()->default_value(-1), "Specify a value")
                 ;
         boost::program_options::variables_map vm = Nextsim::Configurator::parse(opt);
-        std::cerr << "Read configuration" << std::endl;
-        std::cerr << vm[valueKey].as<int>();
-        std::cerr << "Assigned value" << std::endl;
+
+        value = vm[valueKey].as<int>();
     }
 
     bool checkValue(int target)
@@ -86,8 +85,6 @@ TEST_CASE("Parse one config stream using the raw configurator", "[Configurator]"
     config.configure();
     // Check for the default initialized value
     REQUIRE(config.checkValue(-1));
-
-    return;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(text.str()));
 
