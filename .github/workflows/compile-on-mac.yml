@@ -1,0 +1,25 @@
+name: compile code and tests
+
+on:
+  push:
+    branches: [ main, develop, issue15_CI_workflow ]
+  pull_request:
+    branches: [ main, develop,  issue15_CI_workflow ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: installs
+      run: |
+        brew install netcdf
+        brew install boost
+        brew install catch
+        brew install cmake
+    - name: make
+      run: |
+        cmake .
+        make
