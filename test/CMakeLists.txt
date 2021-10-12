@@ -51,7 +51,17 @@ target_link_libraries(testSimpleIter PRIVATE Catch2::Catch2)
 
 add_executable(testCommandLineParser
     "CommandLineParser_test.cpp"
+    "ArgV.cpp"
     "${SRC_DIR}/CommandLineParser.cpp"
     )
 target_include_directories(testCommandLineParser PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(testCommandLineParser LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Catch2)
+
+add_executable(testConfigurator
+    "Configurator_test.cpp"
+    "ArgV.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/Configured.cpp"
+    )
+target_include_directories(testConfigurator PRIVATE ${Boost_INCLUDE_DIRS})
+target_link_libraries(testConfigurator LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Catch2)
