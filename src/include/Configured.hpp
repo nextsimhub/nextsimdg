@@ -23,7 +23,7 @@ public:
     static void configureAll();
 
 protected:
-    void parse();
+    virtual void parse();
 
     static void addConfiguredObject(Configured*);
 

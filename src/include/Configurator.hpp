@@ -32,6 +32,11 @@ public:
             addStream(stream);
         }
     }
+
+    static inline void clearStreams()
+    {
+        sources.clear();
+    }
     inline static void setCommandLine(int argc, char* argv[])
     {
         m_argc = argc;

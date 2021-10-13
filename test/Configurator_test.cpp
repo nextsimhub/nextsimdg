@@ -2,7 +2,7 @@
  * @file Configurator_test.cpp
  *
  * @date Oct 8, 2021
- * @author Tim Spain
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "Configurator.hpp"
@@ -51,10 +51,35 @@ class Config2 : public Nextsim::Configured {
 public:
     Config2()
         : value(0)
-    {}
+    {
+        opt.add_options()
+                (valueKey.c_str(), boost::program_options::value<int>()->default_value(-1), "Specify a value")
+                (nameKey.c_str(), boost::program_options::value<std::string>()->default_value(""), "Specify a name")
+                ;
+    }
+    int getValue()
+    {
+        return value;
+    }
+    std::string getName()
+    {
+        return name;
+    }
+protected:
+    virtual void parse()
+    {
+        Configured::parse();
+
+        value = vm[valueKey].as<int>();
+        name = vm[nameKey].as<std::string>();
+    }
+
 private:
     int value;
     std::string name;
+    const std::string valueKey = "config.value";
+    const std::string nameKey = "config.name";
+
 };
 
 class Config3 : public Nextsim::Configured {
@@ -62,16 +87,42 @@ public:
     Config3()
         : value(0)
         , weight(0.)
-    {}
+    {
+        opt.add_options()
+                (valueKey.c_str(), boost::program_options::value<int>()->default_value(-1), "Specify a value")
+                (weightKey.c_str(), boost::program_options::value<double>()->default_value(1.), "Specify a weight")
+                ;
+    }
+    int getValue()
+    {
+        return value;
+    }
+    double getWeight()
+    {
+        return weight;
+    }
+protected:
+    virtual void parse()
+    {
+        Configured::parse();
+
+        value = vm[valueKey].as<int>();
+        weight = vm[weightKey].as<double>();
+    }
 private:
     int value;
     double weight;
+    const std::string valueKey = "config.value";
+    const std::string weightKey = "data.weight";
+
 };
 
 namespace Nextsim {
 
 TEST_CASE("Parse one config stream using the raw configurator", "[Configurator]")
 {
+    // Since tests are not different execution environments, clear the streams from other tests.
+    Configurator::clearStreams();
     Config1 config;
 
     int target = 42;
@@ -95,4 +146,88 @@ TEST_CASE("Parse one config stream using the raw configurator", "[Configurator]"
     // Check for the configured value
     REQUIRE(config.checkValue(target));
 }
+
+TEST_CASE("Parse one config stream using the auto configurator", "[Configurator]")
+{
+    // Since tests are not different execution environments, clear the streams from other tests.
+    Configurator::clearStreams();
+    Config2 config;
+
+    int target = 69105;
+    std::string targetName = "Zork";
+    std::stringstream text;
+    text << "[config]" << std::endl
+            << "value = " << target << std::endl
+            << "name = " << targetName << std::endl;
+
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text.str())));
+
+    Configured::configureAll();
+
+    REQUIRE(config.getValue() == target);
+    REQUIRE(config.getName() == targetName);
+
+}
+
+TEST_CASE("Parse two config streams for one class, auto", "[Configurator]")
+{
+    // Since tests are not different execution environments, clear the streams from other tests.
+    Configurator::clearStreams();
+    Config2 config;
+
+    int target = 69105;
+    std::string targetName = "Zork";
+    std::stringstream text1;
+    text1 << "[config]" << std::endl
+            << "value = " << target << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text1.str())));
+
+    std::stringstream text2;
+    text2 << "[config]" << std::endl
+            << "name = " << targetName << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text2.str())));
+
+    Configured::configureAll();
+
+    REQUIRE(config.getValue() == target);
+    REQUIRE(config.getName() == targetName);
+}
+
+TEST_CASE("Parse config streams for two overlapping class, auto", "[Configurator]")
+{
+    // Since tests are not different execution environments, clear the streams from other tests.
+    Configurator::clearStreams();
+    Config2 config;
+    Config3 confih;
+
+    int target = 69105;
+    std::string targetName = "Zork II";
+    std::stringstream text1;
+    text1 << "[config]" << std::endl
+            << "value = " << target << std::endl
+            << "name = " << targetName << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text1.str())));
+
+    double targetWeight = 0.467836;
+    std::stringstream text2;
+    text2 << "[data]" << std::endl
+            << "weight = " << targetWeight << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text2.str())));
+
+    // Test that the target values are not already present before configuring
+    REQUIRE(config.getValue() != target);
+    REQUIRE(config.getName() != targetName);
+
+    REQUIRE(confih.getValue() != target);
+    REQUIRE(confih.getWeight() != targetWeight);
+
+    Configured::configureAll();
+
+    REQUIRE(config.getValue() == target);
+    REQUIRE(config.getName() == targetName);
+
+    REQUIRE(confih.getValue() == target);
+    REQUIRE(confih.getWeight() == targetWeight);
+}
+
 } /* namespace Nextsim */
