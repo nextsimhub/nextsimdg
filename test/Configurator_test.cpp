@@ -17,8 +17,7 @@
 #include <boost/program_options.hpp>
 
 #define CATCH_CONFIG_MAIN
-//#include <catch2/catch.hpp>
-#include "/opt/home/include/catch2/catch.hpp"
+#include <catch2/catch.hpp>
 
 class Config1 {
 public:
