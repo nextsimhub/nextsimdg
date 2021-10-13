@@ -52,10 +52,8 @@ public:
     Config2()
         : value(0)
     {
-        opt.add_options()
-                (valueKey.c_str(), boost::program_options::value<int>()->default_value(-1), "Specify a value")
-                (nameKey.c_str(), boost::program_options::value<std::string>()->default_value(""), "Specify a name")
-                ;
+        addOption<int>(valueKey, -1, "Specify a value");
+        addOption<std::string>(nameKey, "", "Specify a name");
     }
     int getValue()
     {
@@ -70,8 +68,8 @@ protected:
     {
         Configured::parse();
 
-        value = vm[valueKey].as<int>();
-        name = vm[nameKey].as<std::string>();
+        value = retrieveValue<int>(valueKey);
+        name = retrieveValue<std::string>(nameKey);
     }
 
 private:
@@ -88,10 +86,8 @@ public:
         : value(0)
         , weight(0.)
     {
-        opt.add_options()
-                (valueKey.c_str(), boost::program_options::value<int>()->default_value(-1), "Specify a value")
-                (weightKey.c_str(), boost::program_options::value<double>()->default_value(1.), "Specify a weight")
-                ;
+        addOption<int>(valueKey, -1, "Specify a value");
+        addOption<double>(weightKey, 1., "Specify a weight");
     }
     int getValue()
     {
@@ -106,8 +102,8 @@ protected:
     {
         Configured::parse();
 
-        value = vm[valueKey].as<int>();
-        weight = vm[weightKey].as<double>();
+        value = retrieveValue<int>(valueKey);
+        weight = retrieveValue<double>(weightKey);
     }
 private:
     int value;

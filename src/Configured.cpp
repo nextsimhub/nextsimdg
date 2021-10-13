@@ -38,4 +38,3 @@ void Configured::configureAll()
     configuredObjects.clear();
 }
 }
-
