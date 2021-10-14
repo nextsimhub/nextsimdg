@@ -7,6 +7,20 @@ on:
     branches: [ main, develop,  issue15_CI_workflow ]
 
 jobs:
+
+  clang-on-mac:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: clang
+      run: |
+        brew install clang-format
+        cd src
+        clang-format --dry-run -Werror * include/*
+  
+  
   build-on-ubuntu:
 
     runs-on: ubuntu-latest
