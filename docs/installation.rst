@@ -28,7 +28,7 @@ To compile neXtSIM, you need to install first some libraries :
   - `NetCDF`_
   - `Boost`_
   - `Catch2`_
-  - `CMake`
+  - `CMake`_
 
 Compilation on MAC OS
 ---------------------
