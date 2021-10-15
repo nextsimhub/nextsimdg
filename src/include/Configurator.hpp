@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 #include <istream>
+#include <fstream>
 #include <string>
 #include <boost/program_options.hpp>
 
