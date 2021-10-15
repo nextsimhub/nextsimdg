@@ -17,8 +17,7 @@
 #include "../src/include/constants.hpp"
 
 #define CATCH_CONFIG_MAIN
-//#include <catch2/catch.hpp>
-#include "/opt/home/include/catch2/catch.hpp"
+#include <catch2/catch.hpp>
 
 namespace Nextsim {
 
