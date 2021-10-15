@@ -65,3 +65,9 @@ add_executable(testConfigurator
     )
 target_include_directories(testConfigurator PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(testConfigurator LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Catch2)
+
+add_executable(testEnumWrapper
+    "EnumWrapper_test.cpp"
+    )
+target_include_directories(testEnumWrapper PRIVATE ${Boost_INCLUDE_DIRS})
+target_link_libraries(testEnumWrapper LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Catch2)
