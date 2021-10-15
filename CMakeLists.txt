@@ -4,9 +4,10 @@ set(CMAKE_CXX_STANDARD 11)
 
 project(framework_dg)
 
-find_package(netCDF REQUIRED)
+#find_package(netCDF REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Catch2 REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
 
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
@@ -15,6 +16,12 @@ find_package(Catch2 REQUIRED)
 
 # Build the main model
 add_subdirectory(src)
+
+# Compile Dynamics
+add_subdirectory(dynamics)
+
+# Compile the test cases
+add_subdirectory(examples)
 
 # Testing
 if (NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
