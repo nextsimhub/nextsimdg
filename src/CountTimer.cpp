@@ -6,17 +6,17 @@
 
 #include "Timer.hpp"
 
-#include <string>
-#include <sstream>
 #include <map>
+#include <sstream>
+#include <string>
 #include <utility>
 
 static std::map<std::string, int> startMap;
 static std::map<std::string, int> stopMap;
 
 namespace Nextsim {
-Timer::Timer( )
-{ }
+Timer::Timer()
+{}
 
 void Timer::tick(const std::string& timerName)
 {
@@ -42,7 +42,8 @@ std::string Timer::report() const
     builder << "Timing:" << std::endl;
     for (auto iter = startMap.begin(); iter != startMap.end(); iter++) {
         auto key = iter->first;
-        builder << key << " started " << iter->second << ", stopped " << stopMap[key] << " times" << std::endl;
+        builder << key << " started " << iter->second << ", stopped "
+                << stopMap[key] << " times" << std::endl;
     }
     return builder.str();
 }
