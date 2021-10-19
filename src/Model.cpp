@@ -1,8 +1,8 @@
- /*!
-  * @file Model.cpp
-  * @date 12 Aug 2021
-  * @author Tim Spain <timothy.spain@nersc.no>
-  */
+/*!
+ * @file Model.cpp
+ * @date 12 Aug 2021
+ * @author Tim Spain <timothy.spain@nersc.no>
+ */
 
 #include "Model.hpp"
 
@@ -10,9 +10,9 @@
 
 namespace Nextsim {
 
-Model::Model( )
+Model::Model()
 {
-    iterant = new SimpleIterant( );
+    iterant = new SimpleIterant();
     deleteIterant = true;
     iterator.setIterant(iterant);
 
@@ -31,14 +31,11 @@ Model::Model( )
 // translates I/O details from file configuration to object variable
 // values, specifies file paths and likely more besides.
 
-Model::~Model( )
+Model::~Model()
 {
     if (deleteIterant)
         delete iterant;
 }
 
-void Model::run( )
-{
-    iterator.run();
-}
+void Model::run() { iterator.run(); }
 } /* namespace Nextsim */
