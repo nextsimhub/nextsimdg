@@ -12,21 +12,18 @@ Iterator::NullIterant Iterator::nullIterant;
 
 Iterator::Iterator()
     : iterant(&nullIterant)
-{}
+{
+}
 
 Iterator::Iterator(Iterant* iterant)
     : iterant(iterant)
-{}
-
-void Iterator::setIterant(Iterant* iterant)
 {
-    this->iterant = iterant;
 }
 
+void Iterator::setIterant(Iterant* iterant) { this->iterant = iterant; }
+
 void Iterator::setStartStopStep(
-        Iterator::TimePoint startTime,
-        Iterator::TimePoint stopTime,
-        Iterator::Duration timestep)
+    Iterator::TimePoint startTime, Iterator::TimePoint stopTime, Iterator::Duration timestep)
 {
     this->startTime = startTime;
     this->stopTime = stopTime;
