@@ -136,11 +136,17 @@ void average_to_edges_Y(const Mesh& mesh,
         edgevector.block(ey + 1, 0, mesh.nx, 1) += 0.5 * cellvector.block(cy, 0, mesh.nx, 1);
     }
 
-    if (settozeroonouteredges) {
+    if (settozeroonouteredges) { // outer edges are set to zero (Dirichlet-Values)
 #pragma omp parallel for
         for (size_t iy = 0; iy < mesh.ny; ++iy) {
             edgevector(iy * (mesh.nx + 1), 0) = 0;
             edgevector(iy * (mesh.nx + 1) + mesh.nx, 0) = 0;
+        }
+    } else { // outer edges multiplied by 2
+#pragma omp parallel for
+        for (size_t iy = 0; iy < mesh.ny; ++iy) {
+            edgevector(iy * (mesh.nx + 1), 0) *= 2.0;
+            edgevector(iy * (mesh.nx + 1) + mesh.nx, 0) *= 2.0;
         }
     }
 }
@@ -156,6 +162,7 @@ void average_to_edges_Y(const Mesh& mesh,
 
     if (settozero)
         edgevector.zero();
+
 #pragma omp parallel for
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ey = iy * (mesh.nx + 1); // first edge index in row
@@ -179,6 +186,14 @@ void average_to_edges_Y(const Mesh& mesh,
             edgevector(iy * (mesh.nx + 1) + mesh.nx, 0) = 0;
             edgevector(iy * (mesh.nx + 1) + mesh.nx, 1) = 0;
         }
+    } else {
+#pragma omp parallel for
+        for (size_t iy = 0; iy < mesh.ny; ++iy) {
+            edgevector(iy * (mesh.nx + 1), 0) *= 2.0;
+            edgevector(iy * (mesh.nx + 1), 1) *= 2.0;
+            edgevector(iy * (mesh.nx + 1) + mesh.nx, 0) *= 2.0;
+            edgevector(iy * (mesh.nx + 1) + mesh.nx, 1) *= 2.0;
+        }
     }
 }
 
@@ -196,24 +211,38 @@ void average_to_edges_Y(const Mesh& mesh,
 #pragma omp parallel for
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ic = iy * mesh.nx; // first index of left cell in row
-        size_t ie = iy * (mesh.nx + 1) + 1; // first index of inner velocity in row
+        size_t ie = iy * (mesh.nx + 1); // first index of edge
 
-        for (size_t i = 0; i < mesh.nx - 1; ++i, ic += 1, ie += 1)
-            edgevector.block<1, 3>(ie, 0) = LocalEdgeVector<2>(
-                0.5 * ((cellvector(ic + 1, 0) - 0.5 * cellvector(ic + 1, 1) + 1. / 6. * cellvector(ic + 1, 3)) + (cellvector(ic, 0) + 0.5 * cellvector(ic, 1) + 1. / 6. * cellvector(ic, 3))),
-                0.5 * ((cellvector(ic + 1, 1) - 0.5 * cellvector(ic + 1, 5)) + (cellvector(ic, 1) + 0.5 * cellvector(ic, 5))),
-                0.5 * (cellvector(ic + 1, 4) + cellvector(ic, 4)));
+        for (size_t i = 0; i < mesh.nx; ++i, ic += 1, ie += 1) // run over all elements
+        {
+            // add to left
+            edgevector.block<1, 3>(ie, 0) += LocalEdgeVector<2>(
+                0.5 * ((cellvector(ic, 0) - 0.5 * cellvector(ic, 1) + 1. / 6. * cellvector(ic, 3))),
+                0.5 * ((cellvector(ic, 1) - 0.5 * cellvector(ic, 5))),
+                0.5 * (cellvector(ic, 4)));
+            // add to right
+            edgevector.block<1, 3>(ie + 1, 0) = LocalEdgeVector<2>(
+                0.5 * ((cellvector(ic, 0) + 0.5 * cellvector(ic, 1) + 1. / 6. * cellvector(ic, 3))),
+                0.5 * ((cellvector(ic, 1) + 0.5 * cellvector(ic, 5))),
+                0.5 * (cellvector(ic, 4)));
+        }
     }
 
     if (settozeroonouteredges) {
 #pragma omp parallel for
         for (size_t iy = 0; iy < mesh.ny; ++iy) {
-            edgevector(iy * (mesh.nx + 1), 0) = 0;
-            edgevector(iy * (mesh.nx + 1), 1) = 0;
-            edgevector(iy * (mesh.nx + 1), 2) = 0;
-            edgevector(iy * (mesh.nx + 1) + mesh.nx, 0) = 0;
-            edgevector(iy * (mesh.nx + 1) + mesh.nx, 1) = 0;
-            edgevector(iy * (mesh.nx + 1) + mesh.nx, 2) = 0;
+            for (int c = 0; c < 3; ++c) {
+                edgevector(iy * (mesh.nx + 1), c) = 0;
+                edgevector(iy * (mesh.nx + 1) + mesh.nx, c) = 0;
+            }
+        }
+    } else {
+#pragma omp parallel for
+        for (size_t iy = 0; iy < mesh.ny; ++iy) {
+            for (int c = 0; c < 3; ++c) {
+                edgevector(iy * (mesh.nx + 1), c) *= 2.0;
+                edgevector(iy * (mesh.nx + 1) + mesh.nx, c) *= 2.0;
+            }
         }
     }
 }
@@ -252,6 +281,12 @@ void average_to_edges_X(const Mesh& mesh,
             edgevector(ix, 0) = 0;
             edgevector(mesh.n + ix, 0) = 0;
         }
+    } else {
+#pragma omp parallel for
+        for (size_t ix = 0; ix < mesh.nx; ++ix) {
+            edgevector(ix, 0) *= 2.0;
+            edgevector(mesh.n + ix, 0) *= 2.0;
+        }
     }
 }
 
@@ -287,6 +322,14 @@ void average_to_edges_X(const Mesh& mesh,
             edgevector(mesh.n + ix, 0) = 0;
             edgevector(mesh.n + ix, 1) = 0;
         }
+    } else {
+#pragma omp parallel for
+        for (size_t ix = 0; ix < mesh.nx; ++ix) {
+            edgevector(ix, 0) *= 2.0;
+            edgevector(ix, 1) *= 2.0;
+            edgevector(mesh.n + ix, 0) *= 2.0;
+            edgevector(mesh.n + ix, 1) *= 2.0;
+        }
     }
 }
 
@@ -304,15 +347,19 @@ void average_to_edges_X(const Mesh& mesh,
 
 #pragma omp parallel for
     for (size_t ix = 0; ix < mesh.nx; ++ix) {
-        size_t ic = ix;
-        size_t ie = ix + mesh.nx;
-        for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx, ie += mesh.nx)
-            edgevector.block<1, 3>(ie, 0) = LocalEdgeVector<2>(
-                0.5 * ((cellvector(ic + mesh.nx, 0) - 0.5 * cellvector(ic + mesh.nx, 2) + 1. / 6. * cellvector(ic + mesh.nx, 4)) + (cellvector(ic, 0) + 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
-                0.5 * ((cellvector(ic + mesh.nx, 2) - 0.5 * cellvector(ic + mesh.nx, 5)) + (cellvector(ic, 2) + 0.5 * cellvector(ic, 5))),
-                0.5 * (cellvector(ic + mesh.nx, 3) + cellvector(ic, 3)));
+        size_t ic = ix; // first element
+        size_t ie = ix; // first edge
+        for (size_t i = 0; i < mesh.ny; ++i, ic += mesh.nx, ie += mesh.nx) {
+            // add to bottom
+            edgevector.block<1, 3>(ie, 0) += LocalEdgeVector<2>(0.5 * ((cellvector(ic, 0) - 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
+                0.5 * ((cellvector(ic, 2) - 0.5 * cellvector(ic, 5))),
+                0.5 * (cellvector(ic, 3)));
+            // add to top
+            edgevector.block<1, 3>(ie + mesh.nx, 0) += LocalEdgeVector<2>(0.5 * ((cellvector(ic, 0) + 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
+                0.5 * ((cellvector(ic, 2) + 0.5 * cellvector(ic, 5))),
+                0.5 * (cellvector(ic, 3)));
+        }
     }
-
     if (settozeroonouteredges) {
 #pragma omp parallel for
         for (size_t ix = 0; ix < mesh.nx; ++ix) {
@@ -322,6 +369,16 @@ void average_to_edges_X(const Mesh& mesh,
             edgevector(mesh.n + ix, 0) = 0;
             edgevector(mesh.n + ix, 1) = 0;
             edgevector(mesh.n + ix, 2) = 0;
+        }
+    } else {
+#pragma omp parallel for
+        for (size_t ix = 0; ix < mesh.nx; ++ix) {
+            edgevector(ix, 0) *= 2.0;
+            edgevector(ix, 1) *= 2.0;
+            edgevector(ix, 2) *= 2.0;
+            edgevector(mesh.n + ix, 0) *= 2.0;
+            edgevector(mesh.n + ix, 1) *= 2.0;
+            edgevector(mesh.n + ix, 2) *= 2.0;
         }
     }
 }

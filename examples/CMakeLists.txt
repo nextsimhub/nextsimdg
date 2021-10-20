@@ -1,13 +1,10 @@
 # Build the main neXtSIM model
 
-
-
-set(SRC_DIR "../dynamics")
-set(INCLUDE_DIR "${SRC_DIR}/include")
-
-include_directories(${INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${Nextsim_INCLUDE_DIRS})
+LINK_LIBRARIES(Eigen3::Eigen ${NextsimDGLib})
 
 add_executable(example1 example1.cpp)
-
-target_link_libraries (example1 Eigen3::Eigen nextsimdyn)
+add_executable(example2a example2a.cpp)
+add_executable(example2b example2b.cpp)
+add_executable(example2c example2c.cpp)
 

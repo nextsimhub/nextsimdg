@@ -1,32 +1,18 @@
 # Build the main neXtSIM model
 
 set (INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-set(BaseSources
-	"dgtransport.cpp"
-	)
-
-set(BaseHeaders
-	"${INC}/dgbasisfunctions_gausspoints.hpp"
-	"${INC}/dgtransport.hpp"
-	"${INC}/mesh.hpp"
-	"${INC}/dginitial.hpp"
-	"${INC}/dgvector.hpp"
-	"${INC}/timemesh.hpp"
-  "${INC}/dglimiters.hpp"
-	"${INC}/dgtimestepping.hpp"
-	"${INC}/dgvector_manipulations.hpp"
-	"${INC}/dgvisu.hpp"
-	)
 
 
-set(NextsimDynSources
-	${BaseHeaders}
-	${BaseSources}
-	)
+### Set the list of all cpp files
+FILE(GLOB Nextsim_Sources *.cpp)
 
-add_library(nextsimdyn ${NextsimDynSources})
 
-target_include_directories(nextsimdyn PRIVATE "include")
+###
+INCLUDE_DIRECTORIES(${Nextsim_INCLUDE_DIRS})
 
-target_link_libraries(nextsimdyn Eigen3::Eigen)
+add_library(${NextsimDGLib} ${Nextsim_Sources})
+
+target_link_libraries (${NextsimDGLib} Eigen3::Eigen)
+
+
 

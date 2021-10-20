@@ -14,16 +14,6 @@ public:
     virtual double operator()(double x, double y) const = 0;
 };
 
-// Velocity
-class RotVXInitial : virtual public InitialBase {
-public:
-    virtual double operator()(double x, double y) const { return y - 0.5; }
-};
-class RotVYInitial : virtual public InitialBase {
-public:
-    virtual double operator()(double x, double y) const { return 0.5 - x; }
-};
-
 class SmoothInitial : virtual public InitialBase {
 public:
     virtual double operator()(double x, double y) const
@@ -90,10 +80,8 @@ void L2ProjectInitial(const Mesh& mesh,
 {
     phi.setZero();
 
-    double h = mesh.h;
-
     std::array<double, 3> imass = { 1.0, 12.0, 12.0 }; // without 'h'
-    std::array<double, 2> g2 = { -h / sqrt(12.0), h / sqrt(12.0) };
+    std::array<double, 2> g2 = { -1.0 / sqrt(12.0), 1.0 / sqrt(12.0) };
 
     size_t ic = 0;
     for (size_t iy = 0; iy < mesh.ny; ++iy)
@@ -102,9 +90,9 @@ void L2ProjectInitial(const Mesh& mesh,
             for (unsigned short int gx = 0; gx < 2; ++gx)
                 for (unsigned short int gy = 0; gy < 2; ++gy) {
                     // (f, phi0)
-                    phi(ic, 0) += imass[0] * 0.25 * initial(xm[0] + g2[gx], xm[1] + g2[gy]);
-                    phi(ic, 1) += imass[1] * 0.25 * initial(xm[0] + g2[gx], xm[1] + g2[gy]) * g2[gx] / h;
-                    phi(ic, 2) += imass[2] * 0.25 * initial(xm[0] + g2[gx], xm[1] + g2[gy]) * g2[gy] / h;
+                    phi(ic, 0) += imass[0] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hx * g2[gy]);
+                    phi(ic, 1) += imass[1] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hx * g2[gy]) * g2[gx];
+                    phi(ic, 2) += imass[2] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hx * g2[gy]) * g2[gy];
                 }
         }
 }
@@ -116,14 +104,8 @@ void L2ProjectInitial(const Mesh& mesh,
 {
     phi.setZero();
 
-    double h = mesh.h;
-
-    std::array<double, 6> imass = {
-        1.0, 12.0, 12.0, 180., 180., 144.
-    }; // without 'h'
-    std::array<double, 3> g3 = { -h * sqrt(3.0 / 5.0) * 0.5,
-        0.0,
-        h * sqrt(3.0 / 5.0) * 0.5 };
+    std::array<double, 6> imass = { 1.0, 12.0, 12.0, 180., 180., 144. }; // without 'h'
+    std::array<double, 3> g3 = { -sqrt(3.0 / 5.0) * 0.5, 0.0, sqrt(3.0 / 5.0) * 0.5 };
     std::array<double, 3> w3 = { 5. / 18., 8. / 18., 5. / 18. };
 
     size_t ic = 0;
@@ -132,11 +114,11 @@ void L2ProjectInitial(const Mesh& mesh,
             Vertex xm = mesh.vertex(ix, iy);
             for (unsigned short int gx = 0; gx < 3; ++gx)
                 for (unsigned short int gy = 0; gy < 3; ++gy) {
-                    double x = xm[0] + g3[gx];
-                    double y = xm[1] + g3[gy];
+                    double x = xm[0] + mesh.hx * g3[gx];
+                    double y = xm[1] + mesh.hy * g3[gy];
 
-                    double X = 0.5 + g3[gx] / h;
-                    double Y = 0.5 + g3[gy] / h;
+                    double X = 0.5 + g3[gx];
+                    double Y = 0.5 + g3[gy];
                     // (f, phi0)
                     phi(ic, 0) += imass[0] * w3[gx] * w3[gy] * initial(x, y) * 1.0; // 1
                     phi(ic, 1) += imass[1] * w3[gx] * w3[gy] * initial(x, y) * (X - 0.5);

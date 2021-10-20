@@ -22,9 +22,12 @@ namespace Nextsim {
 template <int DGdegree>
 class DGTransport {
 protected:
-    //! pointer to the current velocity
-    const CellVector<DGdegree>* velxpointer;
-    const CellVector<DGdegree>* velypointer;
+    //! reference to the current velocity
+    const CellVector<DGdegree>& velx;
+    const CellVector<DGdegree>& vely;
+
+    //! Specifies the time stepping scheme [rk1, rk2, rk3]
+    std::string timesteppingscheme;
 
     //! spatial mesh.
     Mesh mesh;
@@ -32,19 +35,26 @@ protected:
     TimeMesh timemesh;
 
     //! velocity in edges
-    EdgeVector<DGdegree> xvel_edgeY, yvel_edgeX;
+    EdgeVector<DGdegree> velx_edgeY, vely_edgeX;
 
     //! temporary vectors for time stepping
     CellVector<DGdegree> tmp1, tmp2, tmp3;
 
 public:
-    DGTransport()
-        : velxpointer(NULL)
-        , velypointer(NULL)
+    DGTransport(const CellVector<DGdegree>& vx, const CellVector<DGdegree>& vy)
+        : velx(vx)
+        , vely(vy)
+        , timesteppingscheme("rk2")
     {
     }
 
     // High level functions
+
+    void settimesteppingscheme(const std::string tss)
+    {
+        timesteppingscheme = tss;
+        assert((tss == "rk1") || (tss == "rk2") || (tss == "rk3"));
+    }
 
     /*!
    * Sets the spacial mesh
@@ -68,22 +78,35 @@ public:
    * to be stored in velzerosx, velzerosy (normed to [0,1])
    *
    */
-    void setvelocity(const CellVector<DGdegree>& velx,
-        const CellVector<DGdegree>& vely);
+    void reinitvelocity();
 
     /*!
    * Performs one time step transporting phi with the Fwd-Euler Scheme
    *
    * @params phi is the vector of values to be transported
    */
-    void step_fwdeuler(CellVector<DGdegree>& phi);
+    void step_rk1(CellVector<DGdegree>& phi);
 
     /*!
    * Performs one time step transporting phi with the 2nd Order Heun Scheme
    *
    * @params phi is the vector of values to be transported
    */
-    void step_heun(CellVector<DGdegree>& phi);
+    void step_rk2(CellVector<DGdegree>& phi);
+
+    /*!
+   * Performs one time step transporting phi with the 2nd Order Heun Scheme
+   *
+   * @params phi is the vector of values to be transported
+   */
+    void step_rk3(CellVector<DGdegree>& phi);
+
+    /*!
+   * Performs one time step transporting phi
+   *
+   * @params phi is the vector of values to be transported
+   */
+    void step(CellVector<DGdegree>& phi);
 };
 
 } // namespace Nextsim

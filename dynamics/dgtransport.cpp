@@ -12,10 +12,10 @@ namespace Nextsim
     tmp1.resize_by_mesh(mesh); // resize tmp-vectors for time stepping
     tmp2.resize_by_mesh(mesh);
     tmp3.resize_by_mesh(mesh);
-    
-    xvel_edgeY.resize_by_mesh(
-			      mesh, EdgeType::Y); // resizes the velocity-edge-vectors
-    yvel_edgeX.resize_by_mesh(mesh, EdgeType::X);
+
+    // resizes the velocity-edge-vectors
+    velx_edgeY.resize_by_mesh(mesh, EdgeType::Y); 
+    vely_edgeX.resize_by_mesh(mesh, EdgeType::X);
   }
   
   template<int DGdegree>
@@ -25,63 +25,109 @@ namespace Nextsim
   }
   
   template<int DGdegree>
-  void DGTransport<DGdegree>::setvelocity(const CellVector<DGdegree> &velx, const CellVector<DGdegree> &vely)
+  void DGTransport<DGdegree>::reinitvelocity()
   {
-    velxpointer = &velx; // copy pointers
-    velypointer = &vely;
-    
     // average the velocity to the edges
-    average_to_edges_Y(mesh, xvel_edgeY, *velxpointer);
-    average_to_edges_X(mesh, yvel_edgeX, *velypointer);
+    average_to_edges_Y(mesh, velx_edgeY, velx);
+    average_to_edges_X(mesh, vely_edgeX, vely);
   }
   
   
   template<int DGdegree>
-  void DGTransport<DGdegree>::step_fwdeuler(CellVector<DGdegree> &phi)
+  void DGTransport<DGdegree>::step_rk1(CellVector<DGdegree> &phi)
   {
-    assert(velxpointer != NULL); // make sure that velocity is set
-    assert(velypointer != NULL);
-    
-    fwdeuler_step<DGdegree>(mesh,
-		      timemesh,
-		      *velxpointer,
-		      *velypointer,
-		      xvel_edgeY,
-		      yvel_edgeX,
-		      phi,
-		      tmp1);
+    transportoperator<DGdegree>(mesh,
+				timemesh,
+				velx,
+				vely,
+				velx_edgeY,
+				vely_edgeX,
+				phi,
+				tmp1);
     
     phi += tmp1;
   }
 
   template<int DGdegree>
-  void DGTransport<DGdegree>::step_heun(CellVector<DGdegree> &phi)
+  void DGTransport<DGdegree>::step_rk2(CellVector<DGdegree> &phi)
   {
-    assert(velxpointer != NULL); // make sure that velocity is set
-    assert(velypointer != NULL);
-    
-    fwdeuler_step<DGdegree>(mesh,
+    transportoperator<DGdegree>(mesh,
 		      timemesh,
-		      *velxpointer,
-		      *velypointer,
-		      xvel_edgeY,
-		      yvel_edgeX,
+			    velx,
+			    vely,
+			    velx_edgeY,
+			    vely_edgeX,
 		      phi,
 		      tmp1); // tmp1 = k * F(u)
     
     phi += tmp1; // phi = phi + k * F(u)     (i.e.: implicit Euler)
     
-    fwdeuler_step<DGdegree>(mesh,
+    transportoperator<DGdegree>(mesh,
 		      timemesh,
-		      *velxpointer,
-		      *velypointer,
-		      xvel_edgeY,
-		      yvel_edgeX,
+			    velx,
+			    vely,
+		      velx_edgeY,
+		      vely_edgeX,
 		      phi,
 		      tmp2); // tmp1 = k * F( u + k * F(u) )
     
     phi += 0.5 * (tmp2 - tmp1);
   }
+
+  template<int DGdegree>
+  void DGTransport<DGdegree>::step_rk3(CellVector<DGdegree> &phi)
+  {
+    transportoperator<DGdegree>(mesh,
+		      timemesh,
+			    velx,
+			    vely,
+			    velx_edgeY,
+			    vely_edgeX,
+		      phi,
+		      tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
+    
+    phi += 1./3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
+    transportoperator<DGdegree>(mesh,
+		      timemesh,
+			    velx,
+			    vely,
+		      velx_edgeY,
+		      vely_edgeX,
+		      phi,
+		      tmp2); // k * F(k1) // K2 in Heun(3)
+    phi -= 1./3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
+
+    phi += 2./3. * tmp2;
+    transportoperator<DGdegree>(mesh,
+				timemesh,
+				velx,
+				vely,
+				velx_edgeY,
+				vely_edgeX,
+				phi,
+				tmp3); // k * F(k2) // K3 in Heun(3)
+    phi -= 2./3. * tmp2;
+    
+    phi += 0.25 * tmp1 + 0.75 * tmp3;
+  }
+
+
+  template<int DGdegree>
+  void DGTransport<DGdegree>::step(CellVector<DGdegree> &phi)
+  {
+    if (timesteppingscheme == "rk1")
+      step_rk1(phi);
+    else if (timesteppingscheme == "rk2")
+      step_rk2(phi);
+    else if (timesteppingscheme == "rk3")
+      step_rk3(phi);
+    else
+      {
+	std::cerr << "Time stepping scheme '" << timesteppingscheme << "' not known!" << std::endl;
+	abort();
+      }
+  }
+  
 
   template class DGTransport<0>;
   template class DGTransport<1>;

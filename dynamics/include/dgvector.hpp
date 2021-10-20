@@ -88,9 +88,9 @@ public:
  **/
 template <int DGdegree>
 class CellVector
-    : public Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree)> {
+    : public Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree), (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor> {
 public:
-    typedef Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree)>
+    typedef Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree), (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>
         EigenCellVector;
 
     inline int dofs_in_cell() const { return CELLDOFS(DGdegree); }
@@ -111,6 +111,12 @@ public:
 
     // operations
     void zero() { EigenCellVector::setZero(); }
+
+    //! return the 'mass' = the integral over the vector
+    double mass(const Mesh& mesh) const
+    {
+        return EigenCellVector::col(0).sum() * mesh.hx * mesh.hy;
+    }
 };
 
 //! data set to store the type of the edges

@@ -36,6 +36,15 @@ public:
     {
         assert(k > 0);
     }
+
+    void BasicInit(double tm, int n)
+    {
+        assert(tm > 0);
+        assert(n > 0);
+        N = n;
+        tmax = tm;
+        k = tmax / N;
+    }
 };
 
 } // namespace Nextsim

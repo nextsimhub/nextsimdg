@@ -15,31 +15,43 @@ public:
     size_t nx, ny; // no of elements in x- and y-direction
     size_t n; // total number of elements
 
-    double h; // spatial mesh size
+    double hx, hy; // spatial mesh size
 
     Mesh()
         : nx(0)
         , ny(0)
         , n(0)
-        , h(0)
+        , hx(0)
+        , hy(0)
     {
     }
 
-    Mesh(size_t NX, size_t NY, double H)
+    Mesh(size_t NX, size_t NY, double HX, double HY)
         : nx(NX)
         , ny(NY)
         , n(NX * NY)
-        , h(H)
+        , hx(HX)
+        , hy(HY)
     {
         assert(nx > 0);
         assert(ny > 0);
         assert(n == nx * ny);
-        assert(h > 0);
+        assert(hx > 0);
+        assert(hy > 0);
+    }
+
+    void BasicInit(size_t NX, size_t NY, double HX, double HY)
+    {
+        nx = NX;
+        ny = NY;
+        hx = HX;
+        hy = HY;
+        n = NX * NY;
     }
 
     Vertex vertex(size_t ix, size_t iy) const
     {
-        return { h * (ix + 0.5), h * (iy + 0.5) };
+        return { hx * (ix + 0.5), hy * (iy + 0.5) };
     }
 };
 

@@ -24,6 +24,14 @@ public:
         return ss.str();
     }
 
+    //! Puts together the file name by adding the DGdegree and index n with fixed width
+    static std::string compose_vtkname(const std::string& fname, int DG, int n)
+    {
+        std::ostringstream ss;
+        ss << fname << DG << "." << std::setw(5) << std::setfill('0') << n << ".vtk";
+        return ss.str();
+    }
+
     static inline double cuttol(double v, double tol)
     {
         if ((v < tol) && (v > -tol))
@@ -53,7 +61,7 @@ public:
             << "DIMENSIONS " << mesh.nx + 1 << " " << mesh.ny + 1 << " 1"
             << std::endl
             << "ORIGIN 0 0 0" << std::endl
-            << "SPACING " << mesh.h << " " << mesh.h << " " << mesh.h << std::endl;
+            << "SPACING " << mesh.hx << " " << mesh.hy << " " << 0 << std::endl;
         OUT << "POINT_DATA " << (mesh.nx + 1) * (mesh.ny + 1) << std::endl
             << "SCALARS interpolate DOUBLE 1" << std::endl
             << "LOOKUP_TABLE default" << std::endl;
@@ -109,7 +117,7 @@ public:
         const CellVector<DGdegree>& v,
         const Mesh& mesh)
     {
-        write_cellvector(compose_vtkname(fname, n), v, mesh);
+        write_cellvector(compose_vtkname(fname, DGdegree, n), v, mesh);
     }
 
     ////////////////////////////////////////////////// dG(1) output
@@ -134,11 +142,11 @@ public:
         OUT << "POINTS " << 4 * mesh.nx * mesh.ny << " DOUBLE" << std::endl;
         for (size_t iy = 0; iy < mesh.ny; ++iy)
             for (size_t ix = 0; ix < mesh.nx; ++ix) {
-                OUT << mesh.h * ix << "\t" << mesh.h * iy << "\t0" << std::endl;
-                OUT << mesh.h * (ix + 1) << "\t" << mesh.h * iy << "\t0" << std::endl;
-                OUT << mesh.h * (ix + 1) << "\t" << mesh.h * (iy + 1) << "\t0"
+                OUT << mesh.hx * ix << "\t" << mesh.hy * iy << "\t0" << std::endl;
+                OUT << mesh.hx * (ix + 1) << "\t" << mesh.hy * iy << "\t0" << std::endl;
+                OUT << mesh.hx * (ix + 1) << "\t" << mesh.hy * (iy + 1) << "\t0"
                     << std::endl;
-                OUT << mesh.h * ix << "\t" << mesh.h * (iy + 1) << "\t0" << std::endl;
+                OUT << mesh.hx * ix << "\t" << mesh.hy * (iy + 1) << "\t0" << std::endl;
             }
         OUT << "CELLS " << mesh.nx * mesh.ny << " " << 5 * mesh.nx * mesh.ny
             << std::endl;
@@ -203,7 +211,7 @@ public:
         const CellVector<DGdegree>& v,
         const Mesh& mesh)
     {
-        write_dg(compose_vtkname(fname, n), v, mesh);
+        write_dg(compose_vtkname(fname, DGdegree, n), v, mesh);
     }
 };
 
