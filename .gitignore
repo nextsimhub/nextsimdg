@@ -1,4 +1,5 @@
 /build*
+*/build
 /.cproject
 /.project
 /.pydevproject
