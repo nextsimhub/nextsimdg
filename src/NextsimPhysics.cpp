@@ -13,7 +13,10 @@
 #include "include/ElementData.hpp"
 
 #include "include/IIceAlbedo.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
 #include "IThermodynamics.hpp"
+
+#include "include/ModuleLoader.hpp"
 
 #include "include/constants.hpp"
 
@@ -30,6 +33,26 @@ std::unique_ptr<IIceAlbedo> NextsimPhysics::iIceAlbedoImpl;
 std::unique_ptr<IThermodynamics> NextsimPhysics::iThermo;
 
 double stefanBoltzmannLaw(double temperature);
+
+const static std::string iceOceanHeatFluxKey = "IceOceanHeatFlux";
+const static std::string basicIceOceanHeatFluxKey = "basic";
+const static std::string advancedIceOceanHeatFluxKey = "advanced";
+
+void NextsimPhysics::NextsimPhysics()
+{
+    addOption(iceOceanHeatFluxKey, basicIceOceanHeatFluxKey, "Ice-ocean heat flux calculation.");
+}
+
+void NextsimPhysics::parse()
+{
+    if (retrieveValue<std::string>(iceOceanHeatFluxKey) != advancedIceOceanHeatFluxKey) {
+        ModuleLoader::getLoader().setImplementation(iceOceanHeatFluxKey, "BasicIceOceanHeatFlux");
+    } else {
+        ModuleLoader::getLoader().setImplementation(iceOceanHeatFluxKey, "AdvancedBasicIceOceanHeatFlux");
+    }
+    iceOceanHeatFluxImpl = std::move(ModuleLoader::getLoader().getImplementation<IIceOceanHeatFlux>());
+
+}
 
 void NextsimPhysics::updateDerivedDataStatic(
         const PrognosticData& prog,
@@ -121,9 +144,9 @@ void NextsimPhysics::massFluxIceOceanStatic(const PrognosticData& prog, const Ex
 
 }
 
-void NextsimPhysics::heatFluxIceOceanStatic(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
+void NextsimPhysics::heatFluxIceOcean(const PrognosticData& prog, const ExternalData &exter, PhysicsData& phys)
 {
-
+    m_Qio = iceOceanHeatFluxImpl->flux(prog, exter, phys, *this);
 }
 
 void NextsimPhysics::setDragOcean_q(double doq)

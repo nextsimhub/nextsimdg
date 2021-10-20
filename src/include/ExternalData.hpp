@@ -75,6 +75,11 @@ public:
         return m_tbot;
     }
 
+    inline double mixedLayerDepth() const
+    {
+        return m_mld;
+    }
+
     inline double& snowfall() // [kg m⁻² s⁻¹]
     {
         return m_snowfall;
@@ -91,6 +96,7 @@ private:
     double m_Qsw_in;
     double m_Qlw_in;
     double m_tbot;
+    double m_mld;
 
     double m_snowfall;
 };

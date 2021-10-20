@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "BaseElementData.hpp"
+#include "Configured.hpp"
 
 #ifndef SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 #define SRC_INCLUDE_NEXTSIMPHYSICS_HPP
@@ -20,16 +21,19 @@ class UnusedData;
 
 class IIceAlbedo;
 class IThermodynamics;
+class IIceOceanHeatFlux;
 
 template<class Phys>
 class ElementData;
 
 class NextsimPhysics;
 
-class NextsimPhysics : public BaseElementData {
+class NextsimPhysics : public BaseElementData, Configured {
 public:
-    NextsimPhysics() = default;
+    NextsimPhysics();
     ~NextsimPhysics() = default;
+
+    void parse() override;
 
     inline static void updateDerivedData(
             const PrognosticData& prog,
@@ -87,14 +91,9 @@ public:
     {
         massFluxIceOceanStatic(prog, exter, phys);
     };
-    inline static void heatFluxIceOcean(
-            const PrognosticData& prog,
-            const ExternalData& exter,
-            PhysicsData& phys,
-            UnusedData&)
-    {
-        heatFluxIceOceanStatic(prog, exter, phys);
-    };
+
+    void heatFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
     static void setDragIce_t(double dragIce_t);
@@ -159,6 +158,12 @@ private:
     static double dragOcean_m(double windSpeed);
     static double dragOcean_t;
     static double dragIce_t;
+
+    // Ice-ocean heat flux
+    double m_Qio; // Ice-ocean heat flux
+    std::unique_ptr<IIceOceanHeatFlux> iceOceanHeatFluxImpl;
+
+
 public:
     static double I_0;
 private:
