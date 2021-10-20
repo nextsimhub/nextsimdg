@@ -2,7 +2,7 @@
  * @file BasicIceOceanHeatFlux.cpp
  *
  * @date Oct 19, 2021
- * @author timpai
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/BasicIceOceanHeatFlux.hpp"
@@ -13,10 +13,11 @@
 
 namespace Nextsim {
 
-double flux(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsp)
+double flux(
+    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsp)
 {
     // The ice bottom temperature is the freezing point of the surface seawater
-    //TODO: Implement the salinity dependent freezing temperature
+    // TODO: Implement the salinity dependent freezing temperature
     double iceBottomTemperature = -1.8;
     double tDiff = prog.seaSurfaceTemperature() - iceBottomTemperature;
 

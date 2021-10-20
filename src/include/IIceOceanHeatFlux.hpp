@@ -17,7 +17,8 @@ class NextsimPhysics;
 class IIceOceanHeatFlux {
 public:
     virtual ~IIceOceanHeatFlux();
-    virtual double flux(const PrognosticData&, const ExternalData&, PhysicsData&, NextsimPhysics&) = 0;
+    virtual double flux(const PrognosticData&, const ExternalData&, PhysicsData&, NextsimPhysics&)
+        = 0;
 };
 }
 #endif /* SRC_INCLUDE_IICEOCEANHEATFLUX_HPP_ */
