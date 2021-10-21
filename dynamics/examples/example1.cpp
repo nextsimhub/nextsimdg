@@ -8,6 +8,15 @@
 #include "timemesh.hpp"
 #include "dgvisu.hpp"
 #include "dgtransport.hpp"
+#include "stopwatch.hpp"
+
+
+namespace Nextsim
+{
+  extern Timer GlobalTimer;
+}
+
+
 
 bool WRITE_VTK = true;
 
@@ -138,9 +147,15 @@ class Test
   
   void run()
   {
+    Nextsim::GlobalTimer.reset();
+    Nextsim::GlobalTimer.start("--> run");
+
+
+    Nextsim::GlobalTimer.start("-- --> initial");
     // initial density
     Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
+    
     //! Save initial solution for error control
     finalphi = phi;
     Nextsim::L2ProjectInitial(mesh, finalphi, FinalPhi());
@@ -152,6 +167,7 @@ class Test
     Nextsim::L2ProjectInitial(mesh, vy, VY);
     dgtransport.reinitvelocity();
 
+    Nextsim::GlobalTimer.stop("-- --> initial");
     // time loop
     for (size_t iter = 1; iter <= timemesh.N; ++iter)
       {
@@ -160,6 +176,10 @@ class Test
 	  if (iter % (timemesh.N/10)==0)
 	    Nextsim::VTK::write_dg<DGdegree>("Results/dg",iter/(timemesh.N/10),phi,mesh);
       }
+
+    Nextsim::GlobalTimer.stop("--> run");
+
+    Nextsim::GlobalTimer.print();
   }
 
   bool check() const
@@ -188,32 +208,33 @@ class Test
 
 int main()
 {
-  int ITER = 3;
-  int N = 20;
-  for (int n=0;n<ITER;++n)
-    {
-      Test<0> test0(N);
-      test0.init();
-      test0.run();
-      if (!test0.check())
-	std::cerr << "TEST FAILED!" << std::endl;
-      N*=2;
-    }
-  std::cerr << std::endl;
   
-  N = 20;
-  for (int n=0;n<ITER;++n)
-    {
-      Test<1> test1(N);
-      test1.init();
-      test1.run();
-      if (!test1.check())
-	std::cerr << "TEST FAILED!" << std::endl;
-      N*=2;
-    }
-  std::cerr << std::endl;
+  int ITER = 1;
+  int N = 100;
+  // for (int n=0;n<ITER;++n)
+  //   {
+  //     Test<0> test0(N);
+  //     test0.init();
+  //     test0.run();
+  //     if (!test0.check())
+  // 	std::cerr << "TEST FAILED!" << std::endl;
+  //     N*=2;
+  //   }
+  // std::cerr << std::endl;
   
-  N = 20;
+  // N = 20;
+  // for (int n=0;n<ITER;++n)
+  //   {
+  //     Test<1> test1(N);
+  //     test1.init();
+  //     test1.run();
+  //     if (!test1.check())
+  // 	std::cerr << "TEST FAILED!" << std::endl;
+  //     N*=2;
+  //   }
+  // std::cerr << std::endl;
+  
+  N = 100;
   for (int n=0;n<ITER;++n)
     {
       Test<2> test2(N);

@@ -4,24 +4,12 @@
 /*----------------------------   dgtimestepping.h ---------------------------*/
 
 #include "dgvector_manipulations.hpp"
+#include "stopwatch.hpp"
 #include "timemesh.hpp"
 
 namespace Nextsim {
 
-// Zero's for proper integration
-//
-// dg0 - none
-//
-// dg1 - a0 + a1*(x-1/2)
-// a1 != 0  ==>  z = 1/2 - a0/a1
-//
-// dg2 - a0 + a1*(x-1/2) + a2 * ( (x-1/2)^2 - 1/12 )
-//
-// disc:
-// a2 !=0 sonst dg1
-// D = -36 * a0 * a2 + 9 * a1 * a1 + 3 * a2 * a2
-// D>0 ==> z0/1 = ( a2 - a1 +/- sqrt(D) ) / (2 * a2)
-//
+extern Timer GlobalTimer;
 
 // pre-computed matrices for assembling dG-transport
 // the Gauss rule for dG(n) is set to n+1 points
@@ -631,6 +619,7 @@ void transportoperator(const Mesh& mesh,
     LocalCellVector<DGdegree> inversemasscell;
     inversemassmatrix(mesh, timemesh, inversemasscell);
 
+    GlobalTimer.start("-- -- --> cell term");
     // Cell terms
 #pragma omp parallel for
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
@@ -638,7 +627,9 @@ void transportoperator(const Mesh& mesh,
         for (size_t ix = 0; ix < mesh.nx; ++ix, ++ic)
             cell_term<DGdegree>(mesh, inversemasscell, phiup, phi, vx, vy, ic);
     }
+    GlobalTimer.stop("-- -- --> cell term");
 
+    GlobalTimer.start("-- -- --> edge terms");
     // Y - edges, only inner ones
 #pragma omp parallel for
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
@@ -659,8 +650,10 @@ void transportoperator(const Mesh& mesh,
             edge_term_X<DGdegree>(
                 mesh, timemesh, phiup, phi, evy, ic, ic + mesh.nx, ie);
     }
+    GlobalTimer.stop("-- -- --> edge terms");
 
     // boundaries
+    GlobalTimer.start("-- -- --> boundaries");
     // lower & upper
     //#pragma omp parallel for
     const size_t eupper0 = mesh.nx * mesh.ny;
@@ -690,6 +683,8 @@ void transportoperator(const Mesh& mesh,
         boundary_right<DGdegree>(
             mesh, timemesh, phiup, phi, evx, cright, eright);
     }
+
+    GlobalTimer.stop("-- -- --> boundaries");
 }
 
 } // namespace Nextsim

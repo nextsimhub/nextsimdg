@@ -10,6 +10,7 @@
 
 bool WRITE_VTK = false;
 
+
 /*!
  * This test case tests the boundary  handling of the DG transport scheme
  * An initial density is first transported to the upper right corner, 

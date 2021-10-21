@@ -1,8 +1,12 @@
 #include "dgtransport.hpp"
 #include "dgtimestepping.hpp"
+#include "stopwatch.hpp"
 
 namespace Nextsim
 {
+
+  extern Timer GlobalTimer;
+  
 
   template<int DGdegree>
   void DGTransport<DGdegree>::setmesh(const Mesh &_mesh)
@@ -115,6 +119,7 @@ namespace Nextsim
   template<int DGdegree>
   void DGTransport<DGdegree>::step(CellVector<DGdegree> &phi)
   {
+    GlobalTimer.start("-- --> step");
     if (timesteppingscheme == "rk1")
       step_rk1(phi);
     else if (timesteppingscheme == "rk2")
@@ -126,6 +131,7 @@ namespace Nextsim
 	std::cerr << "Time stepping scheme '" << timesteppingscheme << "' not known!" << std::endl;
 	abort();
       }
+    GlobalTimer.stop("-- --> step");
   }
   
 
