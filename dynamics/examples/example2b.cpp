@@ -129,6 +129,9 @@ class Test
     // initial density
     Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
+    if (WRITE_VTK)
+      Nextsim::VTK::write_dg<DGdegree>("Results/dg",0,phi, mesh);
+
     // time loop
     for (size_t iter = 1; iter <= timemesh.N; ++iter)
       {

@@ -218,12 +218,12 @@ void average_to_edges_Y(const Mesh& mesh,
             // add to left
             edgevector.block<1, 3>(ie, 0) += LocalEdgeVector<2>(
                 0.5 * ((cellvector(ic, 0) - 0.5 * cellvector(ic, 1) + 1. / 6. * cellvector(ic, 3))),
-                0.5 * ((cellvector(ic, 1) - 0.5 * cellvector(ic, 5))),
+                0.5 * ((cellvector(ic, 2) - 0.5 * cellvector(ic, 5))),
                 0.5 * (cellvector(ic, 4)));
             // add to right
-            edgevector.block<1, 3>(ie + 1, 0) = LocalEdgeVector<2>(
+            edgevector.block<1, 3>(ie + 1, 0) += LocalEdgeVector<2>(
                 0.5 * ((cellvector(ic, 0) + 0.5 * cellvector(ic, 1) + 1. / 6. * cellvector(ic, 3))),
-                0.5 * ((cellvector(ic, 1) + 0.5 * cellvector(ic, 5))),
+                0.5 * ((cellvector(ic, 2) + 0.5 * cellvector(ic, 5))),
                 0.5 * (cellvector(ic, 4)));
         }
     }
@@ -352,11 +352,11 @@ void average_to_edges_X(const Mesh& mesh,
         for (size_t i = 0; i < mesh.ny; ++i, ic += mesh.nx, ie += mesh.nx) {
             // add to bottom
             edgevector.block<1, 3>(ie, 0) += LocalEdgeVector<2>(0.5 * ((cellvector(ic, 0) - 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
-                0.5 * ((cellvector(ic, 2) - 0.5 * cellvector(ic, 5))),
+                0.5 * ((cellvector(ic, 1) - 0.5 * cellvector(ic, 5))),
                 0.5 * (cellvector(ic, 3)));
             // add to top
             edgevector.block<1, 3>(ie + mesh.nx, 0) += LocalEdgeVector<2>(0.5 * ((cellvector(ic, 0) + 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
-                0.5 * ((cellvector(ic, 2) + 0.5 * cellvector(ic, 5))),
+                0.5 * ((cellvector(ic, 1) + 0.5 * cellvector(ic, 5))),
                 0.5 * (cellvector(ic, 3)));
         }
     }

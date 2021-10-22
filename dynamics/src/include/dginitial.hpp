@@ -90,9 +90,9 @@ void L2ProjectInitial(const Mesh& mesh,
             for (unsigned short int gx = 0; gx < 2; ++gx)
                 for (unsigned short int gy = 0; gy < 2; ++gy) {
                     // (f, phi0)
-                    phi(ic, 0) += imass[0] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hx * g2[gy]);
-                    phi(ic, 1) += imass[1] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hx * g2[gy]) * g2[gx];
-                    phi(ic, 2) += imass[2] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hx * g2[gy]) * g2[gy];
+                    phi(ic, 0) += imass[0] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hy * g2[gy]);
+                    phi(ic, 1) += imass[1] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hy * g2[gy]) * g2[gx];
+                    phi(ic, 2) += imass[2] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hy * g2[gy]) * g2[gy];
                 }
         }
 }

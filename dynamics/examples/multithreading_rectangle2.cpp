@@ -40,7 +40,7 @@ public:
 
   double operator()(double x, double y) const
   {
-    double r = sqrt(pow(x-0.4,2.0)+pow(y-0.4,2.0));
+    double r = sqrt(pow(x-0.8,2.0)+pow(y-0.4,2.0));
     if (r<0.1)
       return 1.0;
     if (r<0.3)
@@ -57,7 +57,7 @@ public:
 };
 class InitialVY : virtual public Nextsim::InitialBase {
 public:
-  virtual double operator()(double x, double y) const { return 0.5 - x; }
+  virtual double operator()(double x, double y) const { return 1.0 - x; }
 };
 
 //////////////////////////////////////////////////
@@ -98,10 +98,10 @@ class Test
   void init()
   {
     //! Init Mesh
-    mesh.BasicInit(N, N, 1.0 / N, 1.0 / N);
+    mesh.BasicInit(2*N, 2*N, 1.0 / N, 0.5 / N);
 
     //! Init Time Mesh
-    double cfl = 0.1;
+    double cfl = 0.05;
     double k   = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
     double tmax = 2.0*M_PI;
 
@@ -139,6 +139,13 @@ class Test
     Nextsim::L2ProjectInitial(mesh, vy, VY);
     dgtransport.reinitvelocity();
 
+    if (WRITE_VTK)
+      {
+	Nextsim::VTK::write_dg<DGdegree>("Results/vx",0,vx,mesh);
+	Nextsim::VTK::write_dg<DGdegree>("Results/vy",0,vy,mesh);
+      }
+
+    
     Nextsim::GlobalTimer.stop("-- --> initial");
     // time loop
     for (size_t iter = 1; iter <= timemesh.N; ++iter)

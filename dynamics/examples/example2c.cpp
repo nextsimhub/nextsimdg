@@ -85,8 +85,11 @@ class Test
   //! Returns the reference values for N=50 obtained on October 16, 2021
   double reference() const
   {
-    assert(mesh.nx == 50);
-    assert(mesh.ny == 50);
+    if ((mesh.nx != 50) || (mesh.ny != 50))
+      {
+	std::cerr << "Reference values only for nx=ny=50. Test might still be correct" << std::endl;
+      }
+    
     
     if (DGdegree == 0)
       return 0.01741268141474477;
@@ -128,6 +131,10 @@ class Test
     // initial density
     Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
+    if (WRITE_VTK)
+      Nextsim::VTK::write_dg<DGdegree>("Results/dg",0,phi,mesh);
+	
+
     // time loop
     for (size_t iter = 1; iter <= timemesh.N; ++iter)
       {
@@ -143,7 +150,6 @@ class Test
 	if (WRITE_VTK)
 	  if (iter % (timemesh.N/10)==0)
 	    Nextsim::VTK::write_dg<DGdegree>("Results/dg",iter/(timemesh.N/10),phi,mesh);
-
       }
   }
 

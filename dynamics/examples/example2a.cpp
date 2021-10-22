@@ -17,6 +17,9 @@
  * behavior
  */
 
+double WRITE_VTK = false;
+
+
 class InitialVX : virtual public Nextsim::InitialBase {
   double time;
   
@@ -125,6 +128,10 @@ class Test
     // initial density
     Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
+    if (WRITE_VTK)
+      Nextsim::VTK::write_dg<DGdegree>("Results/dg",0,phi,mesh);
+
+
     // time loop
     for (size_t iter = 1; iter <= timemesh.N; ++iter)
       {
@@ -137,6 +144,11 @@ class Test
 	dgtransport.reinitvelocity();// sets the current velocity and averages it to edges
 	
 	dgtransport.step(phi); // performs one time step with the 2nd Order Heun scheme
+
+	if (WRITE_VTK)
+	  if (iter % (timemesh.N/10)==0)
+	    Nextsim::VTK::write_dg<DGdegree>("Results/dg",iter/(timemesh.N/10),phi,mesh);
+
 
       }
   }

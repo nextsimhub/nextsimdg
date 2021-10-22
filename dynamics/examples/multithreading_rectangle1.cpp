@@ -40,7 +40,7 @@ public:
 
   double operator()(double x, double y) const
   {
-    double r = sqrt(pow(x-0.4,2.0)+pow(y-0.4,2.0));
+    double r = sqrt(pow(x-0.8,2.0)+pow(y-0.4,2.0));
     if (r<0.1)
       return 1.0;
     if (r<0.3)
@@ -57,7 +57,7 @@ public:
 };
 class InitialVY : virtual public Nextsim::InitialBase {
 public:
-  virtual double operator()(double x, double y) const { return 0.5 - x; }
+  virtual double operator()(double x, double y) const { return 1.0 - x; }
 };
 
 //////////////////////////////////////////////////
@@ -98,7 +98,7 @@ class Test
   void init()
   {
     //! Init Mesh
-    mesh.BasicInit(N, N, 1.0 / N, 1.0 / N);
+    mesh.BasicInit(2.0*N, N, 1.0 / N, 1.0 / N);
 
     //! Init Time Mesh
     double cfl = 0.1;
