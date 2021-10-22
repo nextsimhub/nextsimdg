@@ -17,8 +17,7 @@ namespace Nextsim
 }
 
 
-
-bool WRITE_VTK = true;
+bool WRITE_VTK = false;
 
 
 //! Initially a smooth bump centered at (0.4,0.4)
@@ -49,41 +48,16 @@ public:
     return 0.0;
   }
 };
-class FinalPhi : virtual public Nextsim::InitialBase {
-public:
-  double smooth(double x) const // smooth transition from 0 to 1 on [0,1]
-  {
-    if (x<=0)
-      return 0;
-    if (x>=1.0)
-      return 0;
-    
-    if (x<0.5)
-      return 0.5*exp(-1./x)/exp(-2.0);
-    else
-      return 1.-0.5*exp(-1./(1.-x))/exp(-2.0);
-  }
-  
 
-  double operator()(double x, double y) const
-  {
-    double r = sqrt(pow(x-0.6,2.0)+pow(y-0.4,2.0));
-    if (r<0.1)
-      return 1.0;
-    if (r<0.3)
-      return 1.0-smooth(5.0*(r-0.1));
-    return 0.0;
-  }
-};
 
 // Velocity
 class InitialVX : virtual public Nextsim::InitialBase {
 public:
-  virtual double operator()(double x, double y) const { return 1.0; /*y - 0.5;*/ }
+  virtual double operator()(double x, double y) const { return y - 0.5; }
 };
 class InitialVY : virtual public Nextsim::InitialBase {
 public:
-  virtual double operator()(double x, double y) const { return 0.; /*0.5 - x;*/ }
+  virtual double operator()(double x, double y) const { return 0.5 - x; }
 };
 
 //////////////////////////////////////////////////
@@ -129,7 +103,7 @@ class Test
     //! Init Time Mesh
     double cfl = 0.1;
     double k   = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
-    double tmax = 0.2; //2.0*M_PI;
+    double tmax = 2.0*M_PI;
 
     int NT = (static_cast<int>((tmax / k + 1) /100 + 1) * 100); // No time steps dividable by 100
     timemesh.BasicInit(tmax, NT);
@@ -142,7 +116,6 @@ class Test
     vx.resize_by_mesh(mesh);
     vy.resize_by_mesh(mesh);
     phi.resize_by_mesh(mesh);
-
   }
   
   void run()
@@ -155,12 +128,11 @@ class Test
     // initial density
     Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
-    
+    if (WRITE_VTK)
+      Nextsim::VTK::write_dg<DGdegree>("Results/dg",0,phi,mesh);
+
     //! Save initial solution for error control
     finalphi = phi;
-    Nextsim::L2ProjectInitial(mesh, finalphi, FinalPhi());
-	
-	
 
     // set velocity vector. constant velocity field. No initialization required
     Nextsim::L2ProjectInitial(mesh, vx, VX);
@@ -185,6 +157,7 @@ class Test
   bool check() const
   {
     std::cerr << "k " << 1./N << " dG " << DGdegree << "\t";
+
     //! Check that mass is ok.
     double mass      = phi.mass(mesh);
     std::cerr << std::setprecision(16)
@@ -193,8 +166,7 @@ class Test
     Nextsim::CellVector<DGdegree> errorphi = phi; errorphi += -finalphi;
     if (WRITE_VTK)
       Nextsim::VTK::write_dg<DGdegree>("Results/error",N,errorphi,mesh);
-
-    //std::cerr << errorphi.cwiseAbs().maxCoeff() << std::endl;
+    
     std::cerr << errorphi.norm() * sqrt(mesh.hx*mesh.hy) << std::endl;
     
     return true;
@@ -209,8 +181,8 @@ class Test
 int main()
 {
   
-  int ITER = 1;
-  int N = 100;
+  int ITER = 3;
+  int N = 20;
   // for (int n=0;n<ITER;++n)
   //   {
   //     Test<0> test0(N);
@@ -234,7 +206,7 @@ int main()
   //   }
   // std::cerr << std::endl;
   
-  N = 100;
+  N = 20;
   for (int n=0;n<ITER;++n)
     {
       Test<2> test2(N);
