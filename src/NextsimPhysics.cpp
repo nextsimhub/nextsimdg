@@ -47,9 +47,9 @@ void NextsimPhysics::parse()
 {
     if (retrieveValue<std::string>(iceOceanHeatFluxKey) != advancedIceOceanHeatFluxKey) {
         ModuleLoader::getLoader().setImplementation(iceOceanHeatFluxKey, "BasicIceOceanHeatFlux");
-    } else {
-        ModuleLoader::getLoader().setImplementation(
-            iceOceanHeatFluxKey, "AdvancedBasicIceOceanHeatFlux");
+//    } else {
+//        ModuleLoader::getLoader().setImplementation(
+//            iceOceanHeatFluxKey, "AdvancedBasicIceOceanHeatFlux");
     }
     iceOceanHeatFluxImpl
         = std::move(ModuleLoader::getLoader().getImplementation<IIceOceanHeatFlux>());
