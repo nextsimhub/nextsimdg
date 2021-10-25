@@ -14,7 +14,7 @@
 
 namespace Nextsim {
 
-class Model: public Timed, public Logged {
+class Model : public Timed, public Logged {
 public:
     Model(); // TODO add arguments to pass the desired
              // environment and configuration to the model

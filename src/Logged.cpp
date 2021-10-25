@@ -26,7 +26,7 @@ void Logged::log(const std::string& message, Logged::level lvl)
     case (ERROR):
     case (CRITICAL):
     case (ALERT):
-    // TODO implement these levels
+        // TODO implement these levels
         break;
     case (EMERGENCY):
         emergency(message);

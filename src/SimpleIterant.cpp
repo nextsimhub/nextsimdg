@@ -6,8 +6,8 @@
 
 #include "SimpleIterant.hpp"
 
-#include <iostream>
 #include <ctime>
+#include <iostream>
 
 std::string stringFromTimePoint(const Nextsim::Iterator::TimePoint&);
 
