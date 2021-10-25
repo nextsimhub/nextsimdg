@@ -17,13 +17,16 @@ namespace Nextsim
 }
 
 
-bool WRITE_VTK = false;
+bool WRITE_VTK = true;
 
 
 //! Initially a smooth bump centered at (0.4,0.4)
 //! This will be transported in a circle with (-y, x) for one complete revolution
 class InitialPhi : virtual public Nextsim::InitialBase {
+  
 public:
+
+  
   double smooth(double x) const // smooth transition from 0 to 1 on [0,1]
   {
     if (x<=0)
@@ -52,12 +55,26 @@ public:
 
 // Velocity
 class InitialVX : virtual public Nextsim::InitialBase {
+  
+  double _time;
+
 public:
-  virtual double operator()(double x, double y) const { return y - 0.5; }
+
+  void settime(double t)
+  {_time = t;}
+  
+  double operator()(double x, double y) const { return (0.5*M_PI*sin(0.5*_time)) * (y - 0.5); }
 };
 class InitialVY : virtual public Nextsim::InitialBase {
+  
+  double _time;
+
 public:
-  virtual double operator()(double x, double y) const { return 0.5 - x; }
+
+  void settime(double t)
+  {_time = t;}
+  
+  double operator()(double x, double y) const { return (0.5*M_PI*sin(0.5*_time)) * (0.5 - x); }
 };
 
 //////////////////////////////////////////////////
@@ -120,10 +137,12 @@ class Test
   
   void run()
   {
+
+    size_t writestep = 40;
+    
     Nextsim::GlobalTimer.reset();
     Nextsim::GlobalTimer.start("--> run");
-
-
+    
     Nextsim::GlobalTimer.start("-- --> initial");
     // initial density
     Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
@@ -143,10 +162,18 @@ class Test
     // time loop
     for (size_t iter = 1; iter <= timemesh.N; ++iter)
       {
+	Nextsim::GlobalTimer.start("-- --> vel");
+	VX.settime(timemesh.k * iter);
+	VY.settime(timemesh.k * iter);
+	Nextsim::L2ProjectInitial(mesh, vx, VX);
+	Nextsim::L2ProjectInitial(mesh, vy, VY);
+	dgtransport.reinitvelocity();
+	Nextsim::GlobalTimer.stop("-- --> vel");
+	
 	dgtransport.step(phi); // performs one time step with the 2nd Order Heun scheme
 	if (WRITE_VTK)
-	  if (iter % (timemesh.N/10)==0)
-	    Nextsim::VTK::write_dg<DGdegree>("Results/dg",iter/(timemesh.N/10),phi,mesh);
+	  if (iter % (timemesh.N/writestep)==0)
+	    Nextsim::VTK::write_dg<DGdegree>("Results/dg",iter/(timemesh.N/writestep),phi,mesh);
       }
 
     Nextsim::GlobalTimer.stop("--> run");
