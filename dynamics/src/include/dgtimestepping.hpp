@@ -107,19 +107,12 @@ void edge_term_X(const Mesh& mesh,
     const size_t c2,
     const size_t ie)
 {
-    const double avgphi = 0.5 * (phi(c1, 0) + phi(c2, 0));
-    const double jmpphi = phi(c1, 0) - phi(c2, 0);
+    double bottom = phi(c1, 0);
+    double top = phi(c2, 0);
+    double vel = evy(ie, 0);
 
-    // + < {{Psi}, v* [[phi]] > = h * {{Psi}} * (vright - vleft)
-    // The k/hy scaling comes from k * hx / (hxhy), where (hx hy) is the mass matrix
-    const double pa = timemesh.k / mesh.hy * avgphi * evy(ie, 0);
-    phiup(c1, 0) -= pa;
-    phiup(c2, 0) += pa;
-
-    // + 1/2 < |v n|  [[Psi]] [[phi]] = h/2 * |v n| [[Psi]]  (right - left)
-    const double pj = timemesh.k / mesh.hy * 0.5 * jmpphi * fabs(evy(ie, 0));
-    phiup(c1, 0) -= pj;
-    phiup(c2, 0) += pj;
+    phiup(c1, 0) -= timemesh.k / mesh.hy * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
+    phiup(c2, 0) += timemesh.k / mesh.hy * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
 }
 
 template <>
@@ -132,18 +125,15 @@ void edge_term_X(const Mesh& mesh,
     const size_t c2,
     const size_t ie)
 {
-    // average. cell: (1, x/h-1/2, y/h-1/2)  edge (1, x/h-1/2)
-    const LocalEdgeVector<1> avgphi(0.5 * (phi(c1, 0) + phi(c2, 0)) + 0.25 * (phi(c1, 2) - phi(c2, 2)),
-        0.5 * (phi(c1, 1) + phi(c2, 1)));
-    const LocalEdgeVector<1> jmpphi(phi(c1, 0) + 0.5 * phi(c1, 2) - (phi(c2, 0) - 0.5 * phi(c2, 2)),
-        phi(c1, 1) - phi(c2, 1));
+    const LocalEdgeVector<1> bottom(
+        phi(c1, 0) + 0.5 * phi(c1, 2),
+        phi(c1, 1));
+    const LocalEdgeVector<1> top(
+        phi(c2, 0) - 0.5 * phi(c2, 2),
+        phi(c2, 1));
 
-    const LocalEdgeVector<1> avg_gauss = avgphi * BiGe12;
-    const LocalEdgeVector<1> jmp_gauss = jmpphi * BiGe12;
     const LocalEdgeVector<1> vel_gauss = evy.block<1, 2>(ie, 0) * BiGe12;
-
-    const LocalEdgeVector<1> tmp = (avg_gauss.array() * vel_gauss.array() + 0.5 * jmp_gauss.array() * vel_gauss.array().abs());
-
+    const LocalEdgeVector<1> tmp = (vel_gauss.array().max(0) * (bottom * BiGe12).array() + vel_gauss.array().min(0) * (top * BiGe12).array());
     phiup.block<1, 3>(c1, 0) -= timemesh.k / mesh.hy * tmp * BiG12_2;
     phiup.block<1, 3>(c2, 0) += timemesh.k / mesh.hy * tmp * BiG12_0;
 }
@@ -158,48 +148,6 @@ void edge_term_X(const Mesh& mesh,
     const size_t c2,
     const size_t ie)
 {
-    //             2
-    // 1  Y  2     X
-    //             1
-    //
-    //
-    // X1
-    //                     1     x-1/2     (x-1/2)^2-1/12
-    //
-    // 1                   1     0
-    // x-1/2               0     1
-    // y-1/2               1/2   0
-    // (x-1/2)^2-1/12      0     0         1
-    // (y-1/2)^2-1/12      1/6   0
-    // (x-1/2)(y-1/2)      0     1/2
-
-    // X2
-    //                     1     x-1/2     (x-1/2)^2-1/12
-    //
-    // 1                   1     0
-    // x-1/2               0     1
-    // y-1/2              -1/2   0
-    // (x-1/2)^2-1/12      0     0         1
-    // (y-1/2)^2-1/12      1/6   0
-    // (x-1/2)(x-1/12)     0    -1/2
-
-    // average. cell: (1, x/h-1/2, y/h-1/2)  edge (1, x/h-1/2)
-
-    // OLD as in Engwer
-    // const LocalEdgeVector<2> avgphi(
-    //     0.5 * ((phi(c1, 0) + 0.5 * phi(c1, 2) + 1. / 6. * phi(c1, 4)) + (phi(c2, 0) - 0.5 * phi(c2, 2) + 1. / 6. * phi(c2, 4))),
-    //     0.5 * ((phi(c1, 1) + 0.5 * phi(c1, 5)) + (phi(c2, 1) - 0.5 * phi(c2, 5))),
-    //     0.5 * ((phi(c1, 3)) + (phi(c2, 3))));
-    // const LocalEdgeVector<2> jmpphi(
-    //     ((phi(c1, 0) + 0.5 * phi(c1, 2) + 1. / 6. * phi(c1, 4)) - (phi(c2, 0) - 0.5 * phi(c2, 2) + 1. / 6. * phi(c2, 4))),
-    //     ((phi(c1, 1) + 0.5 * phi(c1, 5)) - (phi(c2, 1) - 0.5 * phi(c2, 5))),
-    //     ((phi(c1, 3)) - (phi(c2, 3))));
-
-    // const LocalEdgeVector<2> avg_gauss = avgphi * BiGe23;
-    // const LocalEdgeVector<2> jmp_gauss = jmpphi * BiGe23;
-    // const LocalEdgeVector<2> vel_gauss = evy.block<1, 3>(ie, 0) * BiGe23;
-    // const LocalEdgeVector<2> tmp = (avg_gauss.array() * vel_gauss.array() + 0.5 * jmp_gauss.array() * vel_gauss.array().abs());
-
     const LocalEdgeVector<2> bottom(
         phi(c1, 0) + 0.5 * phi(c1, 2) + 1. / 6. * phi(c1, 4),
         phi(c1, 1) + 0.5 * phi(c1, 5),
@@ -239,18 +187,12 @@ void edge_term_Y(const Mesh& mesh,
     const size_t c2,
     const size_t ie)
 {
-    const double avgphi = 0.5 * (phi(c1, 0) + phi(c2, 0));
-    const double jmpphi = phi(c1, 0) - phi(c2, 0);
+    double left = phi(c1, 0);
+    double right = phi(c2, 0);
+    double vel = evx(ie, 0);
 
-    // + < {{Psi}, v* [[phi]] > = h * {{Psi}} * (vright - vleft)
-    const double pa = timemesh.k / mesh.hx * avgphi * evx(ie, 0);
-    phiup(c1, 0) -= pa;
-    phiup(c2, 0) += pa;
-
-    // + 1/2 < |v n|  [[Psi]] [[phi]] = h/2 * |v n| [[Psi]]  (right - left)
-    const double pj = 0.5 * timemesh.k / mesh.hx * jmpphi * fabs(evx(ie, 0));
-    phiup(c1, 0) -= pj;
-    phiup(c2, 0) += pj;
+    phiup(c1, 0) -= timemesh.k / mesh.hy * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
+    phiup(c2, 0) += timemesh.k / mesh.hy * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
 }
 
 template <>
@@ -263,16 +205,15 @@ void edge_term_Y(const Mesh& mesh,
     const size_t c2,
     const size_t ie)
 {
-    // average. cell: (1, x-1/2, y-1/2)  edge (1, y-1/2)
-    const LocalEdgeVector<1> avgphi(0.5 * (phi(c1, 0) + phi(c2, 0)) + 0.25 * (phi(c1, 1) - phi(c2, 1)),
-        0.5 * (phi(c1, 2) + phi(c2, 2)));
-    const LocalEdgeVector<1> jmpphi(phi(c1, 0) + 0.5 * phi(c1, 1) - (phi(c2, 0) - 0.5 * phi(c2, 1)),
-        phi(c1, 2) - phi(c2, 2));
+    // average. cell: (1, x/h-1/2, y/h-1/2)  edge (1, x/h-1/2)
+    const LocalEdgeVector<1> left(phi(c1, 0) + 0.5 * phi(c1, 1),
+        phi(c1, 2));
 
-    const LocalEdgeVector<1> avg_gauss = avgphi * BiGe12;
-    const LocalEdgeVector<1> jmp_gauss = jmpphi * BiGe12;
+    const LocalEdgeVector<1> right(phi(c2, 0) - 0.5 * phi(c2, 1),
+        phi(c2, 2));
+
     const LocalEdgeVector<1> vel_gauss = evx.block<1, 2>(ie, 0) * BiGe12;
-    const LocalEdgeVector<1> tmp = (avg_gauss.array() * vel_gauss.array() + 0.5 * jmp_gauss.array() * vel_gauss.array().abs());
+    const LocalEdgeVector<1> tmp = (vel_gauss.array().max(0) * (left * BiGe12).array() + vel_gauss.array().min(0) * (right * BiGe12).array());
 
     // - [[psi]] sind we're on the left side
     phiup.block<1, 3>(c1, 0) -= timemesh.k / mesh.hx * tmp * BiG12_1;
@@ -289,32 +230,6 @@ void edge_term_Y(const Mesh& mesh,
     const size_t c2,
     const size_t ie)
 {
-
-    //             2
-    // 1  Y  2     X
-    //             1
-    //
-    //
-    // Y1
-    //                     1     y-1/2     (y-1/2)^2-1/12
-    //
-    // 1                   1     0
-    // x-1/2               1/2   0
-    // y-1/2               0     1
-    // (x-1/2)^2-1/12      1/6   0
-    // (y-1/2)^2-1/12      0     0         1
-    // (x-1/2)(y-1/2)      0     1/2
-
-    // Y2
-    //                     1     y-1/2     (y-1/2)^2-1/12
-    //
-    // 1                   1     0
-    // x-1/2              -1/2   0
-    // y-1/2               0     1
-    // (x-1/2)^2-1/12      1/6   0
-    // (y-1/2)^2-1/12      0     0         1
-    // (x-1/2)(y-1/12)     0    -1/2
-
     // average. cell: (1, x/h-1/2, y/h-1/2)  edge (1, x/h-1/2)
     const LocalEdgeVector<2> left(phi(c1, 0) + 0.5 * phi(c1, 1) + 1. / 6. * phi(c1, 3),
         phi(c1, 2) + 0.5 * phi(c1, 5),
@@ -326,21 +241,6 @@ void edge_term_Y(const Mesh& mesh,
 
     const LocalEdgeVector<2> vel_gauss = evx.block<1, 3>(ie, 0) * BiGe23;
     const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (left * BiGe23).array() + vel_gauss.array().min(0) * (right * BiGe23).array());
-
-    // OLD VERSION AS IN ENGWER
-    // const LocalEdgeVector<2> avgphi(
-    //     0.5 * ((phi(c1, 0) + 0.5 * phi(c1, 1) + 1. / 6. * phi(c1, 3)) + (phi(c2, 0) - 0.5 * phi(c2, 1) + 1. / 6. * phi(c2, 3))),
-    //     0.5 * ((phi(c1, 2) + 0.5 * phi(c1, 5)) + (phi(c2, 2) - 0.5 * phi(c2, 5))),
-    //     0.5 * ((phi(c1, 4)) + (phi(c2, 4))));
-    // const LocalEdgeVector<2> jmpphi(
-    //     ((phi(c1, 0) + 0.5 * phi(c1, 1) + 1. / 6. * phi(c1, 3)) - (phi(c2, 0) - 0.5 * phi(c2, 1) + 1. / 6. * phi(c2, 3))),
-    //     ((phi(c1, 2) + 0.5 * phi(c1, 5)) - (phi(c2, 2) - 0.5 * phi(c2, 5))),
-    //     ((phi(c1, 4)) - (phi(c2, 4))));
-
-    // const LocalEdgeVector<2> avg_gauss = avgphi * BiGe23;
-    // const LocalEdgeVector<2> jmp_gauss = jmpphi * BiGe23;
-    // const LocalEdgeVector<2> vel_gauss = evx.block<1, 3>(ie, 0) * BiGe23;
-    // const LocalEdgeVector<2> tmp = (avg_gauss.array() * vel_gauss.array() + 0.5 * jmp_gauss.array() * vel_gauss.array().abs());
 
     // - [[psi]] sind we're on the left side
     phiup.block<1, 6>(c1, 0) -= timemesh.k / mesh.hx * tmp * BiG23_1;

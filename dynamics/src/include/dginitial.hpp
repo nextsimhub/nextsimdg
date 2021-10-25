@@ -65,12 +65,14 @@ void L2ProjectInitial(const Mesh& mesh,
 {
     phi.setZero();
 
-    size_t ic = 0;
-    for (size_t iy = 0; iy < mesh.ny; ++iy)
+#pragma omp parallel for
+    for (size_t iy = 0; iy < mesh.ny; ++iy) {
+        size_t ic = mesh.nx * iy;
         for (size_t ix = 0; ix < mesh.nx; ++ix, ++ic) {
             Vertex xm = mesh.vertex(ix, iy);
             phi(ic, 0) = initial(xm[0], xm[1]);
         }
+    }
 }
 
 template <>
@@ -83,8 +85,9 @@ void L2ProjectInitial(const Mesh& mesh,
     std::array<double, 3> imass = { 1.0, 12.0, 12.0 }; // without 'h'
     std::array<double, 2> g2 = { -1.0 / sqrt(12.0), 1.0 / sqrt(12.0) };
 
-    size_t ic = 0;
-    for (size_t iy = 0; iy < mesh.ny; ++iy)
+#pragma omp parallel for
+    for (size_t iy = 0; iy < mesh.ny; ++iy) {
+        size_t ic = iy * mesh.nx;
         for (size_t ix = 0; ix < mesh.nx; ++ix, ++ic) {
             Vertex xm = mesh.vertex(ix, iy);
             for (unsigned short int gx = 0; gx < 2; ++gx)
@@ -95,6 +98,7 @@ void L2ProjectInitial(const Mesh& mesh,
                     phi(ic, 2) += imass[2] * 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hy * g2[gy]) * g2[gy];
                 }
         }
+    }
 }
 
 template <>
@@ -108,8 +112,9 @@ void L2ProjectInitial(const Mesh& mesh,
     std::array<double, 3> g3 = { -sqrt(3.0 / 5.0) * 0.5, 0.0, sqrt(3.0 / 5.0) * 0.5 };
     std::array<double, 3> w3 = { 5. / 18., 8. / 18., 5. / 18. };
 
-    size_t ic = 0;
-    for (size_t iy = 0; iy < mesh.ny; ++iy)
+#pragma omp parallel for
+    for (size_t iy = 0; iy < mesh.ny; ++iy) {
+        size_t ic = iy * mesh.nx;
         for (size_t ix = 0; ix < mesh.nx; ++ix, ++ic) {
             Vertex xm = mesh.vertex(ix, iy);
             for (unsigned short int gx = 0; gx < 3; ++gx)
@@ -128,6 +133,7 @@ void L2ProjectInitial(const Mesh& mesh,
                     phi(ic, 5) += imass[5] * w3[gx] * w3[gy] * initial(x, y) * (X - 0.5) * (Y - 0.5);
                 }
         }
+    }
 }
 
 } // namespace Nextsim

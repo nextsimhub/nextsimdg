@@ -109,7 +109,7 @@ class Test
 
   Test() 
   {
-    std::cerr << "call Test(N). N is number of mesh elements per row" << std::endl;
+    std::cout << "call Test(N). N is number of mesh elements per row" << std::endl;
   }
 
   void init()
@@ -118,7 +118,7 @@ class Test
     mesh.BasicInit(N, N, 1.0 / N, 1.0 / N);
 
     //! Init Time Mesh
-    double cfl = 0.1;
+    double cfl = 0.2;
     double k   = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
     double tmax = 2.0*M_PI;
 
@@ -165,8 +165,10 @@ class Test
 	Nextsim::GlobalTimer.start("-- --> vel");
 	VX.settime(timemesh.k * iter);
 	VY.settime(timemesh.k * iter);
+	Nextsim::GlobalTimer.start("-- -- --> l2");
 	Nextsim::L2ProjectInitial(mesh, vx, VX);
 	Nextsim::L2ProjectInitial(mesh, vy, VY);
+	Nextsim::GlobalTimer.stop("-- -- --> l2");
 	dgtransport.reinitvelocity();
 	Nextsim::GlobalTimer.stop("-- --> vel");
 	
@@ -183,18 +185,18 @@ class Test
 
   bool check() const
   {
-    std::cerr << "k " << 1./N << " dG " << DGdegree << "\t";
+    std::cout << "k " << 1./N << " dG " << DGdegree << "\t";
 
     //! Check that mass is ok.
     double mass      = phi.mass(mesh);
-    std::cerr << std::setprecision(16)
+    std::cout << std::setprecision(16)
 	      << mass << "\t";
 
     Nextsim::CellVector<DGdegree> errorphi = phi; errorphi += -finalphi;
     if (WRITE_VTK)
       Nextsim::VTK::write_dg<DGdegree>("Results/error",N,errorphi,mesh);
     
-    std::cerr << errorphi.norm() * sqrt(mesh.hx*mesh.hy) << std::endl;
+    std::cout << errorphi.norm() * sqrt(mesh.hx*mesh.hy) << std::endl;
     
     return true;
   }
@@ -207,40 +209,44 @@ class Test
 
 int main()
 {
-  
   int ITER = 3;
   int N = 20;
+
+  N = 20;
+  std::cout << "############################## DG 0" << std::endl;
   for (int n=0;n<ITER;++n)
     {
       Test<0> test0(N);
       test0.init();
       test0.run();
       if (!test0.check())
-  	std::cerr << "TEST FAILED!" << std::endl;
+  	std::cout << "TEST FAILED!" << std::endl;
       N*=2;
     }
-  std::cerr << std::endl;
+  std::cout << std::endl;
   
   N = 20;
+  std::cout << "############################## DG 1" << std::endl;
   for (int n=0;n<ITER;++n)
     {
       Test<1> test1(N);
       test1.init();
       test1.run();
       if (!test1.check())
-  	std::cerr << "TEST FAILED!" << std::endl;
+  	std::cout << "TEST FAILED!" << std::endl;
       N*=2;
     }
-  std::cerr << std::endl;
+  std::cout << std::endl;
   
   N = 20;
+  std::cout << "############################## DG 2" << std::endl;
   for (int n=0;n<ITER;++n)
     {
       Test<2> test2(N);
       test2.init();
       test2.run();
       if (!test2.check())
-	std::cerr << "TEST FAILED!" << std::endl;
+	std::cout << "TEST FAILED!" << std::endl;
       N*=2;
     }
 }
