@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <chrono>
+#include <vector>
 
 #include "dginitial.hpp"
 #include "dglimiters.hpp"
@@ -9,7 +10,7 @@
 #include "dgvisu.hpp"
 #include "dgtransport.hpp"
 #include "stopwatch.hpp"
-
+#include "testtools.hpp"
 
 namespace Nextsim
 {
@@ -17,7 +18,8 @@ namespace Nextsim
 }
 
 
-bool WRITE_VTK = true;
+bool WRITE_VTK = false; //!< set to true for vtk output
+double TOL = 1.e-10;    //!< tolerance for checking test results
 
 
 //! Initially a smooth bump centered at (0.4,0.4)
@@ -83,12 +85,12 @@ public:
 template<int DGdegree>
 class Test
 {
-  //! Mesh size (given as parameter to constructor)
-  size_t N;
+
+  size_t N; //!< size of mesh N x N
   
-  //! Meshes
-  Nextsim::Mesh mesh;
-  Nextsim::TimeMesh timemesh;
+
+  Nextsim::Mesh mesh;   //!< space mesh
+  Nextsim::TimeMesh timemesh; //!< time mesh
   
   //! Velocity vectors and density
   Nextsim::CellVector<DGdegree> vx, vy, phi, finalphi;
@@ -100,11 +102,20 @@ class Test
   InitialVX VX;
   InitialVY VY;
 
+  std::vector<double> values; //!< for storing numerical results (mass)
+  std::vector<double> errors; //!< for storing error w.r.t. exact solution
+
+  size_t writestep; //! write out n step in total (for debugging only)
+  
  public:
 
-  Test(size_t n) : N(n), dgtransport(vx,vy)
+  Test(size_t n) : N(n), dgtransport(vx,vy), writestep(40)
   {
-    dgtransport.settimesteppingscheme("rk3");
+    //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2
+    if (DGdegree<2)
+      dgtransport.settimesteppingscheme("rk2");
+    else
+      dgtransport.settimesteppingscheme("rk3");
   }
 
   Test() 
@@ -121,7 +132,6 @@ class Test
     double cfl = 0.2;
     double k   = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
     double tmax = 2.0*M_PI;
-
     int NT = (static_cast<int>((tmax / k + 1) /100 + 1) * 100); // No time steps dividable by 100
     timemesh.BasicInit(tmax, NT);
     
@@ -137,68 +147,155 @@ class Test
   
   void run()
   {
+    values.clear();
 
-    size_t writestep = 40;
+    size_t NITER=3;
     
-    Nextsim::GlobalTimer.reset();
-    Nextsim::GlobalTimer.start("--> run");
-    
-    Nextsim::GlobalTimer.start("-- --> initial");
-    // initial density
-    Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
-
-    if (WRITE_VTK)
-      Nextsim::VTK::write_dg<DGdegree>("Results/dg",0,phi,mesh);
-
-    //! Save initial solution for error control
-    finalphi = phi;
-
-    // set velocity vector. constant velocity field. No initialization required
-    Nextsim::L2ProjectInitial(mesh, vx, VX);
-    Nextsim::L2ProjectInitial(mesh, vy, VY);
-    dgtransport.reinitvelocity();
-
-    Nextsim::GlobalTimer.stop("-- --> initial");
-    // time loop
-    for (size_t iter = 1; iter <= timemesh.N; ++iter)
+    //! Iteration with successive mesh refinement
+    for (size_t iter=0;iter<NITER;++iter)
       {
-	Nextsim::GlobalTimer.start("-- --> vel");
-	VX.settime(timemesh.k * iter);
-	VY.settime(timemesh.k * iter);
-	Nextsim::GlobalTimer.start("-- -- --> l2");
-	Nextsim::L2ProjectInitial(mesh, vx, VX);
-	Nextsim::L2ProjectInitial(mesh, vy, VY);
-	Nextsim::GlobalTimer.stop("-- -- --> l2");
-	dgtransport.reinitvelocity();
-	Nextsim::GlobalTimer.stop("-- --> vel");
+	Nextsim::GlobalTimer.reset();
+	Nextsim::GlobalTimer.start("run");
+
+	Nextsim::GlobalTimer.start("run -- init");
+	init();
 	
-	dgtransport.step(phi); // performs one time step with the 2nd Order Heun scheme
+	// initial density
+	Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
+
 	if (WRITE_VTK)
-	  if (iter % (timemesh.N/writestep)==0)
-	    Nextsim::VTK::write_dg<DGdegree>("Results/dg",iter/(timemesh.N/writestep),phi,mesh);
+	  {
+	    Nextsim::GlobalTimer.start("run -- init -- vtk");
+	    Nextsim::VTK::write_dg<DGdegree>("Results/dg",0,phi,mesh);
+	    Nextsim::GlobalTimer.stop("run -- init -- vtk");
+	  }
+	
+	//! Save initial solution for error control
+	finalphi = phi;
+	Nextsim::GlobalTimer.stop("run -- init");
+	
+
+	//! time loop
+	Nextsim::GlobalTimer.start("run -- loop");
+	for (size_t iter = 1; iter <= timemesh.N; ++iter)
+	  {
+	    Nextsim::GlobalTimer.start("run -- loop -- vel");
+	    VX.settime(timemesh.k * iter);
+	    VY.settime(timemesh.k * iter);
+	    Nextsim::GlobalTimer.start("run -- loop -- vel -- l2");
+	    Nextsim::L2ProjectInitial(mesh, vx, VX);
+	    Nextsim::L2ProjectInitial(mesh, vy, VY);
+	    Nextsim::GlobalTimer.stop("run -- loop -- vel -- l2");
+	    dgtransport.reinitvelocity();
+	    Nextsim::GlobalTimer.stop("run -- loop -- vel");
+	    
+	    dgtransport.step(phi); // performs one time step with the 2nd Order Heun scheme
+	    if (WRITE_VTK)
+	      if (iter % (timemesh.N/writestep)==0)
+		{
+		  Nextsim::GlobalTimer.start("run -- loop -- vtk");
+		  Nextsim::VTK::write_dg<DGdegree>("Results/dg",iter/(timemesh.N/writestep),phi,mesh);
+		  Nextsim::GlobalTimer.stop("run -- loop -- vtk");
+		}
+	    
+	  }
+	Nextsim::GlobalTimer.stop("run -- loop");
+
+
+	Nextsim::GlobalTimer.start("run -- error");
+	Nextsim::CellVector<DGdegree> errorphi = phi;
+	errorphi += -finalphi;
+	if (WRITE_VTK)
+	  {
+	    Nextsim::GlobalTimer.start("run -- error- vtk");
+	    Nextsim::VTK::write_dg<DGdegree>("Results/error",N,errorphi,mesh);
+	    Nextsim::GlobalTimer.stop("run -- error- vtk");
+	  }
+	errors.push_back(errorphi.norm() * sqrt(mesh.hx*mesh.hy));
+	values.push_back(phi.col(0).sum() * mesh.hx * mesh.hy);
+	Nextsim::GlobalTimer.stop("run -- error");
+	
+
+	Nextsim::GlobalTimer.stop("run");
+
+	//	Nextsim::GlobalTimer.print(); 
+
+	if (iter<NITER-1)
+	  N*=2; //!< double the problem size
+      }
+  }
+
+  void print_error(const std::string& message) const
+  {
+    std::cerr << "dG(" << DGdegree << ") FAILED: " << message << std::endl;
+    for (size_t i=0;i<values.size();++i)
+      std::cerr << values[i] << "\t" << errors[i] << std::endl;
+  }
+
+  void print_error(const std::array<double,3>& v,
+		   const std::array<double,3>& e,
+		   const std::string& message) const
+  {
+    std::cerr << "dG(" << DGdegree << ") FAILED: " << message << std::endl;
+
+    assert(values.size()>=3);
+    
+    for (size_t i=0;i<3;++i)
+      std::cerr << v[i] << " = " << values[i+values.size()-3] << "\t" << e[i] << " = " << errors[i+values.size()-3] << std::endl;
+  }
+
+  bool check_references(const std::array<double,3>& v, const std::array<double,3>& e) const
+  {
+    bool passed = true;
+    
+    for (size_t i=0;i<3;++i)
+      {
+	if (fabs(v[i]-values[i])>TOL)
+	  {
+	    print_error(v,e,"difference in mass");
+	    passed = false;
+	  }
+	if (fabs(e[i]-errors[i])>TOL)
+	  {
+	    print_error(v,e,"difference in error");
+	    passed = false;
+	  }
       }
 
-    Nextsim::GlobalTimer.stop("--> run");
-
-    Nextsim::GlobalTimer.print();
+    return passed;
   }
+  
 
   bool check() const
   {
-    std::cout << "k " << 1./N << " dG " << DGdegree << "\t";
+    std::array<double,3> val_ref, err_ref;
 
-    //! Check that mass is ok.
-    double mass      = phi.mass(mesh);
-    std::cout << std::setprecision(16)
-	      << mass << "\t";
+    if (N==80)
+      {
+	if (DGdegree == 0)
+	  {
+	    val_ref = std::array<double,3>({0.1041620796203775,0.1196262461401992,0.1264044476119508});
+	    err_ref = std::array<double,3>({0.2052188657233615,0.1544332132653233,0.1110687031463838});
+	  }
+	else if (DGdegree == 1)
+	  {
+	    val_ref = std::array<double,3>({0.1297379288134224,0.1290796184183312,0.1290992302048382});
+	    err_ref = std::array<double,3>({0.07213309600190464,0.01905730153394329,0.004537411616573561});
+	  }
+	else if (DGdegree == 2)
+	  {
+	    val_ref = std::array<double,3>({0.1290846500028399,0.129099699867661,0.1290996998773258});
+	    err_ref = std::array<double,3>({0.03042875264858447,0.005337828057657737,0.0005416593875619044});
+	  }
+	else abort();
+      }
+    else
+      {
+	print_error("reference values only for N=20,40,80");
+	return false;
+      }
 
-    Nextsim::CellVector<DGdegree> errorphi = phi; errorphi += -finalphi;
-    if (WRITE_VTK)
-      Nextsim::VTK::write_dg<DGdegree>("Results/error",N,errorphi,mesh);
-    
-    std::cout << errorphi.norm() * sqrt(mesh.hx*mesh.hy) << std::endl;
-    
-    return true;
+    return check_references(val_ref,err_ref);
   }
   
 
@@ -209,44 +306,25 @@ class Test
 
 int main()
 {
-  int ITER = 3;
-  int N = 20;
+  size_t N = 20;
+  Test<0> test0(N);
+  test0.run();
+  if (!test0.check())
+    std::cout << "dG(0) TEST FAILED" << std::endl;
+  else
+    std::cout << "dG(0) TEST PASSED" << std::endl;
 
-  N = 20;
-  std::cout << "############################## DG 0" << std::endl;
-  for (int n=0;n<ITER;++n)
-    {
-      Test<0> test0(N);
-      test0.init();
-      test0.run();
-      if (!test0.check())
-  	std::cout << "TEST FAILED!" << std::endl;
-      N*=2;
-    }
-  std::cout << std::endl;
-  
-  N = 20;
-  std::cout << "############################## DG 1" << std::endl;
-  for (int n=0;n<ITER;++n)
-    {
-      Test<1> test1(N);
-      test1.init();
-      test1.run();
-      if (!test1.check())
-  	std::cout << "TEST FAILED!" << std::endl;
-      N*=2;
-    }
-  std::cout << std::endl;
-  
-  N = 20;
-  std::cout << "############################## DG 2" << std::endl;
-  for (int n=0;n<ITER;++n)
-    {
-      Test<2> test2(N);
-      test2.init();
-      test2.run();
-      if (!test2.check())
-	std::cout << "TEST FAILED!" << std::endl;
-      N*=2;
-    }
+  Test<1> test1(N);
+  test1.run();
+  if (!test1.check())
+    std::cout << "dG(0) TEST FAILED" << std::endl;
+  else
+    std::cout << "dG(0) TEST PASSED" << std::endl;
+
+  Test<2> test2(N);
+  test2.run();
+  if (!test2.check())
+    std::cout << "dG(0) TEST FAILED" << std::endl;
+  else
+    std::cout << "dG(0) TEST PASSED" << std::endl;
 }

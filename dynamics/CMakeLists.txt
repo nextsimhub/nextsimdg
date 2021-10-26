@@ -99,4 +99,4 @@ add_subdirectory(src)
 
 
 ################################################## Compile the test cases
-add_subdirectory(examples)
+add_subdirectory(tests)
