@@ -23,31 +23,24 @@ add_executable(testTimed
     )
 target_link_libraries(testTimed PRIVATE Catch2::Catch2)
 
-#add_executable(testIterator
-#    "Iterator_test.cpp"
-#    "${SRC_DIR}/Iterator.cpp"
-#    "${SRC_DIR}/Timed.cpp"
-#    "${SRC_DIR}/CountTimer.cpp"
-#    "${SRC_DIR}/Logged.cpp"
-#    "${INCLUDE_DIR}/Iterator.hpp"
-#    "${INCLUDE_DIR}/Timed.hpp"
-#    "${INCLUDE_DIR}/Logged.hpp"
-#    )
-#target_link_libraries(testIterator PRIVATE Catch2::Catch2)
+add_executable(testIterator
+    "Iterator_test.cpp"
+    "${SRC_DIR}/Iterator.cpp"
+    "${SRC_DIR}/Timed.cpp"
+    "${SRC_DIR}/Timer.cpp"
+    "${SRC_DIR}/Logged.cpp"
+    )
+target_link_libraries(testIterator PRIVATE Catch2::Catch2)
 
-#add_executable(testSimpleIter
-#    "SimpleIterant_test.cpp"
-#    "${SRC_DIR}/SimpleIterant.cpp"
-#    "${SRC_DIR}/Iterator.cpp"
-#    "${SRC_DIR}/Timed.cpp"
-#    "${SRC_DIR}/CountTimer.cpp"
-#    "${SRC_DIR}/Logged.cpp"
-#    "${INCLUDE_DIR}/SimpleIterant.hpp"
-#    "${INCLUDE_DIR}/Iterator.hpp"
-#    "${INCLUDE_DIR}/Timed.hpp"
-#    "${INCLUDE_DIR}/Logged.hpp"
-#    )
-#target_link_libraries(testSimpleIter PRIVATE Catch2::Catch2)
+add_executable(testSimpleIter
+    "SimpleIterant_test.cpp"
+    "${SRC_DIR}/SimpleIterant.cpp"
+    "${SRC_DIR}/Iterator.cpp"
+    "${SRC_DIR}/Timed.cpp"
+    "${SRC_DIR}/Timer.cpp"
+    "${SRC_DIR}/Logged.cpp"
+    )
+target_link_libraries(testSimpleIter PRIVATE Catch2::Catch2)
 
 add_executable(testTimer
     "Timer_test.cpp"
