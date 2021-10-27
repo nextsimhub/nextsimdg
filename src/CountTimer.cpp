@@ -4,7 +4,7 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "Timer.hpp"
+#include "TimerBase.hpp"
 
 #include <map>
 #include <sstream>
@@ -35,7 +35,25 @@ void Timer::tock(const std::string& timerName)
     }
 }
 
-std::string Timer::report() const
+double Timer::lap(const Key& timerName) const { return 0; };
+double Timer::elapsed(const Key& timerName) const { return 0; };
+
+std::ostream& Timer::report(const Key& timerName, std::ostream& os) const
+{
+    return os << timerName << " started " << startMap[timerName] << ", stopped "
+              << stopMap[timerName] << " times" << std::endl;
+}
+
+std::ostream& Timer::report(std::ostream& os) const
+{
+    os << "Timing:" << std::endl;
+    for (auto iter = startMap.begin(); iter != startMap.end(); iter++) {
+        report(iter->first, os);
+    }
+    return os;
+}
+
+/*std::string Timer::report() const
 {
     std::stringstream builder;
     builder << "Timing:" << std::endl;
@@ -45,5 +63,5 @@ std::string Timer::report() const
                 << std::endl;
     }
     return builder.str();
-}
+}*/
 }

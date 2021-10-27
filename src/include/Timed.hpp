@@ -23,7 +23,7 @@ protected:
     Timed();
 
 private:
-    static Timer& timer;
+    static Timer timer;
 };
 
 } /* namespace Nextsim */
