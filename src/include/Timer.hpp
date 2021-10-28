@@ -7,8 +7,6 @@
 #ifndef SRC_INCLUDE_TIMER_HPP
 #define SRC_INCLUDE_TIMER_HPP
 
-#include "TimerBase.hpp"
-
 #include "Chrono.hpp"
 
 #include <chrono>
@@ -21,8 +19,9 @@
 
 namespace Nextsim {
 
-class Timer : public TimerBase {
+class Timer {
 public:
+    typedef std::string Key;
 
     typedef Chrono::WallTimePoint WallTimePoint;
     typedef Chrono::WallTimeDuration WallTimeDuration;
@@ -35,15 +34,15 @@ public:
     Timer(const Key&);
     virtual ~Timer() = default;
 
-    void tick(const Key& timerName) override;
-    void tock(const Key& timerName) override;
+    void tick(const Key& timerName);
+    void tock(const Key& timerName);
     void tock();
 
-    double lap(const Key& timerName) const override;
-    double elapsed(const Key& timerName) const override;
+    double lap(const Key& timerName) const ;
+    double elapsed(const Key& timerName) const;
 
-    std::ostream& report(const Key& timerName, std::ostream& os) const override;
-    std::ostream& report(std::ostream& os) const override;
+    std::ostream& report(const Key& timerName, std::ostream& os) const;
+    std::ostream& report(std::ostream& os) const;
     std::ostream& report(const TimerPath&, std::ostream& os) const;
 
     void additionalTime(const TimerPath& path, WallTimeDuration additionalWall, CpuTimeDuration additionalCpu, int additionalTicks);
