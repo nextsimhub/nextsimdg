@@ -9,6 +9,8 @@
 
 #include "TimerBase.hpp"
 
+#include "Chrono.hpp"
+
 #include <chrono>
 #include <ctime>
 #include <forward_list>
@@ -21,11 +23,11 @@ namespace Nextsim {
 
 class Timer : public TimerBase {
 public:
-    typedef std::chrono::high_resolution_clock::time_point WallTimePoint;
-    typedef std::chrono::high_resolution_clock::duration WallTimeDuration;
 
-    typedef std::clock_t CpuTimePoint;
-    typedef double CpuTimeDuration;
+    typedef Chrono::WallTimePoint WallTimePoint;
+    typedef Chrono::WallTimeDuration WallTimeDuration;
+    typedef Chrono::CpuTimePoint CpuTimePoint;
+    typedef Chrono::CpuTimeDuration CpuTimeDuration;
 
     typedef std::forward_list<Key> TimerPath;
 
@@ -55,15 +57,7 @@ private:
         TimerNode();
         Key name;
 
-        WallTimePoint wallHack;
-        WallTimeDuration wallTime;
-
-        CpuTimePoint cpuHack;
-        CpuTimeDuration cpuTime;
-
-        int ticks;
-
-        bool running;
+        Chrono timeKeeper;
 
         std::map<Key, TimerNode> childNodes;
         TimerNode* parent;
@@ -74,8 +68,6 @@ private:
         std::ostream& reportAll(std::ostream& os, const std::string& prefix) const;
 
         TimerPath searchDescendants(const Key& timerName) const;
-        CpuTimeDuration cpuTimeSinceHack() const;
-        WallTimeDuration wallTimeSinceHack() const;
     };
 
     TimerPath pathToFirstMatch(const Key&) const;

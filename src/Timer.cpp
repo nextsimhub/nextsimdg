@@ -7,6 +7,7 @@
 
 #include "include/Timer.hpp"
 
+#include "include/Chrono.hpp"
 #include <chrono>
 #include <ctime>
 #include <map>
@@ -58,17 +59,12 @@ void Timer::tock()
 
 void Timer::TimerNode::tick()
 {
-    wallHack = std::chrono::high_resolution_clock::now();
-    cpuHack = std::clock();
-    ++ticks;
-    running = true;
+    timeKeeper.start();
 }
 
 void Timer::TimerNode::tock()
 {
-    wallTime += wallTimeSinceHack();
-    cpuTime += cpuTimeSinceHack();
-    running = false;
+    timeKeeper.stop();
 }
 //TODO: implement lap and elapsed
 double Timer::lap(const Key& timerName) const { return 0; }
@@ -83,9 +79,9 @@ void Timer::additionalTime(
     for (auto& nodeName : path) {
         cursor = cursor.childNodes[nodeName];
     }
-    cursor.wallTime += wallAdd;
-    cursor.cpuTime += cpuAdd;
-    cursor.ticks += ticksAdd;
+    cursor.timeKeeper.extraWallTime(wallAdd);
+    cursor.timeKeeper.extraCpuTime(cpuAdd);
+    cursor.timeKeeper.extraTicks(ticksAdd);
 }
 
 Timer::TimerPath Timer::currentTimerNodePath() const
@@ -124,11 +120,7 @@ std::ostream& Timer::report(const TimerPath& path, std::ostream& os) const
 }
 
 Timer::TimerNode::TimerNode()
-    : wallTime(WallTimeDuration::zero())
-    , cpuTime(0)
-    , ticks(0)
-    , running(false)
-    , parent(nullptr)
+    : parent(nullptr)
 { }
 
 Timer::TimerPath Timer::TimerNode::searchDescendants(const Key& timerName) const
@@ -144,24 +136,14 @@ Timer::TimerPath Timer::TimerNode::searchDescendants(const Key& timerName) const
     return path;
 }
 
-Timer::CpuTimeDuration Timer::TimerNode::cpuTimeSinceHack() const
-{
-    return static_cast<CpuTimeDuration>(std::clock() - cpuHack) / CLOCKS_PER_SEC;
-}
-
-Timer::WallTimeDuration Timer::TimerNode::wallTimeSinceHack() const
-{
-    return std::chrono::duration_cast<WallTimeDuration>(
-    std::chrono::high_resolution_clock::now() - wallHack);
-}
 
 std::ostream& Timer::TimerNode::report(std::ostream& os, const std::string& prefix) const
 {
     os << prefix;
     // Get the wall time in seconds
-    WallTimeDuration wallTimeNow = running ? wallTimeSinceHack() : wallTime;
-    CpuTimeDuration cpuTimeNow = running ? cpuTimeSinceHack() : cpuTime;
-    os << name << ": ticks = " << ticks;
+    WallTimeDuration wallTimeNow = timeKeeper.wallTime();
+    CpuTimeDuration cpuTimeNow = timeKeeper.cpuTime();
+    os << name << ": ticks = " << timeKeeper.ticks();
     os << " wall time " << std::chrono::duration_cast<std::chrono::microseconds>(wallTimeNow).count() * 1e-6 << " s";
     os << " cpu time " << cpuTimeNow << " s";
     return os;
