@@ -14,19 +14,9 @@ set(INCLUDE_DIR "${SRC_DIR}/include")
 
 include_directories(${INCLUDE_DIR})
 
-add_executable(testTimed
-    "Timed_test.cpp"
-    "${SRC_DIR}/Timer.cpp"
-    "${SRC_DIR}/Timed.cpp"
-    "${INCLUDE_DIR}/Timed.hpp"
-    "${INCLUDE_DIR}/Timer.hpp"
-    )
-target_link_libraries(testTimed PRIVATE Catch2::Catch2)
-
 add_executable(testIterator
     "Iterator_test.cpp"
     "${SRC_DIR}/Iterator.cpp"
-    "${SRC_DIR}/Timed.cpp"
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
     )
@@ -36,7 +26,6 @@ add_executable(testSimpleIter
     "SimpleIterant_test.cpp"
     "${SRC_DIR}/SimpleIterant.cpp"
     "${SRC_DIR}/Iterator.cpp"
-    "${SRC_DIR}/Timed.cpp"
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
     )

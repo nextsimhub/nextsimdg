@@ -4,7 +4,6 @@ set (INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(BaseSources
     "main.cpp"
     "Logged.cpp"
-    "Timed.cpp"
     "Timer.cpp"
     "Model.cpp"
     "Iterator.cpp"
@@ -13,7 +12,6 @@ set(BaseSources
 
 set(BaseHeaders
     "${INC}/Logged.hpp"
-    "${INC}/Timed.hpp"
     "${INC}/Timer.hpp"
     "${INC}/Model.hpp"
     "${INC}/Iterator.hpp"
