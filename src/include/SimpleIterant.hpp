@@ -11,15 +11,14 @@
 
 namespace Nextsim {
 
-class SimpleIterant: public Iterator::Iterant {
+class SimpleIterant : public Iterator::Iterant {
 public:
     SimpleIterant();
 
     void init(const Environment&);
     void start(const Iterator::TimePoint& startTime);
-    void iterate(const Iterator::Duration & dt);
+    void iterate(const Iterator::Duration& dt);
     void stop(const Iterator::TimePoint& stopTime);
-
 };
 
 } /* namespace Nextsim */
