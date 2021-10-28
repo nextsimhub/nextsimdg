@@ -35,6 +35,7 @@ public:
 
     void tick(const Key& timerName) override;
     void tock(const Key& timerName) override;
+    void tock();
 
     double lap(const Key& timerName) const override;
     double elapsed(const Key& timerName) const override;

@@ -45,6 +45,11 @@ void Timer::tick(const Timer::Key& timerName)
 
 void Timer::tock(const std::string& timerName)
 {
+    tock();
+}
+
+void Timer::tock()
+{
     // Calculate the durations and stop running
     current->tock();
     // Ascend to the parent
