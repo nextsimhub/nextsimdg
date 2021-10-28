@@ -23,6 +23,7 @@ public:
     ~LocalTimer();
 
     static void setTimerAddress(Timer*);
+    void substitute(const std::string& newName);
     static Timer& timer();
 private:
     static Timer *p_timer;

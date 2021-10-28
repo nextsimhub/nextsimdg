@@ -31,8 +31,9 @@ TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
     LocalTimer testScopeTimer("test scope timer");
     {
         LocalTimer localScopeTimer("local scope timer");
-        std::this_thread::sleep_for(std::chrono::milliseconds(35));
         timeAndSleep();
+        localScopeTimer.substitute("second scope timer");
+        std::this_thread::sleep_for(std::chrono::milliseconds(35));
    }
     timeAndSleep();
 
@@ -46,6 +47,9 @@ TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
         LocalTimer loop("loop timer 2");
         timeAndSleep();
     }
+
+    testScopeTimer.substitute("replacement timer");
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     std::cout << LocalTimer::timer() << std::endl;
 
