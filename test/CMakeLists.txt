@@ -48,3 +48,13 @@ add_executable(testTimer
     )
 target_link_libraries(testTimer PRIVATE Catch2::Catch2)
 target_include_directories(testTimer PRIVATE "${SRC_DIR}")
+
+add_executable(testLocalTimer
+    "LocalTimer_test.cpp"
+    "${SRC_DIR}/Timer.cpp"
+    "${SRC_DIR}/LocalTimer.cpp"
+    )
+target_link_libraries(testLocalTimer PRIVATE Catch2::Catch2)
+target_include_directories(testLocalTimer PRIVATE "${SRC_DIR}")
+
+
