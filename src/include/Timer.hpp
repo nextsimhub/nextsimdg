@@ -67,10 +67,14 @@ private:
         std::map<Key, TimerNode> childNodes;
         TimerNode* parent;
 
+        void tick();
+        void tock();
         std::ostream& report(std::ostream& os, const std::string& prefix) const;
         std::ostream& reportAll(std::ostream& os, const std::string& prefix) const;
 
         TimerPath searchDescendants(const Key& timerName) const;
+        CpuTimeDuration cpuTimeSinceHack() const;
+        WallTimeDuration wallTimeSinceHack() const;
     };
 
     TimerPath pathToFirstMatch(const Key&) const;

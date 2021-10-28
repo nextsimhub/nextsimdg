@@ -8,10 +8,11 @@
 #include "include/Timer.hpp"
 
 #include <chrono>
-#include <string>
-#include <sstream>
-#include <map>
 #include <ctime>
+#include <map>
+#include <regex>
+#include <sstream>
+#include <string>
 
 namespace Nextsim {
 // Static main clock
@@ -26,6 +27,7 @@ Timer::Timer(const Key& baseTimerName)
     , current(&root)
 {
     root.name = baseTimerName;
+    root.tick();
 }
 
 void Timer::tick(const Timer::Key& timerName)
@@ -37,25 +39,32 @@ void Timer::tick(const Timer::Key& timerName)
     current->name  = timerName;
     current->parent = parent;
 
-    // Mark the time, ticks and run status
-    current->wallHack = std::chrono::high_resolution_clock::now();
-    current->cpuHack = std::clock();
-    ++current->ticks;
-    current->running = true;
+    // Mark the time, ticks and run status of the node
+    current->tick();
 }
 
 void Timer::tock(const std::string& timerName)
 {
     // Calculate the durations and stop running
-    current->wallTime += std::chrono::duration_cast<WallTimeDuration>(
-            std::chrono::high_resolution_clock::now() - current->wallHack);
-    current->cpuTime += static_cast<double>(std::clock() - current->cpuHack) / CLOCKS_PER_SEC;
-    current->running = false;
-
+    current->tock();
     // Ascend to the parent
     current = current->parent;
 }
 
+void Timer::TimerNode::tick()
+{
+    wallHack = std::chrono::high_resolution_clock::now();
+    cpuHack = std::clock();
+    ++ticks;
+    running = true;
+}
+
+void Timer::TimerNode::tock()
+{
+    wallTime += wallTimeSinceHack();
+    cpuTime += cpuTimeSinceHack();
+    running = false;
+}
 //TODO: implement lap and elapsed
 double Timer::lap(const Key& timerName) const { return 0; }
 double Timer::elapsed(const Key& timerName) const { return 0; }
@@ -130,30 +139,54 @@ Timer::TimerPath Timer::TimerNode::searchDescendants(const Key& timerName) const
     return path;
 }
 
+Timer::CpuTimeDuration Timer::TimerNode::cpuTimeSinceHack() const
+{
+    return static_cast<CpuTimeDuration>(std::clock() - cpuHack) / CLOCKS_PER_SEC;
+}
+
+Timer::WallTimeDuration Timer::TimerNode::wallTimeSinceHack() const
+{
+    return std::chrono::duration_cast<WallTimeDuration>(
+    std::chrono::high_resolution_clock::now() - wallHack);
+}
+
 std::ostream& Timer::TimerNode::report(std::ostream& os, const std::string& prefix) const
 {
-    return os << name << ": ticks = " << ticks << " wall time = "
-              << std::chrono::duration_cast<std::chrono::microseconds>(wallTime).count() * 1e-6
-              << " s cpu time = " << cpuTime << " s" << std::endl;
+    os << prefix;
+    // Get the wall time in seconds
+    WallTimeDuration wallTimeNow = running ? wallTimeSinceHack() : wallTime;
+    CpuTimeDuration cpuTimeNow = running ? cpuTimeSinceHack() : cpuTime;
+    os << name << ": ticks = " << ticks;
+    os << " wall time " << std::chrono::duration_cast<std::chrono::microseconds>(wallTimeNow).count() * 1e-6 << " s";
+    os << " cpu time " << cpuTimeNow << " s";
+    return os;
+}
+
+static std::string branch = "├";
+static std::string spc = " ";
+static std::string cont = "│";
+static std::string last = "└";
+
+std::string extendPrefix(const std::string& prefix)
+{
+    std::string newPrefix = std::regex_replace(prefix, std::regex(branch), cont);
+    return std::regex_replace(newPrefix, std::regex(last), spc);
 }
 
 std::ostream& Timer::TimerNode::reportAll(std::ostream& os, const std::string& prefix) const
 {
     report(os, prefix);
+    os << std::endl;
+
+    int nNodes = childNodes.size();
+    int iNode = 0;
+
     for (auto& child: childNodes) {
-        child.second.reportAll(os, " " + prefix);
+        std::string lastBranch = (++iNode == nNodes) ? last : branch;
+        child.second.reportAll(os, extendPrefix(prefix) + lastBranch);
     }
     return os;
 }
-/*    std::stringstream builder;
-    builder << timerName << ": is " << (running[timerName] ? "" : "not ")
-            << wallTime[timerName] << " s wall time, "
-            << cpuTime[timerName] << " s CPU time,"
-            << calls[timerName] << " timed calls"
-            << std::endl;
-
-    return builder.str();
-}*/
 }
 
 std::ostream& operator<<(std::ostream& os, const Nextsim::Timer& tim)
