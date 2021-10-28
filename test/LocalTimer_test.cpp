@@ -25,8 +25,8 @@ void timeAndSleep()
 
 TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
 {
-    LocalTimer::setTimer(&Timer::main);
-    Timer::main.reset();
+    LocalTimer::setTimerAddress(&Timer::main);
+    LocalTimer::timer().reset();
 
     LocalTimer testScopeTimer("test scope timer");
     {
@@ -47,7 +47,7 @@ TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
         timeAndSleep();
     }
 
-    std::cout << Timer::main << std::endl;
+    std::cout << LocalTimer::timer() << std::endl;
 
 
 }

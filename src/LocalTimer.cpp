@@ -8,7 +8,7 @@
 #include "include/LocalTimer.hpp"
 
 namespace Nextsim {
-Timer* LocalTimer::timer;
+Timer* LocalTimer::p_timer;
 
 LocalTimer::LocalTimer()
     : LocalTimer("")
@@ -17,16 +17,21 @@ LocalTimer::LocalTimer()
 
 LocalTimer::LocalTimer(const std::string& name)
 {
-    timer->tick(name);
+    p_timer->tick(name);
 }
 
 LocalTimer::~LocalTimer()
 {
-    timer->tock();
+    p_timer->tock();
 }
 
-void LocalTimer::setTimer(Timer* timer)
+void LocalTimer::setTimerAddress(Timer* timer)
 {
-    LocalTimer::timer = timer;
+    p_timer = timer;
+}
+
+Timer& LocalTimer::timer()
+{
+    return *p_timer;
 }
 }

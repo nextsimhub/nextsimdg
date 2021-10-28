@@ -22,9 +22,10 @@ public:
     LocalTimer(const std::string& name);
     ~LocalTimer();
 
-    static void setTimer(Timer* timer);
+    static void setTimerAddress(Timer*);
+    static Timer& timer();
 private:
-    static Timer *timer;
+    static Timer *p_timer;
 };
 
 } /* namespace Nextsim */
