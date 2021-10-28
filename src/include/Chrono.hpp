@@ -35,6 +35,13 @@ public:
         return m_wallTime + (m_running ? wallTimeSinceHack() : WallTimeDuration::zero());
     };
 
+    inline void reset()
+    {
+        m_wallTime = WallTimeDuration::zero();
+        m_cpuTime = 0;
+        m_ticks = 0;
+        m_running = false;
+    }
 
     inline CpuTimePoint cpuHack() const {return m_cpuHack;};
     inline CpuTimeDuration cpuTime() const

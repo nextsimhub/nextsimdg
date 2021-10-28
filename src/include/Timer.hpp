@@ -49,6 +49,7 @@ public:
     void additionalTime(const TimerPath& path, WallTimeDuration additionalWall, CpuTimeDuration additionalCpu, int additionalTicks);
     TimerPath currentTimerNodePath() const;
 
+    void reset();
     static Timer main;
 
 private:

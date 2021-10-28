@@ -119,6 +119,15 @@ std::ostream& Timer::report(const TimerPath& path, std::ostream& os) const
     return cursor->report(os, "");
 }
 
+void Timer::reset()
+{
+    root.childNodes.clear();
+    root.timeKeeper.reset();
+    current = &root;
+    root.tick();
+
+}
+
 Timer::TimerNode::TimerNode()
     : parent(nullptr)
 { }
@@ -146,6 +155,7 @@ std::ostream& Timer::TimerNode::report(std::ostream& os, const std::string& pref
     os << name << ": ticks = " << timeKeeper.ticks();
     os << " wall time " << std::chrono::duration_cast<std::chrono::microseconds>(wallTimeNow).count() * 1e-6 << " s";
     os << " cpu time " << cpuTimeNow << " s";
+    if (timeKeeper.running()) os << "(running)";
     return os;
 }
 
