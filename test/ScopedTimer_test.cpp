@@ -1,11 +1,12 @@
 /*
- * @file LocalTimer_test.cpp
+ * @file ScopedTimer_test.cpp
  *
  * @date Oct 28, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/LocalTimer.hpp"
+#include "../src/include/ScopedTimer.hpp"
+
 #include "include/Timer.hpp"
 
 #include <chrono>
@@ -19,18 +20,18 @@ namespace Nextsim {
 
 void timeAndSleep()
 {
-    LocalTimer tas("time and sleep");
+    ScopedTimer tas("time and sleep");
     std::this_thread::sleep_for(std::chrono::milliseconds(45));
 }
 
 TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
 {
-    LocalTimer::setTimerAddress(&Timer::main);
-    LocalTimer::timer().reset();
+    ScopedTimer::setTimerAddress(&Timer::main);
+    ScopedTimer::timer().reset();
 
-    LocalTimer testScopeTimer("test scope timer");
+    ScopedTimer testScopeTimer("test scope timer");
     {
-        LocalTimer localScopeTimer("local scope timer");
+        ScopedTimer localScopeTimer("local scope timer");
         timeAndSleep();
         localScopeTimer.substitute("second scope timer");
         std::this_thread::sleep_for(std::chrono::milliseconds(35));
@@ -39,19 +40,19 @@ TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
 
     const int nint = 10;
     for (int i = 0; i < nint; ++i) {
-        LocalTimer loop("loop timer");
+        ScopedTimer loop("loop timer");
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
     for (int i = 0; i < nint; ++i) {
-        LocalTimer loop("loop timer 2");
+        ScopedTimer loop("loop timer 2");
         timeAndSleep();
     }
 
     testScopeTimer.substitute("replacement timer");
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-    std::cout << LocalTimer::timer() << std::endl;
+    std::cout << ScopedTimer::timer() << std::endl;
 
 
 }

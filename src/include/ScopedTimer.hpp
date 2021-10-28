@@ -1,12 +1,12 @@
 /*
- * @file LocalTimer.hpp
+ * @file ScopedTimer.hpp
  *
  * @date Oct 28, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_LOCALTIMER_HPP
-#define SRC_INCLUDE_LOCALTIMER_HPP
+#ifndef SRC_INCLUDE_SCOPEDTIMER_HPP
+#define SRC_INCLUDE_SCOPEDTIMER_HPP
 
 #include "Chrono.hpp"
 #include "Timer.hpp"
@@ -16,11 +16,11 @@
 
 namespace Nextsim {
 
-class LocalTimer {
+class ScopedTimer {
 public:
-    LocalTimer();
-    LocalTimer(const std::string& name);
-    ~LocalTimer();
+    ScopedTimer();
+    ScopedTimer(const std::string& name);
+    ~ScopedTimer();
 
     static void setTimerAddress(Timer*);
     void substitute(const std::string& newName);
@@ -31,4 +31,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_LOCALTIMER_HPP */
+#endif /* SRC_INCLUDE_SCOPEDTIMER_HPP */
