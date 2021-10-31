@@ -19,6 +19,8 @@ namespace Nextsim
 
 
 bool WRITE_VTK = false; //!< set to true for vtk output
+int WRITE_EVERY = 5;
+
 double TOL = 1.e-10;    //!< tolerance for checking test results
 
 
@@ -54,7 +56,6 @@ public:
   }
 };
 
-
 // Velocity
 class InitialVX : virtual public Nextsim::InitialBase {
   
@@ -65,7 +66,9 @@ public:
   void settime(double t)
   {_time = t;}
   
-  double operator()(double x, double y) const { return (0.5*M_PI*sin(0.5*_time)) * (y - 0.5); }
+  double operator()(double x, double y) const {
+    return (0.5*M_PI*sin(0.5*_time))
+      * ((y-0.5)); }
 };
 class InitialVY : virtual public Nextsim::InitialBase {
   
@@ -76,7 +79,8 @@ public:
   void settime(double t)
   {_time = t;}
   
-  double operator()(double x, double y) const { return (0.5*M_PI*sin(0.5*_time)) * (0.5 - x); }
+  double operator()(double x, double y) const { return (0.5*M_PI*sin(0.5*_time)) *
+      (-(x-0.5)); }
 };
 
 //////////////////////////////////////////////////
@@ -133,7 +137,7 @@ class Test
     double k   = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
     double tmax = 2.0*M_PI;
     int NT = (static_cast<int>((tmax / k + 1) /100 + 1) * 100); // No time steps dividable by 100
-    timemesh.BasicInit(tmax, NT);
+    timemesh.BasicInit(tmax, NT, 1);
     
     //! Init Transport Scheme
     dgtransport.setmesh(mesh);
@@ -180,8 +184,8 @@ class Test
 	for (size_t iter = 1; iter <= timemesh.N; ++iter)
 	  {
 	    Nextsim::GlobalTimer.start("run -- loop -- vel");
-	    VX.settime(timemesh.k * iter);
-	    VY.settime(timemesh.k * iter);
+	    VX.settime(timemesh.dt * iter);
+	    VY.settime(timemesh.dt * iter);
 	    Nextsim::GlobalTimer.start("run -- loop -- vel -- l2");
 	    Nextsim::L2ProjectInitial(mesh, vx, VX);
 	    Nextsim::L2ProjectInitial(mesh, vy, VY);
@@ -317,14 +321,14 @@ int main()
   Test<1> test1(N);
   test1.run();
   if (!test1.check())
-    std::cout << "dG(0) TEST FAILED" << std::endl;
+    std::cout << "dG(1) TEST FAILED" << std::endl;
   else
-    std::cout << "dG(0) TEST PASSED" << std::endl;
+    std::cout << "dG(1) TEST PASSED" << std::endl;
 
   Test<2> test2(N);
   test2.run();
   if (!test2.check())
-    std::cout << "dG(0) TEST FAILED" << std::endl;
+    std::cout << "dG(2) TEST FAILED" << std::endl;
   else
-    std::cout << "dG(0) TEST PASSED" << std::endl;
+    std::cout << "dG(2) TEST PASSED" << std::endl;
 }

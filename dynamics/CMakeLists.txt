@@ -100,3 +100,6 @@ add_subdirectory(src)
 
 ################################################## Compile the test cases
 add_subdirectory(tests)
+
+################################################## Compile larger application examples
+add_subdirectory(applications)

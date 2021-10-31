@@ -106,7 +106,7 @@ class Test
     double tmax = 2.0*M_PI;
 
     int NT = (static_cast<int>((tmax / k + 1) /100 + 1) * 100); // No time steps dividable by 100
-    timemesh.BasicInit(tmax, NT);
+    timemesh.BasicInit(tmax, NT, 1);
     
     //! Init Transport Scheme
     dgtransport.setmesh(mesh);

@@ -4,6 +4,7 @@
 #define __dynamics_H
 /*----------------------------   dynamics.h     ---------------------------*/
 
+#include "dgtransport.hpp"
 #include "dgvector.hpp"
 #include "mesh.hpp"
 #include "timemesh.hpp"
@@ -26,18 +27,106 @@ class Dynamics {
     Mesh mesh;
     TimeMesh timemesh;
 
+    /*!
+   * Main variables for the ice model. 
+   * ?? What are good DG spaces and combinations?
+   */
+    CellVector<2> vx, vy; //!< velocity fields
+    CellVector<1> S11, S12, S22; //!< entries of (symmetric) stress tensor
+    CellVector<2> A, H; //!< ice height and ice concentration
+    CellVector<0> D; //!< ice damage. ?? Really dG(0) ??
+
+    CellVector<0> oceanX, oceanY; //!< ocean forcing. ?? Higher order??
+    CellVector<0> atmX, atmY; //!< ocean forcing. ?? Higher order??
+
+    /*! 
+   * Subclasses for managing DG transport and the momentum problem
+   */
+    DGTransport<2> dgtransport;
+
 public:
+    /*! 
+   * Constructor, initializes the subclasses and gives references to vectors
+   * such as the velocity field
+   */
     Dynamics()
+        : dgtransport(vx, vy)
     {
     }
 
-    //! Performs one macro timestep1
-    void macrostep()
+    //! Access
+    Mesh& GetMesh()
     {
-        advection_step();
-
-        momentum_substeps();
+        return mesh;
     }
+    TimeMesh& GetTimeMesh()
+    {
+        return timemesh;
+    }
+    CellVector<2>& GetVX()
+    {
+        return vx;
+    }
+    CellVector<2>& GetVY()
+    {
+        return vy;
+    }
+    CellVector<1>& GetS11()
+    {
+        return S11;
+    }
+    CellVector<1>& GetS12()
+    {
+        return S12;
+    }
+    CellVector<1>& GetS22()
+    {
+        return S22;
+    }
+    CellVector<0>& GetD()
+    {
+        return D;
+    }
+    CellVector<2>& GetH()
+    {
+        return H;
+    }
+    CellVector<2>& GetA()
+    {
+        return A;
+    }
+
+    CellVector<0>& GetAtmX()
+    {
+        return atmX;
+    }
+    CellVector<0>& GetAtmY()
+    {
+        return atmY;
+    }
+    CellVector<0>& GetOceanX()
+    {
+        return oceanX;
+    }
+    CellVector<0>& GetOceanY()
+    {
+        return oceanY;
+    }
+
+    /*! 
+   * Sets important parameters, initializes these and that
+   */
+    void BasicInit();
+
+    //////////////////////////////////////////////////
+
+    /**!
+   * controls the flow of the dynamical core
+   */
+
+    void advection_step();
+    void momentum_substeps();
+    void step();
 };
 
 }

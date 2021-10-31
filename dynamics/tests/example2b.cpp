@@ -112,7 +112,7 @@ class Test
     double tmax = 1.6;
 
     int NT = (static_cast<int>((tmax / k + 1) /100 + 1) * 100); // No time steps dividable by 100
-    timemesh.BasicInit(tmax, NT);
+    timemesh.BasicInit(tmax, NT, 1);
     
     //! Init Transport Scheme
     dgtransport.setmesh(mesh);
@@ -136,8 +136,8 @@ class Test
     for (size_t iter = 1; iter <= timemesh.N; ++iter)
       {
 	// set velocity vector
-	VX.settime(iter * timemesh.k);
-	VY.settime(iter * timemesh.k);
+	VX.settime(iter * timemesh.dt);
+	VY.settime(iter * timemesh.dt);
 	Nextsim::L2ProjectInitial(mesh, vx, VX);
 	Nextsim::L2ProjectInitial(mesh, vy, VY);
 
