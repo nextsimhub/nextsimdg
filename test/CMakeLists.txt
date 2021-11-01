@@ -82,12 +82,12 @@ add_executable(testModuleLoader
 target_include_directories(testModuleLoader PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${IPP_DIR}")
 target_link_libraries(testModuleLoader LINK_PUBLIC Catch2::Catch2)
 
-#add_executable(testConfiguredModule
-#    "ConfiguredModule_test.cpp"
-#    "ArgV.cpp"
-#    "${SRC_DIR}/ModuleLoader.cpp"
-#    "${SRC_DIR}/Configurator.cpp"
-#    "${SRC_DIR}/ConfiguredModule.cpp"
-#)
-#target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${IPP_DIR}" ${Boost_INCLUDE_DIRS})
-#target_link_libraries(testConfiguredModule PRIVATE Catch2::Catch2 ${Boost_LIBRARIES})
+add_executable(testConfiguredModule
+    "ConfiguredModule_test.cpp"
+    "ArgV.cpp"
+    "${SRC_DIR}/ModuleLoader.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
+)
+target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${IPP_DIR}" ${Boost_INCLUDE_DIRS})
+target_link_libraries(testConfiguredModule PRIVATE Catch2::Catch2 ${Boost_LIBRARIES})
