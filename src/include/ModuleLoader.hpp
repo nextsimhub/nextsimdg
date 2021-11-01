@@ -2,7 +2,7 @@
  * @file ModuleLoader.hpp
  *
  * @date Sep 23, 2021
- * @author Tim Spain
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SRC_INCLUDE_MODULELOADER_HPP
@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 #include <set>
+#include <boost/program_options.hpp>
 
 class ModuleLoader {
 public:

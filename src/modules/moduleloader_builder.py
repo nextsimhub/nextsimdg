@@ -65,7 +65,7 @@ def functions(all_implementations, ipp_prefix):
             for impl in interface["implementations"]:
                 # The stored instance of the implementation
                 fil.write(f"static {impl} {get_iname(impl)};\n")
-                # The function that return the new unique_ptr for each implementation
+               # The function that return the new unique_ptr for each implementation
                 fil.write(
                     f"std::unique_ptr<{name}> {get_fname(impl)}()\n"
                     "{\n"
