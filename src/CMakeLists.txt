@@ -32,7 +32,7 @@ target_link_libraries(nextsim LINK_PUBLIC ${Boost_Libraries})
 
 # Build the module loader files. Defines the 'parse_modules' target
 set(ModuleLoaderIppTargetDirectory
-"${CMAKE_CURRENT_SOURCE_DIR}/")
+"${CMAKE_CURRENT_SOURCE_DIR}/modules/")
 add_subdirectory(modules)
 
 add_dependencies(nextsim parse_modules)

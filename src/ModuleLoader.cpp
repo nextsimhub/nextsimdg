@@ -20,14 +20,22 @@ void throwup(const std::string& module, const std::string& impl)
     throw std::invalid_argument(what);
 }
 
-void ModuleLoader::init(const VariablesMap& map)
+void ModuleLoader::init()
 {
 #include "moduleLoaderNames.ipp"
 
-    // Set of all defined interfaces
-    for (const auto& element: m_availableImplementationNames) {
-        m_modules.insert(element.first);
+    if (!isInit) {
+        // Set of all defined interfaces
+        for (const auto& element: m_availableImplementationNames) {
+            m_modules.insert(element.first);
+        }
+        isInit = true;
     }
+}
+
+void ModuleLoader::init(const VariablesMap& map)
+{
+    init();
 
     // Load the named implementations from the provided map
     for (const auto& i : map) {
