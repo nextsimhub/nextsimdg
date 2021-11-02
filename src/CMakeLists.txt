@@ -4,8 +4,7 @@ set (INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(BaseSources
     "main.cpp"
     "Logged.cpp"
-    "Timed.cpp"
-    "CountTimer.cpp" # TODO: basic timer for testing only
+    "Timer.cpp"
     "Model.cpp"
     "Iterator.cpp"
     "SimpleIterant.cpp"
@@ -13,7 +12,6 @@ set(BaseSources
 
 set(BaseHeaders
     "${INC}/Logged.hpp"
-    "${INC}/Timed.hpp"
     "${INC}/Timer.hpp"
     "${INC}/Model.hpp"
     "${INC}/Iterator.hpp"
