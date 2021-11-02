@@ -145,6 +145,9 @@ Timer::TimerPath Timer::TimerNode::searchDescendants(const Key& timerName) const
     return path;
 }
 
+inline int msCountFromWall(const Timer::WallTimeDuration& wall) {
+    return std::chrono::duration_cast<std::chrono::microseconds>(wall).count();
+}
 
 std::ostream& Timer::TimerNode::report(std::ostream& os, const std::string& prefix) const
 {
@@ -152,9 +155,22 @@ std::ostream& Timer::TimerNode::report(std::ostream& os, const std::string& pref
     // Get the wall time in seconds
     WallTimeDuration wallTimeNow = timeKeeper.wallTime();
     CpuTimeDuration cpuTimeNow = timeKeeper.cpuTime();
+
+
+    double pcParentWall;
+    double pcParentCpu;
+    if (parent) {
+        WallTimeDuration wallTimeParent = parent->timeKeeper.wallTime();
+        CpuTimeDuration cpuTimeParent = parent->timeKeeper.cpuTime();
+        pcParentWall = msCountFromWall(wallTimeNow) * 100. / msCountFromWall(wallTimeParent);
+        pcParentCpu = cpuTimeNow * 100. / cpuTimeParent;
+    } else {
+        pcParentWall = 100;
+        pcParentCpu = 100;
+    }
     os << name << ": ticks = " << timeKeeper.ticks();
-    os << " wall time " << std::chrono::duration_cast<std::chrono::microseconds>(wallTimeNow).count() * 1e-6 << " s";
-    os << " cpu time " << cpuTimeNow << " s";
+    os << " wall time " << msCountFromWall(wallTimeNow) * 1e-6 << " s" << " (" << pcParentWall << "% of parent)";
+    os << " cpu time " << cpuTimeNow << " s" << " (" << pcParentCpu << "% of parent)";
     if (timeKeeper.running()) os << "(running)";
     return os;
 }
