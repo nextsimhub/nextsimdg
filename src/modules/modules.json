@@ -1,6 +1,6 @@
 [
     {
-    "name": "Nextsim::IICeAlbedo",
+    "name": "Nextsim::IIceAlbedo",
     "implementations": [
         "Nextsim::SMUIceAlbedo",
         "Nextsim::SMU2IceAlbedo",
@@ -10,7 +10,7 @@
     {
     "name": "Nextsim::IIceOceanHeatFlux",
     "implementations": [
-        "Nextsim::BasicOceanHeatFlux"
+        "Nextsim::BasicIceOceanHeatFlux"
         ]
     }
 ]

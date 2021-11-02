@@ -76,24 +76,33 @@ add_executable(testNextsimPhysics
     "NextsimPhysics_test.cpp"
     "${SRC_DIR}/NextsimPhysics.cpp"
     "${SRC_DIR}/PhysicsData.cpp"
-    )
-target_link_libraries(testNextsimPhysics PRIVATE Catch2::Catch2)
-
-add_executable(testThermoIce0
-    "ThermoIce0_test.cpp"
-    "${SRC_DIR}/ThermoIce0.cpp"
+    "${SRC_DIR}/ModuleLoader.cpp"
+    "${SRC_DIR}/Configured.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/SMUIceAlbedo.cpp"
+    "${SRC_DIR}/CCSMIceAlbedo.cpp"
+    "${SRC_DIR}/SMU2IceAlbedo.cpp"
+    "${SRC_DIR}/BasicIceOceanHeatFlux.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
     )
-target_link_libraries(testThermoIce0 PRIVATE Catch2::Catch2)
+target_include_directories(testNextsimPhysics PRIVATE ${ModuleLoaderIppTargetDirectory} "${SRC_DIR}")
+target_link_libraries(testNextsimPhysics PRIVATE ${Boost_LIBRARIES} Catch2::Catch2)
+
+#add_executable(testThermoIce0
+#    "ThermoIce0_test.cpp"
+#    "${SRC_DIR}/ThermoIce0.cpp"
+#    "${SRC_DIR}/PrognosticData.cpp"
+#    )
+#target_link_libraries(testThermoIce0 PRIVATE Catch2::Catch2)
 
 # Set the location of the test module loader classes
-set(IPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoaderTestModules")
+set(TEST_IPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoaderTestModules")
 
 add_executable(testModuleLoader
     "ModuleLoader_test.cpp"
     "${SRC_DIR}/ModuleLoader.cpp"
 )
-target_include_directories(testModuleLoader PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${IPP_DIR}")
+target_include_directories(testModuleLoader PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${TEST_IPP_DIR}")
 target_link_libraries(testModuleLoader LINK_PUBLIC Catch2::Catch2)
 
 add_executable(testConfiguredModule
@@ -103,5 +112,5 @@ add_executable(testConfiguredModule
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
 )
-target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${IPP_DIR}" ${Boost_INCLUDE_DIRS})
+target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${TEST_IPP_DIR}" ${Boost_INCLUDE_DIRS})
 target_link_libraries(testConfiguredModule PRIVATE Catch2::Catch2 ${Boost_LIBRARIES})

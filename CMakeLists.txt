@@ -13,6 +13,10 @@ find_package(Catch2 REQUIRED)
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
 # target_link_libraries(target LINK_PUBLIC netcdf-cxx4)
 
+# Set the location of the ipp files used by ModuleLoader for the main build
+set(ModuleLoaderIppTargetDirectory
+"${CMAKE_CURRENT_SOURCE_DIR}/src/modules/")
+
 # Build the main model
 add_subdirectory(src)
 

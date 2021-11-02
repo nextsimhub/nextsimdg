@@ -30,7 +30,6 @@ class NextsimPhysics;
 class NextsimPhysics : public BaseElementData, Configured {
 public:
     NextsimPhysics();
-    ~NextsimPhysics() = default;
 
     void parse() override;
 
@@ -130,7 +129,7 @@ private:
 
     // Ice-ocean heat flux
     double m_Qio; // Ice-ocean heat flux
-    std::unique_ptr<IIceOceanHeatFlux> iceOceanHeatFluxImpl;
+    static std::unique_ptr<IIceOceanHeatFlux> iceOceanHeatFluxImpl;
 
 public:
     static double I_0;

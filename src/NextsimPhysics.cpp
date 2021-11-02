@@ -29,6 +29,7 @@ double NextsimPhysics::dragOcean_t;
 double NextsimPhysics::dragIce_t;
 double NextsimPhysics::I_0;
 
+std::unique_ptr<IIceOceanHeatFlux> NextsimPhysics::iceOceanHeatFluxImpl;
 std::unique_ptr<IIceAlbedo> NextsimPhysics::iIceAlbedoImpl;
 std::unique_ptr<IThermodynamics> NextsimPhysics::iThermo;
 
@@ -38,7 +39,7 @@ const static std::string iceOceanHeatFluxKey = "IceOceanHeatFlux";
 const static std::string basicIceOceanHeatFluxKey = "basic";
 const static std::string advancedIceOceanHeatFluxKey = "advanced";
 
-void NextsimPhysics::NextsimPhysics()
+NextsimPhysics::NextsimPhysics()
 {
     addOption(iceOceanHeatFluxKey, basicIceOceanHeatFluxKey, "Ice-ocean heat flux calculation.");
 }
@@ -52,7 +53,7 @@ void NextsimPhysics::parse()
 //            iceOceanHeatFluxKey, "AdvancedBasicIceOceanHeatFlux");
     }
     iceOceanHeatFluxImpl
-        = std::move(ModuleLoader::getLoader().getImplementation<IIceOceanHeatFlux>());
+        = std::move(ModuleLoader::getLoader().getInstance<IIceOceanHeatFlux>());
 }
 
 void NextsimPhysics::updateDerivedDataStatic(

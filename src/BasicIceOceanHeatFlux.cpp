@@ -13,7 +13,7 @@
 
 namespace Nextsim {
 
-double flux(
+double BasicIceOceanHeatFlux::flux(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsp)
 {
     // The ice bottom temperature is the freezing point of the surface seawater
