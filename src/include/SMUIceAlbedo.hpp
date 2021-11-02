@@ -8,7 +8,7 @@
 #ifndef SRC_INCLUDE_SMUICEALBEDO_HPP
 #define SRC_INCLUDE_SMUICEALBEDO_HPP
 
-#include "IICeAlbedo.hpp"
+#include "IIceAlbedo.hpp"
 
 namespace Nextsim {
 
