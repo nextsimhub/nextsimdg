@@ -24,6 +24,6 @@ TEST_CASE("Outgoing LW (OW)", "[NextsimPhysics]")
 
     double target = PhysicalConstants::sigma * t * t * t * t;
 
-    REQUIRE(data.QLongwaveIce() == target);
+    REQUIRE(data.QLongwaveOpenWater() == target);
 }
 } /* namespace Nextsim */
