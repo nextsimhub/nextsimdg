@@ -9,6 +9,8 @@ set(BaseSources
     "Model.cpp"
     "Iterator.cpp"
     "SimpleIterant.cpp"
+    "Configurator.cpp"
+    "CommandLineParser.cpp"
     )
 
 set(BaseHeaders
@@ -28,7 +30,7 @@ set(NextsimSources
 add_executable(nextsim ${NextsimSources})
 
 target_include_directories(nextsim PRIVATE "include" ${Boost_INCLUDE_DIRS})
-target_link_libraries(nextsim LINK_PUBLIC ${Boost_Libraries})
+target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
 
 # Build the module loader files. Defines the 'parse_modules' target
 set(ModuleLoaderIppTargetDirectory
