@@ -14,9 +14,33 @@ set(BaseSources
     "Iterator.cpp"
     "SimpleIterant.cpp"
     "Configurator.cpp"
+    "Configured.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "ModuleLoader.cpp"
+    "PrognosticData.cpp"
+    "ExternalData.cpp"
+    "PhysicsData.cpp"
+    )
+
+set(AlbedoModuleSources
+    "CCSMIceAlbedo.cpp"
+    "SMUIceAlbedo.cpp"
+    "SMU2IceAlbedo.cpp"
+    )
+
+set(IceOceanFluxModuleSources
+    "BasicIceOceanHeatFlux.cpp"
+    )
+
+set(ColumnPhysicsModuleSources
+    "NextsimPhysics.cpp"
+    )
+
+set(ModuleSources
+    "${AlbedoModuleSources}"
+    "${IceOceanFluxModuleSources}"
+    "${ColumnPhysicsModuleSources}"
     )
 
 set(BaseHeaders
@@ -28,13 +52,18 @@ set(BaseHeaders
     )
 
 set(NextsimSources
-    ${BaseHeaders}
-    ${BaseSources}
+    "${BaseSources}"
+    "${ModuleSources}"
     )
 
 add_executable(nextsim ${NextsimSources})
 
-target_include_directories(nextsim PRIVATE "include" ${Boost_INCLUDE_DIRS} ${ModuleLoaderIppTargetDirectory})
+target_include_directories(nextsim PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${INC}
+    ${Boost_INCLUDE_DIRS}
+    ${ModuleLoaderIppTargetDirectory}
+    )
 target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
 
 # Build the module loader files. Defines the 'parse_modules' target
