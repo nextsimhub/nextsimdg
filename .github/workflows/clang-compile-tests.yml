@@ -79,9 +79,7 @@ jobs:
     - name: run tests
       run: |
         cd test
-        ./testIterator
-        ./testSimpleIter
-        ./testTimed
+        for file in $(ls *test*); do ./$file; done
 
   
   tests-on-ubuntu:
@@ -106,6 +104,4 @@ jobs:
     - name: run tests
       run: |
         cd test
-        ./testIterator
-        ./testSimpleIter
-        ./testTimed
+        for file in $(ls *test*); do ./$file; done
