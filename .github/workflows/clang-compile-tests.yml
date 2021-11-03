@@ -79,7 +79,7 @@ jobs:
     - name: run tests
       run: |
         cd test
-        for file in $(ls *test*); do ./$file; done
+        for file in $(ls test*); do ./$file; done
 
   
   tests-on-ubuntu:
@@ -104,4 +104,4 @@ jobs:
     - name: run tests
       run: |
         cd test
-        for file in $(ls *test*); do ./$file; done
+        for file in $(ls test*); do ./$file; done
