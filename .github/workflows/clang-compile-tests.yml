@@ -83,4 +83,29 @@ jobs:
         ./testSimpleIter
         ./testTimed
 
+  
+  tests-on-ubuntu:
 
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: installs
+      run: |
+        sudo apt-get update
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake
+        git clone -b v2.x https://github.com/catchorg/Catch2.git
+        cd Catch2
+        cmake -Bbuild -H. -DBUILD_TESTING=OFF
+        sudo cmake --build build/ --target install
+        cd ..
+    - name: make
+      run: |
+        cmake .
+        make
+    - name: run tests
+      run: |
+        cd test
+        ./testIterator
+        ./testSimpleIter
+        ./testTimed
