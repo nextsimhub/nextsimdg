@@ -4,7 +4,7 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "Logged.hpp"
+#include "include/Logged.hpp"
 
 namespace Nextsim {
 

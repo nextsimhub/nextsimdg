@@ -4,9 +4,9 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "Model.hpp"
+#include "include/Model.hpp"
 
-#include "SimpleIterant.hpp"
+#include "include/SimpleIterant.hpp"
 
 namespace Nextsim {
 

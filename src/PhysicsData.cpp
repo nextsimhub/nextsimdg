@@ -5,7 +5,7 @@
  *      Author: timpai
  */
 
-#include <PhysicsData.hpp>
+#include "include/PhysicsData.hpp"
 
 namespace Nextsim {
 

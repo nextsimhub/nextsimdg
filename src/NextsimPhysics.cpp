@@ -12,7 +12,7 @@
 #include "include/PrognosticData.hpp"
 #include <cmath>
 
-#include "IThermodynamics.hpp"
+#include "include/IThermodynamics.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
 

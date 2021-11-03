@@ -60,7 +60,6 @@ add_executable(nextsim ${NextsimSources})
 
 target_include_directories(nextsim PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${INC}
     ${Boost_INCLUDE_DIRS}
     ${ModuleLoaderIppTargetDirectory}
     )

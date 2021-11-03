@@ -4,7 +4,7 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "SimpleIterant.hpp"
+#include "include/SimpleIterant.hpp"
 
 #include <ctime>
 #include <iostream>
