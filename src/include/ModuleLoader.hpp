@@ -1,8 +1,8 @@
-/*
+/*!
  * @file ModuleLoader.hpp
  *
  * @date Sep 23, 2021
- * @author Tim Spain
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SRC_INCLUDE_MODULELOADER_HPP
@@ -10,8 +10,8 @@
 
 #include <map>
 #include <memory>
-#include <string>
 #include <set>
+#include <string>
 
 class ModuleLoader {
 public:
@@ -22,24 +22,19 @@ public:
         return instance;
     }
 
-    //typedef boost::program_options::variables_map VariablesMap;
+    // typedef boost::program_options::variables_map VariablesMap;
     typedef std::map<std::string, std::string> VariablesMap;
 
     void init();
     void init(const VariablesMap&);
-    inline const std::set<std::string>& listModules() const
-    {
-        return m_modules;
-    }
+    inline const std::set<std::string>& listModules() const { return m_modules; }
     inline const std::set<std::string>& listImplementations(const std::string& module) const
     {
         return m_availableImplementationNames.at(module);
     }
-    template<class T>
-    std::unique_ptr<T> getInstance() const;
+    template <class T> std::unique_ptr<T> getInstance() const;
 
-    template<class T>
-    T& getImplementation();
+    template <class T> T& getImplementation();
 
     void setImplementation(const std::string& module, const std::string& impl);
     // Singleton function definitions
@@ -47,7 +42,7 @@ private:
     ModuleLoader() {};
 
 public:
-    ModuleLoader(const ModuleLoader&)   = delete;
+    ModuleLoader(const ModuleLoader&) = delete;
     void operator=(const ModuleLoader&) = delete;
 
 private:

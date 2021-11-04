@@ -1,8 +1,8 @@
-/*
+/*!
  * @file ModuleLoader.cpp
  *
  * @date Sep 23, 2021
- * @author Tim Spain
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModuleLoader.hpp"
@@ -26,7 +26,7 @@ void ModuleLoader::init()
 
     if (!isInit) {
         // Set of all defined interfaces
-        for (const auto& element: m_availableImplementationNames) {
+        for (const auto& element : m_availableImplementationNames) {
             m_modules.insert(element.first);
         }
         isInit = true;
