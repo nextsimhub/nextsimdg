@@ -1,8 +1,8 @@
-/*
+/*!
  * @file ModuleLoader.hpp
  *
  * @date Sep 23, 2021
- * @author Tim Spain
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SRC_INCLUDE_MODULELOADER_HPP
@@ -33,12 +33,9 @@ public:
     {
         return m_availableImplementationNames.at(module);
     }
+    template <class T> std::unique_ptr<T> getInstance() const;
 
-    template<class T>
-    std::unique_ptr<T> getInstance() const;
-
-    template<class T>
-    T& getImplementation();
+    template <class T> T& getImplementation();
 
     void setImplementation(const std::string& module, const std::string& impl);
     // Singleton function definitions
