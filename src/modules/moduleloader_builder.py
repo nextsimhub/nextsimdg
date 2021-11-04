@@ -6,9 +6,18 @@ def denamespace(nname):
     return nname.split(":")[-1]
 
 def get_pname(full_name):
+    """Returns the name of the pointer to the stored instance of the
+    implementing class, given the full name of that class."""
+    return f"p_{denamespace(full_name)}"
+
+def get_iname(full_name):
+    """Returns the name of the stored implementation."""
+    return f"i_{denamespace(full_name)}"
+
+def get_pfname(full_name):
     """Returns the name of the function pointer for the interface, given its
     namespaced class name."""
-    return f"p_{denamespace(full_name)}"
+    return f"pf_{denamespace(full_name)}"
 
 def get_fname(impl):
     """Returns the function name for the implementation, given its namespaced string name."""
@@ -30,19 +39,32 @@ def functions(all_implementations, ipp_prefix):
     """Generates the moduleLoaderFunctions.ipp file."""
     with open(f"{ipp_prefix}moduleLoaderFunctions.ipp", "w", encoding="utf-8") as fil:
         for interface in all_implementations:
-            # Define the pointer to function
             name = interface["name"]
+            # Define the pointer to the stored implementation
             p_name = get_pname(name)
-            fil.write(f"std::unique_ptr<{name}> (*{p_name})();\n")
+            fil.write(f"static {name}* {p_name};\n")
+            # Define the function that returns the pointer to the stored implementation
+            fil.write(
+                "template<>\n"
+                f"{name}& ModuleLoader::getImplementation()\n"
+                "{\n"
+                f"    return *{p_name};\n"
+                "}\n"
+                )
+            # Define the pointer to function
+            pf_name = get_pfname(name)
+            fil.write(f"std::unique_ptr<{name}> (*{pf_name})();\n")
             # Define function that call the function pointer
             fil.write(
                 "template<>\n"
-                f"std::unique_ptr<{name}> ModuleLoader::getImplementation() const\n"
+                f"std::unique_ptr<{name}> ModuleLoader::getInstance() const\n"
                 "{\n"
-                f"    return (*{p_name})();\n"
+                f"    return (*{pf_name})();\n"
                 "}\n"
                 )
             for impl in interface["implementations"]:
+                # The stored instance of the implementation
+                fil.write(f"static {impl} {get_iname(impl)};\n")
                 # The function that return the new unique_ptr for each implementation
                 fil.write(
                     f"std::unique_ptr<{name}> {get_fname(impl)}()\n"
@@ -85,10 +107,12 @@ def assignments(all_implementations, ipp_prefix):
                 "            "
                 )
             p_name = get_pname(name)
+            pf_name = get_pfname(name)
             for impl in interface["implementations"]:
                 fil.write(
                     f"if (impl == \"{impl}\") ""{\n"
-                    f"                {p_name} = &{get_fname(impl)};\n"
+                    f"                {p_name} = &{get_iname(impl)};"
+                    f"                {pf_name} = &{get_fname(impl)};\n"
                     "            } else "
                     )
             fil.write(

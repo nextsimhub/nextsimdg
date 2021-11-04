@@ -8,6 +8,7 @@
 
 #include "include/CommandLineParser.hpp"
 #include "include/Configurator.hpp"
+#include "include/ConfiguredModule.hpp"
 #include "include/Model.hpp"
 
 int main(int argc, char* argv[])
@@ -19,6 +20,9 @@ int main(int argc, char* argv[])
     Nextsim::CommandLineParser cmdLine(argc, argv);
     // Pass the config file names to Configurator
     Nextsim::Configurator::addFiles(cmdLine.getConfigFileNames());
+
+    // Translate the configuration to the ModuleLoader
+    Nextsim::ConfiguredModule::parseConfigurator();
 
     // Construct the Model
     Nextsim::Model model = Nextsim::Model();
