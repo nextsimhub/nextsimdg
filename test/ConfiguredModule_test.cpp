@@ -11,7 +11,7 @@
 #include <catch2/catch.hpp>
 
 #include "ArgV.hpp"
-#include "testClasses.hpp"
+#include "moduleTestClasses.hpp"
 #include "Configurator.hpp"
 #include "ModuleLoader.hpp"
 

@@ -1,5 +1,5 @@
 /*
- * @file testClasses.hpp
+ * @file moduleTestClasses.hpp
  *
  * @date Oct 21, 2021
  * @author Tim Spain <timothy.spain@nersc.no>

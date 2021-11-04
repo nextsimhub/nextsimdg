@@ -10,7 +10,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-# include "testClasses.hpp"
+# include "moduleTestClasses.hpp"
 TEST_CASE("Basic module loading test", "[ModuleLoader]")
 {
     ModuleLoader& ldr = ModuleLoader::getLoader();
