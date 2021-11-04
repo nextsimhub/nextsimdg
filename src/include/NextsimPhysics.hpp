@@ -31,7 +31,7 @@ class NextsimPhysics : public BaseElementData, Configured {
 public:
     NextsimPhysics();
 
-    void parse() override;
+    void configure() override;
 
     inline static void updateDerivedData(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, const UnusedData&)

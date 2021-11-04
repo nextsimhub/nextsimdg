@@ -41,10 +41,10 @@ const static std::string advancedIceOceanHeatFluxKey = "advanced";
 
 NextsimPhysics::NextsimPhysics()
 {
-    addOption(iceOceanHeatFluxKey, basicIceOceanHeatFluxKey, "Ice-ocean heat flux calculation.");
+    addOption(iceOceanHeatFluxKey, basicIceOceanHeatFluxKey);
 }
 
-void NextsimPhysics::parse()
+void NextsimPhysics::configure()
 {
     if (retrieveValue<std::string>(iceOceanHeatFluxKey) != advancedIceOceanHeatFluxKey) {
         ModuleLoader::getLoader().setImplementation(iceOceanHeatFluxKey, "BasicIceOceanHeatFlux");

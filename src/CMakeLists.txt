@@ -14,7 +14,6 @@ set(BaseSources
     "Iterator.cpp"
     "SimpleIterant.cpp"
     "Configurator.cpp"
-    "Configured.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "ModuleLoader.cpp"
