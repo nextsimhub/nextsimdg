@@ -18,8 +18,10 @@ public:
     static void tick(const std::string& timerName);
     static void tock(const std::string& timerName);
     static std::string report();
+
 protected:
     Timed();
+
 private:
     static Timer& timer;
 };
