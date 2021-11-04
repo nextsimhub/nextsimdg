@@ -44,6 +44,23 @@ in `SnowAlbedo.hpp` and
     class IceAlbedo: public IAlbedo {
 in `IceAlbedo.hpp`, with these classes defined somewhere in the source tree that makes up the overall executable. The ModuleLoader does not care about implementation source file naming.
 
+Within the code, implementations for the interfaces are selected using the `ModuleLoader::setImplementation()` function, which takes the names as string arguments.
+
+```
+    loader.setImplementation("IAlbedo", "IceAlbedo");
+```
+Once this is done, objects of the implementing class can be accessed using templated functions either as a static instance that is stored within the ModuleLoader class
+
+```
+    IAlbedo& alb = loader.getImplementation<IAlbedo>();
+```
+
+or as a new `std::unique_ptr`.
+
+```
+    std::unique_ptr<IAlbedo> pAlb = std::move(loader.getInstance<IAlbedo>();
+```
+
 ### Building
 The module file is passed to a Python script that will parse the JSON and produce the inclusion files that are required to implement the ModuleLoader class with the chosen sets of interfaces and implementations. The command line will look like
 

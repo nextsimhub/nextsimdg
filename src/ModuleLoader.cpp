@@ -1,8 +1,8 @@
-/*
+/*!
  * @file ModuleLoader.cpp
  *
  * @date Sep 23, 2021
- * @author Tim Spain
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModuleLoader.hpp"

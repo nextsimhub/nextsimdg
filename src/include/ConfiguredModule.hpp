@@ -1,4 +1,4 @@
-/*
+/*!
  * @file ConfiguredModule.hpp
  *
  * @date Oct 29, 2021
@@ -11,11 +11,11 @@
 namespace Nextsim {
 
 class ConfiguredModule {
- public:
-  ConfiguredModule();
-  virtual ~ConfiguredModule();
+public:
+    ConfiguredModule();
+    virtual ~ConfiguredModule();
 
-  static void parseConfigurator();
+    static void parseConfigurator();
 };
 
 } /* namespace Nextsim */

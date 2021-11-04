@@ -7,10 +7,10 @@
 
 #include "include/CommandLineParser.hpp"
 
-#include <string>
-#include <iostream>
-#include <cstdlib>
 #include <boost/program_options.hpp>
+#include <cstdlib>
+#include <iostream>
+#include <string>
 
 namespace Nextsim {
 
@@ -26,6 +26,7 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
     char manyConfigFiles[] = "config-files";
 
     boost::program_options::options_description opt("neXtSIM_DG command line options:");
+    // clang-format off
     opt.add_options()
             ("help,h", "print help message")
             (oneConfigFile, boost::program_options::value<std::string>(),
@@ -34,6 +35,7 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
                     boost::program_options::value<std::vector<std::string>>()->multitoken(),
                     "specify a list of configuration files" )
              ;
+    // clang-format on
     auto parsed = boost::program_options::command_line_parser(argc, argv)
                       .options(opt)
                       .style(boost::program_options::command_line_style::
