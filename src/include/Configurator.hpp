@@ -8,12 +8,12 @@
 #ifndef SRC_INCLUDE_CONFIGURATOR_HPP
 #define SRC_INCLUDE_CONFIGURATOR_HPP
 
-#include <vector>
-#include <memory>
-#include <istream>
-#include <fstream>
-#include <string>
 #include <boost/program_options.hpp>
+#include <fstream>
+#include <istream>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace Nextsim {
 
@@ -44,10 +44,9 @@ public:
      *
      * @param container an iterable container holding std::string filenames.
      */
-    template<typename C>
-    static void addFiles(const C& container)
+    template <typename C> static void addFiles(const C& container)
     {
-        for (auto& filename: container)
+        for (auto& filename : container)
             addFile(filename);
     }
     /*!
@@ -68,10 +67,9 @@ public:
      * @param container an iterable container of std::unique_ptrs to
      * std::istream data sources.
      */
-    template<typename C>
-    static void addStreams(const C& container)
+    template <typename C> static void addStreams(const C& container)
     {
-        for(auto& stream: container) {
+        for (auto& stream : container) {
             addStream(stream);
         }
     }
@@ -79,10 +77,7 @@ public:
     /*!
      * Remove all previously assigned data sources, both files and istreams.
      */
-    inline static void clearStreams()
-    {
-        sources.clear();
-    }
+    inline static void clearStreams() { sources.clear(); }
     /*!
      * Set the command line data to be parsed.
      *
@@ -99,7 +94,8 @@ public:
         m_argc = argc;
         m_argv = argv;
     }
-    static boost::program_options::variables_map parse(const boost::program_options::options_description& opt);
+    static boost::program_options::variables_map parse(
+        const boost::program_options::options_description& opt);
 
 private:
     static std::vector<std::unique_ptr<std::istream>> sources;

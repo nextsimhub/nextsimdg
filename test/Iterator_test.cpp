@@ -13,7 +13,7 @@ namespace Nextsim {
 
 // An iterant that counts the number of times it is started, iterated
 // and stopped
-class Counterant: public Iterator::Iterant {
+class Counterant : public Iterator::Iterant {
 public:
     void init(const Environment& env)
     {
@@ -21,22 +21,18 @@ public:
         startCount = 0;
         stopCount = 0;
     };
-    void start(const Iterator::TimePoint& startTime)
-    { startCount++; };
-    void iterate(const Iterator::Duration& dt)
-    { count++; };
-    void stop(const Iterator::TimePoint& stopTime)
-    { stopCount++; };
+    void start(const Iterator::TimePoint& startTime) { startCount++; };
+    void iterate(const Iterator::Duration& dt) { count++; };
+    void stop(const Iterator::TimePoint& stopTime) { stopCount++; };
 
-    int getCount()
-    {return count;};
+    int getCount() { return count; };
 
     int count;
     int startCount;
     int stopCount;
 };
 
-TEST_CASE( "Count iterator testing", "[Iterator]")
+TEST_CASE("Count iterator testing", "[Iterator]")
 {
     Counterant cant = Counterant();
     Iterator iterator = Iterator(&cant);
@@ -45,7 +41,7 @@ TEST_CASE( "Count iterator testing", "[Iterator]")
 
     Iterator::TimePoint start = std::chrono::system_clock::now();
     std::chrono::seconds dt(1);
-    iterator.setStartStopStep(start, start + nSteps*dt, dt);
+    iterator.setStartStopStep(start, start + nSteps * dt, dt);
     iterator.run();
 
     REQUIRE(cant.count == nSteps);

@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #ifndef TEST_ARGV_HPP
 #define TEST_ARGV_HPP

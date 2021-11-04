@@ -5,14 +5,14 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#include "ArgV.hpp"
 #include "Configurator.hpp"
 #include "Configured.hpp"
-#include "ArgV.hpp"
 
-#include <string>
 #include <iostream>
-#include <sstream>
 #include <memory>
+#include <sstream>
+#include <string>
 
 #include <boost/program_options.hpp>
 
@@ -30,18 +30,15 @@ public:
         const std::string valueKey = "config.value";
 
         boost::program_options::options_description opt("Options");
-        opt.add_options()
-                (valueKey.c_str(), boost::program_options::value<int>()->default_value(-1), "Specify a value")
-                ;
+        opt.add_options()(valueKey.c_str(), boost::program_options::value<int>()->default_value(-1),
+            "Specify a value");
         boost::program_options::variables_map vm = Nextsim::Configurator::parse(opt);
 
         value = vm[valueKey].as<int>();
     }
 
-    bool checkValue(int target)
-    {
-        return value == target;
-    }
+    bool checkValue(int target) { return value == target; }
+
 private:
     int value;
 };
@@ -54,14 +51,8 @@ public:
         addOption<int>(valueKey, -1);
         addOption<std::string>(nameKey, "");
     }
-    int getValue()
-    {
-        return value;
-    }
-    std::string getName()
-    {
-        return name;
-    }
+    int getValue() { return value; }
+    std::string getName() { return name; }
 
     void configure() override
     {
@@ -74,7 +65,6 @@ private:
     std::string name;
     const std::string valueKey = "config.value";
     const std::string nameKey = "config.name";
-
 };
 
 class Config3 : public Nextsim::Configured {
@@ -86,26 +76,20 @@ public:
         addOption<int>(valueKey, -1);
         addOption<double>(weightKey, 1.);
     }
-    int getValue()
-    {
-        return value;
-    }
-    double getWeight()
-    {
-        return weight;
-    }
+    int getValue() { return value; }
+    double getWeight() { return weight; }
 
     void configure() override
     {
         value = retrieveValue<int>(valueKey);
         weight = retrieveValue<double>(weightKey);
     }
+
 private:
     int value;
     double weight;
     const std::string valueKey = "config.value";
     const std::string weightKey = "data.weight";
-
 };
 
 namespace Nextsim {
@@ -118,8 +102,7 @@ TEST_CASE("Parse one config stream using the raw configurator", "[Configurator]"
 
     int target = 42;
     std::stringstream text;
-    text << "[config]" << std::endl
-            << "value = " << target << std::endl;
+    text << "[config]" << std::endl << "value = " << target << std::endl;
 
     // Check for the initialized value
     REQUIRE(config.checkValue(0));
@@ -148,8 +131,8 @@ TEST_CASE("Parse one config stream using the pointer configuration function", "[
     std::string targetName = "Zork";
     std::stringstream text;
     text << "[config]" << std::endl
-            << "value = " << target << std::endl
-            << "name = " << targetName << std::endl;
+         << "value = " << target << std::endl
+         << "name = " << targetName << std::endl;
 
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text.str())));
 
@@ -157,7 +140,6 @@ TEST_CASE("Parse one config stream using the pointer configuration function", "[
 
     REQUIRE(config.getValue() == target);
     REQUIRE(config.getName() == targetName);
-
 }
 
 TEST_CASE("Parse two config streams for one class, reference helper function", "[Configurator]")
@@ -169,13 +151,11 @@ TEST_CASE("Parse two config streams for one class, reference helper function", "
     int target = 69105;
     std::string targetName = "Zork";
     std::stringstream text1;
-    text1 << "[config]" << std::endl
-            << "value = " << target << std::endl;
+    text1 << "[config]" << std::endl << "value = " << target << std::endl;
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text1.str())));
 
     std::stringstream text2;
-    text2 << "[config]" << std::endl
-            << "name = " << targetName << std::endl;
+    text2 << "[config]" << std::endl << "name = " << targetName << std::endl;
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text2.str())));
 
     Config2& ref = config;
@@ -196,14 +176,13 @@ TEST_CASE("Parse config streams for two overlapping class, try", "[Configurator]
     std::string targetName = "Zork II";
     std::stringstream text1;
     text1 << "[config]" << std::endl
-            << "value = " << target << std::endl
-            << "name = " << targetName << std::endl;
+          << "value = " << target << std::endl
+          << "name = " << targetName << std::endl;
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text1.str())));
 
     double targetWeight = 0.467836;
     std::stringstream text2;
-    text2 << "[data]" << std::endl
-            << "weight = " << targetWeight << std::endl;
+    text2 << "[data]" << std::endl << "weight = " << targetWeight << std::endl;
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text2.str())));
 
     // Test that the target values are not already present before configuring

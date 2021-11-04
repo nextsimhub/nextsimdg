@@ -27,34 +27,31 @@ public:
     virtual void configure() = 0;
 
     //! Template function for conditionally configuring references.
-    template <typename T>
-    static void tryConfigure(T& ref)
+    template <typename T> static void tryConfigure(T& ref)
     {
         try {
-          dynamic_cast<Configured&>(ref).configure();
+            dynamic_cast<Configured&>(ref).configure();
         } catch (const std::bad_cast& bc) {
             // Do nothing. If the reference is not a derived class of Configured, ignore it.
         }
     }
 
     //! Template function for conditionally configuring pointers.
-    template <typename T>
-    static void tryConfigure(T* ptr)
+    template <typename T> static void tryConfigure(T* ptr)
     {
         Configured* cfg = dynamic_cast<Configured*>(ptr);
-        if (cfg) cfg->configure();
+        if (cfg)
+            cfg->configure();
     }
 
 protected:
-    template <typename T>
-    void addOption(const std::string name, const T& defaultValue)
+    template <typename T> void addOption(const std::string name, const T& defaultValue)
     {
-        singleOptions[name].add_options()
-                (name.c_str(), boost::program_options::value<T>()->default_value(defaultValue), "");
+        singleOptions[name].add_options()(
+            name.c_str(), boost::program_options::value<T>()->default_value(defaultValue), "");
     }
 
-    template <typename T>
-    T retrieveValue(const std::string& name)
+    template <typename T> T retrieveValue(const std::string& name)
     {
         return Configurator::parse(singleOptions.at(name))[name].as<T>();
     }

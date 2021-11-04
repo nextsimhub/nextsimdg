@@ -26,7 +26,7 @@ void ModuleLoader::init()
 
     if (!isInit) {
         // Set of all defined interfaces
-        for (const auto& element: m_availableImplementationNames) {
+        for (const auto& element : m_availableImplementationNames) {
             m_modules.insert(element.first);
         }
         isInit = true;
