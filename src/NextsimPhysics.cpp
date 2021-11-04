@@ -12,9 +12,9 @@
 #include "include/PrognosticData.hpp"
 #include <cmath>
 
-#include "include/IThermodynamics.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
+#include "include/IThermodynamics.hpp"
 
 #include "include/ModuleLoader.hpp"
 
@@ -39,21 +39,17 @@ const static std::string iceOceanHeatFluxKey = "IceOceanHeatFlux";
 const static std::string basicIceOceanHeatFluxKey = "basic";
 const static std::string advancedIceOceanHeatFluxKey = "advanced";
 
-NextsimPhysics::NextsimPhysics()
-{
-    addOption(iceOceanHeatFluxKey, basicIceOceanHeatFluxKey);
-}
+NextsimPhysics::NextsimPhysics() { addOption(iceOceanHeatFluxKey, basicIceOceanHeatFluxKey); }
 
 void NextsimPhysics::configure()
 {
     if (retrieveValue<std::string>(iceOceanHeatFluxKey) != advancedIceOceanHeatFluxKey) {
         ModuleLoader::getLoader().setImplementation(iceOceanHeatFluxKey, "BasicIceOceanHeatFlux");
-//    } else {
-//        ModuleLoader::getLoader().setImplementation(
-//            iceOceanHeatFluxKey, "AdvancedBasicIceOceanHeatFlux");
+        //    } else {
+        //        ModuleLoader::getLoader().setImplementation(
+        //            iceOceanHeatFluxKey, "AdvancedBasicIceOceanHeatFlux");
     }
-    iceOceanHeatFluxImpl
-        = std::move(ModuleLoader::getLoader().getInstance<IIceOceanHeatFlux>());
+    iceOceanHeatFluxImpl = std::move(ModuleLoader::getLoader().getInstance<IIceOceanHeatFlux>());
 }
 
 void NextsimPhysics::updateDerivedDataStatic(

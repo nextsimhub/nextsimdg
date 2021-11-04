@@ -33,8 +33,6 @@ const double Tt = 273.16;
 const double tau = 6.28318530717958647652;
 }
 
-
-
 //! Properties of water ice around 0˚C and 101.3 kPa
 namespace Ice {
 
@@ -71,8 +69,6 @@ const double s = 5;
 const double Tm = 273.15;
 }
 
-
-
 //! Properties of dry air around 0˚C and 101.3 kPa
 namespace Air {
 
@@ -86,8 +82,6 @@ const double Ra = 287.058;
 const double rho = 1.2754;
 }
 
-
-
 //! Properties of water vapour
 namespace Vapour {
 
@@ -100,8 +94,6 @@ const double Lv0 = 2500.79e3;
 //! Specific gas constant for water vapour [J kg⁻¹ K⁻¹]
 const double Ra = 461.5;
 }
-
-
 
 //! Properties of liquid water
 namespace Water {
@@ -131,8 +123,6 @@ const double Tf = Ice::Tm;
 const double TfOcean = -1.8;
 }
 
-
-
 //! Model constants that are fixed at compile time
 namespace ModelConstants {
 
@@ -156,42 +146,23 @@ const double cMin = MODEL_MINIMUM_ICE_CONCENTRATION;
 const double hMin = MODEL_MINIMUM_ICE_THICKNESS;
 }
 
-
 namespace Nextsim {
 //! Convert a temperature from ˚C to K
-inline double kelvin(double celsius)
-{
-    return celsius + PhysicalConstants::Tt;
-}
+inline double kelvin(double celsius) { return celsius + PhysicalConstants::Tt; }
 
 //! Convert a temperature from K to ˚C
-inline double celsius(double kelvin)
-{
-    return kelvin - PhysicalConstants::Tt;
-}
+inline double celsius(double kelvin) { return kelvin - PhysicalConstants::Tt; }
 
 //! Convert an angle from radians to degrees
-inline double degrees(double radians)
-{
-    return radians * 360 / PhysicalConstants::tau;
-}
+inline double degrees(double radians) { return radians * 360 / PhysicalConstants::tau; }
 
 //! Convert an angle from degrees to radians
-inline double radians(double degrees)
-{
-    return degrees * PhysicalConstants::tau / 360;
-}
+inline double radians(double degrees) { return degrees * PhysicalConstants::tau / 360; }
 
 //! Convert a pressure from Pa to mbar
-inline double mbar(double pascals)
-{
-    return pascals / 100;
-}
+inline double mbar(double pascals) { return pascals / 100; }
 
 //! Convert a pressure from mbar to Pa
-inline double pascals(double mbar)
-{
-    return mbar * 100;
-}
+inline double pascals(double mbar) { return mbar * 100; }
 }
 #endif /* SRC_INCLUDE_CONSTANTS_HPP */

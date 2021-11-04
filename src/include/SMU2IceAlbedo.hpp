@@ -1,4 +1,4 @@
-/*
+/*!
  * @file SMU2IceAlbedo.hpp
  *
  * @date Sep 28, 2021

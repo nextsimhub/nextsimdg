@@ -1,4 +1,4 @@
-/*
+/*!
  * @file IThermodynamics.hpp
  *
  * @date Sep 29, 2021
@@ -18,11 +18,9 @@ class IThermodynamics {
 public:
     virtual ~IThermodynamics() = default;
 
-    virtual void calculate(
-            const PrognosticData& prog,
-            const ExternalData& exter,
-            PhysicsData& phys,
-            NextsimPhysics& nsphys) = 0;
+    virtual void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
+        NextsimPhysics& nsphys)
+        = 0;
 };
 
 }

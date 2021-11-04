@@ -1,4 +1,4 @@
-/*
+/*!
  * @file ScopedTimer.hpp
  *
  * @date Oct 28, 2021
@@ -25,8 +25,9 @@ public:
     static void setTimerAddress(Timer*);
     void substitute(const std::string& newName);
     static Timer& timer();
+
 private:
-    static Timer *p_timer;
+    static Timer* p_timer;
 };
 
 } /* namespace Nextsim */

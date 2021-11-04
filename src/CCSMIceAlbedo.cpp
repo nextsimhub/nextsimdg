@@ -1,4 +1,4 @@
-/*
+/*!
  * @file CCSMIceAlbedo.cpp
  *
  * @date Sep 22, 2021
@@ -28,7 +28,7 @@ double CCSMIceAlbedo::albedo(double temperature, double snowThickness)
     double iceAlbedo = ICE_ALBEDO - std::fmax(0., 0.075 * (temperature - tLimit));
     double snowAlbedo = SNOW_ALBEDO - std::fmax(0., 0.124 * (temperature - tLimit));
 
-    double snowCoverFraction = snowThickness/(snowThickness + 0.02);
+    double snowCoverFraction = snowThickness / (snowThickness + 0.02);
 
     return snowCoverFraction * snowAlbedo + (1 - snowCoverFraction) * iceAlbedo;
 }

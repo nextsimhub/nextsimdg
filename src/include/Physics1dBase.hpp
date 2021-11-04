@@ -23,8 +23,7 @@ public:
     Physics1dBase();
     virtual ~Physics1dBase();
 
-    template<class Phys>
-    void physics1d(ElementData<Phys>&);
+    template <class Phys> void physics1d(ElementData<Phys>&);
 };
 
 } /* namespace Nextsim */

@@ -14,60 +14,36 @@ namespace Nextsim {
 
 const int N_ICE_TEMPERATURES = 3;
 
-class PrognosticData: public BaseElementData {
+class PrognosticData : public BaseElementData {
 public:
-    PrognosticData( ) = default;
-    ~PrognosticData( ) = default;
+    PrognosticData() = default;
+    ~PrognosticData() = default;
 
     //! Effective Ice thickness [m]
-    inline const double& iceThickness( ) const
-    {
-        return m_thick;
-    }
+    inline const double& iceThickness() const { return m_thick; }
 
     //! Ice concentration [1]
-    inline const double& iceConcentration( ) const
-    {
-        return m_conc;
-    }
+    inline const double& iceConcentration() const { return m_conc; }
 
     //! Sea surface temperature [˚C]
-    inline const double& seaSurfaceTemperature( ) const
-    {
-        return m_sst;
-    }
+    inline const double& seaSurfaceTemperature() const { return m_sst; }
 
     //! Sea surface salinity [psu]
-    inline const double& seaSurfaceSalinity( ) const
-    {
-        return m_sss;
-    }
+    inline const double& seaSurfaceSalinity() const { return m_sss; }
 
     //! Ice temperatures [˚C]
-    inline const std::array<double, N_ICE_TEMPERATURES>& iceTemperatures( ) const
-    {
-        return m_tice;
-    }
+    inline const std::array<double, N_ICE_TEMPERATURES>& iceTemperatures() const { return m_tice; }
 
     //! Mean snow thickness [m]
-    inline const double& snowThickness( ) const
-    {
-        return m_snow;
-    }
+    inline const double& snowThickness() const { return m_snow; }
 
     //! Timestep [s]
-    inline const double& timestep() const
-    {
-        return m_dt;
-    }
+    inline const double& timestep() const { return m_dt; }
     //! Set a new value for the timestep
-    static void setTimestep(double newDt)
-    {
-        m_dt = newDt;
-    }
+    static void setTimestep(double newDt) { m_dt = newDt; }
 
     inline static PrognosticData generate(double h, double c, double t, double s, double hs,
-            std::array<double, N_ICE_TEMPERATURES> tice)
+        std::array<double, N_ICE_TEMPERATURES> tice)
     {
         PrognosticData data;
         data.m_thick = h;
@@ -76,7 +52,6 @@ public:
         data.m_sss = s;
         data.m_snow = hs;
         data.m_tice = tice;
-
 
         return data;
     }

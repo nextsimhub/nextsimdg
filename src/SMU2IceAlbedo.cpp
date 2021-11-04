@@ -1,4 +1,4 @@
-/*
+/*!
  * @file SMU2IceAlbedo.cpp
  *
  * @date Sep 22, 2021
@@ -21,7 +21,8 @@ const double SNOW_ALBEDO = 0.85;
 double SMU2IceAlbedo::albedo(double temperature, double snowThickness)
 {
     if (snowThickness > 0.) {
-        return std::fmin(SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.2);
+        return std::fmin(
+            SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.2);
     } else {
         return ICE_ALBEDO + 0.4 * (1 - ICE_ALBEDO) * NextsimPhysics::I_0;
     }

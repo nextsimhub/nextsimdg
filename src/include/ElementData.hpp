@@ -7,22 +7,21 @@
 #ifndef SRC_INCLUDE_ELEMENTDATA_HPP
 #define SRC_INCLUDE_ELEMENTDATA_HPP
 
+#include "ExternalData.hpp"
 #include "PhysicsData.hpp"
 #include "PrognosticData.hpp"
-#include "ExternalData.hpp"
 
 namespace Nextsim {
 
-class UnusedData: public BaseElementData {
-
+class UnusedData : public BaseElementData {
 };
 
-template<class Phys>
-class ElementData: public PrognosticData,
-                   public PhysicsData,
-                   public ExternalData,
-                   public Phys,
-                   public UnusedData {
+template <class Phys>
+class ElementData : public PrognosticData,
+                    public PhysicsData,
+                    public ExternalData,
+                    public Phys,
+                    public UnusedData {
 public:
     ElementData() = default;
     ~ElementData() = default;
