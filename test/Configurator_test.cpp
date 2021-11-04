@@ -51,8 +51,8 @@ public:
     Config2()
         : value(0)
     {
-        addOption<int>(valueKey, -1, "Specify a value");
-        addOption<std::string>(nameKey, "", "Specify a name");
+        addOption<int>(valueKey, -1);
+        addOption<std::string>(nameKey, "");
     }
     int getValue()
     {
@@ -62,11 +62,9 @@ public:
     {
         return name;
     }
-protected:
-    virtual void parse()
-    {
-        Configured::parse();
 
+    void configure() override
+    {
         value = retrieveValue<int>(valueKey);
         name = retrieveValue<std::string>(nameKey);
     }
@@ -85,8 +83,8 @@ public:
         : value(0)
         , weight(0.)
     {
-        addOption<int>(valueKey, -1, "Specify a value");
-        addOption<double>(weightKey, 1., "Specify a weight");
+        addOption<int>(valueKey, -1);
+        addOption<double>(weightKey, 1.);
     }
     int getValue()
     {
@@ -96,11 +94,9 @@ public:
     {
         return weight;
     }
-protected:
-    virtual void parse()
-    {
-        Configured::parse();
 
+    void configure() override
+    {
         value = retrieveValue<int>(valueKey);
         weight = retrieveValue<double>(weightKey);
     }
@@ -142,7 +138,7 @@ TEST_CASE("Parse one config stream using the raw configurator", "[Configurator]"
     REQUIRE(config.checkValue(target));
 }
 
-TEST_CASE("Parse one config stream using the auto configurator", "[Configurator]")
+TEST_CASE("Parse one config stream using the pointer configuration function", "[Configurator]")
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
@@ -157,14 +153,14 @@ TEST_CASE("Parse one config stream using the auto configurator", "[Configurator]
 
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text.str())));
 
-    Configured::configureAll();
+    Configured::tryConfigure(&config);
 
     REQUIRE(config.getValue() == target);
     REQUIRE(config.getName() == targetName);
 
 }
 
-TEST_CASE("Parse two config streams for one class, auto", "[Configurator]")
+TEST_CASE("Parse two config streams for one class, reference helper function", "[Configurator]")
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
@@ -182,13 +178,14 @@ TEST_CASE("Parse two config streams for one class, auto", "[Configurator]")
             << "name = " << targetName << std::endl;
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text2.str())));
 
-    Configured::configureAll();
+    Config2& ref = config;
+    Configured::tryConfigure(ref);
 
     REQUIRE(config.getValue() == target);
     REQUIRE(config.getName() == targetName);
 }
 
-TEST_CASE("Parse config streams for two overlapping class, auto", "[Configurator]")
+TEST_CASE("Parse config streams for two overlapping class, try", "[Configurator]")
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
@@ -216,7 +213,8 @@ TEST_CASE("Parse config streams for two overlapping class, auto", "[Configurator
     REQUIRE(confih.getValue() != target);
     REQUIRE(confih.getWeight() != targetWeight);
 
-    Configured::configureAll();
+    Configured::tryConfigure(config);
+    Configured::tryConfigure(confih);
 
     REQUIRE(config.getValue() == target);
     REQUIRE(config.getName() == targetName);
