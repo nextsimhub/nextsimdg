@@ -8,10 +8,10 @@
 #ifndef SRC_INCLUDE_MODULELOADER_HPP
 #define SRC_INCLUDE_MODULELOADER_HPP
 
-#include <memory>
-#include <string>
-#include <set>
 #include <boost/program_options.hpp>
+#include <memory>
+#include <set>
+#include <string>
 
 class ModuleLoader {
 public:
@@ -21,27 +21,24 @@ public:
         return instance;
     }
 
-    //typedef boost::program_options::variables_map VariablesMap;
+    // typedef boost::program_options::variables_map VariablesMap;
     typedef std::map<std::string, std::string> VariablesMap;
 
     void init(const VariablesMap&);
-    inline const std::set<std::string>& listModules() const
-    {
-        return m_modules;
-    }
+    inline const std::set<std::string>& listModules() const { return m_modules; }
     inline const std::set<std::string>& listImplementations(const std::string& module) const
     {
         return m_availableImplementationNames.at(module);
     }
-    template<class T>
-    std::unique_ptr<T> getImplementation() const;
+    template <class T> std::unique_ptr<T> getImplementation() const;
 
     void setImplementation(const std::string& module, const std::string& impl);
     // Singleton function definitions
 private:
     ModuleLoader() {};
+
 public:
-    ModuleLoader(const ModuleLoader&)   = delete;
+    ModuleLoader(const ModuleLoader&) = delete;
     void operator=(const ModuleLoader&) = delete;
 
 private:

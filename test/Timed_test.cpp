@@ -8,18 +8,18 @@
 
 #include <catch2/catch.hpp>
 
-#include <string>
 #include <sstream>
+#include <string>
 
 #include "../src/include/Timed.hpp"
 
 namespace Nextsim {
 
-class TimeMe: public Timed {
+class TimeMe : public Timed {
 public:
-    TimeMe() { };
+    TimeMe() {};
     static const std::string timerName;
-    void tickTockItsTimingOClock( )
+    void tickTockItsTimingOClock()
     {
         tick(timerName);
         tock(timerName);
@@ -29,7 +29,7 @@ public:
 const std::string TimeMe::timerName = "tickTock";
 
 // Requires use of the Timer defined in CountTimer.cpp
-TEST_CASE( "Count timer testing", "[Timed]")
+TEST_CASE("Count timer testing", "[Timed]")
 {
     TimeMe timeMe;
 

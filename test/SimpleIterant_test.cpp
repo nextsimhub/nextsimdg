@@ -10,7 +10,7 @@
 #include <catch2/catch.hpp>
 
 namespace Nextsim {
-TEST_CASE( "SimpleIterant testing", "[SimpleIterant]" )
+TEST_CASE("SimpleIterant testing", "[SimpleIterant]")
 {
     SimpleIterant simps;
 

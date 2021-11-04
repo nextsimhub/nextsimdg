@@ -5,11 +5,11 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "CommandLineParser.hpp"
 #include "ArgV.hpp"
+#include "CommandLineParser.hpp"
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
@@ -19,7 +19,7 @@ namespace Nextsim {
 TEST_CASE("Parse config file names", "[CommandLineParser]")
 {
     // Parse one file
-    ArgV argv1({"nextsimdg", "--config-file", "config.cfg"});
+    ArgV argv1({ "nextsimdg", "--config-file", "config.cfg" });
 
     CommandLineParser clp1(argv1.argc(), argv1());
     std::vector<std::string> cfgs = clp1.getConfigFileNames();
@@ -29,7 +29,8 @@ TEST_CASE("Parse config file names", "[CommandLineParser]")
 
     cfgs.clear();
     std::string finalFileName = "final.cfg";
-    ArgV argv2({"nextsimdg", "--config-file", "config.cfg", "--config-files", "test.cfg", "more.cfg", finalFileName});
+    ArgV argv2({ "nextsimdg", "--config-file", "config.cfg", "--config-files", "test.cfg",
+        "more.cfg", finalFileName });
 
     CommandLineParser clp2(argv2.argc(), argv2());
     cfgs = clp2.getConfigFileNames();

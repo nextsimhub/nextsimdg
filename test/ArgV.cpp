@@ -36,13 +36,7 @@ ArgV::~ArgV()
     delete[] ppc;
 }
 
-char** ArgV::operator()()
-{
-    return ppc;
-}
+char** ArgV::operator()() { return ppc; }
 
-int ArgV::argc()
-{
-    return nStrings;
-}
+int ArgV::argc() { return nStrings; }
 }
