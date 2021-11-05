@@ -10,13 +10,12 @@
 #include <chrono>
 
 #include "Logged.hpp"
-#include "Timed.hpp"
 
 namespace Nextsim {
 
 class Environment;
 
-class Iterator : public Timed, public Logged {
+class Iterator : public Logged {
 public:
     typedef std::chrono::system_clock Clock;
     typedef std::chrono::time_point<Clock> TimePoint;
@@ -40,7 +39,7 @@ private:
     Duration timestep;
 
 public:
-    class Iterant : public Logged, public Timed {
+    class Iterant : public Logged {
     public:
         // Define the constructors and copy operator as default to be
         // rule of 5 compliant, given the virtual destructor

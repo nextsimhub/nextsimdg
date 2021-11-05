@@ -7,10 +7,10 @@
 
 #include "include/CommandLineParser.hpp"
 
-#include <string>
-#include <iostream>
-#include <cstdlib>
 #include <boost/program_options.hpp>
+#include <cstdlib>
+#include <iostream>
+#include <string>
 
 namespace Nextsim {
 
@@ -26,16 +26,22 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
     char manyConfigFiles[] = "config-files";
 
     boost::program_options::options_description opt("neXtSIM_DG command line options:");
+    // clang-format off
     opt.add_options()
             ("help,h", "print help message")
-            (oneConfigFile, boost::program_options::value<std::string>(), "specify a configuration file")
-            (manyConfigFiles, boost::program_options::value<std::vector<std::string> >()->multitoken(), "specify a list of configuration files" )
-            ;
+            (oneConfigFile, boost::program_options::value<std::string>(),
+                    "specify a configuration file")
+            (manyConfigFiles,
+                    boost::program_options::value<std::vector<std::string>>()->multitoken(),
+                    "specify a list of configuration files" )
+             ;
+    // clang-format on
     auto parsed = boost::program_options::command_line_parser(argc, argv)
-                                  .options(opt)
-                                  .style(boost::program_options::command_line_style::unix_style)// | po::command_line_style::allow_long_disguise)
-                                  .allow_unregistered()
-                                  .run();
+                      .options(opt)
+                      .style(boost::program_options::command_line_style::
+                              unix_style) // | po::command_line_style::allow_long_disguise)
+                      .allow_unregistered()
+                      .run();
     boost::program_options::store(parsed, m_arguments);
 
     // Print help and exit
@@ -45,9 +51,9 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
     }
 
     // Store the config file names in order. The variables_map does not.
-    for (auto& lionOption: parsed.options) {
+    for (auto& lionOption : parsed.options) {
         if (lionOption.string_key == oneConfigFile || lionOption.string_key == manyConfigFiles) {
-            for (auto& stringValue: lionOption.value) {
+            for (auto& stringValue : lionOption.value) {
                 m_configFilenames.push_back(stringValue);
             }
         }
@@ -57,9 +63,6 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
 /*!
  * Return a std::vector of the file names declared as config files on the command line
  */
-std::vector<std::string> CommandLineParser::getConfigFileNames()
-{
-    return m_configFilenames;
-}
+std::vector<std::string> CommandLineParser::getConfigFileNames() { return m_configFilenames; }
 
 } /* namespace Nextsim */

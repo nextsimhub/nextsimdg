@@ -1,4 +1,4 @@
-/*
+/*!
  * @file CCSMIceAlbedo.hpp
  *
  * @date Sep 28, 2021
@@ -8,7 +8,7 @@
 #ifndef SRC_INCLUDE_CCSMICEALBEDO_HPP
 #define SRC_INCLUDE_CCSMICEALBEDO_HPP
 
-#include "IICeAlbedo.hpp"
+#include "IIceAlbedo.hpp"
 
 namespace Nextsim {
 

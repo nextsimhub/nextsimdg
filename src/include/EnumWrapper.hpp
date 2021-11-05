@@ -8,9 +8,9 @@
 #ifndef ENUMWRAPPER_HPP
 #define ENUMWRAPPER_HPP
 
-#include <string>
-#include <map>
 #include <boost/program_options.hpp>
+#include <map>
+#include <string>
 
 // A helper class to make configuring enums easier with boost::program_options.
 
@@ -55,68 +55,61 @@ template <typename E> std::istream& operator>>(std::istream&, EnumWrapper<E>&);
  * variable of type @c Enum, as the conversion is handled
  * automatically.
  */
-template<typename E>
-class EnumWrapper {
+template <typename E> class EnumWrapper {
 public:
+    typedef std::map<std::string, E> MapType;
 
-  typedef std::map<std::string, E> MapType;
+    /*!
+     * Set and return the value of the wrapped enum, based on the passed
+     * string and the set map.
+     *
+     * @param key a key corresponding to one in the templated map which
+     * will set the value of the wrapped enum.
+     */
+    E operator()(const std::string& key)
+    {
+        value = map.at(key);
+        return value;
+    }
+    //! Cast the wrapped enum back to a plain one.
+    operator E() const { return value; }
 
-  /*!
-   * Set and return the value of the wrapped enum, based on the passed
-   * string and the set map.
-   *
-   * @param key a key corresponding to one in the templated map which
-   * will set the value of the wrapped enum.
-   */
-  E operator()(const std::string& key)
-  {
-    value = map.at(key);
-    return value;
-  }
-  //! Cast the wrapped enum back to a plain one.
-  operator E() const
-  {
-    return value;
-  }
+    /*!
+     * Set the mapping between strings and enum types
+     *
+     * @param inMap the mapping to be used.
+     */
+    static void setMap(const MapType& inMap)
+    {
+        map.clear();
+        map = inMap;
+    }
 
-  /*!
-   * Set the mapping between strings and enum types
-   *
-   * @param inMap the mapping to be used.
-   */  
-  static void setMap(const MapType& inMap)
-  {
-    map.clear();
-    map = inMap;
-  }
+    friend std::istream& operator>><E>(std::istream& is, EnumWrapper<E>&);
 
-  friend std::istream& operator>><E>(std::istream& is, EnumWrapper<E>&);
 private:
+    //! The public, static mapping between input strings and enum values.
+    static MapType map;
 
-  //! The public, static mapping between input strings and enum values.
-  static MapType map;
-  
-  E value;
+    E value;
 };
 
-template <typename E>
-typename EnumWrapper<E>::MapType EnumWrapper<E>::map;
+template <typename E> typename EnumWrapper<E>::MapType EnumWrapper<E>::map;
 
 //! A templated input operator that uses the defined map to set the
 //! value of the wrapped enum.
-template <typename E>
-std::istream& operator>>(std::istream& is, EnumWrapper<E>& e)
+template <typename E> std::istream& operator>>(std::istream& is, EnumWrapper<E>& e)
 {
-  std::string tok;
-  is >> tok;
-  try {
-    e(tok);
-  } catch (const std::out_of_range& oor) {
-    throw boost::program_options::validation_error(
-						   boost::program_options::validation_error::invalid_option);
-  }
-  return is;
+    std::string tok;
+    is >> tok;
+    try {
+        e(tok);
+    } catch (const std::out_of_range& oor) {
+        throw boost::program_options::validation_error(
+            boost::program_options::validation_error::invalid_option);
+    }
+    return is;
 }
 }
 
-#endif //ndef ENUMWRAPPER_HPP
+#endif // ndef ENUMWRAPPER_HPP

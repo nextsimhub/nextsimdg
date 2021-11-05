@@ -1,4 +1,4 @@
-/*
+/*!
  * @file SMU2IceAlbedo.hpp
  *
  * @date Sep 28, 2021
@@ -8,7 +8,7 @@
 #ifndef SRC_INCLUDE_SMU2ICEALBEDO_HPP
 #define SRC_INCLUDE_SMU2ICEALBEDO_HPP
 
-#include "IICeAlbedo.hpp"
+#include "IIceAlbedo.hpp"
 
 namespace Nextsim {
 

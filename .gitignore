@@ -4,4 +4,4 @@
 /.project
 /.pydevproject
 /.settings/*
-/src/moduleLoader*.ipp
+/src/modules/moduleLoader*.ipp

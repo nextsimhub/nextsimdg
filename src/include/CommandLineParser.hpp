@@ -8,9 +8,9 @@
 #ifndef SRC_INCLUDE_COMMANDLINEPARSER_HPP
 #define SRC_INCLUDE_COMMANDLINEPARSER_HPP
 
-#include <vector>
-#include <string>
 #include <boost/program_options.hpp>
+#include <string>
+#include <vector>
 
 namespace Nextsim {
 
@@ -33,6 +33,7 @@ public:
      * command line, in order.
      */
     std::vector<std::string> getConfigFileNames();
+
 private:
     CommandLineParser() = default;
 

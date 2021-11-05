@@ -1,4 +1,4 @@
-/*
+/*!
  * @file ThermoIce0.cpp
  *
  * @date Sep 29, 2021
@@ -7,20 +7,17 @@
 
 #include "include/ThermoIce0.hpp"
 
-#include "include/PrognosticData.hpp"
 #include "include/ExternalData.hpp"
-#include "include/PhysicsData.hpp"
 #include "include/NextsimPhysics.hpp"
+#include "include/PhysicsData.hpp"
+#include "include/PrognosticData.hpp"
 
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
-void ThermoIce0::calculate(
-        const PrognosticData& prog,
-        const ExternalData& exter,
-        PhysicsData& phys,
-        NextsimPhysics& nsphys)
+void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
+    NextsimPhysics& nsphys)
 {
     // True constants
     const double freezingPointIce = -Water::mu * Ice::s;
@@ -47,18 +44,17 @@ void ThermoIce0::calculate(
 
     double iceTemperature = prog.iceTemperatures()[0];
     // Heat transfer coefficient
-    double k_lSlab = k_s * Ice::kappa /
-            (k_s * phys.iceTrueThickness() + Ice::kappa * phys.snowTrueThickness());
+    double k_lSlab = k_s * Ice::kappa
+        / (k_s * phys.iceTrueThickness() + Ice::kappa * phys.snowTrueThickness());
     double QIceConduction = k_lSlab * (exter.iceBottomTemperature() - iceTemperature);
     double remainingFlux = QIceConduction - phys.QIceAtmosphere();
-    phys.updatedIceSurfaceTemperature() = iceTemperature +
-            remainingFlux /
-            (k_lSlab + phys.QDerivativeWRTTemperature());
+    phys.updatedIceSurfaceTemperature()
+        = iceTemperature + remainingFlux / (k_lSlab + phys.QDerivativeWRTTemperature());
 
     // Clamp the maximum temperature of the ice to the melting point of ice or snow
     double meltingLimit = (phys.snowTrueThickness() > 0.) ? 0 : freezingPointIce;
-    phys.updatedIceSurfaceTemperature() =
-            std::min(meltingLimit, phys.updatedIceSurfaceTemperature());
+    phys.updatedIceSurfaceTemperature()
+        = std::min(meltingLimit, phys.updatedIceSurfaceTemperature());
 
     // Top melt. Melting rate is non-positive.
     double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow; // [m³ s⁻¹]
@@ -66,16 +62,16 @@ void ThermoIce0::calculate(
 
     phys.snowTrueThickness() += (snowMeltRate - snowSublRate) * prog.timestep();
     // Use excess flux to melt ice. Non-positive value
-    double excessIceMelt = std::min(phys.snowTrueThickness(), 0.) *
-            bulkLHFusionSnow/bulkLHFusionIce;
+    double excessIceMelt
+        = std::min(phys.snowTrueThickness(), 0.) * bulkLHFusionSnow / bulkLHFusionIce;
     // With the excess flux noted, clamp the snow thickness to a minimum of zero.
     phys.snowTrueThickness() = std::max(phys.snowTrueThickness(), 0.);
     // Then add snowfall back on top
     phys.snowTrueThickness() += exter.snowfall() * prog.timestep() / Ice::rhoSnow;
 
     // Bottom melt or growth
-    double iceBottomChange = (QIceConduction - phys.QIceOceanHeat()) * prog.timestep() /
-            bulkLHFusionIce;
+    double iceBottomChange
+        = (QIceConduction - phys.QIceOceanHeat()) * prog.timestep() / bulkLHFusionIce;
 
     // Total thickness change
     double iceThicknessChange = excessIceMelt + iceBottomChange;
@@ -86,8 +82,9 @@ void ThermoIce0::calculate(
     double botMelt = std::min(iceBottomChange, 0.);
 
     // Snow to ice conversion
-    double iceDraught = (phys.iceTrueThickness() * Ice::rho + phys.snowTrueThickness() * Ice::rhoSnow) /
-            Water::rhoOcean;
+    double iceDraught
+        = (phys.iceTrueThickness() * Ice::rho + phys.snowTrueThickness() * Ice::rhoSnow)
+        / Water::rhoOcean;
     if (doFlooding && iceDraught > phys.iceTrueThickness()) {
         // Keep a running total of the ice formed from flooded snow
         double newIce = iceDraught - phys.iceTrueThickness();
@@ -115,7 +112,7 @@ void ThermoIce0::calculate(
 
         // The ice-ocean flux includes all the latent heat
         phys.QIceOceanHeat() += phys.iceTrueThickness() * bulkLHFusionIce / prog.timestep()
-                + phys.snowTrueThickness() * bulkLHFusionSnow / prog.timestep();
+            + phys.snowTrueThickness() * bulkLHFusionSnow / prog.timestep();
 
         // No ice, no snow and the surface temperature is the melting point of ice
         phys.iceTrueThickness() = 0;

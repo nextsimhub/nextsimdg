@@ -1,8 +1,8 @@
-/*
- * PhysicsData_test.cpp
+/*!
+ * @file PhysicsData_test.cpp
  *
- *  Created on: Sep 9, 2021
- *      Author: timpai
+ * @date Sep 9, 2021
+ * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include <PhysicsData.hpp>

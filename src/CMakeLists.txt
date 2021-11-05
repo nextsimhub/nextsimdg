@@ -1,19 +1,49 @@
 # Build the main neXtSIM model
 
 set (INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+# Set the location where the module ipp files will be stored
+set(ModuleLoaderIppTargetDirectory
+"${CMAKE_CURRENT_SOURCE_DIR}/modules/")
+
 set(BaseSources
     "main.cpp"
     "Logged.cpp"
-    "Timed.cpp"
-    "CountTimer.cpp" # TODO: basic timer for testing only
+    "Timer.cpp"
     "Model.cpp"
     "Iterator.cpp"
     "SimpleIterant.cpp"
+    "Configurator.cpp"
+    "ConfiguredModule.cpp"
+    "CommandLineParser.cpp"
+    "ModuleLoader.cpp"
+    "PrognosticData.cpp"
+    "ExternalData.cpp"
+    "PhysicsData.cpp"
+    )
+
+set(AlbedoModuleSources
+    "CCSMIceAlbedo.cpp"
+    "SMUIceAlbedo.cpp"
+    "SMU2IceAlbedo.cpp"
+    )
+
+set(IceOceanFluxModuleSources
+    "BasicIceOceanHeatFlux.cpp"
+    )
+
+set(ColumnPhysicsModuleSources
+    "NextsimPhysics.cpp"
+    )
+
+set(ModuleSources
+    "${AlbedoModuleSources}"
+    "${IceOceanFluxModuleSources}"
+    "${ColumnPhysicsModuleSources}"
     )
 
 set(BaseHeaders
     "${INC}/Logged.hpp"
-    "${INC}/Timed.hpp"
     "${INC}/Timer.hpp"
     "${INC}/Model.hpp"
     "${INC}/Iterator.hpp"
@@ -21,18 +51,20 @@ set(BaseHeaders
     )
 
 set(NextsimSources
-    ${BaseHeaders}
-    ${BaseSources}
+    "${BaseSources}"
+    "${ModuleSources}"
     )
 
 add_executable(nextsim ${NextsimSources})
 
-target_include_directories(nextsim PRIVATE "include" ${Boost_INCLUDE_DIRS})
-target_link_libraries(nextsim LINK_PUBLIC ${Boost_Libraries})
+target_include_directories(nextsim PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${Boost_INCLUDE_DIRS}
+    ${ModuleLoaderIppTargetDirectory}
+    )
+target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
 
 # Build the module loader files. Defines the 'parse_modules' target
-set(ModuleLoaderIppTargetDirectory
-"${CMAKE_CURRENT_SOURCE_DIR}/")
 add_subdirectory(modules)
 
 add_dependencies(nextsim parse_modules)
