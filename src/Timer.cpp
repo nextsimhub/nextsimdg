@@ -168,9 +168,13 @@ std::ostream& Timer::TimerNode::report(std::ostream& os, const std::string& pref
         pcParentWall = 100;
         pcParentCpu = 100;
     }
+
+    double wallSeconds = msCountFromWall(wallTimeNow) * 1e-6;
+
     os << name << ": ticks = " << timeKeeper.ticks();
-    os << " wall time " << msCountFromWall(wallTimeNow) * 1e-6 << " s" << " (" << pcParentWall << "% of parent)";
+    os << " wall time " << wallSeconds << " s" << " (" << pcParentWall << "% of parent)";
     os << " cpu time " << cpuTimeNow << " s" << " (" << pcParentCpu << "% of parent)";
+    os << " " << timeKeeper.ticks() << " activations (" << 1e3 * wallSeconds / timeKeeper.ticks() << " ms per call)";
     if (timeKeeper.running()) os << "(running)";
     return os;
 }
