@@ -21,7 +21,8 @@ Timer Timer::main("main");
 
 Timer::Timer()
     : Timer("")
-{}
+{
+}
 
 Timer::Timer(const Key& baseTimerName)
     : root()
@@ -37,17 +38,14 @@ void Timer::tick(const Timer::Key& timerName)
     TimerNode* parent = current;
     current = &current->childNodes[timerName];
     // redundant assignment, except when a new node has been created above.
-    current->name  = timerName;
+    current->name = timerName;
     current->parent = parent;
 
     // Mark the time, ticks and run status of the node
     current->tick();
 }
 
-void Timer::tock(const std::string& timerName)
-{
-    tock();
-}
+void Timer::tock(const std::string& timerName) { tock(); }
 
 void Timer::tock()
 {
@@ -57,19 +55,12 @@ void Timer::tock()
     current = current->parent;
 }
 
-void Timer::TimerNode::tick()
-{
-    timeKeeper.start();
-}
+void Timer::TimerNode::tick() { timeKeeper.start(); }
 
-void Timer::TimerNode::tock()
-{
-    timeKeeper.stop();
-}
-//TODO: implement lap and elapsed
+void Timer::TimerNode::tock() { timeKeeper.stop(); }
+// TODO: implement lap and elapsed
 double Timer::lap(const Key& timerName) const { return 0; }
 double Timer::elapsed(const Key& timerName) const { return 0; }
-
 
 void Timer::additionalTime(
     const TimerPath& path, WallTimeDuration wallAdd, CpuTimeDuration cpuAdd, int ticksAdd)
@@ -105,15 +96,12 @@ std::ostream& Timer::report(const Key& timerName, std::ostream& os) const
     return report(pathToFirstMatch(timerName), os);
 }
 
-std::ostream& Timer::report(std::ostream& os) const
-{
-    return root.reportAll(os, "");
-}
+std::ostream& Timer::report(std::ostream& os) const { return root.reportAll(os, ""); }
 
 std::ostream& Timer::report(const TimerPath& path, std::ostream& os) const
 {
     const TimerNode* cursor = &root;
-    for (auto& element: path) {
+    for (auto& element : path) {
         cursor = &cursor->childNodes.at(element);
     }
     return cursor->report(os, "");
@@ -125,17 +113,17 @@ void Timer::reset()
     root.timeKeeper.reset();
     current = &root;
     root.tick();
-
 }
 
 Timer::TimerNode::TimerNode()
     : parent(nullptr)
-{ }
+{
+}
 
 Timer::TimerPath Timer::TimerNode::searchDescendants(const Key& timerName) const
 {
     TimerPath path;
-    for (auto& children: childNodes) {
+    for (auto& children : childNodes) {
         if (children.first == timerName) {
             path.push_front(children.first);
         } else if (!children.second.searchDescendants(timerName).empty()) {
@@ -145,7 +133,8 @@ Timer::TimerPath Timer::TimerNode::searchDescendants(const Key& timerName) const
     return path;
 }
 
-inline int msCountFromWall(const Timer::WallTimeDuration& wall) {
+inline int msCountFromWall(const Timer::WallTimeDuration& wall)
+{
     return std::chrono::duration_cast<std::chrono::microseconds>(wall).count();
 }
 
@@ -155,7 +144,6 @@ std::ostream& Timer::TimerNode::report(std::ostream& os, const std::string& pref
     // Get the wall time in seconds
     WallTimeDuration wallTimeNow = timeKeeper.wallTime();
     CpuTimeDuration cpuTimeNow = timeKeeper.cpuTime();
-
 
     double pcParentWall;
     double pcParentCpu;
@@ -172,10 +160,14 @@ std::ostream& Timer::TimerNode::report(std::ostream& os, const std::string& pref
     double wallSeconds = msCountFromWall(wallTimeNow) * 1e-6;
 
     os << name << ": ticks = " << timeKeeper.ticks();
-    os << " wall time " << wallSeconds << " s" << " (" << pcParentWall << "% of parent)";
-    os << " cpu time " << cpuTimeNow << " s" << " (" << pcParentCpu << "% of parent)";
-    os << " " << timeKeeper.ticks() << " activations (" << 1e3 * wallSeconds / timeKeeper.ticks() << " ms per call)";
-    if (timeKeeper.running()) os << "(running)";
+    os << " wall time " << wallSeconds << " s"
+       << " (" << pcParentWall << "% of parent)";
+    os << " cpu time " << cpuTimeNow << " s"
+       << " (" << pcParentCpu << "% of parent)";
+    os << " " << timeKeeper.ticks() << " activations (" << 1e3 * wallSeconds / timeKeeper.ticks()
+       << " ms per call)";
+    if (timeKeeper.running())
+        os << "(running)";
     return os;
 }
 
@@ -198,7 +190,7 @@ std::ostream& Timer::TimerNode::reportAll(std::ostream& os, const std::string& p
     int nNodes = childNodes.size();
     int iNode = 0;
 
-    for (auto& child: childNodes) {
+    for (auto& child : childNodes) {
         std::string lastBranch = (++iNode == nNodes) ? last : branch;
         child.second.reportAll(os, extendPrefix(prefix) + lastBranch);
     }
@@ -206,7 +198,4 @@ std::ostream& Timer::TimerNode::reportAll(std::ostream& os, const std::string& p
 }
 }
 
-std::ostream& operator<<(std::ostream& os, const Nextsim::Timer& tim)
-{
-    return tim.report(os);
-}
+std::ostream& operator<<(std::ostream& os, const Nextsim::Timer& tim) { return tim.report(os); }
