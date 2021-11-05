@@ -9,6 +9,7 @@
 #define SRC_INCLUDE_MODULELOADER_HPP
 
 #include <boost/program_options.hpp>
+#include <list>
 #include <map>
 #include <memory>
 #include <set>
@@ -29,7 +30,7 @@ public:
     void init();
     void init(const VariablesMap&);
     inline const std::set<std::string>& listModules() const { return m_modules; }
-    inline const std::set<std::string>& listImplementations(const std::string& module) const
+    inline const std::list<std::string>& listImplementations(const std::string& module) const
     {
         return m_availableImplementationNames.at(module);
     }
@@ -37,8 +38,8 @@ public:
 
     template <class T> T& getImplementation();
 
-    void setImplementation(const std::string& module, const std::string& impl);
     // Singleton function definitions
+    void setImplementation(const std::string& module, const std::string& impl);
 private:
     ModuleLoader() {};
 
@@ -52,7 +53,7 @@ private:
     // One module could have many names (but probably shouldn't)
     std::set<std::string> m_modules;
     // Names of available implementations
-    std::map<std::string, std::set<std::string>> m_availableImplementationNames;
+    std::map<std::string, std::list<std::string>> m_availableImplementationNames;
 };
 
 #endif /* SRC_INCLUDE_MODULELOADER_HPP */
