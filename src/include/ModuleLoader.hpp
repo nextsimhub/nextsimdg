@@ -40,6 +40,7 @@ public:
 
     // Singleton function definitions
     void setImplementation(const std::string& module, const std::string& impl);
+
 private:
     ModuleLoader() {};
 

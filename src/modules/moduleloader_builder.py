@@ -111,7 +111,7 @@ def assignments(all_implementations, ipp_prefix):
             for impl in interface["implementations"]:
                 fil.write(
                     f"if (impl == \"{impl}\") ""{\n"
-                    f"                {p_name} = &{get_iname(impl)};|n"
+                    f"                {p_name} = &{get_iname(impl)};\n"
                     f"                {pf_name} = &{get_fname(impl)};\n"
                     "            } else "
                     )
