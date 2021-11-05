@@ -1,4 +1,4 @@
-/*
+/*!
  * @file ScopedTimer_test.cpp
  *
  * @date Oct 28, 2021
@@ -35,7 +35,7 @@ TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
         timeAndSleep();
         localScopeTimer.substitute("second scope timer");
         std::this_thread::sleep_for(std::chrono::milliseconds(35));
-   }
+    }
     timeAndSleep();
 
     const int nint = 10;
@@ -53,8 +53,6 @@ TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     std::cout << ScopedTimer::timer() << std::endl;
-
-
 }
 
 } /* namespace Nextsim */

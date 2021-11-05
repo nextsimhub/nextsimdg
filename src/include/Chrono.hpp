@@ -1,4 +1,4 @@
-/*
+/*!
  * @file Chrono.hpp
  *
  * @date Oct 28, 2021
@@ -15,7 +15,6 @@ namespace Nextsim {
 
 class Chrono {
 public:
-
     typedef std::chrono::high_resolution_clock::time_point WallTimePoint;
     typedef std::chrono::high_resolution_clock::duration WallTimeDuration;
 
@@ -29,7 +28,7 @@ public:
         , m_running(false) {};
     ~Chrono() = default;
 
-    inline WallTimePoint wallHack() const {return m_wallHack;};
+    inline WallTimePoint wallHack() const { return m_wallHack; };
     inline WallTimeDuration wallTime() const
     {
         return m_wallTime + (m_running ? wallTimeSinceHack() : WallTimeDuration::zero());
@@ -43,14 +42,14 @@ public:
         m_running = false;
     }
 
-    inline CpuTimePoint cpuHack() const {return m_cpuHack;};
+    inline CpuTimePoint cpuHack() const { return m_cpuHack; };
     inline CpuTimeDuration cpuTime() const
     {
         return m_cpuTime + (m_running ? cpuTimeSinceHack() : 0);
     };
 
-    inline int ticks() const {return m_ticks;};
-    inline bool running() const {return m_running;};
+    inline int ticks() const { return m_ticks; };
+    inline bool running() const { return m_running; };
 
     inline void start()
     {
@@ -67,9 +66,9 @@ public:
         m_running = false;
     };
 
-    inline void extraCpuTime(const CpuTimeDuration& extraTime) {m_cpuTime += extraTime;};
-    inline void extraWallTime(const WallTimeDuration& extraTime) {m_wallTime += extraTime;};
-    inline void extraTicks(int extraTicks) {m_ticks += extraTicks;};
+    inline void extraCpuTime(const CpuTimeDuration& extraTime) { m_cpuTime += extraTime; };
+    inline void extraWallTime(const WallTimeDuration& extraTime) { m_wallTime += extraTime; };
+    inline void extraTicks(int extraTicks) { m_ticks += extraTicks; };
 
 private:
     WallTimePoint m_wallHack;
@@ -90,9 +89,8 @@ private:
     WallTimeDuration wallTimeSinceHack() const
     {
         return std::chrono::duration_cast<WallTimeDuration>(
-        std::chrono::high_resolution_clock::now() - m_wallHack);
+            std::chrono::high_resolution_clock::now() - m_wallHack);
     }
-
 };
 
 } /* namespace Nextsim */

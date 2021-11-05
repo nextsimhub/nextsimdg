@@ -38,21 +38,21 @@ public:
     void tock(const Key& timerName);
     void tock();
 
-    double lap(const Key& timerName) const ;
+    double lap(const Key& timerName) const;
     double elapsed(const Key& timerName) const;
 
     std::ostream& report(const Key& timerName, std::ostream& os) const;
     std::ostream& report(std::ostream& os) const;
     std::ostream& report(const TimerPath&, std::ostream& os) const;
 
-    void additionalTime(const TimerPath& path, WallTimeDuration additionalWall, CpuTimeDuration additionalCpu, int additionalTicks);
+    void additionalTime(const TimerPath& path, WallTimeDuration additionalWall,
+        CpuTimeDuration additionalCpu, int additionalTicks);
     TimerPath currentTimerNodePath() const;
 
     void reset();
     static Timer main;
 
 private:
-
     struct TimerNode {
         TimerNode();
         Key name;

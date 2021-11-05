@@ -1,4 +1,4 @@
-/*
+/*!
  * @file ScopedTimer.cpp
  *
  * @date Oct 28, 2021
@@ -15,15 +15,9 @@ ScopedTimer::ScopedTimer()
 {
 }
 
-ScopedTimer::ScopedTimer(const std::string& name)
-{
-    p_timer->tick(name);
-}
+ScopedTimer::ScopedTimer(const std::string& name) { p_timer->tick(name); }
 
-ScopedTimer::~ScopedTimer()
-{
-    p_timer->tock();
-}
+ScopedTimer::~ScopedTimer() { p_timer->tock(); }
 
 void ScopedTimer::substitute(const std::string& newName)
 {
@@ -31,13 +25,7 @@ void ScopedTimer::substitute(const std::string& newName)
     p_timer->tick(newName);
 }
 
-void ScopedTimer::setTimerAddress(Timer* timer)
-{
-    p_timer = timer;
-}
+void ScopedTimer::setTimerAddress(Timer* timer) { p_timer = timer; }
 
-Timer& ScopedTimer::timer()
-{
-    return *p_timer;
-}
+Timer& ScopedTimer::timer() { return *p_timer; }
 }
