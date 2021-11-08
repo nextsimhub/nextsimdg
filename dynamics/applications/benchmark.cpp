@@ -67,7 +67,9 @@ int main()
   
   Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetOceanX(), OceanX());
   Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetOceanY(), OceanY());
-  
+
+  dynamics.GetVX().col(0) = 0.01 * dynamics.GetOceanX().col(0);  
+  dynamics.GetVY().col(0) = 0.01 * dynamics.GetOceanY().col(0);  
 
   Nextsim::GlobalTimer.start("time loop");
   for (size_t timestep = 1; timestep <= dynamics.GetTimeMesh().N; ++timestep)

@@ -32,6 +32,10 @@ namespace Nextsim
         oceanY.resize_by_mesh(mesh);
         atmX.resize_by_mesh(mesh);
         atmY.resize_by_mesh(mesh);
+
+        tmpX.resize_by_mesh(mesh);
+        tmpY.resize_by_mesh(mesh);
+
     }
 
     //////////////////////////////////////////////////
@@ -52,8 +56,85 @@ namespace Nextsim
         GlobalTimer.stop("dyn -- adv -- step");
     }
 
+    void Dynamics::momentum_jumps()
+    {
+          // Y - edges, only inner ones
+#pragma omp parallel for
+    for (size_t iy = 0; iy < mesh.ny; ++iy) {
+        size_t ic = iy * mesh.nx; // first index of left cell in row
+        size_t ie = iy * (mesh.nx + 1) + 1; // first index of inner velocity in row
+
+        for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic, ++ie)
+            stabilization_Y(ic, ic + 1, ie);
+    }
+
+    // X - edges, only inner ones
+#pragma omp parallel for
+    for (size_t ix = 0; ix < mesh.nx; ++ix) {
+        size_t ic = ix; // first index of left cell in column
+        size_t ie = ix + mesh.nx; // first index of inner velocity in column
+        for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx, ie += mesh.nx)
+            stabilization_X(ic, ic + mesh.nx, ie);
+    }
+
+
+    }
+
   void Dynamics::momentum_substeps()
   {
+    tmpX.zero();
+    tmpY.zero();
+
+    double L = 512000.0;
+    double T = 1000.0;
+    double Cwater = 5.5e-3;
+    double Catm = 1.2e-3;
+    double rhowater = 1026.0;
+    double rhoice = 900.0;
+    double rhoatm = 1.3;
+
+
+    // d_t U = ...
+/*
+// ocean
+    // L/(rho H) * Cwater * rhowater * |velwater - vel| (velwater-vel)
+    tmpX.col(0) += L / rhoice * Cwater * rhowater *
+     ((oceanX.col(0)-vx.col(0)).array().abs()/ 
+       H.col(0).array() * 
+       oceanX.col(0).array()).matrix();
+
+   tmpX -= L / rhoice * Cwater * rhowater *
+     (vx.array().colwise() * ((oceanX.col(0)-vx.col(0)).array().abs()/ H.col(0).array())).matrix();
+
+    tmpY.col(0) += L / rhoice * Cwater * rhowater *
+     ((oceanY.col(0)-vy.col(0)).array().abs()/ 
+       H.col(0).array() * 
+       oceanY.col(0).array()).matrix();
+
+   tmpY -= L / rhoice * Cwater * rhowater *
+     (vy.array().colwise() * ((oceanY.col(0)-vy.col(0)).array().abs()/ H.col(0).array())).matrix();
+
+
+   // atm.
+    // L/(rho H) * Catm * rhoatm * |velatm| velatm
+    tmpX.col(0) += L / rhoice * Catm * rhoatm *
+     (atmX.col(0).array().abs()/ H.col(0).array()
+      * atmX.col(0).array()).matrix();
+
+    tmpY.col(0) += L / rhoice * Catm * rhoatm *
+     (atmY.col(0).array().abs()/ H.col(0).array()
+      * atmY.col(0).array()).matrix();
+*/
+
+  // jump stabilization
+  momentum_jumps();
+
+
+
+
+   vx += timemesh.dt_momentum * tmpX;
+   vy += timemesh.dt_momentum * tmpY;
+
     // vx.col(0) = 0.5 * oceanX.col(0) + 0.5 * atmX.col(0);
     // vy.col(0) = 0.5 * oceanY.col(0) + 0.5 * atmY.col(0);
   }

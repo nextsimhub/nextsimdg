@@ -11,6 +11,11 @@
 
 namespace Nextsim {
 
+// pre-computed matrices for assembling dG-transport
+// the Gauss rule for dG(n) is set to n+1 points
+// this might not be enough?
+#include "dgbasisfunctions_gausspoints.hpp"
+
 /*!
    * This class controls the timestepping of the dynamical core
    * - Advection
@@ -38,6 +43,9 @@ class Dynamics {
 
     CellVector<0> oceanX, oceanY; //!< ocean forcing. ?? Higher order??
     CellVector<0> atmX, atmY; //!< ocean forcing. ?? Higher order??
+
+    //! temporary vectors for time stepping
+    CellVector<2> tmpX, tmpY;
 
     /*! 
    * Subclasses for managing DG transport and the momentum problem
@@ -120,9 +128,63 @@ public:
 
     //////////////////////////////////////////////////
 
+    void stabilization_Y(size_t c1, size_t c2, size_t e)
+    {
+        const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
+            vx(c1, 2) + 0.5 * vx(c1, 5),
+            vx(c1, 4));
+        const LocalEdgeVector<2> leftY(vy(c1, 0) + 0.5 * vy(c1, 1) + 1. / 6. * vy(c1, 3),
+            vy(c1, 2) + 0.5 * vy(c1, 5),
+            vy(c1, 4));
+
+        const LocalEdgeVector<2> rightX(vx(c2, 0) - 0.5 * vx(c2, 1) + 1. / 6. * vx(c2, 3),
+            vx(c2, 2) - 0.5 * vx(c2, 5),
+            vx(c2, 4));
+        const LocalEdgeVector<2> rightY(vy(c2, 0) - 0.5 * vy(c2, 1) + 1. / 6. * vy(c2, 3),
+            vy(c2, 2) - 0.5 * vy(c2, 5),
+            vy(c2, 4));
+
+        const LocalEdgeVector<2> jumpX = (rightX - leftX) * BiGe23;
+        tmpX.block<1, 6>(c1, 0) += 0.001 / mesh.hx / mesh.hy * jumpX * BiG23_1;
+        tmpX.block<1, 6>(c2, 0) -= 0.001 / mesh.hx / mesh.hy * jumpX * BiG23_3;
+
+        const LocalEdgeVector<2> jumpY = (rightY - leftY) * BiGe23;
+
+        tmpY.block<1, 6>(c1, 0) += 0.001 / mesh.hx / mesh.hy * jumpY * BiG23_1;
+        tmpY.block<1, 6>(c2, 0) -= 0.001 / mesh.hx / mesh.hy * jumpY * BiG23_3;
+    }
+
+    void stabilization_X(size_t c1, size_t c2, size_t e)
+    {
+
+        const LocalEdgeVector<2> bottomX(
+            vx(c1, 0) + 0.5 * vx(c1, 2) + 1. / 6. * vx(c1, 4),
+            vx(c1, 1) + 0.5 * vx(c1, 5),
+            vx(c1, 3));
+        const LocalEdgeVector<2> topX(
+            vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),
+            vx(c2, 1) - 0.5 * vx(c2, 5), vx(c2, 3));
+        const LocalEdgeVector<2> bottomY(
+            vy(c1, 0) + 0.5 * vy(c1, 2) + 1. / 6. * vy(c1, 4),
+            vy(c1, 1) + 0.5 * vy(c1, 5),
+            vy(c1, 3));
+        const LocalEdgeVector<2> topY(
+            vy(c2, 0) - 0.5 * vy(c2, 2) + 1. / 6. * vy(c2, 4),
+            vy(c2, 1) - 0.5 * vy(c2, 5), vy(c2, 3));
+
+        const LocalEdgeVector<2> jumpX = (topX - bottomX) * BiGe23;
+        tmpX.block<1, 6>(c1, 0) += 10.0 * jumpX * BiG23_2;
+        tmpX.block<1, 6>(c2, 0) -= 10.0 * jumpX * BiG23_0;
+
+        const LocalEdgeVector<2> jumpY = (topY - bottomY) * BiGe23;
+        tmpY.block<1, 6>(c1, 0) += 10.0 * jumpY * BiG23_2;
+        tmpY.block<1, 6>(c2, 0) -= 10.0 * jumpY * BiG23_0;
+    }
+
     /**!
    * controls the flow of the dynamical core
    */
+    void momentum_jumps();
 
     void advection_step();
     void momentum_substeps();
