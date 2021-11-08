@@ -81,6 +81,5 @@ jobs:
         cd test
         ./testIterator
         ./testSimpleIter
-        ./testTimed
 
 
