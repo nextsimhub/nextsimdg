@@ -118,9 +118,7 @@ private:
     static void heatFluxIceAtmosphereStatic(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     static void massFluxIceOceanStatic(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-    static void heatFluxIceOceanStatic(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys);
 
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);
@@ -129,7 +127,7 @@ private:
 
     // Ice-ocean heat flux
     double m_Qio; // Ice-ocean heat flux
-    static std::unique_ptr<IIceOceanHeatFlux> iceOceanHeatFluxImpl;
+    static IIceOceanHeatFlux* iceOceanHeatFluxImpl;
 
 public:
     static double I_0;
@@ -142,7 +140,7 @@ private:
     static SpecificHumidityIce specificHumidityIce;
 
     static std::unique_ptr<IIceAlbedo> iIceAlbedoImpl;
-    static std::unique_ptr<IThermodynamics> iThermo;
+    static IThermodynamics* iThermo;
 };
 
 } /* namespace Nextsim */

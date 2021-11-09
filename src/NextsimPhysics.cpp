@@ -29,27 +29,25 @@ double NextsimPhysics::dragOcean_t;
 double NextsimPhysics::dragIce_t;
 double NextsimPhysics::I_0;
 
-std::unique_ptr<IIceOceanHeatFlux> NextsimPhysics::iceOceanHeatFluxImpl;
+IIceOceanHeatFlux* NextsimPhysics::iceOceanHeatFluxImpl = nullptr;
 std::unique_ptr<IIceAlbedo> NextsimPhysics::iIceAlbedoImpl;
-std::unique_ptr<IThermodynamics> NextsimPhysics::iThermo;
+IThermodynamics* NextsimPhysics::iThermo = nullptr;
 
 double stefanBoltzmannLaw(double temperature);
 
-const static std::string iceOceanHeatFluxKey = "IceOceanHeatFlux";
-const static std::string basicIceOceanHeatFluxKey = "basic";
-const static std::string advancedIceOceanHeatFluxKey = "advanced";
-
-NextsimPhysics::NextsimPhysics() { addOption(iceOceanHeatFluxKey, basicIceOceanHeatFluxKey); }
+NextsimPhysics::NextsimPhysics()
+    : m_Qio(0)
+{
+    if (!iceOceanHeatFluxImpl) {
+        iceOceanHeatFluxImpl = &ModuleLoader::getLoader().getImplementation<IIceOceanHeatFlux>();
+    }
+    if (!iThermo) {
+        iThermo = &ModuleLoader::getLoader().getImplementation<IThermodynamics>();
+    }
+}
 
 void NextsimPhysics::configure()
 {
-    if (retrieveValue<std::string>(iceOceanHeatFluxKey) != advancedIceOceanHeatFluxKey) {
-        ModuleLoader::getLoader().setImplementation(iceOceanHeatFluxKey, "BasicIceOceanHeatFlux");
-        //    } else {
-        //        ModuleLoader::getLoader().setImplementation(
-        //            iceOceanHeatFluxKey, "AdvancedBasicIceOceanHeatFlux");
-    }
-    iceOceanHeatFluxImpl = std::move(ModuleLoader::getLoader().getInstance<IIceOceanHeatFlux>());
 }
 
 void NextsimPhysics::updateDerivedDataStatic(
@@ -142,8 +140,12 @@ void NextsimPhysics::heatFluxIceAtmosphereStatic(
 }
 
 void NextsimPhysics::massFluxIceOceanStatic(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys)
 {
+    // The mass flux is driven by the heat flux
+    nsphys.heatFluxIceOcean(prog, exter, phys);
+
+    iThermo->calculate(prog, exter, phys, nsphys);
 }
 
 void NextsimPhysics::heatFluxIceOcean(
