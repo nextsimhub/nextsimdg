@@ -11,7 +11,8 @@
 class IFreezingPoint {
     virtual ~IFreezingPoint() = default;
 
-    virtual double operator()(double sss) = 0;
+    //! Freezing point in ˚C of water with salinity sss and standard pressure
+    virtual double operator()(double sss) const = 0;
 };
 
 #endif /* SRC_INCLUDE_IFREEZINGPOINT_HPP_ */
