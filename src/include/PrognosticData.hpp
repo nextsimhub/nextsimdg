@@ -18,7 +18,7 @@ class IFreezingPoint;
 
 class PrognosticData : public BaseElementData {
 public:
-    PrognosticData() = default;
+    PrognosticData();
     ~PrognosticData() = default;
 
     //! Effective Ice thickness [m]
