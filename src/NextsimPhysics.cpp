@@ -146,12 +146,35 @@ void NextsimPhysics::massFluxIceOceanStatic(
     nsphys.heatFluxIceOcean(prog, exter, phys);
 
     iThermo->calculate(prog, exter, phys, nsphys);
+
+    nsphys.supercool(prog, exter, phys);
+
+    lateralGrowth(prog, exter, phys, nsphys);
 }
 
 void NextsimPhysics::heatFluxIceOcean(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     m_Qio = iceOceanHeatFluxImpl->flux(prog, exter, phys, *this);
+}
+
+void NextsimPhysics::supercool(
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+{
+    // Determine the temperature drop of the mixed layer during this timestep
+    // TODO Add assimilation fluxes here
+    double deltaTml = - phys.QOpenWater() / exter.mixedLayerBulkHeatCapacity();
+
+    if (prog.seaSurfaceTemperature() + deltaTml < prog.freezingPoint()) {
+        // deal with the freezing point
+    }
+}
+
+void NextsimPhysics::lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
+    PhysicsData& phys, NextsimPhysics& nsphys)
+{
+
+
 }
 
 void NextsimPhysics::setDragOcean_q(double doq) { dragOcean_q = doq; }

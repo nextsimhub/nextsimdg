@@ -8,6 +8,7 @@
 #define SRC_INCLUDE_EXTERNALDATA_HPP
 
 #include "BaseElementData.hpp"
+#include "constants.hpp"
 
 namespace Nextsim {
 
@@ -40,6 +41,7 @@ public:
     inline const double& iceBottomTemperature() const { return m_tbot; }
 
     inline double mixedLayerDepth() const { return m_mld; }
+    inline double mixedLayerBulkHeatCapacity() const { return m_mld * Water::rho * Water::cp; }
 
     inline double& snowfall() // [kg m⁻² s⁻¹]
     {

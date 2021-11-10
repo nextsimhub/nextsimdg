@@ -119,16 +119,23 @@ private:
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     static void massFluxIceOceanStatic(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys);
+    static void lateralGrowth(
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys);
 
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);
     static double dragOcean_t;
     static double dragIce_t;
 
+    // Private instance functions
+    // Ice formation due to cooling below freezing
+    void supercool(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+
     // Ice-ocean heat flux
     double m_Qio; // Ice-ocean heat flux
     static IIceOceanHeatFlux* iceOceanHeatFluxImpl;
-
+    // New ice created by cooling below freezing
+    double m_newice;
 public:
     static double I_0;
 

@@ -14,6 +14,8 @@ namespace Nextsim {
 
 const int N_ICE_TEMPERATURES = 3;
 
+class IFreezingPoint;
+
 class PrognosticData : public BaseElementData {
 public:
     PrognosticData() = default;
@@ -36,6 +38,8 @@ public:
 
     //! Mean snow thickness [m]
     inline const double& snowThickness() const { return m_snow; }
+
+    inline const double& freezingPoint() const { return m_freezer(m_sss); }
 
     //! Timestep [s]
     inline const double& timestep() const { return m_dt; }
@@ -65,6 +69,7 @@ private:
     double m_snow; //!< Mean snow thickness [m]
 
     static double m_dt; //!< Current timestep, shared by all elements
+    static IFreezingPoint* m_freezer;
 };
 
 } /* namespace Nextsim */
