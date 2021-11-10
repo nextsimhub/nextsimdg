@@ -161,12 +161,28 @@ void NextsimPhysics::heatFluxIceOcean(
 void NextsimPhysics::supercool(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
-    // Determine the temperature drop of the mixed layer during this timestep
+    // Flux cooling the ocean from open water
     // TODO Add assimilation fluxes here
-    double deltaTml = - phys.QOpenWater() / exter.mixedLayerBulkHeatCapacity();
+    double coolingFlux = phys.QOpenWater();
+    // Temperature change of the mixed layer during this timestep
+    double deltaTml = -coolingFlux / exter.mixedLayerBulkHeatCapacity() * prog.timestep();
+    // Initial temperature
+    double t0 = prog.seaSurfaceTemperature();
+    // Freezing point temperature
+    double tf = prog.freezingPoint();
+    // Final temperature
+    double t1 = t0 + deltaTml;
 
-    if (prog.seaSurfaceTemperature() + deltaTml < prog.freezingPoint()) {
-        // deal with the freezing point
+    // deal with cooling below the freezing point
+    if (t1 < tf) {
+        // Heat lost cooling the mixed layer to freezing point
+        double sensibleFlux = (t0 - tf) / deltaTml * coolingFlux;
+        // Any heat beyond that is latent heat forming new ice
+        double latentFlux = coolingFlux - sensibleFlux;
+
+        phys.QOpenWater() = sensibleFlux;
+        m_newice = latentFlux * prog.timestep() * (1 - prog.iceConcentration()) /
+                (Ice::Lf * Ice::rho);
     }
 }
 
