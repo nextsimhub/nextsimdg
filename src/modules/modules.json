@@ -19,5 +19,11 @@
             "Nextsim::LinearFreezing",
             "Nextsim::UnescoFreezing"
         ]
+    },
+    {
+        "name": "Nextsim::IConcentrationChange",
+        "implementations": [
+            "Nextsim::HiblerConcentrationChange"
+        ]
     }
 ]

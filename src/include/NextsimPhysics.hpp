@@ -22,6 +22,7 @@ class UnusedData;
 class IIceAlbedo;
 class IThermodynamics;
 class IIceOceanHeatFlux;
+class IConcentrationModel;
 
 template <class Phys> class ElementData;
 
@@ -64,10 +65,12 @@ public:
         heatFluxIceAtmosphereStatic(prog, exter, phys);
     };
     inline static void massFluxIceOcean(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, UnusedData&)
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys)
     {
-        massFluxIceOceanStatic(prog, exter, phys);
+        massFluxIceOceanStatic(prog, exter, phys, nsphys);
     };
+    //! The thickness of newly created ice in the current timestep
+    inline double newIce() const { return m_newice; };
 
     void heatFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
@@ -136,6 +139,8 @@ private:
     static IIceOceanHeatFlux* iceOceanHeatFluxImpl;
     // New ice created by cooling below freezing
     double m_newice;
+
+    static IConcentrationModel* iConcentrationModelImpl;
 public:
     static double I_0;
 

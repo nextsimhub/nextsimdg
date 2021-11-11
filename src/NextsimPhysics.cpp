@@ -15,6 +15,7 @@
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/IThermodynamics.hpp"
+#include "include/IConcentrationModel.hpp"
 
 #include "include/ModuleLoader.hpp"
 
@@ -32,17 +33,23 @@ double NextsimPhysics::I_0;
 IIceOceanHeatFlux* NextsimPhysics::iceOceanHeatFluxImpl = nullptr;
 std::unique_ptr<IIceAlbedo> NextsimPhysics::iIceAlbedoImpl;
 IThermodynamics* NextsimPhysics::iThermo = nullptr;
+IConcentrationModel* NextsimPhysics::iConcentrationModelImpl = nullptr;
 
 double stefanBoltzmannLaw(double temperature);
 
 NextsimPhysics::NextsimPhysics()
     : m_Qio(0)
+    , m_newice(0)
 {
+    ModuleLoader& loader = ModuleLoader::getLoader();
     if (!iceOceanHeatFluxImpl) {
-        iceOceanHeatFluxImpl = &ModuleLoader::getLoader().getImplementation<IIceOceanHeatFlux>();
+        iceOceanHeatFluxImpl = &loader.getImplementation<IIceOceanHeatFlux>();
     }
     if (!iThermo) {
-        iThermo = &ModuleLoader::getLoader().getImplementation<IThermodynamics>();
+        iThermo = &loader.getImplementation<IThermodynamics>();
+    }
+    if (!iConcentrationModelImpl) {
+        iConcentrationModelImpl = &loader.getImplementation<IConcentrationModel>();
     }
 }
 
