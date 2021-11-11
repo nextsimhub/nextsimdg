@@ -44,19 +44,41 @@ public:
             cfg->configure();
     }
 
-protected:
-    template <typename T> void addOption(const std::string name, const T& defaultValue)
+    template <typename T>
+    static inline T getConfiguration(const std::string& name, const T& defaultValue)
     {
-        singleOptions[name].add_options()(
-            name.c_str(), boost::program_options::value<T>()->default_value(defaultValue), "");
+        boost::program_options::options_description& opt;
+        addOption(name, defaultValue, opt);
+        return retrieveValue<T>(name, opt);
+    }
+
+protected:
+    template <typename T> void addOption(const std::string& name, const T& defaultValue)
+    {
+        addOption(name, defaultValue, singleOptions[name]);
     }
 
     template <typename T> T retrieveValue(const std::string& name)
     {
-        return Configurator::parse(singleOptions.at(name))[name].as<T>();
+        return retrieveValue<T>(name, singleOptions.at(name));
     }
 
 private:
+    template <typename T>
+    static void addOption(const std::string& name, const T& defaultValue,
+        boost::program_options::options_description& opt)
+    {
+        opt.add_options()(
+            name.c_str(), boost::program_options::value<T>()->default_value(defaultValue), "");
+    }
+
+    template <typename T>
+    static T retrieveValue(
+        const std::string& name, boost::program_options::options_description& opt)
+    {
+        return Configurator::parse(opt)[name].as<T>();
+    }
+
     std::map<std::string, boost::program_options::options_description> singleOptions;
 };
 }
