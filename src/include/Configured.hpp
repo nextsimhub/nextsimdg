@@ -25,8 +25,7 @@ public:
 };
 
 //! A base class to provide configuration infrastructure to class that can be configured.
-template <typename C>
-class Configured : public ConfiguredBase {
+template <typename C> class Configured : public ConfiguredBase {
 public:
     Configured() = default;
     virtual ~Configured() = default;
@@ -48,10 +47,8 @@ public:
         return retrieveValue<T>(name, opt);
     }
 
-    static void clearConfigurationMap()
-    {
-        singleOptions.clear();
-    }
+    static void clearConfigurationMap() { singleOptions.clear(); }
+
 protected:
     template <typename T> void addOption(const std::string& name, const T& defaultValue)
     {
@@ -86,9 +83,7 @@ template <typename C>
 std::map<std::string, boost::program_options::options_description> Configured<C>::singleOptions;
 
 //! Template function for conditionally configuring references.
-template <typename C>
-template <typename T>
-void Configured<C>::tryConfigure(T& ref)
+template <typename C> template <typename T> void Configured<C>::tryConfigure(T& ref)
 {
     try {
         dynamic_cast<ConfiguredBase&>(ref).configure();
@@ -98,25 +93,16 @@ void Configured<C>::tryConfigure(T& ref)
 }
 
 //! Template function for conditionally configuring pointers.
-template <typename C>
-template <typename T> void Configured<C>::tryConfigure(T* ptr)
+template <typename C> template <typename T> void Configured<C>::tryConfigure(T* ptr)
 {
     ConfiguredBase* cfg = dynamic_cast<ConfiguredBase*>(ptr);
     if (cfg)
         cfg->configure();
 }
 
-template <typename T>
-void tryConfigure(T* p_t)
-{
-    Configured<int>::tryConfigure(p_t);
-}
+template <typename T> void tryConfigure(T* p_t) { Configured<int>::tryConfigure(p_t); }
 
-template <typename T>
-void tryConfigure(T& t)
-{
-    Configured<int>::tryConfigure(t);
-}
+template <typename T> void tryConfigure(T& t) { Configured<int>::tryConfigure(t); }
 }
 
 #endif /* SRC_INCLUDE_CONFIGURED_HPP */
