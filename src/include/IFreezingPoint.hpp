@@ -8,11 +8,14 @@
 #ifndef SRC_INCLUDE_IFREEZINGPOINT_HPP_
 #define SRC_INCLUDE_IFREEZINGPOINT_HPP_
 
+namespace Nextsim {
+
 class IFreezingPoint {
+public:
     virtual ~IFreezingPoint() = default;
 
     //! Freezing point in ˚C of water with salinity sss and standard pressure
     virtual double operator()(double sss) const = 0;
 };
-
+}
 #endif /* SRC_INCLUDE_IFREEZINGPOINT_HPP_ */

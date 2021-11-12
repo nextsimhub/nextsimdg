@@ -20,6 +20,7 @@ public:
     double freeze(const PrognosticData&, NextsimPhysics&) const override;
     double melt(const PrognosticData&, NextsimPhysics&) const override;
 
+    inline static void setH0(double h0_in) { h0 = h0_in; };
 private:
     static double h0;
 };

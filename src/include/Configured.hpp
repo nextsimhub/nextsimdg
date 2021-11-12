@@ -47,7 +47,7 @@ public:
     template <typename T>
     static inline T getConfiguration(const std::string& name, const T& defaultValue)
     {
-        boost::program_options::options_description& opt;
+        boost::program_options::options_description opt;
         addOption(name, defaultValue, opt);
         return retrieveValue<T>(name, opt);
     }

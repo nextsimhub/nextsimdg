@@ -8,13 +8,12 @@
 #define SRC_INCLUDE_PROGNOSTICDATA_HPP
 
 #include "BaseElementData.hpp"
+#include "IFreezingPoint.hpp"
 #include <array>
 
 namespace Nextsim {
 
 const int N_ICE_TEMPERATURES = 3;
-
-class IFreezingPoint;
 
 class PrognosticData : public BaseElementData {
 public:
@@ -39,7 +38,10 @@ public:
     //! Mean snow thickness [m]
     inline const double& snowThickness() const { return m_snow; }
 
-    inline const double& freezingPoint() const { return (*m_freezer)(m_sss); }
+    inline const double freezingPoint() const
+    {
+        return (*m_freezer)(m_sss);
+    }
 
     //! Timestep [s]
     inline const double& timestep() const { return m_dt; }

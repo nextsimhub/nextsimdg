@@ -22,13 +22,13 @@ set(BaseSources
     "PhysicsData.cpp"
     )
 
-set(AlbedoModuleSources
+set(IceAlbedoModuleSources
     "CCSMIceAlbedo.cpp"
     "SMUIceAlbedo.cpp"
     "SMU2IceAlbedo.cpp"
     )
 
-set(IceOceanFluxModuleSources
+set(IceOceanHeatFluxModuleSources
     "BasicIceOceanHeatFlux.cpp"
     )
 
@@ -36,10 +36,20 @@ set(ColumnPhysicsModuleSources
     "NextsimPhysics.cpp"
     )
 
+set(ThermodynamicsModuleSources
+    "ThermoIce0.cpp"
+    )
+
+set(ConcentrationModelModuleSources
+    "HiblerConcentration.cpp"
+    )
+    
 set(ModuleSources
-    "${AlbedoModuleSources}"
-    "${IceOceanFluxModuleSources}"
+    "${IceAlbedoModuleSources}"
+    "${IceOceanHeatFluxModuleSources}"
     "${ColumnPhysicsModuleSources}"
+    "${ThermodynamicsModuleSources}"
+    "${ConcentrationModelModuleSources}"
     )
 
 set(BaseHeaders

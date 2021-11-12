@@ -14,6 +14,8 @@
 namespace Nextsim {
 
 class LinearFreezing : public IFreezingPoint {
+public:
+//    ~LinearFreezing() = default;
 
     inline double operator()(double sss) const override
     {

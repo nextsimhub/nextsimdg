@@ -6,7 +6,7 @@
 
 #include "include/PrognosticData.hpp"
 #include "include/IFreezingPoint.hpp"
-#include "ModuleLoader.hpp"
+#include "include/ModuleLoader.hpp"
 namespace Nextsim {
 
 double PrognosticData::m_dt = 0;
@@ -19,6 +19,6 @@ PrognosticData::PrognosticData()
     , m_sst(0)
     , m_thick(0)
 {
-    if (!m_freezer) m_freezer = ModuleLoader::getLoader().getImplementation<IFreezingPoint>();
+    if (!m_freezer) m_freezer = &ModuleLoader::getLoader().getImplementation<IFreezingPoint>();
 }
 } /* namespace Nextsim */

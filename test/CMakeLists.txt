@@ -64,6 +64,8 @@ add_executable(testNextsimPhysics
     "${SRC_DIR}/SMU2IceAlbedo.cpp"
     "${SRC_DIR}/BasicIceOceanHeatFlux.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/HiblerConcentration.cpp"
+    "${SRC_DIR}/ThermoIce0.cpp"
     )
 target_include_directories(testNextsimPhysics PRIVATE ${ModuleLoaderIppTargetDirectory} "${SRC_DIR}")
 target_link_libraries(testNextsimPhysics PRIVATE ${Boost_LIBRARIES} Catch2::Catch2)

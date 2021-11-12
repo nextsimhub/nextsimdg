@@ -15,10 +15,11 @@ class PrognosticData;
 class NextsimPhysics;
 
 class IConcentrationModel {
+public:
     virtual ~IConcentrationModel() = default;
 
-    virtual double freeze(const PrognosticData&, NextsimPhysics&) const;
-    virtual double melt(const PrognosticData&, NextsimPhysics&) const;
+    virtual double freeze(const PrognosticData&, NextsimPhysics&) const = 0;
+    virtual double melt(const PrognosticData&, NextsimPhysics&) const = 0;
 };
 }
 
