@@ -28,7 +28,7 @@ template <class Phys> class ElementData;
 
 class NextsimPhysics;
 
-class NextsimPhysics : public BaseElementData, Configured {
+class NextsimPhysics : public BaseElementData, Configured<NextsimPhysics> {
 public:
     NextsimPhysics();
 
