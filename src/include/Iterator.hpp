@@ -9,14 +9,13 @@
 
 #include <chrono>
 
-#include "Timed.hpp"
 #include "Logged.hpp"
 
 namespace Nextsim {
 
 class Environment;
 
-class Iterator: public Timed, public Logged {
+class Iterator : public Logged {
 public:
     typedef std::chrono::system_clock Clock;
     typedef std::chrono::time_point<Clock> TimePoint;
@@ -29,9 +28,7 @@ public:
     void setIterant(Iterant* iterant);
 
     void setStartStopStep(TimePoint startTime, TimePoint stopTime, Duration timestep);
-    void setStartDurationStep(TimePoint startTime,
-            Duration duration,
-            Duration timestep);
+    void setStartDurationStep(TimePoint startTime, Duration duration, Duration timestep);
 
     void run();
 
@@ -42,15 +39,15 @@ private:
     Duration timestep;
 
 public:
-    class Iterant : public Logged, public Timed {
+    class Iterant : public Logged {
     public:
         // Define the constructors and copy operator as default to be
         // rule of 5 compliant, given the virtual destructor
         Iterant() = default;
         Iterant(const Iterant& copyFrom) = default;
         Iterant& operator=(const Iterant& copyFrom) = default;
-        Iterant(Iterant &&) = default;
-        Iterant& operator=(Iterant &&) = default;
+        Iterant(Iterant&&) = default;
+        Iterant& operator=(Iterant&&) = default;
 
         virtual ~Iterant() = default;
 
@@ -61,10 +58,10 @@ public:
     };
 
     class NullIterant : public Iterant {
-        inline void init(const Environment& env) { };
-        inline void start(const Iterator::TimePoint& startTime) { };
-        inline void iterate(const Iterator::Duration& dt) { };
-        inline void stop(const Iterator::TimePoint& stopTime) { };
+        inline void init(const Environment& env) {};
+        inline void start(const Iterator::TimePoint& startTime) {};
+        inline void iterate(const Iterator::Duration& dt) {};
+        inline void stop(const Iterator::TimePoint& stopTime) {};
     };
 
     static NullIterant nullIterant;
