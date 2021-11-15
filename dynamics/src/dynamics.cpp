@@ -95,8 +95,9 @@ namespace Nextsim
 
 
     // d_t U = ...
-/*
+
 // ocean
+
     // L/(rho H) * Cwater * rhowater * |velwater - vel| (velwater-vel)
     tmpX.col(0) += L / rhoice * Cwater * rhowater *
      ((oceanX.col(0)-vx.col(0)).array().abs()/ 
@@ -124,12 +125,10 @@ namespace Nextsim
     tmpY.col(0) += L / rhoice * Catm * rhoatm *
      (atmY.col(0).array().abs()/ H.col(0).array()
       * atmY.col(0).array()).matrix();
-*/
+
 
   // jump stabilization
   momentum_jumps();
-
-
 
 
    vx += timemesh.dt_momentum * tmpX;

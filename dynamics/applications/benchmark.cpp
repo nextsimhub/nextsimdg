@@ -20,7 +20,6 @@ namespace Nextsim
 
 
 
-
 int main()
 {
   Nextsim::Dynamics dynamics;
@@ -31,19 +30,25 @@ int main()
   std::cout << "--------------------------------------------" << std::endl;
   std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
-  //! init time mesh [0 to 2 days
+  //! init time mesh [0 to 2] days
   double TMAX = 2.0 * 24.0 * 60.0 * 60.0 / ReferenceScale::T;
   double    k = 10.0 / ReferenceScale::T; //!< time step 10 seconds
-  int NT = (static_cast<int>((TMAX / k + 1) / 100 + 1) * 100); //!<  No time steps dividable by 100
+  int NT = (static_cast<int>((TMAX / k + 1) / 100 + 1) * 100); //!<  No. of time steps dividable by 100
+  
+  NT *= 2; // 
   k = TMAX / NT;
+
   dynamics.GetTimeMesh().BasicInit(TMAX,NT,1);
 
-  std::cout << "Time mesh of [0," << TMAX << "] with " << NT <<  " steps, k = " << k << std::endl;
+  std::cout << "Time mesh of [0," << dynamics.GetTimeMesh().tmax << "] with " 
+  << dynamics.GetTimeMesh().N <<  " steps, k = " << dynamics.GetTimeMesh().dt << std::endl;
+    
   double vmax = 0.1 * dynamics.GetMesh().hx / dynamics.GetTimeMesh().dt;
   std::cout << "CFL: maximum ice velocity " << vmax << " (reference) "
 	    << vmax * ReferenceScale::L/ReferenceScale::T << " (m/s) " << std::endl;
   std::cout << "--------------------------------------------" << std::endl;
   std::cout << std::endl;
+
 
 
   //! Initialize the Dynamical Core (vector sizes, etc.)
