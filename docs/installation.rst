@@ -45,7 +45,7 @@ If your package manager is `Homebrew`_ :
         cd nextsimdg
         mkdir -p build
         cd build
-        cmake ../..
+        cmake ..
         make
         
 Compilation on Ubuntu
@@ -66,11 +66,29 @@ You must have root priviledge :
         cd nextsimdg
         mkdir -p build
         cd build
-        cmake ../..
+        cmake ..
         make
         
 
+Compilation with dependencies installation via conda
+----------------------------------------------------
+
+Install conda via anaconda or miniconda (no root priviledges required)
+
+.. code::
+
+        conda create --name nextsimdg
+        conda activate nextsimdg
+        conda install netCDF4
+        conda -c conda-forge boost
+        conda -c anaconda cmake
+        conda -c conda-forge catch2
         
+        cd nextsimdg
+        mkdir -p build
+        cd build
+        cmake ..
+        make
     
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
