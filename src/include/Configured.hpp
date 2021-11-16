@@ -39,6 +39,7 @@ public:
     //! Template function for conditionally configuring pointers.
     template <typename T> static void tryConfigure(T* ptr);
 
+    //! Get the value of the configuration with a given name from the default Configurator.
     template <typename T>
     static inline T getConfiguration(const std::string& name, const T& defaultValue)
     {
@@ -47,7 +48,12 @@ public:
         return retrieveValue<T>(name, opt);
     }
 
+    //! Clear the configuration map. Usually used only in test suites.
     static void clearConfigurationMap() { singleOptions.clear(); }
+
+    //! A per-class static map to provide compile-time checking of configuration keys.
+    static const std::map<int, std::string> keyMap;
+
 
 protected:
     template <typename T> void addOption(const std::string& name, const T& defaultValue)
