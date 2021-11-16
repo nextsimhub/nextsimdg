@@ -45,52 +45,74 @@ private:
 
 class Config2 : public Nextsim::Configured<Config2> {
 public:
-    Config2()
-        : value(0)
-    {
-        addOption<int>(valueKey, -1);
-        addOption<std::string>(nameKey, "");
-    }
+    enum {
+        VALUE_KEY,
+        NAME_KEY,
+    };
+
+    Config2();
     int getValue() { return value; }
     std::string getName() { return name; }
 
-    void configure() override
-    {
-        value = retrieveValue<int>(valueKey);
-        name = retrieveValue<std::string>(nameKey);
-    }
+    void configure() override;
 
 private:
     int value;
     std::string name;
-    const std::string valueKey = "config.value";
-    const std::string nameKey = "config.name";
 };
+
+template<>
+const std::map<int, std::string> Nextsim::Configured<Config2>::keyMap = {
+        {Config2::VALUE_KEY, "config.value"},
+        {Config2::NAME_KEY, "config.name"},
+};
+
+Config2::Config2()
+    : value(0)
+{
+addOption<int>(keyMap.at(VALUE_KEY), -1);
+addOption<std::string>(keyMap.at(NAME_KEY), "");
+}
+
+void Config2::configure()
+{
+    value = retrieveValue<int>(keyMap.at(VALUE_KEY));
+    name = retrieveValue<std::string>(keyMap.at(NAME_KEY));
+}
+
 
 class Config3 : public Nextsim::Configured<Config3> {
 public:
+    enum {
+        VALUE_KEY,
+        WEIGHT_KEY,
+    };
     Config3()
-        : value(0)
-        , weight(0.)
-    {
-        addOption<int>(valueKey, -1);
-        addOption<double>(weightKey, 1.);
-    }
+    : value(0)
+    , weight(0.)
+{
+}
     int getValue() { return value; }
     double getWeight() { return weight; }
 
-    void configure() override
-    {
-        value = retrieveValue<int>(valueKey);
-        weight = retrieveValue<double>(weightKey);
-    }
+    void configure() override;
 
 private:
     int value;
     double weight;
-    const std::string valueKey = "config.value";
-    const std::string weightKey = "data.weight";
 };
+
+template<>
+const std::map<int, std::string> Nextsim::Configured<Config3>::keyMap = {
+        {Config3::VALUE_KEY, "config.value"},
+        {Config3::WEIGHT_KEY, "data.weight"},
+};
+
+void Config3::configure()
+{
+    value = Configured::getConfiguration(keyMap.at(VALUE_KEY), -1);
+    weight = Configured::getConfiguration(keyMap.at(WEIGHT_KEY), 1.);
+}
 
 namespace Nextsim {
 
