@@ -64,8 +64,8 @@ public:
     {
         heatFluxIceAtmosphereStatic(prog, exter, phys);
     };
-    inline static void massFluxIceOcean(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys)
+    inline static void massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter,
+        PhysicsData& phys, NextsimPhysics& nsphys)
     {
         massFluxIceOceanStatic(prog, exter, phys, nsphys);
     };
@@ -120,10 +120,10 @@ private:
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     static void heatFluxIceAtmosphereStatic(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-    static void massFluxIceOceanStatic(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys);
-    static void lateralGrowth(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys);
+    static void massFluxIceOceanStatic(const PrognosticData& prog, const ExternalData& exter,
+        PhysicsData& phys, NextsimPhysics& nsphys);
+    static void lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
+        PhysicsData& phys, NextsimPhysics& nsphys);
 
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);
@@ -141,6 +141,7 @@ private:
     double m_newice;
 
     static IConcentrationModel* iConcentrationModelImpl;
+
 public:
     static double I_0;
 

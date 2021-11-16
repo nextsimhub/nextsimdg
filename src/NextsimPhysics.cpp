@@ -12,10 +12,10 @@
 #include "include/PrognosticData.hpp"
 #include <cmath>
 
+#include "include/IConcentrationModel.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/IThermodynamics.hpp"
-#include "include/IConcentrationModel.hpp"
 
 #include "include/ModuleLoader.hpp"
 
@@ -146,8 +146,8 @@ void NextsimPhysics::heatFluxIceAtmosphereStatic(
         + phys.QShortwaveIce();
 }
 
-void NextsimPhysics::massFluxIceOceanStatic(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsphys)
+void NextsimPhysics::massFluxIceOceanStatic(const PrognosticData& prog, const ExternalData& exter,
+    PhysicsData& phys, NextsimPhysics& nsphys)
 {
     // The mass flux is driven by the heat flux
     nsphys.heatFluxIceOcean(prog, exter, phys);
@@ -166,7 +166,7 @@ void NextsimPhysics::heatFluxIceOcean(
 }
 
 void NextsimPhysics::supercool(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     // Flux cooling the ocean from open water
     // TODO Add assimilation fluxes here
@@ -188,16 +188,14 @@ void NextsimPhysics::supercool(
         double latentFlux = coolingFlux - sensibleFlux;
 
         phys.QOpenWater() = sensibleFlux;
-        m_newice = latentFlux * prog.timestep() * (1 - prog.iceConcentration()) /
-                (Ice::Lf * Ice::rho);
+        m_newice
+            = latentFlux * prog.timestep() * (1 - prog.iceConcentration()) / (Ice::Lf * Ice::rho);
     }
 }
 
 void NextsimPhysics::lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
     PhysicsData& phys, NextsimPhysics& nsphys)
 {
-
-
 }
 
 void NextsimPhysics::setDragOcean_q(double doq) { dragOcean_q = doq; }

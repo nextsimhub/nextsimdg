@@ -37,11 +37,8 @@ public:
 
     //! Mean snow thickness [m]
     inline const double& snowThickness() const { return m_snow; }
-
-    inline const double freezingPoint() const
-    {
-        return (*m_freezer)(m_sss);
-    }
+    //! Salinity dependent freezing point
+    inline const double freezingPoint() const { return (*m_freezer)(m_sss); }
 
     //! Timestep [s]
     inline const double& timestep() const { return m_dt; }
