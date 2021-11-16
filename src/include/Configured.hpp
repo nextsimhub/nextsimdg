@@ -54,7 +54,6 @@ public:
     //! A per-class static map to provide compile-time checking of configuration keys.
     static const std::map<int, std::string> keyMap;
 
-
 protected:
     template <typename T> void addOption(const std::string& name, const T& defaultValue)
     {
