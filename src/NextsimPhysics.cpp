@@ -55,6 +55,9 @@ NextsimPhysics::NextsimPhysics()
 
 void NextsimPhysics::configure()
 {
+    tryConfigure(iceOceanHeatFluxImpl);
+    tryConfigure(iThermo);
+    tryConfigure(iConcentrationModelImpl);
 }
 
 void NextsimPhysics::updateDerivedDataStatic(
