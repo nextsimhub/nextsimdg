@@ -41,22 +41,19 @@ NextsimPhysics::NextsimPhysics()
     : m_Qio(0)
     , m_newice(0)
 {
-    ModuleLoader& loader = ModuleLoader::getLoader();
-    if (!iceOceanHeatFluxImpl) {
-        iceOceanHeatFluxImpl = &loader.getImplementation<IIceOceanHeatFlux>();
-    }
-    if (!iThermo) {
-        iThermo = &loader.getImplementation<IThermodynamics>();
-    }
-    if (!iConcentrationModelImpl) {
-        iConcentrationModelImpl = &loader.getImplementation<IConcentrationModel>();
-    }
 }
 
 void NextsimPhysics::configure()
 {
+    ModuleLoader& loader = ModuleLoader::getLoader();
+
+    iceOceanHeatFluxImpl = &loader.getImplementation<IIceOceanHeatFlux>();
     tryConfigure(iceOceanHeatFluxImpl);
+
+    iThermo = &loader.getImplementation<IThermodynamics>();
     tryConfigure(iThermo);
+
+    iConcentrationModelImpl = &loader.getImplementation<IConcentrationModel>();
     tryConfigure(iConcentrationModelImpl);
 }
 
