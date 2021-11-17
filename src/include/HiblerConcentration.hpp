@@ -8,14 +8,21 @@
 #ifndef SRC_INCLUDE_HIBLERCONCENTRATION_HPP
 #define SRC_INCLUDE_HIBLERCONCENTRATION_HPP
 
+#include "Configured.hpp"
 #include "IConcentrationModel.hpp"
 
 namespace Nextsim {
 
-class HiblerConcentration : public IConcentrationModel {
+class HiblerConcentration : public IConcentrationModel, public Configured<HiblerConcentration> {
 public:
     HiblerConcentration() = default;
     virtual ~HiblerConcentration() = default;
+
+    void configure() override;
+    enum {
+        H0_KEY,
+        PHIM_KEY,
+    };
 
     double freeze(const PrognosticData&, PhysicsData&, NextsimPhysics&) const override;
     double melt(const PrognosticData&, PhysicsData&, NextsimPhysics&) const override;
