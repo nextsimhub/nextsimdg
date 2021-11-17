@@ -66,11 +66,11 @@ public:
 
     //! Total ice-atmosphere heat flux [W m⁻²]
     inline double& QIceAtmosphere() { return m_Qia; }
-    //! Mean thickness of ice (averaged over ice covered fraction) [m]
-    inline double& iceTrueThickness() { return m_hi; }
+    //! True ice thickness as updated [m]
+    inline double& updatedIceTrueThickness() { return m_hi_new; }
 
     //! Mean thickness of snow (averaged over ice covered fraction) [m]
-    inline double& snowTrueThickness() { return m_hs; }
+    inline double& updatedSnowTrueThickness() { return m_hs; }
 
     //! Updated value of the ice surface temperature [˚C]
     inline double& updatedIceSurfaceTemperature() { return m_TiceNew[0]; }
@@ -113,7 +113,7 @@ private:
     double m_Qia;
 
     // thermodynamic values
-    double m_hi;
+    double m_hi_new; // updated true ice thickness [m]
     double m_hs;
     std::array<double, N_ICE_TEMPERATURES> m_TiceNew;
     double m_hifroms;

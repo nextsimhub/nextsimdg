@@ -22,6 +22,8 @@ public:
 
     //! Effective Ice thickness [m]
     inline const double& iceThickness() const { return m_thick; }
+    //! True ice thickness [m]. Zero concentration means no ice thickness
+    inline double iceTrueThickness() const { return (m_conc != 0) ? m_thick / m_conc : 0; }
 
     //! Ice concentration [1]
     inline const double& iceConcentration() const { return m_conc; }
@@ -37,6 +39,9 @@ public:
 
     //! Mean snow thickness [m]
     inline const double& snowThickness() const { return m_snow; }
+    //! Mean snow thickness over ice [m]
+    inline const double& snowTrueThickness() const { return (m_conc != 0) ? m_snow / m_conc : 0; }
+
     //! Salinity dependent freezing point
     inline const double freezingPoint() const { return (*m_freezer)(m_sss); }
 
