@@ -17,6 +17,7 @@ namespace Nextsim {
 double HiblerConcentration::h0 = 0;
 double HiblerConcentration::phiM = 0.;
 
+template<>
 static std::map<int, std::string> Configured<HiblerConcentration>::keyMap = {
     { HiblerConcentration::H0_KEY, "Hibler.h0" },
     { HiblerConcentration::PHIM_KEY, "Hibler.phiM" },
