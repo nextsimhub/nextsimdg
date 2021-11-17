@@ -17,8 +17,8 @@ public:
     HiblerConcentration() = default;
     virtual ~HiblerConcentration() = default;
 
-    double freeze(const PrognosticData&, NextsimPhysics&) const override;
-    double melt(const PrognosticData&, NextsimPhysics&) const override;
+    double freeze(const PrognosticData&, PhysicsData&, NextsimPhysics&) const override;
+    double melt(const PrognosticData&, PhysicsData&, NextsimPhysics&) const override;
 
     inline static void setH0(double h0_in) { h0 = h0_in; };
 

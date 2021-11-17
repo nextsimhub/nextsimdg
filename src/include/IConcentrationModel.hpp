@@ -18,8 +18,8 @@ class IConcentrationModel {
 public:
     virtual ~IConcentrationModel() = default;
 
-    virtual double freeze(const PrognosticData&, NextsimPhysics&) const = 0;
-    virtual double melt(const PrognosticData&, NextsimPhysics&) const = 0;
+    virtual double freeze(const PrognosticData&, PhysicsData&, NextsimPhysics&) const = 0;
+    virtual double melt(const PrognosticData&, PhysicsData&, NextsimPhysics&) const = 0;
 };
 }
 
