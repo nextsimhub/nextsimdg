@@ -24,6 +24,7 @@ public:
 
 private:
     static double h0;
+    static double phiM;
 };
 
 } /* namespace Nextsim */
