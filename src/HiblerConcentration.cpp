@@ -24,8 +24,6 @@ static std::map<int, std::string> Configured<HiblerConcentration>::keyMap = {
 
 void HiblerConcentration::configure()
 {
-    ModuleLoader& loader = ModuleLoader::getLoader();
-
     h0 = Configured::getConfiguration(keyMap.at(H0_KEY), 0.25);
     phiM = Configured::getConfiguration(keyMap.at(PHIM_KEY), 0.5);
 }
