@@ -16,6 +16,20 @@
 
 namespace Nextsim {
 
+double ThermoIce0::k_s = 0;
+bool ThermoIce0::doFlooding = true;
+
+const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
+    { ThermoIce0::KS_KEY = "thermoice0.ks" },
+    { ThermoIce0::FLOODING_KEY = "thermoice0.flooding" },
+};
+
+void ThermoIce0::configure()
+{
+    k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096);
+    doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), true);
+}
+
 void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
     NextsimPhysics& nsphys)
 {
@@ -23,10 +37,6 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     const double freezingPointIce = -Water::mu * Ice::s;
     const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     const double bulkLHFusionIce = Water::Lf * Ice::rho;
-
-    // TODO: Move these to the runtime constant class
-    const double k_s = 0.3096; // Thermal conductivity of snow
-    const bool doFlooding = true; // Whether flooded snow converts to ice
 
     if (prog.iceThickness() == 0 || prog.iceConcentration() == 0) {
         phys.updatedIceTrueThickness() = 0;
@@ -78,8 +88,8 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     double botMelt = std::min(iceBottomChange, 0.);
 
     // Snow to ice conversion
-    double iceDraught
-        = (phys.updatedIceTrueThickness() * Ice::rho + phys.updatedSnowTrueThickness() * Ice::rhoSnow)
+    double iceDraught = (phys.updatedIceTrueThickness() * Ice::rho
+                            + phys.updatedSnowTrueThickness() * Ice::rhoSnow)
         / Water::rhoOcean;
     if (doFlooding && iceDraught > phys.updatedIceTrueThickness()) {
         // Keep a running total of the ice formed from flooded snow
