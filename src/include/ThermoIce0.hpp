@@ -30,7 +30,7 @@ public:
     };
 
     void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
-        NextsimPhysics& nsphys);
+        NextsimPhysics& nsphys) override;
 
 private:
     static double k_s;

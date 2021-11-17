@@ -21,8 +21,8 @@ bool ThermoIce0::doFlooding = true;
 
 template<>
 const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
-    { ThermoIce0::KS_KEY = "thermoice0.ks" },
-    { ThermoIce0::FLOODING_KEY = "thermoice0.flooding" },
+    { ThermoIce0::KS_KEY, "thermoice0.ks" },
+    { ThermoIce0::FLOODING_KEY, "thermoice0.flooding" },
 };
 
 void ThermoIce0::configure()

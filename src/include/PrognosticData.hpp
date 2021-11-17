@@ -40,7 +40,7 @@ public:
     //! Mean snow thickness [m]
     inline const double& snowThickness() const { return m_snow; }
     //! Mean snow thickness over ice [m]
-    inline const double& snowTrueThickness() const { return (m_conc != 0) ? m_snow / m_conc : 0; }
+    inline double snowTrueThickness() const { return (m_conc != 0) ? m_snow / m_conc : 0; }
 
     //! Salinity dependent freezing point
     inline const double freezingPoint() const { return (*m_freezer)(m_sss); }
