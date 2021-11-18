@@ -78,6 +78,8 @@ public:
     //! Total amount of ice that resulted from the flooding of snow [m]
     inline double& totalIceFromSnow() { return m_hifroms; }
 
+    inline double& updatedIceConcentration() { return m_conc_new; }
+
     inline double& oceanAlbedo() { return m_oceanAlbedo; }
 
 private:
@@ -117,6 +119,7 @@ private:
     double m_hs;
     std::array<double, N_ICE_TEMPERATURES> m_TiceNew;
     double m_hifroms;
+    double m_conc_new; // updated ice concentration
 
     // Ocean albedo
     static double m_oceanAlbedo;

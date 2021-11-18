@@ -33,6 +33,13 @@ public:
     NextsimPhysics();
 
     void configure() override;
+    enum {
+        DRAGOCEANQ_KEY,
+        DRAGOCEANT_KEY,
+        DRAGICET_KEY,
+        I0_KEY,
+        MINC_KEY,
+    };
 
     inline static void updateDerivedData(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, const UnusedData&)
@@ -148,6 +155,8 @@ public:
 private:
     static double latentHeatWater(double temperature);
     static double latentHeatIce(double temperature);
+
+    static double minc; // minimum ice concentration
 
     static SpecificHumidity specificHumidityWater;
     static SpecificHumidityIce specificHumidityIce;

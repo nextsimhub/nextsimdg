@@ -29,6 +29,7 @@ double NextsimPhysics::dragOcean_q;
 double NextsimPhysics::dragOcean_t;
 double NextsimPhysics::dragIce_t;
 double NextsimPhysics::I_0;
+double NextsimPhysics::minc;
 
 IIceOceanHeatFlux* NextsimPhysics::iceOceanHeatFluxImpl = nullptr;
 std::unique_ptr<IIceAlbedo> NextsimPhysics::iIceAlbedoImpl;
@@ -43,6 +44,15 @@ NextsimPhysics::NextsimPhysics()
 {
 }
 
+template <>
+const std::map<int, std::string> Configured<NextsimPhysics>::keyMap = {
+        {NextsimPhysics::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q"},
+        {NextsimPhysics::DRAGOCEANT_KEY, "nextsim_thermo.drag_ocean_t"},
+        {NextsimPhysics::DRAGICET_KEY, "nextsim_thermo.drag_ice_t"},
+        {NextsimPhysics::I0_KEY, "nextsim_thermo.I_0"},
+        {NextsimPhysics::MINC_KEY, "nextsim_thermo.min_conc"},
+};
+
 void NextsimPhysics::configure()
 {
     ModuleLoader& loader = ModuleLoader::getLoader();
@@ -55,6 +65,12 @@ void NextsimPhysics::configure()
 
     iConcentrationModelImpl = &loader.getImplementation<IConcentrationModel>();
     tryConfigure(iConcentrationModelImpl);
+
+    dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), 1.5e-3);
+    dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), 0.83e-3);
+    dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), 1.3e-3);
+    I_0 = Configured::getConfiguration(keyMap.at(I0_KEY), 0.17);
+    minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 0.01);
 }
 
 void NextsimPhysics::updateDerivedDataStatic(
@@ -193,9 +209,38 @@ void NextsimPhysics::supercool(
     }
 }
 
+// Update thickness with concentration
+double updateThickness(double& thick, double oldConc, double deltaC, double deltaV)
+{
+    return thick += (deltaV - thick * deltaC) / (oldConc + deltaC);
+}
+
 void NextsimPhysics::lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
     PhysicsData& phys, NextsimPhysics& nsphys)
 {
+    double del_c = 0; // Change in concentration due to lateral growth
+    del_c += iConcentrationModelImpl->freeze(prog, phys, nsphys);
+    if (phys.updatedIceTrueThickness() < prog.iceTrueThickness()) {
+        del_c += iConcentrationModelImpl->melt(prog, phys, nsphys);
+    }
+
+    // Correct the ice thickness, snow thickness and open water flux based on the change in
+    // concentration
+    phys.updatedIceConcentration() = prog.iceConcentration() + del_c;
+
+    if (phys.updatedIceConcentration() >= minc) {
+        // The updated ice thickness must conserve volume
+        updateThickness(phys.updatedIceTrueThickness(), prog.iceConcentration(), del_c, m_newice);
+
+        if (del_c < 0) {
+            // Snow is lost if the concentration decreases, and energy is returned to the ocean
+            phys.QOpenWater() -= del_c * phys.updatedSnowTrueThickness() * Water::Lf * Ice::rhoSnow
+                / prog.timestep();
+        } else {
+            // Currently no new snow is implemented
+            updateThickness(phys.updatedSnowTrueThickness(), prog.iceConcentration(), del_c, 0.);
+        }
+    }
 }
 
 void NextsimPhysics::setDragOcean_q(double doq) { dragOcean_q = doq; }
