@@ -130,8 +130,7 @@ private:
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     static void massFluxIceOceanStatic(const PrognosticData& prog, const ExternalData& exter,
         PhysicsData& phys, NextsimPhysics& nsphys);
-    void lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
-        PhysicsData& phys);
+    void lateralGrowth(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);

@@ -47,12 +47,12 @@ NextsimPhysics::NextsimPhysics()
 
 template <>
 const std::map<int, std::string> Configured<NextsimPhysics>::keyMap = {
-        {NextsimPhysics::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q"},
-        {NextsimPhysics::DRAGOCEANT_KEY, "nextsim_thermo.drag_ocean_t"},
-        {NextsimPhysics::DRAGICET_KEY, "nextsim_thermo.drag_ice_t"},
-        {NextsimPhysics::I0_KEY, "nextsim_thermo.I_0"},
-        {NextsimPhysics::MINC_KEY, "nextsim_thermo.min_conc"},
-        {NextsimPhysics::MINH_KEY, "nextsim_thermo.min_thick"},
+    { NextsimPhysics::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q" },
+    { NextsimPhysics::DRAGOCEANT_KEY, "nextsim_thermo.drag_ocean_t" },
+    { NextsimPhysics::DRAGICET_KEY, "nextsim_thermo.drag_ice_t" },
+    { NextsimPhysics::I0_KEY, "nextsim_thermo.I_0" },
+    { NextsimPhysics::MINC_KEY, "nextsim_thermo.min_conc" },
+    { NextsimPhysics::MINH_KEY, "nextsim_thermo.min_thick" },
 };
 
 void NextsimPhysics::configure()
@@ -179,9 +179,10 @@ void NextsimPhysics::massFluxIceOceanStatic(const PrognosticData& prog, const Ex
 
     // Apply the lower limit of concentration and thickness
     if (phys.updatedIceConcentration() < minc || phys.updatedIceTrueThickness() < minh) {
-        phys.QOpenWater() += phys.updatedIceConcentration() * Water::Lf *
-                (phys.updatedIceTrueThickness() * Ice::rho + phys.updatedSnowTrueThickness() * Ice::rhoSnow) /
-                prog.timestep();
+        phys.QOpenWater() += phys.updatedIceConcentration() * Water::Lf
+            * (phys.updatedIceTrueThickness() * Ice::rho
+                + phys.updatedSnowTrueThickness() * Ice::rhoSnow)
+            / prog.timestep();
         phys.updatedIceConcentration() = 0;
         phys.updatedIceTrueThickness() = 0;
         phys.updatedSnowTrueThickness() = 0;
@@ -228,8 +229,8 @@ double updateThickness(double& thick, double oldConc, double deltaC, double delt
     return thick += (deltaV - thick * deltaC) / (oldConc + deltaC);
 }
 
-void NextsimPhysics::lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
-    PhysicsData& phys)
+void NextsimPhysics::lateralGrowth(
+    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     NextsimPhysics& nsphys = *this;
     double del_c = 0; // Change in concentration due to lateral growth
