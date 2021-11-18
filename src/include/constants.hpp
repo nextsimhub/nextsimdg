@@ -123,29 +123,6 @@ const double Tf = Ice::Tm;
 const double TfOcean = -1.8;
 }
 
-//! Model constants that are fixed at compile time
-namespace ModelConstants {
-
-#ifndef MODEL_MINIMUM_ICE_CONCENTRATION
-#define MODEL_MINIMUM_ICE_CONCENTRATION 1e-12
-#endif
-/*! Minimum ice concentration. [0..1]
- *
- * Compile time constant. Default is 10⁻¹²
- */
-const double cMin = MODEL_MINIMUM_ICE_CONCENTRATION;
-
-#ifndef MODEL_MINIMUM_ICE_THICKNESS
-#define MODEL_MINIMUM_ICE_THICKNESS 0.01
-#endif
-/*!
- * Minimum ice thickness. [m]
- *
- * Compile time constant. Default is 0.01 m
- */
-const double hMin = MODEL_MINIMUM_ICE_THICKNESS;
-}
-
 namespace Nextsim {
 //! Convert a temperature from ˚C to K
 inline double kelvin(double celsius) { return celsius + PhysicalConstants::Tt; }
