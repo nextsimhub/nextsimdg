@@ -30,6 +30,7 @@ double NextsimPhysics::dragOcean_t;
 double NextsimPhysics::dragIce_t;
 double NextsimPhysics::I_0;
 double NextsimPhysics::minc;
+double NextsimPhysics::minh;
 
 IIceOceanHeatFlux* NextsimPhysics::iceOceanHeatFluxImpl = nullptr;
 std::unique_ptr<IIceAlbedo> NextsimPhysics::iIceAlbedoImpl;
@@ -51,6 +52,7 @@ const std::map<int, std::string> Configured<NextsimPhysics>::keyMap = {
         {NextsimPhysics::DRAGICET_KEY, "nextsim_thermo.drag_ice_t"},
         {NextsimPhysics::I0_KEY, "nextsim_thermo.I_0"},
         {NextsimPhysics::MINC_KEY, "nextsim_thermo.min_conc"},
+        {NextsimPhysics::MINH_KEY, "nextsim_thermo.min_thick"},
 };
 
 void NextsimPhysics::configure()
@@ -70,7 +72,8 @@ void NextsimPhysics::configure()
     dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), 0.83e-3);
     dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), 1.3e-3);
     I_0 = Configured::getConfiguration(keyMap.at(I0_KEY), 0.17);
-    minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 0.01);
+    minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 1e-12);
+    minh = Configured::getConfiguration(keyMap.at(MINH_KEY), 0.01);
 }
 
 void NextsimPhysics::updateDerivedDataStatic(
@@ -172,7 +175,17 @@ void NextsimPhysics::massFluxIceOceanStatic(const PrognosticData& prog, const Ex
 
     nsphys.supercool(prog, exter, phys);
 
-    lateralGrowth(prog, exter, phys, nsphys);
+    nsphys.lateralGrowth(prog, exter, phys);
+
+    // Apply the lower limit of concentration and thickness
+    if (phys.updatedIceConcentration() < minc || phys.updatedIceTrueThickness() < minh) {
+        phys.QOpenWater() += phys.updatedIceConcentration() * Water::Lf *
+                (phys.updatedIceTrueThickness() * Ice::rho + phys.updatedSnowTrueThickness() * Ice::rhoSnow) /
+                prog.timestep();
+        phys.updatedIceConcentration() = 0;
+        phys.updatedIceTrueThickness() = 0;
+        phys.updatedSnowTrueThickness() = 0;
+    }
 }
 
 void NextsimPhysics::heatFluxIceOcean(
@@ -216,8 +229,9 @@ double updateThickness(double& thick, double oldConc, double deltaC, double delt
 }
 
 void NextsimPhysics::lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
-    PhysicsData& phys, NextsimPhysics& nsphys)
+    PhysicsData& phys)
 {
+    NextsimPhysics& nsphys = *this;
     double del_c = 0; // Change in concentration due to lateral growth
     del_c += iConcentrationModelImpl->freeze(prog, phys, nsphys);
     if (phys.updatedIceTrueThickness() < prog.iceTrueThickness()) {

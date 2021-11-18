@@ -39,6 +39,7 @@ public:
         DRAGICET_KEY,
         I0_KEY,
         MINC_KEY,
+        MINH_KEY,
     };
 
     inline static void updateDerivedData(
@@ -129,8 +130,8 @@ private:
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     static void massFluxIceOceanStatic(const PrognosticData& prog, const ExternalData& exter,
         PhysicsData& phys, NextsimPhysics& nsphys);
-    static void lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
-        PhysicsData& phys, NextsimPhysics& nsphys);
+    void lateralGrowth(const PrognosticData& prog, const ExternalData& exter,
+        PhysicsData& phys);
 
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);
@@ -157,6 +158,7 @@ private:
     static double latentHeatIce(double temperature);
 
     static double minc; // minimum ice concentration
+    static double minh; // minimum ice true thickness [m]
 
     static SpecificHumidity specificHumidityWater;
     static SpecificHumidityIce specificHumidityIce;
