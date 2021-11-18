@@ -82,6 +82,9 @@ public:
 
     void heatFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
+    static double minimumIceConcentration() { return minc; };
+    static double minimumIceThickness() { return minh; };
+
     static void setDragOcean_q(double dragOcean_q);
     static void setDragOcean_t(double dragOcean_t);
     static void setDragIce_t(double dragIce_t);

@@ -102,7 +102,7 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
         phys.updatedSnowTrueThickness() -= newIce * Ice::rho / Ice::rhoSnow;
     }
 
-    if (phys.updatedIceTrueThickness() < ModelConstants::hMin) {
+    if (phys.updatedIceTrueThickness() < NextsimPhysics::minimumIceThickness()) {
         // Reduce the melting to reach zero thickness, while keeping the
         // between top and bottom melting
         if (iceThicknessChange < 0) {
