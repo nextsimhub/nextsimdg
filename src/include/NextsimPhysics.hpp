@@ -84,11 +84,7 @@ public:
 
     static double minimumIceConcentration() { return minc; };
     static double minimumIceThickness() { return minh; };
-
-    static void setDragOcean_q(double dragOcean_q);
-    static void setDragOcean_t(double dragOcean_t);
-    static void setDragIce_t(double dragIce_t);
-    static void setI0(double I0);
+    static double i0() { return m_I0; };
 
     class SpecificHumidity {
     public:
@@ -152,10 +148,8 @@ private:
 
     static IConcentrationModel* iConcentrationModelImpl;
 
-public:
-    static double I_0;
+    static double m_I0;
 
-private:
     static double latentHeatWater(double temperature);
     static double latentHeatIce(double temperature);
 

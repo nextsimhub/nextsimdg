@@ -28,7 +28,7 @@ NextsimPhysics::SpecificHumidityIce NextsimPhysics::specificHumidityIce;
 double NextsimPhysics::dragOcean_q;
 double NextsimPhysics::dragOcean_t;
 double NextsimPhysics::dragIce_t;
-double NextsimPhysics::I_0;
+double NextsimPhysics::m_I0;
 double NextsimPhysics::minc;
 double NextsimPhysics::minh;
 
@@ -71,7 +71,7 @@ void NextsimPhysics::configure()
     dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), 1.5e-3);
     dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), 0.83e-3);
     dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), 1.3e-3);
-    I_0 = Configured::getConfiguration(keyMap.at(I0_KEY), 0.17);
+    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), 0.17);
     minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 1e-12);
     minh = Configured::getConfiguration(keyMap.at(MINH_KEY), 0.01);
 }
@@ -153,7 +153,7 @@ void NextsimPhysics::heatFluxIceAtmosphereStatic(
     // Shortwave flux
     double albedoValue = iIceAlbedoImpl->albedo(prog.iceTemperatures()[0],
         (prog.iceConcentration() > 0) ? (prog.snowThickness() / prog.iceConcentration()) : 0.);
-    phys.QShortwaveIce() = -exter.incomingShortwave() * (1. - I_0) * albedoValue;
+    phys.QShortwaveIce() = -exter.incomingShortwave() * (1. - m_I0) * albedoValue;
 
     // Longwave flux
     phys.QLongwaveIce() = stefanBoltzmannLaw(prog.iceTemperatures()[0]) - exter.incomingLongwave();
@@ -257,12 +257,6 @@ void NextsimPhysics::lateralGrowth(
         }
     }
 }
-
-void NextsimPhysics::setDragOcean_q(double doq) { dragOcean_q = doq; }
-
-void NextsimPhysics::setDragOcean_t(double dot) { dragOcean_t = dot; }
-void NextsimPhysics::setDragIce_t(double dit) { dragIce_t = dit; }
-void NextsimPhysics::setI0(double i0) { I_0 = i0; }
 
 double NextsimPhysics::dragOcean_m(double windSpeed)
 {
