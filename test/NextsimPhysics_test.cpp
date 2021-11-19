@@ -7,10 +7,11 @@
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
+#include <sstream>
 
-#include "../src/include/ElementData.hpp"
-#include "../src/include/NextsimPhysics.hpp"
-#include "../src/include/constants.hpp"
+#include "include/ElementData.hpp"
+#include "include/NextsimPhysics.hpp"
+#include "include/constants.hpp"
 namespace Nextsim {
 
 TEST_CASE("Outgoing LW (OW)", "[NextsimPhysics]")
@@ -28,5 +29,31 @@ TEST_CASE("Outgoing LW (OW)", "[NextsimPhysics]")
     double target = PhysicalConstants::sigma * t * t * t * t;
 
     REQUIRE(data.QLongwaveOpenWater() == target);
+}
+
+TEST_CASE("Minimum ice & i0", "[NextsimPhysics]")
+{
+    Configurator::clearStreams();
+
+    // Non-default values for the minimum concentration and thickness and I0
+    const double minConc = 2e-12;
+    const double minThck = 0.02;
+    const double i0 = 0.18;
+
+    std::stringstream config;
+    config << "[nextsim_thermo]" << std::endl;
+    config << "min_conc = " << minConc << std::endl;
+    config << "min_thick = " << minThck << std::endl;
+    config << "I_0 = " << i0 << std::endl;
+
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+
+    NextsimPhysics nsphys;
+    nsphys.configure();
+
+    REQUIRE(NextsimPhysics::minimumIceConcentration() == minConc);
+    REQUIRE(NextsimPhysics::minimumIceThickness() == minThck);
+    REQUIRE(NextsimPhysics::i0() == i0);
 }
 } /* namespace Nextsim */
