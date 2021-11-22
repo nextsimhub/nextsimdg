@@ -23,8 +23,8 @@
 
 namespace Nextsim {
 
-NextsimPhysics::SpecificHumidity NextsimPhysics::specificHumidityWater;
-NextsimPhysics::SpecificHumidityIce NextsimPhysics::specificHumidityIce;
+NextsimPhysics::SpecificHumidity NextsimPhysics::specHumWater;
+NextsimPhysics::SpecificHumidityIce NextsimPhysics::specHumIce;
 double NextsimPhysics::dragOcean_q;
 double NextsimPhysics::dragOcean_t;
 double NextsimPhysics::dragIce_t;
@@ -79,16 +79,15 @@ void NextsimPhysics::configure()
 void NextsimPhysics::updateDerivedDataStatic(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
-    phys.specificHumidityAir() = specificHumidityWater(exter.dewPoint2m(), exter.airPressure());
-//    phys.specificHumidityWater() = specificHumidityWater(
-//        prog.seaSurfaceTemperature(), exter.airPressure(), prog.seaSurfaceSalinity());
-//    phys.specificHumidityIce()
-//        = specificHumidityIce(prog.iceTemperatures()[0], exter.airPressure());
+    phys.specificHumidityAir() = specHumWater(exter.dewPoint2m(), exter.airPressure());
+    phys.specificHumidityWater() = specHumWater(
+        prog.seaSurfaceTemperature(), exter.airPressure(), prog.seaSurfaceSalinity());
+    phys.specificHumidityIce() = specHumIce(prog.iceTemperatures()[0], exter.airPressure());
 
     phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
 
-//    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
-//
+    //    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
+    //
     phys.QDerivativeWRTTemperature() = 0;
 }
 
@@ -141,7 +140,7 @@ void NextsimPhysics::heatFluxIceAtmosphereStatic(
     // Latent heat flux from sublimation
     phys.QLatentHeatIce() = phys.sublimationRate() * latentHeatIce(prog.iceTemperatures()[0]);
     double dmdot_dT = dragIce_t * phys.airDensity() * phys.windSpeed()
-        * specificHumidityIce.dq_dT(prog.iceTemperatures()[0], exter.airPressure());
+        * specHumIce.dq_dT(prog.iceTemperatures()[0], exter.airPressure());
     phys.QDerivativeWRTTemperature() += latentHeatIce(prog.iceTemperatures()[0]) * dmdot_dT;
 
     // Sensible heat flux
@@ -330,7 +329,7 @@ double NextsimPhysics::SpecificHumidityIce::dq_dT(
     double numerator = m_a * m_b * m_c - temperature * (2 * m_c + temperature);
     double denominator = m_d * pow(m_c + temperature, 2);
     double estCalc = est(temperature, 0);
-    double fCalc = f(pressure, temperature);
+    double fCalc = f(temperature, pressure);
     double dest_dT = numerator / denominator * estCalc;
     numerator = m_alpha * pressure * (fCalc * dest_dT + estCalc * df_dT);
     denominator = pow(pressure - m_beta * estCalc * fCalc, 2);
@@ -338,7 +337,7 @@ double NextsimPhysics::SpecificHumidityIce::dq_dT(
 }
 
 // Specific humidity terms
-double NextsimPhysics::SpecificHumidity::f(const double pressurePa, const double temperature) const
+double NextsimPhysics::SpecificHumidity::f(const double temperature, const double pressurePa) const
 {
     double pressure_mb = pressurePa * 0.01;
     return 1 + m_bigA + pressure_mb * (m_bigB + m_bigC * temperature * temperature);

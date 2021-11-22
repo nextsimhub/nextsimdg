@@ -95,7 +95,7 @@ public:
 
     protected:
         SpecificHumidity(double, double, double, double, double, double, double);
-        double f(const double pressurePa, const double temperature) const;
+        double f(const double temperature, const double pressurePa) const;
         double est(const double temperature, const double salinity) const;
         const double m_a;
         const double m_b;
@@ -156,8 +156,8 @@ private:
     static double minc; // minimum ice concentration
     static double minh; // minimum ice true thickness [m]
 
-    static SpecificHumidity specificHumidityWater;
-    static SpecificHumidityIce specificHumidityIce;
+    static SpecificHumidity specHumWater;
+    static SpecificHumidityIce specHumIce;
 
     static std::unique_ptr<IIceAlbedo> iIceAlbedoImpl;
     static IThermodynamics* iThermo;

@@ -62,20 +62,24 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
     ElementData<NextsimPhysics> data;
 
     double tair = -3;
+    double tdew = 0.1;
     double pair = 100000; // Slightly low pressure
     double sst = -1;
     double sss = 32; // PSU
-    std::array<double, N_ICE_TEMPERATURES> tice = {-2., -2, -2};
+    std::array<double, N_ICE_TEMPERATURES> tice = { -2., -2, -2 };
     double hice = 0.1;
     double cice = 0.5;
 
     data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
     data.airTemperature() = tair;
+    data.dewPoint2m() = tdew;
     data.airPressure() = pair;
 
     NextsimPhysics::updateDerivedData(data, data, data, data);
 
     REQUIRE(1.2895 == Approx(data.airDensity()).epsilon(1e-4));
-    REQUIRE(0.002515 == Approx(data.specificHumidityAir()).epsilon(1e-4));
+    CHECK(0.00385326 == Approx(data.specificHumidityAir()).epsilon(1e-4));
+    CHECK(0.00349446 == Approx(data.specificHumidityWater()).epsilon(1e-4));
+    CHECK(0.00323958 == Approx(data.specificHumidityIce()).epsilon(1e-4));
 }
 } /* namespace Nextsim */
