@@ -56,4 +56,26 @@ TEST_CASE("Minimum ice & i0", "[NextsimPhysics]")
     REQUIRE(NextsimPhysics::minimumIceThickness() == minThck);
     REQUIRE(NextsimPhysics::i0() == i0);
 }
+
+TEST_CASE("Update derived data", "[NextsimPhysics]")
+{
+    ElementData<NextsimPhysics> data;
+
+    double tair = -3;
+    double pair = 100000; // Slightly low pressure
+    double sst = -1;
+    double sss = 32; // PSU
+    std::array<double, N_ICE_TEMPERATURES> tice = {-2., -2, -2};
+    double hice = 0.1;
+    double cice = 0.5;
+
+    data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
+    data.airTemperature() = tair;
+    data.airPressure() = pair;
+
+    NextsimPhysics::updateDerivedData(data, data, data, data);
+
+    REQUIRE(1.2895 == Approx(data.airDensity()).epsilon(1e-4));
+    REQUIRE(0.002515 == Approx(data.specificHumidityAir()).epsilon(1e-4));
+}
 } /* namespace Nextsim */

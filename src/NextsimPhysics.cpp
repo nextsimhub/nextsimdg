@@ -79,16 +79,16 @@ void NextsimPhysics::configure()
 void NextsimPhysics::updateDerivedDataStatic(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
-    phys.specificHumidityAir() = specificHumidityWater(exter.airTemperature(), exter.airPressure());
-    phys.specificHumidityWater() = specificHumidityWater(
-        prog.seaSurfaceTemperature(), exter.airPressure(), prog.seaSurfaceSalinity());
-    phys.specificHumidityIce()
-        = specificHumidityIce(prog.iceTemperatures()[0], exter.airPressure());
+    phys.specificHumidityAir() = specificHumidityWater(exter.dewPoint2m(), exter.airPressure());
+//    phys.specificHumidityWater() = specificHumidityWater(
+//        prog.seaSurfaceTemperature(), exter.airPressure(), prog.seaSurfaceSalinity());
+//    phys.specificHumidityIce()
+//        = specificHumidityIce(prog.iceTemperatures()[0], exter.airPressure());
 
     phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
 
-    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
-
+//    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
+//
     phys.QDerivativeWRTTemperature() = 0;
 }
 
@@ -299,7 +299,7 @@ NextsimPhysics::SpecificHumidity::SpecificHumidity(
 double NextsimPhysics::SpecificHumidity::operator()(
     const double temperature, const double pressure) const
 {
-    return this->operator()(temperature, 0); // Zero salinity
+    return this->operator()(temperature, pressure, 0); // Zero salinity
 }
 
 double NextsimPhysics::SpecificHumidity::operator()(

@@ -21,6 +21,10 @@ public:
     inline double& airTemperature() { return m_tair; };
     inline const double& airTemperature() const { return m_tair; }
 
+    //! Dew point temperature at 2 m [˚C]
+    inline double& dewPoint2m() { return m_dair; };
+    inline double dewPoint2m() const { return m_dair; };
+
     //! Sea level atmospheric pressure [Pa]
     inline double& airPressure() { return m_slp; };
     inline const double& airPressure() const { return m_slp; }
@@ -51,6 +55,7 @@ public:
 
 private:
     double m_tair;
+    double m_dair;
     double m_slp;
     double m_mixrat;
     double m_Qsw_in;
