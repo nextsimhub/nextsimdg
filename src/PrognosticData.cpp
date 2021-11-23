@@ -18,7 +18,8 @@ PrognosticData::PrognosticData()
     , m_sss(0)
     , m_sst(0)
     , m_thick(0)
-{ }
+{
+}
 
 void PrognosticData::configure()
 {

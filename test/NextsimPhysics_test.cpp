@@ -93,7 +93,7 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
 
     double tair = -3; //˚C
     double tdew = 0.1; //˚C
-    double pair = 100000; //Pa, slightly low pressure
+    double pair = 100000; // Pa, slightly low pressure
     double sst = -1.5; //˚C
     double sss = 32; // PSU
     std::array<double, N_ICE_TEMPERATURES> tice = { -2., -2, -2 }; //˚C
@@ -120,7 +120,5 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     data.newIceFormation(data, data, data);
 
     REQUIRE(0.0258231 == Approx(data.newIce()).epsilon(1e-4));
-
-
 }
 } /* namespace Nextsim */
