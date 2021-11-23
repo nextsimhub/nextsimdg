@@ -9,9 +9,10 @@
 #include <catch2/catch.hpp>
 #include <sstream>
 
-#include "include/ElementData.hpp"
-#include "include/NextsimPhysics.hpp"
-#include "include/constants.hpp"
+#include "ConfiguredModule.hpp"
+#include "ElementData.hpp"
+#include "NextsimPhysics.hpp"
+#include "constants.hpp"
 namespace Nextsim {
 
 TEST_CASE("Outgoing LW (OW)", "[NextsimPhysics]")
@@ -22,6 +23,7 @@ TEST_CASE("Outgoing LW (OW)", "[NextsimPhysics]")
     data = PrognosticData::generate(0., 0., celsius(t), 0., 0, { 0., 0, 0 });
 
     // Configure as NextsimPhysics, as the only subclass of Configured.
+    ConfiguredModule::parseConfigurator();
     data.configure();
 
     data.heatFluxOpenWater(data, data, data, data);
@@ -82,5 +84,43 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
     REQUIRE(0.00349446 == Approx(data.specificHumidityWater()).epsilon(1e-4));
     REQUIRE(0.00323958 == Approx(data.specificHumidityIce()).epsilon(1e-4));
     REQUIRE(1020.773 == Approx(data.heatCapacityWetAir()).epsilon(1e-4));
+}
+
+TEST_CASE("New ice formation", "[NextsimPhysics]")
+{
+    ElementData<NextsimPhysics> data;
+    ExternalData exter;
+
+    double tair = -3; //˚C
+    double tdew = 0.1; //˚C
+    double pair = 100000; //Pa, slightly low pressure
+    double sst = -1.5; //˚C
+    double sss = 32; // PSU
+    std::array<double, N_ICE_TEMPERATURES> tice = { -2., -2, -2 }; //˚C
+    double hice = 0.1; // m
+    double cice = 0.5;
+    double dml = 10.; // m
+
+    ConfiguredModule::parseConfigurator();
+    data.configure(); // Configure with the default linear freezing point
+
+    data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
+    data.setTimestep(86400.); // s. Very long TS to get below freezing
+
+    data = exter;
+    data.airTemperature() = tair;
+    data.dewPoint2m() = tdew;
+    data.airPressure() = pair;
+    data.mixedLayerDepth() = dml;
+
+    data.updateDerivedData(data, data, data, data);
+
+    data.heatFluxOpenWater(data, data, data, data);
+
+    data.newIceFormation(data, data, data);
+
+    REQUIRE(0.0258231 == Approx(data.newIce()).epsilon(1e-4));
+
+
 }
 } /* namespace Nextsim */

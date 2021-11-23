@@ -59,6 +59,7 @@ add_executable(testNextsimPhysics
     "${SRC_DIR}/PhysicsData.cpp"
     "${SRC_DIR}/ModuleLoader.cpp"
     "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/SMUIceAlbedo.cpp"
     "${SRC_DIR}/CCSMIceAlbedo.cpp"
     "${SRC_DIR}/SMU2IceAlbedo.cpp"
