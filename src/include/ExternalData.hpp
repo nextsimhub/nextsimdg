@@ -44,6 +44,7 @@ public:
 
     inline const double& iceBottomTemperature() const { return m_tbot; }
 
+    inline double& mixedLayerDepth() { return m_mld; };
     inline double mixedLayerDepth() const { return m_mld; }
     inline double mixedLayerBulkHeatCapacity() const { return m_mld * Water::rho * Water::cp; }
 
