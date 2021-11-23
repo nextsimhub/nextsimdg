@@ -77,6 +77,9 @@ public:
     {
         massFluxIceOceanStatic(prog, exter, phys, nsphys);
     };
+
+    //! Calculate the new ice formed this timestep on open water
+    void newIceFormation(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     //! The thickness of newly created ice in the current timestep
     inline double newIce() const { return m_newice; };
 
@@ -137,8 +140,6 @@ private:
     static double dragIce_t;
 
     // Private instance functions
-    // Ice formation due to cooling below freezing
-    void supercool(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
     // Ice-ocean heat flux
     double m_Qio; // Ice-ocean heat flux

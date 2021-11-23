@@ -86,8 +86,8 @@ void NextsimPhysics::updateDerivedDataStatic(
 
     phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
 
-    //    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
-    //
+    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
+
     phys.QDerivativeWRTTemperature() = 0;
 }
 
@@ -172,7 +172,7 @@ void NextsimPhysics::massFluxIceOceanStatic(const PrognosticData& prog, const Ex
 
     iThermo->calculate(prog, exter, phys, nsphys);
 
-    nsphys.supercool(prog, exter, phys);
+    nsphys.newIceFormation(prog, exter, phys);
 
     nsphys.lateralGrowth(prog, exter, phys);
 
@@ -194,7 +194,7 @@ void NextsimPhysics::heatFluxIceOcean(
     m_Qio = iceOceanHeatFluxImpl->flux(prog, exter, phys, *this);
 }
 
-void NextsimPhysics::supercool(
+void NextsimPhysics::newIceFormation(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     // Flux cooling the ocean from open water

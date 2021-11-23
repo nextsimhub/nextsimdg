@@ -78,8 +78,9 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
     NextsimPhysics::updateDerivedData(data, data, data, data);
 
     REQUIRE(1.2895 == Approx(data.airDensity()).epsilon(1e-4));
-    CHECK(0.00385326 == Approx(data.specificHumidityAir()).epsilon(1e-4));
-    CHECK(0.00349446 == Approx(data.specificHumidityWater()).epsilon(1e-4));
-    CHECK(0.00323958 == Approx(data.specificHumidityIce()).epsilon(1e-4));
+    REQUIRE(0.00385326 == Approx(data.specificHumidityAir()).epsilon(1e-4));
+    REQUIRE(0.00349446 == Approx(data.specificHumidityWater()).epsilon(1e-4));
+    REQUIRE(0.00323958 == Approx(data.specificHumidityIce()).epsilon(1e-4));
+    REQUIRE(1020.773 == Approx(data.heatCapacityWetAir()).epsilon(1e-4));
 }
 } /* namespace Nextsim */
