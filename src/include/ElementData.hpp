@@ -21,7 +21,8 @@ class ElementData : public PrognosticData,
                     public PhysicsData,
                     public ExternalData,
                     public Phys,
-                    public UnusedData {
+                    public UnusedData,
+                    public Configured<ElementData<Phys>> {
 public:
     ElementData() = default;
     ~ElementData() = default;
@@ -30,6 +31,12 @@ public:
     using PhysicsData::operator=;
     using ExternalData::operator=;
     using Phys::operator=;
+
+    void configure() override
+    {
+        PrognosticData::configure();
+        Phys::configure();
+    }
 };
 
 } /* namespace Nextsim */

@@ -18,9 +18,12 @@ PrognosticData::PrognosticData()
     , m_sss(0)
     , m_sst(0)
     , m_thick(0)
+{ }
+
+void PrognosticData::configure()
 {
-    if (!m_freezer) {
-        m_freezer = &ModuleLoader::getLoader().getImplementation<IFreezingPoint>();
-    }
+    ModuleLoader& loader = ModuleLoader::getLoader();
+    m_freezer = &loader.getImplementation<IFreezingPoint>();
+    tryConfigure(m_freezer);
 }
 } /* namespace Nextsim */

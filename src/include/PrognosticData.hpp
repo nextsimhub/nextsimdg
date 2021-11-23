@@ -8,6 +8,7 @@
 #define SRC_INCLUDE_PROGNOSTICDATA_HPP
 
 #include "BaseElementData.hpp"
+#include "Configured.hpp"
 #include "IFreezingPoint.hpp"
 #include <array>
 
@@ -15,10 +16,12 @@ namespace Nextsim {
 
 const int N_ICE_TEMPERATURES = 3;
 
-class PrognosticData : public BaseElementData {
+class PrognosticData : public BaseElementData, Configured<PrognosticData> {
 public:
     PrognosticData();
     ~PrognosticData() = default;
+
+    void configure() override;
 
     //! Effective Ice thickness [m]
     inline const double& iceThickness() const { return m_thick; }
