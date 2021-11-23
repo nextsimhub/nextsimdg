@@ -212,7 +212,7 @@ void NextsimPhysics::newIceFormation(
     // deal with cooling below the freezing point
     if (t1 < tf) {
         // Heat lost cooling the mixed layer to freezing point
-        double sensibleFlux = (t0 - tf) / deltaTml * coolingFlux;
+        double sensibleFlux = (tf - t0) / deltaTml * coolingFlux;
         // Any heat beyond that is latent heat forming new ice
         double latentFlux = coolingFlux - sensibleFlux;
 
