@@ -42,37 +42,37 @@ public:
         MINH_KEY,
     };
 
-    inline static void updateDerivedData(
+    inline void updateDerivedData(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, const UnusedData&)
     {
         updateDerivedDataStatic(prog, exter, phys);
     }
-    inline static void massFluxOpenWater(
+    inline void massFluxOpenWater(
         const UnusedData&, const UnusedData&, PhysicsData& phys, const UnusedData&)
     {
         massFluxOpenWaterStatic(phys);
     };
-    inline static void momentumFluxOpenWater(
+    inline void momentumFluxOpenWater(
         const UnusedData&, const UnusedData&, PhysicsData& phys, const UnusedData&)
     {
         momentumFluxOpenWaterStatic(phys);
     };
-    inline static void heatFluxOpenWater(
+    inline void heatFluxOpenWater(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, UnusedData&)
     {
         heatFluxOpenWaterStatic(prog, exter, phys);
     }
-    inline static void massFluxIceAtmosphere(
+    inline void massFluxIceAtmosphere(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, UnusedData&)
     {
         massFluxIceAtmosphereStatic(prog, exter, phys);
     };
-    inline static void heatFluxIceAtmosphere(
+    inline void heatFluxIceAtmosphere(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, UnusedData&)
     {
         heatFluxIceAtmosphereStatic(prog, exter, phys);
     };
-    inline static void massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter,
+    inline void massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter,
         PhysicsData& phys, NextsimPhysics& nsphys)
     {
         massFluxIceOceanStatic(prog, exter, phys, nsphys);

@@ -24,7 +24,7 @@ TEST_CASE("Outgoing LW (OW)", "[NextsimPhysics]")
     // Configure as NextsimPhysics, as the only subclass of Configured.
     data.configure();
 
-    NextsimPhysics::heatFluxOpenWater(data, data, data, data);
+    data.heatFluxOpenWater(data, data, data, data);
 
     double target = PhysicalConstants::sigma * t * t * t * t;
 
@@ -75,7 +75,7 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
     data.dewPoint2m() = tdew;
     data.airPressure() = pair;
 
-    NextsimPhysics::updateDerivedData(data, data, data, data);
+    data.updateDerivedData(data, data, data, data);
 
     REQUIRE(1.2895 == Approx(data.airDensity()).epsilon(1e-4));
     REQUIRE(0.00385326 == Approx(data.specificHumidityAir()).epsilon(1e-4));
