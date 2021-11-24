@@ -33,7 +33,7 @@ double NextsimPhysics::minc;
 double NextsimPhysics::minh;
 
 IIceOceanHeatFlux* NextsimPhysics::iceOceanHeatFluxImpl = nullptr;
-std::unique_ptr<IIceAlbedo> NextsimPhysics::iIceAlbedoImpl;
+IIceAlbedo* NextsimPhysics::iIceAlbedoImpl = nullptr;
 IThermodynamics* NextsimPhysics::iThermo = nullptr;
 IConcentrationModel* NextsimPhysics::iConcentrationModelImpl = nullptr;
 
@@ -62,6 +62,9 @@ void NextsimPhysics::configure()
     iceOceanHeatFluxImpl = &loader.getImplementation<IIceOceanHeatFlux>();
     tryConfigure(iceOceanHeatFluxImpl);
 
+    iIceAlbedoImpl = &loader.getImplementation<IIceAlbedo>();
+    tryConfigure(iIceAlbedoImpl);
+
     iThermo = &loader.getImplementation<IThermodynamics>();
     tryConfigure(iThermo);
 
@@ -76,34 +79,63 @@ void NextsimPhysics::configure()
     minh = Configured::getConfiguration(keyMap.at(MINH_KEY), 0.01);
 }
 
-void NextsimPhysics::updateDerivedDataStatic(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+void NextsimPhysics::updateSpecificHumidityAir(const ExternalData& exter, PhysicsData& phys)
 {
     phys.specificHumidityAir() = specHumWater(exter.dewPoint2m(), exter.airPressure());
+};
+
+void NextsimPhysics::updateSpecificHumidityWater(
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+{
     phys.specificHumidityWater() = specHumWater(
         prog.seaSurfaceTemperature(), exter.airPressure(), prog.seaSurfaceSalinity());
-    phys.specificHumidityIce() = specHumIce(prog.iceTemperatures()[0], exter.airPressure());
-
-    phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
-
-    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
-
-    phys.QDerivativeWRTTemperature() = 0;
 }
 
-void NextsimPhysics::massFluxOpenWaterStatic(PhysicsData& phys)
+void NextsimPhysics::updateSpecificHumidityIce(
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+{
+    phys.specificHumidityIce() = specHumIce(prog.iceTemperatures()[0], exter.airPressure());
+}
+
+void NextsimPhysics::updateAirDensity(const ExternalData& exter, PhysicsData& phys)
+{
+    phys.airDensity() = exter.airPressure() / (Air::Ra * kelvin(exter.airTemperature()));
+}
+
+void NextsimPhysics::updateHeatCapacityWetAir(const ExternalData& exter, PhysicsData& phys)
+{
+    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
+};
+
+void NextsimPhysics::calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+{
+    massFluxOpenWater(phys);
+    momentumFluxOpenWater(phys);
+    heatFluxOpenWater(prog, exter, phys);
+
+    massFluxIceAtmosphere(prog, phys);
+    // Ice momentum fluxes are handled by the dynamics
+    heatFluxIceAtmosphere(prog, exter, phys);
+
+    // The mass flux is driven by the heat flux, so that is called first
+    heatFluxIceOcean(prog, exter, phys);
+    // Ice momentum fluxes are handled by the dynamics
+    massFluxIceOcean(prog, exter, phys);
+}
+
+void NextsimPhysics::massFluxOpenWater(PhysicsData& phys)
 {
     double specificHumidityDifference = phys.specificHumidityWater() - phys.specificHumidityAir();
     phys.evaporationRate()
         = dragOcean_q * phys.airDensity() * phys.windSpeed() * specificHumidityDifference;
 }
 
-void NextsimPhysics::momentumFluxOpenWaterStatic(PhysicsData& phys)
+void NextsimPhysics::momentumFluxOpenWater(PhysicsData& phys)
 {
     phys.dragPressure() = phys.airDensity() * dragOcean_m(phys.windSpeed());
 }
 
-void NextsimPhysics::heatFluxOpenWaterStatic(
+void NextsimPhysics::heatFluxOpenWater(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     // Latent heat flux from evaporation and condensation
@@ -126,15 +158,13 @@ void NextsimPhysics::heatFluxOpenWaterStatic(
         + phys.QLongwaveOpenWater() + phys.QShortwaveOpenWater();
 }
 
-void NextsimPhysics::massFluxIceAtmosphereStatic(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+void NextsimPhysics::massFluxIceAtmosphere(const PrognosticData& prog, PhysicsData& phys)
 {
-
     phys.sublimationRate() = dragIce_t * phys.airDensity() * phys.windSpeed()
         * (phys.specificHumidityIce() - phys.specificHumidityAir());
 }
 
-void NextsimPhysics::heatFluxIceAtmosphereStatic(
+void NextsimPhysics::heatFluxIceAtmosphere(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     // Latent heat flux from sublimation
@@ -164,17 +194,14 @@ void NextsimPhysics::heatFluxIceAtmosphereStatic(
         + phys.QShortwaveIce();
 }
 
-void NextsimPhysics::massFluxIceOceanStatic(const PrognosticData& prog, const ExternalData& exter,
-    PhysicsData& phys, NextsimPhysics& nsphys)
+void NextsimPhysics::massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter,
+    PhysicsData& phys)
 {
-    // The mass flux is driven by the heat flux
-    nsphys.heatFluxIceOcean(prog, exter, phys);
+    iThermo->calculate(prog, exter, phys, *this);
 
-    iThermo->calculate(prog, exter, phys, nsphys);
+    newIceFormation(prog, exter, phys);
 
-    nsphys.newIceFormation(prog, exter, phys);
-
-    nsphys.lateralGrowth(prog, exter, phys);
+    lateralGrowth(prog, exter, phys);
 
     // Apply the lower limit of concentration and thickness
     if (phys.updatedIceConcentration() < minc || phys.updatedIceTrueThickness() < minh) {

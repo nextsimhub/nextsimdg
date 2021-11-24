@@ -4,13 +4,14 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#ifndef SRC_INCLUDE_NEXTSIMPHYSICS_HPP
+#define SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 #include <memory>
 
 #include "BaseElementData.hpp"
 #include "Configured.hpp"
-
-#ifndef SRC_INCLUDE_NEXTSIMPHYSICS_HPP
-#define SRC_INCLUDE_NEXTSIMPHYSICS_HPP
+#include "constants.hpp"
+#include "IPhysics1d.hpp"
 
 namespace Nextsim {
 
@@ -28,7 +29,9 @@ template <class Phys> class ElementData;
 
 class NextsimPhysics;
 
-class NextsimPhysics : public BaseElementData, public Configured<NextsimPhysics> {
+class NextsimPhysics : public BaseElementData,
+                       public Configured<NextsimPhysics>,
+                       public IPhysics1d {
 public:
     NextsimPhysics();
 
@@ -42,48 +45,13 @@ public:
         MINH_KEY,
     };
 
-    inline void updateDerivedData(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, const UnusedData&)
-    {
-        updateDerivedDataStatic(prog, exter, phys);
-    }
-    inline void massFluxOpenWater(
-        const UnusedData&, const UnusedData&, PhysicsData& phys, const UnusedData&)
-    {
-        massFluxOpenWaterStatic(phys);
-    };
-    inline void momentumFluxOpenWater(
-        const UnusedData&, const UnusedData&, PhysicsData& phys, const UnusedData&)
-    {
-        momentumFluxOpenWaterStatic(phys);
-    };
-    inline void heatFluxOpenWater(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, UnusedData&)
-    {
-        heatFluxOpenWaterStatic(prog, exter, phys);
-    }
-    inline void massFluxIceAtmosphere(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, UnusedData&)
-    {
-        massFluxIceAtmosphereStatic(prog, exter, phys);
-    };
-    inline void heatFluxIceAtmosphere(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, UnusedData&)
-    {
-        heatFluxIceAtmosphereStatic(prog, exter, phys);
-    };
-    inline void massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter,
-        PhysicsData& phys, NextsimPhysics& nsphys)
-    {
-        massFluxIceOceanStatic(prog, exter, phys, nsphys);
-    };
+    void calculate(const PrognosticData&, const ExternalData&, PhysicsData&) override;
 
     //! Calculate the new ice formed this timestep on open water
     void newIceFormation(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     //! The thickness of newly created ice in the current timestep
     inline double newIce() const { return m_newice; };
 
-    void heatFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
     static double minimumIceConcentration() { return minc; };
     static double minimumIceThickness() { return minh; };
@@ -116,22 +84,27 @@ public:
         double operator()(const double temperature, const double pressure) const;
         double dq_dT(const double temperature, const double pressure) const;
     };
+protected:
+    void updateSpecificHumidityAir(const ExternalData& exter, PhysicsData& phys) override;
+    void updateSpecificHumidityWater(
+            const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
+    void updateSpecificHumidityIce(
+            const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
+    void updateAirDensity(const ExternalData& exter, PhysicsData& phys) override;
+    void updateHeatCapacityWetAir(const ExternalData& exter, PhysicsData& phys) override;
 
 private:
-    static void updateDerivedDataStatic(
+    void massFluxOpenWater(PhysicsData& phys);
+    void momentumFluxOpenWater(PhysicsData& phys);
+    void heatFluxOpenWater(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
-    static void massFluxOpenWaterStatic(PhysicsData& phys);
-    static void momentumFluxOpenWaterStatic(PhysicsData& phys);
-    static void heatFluxOpenWaterStatic(
+    void massFluxIceAtmosphere(const PrognosticData& prog, PhysicsData& phys);
+    void heatFluxIceAtmosphere(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-
-    static void massFluxIceAtmosphereStatic(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-    static void heatFluxIceAtmosphereStatic(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-    static void massFluxIceOceanStatic(const PrognosticData& prog, const ExternalData& exter,
-        PhysicsData& phys, NextsimPhysics& nsphys);
+    void massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter,
+        PhysicsData& phys);
+    void heatFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     void lateralGrowth(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
     static double dragOcean_q;
@@ -160,7 +133,7 @@ private:
     static SpecificHumidity specHumWater;
     static SpecificHumidityIce specHumIce;
 
-    static std::unique_ptr<IIceAlbedo> iIceAlbedoImpl;
+    static IIceAlbedo* iIceAlbedoImpl;
     static IThermodynamics* iThermo;
 };
 
