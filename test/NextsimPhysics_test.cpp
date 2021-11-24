@@ -7,8 +7,6 @@
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
-// FIXME remove this header
-#include "/opt/home/include/catch2/catch.hpp"
 #include <sstream>
 
 #include "ConfiguredModule.hpp"
@@ -103,8 +101,6 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     data.updateDerivedData(data, data, data);
 
     data.calculate(data, data, data);
-
-//    data.newIceFormation(data, data, data);
 
     REQUIRE(0.0258231 == Approx(data.newIce()).epsilon(1e-4));
 }
