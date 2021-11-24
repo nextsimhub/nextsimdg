@@ -19,7 +19,6 @@ set(BaseSources
     "ModuleLoader.cpp"
     "PrognosticData.cpp"
     "ExternalData.cpp"
-    "PhysicsData.cpp"
     )
 
 set(IceAlbedoModuleSources

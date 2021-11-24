@@ -10,8 +10,8 @@
 
 #include "BaseElementData.hpp"
 #include "Configured.hpp"
-#include "constants.hpp"
 #include "IPhysics1d.hpp"
+#include "constants.hpp"
 
 namespace Nextsim {
 
@@ -40,6 +40,7 @@ public:
         DRAGOCEANQ_KEY,
         DRAGOCEANT_KEY,
         DRAGICET_KEY,
+        OCEANALBEDO_KEY,
         I0_KEY,
         MINC_KEY,
         MINH_KEY,
@@ -52,6 +53,19 @@ public:
     //! The thickness of newly created ice in the current timestep
     inline double newIce() const { return m_newice; };
 
+    //! Total ice-atmosphere heat flux [W m⁻²]
+    inline double QIceAtmosphere() const { return m_Qia; };
+    //! Ice to ocean heat flux [W m⁻²]
+    inline double& QIceOceanHeat() { return m_Qio; };
+
+    //! Rate of sublimation ice to vapour [kg s⁻¹ m⁻²]
+    inline double sublimationRate() const { return m_subl; };
+
+    //! Derivative of ice-atmosphere heat flux with respect to ice surface temperature [W m⁻² K⁻¹]
+    inline double QDerivativeWRTTemperature() const { return m_dQ_dT; };
+
+    //! Total amount of ice that resulted from the flooding of snow [m]
+    inline double& totalIceFromSnow() { return m_hifroms; }
 
     static double minimumIceConcentration() { return minc; };
     static double minimumIceThickness() { return minh; };
@@ -84,12 +98,13 @@ public:
         double operator()(const double temperature, const double pressure) const;
         double dq_dT(const double temperature, const double pressure) const;
     };
+
 protected:
     void updateSpecificHumidityAir(const ExternalData& exter, PhysicsData& phys) override;
     void updateSpecificHumidityWater(
-            const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
     void updateSpecificHumidityIce(
-            const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
     void updateAirDensity(const ExternalData& exter, PhysicsData& phys) override;
     void updateHeatCapacityWetAir(const ExternalData& exter, PhysicsData& phys) override;
 
@@ -102,20 +117,46 @@ private:
     void massFluxIceAtmosphere(const PrognosticData& prog, PhysicsData& phys);
     void heatFluxIceAtmosphere(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-    void massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter,
-        PhysicsData& phys);
+    void massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     void heatFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
     void lateralGrowth(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+
+    // Phase change rates
+    double m_evap;
+    double m_subl;
+
+    // Open water heat fluxes
+    double m_Qow;
+    double m_Qlwow;
+    double m_Qswow;
+    double m_Qlhow;
+    double m_Qshow;
+
+    // Ice heat fluxes
+    double m_Qi;
+    double m_Qlwi;
+    double m_Qswi;
+    double m_Qlhi;
+    double m_Qshi;
+    double m_dQ_dT;
+
+    // ice-ocean fluxes
+    double m_Qio;
+
+    //! ice-atmosphere fluxes
+    double m_Qia;
+
+    // Thickness of ice generated from flooding of snow [m]
+    double m_hifroms;
 
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);
     static double dragOcean_t;
     static double dragIce_t;
 
-    // Private instance functions
+    static double m_oceanAlbedo;
 
     // Ice-ocean heat flux
-    double m_Qio; // Ice-ocean heat flux
     static IIceOceanHeatFlux* iceOceanHeatFluxImpl;
     // New ice created by cooling below freezing
     double m_newice;

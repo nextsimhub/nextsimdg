@@ -56,7 +56,6 @@ target_link_libraries(testEnumWrapper LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Cat
 add_executable(testNextsimPhysics
     "NextsimPhysics_test.cpp"
     "${SRC_DIR}/NextsimPhysics.cpp"
-    "${SRC_DIR}/PhysicsData.cpp"
     "${SRC_DIR}/ModuleLoader.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"

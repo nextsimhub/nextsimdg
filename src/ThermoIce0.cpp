@@ -54,9 +54,9 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     double k_lSlab = k_s * Ice::kappa
         / (k_s * prog.iceTrueThickness() + Ice::kappa * prog.snowTrueThickness());
     double QIceConduction = k_lSlab * (exter.iceBottomTemperature() - iceTemperature);
-    double remainingFlux = QIceConduction - phys.QIceAtmosphere();
+    double remainingFlux = QIceConduction - nsphys.QIceAtmosphere();
     phys.updatedIceSurfaceTemperature()
-        = iceTemperature + remainingFlux / (k_lSlab + phys.QDerivativeWRTTemperature());
+        = iceTemperature + remainingFlux / (k_lSlab + nsphys.QDerivativeWRTTemperature());
 
     // Clamp the maximum temperature of the ice to the melting point of ice or snow
     double meltingLimit = (prog.snowTrueThickness() > 0.) ? 0 : freezingPointIce;
@@ -65,7 +65,7 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
 
     // Top melt. Melting rate is non-positive.
     double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow; // [m³ s⁻¹]
-    double snowSublRate = phys.sublimationRate() / Ice::rhoSnow; // [m³ s⁻¹]
+    double snowSublRate = nsphys.sublimationRate() / Ice::rhoSnow; // [m³ s⁻¹]
 
     phys.updatedSnowTrueThickness() += (snowMeltRate - snowSublRate) * prog.timestep();
     // Use excess flux to melt ice. Non-positive value
@@ -78,7 +78,7 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
 
     // Bottom melt or growth
     double iceBottomChange
-        = (QIceConduction - phys.QIceOceanHeat()) * prog.timestep() / bulkLHFusionIce;
+        = (QIceConduction - nsphys.QIceOceanHeat()) * prog.timestep() / bulkLHFusionIce;
 
     // Total thickness change
     double iceThicknessChange = excessIceMelt + iceBottomChange;
@@ -95,7 +95,7 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     if (doFlooding && iceDraught > phys.updatedIceTrueThickness()) {
         // Keep a running total of the ice formed from flooded snow
         double newIce = iceDraught - phys.updatedIceTrueThickness();
-        phys.totalIceFromSnow() += newIce;
+        nsphys.totalIceFromSnow() += newIce;
 
         // Convert all the submerged snow to ice
         phys.updatedIceTrueThickness() = iceDraught;
@@ -112,13 +112,13 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
         }
 
         // No snow was converted to ice
-        phys.totalIceFromSnow() = 0;
+        nsphys.totalIceFromSnow() = 0;
 
         // Change in thickness is all of the old thickness
         iceThicknessChange = -oldIceThickness;
 
         // The ice-ocean flux includes all the latent heat
-        phys.QIceOceanHeat() += phys.updatedIceTrueThickness() * bulkLHFusionIce / prog.timestep()
+        nsphys.QIceOceanHeat() += phys.updatedIceTrueThickness() * bulkLHFusionIce / prog.timestep()
             + phys.updatedSnowTrueThickness() * bulkLHFusionSnow / prog.timestep();
 
         // No ice, no snow and the surface temperature is the melting point of ice
