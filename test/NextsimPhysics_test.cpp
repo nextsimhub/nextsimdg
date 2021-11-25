@@ -95,6 +95,8 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     data.dewPoint2m() = tdew;
     data.airPressure() = pair;
     data.mixedLayerDepth() = dml;
+    data.incomingLongwave() = 0;
+    data.incomingShortwave() = 0;
 
     data = phys;
 
