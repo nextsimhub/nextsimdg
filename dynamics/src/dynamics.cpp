@@ -77,8 +77,40 @@ namespace Nextsim
             stabilization_X(ic, ic + mesh.nx, ie);
     }
 
-
     }
+
+    void Dynamics::momentumBoundaryStabilization()
+    {
+      
+      const size_t eupper0 = mesh.nx * mesh.ny;
+
+      for (size_t ix = 0; ix < mesh.nx; ++ix) {
+
+          //why we define it? and not write to functiona call?
+          const size_t clower = ix;
+          const size_t elower = ix;
+          const size_t cupper = mesh.n - mesh.nx + ix;
+          const size_t eupper = eupper0 + ix;
+
+          boundaryStabilizationXUpper<2>(clower, elower);
+          boundaryStabilizationXLower<2>(cupper, eupper);
+
+      }
+
+      size_t eright0 = mesh.nx;
+
+      for (size_t iy = 0; iy < mesh.ny; ++iy) {
+          const size_t cleft = iy * mesh.nx;
+          const size_t eleft = iy * (mesh.nx + 1); 
+          const size_t cright = (iy + 1) * mesh.nx - 1 ;
+          const size_t eright =  iy * (mesh.nx + 1) + eright0 ;
+
+          boundaryStabilizationYLeft<2>(cleft, eleft);
+          boundaryStabilizationYRight<2>(cright, eright);
+
+      }
+
+    }//momentumBoundaryStabilization
 
   void Dynamics::momentum_substeps()
   {
@@ -130,6 +162,8 @@ namespace Nextsim
   // jump stabilization
   momentum_jumps();
 
+  // boundary stabilisation
+  momentumBoundaryStabilization();
 
    vx += timemesh.dt_momentum * tmpX;
    vy += timemesh.dt_momentum * tmpY;

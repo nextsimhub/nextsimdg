@@ -128,7 +128,7 @@ public:
 
     //////////////////////////////////////////////////
 
-    void stabilization_Y(size_t c1, size_t c2, size_t e)
+    void stabilization_Y(size_t c1, size_t c2, size_t e) //minak edge is not used
     {
         const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
             vx(c1, 2) + 0.5 * vx(c1, 5),
@@ -164,6 +164,7 @@ public:
         const LocalEdgeVector<2> topX(
             vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),
             vx(c2, 1) - 0.5 * vx(c2, 5), vx(c2, 3));
+
         const LocalEdgeVector<2> bottomY(
             vy(c1, 0) + 0.5 * vy(c1, 2) + 1. / 6. * vy(c1, 4),
             vy(c1, 1) + 0.5 * vy(c1, 5),
@@ -181,10 +182,43 @@ public:
         tmpY.block<1, 6>(c2, 0) -= 10.0 * jumpY * BiG23_0;
     }
 
+    template <int DGdegree>
+    void boundaryStabilizationYLeft(const size_t cell, const size_t eleft)
+    {
+        //x=0, y=t
+        const LocalEdgeVector<2> basisCoeffEdge3(vx(cell, 0) - 0.5 * vx(cell, 1) + 1. / 6. * vx(cell, 3),
+            vx(cell, 2) - 0.5 * vx(cell, 5),
+            vx(cell, 4));
+
+        tmpY.block<1, 6>(cell, 0) += basisCoeffEdge3 * BiGe23 * BiG23_3;
+    }
+
+    template <int DGdegree>
+    void boundaryStabilizationYRight(const size_t cell, const size_t eright)
+    {
+        //x=1, y=t
+        const LocalEdgeVector<2> basisCoeffEdge1(vx(cell, 0) + 0.5 * vx(cell, 1) + 1. / 6. * vx(cell, 3),
+            vx(cell, 2) + 0.5 * vx(cell, 5),
+            vx(cell, 4));
+
+        tmpY.block<1, 6>(cell, 0) += basisCoeffEdge1 * BiGe23 * BiG23_1;
+    }
+
+    template <int DGdegree>
+    void boundaryStabilizationXUpper(const size_t cupper, const size_t eupper)
+    {
+    }
+
+    template <int DGdegree>
+    void boundaryStabilizationXLower(const size_t clower, const size_t elower)
+    {
+    }
+
     /**!
    * controls the flow of the dynamical core
    */
     void momentum_jumps();
+    void momentumBoundaryStabilization();
 
     void advection_step();
     void momentum_substeps();
