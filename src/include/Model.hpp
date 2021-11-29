@@ -8,13 +8,12 @@
 #define SRC_INCLUDE_MODEL_HPP
 
 #include "Logged.hpp"
-#include "Timed.hpp"
 
 #include "Iterator.hpp"
 
 namespace Nextsim {
 
-class Model : public Timed, public Logged {
+class Model : public Logged {
 public:
     Model(); // TODO add arguments to pass the desired
              // environment and configuration to the model
