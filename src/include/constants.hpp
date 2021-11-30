@@ -125,10 +125,10 @@ const double TfOcean = -1.8;
 
 namespace Nextsim {
 //! Convert a temperature from ˚C to K
-inline double kelvin(double celsius) { return celsius + PhysicalConstants::Tt; }
+inline double kelvin(double celsius) { return celsius + Water::Tf; }
 
 //! Convert a temperature from K to ˚C
-inline double celsius(double kelvin) { return kelvin - PhysicalConstants::Tt; }
+inline double celsius(double kelvin) { return kelvin - Water::Tf; }
 
 //! Convert an angle from radians to degrees
 inline double degrees(double radians) { return radians * 360 / PhysicalConstants::tau; }
