@@ -157,29 +157,29 @@ public:
     void stabilization_X(size_t c1, size_t c2)
     {
 
-        const LocalEdgeVector<2> bottomX(
+        const LocalEdgeVector<2> topX(
             vx(c1, 0) + 0.5 * vx(c1, 2) + 1. / 6. * vx(c1, 4),
             vx(c1, 1) + 0.5 * vx(c1, 5),
             vx(c1, 3));
-        const LocalEdgeVector<2> topX(
+        const LocalEdgeVector<2> bottomX(
             vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),
             vx(c2, 1) - 0.5 * vx(c2, 5), vx(c2, 3));
 
-        const LocalEdgeVector<2> bottomY(
+        const LocalEdgeVector<2> topY(
             vy(c1, 0) + 0.5 * vy(c1, 2) + 1. / 6. * vy(c1, 4),
             vy(c1, 1) + 0.5 * vy(c1, 5),
             vy(c1, 3));
-        const LocalEdgeVector<2> topY(
+        const LocalEdgeVector<2> bottomY(
             vy(c2, 0) - 0.5 * vy(c2, 2) + 1. / 6. * vy(c2, 4),
             vy(c2, 1) - 0.5 * vy(c2, 5), vy(c2, 3));
 
         const LocalEdgeVector<2> jumpX = (topX - bottomX) * BiGe23;
-        tmpX.block<1, 6>(c1, 0) += 1. * jumpX * BiG23_2;
-        tmpX.block<1, 6>(c2, 0) -= 1. * jumpX * BiG23_0;
+        tmpX.block<1, 6>(c1, 0) -= 1. * jumpX * BiG23_2;
+        tmpX.block<1, 6>(c2, 0) += 1. * jumpX * BiG23_0;
 
         const LocalEdgeVector<2> jumpY = (topY - bottomY) * BiGe23;
-        tmpY.block<1, 6>(c1, 0) += 1. * jumpY * BiG23_2;
-        tmpY.block<1, 6>(c2, 0) -= 1. * jumpY * BiG23_0;
+        tmpY.block<1, 6>(c1, 0) -= 1. * jumpY * BiG23_2;
+        tmpY.block<1, 6>(c2, 0) += 1. * jumpY * BiG23_0;
     }
 
     template <int DGdegree>
@@ -213,33 +213,35 @@ public:
     }
 
     template <int DGdegree>
-    void boundaryStabilizationTop(const size_t c2)
+    void boundaryStabilizationTop(const size_t c1)
     {
         const LocalEdgeVector<2> topX(
-            vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),
-            vx(c2, 1) - 0.5 * vx(c2, 5), vx(c2, 3));
-        const LocalEdgeVector<2> topY(
-            vy(c2, 0) - 0.5 * vy(c2, 2) + 1. / 6. * vy(c2, 4),
-            vy(c2, 1) - 0.5 * vy(c2, 5), vy(c2, 3));
-
-        tmpX.block<1, 6>(c2, 0) -= 1. * topX * BiGe23 * BiG23_2;
-        tmpY.block<1, 6>(c2, 0) -= 1. * topY * BiGe23 * BiG23_2;
-    }
-
-    template <int DGdegree>
-    void boundaryStabilizationBottom(const size_t c1)
-    {
-        const LocalEdgeVector<2> bottomX(
             vx(c1, 0) + 0.5 * vx(c1, 2) + 1. / 6. * vx(c1, 4),
             vx(c1, 1) + 0.5 * vx(c1, 5),
             vx(c1, 3));
-        const LocalEdgeVector<2> bottomY(
+
+        const LocalEdgeVector<2> topY(
             vy(c1, 0) + 0.5 * vy(c1, 2) + 1. / 6. * vy(c1, 4),
             vy(c1, 1) + 0.5 * vy(c1, 5),
             vy(c1, 3));
 
-        tmpX.block<1, 6>(c1, 0) -= 1. * bottomX * BiGe23 * BiG23_0;
-        tmpY.block<1, 6>(c1, 0) -= 1. * bottomY * BiGe23 * BiG23_0;
+        tmpX.block<1, 6>(c1, 0) -= 1. * topX * BiGe23 * BiG23_2;
+        tmpY.block<1, 6>(c1, 0) -= 1. * topY * BiGe23 * BiG23_2;
+    }
+
+    template <int DGdegree>
+    void boundaryStabilizationBottom(const size_t c2)
+    {
+        const LocalEdgeVector<2> bottomX(
+            vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),
+            vx(c2, 1) - 0.5 * vx(c2, 5), vx(c2, 3));
+
+        const LocalEdgeVector<2> bottomY(
+            vy(c2, 0) - 0.5 * vy(c2, 2) + 1. / 6. * vy(c2, 4),
+            vy(c2, 1) - 0.5 * vy(c2, 5), vy(c2, 3));
+
+        tmpX.block<1, 6>(c2, 0) -= 1. * bottomX * BiGe23 * BiG23_0;
+        tmpY.block<1, 6>(c2, 0) -= 1. * bottomY * BiGe23 * BiG23_0;
     }
 
     /**!

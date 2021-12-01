@@ -82,12 +82,11 @@ namespace Nextsim
       
       for (size_t ix = 0; ix < mesh.nx; ++ix) {
 
-          //why we define it? and not write to functiona call?
           const size_t clower = ix;
           const size_t cupper = mesh.n - mesh.nx + ix;
 
-          //boundaryStabilizationTop<2>(cupper);
-          //boundaryStabilizationBottom<2>(clower);
+          boundaryStabilizationTop<2>(cupper);
+          boundaryStabilizationBottom<2>(clower);
 
       }
 
