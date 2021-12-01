@@ -62,19 +62,17 @@ namespace Nextsim
 #pragma omp parallel for
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ic = iy * mesh.nx; // first index of left cell in row
-        size_t ie = iy * (mesh.nx + 1) + 1; // first index of inner velocity in row
-
-        for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic, ++ie)
-            stabilization_Y(ic, ic + 1, ie);
+        
+        for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic)
+            stabilization_Y(ic, ic + 1);
     }
 
     // X - edges, only inner ones
 #pragma omp parallel for
     for (size_t ix = 0; ix < mesh.nx; ++ix) {
         size_t ic = ix; // first index of left cell in column
-        size_t ie = ix + mesh.nx; // first index of inner velocity in column
-        for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx, ie += mesh.nx)
-            stabilization_X(ic, ic + mesh.nx, ie);
+        for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx)
+            stabilization_X(ic, ic + mesh.nx);
     }
 
     }
@@ -82,31 +80,23 @@ namespace Nextsim
     void Dynamics::momentumBoundaryStabilization()
     {
       
-      const size_t eupper0 = mesh.nx * mesh.ny;
-
       for (size_t ix = 0; ix < mesh.nx; ++ix) {
 
           //why we define it? and not write to functiona call?
           const size_t clower = ix;
-          const size_t elower = ix;
           const size_t cupper = mesh.n - mesh.nx + ix;
-          const size_t eupper = eupper0 + ix;
 
-          boundaryStabilizationXUpper<2>(clower, elower);
-          boundaryStabilizationXLower<2>(cupper, eupper);
+          //boundaryStabilizationTop<2>(cupper);
+          //boundaryStabilizationBottom<2>(clower);
 
       }
 
-      size_t eright0 = mesh.nx;
-
       for (size_t iy = 0; iy < mesh.ny; ++iy) {
           const size_t cleft = iy * mesh.nx;
-          const size_t eleft = iy * (mesh.nx + 1); 
           const size_t cright = (iy + 1) * mesh.nx - 1 ;
-          const size_t eright =  iy * (mesh.nx + 1) + eright0 ;
 
-          boundaryStabilizationYLeft<2>(cleft, eleft);
-          boundaryStabilizationYRight<2>(cright, eright);
+          boundaryStabilizationLeft<2>(cleft);
+          boundaryStabilizationRight<2>(cright);
 
       }
 

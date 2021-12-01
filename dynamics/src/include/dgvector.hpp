@@ -131,7 +131,7 @@ typedef enum {
  *
  * DGdegree 0:    1
  * DGdegree 1: +  (t-1/2)
- * DGdegree 2: +  (t-1/2)^2-1/12
+ * DGdegree 2: +  (t-1/2)^2-1/12 
  *
  * edges (t) are oriented in positive x- and y-direction
  *

@@ -35,7 +35,7 @@ int main()
   double    k = 10.0 / ReferenceScale::T; //!< time step 10 seconds
   int NT = (static_cast<int>((TMAX / k + 1) / 100 + 1) * 100); //!<  No. of time steps dividable by 100
   
-  NT *= 2; // 
+  //NT *= 2; // 
   k = TMAX / NT;
 
   dynamics.GetTimeMesh().BasicInit(TMAX,NT,1);
