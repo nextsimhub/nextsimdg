@@ -46,7 +46,7 @@ public:
 
     inline double& mixedLayerDepth() { return m_mld; };
     inline double mixedLayerDepth() const { return m_mld; }
-    inline double mixedLayerBulkHeatCapacity() const { return m_mld * Water::rho * Water::cp; }
+    inline double mixedLayerBulkHeatCapacity() const { return m_mld * Water::rhoOcean * Water::cp; }
 
     inline double& snowfall() // [kg m⁻² s⁻¹]
     {
