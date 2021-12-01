@@ -39,6 +39,7 @@ TEST_CASE("Configure a module from a stream", "[Configurator, ModuleLoader]")
 {
     Configurator::clear();
     std::stringstream config;
+    config << "ITest = Impl2" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
