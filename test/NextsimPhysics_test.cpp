@@ -61,7 +61,7 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
 
     data.updateDerivedData(data, data, data);
 
-    REQUIRE(1.2895 == Approx(data.airDensity()).epsilon(1e-4));
+    REQUIRE(1.29253 == Approx(data.airDensity()).epsilon(1e-4));
     REQUIRE(0.00385326 == Approx(data.specificHumidityAir()).epsilon(1e-4));
     REQUIRE(0.00349446 == Approx(data.specificHumidityWater()).epsilon(1e-4));
     REQUIRE(0.00323958 == Approx(data.specificHumidityIce()).epsilon(1e-4));
@@ -74,12 +74,59 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     ExternalData exter;
     PhysicsData phys;
 
+    std::stringstream config;
+    config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
+
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+
     double tair = -3; //˚C
     double tdew = 0.1; //˚C
     double pair = 100000; // Pa, slightly low pressure
     double sst = -1.5; //˚C
     double sss = 32; // PSU
     std::array<double, N_ICE_TEMPERATURES> tice = { -2., -2, -2 }; //˚C
+    double hice = 0.1; // m
+    double cice = 0.5;
+    double dml = 10.; // m
+
+    ConfiguredModule::parseConfigurator();
+    data.configure(); // Configure with the default linear freezing point
+
+    data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
+    data.setTimestep(86400.); // s. Very long TS to get below freezing
+
+    //data = exter;
+    data.airTemperature() = tair;
+    data.dewPoint2m() = tdew;
+    data.airPressure() = pair;
+    data.mixedLayerDepth() = dml;
+    data.incomingLongwave() = 0;
+    data.incomingShortwave() = 0;
+
+    //data = phys;
+
+    data.updateDerivedData(data, data, data);
+    data.calculate(data, data, data);
+
+    // Correct for the non-NIST value of the Stefan-Boltzman constant used by old NeXtSIM. This
+    // propagates linearly through to the new sea ice value in this case.
+    double sbCorr = PhysicalConstants::sigma / 5.67e-8;
+    REQUIRE(0.0258236 * sbCorr == Approx(data.newIce()).epsilon(1e-4));
+}
+
+TEST_CASE("Drag pressure", "[NextsimPhysics]")
+{
+    ElementData<NextsimPhysics> data;
+    ExternalData exter;
+    PhysicsData phys;
+
+    double tair = 2; //˚C
+    double tdew = 1.5; //˚C
+    double pair = 100000; // Pa, slightly low pressure
+    double sst = -1.5; //˚C
+    double sss = 32; // PSU
+    std::array<double, N_ICE_TEMPERATURES> tice = { -1., -1, -1 }; //˚C
     double hice = 0.1; // m
     double cice = 0.5;
     double dml = 10.; // m
@@ -100,10 +147,24 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
 
     data = phys;
 
+    // Below the lower limit
+    data.windSpeed() = 1.5;
     data.updateDerivedData(data, data, data);
-
     data.calculate(data, data, data);
+    REQUIRE(0.00126936 == Approx(data.dragPressure()).epsilon(1e-4));
 
-    REQUIRE(0.0258231 == Approx(data.newIce()).epsilon(1e-4));
+    // Wind speed dependent
+    data.windSpeed() = 8;
+    data.updateDerivedData(data, data, data);
+    data.calculate(data, data, data);
+    REQUIRE(0.00141407 == Approx(data.dragPressure()).epsilon(1e-4));
+
+    // Above the upper limit
+    data.windSpeed() = 23;
+    data.updateDerivedData(data, data, data);
+    data.calculate(data, data, data);
+    REQUIRE(0.00253872 == Approx(data.dragPressure()).epsilon(1e-4));
+
 }
+
 } /* namespace Nextsim */
