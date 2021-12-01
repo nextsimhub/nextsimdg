@@ -75,9 +75,18 @@ public:
     }
 
     /*!
-     * Remove all previously assigned data sources, both files and istreams.
+     * Remove previously assigned stream data sources, both files and istreams.
      */
     inline static void clearStreams() { sources.clear(); }
+
+    /*!
+     * Remove all data sources, both streams and command line
+     */
+    inline static void clear()
+    {
+        clearStreams();
+        setCommandLine(0, nullptr);
+    }
     /*!
      * Set the command line data to be parsed.
      *
