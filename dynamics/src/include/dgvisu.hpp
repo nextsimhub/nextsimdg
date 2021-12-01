@@ -127,6 +127,8 @@ public:
         const CellVector<DGdegree>& v,
         const Mesh& mesh)
     {
+        //extract variable name
+        std::string variableName = fname.substr(fname.find("/") + 1, fname.find_first_of(".") - fname.find("/") - 1);
 
         std::ofstream OUT(fname.c_str());
         assert(OUT.is_open());
@@ -162,7 +164,7 @@ public:
         OUT << std::endl;
 
         OUT << "POINT_DATA " << 4 * mesh.nx * mesh.ny << std::endl
-            << "SCALARS dg" << DGdegree << " DOUBLE " << std::endl
+            << "SCALARS " << variableName << " DOUBLE " << std::endl
             << "LOOKUP_TABLE default" << std::endl;
 
         ii = 0;
