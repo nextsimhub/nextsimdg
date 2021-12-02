@@ -43,54 +43,76 @@ private:
     int value;
 };
 
-class Config2 : public Nextsim::Configured {
+class Config2 : public Nextsim::Configured<Config2> {
 public:
-    Config2()
-        : value(0)
-    {
-        addOption<int>(valueKey, -1);
-        addOption<std::string>(nameKey, "");
-    }
+    enum {
+        VALUE_KEY,
+        NAME_KEY,
+    };
+
+    Config2();
     int getValue() { return value; }
     std::string getName() { return name; }
 
-    void configure() override
-    {
-        value = retrieveValue<int>(valueKey);
-        name = retrieveValue<std::string>(nameKey);
-    }
+    void configure() override;
 
 private:
     int value;
     std::string name;
-    const std::string valueKey = "config.value";
-    const std::string nameKey = "config.name";
 };
 
-class Config3 : public Nextsim::Configured {
+template<>
+const std::map<int, std::string> Nextsim::Configured<Config2>::keyMap = {
+        {Config2::VALUE_KEY, "config.value"},
+        {Config2::NAME_KEY, "config.name"},
+};
+
+Config2::Config2()
+    : value(0)
+{
+addOption<int>(keyMap.at(VALUE_KEY), -1);
+addOption<std::string>(keyMap.at(NAME_KEY), "");
+}
+
+void Config2::configure()
+{
+    value = retrieveValue<int>(keyMap.at(VALUE_KEY));
+    name = retrieveValue<std::string>(keyMap.at(NAME_KEY));
+}
+
+
+class Config3 : public Nextsim::Configured<Config3> {
 public:
+    enum {
+        VALUE_KEY,
+        WEIGHT_KEY,
+    };
     Config3()
-        : value(0)
-        , weight(0.)
-    {
-        addOption<int>(valueKey, -1);
-        addOption<double>(weightKey, 1.);
-    }
+    : value(0)
+    , weight(0.)
+{
+}
     int getValue() { return value; }
     double getWeight() { return weight; }
 
-    void configure() override
-    {
-        value = retrieveValue<int>(valueKey);
-        weight = retrieveValue<double>(weightKey);
-    }
+    void configure() override;
 
 private:
     int value;
     double weight;
-    const std::string valueKey = "config.value";
-    const std::string weightKey = "data.weight";
 };
+
+template<>
+const std::map<int, std::string> Nextsim::Configured<Config3>::keyMap = {
+        {Config3::VALUE_KEY, "config.value"},
+        {Config3::WEIGHT_KEY, "data.weight"},
+};
+
+void Config3::configure()
+{
+    value = Configured::getConfiguration(keyMap.at(VALUE_KEY), -1);
+    weight = Configured::getConfiguration(keyMap.at(WEIGHT_KEY), 1.);
+}
 
 namespace Nextsim {
 
@@ -125,6 +147,7 @@ TEST_CASE("Parse one config stream using the pointer configuration function", "[
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
+    Config2::clearConfigurationMap();
     Config2 config;
 
     int target = 69105;
@@ -136,7 +159,7 @@ TEST_CASE("Parse one config stream using the pointer configuration function", "[
 
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text.str())));
 
-    Configured::tryConfigure(&config);
+    tryConfigure(&config);
 
     REQUIRE(config.getValue() == target);
     REQUIRE(config.getName() == targetName);
@@ -146,6 +169,7 @@ TEST_CASE("Parse two config streams for one class, reference helper function", "
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
+    Config2::clearConfigurationMap();
     Config2 config;
 
     int target = 69105;
@@ -159,7 +183,7 @@ TEST_CASE("Parse two config streams for one class, reference helper function", "
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(text2.str())));
 
     Config2& ref = config;
-    Configured::tryConfigure(ref);
+    tryConfigure(ref);
 
     REQUIRE(config.getValue() == target);
     REQUIRE(config.getName() == targetName);
@@ -169,8 +193,11 @@ TEST_CASE("Parse config streams for two overlapping class, try", "[Configurator]
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
+    Config2::clearConfigurationMap();
+    Config3::clearConfigurationMap();
     Config2 config;
     Config3 confih;
+
 
     int target = 69105;
     std::string targetName = "Zork II";
@@ -192,8 +219,8 @@ TEST_CASE("Parse config streams for two overlapping class, try", "[Configurator]
     REQUIRE(confih.getValue() != target);
     REQUIRE(confih.getWeight() != targetWeight);
 
-    Configured::tryConfigure(config);
-    Configured::tryConfigure(confih);
+    tryConfigure(config);
+    tryConfigure(confih);
 
     REQUIRE(config.getValue() == target);
     REQUIRE(config.getName() == targetName);

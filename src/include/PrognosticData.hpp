@@ -8,19 +8,25 @@
 #define SRC_INCLUDE_PROGNOSTICDATA_HPP
 
 #include "BaseElementData.hpp"
+#include "Configured.hpp"
+#include "IFreezingPoint.hpp"
 #include <array>
 
 namespace Nextsim {
 
 const int N_ICE_TEMPERATURES = 3;
 
-class PrognosticData : public BaseElementData {
+class PrognosticData : public BaseElementData, Configured<PrognosticData> {
 public:
-    PrognosticData() = default;
+    PrognosticData();
     ~PrognosticData() = default;
+
+    void configure() override;
 
     //! Effective Ice thickness [m]
     inline const double& iceThickness() const { return m_thick; }
+    //! True ice thickness [m]. Zero concentration means no ice thickness
+    inline double iceTrueThickness() const { return (m_conc != 0) ? m_thick / m_conc : 0; }
 
     //! Ice concentration [1]
     inline const double& iceConcentration() const { return m_conc; }
@@ -36,6 +42,11 @@ public:
 
     //! Mean snow thickness [m]
     inline const double& snowThickness() const { return m_snow; }
+    //! Mean snow thickness over ice [m]
+    inline double snowTrueThickness() const { return (m_conc != 0) ? m_snow / m_conc : 0; }
+
+    //! Salinity dependent freezing point
+    inline const double freezingPoint() const { return (*m_freezer)(m_sss); }
 
     //! Timestep [s]
     inline const double& timestep() const { return m_dt; }
@@ -65,6 +76,7 @@ private:
     double m_snow; //!< Mean snow thickness [m]
 
     static double m_dt; //!< Current timestep, shared by all elements
+    static IFreezingPoint* m_freezer;
 };
 
 } /* namespace Nextsim */

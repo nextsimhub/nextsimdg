@@ -8,6 +8,7 @@
 #define SRC_INCLUDE_EXTERNALDATA_HPP
 
 #include "BaseElementData.hpp"
+#include "constants.hpp"
 
 namespace Nextsim {
 
@@ -19,6 +20,10 @@ public:
     //! Air temperature at 2 m [˚C]
     inline double& airTemperature() { return m_tair; };
     inline const double& airTemperature() const { return m_tair; }
+
+    //! Dew point temperature at 2 m [˚C]
+    inline double& dewPoint2m() { return m_dair; };
+    inline double dewPoint2m() const { return m_dair; };
 
     //! Sea level atmospheric pressure [Pa]
     inline double& airPressure() { return m_slp; };
@@ -39,7 +44,9 @@ public:
 
     inline const double& iceBottomTemperature() const { return m_tbot; }
 
+    inline double& mixedLayerDepth() { return m_mld; };
     inline double mixedLayerDepth() const { return m_mld; }
+    inline double mixedLayerBulkHeatCapacity() const { return m_mld * Water::rhoOcean * Water::cp; }
 
     inline double& snowfall() // [kg m⁻² s⁻¹]
     {
@@ -49,6 +56,7 @@ public:
 
 private:
     double m_tair;
+    double m_dair;
     double m_slp;
     double m_mixrat;
     double m_Qsw_in;

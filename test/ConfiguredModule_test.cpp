@@ -15,18 +15,40 @@
 #include "Configurator.hpp"
 #include "ModuleLoader.hpp"
 
+#include <istream>
+#include <memory>
+
 namespace Nextsim {
 TEST_CASE("Configure a module", "[Configurator, ModuleLoader]")
 {
-    // Create the fake command line, selecting the SNU2 albedo implementation
+    Configurator::clear();
+
+    // Create the fake command line, selecting the Impl1 implementation
     ArgV argvee({"cmtest", "--ITest=Impl1"});
 
     Configurator::setCommandLine(argvee.argc(), argvee());
 
-    Nextsim::ConfiguredModule::parseConfigurator();
+    ConfiguredModule::parseConfigurator();
 
     ITest& impler = ModuleLoader::getLoader().getImplementation<ITest>();
 
     REQUIRE(impler() == 1);
 }
+
+TEST_CASE("Configure a module from a stream", "[Configurator, ModuleLoader]")
+{
+    Configurator::clear();
+    std::stringstream config;
+    config << "ITest = Impl2" << std::endl;
+
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+
+    ConfiguredModule::parseConfigurator();
+
+    ITest& impler = ModuleLoader::getLoader().getImplementation<ITest>();
+    REQUIRE(impler() == 2);
+}
+
+
 }

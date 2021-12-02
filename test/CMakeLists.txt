@@ -56,14 +56,16 @@ target_link_libraries(testEnumWrapper LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Cat
 add_executable(testNextsimPhysics
     "NextsimPhysics_test.cpp"
     "${SRC_DIR}/NextsimPhysics.cpp"
-    "${SRC_DIR}/PhysicsData.cpp"
     "${SRC_DIR}/ModuleLoader.cpp"
     "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/SMUIceAlbedo.cpp"
     "${SRC_DIR}/CCSMIceAlbedo.cpp"
     "${SRC_DIR}/SMU2IceAlbedo.cpp"
     "${SRC_DIR}/BasicIceOceanHeatFlux.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/HiblerConcentration.cpp"
+    "${SRC_DIR}/ThermoIce0.cpp"
     )
 target_include_directories(testNextsimPhysics PRIVATE ${ModuleLoaderIppTargetDirectory} "${SRC_DIR}")
 target_link_libraries(testNextsimPhysics PRIVATE ${Boost_LIBRARIES} Catch2::Catch2)
