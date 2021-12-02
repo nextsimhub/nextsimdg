@@ -42,8 +42,6 @@ public:
     inline double& incomingLongwave() { return m_Qlw_in; }
     inline const double& incomingLongwave() const { return m_Qlw_in; }
 
-    inline const double& iceBottomTemperature() const { return m_tbot; }
-
     inline double& mixedLayerDepth() { return m_mld; };
     inline double mixedLayerDepth() const { return m_mld; }
     inline double mixedLayerBulkHeatCapacity() const { return m_mld * Water::rhoOcean * Water::cp; }
@@ -61,7 +59,6 @@ private:
     double m_mixrat;
     double m_Qsw_in;
     double m_Qlw_in;
-    double m_tbot;
     double m_mld;
 
     double m_snowfall;
