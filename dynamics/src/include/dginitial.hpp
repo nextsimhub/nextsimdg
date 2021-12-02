@@ -69,7 +69,7 @@ void L2ProjectInitial(const Mesh& mesh,
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ic = mesh.nx * iy;
         for (size_t ix = 0; ix < mesh.nx; ++ix, ++ic) {
-            Vertex xm = mesh.vertex(ix, iy);
+            Vertex xm = mesh.midpoint(ix, iy);
             phi(ic, 0) = initial(xm[0], xm[1]);
         }
     }
@@ -83,13 +83,15 @@ void L2ProjectInitial(const Mesh& mesh,
     phi.setZero();
 
     std::array<double, 3> imass = { 1.0, 12.0, 12.0 }; // without 'h'
+
+    // Gauss quadrature on [-1/2, 1/2]
     std::array<double, 2> g2 = { -1.0 / sqrt(12.0), 1.0 / sqrt(12.0) };
 
 #pragma omp parallel for
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ic = iy * mesh.nx;
         for (size_t ix = 0; ix < mesh.nx; ++ix, ++ic) {
-            Vertex xm = mesh.vertex(ix, iy);
+            Vertex xm = mesh.midpoint(ix, iy);
             for (unsigned short int gx = 0; gx < 2; ++gx)
                 for (unsigned short int gy = 0; gy < 2; ++gy) {
                     // (f, phi0)
@@ -109,6 +111,8 @@ void L2ProjectInitial(const Mesh& mesh,
     phi.setZero();
 
     std::array<double, 6> imass = { 1.0, 12.0, 12.0, 180., 180., 144. }; // without 'h'
+
+    // Gauss quadrature on [-1/2, 1/2]
     std::array<double, 3> g3 = { -sqrt(3.0 / 5.0) * 0.5, 0.0, sqrt(3.0 / 5.0) * 0.5 };
     std::array<double, 3> w3 = { 5. / 18., 8. / 18., 5. / 18. };
 
@@ -116,7 +120,7 @@ void L2ProjectInitial(const Mesh& mesh,
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ic = iy * mesh.nx;
         for (size_t ix = 0; ix < mesh.nx; ++ix, ++ic) {
-            Vertex xm = mesh.vertex(ix, iy);
+            Vertex xm = mesh.midpoint(ix, iy);
             for (unsigned short int gx = 0; gx < 3; ++gx)
                 for (unsigned short int gy = 0; gy < 3; ++gy) {
                     double x = xm[0] + mesh.hx * g3[gx];

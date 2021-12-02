@@ -128,7 +128,7 @@ public:
 
     //////////////////////////////////////////////////
 
-    void stabilization_Y(size_t c1, size_t c2)
+    void stabilizationY(size_t c1, size_t c2)
     {
         const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
             vx(c1, 2) + 0.5 * vx(c1, 5),
@@ -154,7 +154,7 @@ public:
         tmpY.block<1, 6>(c2, 0) -= 1. * jumpY * BiG23_3;
     }
 
-    void stabilization_X(size_t c1, size_t c2)
+    void stabilizationX(size_t c1, size_t c2)
     {
 
         const LocalEdgeVector<2> topX(
@@ -183,7 +183,7 @@ public:
     }
 
     template <int DGdegree>
-    void boundaryStabilizationLeft(const size_t c2)
+    void boundaryDirichletLeft(const size_t c2)
     {
         //x=0, y=t
         const LocalEdgeVector<2> rightX(vx(c2, 0) - 0.5 * vx(c2, 1) + 1. / 6. * vx(c2, 3),
@@ -198,7 +198,7 @@ public:
     }
 
     template <int DGdegree>
-    void boundaryStabilizationRight(const size_t c1)
+    void boundaryDirichletRight(const size_t c1)
     {
         //x=1, y=t
         const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
@@ -213,7 +213,7 @@ public:
     }
 
     template <int DGdegree>
-    void boundaryStabilizationTop(const size_t c1)
+    void boundaryDirichletTop(const size_t c1)
     {
         const LocalEdgeVector<2> topX(
             vx(c1, 0) + 0.5 * vx(c1, 2) + 1. / 6. * vx(c1, 4),
@@ -230,7 +230,7 @@ public:
     }
 
     template <int DGdegree>
-    void boundaryStabilizationBottom(const size_t c2)
+    void boundaryDirichletBottom(const size_t c2)
     {
         const LocalEdgeVector<2> bottomX(
             vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),
@@ -247,8 +247,8 @@ public:
     /**!
    * controls the flow of the dynamical core
    */
-    void momentum_jumps();
-    void momentumBoundaryStabilization();
+    void momentumJumps();
+    void momentumDirichletBoundary();
 
     void advection_step();
     void momentum_substeps();

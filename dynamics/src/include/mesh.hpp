@@ -49,7 +49,7 @@ public:
         n = NX * NY;
     }
 
-    Vertex vertex(size_t ix, size_t iy) const
+    Vertex midpoint(size_t ix, size_t iy) const
     {
         return { hx * (ix + 0.5), hy * (iy + 0.5) };
     }

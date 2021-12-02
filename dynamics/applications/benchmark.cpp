@@ -10,7 +10,7 @@
 #include "benchmark_data.hpp"
 
 bool WRITE_VTK = true;
-int  WRITE_EVERY = 50;
+int  WRITE_EVERY = 500;
 
 
 namespace Nextsim

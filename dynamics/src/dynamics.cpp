@@ -56,7 +56,7 @@ namespace Nextsim
         GlobalTimer.stop("dyn -- adv -- step");
     }
 
-    void Dynamics::momentum_jumps()
+    void Dynamics::momentumJumps()
     {
           // Y - edges, only inner ones
 #pragma omp parallel for
@@ -64,7 +64,7 @@ namespace Nextsim
         size_t ic = iy * mesh.nx; // first index of left cell in row
         
         for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic)
-            stabilization_Y(ic, ic + 1);
+            stabilizationY(ic, ic + 1);
     }
 
     // X - edges, only inner ones
@@ -72,12 +72,12 @@ namespace Nextsim
     for (size_t ix = 0; ix < mesh.nx; ++ix) {
         size_t ic = ix; // first index of left cell in column
         for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx)
-            stabilization_X(ic, ic + mesh.nx);
+            stabilizationX(ic, ic + mesh.nx);
     }
 
     }
 
-    void Dynamics::momentumBoundaryStabilization()
+    void Dynamics::momentumDirichletBoundary()
     {
       
       for (size_t ix = 0; ix < mesh.nx; ++ix) {
@@ -85,8 +85,8 @@ namespace Nextsim
           const size_t clower = ix;
           const size_t cupper = mesh.n - mesh.nx + ix;
 
-          boundaryStabilizationTop<2>(cupper);
-          boundaryStabilizationBottom<2>(clower);
+          boundaryDirichletTop<2>(cupper);
+          boundaryDirichletBottom<2>(clower);
 
       }
 
@@ -94,8 +94,8 @@ namespace Nextsim
           const size_t cleft = iy * mesh.nx;
           const size_t cright = (iy + 1) * mesh.nx - 1 ;
 
-          boundaryStabilizationLeft<2>(cleft);
-          boundaryStabilizationRight<2>(cright);
+          boundaryDirichletLeft<2>(cleft);
+          boundaryDirichletRight<2>(cright);
 
       }
 
@@ -149,10 +149,10 @@ namespace Nextsim
 
 
   // jump stabilization
-  momentum_jumps();
+  momentumJumps();
 
-  // boundary stabilisation
-  momentumBoundaryStabilization();
+  // boundary zero Dirichlet
+  momentumDirichletBoundary();
 
    vx += timemesh.dt_momentum * tmpX;
    vy += timemesh.dt_momentum * tmpY;
