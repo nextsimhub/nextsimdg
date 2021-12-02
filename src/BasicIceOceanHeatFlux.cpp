@@ -17,15 +17,11 @@ double BasicIceOceanHeatFlux::flux(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys, NextsimPhysics& nsp)
 {
     // The ice bottom temperature is the freezing point of the surface seawater
-    // TODO: Implement the salinity dependent freezing temperature
-    double iceBottomTemperature = -1.8;
+    double iceBottomTemperature = prog.freezingPoint();
     double tDiff = prog.seaSurfaceTemperature() - iceBottomTemperature;
 
-    // Temperature difference multiplied by bulk heat capacity
-    double bulkHeat = tDiff * Water::rho * Water::cp;
-
     // Transfer rate depends on the mixed layer depth an d a timescale. Here, it is the timestep
-    return bulkHeat * exter.mixedLayerDepth() / prog.timestep();
+    return tDiff * exter.mixedLayerBulkHeatCapacity() / prog.timestep();
 }
 
 } /* namespace Nextsim */
