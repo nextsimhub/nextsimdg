@@ -18,6 +18,7 @@ public:
     double albedo(double temperature, double snowThickness) override;
 
     void configure() override;
+
 private:
     static double iceAlbedo;
     static double snowAlbedo;

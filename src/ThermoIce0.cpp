@@ -40,7 +40,7 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
     // Initialize the updated snow thickness
-    //phys.updatedSnowTrueThickness() = prog.snowTrueThickness();
+    // phys.updatedSnowTrueThickness() = prog.snowTrueThickness();
 
     if (prog.iceThickness() == 0 || prog.iceConcentration() == 0) {
         phys.updatedIceTrueThickness() = 0;

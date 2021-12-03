@@ -102,7 +102,7 @@ void NextsimPhysics::updateSpecificHumidityIce(
 
 void NextsimPhysics::updateAirDensity(const ExternalData& exter, PhysicsData& phys)
 {
-    double Ra_wet = Air::Ra / (1 - phys.specificHumidityAir() * ( 1 - Vapour::Ra / Air::Ra));
+    double Ra_wet = Air::Ra / (1 - phys.specificHumidityAir() * (1 - Vapour::Ra / Air::Ra));
     phys.airDensity() = exter.airPressure() / (Ra_wet * kelvin(exter.airTemperature()));
 }
 
@@ -157,7 +157,6 @@ void NextsimPhysics::heatFluxOpenWater(
 
     // Total flux
     m_Qow = m_Qlhow + m_Qshow + m_Qlwow + m_Qswow;
-
 }
 
 void NextsimPhysics::massFluxIceAtmosphere(const PrognosticData& prog, PhysicsData& phys)
@@ -187,7 +186,8 @@ void NextsimPhysics::heatFluxIceAtmosphere(
 
     // Longwave flux
     m_Qlwi = stefanBoltzmannLaw(prog.iceTemperatures()[0]) - exter.incomingLongwave();
-    m_dQ_dT += 4 / kelvin(prog.iceTemperatures()[0]) * stefanBoltzmannLaw(prog.iceTemperatures()[0]);
+    m_dQ_dT
+        += 4 / kelvin(prog.iceTemperatures()[0]) * stefanBoltzmannLaw(prog.iceTemperatures()[0]);
 
     // Total flux
     m_Qia = m_Qlhi + m_Qshi + m_Qlwi + m_Qswi;

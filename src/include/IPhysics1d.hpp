@@ -8,8 +8,8 @@
 #ifndef SRC_INCLUDE_IPHYSICS1D_HPP
 #define SRC_INCLUDE_IPHYSICS1D_HPP
 
-#include "PrognosticData.hpp"
 #include "PhysicsData.hpp"
+#include "PrognosticData.hpp"
 
 namespace Nextsim {
 
