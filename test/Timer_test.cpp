@@ -1,4 +1,4 @@
-/*
+/*!
  * @file Timer_test.cpp
  *
  * @date Oct 27, 2021
@@ -43,7 +43,6 @@ TEST_CASE("Test a timer", "[Timer]")
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     Nextsim::Timer::main.tock("Level 1bis");
 
-
     std::stringstream sout;
     sout << Nextsim::Timer::main;
     std::cout << sout.str() << std::endl;
@@ -84,6 +83,4 @@ TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
     Nextsim::Timer::main.tock();
 
     std::cout << Nextsim::Timer::main << std::endl;
-
-
 }
