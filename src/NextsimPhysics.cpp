@@ -183,11 +183,11 @@ void NextsimPhysics::heatFluxIceAtmosphere(
     // Shortwave flux
     double albedoValue = iIceAlbedoImpl->albedo(prog.iceTemperatures()[0],
         (prog.iceConcentration() > 0) ? (prog.snowThickness() / prog.iceConcentration()) : 0.);
-    m_Qswi = -exter.incomingShortwave() * (1. - m_I0) * albedoValue;
+    m_Qswi = -exter.incomingShortwave() * (1. - m_I0) * (1 - albedoValue);
 
     // Longwave flux
     m_Qlwi = stefanBoltzmannLaw(prog.iceTemperatures()[0]) - exter.incomingLongwave();
-    m_dQ_dT += 4 * prog.iceTemperatures()[0] * stefanBoltzmannLaw(prog.iceTemperatures()[0]);
+    m_dQ_dT += 4 / kelvin(prog.iceTemperatures()[0]) * stefanBoltzmannLaw(prog.iceTemperatures()[0]);
 
     // Total flux
     m_Qia = m_Qlhi + m_Qshi + m_Qlwi + m_Qswi;
@@ -196,8 +196,9 @@ void NextsimPhysics::heatFluxIceAtmosphere(
 void NextsimPhysics::massFluxIceOcean(
     const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
-    iThermo->calculate(prog, exter, phys, *this);
+    m_hifroms = 0;
 
+    iThermo->calculate(prog, exter, phys, *this);
     newIceFormation(prog, exter, phys);
 
     lateralGrowth(prog, exter, phys);
@@ -352,7 +353,7 @@ double NextsimPhysics::SpecificHumidityIce::dq_dT(
     const double temperature, const double pressure) const
 {
     double df_dT = 2 * m_bigC * m_bigB * temperature;
-    double numerator = m_a * m_b * m_c - temperature * (2 * m_c + temperature);
+    double numerator = m_b * m_c * m_d - temperature * (2 * m_c + temperature);
     double denominator = m_d * pow(m_c + temperature, 2);
     double estCalc = est(temperature, 0);
     double fCalc = f(temperature, pressure);
