@@ -39,6 +39,9 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
+    // Initialize the updated snow thickness
+    //phys.updatedSnowTrueThickness() = prog.snowTrueThickness();
+
     if (prog.iceThickness() == 0 || prog.iceConcentration() == 0) {
         phys.updatedIceTrueThickness() = 0;
         phys.updatedSnowTrueThickness() = 0;
@@ -50,10 +53,11 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     double oldIceThickness = prog.iceTrueThickness();
 
     double iceTemperature = prog.iceTemperatures()[0];
+    double tBot = prog.freezingPoint();
     // Heat transfer coefficient
     double k_lSlab = k_s * Ice::kappa
         / (k_s * prog.iceTrueThickness() + Ice::kappa * prog.snowTrueThickness());
-    double QIceConduction = k_lSlab * (exter.iceBottomTemperature() - iceTemperature);
+    double QIceConduction = k_lSlab * (tBot - iceTemperature);
     double remainingFlux = QIceConduction - nsphys.QIceAtmosphere();
     phys.updatedIceSurfaceTemperature()
         = iceTemperature + remainingFlux / (k_lSlab + nsphys.QDerivativeWRTTemperature());
@@ -79,7 +83,6 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     // Bottom melt or growth
     double iceBottomChange
         = (QIceConduction - nsphys.QIceOceanHeat()) * prog.timestep() / bulkLHFusionIce;
-
     // Total thickness change
     double iceThicknessChange = excessIceMelt + iceBottomChange;
     phys.updatedIceTrueThickness() += iceThicknessChange;
