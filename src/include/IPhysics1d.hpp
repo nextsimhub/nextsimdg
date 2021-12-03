@@ -8,11 +8,12 @@
 #ifndef SRC_INCLUDE_IPHYSICS1D_HPP
 #define SRC_INCLUDE_IPHYSICS1D_HPP
 
+#include "PrognosticData.hpp"
+#include "PhysicsData.hpp"
+
 namespace Nextsim {
 
-class PrognosticData;
 class ExternalData;
-class PhysicsData;
 
 //! Interface class for the column ice physics
 class IPhysics1d {
@@ -38,6 +39,9 @@ public:
 
         updateAirDensity(exter, phys);
         updateHeatCapacityWetAir(exter, phys);
+
+        phys.updatedSnowTrueThickness() = prog.snowTrueThickness();
+        phys.updatedIceTrueThickness() = prog.iceTrueThickness();
     };
 
     //! Perform the 1d physics calculation for this element, writing the data to the
