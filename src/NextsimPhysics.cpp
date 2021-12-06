@@ -108,7 +108,7 @@ void NextsimPhysics::updateAirDensity(const ExternalData& exter, PhysicsData& ph
 
 void NextsimPhysics::updateHeatCapacityWetAir(const ExternalData& exter, PhysicsData& phys)
 {
-    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Water::cp;
+    phys.heatCapacityWetAir() = Air::cp + phys.specificHumidityAir() * Vapour::cp;
 };
 
 void NextsimPhysics::calculate(

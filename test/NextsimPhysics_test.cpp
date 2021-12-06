@@ -67,7 +67,7 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
     REQUIRE(0.00385326 == Approx(data.specificHumidityAir()).epsilon(1e-4));
     REQUIRE(0.00349446 == Approx(data.specificHumidityWater()).epsilon(1e-4));
     REQUIRE(0.00323958 == Approx(data.specificHumidityIce()).epsilon(1e-4));
-    REQUIRE(1020.773 == Approx(data.heatCapacityWetAir()).epsilon(1e-4));
+    REQUIRE(1011.81 == Approx(data.heatCapacityWetAir()).epsilon(1e-4));
 }
 
 TEST_CASE("New ice formation", "[NextsimPhysics]")
@@ -220,7 +220,6 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     data.updateDerivedData(data, data, data);
     data.calculate(data, data, data);
 
-    std::cerr << "Melting conditions" << std::endl;
     // Externally visible values (in PhysicsData)
     REQUIRE(0.12846 == Approx(data.updatedIceTrueThickness()).epsilon(1e-4));
     REQUIRE(0.01957732 == Approx(data.updatedSnowTrueThickness()).epsilon(1e-4));
@@ -233,6 +232,72 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     REQUIRE(53717.8 == Approx(data.QIceOceanHeat()).epsilon(1e-2));
     REQUIRE(-7.3858e-06 == Approx(data.sublimationRate()).epsilon(1e-4));
     REQUIRE(19.7013 == Approx(data.QDerivativeWRTTemperature()).epsilon(1e-2));
+    REQUIRE(0.0 == Approx(data.totalIceFromSnow()).epsilon(1e-2));
+
+
+}
+
+TEST_CASE("Freezing conditions", "[NextsimPhysics]")
+{
+    ElementData<NextsimPhysics> data;
+    ExternalData exter;
+    PhysicsData phys;
+
+    Configurator::clear();
+    std::stringstream config;
+    config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
+    config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
+    config << std::endl;
+    config << "[CCSMIceAlbedo]" << std::endl;
+    config << "iceAlbedo = 0.63" << std::endl;
+    config << "snowAlbedo = 0.88" << std::endl;
+
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+
+    double tair = -12; //˚C
+    double tdew = -12; //˚C
+    double pair = 100000; // Pa, slightly low pressure
+    double sst = -1.75; //˚C
+    double sss = 32; // PSU
+    std::array<double, N_ICE_TEMPERATURES> tice = { -9., -9., -9. }; //˚C
+    double hice = 0.1; // m
+    double cice = 0.5;
+    double hsnow = 0.01; // m
+    double dml = 10.; // m
+
+    ConfiguredModule::parseConfigurator();
+    tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
+    data.configure(); // Configure with the UNESCO freezing point
+
+    data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
+    data.setTimestep(600.); // s. Very long TS to get below freezing
+
+    data.airTemperature() = tair;
+    data.dewPoint2m() = tdew;
+    data.airPressure() = pair;
+    data.mixedLayerDepth() = dml;
+    data.incomingLongwave() = 265;
+    data.incomingShortwave() = 0;
+    data.snowfall() = 1e-3;
+
+    data.windSpeed() = 5;
+
+    data.updateDerivedData(data, data, data);
+    data.calculate(data, data, data);
+
+    // Externally visible values (in PhysicsData)
+    REQUIRE(0.199998 == Approx(data.updatedIceTrueThickness()).epsilon(1e-4));
+    REQUIRE(0.02179357 == Approx(data.updatedSnowTrueThickness()).epsilon(1e-4));
+    REQUIRE(0.5002 == Approx(data.updatedIceConcentration()).epsilon(1e-4));
+    REQUIRE(-8.90443 == Approx(data.updatedIceSurfaceTemperature()).epsilon(1e-4));
+
+    // Values used by Nextsim Physics modules
+    REQUIRE(6.79707e-5 == Approx(data.newIce()).epsilon(1e-2));
+    REQUIRE(42.2955 == Approx(data.QIceAtmosphere()).epsilon(1e-2));
+    REQUIRE(73.9465 == Approx(data.QIceOceanHeat()).epsilon(1e-2));
+    REQUIRE(2.15132e-06 == Approx(data.sublimationRate()).epsilon(1e-4));
+    REQUIRE(16.7615 == Approx(data.QDerivativeWRTTemperature()).epsilon(1e-2));
     REQUIRE(0.0 == Approx(data.totalIceFromSnow()).epsilon(1e-2));
 
 
