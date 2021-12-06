@@ -3,4 +3,5 @@
 /.project
 /.pydevproject
 /.settings/*
-/src/modules/moduleLoader*.ipp
+/src/modules/generated/moduleLoader*.ipp
+/*/src/modules/generated/moduleLoader*.ipp
