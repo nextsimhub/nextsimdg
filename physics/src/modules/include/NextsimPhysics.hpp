@@ -8,10 +8,10 @@
 #define SRC_INCLUDE_NEXTSIMPHYSICS_HPP
 #include <memory>
 
-#include "BaseElementData.hpp"
-#include "Configured.hpp"
-#include "IPhysics1d.hpp"
-#include "constants.hpp"
+#include "include/BaseElementData.hpp"
+#include "include/Configured.hpp"
+#include "include/IPhysics1d.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 

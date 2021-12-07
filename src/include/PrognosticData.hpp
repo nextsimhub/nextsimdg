@@ -9,7 +9,7 @@
 
 #include "BaseElementData.hpp"
 #include "Configured.hpp"
-#include "IFreezingPoint.hpp"
+#include "include/IFreezingPoint.hpp"
 #include <array>
 
 namespace Nextsim {

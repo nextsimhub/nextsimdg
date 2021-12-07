@@ -8,7 +8,7 @@
 #ifndef SRC_INCLUDE_HIBLERCONCENTRATION_HPP
 #define SRC_INCLUDE_HIBLERCONCENTRATION_HPP
 
-#include "Configured.hpp"
+#include "include/Configured.hpp"
 #include "IConcentrationModel.hpp"
 
 namespace Nextsim {

@@ -9,7 +9,7 @@
 #define SRC_INCLUDE_LINEARFREEZING_HPP
 
 #include "IFreezingPoint.hpp"
-#include "constants.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 

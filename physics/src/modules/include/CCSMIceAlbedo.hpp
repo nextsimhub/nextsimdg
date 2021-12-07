@@ -8,7 +8,7 @@
 #ifndef SRC_INCLUDE_CCSMICEALBEDO_HPP
 #define SRC_INCLUDE_CCSMICEALBEDO_HPP
 
-#include "Configured.hpp"
+#include "include/Configured.hpp"
 #include "IIceAlbedo.hpp"
 
 namespace Nextsim {

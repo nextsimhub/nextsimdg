@@ -8,8 +8,8 @@
 #define SRC_INCLUDE_ELEMENTDATA_HPP
 
 #include "ExternalData.hpp"
-#include "PhysicsData.hpp"
 #include "PrognosticData.hpp"
+#include "include/PhysicsData.hpp"
 
 namespace Nextsim {
 

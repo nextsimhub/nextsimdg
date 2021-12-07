@@ -8,7 +8,7 @@
 #ifndef SRC_INCLUDE_THERMOICE0_HPP_
 #define SRC_INCLUDE_THERMOICE0_HPP_
 
-#include "Configured.hpp"
+#include "include/Configured.hpp"
 #include "IThermodynamics.hpp"
 
 namespace Nextsim {
