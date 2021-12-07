@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.12)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -15,7 +15,14 @@ find_package(Catch2 REQUIRED)
 
 # Set the location of the ipp files used by ModuleLoader for the main build
 set(ModuleLoaderIppTargetDirectory
-"${CMAKE_CURRENT_SOURCE_DIR}/src/modules/")
+"${CMAKE_CURRENT_SOURCE_DIR}/src/modules/generated/")
+
+# Set the list of components that define modules. Component subdirectories are
+# contained in this directory level and contain src/modules/ and 
+# src/modules/include/ subdirectories 
+set(ModularComponents
+"physics"
+)
 
 # Build the main model
 add_subdirectory(src)

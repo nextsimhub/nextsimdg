@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     parser =  argparse.ArgumentParser(description = "Build inclusion files for ModuleLoader.cpp")
     FILE_HELP = "JSON file containing the specification of interfaces and implementations"
-    parser.add_argument("json_file", metavar = "file", nargs = '?', default = None,
+    parser.add_argument("json_file", metavar = "files", nargs = '*', default = None,
                          type = argparse.FileType('r', encoding="utf-8"),
                          help = FILE_HELP)
     parser.add_argument("--ipp", dest = "ipp_prefix", default = "./",
@@ -156,9 +156,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     DFILE = "modules.json"
-    use_default = args.json_file is None
+    if (len(args.json_file) == 0):
+        jsons = [DFILE]
+    else:
+        jsons = args.json_file
 
-    with args.json_file if not use_default else open(DFILE, encoding = "utf-8") as json_file:
-        alli = json.load(json_file)
+    alli =[]
+    for jj in jsons:
+        alli += json.load(jj)
 
-        generate(alli, hpp_prefix = args.hpp_prefix, ipp_prefix = args.ipp_prefix)
+    generate(alli, hpp_prefix = args.hpp_prefix, ipp_prefix = args.ipp_prefix)
