@@ -8,7 +8,7 @@ set(ModuleLoaderIncludes
 )
 
 # Modules for the model infrastructure are defined in this directory
-set(ModuleLoaderFileCommon ${CMAKE_CURRENT_SOURCE_DIR}/modules.json)
+set(ModuleLoaderFileCommon "${CMAKE_CURRENT_SOURCE_DIR}/modules.json")
 
 # Other modules are defined in component subdirectories
 set(ModuleSubdirectories
@@ -19,14 +19,14 @@ set(ModuleSubdirectories
 # Each component that provides modules should have the directories 
 # ${PROJECT_SOURCE_DIR}/{component}/src/modules (for source files)
 # ${PROJECT_SOURCE_DIR}/{component}/src/modules/include (for header files)
-list(TRANSFORM ModuleSubdirectories PREPEND ${PROJECT_SOURCE_DIR})
+list(TRANSFORM ModuleSubdirectories PREPEND "${PROJECT_SOURCE_DIR}/")
 list(TRANSFORM ModuleSubdirectories APPEND "/src/modules")
 
 
 # Locations of the module loader files
 set(ModuleLoaderFiles
-${CMAKE_CURRENT_SOURCE_DIR}
-${ModuleSubdirectories}
+"${CMAKE_CURRENT_SOURCE_DIR}"
+"${ModuleSubdirectories}"
 )
 # And the files themselves
 list(TRANSFORM ModuleLoaderFiles APPEND "/modules.json")

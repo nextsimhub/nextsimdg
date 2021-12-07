@@ -53,30 +53,6 @@ add_executable(testEnumWrapper
 target_include_directories(testEnumWrapper PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(testEnumWrapper LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Catch2)
 
-add_executable(testNextsimPhysics
-    "NextsimPhysics_test.cpp"
-    "${SRC_DIR}/NextsimPhysics.cpp"
-    "${SRC_DIR}/ModuleLoader.cpp"
-    "${SRC_DIR}/Configurator.cpp"
-    "${SRC_DIR}/ConfiguredModule.cpp"
-    "${SRC_DIR}/SMUIceAlbedo.cpp"
-    "${SRC_DIR}/CCSMIceAlbedo.cpp"
-    "${SRC_DIR}/SMU2IceAlbedo.cpp"
-    "${SRC_DIR}/BasicIceOceanHeatFlux.cpp"
-    "${SRC_DIR}/PrognosticData.cpp"
-    "${SRC_DIR}/HiblerConcentration.cpp"
-    "${SRC_DIR}/ThermoIce0.cpp"
-    )
-target_include_directories(testNextsimPhysics PRIVATE ${ModuleLoaderIppTargetDirectory} "${SRC_DIR}")
-target_link_libraries(testNextsimPhysics PRIVATE ${Boost_LIBRARIES} Catch2::Catch2)
-
-#add_executable(testThermoIce0
-#    "ThermoIce0_test.cpp"
-#    "${SRC_DIR}/ThermoIce0.cpp"
-#    "${SRC_DIR}/PrognosticData.cpp"
-#    )
-#target_link_libraries(testThermoIce0 PRIVATE Catch2::Catch2)
-
 # Set the location of the test module loader classes
 set(TEST_IPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoaderTestModules")
 

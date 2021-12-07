@@ -1,10 +1,6 @@
-# Build the main neXtSIM model
+# Sources for the main neXtSIM model
 
-set (INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-# Set the location where the module ipp files will be stored
-set(ModuleLoaderIppTargetDirectory
-"${CMAKE_CURRENT_SOURCE_DIR}/modules/")
+#set (INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 set(BaseSources
     "main.cpp"
@@ -21,59 +17,66 @@ set(BaseSources
     "ExternalData.cpp"
     )
 
-set(IceAlbedoModuleSources
-    "CCSMIceAlbedo.cpp"
-    "SMUIceAlbedo.cpp"
-    "SMU2IceAlbedo.cpp"
-    )
 
-set(IceOceanHeatFluxModuleSources
-    "BasicIceOceanHeatFlux.cpp"
-    )
+#set(IceAlbedoModuleSources
+#    "CCSMIceAlbedo.cpp"
+#    "SMUIceAlbedo.cpp"
+#    "SMU2IceAlbedo.cpp"
+#    )
 
-set(ColumnPhysicsModuleSources
-    "NextsimPhysics.cpp"
-    )
+#set(IceOceanHeatFluxModuleSources
+#    "BasicIceOceanHeatFlux.cpp"
+#    )
 
-set(ThermodynamicsModuleSources
-    "ThermoIce0.cpp"
-    )
+#set(ColumnPhysicsModuleSources
+#    "NextsimPhysics.cpp"
+#    )
 
-set(ConcentrationModelModuleSources
-    "HiblerConcentration.cpp"
-    )
+#set(ThermodynamicsModuleSources
+#    "ThermoIce0.cpp"
+#    )
+
+#set(ConcentrationModelModuleSources
+#    "HiblerConcentration.cpp"
+#    )
     
-set(ModuleSources
-    "${IceAlbedoModuleSources}"
-    "${IceOceanHeatFluxModuleSources}"
-    "${ColumnPhysicsModuleSources}"
-    "${ThermodynamicsModuleSources}"
-    "${ConcentrationModelModuleSources}"
-    )
+#set(ModuleSources
+#    "${IceAlbedoModuleSources}"
+#    "${IceOceanHeatFluxModuleSources}"
+#    "${ColumnPhysicsModuleSources}"
+#    "${ThermodynamicsModuleSources}"
+#    "${ConcentrationModelModuleSources}"
+#    )
 
-set(BaseHeaders
-    "${INC}/Logged.hpp"
-    "${INC}/Timer.hpp"
-    "${INC}/Model.hpp"
-    "${INC}/Iterator.hpp"
-    "${INC}/SimpleIterant.hpp"
-    )
+#set(BaseHeaders
+#    "${INC}/Logged.hpp"
+#    "${INC}/Timer.hpp"
+#    "${INC}/Model.hpp"
+#    "${INC}/Iterator.hpp"
+#    "${INC}/SimpleIterant.hpp"
+#    )
+
+list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 set(NextsimSources
+    "${NextsimSources}"
     "${BaseSources}"
-    "${ModuleSources}"
-    )
+    PARENT_SCOPE)
 
-add_executable(nextsim ${NextsimSources})
+set(NextsimIncludeDirs
+    "${NextsimIncludeDirs}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    PARENT_SCOPE)
+#add_executable(nextsim ${NextsimSources})
 
-target_include_directories(nextsim PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${Boost_INCLUDE_DIRS}
-    ${ModuleLoaderIppTargetDirectory}
-    )
-target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
+#target_include_directories(nextsim PRIVATE
+#    ${CMAKE_CURRENT_SOURCE_DIR}
+#    ${Boost_INCLUDE_DIRS}
+#    ${ModuleLoaderIppTargetDirectory}
+#    )
+#target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
 
 # Build the module loader files. Defines the 'parse_modules' target
 add_subdirectory(modules)
 
-add_dependencies(nextsim parse_modules)
+#add_dependencies(nextsim parse_modules)

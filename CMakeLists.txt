@@ -24,8 +24,39 @@ set(ModularComponents
 "physics"
 )
 
-# Build the main model
+# Set the components which provide source or object code to the main model
+set(CodeComponents
+"physics"
+#"dynamics"
+)
+
+# Set an empty list of sources
+set(NextsimSources "")
+
+# Set an empty list of include directories
+set(NextsimIncludeDirs "")
+
+# Build the main model. Defines the 'parse_modules' target
 add_subdirectory(src)
+
+# Build all components
+foreach(compo ${CodeComponents})
+    add_subdirectory("${compo}")
+endforeach()
+
+# Link the model
+add_executable(nextsim "${NextsimSources}")
+
+target_include_directories(nextsim PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${Boost_INCLUDE_DIRS}"
+    "${ModuleLoaderIppTargetDirectory}"
+    "${NextsimIncludeDirs}"
+    )
+target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
+
+#The parse_modules target is inherited from src
+add_dependencies(nextsim parse_modules)
 
 # Testing
 if (NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
