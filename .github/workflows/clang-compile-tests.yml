@@ -80,7 +80,12 @@ jobs:
       run: |
         cd test
         for file in $(ls test*); do ./$file; done
-
+        cd -
+        for component in (physics)
+        do
+            cd $component/test
+            for file in $(ls test*); do ./$file; done
+        done
 
   
   tests-on-ubuntu:
@@ -106,3 +111,9 @@ jobs:
       run: |
         cd test
         for file in $(ls test*); do ./$file; done
+        cd -
+        for component in (physics)
+        do
+            cd $component/test
+            for file in $(ls test*); do ./$file; done
+        done
