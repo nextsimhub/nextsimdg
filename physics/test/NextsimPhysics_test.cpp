@@ -9,12 +9,13 @@
 #include <catch2/catch.hpp>
 #include <sstream>
 
-#include "ConfiguredModule.hpp"
-#include "ElementData.hpp"
-#include "IIceAlbedo.hpp"
-#include "ModuleLoader.hpp"
-#include "NextsimPhysics.hpp"
-#include "constants.hpp"
+#include "include/ConfiguredModule.hpp"
+#include "include/ElementData.hpp"
+#include "include/IIceAlbedo.hpp"
+#include "include/ModuleLoader.hpp"
+#include "include/NextsimPhysics.hpp"
+#include "include/constants.hpp"
+
 namespace Nextsim {
 
 TEST_CASE("Minimum ice & i0", "[NextsimPhysics]")
