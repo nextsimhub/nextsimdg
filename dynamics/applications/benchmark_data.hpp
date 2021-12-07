@@ -16,6 +16,7 @@ class ReferenceScale
 public:
   static constexpr double L = 512.e3; // 1  |-> 512 km
   static constexpr double T = 1.e3;   // 1  |-> 1000 sec approx 16 min.
+  static constexpr double S = 1.e5;   // 1  |-> 100 kPa
 };
 
 

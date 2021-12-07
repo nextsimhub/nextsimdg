@@ -113,7 +113,7 @@ namespace Nextsim
     double rhoWater = 1026.0;
     double rhoIce = 900.0;
     double rhoAtm = 1.3;
-    double Sigma  = 1;
+    double Sigma  = 1e5;
 
     // d_t U = ...
 
@@ -147,10 +147,27 @@ namespace Nextsim
      (atmY.col(0).array().abs()/ H.col(0).array()
       * atmY.col(0).array()).matrix();
 
+
+  // sigma = D = sym(grad v)
+  S11.col(0) = vx.col(1);
+  S11.col(1) = 0.5*vx.col(3);
+  S11.col(2) = vx.col(5);
+  S12.col(0) = 0.5*(vy.col(1) + vx.col(2)) ;
+  S12.col(1) = 0.5*( 0.5*vy.col(3) + vx.col(5) );
+  S12.col(2) = 0.5*( vy.col(5) + 0.5*vx.col(4));
+  S22.col(0) = vy.col(2);
+  S22.col(1) = vy.col(5);
+  S22.col(2) = 0.5*vy.col(4);
+
   const double scaleSigma = Sigma * T * T / L / L / rhoIce;
-  //( sigma,grad phi ) DG0 component
-  tmpX.col(0) += scaleSigma*S11.col(0)  ;
-  tmpY.col(0) += scaleSigma*S22.col(0)  ;
+  //( sigma,grad phi ) 
+  tmpX.col(0) += scaleSigma*(S11.col(0)+S12.col(0)) ;
+  tmpY.col(0) += scaleSigma*(S22.col(0)+S12.col(0)) ;
+  tmpX.col(1) += scaleSigma*(S11.col(1)/6. +S12.col(1)/12.);
+  tmpY.col(1) += scaleSigma*(S22.col(1)/12.+S12.col(1)/6. );
+  tmpX.col(2) += scaleSigma*(S11.col(2)/12.+S12.col(2)/6.);
+  tmpY.col(2) += scaleSigma*(S22.col(2)/6. +S12.col(2)/12.);
+
 
   // jump stabilization
   momentumJumps();

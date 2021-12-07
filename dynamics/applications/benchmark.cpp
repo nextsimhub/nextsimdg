@@ -31,7 +31,7 @@ int main()
   std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
   //! init time mesh [0 to 2] days
-  float hours = 12. ; //24
+  float hours = 24. ; //24
   double TMAX = 2.0 * hours * 60.0 * 60.0 / ReferenceScale::T;
   double    k = 10.0 / ReferenceScale::T; //!< time step 10 seconds
   int NT = (static_cast<int>((TMAX / k + 1) / 100 + 1) * 100); //!<  No. of time steps dividable by 100
