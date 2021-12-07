@@ -44,7 +44,7 @@ namespace Nextsim
    * controls the flow of the dynamical core
    */
 
-  void Dynamics::advection_step()
+  void Dynamics::advectionStep()
     {
         GlobalTimer.start("dyn -- adv -- reinit");
         dgtransport.reinitvelocity();
@@ -101,7 +101,7 @@ namespace Nextsim
 
     }//momentumBoundaryStabilization
 
-  void Dynamics::momentum_substeps()
+  void Dynamics::momentumSubsteps()
   {
     tmpX.zero();
     tmpY.zero();
@@ -110,43 +110,47 @@ namespace Nextsim
     double T = 1000.0;
     double Cwater = 5.5e-3;
     double Catm = 1.2e-3;
-    double rhowater = 1026.0;
-    double rhoice = 900.0;
-    double rhoatm = 1.3;
-
+    double rhoWater = 1026.0;
+    double rhoIce = 900.0;
+    double rhoAtm = 1.3;
+    double Sigma  = 1;
 
     // d_t U = ...
 
 // ocean
 
-    // L/(rho H) * Cwater * rhowater * |velwater - vel| (velwater-vel)
-    tmpX.col(0) += L / rhoice * Cwater * rhowater *
+    // L/(rho H) * Cwater * rhoWater * |velwater - vel| (velwater-vel)
+    tmpX.col(0) += L / rhoIce * Cwater * rhoWater *
      ((oceanX.col(0)-vx.col(0)).array().abs()/ 
        H.col(0).array() * 
        oceanX.col(0).array()).matrix();
 
-   tmpX -= L / rhoice * Cwater * rhowater *
+   tmpX -= L / rhoIce * Cwater * rhoWater *
      (vx.array().colwise() * ((oceanX.col(0)-vx.col(0)).array().abs()/ H.col(0).array())).matrix();
 
-    tmpY.col(0) += L / rhoice * Cwater * rhowater *
+    tmpY.col(0) += L / rhoIce * Cwater * rhoWater *
      ((oceanY.col(0)-vy.col(0)).array().abs()/ 
        H.col(0).array() * 
        oceanY.col(0).array()).matrix();
 
-   tmpY -= L / rhoice * Cwater * rhowater *
+   tmpY -= L / rhoIce * Cwater * rhoWater *
      (vy.array().colwise() * ((oceanY.col(0)-vy.col(0)).array().abs()/ H.col(0).array())).matrix();
 
 
    // atm.
-    // L/(rho H) * Catm * rhoatm * |velatm| velatm
-    tmpX.col(0) += L / rhoice * Catm * rhoatm *
+    // L/(rho H) * Catm * rhoAtm * |velatm| velatm
+    tmpX.col(0) += L / rhoIce * Catm * rhoAtm *
      (atmX.col(0).array().abs()/ H.col(0).array()
       * atmX.col(0).array()).matrix();
 
-    tmpY.col(0) += L / rhoice * Catm * rhoatm *
+    tmpY.col(0) += L / rhoIce * Catm * rhoAtm *
      (atmY.col(0).array().abs()/ H.col(0).array()
       * atmY.col(0).array()).matrix();
 
+  const double scaleSigma = Sigma * T * T / L / L / rhoIce;
+  //( sigma,grad phi ) DG0 component
+  tmpX.col(0) += scaleSigma*S11.col(0)  ;
+  tmpY.col(0) += scaleSigma*S22.col(0)  ;
 
   // jump stabilization
   momentumJumps();
@@ -166,11 +170,11 @@ namespace Nextsim
   {
     GlobalTimer.start("dyn");
     GlobalTimer.start("dyn -- adv");
-    advection_step();
+    advectionStep();
     GlobalTimer.stop("dyn -- adv");
     
     GlobalTimer.start("dyn -- mom");
-    momentum_substeps();
+    momentumSubsteps();
     GlobalTimer.stop("dyn -- mom");
     GlobalTimer.stop("dyn");
   }

@@ -31,7 +31,8 @@ int main()
   std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
   //! init time mesh [0 to 2] days
-  double TMAX = 2.0 * 24.0 * 60.0 * 60.0 / ReferenceScale::T;
+  float hours = 12. ; //24
+  double TMAX = 2.0 * hours * 60.0 * 60.0 / ReferenceScale::T;
   double    k = 10.0 / ReferenceScale::T; //!< time step 10 seconds
   int NT = (static_cast<int>((TMAX / k + 1) / 100 + 1) * 100); //!<  No. of time steps dividable by 100
   
@@ -58,9 +59,9 @@ int main()
   Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetA(), InitialA());
   dynamics.GetVX().zero();
   dynamics.GetVY().zero();
-  dynamics.GetS11().zero();
-  dynamics.GetS12().zero();
-  dynamics.GetS22().zero();
+  Nextsim::L2ProjectInitial(dynamics.GetMesh(),dynamics.GetS11(), InitialS11());
+  Nextsim::L2ProjectInitial(dynamics.GetMesh(),dynamics.GetS12(), InitialS12());
+  Nextsim::L2ProjectInitial(dynamics.GetMesh(),dynamics.GetS22(), InitialS22());
   dynamics.GetD().zero();
 
   
@@ -102,9 +103,9 @@ int main()
 	    
 	    Nextsim::VTK::write_dg<2>("Results/vx",printstep,dynamics.GetVX(), dynamics.GetMesh());
 	    Nextsim::VTK::write_dg<2>("Results/vy",printstep,dynamics.GetVY(), dynamics.GetMesh());
-	    // Nextsim::VTK::write_dg<1>("Results/S11",printstep,dynamics.GetS11(), dynamics.GetMesh());
-	    // Nextsim::VTK::write_dg<1>("Results/S12",printstep,dynamics.GetS12(), dynamics.GetMesh());
-	    // Nextsim::VTK::write_dg<1>("Results/S22",printstep,dynamics.GetS22(), dynamics.GetMesh());
+	    Nextsim::VTK::write_dg<1>("Results/S11",printstep,dynamics.GetS11(), dynamics.GetMesh());
+	    Nextsim::VTK::write_dg<1>("Results/S12",printstep,dynamics.GetS12(), dynamics.GetMesh());
+	    Nextsim::VTK::write_dg<1>("Results/S22",printstep,dynamics.GetS22(), dynamics.GetMesh());
 	    Nextsim::VTK::write_dg<2>("Results/A",printstep,dynamics.GetA(), dynamics.GetMesh());
 	    Nextsim::VTK::write_dg<2>("Results/H",printstep,dynamics.GetH(), dynamics.GetMesh());
 	    // Nextsim::VTK::write_dg<0>("Results/D",printstep,dynamics.GetD(), dynamics.GetMesh());

@@ -47,7 +47,7 @@ void cell_term(const Mesh& mesh,
     // - (Psi v, \nabla phi)
 
     // vx, vy dG(0) !!!
-    // nable phi = (0, 1, 1)
+    // \nabla phi = (0, 1, 1)
 
     // AV[0] * dx Phi(1) * VX[0]
     phiup(ic, 1) += inversemasscell(1) / mesh.hx * (phi(ic, 0) * vx(ic, 0) + 1. / 12. * phi(ic, 1) * vx(ic, 1) + 1. / 12. * phi(ic, 2) * vx(ic, 2));

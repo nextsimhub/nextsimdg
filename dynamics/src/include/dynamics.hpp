@@ -250,8 +250,8 @@ public:
     void momentumJumps();
     void momentumDirichletBoundary();
 
-    void advection_step();
-    void momentum_substeps();
+    void advectionStep();
+    void momentumSubsteps();
     void step();
 };
 

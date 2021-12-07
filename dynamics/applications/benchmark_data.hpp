@@ -117,5 +117,36 @@ public:
   }
 };
 
+class InitialS11 : virtual public Nextsim::InitialBase
+{
+public:
+  double operator()(double x, double y) const
+  {  //! coordinate (in km)
+    double xKM = x * ReferenceScale::L * 1.e-3;
+    double yKM = y * ReferenceScale::L * 1.e-3;
+    return 1.0 - 1e-1*sqrt(xKM*xKM + yKM*yKM);
+  }
+};
+class InitialS12 : virtual public Nextsim::InitialBase
+{
+public:
+  double operator()(double x, double y) const
+  {
+    return 0.0;
+  }
+};
+class InitialS22 : virtual public Nextsim::InitialBase
+{
+public:
+  double operator()(double x, double y) const
+  { //! coordinate (in km)
+    double xKM = x * ReferenceScale::L * 1.e-3;
+    double yKM = y * ReferenceScale::L * 1.e-3;
+    return 1.0 + 1e-1*sqrt(xKM*xKM + yKM*yKM) ;
+  }
+};
+
+
+
 #endif
 
