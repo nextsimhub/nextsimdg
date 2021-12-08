@@ -184,6 +184,7 @@ public:
 
     void consistencyY(size_t c1, size_t c2)
     {
+        /*
         const LocalEdgeVector<1> S11left(
             S11(c1, 0) + 0.5 * S11(c1, 1),
             S11(c1, 2));
@@ -200,14 +201,36 @@ public:
         const LocalEdgeVector<1> avgS11 = 0.5 * (S11left + S11right) * BiGe12;
         const LocalEdgeVector<1> avgS12 = 0.5 * (S12left + S12right) * BiGe12;
 
-        tmpX.block<1, 3>(c1, 0) -= 1. * mesh.hx * avgS11 * BiG12_2;
-        tmpX.block<1, 3>(c2, 0) += 1. * mesh.hx * avgS11 * BiG12_0;
-        tmpY.block<1, 3>(c1, 0) -= 1. * mesh.hx * avgS12 * BiG12_2;
-        tmpY.block<1, 3>(c2, 0) += 1. * mesh.hx * avgS12 * BiG12_0;
+        tmpX.block<1, 3>(c1, 0) -= 1. * mesh.hx * avgS11 * BiG12_1;
+        tmpX.block<1, 3>(c2, 0) += 1. * mesh.hx * avgS11 * BiG12_3;
+        tmpY.block<1, 3>(c1, 0) -= 1. * mesh.hx * avgS12 * BiG12_1;
+        tmpY.block<1, 3>(c2, 0) += 1. * mesh.hx * avgS12 * BiG12_3;
+        */
+        const LocalEdgeVector<2> S11left(
+            S11(c1, 0) + 0.5 * S11(c1, 1),
+            S11(c1, 2), 0);
+        const LocalEdgeVector<2> S11right(
+            S11(c2, 0) - 0.5 * S11(c2, 1),
+            S11(c2, 2), 0);
+        const LocalEdgeVector<2> S12left(
+            S12(c1, 0) + 0.5 * S12(c1, 1),
+            S12(c1, 2), 0);
+        const LocalEdgeVector<2> S12right(
+            S12(c2, 0) - 0.5 * S12(c2, 1),
+            S12(c2, 2), 0);
+
+        const LocalEdgeVector<2> avgS11 = 0.5 * (S11left + S11right) * BiGe23;
+        const LocalEdgeVector<2> avgS12 = 0.5 * (S12left + S12right) * BiGe23;
+
+        tmpX.block<1, 6>(c1, 0) -= 1. * mesh.hx * avgS11 * BiG23_1;
+        tmpX.block<1, 6>(c2, 0) += 1. * mesh.hx * avgS11 * BiG23_3;
+        tmpY.block<1, 6>(c1, 0) -= 1. * mesh.hx * avgS12 * BiG23_1;
+        tmpY.block<1, 6>(c2, 0) += 1. * mesh.hx * avgS12 * BiG23_3;
     }
 
     void consistencyX(size_t c1, size_t c2)
     {
+        /*
         const LocalEdgeVector<1> S12bot(
             S12(c1, 0) + 0.5 * S12(c1, 2),
             S12(c1, 1));
@@ -228,6 +251,28 @@ public:
         tmpX.block<1, 3>(c2, 0) += 1. * mesh.hy * avgS12 * BiG12_0;
         tmpY.block<1, 3>(c1, 0) -= 1. * mesh.hy * avgS22 * BiG12_2;
         tmpY.block<1, 3>(c2, 0) += 1. * mesh.hy * avgS22 * BiG12_0;
+        */
+
+        const LocalEdgeVector<2> S12bot(
+            S12(c1, 0) + 0.5 * S12(c1, 2),
+            S12(c1, 1), 0);
+        const LocalEdgeVector<2> S12top(
+            S12(c2, 0) - 0.5 * S12(c2, 2),
+            S12(c2, 1), 0);
+        const LocalEdgeVector<2> S22bot(
+            S22(c1, 0) + 0.5 * S22(c1, 2),
+            S22(c1, 1), 0);
+        const LocalEdgeVector<2> S22top(
+            S22(c2, 0) - 0.5 * S22(c2, 2),
+            S22(c2, 1), 0);
+
+        const LocalEdgeVector<2> avgS12 = 0.5 * (S12top + S12bot) * BiGe23;
+        const LocalEdgeVector<2> avgS22 = 0.5 * (S22top + S22bot) * BiGe23;
+
+        tmpX.block<1, 6>(c1, 0) -= 1. * mesh.hy * avgS12 * BiG23_2;
+        tmpX.block<1, 6>(c2, 0) += 1. * mesh.hy * avgS12 * BiG23_0;
+        tmpY.block<1, 6>(c1, 0) -= 1. * mesh.hy * avgS22 * BiG23_2;
+        tmpY.block<1, 6>(c2, 0) += 1. * mesh.hy * avgS22 * BiG23_0;
     }
 
     template <int DGdegree>
