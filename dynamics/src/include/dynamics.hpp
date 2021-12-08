@@ -182,6 +182,54 @@ public:
         tmpY.block<1, 6>(c2, 0) += 1. * jumpY * BiG23_0;
     }
 
+    void consistencyY(size_t c1, size_t c2)
+    {
+        const LocalEdgeVector<1> S11left(
+            S11(c1, 0) + 0.5 * S11(c1, 1),
+            S11(c1, 2));
+        const LocalEdgeVector<1> S11right(
+            S11(c2, 0) - 0.5 * S11(c2, 1),
+            S11(c2, 2));
+        const LocalEdgeVector<1> S12left(
+            S12(c1, 0) + 0.5 * S12(c1, 1),
+            S12(c1, 2));
+        const LocalEdgeVector<1> S12right(
+            S12(c2, 0) - 0.5 * S12(c2, 1),
+            S12(c2, 2));
+
+        const LocalEdgeVector<1> avgS11 = 0.5 * (S11left + S11right) * BiGe12;
+        const LocalEdgeVector<1> avgS12 = 0.5 * (S12left + S12right) * BiGe12;
+
+        tmpX.block<1, 3>(c1, 0) -= 1. * mesh.hx * avgS11 * BiG12_2;
+        tmpX.block<1, 3>(c2, 0) += 1. * mesh.hx * avgS11 * BiG12_0;
+        tmpY.block<1, 3>(c1, 0) -= 1. * mesh.hx * avgS12 * BiG12_2;
+        tmpY.block<1, 3>(c2, 0) += 1. * mesh.hx * avgS12 * BiG12_0;
+    }
+
+    void consistencyX(size_t c1, size_t c2)
+    {
+        const LocalEdgeVector<1> S12bot(
+            S12(c1, 0) + 0.5 * S12(c1, 2),
+            S12(c1, 1));
+        const LocalEdgeVector<1> S12top(
+            S12(c2, 0) - 0.5 * S12(c2, 2),
+            S12(c2, 1));
+        const LocalEdgeVector<1> S22bot(
+            S22(c1, 0) + 0.5 * S22(c1, 2),
+            S22(c1, 1));
+        const LocalEdgeVector<1> S22top(
+            S22(c2, 0) - 0.5 * S22(c2, 2),
+            S22(c2, 1));
+
+        const LocalEdgeVector<1> avgS12 = 0.5 * (S12top + S12bot) * BiGe12;
+        const LocalEdgeVector<1> avgS22 = 0.5 * (S22top + S22bot) * BiGe12;
+
+        tmpX.block<1, 3>(c1, 0) -= 1. * mesh.hy * avgS12 * BiG12_2;
+        tmpX.block<1, 3>(c2, 0) += 1. * mesh.hy * avgS12 * BiG12_0;
+        tmpY.block<1, 3>(c1, 0) -= 1. * mesh.hy * avgS22 * BiG12_2;
+        tmpY.block<1, 3>(c2, 0) += 1. * mesh.hy * avgS22 * BiG12_0;
+    }
+
     template <int DGdegree>
     void boundaryDirichletLeft(const size_t c2)
     {
@@ -249,6 +297,9 @@ public:
    */
     void momentumJumps();
     void momentumDirichletBoundary();
+
+    void momentumConsistency();
+    void momentumSymmetry();
 
     void advectionStep();
     void momentumSubsteps();

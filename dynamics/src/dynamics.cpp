@@ -77,6 +77,31 @@ namespace Nextsim
 
     }
 
+
+  void Dynamics::momentumConsistency() {
+
+          // Y - edges, only inner ones
+#pragma omp parallel for
+    for (size_t iy = 0; iy < mesh.ny; ++iy) {
+        size_t ic = iy * mesh.nx; // first index of left cell in row
+        
+        for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic)
+            consistencyY(ic, ic + 1);
+    }
+
+    // X - edges, only inner ones
+#pragma omp parallel for
+    for (size_t ix = 0; ix < mesh.nx; ++ix) {
+        size_t ic = ix; // first index of left cell in column
+        for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx)
+            consistencyX(ic, ic + mesh.nx);
+  }
+
+  }
+
+  void Dynamics::momentumSymmetry() {}
+
+
     void Dynamics::momentumDirichletBoundary()
     {
       
@@ -100,6 +125,12 @@ namespace Nextsim
       }
 
     }//momentumBoundaryStabilization
+
+
+
+
+
+
 
   void Dynamics::momentumSubsteps()
   {
@@ -176,6 +207,13 @@ namespace Nextsim
   tmpY.col(4) += scaleSigma*(S22.col(2)/6. );
   tmpY.col(5) += scaleSigma*(S22.col(1)/12.);
  
+  // Stress consistency and symmetry terms
+  //avg(sigma) n jump(phi)
+  momentumConsistency();
+  //jump(v) n avg(grad phi)
+  momentumSymmetry();
+
+
 
   // jump stabilization
   momentumJumps();
