@@ -22,7 +22,7 @@ jobs:
         cd -
         for component in (physics)
         do
-          cd $(component)/src
+          cd $component/src
           clang-format --dry-run -Werror *cpp include/*hpp
           cd -
         done
