@@ -1,6 +1,6 @@
 # Build the unit, integration and model tests for neXtSIM
 
-set(CommonSourceDir "${PROJECT_SOURCE_DIR}/src")
+set(CommonSourceDir "${PROJECT_SOURCE_DIR}/core/src")
 set(CommonIncludeDir "${SourceDir}/include")
 set(SourceDir "../src")
 set(ModulesDir "${SourceDir}/modules")

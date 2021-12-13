@@ -15,7 +15,7 @@ find_package(Catch2 REQUIRED)
 
 # Set the location of the ipp files used by ModuleLoader for the main build
 set(ModuleLoaderIppTargetDirectory
-"${CMAKE_CURRENT_SOURCE_DIR}/src/modules/generated/")
+"${CMAKE_CURRENT_SOURCE_DIR}/core/src/modules/generated/")
 
 # Set the list of components that define modules. Component subdirectories are
 # contained in this directory level and contain src/modules/ and 
@@ -36,8 +36,8 @@ set(NextsimSources "")
 # Set an empty list of include directories
 set(NextsimIncludeDirs "")
 
-# Build the main model. Defines the 'parse_modules' target
-add_subdirectory(src)
+# Build the core model. Defines the 'parse_modules' target
+add_subdirectory(core)
 
 # Build all components
 foreach(compo ${CodeComponents})
@@ -57,8 +57,3 @@ target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
 
 #The parse_modules target is inherited from src
 add_dependencies(nextsim parse_modules)
-
-# Testing
-if (NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
-    add_subdirectory(test)
-endif()
