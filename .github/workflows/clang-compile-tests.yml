@@ -17,8 +17,15 @@ jobs:
     - name: clang
       run: |
         brew install clang-format
-        cd src
+        cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
+        cd -
+        for component in (physics)
+        do
+          cd $(component)/src
+          clang-format --dry-run -Werror *cpp include/*hpp
+          cd -
+        done
   
   
   build-on-ubuntu:
@@ -78,13 +85,14 @@ jobs:
         make        
     - name: run tests
       run: |
-        cd test
+        cd core/test
         for file in $(ls test*); do ./$file; done
         cd -
         for component in (physics)
         do
             cd $component/test
             for file in $(ls test*); do ./$file; done
+            cd -
         done
 
   
@@ -109,11 +117,12 @@ jobs:
         make
     - name: run tests
       run: |
-        cd test
+        cd core/test
         for file in $(ls test*); do ./$file; done
         cd -
         for component in (physics)
         do
             cd $component/test
             for file in $(ls test*); do ./$file; done
+            cd -
         done
