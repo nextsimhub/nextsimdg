@@ -17,6 +17,7 @@ find_package(Catch2 REQUIRED)
 set(ModuleLoaderIppTargetDirectory
 "${CMAKE_CURRENT_SOURCE_DIR}/core/src/modules/generated/")
 
+file(MAKE_DIRECTORY "${ModuleLoaderIppTargetDirectory}")
 # Set the list of components that define modules. Component subdirectories are
 # contained in this directory level and contain src/modules/ and 
 # src/modules/include/ subdirectories 
