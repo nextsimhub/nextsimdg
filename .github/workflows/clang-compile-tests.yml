@@ -2,7 +2,7 @@ name: compile code and tests
 
 on:
   push:
-    branches: [ main, develop, issue15_CI_workflow ]
+    branches: [ main, develop, issue15_CI_workflow, physics_sub ]
   pull_request:
     branches: [ main, develop,  issue15_CI_workflow ]
 
