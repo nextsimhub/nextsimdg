@@ -17,7 +17,7 @@ class NextsimPhysics;
 class IIceOceanHeatFlux {
 public:
     virtual ~IIceOceanHeatFlux() = default;
-    virtual double flux(const PrognosticData&, const ExternalData&, PhysicsData&, NextsimPhysics&)
+    virtual double flux(const PrognosticData&, const ExternalData&, const PhysicsData&, NextsimPhysics&)
         = 0;
 };
 }
