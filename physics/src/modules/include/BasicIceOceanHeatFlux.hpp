@@ -17,7 +17,7 @@ public:
     BasicIceOceanHeatFlux() = default;
     virtual ~BasicIceOceanHeatFlux() = default;
 
-    double flux(const PrognosticData&, const ExternalData&, const PhysicsData&, NextsimPhysics&) override;
+    double flux(const PrognosticData&, const ExternalData&, const PhysicsData&, const NextsimPhysics&) override;
 };
 
 } /* namespace Nextsim */
