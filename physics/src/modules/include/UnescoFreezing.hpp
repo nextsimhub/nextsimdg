@@ -14,7 +14,17 @@
 
 namespace Nextsim {
 
+//! The implementation class of the UNESCO model of the freezing point of
+// seawater.
 class UnescoFreezing : public IFreezingPoint {
+    /*!
+     * @brief Calculates the freezing point of seawater.
+     *
+     * @detailed Freezing point in ˚C of water with the given salinity at
+     * standard pressure.
+     *
+     * @param sss Sea surface salinity [PSU]
+     */
     inline double operator()(double sss) const override
     {
         // Fofonoff and Millard, Unesco technical papers in marine science 44, (1983)
