@@ -13,6 +13,8 @@
 #include <boost/program_options.hpp>
 namespace Nextsim {
 
+const std::string ConfiguredModule::MODULE_PREFIX = "Modules";
+
 ConfiguredModule::ConfiguredModule()
 {
     // TODO Auto-generated constructor stub
@@ -31,7 +33,7 @@ void ConfiguredModule::parseConfigurator()
     ModuleLoader& loader = ModuleLoader::getLoader();
     for (const std::string& module : loader.listModules()) {
         std::string defaultImpl = *loader.listImplementations(module).begin();
-        opt.add_options()(module.c_str(),
+        opt.add_options()(addPrefix(module).c_str(),
             boost::program_options::value<std::string>()->default_value(defaultImpl),
             ("Load an implementation of " + module).c_str());
     }
@@ -39,8 +41,14 @@ void ConfiguredModule::parseConfigurator()
     boost::program_options::variables_map vm = Configurator::parse(opt);
 
     for (const std::string& module : loader.listModules()) {
-        std::string implString = vm[module].as<std::string>();
+        std::string implString = vm[addPrefix(module)].as<std::string>();
         loader.setImplementation(module, implString);
     }
 }
+
+std::string ConfiguredModule::addPrefix(const std::string& moduleName)
+{
+    return MODULE_PREFIX + "." + moduleName;
+}
+
 } /* namespace Nextsim */

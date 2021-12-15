@@ -8,6 +8,8 @@
 #ifndef SRC_INCLUDE_CONFIGUREDMODULE_HPP
 #define SRC_INCLUDE_CONFIGUREDMODULE_HPP
 
+#include <string>
+
 namespace Nextsim {
 
 class ConfiguredModule {
@@ -16,6 +18,10 @@ public:
     virtual ~ConfiguredModule();
 
     static void parseConfigurator();
+
+    static std::string addPrefix(const std::string& moduleName);
+
+    static const std::string MODULE_PREFIX;
 };
 
 } /* namespace Nextsim */
