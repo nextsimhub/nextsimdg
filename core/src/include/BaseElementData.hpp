@@ -9,9 +9,9 @@
 
 namespace Nextsim {
 /*!
- * @brief The base class to the per element data classes
+ * @brief The base class for the per element data classes.
  *
- * @detailed This base class will handle the common features of the per-element
+ * @detailed This base class handles the common features of the per-element
  * data classes. These include handling output.
  */
 class BaseElementData {
