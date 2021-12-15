@@ -13,11 +13,13 @@
 
 namespace Nextsim {
 
+//! A class that encapsulates the whole of the model
 class Model : public Logged {
 public:
     Model(); // TODO add arguments to pass the desired
              // environment and configuration to the model
     ~Model(); // Finalize the model. Collect data and so on.
+    //! Run the model
     void run();
 
 private:

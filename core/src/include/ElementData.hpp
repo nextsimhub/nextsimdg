@@ -13,9 +13,17 @@
 
 namespace Nextsim {
 
+//! A class to be used when a non-specific class derived from BaseElementData
+// is needed.
 class UnusedData : public BaseElementData {
 };
 
+/*!
+ * @brief The class which holds all the data for a single element of the model.
+ *
+ * @detailed Inherits from PrognosticData, PhysicsData and ExternalData. The
+ * physics implementation is provided as a template argument.
+ */
 template <class Phys>
 class ElementData : public PrognosticData,
                     public PhysicsData,
@@ -32,6 +40,8 @@ public:
     using ExternalData::operator=;
     using Phys::operator=;
 
+    //! Configures the PrognosticData and physics implementation aspects of the
+    // object.
     void configure() override
     {
         PrognosticData::configure();
