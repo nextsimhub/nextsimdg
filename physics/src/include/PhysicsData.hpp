@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+//! A class holding common physics data.
 class PhysicsData : public BaseElementData {
 public:
     PhysicsData() = default;
@@ -43,6 +44,7 @@ public:
     //! Updated value of the ice surface temperature [˚C]
     inline double& updatedIceSurfaceTemperature() { return m_TiceNew[0]; }
 
+    //! Updated value of the ice concentration [1]
     inline double& updatedIceConcentration() { return m_conc_new; }
 
 private:
