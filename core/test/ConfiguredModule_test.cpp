@@ -24,7 +24,7 @@ TEST_CASE("Configure a module", "[Configurator, ModuleLoader]")
     Configurator::clear();
 
     // Create the fake command line, selecting the Impl1 implementation
-    ArgV argvee({"cmtest", "--ITest=Impl1"});
+    ArgV argvee({"cmtest", "--Modules.ITest=Impl1"});
 
     Configurator::setCommandLine(argvee.argc(), argvee());
 
@@ -39,7 +39,8 @@ TEST_CASE("Configure a module from a stream", "[Configurator, ModuleLoader]")
 {
     Configurator::clear();
     std::stringstream config;
-    config << "ITest = Impl2" << std::endl;
+    config << "[Modules]" << std::endl
+            << "ITest = Impl2" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));

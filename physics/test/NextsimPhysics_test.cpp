@@ -78,6 +78,7 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     PhysicsData phys;
 
     std::stringstream config;
+    config << "[Modules]" << std::endl;
     config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -178,6 +179,7 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
 
     Configurator::clear();
     std::stringstream config;
+    config << "[Modules]" << std::endl;
     config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
     config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
     config << std::endl;
@@ -246,6 +248,7 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
 
     Configurator::clear();
     std::stringstream config;
+    config << "[Modules]" << std::endl;
     config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
     config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
     config << std::endl;
