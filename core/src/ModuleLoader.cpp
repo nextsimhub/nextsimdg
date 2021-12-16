@@ -47,3 +47,15 @@ void ModuleLoader::setImplementation(const std::string& module, const std::strin
 {
 #include "moduleLoaderAssignments.ipp"
 }
+
+void ModuleLoader::setDefault(const std::string& module)
+{
+    setImplementation(module, listImplementations(module).front());
+}
+
+void ModuleLoader::setAllDefaults()
+{
+    for (const std::string module : listModules()) {
+        setDefault(module);
+    }
+}

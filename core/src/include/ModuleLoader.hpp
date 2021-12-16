@@ -81,6 +81,16 @@ public:
      */
     void setImplementation(const std::string& module, const std::string& impl);
 
+    /*!
+     * @brief Sets the default implementation for a module.
+     *
+     * @param module The module for which the default implementation is to be
+     * loaded.
+     */
+    void setDefault(const std::string& module);
+
+    //! Sets the default implementation for all modules.
+    void setAllDefaults();
 private:
     ModuleLoader() {};
 

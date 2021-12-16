@@ -94,6 +94,7 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     double cice = 0.5;
     double dml = 10.; // m
 
+    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
     data.configure(); // Configure with the default linear freezing point
 
@@ -135,6 +136,7 @@ TEST_CASE("Drag pressure", "[NextsimPhysics]")
     double cice = 0.5;
     double dml = 10.; // m
 
+    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
     data.configure(); // Configure with the default linear freezing point
 
@@ -201,6 +203,7 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     double hsnow = 0.01; // m
     double dml = 10.; // m
 
+    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
     tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
     data.configure(); // Configure with the UNESCO freezing point
@@ -270,6 +273,7 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
     double hsnow = 0.01; // m
     double dml = 10.; // m
 
+    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
     tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
     data.configure(); // Configure with the UNESCO freezing point
