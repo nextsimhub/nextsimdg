@@ -42,7 +42,8 @@ int main()
 
   //dynamics.GetTimeMesh().BasicInit(TMAX,NT,1);
   // call constructor with dt and dt_momentum with k and k^2
-  dynamics.GetTimeMesh().BasicInit(NT,k,k*k);
+   dynamics.GetTimeMesh().BasicInit(NT,k,k*k);
+  //dynamics.GetTimeMesh().BasicInit(NT,k,1./(N*N*4));
 
 
   std::cout << "Time mesh of [0," << dynamics.GetTimeMesh().tmax << "] with " 
