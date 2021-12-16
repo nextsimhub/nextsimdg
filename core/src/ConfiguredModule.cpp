@@ -27,6 +27,8 @@ ConfiguredModule::~ConfiguredModule()
 
 void ConfiguredModule::parseConfigurator()
 {
+    // A default string that can never be a valid C++ class name
+    std::string defaultStr = "+++DEFAULT+++";
     // Construct a new options map
     boost::program_options::options_description opt;
 
@@ -34,7 +36,7 @@ void ConfiguredModule::parseConfigurator()
     for (const std::string& module : loader.listModules()) {
         std::string defaultImpl = *loader.listImplementations(module).begin();
         opt.add_options()(addPrefix(module).c_str(),
-            boost::program_options::value<std::string>()->default_value(defaultImpl),
+            boost::program_options::value<std::string>()->default_value(defaultStr),
             ("Load an implementation of " + module).c_str());
     }
 
@@ -42,7 +44,10 @@ void ConfiguredModule::parseConfigurator()
 
     for (const std::string& module : loader.listModules()) {
         std::string implString = vm[addPrefix(module)].as<std::string>();
-        loader.setImplementation(module, implString);
+        // Only do anything if the retrieved option is not the default value
+        if (implString != defaultStr) {
+            loader.setImplementation(module, implString);
+        }
     }
 }
 
