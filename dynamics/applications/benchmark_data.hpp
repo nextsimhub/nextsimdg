@@ -25,6 +25,7 @@ class OceanX : virtual public Nextsim::InitialBase {
 public:
   double operator()(double x, double y) const
   {
+    return 1.;//y*y;
     double Y = y*ReferenceScale::L; //!< Coordinate in m
 
     //! maximum velocity in reference system
@@ -36,6 +37,7 @@ class OceanY : virtual public Nextsim::InitialBase {
 public:
   double operator()(double x, double y) const
   {
+    return 1;//x*x;
     double X = x*ReferenceScale::L; //!< Coordinate in m
 
     //! maximum velocity in reference system
@@ -53,6 +55,7 @@ public:
   }
   double operator()(double x, double y) const
   {
+    return 1.e-5;
     //! Center of cyclone (in km) 
     double cKM = 256.0 + 51.2 * time * ReferenceScale::T / (24.0*60.0*60.0);
 
@@ -79,6 +82,7 @@ public:
   }
   double operator()(double x, double y) const
   {
+    return 1.e-5;
     //! Center of cyclone (in km) 
     double cKM = 256.0 + 51.2 * time * ReferenceScale::T / (24.0*60.0*60.0);
 
@@ -125,7 +129,7 @@ public:
   {  //! coordinate (in km)
     double xKM = x * ReferenceScale::L * 1.e-3;
     double yKM = y * ReferenceScale::L * 1.e-3;
-    return 1.0 - 1e-1*sqrt(xKM*xKM + yKM*yKM);
+    return 0.0 ;// - 1e-1*sqrt(xKM*xKM + yKM*yKM);
   }
 };
 class InitialS12 : virtual public Nextsim::InitialBase
@@ -143,7 +147,7 @@ public:
   { //! coordinate (in km)
     double xKM = x * ReferenceScale::L * 1.e-3;
     double yKM = y * ReferenceScale::L * 1.e-3;
-    return 1.0 + 1e-1*sqrt(xKM*xKM + yKM*yKM) ;
+    return 0.0;// + 1e-1*sqrt(xKM*xKM + yKM*yKM) ;
   }
 };
 

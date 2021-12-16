@@ -112,7 +112,6 @@ namespace Nextsim
 
           boundaryDirichletTop<2>(cupper);
           boundaryDirichletBottom<2>(clower);
-
       }
 
       for (size_t iy = 0; iy < mesh.ny; ++iy) {
@@ -121,7 +120,6 @@ namespace Nextsim
 
           boundaryDirichletLeft<2>(cleft);
           boundaryDirichletRight<2>(cright);
-
       }
 
     }//momentumBoundaryStabilization
@@ -149,7 +147,7 @@ namespace Nextsim
     // d_t U = ...
 
 // ocean
-
+/*
     // L/(rho H) * Cwater * rhoWater * |velwater - vel| (velwater-vel)
     tmpX.col(0) += L / rhoIce * Cwater * rhoWater *
      ((oceanX.col(0)-vx.col(0)).array().abs()/ 
@@ -168,8 +166,9 @@ namespace Nextsim
      (vy.array().colwise() * ((oceanY.col(0)-vy.col(0)).array().abs()/ H.col(0).array())).matrix();
 
 
-   // atm.
+  // atm.
     // L/(rho H) * Catm * rhoAtm * |velatm| velatm
+    
     tmpX.col(0) += L / rhoIce * Catm * rhoAtm *
      (atmX.col(0).array().abs()/ H.col(0).array()
       * atmX.col(0).array()).matrix();
@@ -177,52 +176,59 @@ namespace Nextsim
     tmpY.col(0) += L / rhoIce * Catm * rhoAtm *
      (atmY.col(0).array().abs()/ H.col(0).array()
       * atmY.col(0).array()).matrix();
+    */
+
+    //RHS = (1,1)
+    tmpX.col(0) += atmX.col(0);
+    tmpY.col(0) += atmY.col(0);
 
 
-  // sigma = D = sym(grad v)
-  S11.col(0) = vx.col(1);
-  S11.col(1) = 0.5*vx.col(3);
-  S11.col(2) = vx.col(5);
-  S12.col(0) = 0.5*(vy.col(1) + vx.col(2)) ;
-  S12.col(1) = 0.5*( 0.5*vy.col(3) + vx.col(5) );
-  S12.col(2) = 0.5*( vy.col(5) + 0.5*vx.col(4));
-  S22.col(0) = vy.col(2);
-  S22.col(1) = vy.col(5);
-  S22.col(2) = 0.5*vy.col(4);
+    // Sigma = D = sym(grad v) 
+    S11.col(0) = 1. / mesh.hx * vx.col(1);
+    S11.col(1) = 1. / mesh.hx * 2.*vx.col(3);
+    S11.col(2) = 1. / mesh.hx * vx.col(5);
+    S12.col(0) = 0.5 * (vy.col(1)/mesh.hx + vx.col(2)/mesh.hy) ;
+    S12.col(1) = 0.5 * (vx.col(5)/mesh.hy + 2.0 * vy.col(3)/mesh.hx );
+    S12.col(2) = 0.5 * (2.0 * vx.col(4)/mesh.hy + vy.col(5)/mesh.hx );
+    S22.col(0) = 1. / mesh.hy * vy.col(2);
+    S22.col(1) = 1. / mesh.hy * vy.col(5);
+    S22.col(2) = 1. / mesh.hy * 2.*vy.col(4);
 
-  const double scaleSigma = Sigma * T * T / L / L / rhoIce;
-  //( sigma,grad phi ) 
-  // S11 d_x phi_x + S12 d_y phi_x
-  tmpX.col(1) += scaleSigma*(S11.col(0)    );
-  tmpX.col(3) += scaleSigma*(S11.col(1)/6. );
-  tmpX.col(5) += scaleSigma*(S11.col(2)/12.);
-  tmpX.col(2) += scaleSigma*(S12.col(0)    );
-  tmpX.col(4) += scaleSigma*(S12.col(2)/6. );
-  tmpX.col(5) += scaleSigma*(S12.col(1)/12.);
-  // S12 d_x phi_y + S22 d_y phi_y
-  tmpY.col(1) += scaleSigma*(S12.col(0)    );
-  tmpY.col(3) += scaleSigma*(S12.col(1)/6. );
-  tmpY.col(5) += scaleSigma*(S12.col(2)/12.);
-  tmpY.col(2) += scaleSigma*(S22.col(0)    );
-  tmpY.col(4) += scaleSigma*(S22.col(2)/6. );
-  tmpY.col(5) += scaleSigma*(S22.col(1)/12.);
- 
-  // Stress consistency and symmetry terms
-  //avg(sigma) n jump(phi)
-  momentumConsistency();
-  //jump(v) n avg(grad phi)
-  momentumSymmetry();
+    const double scaleSigma = 1. ;//Sigma * T * T / L / L / rhoIce;
+    //( sigma,grad phi ) 
+    // S11 d_x phi_x + S12 d_y phi_x
+    // timemesh.dt * N = inverse mass matrix
+    tmpX.col(1) += timemesh.dt_momentum * 12. * scaleSigma  * (S11.col(0)    );
+    tmpX.col(3) += timemesh.dt_momentum * 180.* scaleSigma  * (S11.col(1)/6. );
+    tmpX.col(5) += timemesh.dt_momentum * 144.* scaleSigma  * (S11.col(2)/12.);
+    tmpX.col(2) += timemesh.dt_momentum * 12. * scaleSigma  * (S12.col(0)    );
+    tmpX.col(4) += timemesh.dt_momentum * 180.* scaleSigma  * (S12.col(2)/6. );
+    tmpX.col(5) += timemesh.dt_momentum * 144.* scaleSigma  * (S12.col(1)/12.);
+    // S12 d_x phi_y + S22 d_y phi_y
+    tmpY.col(1) += timemesh.dt_momentum * 12. * scaleSigma  * (S12.col(0)    );
+    tmpY.col(3) += timemesh.dt_momentum * 180.* scaleSigma  * (S12.col(1)/6. );
+    tmpY.col(5) += timemesh.dt_momentum * 144.* scaleSigma  * (S12.col(2)/12.);
+    tmpY.col(2) += timemesh.dt_momentum * 12. * scaleSigma  * (S22.col(0)    );
+    tmpY.col(4) += timemesh.dt_momentum * 180.* scaleSigma  * (S22.col(2)/6. );
+    tmpY.col(5) += timemesh.dt_momentum * 144.* scaleSigma  * (S22.col(1)/12.);
+
+    //std::cout << timemesh.dt_momentum << " " << timemesh.dt << " " << mesh.hy << std::endl;
+    //abort();
 
 
+    // Stress consistency and symmetry terms
+    //avg(sigma) n jump(phi)
+    //momentumConsistency();
+    //jump(v) n avg(grad phi)
+    //momentumSymmetry();
 
-  // jump stabilization
-  momentumJumps();
+    // jump stabilization
+    momentumJumps();
+    // boundary zero Dirichlet
+    momentumDirichletBoundary();
 
-  // boundary zero Dirichlet
-  momentumDirichletBoundary();
-
-   vx += timemesh.dt_momentum * tmpX;
-   vy += timemesh.dt_momentum * tmpY;
+    vx += timemesh.dt_momentum * tmpX;
+    vy += timemesh.dt_momentum * tmpY;
 
     // vx.col(0) = 0.5 * oceanX.col(0) + 0.5 * atmX.col(0);
     // vy.col(0) = 0.5 * oceanY.col(0) + 0.5 * atmY.col(0);
@@ -233,7 +239,7 @@ namespace Nextsim
   {
     GlobalTimer.start("dyn");
     GlobalTimer.start("dyn -- adv");
-    advectionStep();
+    //advectionStep();
     GlobalTimer.stop("dyn -- adv");
     
     GlobalTimer.start("dyn -- mom");

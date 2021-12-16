@@ -51,6 +51,21 @@ public:
         assert(dt_momentum < dt);
     }
 
+    //Question
+    void BasicInit(size_t n, double DT, double DTmomentum)
+    {
+        dt = DT;
+        dt_momentum = DTmomentum;
+        assert(dt > 0);
+        assert(dt_momentum > 0);
+        assert(dt_momentum < dt);
+        N = n;
+
+        Nsub = static_cast<size_t>(1.e-8 + dt / dt_momentum);
+        assert(Nsub >= 1);
+        //assert(fabs(dt - Nsub * dt_momentum) < 1.e-12);
+    }
+
     void BasicInit(double tm, size_t n, size_t nsub)
     {
         assert(tm > 0);

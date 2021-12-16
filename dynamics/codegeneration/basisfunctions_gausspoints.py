@@ -118,8 +118,8 @@ def basisfunctions_in_gausspoints(edge, d, g):
 def edge_basisfunctions_in_gausspoints(d, g):
 
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiGe{2}{3} ='.format(g,d+1,d,g))
-    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(g,d+1))
+    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiGe{2}{3} ='.format(d+1,g,d,g))
+    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d+1,g))
     print('\t',end=' ')
     for dp in range(d+1):
         for gp in range(g):
@@ -192,14 +192,20 @@ for dg in [1,2]:
         basisfunctions_in_gausspoints(e, dg,dg+1)
         print('')
 
+for dg in [1]:
+    for e in [0,1,2,3]:
+        basisfunctions_in_gausspoints(e, dg,dg+2)
+        print('')
+
 print('\n\n//------------------------------ Edge Basis Functions in Gauss Points\n')
 # generate arrays that evaluate basis functions in the gauss points on the edges
 for dg in [1,2]:
     edge_basisfunctions_in_gausspoints(dg,dg+1)
     print('')
 
-
-
+for dg in [1]:
+    edge_basisfunctions_in_gausspoints(dg,dg+2)
+    print('')
 
 
 # Some output
