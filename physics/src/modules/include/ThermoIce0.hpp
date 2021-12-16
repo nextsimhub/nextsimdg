@@ -18,6 +18,7 @@ class PhysicsData;
 class ExternalData;
 class NextsimPhysics;
 
+//! The implementation class for the NeXtSIM therm0 ice thermodynamics.
 class ThermoIce0 : public IThermodynamics, public Configured<ThermoIce0> {
 public:
     ThermoIce0() = default;
@@ -29,6 +30,14 @@ public:
         FLOODING_KEY,
     };
 
+    /*!
+     * @brief Calculate the NeXtSIM thermo0 ice thermodynamics.
+     *
+     * @param prog PrognosticData for this element (constant)
+     * @param exter ExternalData for this element (constant)
+     * @param phys PhysicsData for this element
+     * @param nsphys Nextsim physics implementation data for this element.
+     */
     void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
         NextsimPhysics& nsphys) override;
 

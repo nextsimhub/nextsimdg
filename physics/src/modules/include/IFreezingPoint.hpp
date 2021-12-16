@@ -10,11 +10,20 @@
 
 namespace Nextsim {
 
+//! The interface class for calculation of the freezing point of seawater.
 class IFreezingPoint {
 public:
     virtual ~IFreezingPoint() = default;
 
-    //! Freezing point in ˚C of water with salinity sss and standard pressure
+    /*!
+     * @brief A virtual function that calculates the freezing point of
+     * seawater.
+     *
+     * @details Freezing point in ˚C of water with the given salinity at
+     * standard pressure.
+     *
+     * @param sss Sea surface salinity [PSU]
+     */
     virtual double operator()(double sss) const = 0;
 };
 }

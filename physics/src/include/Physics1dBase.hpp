@@ -12,9 +12,9 @@
 namespace Nextsim {
 
 /*!
- * Base class for 1d column physics
+ * @brief Base class for 1d column physics.
  *
- * The functions in this class define an interface which allows an
+ * @details The functions in this class define an interface which allows an
  * implementable set of methods to calculate the physics (mass flow, drag,
  * thermodynamics) in a single grid or mesh cell.
  */
@@ -23,6 +23,7 @@ public:
     Physics1dBase();
     virtual ~Physics1dBase();
 
+    //! Performs the one dimensional physics calculations.
     template <class Phys> void physics1d(ElementData<Phys>&);
 };
 

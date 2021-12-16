@@ -16,6 +16,8 @@ namespace Nextsim {
 
 const int N_ICE_TEMPERATURES = 3;
 
+//! A class holding all of the data for an element that is carried from one
+//! timestep to another.
 class PrognosticData : public BaseElementData, Configured<PrognosticData> {
 public:
     PrognosticData();
@@ -24,35 +26,45 @@ public:
     void configure() override;
 
     //! Effective Ice thickness [m]
-    inline const double& iceThickness() const { return m_thick; }
+    inline double iceThickness() const { return m_thick; }
     //! True ice thickness [m]. Zero concentration means no ice thickness
     inline double iceTrueThickness() const { return (m_conc != 0) ? m_thick / m_conc : 0; }
 
     //! Ice concentration [1]
-    inline const double& iceConcentration() const { return m_conc; }
+    inline double iceConcentration() const { return m_conc; }
 
     //! Sea surface temperature [˚C]
-    inline const double& seaSurfaceTemperature() const { return m_sst; }
+    inline double seaSurfaceTemperature() const { return m_sst; }
 
     //! Sea surface salinity [psu]
-    inline const double& seaSurfaceSalinity() const { return m_sss; }
+    inline double seaSurfaceSalinity() const { return m_sss; }
 
     //! Ice temperatures [˚C]
     inline const std::array<double, N_ICE_TEMPERATURES>& iceTemperatures() const { return m_tice; }
 
     //! Mean snow thickness [m]
-    inline const double& snowThickness() const { return m_snow; }
+    inline double snowThickness() const { return m_snow; }
     //! Mean snow thickness over ice [m]
     inline double snowTrueThickness() const { return (m_conc != 0) ? m_snow / m_conc : 0; }
 
-    //! Salinity dependent freezing point
-    inline const double freezingPoint() const { return (*m_freezer)(m_sss); }
+    //! Salinity dependent freezing point [˚C]
+    inline double freezingPoint() const { return (*m_freezer)(m_sss); }
 
     //! Timestep [s]
-    inline const double& timestep() const { return m_dt; }
+    inline double timestep() const { return m_dt; }
     //! Set a new value for the timestep
     static void setTimestep(double newDt) { m_dt = newDt; }
 
+    /*!
+     * @brief Set the data from passed arguments.
+     *
+     * @param h Ice thickness [m]
+     * @param c Ice concentration [1]
+     * @param t Sea surface temperature [˚C]
+     * @param s Sea surface salinity [PSU]
+     * @param hs Snow thickness [m]
+     * @param tice Array of ice temperatures [˚C]
+     */
     inline static PrognosticData generate(double h, double c, double t, double s, double hs,
         std::array<double, N_ICE_TEMPERATURES> tice)
     {

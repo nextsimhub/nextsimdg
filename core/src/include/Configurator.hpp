@@ -18,7 +18,12 @@
 namespace Nextsim {
 
 /*!
- * A class to handle the sources of configuration, both files and the command line.
+ * @brief A class to handle the sources of configuration, both files and the command line.
+ *
+ * @details If an option is configured twice the value of the option will not
+ * be updated. Whatever is parsed first sets the value of that option. This
+ * allows the command line to override values in config files, as it is always
+ * parsed first
  */
 class Configurator {
 public:
@@ -26,7 +31,7 @@ public:
     virtual ~Configurator() = default;
 
     /*!
-     *  Add a config file to the configuration sources
+     *  Adds a config file to the configuration sources
      *
      *  @param filename the name of the file to be read.
      */
@@ -37,10 +42,11 @@ public:
     }
 
     /*!
-     * Add several config files to the configuration sources
+     * @brief Adds several config files to the configuration sources
      *
-     * Takes a container of the names of files to be used as configuration
-     * sources. The individual filenames should be stored as std::strings.
+     * @details Takes a container of the names of files to be used as
+     * configuration sources. The individual filenames should be stored as
+     * std::strings.
      *
      * @param container an iterable container holding std::string filenames.
      */
@@ -50,7 +56,7 @@ public:
             addFile(filename);
     }
     /*!
-     * Add a istream source of configuration data.
+     * @brief Adds a istream source of configuration data.
      *
      * @param pis a std::unique_ptr to a std::istream containing the config data.
      */
@@ -59,9 +65,9 @@ public:
         sources.push_back(std::move(pis));
     }
     /*!
-     * Add several istream sources of configuration data.
+     * @brief Adds several istream sources of configuration data.
      *
-     * The container should hold std::unique_ptrs to std::istreams holding the
+     * @details The container should hold std::unique_ptrs to std::istreams holding the
      * data.
      *
      * @param container an iterable container of std::unique_ptrs to
@@ -75,12 +81,12 @@ public:
     }
 
     /*!
-     * Remove previously assigned stream data sources, both files and istreams.
+     * Removes previously assigned stream data sources, both files and istreams.
      */
     inline static void clearStreams() { sources.clear(); }
 
     /*!
-     * Remove all data sources, both streams and command line
+     * Removes all data sources, both streams and command line.
      */
     inline static void clear()
     {
@@ -88,11 +94,11 @@ public:
         setCommandLine(0, nullptr);
     }
     /*!
-     * Set the command line data to be parsed.
+     * @brief Sets the command line data to be parsed.
      *
-     * The data is formatted as the C standard argc and argv values. Any values
-     * defined here will override the corresponding values that might be found
-     * in the config files.
+     * @details The data is formatted as the C standard argc and argv values.
+     * Any values defined here will override the corresponding values that
+     * might be found in the config files.
      *
      * @param argc the number of arguments to be parsed
      * @param argv an array of zero terminated character arrays making up the
@@ -103,6 +109,20 @@ public:
         m_argc = argc;
         m_argv = argv;
     }
+
+    /*!
+     * @brief Parses all configuration sources.
+     *
+     * @details Parses all the the stored configuration sources for the
+     * configuration options specified in the options description. The command
+     * line options are parsed first. Subsequent matching options will not
+     * update the value of the option, so whatever is parsed first sets the
+     * value of that option. This allows the command line to override values in
+     * config files.
+     *
+     * @param opt An instance of boost::program_options describing the options
+     * to be configured.
+     */
     static boost::program_options::variables_map parse(
         const boost::program_options::options_description& opt);
 

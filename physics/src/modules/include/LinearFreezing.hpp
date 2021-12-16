@@ -13,10 +13,20 @@
 
 namespace Nextsim {
 
+//! The implementation class of the linear model of seawater freezing point.
 class LinearFreezing : public IFreezingPoint {
 public:
     // ~LinearFreezing() = default;
 
+    /*!
+     * @brief Calculates the freezing point of
+     * seawater.
+     *
+     * @details Freezing point in ˚C of water with the given salinity at
+     * standard pressure.
+     *
+     * @param sss Sea surface salinity [PSU]
+     */
     inline double operator()(double sss) const override
     {
         // μ is positive, so a negative sign is needed so that the freezing point is below zero.

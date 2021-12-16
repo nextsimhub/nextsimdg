@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+//! A class holding common physics data.
 class PhysicsData : public BaseElementData {
 public:
     PhysicsData() = default;
@@ -29,7 +30,7 @@ public:
     inline double& specificHumidityAir() { return m_sphuma; }
     //! Mixing ratio of water vapour in the air [kg kg⁻¹]
     inline double mixingRatio() { return m_sphuma / (1 - m_sphuma); }
-    //! Specific heat capacity of wet air
+    //! Specific heat capacity of wet air [J kg⁻¹ K⁻¹]
     inline double& heatCapacityWetAir() { return m_cspec; }
     //! Pressure due to wind drag [Pa]
     inline double& dragPressure() { return m_tau; }
@@ -43,6 +44,7 @@ public:
     //! Updated value of the ice surface temperature [˚C]
     inline double& updatedIceSurfaceTemperature() { return m_TiceNew[0]; }
 
+    //! Updated value of the ice concentration [1]
     inline double& updatedIceConcentration() { return m_conc_new; }
 
 private:

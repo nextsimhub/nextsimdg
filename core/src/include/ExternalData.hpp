@@ -12,45 +12,57 @@
 
 namespace Nextsim {
 
+//! A class holding all of the data for an element that is imported from
+//! external sources (coupled models, climatologies).
 class ExternalData : public BaseElementData {
 public:
     ExternalData() = default;
     ~ExternalData() = default;
 
-    //! Air temperature at 2 m [˚C]
+    //! Reference to the air temperature at 2 m [˚C]
     inline double& airTemperature() { return m_tair; };
-    inline const double& airTemperature() const { return m_tair; }
+    //! Air temperature at 2 m [˚C]
+    inline double airTemperature() const { return m_tair; }
 
-    //! Dew point temperature at 2 m [˚C]
+    //! Reference to the dew point temperature at 2 m [˚C]
     inline double& dewPoint2m() { return m_dair; };
+    //! Dew point temperature at 2 m [˚C]
     inline double dewPoint2m() const { return m_dair; };
 
-    //! Sea level atmospheric pressure [Pa]
+    //! Reference to the sea level atmospheric pressure [Pa]
     inline double& airPressure() { return m_slp; };
-    inline const double& airPressure() const { return m_slp; }
+    //! Sea level atmospheric pressure [Pa]
+    inline double airPressure() const { return m_slp; }
 
-    //! Water vapour mixing ratio [kg kg⁻¹]
+    //! Reference to the water vapour mixing ratio [kg kg⁻¹]
     inline double& mixingRatio() { return m_mixrat; };
-    inline const double& mixingRatio() const { return m_mixrat; }
+    //! Water vapour mixing ratio [kg kg⁻¹]
+    inline double mixingRatio() const { return m_mixrat; }
 
     //! Does the element have a valid value of water vapour mixing ratio?
     inline bool hasMixingRatio() const { return (m_mixrat >= 0) && (m_mixrat <= 1); };
 
+    //! Reference to the incoming short wave radiation flux [W m⁻²]
     inline double& incomingShortwave() { return m_Qsw_in; }
-    inline const double& incomingShortwave() const { return m_Qsw_in; }
+    //! Incoming short wave radiation flux [W m⁻²]
+    inline double incomingShortwave() const { return m_Qsw_in; }
 
+    //! Reference to the incoming long wave radiation flux [W m⁻²]
     inline double& incomingLongwave() { return m_Qlw_in; }
-    inline const double& incomingLongwave() const { return m_Qlw_in; }
+    //! Incoming long wave radiation flux [W m⁻²]
+    inline double incomingLongwave() const { return m_Qlw_in; }
 
+    //! Reference to the depth of the ocean mixed layer [m]
     inline double& mixedLayerDepth() { return m_mld; };
+    //! Depth of the ocean mixed layer [m]
     inline double mixedLayerDepth() const { return m_mld; }
+    //! The areal mixed layer heat capacity [J K⁻¹ m⁻²]
     inline double mixedLayerBulkHeatCapacity() const { return m_mld * Water::rhoOcean * Water::cp; }
 
-    inline double& snowfall() // [kg m⁻² s⁻¹]
-    {
-        return m_snowfall;
-    }
-    inline const double& snowfall() const { return m_snowfall; }
+    //! Reference to the snowfall rate [kg m⁻² s⁻¹]
+    inline double& snowfall() { return m_snowfall; }
+    //! Snowfall rate [kg m⁻² s⁻¹]
+    inline double snowfall() const { return m_snowfall; }
 
 private:
     double m_tair;
