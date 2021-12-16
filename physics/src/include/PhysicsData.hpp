@@ -30,7 +30,7 @@ public:
     inline double& specificHumidityAir() { return m_sphuma; }
     //! Mixing ratio of water vapour in the air [kg kg⁻¹]
     inline double mixingRatio() { return m_sphuma / (1 - m_sphuma); }
-    //! Specific heat capacity of wet air
+    //! Specific heat capacity of wet air [J kg⁻¹ K⁻¹]
     inline double& heatCapacityWetAir() { return m_cspec; }
     //! Pressure due to wind drag [Pa]
     inline double& dragPressure() { return m_tau; }

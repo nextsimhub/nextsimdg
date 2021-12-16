@@ -13,7 +13,7 @@
 namespace Nextsim {
 
 //! A class holding all of the data for an element that is imported from
-// external sources (coupled models, climatologies).
+//! external sources (coupled models, climatologies).
 class ExternalData : public BaseElementData {
 public:
     ExternalData() = default;

@@ -17,7 +17,7 @@ namespace Nextsim {
 const int N_ICE_TEMPERATURES = 3;
 
 //! A class holding all of the data for an element that is carried from one
-// timestep to another.
+//! timestep to another.
 class PrognosticData : public BaseElementData, Configured<PrognosticData> {
 public:
     PrognosticData();
@@ -47,7 +47,7 @@ public:
     //! Mean snow thickness over ice [m]
     inline double snowTrueThickness() const { return (m_conc != 0) ? m_snow / m_conc : 0; }
 
-    //! Salinity dependent freezing point
+    //! Salinity dependent freezing point [˚C]
     inline double freezingPoint() const { return (*m_freezer)(m_sss); }
 
     //! Timestep [s]

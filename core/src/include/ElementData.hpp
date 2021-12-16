@@ -14,7 +14,7 @@
 namespace Nextsim {
 
 //! A class to be used when a non-specific class derived from BaseElementData
-// is needed.
+//! is needed.
 class UnusedData : public BaseElementData {
 };
 
@@ -41,7 +41,7 @@ public:
     using Phys::operator=;
 
     //! Configures the PrognosticData and physics implementation aspects of the
-    // object.
+    //!  object.
     void configure() override
     {
         PrognosticData::configure();
