@@ -25,7 +25,7 @@ int main()
   Nextsim::Dynamics dynamics;
 
   //! initialize the mesh
-  size_t N = 20;
+  size_t N = 25;
   dynamics.GetMesh().BasicInit(N,N,1./N,1./N);
   std::cout << "--------------------------------------------" << std::endl;
   std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -34,15 +34,15 @@ int main()
   float hours = 24. ; //24
   double TMAX = 2.0 * hours * 60.0 * 60.0 / ReferenceScale::T;
   double k = 10.0 / ReferenceScale::T; //!< time step 10 seconds
-  k = 1. / ReferenceScale::T; //!< time step 10 seconds
+  k = 1. / ReferenceScale::T; //!< This is necessary for Laplace
 
   int NT = (static_cast<int>((TMAX / k + 1) / 100 + 1) * 100); //!<  No. of time steps dividable by 100
   
   k = TMAX / NT;
 
-  dynamics.GetTimeMesh().BasicInit(TMAX,NT,1);
+  //dynamics.GetTimeMesh().BasicInit(TMAX,NT,1);
   // call constructor with dt and dt_momentum with k and k^2
-  //dynamics.GetTimeMesh().BasicInit(NT,k,k*k);
+  dynamics.GetTimeMesh().BasicInit(NT,k,k*k);
 
 
   std::cout << "Time mesh of [0," << dynamics.GetTimeMesh().tmax << "] with " 

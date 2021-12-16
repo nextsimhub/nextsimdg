@@ -198,19 +198,19 @@ namespace Nextsim
     //( sigma,grad phi ) 
     // S11 d_x phi_x + S12 d_y phi_x
     // timemesh.dt * N = inverse mass matrix
-    tmpX.col(1) += timemesh.dt_momentum * 12. * scaleSigma  * (S11.col(0)    );
-    tmpX.col(3) += timemesh.dt_momentum * 180.* scaleSigma  * (S11.col(1)/6. );
-    tmpX.col(5) += timemesh.dt_momentum * 144.* scaleSigma  * (S11.col(2)/12.);
-    tmpX.col(2) += timemesh.dt_momentum * 12. * scaleSigma  * (S12.col(0)    );
-    tmpX.col(4) += timemesh.dt_momentum * 180.* scaleSigma  * (S12.col(2)/6. );
-    tmpX.col(5) += timemesh.dt_momentum * 144.* scaleSigma  * (S12.col(1)/12.);
+    tmpX.col(1) +=  12. * scaleSigma  * (S11.col(0)    );
+    tmpX.col(3) +=  180.* scaleSigma  * (S11.col(1)/6. );
+    tmpX.col(5) +=  144.* scaleSigma  * (S11.col(2)/12.);
+    tmpX.col(2) +=  12. * scaleSigma  * (S12.col(0)    );
+    tmpX.col(4) +=  180.* scaleSigma  * (S12.col(2)/6. );
+    tmpX.col(5) +=  144.* scaleSigma  * (S12.col(1)/12.);
     // S12 d_x phi_y + S22 d_y phi_y
-    tmpY.col(1) += timemesh.dt_momentum * 12. * scaleSigma  * (S12.col(0)    );
-    tmpY.col(3) += timemesh.dt_momentum * 180.* scaleSigma  * (S12.col(1)/6. );
-    tmpY.col(5) += timemesh.dt_momentum * 144.* scaleSigma  * (S12.col(2)/12.);
-    tmpY.col(2) += timemesh.dt_momentum * 12. * scaleSigma  * (S22.col(0)    );
-    tmpY.col(4) += timemesh.dt_momentum * 180.* scaleSigma  * (S22.col(2)/6. );
-    tmpY.col(5) += timemesh.dt_momentum * 144.* scaleSigma  * (S22.col(1)/12.);
+    tmpY.col(1) +=  12. * scaleSigma  * (S12.col(0)    );
+    tmpY.col(3) +=  180.* scaleSigma  * (S12.col(1)/6. );
+    tmpY.col(5) +=  144.* scaleSigma  * (S12.col(2)/12.);
+    tmpY.col(2) +=  12. * scaleSigma  * (S22.col(0)    );
+    tmpY.col(4) +=  180.* scaleSigma  * (S22.col(2)/6. );
+    tmpY.col(5) +=  144.* scaleSigma  * (S22.col(1)/12.);
 
     //std::cout << timemesh.dt_momentum << " " << timemesh.dt << " " << mesh.hy << std::endl;
     //abort();

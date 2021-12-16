@@ -114,13 +114,13 @@ public:
             vy(c2, 4));
 
         const LocalEdgeVector<2> jumpX = (rightX - leftX) * BiGe23;
-        tmpX.block<1, 6>(c1, 0) += 1. * jumpX * BiG23_1;
-        tmpX.block<1, 6>(c2, 0) -= 1. * jumpX * BiG23_3;
+        tmpX.block<1, 6>(c1, 0) += 1. / mesh.hx * jumpX * BiG23_1;
+        tmpX.block<1, 6>(c2, 0) -= 1. / mesh.hx * jumpX * BiG23_3;
 
         const LocalEdgeVector<2> jumpY = (rightY - leftY) * BiGe23;
 
-        tmpY.block<1, 6>(c1, 0) += 1. * jumpY * BiG23_1;
-        tmpY.block<1, 6>(c2, 0) -= 1. * jumpY * BiG23_3;
+        tmpY.block<1, 6>(c1, 0) += 1. / mesh.hx * jumpY * BiG23_1;
+        tmpY.block<1, 6>(c2, 0) -= 1. / mesh.hx * jumpY * BiG23_3;
     }
 
     void stabilizationX(size_t c1, size_t c2)
@@ -142,12 +142,12 @@ public:
             vy(c2, 1) - 0.5 * vy(c2, 5), vy(c2, 3));
 
         const LocalEdgeVector<2> jumpX = (topX - bottomX) * BiGe23;
-        tmpX.block<1, 6>(c1, 0) -= 1. * jumpX * BiG23_2;
-        tmpX.block<1, 6>(c2, 0) += 1. * jumpX * BiG23_0;
+        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hx * jumpX * BiG23_2;
+        tmpX.block<1, 6>(c2, 0) += 1. / mesh.hx * jumpX * BiG23_0;
 
         const LocalEdgeVector<2> jumpY = (topY - bottomY) * BiGe23;
-        tmpY.block<1, 6>(c1, 0) -= 1. * jumpY * BiG23_2;
-        tmpY.block<1, 6>(c2, 0) += 1. * jumpY * BiG23_0;
+        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hx * jumpY * BiG23_2;
+        tmpY.block<1, 6>(c2, 0) += 1. / mesh.hx * jumpY * BiG23_0;
     }
 
     void consistencyY(size_t c1, size_t c2)
@@ -168,10 +168,10 @@ public:
         const LocalEdgeVector<2> avgS11 = 0.5 * (S11left + S11right) * BiGe13;
         const LocalEdgeVector<2> avgS12 = 0.5 * (S12left + S12right) * BiGe13;
 
-        tmpX.block<1, 6>(c1, 0) -= 1. * mesh.hx * avgS11 * BiG23_1;
-        tmpX.block<1, 6>(c2, 0) += 1. * mesh.hx * avgS11 * BiG23_3;
-        tmpY.block<1, 6>(c1, 0) -= 1. * mesh.hx * avgS12 * BiG23_1;
-        tmpY.block<1, 6>(c2, 0) += 1. * mesh.hx * avgS12 * BiG23_3;
+        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hx * avgS11 * BiG23_1;
+        tmpX.block<1, 6>(c2, 0) += 1. / mesh.hx * avgS11 * BiG23_3;
+        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hx * avgS12 * BiG23_1;
+        tmpY.block<1, 6>(c2, 0) += 1. / mesh.hx * avgS12 * BiG23_3;
     }
 
     void consistencyX(size_t c1, size_t c2)
@@ -192,10 +192,10 @@ public:
         const LocalEdgeVector<2> avgS12 = 0.5 * (S12top + S12bot) * BiGe13;
         const LocalEdgeVector<2> avgS22 = 0.5 * (S22top + S22bot) * BiGe13;
 
-        tmpX.block<1, 6>(c1, 0) -= 1. * mesh.hy * avgS12 * BiG23_2;
-        tmpX.block<1, 6>(c2, 0) += 1. * mesh.hy * avgS12 * BiG23_0;
-        tmpY.block<1, 6>(c1, 0) -= 1. * mesh.hy * avgS22 * BiG23_2;
-        tmpY.block<1, 6>(c2, 0) += 1. * mesh.hy * avgS22 * BiG23_0;
+        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hy * avgS12 * BiG23_2;
+        tmpX.block<1, 6>(c2, 0) += 1. / mesh.hy * avgS12 * BiG23_0;
+        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hy * avgS22 * BiG23_2;
+        tmpY.block<1, 6>(c2, 0) += 1. / mesh.hy * avgS22 * BiG23_0;
     }
 
     template <int DGdegree>
@@ -208,8 +208,8 @@ public:
             vy(c2, 2) - 0.5 * vy(c2, 5),
             vy(c2, 4));
 
-        tmpX.block<1, 6>(c2, 0) -= 1. * rightX * BiGe23 * BiG23_3;
-        tmpY.block<1, 6>(c2, 0) -= 1. * rightY * BiGe23 * BiG23_3;
+        tmpX.block<1, 6>(c2, 0) -= 1. / mesh.hx * rightX * BiGe23 * BiG23_3;
+        tmpY.block<1, 6>(c2, 0) -= 1. / mesh.hx * rightY * BiGe23 * BiG23_3;
     }
 
     template <int DGdegree>
@@ -222,8 +222,8 @@ public:
             vy(c1, 2) + 0.5 * vy(c1, 5),
             vy(c1, 4));
 
-        tmpX.block<1, 6>(c1, 0) -= 1. * leftX * BiGe23 * BiG23_1;
-        tmpY.block<1, 6>(c1, 0) -= 1. * leftY * BiGe23 * BiG23_1;
+        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hx * leftX * BiGe23 * BiG23_1;
+        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hx * leftY * BiGe23 * BiG23_1;
     }
 
     template <int DGdegree>
@@ -239,8 +239,8 @@ public:
             vy(c1, 1) + 0.5 * vy(c1, 5),
             vy(c1, 3));
 
-        tmpX.block<1, 6>(c1, 0) -= 1. * topX * BiGe23 * BiG23_2;
-        tmpY.block<1, 6>(c1, 0) -= 1. * topY * BiGe23 * BiG23_2;
+        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hx * topX * BiGe23 * BiG23_2;
+        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hx * topY * BiGe23 * BiG23_2;
     }
 
     template <int DGdegree>
@@ -254,8 +254,8 @@ public:
             vy(c2, 0) - 0.5 * vy(c2, 2) + 1. / 6. * vy(c2, 4),
             vy(c2, 1) - 0.5 * vy(c2, 5), vy(c2, 3));
 
-        tmpX.block<1, 6>(c2, 0) -= 1. * bottomX * BiGe23 * BiG23_0;
-        tmpY.block<1, 6>(c2, 0) -= 1. * bottomY * BiGe23 * BiG23_0;
+        tmpX.block<1, 6>(c2, 0) -= 1. / mesh.hx * bottomX * BiGe23 * BiG23_0;
+        tmpY.block<1, 6>(c2, 0) -= 1. / mesh.hx * bottomY * BiGe23 * BiG23_0;
     }
 
     /**!
