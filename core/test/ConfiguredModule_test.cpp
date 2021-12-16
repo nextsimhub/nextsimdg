@@ -73,5 +73,19 @@ TEST_CASE("Don't configure a module from a stream", "[Configurator, ModuleLoader
     REQUIRE(impler() == 2);
 }
 
+TEST_CASE("Configure a module with an incorrect name", "[Configurator, ModuleLoader]")
+{
+    Configurator::clear();
+    std::stringstream config;
+    config << "[Modules]" << std::endl
+            << "ITest = Graham" << std::endl;
+
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+
+    // Should throw a domain_error as "Graham" is not a valid implementation.
+    REQUIRE_THROWS_AS(ConfiguredModule::parseConfigurator(), std::domain_error);
+
+}
 
 }

@@ -11,6 +11,7 @@
 #include "include/ModuleLoader.hpp"
 
 #include <boost/program_options.hpp>
+#include <stdexcept>
 namespace Nextsim {
 
 const std::string ConfiguredModule::MODULE_PREFIX = "Modules";
@@ -52,7 +53,13 @@ void ConfiguredModule::parseConfigurator()
             for (const std::string implName : loader.listImplementations(module)) {
                 if (implString == implName) moduleImpl = implName;
             }
-            if (moduleImpl != "") loader.setImplementation(module, implString);
+            if (moduleImpl != "") {
+                loader.setImplementation(module, implString);
+            } else {
+                std::string what = "Invalid implementation \"";
+                what += implString + "\" of module " + module +".";
+                throw std::domain_error(what);
+            }
         }
     }
 }
