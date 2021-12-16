@@ -54,7 +54,7 @@ public:
     /*!
      * @brief Returns a newly created instance of the implementing class.
      *
-     * @detailed The module of interest is specified as a template argument. A
+     * @details The module of interest is specified as a template argument. A
      * new instance of the already-selected implementing class is returned
      * using a unique_ptr to the instance.
      */
@@ -63,7 +63,7 @@ public:
     /*!
      * @brief Returns a reference to a static instance of the implementing class.
      *
-     * @detailed The class holds one instance of every implementing class. Once
+     * @details The class holds one instance of every implementing class. Once
      * the implementing class is set, this function will return a reference to
      * that instance.
      */
@@ -72,7 +72,7 @@ public:
     /*!
      * @brief Sets the implementation class of a module.
      *
-     * @detailed Given a module, specified by its name, set the implementing
+     * @details Given a module, specified by its name, set the implementing
      * class by name. The names should match the name given in the module
      * specification file.
      *

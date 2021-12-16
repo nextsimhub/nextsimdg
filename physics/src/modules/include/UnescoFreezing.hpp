@@ -20,7 +20,7 @@ class UnescoFreezing : public IFreezingPoint {
     /*!
      * @brief Calculates the freezing point of seawater.
      *
-     * @detailed Freezing point in ˚C of water with the given salinity at
+     * @details Freezing point in ˚C of water with the given salinity at
      * standard pressure.
      *
      * @param sss Sea surface salinity [PSU]

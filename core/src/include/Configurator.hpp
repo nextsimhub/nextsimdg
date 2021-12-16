@@ -20,7 +20,7 @@ namespace Nextsim {
 /*!
  * @brief A class to handle the sources of configuration, both files and the command line.
  *
- * @detailed If an option is configured twice the value of the option will not
+ * @details If an option is configured twice the value of the option will not
  * be updated. Whatever is parsed first sets the value of that option. This
  * allows the command line to override values in config files, as it is always
  * parsed first
@@ -44,7 +44,7 @@ public:
     /*!
      * @brief Adds several config files to the configuration sources
      *
-     * @detailed Takes a container of the names of files to be used as
+     * @details Takes a container of the names of files to be used as
      * configuration sources. The individual filenames should be stored as
      * std::strings.
      *
@@ -67,7 +67,7 @@ public:
     /*!
      * @brief Adds several istream sources of configuration data.
      *
-     * @detailed The container should hold std::unique_ptrs to std::istreams holding the
+     * @details The container should hold std::unique_ptrs to std::istreams holding the
      * data.
      *
      * @param container an iterable container of std::unique_ptrs to
@@ -96,7 +96,7 @@ public:
     /*!
      * @brief Sets the command line data to be parsed.
      *
-     * @detailed The data is formatted as the C standard argc and argv values.
+     * @details The data is formatted as the C standard argc and argv values.
      * Any values defined here will override the corresponding values that
      * might be found in the config files.
      *
@@ -113,7 +113,7 @@ public:
     /*!
      * @brief Parses all configuration sources.
      *
-     * @detailed Parses all the the stored configuration sources for the
+     * @details Parses all the the stored configuration sources for the
      * configuration options specified in the options description. The command
      * line options are parsed first. Subsequent matching options will not
      * update the value of the option, so whatever is parsed first sets the

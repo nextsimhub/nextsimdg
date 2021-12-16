@@ -40,7 +40,7 @@ public:
     /*!
      * @brief Template function for conditionally configuring references.
      *
-     * @detailed Pass any class to this function (or its pointer equivalent).
+     * @details Pass any class to this function (or its pointer equivalent).
      * If it is a derived class of Configured, the overridden configure()
      * function will be called. If it is not, the function will do nothing,
      * gracefully.
@@ -53,7 +53,7 @@ public:
      * @brief Template function for conditionally configuring classes via a
      * pointer.
      *
-     * @detailed Pass any class to this function (or its reference equivalent).
+     * @details Pass any class to this function (or its reference equivalent).
      * If it is a derived class of Configured, the overridden configure()
      * function will be called. If it is not, the function will do nothing,
      * gracefully.
@@ -132,7 +132,7 @@ std::map<std::string, boost::program_options::options_description> Configured<C>
 /*!
  * @brief Template function for conditionally configuring references.
  *
- * @detailed Pass any class to this function (or its pointer equivalent). If it
+ * @details Pass any class to this function (or its pointer equivalent). If it
  * is a derived class of Configured, the overridden configure() function will
  * be called. If it is not, the function will do nothing, gracefully.
  *
@@ -151,7 +151,7 @@ template <typename C> template <typename T> void Configured<C>::tryConfigure(T& 
  * @brief Template function for conditionally configuring classes via a
  * pointer.
  *
- * @detailed Pass any class to this function (or its reference equivalent). If
+ * @details Pass any class to this function (or its reference equivalent). If
  * it is a derived class of Configured, the overridden configure() function
  * will be called. If it is not, the function will do nothing, gracefully.
  *
@@ -167,7 +167,7 @@ template <typename C> template <typename T> void Configured<C>::tryConfigure(T* 
 /*!
  * @brief Template function for conditionally configuring references.
  *
- * @detailed Pass any class to this function (or its pointer equivalent). If it
+ * @details Pass any class to this function (or its pointer equivalent). If it
  * is a derived class of Configured, the overridden configure() function will
  * be called. If it is not, the function will do nothing, gracefully.
  *
@@ -179,7 +179,7 @@ template <typename T> void tryConfigure(T& t) { Configured<int>::tryConfigure(t)
  * @brief Template function for conditionally configuring classes via a
  * pointer.
  *
- * @detailed Pass any class to this function (or its reference equivalent).
+ * @details Pass any class to this function (or its reference equivalent).
  * If it is a derived class of Configured, the overridden configure()
  * function will be called. If it is not, the function will do nothing,
  * gracefully.

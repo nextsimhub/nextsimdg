@@ -23,7 +23,7 @@ public:
     /*!
      * @brief Updates any derived quantities in PhysicsData.
      *
-     * @detailed This function is declared virtual to be overridden if the implementing class needs to update
+     * @details This function is declared virtual to be overridden if the implementing class needs to update
      * any class specific derived data.
      *
      * @param prog PrognosticData for this element (constant).
@@ -47,7 +47,7 @@ public:
     /*!
      * @brief Performs the 1d physics calculation.
      *
-     * @detailed Performs the one-dimensional physics calculation for this
+     * @details Performs the one-dimensional physics calculation for this
      * element, writing the data to the PhysicsData argument.
      *
      * @param prog PrognosticData for this element (constant).

@@ -14,7 +14,7 @@ namespace Nextsim {
 /*!
  * @brief Base class for 1d column physics.
  *
- * @detailed The functions in this class define an interface which allows an
+ * @details The functions in this class define an interface which allows an
  * implementable set of methods to calculate the physics (mass flow, drag,
  * thermodynamics) in a single grid or mesh cell.
  */

@@ -21,7 +21,7 @@ class UnusedData : public BaseElementData {
 /*!
  * @brief The class which holds all the data for a single element of the model.
  *
- * @detailed Inherits from PrognosticData, PhysicsData and ExternalData. The
+ * @details Inherits from PrognosticData, PhysicsData and ExternalData. The
  * physics implementation is provided as a template argument.
  */
 template <class Phys>

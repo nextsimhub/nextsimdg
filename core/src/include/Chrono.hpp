@@ -15,7 +15,7 @@ namespace Nextsim {
 /*!
  * @brief A class providing a timer.
  *
- * @detailed This class records execution wall and CPU time as well as a record
+ * @details This class records execution wall and CPU time as well as a record
  * of the number of times that the chronometer has been started.
  */
 class Chrono {
@@ -71,7 +71,7 @@ public:
     /*!
      * @brief Starts the timer.
      *
-     * @detailed Starts the clock on both the wall and CPU clocks, increments
+     * @details Starts the clock on both the wall and CPU clocks, increments
      * the number of activation ticks and sets the running flag.
      */
     inline void start()
@@ -85,7 +85,7 @@ public:
     /*!
      * @brief Stops the timer.
      *
-     * @detailed Stops both the wall and CPU clocks, updates the cumulative
+     * @details Stops both the wall and CPU clocks, updates the cumulative
      * time for both clocks and unsets the running flag.
      */
     void stop()
