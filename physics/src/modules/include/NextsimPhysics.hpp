@@ -67,20 +67,61 @@ public:
     //! Total amount of ice that resulted from the flooding of snow [m]
     inline double& totalIceFromSnow() { return m_hifroms; }
 
+    //! Minimum ice concentration [1]
     static double minimumIceConcentration() { return minc; };
+    //! Minimum ice thickness [m]
     static double minimumIceThickness() { return minh; };
+    //! I0 parameter
     static double i0() { return m_I0; };
 
+    // A class encapsulating the calculation of specific humidity.
     class SpecificHumidity {
     public:
         SpecificHumidity();
+        /*!
+         * @brief Calculates humidity over fresh water.
+         *
+         * @param temperature Temperature of the water vapour [˚C]
+         * @param pressure Hydrostatic pressure [Pa]
+         */
         double operator()(const double temperature, const double pressure) const;
+        /*!
+         * @brief Calculates humidity over sea water.
+         *
+         * @param temperature Temperature of the water vapour [˚C]
+         * @param pressure Hydrostatic pressure [Pa]
+         * @param salinity Salinity of the liquid water [PSU]
+         */
         double operator()(
             const double temperature, const double pressure, const double salinity) const;
 
     protected:
-        SpecificHumidity(double, double, double, double, double, double, double);
+        /*!
+         * @brief Constructs an instance of the specific humidity calculator
+         * with the specific parameters.
+         *
+         * @param a The 'a' scaling coefficient of the est factor.
+         * @param b The 'b' exponential offset of the est factor.
+         * @param c The 'c' temperature offset of the est factor.
+         * @param d The 'd' temperature scaling of the est factor.
+         * @param A The 'A' offset of the f factor.
+         * @param B The 'B' pressure offset of the f factor.
+         * @param C The 'C' quadratic temperature factor of the f factor.
+         */
+        SpecificHumidity(double a, double b, double c, double d, double A, double B, double C);
+        /*!
+         * @brief Calculates the f factor.
+         *
+         * @param temperature Water vapour temperature [˚C]
+         * @param pressurePa Hydrostatic pressure [Pa]
+         */
         double f(const double temperature, const double pressurePa) const;
+        /*!
+         * @brief Calculates the est factor.
+         *
+         * @param temperature Water vapour temperature [˚C]
+         * @param salinity Liquid water salinity [PSU]
+         */
         double est(const double temperature, const double salinity) const;
         const double m_a;
         const double m_b;
@@ -92,20 +133,68 @@ public:
         const double m_alpha;
         const double m_beta;
     };
+    // A class encapsulating the calculation of specific humidity over ice.
     class SpecificHumidityIce : public SpecificHumidity {
     public:
         SpecificHumidityIce();
+        /*!
+         * @brief Calculates humidity over ice.
+         *
+         * @param temperature Temperature of the water vapour [˚C]
+         * @param pressure Hydrostatic pressure [Pa]
+         */
         double operator()(const double temperature, const double pressure) const;
+        /*!
+         * @brief Derivative of the specific humdity over ice with respect to
+         * temperature.
+         *
+         * @param temperature Temperature of the water vapour [˚C]
+         * @param pressure Hydrostatic pressure [Pa]
+         */
         double dq_dT(const double temperature, const double pressure) const;
     };
 
 protected:
+    /*!
+     * @brief Calculates the specific humidity in the air.
+     *
+     * @param exter ExternalData for this element (constant).
+     * @param phys PhysicsData for this element.
+     */
     void updateSpecificHumidityAir(const ExternalData& exter, PhysicsData& phys) override;
+    /*!
+     * @brief Calculates the specific humidity at the temperature of the sea
+     * surface and saturation.
+     *
+     * @param prog PrognosticData for this element (constant).
+     * @param exter ExternalData for this element (constant).
+     * @param phys PhysicsData for this element.
+     */
     void updateSpecificHumidityWater(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
+    /*!
+     * @brief Calculates the specific humidity at the temperature of the ice
+     * surface and saturation over ice.
+     *
+     * @param prog PrognosticData for this element (constant).
+     * @param exter ExternalData for this element (constant).
+     * @param phys PhysicsData for this element.
+     */
     void updateSpecificHumidityIce(
         const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
+    /*!
+     * @brief Calculates the air density.
+     *
+     * @param exter ExternalData for this element (constant).
+     * @param phys PhysicsData for this element.
+     */
     void updateAirDensity(const ExternalData& exter, PhysicsData& phys) override;
+    /*!
+     * @brief Calculates the heat capacity of the humid air.
+     *
+     * @param exter ExternalData for this element (constant).
+     * @param phys PhysicsData for this element.
+     */
     void updateHeatCapacityWetAir(const ExternalData& exter, PhysicsData& phys) override;
 
 private:
