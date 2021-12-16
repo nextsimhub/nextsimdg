@@ -46,7 +46,13 @@ void ConfiguredModule::parseConfigurator()
         std::string implString = vm[addPrefix(module)].as<std::string>();
         // Only do anything if the retrieved option is not the default value
         if (implString != defaultStr) {
-            loader.setImplementation(module, implString);
+            // Check that the retrieved value is one of the implementations
+            // defined for this module
+            std::string moduleImpl = "";
+            for (const std::string implName : loader.listImplementations(module)) {
+                if (implString == implName) moduleImpl = implName;
+            }
+            if (moduleImpl != "") loader.setImplementation(module, implString);
         }
     }
 }
