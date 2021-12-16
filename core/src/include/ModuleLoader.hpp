@@ -91,6 +91,7 @@ public:
 
     //! Sets the default implementation for all modules.
     void setAllDefaults();
+
 private:
     ModuleLoader() {};
 

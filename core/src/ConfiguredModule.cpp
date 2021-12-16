@@ -51,13 +51,14 @@ void ConfiguredModule::parseConfigurator()
             // defined for this module
             std::string moduleImpl = "";
             for (const std::string implName : loader.listImplementations(module)) {
-                if (implString == implName) moduleImpl = implName;
+                if (implString == implName)
+                    moduleImpl = implName;
             }
             if (moduleImpl != "") {
                 loader.setImplementation(module, implString);
             } else {
                 std::string what = "Invalid implementation \"";
-                what += implString + "\" of module " + module +".";
+                what += implString + "\" of module " + module + ".";
                 throw std::domain_error(what);
             }
         }
