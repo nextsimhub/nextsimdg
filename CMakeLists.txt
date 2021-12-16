@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.12)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -15,12 +15,46 @@ find_package(Catch2 REQUIRED)
 
 # Set the location of the ipp files used by ModuleLoader for the main build
 set(ModuleLoaderIppTargetDirectory
-"${CMAKE_CURRENT_SOURCE_DIR}/src/modules/")
+"${CMAKE_CURRENT_SOURCE_DIR}/core/src/modules/generated/")
 
-# Build the main model
-add_subdirectory(src)
+file(MAKE_DIRECTORY "${ModuleLoaderIppTargetDirectory}")
+# Set the list of components that define modules. Component subdirectories are
+# contained in this directory level and contain src/modules/ and 
+# src/modules/include/ subdirectories 
+set(ModularComponents
+"physics"
+)
 
-# Testing
-if (NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
-    add_subdirectory(test)
-endif()
+# Set the components which provide source or object code to the main model
+set(CodeComponents
+"physics"
+#"dynamics"
+)
+
+# Set an empty list of sources
+set(NextsimSources "")
+
+# Set an empty list of include directories
+set(NextsimIncludeDirs "")
+
+# Build the core model. Defines the 'parse_modules' target
+add_subdirectory(core)
+
+# Build all components
+foreach(compo ${CodeComponents})
+    add_subdirectory("${compo}")
+endforeach()
+
+# Link the model
+add_executable(nextsim "${NextsimSources}")
+
+target_include_directories(nextsim PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${Boost_INCLUDE_DIRS}"
+    "${ModuleLoaderIppTargetDirectory}"
+    "${NextsimIncludeDirs}"
+    )
+target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
+
+#The parse_modules target is inherited from src
+add_dependencies(nextsim parse_modules)
