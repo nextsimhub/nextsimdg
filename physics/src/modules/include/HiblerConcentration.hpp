@@ -35,7 +35,6 @@ public:
      * @param nsphys Nextsim physics implementation data for this element.
      */
     double freeze(const PrognosticData&, PhysicsData&, NextsimPhysics&) const override;
-    virtual double freeze(const PrognosticData&, PhysicsData&, NextsimPhysics&) const = 0;
     /*!
      * @brief Calculates the amount of melting during the timestep from the
      * Hibler model.
