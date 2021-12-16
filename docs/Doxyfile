@@ -1,6 +1,6 @@
 PROJECT_NAME = "netxsimdg"
 XML_OUTPUT = xml
-INPUT = ../src
+INPUT = ../core
 GENERATE_LATEX = NO
 GENERATE_MAN = NO
 GENERATE_RTF = NO
