@@ -9,7 +9,6 @@
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
-#include </opt/home/include/catch2/catch.hpp> // FIXME!
 
 #include "ArgV.hpp"
 #include "moduleTestClasses.hpp"
