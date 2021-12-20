@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 project(framework_dg)
 
+set (NETCDF_CXX "YES")
 find_package(netCDF REQUIRED)
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Catch2 REQUIRED)
@@ -53,6 +54,7 @@ target_include_directories(nextsim PRIVATE
     "${Boost_INCLUDE_DIRS}"
     "${ModuleLoaderIppTargetDirectory}"
     "${NextsimIncludeDirs}"
+    "${NETCDF_INCLUDES}"
     )
 target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
 
