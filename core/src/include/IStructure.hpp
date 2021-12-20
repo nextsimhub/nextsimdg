@@ -9,8 +9,8 @@
 #define CORE_SRC_INCLUDE_ISTRUCTURE_HPP_
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <ncFile.h>
 #include <ncGroup.h>
-#include "/opt/home/include/ncGroup.h"
 #include <string>
 /*!
  * @brief Interface class for the model structure.
@@ -37,7 +37,7 @@ public:
     virtual void init(netCDF::NcGroup& grp) = 0;
 
     //! Returns the structure name that this class will process
-    virtual std::string structureType() const { return "none"; }
+    std::string structureType() const { return processedStructureName; }
     /*!
      * @brief Checks if the passed string matches (ignoring case) the name of
      * the structure that this class constructs.
@@ -86,7 +86,9 @@ public:
      */
     inline void dump(netCDF::NcGroup& headGroup) const
     {
-        dump(headGroup.addGroup(metadataNodeName), headGroup.addGroup(dataNodeName));
+        netCDF::NcGroup metaGroup = headGroup.addGroup(metadataNodeName);
+        netCDF::NcGroup dataGroup = headGroup.addGroup(dataNodeName);
+        dump(metaGroup, dataGroup);
     }
 
     /*!
@@ -94,12 +96,17 @@ public:
      *
      * @param filePath The path to attempt writing the data to.
      */
-    inline void dump(const std::string& filePath) {
-            dump(netCDF::NcFile(filePath, netCDF::NcFile::FileMode::replace));
+    inline void dump(const std::string& filePath)
+    {
+        netCDF::NcFile ncFile(filePath, netCDF::NcFile::FileMode::replace);
+        dump(ncFile);
     }
     //! Default name of the metadata node
     std::string metadataNodeName = "structure";
     std::string dataNodeName = "data";
+
+protected:
+    std::string processedStructureName = "none";
 };
 
 #endif /* CORE_SRC_INCLUDE_ISTRUCTURE_HPP_ */
