@@ -54,7 +54,10 @@ public:
      *
      * @param metaGroup The top-level node to write the metadata to.
      */
-    virtual void dumpMeta(netCDF::NcGroup& metaGroup) const = 0;
+    virtual void dumpMeta(netCDF::NcGroup& metaGroup) const
+    {
+        metaGroup.putAtt(typeNodeName, processedStructureName);
+    }
 
     /*!
      * @brief Dumps the prognostic data to a netCDF node.
@@ -62,18 +65,6 @@ public:
      * @param dataGroup The top-level node to write the data to.
      */
     virtual void dumpData(netCDF::NcGroup& dataGroup) const = 0;
-
-    /*!
-     * @brief Dumps the data and metadata to two netCDF nodes.
-     *
-     * @param dataGroup The top-level node to write the data to.
-     * @param metaGroup The top-level node to write the metadata to.
-     */
-    inline void dump(netCDF::NcGroup& metaGroup, netCDF::NcGroup& dataGroup) const
-    {
-        dumpMeta(metaGroup);
-        dumpData(dataGroup);
-    }
 
     /*!
      * @brief Dumps the data and metadata to two sub-groups.
@@ -88,7 +79,8 @@ public:
     {
         netCDF::NcGroup metaGroup = headGroup.addGroup(metadataNodeName);
         netCDF::NcGroup dataGroup = headGroup.addGroup(dataNodeName);
-        dump(metaGroup, dataGroup);
+        dump(metaGroup);
+        dump(dataGroup);
     }
 
     /*!
@@ -101,12 +93,17 @@ public:
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::FileMode::replace);
         dump(ncFile);
     }
-    //! Default name of the metadata node
+    //! Name of the metadata node.
     std::string metadataNodeName = "structure";
+    //! Name of the data node.
     std::string dataNodeName = "data";
 
 protected:
+    //! Name of the structure type processed by this class.
     std::string processedStructureName = "none";
+    //! The name of the node holding the name of the structure type processed
+    //! by this class.
+    const std::string typeNodeName = "type";
 };
 
 #endif /* CORE_SRC_INCLUDE_ISTRUCTURE_HPP_ */
