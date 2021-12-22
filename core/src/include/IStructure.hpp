@@ -8,6 +8,8 @@
 #ifndef CORE_SRC_INCLUDE_ISTRUCTURE_HPP_
 #define CORE_SRC_INCLUDE_ISTRUCTURE_HPP_
 
+#include "/opt/home/include/ncFile.h" // FIXME Remove me
+#include "/opt/home/include/ncGroup.h" // FIXME Remove me
 #include <boost/algorithm/string/predicate.hpp>
 #include <ncFile.h>
 #include <ncGroup.h>
@@ -92,6 +94,7 @@ public:
     {
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::FileMode::replace);
         dump(ncFile);
+        ncFile.close();
     }
     //! Name of the metadata node.
     std::string metadataNodeName = "structure";
