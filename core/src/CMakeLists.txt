@@ -17,13 +17,19 @@ set(BaseSources
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
+set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
+
+set(ModuleSources "")
+
 set(NextsimSources
     "${NextsimSources}"
     "${BaseSources}"
+    "${ModuleSources}"
     PARENT_SCOPE)
 
 set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"
+    "${ModuleDir}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     PARENT_SCOPE)
 

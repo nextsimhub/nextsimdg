@@ -1,2 +1,9 @@
 [
+    {
+        "name": "Nextsim::IFreezingPoint",
+        "implementations": [
+            "Nextsim::LinearFreezing",
+            "Nextsim::UnescoFreezing"
+        ]
+    }
 ]
