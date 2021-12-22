@@ -33,11 +33,10 @@ private:
 
     // pointer to a member of PrognosticData that takes no arguments and returns a
     // double. See https://isocpp.org/wiki/faq/pointers-to-members#typedef-for-ptr-to-memfn
-    typedef double (PrognosticData::*ProgDoubleFn) () const;
+    typedef double (PrognosticData::*ProgDoubleFn)() const;
 
     // Map between variable names and retrieval functions
     static const std::map<std::string, ProgDoubleFn> variableFunctions;
-
 };
 
 } /* namespace Nextsim */
