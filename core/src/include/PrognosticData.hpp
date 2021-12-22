@@ -18,7 +18,7 @@ const int N_ICE_TEMPERATURES = 3;
 
 //! A class holding all of the data for an element that is carried from one
 //! timestep to another.
-class PrognosticData : public BaseElementData, Configured<PrognosticData> {
+class PrognosticData : public BaseElementData, public Configured<PrognosticData> {
 public:
     PrognosticData();
     ~PrognosticData() = default;
@@ -41,6 +41,11 @@ public:
 
     //! Ice temperatures [˚C]
     inline const std::array<double, N_ICE_TEMPERATURES>& iceTemperatures() const { return m_tice; }
+    template <int I> double iceTemperature() const
+    {
+        static_assert(I < N_ICE_TEMPERATURES, "Ice layer indices must be 0 <= I < N_ICE_TEMPERATURES.");
+        return m_tice[I];
+    }
 
     //! Mean snow thickness [m]
     inline double snowThickness() const { return m_snow; }
