@@ -41,12 +41,6 @@ public:
 
     //! Ice temperatures [˚C]
     inline const std::array<double, N_ICE_TEMPERATURES>& iceTemperatures() const { return m_tice; }
-    template <int I> double iceTemperature() const
-    {
-        static_assert(
-            I < N_ICE_TEMPERATURES, "Ice layer indices must be 0 <= I < N_ICE_TEMPERATURES.");
-        return m_tice[I];
-    }
 
     //! Mean snow thickness [m]
     inline double snowThickness() const { return m_snow; }
