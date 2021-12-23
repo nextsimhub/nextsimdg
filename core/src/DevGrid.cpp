@@ -59,6 +59,7 @@ void DevGrid::dumpData(netCDF::NcGroup& dataGroup) const
     for (auto fnNamePair : variableFunctions) {
         std::string& name = fnNamePair.first;
         netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims));
+        std::vector<double> gathered = gather(variableFunctions.at(name));
     }
 }
 

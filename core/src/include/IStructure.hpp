@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_ISTRUCTURE_HPP_
-#define CORE_SRC_INCLUDE_ISTRUCTURE_HPP_
+#ifndef CORE_SRC_INCLUDE_ISTRUCTURE_HPP
+#define CORE_SRC_INCLUDE_ISTRUCTURE_HPP
 
 #include "/opt/home/include/ncFile.h" // FIXME Remove me
 #include "/opt/home/include/ncGroup.h" // FIXME Remove me
@@ -14,6 +14,10 @@
 #include <ncFile.h>
 #include <ncGroup.h>
 #include <string>
+
+// See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
+#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
+
 /*!
  * @brief Interface class for the model structure.
  *
@@ -109,4 +113,4 @@ protected:
     const std::string typeNodeName = "type";
 };
 
-#endif /* CORE_SRC_INCLUDE_ISTRUCTURE_HPP_ */
+#endif /* CORE_SRC_INCLUDE_ISTRUCTURE_HPP */
