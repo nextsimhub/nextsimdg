@@ -1,14 +1,14 @@
 #include <cassert>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "dginitial.hpp"
+#include "dgtransport.hpp"
+#include "dgvisu.hpp"
 #include "mesh.hpp"
 #include "timemesh.hpp"
-#include "dgvisu.hpp"
-#include "dgtransport.hpp"
 
-bool WRITE_VTK = false;
+bool WRITE_VTK = true;
 
 /*!
  * This test case tests the boundary  handling of the DG transport scheme
@@ -21,182 +21,170 @@ bool WRITE_VTK = false;
  */
 
 class InitialVX : virtual public Nextsim::InitialBase {
-  double time;
-  
-public:
+    double time;
 
-  void settime(double t)
-  {
-    time = t;
-  }
-  
-  virtual double operator()(double x, double y) const
-  {
-    if ((time<0.4) || (time>1.2)) return 2.;
-    return -2.;
-  }
+public:
+    void settime(double t)
+    {
+        time = t;
+    }
+
+    virtual double operator()(double x, double y) const
+    {
+        if ((time < 0.4) || (time > 1.2))
+            return 2.;
+        return -2.;
+    }
 };
 class InitialVY : virtual public Nextsim::InitialBase {
-  double time;
+    double time;
+
 public:
-  void settime(double t)
-  {
-    time = t;
-  }
-  
-  virtual double operator()(double x, double y) const
-  {
-    if ((time<0.4) || (time>1.2)) return 1.;
-    return -1.;
-  }
+    void settime(double t)
+    {
+        time = t;
+    }
+
+    virtual double operator()(double x, double y) const
+    {
+        if ((time < 0.4) || (time > 1.2))
+            return 1.;
+        return -1.;
+    }
 };
 class InitialPhi : virtual public Nextsim::InitialBase {
 public:
     virtual double operator()(double x, double y) const
-  {
-    return exp(-50.0 * pow(x-1.0,2.0) - 50.0 * pow(y-0.5,2.0));
-  }
+    {
+        return exp(-50.0 * pow(x - 1.0, 2.0) - 50.0 * pow(y - 0.5, 2.0));
+    }
 };
 
-template<int DGdegree>
-class Test
-{
-  //! Meshes
-  Nextsim::Mesh mesh;
-  Nextsim::TimeMesh timemesh;
-  
-  //! Velocity vectors and density
-  Nextsim::CellVector<DGdegree> vx, vy, phi;
+template <int DGdegree>
+class Test {
+    //! Meshes
+    Nextsim::Mesh mesh;
+    Nextsim::TimeMesh timemesh;
 
-  //! Transport main class
-  Nextsim::DGTransport<DGdegree> dgtransport;
+    //! Velocity vectors and density
+    Nextsim::CellVector<DGdegree> vx, vy, phi;
 
-  //! Velocity Field
-  InitialVX VX;
-  InitialVY VY;
+    //! Transport main class
+    Nextsim::DGTransport<DGdegree> dgtransport;
 
- public:
+    //! Velocity Field
+    InitialVX VX;
+    InitialVY VY;
 
-  Test() : dgtransport(vx,vy)
-  {
-    dgtransport.settimesteppingscheme("rk2");
-  }
+public:
+    Test()
+        : dgtransport(vx, vy)
+    {
+        dgtransport.settimesteppingscheme("rk2");
+    }
 
-  //! Returns the reference values for N=50 obtained on October 16, 2021
-  double reference() const
-  {
-    if ((mesh.nx != 50) || (mesh.ny != 50))
-      {
-	std::cerr << "Reference values only for nx=ny=50. Test might still be correct" << std::endl;
-      }
-    
-    
-    if (DGdegree == 0)
-      return 0.01741268141474477;
-    else if (DGdegree == 1)
-      return 0.04063793141017972;
-    else if (DGdegree ==2)
-      return 0.04076107279725615;
-    abort();
-    
-  }
-  
-  void init()
-  {
-    //! Init Mesh
-    size_t N = 50;
-    mesh.BasicInit(N, N, 2.0 / N, 1.0 / N);
+    //! Returns the reference values for N=50 obtained on October 16, 2021
+    double reference() const
+    {
+        if ((mesh.nx != 50) || (mesh.ny != 50)) {
+            std::cerr << "Reference values only for nx=ny=50. Test might still be correct" << std::endl;
+        }
 
-    //! Init Time Mesh
-    double cfl = 0.1; // 0.1 is the value used to get the reference values above
-    
-    double k   = cfl * std::min(mesh.hx, mesh.hy) / 2.0; // max-velocity is 1
-    double tmax = 1.6;
+        if (DGdegree == 0)
+            return 0.01741268141474477;
+        else if (DGdegree == 1)
+            return 0.04063793141017972;
+        else if (DGdegree == 2)
+            return 0.04076107279725615;
+        abort();
+    }
 
-    int NT = (static_cast<int>((tmax / k + 1) /100 + 1) * 100); // No time steps dividable by 100
-    timemesh.BasicInit(tmax, NT, 1);
-    
-    //! Init Transport Scheme
-    dgtransport.setmesh(mesh);
-    dgtransport.settimemesh(timemesh);
+    void init()
+    {
+        //! Init Mesh
+        size_t N = 50;
+        mesh.BasicInit(N, N, 2.0 / N, 1.0 / N);
 
-    //! Init Vectors
-    vx.resize_by_mesh(mesh);
-    vy.resize_by_mesh(mesh);
-    phi.resize_by_mesh(mesh);
-  }
-  
-  void run()
-  {
-    // initial density
-    Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
+        //! Init Time Mesh
+        double cfl = 0.1; // 0.1 is the value used to get the reference values above
 
-    if (WRITE_VTK)
-      Nextsim::VTK::write_dg<DGdegree>("Results/dg",0,phi,mesh);
-	
+        double k = cfl * std::min(mesh.hx, mesh.hy) / 2.0; // max-velocity is 1
+        double tmax = 1.6;
 
-    // time loop
-    for (size_t iter = 1; iter <= timemesh.N; ++iter)
-      {
-	// set velocity vector
-	VX.settime(iter * timemesh.dt);
-	VY.settime(iter * timemesh.dt);
-	Nextsim::L2ProjectInitial(mesh, vx, VX);
-	Nextsim::L2ProjectInitial(mesh, vy, VY);
+        int NT = (static_cast<int>((tmax / k + 1) / 100 + 1) * 100); // No time steps dividable by 100
+        timemesh.BasicInit(tmax, NT, 1);
 
-	dgtransport.reinitvelocity();// sets the current velocity and averages it to edges
-	
-	dgtransport.step(phi); // performs one time step with the 2nd Order Heun scheme
-	if (WRITE_VTK)
-	  if (iter % (timemesh.N/10)==0)
-	    Nextsim::VTK::write_dg<DGdegree>("Results/dg",iter/(timemesh.N/10),phi,mesh);
-      }
-  }
+        //! Init Transport Scheme
+        dgtransport.setmesh(mesh);
+        dgtransport.settimemesh(timemesh);
 
-  bool check() const
-  {
-    // integral over the [0.8,1.2] x [0.4,0.6]
-    double exactmass = 0.4094292816e-1;
-    double refmass   = reference();
-    double mass      = phi.mass(mesh);
-    double masserror = fabs(exactmass-mass);
+        //! Init Vectors
+        vx.resize_by_mesh(mesh);
+        vy.resize_by_mesh(mesh);
+        phi.resize_by_mesh(mesh);
+    }
 
+    void run()
+    {
+        // initial density
+        Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
-    
-    std::cerr << "Mass [Exact / Reference / Numerical / Error]\t"
-	      << std::setprecision(8)
-	      << exactmass << "\t"
-      	      << refmass << "\t"
-	      << mass << "\t"
-	      << masserror << "\t"
-	      << std::endl;
-    return (fabs(mass - refmass) < 1.e-8);
-  }
-  
+        if (WRITE_VTK)
+            Nextsim::VTK::write_dg<DGdegree>("Results/dg", 0, phi, mesh);
 
+        // time loop
+        for (size_t iter = 1; iter <= timemesh.N; ++iter) {
+            // set velocity vector
+            VX.settime(iter * timemesh.dt);
+            VY.settime(iter * timemesh.dt);
+            Nextsim::L2ProjectInitial(mesh, vx, VX);
+            Nextsim::L2ProjectInitial(mesh, vy, VY);
+
+            dgtransport.reinitvelocity(); // sets the current velocity and averages it to edges
+
+            dgtransport.step(phi); // performs one time step with the 2nd Order Heun scheme
+            if (WRITE_VTK)
+                if (iter % (timemesh.N / 10) == 0)
+                    Nextsim::VTK::write_dg<DGdegree>("Results/dg", iter / (timemesh.N / 10), phi, mesh);
+        }
+    }
+
+    bool check() const
+    {
+        // integral over the [0.8,1.2] x [0.4,0.6]
+        double exactmass = 0.4094292816e-1;
+        double refmass = reference();
+        double mass = phi.mass(mesh);
+        double masserror = fabs(exactmass - mass);
+
+        std::cerr << "Mass [Exact / Reference / Numerical / Error]\t"
+                  << std::setprecision(8)
+                  << exactmass << "\t"
+                  << refmass << "\t"
+                  << mass << "\t"
+                  << masserror << "\t"
+                  << std::endl;
+        return (fabs(mass - refmass) < 1.e-8);
+    }
 };
-
 
 int main()
 {
-  Test<0> test0;
-  test0.init();
-  test0.run();
-  if (!test0.check())
-    std::cerr << "TEST FAILED!" << std::endl;
-  
-  Test<1> test1;
-  test1.init();
-  test1.run();
-  if (!test1.check())
-    std::cerr << "TEST FAILED!" << std::endl;
+    Test<0> test0;
+    test0.init();
+    test0.run();
+    if (!test0.check())
+        std::cerr << "TEST FAILED!" << std::endl;
 
+    Test<1> test1;
+    test1.init();
+    test1.run();
+    if (!test1.check())
+        std::cerr << "TEST FAILED!" << std::endl;
 
-  Test<2> test2;
-  test2.init();
-  test2.run();
-  if (!test2.check())
-    std::cerr << "TEST FAILED!" << std::endl;
-  
-
+    Test<2> test2;
+    test2.init();
+    test2.run();
+    if (!test2.check())
+        std::cerr << "TEST FAILED!" << std::endl;
 }

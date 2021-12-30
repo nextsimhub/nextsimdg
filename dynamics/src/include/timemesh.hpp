@@ -32,7 +32,7 @@ public:
     {
         assert(dt > 0);
         assert(dt_momentum > 0);
-        assert(dt_momentum < dt);
+        assert(dt_momentum <= dt);
 
         Nsub = static_cast<size_t>(1.e-8 + dt / dt_momentum);
         assert(Nsub >= 1);
@@ -58,7 +58,7 @@ public:
         dt_momentum = DTmomentum;
         assert(dt > 0);
         assert(dt_momentum > 0);
-        assert(dt_momentum < dt);
+        assert(dt_momentum <= dt);
         N = n;
 
         Nsub = static_cast<size_t>(1.e-8 + dt / dt_momentum);

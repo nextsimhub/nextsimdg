@@ -150,9 +150,10 @@ public:
         tmpY.block<1, 6>(c2, 0) += 1. / mesh.hy / mesh.hy * jumpY * BiG23_0;
     }
 
-    void consistencyY(size_t c1, size_t c2)
+    // consistency edge terms coming from integration by parts
+    void consistencyY(double scaleSigma, size_t c1, size_t c2)
     {
-        const LocalEdgeVector<1> S11left(
+        const LocalEdgeVector<1> S11left( // left/right refers to the element
             S11(c1, 0) + 0.5 * S11(c1, 1),
             S11(c1, 2));
         const LocalEdgeVector<1> S11right(
@@ -168,15 +169,15 @@ public:
         const LocalEdgeVector<2> avgS11 = 0.5 * (S11left + S11right) * BiGe13;
         const LocalEdgeVector<2> avgS12 = 0.5 * (S12left + S12right) * BiGe13;
 
-        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hx * avgS11 * BiG23_1;
-        tmpX.block<1, 6>(c2, 0) += 1. / mesh.hx * avgS11 * BiG23_3;
-        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hx * avgS12 * BiG23_1;
-        tmpY.block<1, 6>(c2, 0) += 1. / mesh.hx * avgS12 * BiG23_3;
+        tmpX.block<1, 6>(c1, 0) -= scaleSigma / mesh.hx * avgS11 * BiG23_1;
+        tmpX.block<1, 6>(c2, 0) += scaleSigma / mesh.hx * avgS11 * BiG23_3;
+        tmpY.block<1, 6>(c1, 0) -= scaleSigma / mesh.hx * avgS12 * BiG23_1;
+        tmpY.block<1, 6>(c2, 0) += scaleSigma / mesh.hx * avgS12 * BiG23_3;
     }
 
-    void consistencyX(size_t c1, size_t c2)
+    void consistencyX(double scaleSigma, size_t c1, size_t c2)
     {
-        const LocalEdgeVector<1> S12bot(
+        const LocalEdgeVector<1> S12bot( // bot/top refers to the element
             S12(c1, 0) + 0.5 * S12(c1, 2),
             S12(c1, 1));
         const LocalEdgeVector<1> S12top(
@@ -192,10 +193,60 @@ public:
         const LocalEdgeVector<2> avgS12 = 0.5 * (S12top + S12bot) * BiGe13;
         const LocalEdgeVector<2> avgS22 = 0.5 * (S22top + S22bot) * BiGe13;
 
-        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hy * avgS12 * BiG23_2;
-        tmpX.block<1, 6>(c2, 0) += 1. / mesh.hy * avgS12 * BiG23_0;
-        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hy * avgS22 * BiG23_2;
-        tmpY.block<1, 6>(c2, 0) += 1. / mesh.hy * avgS22 * BiG23_0;
+        tmpX.block<1, 6>(c1, 0) -= scaleSigma / mesh.hy * avgS12 * BiG23_2;
+        tmpX.block<1, 6>(c2, 0) += scaleSigma / mesh.hy * avgS12 * BiG23_0;
+        tmpY.block<1, 6>(c1, 0) -= scaleSigma / mesh.hy * avgS22 * BiG23_2;
+        tmpY.block<1, 6>(c2, 0) += scaleSigma / mesh.hy * avgS22 * BiG23_0;
+    }
+
+    // consistency terms coming from integration by parts on boundaries
+    void consistencyBoundaryLeft(double scaleSigma, size_t c)
+    {
+        const LocalEdgeVector<1> S11left( // left edge of the element
+            S11(c, 0) - 0.5 * S11(c, 1),
+            S11(c, 2));
+        const LocalEdgeVector<1> S12left(
+            S12(c, 0) - 0.5 * S12(c, 1),
+            S12(c, 2));
+
+        tmpX.block<1, 6>(c, 0) += scaleSigma / mesh.hx * S11left * BiGe13 * BiG23_3;
+        tmpY.block<1, 6>(c, 0) += scaleSigma / mesh.hx * S12left * BiGe13 * BiG23_3;
+    }
+    void consistencyBoundaryRight(double scaleSigma, size_t c)
+    {
+        const LocalEdgeVector<1> S11right(
+            S11(c, 0) + 0.5 * S11(c, 1),
+            S11(c, 2));
+        const LocalEdgeVector<1> S12right(
+            S12(c, 0) + 0.5 * S12(c, 1),
+            S12(c, 2));
+
+        tmpX.block<1, 6>(c, 0) -= scaleSigma / mesh.hx * S11right * BiGe13 * BiG23_1;
+        tmpY.block<1, 6>(c, 0) -= scaleSigma / mesh.hx * S12right * BiGe13 * BiG23_1;
+    }
+    void consistencyBoundaryUpper(double scaleSigma, size_t c)
+    {
+        const LocalEdgeVector<1> S12top(
+            S12(c, 0) + 0.5 * S12(c, 2),
+            S12(c, 1));
+        const LocalEdgeVector<1> S22top(
+            S22(c, 0) + 0.5 * S22(c, 2),
+            S22(c, 1));
+
+        tmpX.block<1, 6>(c, 0) -= scaleSigma / mesh.hy * S12top * BiGe13 * BiG23_2;
+        tmpY.block<1, 6>(c, 0) -= scaleSigma / mesh.hy * S22top * BiGe13 * BiG23_2;
+    }
+    void consistencyBoundaryLower(double scaleSigma, size_t c)
+    {
+        const LocalEdgeVector<1> S12bot(
+            S12(c, 0) - 0.5 * S12(c, 2),
+            S12(c, 1));
+        const LocalEdgeVector<1> S22bot(
+            S22(c, 0) - 0.5 * S22(c, 2),
+            S22(c, 1));
+
+        tmpX.block<1, 6>(c, 0) += scaleSigma / mesh.hy * S12bot * BiGe13 * BiG23_0;
+        tmpY.block<1, 6>(c, 0) += scaleSigma / mesh.hy * S22bot * BiGe13 * BiG23_0;
     }
 
     template <int DGdegree>
@@ -264,7 +315,8 @@ public:
     void momentumJumps();
     void momentumDirichletBoundary();
 
-    void momentumConsistency();
+    void momentumConsistency(double scaleSigma); //! {{S}} * Phi
+    void momentumConsistencyBoundary(double scaleSigma); //! same on boundary (from one side)
     void momentumSymmetry();
 
     void advectionStep();

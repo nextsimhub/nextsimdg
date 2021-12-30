@@ -75,7 +75,8 @@ find_package (Eigen3 3.3 REQUIRED) #
 ### Use clang-format
 OPTION(USE_CLANG_FORMAT "Formats the codebase" ON)
 if(USE_CLANG_FORMAT)
-  FILE(GLOB_RECURSE ALL_CXX_SOURCE_FILES src/**/*.cpp src/**/*.hpp)
+  FILE(GLOB_RECURSE ALL_CXX_SOURCE_FILES src/*.cpp src/*.hpp  tests/*.cpp tests/*.hpp applications/*.cpp  applications/*.hpp)
+
   # Adding clang-format target if executable is found
   find_program(CLANG_FORMAT "clang-format")
   if(CLANG_FORMAT)
