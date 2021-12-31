@@ -100,7 +100,6 @@ public:
     /**!
    * controls the flow of the dynamical core
    */
-    void momentumDirichletBoundary();
 
     void momentumSymmetry();
 
@@ -112,12 +111,12 @@ public:
 
     //! Computation of the stress tensor
     void stressTensor(double scaleSigma);
-    void stressTensorCell(double scaleSigma); //! (S, \nabla Phi)
-    void stressTensorEdges(double scaleSigma); //! < {{S}} , Phi >
-    void stressTensorBoundary(double scaleSigma); //! same on boundary (from one side)
+    void stressTensorCell(double scaleSigma); //!< (S, \nabla Phi)
+    void stressTensorEdges(double scaleSigma); //!< < {{S}} , Phi >
+    void stressTensorBoundary(double scaleSigma); //!< same on boundary (from one side)
 
     //! enforce continuity of the velocity by Nitsche
-    void velocityContinuity(); //! 1/h < [v], [Phi] > to enforce weak continuity of velocities
+    void velocityContinuity(); //!< 1/h < [v], [Phi] > to enforce weak continuity of velocities
     void velocityContinuityY(size_t c1, size_t c2)
     {
         const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
@@ -170,7 +169,7 @@ public:
         tmpY.block<1, 6>(c2, 0) += 1. / mesh.hy / mesh.hy * jumpY * BiG23_0;
     }
 
-    // consistency edge terms coming from integration by parts
+    //! consistency edge terms coming from integration by parts
     void stressTensorEdgesY(double scaleSigma, size_t c1, size_t c2)
     {
         const LocalEdgeVector<1> S11left( // left/right refers to the element
@@ -194,7 +193,6 @@ public:
         tmpY.block<1, 6>(c1, 0) -= scaleSigma / mesh.hx * avgS12 * BiG23_1;
         tmpY.block<1, 6>(c2, 0) += scaleSigma / mesh.hx * avgS12 * BiG23_3;
     }
-
     void stressTensorEdgesX(double scaleSigma, size_t c1, size_t c2)
     {
         const LocalEdgeVector<1> S12bot( // bot/top refers to the element
@@ -219,7 +217,7 @@ public:
         tmpY.block<1, 6>(c2, 0) += scaleSigma / mesh.hy * avgS22 * BiG23_0;
     }
 
-    // consistency terms coming from integration by parts on boundaries
+    //! consistency terms coming from integration by parts on boundaries
     void stressTensorBoundaryLeft(double scaleSigma, size_t c)
     {
         const LocalEdgeVector<1> S11left( // left edge of the element
@@ -269,8 +267,9 @@ public:
         tmpY.block<1, 6>(c, 0) += scaleSigma / mesh.hy * S22bot * BiGe13 * BiG23_0;
     }
 
-    template <int DGdegree>
-    void boundaryDirichletLeft(const size_t c2)
+    //! weak Dirichlet boundary with Nitsche method
+    void velocityDirichletBoundary();
+    void velocityDirichletBoundaryLeft(const size_t c2)
     { //x=0, y=t
         const LocalEdgeVector<2> rightX(vx(c2, 0) - 0.5 * vx(c2, 1) + 1. / 6. * vx(c2, 3),
             vx(c2, 2) - 0.5 * vx(c2, 5),
@@ -283,8 +282,7 @@ public:
         tmpY.block<1, 6>(c2, 0) -= 1. / mesh.hx / mesh.hx * rightY * BiGe23 * BiG23_3;
     }
 
-    template <int DGdegree>
-    void boundaryDirichletRight(const size_t c1)
+    void velocityDirichletBoundaryRight(const size_t c1)
     { //x=1, y=t
         const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
             vx(c1, 2) + 0.5 * vx(c1, 5),
@@ -297,8 +295,7 @@ public:
         tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hx / mesh.hx * leftY * BiGe23 * BiG23_1;
     }
 
-    template <int DGdegree>
-    void boundaryDirichletTop(const size_t c1)
+    void velocityDirichletBoundaryTop(const size_t c1)
     {
         const LocalEdgeVector<2> topX(
             vx(c1, 0) + 0.5 * vx(c1, 2) + 1. / 6. * vx(c1, 4),
@@ -314,8 +311,7 @@ public:
         tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hy / mesh.hy * topY * BiGe23 * BiG23_2;
     }
 
-    template <int DGdegree>
-    void boundaryDirichletBottom(const size_t c2)
+    void velocityDirichletBoundaryBottom(const size_t c2)
     {
         const LocalEdgeVector<2> bottomX(
             vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),

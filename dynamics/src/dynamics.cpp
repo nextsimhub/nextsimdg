@@ -121,7 +121,7 @@ void Dynamics::stressTensorBoundary(double scaleSigma)
 
 void Dynamics::momentumSymmetry() { }
 
-void Dynamics::momentumDirichletBoundary()
+void Dynamics::velocityDirichletBoundary()
 {
 
     for (size_t ix = 0; ix < mesh.nx; ++ix) {
@@ -129,19 +129,18 @@ void Dynamics::momentumDirichletBoundary()
         const size_t clower = ix;
         const size_t cupper = mesh.n - mesh.nx + ix;
 
-        boundaryDirichletTop<2>(cupper);
-        boundaryDirichletBottom<2>(clower);
+        velocityDirichletBoundaryTop(cupper);
+        velocityDirichletBoundaryBottom(clower);
     }
 
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         const size_t cleft = iy * mesh.nx;
         const size_t cright = (iy + 1) * mesh.nx - 1;
 
-        boundaryDirichletLeft<2>(cleft);
-        boundaryDirichletRight<2>(cright);
+        velocityDirichletBoundaryLeft(cleft);
+        velocityDirichletBoundaryRight(cright);
     }
-
-} //momentumBoundaryStabilization
+}
 
 //! Computes the cell terms of sigma = 1/2(nabla v + nabla v^T)
 void Dynamics::stressTensorCell(double scaleSigma)
@@ -265,7 +264,7 @@ void Dynamics::momentumSubsteps()
     // Stress consistency and symmetry terms
     //avg(sigma) n jump(phi)
 
-    momentumDirichletBoundary();
+    velocityDirichletBoundary();
     //jump(v) n avg(grad phi)
     //momentumSymmetry();
 
