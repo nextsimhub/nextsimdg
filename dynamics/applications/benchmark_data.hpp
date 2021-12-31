@@ -53,6 +53,16 @@ public:
     }
     double operator()(double x, double y) const
     {
+        double sx = sin(M_PI * x);
+        double sy = sin(M_PI * y);
+        double s2x = sin(2. * M_PI * x);
+        double s2y = sin(2. * M_PI * y);
+        double cx = cos(M_PI * x);
+        double cy = cos(M_PI * y);
+        double c2x = cos(2. * M_PI * x);
+        double c2y = cos(2. * M_PI * y);
+        return 3.0 * M_PI * M_PI / 2. * sx * sy - 2.0 * M_PI * M_PI * c2x * c2y;
+
         return 1.0;
 
         return 1.e-5;
@@ -83,6 +93,17 @@ public:
     }
     double operator()(double x, double y) const
     {
+
+        double sx = sin(M_PI * x);
+        double sy = sin(M_PI * y);
+        double s2x = sin(2. * M_PI * x);
+        double s2y = sin(2. * M_PI * y);
+        double cx = cos(M_PI * x);
+        double cy = cos(M_PI * y);
+        double c2x = cos(2. * M_PI * x);
+        double c2y = cos(2. * M_PI * y);
+        return -M_PI * M_PI / 2. * cx * cy + 6.0 * M_PI * M_PI * s2x * s2y;
+
         return 1.0;
 
         return 1.e-5;
@@ -108,14 +129,14 @@ class InitialVX : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return 0.0;
+        return sin(M_PI * x) * sin(M_PI * y) + sin(M_PI * 10.0 * x) * sin(M_PI * 5 * y) * 0.3;
     }
 };
 class InitialVY : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return 0.0;
+        return sin(2.0 * M_PI * x) * sin(2.0 * M_PI * y) + sin(M_PI * 3. * x) * sin(M_PI * 7 * y) * 0.4;
     }
 };
 

@@ -40,4 +40,18 @@ As example1 testing the transport in a rotational velocity field. We check the c
 FAILURE CHECKING NOT IMPLEMENTED SO FAR
 
 
+## Test cases for the momentum equation
 
+### symlaplace_cg Symmetric Laplace CG
+
+Solves the symmetric Laplacian
+
+   -div 1/2(nabla v + nabla v^T) = f
+
+using the CG iteration. The solution v is given as
+
+  v(x,y) = ( sin(Pi x) sin (Pi y) , sin(2 Pi x) sin(2 Pi y) )
+
+and the right hand side f is computed accordingly.
+
+The output of the test case is the error in v (norm?) and in sigma

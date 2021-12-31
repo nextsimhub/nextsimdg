@@ -54,7 +54,7 @@ void Dynamics::advectionStep()
     GlobalTimer.stop("dyn -- adv -- step");
 }
 
-void Dynamics::momentumJumps()
+void Dynamics::velocityContinuity()
 {
     // Y - edges, only inner ones
 #pragma omp parallel for
@@ -62,7 +62,7 @@ void Dynamics::momentumJumps()
         size_t ic = iy * mesh.nx; // first index of left cell in row
 
         for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic)
-            stabilizationY(ic, ic + 1);
+            velocityContinuityY(ic, ic + 1);
     }
 
     // X - edges, only inner ones
@@ -70,11 +70,11 @@ void Dynamics::momentumJumps()
     for (size_t ix = 0; ix < mesh.nx; ++ix) {
         size_t ic = ix; // first index of left cell in column
         for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx)
-            stabilizationX(ic, ic + mesh.nx);
+            velocityContinuityX(ic, ic + mesh.nx);
     }
 }
 
-void Dynamics::momentumConsistency(double scaleSigma)
+void Dynamics::stressTensorEdges(double scaleSigma)
 {
 
     // Y - edges, only inner ones
@@ -83,7 +83,7 @@ void Dynamics::momentumConsistency(double scaleSigma)
         size_t ic = iy * mesh.nx; // first index of left cell in row
 
         for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic)
-            consistencyY(scaleSigma, ic, ic + 1);
+            stressTensorEdgesY(scaleSigma, ic, ic + 1);
     }
 
     // X - edges, only inner ones
@@ -91,11 +91,11 @@ void Dynamics::momentumConsistency(double scaleSigma)
     for (size_t ix = 0; ix < mesh.nx; ++ix) {
         size_t ic = ix; // first index of left cell in column
         for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx)
-            consistencyX(scaleSigma, ic, ic + mesh.nx);
+            stressTensorEdgesX(scaleSigma, ic, ic + mesh.nx);
     }
 }
 
-void Dynamics::momentumConsistencyBoundary(double scaleSigma)
+void Dynamics::stressTensorBoundary(double scaleSigma)
 {
     //! consistency term on lower and upper boundary
 #pragma omp parallel for
@@ -104,8 +104,8 @@ void Dynamics::momentumConsistencyBoundary(double scaleSigma)
         const size_t clower = ix;
         const size_t cupper = mesh.n - mesh.nx + ix;
 
-        consistencyBoundaryUpper(scaleSigma, cupper);
-        consistencyBoundaryLower(scaleSigma, clower);
+        stressTensorBoundaryUpper(scaleSigma, cupper);
+        stressTensorBoundaryLower(scaleSigma, clower);
     }
 
     //! consistency term on left and right boundary
@@ -114,8 +114,8 @@ void Dynamics::momentumConsistencyBoundary(double scaleSigma)
         const size_t cleft = iy * mesh.nx;
         const size_t cright = (iy + 1) * mesh.nx - 1;
 
-        consistencyBoundaryLeft(scaleSigma, cleft);
-        consistencyBoundaryRight(scaleSigma, cright);
+        stressTensorBoundaryLeft(scaleSigma, cleft);
+        stressTensorBoundaryRight(scaleSigma, cright);
     }
 }
 
@@ -142,6 +142,27 @@ void Dynamics::momentumDirichletBoundary()
     }
 
 } //momentumBoundaryStabilization
+
+//! Computes the cell terms of sigma = 1/2(nabla v + nabla v^T)
+void Dynamics::stressTensorCell(double scaleSigma)
+{
+    S11.col(0) = -scaleSigma / mesh.hx * vx.col(1);
+    S11.col(1) = -scaleSigma / mesh.hx * 2. * vx.col(3);
+    S11.col(2) = -scaleSigma / mesh.hx * vx.col(5);
+    S12.col(0) = -scaleSigma * 0.5 * (vy.col(1) / mesh.hx + vx.col(2) / mesh.hy);
+    S12.col(1) = -scaleSigma * 0.5 * (vx.col(5) / mesh.hy + 2.0 * vy.col(3) / mesh.hx);
+    S12.col(2) = -scaleSigma * 0.5 * (2.0 * vx.col(4) / mesh.hy + vy.col(5) / mesh.hx);
+    S22.col(0) = -scaleSigma / mesh.hy * vy.col(2);
+    S22.col(1) = -scaleSigma / mesh.hy * vy.col(5);
+    S22.col(2) = -scaleSigma / mesh.hy * 2. * vy.col(4);
+}
+
+void Dynamics::stressTensor(double scaleSigma)
+{
+    stressTensorCell(scaleSigma); //!< cell term and set S to zero
+    stressTensorEdges(scaleSigma);
+    stressTensorBoundary(scaleSigma);
+}
 
 void Dynamics::momentumSubsteps()
 {
@@ -195,16 +216,16 @@ void Dynamics::momentumSubsteps()
     tmpX.col(0) += atmX.col(0); //
     tmpY.col(0) += atmY.col(0);
 
+    /**! 
+     *
+     * Compute the stress tensor ...
+     * ...
+     *
+     */
+    const double scaleSigma = 1.; //Sigma * T * T / L / L / rhoIce;
     // Sigma = D = sym(grad v)
-    S11.col(0) = 1. / mesh.hx * vx.col(1);
-    S11.col(1) = 1. / mesh.hx * 2. * vx.col(3);
-    S11.col(2) = 1. / mesh.hx * vx.col(5);
-    S12.col(0) = 0.5 * (vy.col(1) / mesh.hx + vx.col(2) / mesh.hy);
-    S12.col(1) = 0.5 * (vx.col(5) / mesh.hy + 2.0 * vy.col(3) / mesh.hx);
-    S12.col(2) = 0.5 * (2.0 * vx.col(4) / mesh.hy + vy.col(5) / mesh.hx);
-    S22.col(0) = 1. / mesh.hy * vy.col(2);
-    S22.col(1) = 1. / mesh.hy * vy.col(5);
-    S22.col(2) = 1. / mesh.hy * 2. * vy.col(4);
+    stressTensorCell(scaleSigma);
+
     // 30.12: checked with V = (xy, x^2y^2) and S=1/2(nabla v + nabla v^T) looks good
 
     // VTK::write_dg<1>("S11", 0, S11, GetMesh());
@@ -216,8 +237,6 @@ void Dynamics::momentumSubsteps()
 
     // Multiplication with -1 since we compute "- div (S) below"
     // but everyting is put to the right hand side of the equation
-
-    const double scaleSigma = -1.; //Sigma * T * T / L / L / rhoIce;
 
     // Volume Terms of: ------>>>>  -div (S)
     //( sigma,grad phi )
@@ -238,8 +257,9 @@ void Dynamics::momentumSubsteps()
     tmpY.col(4) += 180. * scaleSigma / mesh.hy * (S22.col(2) / 6.);
     tmpY.col(5) += 144. * scaleSigma / mesh.hy * (S22.col(1) / 12.);
 
-    momentumConsistency(scaleSigma);
-    momentumConsistencyBoundary(scaleSigma);
+    stressTensorEdges(scaleSigma);
+    stressTensorBoundary(scaleSigma);
+
     //std::cout << timemesh.dt_momentum << " " << timemesh.dt << " " << mesh.hy << std::endl;abort();
 
     // Stress consistency and symmetry terms
@@ -250,7 +270,7 @@ void Dynamics::momentumSubsteps()
     //momentumSymmetry();
 
     // jump stabilization
-    momentumJumps();
+    velocityContinuity();
 
     // VTK::write_dg<2>("tx", 0, tmpX, GetMesh());
     // VTK::write_dg<2>("ty", 0, tmpY, GetMesh());

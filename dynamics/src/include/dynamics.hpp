@@ -97,7 +97,28 @@ public:
 
     //////////////////////////////////////////////////
 
-    void stabilizationY(size_t c1, size_t c2)
+    /**!
+   * controls the flow of the dynamical core
+   */
+    void momentumDirichletBoundary();
+
+    void momentumSymmetry();
+
+    void advectionStep();
+    void momentumSubsteps();
+    void step();
+
+    //! functions required to compute various terms of the momentum eq.
+
+    //! Computation of the stress tensor
+    void stressTensor(double scaleSigma);
+    void stressTensorCell(double scaleSigma); //! (S, \nabla Phi)
+    void stressTensorEdges(double scaleSigma); //! < {{S}} , Phi >
+    void stressTensorBoundary(double scaleSigma); //! same on boundary (from one side)
+
+    //! enforce continuity of the velocity by Nitsche
+    void velocityContinuity(); //! 1/h < [v], [Phi] > to enforce weak continuity of velocities
+    void velocityContinuityY(size_t c1, size_t c2)
     {
         const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
             vx(c1, 2) + 0.5 * vx(c1, 5),
@@ -122,8 +143,7 @@ public:
         tmpY.block<1, 6>(c1, 0) += 1. / mesh.hx / mesh.hx * jumpY * BiG23_1;
         tmpY.block<1, 6>(c2, 0) -= 1. / mesh.hx / mesh.hx * jumpY * BiG23_3;
     }
-
-    void stabilizationX(size_t c1, size_t c2)
+    void velocityContinuityX(size_t c1, size_t c2)
     {
         const LocalEdgeVector<2> topX(
             vx(c1, 0) + 0.5 * vx(c1, 2) + 1. / 6. * vx(c1, 4),
@@ -151,7 +171,7 @@ public:
     }
 
     // consistency edge terms coming from integration by parts
-    void consistencyY(double scaleSigma, size_t c1, size_t c2)
+    void stressTensorEdgesY(double scaleSigma, size_t c1, size_t c2)
     {
         const LocalEdgeVector<1> S11left( // left/right refers to the element
             S11(c1, 0) + 0.5 * S11(c1, 1),
@@ -175,7 +195,7 @@ public:
         tmpY.block<1, 6>(c2, 0) += scaleSigma / mesh.hx * avgS12 * BiG23_3;
     }
 
-    void consistencyX(double scaleSigma, size_t c1, size_t c2)
+    void stressTensorEdgesX(double scaleSigma, size_t c1, size_t c2)
     {
         const LocalEdgeVector<1> S12bot( // bot/top refers to the element
             S12(c1, 0) + 0.5 * S12(c1, 2),
@@ -200,7 +220,7 @@ public:
     }
 
     // consistency terms coming from integration by parts on boundaries
-    void consistencyBoundaryLeft(double scaleSigma, size_t c)
+    void stressTensorBoundaryLeft(double scaleSigma, size_t c)
     {
         const LocalEdgeVector<1> S11left( // left edge of the element
             S11(c, 0) - 0.5 * S11(c, 1),
@@ -212,7 +232,7 @@ public:
         tmpX.block<1, 6>(c, 0) += scaleSigma / mesh.hx * S11left * BiGe13 * BiG23_3;
         tmpY.block<1, 6>(c, 0) += scaleSigma / mesh.hx * S12left * BiGe13 * BiG23_3;
     }
-    void consistencyBoundaryRight(double scaleSigma, size_t c)
+    void stressTensorBoundaryRight(double scaleSigma, size_t c)
     {
         const LocalEdgeVector<1> S11right(
             S11(c, 0) + 0.5 * S11(c, 1),
@@ -224,7 +244,7 @@ public:
         tmpX.block<1, 6>(c, 0) -= scaleSigma / mesh.hx * S11right * BiGe13 * BiG23_1;
         tmpY.block<1, 6>(c, 0) -= scaleSigma / mesh.hx * S12right * BiGe13 * BiG23_1;
     }
-    void consistencyBoundaryUpper(double scaleSigma, size_t c)
+    void stressTensorBoundaryUpper(double scaleSigma, size_t c)
     {
         const LocalEdgeVector<1> S12top(
             S12(c, 0) + 0.5 * S12(c, 2),
@@ -236,7 +256,7 @@ public:
         tmpX.block<1, 6>(c, 0) -= scaleSigma / mesh.hy * S12top * BiGe13 * BiG23_2;
         tmpY.block<1, 6>(c, 0) -= scaleSigma / mesh.hy * S22top * BiGe13 * BiG23_2;
     }
-    void consistencyBoundaryLower(double scaleSigma, size_t c)
+    void stressTensorBoundaryLower(double scaleSigma, size_t c)
     {
         const LocalEdgeVector<1> S12bot(
             S12(c, 0) - 0.5 * S12(c, 2),
@@ -308,20 +328,6 @@ public:
         tmpX.block<1, 6>(c2, 0) -= 1. / mesh.hy / mesh.hy * bottomX * BiGe23 * BiG23_0;
         tmpY.block<1, 6>(c2, 0) -= 1. / mesh.hy / mesh.hy * bottomY * BiGe23 * BiG23_0;
     }
-
-    /**!
-   * controls the flow of the dynamical core
-   */
-    void momentumJumps();
-    void momentumDirichletBoundary();
-
-    void momentumConsistency(double scaleSigma); //! {{S}} * Phi
-    void momentumConsistencyBoundary(double scaleSigma); //! same on boundary (from one side)
-    void momentumSymmetry();
-
-    void advectionStep();
-    void momentumSubsteps();
-    void step();
 };
 
 }
