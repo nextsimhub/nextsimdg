@@ -109,67 +109,17 @@ public:
 
     //! functions required to compute various terms of the momentum eq.
 
+public:
     //! Computation of the stress tensor
-    void stressTensor(double scaleSigma);
-    void stressTensorCell(double scaleSigma); //!< (S, \nabla Phi)
-    void stressTensorEdges(double scaleSigma); //!< < {{S}} , Phi >
-    void stressTensorBoundary(double scaleSigma); //!< same on boundary (from one side)
+    void addStressTensor(double scaleSigma);
+    //! Computes the strain rate tensor 1/2(nabla v + nabla v^T) and stores in S11,S12,S22
+    void computeStrainRateTensor();
 
-    //! enforce continuity of the velocity by Nitsche
-    void velocityContinuity(); //!< 1/h < [v], [Phi] > to enforce weak continuity of velocities
-    void velocityContinuityY(size_t c1, size_t c2)
-    {
-        const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
-            vx(c1, 2) + 0.5 * vx(c1, 5),
-            vx(c1, 4));
-        const LocalEdgeVector<2> leftY(vy(c1, 0) + 0.5 * vy(c1, 1) + 1. / 6. * vy(c1, 3),
-            vy(c1, 2) + 0.5 * vy(c1, 5),
-            vy(c1, 4));
-
-        const LocalEdgeVector<2> rightX(vx(c2, 0) - 0.5 * vx(c2, 1) + 1. / 6. * vx(c2, 3),
-            vx(c2, 2) - 0.5 * vx(c2, 5),
-            vx(c2, 4));
-        const LocalEdgeVector<2> rightY(vy(c2, 0) - 0.5 * vy(c2, 1) + 1. / 6. * vy(c2, 3),
-            vy(c2, 2) - 0.5 * vy(c2, 5),
-            vy(c2, 4));
-
-        const LocalEdgeVector<2> jumpX = (rightX - leftX) * BiGe23;
-        tmpX.block<1, 6>(c1, 0) += 1. / mesh.hx / mesh.hx * jumpX * BiG23_1;
-        tmpX.block<1, 6>(c2, 0) -= 1. / mesh.hx / mesh.hx * jumpX * BiG23_3;
-
-        const LocalEdgeVector<2> jumpY = (rightY - leftY) * BiGe23;
-
-        tmpY.block<1, 6>(c1, 0) += 1. / mesh.hx / mesh.hx * jumpY * BiG23_1;
-        tmpY.block<1, 6>(c2, 0) -= 1. / mesh.hx / mesh.hx * jumpY * BiG23_3;
-    }
-    void velocityContinuityX(size_t c1, size_t c2)
-    {
-        const LocalEdgeVector<2> topX(
-            vx(c1, 0) + 0.5 * vx(c1, 2) + 1. / 6. * vx(c1, 4),
-            vx(c1, 1) + 0.5 * vx(c1, 5),
-            vx(c1, 3));
-        const LocalEdgeVector<2> bottomX(
-            vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),
-            vx(c2, 1) - 0.5 * vx(c2, 5), vx(c2, 3));
-
-        const LocalEdgeVector<2> topY(
-            vy(c1, 0) + 0.5 * vy(c1, 2) + 1. / 6. * vy(c1, 4),
-            vy(c1, 1) + 0.5 * vy(c1, 5),
-            vy(c1, 3));
-        const LocalEdgeVector<2> bottomY(
-            vy(c2, 0) - 0.5 * vy(c2, 2) + 1. / 6. * vy(c2, 4),
-            vy(c2, 1) - 0.5 * vy(c2, 5), vy(c2, 3));
-
-        const LocalEdgeVector<2> jumpX = (topX - bottomX) * BiGe23;
-        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hy / mesh.hy * jumpX * BiG23_2;
-        tmpX.block<1, 6>(c2, 0) += 1. / mesh.hy / mesh.hy * jumpX * BiG23_0;
-
-        const LocalEdgeVector<2> jumpY = (topY - bottomY) * BiGe23;
-        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hy / mesh.hy * jumpY * BiG23_2;
-        tmpY.block<1, 6>(c2, 0) += 1. / mesh.hy / mesh.hy * jumpY * BiG23_0;
-    }
-
-    //! consistency edge terms coming from integration by parts
+private:
+    void addStressTensorCell(double scaleSigma); //!< (S, \nabla Phi)
+    void addStressTensorEdges(double scaleSigma); //!< < {{S}} , Phi >
+    void addStressTensorBoundary(double scaleSigma); //!< same on boundary (from one side)
+        //! consistency edge terms coming from integration by parts
     void stressTensorEdgesY(double scaleSigma, size_t c1, size_t c2)
     {
         const LocalEdgeVector<1> S11left( // left/right refers to the element
@@ -267,8 +217,67 @@ public:
         tmpY.block<1, 6>(c, 0) += scaleSigma / mesh.hy * S22bot * BiGe13 * BiG23_0;
     }
 
+    //! enforce continuity of the velocity by Nitsche
+public:
+    void velocityContinuity(); //!< 1/h < [v], [Phi] > to enforce weak continuity of velocities
+private:
+    void velocityContinuityY(size_t c1, size_t c2)
+    {
+        const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
+            vx(c1, 2) + 0.5 * vx(c1, 5),
+            vx(c1, 4));
+        const LocalEdgeVector<2> leftY(vy(c1, 0) + 0.5 * vy(c1, 1) + 1. / 6. * vy(c1, 3),
+            vy(c1, 2) + 0.5 * vy(c1, 5),
+            vy(c1, 4));
+
+        const LocalEdgeVector<2> rightX(vx(c2, 0) - 0.5 * vx(c2, 1) + 1. / 6. * vx(c2, 3),
+            vx(c2, 2) - 0.5 * vx(c2, 5),
+            vx(c2, 4));
+        const LocalEdgeVector<2> rightY(vy(c2, 0) - 0.5 * vy(c2, 1) + 1. / 6. * vy(c2, 3),
+            vy(c2, 2) - 0.5 * vy(c2, 5),
+            vy(c2, 4));
+
+        const LocalEdgeVector<2> jumpX = (rightX - leftX) * BiGe23;
+        tmpX.block<1, 6>(c1, 0) += 1. / mesh.hx / mesh.hx * jumpX * BiG23_1;
+        tmpX.block<1, 6>(c2, 0) -= 1. / mesh.hx / mesh.hx * jumpX * BiG23_3;
+
+        const LocalEdgeVector<2> jumpY = (rightY - leftY) * BiGe23;
+
+        tmpY.block<1, 6>(c1, 0) += 1. / mesh.hx / mesh.hx * jumpY * BiG23_1;
+        tmpY.block<1, 6>(c2, 0) -= 1. / mesh.hx / mesh.hx * jumpY * BiG23_3;
+    }
+    void velocityContinuityX(size_t c1, size_t c2)
+    {
+        const LocalEdgeVector<2> topX(
+            vx(c1, 0) + 0.5 * vx(c1, 2) + 1. / 6. * vx(c1, 4),
+            vx(c1, 1) + 0.5 * vx(c1, 5),
+            vx(c1, 3));
+        const LocalEdgeVector<2> bottomX(
+            vx(c2, 0) - 0.5 * vx(c2, 2) + 1. / 6. * vx(c2, 4),
+            vx(c2, 1) - 0.5 * vx(c2, 5), vx(c2, 3));
+
+        const LocalEdgeVector<2> topY(
+            vy(c1, 0) + 0.5 * vy(c1, 2) + 1. / 6. * vy(c1, 4),
+            vy(c1, 1) + 0.5 * vy(c1, 5),
+            vy(c1, 3));
+        const LocalEdgeVector<2> bottomY(
+            vy(c2, 0) - 0.5 * vy(c2, 2) + 1. / 6. * vy(c2, 4),
+            vy(c2, 1) - 0.5 * vy(c2, 5), vy(c2, 3));
+
+        const LocalEdgeVector<2> jumpX = (topX - bottomX) * BiGe23;
+        tmpX.block<1, 6>(c1, 0) -= 1. / mesh.hy / mesh.hy * jumpX * BiG23_2;
+        tmpX.block<1, 6>(c2, 0) += 1. / mesh.hy / mesh.hy * jumpX * BiG23_0;
+
+        const LocalEdgeVector<2> jumpY = (topY - bottomY) * BiGe23;
+        tmpY.block<1, 6>(c1, 0) -= 1. / mesh.hy / mesh.hy * jumpY * BiG23_2;
+        tmpY.block<1, 6>(c2, 0) += 1. / mesh.hy / mesh.hy * jumpY * BiG23_0;
+    }
+
     //! weak Dirichlet boundary with Nitsche method
+public:
     void velocityDirichletBoundary();
+
+private:
     void velocityDirichletBoundaryLeft(const size_t c2)
     { //x=0, y=t
         const LocalEdgeVector<2> rightX(vx(c2, 0) - 0.5 * vx(c2, 1) + 1. / 6. * vx(c2, 3),

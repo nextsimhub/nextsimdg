@@ -74,7 +74,7 @@ void Dynamics::velocityContinuity()
     }
 }
 
-void Dynamics::stressTensorEdges(double scaleSigma)
+void Dynamics::addStressTensorEdges(double scaleSigma)
 {
 
     // Y - edges, only inner ones
@@ -95,7 +95,7 @@ void Dynamics::stressTensorEdges(double scaleSigma)
     }
 }
 
-void Dynamics::stressTensorBoundary(double scaleSigma)
+void Dynamics::addStressTensorBoundary(double scaleSigma)
 {
     //! consistency term on lower and upper boundary
 #pragma omp parallel for
@@ -142,25 +142,44 @@ void Dynamics::velocityDirichletBoundary()
     }
 }
 
-//! Computes the cell terms of sigma = 1/2(nabla v + nabla v^T)
-void Dynamics::stressTensorCell(double scaleSigma)
+void Dynamics::computeStrainRateTensor()
 {
-    S11.col(0) = -scaleSigma / mesh.hx * vx.col(1);
-    S11.col(1) = -scaleSigma / mesh.hx * 2. * vx.col(3);
-    S11.col(2) = -scaleSigma / mesh.hx * vx.col(5);
-    S12.col(0) = -scaleSigma * 0.5 * (vy.col(1) / mesh.hx + vx.col(2) / mesh.hy);
-    S12.col(1) = -scaleSigma * 0.5 * (vx.col(5) / mesh.hy + 2.0 * vy.col(3) / mesh.hx);
-    S12.col(2) = -scaleSigma * 0.5 * (2.0 * vx.col(4) / mesh.hy + vy.col(5) / mesh.hx);
-    S22.col(0) = -scaleSigma / mesh.hy * vy.col(2);
-    S22.col(1) = -scaleSigma / mesh.hy * vy.col(5);
-    S22.col(2) = -scaleSigma / mesh.hy * 2. * vy.col(4);
+    S11.col(0) = 1. / mesh.hx * vx.col(1);
+    S11.col(1) = 1. / mesh.hx * 2. * vx.col(3);
+    S11.col(2) = 1. / mesh.hx * vx.col(5);
+    S12.col(0) = 1. * 0.5 * (vy.col(1) / mesh.hx + vx.col(2) / mesh.hy);
+    S12.col(1) = 1. * 0.5 * (vx.col(5) / mesh.hy + 2.0 * vy.col(3) / mesh.hx);
+    S12.col(2) = 1. * 0.5 * (2.0 * vx.col(4) / mesh.hy + vy.col(5) / mesh.hx);
+    S22.col(0) = 1. / mesh.hy * vy.col(2);
+    S22.col(1) = 1. / mesh.hy * vy.col(5);
+    S22.col(2) = 1. / mesh.hy * 2. * vy.col(4);
 }
 
-void Dynamics::stressTensor(double scaleSigma)
+//! Computes the cell terms of sigma = 1/2(nabla v + nabla v^T)
+void Dynamics::addStressTensorCell(double scaleSigma)
 {
-    stressTensorCell(scaleSigma); //!< cell term and set S to zero
-    stressTensorEdges(scaleSigma);
-    stressTensorBoundary(scaleSigma);
+    // S11 d_x phi_x + S12 d_y phi_x
+    tmpX.col(1) += 12. * scaleSigma / mesh.hx * (S11.col(0));
+    tmpX.col(3) += 180. * scaleSigma / mesh.hx * (S11.col(1) / 6.);
+    tmpX.col(5) += 144. * scaleSigma / mesh.hx * (S11.col(2) / 12.);
+    tmpX.col(2) += 12. * scaleSigma / mesh.hx * (S12.col(0));
+    tmpX.col(4) += 180. * scaleSigma / mesh.hx * (S12.col(2) / 6.);
+    tmpX.col(5) += 144. * scaleSigma / mesh.hx * (S12.col(1) / 12.);
+
+    // S12 d_x phi_y + S22 d_y phi_y
+    tmpY.col(1) += 12. * scaleSigma / mesh.hy * (S12.col(0));
+    tmpY.col(3) += 180. * scaleSigma / mesh.hy * (S12.col(1) / 6.);
+    tmpY.col(5) += 144. * scaleSigma / mesh.hy * (S12.col(2) / 12.);
+    tmpY.col(2) += 12. * scaleSigma / mesh.hy * (S22.col(0));
+    tmpY.col(4) += 180. * scaleSigma / mesh.hy * (S22.col(2) / 6.);
+    tmpY.col(5) += 144. * scaleSigma / mesh.hy * (S22.col(1) / 12.);
+}
+
+void Dynamics::addStressTensor(double scaleSigma)
+{
+    addStressTensorCell(scaleSigma); //!< cell term
+    addStressTensorEdges(scaleSigma);
+    addStressTensorBoundary(scaleSigma);
 }
 
 void Dynamics::momentumSubsteps()
@@ -221,67 +240,17 @@ void Dynamics::momentumSubsteps()
      * ...
      *
      */
-    const double scaleSigma = 1.; //Sigma * T * T / L / L / rhoIce;
+    const double scaleSigma = -1.; //!< -1 since -div(S)  term goes to rhs
+
     // Sigma = D = sym(grad v)
-    stressTensorCell(scaleSigma);
+    computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
 
-    // 30.12: checked with V = (xy, x^2y^2) and S=1/2(nabla v + nabla v^T) looks good
-
-    // VTK::write_dg<1>("S11", 0, S11, GetMesh());
-    // VTK::write_dg<1>("S12", 0, S12, GetMesh());
-    // VTK::write_dg<1>("S22", 0, S22, GetMesh());
-
-    // 1       -> 0
-    // (x-1/2) -> 1
-
-    // Multiplication with -1 since we compute "- div (S) below"
-    // but everyting is put to the right hand side of the equation
-
-    // Volume Terms of: ------>>>>  -div (S)
-    //( sigma,grad phi )
-    // S11 d_x phi_x + S12 d_y phi_x
-    // timemesh.dt * N = inverse mass matrix
-    tmpX.col(1) += 12. * scaleSigma / mesh.hx * (S11.col(0));
-    tmpX.col(3) += 180. * scaleSigma / mesh.hx * (S11.col(1) / 6.);
-    tmpX.col(5) += 144. * scaleSigma / mesh.hx * (S11.col(2) / 12.);
-
-    tmpX.col(2) += 12. * scaleSigma / mesh.hx * (S12.col(0));
-    tmpX.col(4) += 180. * scaleSigma / mesh.hx * (S12.col(2) / 6.);
-    tmpX.col(5) += 144. * scaleSigma / mesh.hx * (S12.col(1) / 12.);
-    // S12 d_x phi_y + S22 d_y phi_y
-    tmpY.col(1) += 12. * scaleSigma / mesh.hy * (S12.col(0));
-    tmpY.col(3) += 180. * scaleSigma / mesh.hy * (S12.col(1) / 6.);
-    tmpY.col(5) += 144. * scaleSigma / mesh.hy * (S12.col(2) / 12.);
-    tmpY.col(2) += 12. * scaleSigma / mesh.hy * (S22.col(0));
-    tmpY.col(4) += 180. * scaleSigma / mesh.hy * (S22.col(2) / 6.);
-    tmpY.col(5) += 144. * scaleSigma / mesh.hy * (S22.col(1) / 12.);
-
-    stressTensorEdges(scaleSigma);
-    stressTensorBoundary(scaleSigma);
-
-    //std::cout << timemesh.dt_momentum << " " << timemesh.dt << " " << mesh.hy << std::endl;abort();
-
-    // Stress consistency and symmetry terms
-    //avg(sigma) n jump(phi)
-
-    velocityDirichletBoundary();
-    //jump(v) n avg(grad phi)
-    //momentumSymmetry();
-
-    // jump stabilization
-    velocityContinuity();
-
-    // VTK::write_dg<2>("tx", 0, tmpX, GetMesh());
-    // VTK::write_dg<2>("ty", 0, tmpY, GetMesh());
-    //    abort();
-
-    // boundary zero Dirichlet
+    addStressTensor(scaleSigma); //!<  +div(S, nabla phi) - < Sn, phi>
+    velocityContinuity(); //!< penalize velocity jump in inner edges
+    velocityDirichletBoundary(); //!< no-slip for velocity
 
     vx += timemesh.dt_momentum * tmpX;
     vy += timemesh.dt_momentum * tmpY;
-
-    // vx.col(0) = 0.5 * oceanX.col(0) + 0.5 * atmX.col(0);
-    // vy.col(0) = 0.5 * oceanY.col(0) + 0.5 * atmY.col(0);
 }
 
 //! Performs one macro timestep1
