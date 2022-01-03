@@ -54,7 +54,7 @@ void Dynamics::advectionStep()
     GlobalTimer.stop("dyn -- adv -- step");
 }
 
-void Dynamics::velocityContinuity()
+void Dynamics::velocityContinuity(double gamma)
 {
     // Y - edges, only inner ones
 #pragma omp parallel for
@@ -62,7 +62,7 @@ void Dynamics::velocityContinuity()
         size_t ic = iy * mesh.nx; // first index of left cell in row
 
         for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic)
-            velocityContinuityY(ic, ic + 1);
+            velocityContinuityY(ic, ic + 1, gamma);
     }
 
     // X - edges, only inner ones
@@ -70,7 +70,7 @@ void Dynamics::velocityContinuity()
     for (size_t ix = 0; ix < mesh.nx; ++ix) {
         size_t ic = ix; // first index of left cell in column
         for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx)
-            velocityContinuityX(ic, ic + mesh.nx);
+            velocityContinuityX(ic, ic + mesh.nx, gamma);
     }
 }
 
@@ -121,7 +121,7 @@ void Dynamics::addStressTensorBoundary(double scaleSigma)
 
 void Dynamics::momentumSymmetry() { }
 
-void Dynamics::velocityDirichletBoundary()
+void Dynamics::velocityDirichletBoundary(double gamma)
 {
 
     for (size_t ix = 0; ix < mesh.nx; ++ix) {
@@ -129,16 +129,16 @@ void Dynamics::velocityDirichletBoundary()
         const size_t clower = ix;
         const size_t cupper = mesh.n - mesh.nx + ix;
 
-        velocityDirichletBoundaryTop(cupper);
-        velocityDirichletBoundaryBottom(clower);
+        velocityDirichletBoundaryTop(cupper, gamma);
+        velocityDirichletBoundaryBottom(clower, gamma);
     }
 
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         const size_t cleft = iy * mesh.nx;
         const size_t cright = (iy + 1) * mesh.nx - 1;
 
-        velocityDirichletBoundaryLeft(cleft);
-        velocityDirichletBoundaryRight(cright);
+        velocityDirichletBoundaryLeft(cleft, gamma);
+        velocityDirichletBoundaryRight(cright, gamma);
     }
 }
 
@@ -241,13 +241,15 @@ void Dynamics::momentumSubsteps()
      *
      */
     const double scaleSigma = -1.; //!< -1 since -div(S)  term goes to rhs
+    const double gamma = 1.0; //!< parameter in front of internal penalty terms
+    const double gammaboundary = 1.0; //!< parameter in front of boundary penalty terms
 
     // Sigma = D = sym(grad v)
     computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
 
     addStressTensor(scaleSigma); //!<  +div(S, nabla phi) - < Sn, phi>
-    velocityContinuity(); //!< penalize velocity jump in inner edges
-    velocityDirichletBoundary(); //!< no-slip for velocity
+    velocityContinuity(gamma); //!< penalize velocity jump in inner edges
+    velocityDirichletBoundary(gammaboundary); //!< no-slip for velocity
 
     vx += timemesh.dt_momentum * tmpX;
     vy += timemesh.dt_momentum * tmpY;

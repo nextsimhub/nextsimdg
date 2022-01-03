@@ -95,7 +95,7 @@ int main()
     for (int refine = 1; refine <= 3; ++refine) {
         N *= 2;
 
-        double k = 1.0 / N / N * 0.01; // time step size
+        double k = 1.0 / N / N * 0.001; // time step size
         size_t NT = static_cast<size_t>(T / k + 1.e-6);
 
         dynamics.GetMesh().BasicInit(N, N / 1, 1. / N, 1. / N);
@@ -122,6 +122,9 @@ int main()
         Nextsim::GlobalTimer.start("time loop");
         //        dynamics.GetTimeMesh().N = 1;
 
+        const double gamma = 20.0; //!< parameter in front of internal penalty terms
+        const double gammaboundary = 20; //!< parameter in front of boundary penalty terms
+
         for (size_t timestep = 1; timestep <= dynamics.GetTimeMesh().N; ++timestep) {
 
             // v += k * ( F + div( 1/2 (nabla v + nabla v^T) ) )
@@ -130,8 +133,8 @@ int main()
 
             dynamics.computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
             dynamics.addStressTensor(-1.0); //!< tmp += div(S)
-            dynamics.velocityContinuity(); //!< tmp += < [v], [phi] >
-            dynamics.velocityDirichletBoundary(); //!< tmp += < v, [phi] >_G
+            dynamics.velocityContinuity(gamma); //!< tmp += < [v], [phi] >
+            dynamics.velocityDirichletBoundary(gammaboundary); //!< tmp += < v, [phi] >_G
 
             dynamics.GetVX() += dynamics.GetTimeMesh().dt_momentum * dynamics.GetTMPX();
             dynamics.GetVY() += dynamics.GetTimeMesh().dt_momentum * dynamics.GetTMPY();
