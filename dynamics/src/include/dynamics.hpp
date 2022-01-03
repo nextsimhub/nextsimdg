@@ -65,6 +65,9 @@ public:
     //! Access
     Mesh& GetMesh() { return mesh; }
     TimeMesh& GetTimeMesh() { return timemesh; }
+    CellVector<2>& GetTMPX() { return tmpX; }
+    CellVector<2>& GetTMPY() { return tmpY; }
+
     CellVector<2>& GetVX() { return vx; }
     CellVector<2>& GetVY() { return vy; }
     CellVector<1>& GetS11() { return S11; }

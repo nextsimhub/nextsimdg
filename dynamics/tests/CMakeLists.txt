@@ -13,3 +13,6 @@ add_executable(example2a example2a.cpp)
 add_executable(example2b example2b.cpp)
 add_executable(example2c example2c.cpp)
 
+add_executable(symlaplace symlaplace.cpp)
+
+

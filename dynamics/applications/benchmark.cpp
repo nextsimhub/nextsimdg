@@ -21,7 +21,7 @@ int main()
     Nextsim::Dynamics dynamics;
 
     //! initialize the mesh
-    size_t N = 25;
+    size_t N = 100;
     dynamics.GetMesh().BasicInit(N, N, 1. / N, 1. / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -29,7 +29,7 @@ int main()
     // CFL for Laplace:
 
     // dt = 0.1 * h^2
-    int NT = 1000000;
+    int NT = 100000;
     double k = 1.0 / N / N * 0.01;
 
     // //! init time mesh [0 to 2] days
@@ -103,8 +103,7 @@ int main()
     for (size_t timestep = 1; timestep <= dynamics.GetTimeMesh().N; ++timestep) {
         Nextsim::GlobalTimer.start("time loop - reinit");
         double time = dynamics.GetTimeMesh().dt * timestep;
-        std::cout << std::endl
-                  << "--- Time step " << timestep << "\t"
+        std::cout << "--- Time step " << timestep << "\t"
                   << "-> hour " << time * ReferenceScale::T / (60.0 * 60.0) << std::endl;
 
         //! Initial (atm) Forcing (ocean is stationary)

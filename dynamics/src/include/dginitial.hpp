@@ -53,6 +53,8 @@ class MixedInitial : virtual public InitialBase {
 
 //////////////////////////////////////////////////
 
+//! Functions to project an analytical solution into the DG spaces
+
 template <int DGdegree>
 void L2ProjectInitial(const Mesh& mesh,
     CellVector<DGdegree>& phi,
@@ -138,6 +140,48 @@ void L2ProjectInitial(const Mesh& mesh,
                 }
         }
     }
+}
+
+//! Functions to compute the error of a DG vector w.r.t. an analytical solution measured in L2
+
+template <int DGdegree>
+double L2Error(const Mesh& mesh,
+    const CellVector<DGdegree>& phi,
+    const InitialBase& initial);
+template <>
+double L2Error(const Mesh& mesh,
+    const CellVector<2>& phi,
+    const InitialBase& ex)
+{
+    double res = 0.0; //!< stores the integral
+
+    // Gauss quadrature on [-1/2, 1/2]
+    std::array<double, 3> g3 = { -sqrt(3.0 / 5.0) * 0.5, 0.0, sqrt(3.0 / 5.0) * 0.5 };
+    std::array<double, 3> w3 = { 5. / 18., 8. / 18., 5. / 18. };
+
+    double hxhy = mesh.hx * mesh.hy;
+
+#pragma omp parallel for
+    for (size_t iy = 0; iy < mesh.ny; ++iy) {
+        size_t ic = iy * mesh.nx;
+        for (size_t ix = 0; ix < mesh.nx; ++ix, ++ic) {
+            Vertex xm = mesh.midpoint(ix, iy);
+            for (unsigned short int gx = 0; gx < 3; ++gx)
+                for (unsigned short int gy = 0; gy < 3; ++gy) {
+                    double x = xm[0] + mesh.hx * g3[gx];
+                    double y = xm[1] + mesh.hy * g3[gy];
+
+                    double X = 0.5 + g3[gx];
+                    double Y = 0.5 + g3[gy];
+
+                    double PHI = phi(ic, 0) + phi(ic, 1) * (X - 0.5) + phi(ic, 2) * (Y - 0.5) + phi(ic, 3) * ((X - 0.5) * (X - 0.5) - 1.0 / 12) + phi(ic, 4) * ((Y - 0.5) * (Y - 0.5) - 1.0 / 12) + phi(ic, 5) * (X - 0.5) * (Y - 0.5);
+
+#pragma omp atomic
+                    res += w3[gx] * w3[gy] * hxhy * (PHI - ex(x, y)) * (PHI - ex(x, y));
+                }
+        }
+    }
+    return sqrt(res);
 }
 
 } // namespace Nextsim
