@@ -98,7 +98,7 @@ int main()
         double k = 1.0 / N / N * 0.01; // time step size
         size_t NT = static_cast<size_t>(T / k + 1.e-6);
 
-        dynamics.GetMesh().BasicInit(N, N, 1. / N, 1. / N);
+        dynamics.GetMesh().BasicInit(N, N / 1, 1. / N, 1. / N);
         dynamics.GetTimeMesh().BasicInit(NT, k, k);
 
         WRITE_EVERY = 0.1 / dynamics.GetTimeMesh().dt_momentum;
@@ -120,6 +120,8 @@ int main()
         Nextsim::L2ProjectInitial(dynamics.GetMesh(), fy, FY());
 
         Nextsim::GlobalTimer.start("time loop");
+        //        dynamics.GetTimeMesh().N = 1;
+
         for (size_t timestep = 1; timestep <= dynamics.GetTimeMesh().N; ++timestep) {
 
             // v += k * ( F + div( 1/2 (nabla v + nabla v^T) ) )
@@ -146,6 +148,10 @@ int main()
         Nextsim::GlobalTimer.start("VTK");
         Nextsim::VTK::write_dg<2>("Results/vx", refine, dynamics.GetVX(), dynamics.GetMesh());
         Nextsim::VTK::write_dg<2>("Results/vy", refine, dynamics.GetVY(), dynamics.GetMesh());
+
+        Nextsim::VTK::write_dg<1>("Results/S11", refine, dynamics.GetS11(), dynamics.GetMesh());
+        Nextsim::VTK::write_dg<1>("Results/S12", refine, dynamics.GetS12(), dynamics.GetMesh());
+        Nextsim::VTK::write_dg<1>("Results/S22", refine, dynamics.GetS22(), dynamics.GetMesh());
         Nextsim::GlobalTimer.stop("VTK");
         Nextsim::GlobalTimer.print();
 
