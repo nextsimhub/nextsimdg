@@ -56,7 +56,9 @@ public:
     //! Total ice-atmosphere heat flux [W m⁻²]
     inline double QIceAtmosphere() const { return m_Qia; };
     //! Ice to ocean heat flux [W m⁻²]
-    inline double& QIceOceanHeat() { return m_Qio; };
+    inline double QIceOceanHeat() const { return m_Qio; };
+    //! Increment the Ice to ocean heat flux [W m⁻²]
+    inline void incrementQIceOceanHeat(double addQio) { m_Qio += addQio; };
 
     //! Rate of sublimation ice to vapour [kg s⁻¹ m⁻²]
     inline double sublimationRate() const { return m_subl; };
@@ -65,7 +67,11 @@ public:
     inline double QDerivativeWRTTemperature() const { return m_dQ_dT; };
 
     //! Total amount of ice that resulted from the flooding of snow [m]
-    inline double& totalIceFromSnow() { return m_hifroms; }
+    inline double totalIceFromSnow() const { return m_hifroms; };
+    //! Set the amount of ice that resulted from the flooding of snow to zero
+    inline void zeroTotalIceFromSnow() { m_hifroms = 0; };
+    //! Increment the amount of ice that resulted from the flooding of snow [m]
+    inline void incrementTotalIceFromSnow(double delta_hifroms) { m_hifroms += delta_hifroms; };
 
     //! Minimum ice concentration [1]
     static double minimumIceConcentration() { return minc; };
