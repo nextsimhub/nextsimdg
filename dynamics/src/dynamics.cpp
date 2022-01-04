@@ -148,35 +148,38 @@ void Dynamics::velocityDirichletBoundary(double gamma)
 
 void Dynamics::computeStrainRateTensor()
 {
-    E11.col(0) = 1. / mesh.hx * vx.col(1);
-    E11.col(1) = 1. / mesh.hx * 2. * vx.col(3);
-    E11.col(2) = 1. / mesh.hx * vx.col(5);
-    E12.col(0) = 1. * 0.5 * (vy.col(1) / mesh.hx + vx.col(2) / mesh.hy);
-    E12.col(1) = 1. * 0.5 * (vx.col(5) / mesh.hy + 2.0 * vy.col(3) / mesh.hx);
-    E12.col(2) = 1. * 0.5 * (2.0 * vx.col(4) / mesh.hy + vy.col(5) / mesh.hx);
-    E22.col(0) = 1. / mesh.hy * vy.col(2);
-    E22.col(1) = 1. / mesh.hy * vy.col(5);
-    E22.col(2) = 1. / mesh.hy * 2. * vy.col(4);
+    E11.col(0) = 1. / mesh.hx * vx.col(1) * sqrt(12.0);
+    E11.col(1) = 1. / mesh.hx * vx.col(3) * sqrt(60.0);
+    E11.col(2) = 1. / mesh.hx * vx.col(5) * sqrt(12.0);
+
+    E12.col(0) = 0.5 * (vy.col(1) / mesh.hx + vx.col(2) / mesh.hy) * sqrt(12.0);
+    E12.col(1) = 0.5 * (vx.col(5) / mesh.hy * sqrt(12.0) + vy.col(3) / mesh.hx * sqrt(60.0));
+    E12.col(2) = 0.5 * (vx.col(4) / mesh.hy * sqrt(60.0) + vy.col(5) / mesh.hx * sqrt(12.0));
+
+    E22.col(0) = 1. / mesh.hy * vy.col(2) * sqrt(12.0);
+    E22.col(1) = 1. / mesh.hy * vy.col(5) * sqrt(12.0);
+    E22.col(2) = 1. / mesh.hy * vy.col(4) * sqrt(60.0);
 }
 
 //! Computes the cell terms of sigma = 1/2(nabla v + nabla v^T)
 void Dynamics::addStressTensorCell(double scaleSigma)
 {
     // S11 d_x phi_x + S12 d_y phi_x
-    tmpX.col(1) += 12. * scaleSigma / mesh.hx * (S11.col(0));
-    tmpX.col(3) += 180. * scaleSigma / mesh.hx * (S11.col(1) / 6.);
-    tmpX.col(5) += 144. * scaleSigma / mesh.hx * (S11.col(2) / 12.);
-    tmpX.col(2) += 12. * scaleSigma / mesh.hy * (S12.col(0)); // hy instead of hx?
-    tmpX.col(4) += 180. * scaleSigma / mesh.hy * (S12.col(2) / 6.);
-    tmpX.col(5) += 144. * scaleSigma / mesh.hy * (S12.col(1) / 12.);
+    tmpX.col(1) += scaleSigma / mesh.hx * S11.col(0) * sqrt(12.0);
+    tmpX.col(3) += scaleSigma / mesh.hx * S11.col(1) * sqrt(60.0);
+    tmpX.col(5) += scaleSigma / mesh.hx * S11.col(2) * sqrt(12.0);
+
+    tmpX.col(2) += scaleSigma / mesh.hy * S12.col(0) * sqrt(12.0);
+    tmpX.col(4) += scaleSigma / mesh.hy * S12.col(2) * sqrt(60.0);
+    tmpX.col(5) += scaleSigma / mesh.hy * S12.col(1) * sqrt(12.0);
 
     // S12 d_x phi_y + S22 d_y phi_y
-    tmpY.col(1) += 12. * scaleSigma / mesh.hx * (S12.col(0));
-    tmpY.col(3) += 180. * scaleSigma / mesh.hx * (S12.col(1) / 6.);
-    tmpY.col(5) += 144. * scaleSigma / mesh.hx * (S12.col(2) / 12.);
-    tmpY.col(2) += 12. * scaleSigma / mesh.hy * (S22.col(0));
-    tmpY.col(4) += 180. * scaleSigma / mesh.hy * (S22.col(2) / 6.);
-    tmpY.col(5) += 144. * scaleSigma / mesh.hy * (S22.col(1) / 12.);
+    tmpY.col(1) += scaleSigma / mesh.hx * S12.col(0) * sqrt(12.0);
+    tmpY.col(3) += scaleSigma / mesh.hx * S12.col(1) * sqrt(60.0);
+    tmpY.col(5) += scaleSigma / mesh.hx * S12.col(2) * sqrt(12.0);
+    tmpY.col(2) += scaleSigma / mesh.hy * S22.col(0) * sqrt(12.0);
+    tmpY.col(4) += scaleSigma / mesh.hy * S22.col(2) * sqrt(60.0);
+    tmpY.col(5) += scaleSigma / mesh.hy * S22.col(1) * sqrt(12.0);
 }
 
 void Dynamics::addStressTensor(double scaleSigma)

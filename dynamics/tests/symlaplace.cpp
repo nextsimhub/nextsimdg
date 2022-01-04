@@ -98,7 +98,7 @@ int main()
     for (int refine = 1; refine <= 3; ++refine) {
         N *= 2;
 
-        double k = 1.0 / N / N * 0.02 / gamma; // time step size
+        double k = 1.0 / N / N * 0.05 / gamma; // time step size
         size_t NT = static_cast<size_t>(T / k + 1.e-6);
 
         dynamics.GetMesh().BasicInit(N, N / 1, 1. / N, 1. / N);
@@ -135,6 +135,7 @@ int main()
             dynamics.GetS11() = dynamics.GetE11();
             dynamics.GetS12() = dynamics.GetE12();
             dynamics.GetS22() = dynamics.GetE22();
+
             dynamics.addStressTensor(-1.0); //!< tmp += div(S)
             dynamics.velocityContinuity(gamma); //!< tmp += < [v], [phi] >
             dynamics.velocityDirichletBoundary(gammaboundary); //!< tmp += < v, [phi] >_G

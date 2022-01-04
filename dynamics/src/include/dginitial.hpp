@@ -112,7 +112,7 @@ void L2ProjectInitial(const Mesh& mesh,
 {
     phi.setZero();
 
-    std::array<double, 6> imass = { 1.0, 12.0, 12.0, 180., 180., 144. }; // without 'h'
+    std::array<double, 6> imass = { 1.0, 1.0, 1.0, 1., 1., 1. }; // without 'h'
 
     // Gauss quadrature on [-1/2, 1/2]
     std::array<double, 3> g3 = { -sqrt(3.0 / 5.0) * 0.5, 0.0, sqrt(3.0 / 5.0) * 0.5 };
@@ -132,11 +132,11 @@ void L2ProjectInitial(const Mesh& mesh,
                     double Y = 0.5 + g3[gy];
                     // (f, phi0)
                     phi(ic, 0) += imass[0] * w3[gx] * w3[gy] * initial(x, y) * 1.0; // 1
-                    phi(ic, 1) += imass[1] * w3[gx] * w3[gy] * initial(x, y) * (X - 0.5);
-                    phi(ic, 2) += imass[2] * w3[gx] * w3[gy] * initial(x, y) * (Y - 0.5);
-                    phi(ic, 3) += imass[3] * w3[gx] * w3[gy] * initial(x, y) * ((X - 0.5) * (X - 0.5) - 1. / 12.);
-                    phi(ic, 4) += imass[4] * w3[gx] * w3[gy] * initial(x, y) * ((Y - 0.5) * (Y - 0.5) - 1. / 12.);
-                    phi(ic, 5) += imass[5] * w3[gx] * w3[gy] * initial(x, y) * (X - 0.5) * (Y - 0.5);
+                    phi(ic, 1) += imass[1] * w3[gx] * w3[gy] * initial(x, y) * (X - 0.5) * sqrt(12.0);
+                    phi(ic, 2) += imass[2] * w3[gx] * w3[gy] * initial(x, y) * (Y - 0.5) * sqrt(12.0);
+                    phi(ic, 3) += imass[3] * w3[gx] * w3[gy] * initial(x, y) * ((X - 0.5) * (X - 0.5) - 1. / 12.) * sqrt(180.0);
+                    phi(ic, 4) += imass[4] * w3[gx] * w3[gy] * initial(x, y) * ((Y - 0.5) * (Y - 0.5) - 1. / 12.) * sqrt(180.0);
+                    phi(ic, 5) += imass[5] * w3[gx] * w3[gy] * initial(x, y) * (X - 0.5) * (Y - 0.5) * 12.0;
                 }
         }
     }
@@ -174,7 +174,7 @@ double L2Error(const Mesh& mesh,
                     double X = 0.5 + g3[gx];
                     double Y = 0.5 + g3[gy];
 
-                    double PHI = phi(ic, 0) + phi(ic, 1) * (X - 0.5) + phi(ic, 2) * (Y - 0.5) + phi(ic, 3) * ((X - 0.5) * (X - 0.5) - 1.0 / 12) + phi(ic, 4) * ((Y - 0.5) * (Y - 0.5) - 1.0 / 12) + phi(ic, 5) * (X - 0.5) * (Y - 0.5);
+                    double PHI = phi(ic, 0) + phi(ic, 1) * (X - 0.5) * sqrt(12.0) + phi(ic, 2) * (Y - 0.5) * sqrt(12.0) + phi(ic, 3) * ((X - 0.5) * (X - 0.5) - 1.0 / 12) * sqrt(180.0) + phi(ic, 4) * ((Y - 0.5) * (Y - 0.5) - 1.0 / 12) * sqrt(180.0) + phi(ic, 5) * (X - 0.5) * (Y - 0.5) * 12.0;
 
 #pragma omp atomic
                     res += w3[gx] * w3[gy] * hxhy * (PHI - ex(x, y)) * (PHI - ex(x, y));

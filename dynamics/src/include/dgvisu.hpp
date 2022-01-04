@@ -175,31 +175,31 @@ public:
                 };
 
                 if (DGdegree >= 1) {
-                    interpolate[0] += -0.5 * v(ii, 1);
-                    interpolate[1] += 0.5 * v(ii, 1);
-                    interpolate[2] += 0.5 * v(ii, 1);
-                    interpolate[3] += -0.5 * v(ii, 1);
+                    interpolate[0] += -0.5 * v(ii, 1) * sqrt(12.0);
+                    interpolate[1] += 0.5 * v(ii, 1) * sqrt(12.0);
+                    interpolate[2] += 0.5 * v(ii, 1) * sqrt(12.0);
+                    interpolate[3] += -0.5 * v(ii, 1) * sqrt(12.0);
 
-                    interpolate[0] += -0.5 * v(ii, 2);
-                    interpolate[1] += -0.5 * v(ii, 2);
-                    interpolate[2] += 0.5 * v(ii, 2);
-                    interpolate[3] += 0.5 * v(ii, 2);
+                    interpolate[0] += -0.5 * v(ii, 2) * sqrt(12.0);
+                    interpolate[1] += -0.5 * v(ii, 2) * sqrt(12.0);
+                    interpolate[2] += 0.5 * v(ii, 2) * sqrt(12.0);
+                    interpolate[3] += 0.5 * v(ii, 2) * sqrt(12.0);
                 }
                 if (DGdegree >= 2) {
-                    interpolate[0] += 1. / 6. * v(ii, 3);
-                    interpolate[1] += 1. / 6. * v(ii, 3);
-                    interpolate[2] += 1. / 6. * v(ii, 3);
-                    interpolate[3] += 1. / 6. * v(ii, 3);
+                    interpolate[0] += 1. / 6. * v(ii, 3) * sqrt(180);
+                    interpolate[1] += 1. / 6. * v(ii, 3) * sqrt(180);
+                    interpolate[2] += 1. / 6. * v(ii, 3) * sqrt(180);
+                    interpolate[3] += 1. / 6. * v(ii, 3) * sqrt(180);
 
-                    interpolate[0] += 1. / 6. * v(ii, 4);
-                    interpolate[1] += 1. / 6. * v(ii, 4);
-                    interpolate[2] += 1. / 6. * v(ii, 4);
-                    interpolate[3] += 1. / 6. * v(ii, 4);
+                    interpolate[0] += 1. / 6. * v(ii, 4) * sqrt(180);
+                    interpolate[1] += 1. / 6. * v(ii, 4) * sqrt(180);
+                    interpolate[2] += 1. / 6. * v(ii, 4) * sqrt(180);
+                    interpolate[3] += 1. / 6. * v(ii, 4) * sqrt(180);
 
-                    interpolate[0] += 1. / 4. * v(ii, 5);
-                    interpolate[1] += -1. / 4. * v(ii, 5);
-                    interpolate[2] += 1. / 4. * v(ii, 5);
-                    interpolate[3] += -1. / 4. * v(ii, 5);
+                    interpolate[0] += 1. / 4. * v(ii, 5) * 12.;
+                    interpolate[1] += -1. / 4. * v(ii, 5) * 12.;
+                    interpolate[2] += 1. / 4. * v(ii, 5) * 12.;
+                    interpolate[3] += -1. / 4. * v(ii, 5) * 12.;
                 }
                 for (auto it : interpolate)
                     OUT << it << std::endl;

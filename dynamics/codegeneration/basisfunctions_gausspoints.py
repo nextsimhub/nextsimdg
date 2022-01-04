@@ -17,7 +17,7 @@ def dgdofs(d):    # Number of unknowns per element depending on gauss degree
         assert False,'dG3 and higher is not implemented'
     
 ### Inverse element mass matrix for the dg methods
-inversemass = np.array([1., 12., 12., 180., 180., 144.])
+inversemass = np.array([1., 1., 1., 1., 1., 1.])
         
 ### Gauss quadrature
 gausspoints = np.array([
@@ -56,15 +56,15 @@ def basisfunction(j,x,y):
     if j==0:
         return 1.
     elif j==1:
-        return x-0.5
+        return (x-0.5)*np.sqrt(12.0)
     elif j==2:
-        return y-0.5
+        return (y-0.5)*np.sqrt(12.0)
     elif j==3:
-        return (x-0.5)*(x-0.5)-1.0/12.0
+        return ((x-0.5)*(x-0.5)-1.0/12.0)*np.sqrt(180.0)
     elif j==4:
-        return (y-0.5)*(y-0.5)-1.0/12.0
+        return ((y-0.5)*(y-0.5)-1.0/12.0)*np.sqrt(180.0)
     elif j==5:
-        return (x-0.5)*(y-0.5)
+        return 12.0*(x-0.5)*(y-0.5)
     else:
         print("dG3 and higher not implemented (yet)")
         assert False
@@ -74,9 +74,9 @@ def edgebasisfunction(j,x):
     if j==0:
         return 1.
     elif j==1:
-        return x-0.5
+        return np.sqrt(12.0)*(x-0.5)
     elif j==2:
-        return (x-0.5)*(x-0.5)-1.0/12.0
+        return np.sqrt(180.0)*((x-0.5)*(x-0.5)-1.0/12.0)
     else:
         print("dG3 and higher not implemented (yet)")
         assert False
