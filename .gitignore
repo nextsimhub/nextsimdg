@@ -1,4 +1,7 @@
 /build/
 /.cproject
 /.project
+/.pydevproject
 /.settings/*
+/src/modules/generated/moduleLoader*.ipp
+/*/src/modules/generated/moduleLoader*.ipp
