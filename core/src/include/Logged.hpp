@@ -20,7 +20,7 @@ public:
     static void emergency(const std::string& message);
 
 protected:
-    Logged();
+    Logged() = default;
     // TODO: Add implementation to actually do some logging
 };
 

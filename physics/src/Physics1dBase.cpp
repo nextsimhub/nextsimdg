@@ -8,16 +8,6 @@
 
 namespace Nextsim {
 
-Physics1dBase::Physics1dBase()
-{
-    // TODO Auto-generated constructor stub
-}
-
-Physics1dBase::~Physics1dBase()
-{
-    // TODO Auto-generated destructor stub
-}
-
 template <class Phys> void Physics1dBase::physics1d(ElementData<Phys>& data)
 {
     Phys::updateDerivedData(data);

@@ -8,11 +8,6 @@
 
 namespace Nextsim {
 
-Logged::Logged()
-{
-    // TODO Auto-generated constructor stub
-}
-
 // TODO Empty implementations of the declared functions
 void Logged::log(const std::string& message, Logged::level lvl)
 {

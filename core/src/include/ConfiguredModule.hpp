@@ -18,8 +18,8 @@ namespace Nextsim {
  */
 class ConfiguredModule {
 public:
-    ConfiguredModule();
-    virtual ~ConfiguredModule();
+    ConfiguredModule() = default;
+    virtual ~ConfiguredModule() = default;
 
     //! Parse the configuration for all of the modules defined in ModuleLoader.
     static void parseConfigurator();
