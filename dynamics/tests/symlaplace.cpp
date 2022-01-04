@@ -90,18 +90,21 @@ int main()
 
     //! initialize the mesh
     size_t N = 5;
-    double T = 1.0;
+    double T = 0.2;
+
+    const double gamma = 5.0; //!< parameter in front of internal penalty terms
+    const double gammaboundary = gamma; //!< parameter in front of boundary penalty terms
 
     for (int refine = 1; refine <= 3; ++refine) {
         N *= 2;
 
-        double k = 1.0 / N / N * 0.02 / 50.0; // time step size
+        double k = 1.0 / N / N * 0.02 / gamma; // time step size
         size_t NT = static_cast<size_t>(T / k + 1.e-6);
 
         dynamics.GetMesh().BasicInit(N, N / 1, 1. / N, 1. / N);
         dynamics.GetTimeMesh().BasicInit(NT, k, k);
 
-        WRITE_EVERY = 0.02 / dynamics.GetTimeMesh().dt_momentum;
+        WRITE_EVERY = T / 5 / dynamics.GetTimeMesh().dt_momentum + 1.e-6;
 
         std::cout << "--------------------------------------------" << std::endl;
         std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -121,9 +124,6 @@ int main()
 
         Nextsim::GlobalTimer.start("time loop");
         //        dynamics.GetTimeMesh().N = 1;
-
-        const double gamma = 50.0; //!< parameter in front of internal penalty terms
-        const double gammaboundary = 50; //!< parameter in front of boundary penalty terms
 
         for (size_t timestep = 1; timestep <= dynamics.GetTimeMesh().N; ++timestep) {
 
