@@ -25,6 +25,10 @@ void Dynamics::BasicInit()
     S11.resize_by_mesh(mesh);
     S12.resize_by_mesh(mesh);
     S22.resize_by_mesh(mesh);
+
+    E11.resize_by_mesh(mesh);
+    E12.resize_by_mesh(mesh);
+    E22.resize_by_mesh(mesh);
     D.resize_by_mesh(mesh);
 
     oceanX.resize_by_mesh(mesh);
@@ -144,15 +148,15 @@ void Dynamics::velocityDirichletBoundary(double gamma)
 
 void Dynamics::computeStrainRateTensor()
 {
-    S11.col(0) = 1. / mesh.hx * vx.col(1);
-    S11.col(1) = 1. / mesh.hx * 2. * vx.col(3);
-    S11.col(2) = 1. / mesh.hx * vx.col(5);
-    S12.col(0) = 1. * 0.5 * (vy.col(1) / mesh.hx + vx.col(2) / mesh.hy);
-    S12.col(1) = 1. * 0.5 * (vx.col(5) / mesh.hy + 2.0 * vy.col(3) / mesh.hx);
-    S12.col(2) = 1. * 0.5 * (2.0 * vx.col(4) / mesh.hy + vy.col(5) / mesh.hx);
-    S22.col(0) = 1. / mesh.hy * vy.col(2);
-    S22.col(1) = 1. / mesh.hy * vy.col(5);
-    S22.col(2) = 1. / mesh.hy * 2. * vy.col(4);
+    E11.col(0) = 1. / mesh.hx * vx.col(1);
+    E11.col(1) = 1. / mesh.hx * 2. * vx.col(3);
+    E11.col(2) = 1. / mesh.hx * vx.col(5);
+    E12.col(0) = 1. * 0.5 * (vy.col(1) / mesh.hx + vx.col(2) / mesh.hy);
+    E12.col(1) = 1. * 0.5 * (vx.col(5) / mesh.hy + 2.0 * vy.col(3) / mesh.hx);
+    E12.col(2) = 1. * 0.5 * (2.0 * vx.col(4) / mesh.hy + vy.col(5) / mesh.hx);
+    E22.col(0) = 1. / mesh.hy * vy.col(2);
+    E22.col(1) = 1. / mesh.hy * vy.col(5);
+    E22.col(2) = 1. / mesh.hy * 2. * vy.col(4);
 }
 
 //! Computes the cell terms of sigma = 1/2(nabla v + nabla v^T)

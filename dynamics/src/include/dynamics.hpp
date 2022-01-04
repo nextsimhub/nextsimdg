@@ -37,7 +37,8 @@ public:
    */
     CellVector<2> vx, vy; //!< velocity fields
     CellVector<1> S11, S12, S22; //!< entries of (symmetric) stress tensor
-    CellVector<1> S21; // for testing
+    CellVector<1> E11, E12, E22; //!< entries of (symmetric) strain stress tensor
+
     CellVector<2> A, H; //!< ice height and ice concentration
     CellVector<0> D; //!< ice damage. ?? Really dG(0) ??
 
@@ -72,8 +73,10 @@ public:
     CellVector<2>& GetVY() { return vy; }
     CellVector<1>& GetS11() { return S11; }
     CellVector<1>& GetS12() { return S12; }
-    CellVector<1>& GetS21() { return S21; }
     CellVector<1>& GetS22() { return S22; }
+    CellVector<1>& GetE11() { return E11; }
+    CellVector<1>& GetE12() { return E12; }
+    CellVector<1>& GetE22() { return E22; }
     CellVector<0>& GetD() { return D; }
     CellVector<2>& GetH() { return H; }
     CellVector<2>& GetA() { return A; }

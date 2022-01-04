@@ -95,13 +95,13 @@ int main()
     for (int refine = 1; refine <= 3; ++refine) {
         N *= 2;
 
-        double k = 1.0 / N / N * 0.001; // time step size
+        double k = 1.0 / N / N * 0.02 / 50.0; // time step size
         size_t NT = static_cast<size_t>(T / k + 1.e-6);
 
         dynamics.GetMesh().BasicInit(N, N / 1, 1. / N, 1. / N);
         dynamics.GetTimeMesh().BasicInit(NT, k, k);
 
-        WRITE_EVERY = 0.1 / dynamics.GetTimeMesh().dt_momentum;
+        WRITE_EVERY = 0.02 / dynamics.GetTimeMesh().dt_momentum;
 
         std::cout << "--------------------------------------------" << std::endl;
         std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -122,8 +122,8 @@ int main()
         Nextsim::GlobalTimer.start("time loop");
         //        dynamics.GetTimeMesh().N = 1;
 
-        const double gamma = 20.0; //!< parameter in front of internal penalty terms
-        const double gammaboundary = 20; //!< parameter in front of boundary penalty terms
+        const double gamma = 50.0; //!< parameter in front of internal penalty terms
+        const double gammaboundary = 50; //!< parameter in front of boundary penalty terms
 
         for (size_t timestep = 1; timestep <= dynamics.GetTimeMesh().N; ++timestep) {
 
@@ -131,7 +131,10 @@ int main()
             dynamics.GetTMPX() = fx;
             dynamics.GetTMPY() = fy;
 
-            dynamics.computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
+            dynamics.computeStrainRateTensor(); //!< E = 1/2 (nabla v + nabla v^T)
+            dynamics.GetS11() = dynamics.GetE11();
+            dynamics.GetS12() = dynamics.GetE12();
+            dynamics.GetS22() = dynamics.GetE22();
             dynamics.addStressTensor(-1.0); //!< tmp += div(S)
             dynamics.velocityContinuity(gamma); //!< tmp += < [v], [phi] >
             dynamics.velocityDirichletBoundary(gammaboundary); //!< tmp += < v, [phi] >_G
