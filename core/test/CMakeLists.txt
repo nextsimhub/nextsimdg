@@ -88,4 +88,23 @@ add_executable(testScopedTimer
 target_link_libraries(testScopedTimer PRIVATE Catch2::Catch2)
 target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 
+set(PhysicsDir "${PROJECT_SOURCE_DIR}/physics/src")
+set(PhysicsModulesDir "${PhysicsDir}/modules")
+add_executable(testElementData
+    "ElementData_test.cpp"
+    "${SRC_DIR}/ElementData.cpp"
+    "${SRC_DIR}/ModuleLoader.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
+    "${SRC_DIR}/PrognosticData.cpp"
+    "${PhysicsModulesDir}/NextsimPhysics.cpp"
+    "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
+    "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
+    "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
+    "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysicsModulesDir}/HiblerConcentration.cpp"
+    "${PhysicsModulesDir}/ThermoIce0.cpp"
+    )
 
+    target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${PhysicsDir}" "${PhysicsModulesDir}")
+    target_link_libraries(testElementData PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)

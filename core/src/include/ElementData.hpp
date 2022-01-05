@@ -7,6 +7,7 @@
 #ifndef SRC_INCLUDE_ELEMENTDATA_HPP
 #define SRC_INCLUDE_ELEMENTDATA_HPP
 
+#include "Configured.hpp"
 #include "ExternalData.hpp"
 #include "ModuleLoader.hpp"
 #include "PrognosticData.hpp"
@@ -44,16 +45,18 @@ public:
 
     //! Configures the PrognosticData and physics implementation aspects of the
     //!  object.
-    void configure() override { PrognosticData::configure(); }
+    void configure() override
+    {
+        PrognosticData::configure();
+        Nextsim::tryConfigure(&ModuleLoader::getLoader().getImplementation<IPhysics1d>());
+    }
 
-    void updateDerivedData(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    void updateDerivedData(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
     {
         m_physicsImplData->updateDerivedData(prog, exter, phys);
     }
 
-    void calculate(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
     {
         m_physicsImplData->calculate(prog, exter, phys);
     }
