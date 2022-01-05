@@ -31,5 +31,11 @@
         "implementations": [
             "Nextsim::ThermoIce0"
         ]
+    },
+    {
+        "name": "Nextsim::IPhysics1d",
+        "implementations": [
+            "Nextsim::NextsimPhysics"
+        ]
     }
 ]

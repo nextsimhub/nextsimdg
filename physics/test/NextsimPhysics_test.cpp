@@ -46,7 +46,12 @@ TEST_CASE("Minimum ice & i0", "[NextsimPhysics]")
 
 TEST_CASE("Update derived data", "[NextsimPhysics]")
 {
-    ElementData<NextsimPhysics> data;
+    ModuleLoader::getLoader().setAllDefaults();
+    ConfiguredModule::parseConfigurator();
+
+    ElementData data;
+    data.configure(); // Configure with the default linear freezing point
+
 
     double tair = -3;
     double tdew = 0.1;
@@ -62,7 +67,8 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
     data.dewPoint2m() = tdew;
     data.airPressure() = pair;
 
-    data.updateDerivedData(data, data, data);
+    NextsimPhysics nsData;
+    nsData.updateDerivedData(data, data, data);
 
     REQUIRE(1.29253 == Approx(data.airDensity()).epsilon(1e-4));
     REQUIRE(0.00385326 == Approx(data.specificHumidityAir()).epsilon(1e-4));
@@ -73,10 +79,6 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
 
 TEST_CASE("New ice formation", "[NextsimPhysics]")
 {
-    ElementData<NextsimPhysics> data;
-    ExternalData exter;
-    PhysicsData phys;
-
     std::stringstream config;
     config << "[Modules]" << std::endl;
     config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
@@ -96,12 +98,13 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
 
     ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
+
+    ElementData data;
     data.configure(); // Configure with the default linear freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
     data.setTimestep(86400.); // s. Very long TS to get below freezing
 
-    //data = exter;
     data.airTemperature() = tair;
     data.dewPoint2m() = tdew;
     data.airPressure() = pair;
@@ -109,23 +112,19 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     data.incomingLongwave() = 0;
     data.incomingShortwave() = 0;
 
-    //data = phys;
-
-    data.updateDerivedData(data, data, data);
-    data.calculate(data, data, data);
+    NextsimPhysics nsphys;
+    nsphys.configure();
+    nsphys.updateDerivedData(data, data, data);
+    nsphys.calculate(data, data, data);
 
     // Correct for the non-NIST value of the Stefan-Boltzman constant used by old NeXtSIM. This
     // propagates linearly through to the new sea ice value in this case.
     double sbCorr = PhysicalConstants::sigma / 5.67e-8;
-    REQUIRE(0.0258236 * sbCorr == Approx(data.newIce()).epsilon(1e-4));
+    REQUIRE(0.0258236 * sbCorr == Approx(nsphys.newIce()).epsilon(1e-4));
 }
 
 TEST_CASE("Drag pressure", "[NextsimPhysics]")
 {
-    ElementData<NextsimPhysics> data;
-    ExternalData exter;
-    PhysicsData phys;
-
     double tair = 2; //˚C
     double tdew = 1.5; //˚C
     double pair = 100000; // Pa, slightly low pressure
@@ -138,12 +137,13 @@ TEST_CASE("Drag pressure", "[NextsimPhysics]")
 
     ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
+
+    ElementData data;
     data.configure(); // Configure with the default linear freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
     data.setTimestep(86400.); // s. Very long TS to get below freezing
 
-    data = exter;
     data.airTemperature() = tair;
     data.dewPoint2m() = tdew;
     data.airPressure() = pair;
@@ -151,34 +151,30 @@ TEST_CASE("Drag pressure", "[NextsimPhysics]")
     data.incomingLongwave() = 0;
     data.incomingShortwave() = 0;
 
-    data = phys;
+    NextsimPhysics nsphys;
 
     // Below the lower limit
     data.windSpeed() = 1.5;
-    data.updateDerivedData(data, data, data);
-    data.calculate(data, data, data);
+    nsphys.updateDerivedData(data, data, data);
+    nsphys.calculate(data, data, data);
     REQUIRE(0.00126936 == Approx(data.dragPressure()).epsilon(1e-4));
 
     // Wind speed dependent
     data.windSpeed() = 8;
-    data.updateDerivedData(data, data, data);
-    data.calculate(data, data, data);
+    nsphys.updateDerivedData(data, data, data);
+    nsphys.calculate(data, data, data);
     REQUIRE(0.00141407 == Approx(data.dragPressure()).epsilon(1e-4));
 
     // Above the upper limit
     data.windSpeed() = 23;
-    data.updateDerivedData(data, data, data);
-    data.calculate(data, data, data);
+    nsphys.updateDerivedData(data, data, data);
+    nsphys.calculate(data, data, data);
     REQUIRE(0.00253872 == Approx(data.dragPressure()).epsilon(1e-4));
 
 }
 
 TEST_CASE("Melting conditions", "[NextsimPhysics]")
 {
-    ElementData<NextsimPhysics> data;
-    ExternalData exter;
-    PhysicsData phys;
-
     Configurator::clear();
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -206,6 +202,8 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
     tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
+
+    ElementData data;
     data.configure(); // Configure with the UNESCO freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
@@ -221,10 +219,11 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
 
     data.windSpeed() = 5;
 
+    NextsimPhysics nsphys;
+    nsphys.configure();
 
-
-    data.updateDerivedData(data, data, data);
-    data.calculate(data, data, data);
+    nsphys.updateDerivedData(data, data, data);
+    nsphys.calculate(data, data, data);
 
     // Externally visible values (in PhysicsData)
     REQUIRE(0.12846 == Approx(data.updatedIceTrueThickness()).epsilon(1e-4));
@@ -233,22 +232,18 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     REQUIRE(0.0 == Approx(data.updatedIceSurfaceTemperature()).epsilon(1e-4));
 
     // Values used by Nextsim Physics modules
-    REQUIRE(0.0 == data.newIce());
-    REQUIRE(-84.6156 == Approx(data.QIceAtmosphere()).epsilon(1e-2));
-    REQUIRE(53717.8 == Approx(data.QIceOceanHeat()).epsilon(1e-2));
-    REQUIRE(-7.3858e-06 == Approx(data.sublimationRate()).epsilon(1e-4));
-    REQUIRE(19.7013 == Approx(data.QDerivativeWRTTemperature()).epsilon(1e-2));
-    REQUIRE(0.0 == Approx(data.totalIceFromSnow()).epsilon(1e-2));
+    REQUIRE(0.0 == nsphys.newIce());
+    REQUIRE(-84.6156 == Approx(nsphys.QIceAtmosphere()).epsilon(1e-2));
+    REQUIRE(53717.8 == Approx(nsphys.QIceOceanHeat()).epsilon(1e-2));
+    REQUIRE(-7.3858e-06 == Approx(nsphys.sublimationRate()).epsilon(1e-4));
+    REQUIRE(19.7013 == Approx(nsphys.QDerivativeWRTTemperature()).epsilon(1e-2));
+    REQUIRE(0.0 == Approx(nsphys.totalIceFromSnow()).epsilon(1e-2));
 
 
 }
 
 TEST_CASE("Freezing conditions", "[NextsimPhysics]")
 {
-    ElementData<NextsimPhysics> data;
-    ExternalData exter;
-    PhysicsData phys;
-
     Configurator::clear();
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -276,6 +271,8 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
     ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
     tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
+
+    ElementData data;
     data.configure(); // Configure with the UNESCO freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
@@ -291,8 +288,11 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
 
     data.windSpeed() = 5;
 
-    data.updateDerivedData(data, data, data);
-    data.calculate(data, data, data);
+    NextsimPhysics nsphys;
+    nsphys.configure();
+
+    nsphys.updateDerivedData(data, data, data);
+    nsphys.calculate(data, data, data);
 
     // Externally visible values (in PhysicsData)
     REQUIRE(0.199998 == Approx(data.updatedIceTrueThickness()).epsilon(1e-4));
@@ -301,12 +301,12 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
     REQUIRE(-8.90443 == Approx(data.updatedIceSurfaceTemperature()).epsilon(1e-4));
 
     // Values used by Nextsim Physics modules
-    REQUIRE(6.79707e-5 == Approx(data.newIce()).epsilon(1e-2));
-    REQUIRE(42.2955 == Approx(data.QIceAtmosphere()).epsilon(1e-2));
-    REQUIRE(73.9465 == Approx(data.QIceOceanHeat()).epsilon(1e-2));
-    REQUIRE(2.15132e-06 == Approx(data.sublimationRate()).epsilon(1e-4));
-    REQUIRE(16.7615 == Approx(data.QDerivativeWRTTemperature()).epsilon(1e-2));
-    REQUIRE(0.0 == Approx(data.totalIceFromSnow()).epsilon(1e-2));
+    REQUIRE(6.79707e-5 == Approx(nsphys.newIce()).epsilon(1e-2));
+    REQUIRE(42.2955 == Approx(nsphys.QIceAtmosphere()).epsilon(1e-2));
+    REQUIRE(73.9465 == Approx(nsphys.QIceOceanHeat()).epsilon(1e-2));
+    REQUIRE(2.15132e-06 == Approx(nsphys.sublimationRate()).epsilon(1e-4));
+    REQUIRE(16.7615 == Approx(nsphys.QDerivativeWRTTemperature()).epsilon(1e-2));
+    REQUIRE(0.0 == Approx(nsphys.totalIceFromSnow()).epsilon(1e-2));
 
 
 }

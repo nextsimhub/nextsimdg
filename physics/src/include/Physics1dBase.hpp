@@ -24,7 +24,7 @@ public:
     virtual ~Physics1dBase() = default;
 
     //! Performs the one dimensional physics calculations.
-    template <class Phys> void physics1d(ElementData<Phys>&);
+    void physics1d(ElementData&);
 };
 
 } /* namespace Nextsim */
