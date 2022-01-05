@@ -98,7 +98,7 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
     if (doFlooding && iceDraught > phys.updatedIceTrueThickness()) {
         // Keep a running total of the ice formed from flooded snow
         double newIce = iceDraught - phys.updatedIceTrueThickness();
-        nsphys.totalIceFromSnow() += newIce;
+        nsphys.incrementTotalIceFromSnow(newIce);
 
         // Convert all the submerged snow to ice
         phys.updatedIceTrueThickness() = iceDraught;
@@ -115,14 +115,15 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
         }
 
         // No snow was converted to ice
-        nsphys.totalIceFromSnow() = 0;
+        nsphys.zeroTotalIceFromSnow();
 
         // Change in thickness is all of the old thickness
         iceThicknessChange = -oldIceThickness;
 
         // The ice-ocean flux includes all the latent heat
-        nsphys.QIceOceanHeat() += phys.updatedIceTrueThickness() * bulkLHFusionIce / prog.timestep()
+        double deltaQio = phys.updatedIceTrueThickness() * bulkLHFusionIce / prog.timestep()
             + phys.updatedSnowTrueThickness() * bulkLHFusionSnow / prog.timestep();
+        nsphys.incrementQIceOceanHeat(deltaQio);
 
         // No ice, no snow and the surface temperature is the melting point of ice
         phys.updatedIceTrueThickness() = 0;

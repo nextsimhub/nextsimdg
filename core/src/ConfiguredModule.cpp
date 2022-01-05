@@ -16,16 +16,6 @@ namespace Nextsim {
 
 const std::string ConfiguredModule::MODULE_PREFIX = "Modules";
 
-ConfiguredModule::ConfiguredModule()
-{
-    // TODO Auto-generated constructor stub
-}
-
-ConfiguredModule::~ConfiguredModule()
-{
-    // TODO Auto-generated destructor stub
-}
-
 void ConfiguredModule::parseConfigurator()
 {
     // A default string that can never be a valid C++ class name

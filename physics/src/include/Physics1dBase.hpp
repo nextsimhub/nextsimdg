@@ -20,11 +20,11 @@ namespace Nextsim {
  */
 class Physics1dBase {
 public:
-    Physics1dBase();
-    virtual ~Physics1dBase();
+    Physics1dBase() = default;
+    virtual ~Physics1dBase() = default;
 
     //! Performs the one dimensional physics calculations.
-    template <class Phys> void physics1d(ElementData<Phys>&);
+    void physics1d(ElementData&);
 };
 
 } /* namespace Nextsim */
