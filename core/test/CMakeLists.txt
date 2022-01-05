@@ -2,7 +2,7 @@
 
 set(SRC_DIR "../src")
 set(INCLUDE_DIR "${SRC_DIR}/include")
-set(CoreModuleDir "${SRC_DIR}/modules")
+set(CoreModulesDir "${SRC_DIR}/modules")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
@@ -97,7 +97,7 @@ add_executable(testPrognosticData
     # Set the location of the test module loader classes
 set(PDTestIppDir "${CMAKE_CURRENT_SOURCE_DIR}/PrognosticDataTestModules")
 target_link_libraries(testPrognosticData PRIVATE Catch2::Catch2)
-target_include_directories(testPrognosticData PRIVATE "${SRC_DIR}" "${CoreModuleDir}" "${PDTestIppDir}")
+target_include_directories(testPrognosticData PRIVATE "${SRC_DIR}" "${CoreModulesDir}" "${PDTestIppDir}")
 
 set(PhysicsDir "${PROJECT_SOURCE_DIR}/physics/src")
 set(PhysicsModulesDir "${PhysicsDir}/modules")
@@ -117,5 +117,5 @@ add_executable(testElementData
     "${PhysicsModulesDir}/ThermoIce0.cpp"
     )
 
-    target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${PhysicsDir}" "${PhysicsModulesDir}")
+    target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}")
     target_link_libraries(testElementData PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)
