@@ -10,6 +10,7 @@
 
 #include "include/IStructure.hpp"
 
+#include "include/ElementData.hpp"
 #include "include/PrognosticData.hpp"
 
 #include <map>
@@ -37,6 +38,10 @@ private:
 
     // Map between variable names and retrieval functions
     static const std::map<std::string, ProgDoubleFn> variableFunctions;
+
+    std::vector<ElementData> data;
+
+    std::vector<double> gather(ProgDoubleFn pFunc) const;
 };
 
 } /* namespace Nextsim */

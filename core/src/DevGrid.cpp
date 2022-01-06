@@ -63,4 +63,13 @@ void DevGrid::dumpData(netCDF::NcGroup& dataGroup) const
     }
 }
 
+std::vector<double> DevGrid::gather(ProgDoubleFn pFunc) const
+{
+    std::vector<double> gathered(data.size());
+    for (int i = 0; i < data.size(); ++i) {
+        gathered[i] = CALL_MEMBER_FN(data[i], pFunc);
+    }
+    return gathered;
+}
+
 } /* namespace Nextsim */
