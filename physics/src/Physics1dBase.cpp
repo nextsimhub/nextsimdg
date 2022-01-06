@@ -8,19 +8,9 @@
 
 namespace Nextsim {
 
-template <class Phys> void Physics1dBase::physics1d(ElementData<Phys>& data)
+void Physics1dBase::physics1d(ElementData& data)
 {
-    Phys::updateDerivedData(data);
-    Phys::massFluxOpenWater(data);
-    Phys::momentumFluxOpenWater(data);
-    Phys::heatFluxOpenWater(data);
-
-    Phys::massFluxIceAtmosphere(data);
-    // Ice momentum fluxes are handled by the dynamics
-    Phys::heatFluxIceAtmosphere(data);
-
-    Phys::massFluxIceOcean(data);
-    // Ice momentum fluxes are handled by the dynamics
-    Phys::heatFluxIceOcean(data);
+    data.updateDerivedData(data, data, data);
+    data.calculate(data, data, data);
 }
 } /* namespace Nextsim */

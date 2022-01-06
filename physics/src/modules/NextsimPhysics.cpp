@@ -172,12 +172,12 @@ void NextsimPhysics::heatFluxIceAtmosphere(
     m_Qlhi = m_subl * latentHeatIce(prog.iceTemperatures()[0]);
     double dmdot_dT = dragIce_t * phys.airDensity() * phys.windSpeed()
         * specHumIce.dq_dT(prog.iceTemperatures()[0], exter.airPressure());
-    m_dQ_dT += latentHeatIce(prog.iceTemperatures()[0]) * dmdot_dT;
+    double dQlh_dT = latentHeatIce(prog.iceTemperatures()[0]) * dmdot_dT;
 
     // Sensible heat flux
     m_Qshi = dragIce_t * phys.airDensity() * phys.heatCapacityWetAir() * phys.windSpeed()
         * (prog.iceTemperatures()[0] - exter.airTemperature());
-    m_dQ_dT += dragIce_t * phys.airDensity() * phys.heatCapacityWetAir() * phys.windSpeed();
+    double dQsh_dT = dragIce_t * phys.airDensity() * phys.heatCapacityWetAir() * phys.windSpeed();
 
     // Shortwave flux
     double albedoValue = iIceAlbedoImpl->albedo(prog.iceTemperatures()[0],
@@ -186,11 +186,13 @@ void NextsimPhysics::heatFluxIceAtmosphere(
 
     // Longwave flux
     m_Qlwi = stefanBoltzmannLaw(prog.iceTemperatures()[0]) - exter.incomingLongwave();
-    m_dQ_dT
-        += 4 / kelvin(prog.iceTemperatures()[0]) * stefanBoltzmannLaw(prog.iceTemperatures()[0]);
+    double dQlw_dT
+        = 4 / kelvin(prog.iceTemperatures()[0]) * stefanBoltzmannLaw(prog.iceTemperatures()[0]);
 
     // Total flux
     m_Qia = m_Qlhi + m_Qshi + m_Qlwi + m_Qswi;
+    // Overall temperature dependence of flux
+    m_dQ_dT = dQlh_dT + dQsh_dT + dQlw_dT;
 }
 
 void NextsimPhysics::massFluxIceOcean(

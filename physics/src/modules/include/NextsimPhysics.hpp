@@ -25,7 +25,7 @@ class IThermodynamics;
 class IIceOceanHeatFlux;
 class IConcentrationModel;
 
-template <class Phys> class ElementData;
+class ElementData;
 
 class NextsimPhysics;
 
