@@ -9,6 +9,7 @@
 
 #include "/opt/home/include/ncDim.h" // FIXME Remove me
 #include "/opt/home/include/ncDouble.h" // FIXME Remove me
+#include <cstddef>
 #include <ncDim.h>
 #include <ncDouble.h>
 #include <vector>
@@ -39,8 +40,38 @@ DevGrid::DevGrid()
 
 DevGrid::~DevGrid() { }
 
-void DevGrid::init(netCDF::NcGroup& metaGroup) { }
+void DevGrid::initMeta(const netCDF::NcGroup& metaGroup)
+{
+    data.resize(nx*nx);
+}
 
+void DevGrid::initData(const netCDF::NcGroup& dataGroup)
+{
+    for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < nx; ++j) {
+            int linearIndex = i * nx + j;
+            double hice;
+            double cice;
+            double hsnow;
+            double sst;
+            double sss;
+            dataGroup.getVar("hice").getVar(std::vector<std::size_t>({i, j}), &hice);
+            dataGroup.getVar("cice").getVar(std::vector<std::size_t>({i, j}), &cice);
+            dataGroup.getVar("hsnow").getVar(std::vector<std::size_t>({i, j}), &hsnow);
+            dataGroup.getVar("sst").getVar(std::vector<std::size_t>({i, j}), &sst);
+            dataGroup.getVar("sss").getVar(std::vector<std::size_t>({i, j}), &sss);
+            // TODO How to store ice temperature data?
+            std::array<double, N_ICE_TEMPERATURES> tice = {0., 0., 0.};
+            data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
+        }
+    }
+
+    for (auto fnNamePair : variableFunctions) {
+        std::string& name = fnNamePair.first;
+        netCDF::NcVar var(dataGroup.getVar(name));
+
+    }
+}
 void DevGrid::dumpMeta(netCDF::NcGroup& metaGroup) const
 {
     // Run the base class output
@@ -60,7 +91,9 @@ void DevGrid::dumpData(netCDF::NcGroup& dataGroup) const
         std::string& name = fnNamePair.first;
         netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims));
         std::vector<double> gathered = gather(variableFunctions.at(name));
+        var.putVar(gathered.data());
     }
+
 }
 
 std::vector<double> DevGrid::gather(ProgDoubleFn pFunc) const

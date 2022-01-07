@@ -22,7 +22,8 @@ public:
     DevGrid();
     virtual ~DevGrid();
 
-    void init(netCDF::NcGroup& grp) override;
+    void initMeta(const netCDF::NcGroup& metaGroup) override;
+    void initData(const netCDF::NcGroup& dataGroup) override;
     void dumpMeta(netCDF::NcGroup& metaGroup) const override;
     void dumpData(netCDF::NcGroup& dataGroup) const override;
 

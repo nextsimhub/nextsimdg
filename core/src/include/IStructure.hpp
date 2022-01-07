@@ -40,7 +40,29 @@ public:
      * @param grp The NetCDF group instance that holds the structure
      * information.
      */
-    virtual void init(netCDF::NcGroup& grp) = 0;
+    virtual void init(const netCDF::NcGroup& grp)
+    {
+        netCDF::NcGroup metaGroup(grp.getGroup(metadataNodeName));
+        netCDF::NcGroup dataGroup(grp.getGroup(dataNodeName));
+
+        initMeta(metaGroup);
+        initData(dataGroup);
+    }
+
+    /*!
+     * @brief Initializes the structure of the IStructure from metadata.
+     *
+     * @param metaGroup The NetCDF group instance holding the structure
+     * metadata.
+     */
+    virtual void initMeta(const netCDF::NcGroup& metaGroup) = 0;
+
+    /*!
+     * @brief Initializes the contents of the IStructure from data.
+     *
+     * @param dataGroup The NetCDF group instance holding the data.
+     */
+    virtual void initData(const netCDF::NcGroup& metaGroup) = 0;
 
     //! Returns the structure name that this class will process
     std::string structureType() const { return processedStructureName; }
@@ -85,8 +107,8 @@ public:
     {
         netCDF::NcGroup metaGroup = headGroup.addGroup(metadataNodeName);
         netCDF::NcGroup dataGroup = headGroup.addGroup(dataNodeName);
-        dump(metaGroup);
-        dump(dataGroup);
+        dumpMeta(metaGroup);
+        dumpData(dataGroup);
     }
 
     /*!
@@ -100,12 +122,12 @@ public:
         dump(ncFile);
         ncFile.close();
     }
+protected:
+
     //! Name of the metadata node.
     std::string metadataNodeName = "structure";
     //! Name of the data node.
     std::string dataNodeName = "data";
-
-protected:
     //! Name of the structure type processed by this class.
     std::string processedStructureName = "none";
     //! The name of the node holding the name of the structure type processed
