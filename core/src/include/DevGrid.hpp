@@ -34,6 +34,7 @@ public:
     ElementData& cursorData() override;
     const ElementData& cursorData() const override;
     void incrCursor() override;
+
 private:
     const static std::string ourStructureName;
     const static std::string xDimName;

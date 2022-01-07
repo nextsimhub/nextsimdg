@@ -105,4 +105,15 @@ std::vector<double> DevGrid::gather(ProgDoubleFn pFunc) const
     return gathered;
 }
 
+// Cursor manipulation override functions
+int DevGrid::resetCursor()
+{
+    cursor = data.begin();
+    return IStructure::resetCursor();
+}
+bool DevGrid::validCursor() const { return cursor != data.end(); }
+ElementData& DevGrid::cursorData() { return *cursor; }
+const ElementData& DevGrid::cursorData() const { return *cursor; }
+void DevGrid::incrCursor() { ++cursor; }
+
 } /* namespace Nextsim */
