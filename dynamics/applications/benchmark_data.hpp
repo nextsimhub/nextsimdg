@@ -3,19 +3,12 @@
 
 #include "dginitial.hpp"
 #include "dynamics.hpp"
+#include "referencescale.hpp"
 
 inline double SQR(double x)
 {
     return x * x;
 }
-
-//! Reference scaling
-class ReferenceScale {
-public:
-    static constexpr double L = 512.e3; // 1  |-> 512 km
-    static constexpr double T = 1.e3; // 1  |-> 1000 sec approx 16 min.
-    static constexpr double S = 1.e5; // 1  |-> 100 kPa
-};
 
 //! Description of the problem data, wind & ocean fields
 class OceanX : virtual public Nextsim::InitialBase {
@@ -23,11 +16,11 @@ public:
     double operator()(double x, double y) const
     {
         return 1.; //y*y;
-        double Y = y * ReferenceScale::L; //!< Coordinate in m
+        double Y = y * Nextsim::ReferenceScale::Ly; //!< Coordinate in m
 
         //! maximum velocity in reference system
-        double vmax = 0.01 * ReferenceScale::T / ReferenceScale::L;
-        return vmax * (2.0 * Y / ReferenceScale::L - 1);
+        double vmax = 0.01 * Nextsim::ReferenceScale::T / Nextsim::ReferenceScale::Lx;
+        return vmax * (2.0 * Y / Nextsim::ReferenceScale::Ly - 1);
     }
 };
 class OceanY : virtual public Nextsim::InitialBase {
@@ -35,11 +28,11 @@ public:
     double operator()(double x, double y) const
     {
         return 1; //x*x;
-        double X = x * ReferenceScale::L; //!< Coordinate in m
+        double X = x * Nextsim::ReferenceScale::Lx; //!< Coordinate in m
 
         //! maximum velocity in reference system
-        double vmax = 0.01 * ReferenceScale::T / ReferenceScale::L;
-        return vmax * (1.0 - 2.0 * X / ReferenceScale::L);
+        double vmax = 0.01 * Nextsim::ReferenceScale::T / Nextsim::ReferenceScale::Ly;
+        return vmax * (1.0 - 2.0 * X / Nextsim::ReferenceScale::Lx);
     }
 };
 
@@ -67,14 +60,14 @@ public:
 
         return 1.e-5;
         //! Center of cyclone (in km)
-        double cKM = 256.0 + 51.2 * time * ReferenceScale::T / (24.0 * 60.0 * 60.0);
+        double cKM = 256.0 + 51.2 * time * Nextsim::ReferenceScale::T / (24.0 * 60.0 * 60.0);
 
         //! coordinate (in km)
-        double xKM = x * ReferenceScale::L * 1.e-3;
-        double yKM = y * ReferenceScale::L * 1.e-3;
+        double xKM = x * Nextsim::ReferenceScale::Lx * 1.e-3;
+        double yKM = y * Nextsim::ReferenceScale::Ly * 1.e-3;
 
         //! maximum velocity (in reference system)
-        double vmax = 30.0 / exp(1.0) * ReferenceScale::T / ReferenceScale::L;
+        double vmax = 30.0 / exp(1.0) * Nextsim::ReferenceScale::T / Nextsim::ReferenceScale::Lx;
 
         //! scaling factor to reduce wind away from center
         double scale = exp(1.0) / 100.0 * exp(-0.01 * sqrt(SQR(xKM - cKM) + SQR(yKM - cKM)));
@@ -108,14 +101,14 @@ public:
 
         return 1.e-5;
         //! Center of cyclone (in km)
-        double cKM = 256.0 + 51.2 * time * ReferenceScale::T / (24.0 * 60.0 * 60.0);
+        double cKM = 256.0 + 51.2 * time * Nextsim::ReferenceScale::T / (24.0 * 60.0 * 60.0);
 
         //! coordinate (in km)
-        double xKM = x * ReferenceScale::L * 1.e-3;
-        double yKM = y * ReferenceScale::L * 1.e-3;
+        double xKM = x * Nextsim::ReferenceScale::Lx * 1.e-3;
+        double yKM = y * Nextsim::ReferenceScale::Ly * 1.e-3;
 
         //! maximum velocity (in reference system)
-        double vmax = 30.0 / exp(1.0) * ReferenceScale::T / ReferenceScale::L;
+        double vmax = 30.0 / exp(1.0) * Nextsim::ReferenceScale::T / Nextsim::ReferenceScale::Lx;
 
         //! scaling factor to reduce wind away from center
         double scale = exp(1.0) / 100.0 * exp(-0.01 * sqrt(SQR(xKM - cKM) + SQR(yKM - cKM)));
@@ -145,8 +138,8 @@ public:
     double operator()(double x, double y) const
     {
         //! coordinate (in km)
-        double xKM = x * ReferenceScale::L * 1.e-3;
-        double yKM = y * ReferenceScale::L * 1.e-3;
+        double xKM = x * Nextsim::ReferenceScale::Lx * 1.e-3;
+        double yKM = y * Nextsim::ReferenceScale::Ly * 1.e-3;
         return 0.3 + 0.005 * (sin(1.e-3 * 60.0 * xKM) + sin(1.e-3 * 30.0 * yKM));
     }
 };
@@ -162,8 +155,8 @@ class InitialS11 : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     { //! coordinate (in km)
-        double xKM = x * ReferenceScale::L * 1.e-3;
-        double yKM = y * ReferenceScale::L * 1.e-3;
+        double xKM = x * Nextsim::ReferenceScale::Lx * 1.e-3;
+        double yKM = y * Nextsim::ReferenceScale::Ly * 1.e-3;
         return 0.0; // - 1e-1*sqrt(xKM*xKM + yKM*yKM);
     }
 };
@@ -178,8 +171,8 @@ class InitialS22 : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     { //! coordinate (in km)
-        double xKM = x * ReferenceScale::L * 1.e-3;
-        double yKM = y * ReferenceScale::L * 1.e-3;
+        double xKM = x * Nextsim::ReferenceScale::Lx * 1.e-3;
+        double yKM = y * Nextsim::ReferenceScale::Ly * 1.e-3;
         return 0.0; // + 1e-1*sqrt(xKM*xKM + yKM*yKM) ;
     }
 };

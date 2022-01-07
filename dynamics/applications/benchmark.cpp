@@ -52,7 +52,7 @@ int main()
 
     double vmax = 0.1 * dynamics.GetMesh().hx / dynamics.GetTimeMesh().dt;
     std::cout << "CFL: maximum ice velocity " << vmax << " (reference) "
-              << vmax * ReferenceScale::L / ReferenceScale::T << " (m/s) " << std::endl;
+              << vmax * Nextsim::ReferenceScale::Lx / Nextsim::ReferenceScale::T << " (m/s) " << std::endl;
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << std::endl;
 
@@ -104,7 +104,7 @@ int main()
         Nextsim::GlobalTimer.start("time loop - reinit");
         double time = dynamics.GetTimeMesh().dt * timestep;
         std::cout << "--- Time step " << timestep << "\t"
-                  << "-> hour " << time * ReferenceScale::T / (60.0 * 60.0) << std::endl;
+                  << "-> hour " << time * Nextsim::ReferenceScale::T / (60.0 * 60.0) << std::endl;
 
         //! Initial (atm) Forcing (ocean is stationary)
         AtmForcingX.settime(time);

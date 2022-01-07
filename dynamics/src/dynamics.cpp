@@ -166,7 +166,8 @@ void Dynamics::addStressTensorCell(double scaleSigma)
     tmpX.col(1) += 12. * scaleSigma / mesh.hx * (S11.col(0));
     tmpX.col(3) += 180. * scaleSigma / mesh.hx * (S11.col(1) / 6.);
     tmpX.col(5) += 144. * scaleSigma / mesh.hx * (S11.col(2) / 12.);
-    tmpX.col(2) += 12. * scaleSigma / mesh.hy * (S12.col(0)); // hy instead of hx?
+
+    tmpX.col(2) += 12. * scaleSigma / mesh.hy * (S12.col(0));
     tmpX.col(4) += 180. * scaleSigma / mesh.hy * (S12.col(2) / 6.);
     tmpX.col(5) += 144. * scaleSigma / mesh.hy * (S12.col(1) / 12.);
 
@@ -174,6 +175,7 @@ void Dynamics::addStressTensorCell(double scaleSigma)
     tmpY.col(1) += 12. * scaleSigma / mesh.hx * (S12.col(0));
     tmpY.col(3) += 180. * scaleSigma / mesh.hx * (S12.col(1) / 6.);
     tmpY.col(5) += 144. * scaleSigma / mesh.hx * (S12.col(2) / 12.);
+
     tmpY.col(2) += 12. * scaleSigma / mesh.hy * (S22.col(0));
     tmpY.col(4) += 180. * scaleSigma / mesh.hy * (S22.col(2) / 6.);
     tmpY.col(5) += 144. * scaleSigma / mesh.hy * (S22.col(1) / 12.);
