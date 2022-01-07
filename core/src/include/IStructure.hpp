@@ -8,8 +8,8 @@
 #ifndef CORE_SRC_INCLUDE_ISTRUCTURE_HPP
 #define CORE_SRC_INCLUDE_ISTRUCTURE_HPP
 
-#include "/opt/home/include/ncFile.h" // FIXME Remove me
-#include "/opt/home/include/ncGroup.h" // FIXME Remove me
+#include "include/ElementData.hpp"
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <ncFile.h>
 #include <ncGroup.h>
@@ -18,6 +18,7 @@
 // See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
+namespace Nextsim {
 /*!
  * @brief Interface class for the model structure.
  *
@@ -122,6 +123,53 @@ public:
         dump(ncFile);
         ncFile.close();
     }
+
+    /*!
+     * @brief Resets the data cursor.
+     *
+     * @returns 0 as an int.
+     */
+    virtual int resetCursor() { return 0; };
+
+    /*!
+     * @brief Returns whether the current cursor is valid.
+     */
+    virtual bool validCursor() const { return false; };
+
+    /*!
+     * @brief Returns the data value at the cursor.
+     */
+    virtual ElementData& cursorData() = 0;
+
+    /*!
+     * @brief Returns a const reference to the data value at the cursor.
+     */
+    virtual const ElementData& cursorData() const = 0;
+
+    /*!
+     * @brief Returns the data value at the cursor using the dereference operator.
+     */
+    ElementData& operator*() { return cursorData(); };
+
+    /*!
+     * @brief Returns the data value at the cursor using the const dereference operator.
+     */
+    const ElementData& operator*() const { return cursorData(); };
+
+    /*!
+     * @brief Increments the cursor.
+     */
+    virtual void incrCursor() = 0;
+
+    /*!
+     * @brief Increments the cursor using the prefix increment operator.
+     */
+    IStructure& operator++()
+    {
+        this->incrCursor();
+        return *this;
+    }
+
 protected:
 
     //! Name of the metadata node.
@@ -135,4 +183,5 @@ protected:
     const std::string typeNodeName = "type";
 };
 
+}
 #endif /* CORE_SRC_INCLUDE_ISTRUCTURE_HPP */

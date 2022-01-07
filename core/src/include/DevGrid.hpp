@@ -22,11 +22,18 @@ public:
     DevGrid();
     virtual ~DevGrid();
 
+    // Read/write override functions
     void initMeta(const netCDF::NcGroup& metaGroup) override;
     void initData(const netCDF::NcGroup& dataGroup) override;
     void dumpMeta(netCDF::NcGroup& metaGroup) const override;
     void dumpData(netCDF::NcGroup& dataGroup) const override;
 
+    // Cursor manipulation override functions
+    int resetCursor() override;
+    bool validCursor() const override;
+    ElementData& cursorData() override;
+    const ElementData& cursorData() const override;
+    void incrCursor() override;
 private:
     const static std::string ourStructureName;
     const static std::string xDimName;
@@ -41,6 +48,8 @@ private:
     static const std::map<std::string, ProgDoubleFn> variableFunctions;
 
     std::vector<ElementData> data;
+
+    std::vector<ElementData>::iterator cursor;
 
     std::vector<double> gather(ProgDoubleFn pFunc) const;
 };
