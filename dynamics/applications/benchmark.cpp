@@ -52,7 +52,7 @@ int main()
 
     double vmax = 0.1 * dynamics.GetMesh().hx / dynamics.GetTimeMesh().dt;
     std::cout << "CFL: maximum ice velocity " << vmax << " (reference) "
-              << vmax * Nextsim::ReferenceScale::Lx / Nextsim::ReferenceScale::T << " (m/s) " << std::endl;
+              << vmax * Nextsim::ReferenceScale::L / Nextsim::ReferenceScale::T << " (m/s) " << std::endl;
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << std::endl;
 

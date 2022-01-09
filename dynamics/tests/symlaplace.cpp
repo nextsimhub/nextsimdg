@@ -11,6 +11,10 @@
 bool WRITE_VTK = true;
 int WRITE_EVERY = 10000;
 
+constexpr double L = 512000.0;
+constexpr double eta = 1.e8;
+constexpr double rho_ice = 900;
+
 namespace Nextsim {
 extern Timer GlobalTimer;
 }
@@ -32,14 +36,14 @@ class ExactVX : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return sin(M_PI * x) * sin(M_PI * y);
+        return sin(M_PI * x / L) * sin(M_PI * y / L);
     }
 };
 class ExactVY : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return sin(2.0 * M_PI * x) * sin(2.0 * M_PI * y);
+        return sin(2.0 * M_PI * x / L) * sin(2.0 * M_PI * y / L);
     }
 };
 //! Defines the initial solution
@@ -47,14 +51,14 @@ class InitialVX : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return sin(M_PI * x) * sin(M_PI * y); // + sin(M_PI * 10.0 * x) * sin(M_PI * 5 * y) * 0.3;
+        return sin(M_PI * x / L) * sin(M_PI * y / L);
     }
 };
 class InitialVY : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return sin(2.0 * M_PI * x) * sin(2.0 * M_PI * y); // + sin(M_PI * 3. * x) * sin(M_PI * 7 * y) * 0.4;
+        return sin(2.0 * M_PI * x / L) * sin(2.0 * M_PI * y / L);
     }
 };
 
@@ -63,11 +67,11 @@ class FX : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        double sx = sin(M_PI * x);
-        double sy = sin(M_PI * y);
-        double c2x = cos(2. * M_PI * x);
-        double c2y = cos(2. * M_PI * y);
-        return 3.0 * M_PI * M_PI / 2. * sx * sy - 2.0 * M_PI * M_PI * c2x * c2y;
+        double sx = sin(M_PI * x / L);
+        double sy = sin(M_PI * y / L);
+        double c2x = cos(2. * M_PI * x / L);
+        double c2y = cos(2. * M_PI * y / L);
+        return (3.0 * M_PI * M_PI / 2. * sx * sy - 2.0 * M_PI * M_PI * c2x * c2y) / L / L;
     }
 };
 class FY : virtual public Nextsim::InitialBase {
@@ -76,11 +80,11 @@ public:
     double operator()(double x, double y) const
     {
 
-        double s2x = sin(2. * M_PI * x);
-        double s2y = sin(2. * M_PI * y);
-        double cx = cos(M_PI * x);
-        double cy = cos(M_PI * y);
-        return -M_PI * M_PI / 2. * cx * cy + 6.0 * M_PI * M_PI * s2x * s2y;
+        double s2x = sin(2. * M_PI * x / L);
+        double s2y = sin(2. * M_PI * y / L);
+        double cx = cos(M_PI * x / L);
+        double cy = cos(M_PI * y / L);
+        return (-M_PI * M_PI / 2. * cx * cy + 6.0 * M_PI * M_PI * s2x * s2y) / L / L;
     }
 };
 
@@ -90,18 +94,35 @@ int main()
 
     //! initialize the mesh
     size_t N = 5;
-    double T = 0.2;
+    double T = rho_ice * L * L / 2.0 / eta;
+    std::cout << "Time scale:\t" << T << std::endl;
 
-    const double gamma = 5.0; //!< parameter in front of internal penalty terms
-    const double gammaboundary = gamma; //!< parameter in front of boundary penalty terms
+    constexpr double stressscale = 2.0 * eta / rho_ice;
+    std::cout << "Stress scale:\t" << stressscale << std::endl;
+
+    constexpr double rhsscale = 2.0 * eta / rho_ice;
+    std::cout << "Rhs scale:\t" << rhsscale << std::endl;
+
+    constexpr double exactsolutionnorm = L / sqrt(2.0); //!< ( |u|^2 + |v|^2 )^1/2
+
+    const std::string solver = "EVP";
 
     for (int refine = 1; refine <= 3; ++refine) {
         N *= 2;
 
-        double k = 1.0 / N / N * 0.02 / gamma; // time step size
-        size_t NT = static_cast<size_t>(T / k + 1.e-6);
+        double h = L / N;
 
-        dynamics.GetMesh().BasicInit(N, N / 1, 1. / N, 1. / N);
+        double gamma = 25.0; //!< parameter in front of internal penalty terms
+        double gammaboundary = gamma; //!< parameter in front of boundary penalty terms
+        double cfl = 0.05 / gamma;
+
+        double k = cfl * rho_ice * L * L / 2.0 / eta / N / N;
+        std::cout << "Time step:\t" << k << std::endl
+                  << "Mesh size:\t" << h << std::endl;
+
+        dynamics.GetMesh().BasicInit(N, N, h, h);
+        size_t NT = T / k;
+
         dynamics.GetTimeMesh().BasicInit(NT, k, k);
 
         WRITE_EVERY = T / 5 / dynamics.GetTimeMesh().dt_momentum + 1.e-6;
@@ -117,6 +138,9 @@ int main()
         Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetVX(), InitialVX());
         Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetVY(), InitialVY());
 
+        dynamics.GetVX().zero();
+        dynamics.GetVY().zero();
+
         //! right hand side
         Nextsim::CellVector<2> fx(dynamics.GetMesh()), fy(dynamics.GetMesh());
         Nextsim::L2ProjectInitial(dynamics.GetMesh(), fx, FX());
@@ -130,21 +154,46 @@ int main()
             // v += k * ( F + div( 1/2 (nabla v + nabla v^T) ) )
             dynamics.GetTMPX() = fx;
             dynamics.GetTMPY() = fy;
+            dynamics.GetTMPX() *= rhsscale;
+            dynamics.GetTMPY() *= rhsscale;
 
             dynamics.computeStrainRateTensor(); //!< E = 1/2 (nabla v + nabla v^T)
-            dynamics.GetS11() = dynamics.GetE11();
-            dynamics.GetS12() = dynamics.GetE12();
-            dynamics.GetS22() = dynamics.GetE22();
-            dynamics.addStressTensor(-1.0); //!< tmp += div(S)
-            dynamics.velocityContinuity(gamma); //!< tmp += < [v], [phi] >
-            dynamics.velocityDirichletBoundary(gammaboundary); //!< tmp += < v, [phi] >_G
+
+            if (solver == "VP") {
+                dynamics.GetS11() = dynamics.GetE11();
+                dynamics.GetS12() = dynamics.GetE12();
+                dynamics.GetS22() = dynamics.GetE22();
+
+                dynamics.addStressTensor(-1.0 * stressscale); //!< tmp += div(S)
+                dynamics.velocityContinuity(gamma * stressscale); //!< tmp += < [v], [phi] >
+                dynamics.velocityDirichletBoundary(gammaboundary * stressscale); //!< tmp += < v, [phi] >_G
+            } else if (solver == "EVP") {
+                constexpr double E = 100.0;
+
+                dynamics.GetS11() += E * dynamics.GetTimeMesh().dt_momentum * stressscale * dynamics.GetE11();
+                dynamics.GetS11() *= 1.0 / (1.0 + E * dynamics.GetTimeMesh().dt_momentum);
+                dynamics.GetS12() += E * dynamics.GetTimeMesh().dt_momentum * stressscale * dynamics.GetE12();
+                dynamics.GetS12() *= 1.0 / (1.0 + E * dynamics.GetTimeMesh().dt_momentum);
+                dynamics.GetS22() += E * dynamics.GetTimeMesh().dt_momentum * stressscale * dynamics.GetE22();
+                dynamics.GetS22() *= 1.0 / (1.0 + E * dynamics.GetTimeMesh().dt_momentum);
+
+                dynamics.addStressTensor(-1.0); //!< tmp += div(S)
+                dynamics.velocityContinuity(gamma * stressscale); //!< tmp += < [v], [phi] >
+                dynamics.velocityDirichletBoundary(gammaboundary * stressscale); //!< tmp += < v, [phi] >_G
+
+            } else {
+                std::cerr << "Solver " << solver << " not known. Only VP / EVP" << std::endl;
+                abort();
+            }
 
             dynamics.GetVX() += dynamics.GetTimeMesh().dt_momentum * dynamics.GetTMPX();
             dynamics.GetVY() += dynamics.GetTimeMesh().dt_momentum * dynamics.GetTMPY();
 
             if (timestep % WRITE_EVERY == 0) {
 
-                double error = sqrt(pow(L2Error(dynamics.GetMesh(), dynamics.GetVX(), ExactVX()), 2.0) + pow(L2Error(dynamics.GetMesh(), dynamics.GetVY(), ExactVY()), 2.0));
+                double error = (sqrt(pow(L2Error(dynamics.GetMesh(), dynamics.GetVX(), ExactVX()), 2.0) + pow(L2Error(dynamics.GetMesh(), dynamics.GetVY(), ExactVY()), 2.0)))
+                    / exactsolutionnorm;
+                std::cout.precision(10);
                 std::cout << "Time step " << timestep << " / " << dynamics.GetTimeMesh().dt_momentum * timestep << std::flush;
                 std::cout << "\terror: " << error << std::endl;
             }

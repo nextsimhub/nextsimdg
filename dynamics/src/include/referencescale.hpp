@@ -8,9 +8,8 @@ namespace Nextsim
 //! Reference scaling 
 class ReferenceScale {
 public:
-  //! Spatial scale. x=1 [no unit] refers to Lx [m], same for Ly
-    static constexpr double Lx = 512.e3; // 1  |-> 512 km
-    static constexpr double Ly = 512.e3; // 1  |-> 512 km
+  //! Spatial scale. x=1 [no unit] refers to L [m]
+    static constexpr double L = 512.e3; // 1  |-> 512 km
 
   //! Temporal scale. t=1 [no unit] refers to T [sec]
     static constexpr double T = 1.e3; // 1  |-> 1000 sec approx 16 min.
