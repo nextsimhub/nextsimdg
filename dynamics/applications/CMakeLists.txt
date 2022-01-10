@@ -5,5 +5,6 @@ LINK_LIBRARIES(Eigen3::Eigen ${NextsimDGLib})
 
 
 add_executable(benchmark     benchmark.cpp)
+add_executable(benchmark_evp evp.cpp)
 
 

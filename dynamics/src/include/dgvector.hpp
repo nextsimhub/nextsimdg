@@ -117,6 +117,20 @@ public:
     {
         return EigenCellVector::col(0).sum() * mesh.hx * mesh.hy;
     }
+
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template <typename OtherDerived>
+    CellVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
+    {
+        this->Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree), (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>::operator=(other);
+        return *this;
+    }
+    template <typename OtherDerived>
+    CellVector& operator+=(const Eigen::MatrixBase<OtherDerived>& other)
+    {
+        this->Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree), (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
+        return *this;
+    }
 };
 
 //! data set to store the type of the edges

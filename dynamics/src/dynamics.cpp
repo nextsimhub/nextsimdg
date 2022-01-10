@@ -55,6 +55,14 @@ void Dynamics::advectionStep()
     GlobalTimer.start("dyn -- adv -- step");
     dgtransport.step(A); // performs one time step with the 2nd Order Heun scheme
     dgtransport.step(H); // performs one time step with the 2nd Order Heun scheme
+
+    // Limit H and A
+#pragma omp parallel for
+    for (size_t i = 0; i < mesh.n; ++i) {
+        A(i, 0) = std::max(std::min(A(i, 0), 1.0), 0.0);
+        H(i, 0) = std::max(H(i, 0), 0.0);
+    }
+
     GlobalTimer.stop("dyn -- adv -- step");
 }
 
