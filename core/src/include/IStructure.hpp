@@ -171,7 +171,6 @@ public:
     }
 
 protected:
-
     //! Name of the metadata node.
     std::string metadataNodeName = "structure";
     //! Name of the data node.
