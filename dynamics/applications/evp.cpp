@@ -3,11 +3,13 @@
 #include <iostream>
 #include <vector>
 
+#include "benchmark_data.hpp"
+#include "cg2dg.hpp"
+#include "cginitial.hpp"
+#include "cgvector.hpp"
 #include "dgvisu.hpp"
 #include "dynamics.hpp"
 #include "stopwatch.hpp"
-
-#include "benchmark_data.hpp"
 
 bool WRITE_VTK = true;
 
@@ -19,7 +21,7 @@ int main()
 {
     Nextsim::Dynamics dynamics;
 
-    constexpr size_t N = 15; //!< Number of mesh nodes
+    constexpr size_t N = 10; //!< Number of mesh nodes
     dynamics.GetMesh().BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -179,6 +181,7 @@ int main()
         //! Output
         if (WRITE_VTK)
             if ((timestep % NTvtk == 0)) {
+
                 size_t printstep = timestep / NTvtk;
                 Nextsim::GlobalTimer.start("time loop - i/o");
 
@@ -206,6 +209,7 @@ int main()
                 // dynamics.GetMesh());
                 // Nextsim::VTK::write_dg<0>("Results/ay",printstep,dynamics.GetAtmY(),
                 // dynamics.GetMesh());
+
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }
