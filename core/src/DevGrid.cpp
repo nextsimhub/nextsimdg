@@ -40,10 +40,7 @@ DevGrid::DevGrid()
 
 DevGrid::~DevGrid() { }
 
-void DevGrid::initMeta(const netCDF::NcGroup& metaGroup)
-{
-    data.resize(nx*nx);
-}
+void DevGrid::initMeta(const netCDF::NcGroup& metaGroup) { data.resize(nx * nx); }
 
 void DevGrid::initData(const netCDF::NcGroup& dataGroup)
 {
@@ -55,13 +52,13 @@ void DevGrid::initData(const netCDF::NcGroup& dataGroup)
             double hsnow;
             double sst;
             double sss;
-            dataGroup.getVar("hice").getVar(std::vector<std::size_t>({i, j}), &hice);
-            dataGroup.getVar("cice").getVar(std::vector<std::size_t>({i, j}), &cice);
-            dataGroup.getVar("hsnow").getVar(std::vector<std::size_t>({i, j}), &hsnow);
-            dataGroup.getVar("sst").getVar(std::vector<std::size_t>({i, j}), &sst);
-            dataGroup.getVar("sss").getVar(std::vector<std::size_t>({i, j}), &sss);
+            dataGroup.getVar("hice").getVar(std::vector<std::size_t>({ i, j }), &hice);
+            dataGroup.getVar("cice").getVar(std::vector<std::size_t>({ i, j }), &cice);
+            dataGroup.getVar("hsnow").getVar(std::vector<std::size_t>({ i, j }), &hsnow);
+            dataGroup.getVar("sst").getVar(std::vector<std::size_t>({ i, j }), &sst);
+            dataGroup.getVar("sss").getVar(std::vector<std::size_t>({ i, j }), &sss);
             // TODO How to store ice temperature data?
-            std::array<double, N_ICE_TEMPERATURES> tice = {0., 0., 0.};
+            std::array<double, N_ICE_TEMPERATURES> tice = { 0., 0., 0. };
             data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
         }
     }
@@ -69,7 +66,6 @@ void DevGrid::initData(const netCDF::NcGroup& dataGroup)
     for (auto fnNamePair : variableFunctions) {
         std::string& name = fnNamePair.first;
         netCDF::NcVar var(dataGroup.getVar(name));
-
     }
 }
 void DevGrid::dumpMeta(netCDF::NcGroup& metaGroup) const
@@ -93,7 +89,6 @@ void DevGrid::dumpData(netCDF::NcGroup& dataGroup) const
         std::vector<double> gathered = gather(variableFunctions.at(name));
         var.putVar(gathered.data());
     }
-
 }
 
 std::vector<double> DevGrid::gather(ProgDoubleFn pFunc) const
