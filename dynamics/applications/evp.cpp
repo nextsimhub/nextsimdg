@@ -21,7 +21,7 @@ int main()
 {
     Nextsim::Dynamics dynamics;
 
-    constexpr size_t N = 10; //!< Number of mesh nodes
+    constexpr size_t N = 100; //!< Number of mesh nodes
     dynamics.GetMesh().BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
