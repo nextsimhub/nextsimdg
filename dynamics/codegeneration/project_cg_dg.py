@@ -81,11 +81,30 @@ def CGbasis1d(j,x):
     else:
         print("CGbasis1d only for j=0,1,2")
         assert False
+# ... and its derivative
+def CGbasis1d_dX(j,x):
+    if j==0:
+        return 4.0*x-3.0
+    elif j==1:
+        return 4.0-8.0*x
+    elif j==2:
+        return 4.0*x-1.0
+    else:
+        print("CGbasis1d only for j=0,1,2")
+        assert False
 
 def CGbasisfunction(j,x,y):
     jx = j%3
     jy = j//3
     return CGbasis1d(jx,x)*CGbasis1d(jy,y)
+def CGbasisfunction_dX(j,x,y):
+    jx = j%3
+    jy = j//3
+    return CGbasis1d_dX(jx,x)*CGbasis1d(jy,y)
+def CGbasisfunction_dY(j,x,y):
+    jx = j%3
+    jy = j//3
+    return CGbasis1d(jx,x)*CGbasis1d_dX(jy,y)
         
 # Evaluates 1d dG-basis on the edge [0,1]
 def edgebasisfunction(j,x):
@@ -124,7 +143,39 @@ def cg2dg_matrix(d):
                 print(',',end='')
             else:
                 print(').finished();')
-        
+
+
+# Compute the Projection matris realizing
+#
+# (dg, psi) = (d_X/Y cg, psi) in terms of dg = A_dX/Y * cg
+#
+# 'd' is the degree of the DG space
+def cg2dg_dxy_matrix(d,dXY):
+    # print header
+    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG2_to_DG{2}_d{3} ='.format(dgdofs(d),9, d, dXY))
+    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(dgdofs(d),9))
+
+    for dgi in range(dgdofs(d)):
+        for cgi in range(9):
+            xxx = 0
+            for gx in range(3):
+                for gy in range(3):
+                    X = gausspoints[2][gx]
+                    Y = gausspoints[2][gy]
+                    if (dXY=='X'):
+                        xxx=xxx+gaussweights[2][gx]*gaussweights[2][gy]*CGbasisfunction_dX(cgi,X,Y) * DGbasisfunction(dgi,X,Y)
+                    elif (dXY=='Y'):
+                        xxx=xxx+gaussweights[2][gx]*gaussweights[2][gy]*CGbasisfunction_dY(cgi,X,Y) * DGbasisfunction(dgi,X,Y)
+                    else:
+                        print('Direction',dXY,'not known')
+                        assert False
+                        
+            print(xxx*inversemass[dgi],end='')
+            if (cgi<9-1) or dgi<dgdofs(d)-1:
+                print(',',end='')
+            else:
+                print(').finished();')
+                
     
 #
 
@@ -146,11 +197,23 @@ print('// - Realizes the projection of a CG2 vector into the DG[dg] space')
 print('//   dg = CG2toDG[dg] * cg')
 print('')
 
-
 # print out guass points and weights
-print('\n\n//------------------------------ CG2toDG\n')
+print('//------------------------------ CG2toDG\n')
 for dg in [1,2]:
     cg2dg_matrix(dg)
+    print('')
+
+print('\n')
+print('// Generates the matrices CG2toDG[dg]_dX and CG2toDG[dg]_dY')
+print('// - Realizes the projection of the derivative of a CG2 vector into the DG[dg] space')
+print('//   dg = CG2toDG[dg] * cg')
+print('')
+
+# print out guass points and weights
+print('//------------------------------ CG2toDG\n')
+for dg in [1,2]:
+    cg2dg_dxy_matrix(dg,'X')
+    cg2dg_dxy_matrix(dg,'Y')
     print('')
 
 
