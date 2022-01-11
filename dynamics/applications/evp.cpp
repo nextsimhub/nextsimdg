@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "benchmark_data.hpp"
-#include "cg2dg.hpp"
 #include "cginitial.hpp"
+#include "cgmomentum.hpp"
 #include "cgvector.hpp"
 #include "dgvisu.hpp"
 #include "dynamics.hpp"

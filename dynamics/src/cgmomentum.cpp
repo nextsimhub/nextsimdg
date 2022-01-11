@@ -1,29 +1,10 @@
-/*----------------------------   cg2dg.hpp     ---------------------------*/
-#ifndef __cg2dg_HPP
-#define __cg2dg_HPP
-/*----------------------------   cg2dg.hpp     ---------------------------*/
-
-/*!
- * @file    cg2dg.hpp
- * @author  Thomas Richter <thomas.richter@ovgu.de>
- * @brief   Projecting a CG vector to a DG
- */
-
-#include "cgvector.hpp"
+#include "cgmomentum.hpp"
 #include "codegeneration_cg_to_dg.hpp"
-#include "dgvector.hpp"
 
 namespace Nextsim {
 
-/*!
-   * projects the continuous CG2 solution locally into a dg-vector by solving
-   * (dg, psi) = (cg, psi) for all DG-test functions psi
-   */
-template <int CG, int DG>
-void ProjectCG2DG(const Mesh& mesh, CellVector<DG>& dg, const CGVector<CG>& cg);
-
 template <>
-void ProjectCG2DG(const Mesh& mesh, CellVector<1>& dg, const CGVector<2>& cg)
+void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<1>& dg, const CGVector<2>& cg)
 {
     assert(static_cast<long int>((2 * mesh.nx + 1) * (2 * mesh.ny + 1)) == cg.rows());
     assert(static_cast<long int>(mesh.nx * mesh.ny) == dg.rows());
@@ -47,7 +28,7 @@ void ProjectCG2DG(const Mesh& mesh, CellVector<1>& dg, const CGVector<2>& cg)
     }
 }
 template <>
-void ProjectCG2DG(const Mesh& mesh, CellVector<2>& dg, const CGVector<2>& cg)
+void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<2>& dg, const CGVector<2>& cg)
 {
     assert(static_cast<long int>((2 * mesh.nx + 1) * (2 * mesh.ny + 1)) == cg.rows());
     assert(static_cast<long int>(mesh.nx * mesh.ny) == dg.rows());
@@ -75,7 +56,7 @@ void ProjectCG2DG(const Mesh& mesh, CellVector<2>& dg, const CGVector<2>& cg)
 /*!
    * projects the symmatric gradient of the continuous CG2 velocity into a dg vector
    */
-void ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
+void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
     CellVector<1>& E11, CellVector<1>& E12, CellVector<1>& E22,
     const CGVector<2>& vx, const CGVector<2>& vy)
 {
@@ -113,8 +94,3 @@ void ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
 }
 
 }
-
-/*----------------------------   cg2dg.hpp     ---------------------------*/
-/* end of #ifndef __cg2dg_HPP */
-#endif
-/*----------------------------   cg2dg.hpp     ---------------------------*/
