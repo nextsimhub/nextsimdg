@@ -1,4 +1,5 @@
 #include "dynamics.hpp"
+#include "../../applications/benchmark_data.hpp"
 #include "dgvisu.hpp"
 #include "stopwatch.hpp"
 
@@ -201,53 +202,28 @@ void Dynamics::momentumSubsteps()
     tmpX.zero();
     tmpY.zero();
 
-    // double L = 512000.0;
-    // double T = 1000.0;
-    // double Cwater = 5.5e-3;
-    // double Catm = 1.2e-3;
-    // double rhoWater = 1026.0;
-    // double rhoIce = 900.0;
-    // double rhoAtm = 1.3;
-    // double Sigma = 1e5;
-    //const double nu0 =  1./3.; //!< Poisson's ratio
-
     // d_t U = ...
 
     // ocean
-    /*
-    // L/(rho H) * Cwater * rhoWater * |velwater - vel| (velwater-vel)
-    tmpX.col(0) += L / rhoIce * Cwater * rhoWater *
-     ((oceanX.col(0)-vx.col(0)).array().abs()/ 
-       H.col(0).array() * 
-       oceanX.col(0).array()).matrix();
+    // L/(rho H) * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * |velwater - vel| (velwater-vel)
+    tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * ((oceanX.col(0) - vx.col(0)).array().abs() / H.col(0).array() * oceanX.col(0).array()).matrix();
 
-   tmpX -= L / rhoIce * Cwater * rhoWater *
-     (vx.array().colwise() * ((oceanX.col(0)-vx.col(0)).array().abs()/ H.col(0).array())).matrix();
+    tmpX -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * (vx.array().colwise() * ((oceanX.col(0) - vx.col(0)).array().abs() / H.col(0).array())).matrix();
 
-    tmpY.col(0) += L / rhoIce * Cwater * rhoWater *
-     ((oceanY.col(0)-vy.col(0)).array().abs()/ 
-       H.col(0).array() * 
-       oceanY.col(0).array()).matrix();
+    tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * ((oceanY.col(0) - vy.col(0)).array().abs() / H.col(0).array() * oceanY.col(0).array()).matrix();
 
-   tmpY -= L / rhoIce * Cwater * rhoWater *
-     (vy.array().colwise() * ((oceanY.col(0)-vy.col(0)).array().abs()/ H.col(0).array())).matrix();
+    tmpY -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * (vy.array().colwise() * ((oceanY.col(0) - vy.col(0)).array().abs() / H.col(0).array())).matrix();
 
+    // atm.
+    // L/(rho H) * ReferenceScale::C_atm * ReferenceScale::rho_atm * |velatm| velatm
 
-  // atm.
-    // L/(rho H) * Catm * rhoAtm * |velatm| velatm
-    
-    tmpX.col(0) += L / rhoIce * Catm * rhoAtm *
-     (atmX.col(0).array().abs()/ H.col(0).array()
-      * atmX.col(0).array()).matrix();
+    tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmX.col(0).array().abs() / H.col(0).array() * atmX.col(0).array()).matrix();
 
-    tmpY.col(0) += L / rhoIce * Catm * rhoAtm *
-     (atmY.col(0).array().abs()/ H.col(0).array()
-      * atmY.col(0).array()).matrix();
-    */
+    tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmY.col(0).array().abs() / H.col(0).array() * atmY.col(0).array()).matrix();
 
     //RHS = (1,1)
-    tmpX.col(0) += atmX.col(0); //
-    tmpY.col(0) += atmY.col(0);
+    //tmpX.col(0) += atmX.col(0); //
+    //tmpY.col(0) += atmY.col(0);
 
     /**! 
      *

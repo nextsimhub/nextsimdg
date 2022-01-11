@@ -18,7 +18,7 @@ constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
 
 constexpr double Pstar = 27500; //!< Ice strength
 constexpr double fc = 1.46e-4; //!< Coriolis
-
+constexpr double nu0 = 1. / 3.; //!< Poisson's ratio
 }
 
 inline constexpr double SQR(double x)
