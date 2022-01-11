@@ -22,6 +22,8 @@ public:
     DevGrid();
     virtual ~DevGrid();
 
+    const static int nx;
+
     // Read/write override functions
     void initMeta(const netCDF::NcGroup& metaGroup) override;
     void initData(const netCDF::NcGroup& dataGroup) override;
@@ -39,7 +41,6 @@ private:
     const static std::string ourStructureName;
     const static std::string xDimName;
     const static std::string yDimName;
-    const static int nx;
 
     // pointer to a member of PrognosticData that takes no arguments and returns a
     // double. See https://isocpp.org/wiki/faq/pointers-to-members#typedef-for-ptr-to-memfn

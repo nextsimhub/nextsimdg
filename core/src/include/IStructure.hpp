@@ -32,7 +32,19 @@ namespace Nextsim {
  */
 class IStructure {
 public:
-    virtual ~IStructure();
+    virtual ~IStructure() = default;
+
+    /*!
+     * @brief Dumps the data to a file path.
+     *
+     * @param filePath The path to attempt writing the data to.
+     */
+    inline void init(const std::string& filePath)
+    {
+        netCDF::NcFile ncFile(filePath, netCDF::NcFile::FileMode::read);
+        init(ncFile);
+        ncFile.close();
+    }
 
     /*!
      * @brief Initializes the structure based on the contents of the structure

@@ -37,11 +37,58 @@ public:
     {
         m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
     }
+    //! Copy constructor
+    ElementData(const ElementData& src)
+    {
+        *this = static_cast<PrognosticData>(src);
+        *this = static_cast<ExternalData>(src);
+        *this = static_cast<PhysicsData>(src);
+        this->m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
+        *(this->m_physicsImplData) = *(src.m_physicsImplData);
+    }
+    //! Move constructor
+    ElementData(ElementData&& src)
+    {
+        *this = static_cast<PrognosticData>(src);
+        *this = static_cast<ExternalData>(src);
+        *this = static_cast<PhysicsData>(src);
+        this->m_physicsImplData = std::move(src.m_physicsImplData);
+    }
     ~ElementData() = default;
 
     using PrognosticData::operator=;
     using PhysicsData::operator=;
     using ExternalData::operator=;
+
+    //! Copy assignment operator
+    ElementData& operator=(ElementData other)
+    {
+        if (this == &other)
+            return *this;
+
+        *this = static_cast<PrognosticData>(other);
+        *this = static_cast<ExternalData>(other);
+        *this = static_cast<PhysicsData>(other);
+        this->m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
+        *(this->m_physicsImplData) = *(other.m_physicsImplData);
+
+        return *this;
+    }
+
+    //! Move assignment operator
+    ElementData& operator=(ElementData&& other)
+    {
+        if (this == &other)
+            return *this;
+
+        *this = static_cast<PrognosticData>(other);
+        *this = static_cast<ExternalData>(other);
+        *this = static_cast<PhysicsData>(other);
+        this->m_physicsImplData = std::move(other.m_physicsImplData);
+
+        return *this;
+
+    }
 
     //! Configures the PrognosticData and physics implementation aspects of the
     //!  object.
