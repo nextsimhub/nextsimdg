@@ -22,9 +22,9 @@ namespace Nextsim {
    */
 template <int CGdegree>
 class CGVector
-    : public Eigen::Vector<double, Eigen::Dynamic> {
+    : public Eigen::Matrix<double, Eigen::Dynamic, 1> {
 public:
-    typedef Eigen::Vector<double, Eigen::Dynamic> EigenCGVector;
+    typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EigenCGVector;
 
     //! empty constructor
     CGVector() { }
@@ -47,7 +47,7 @@ public:
     template <typename OtherDerived>
     CGVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
     {
-        this->Eigen::Vector<double, Eigen::Dynamic>::operator=(other);
+        this->Eigen::Matrix<double, Eigen::Dynamic, 1>::operator=(other);
         return *this;
     }
 };
