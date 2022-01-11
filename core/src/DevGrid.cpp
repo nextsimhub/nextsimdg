@@ -40,7 +40,10 @@ DevGrid::DevGrid()
 
 DevGrid::~DevGrid() { }
 
-void DevGrid::initMeta(const netCDF::NcGroup& metaGroup) { data = std::vector<ElementData>(nx * nx); }
+void DevGrid::initMeta(const netCDF::NcGroup& metaGroup)
+{
+    data = std::vector<ElementData>(nx * nx);
+}
 
 void DevGrid::initData(const netCDF::NcGroup& dataGroup)
 {
@@ -52,7 +55,7 @@ void DevGrid::initData(const netCDF::NcGroup& dataGroup)
             double hsnow;
             double sst;
             double sss;
-            std::vector<std::size_t> loc = {std::size_t(i), std::size_t(j)};
+            std::vector<std::size_t> loc = { std::size_t(i), std::size_t(j) };
             dataGroup.getVar("hice").getVar(loc, &hice);
             dataGroup.getVar("cice").getVar(loc, &cice);
             dataGroup.getVar("hsnow").getVar(loc, &hsnow);

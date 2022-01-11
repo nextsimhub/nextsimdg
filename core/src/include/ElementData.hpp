@@ -87,7 +87,6 @@ public:
         this->m_physicsImplData = std::move(other.m_physicsImplData);
 
         return *this;
-
     }
 
     //! Configures the PrognosticData and physics implementation aspects of the

@@ -78,6 +78,5 @@ TEST_CASE("Read the example file, if it exists", "[DevGrid]")
     REQUIRE(grid.cursorData().iceThickness() < 2);
     REQUIRE(grid.cursorData().iceThickness() == 1.0703);
     REQUIRE(grid.cursorData().iceThickness() != unInitIce);
-
 }
 }
