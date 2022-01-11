@@ -209,6 +209,7 @@ void Dynamics::momentumSubsteps()
     // double rhoIce = 900.0;
     // double rhoAtm = 1.3;
     // double Sigma = 1e5;
+    //const double nu0 =  1./3.; //!< Poisson's ratio
 
     // d_t U = ...
 
