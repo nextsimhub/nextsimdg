@@ -270,11 +270,35 @@ void Dynamics::momentumSubsteps()
         double const multiplicator = std::min(1. - 1e-12,
             time_viscous / (time_viscous + timemesh.dt_momentum * (1. - tildeP)));
 
+        double const elasticity = ReferenceScale::young * (1. - D(i, 0)) * expC;
+
+        double const Dunit_factor = 1. / (1. - SQR(ReferenceScale::nu0));
+        /* Stiffness matrix
+        * 1  nu 0
+        * nu 1  0
+        * 0  0  (1-nu)/2
+        */
+        //M_Dunit[0] = Dunit_factor * 1.;
+        //M_Dunit[1] = Dunit_factor * nu0;
+        //M_Dunit[3] = Dunit_factor * nu0;
+        //M_Dunit[4] = Dunit_factor * 1.;
+        //M_Dunit[8] = Dunit_factor * (1. - nu0) / 2.;
+
+        //compute SigmaE
+        double SigmaE11 = Dunit_factor * (E11(i, 0) + ReferenceScale::nu0 * E22(i, 0));
+        double SigmaE22 = Dunit_factor * (ReferenceScale::nu0 * E11(i, 0) + E22(i, 0));
+        double SigmaE12 = 1. / (1 - ReferenceScale::nu0) * E12(i, 0);
+
         //Elasit prediction Eqn. (32)
+        S11(i, 0) += timemesh.dt_momentum * elasticity * SigmaE11;
+        S11(i, 0) *= multiplicator;
+        S12(i, 0) += timemesh.dt_momentum * elasticity * SigmaE12;
+        S12(i, 0) *= multiplicator;
+        S22(i, 0) += timemesh.dt_momentum * elasticity * SigmaE22;
+        S22(i, 0) *= multiplicator;
 
-        
-
-        //compute
+        //continiue if stress in inside the failure envelope
+        //if
     }
     GlobalTimer.stop("dyn -- mom -- damage");
 }
@@ -284,7 +308,7 @@ void Dynamics::step()
 {
     GlobalTimer.start("dyn");
     GlobalTimer.start("dyn -- adv");
-    //advectionStep();
+    advectionStep();
     GlobalTimer.stop("dyn -- adv");
 
     GlobalTimer.start("dyn -- mom");

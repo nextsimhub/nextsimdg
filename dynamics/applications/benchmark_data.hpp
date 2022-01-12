@@ -18,12 +18,13 @@ constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
 
 constexpr double Pstar = 27500; //!< Ice strength
 constexpr double fc = 1.46e-4; //!< Coriolis
-constexpr double nu0 = 1. / 3.; //!< Poisson's ratio
 
-// parameters form nextsim
+// parameters form nextsim options.cpp line 302
 constexpr double compaction_param = -20; //!< Compation parameter
 constexpr double undamaged_time_relaxation_sigma = 1e7; //!< seconds
 constexpr double exponent_relaxation_sigma = 5;
+constexpr double young = 5.9605e+08;
+constexpr double nu0 = 1. / 3.; //!< Poisson's ratio
 
 }
 
