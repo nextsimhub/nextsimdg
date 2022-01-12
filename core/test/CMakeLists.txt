@@ -138,6 +138,22 @@ add_executable(exampleDevGridOutput
 target_include_directories(exampleDevGridOutput PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(exampleDevGridOutput PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(exampleDevGridOutput LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
-# target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
-# target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
-# target_link_libraries(target LINK_PUBLIC netcdf-cxx4)
+
+add_executable(testDevGrid
+    "DevGrid_test.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/DevGrid.cpp"
+    "${SRC_DIR}/ModuleLoader.cpp"
+    "${SRC_DIR}/PrognosticData.cpp"
+    "${PhysicsModulesDir}/NextsimPhysics.cpp"
+    "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
+    "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
+    "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
+    "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysicsModulesDir}/HiblerConcentration.cpp"
+    "${PhysicsModulesDir}/ThermoIce0.cpp"
+    )
+
+target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
+target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testDevGrid LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")

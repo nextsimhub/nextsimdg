@@ -17,7 +17,7 @@ find_package(Catch2 REQUIRED)
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
-# target_link_libraries(target LINK_PUBLIC netcdf-cxx4)
+# target_link_libraries(target LINK_PUBLIC "${NSDG_NetCDF_Library}")
 
 # Set the location of the ipp files used by ModuleLoader for the main build
 set(ModuleLoaderIppTargetDirectory
