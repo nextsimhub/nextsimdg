@@ -199,6 +199,7 @@ void Dynamics::addStressTensor(double scaleSigma)
 
 void Dynamics::momentumSubsteps()
 {
+    //MOMENTUM EQUATION
     tmpX.zero();
     tmpY.zero();
 
@@ -216,14 +217,8 @@ void Dynamics::momentumSubsteps()
 
     // atm.
     // L/(rho H) * ReferenceScale::C_atm * ReferenceScale::rho_atm * |velatm| velatm
-
     tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmX.col(0).array().abs() / H.col(0).array() * atmX.col(0).array()).matrix();
-
     tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmY.col(0).array().abs() / H.col(0).array() * atmY.col(0).array()).matrix();
-
-    //RHS = (1,1)
-    //tmpX.col(0) += atmX.col(0); //
-    //tmpY.col(0) += atmY.col(0);
 
     /**! 
      *
@@ -232,11 +227,10 @@ void Dynamics::momentumSubsteps()
      *
      */
     const double scaleSigma = -1.; //!< -1 since -div(S)  term goes to rhs
-    const double gamma = 1.0; //!< parameter in front of internal penalty terms
-    const double gammaboundary = 1.0; //!< parameter in front of boundary penalty terms
 
-    // Sigma = D = sym(grad v)
-    computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
+    // This is already defined in benchmark.cpp
+    const double gamma = 5.0; //!< parameter in front of internal penalty terms
+    const double gammaboundary = 5.0; //!< parameter in front of boundary penalty terms
 
     addStressTensor(scaleSigma); //!<  +div(S, nabla phi) - < Sn, phi>
     velocityContinuity(gamma); //!< penalize velocity jump in inner edges
@@ -244,6 +238,45 @@ void Dynamics::momentumSubsteps()
 
     vx += timemesh.dt_momentum * tmpX;
     vy += timemesh.dt_momentum * tmpY;
+
+    //DAMAGE EQUATION
+
+    // Sigma = D = sym(grad v)
+    computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
+
+    GlobalTimer.start("dyn -- mom -- damage");
+#pragma omp parallel for
+    for (size_t i = 0; i < mesh.n; ++i) {
+        // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
+        double sigma_n = S11(i, 0) + S22(i, 0);
+        //std::cout << Pmax << " " << sigma_n << std::endl;
+        double const expC = std::exp(ReferenceScale::compaction_param * (1. - A(i, 0)));
+        double const time_viscous = ReferenceScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, ReferenceScale::exponent_relaxation_sigma - 1.);
+
+        // Plastic failure tildeP
+        double tildeP;
+        if (sigma_n < 0.) {
+            //below line copied from nextsim finiteelement.cpp
+            //double const Pmax = std::pow(M_thick[cpt], exponent_compression_factor)*compression_factor*expC;
+            double const Pmax = ReferenceScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+            // tildeP must be capped at 1 to get an elastic response
+            tildeP = std::min(1., -Pmax / sigma_n);
+        } else {
+            tildeP = 0.;
+        }
+
+        // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
+        // min and - from nextsim
+        double const multiplicator = std::min(1. - 1e-12,
+            time_viscous / (time_viscous + timemesh.dt_momentum * (1. - tildeP)));
+
+        //Elasit prediction Eqn. (32)
+
+        
+
+        //compute
+    }
+    GlobalTimer.stop("dyn -- mom -- damage");
 }
 
 //! Performs one macro timestep1

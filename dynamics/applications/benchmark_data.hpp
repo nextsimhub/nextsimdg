@@ -19,6 +19,12 @@ constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
 constexpr double Pstar = 27500; //!< Ice strength
 constexpr double fc = 1.46e-4; //!< Coriolis
 constexpr double nu0 = 1. / 3.; //!< Poisson's ratio
+
+// parameters form nextsim
+constexpr double compaction_param = -20; //!< Compation parameter
+constexpr double undamaged_time_relaxation_sigma = 1e7; //!< seconds
+constexpr double exponent_relaxation_sigma = 5;
+
 }
 
 inline constexpr double SQR(double x)
@@ -87,7 +93,8 @@ class InitialH : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return 0.3; // + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+        // x and y are given in meters
+        return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
 class InitialA : virtual public Nextsim::InitialBase {
