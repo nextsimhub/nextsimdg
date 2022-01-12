@@ -37,6 +37,22 @@ public:
     const ElementData& cursorData() const override;
     void incrCursor() override;
 
+    class Cursor : public IStructure::Cursor {
+    public:
+        Cursor(DevGrid&);
+        ~Cursor() = default;
+        IStructure& operator=(const int) const override;
+        operator bool() const override;
+        ElementData& operator*() const override;
+        ElementData* operator->() const override;
+        IStructure& operator++() const override;
+
+    private:
+        DevGrid& owner;
+    };
+
+    const Cursor cursor;
+
 private:
     const static std::string ourStructureName;
     const static std::string xDimName;
@@ -51,7 +67,7 @@ private:
 
     std::vector<ElementData> data;
 
-    std::vector<ElementData>::iterator cursor;
+    std::vector<ElementData>::iterator iCursor;
 
     std::vector<double> gather(ProgDoubleFn pFunc) const;
 };

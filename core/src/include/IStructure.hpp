@@ -159,28 +159,19 @@ public:
     virtual const ElementData& cursorData() const = 0;
 
     /*!
-     * @brief Returns the data value at the cursor using the dereference operator.
-     */
-    ElementData& operator*() { return cursorData(); };
-
-    /*!
-     * @brief Returns the data value at the cursor using the const dereference operator.
-     */
-    const ElementData& operator*() const { return cursorData(); };
-
-    /*!
      * @brief Increments the cursor.
      */
     virtual void incrCursor() = 0;
 
-    /*!
-     * @brief Increments the cursor using the prefix increment operator.
-     */
-    IStructure& operator++()
-    {
-        this->incrCursor();
-        return *this;
-    }
+    class Cursor {
+    public:
+        virtual ~Cursor() = default;
+        virtual IStructure& operator=(const int) const = 0;
+        virtual operator bool() const = 0;
+        virtual ElementData& operator*() const = 0;
+        virtual ElementData* operator->() const = 0;
+        virtual IStructure& operator++() const = 0;
+    };
 
 protected:
     //! Name of the metadata node.

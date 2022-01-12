@@ -47,44 +47,44 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
 
     DevGrid grid2;
 
-    grid2.resetCursor();
+    grid2.cursor = 0;
 
     for (int j = 0; j < ny; ++j) {
         for (int i = 0; i < nx; ++i) {
-            if (grid2.validCursor()) {
-                grid2.cursorData() = PrognosticData::generate(0., 0, 0, 0, 0, { 0., 0., 0. });
-                grid2.incrCursor();
+            if (grid2.cursor) {
+                *(grid2.cursor) = PrognosticData::generate(0., 0, 0, 0, 0, { 0., 0., 0. });
+                ++grid2.cursor;
             }
         }
     }
 
-    grid2.resetCursor();
+    grid2.cursor = 0;
     int targetIndex = 7 * DevGrid::nx + 3;
     for (int i = 0; i < targetIndex; ++i) {
-        grid2.incrCursor();
+        ++grid2.cursor;
     }
-    if (!grid2.validCursor()) {
+    if (!grid2.cursor) {
         FAIL("Invalid cursor value of " << targetIndex);
     }
 
-    double unInitIce = grid2.cursorData().iceThickness();
+    double unInitIce = grid2.cursor->iceThickness();
     REQUIRE(unInitIce == 0.);
 
     grid2.init(filename);
 
-    grid2.resetCursor();
+    grid2.cursor = 0;
     for (int i = 0; i < targetIndex; ++i) {
-        grid2.incrCursor();
+        ++grid2.cursor;
     }
-    if (!grid2.validCursor()) {
+    if (!grid2.cursor) {
         FAIL("Invalid cursor value of " << targetIndex);
     }
 
-    REQUIRE(grid2.cursorData().iceThickness() != 0);
-    REQUIRE(grid2.cursorData().iceThickness() > 1);
-    REQUIRE(grid2.cursorData().iceThickness() < 2);
-    REQUIRE(grid2.cursorData().iceThickness() == 1.0703);
-    REQUIRE(grid2.cursorData().iceThickness() != unInitIce);
+    REQUIRE(grid2.cursor->iceThickness() != 0);
+    REQUIRE(grid2.cursor->iceThickness() > 1);
+    REQUIRE(grid2.cursor->iceThickness() < 2);
+    REQUIRE(grid2.cursor->iceThickness() == 1.0703);
+    REQUIRE(grid2.cursor->iceThickness() != unInitIce);
 
     std::remove(filename.c_str());
 }

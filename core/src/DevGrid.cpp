@@ -33,6 +33,7 @@ const std::map<std::string, DevGrid::ProgDoubleFn> DevGrid::variableFunctions
 // clang-format on
 
 DevGrid::DevGrid()
+    : cursor(*this)
 {
     data.resize(nx * nx);
     processedStructureName = ourStructureName;
@@ -106,12 +107,36 @@ std::vector<double> DevGrid::gather(ProgDoubleFn pFunc) const
 // Cursor manipulation override functions
 int DevGrid::resetCursor()
 {
-    cursor = data.begin();
+    iCursor = data.begin();
     return IStructure::resetCursor();
 }
-bool DevGrid::validCursor() const { return cursor != data.end(); }
-ElementData& DevGrid::cursorData() { return *cursor; }
-const ElementData& DevGrid::cursorData() const { return *cursor; }
-void DevGrid::incrCursor() { ++cursor; }
+bool DevGrid::validCursor() const { return iCursor != data.end(); }
+ElementData& DevGrid::cursorData() { return *iCursor; }
+const ElementData& DevGrid::cursorData() const { return *iCursor; }
+void DevGrid::incrCursor() { ++iCursor; }
+
+DevGrid::Cursor::Cursor(DevGrid& dg)
+    : owner(dg)
+{
+}
+
+IStructure& DevGrid::Cursor::operator=(const int i) const
+{
+    if (0 == i)
+        owner.resetCursor();
+    return owner;
+}
+
+DevGrid::Cursor::operator bool() const { return owner.validCursor(); }
+
+ElementData& DevGrid::Cursor::operator*() const { return owner.cursorData(); }
+
+ElementData* DevGrid::Cursor::operator->() const { return &owner.cursorData(); }
+
+IStructure& DevGrid::Cursor::operator++() const
+{
+    owner.incrCursor();
+    return owner;
+}
 
 } /* namespace Nextsim */
