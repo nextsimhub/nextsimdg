@@ -2,7 +2,7 @@ name: compile code and tests
 
 on:
   push:
-    branches: [ main, develop, issue15_CI_workflow ]
+    branches: [ main, develop, issue15_CI_workflow, tmp_debug_clang ]
   pull_request:
     branches: [ main, develop,  issue15_CI_workflow ]
 
@@ -17,13 +17,20 @@ jobs:
     - name: clang
       run: |
         brew install clang-format
+        echo "Installed clang-format"
+        echo "Changing directory to core/src"
         cd core/src
+        echo "Running clang format in core/src"
         clang-format --dry-run -Werror *cpp include/*hpp
+        echo "Changing directory back to root"
         cd -
         for component in physics
         do
+          echo "Changing directory to $component/src"
           cd $component/src
+          echo "Running clang format on $component/src"
           clang-format --dry-run -Werror *cpp include/*hpp
+          echo "Changing directory back to root"
           cd -
         done
   
