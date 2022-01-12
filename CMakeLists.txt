@@ -6,6 +6,11 @@ project(framework_dg)
 
 set (NETCDF_CXX "YES")
 find_package(netCDF REQUIRED)
+if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(NSDG_NetCDF_Library "netcdf-cxx4")
+else()
+    set(NSDG_NetCDF_Library "netcdf-c++4")
+endif()
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Catch2 REQUIRED)
 

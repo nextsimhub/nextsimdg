@@ -137,7 +137,7 @@ add_executable(exampleDevGridOutput
 
 target_include_directories(exampleDevGridOutput PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(exampleDevGridOutput PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(exampleDevGridOutput LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 netcdf-cxx4)
+target_link_libraries(exampleDevGridOutput LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
 # target_link_libraries(target LINK_PUBLIC netcdf-cxx4)
