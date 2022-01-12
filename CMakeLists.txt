@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 project(framework_dg)
 
 set (NETCDF_CXX "YES")
-find_package(NetCDF REQUIRED)
+find_package(netCDF REQUIRED)
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Catch2 REQUIRED)
 
