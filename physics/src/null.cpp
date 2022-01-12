@@ -6,4 +6,3 @@
  */
 
 // A source file to keep clang from failing due to no such file or directory.
-
