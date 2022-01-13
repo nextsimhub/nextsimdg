@@ -18,11 +18,10 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<1>& dg, const CGVect
         int cgi = 2 * cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 2) {
-            Eigen::Vector<double, 9> cg_local = {
-                cg(cgi), cg(cgi + 1), cg(cgi + 2),
+            Eigen::Matrix<double, 9, 1> cg_local;
+            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2),
                 cg(cgi + cgshift), cg(cgi + 1 + cgshift), cg(cgi + 2 + cgshift),
-                cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift), cg(cgi + 2 + 2 * cgshift)
-            };
+                cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift), cg(cgi + 2 + 2 * cgshift);
             dg.row(dgi) = CG2_to_DG1 * cg_local;
         }
     }
@@ -42,11 +41,10 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<2>& dg, const CGVect
         int cgi = 2 * cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 2) {
-            Eigen::Vector<double, 9> cg_local = {
-                cg(cgi), cg(cgi + 1), cg(cgi + 2),
+            Eigen::Matrix<double, 9, 1> cg_local;
+            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2),
                 cg(cgi + cgshift), cg(cgi + 1 + cgshift), cg(cgi + 2 + cgshift),
-                cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift), cg(cgi + 2 + 2 * cgshift)
-            };
+                cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift), cg(cgi + 2 + 2 * cgshift);
 
             dg.row(dgi) = CG2_to_DG2 * cg_local;
         }
@@ -67,10 +65,9 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<2>& dg, const CGVect
         int cgi = cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
-            Eigen::Vector<double, 4> cg_local = {
-                cg(cgi), cg(cgi + 1),
-                cg(cgi + cgshift), cg(cgi + 1 + cgshift)
-            };
+            Eigen::Matrix<double, 4, 1> cg_local;
+            cg_local << cg(cgi), cg(cgi + 1),
+                cg(cgi + cgshift), cg(cgi + 1 + cgshift);
 
             dg.row(dgi) = CG1_to_DG2 * cg_local;
         }
@@ -100,16 +97,14 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
         int cgi = 2 * cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 2) {
-            Eigen::Vector<double, 9> vx_local = {
-                vx(cgi), vx(cgi + 1), vx(cgi + 2),
+            Eigen::Matrix<double, 9, 1> vx_local;
+            vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2),
                 vx(cgi + cgshift), vx(cgi + 1 + cgshift), vx(cgi + 2 + cgshift),
-                vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift), vx(cgi + 2 + 2 * cgshift)
-            };
-            Eigen::Vector<double, 9> vy_local = {
-                vy(cgi), vy(cgi + 1), vy(cgi + 2),
+                vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift), vx(cgi + 2 + 2 * cgshift);
+            Eigen::Matrix<double, 9, 1> vy_local;
+            vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2),
                 vy(cgi + cgshift), vy(cgi + 1 + cgshift), vy(cgi + 2 + cgshift),
-                vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift), vy(cgi + 2 + 2 * cgshift)
-            };
+                vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift), vy(cgi + 2 + 2 * cgshift);
 
             E11.row(dgi) = CG2_to_DG1_dX * vx_local / mesh.hx;
             E22.row(dgi) = CG2_to_DG1_dY * vy_local / mesh.hy;
@@ -137,11 +132,11 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
         int cgi = cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
-            Eigen::Vector<double, 4> vx_local = {
+            Eigen::Matrix<double, 4, 1> vx_local = {
                 vx(cgi), vx(cgi + 1),
                 vx(cgi + cgshift), vx(cgi + 1 + cgshift)
             };
-            Eigen::Vector<double, 4> vy_local = {
+            Eigen::Matrix<double, 4, 1> vy_local = {
                 vy(cgi), vy(cgi + 1),
                 vy(cgi + cgshift), vy(cgi + 1 + cgshift)
             };
@@ -272,5 +267,4 @@ void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
         v(lowerleftindex + indecesperrow * i, 0) = 0.0;
     }
 }
-
 }
