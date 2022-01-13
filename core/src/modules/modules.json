@@ -5,5 +5,11 @@
             "Nextsim::LinearFreezing",
             "Nextsim::UnescoFreezing"
         ]
+    },
+    {
+        "name": "Nextsim::IStructure",
+        "implementations": [
+            "Nextsim::DevGrid"
+        ]
     }
 ]
