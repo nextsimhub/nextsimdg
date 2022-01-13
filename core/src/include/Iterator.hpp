@@ -62,7 +62,8 @@ public:
      * @param durationStr string to parse for the model run duration.
      * @param stepStr string to parse for the model time step length.
      */
-    virtual void parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr, const std::string& durationStr, const std::string& stepStr);
+    virtual void parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
+        const std::string& durationStr, const std::string& stepStr);
     //! Run the Iterant over the specified time period.
     void run();
 

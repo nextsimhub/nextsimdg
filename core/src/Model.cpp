@@ -7,7 +7,8 @@
 #include "include/Model.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/SimpleIterant.hpp"
+#include "include/DevGrid.hpp"
+#include "include/DevIterant.hpp"
 
 #include <string>
 
@@ -24,30 +25,13 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
 
 Model::Model()
 {
-    iterant = new SimpleIterant();
-    iterator.setIterant(iterant);
+    iterator.setIterant(&iterant);
 
-    const int runLength = 5;
-
-    Iterator::TimePoint now(std::chrono::system_clock::now());
-    Iterator::Duration dt = std::chrono::seconds(1);
-    Iterator::TimePoint hence = now + runLength * dt;
-
-    iterator.setStartStopStep(now, hence, dt);
-
-
+    dataStructure = nullptr;
 }
-
-// TODO: add another constructor which takes arguments specifying the
-// environment and configuration. This will be the location of the
-// logic with selects the components of the model that will run,
-// translates I/O details from file configuration to object variable
-// values, specifies file paths and likely more besides.
 
 Model::~Model()
 {
-    if (iterant)
-        delete iterant;
 }
 
 void Model::configure()
@@ -58,6 +42,10 @@ void Model::configure()
     std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
     iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
+
+    std::string restartFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+
+    dataStructure = new DevGrid;
 }
 
 void Model::run() { iterator.run(); }

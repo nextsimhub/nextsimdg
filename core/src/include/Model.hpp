@@ -10,6 +10,7 @@
 #include "include/Logged.hpp"
 
 #include "include/Configured.hpp"
+#include "include/DevIterant.hpp"
 #include "include/Iterator.hpp"
 #include "include/IStructure.hpp"
 
@@ -38,7 +39,7 @@ public:
 
 private:
     Iterator iterator;
-    Iterator::Iterant* iterant; // FIXME smart pointer
+    DevIterant iterant; // Change the model master iterant here
 
     std::string restartFileName;
 

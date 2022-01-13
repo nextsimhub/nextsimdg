@@ -25,7 +25,9 @@ int main(int argc, char* argv[])
     Nextsim::ConfiguredModule::parseConfigurator();
 
     // Construct the Model
-    Nextsim::Model model = Nextsim::Model();
+    Nextsim::Model model;
+    // Apply the model configuration
+    model.configure();
     // Run the Model
     model.run();
 
