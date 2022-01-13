@@ -1,5 +1,6 @@
 #include <cassert>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
@@ -13,6 +14,7 @@
 bool WRITE_VTK = true;
 
 #define CG 1
+#define DG 1
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -129,26 +131,24 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    Nextsim::TimeMesh timemesh;
     constexpr double T = 2 * 24 * 60 * 60; //!< Time horizon (in sec)
     constexpr double k_adv = 120.0; //!< Time step of advection problem
     constexpr size_t NT = T / k_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 300;
-    constexpr double beta = 300;
-    constexpr size_t NT_evp = 100;
+    constexpr double alpha = 800;
+    constexpr double beta = 800;
+    constexpr size_t NT_evp = 120;
 
     std::cout << "Time step size (advection) " << k_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
               << std::endl;
-    timemesh.BasicInit(NT, k_adv, k_adv / beta);
 
     //! VTK output
     constexpr double T_vtk = 1.0 * 60.0 * 60.0; // evey 1 hours
     constexpr size_t NT_vtk = T_vtk / k_adv + 1.e-4;
     //! LOG message
-    constexpr double T_log = 30.0 * 60.0; // every 30 minutes
+    constexpr double T_log = 10.0 * 60.0; // every 30 minute
     constexpr size_t NT_log = T_log / k_adv + 1.e-4;
 
     //! Variables
@@ -195,6 +195,7 @@ int main()
     Nextsim::DGTransport<2> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk3");
     dgtransport.setmesh(mesh);
+    Nextsim::TimeMesh timemesh(NT, k_adv, NT_evp);
     dgtransport.settimemesh(timemesh);
 
     //! Initial Forcing
@@ -205,12 +206,24 @@ int main()
 
     Nextsim::GlobalTimer.start("time loop");
 
-    for (size_t timestep = 1; timestep <= timemesh.N; ++timestep) {
-
-        double time = timemesh.dt * timestep;
+    for (size_t timestep = 1; timestep <= NT; ++timestep) {
+        double time = k_adv * timestep;
+        double timeInMinutes = time / 60.0;
+        double timeInHours = time / 60.0 / 60.0;
+        double timeInDays = time / 60.0 / 60.0 / 24.;
 
         if (timestep % NT_log == 0)
-            std::cout << "\r--- Advection step " << timestep << "\t day " << time / (24.0 * 60.0 * 60.0) << "\t\t" << std::flush;
+            std::cout << "\rAdvection step " << timestep << "\t "
+                      << std::setprecision(2)
+                      << std::fixed
+                      << std::setw(10) << std::right
+                      << time << "s\t"
+                      << std::setw(8) << std::right
+                      << timeInMinutes << "m\t"
+                      << std::setw(6) << std::right
+                      << timeInHours << "h\t"
+                      << std::setw(6) << std::right
+                      << timeInDays << "d\t\t" << std::flush;
 
         //! Initialize time-dependent forcing
         Nextsim::GlobalTimer.start("time loop - forcing");
@@ -276,15 +289,15 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - update");
             //! Update
-            vx *= (1.0 - timemesh.dt_momentum / timemesh.dt);
-            vy *= (1.0 - timemesh.dt_momentum / timemesh.dt);
+            vx *= (1.0 - 1.0 / NT_evp);
+            vy *= (1.0 - 1.0 / NT_evp);
 
-            vx += timemesh.dt_momentum / timemesh.dt * vx_mevp + timemesh.dt_momentum / ReferenceScale::rho_ice * (ReferenceScale::rho_ocean * ReferenceScale::C_ocean * (OX - vx).array().abs() * (OX - vx).array() + ReferenceScale::rho_atm * ReferenceScale::C_atm * AX.array().abs() * AX.array()).matrix();
+            vx += 1.0 / NT_evp * vx_mevp + k_adv / NT_evp / ReferenceScale::rho_ice * (ReferenceScale::rho_ocean * ReferenceScale::C_ocean * (OX - vx).array().abs() * (OX - vx).array() + ReferenceScale::rho_atm * ReferenceScale::C_atm * AX.array().abs() * AX.array()).matrix();
             ;
-            vy += timemesh.dt_momentum / timemesh.dt * vy_mevp + timemesh.dt_momentum / ReferenceScale::rho_ice * (ReferenceScale::rho_ocean * ReferenceScale::C_ocean * (OY - vy).array().abs() * (OY - vy).array() + ReferenceScale::rho_atm * ReferenceScale::C_atm * AY.array().abs() * AY.array()).matrix();
+            vy += 1.0 / NT_evp * vy_mevp + k_adv / NT_evp / ReferenceScale::rho_ice * (ReferenceScale::rho_ocean * ReferenceScale::C_ocean * (OY - vy).array().abs() * (OY - vy).array() + ReferenceScale::rho_atm * ReferenceScale::C_atm * AY.array().abs() * AY.array()).matrix();
             ;
 
-            momentum.AddStressTensor(mesh, -timemesh.dt_momentum / ReferenceScale::rho_ice, vx, vy, S11, S12, S22);
+            momentum.AddStressTensor(mesh, -k_adv / NT_evp / ReferenceScale::rho_ice, vx, vy, S11, S12, S22);
             Nextsim::GlobalTimer.stop("time loop - mevp - update");
 
             Nextsim::GlobalTimer.start("time loop - mevp - dirichlet");
