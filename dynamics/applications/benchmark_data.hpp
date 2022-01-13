@@ -24,8 +24,10 @@ constexpr double compaction_param = -20; //!< Compation parameter
 constexpr double undamaged_time_relaxation_sigma = 1e7; //!< seconds
 constexpr double exponent_relaxation_sigma = 5;
 constexpr double young = 5.9605e+08;
-constexpr double nu0 = 1. / 3.; //!< Poisson's ratio
-
+constexpr double nu0 = 1. / 3.; //!< \param Poisson's ratio
+constexpr double compr_strength = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
+constexpr double tan_phi = 0.7; //! \param tan_phi (double) Internal friction coefficient (mu)
+constexpr double C_lab = 2.0e6; //! \param C_lab (double) Cohesion at the lab scale (10 cm) [Pa]
 }
 
 inline constexpr double SQR(double x)

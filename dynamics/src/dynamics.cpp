@@ -248,7 +248,7 @@ void Dynamics::momentumSubsteps()
 #pragma omp parallel for
     for (size_t i = 0; i < mesh.n; ++i) {
         // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
-        double sigma_n = S11(i, 0) + S22(i, 0);
+        double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
         //std::cout << Pmax << " " << sigma_n << std::endl;
         double const expC = std::exp(ReferenceScale::compaction_param * (1. - A(i, 0)));
         double const time_viscous = ReferenceScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, ReferenceScale::exponent_relaxation_sigma - 1.);
@@ -276,13 +276,13 @@ void Dynamics::momentumSubsteps()
         /* Stiffness matrix
         * 1  nu 0
         * nu 1  0
-        * 0  0  (1-nu)/2
+        * 0  0  (1-nu)
         */
         //M_Dunit[0] = Dunit_factor * 1.;
         //M_Dunit[1] = Dunit_factor * nu0;
         //M_Dunit[3] = Dunit_factor * nu0;
         //M_Dunit[4] = Dunit_factor * 1.;
-        //M_Dunit[8] = Dunit_factor * (1. - nu0) / 2.;
+        //M_Dunit[8] = Dunit_factor * (1. - nu0) ;
 
         //compute SigmaE
         double SigmaE11 = Dunit_factor * (E11(i, 0) + ReferenceScale::nu0 * E22(i, 0));
@@ -298,7 +298,41 @@ void Dynamics::momentumSubsteps()
         S22(i, 0) *= multiplicator;
 
         //continiue if stress in inside the failure envelope
-        //if
+        /* Compute the shear and normal stresses, which are two invariants of the internal stress tensor */
+        double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
+        //update sigma_n
+        sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+        //cohesion Eqn. (21)
+        //Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10 cm)
+        double const C_fix = ReferenceScale::C_lab * std::sqrt(0.1 / mesh.hx);
+        ; // C_lab;...  : cohesion (Pa)
+
+        // d critical Eqn. (29)
+        double dcrit;
+        if (sigma_n < -ReferenceScale::compr_strength)
+            dcrit = -ReferenceScale::compr_strength / sigma_n;
+        else
+            // M_Cohesion[cpt] depends on local random contribution
+            // M_Cohesion[i] = C_fix+C_alea*(M_random_number[i]);
+            // finiteelement.cpp#L3834
+            dcrit = C_fix / (sigma_s + ReferenceScale::tan_phi * sigma_n);
+
+        /* Calculate the adjusted level of damage */
+        if ((0. < dcrit) && (dcrit < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+        {
+            /* Calculate the characteristic time for damage and damage increment */
+            // M_delta_x[cpt] = mesh.hx ???
+            double const td = mesh.hx * std::sqrt(2. * (1. + ReferenceScale::nu0) * ReferenceScale::rho_ice)
+                / std::sqrt(elasticity);
+
+            // Eqn. (34)
+            D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * timemesh.dt_momentum / td;
+
+            // Recalculate the new state of stress by relaxing elstically Eqn. (36)
+            S11(i, 0) -= S11(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+            S12(i, 0) -= S12(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+            S22(i, 0) -= S22(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+        }
     }
     GlobalTimer.stop("dyn -- mom -- damage");
 }
