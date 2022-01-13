@@ -10,18 +10,7 @@ namespace Nextsim {
 
 class CGMomentum {
 private:
-    CGVector<2> vx, vy;
-
 public:
-    /*!
-     * Initializes the velocity vector according to the mesh
-     */
-    void ReInit(const Mesh& mesh)
-    {
-        vx.resize_by_mesh(mesh);
-        vy.resize_by_mesh(mesh);
-    }
-
     /*!
      * The following functions take care of the interpolation and projection
      * between CG and DG functions
@@ -31,9 +20,22 @@ public:
     void ProjectCGToDG(const Mesh& mesh, CellVector<DG>& dg, const CGVector<CG>& cg);
 
     //! Projects the symmetric gradient of the CG2 velocity into the DG1 space
+    template <int CG, int DG>
     void ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
-        CellVector<1>& E11, CellVector<1>& E12, CellVector<1>& E22,
-        const CGVector<2>& vx, const CGVector<2>& vy);
+        CellVector<DG>& E11, CellVector<DG>& E12, CellVector<DG>& E22,
+        const CGVector<CG>& vx, const CGVector<CG>& vy);
+
+    /*!
+   * Evaluates (S, nabla phi) and adds it to tx/ty - Vector
+   */
+    template <int CG, int DG>
+    void AddStressTensor(const Mesh& mesh, double scale,
+        CGVector<CG>& tx, CGVector<CG>& ty,
+        const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
+
+    //! Sets the vector to zero along the boundary
+    template <int CG>
+    void DirichletZero(const Mesh& mesh, CGVector<CG>& v) const;
 };
 
 }

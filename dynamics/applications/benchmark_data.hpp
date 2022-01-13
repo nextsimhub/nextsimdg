@@ -5,8 +5,9 @@
 #include "dynamics.hpp"
 
 namespace ReferenceScale {
-constexpr double L = 512000.0; //!< Size of domain
-constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
+// Box-Test case from [Geosci. Model Dev., 8, 1747–1761, 2015]
+constexpr double L = 1000000.0; //!< Size of domain
+constexpr double vmax_ocean = 0.1; //!< Maximum velocity of ocean
 constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 
 constexpr double rho_ice = 900.0; //!< Sea ice density
@@ -18,6 +19,24 @@ constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
 
 constexpr double Pstar = 27500; //!< Ice strength
 constexpr double fc = 1.46e-4; //!< Coriolis
+
+constexpr double DeltaMin = 2.e-9; //!< Viscous regime
+
+// constexpr double L = 510000.0; //!< Size of domain
+// constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
+// constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
+
+// constexpr double rho_ice = 900.0; //!< Sea ice density
+// constexpr double rho_atm = 1.3; //!< Air density
+// constexpr double rho_ocean = 1026.0; //!< Ocean density
+
+// constexpr double C_atm = 1.2e-3; //!< Air drag coefficient
+// constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
+
+// constexpr double Pstar = 27500; //!< Ice strength
+// constexpr double fc = 1.46e-4; //!< Coriolis
+
+// constexpr double DeltaMin = 2.e-9; //!< Viscous regime
 
 }
 
@@ -52,6 +71,14 @@ public:
     }
     double operator()(double x, double y) const
     {
+        double X = M_PI * x / ReferenceScale::L;
+        double Y = M_PI * y / ReferenceScale::L;
+        constexpr double T = 4.0 * 24.0 * 60.0 * 60.0; //!< 4 days
+        return 5.0 + (sin(2 * M_PI * time / T) - 3.0) * sin(2 * X) * sin(Y);
+
+        // return M_PI * M_PI / 2.0 / SQR(ReferenceScale::L)
+        //     * (3.0 * sin(X) * sin(Y) - 4.0 * cos(2 * X) * cos(2 * Y));
+
         //! Center of cyclone (in m)
         double cM = 256000. + 51200. * time / (24.0 * 60.0 * 60.0);
 
@@ -72,6 +99,14 @@ public:
     }
     double operator()(double x, double y) const
     {
+        double X = M_PI * x / ReferenceScale::L;
+        double Y = M_PI * y / ReferenceScale::L;
+        constexpr double T = 4.0 * 24.0 * 60.0 * 60.0; //!< 4 days
+        return 5.0 + (sin(2 * M_PI * time / T) - 3) * sin(2 * Y) * sin(X);
+
+        // return M_PI * M_PI / 2.0 / SQR(ReferenceScale::L)
+        //     * (-cos(X) * cos(Y) + 12.0 * sin(2 * X) * sin(2 * Y));
+
         //! Center of cyclone (in m)
         double cM = 256000. + 51200. * time / (24.0 * 60.0 * 60.0);
 
@@ -82,18 +117,42 @@ public:
         return -scale * ReferenceScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
     }
 };
+class ExX : virtual public Nextsim::InitialBase {
+
+public:
+    double operator()(double x, double y) const
+    {
+        double X = M_PI * x / ReferenceScale::L;
+        double Y = M_PI * y / ReferenceScale::L;
+        return sin(X) * sin(Y);
+    }
+};
+class ExY : virtual public Nextsim::InitialBase {
+
+public:
+    double operator()(double x, double y) const
+    {
+        double X = 2.0 * M_PI * x / ReferenceScale::L;
+        double Y = 2.0 * M_PI * y / ReferenceScale::L;
+        return sin(X) * sin(Y);
+    }
+};
 
 class InitialH : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return 0.3; // + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+        return 2.0; //!< constant ice height for box test
+
+        return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
 class InitialA : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
+        return x / ReferenceScale::L;
+
         return 1.0;
     }
 };
