@@ -19,6 +19,7 @@
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
 namespace Nextsim {
+
 /*!
  * @brief Interface class for the model structure.
  *

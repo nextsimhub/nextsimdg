@@ -20,16 +20,26 @@ add_executable(testNextsimPhysics
     "${CoreSourceDir}/ModuleLoader.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${CoreSourceDir}/ElementData.cpp"
     "${CoreSourceDir}/PrognosticData.cpp"
     "${ModulesDir}/HiblerConcentration.cpp"
     "${ModulesDir}/ThermoIce0.cpp"
     )
-target_include_directories(testNextsimPhysics PRIVATE "${ModuleLoaderIppTargetDirectory}" "${CoreSourceDir}" "${CoreModulesDir}" "${SourceDir}" "${ModulesDir}")
-target_link_libraries(testNextsimPhysics PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)
+target_include_directories(testNextsimPhysics PRIVATE
+    "${ModuleLoaderIppTargetDirectory}"
+    "${CoreSourceDir}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
+    )
+target_link_directories(testNextsimPhysics PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testNextsimPhysics PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
 
 #add_executable(testThermoIce0
 #    "ThermoIce0_test.cpp"

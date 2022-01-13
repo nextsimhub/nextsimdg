@@ -11,15 +11,25 @@ set(BaseSources
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "ModuleLoader.cpp"
+    "ElementData.cpp"
     "PrognosticData.cpp"
     "ExternalData.cpp"
+    "DevIterant.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
-set(ModuleSources "")
+set(StructureModuleSources
+    "DevGrid.cpp"
+    )
+    
+set(ModuleSources
+    "${StructureModuleSources}"
+    )
+
+list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
 set(NextsimSources
     "${NextsimSources}"

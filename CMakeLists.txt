@@ -59,9 +59,10 @@ target_include_directories(nextsim PRIVATE
     "${Boost_INCLUDE_DIRS}"
     "${ModuleLoaderIppTargetDirectory}"
     "${NextsimIncludeDirs}"
-    "${NETCDF_INCLUDES}"
+    "${netCDF_INCLUDE_DIR}"
     )
-target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES})
+target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES} "${NSDG_NetCDF_Library}")
 
 #The parse_modules target is inherited from src
 add_dependencies(nextsim parse_modules)
