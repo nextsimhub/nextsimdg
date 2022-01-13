@@ -3,11 +3,10 @@
 #include <iostream>
 #include <vector>
 
+#include "benchmark_data.hpp"
 #include "dgvisu.hpp"
 #include "dynamics.hpp"
 #include "stopwatch.hpp"
-
-#include "benchmark_data.hpp"
 
 bool WRITE_VTK = true;
 int WRITE_EVERY = 10000;
@@ -21,39 +20,39 @@ int main()
     Nextsim::Dynamics dynamics;
 
     //! initialize the mesh
-    size_t N = 100;
-    dynamics.GetMesh().BasicInit(N, N, 1. / N, 1. / N);
+    constexpr size_t N = 20; //!< Number of mesh nodes
+    dynamics.GetMesh().BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
-    // CFL for Laplace:
+    const int hours = 1;
+    constexpr double T = hours * 60 * 60; //!< Time horizon (in sec) max hours = 2 *  24
+    constexpr double k_adv = 90; //!< Time step of advection problem
 
-    // dt = 0.1 * h^2
-    int NT = 100000;
-    double k = 1.0 / N / N * 0.01;
+    // Compute Parabolic CFL
+    // get the effective viscosity, e.g. d_t v = 2 eta / rho_ice div(sigma)
+    constexpr double eta = 1.e12;
 
-    // //! init time mesh [0 to 2] days
-    // float hours = 24.; //24
-    // double TMAX = 2.0 * hours * 60.0 * 60.0 / ReferenceScale::T;
-    // double k = 10.0 / ReferenceScale::T; //!< time step 10 seconds
-    // k = 1. / ReferenceScale::T; //!< This is necessary for Laplace
+    constexpr double effective_viscosity = 2.0 * eta / ReferenceScale::rho_ice;
+    constexpr double gamma = 5; //!< Penalty parameter for internal continuity
+    constexpr double gammaboundary = gamma; //!< Penalty parameter for boundary data
+    constexpr double cfl = 0.05 / gamma / effective_viscosity;
+    //! compute time step. Make the advection step a multiple of it.
+    constexpr double k = k_adv / static_cast<int>(0.5 + k_adv / (SQR(ReferenceScale::L / N) * cfl));
+    constexpr size_t NT = T / k + 1.e-4;
+    constexpr size_t NTadv = k_adv / k + 1.e-4;
 
-    // int NT = (static_cast<int>((TMAX / k + 1) / 100 + 1) * 100); //!<  No. of time steps dividable by 100
+    std::cout << "Time step size " << k << "\t" << NT << " time steps" << std::endl
+              << "Advection step " << k_adv << "\t every " << NTadv << " momentum steps"
+              << std::endl;
 
-    //    k = TMAX / NT;
+    dynamics.GetTimeMesh().BasicInit(NT, k_adv, k);
 
-    //dynamics.GetTimeMesh().BasicInit(TMAX,NT,1);
-    // call constructor with dt and dt_momentum with k and k^2
-    dynamics.GetTimeMesh().BasicInit(NT, k, k);
-    //dynamics.GetTimeMesh().BasicInit(NT,k,1./(N*N*4));
-
-    std::cout << "Time mesh of [0," << dynamics.GetTimeMesh().tmax << "] with "
-              << dynamics.GetTimeMesh().N << " steps, k = " << dynamics.GetTimeMesh().dt << std::endl;
-
-    double vmax = 0.1 * dynamics.GetMesh().hx / dynamics.GetTimeMesh().dt;
-    std::cout << "CFL: maximum ice velocity " << vmax << " (m/s) " << std::endl;
-    std::cout << "--------------------------------------------" << std::endl;
-    std::cout << std::endl;
+    //! VTK output every hour
+    //constexpr double Tvtk = 1.0 * 60.0 * 60.0;
+    //! VTK output every 5min
+    constexpr double Tvtk = 1.0 * 5.0 * 60.0;
+    constexpr size_t NTvtk = Tvtk / k;
 
     //! Initialize the Dynamical Core (vector sizes, etc.)
     dynamics.BasicInit();
@@ -61,28 +60,18 @@ int main()
     //! Initial data of the problem
     Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetH(), InitialH());
     Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetA(), InitialA());
+    AtmX AtmForcingX; //!< stupid names....
+    AtmY AtmForcingY;
+    AtmForcingX.settime(0.0);
+    AtmForcingY.settime(0.0);
+    Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetAtmX(), AtmForcingX);
+    Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetAtmY(), AtmForcingY);
+    Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetOceanX(), OceanX());
+    Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetOceanY(), OceanY());
 
     //! Initialize the velocity
     dynamics.GetVX().zero();
     dynamics.GetVY().zero();
-    //Nextsim::L2ProjectInitial(dynamics.GetMesh(),dynamics.GetS11(), InitialS11());
-    //Nextsim::L2ProjectInitial(dynamics.GetMesh(),dynamics.GetS12(), InitialS12());
-    //Nextsim::L2ProjectInitial(dynamics.GetMesh(),dynamics.GetS22(), InitialS22());
-    dynamics.GetD().zero();
-
-    //! Forcing. Ocean forcing is constant in time.
-    AtmX AtmForcingX; //!< stupid names....
-    AtmY AtmForcingY;
-
-    Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetOceanX(), OceanX());
-    Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetOceanY(), OceanY());
-
-    //dynamics.GetVX().col(0) = dynamics.GetOceanX().col(0);
-    //dynamics.GetVY().col(0) = dynamics.GetOceanY().col(0);
-    //dynamics.GetVX().col(1) = dynamics.GetOceanX().col(1);
-    //dynamics.GetVY().col(1) = dynamics.GetOceanY().col(1);
-    //dynamics.GetVX().col(2) = dynamics.GetOceanX().col(2);
-    //dynamics.GetVY().col(2) = dynamics.GetOceanY().col(2);
 
     //save initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
@@ -96,51 +85,47 @@ int main()
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     Nextsim::GlobalTimer.start("time loop");
+    size_t advectionstep = 0;
+
     for (size_t timestep = 1; timestep <= dynamics.GetTimeMesh().N; ++timestep) {
         Nextsim::GlobalTimer.start("time loop - reinit");
-        double time = dynamics.GetTimeMesh().dt * timestep;
-        std::cout << "--- Time step " << timestep << "\t"
-                  << "-> hour " << time / (24.0 * 60.0 * 60.0) << std::endl;
 
-        //! Initial (atm) Forcing (ocean is stationary)
-        AtmForcingX.settime(time);
-        AtmForcingY.settime(time);
-        Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetAtmX(), AtmForcingX);
-        Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetAtmY(), AtmForcingY);
-        Nextsim::GlobalTimer.stop("time loop - reinit");
+        double time = dynamics.GetTimeMesh().dt * timestep; //!< current time in seconds
 
-        //TEST ONLY
-        /*
-      // sigma = D = sym(grad v)
-      dynamics.S11.col(0) = 1. / dynamics.mesh.hx * dynamics.vx.col(1);
-      dynamics.S11.col(1) = 1. / dynamics.mesh.hx * 2.*dynamics.vx.col(3);
-      dynamics.S11.col(2) = 1. / dynamics.mesh.hx * dynamics.vx.col(5);
-      
-      dynamics.S12.col(0) = 0.5*(dynamics.vy.col(1)/dynamics.mesh.hx + dynamics.vx.col(2)/dynamics.mesh.hy) ;
-      dynamics.S12.col(1) = 0.5 * (dynamics.vx.col(5)/dynamics.mesh.hy + 2.0 * dynamics.vy.col(3)/dynamics.mesh.hx );
-      dynamics.S12.col(2) = 0.5 * (2.0 * dynamics.vx.col(4)/dynamics.mesh.hy + dynamics.vy.col(5)/dynamics.mesh.hx );
-      
-      dynamics.S22.col(0) = 1. / dynamics.mesh.hy * dynamics.vy.col(2);
-      dynamics.S22.col(1) = 1. / dynamics.mesh.hy * dynamics.vy.col(5);
-      dynamics.S22.col(2) = 1. / dynamics.mesh.hy * 2.*dynamics.vy.col(4);
+        if (timestep % NTadv == 0)
+            std::cout << "--- Time step " << timestep << "\t advection step " << advectionstep
+                      << "-> day " << time / (24.0 * 60.0 * 60.0) << std::endl;
 
+        Nextsim::GlobalTimer.start("dyn");
+        // advection step
+        if (timestep % NTadv == 0) {
+            ++advectionstep;
 
+            //! Initial (atm) Forcing (ocean is stationary)
+            AtmForcingX.settime(time);
+            AtmForcingY.settime(time);
+            Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetAtmX(), AtmForcingX);
+            Nextsim::L2ProjectInitial(dynamics.GetMesh(), dynamics.GetAtmY(), AtmForcingY);
+            Nextsim::GlobalTimer.stop("time loop - reinit");
 
-      Nextsim::VTK::write_dg<1>("Results/S11",1,dynamics.GetS11(), dynamics.GetMesh());
-      Nextsim::VTK::write_dg<1>("Results/S12",1,dynamics.GetS12(), dynamics.GetMesh());
-      Nextsim::VTK::write_dg<1>("Results/S22",1,dynamics.GetS22(), dynamics.GetMesh());
-      Nextsim::VTK::write_dg<2>("Results/vx",1,dynamics.GetVX(), dynamics.GetMesh());
-	    Nextsim::VTK::write_dg<2>("Results/vy",1,dynamics.GetVY(), dynamics.GetMesh());
-      abort();//end of test
-      */
+            Nextsim::GlobalTimer.start("dyn -- adv");
+            dynamics.advectionStep();
+            Nextsim::GlobalTimer.stop("dyn -- adv");
+        }
 
         //! Time step
-        dynamics.step();
+        //dynamics.step();
+
+        // momentum step
+        Nextsim::GlobalTimer.start("dyn -- mom");
+        dynamics.momentumSubsteps();
+        Nextsim::GlobalTimer.stop("dyn -- mom");
+        Nextsim::GlobalTimer.stop("dyn");
 
         //! Output
         if (WRITE_VTK)
-            if (timestep % WRITE_EVERY == 0) {
-                size_t printstep = timestep / WRITE_EVERY;
+            if (timestep % NTvtk == 0) {
+                size_t printstep = timestep / NTvtk;
                 Nextsim::GlobalTimer.start("time loop - i/o");
 
                 Nextsim::VTK::write_dg<2>("Results/vx", printstep, dynamics.GetVX(), dynamics.GetMesh());

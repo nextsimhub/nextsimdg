@@ -1,4 +1,5 @@
 #include "dynamics.hpp"
+#include "../../applications/benchmark_data.hpp"
 #include "dgvisu.hpp"
 #include "stopwatch.hpp"
 
@@ -198,55 +199,26 @@ void Dynamics::addStressTensor(double scaleSigma)
 
 void Dynamics::momentumSubsteps()
 {
+    //MOMENTUM EQUATION
     tmpX.zero();
     tmpY.zero();
-
-    // double L = 512000.0;
-    // double T = 1000.0;
-    // double Cwater = 5.5e-3;
-    // double Catm = 1.2e-3;
-    // double rhoWater = 1026.0;
-    // double rhoIce = 900.0;
-    // double rhoAtm = 1.3;
-    // double Sigma = 1e5;
 
     // d_t U = ...
 
     // ocean
-    /*
-    // L/(rho H) * Cwater * rhoWater * |velwater - vel| (velwater-vel)
-    tmpX.col(0) += L / rhoIce * Cwater * rhoWater *
-     ((oceanX.col(0)-vx.col(0)).array().abs()/ 
-       H.col(0).array() * 
-       oceanX.col(0).array()).matrix();
+    // L/(rho H) * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * |velwater - vel| (velwater-vel)
+    tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * ((oceanX.col(0) - vx.col(0)).array().abs() / H.col(0).array() * oceanX.col(0).array()).matrix();
 
-   tmpX -= L / rhoIce * Cwater * rhoWater *
-     (vx.array().colwise() * ((oceanX.col(0)-vx.col(0)).array().abs()/ H.col(0).array())).matrix();
+    tmpX -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * (vx.array().colwise() * ((oceanX.col(0) - vx.col(0)).array().abs() / H.col(0).array())).matrix();
 
-    tmpY.col(0) += L / rhoIce * Cwater * rhoWater *
-     ((oceanY.col(0)-vy.col(0)).array().abs()/ 
-       H.col(0).array() * 
-       oceanY.col(0).array()).matrix();
+    tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * ((oceanY.col(0) - vy.col(0)).array().abs() / H.col(0).array() * oceanY.col(0).array()).matrix();
 
-   tmpY -= L / rhoIce * Cwater * rhoWater *
-     (vy.array().colwise() * ((oceanY.col(0)-vy.col(0)).array().abs()/ H.col(0).array())).matrix();
+    tmpY -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * (vy.array().colwise() * ((oceanY.col(0) - vy.col(0)).array().abs() / H.col(0).array())).matrix();
 
-
-  // atm.
-    // L/(rho H) * Catm * rhoAtm * |velatm| velatm
-    
-    tmpX.col(0) += L / rhoIce * Catm * rhoAtm *
-     (atmX.col(0).array().abs()/ H.col(0).array()
-      * atmX.col(0).array()).matrix();
-
-    tmpY.col(0) += L / rhoIce * Catm * rhoAtm *
-     (atmY.col(0).array().abs()/ H.col(0).array()
-      * atmY.col(0).array()).matrix();
-    */
-
-    //RHS = (1,1)
-    tmpX.col(0) += atmX.col(0); //
-    tmpY.col(0) += atmY.col(0);
+    // atm.
+    // L/(rho H) * ReferenceScale::C_atm * ReferenceScale::rho_atm * |velatm| velatm
+    tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmX.col(0).array().abs() / H.col(0).array() * atmX.col(0).array()).matrix();
+    tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmY.col(0).array().abs() / H.col(0).array() * atmY.col(0).array()).matrix();
 
     /**! 
      *
@@ -255,11 +227,10 @@ void Dynamics::momentumSubsteps()
      *
      */
     const double scaleSigma = -1.; //!< -1 since -div(S)  term goes to rhs
-    const double gamma = 1.0; //!< parameter in front of internal penalty terms
-    const double gammaboundary = 1.0; //!< parameter in front of boundary penalty terms
 
-    // Sigma = D = sym(grad v)
-    computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
+    // This is already defined in benchmark.cpp
+    const double gamma = 5.0; //!< parameter in front of internal penalty terms
+    const double gammaboundary = 5.0; //!< parameter in front of boundary penalty terms
 
     addStressTensor(scaleSigma); //!<  +div(S, nabla phi) - < Sn, phi>
     velocityContinuity(gamma); //!< penalize velocity jump in inner edges
@@ -267,6 +238,103 @@ void Dynamics::momentumSubsteps()
 
     vx += timemesh.dt_momentum * tmpX;
     vy += timemesh.dt_momentum * tmpY;
+
+    //DAMAGE EQUATION
+
+    // Sigma = D = sym(grad v)
+    computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
+
+    GlobalTimer.start("dyn -- mom -- damage");
+#pragma omp parallel for
+    for (size_t i = 0; i < mesh.n; ++i) {
+        // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
+        double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+        //std::cout << Pmax << " " << sigma_n << std::endl;
+        double const expC = std::exp(ReferenceScale::compaction_param * (1. - A(i, 0)));
+        double const time_viscous = ReferenceScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, ReferenceScale::exponent_relaxation_sigma - 1.);
+
+        // Plastic failure tildeP
+        double tildeP;
+        if (sigma_n < 0.) {
+            //below line copied from nextsim finiteelement.cpp
+            //double const Pmax = std::pow(M_thick[cpt], exponent_compression_factor)*compression_factor*expC;
+            double const Pmax = ReferenceScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+            // tildeP must be capped at 1 to get an elastic response
+            tildeP = std::min(1., -Pmax / sigma_n);
+        } else {
+            tildeP = 0.;
+        }
+
+        // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
+        // min and - from nextsim
+        double const multiplicator = std::min(1. - 1e-12,
+            time_viscous / (time_viscous + timemesh.dt_momentum * (1. - tildeP)));
+
+        double const elasticity = ReferenceScale::young * (1. - D(i, 0)) * expC;
+
+        double const Dunit_factor = 1. / (1. - SQR(ReferenceScale::nu0));
+        /* Stiffness matrix
+        * 1  nu 0
+        * nu 1  0
+        * 0  0  (1-nu)
+        */
+        //M_Dunit[0] = Dunit_factor * 1.;
+        //M_Dunit[1] = Dunit_factor * nu0;
+        //M_Dunit[3] = Dunit_factor * nu0;
+        //M_Dunit[4] = Dunit_factor * 1.;
+        //M_Dunit[8] = Dunit_factor * (1. - nu0) ;
+
+        //compute SigmaE
+        double SigmaE11 = Dunit_factor * (E11(i, 0) + ReferenceScale::nu0 * E22(i, 0));
+        double SigmaE22 = Dunit_factor * (ReferenceScale::nu0 * E11(i, 0) + E22(i, 0));
+        double SigmaE12 = 1. / (1 - ReferenceScale::nu0) * E12(i, 0);
+
+        //Elasit prediction Eqn. (32)
+        S11(i, 0) += timemesh.dt_momentum * elasticity * SigmaE11;
+        S11(i, 0) *= multiplicator;
+        S12(i, 0) += timemesh.dt_momentum * elasticity * SigmaE12;
+        S12(i, 0) *= multiplicator;
+        S22(i, 0) += timemesh.dt_momentum * elasticity * SigmaE22;
+        S22(i, 0) *= multiplicator;
+
+        //continiue if stress in inside the failure envelope
+        /* Compute the shear and normal stresses, which are two invariants of the internal stress tensor */
+        double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
+        //update sigma_n
+        sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+        //cohesion Eqn. (21)
+        //Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10 cm)
+        double const C_fix = ReferenceScale::C_lab * std::sqrt(0.1 / mesh.hx);
+        ; // C_lab;...  : cohesion (Pa)
+
+        // d critical Eqn. (29)
+        double dcrit;
+        if (sigma_n < -ReferenceScale::compr_strength)
+            dcrit = -ReferenceScale::compr_strength / sigma_n;
+        else
+            // M_Cohesion[cpt] depends on local random contribution
+            // M_Cohesion[i] = C_fix+C_alea*(M_random_number[i]);
+            // finiteelement.cpp#L3834
+            dcrit = C_fix / (sigma_s + ReferenceScale::tan_phi * sigma_n);
+
+        /* Calculate the adjusted level of damage */
+        if ((0. < dcrit) && (dcrit < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+        {
+            /* Calculate the characteristic time for damage and damage increment */
+            // M_delta_x[cpt] = mesh.hx ???
+            double const td = mesh.hx * std::sqrt(2. * (1. + ReferenceScale::nu0) * ReferenceScale::rho_ice)
+                / std::sqrt(elasticity);
+
+            // Eqn. (34)
+            D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * timemesh.dt_momentum / td;
+
+            // Recalculate the new state of stress by relaxing elstically Eqn. (36)
+            S11(i, 0) -= S11(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+            S12(i, 0) -= S12(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+            S22(i, 0) -= S22(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+        }
+    }
+    GlobalTimer.stop("dyn -- mom -- damage");
 }
 
 //! Performs one macro timestep1
@@ -274,7 +342,7 @@ void Dynamics::step()
 {
     GlobalTimer.start("dyn");
     GlobalTimer.start("dyn -- adv");
-    //advectionStep();
+    advectionStep();
     GlobalTimer.stop("dyn -- adv");
 
     GlobalTimer.start("dyn -- mom");
