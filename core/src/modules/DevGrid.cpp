@@ -32,14 +32,23 @@ const std::map<std::string, DevGrid::ProgDoubleFn> DevGrid::variableFunctions
            { "sss", &PrognosticData::seaSurfaceSalinity } };
 // clang-format on
 
-DevGrid::DevGrid()
-    : cursor(*this)
+void DevGrid::init(const std::string& filePath)
 {
     data.resize(nx * nx);
-    processedStructureName = ourStructureName;
+
+    netCDF::NcFile ncFile(filePath, netCDF::NcFile::FileMode::read);
+    init(ncFile);
+    ncFile.close();
 }
 
-DevGrid::~DevGrid() { }
+void DevGrid::init(const netCDF::NcGroup& grp)
+{
+    netCDF::NcGroup metaGroup(grp.getGroup(metadataNodeName));
+    netCDF::NcGroup dataGroup(grp.getGroup(dataNodeName));
+
+    initMeta(metaGroup);
+    initData(dataGroup);
+}
 
 void DevGrid::initMeta(const netCDF::NcGroup& metaGroup)
 {
@@ -73,10 +82,25 @@ void DevGrid::initData(const netCDF::NcGroup& dataGroup)
         netCDF::NcVar var(dataGroup.getVar(name));
     }
 }
+
+void DevGrid::dump(const std::string& filePath) const
+{
+    netCDF::NcFile ncFile(filePath, netCDF::NcFile::FileMode::write);
+    dump(ncFile);
+    ncFile.close();
+}
+
+void DevGrid::dump(netCDF::NcGroup& headGroup) const
+{
+    netCDF::NcGroup metaGroup = headGroup.addGroup(metadataNodeName);
+    netCDF::NcGroup dataGroup = headGroup.addGroup(dataNodeName);
+    dumpMeta(metaGroup);
+    dumpData(dataGroup);
+}
+
 void DevGrid::dumpMeta(netCDF::NcGroup& metaGroup) const
 {
-    // Run the base class output
-    IStructure::dumpMeta(metaGroup);
+    metaGroup.putAtt(typeNodeName, processedStructureName);
 }
 
 void DevGrid::dumpData(netCDF::NcGroup& dataGroup) const
@@ -114,11 +138,6 @@ bool DevGrid::validCursor() const { return iCursor != data.end(); }
 ElementData& DevGrid::cursorData() { return *iCursor; }
 const ElementData& DevGrid::cursorData() const { return *iCursor; }
 void DevGrid::incrCursor() { ++iCursor; }
-
-DevGrid::Cursor::Cursor(DevGrid& dg)
-    : owner(dg)
-{
-}
 
 IStructure& DevGrid::Cursor::operator=(const int i) const
 {

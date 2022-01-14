@@ -19,16 +19,19 @@ namespace Nextsim {
 
 class DevGrid : public IStructure {
 public:
-    DevGrid();
-    virtual ~DevGrid();
+    DevGrid()
+    : cursor(*this)
+    {
+        processedStructureName = ourStructureName;
+    }
+
+    virtual ~DevGrid() = default;
 
     const static int nx;
 
     // Read/write override functions
-    void initMeta(const netCDF::NcGroup& metaGroup) override;
-    void initData(const netCDF::NcGroup& dataGroup) override;
-    void dumpMeta(netCDF::NcGroup& metaGroup) const override;
-    void dumpData(netCDF::NcGroup& dataGroup) const override;
+    void init(const std::string& filePath) override;
+    void dump(const std::string& filePath) const override;
 
     // Cursor manipulation override functions
     int resetCursor() override;
@@ -39,7 +42,11 @@ public:
 
     class Cursor : public IStructure::Cursor {
     public:
-        Cursor(DevGrid&);
+        Cursor(DevGrid& dg)
+            : owner(dg)
+        {
+        }
+
         ~Cursor() = default;
         IStructure& operator=(const int) const override;
         operator bool() const override;
@@ -52,6 +59,51 @@ public:
     };
 
     const Cursor cursor;
+
+protected:
+    /*!
+     * @brief Initializes the structure based on the contents of the structure
+     * group of the input file.
+     *
+     * @param grp The NetCDF group instance that holds the structure
+     * information.
+     */
+    void init(const netCDF::NcGroup& grp);
+    /*!
+     * @brief Initializes the structure of the IStructure from metadata.
+     *
+     * @param metaGroup The NetCDF group instance holding the structure
+     * metadata.
+     */
+    void initMeta(const netCDF::NcGroup& metaGroup);
+    /*!
+     * @brief Initializes the contents of the IStructure from data.
+     *
+     * @param dataGroup The NetCDF group instance holding the data.
+     */
+    void initData(const netCDF::NcGroup& dataGroup);
+    /*!
+     * @brief Dumps the data and metadata to two sub-groups.
+     *
+     * @details The structure metadata will be dumped to immediate subnodes
+     * with names specified by the ::metadataNodeName and ::dataNodeName public
+     * member variables.
+     *
+     * @param headGroup The top-level node to hold the metadata and data nodes.
+     */
+    void dump(netCDF::NcGroup& headGroup) const;
+    /*!
+     * @brief Dumps the structural metadata to a netCDF node.
+     *
+     * @param metaGroup The top-level node to write the metadata to.
+     */
+    void dumpMeta(netCDF::NcGroup& metaGroup) const;
+    /*!
+     * @brief Dumps the prognostic data to a netCDF node.
+     *
+     * @param dataGroup The top-level node to write the data to.
+     */
+    void dumpData(netCDF::NcGroup& dataGroup) const;
 
 private:
     const static std::string ourStructureName;

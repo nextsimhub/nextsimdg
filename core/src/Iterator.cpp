@@ -32,7 +32,7 @@ void Iterator::setStartStopStep(
 
 void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr, const std::string& durationStr, const std::string& stepStr)
 {
-
+ // TODO Implement
 }
 
 void Iterator::run()

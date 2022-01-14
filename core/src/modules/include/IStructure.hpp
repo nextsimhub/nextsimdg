@@ -33,6 +33,7 @@ namespace Nextsim {
  */
 class IStructure {
 public:
+    IStructure() = default;
     virtual ~IStructure() = default;
 
     /*!
@@ -40,43 +41,7 @@ public:
      *
      * @param filePath The path to attempt writing the data to.
      */
-    inline void init(const std::string& filePath)
-    {
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::FileMode::read);
-        init(ncFile);
-        ncFile.close();
-    }
-
-    /*!
-     * @brief Initializes the structure based on the contents of the structure
-     * group of the input file.
-     *
-     * @param grp The NetCDF group instance that holds the structure
-     * information.
-     */
-    virtual void init(const netCDF::NcGroup& grp)
-    {
-        netCDF::NcGroup metaGroup(grp.getGroup(metadataNodeName));
-        netCDF::NcGroup dataGroup(grp.getGroup(dataNodeName));
-
-        initMeta(metaGroup);
-        initData(dataGroup);
-    }
-
-    /*!
-     * @brief Initializes the structure of the IStructure from metadata.
-     *
-     * @param metaGroup The NetCDF group instance holding the structure
-     * metadata.
-     */
-    virtual void initMeta(const netCDF::NcGroup& metaGroup) = 0;
-
-    /*!
-     * @brief Initializes the contents of the IStructure from data.
-     *
-     * @param dataGroup The NetCDF group instance holding the data.
-     */
-    virtual void initData(const netCDF::NcGroup& metaGroup) = 0;
+    virtual void init(const std::string& filePath) = 0;
 
     //! Returns the structure name that this class will process
     std::string structureType() const { return processedStructureName; }
@@ -92,51 +57,11 @@ public:
     }
 
     /*!
-     * @brief Dumps the structural metadata to a netCDF node.
-     *
-     * @param metaGroup The top-level node to write the metadata to.
-     */
-    virtual void dumpMeta(netCDF::NcGroup& metaGroup) const
-    {
-        metaGroup.putAtt(typeNodeName, processedStructureName);
-    }
-
-    /*!
-     * @brief Dumps the prognostic data to a netCDF node.
-     *
-     * @param dataGroup The top-level node to write the data to.
-     */
-    virtual void dumpData(netCDF::NcGroup& dataGroup) const = 0;
-
-    /*!
-     * @brief Dumps the data and metadata to two sub-groups.
-     *
-     * @details The structure metadata will be dumped to immediate subnodes
-     * with names specified by the ::metadataNodeName and ::dataNodeName public
-     * member variables.
-     *
-     * @param headGroup The top-level node to hold the metadata and data nodes.
-     */
-    inline void dump(netCDF::NcGroup& headGroup) const
-    {
-        netCDF::NcGroup metaGroup = headGroup.addGroup(metadataNodeName);
-        netCDF::NcGroup dataGroup = headGroup.addGroup(dataNodeName);
-        dumpMeta(metaGroup);
-        dumpData(dataGroup);
-    }
-
-    /*!
      * @brief Dumps the data to a file path.
      *
      * @param filePath The path to attempt writing the data to.
      */
-    inline void dump(const std::string& filePath)
-    {
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::FileMode::replace);
-        dump(ncFile);
-        ncFile.close();
-    }
-
+    virtual void dump(const std::string& filePath) const = 0;
     /*!
      * @brief Resets the data cursor.
      *
