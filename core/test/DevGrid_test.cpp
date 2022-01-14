@@ -9,6 +9,7 @@
 #include <catch2/catch.hpp>
 
 #include "include/DevGrid.hpp"
+#include "include/DevGridIO.hpp"
 #include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModuleLoader.hpp"
@@ -25,6 +26,8 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
     ModuleLoader::getLoader().setAllDefaults();
 
     DevGrid grid;
+    grid.init("");
+    grid.setIO(new DevGridIO(grid));
     // Fill in the data. It is not real data.
     grid.resetCursor();
     int nx = DevGrid::nx;
@@ -46,6 +49,8 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
     grid.dump(filename);
 
     DevGrid grid2;
+    grid2.init("");
+    grid2.setIO(new DevGridIO(grid2));
 
     grid2.cursor = 0;
 

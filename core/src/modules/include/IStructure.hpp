@@ -99,6 +99,10 @@ public:
         virtual IStructure& operator++() const = 0;
     };
 
+    //! The name of the node holding the name of the structure type processed
+    //! by this class.
+    static const std::string typeNodeName() { return "type"; };
+
 protected:
     //! Name of the metadata node.
     std::string metadataNodeName = "structure";
@@ -106,9 +110,6 @@ protected:
     std::string dataNodeName = "data";
     //! Name of the structure type processed by this class.
     std::string processedStructureName = "none";
-    //! The name of the node holding the name of the structure type processed
-    //! by this class.
-    const std::string typeNodeName = "type";
 };
 
 }

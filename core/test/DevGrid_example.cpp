@@ -9,6 +9,7 @@
 #include <catch2/catch.hpp>
 
 #include "include/DevGrid.hpp"
+#include "include/DevGridIO.hpp"
 #include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModuleLoader.hpp"
@@ -24,6 +25,8 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
     ModuleLoader::getLoader().setAllDefaults();
 
     DevGrid grid;
+    grid.init("");
+    grid.setIO(new DevGridIO(grid));
     // Fill in the data. It is not real data.
     grid.resetCursor();
     int nx = DevGrid::nx;
@@ -51,7 +54,7 @@ TEST_CASE("Read the example file, if it exists", "[DevGrid]")
     ModuleLoader::getLoader().setAllDefaults();
 
     DevGrid grid;
-
+    grid.init("");
     grid.resetCursor();
     int targetIndex = 7 * DevGrid::nx + 3;
     for (int i = 0; i < targetIndex; ++i) {
@@ -63,6 +66,7 @@ TEST_CASE("Read the example file, if it exists", "[DevGrid]")
 
     double unInitIce = grid.cursorData().iceThickness();
 
+    grid.setIO(new DevGridIO(grid));
     grid.init(filename);
 
     grid.resetCursor();

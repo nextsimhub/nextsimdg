@@ -118,9 +118,8 @@ add_executable(testElementData
     "${PhysicsModulesDir}/ThermoIce0.cpp"
     )
 
-target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
-target_link_directories(testElementData PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testElementData PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
+target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}")
+target_link_libraries(testElementData PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)
 
 add_executable(exampleDevGridOutput
     "DevGrid_example.cpp"
@@ -128,6 +127,7 @@ add_executable(exampleDevGridOutput
     "${SRC_DIR}/ModuleLoader.cpp"
     "${SRC_DIR}/ElementData.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/DevGridIO.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
     "${PhysicsModulesDir}/NextsimPhysics.cpp"
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
@@ -148,6 +148,7 @@ add_executable(testDevGrid
     "${SRC_DIR}/ModuleLoader.cpp"
     "${SRC_DIR}/ElementData.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/DevGridIO.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
     "${PhysicsModulesDir}/NextsimPhysics.cpp"
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"

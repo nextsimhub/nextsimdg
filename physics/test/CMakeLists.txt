@@ -38,8 +38,7 @@ target_include_directories(testNextsimPhysics PRIVATE
     "${ModulesDir}"
     "${netCDF_INCLUDE_DIR}"
     )
-target_link_directories(testNextsimPhysics PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testNextsimPhysics PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
+target_link_libraries(testNextsimPhysics PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)
 
 #add_executable(testThermoIce0
 #    "ThermoIce0_test.cpp"
