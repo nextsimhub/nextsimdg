@@ -22,7 +22,7 @@
 
 namespace Nextsim {
 
-// Forward declarations of functions that are used herein
+// Forward declarations
 enum class StringName {
     METADATA_NODE,
     DATA_NODE,
@@ -53,7 +53,6 @@ static const std::map<std::string, ProgDoubleFn> variableFunctions
        { "sst", &PrognosticData::seaSurfaceTemperature },
        { "sss", &PrognosticData::seaSurfaceSalinity } };
 // clang-format on
-
 
 void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath) const
 {
@@ -131,6 +130,11 @@ void dumpMeta(const std::vector<ElementData>& data, netCDF::NcGroup& metaGroup, 
     metaGroup.putAtt(IStructure::typeNodeName(), nameMap.at(StringName::STRUCTURE));
 }
 
+/*
+ * Uses a pointer-to-member-function to access the data in PrognosticData
+ * element by element. Please see the references in the comments associated
+ * with ProgDoubleFn and CALL_MEMBER_FN for more details.
+ */
 std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pFunc)
 {
     std::vector<double> gathered(data.size());
