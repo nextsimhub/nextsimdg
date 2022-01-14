@@ -17,11 +17,6 @@
 #include <ncFile.h>
 #include <ncVar.h>
 
-#include "/opt/home/include/ncDim.h"
-#include "/opt/home/include/ncDouble.h"
-#include "/opt/home/include/ncFile.h"
-#include "/opt/home/include/ncVar.h"
-
 #include <map>
 #include <vector>
 
