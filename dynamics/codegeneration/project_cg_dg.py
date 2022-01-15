@@ -155,8 +155,12 @@ def edgebasisfunction(j,x):
 # 'd' is the degree of the DG space
 def cg2dg_matrix(dg,cg):
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG{2}_to_DG{3} ='.format(dgdofs(dg),cgdofs(cg), cg,dg))
-    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(dgdofs(dg),cgdofs(cg)))
+    if dg>0:
+        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG{2}_to_DG{3} ='.format(dgdofs(dg),cgdofs(cg), cg,dg))
+        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(dgdofs(dg),cgdofs(cg)))
+    else:
+        print('static const Eigen::Matrix<double, {0}, {1}> CG{2}_to_DG{3} ='.format(dgdofs(dg),cgdofs(cg), cg,dg))
+        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(dgdofs(dg),cgdofs(cg)))
 
     for dgi in range(dgdofs(dg)):
         for cgi in range(cgdofs(cg)):
@@ -181,8 +185,12 @@ def cg2dg_matrix(dg,cg):
 # 'd' is the degree of the DG space
 def cg2dg_dxy_matrix(dg,cg,dXY):
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG{2}_to_DG{3}_d{4} ='.format(dgdofs(dg),cgdofs(cg),cg,dg, dXY))
-    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(dgdofs(dg),cgdofs(cg)))
+    if dg>0:
+        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG{2}_to_DG{3}_d{4} ='.format(dgdofs(dg),cgdofs(cg),cg,dg, dXY))
+        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(dgdofs(dg),cgdofs(cg)))
+    else:
+        print('static const Eigen::Matrix<double, {0}, {1}> CG{2}_to_DG{3}_d{4} ='.format(dgdofs(dg),cgdofs(cg),cg,dg, dXY))
+        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(dgdofs(dg),cgdofs(cg)))
 
     for dgi in range(dgdofs(dg)):
         for cgi in range(cgdofs(cg)):
@@ -213,8 +221,12 @@ def cg2dg_dxy_matrix(dg,cg,dXY):
 # 'd' is the degree of the DG space
 def dg_cg_dxy_matrix(dg,cg,dXY):
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> DG{2}_CG{3}_d{4} ='.format(cgdofs(cg),dgdofs(dg), dg, cg, dXY))
-    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(cgdofs(cg),dgdofs(dg)))
+    if dg>0:
+        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> DG{2}_CG{3}_d{4} ='.format(cgdofs(cg),dgdofs(dg), dg, cg, dXY))
+        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(cgdofs(cg),dgdofs(dg)))
+    else:
+        print('static const Eigen::Matrix<double, {0}, {1}> DG{2}_CG{3}_d{4} ='.format(cgdofs(cg),dgdofs(dg), dg, cg, dXY))
+        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(cgdofs(cg),dgdofs(dg)))
 
 
     for cgi in range(cgdofs(cg)):
@@ -262,7 +274,7 @@ print('')
 
 
 print('//------------------------------ CGtoDG\n')
-for dg in [1,2]:
+for dg in [0,1,2]:
     for cg in [1,2]:
         cg2dg_matrix(dg,cg)
         print('')
@@ -275,7 +287,7 @@ print('')
 
 
 print('//------------------------------ CG2toDG\n')
-for dg in [1,2]:
+for dg in [0,1,2]:
     for cg in [1,2]:
         cg2dg_dxy_matrix(dg,cg,'X')
         cg2dg_dxy_matrix(dg,cg,'Y')
@@ -289,7 +301,7 @@ print('')
 
 
 print('//------------------------------ CG2toDG\n')
-for dg in [1]:
+for dg in [0,1,2]:
     for cg in [1,2]:
         dg_cg_dxy_matrix(dg,cg,'X')
         dg_cg_dxy_matrix(dg,cg,'Y')

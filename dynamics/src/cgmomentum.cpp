@@ -1,5 +1,4 @@
 #include "cgmomentum.hpp"
-#include "codegeneration_cg_to_dg.hpp"
 
 namespace Nextsim {
 
@@ -70,6 +69,52 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<2>& dg, const CGVect
                 cg(cgi + cgshift), cg(cgi + 1 + cgshift);
 
             dg.row(dgi) = CG1_to_DG2 * cg_local;
+        }
+    }
+}
+template <>
+void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<1>& dg, const CGVector<1>& cg)
+{
+    assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == cg.rows());
+    assert(static_cast<long int>(mesh.nx * mesh.ny) == dg.rows());
+
+    const int cgshift = mesh.nx + 1; //!< Index shift for each row
+
+    // parallelize over the rows
+#pragma omp parallel for
+    for (size_t row = 0; row < mesh.ny; ++row) {
+        int dgi = mesh.nx * row; //!< Index of dg vector
+        int cgi = cgshift * row; //!< Lower left index of cg vector
+
+        for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
+            Eigen::Matrix<double, 4, 1> cg_local;
+            cg_local << cg(cgi), cg(cgi + 1),
+                cg(cgi + cgshift), cg(cgi + 1 + cgshift);
+
+            dg.row(dgi) = CG1_to_DG1 * cg_local;
+        }
+    }
+}
+template <>
+void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<0>& dg, const CGVector<1>& cg)
+{
+    assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == cg.rows());
+    assert(static_cast<long int>(mesh.nx * mesh.ny) == dg.rows());
+
+    const int cgshift = mesh.nx + 1; //!< Index shift for each row
+
+    // parallelize over the rows
+#pragma omp parallel for
+    for (size_t row = 0; row < mesh.ny; ++row) {
+        int dgi = mesh.nx * row; //!< Index of dg vector
+        int cgi = cgshift * row; //!< Lower left index of cg vector
+
+        for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
+            Eigen::Matrix<double, 4, 1> cg_local;
+            cg_local << cg(cgi), cg(cgi + 1),
+                cg(cgi + cgshift), cg(cgi + 1 + cgshift);
+
+            dg.row(dgi) = CG1_to_DG0 * cg_local;
         }
     }
 }
@@ -147,90 +192,57 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
         }
     }
 }
-
-//! += scale * (S, nabla Phi)  with Phi=(PhiX, PhiY) CG2 - test functions
 template <>
-void CGMomentum::AddStressTensor(const Mesh& mesh, double scale,
-    CGVector<2>& tx, CGVector<2>& ty,
-    const CellVector<1>& S11, const CellVector<1>& S12, const CellVector<1>& S22) const
+void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
+    CellVector<0>& E11, CellVector<0>& E12, CellVector<0>& E22,
+    const CGVector<1>& vx, const CGVector<1>& vy)
 {
-    const size_t CGROW = 2 * mesh.nx + 1;
+    assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == vx.rows());
+    assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == vy.rows());
+    assert(static_cast<long int>(mesh.nx * mesh.ny) == E11.rows());
+    assert(static_cast<long int>(mesh.nx * mesh.ny) == E12.rows());
+    assert(static_cast<long int>(mesh.nx * mesh.ny) == E22.rows());
 
-    //    //! For parallelization and memory access control use simple checkerboard pattern
-    size_t i = 0;
-    for (size_t iy = 0; iy < mesh.ny; ++iy)
-        for (size_t ix = 0; ix < mesh.nx; ++ix, ++i) {
+    const int cgshift = mesh.nx + 1; //!< Index shift for each row
 
-            //     for (size_t px = 0; px < 2; ++px)
-            //         for (size_t py = 0; py < 2; ++py) {
+    // parallelize over the rows
+#pragma omp parallel for
+    for (size_t row = 0; row < mesh.ny; ++row) {
+        int dgi = mesh.nx * row; //!< Index of dg vector
+        int cgi = cgshift * row; //!< Lower left index of cg vector
 
-            // #pragma omp parallel for
-            //            for (size_t i = 0; i < mesh.n; ++i) {
-            // if (ix % 2 == px) //!< Only proceed if pattern matches.
-            //     continue;
-            // if (iy % 2 == py)
-            //     continue;
+        for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
+            Eigen::Matrix<double, 4, 1> vx_local = {
+                vx(cgi), vx(cgi + 1),
+                vx(cgi + cgshift), vx(cgi + 1 + cgshift)
+            };
+            Eigen::Matrix<double, 4, 1> vy_local = {
+                vy(cgi), vy(cgi + 1),
+                vy(cgi + cgshift), vy(cgi + 1 + cgshift)
+            };
 
-            size_t cg_i = 2 * CGROW * iy + 2 * ix; //!< Lower left index of element in CG2-Vector
-
-            Eigen::Matrix<double, 9, 1> lup1 = scale * (DG1_CG2_dX * S11.row(i).transpose() / mesh.hx + DG1_CG2_dY * S12.row(i).transpose() / mesh.hy);
-            tx(cg_i + 0) += lup1(0);
-            tx(cg_i + 1) += lup1(1);
-            tx(cg_i + 2) += lup1(2);
-            tx(cg_i + 0 + CGROW) += lup1(3);
-            tx(cg_i + 1 + CGROW) += lup1(4);
-            tx(cg_i + 2 + CGROW) += lup1(5);
-            tx(cg_i + 0 + CGROW * 2) += lup1(6);
-            tx(cg_i + 1 + CGROW * 2) += lup1(7);
-            tx(cg_i + 2 + CGROW * 2) += lup1(8);
-
-            Eigen::Matrix<double, 9, 1> lup2 = scale * (DG1_CG2_dX * S12.row(i).transpose() / mesh.hx + DG1_CG2_dY * S22.row(i).transpose() / mesh.hy);
-            ty(cg_i + 0) += lup2(0);
-            ty(cg_i + 1) += lup2(1);
-            ty(cg_i + 2) += lup2(2);
-            ty(cg_i + 0 + CGROW) += lup2(3);
-            ty(cg_i + 1 + CGROW) += lup2(4);
-            ty(cg_i + 2 + CGROW) += lup2(5);
-            ty(cg_i + 0 + CGROW * 2) += lup2(6);
-            ty(cg_i + 1 + CGROW * 2) += lup2(7);
-            ty(cg_i + 2 + CGROW * 2) += lup2(8);
+            E11.row(dgi) = CG1_to_DG0_dX * vx_local / mesh.hx;
+            E22.row(dgi) = CG1_to_DG0_dY * vy_local / mesh.hy;
+            E12.row(dgi) = 0.5 * CG1_to_DG0_dX * vy_local / mesh.hx + 0.5 * CG1_to_DG0_dY * vx_local / mesh.hy;
         }
+    }
 }
-template <>
-void CGMomentum::AddStressTensor(const Mesh& mesh, double scale,
-    CGVector<1>& tx, CGVector<1>& ty,
-    const CellVector<1>& S11, const CellVector<1>& S12, const CellVector<1>& S22) const
+
+template <int CG, int DG>
+void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
+    CGVector<CG>& tx, CGVector<CG>& ty,
+    const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const
 {
-    const size_t CGROW = mesh.nx + 1;
-
-    //    //! For parallelization and memory access control use simple checkerboard pattern
-    size_t i = 0;
-    for (size_t iy = 0; iy < mesh.ny; ++iy)
-        for (size_t ix = 0; ix < mesh.nx; ++ix, ++i) {
-
-            //     for (size_t px = 0; px < 2; ++px)
-            //         for (size_t py = 0; py < 2; ++py) {
-
-            // #pragma omp parallel for
-            //            for (size_t i = 0; i < mesh.n; ++i) {
-            // if (ix % 2 == px) //!< Only proceed if pattern matches.
-            //     continue;
-            // if (iy % 2 == py)
-            //     continue;
-
-            size_t cg_i = CGROW * iy + ix; //!< Lower left index of element in CG2-Vector
-
-            Eigen::Matrix<double, 4, 1> lup1 = scale * (DG1_CG1_dX * S11.row(i).transpose() / mesh.hx + DG1_CG1_dY * S12.row(i).transpose() / mesh.hy);
-            tx(cg_i + 0) += lup1(0);
-            tx(cg_i + 1) += lup1(1);
-            tx(cg_i + 0 + CGROW) += lup1(2);
-            tx(cg_i + 1 + CGROW) += lup1(3);
-
-            Eigen::Matrix<double, 4, 1> lup2 = scale * (DG1_CG1_dX * S12.row(i).transpose() / mesh.hx + DG1_CG1_dY * S22.row(i).transpose() / mesh.hy);
-            ty(cg_i + 0) += lup2(0);
-            ty(cg_i + 1) += lup2(1);
-            ty(cg_i + 0 + CGROW) += lup2(2);
-            ty(cg_i + 1 + CGROW) += lup2(3);
+    // parallelization in tripes
+    for (size_t p = 0; p < 2; ++p)
+#pragma omp parallel for schedule(static)
+        for (size_t cy = 0; cy < mesh.ny; ++cy) //!< loop over all cells of the mesh
+        {
+            if (cy % 2 == p) {
+                size_t c = mesh.nx * cy;
+                for (size_t cx = 0; cx < mesh.nx; ++cx, ++c) //!< loop over all cells of the mesh
+                    AddStressTensorCell(mesh, scale, c, cx, cy, tx, ty, S11, S12, S22);
+            }
         }
 }
 
@@ -267,4 +279,45 @@ void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
         v(lowerleftindex + indecesperrow * i, 0) = 0.0;
     }
 }
+
+template <int CG, int DG>
+void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<CG>& cg_A, const CellVector<DG>& A) const
+{
+    cg_A.zero();
+
+    // parallelization by running over stripes
+    for (size_t p = 0; p < 2; ++p) {
+#pragma omp parallel for
+        for (size_t cy = 0; cy < mesh.ny; ++cy) {
+            if (cy % 2 == p)
+                continue;
+
+            size_t c = cy * mesh.nx;
+
+            for (size_t cx = 0; cx < mesh.nx; ++cx, ++c)
+                InterpolateDGToCGCell(mesh, c, cx, cy, cg_A, A);
+        }
+    }
+
+    // InterpolateDGToCGCell adds to the CG-Dofs with correct weighting. Then we adjust the boundary
+    InterpolateDGToCGBoundary(mesh, cg_A);
+}
+
+// --------------------------------------------------
+
+template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
+    CGVector<1>& tx, CGVector<1>& ty,
+    const CellVector<0>& S11, const CellVector<0>& S12, const CellVector<0>& S22) const;
+
+template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
+    CGVector<1>& tx, CGVector<1>& ty,
+    const CellVector<1>& S11, const CellVector<1>& S12, const CellVector<1>& S22) const;
+
+template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
+    CGVector<2>& tx, CGVector<2>& ty,
+    const CellVector<1>& S11, const CellVector<1>& S12, const CellVector<1>& S22) const;
+
+template void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<1>& cg_A, const CellVector<0>& A) const;
+template void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<2>& cg_A, const CellVector<0>& A) const;
+
 }

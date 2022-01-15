@@ -1,5 +1,6 @@
 #include <cassert>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
@@ -13,6 +14,8 @@
 bool WRITE_VTK = true;
 
 #define CG 1
+#define DGadvection 0
+#define DGstress 0
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -31,17 +34,22 @@ constexpr double rho_ocean = 1026.0; //!< Ocean density
 constexpr double C_atm = 1.2e-3; //!< Air drag coefficient
 constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
 
+constexpr double F_atm = rho_atm * C_atm;
+constexpr double F_ocean = rho_ocean * C_ocean; //!< Ocean drag coefficient
+
 constexpr double Pstar = 27500; //!< Ice strength
 constexpr double fc = 1.46e-4; //!< Coriolis
 
 constexpr double DeltaMin = 2.e-9; //!< Viscous regime
+
+constexpr double T = 30. * 24. * 60. * 60; //!< time
+
 }
 
 inline constexpr double SQR(double x)
 {
     return x * x;
 }
-
 //! Description of the problem data, wind & ocean fields
 class OceanX : virtual public Nextsim::InitialBase {
 public:
@@ -114,36 +122,35 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 30; //!< Number of mesh nodes
+    constexpr size_t N = 32; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    Nextsim::TimeMesh timemesh;
-    constexpr double T = 30 * 24 * 60 * 60; //!< Time horizon (in sec)
     constexpr double k_adv = 120.0; //!< Time step of advection problem
-    constexpr size_t NT = T / k_adv + 1.e-4; //!< Number of Advections steps
+    constexpr size_t NT = ReferenceScale::T / k_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 300;
-    constexpr double beta = 300;
+    constexpr double alpha = 300.0;
+    constexpr double beta = 300.0;
     constexpr size_t NT_evp = 100;
 
     std::cout << "Time step size (advection) " << k_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
               << std::endl;
-    timemesh.BasicInit(NT, k_adv, k_adv / beta);
 
     //! VTK output
-    constexpr double T_vtk = 6.0 * 60.0 * 60.0; // evey 6 hours
+    constexpr double T_vtk = 1.0 * 24.0 * 60.0 * 60.0; // evey day
     constexpr size_t NT_vtk = T_vtk / k_adv + 1.e-4;
     //! LOG message
-    constexpr double T_log = 30.0 * 60.0; // every 30 minutes
+    constexpr double T_log = 10.0 * 60.0; // every 30 minute
     constexpr size_t NT_log = T_log / k_adv + 1.e-4;
 
     //! Variables
     Nextsim::CGVector<CG> vx(mesh), vy(mesh); //!< velocity
+    Nextsim::CGVector<CG> tmpx(mesh), tmpy(mesh); //!< tmp for stress.. should be removed
+    Nextsim::CGVector<CG> cg_A(mesh), cg_H(mesh); //!< interpolation of ice height and conc.
     Nextsim::CGVector<CG> vx_mevp(mesh), vy_mevp(mesh); //!< temp. Velocity used for MEVP
     vx.zero();
     vy.zero();
@@ -165,13 +172,15 @@ int main()
     // Nextsim::InterpolateCG(mesh, AX, AtmForcingX);
     // Nextsim::InterpolateCG(mesh, AY, AtmForcingY);
 
-    Nextsim::CellVector<2> H(mesh), A(mesh); //!< ice height and concentration
+    Nextsim::CellVector<DGadvection> H(mesh), A(mesh); //!< ice height and concentration
     Nextsim::L2ProjectInitial(mesh, H, InitialH());
     Nextsim::L2ProjectInitial(mesh, A, InitialA());
-    Nextsim::CellVector<1> E11(mesh), E12(mesh), E22(mesh); //!< storing strain rates
-    Nextsim::CellVector<1> S11(mesh), S12(mesh), S22(mesh); //!< storing stresses rates
+    Nextsim::CellVector<DGstress> E11(mesh), E12(mesh), E22(mesh); //!< storing strain rates
+    Nextsim::CellVector<DGstress> S11(mesh), S12(mesh), S22(mesh); //!< storing stresses rates
 
     Nextsim::CellVector<0> DELTA(mesh); //!< Storing DELTA
+    Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
+    Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
 
     // // save initial condition
     //   Nextsim::GlobalTimer.start("time loop - i/o");
@@ -182,10 +191,11 @@ int main()
     //   Nextsim::GlobalTimer.stop("time loop - i/o");
 
     //! Transport
-    Nextsim::CellVector<2> dgvx(mesh), dgvy(mesh);
-    Nextsim::DGTransport<2> dgtransport(dgvx, dgvy);
+    Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
+    Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk3");
     dgtransport.setmesh(mesh);
+    Nextsim::TimeMesh timemesh(NT, k_adv, NT_evp);
     dgtransport.settimemesh(timemesh);
 
     //! Initial Forcing
@@ -196,12 +206,24 @@ int main()
 
     Nextsim::GlobalTimer.start("time loop");
 
-    for (size_t timestep = 1; timestep <= timemesh.N; ++timestep) {
-
-        double time = timemesh.dt * timestep;
+    for (size_t timestep = 1; timestep <= NT; ++timestep) {
+        double time = k_adv * timestep;
+        double timeInMinutes = time / 60.0;
+        double timeInHours = time / 60.0 / 60.0;
+        double timeInDays = time / 60.0 / 60.0 / 24.;
 
         if (timestep % NT_log == 0)
-            std::cout << "--- Advection step " << timestep << "-> day " << time / (24.0 * 60.0 * 60.0) << std::endl;
+            std::cout << "\rAdvection step " << timestep << "\t "
+                      << std::setprecision(2)
+                      << std::fixed
+                      << std::setw(10) << std::right
+                      << time << "s\t"
+                      << std::setw(8) << std::right
+                      << timeInMinutes << "m\t"
+                      << std::setw(6) << std::right
+                      << timeInHours << "h\t"
+                      << std::setw(6) << std::right
+                      << timeInDays << "d\t\t" << std::flush;
 
         //! Initialize time-dependent forcing
         Nextsim::GlobalTimer.start("time loop - forcing");
@@ -212,18 +234,23 @@ int main()
         Nextsim::GlobalTimer.stop("time loop - forcing");
 
         Nextsim::GlobalTimer.start("time loop - advection");
+
         // momentum.ProjectCGToDG(mesh, dgvx, vx);
         // momentum.ProjectCGToDG(mesh, dgvy, vy);
         // dgtransport.reinitvelocity();
-        //   // dgtransport.step(A);
-        //   // dgtransport.step(H);
+        // dgtransport.step(A);
+        // dgtransport.step(H);
 
         // A.col(0) = A.col(0).cwiseMin(1.0);
         // A.col(0) = A.col(0).cwiseMax(0.0);
         // H.col(0) = H.col(0).cwiseMax(0.0);
 
-        // // transport step
-        // dynamics.advectionStep();
+        momentum.InterpolateDGToCG(mesh, cg_A, A);
+        momentum.InterpolateDGToCG(mesh, cg_H, H);
+        cg_A = cg_A.cwiseMin(1.0);
+        cg_A = cg_A.cwiseMax(0.0);
+        cg_H = cg_H.cwiseMax(1.e-4); //!< Limit H from below
+
         Nextsim::GlobalTimer.stop("time loop - advection");
 
         Nextsim::GlobalTimer.start("time loop - mevp");
@@ -250,85 +277,132 @@ int main()
                 assert(DELTA(i, 0) > 0);
 
                 //! Ice strength
-                double P = ReferenceScale::Pstar * H(i, 0) * A(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+                double P = ReferenceScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
 
                 double zeta = P / 2.0 / DELTA(i, 0);
                 double eta = zeta / 4;
+                SHEAR(i, 0) = (SQR(ReferenceScale::DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) - 4.0 * SQR(E12(i, 0)));
 
                 // S = S_old + 1/alpha (S(u)-S_old)
                 //   = (1-1/alpha) S_old + 1/alpha S(u)
-                Eigen::Matrix<double, 1, 3> Id3(1.0, 0.0, 0.0);
                 S11.row(i) *= (1.0 - 1.0 / alpha);
                 S12.row(i) *= (1.0 - 1.0 / alpha);
                 S22.row(i) *= (1.0 - 1.0 / alpha);
 
-                S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)) - 0.5 * P * Id3);
+                S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
+                S11(i, 0) -= 1.0 / alpha * 0.5 * P;
+
                 S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
-                S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)) - 0.5 * P * Id3);
+
+                S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
+                S22(i, 0) -= 1.0 / alpha * 0.5 * P;
+
+                // prepare for ellipse-output
+                if ((timestep % NT_vtk == 0)) {
+                    S1(i) = (S11(i, 0) + S22(i, 0)) / P;
+                    S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
+                }
             }
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update");
             //! Update
-            vx *= (1.0 - timemesh.dt_momentum / timemesh.dt);
-            vy *= (1.0 - timemesh.dt_momentum / timemesh.dt);
+            Nextsim::GlobalTimer.start("time loop - mevp - update1");
 
-            vx += timemesh.dt_momentum / timemesh.dt * vx_mevp + timemesh.dt_momentum / ReferenceScale::rho_ice * (ReferenceScale::rho_ocean * ReferenceScale::C_ocean * (OX - vx).array().abs() * (OX - vx).array() + ReferenceScale::rho_atm * ReferenceScale::C_atm * AX.array().abs() * AX.array()).matrix();
-            ;
-            vy += timemesh.dt_momentum / timemesh.dt * vy_mevp + timemesh.dt_momentum / ReferenceScale::rho_ice * (ReferenceScale::rho_ocean * ReferenceScale::C_ocean * (OY - vy).array().abs() * (OY - vy).array() + ReferenceScale::rho_atm * ReferenceScale::C_atm * AY.array().abs() * AY.array()).matrix();
-            ;
+            //	    update by a loop.. implicit parts and h-dependent
 
-            momentum.AddStressTensor(mesh, -timemesh.dt_momentum / ReferenceScale::rho_ice, vx, vy, S11, S12, S22);
+            //
+            vx = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+                      + ReferenceScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts // NO SCALING WITH A
+                * (ReferenceScale::rho_ice * cg_H.array() / k_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
+                    (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
+                        ReferenceScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
+                    ))
+                     .matrix();
+            vy = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+                      + ReferenceScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts // NO SCALING WITH A
+                * (ReferenceScale::rho_ice * cg_H.array() / k_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
+                    (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
+                        ReferenceScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
+                    ))
+                     .matrix();
+            Nextsim::GlobalTimer.stop("time loop - mevp - update1");
+
+            Nextsim::GlobalTimer.start("time loop - mevp - update2");
+            // Implicit etwas ineffizient
+            tmpx.zero();
+            tmpy.zero();
+            momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
+            vx += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+                       + ReferenceScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts // NO SCALING WITH A
+                * tmpx.array())
+                      .matrix();
+            vy += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+                       + ReferenceScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts // NO SCALING WITH A
+                * tmpy.array())
+                      .matrix();
+
+            Nextsim::GlobalTimer.stop("time loop - mevp - update2");
             Nextsim::GlobalTimer.stop("time loop - mevp - update");
 
-            Nextsim::GlobalTimer.start("time loop - mevp - dirichlet");
+            Nextsim::GlobalTimer.start("time loop - mevp - bound.");
             momentum.DirichletZero(mesh, vx);
             momentum.DirichletZero(mesh, vy);
-            Nextsim::GlobalTimer.stop("time loop - mevp - dirichlet");
+            Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
         }
         Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //         //! Output
         if (WRITE_VTK)
             if ((timestep % NT_vtk == 0)) {
+                std::cout << "VTK output at day " << time / 24. / 60. / 60. << std::endl;
 
                 size_t printstep = timestep / NT_vtk + 1.e-4;
-                Nextsim::GlobalTimer.start("time loop - i/o");
-                Nextsim::VTK::write_cg<CG>("ResultsBox/vx", printstep, vx, mesh);
-                Nextsim::VTK::write_cg<CG>("ResultsBox/vy", printstep, vy, mesh);
 
-                Nextsim::VTK::write_dg<0>("ResultsBox/delta", printstep, DELTA, mesh);
+                char s[80];
+                sprintf(s, "ResultsBox/ellipse_%03d.txt");
+                std::ofstream ELLOUT(s);
+                for (size_t i = 0; i < mesh.n; ++i)
+                    ELLOUT << S1(i, 0) << "\t" << S2(i, 0) << std::endl;
+                ELLOUT.close();
+
+                Nextsim::GlobalTimer.start("time loop - i/o");
+                Nextsim::VTK::write_cg("ResultsBox/vx", printstep, vx, mesh);
+                Nextsim::VTK::write_cg("ResultsBox/vy", printstep, vy, mesh);
+
+                Nextsim::VTK::write_dg("ResultsBox/delta", printstep, DELTA, mesh);
+                Nextsim::VTK::write_dg("ResultsBox/shear", printstep, SHEAR, mesh);
 
                 // Nextsim::CellVector<2> dgvx(mesh), dgvy(mesh);
                 // momentum.ProjectCGToDG(mesh, dgvx, vx);
                 // momentum.ProjectCGToDG(mesh, dgvy, vy);
-                // Nextsim::VTK::write_dg<2>("Results/dvx", printstep, dgvx, mesh);
-                // Nextsim::VTK::write_dg<2>("Results/dvy", printstep, dgvy, mesh);
+                // Nextsim::VTK::write_dg<2>("ResultsBox/dvx", printstep, dgvx, mesh);
+                // Nextsim::VTK::write_dg<2>("ResultsBox/dvy", printstep, dgvy, mesh);
 
-                // Nextsim::VTK::write_dg<1>("Results/S11", printstep, dynamics.GetS11(),
-                // dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("Results/S12", printstep,
-                // dynamics.GetS12(), dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("Results/S22",
+                // Nextsim::VTK::write_dg<1>("ResultsBox/S11", printstep, dynamics.GetS11(),
+                // dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsBox/S12", printstep,
+                // dynamics.GetS12(), dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsBox/S22",
                 // printstep, dynamics.GetS22(), dynamics.GetMesh());
-                Nextsim::VTK::write_dg<2>(
+                Nextsim::VTK::write_dg(
                     "ResultsBox/A", printstep, A, mesh);
-                Nextsim::VTK::write_dg<2>(
+                Nextsim::VTK::write_dg(
                     "ResultsBox/H", printstep, H, mesh);
-                //	    Nextsim::VTK::write_dg<0>("Results/zeta", printstep, zeta, dynamics.GetMesh());
+                //	    Nextsim::VTK::write_dg<0>("ResultsBox/zeta", printstep, zeta, dynamics.GetMesh());
 
-                // Nextsim::VTK::write_dg<0>("Results/D",printstep,dynamics.GetD(),
+                // Nextsim::VTK::write_dg<0>("ResultsBox/D",printstep,dynamics.GetD(),
                 // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("Results/ox",printstep,dynamics.GetOceanX(),
+                // Nextsim::VTK::write_dg<0>("ResultsBox/ox",printstep,dynamics.GetOceanX(),
                 // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("Results/oy",printstep,dynamics.GetOceanY(),
+                // Nextsim::VTK::write_dg<0>("ResultsBox/oy",printstep,dynamics.GetOceanY(),
                 // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("Results/ax",printstep,dynamics.GetAtmX(),
+                // Nextsim::VTK::write_dg<0>("ResultsBox/ax",printstep,dynamics.GetAtmX(),
                 // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<1>("Results/S11", printstep, S11, mesh);
-                // Nextsim::VTK::write_dg<1>("Results/S12", printstep, S12, mesh);
-                // Nextsim::VTK::write_dg<1>("Results/S22", printstep, S22, mesh);
-                // Nextsim::VTK::write_dg<1>("Results/E11", printstep, E11, mesh);
-                // Nextsim::VTK::write_dg<1>("Results/E12", printstep, E12, mesh);
-                // Nextsim::VTK::write_dg<1>("Results/E22", printstep, E22, mesh);
+                // Nextsim::VTK::write_dg<1>("ResultsBox/S11", printstep, S11, mesh);
+                // Nextsim::VTK::write_dg<1>("ResultsBox/S12", printstep, S12, mesh);
+                // Nextsim::VTK::write_dg<1>("ResultsBox/S22", printstep, S22, mesh);
+                // Nextsim::VTK::write_dg<1>("ResultsBox/E11", printstep, E11, mesh);
+                // Nextsim::VTK::write_dg<1>("ResultsBox/E12", printstep, E12, mesh);
+                // Nextsim::VTK::write_dg<1>("ResultsBox/E22", printstep, E22, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
