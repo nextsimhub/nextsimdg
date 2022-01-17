@@ -80,7 +80,7 @@ public:
         double cM = 256000. + 51200. * time / oneday;
 
         //! scaling factor to reduce wind away from center
-        double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM)));
+        double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
 
         double alpha = 72.0 / 180.0 * M_PI;
         return -scale * ReferenceScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
@@ -101,7 +101,7 @@ public:
         double cM = 256000. + 51200. * time / oneday;
 
         //! scaling factor to reduce wind away from center
-        double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM)));
+        double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
 
         double alpha = 72.0 / 180.0 * M_PI;
         return -scale * ReferenceScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
@@ -130,7 +130,7 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 128; //!< Number of mesh nodes
+    constexpr size_t N = 256; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -142,7 +142,7 @@ int main()
     //! MEVP parameters
     constexpr double alpha = 800.0;
     constexpr double beta = 800.0;
-    constexpr size_t NT_evp = 100;
+    constexpr size_t NT_evp = 200;
 
     std::cout << "Time step size (advection) " << k_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
@@ -324,6 +324,7 @@ int main()
                 * (ReferenceScale::rho_ice * cg_H.array() / k_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
                     cg_A.array() * (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
                         ReferenceScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
+                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (vx - OX).array() // cor + surface
                     ))
                      .matrix();
             vy = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
@@ -331,6 +332,7 @@ int main()
                 * (ReferenceScale::rho_ice * cg_H.array() / k_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
                     cg_A.array() * (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
                         ReferenceScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
+                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (OY - vy).array() // cor + surface
                     ))
                      .matrix();
             Nextsim::GlobalTimer.stop("time loop - mevp - update1");
