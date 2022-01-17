@@ -1,21 +1,21 @@
 /*!
- * @file DevIterant.hpp
+ * @file DevStep.hpp
  *
  * @date Jan 12, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_DEVITERANT_HPP
-#define CORE_SRC_INCLUDE_DEVITERANT_HPP
+#ifndef CORE_SRC_INCLUDE_DEVSTEP_HPP
+#define CORE_SRC_INCLUDE_DEVSTEP_HPP
 
 #include "include/Iterator.hpp"
 
 namespace Nextsim {
 
-class DevIterant : public Iterator::Iterant {
+class DevStep : public Iterator::Iterant {
 public:
-    DevIterant() = default;
-    virtual ~DevIterant() = default;
+    DevStep() = default;
+    virtual ~DevStep() = default;
 
     void init(const Environment& env) override {};
     void start(const Iterator::TimePoint& startTime) override {};
@@ -25,4 +25,4 @@ public:
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_DEVITERANT_HPP */
+#endif /* CORE_SRC_INCLUDE_DEVSTEP_HPP */

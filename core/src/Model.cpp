@@ -8,8 +8,7 @@
 
 #include "include/Configurator.hpp"
 #include "include/DevGrid.hpp"
-#include "include/DevIterant.hpp"
-
+#include "include/DevStep.hpp"
 #include <string>
 
 namespace Nextsim {

@@ -10,11 +10,11 @@
 #include "include/Logged.hpp"
 
 #include "include/Configured.hpp"
-#include "include/DevIterant.hpp"
 #include "include/Iterator.hpp"
 #include "include/IStructure.hpp"
 
 #include <string>
+#include "DevStep.hpp"
 
 namespace Nextsim {
 
@@ -39,7 +39,7 @@ public:
 
 private:
     Iterator iterator;
-    DevIterant iterant; // Change the model master iterant here
+    DevStep iterant; // Change the model master iterant here
 
     std::string restartFileName;
 
