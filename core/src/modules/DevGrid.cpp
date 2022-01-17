@@ -20,14 +20,14 @@ const int DevGrid::nx = 10;
 void DevGrid::init(const std::string& filePath)
 {
     data.resize(nx * nx);
-    if (pio) {
+    if (pio && !filePath.empty()) {
         pio->init(data, filePath);
     }
 };
 
 void DevGrid::dump(const std::string& filePath) const
 {
-    if (pio) {
+    if (pio  && !filePath.empty()) {
         pio->dump(data, filePath);
     }
 };
