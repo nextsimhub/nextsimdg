@@ -15,7 +15,7 @@ namespace Nextsim {
 // and stopped
 class Counterant : public Iterator::Iterant {
 public:
-    void init(const Environment& env)
+    void init()
     {
         count = 0;
         startCount = 0;

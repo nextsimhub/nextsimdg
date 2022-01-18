@@ -18,7 +18,7 @@ SimpleIterant::SimpleIterant()
     // It's so simple, there's nothing here
 }
 
-void SimpleIterant::init(const Environment& env)
+void SimpleIterant::init()
 {
     std::cout << "SimpleIterant::init" << std::endl;
 }

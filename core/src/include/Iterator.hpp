@@ -13,8 +13,6 @@
 
 namespace Nextsim {
 
-class Environment;
-
 //! A class that controls how time steps are performed.
 class Iterator : public Logged {
 public:
@@ -87,8 +85,8 @@ public:
 
         virtual ~Iterant() = default;
 
-        //! Initializes the model, based on some environment.
-        virtual void init(const Environment&) = 0;
+        //! Initializes the model, based on some environment stored in the implementing class.
+        virtual void init() = 0;
         /*!
          * Initializes the iterant based on the start time.
          *
@@ -111,7 +109,7 @@ public:
 
     //! A simple Iterant that does nothing.
     class NullIterant : public Iterant {
-        inline void init(const Environment& env) {};
+        inline void init() {};
         inline void start(const Iterator::TimePoint& startTime) {};
         inline void iterate(const Iterator::Duration& dt) {};
         inline void stop(const Iterator::TimePoint& stopTime) {};

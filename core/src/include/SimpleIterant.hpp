@@ -17,7 +17,7 @@ public:
     SimpleIterant();
 
     //! Prints an informative message about initialization.
-    void init(const Environment&);
+    void init();
     //! Prints an informative message about starting.
     void start(const Iterator::TimePoint& startTime);
     //! Prints an informative message about iterating.
