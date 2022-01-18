@@ -11,7 +11,7 @@
 
 namespace Nextsim {
 
-std::shared_ptr<IStructure> StructureFactory::generate(const static std::string& structureName)
+std::shared_ptr<IStructure> StructureFactory::generate(const std::string& structureName)
 {
     ModuleLoader& loader = ModuleLoader::getLoader();
     std::string iStruct = "Nextsim::IStructure";
