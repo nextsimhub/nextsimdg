@@ -318,6 +318,7 @@ template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
     const CellVector<1>& S11, const CellVector<1>& S12, const CellVector<1>& S22) const;
 
 template void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<1>& cg_A, const CellVector<0>& A) const;
+template void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<1>& cg_A, const CellVector<1>& A) const;
 template void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<2>& cg_A, const CellVector<0>& A) const;
 
 }

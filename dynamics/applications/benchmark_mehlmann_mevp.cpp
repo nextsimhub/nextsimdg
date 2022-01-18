@@ -136,13 +136,13 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double k_adv = 120.0; //!< Time step of advection problem
+    constexpr double k_adv = 60.0; //!< Time step of advection problem
     constexpr size_t NT = ReferenceScale::T / k_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 800.0;
-    constexpr double beta = 800.0;
-    constexpr size_t NT_evp = 200;
+    constexpr double alpha = 1500.0;
+    constexpr double beta = 1500.0;
+    constexpr size_t NT_evp = 100;
 
     std::cout << "Time step size (advection) " << k_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
@@ -201,7 +201,7 @@ int main()
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
     Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
-    dgtransport.settimesteppingscheme("rk3");
+    dgtransport.settimesteppingscheme("rk1");
     dgtransport.setmesh(mesh);
     Nextsim::TimeMesh timemesh(NT, k_adv, NT_evp);
     dgtransport.settimemesh(timemesh);
@@ -254,6 +254,7 @@ int main()
 
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);
+
         cg_A = cg_A.cwiseMin(1.0);
         cg_A = cg_A.cwiseMax(0.0);
         cg_H = cg_H.cwiseMax(1.e-4); //!< Limit H from below
@@ -280,7 +281,9 @@ int main()
 
                 DELTA(i, 0) = sqrt(
                     SQR(ReferenceScale::DeltaMin)
-                    + (SQR(E11(i, 0)) + SQR(E22(i, 0))) * 1.25 + 1.5 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
+                    + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+                    + 1.50 * E11(i, 0) * E22(i, 0)
+                    + SQR(E12(i, 0)));
                 assert(DELTA(i, 0) > 0);
 
                 //! Ice strength
@@ -288,7 +291,11 @@ int main()
 
                 double zeta = P / 2.0 / DELTA(i, 0);
                 double eta = zeta / 4;
-                SHEAR(i, 0) = (SQR(ReferenceScale::DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) - 4.0 * SQR(E12(i, 0)));
+
+                // replacement pressure
+                //                P = P * DELTA(i, 0) / (ReferenceScale::DeltaMin + DELTA(i, 0));
+
+                SHEAR(i, 0) = sqrt((SQR(ReferenceScale::DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
 
                 // S = S_old + 1/alpha (S(u)-S_old)
                 //   = (1-1/alpha) S_old + 1/alpha S(u)
