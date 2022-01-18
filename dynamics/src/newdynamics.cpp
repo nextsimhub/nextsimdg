@@ -2,7 +2,6 @@
 #include "dgvisu.hpp"
 #include "stopwatch.hpp"
 
-
 namespace Nextsim {
 extern Nextsim::Timer GlobalTimer;
 

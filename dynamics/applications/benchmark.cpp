@@ -18,8 +18,9 @@ namespace Nextsim {
 extern Timer GlobalTimer;
 }
 
-namespace ReferenceScale {
+namespace RefScale {
 // Benchmark testcase from [Mehlmann / Richter, ...]
+constexpr double T = 2 * 24. * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -31,7 +32,10 @@ constexpr double rho_ocean = 1026.0; //!< Ocean density
 constexpr double C_atm = 1.2e-3; //!< Air drag coefficient
 constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
 
-constexpr double Pstar = 27500; //!< Ice strength
+constexpr double F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
+constexpr double F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
+
+constexpr double Pstar = 27500.; //!< Ice strength
 constexpr double fc = 1.46e-4; //!< Coriolis
 
 constexpr double DeltaMin = 2.e-9; //!< Viscous regime
@@ -55,14 +59,14 @@ class OceanX : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return ReferenceScale::vmax_ocean * (2.0 * y / ReferenceScale::L - 1);
+        return RefScale::vmax_ocean * (2.0 * y / RefScale::L - 1);
     }
 };
 class OceanY : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return ReferenceScale::vmax_ocean * (1.0 - 2.0 * x / ReferenceScale::L);
+        return RefScale::vmax_ocean * (1.0 - 2.0 * x / RefScale::L);
     }
 };
 
@@ -84,7 +88,7 @@ public:
         double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
 
         double alpha = 72.0 / 180.0 * M_PI;
-        return -scale * ReferenceScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
+        return -scale * RefScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
     }
 };
 class AtmY : virtual public Nextsim::InitialBase {
@@ -105,7 +109,7 @@ public:
         double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
 
         double alpha = 72.0 / 180.0 * M_PI;
-        return -scale * ReferenceScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
+        return -scale * RefScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
     }
 };
 class InitialH : virtual public Nextsim::InitialBase {
@@ -136,14 +140,14 @@ int main()
 
     //! initialize the mesh
     //constexpr size_t N = 25; //!< Number of mesh nodes
-    //mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
+    //mesh.BasicInit(N, N, RefScale::L / N, RefScale::L / N);
     //std::cout << "--------------------------------------------" << std::endl;
     //std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
     constexpr size_t N = 50; //!< Number of mesh nodes
-    mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
+    mesh.BasicInit(N, N, RefScale::L / N, RefScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
@@ -166,7 +170,7 @@ int main()
     constexpr size_t NT_log = T_log / k_adv + 1.e-4;
 
     // Compute Parabolic CFL
-    constexpr double gamma = 25.; //!< Penalty parameter for internal continuity
+    constexpr double gamma = 1e6; //!< Penalty parameter for internal continuity
     constexpr double gammaboundary = gamma; //!< Penalty parameter for boundary data
 
     //const double gamma = 5.0; //!< parameter in front of internal penalty terms
@@ -299,16 +303,22 @@ int main()
             // d_t U = ...
 
             // ocean
-            // L/(rho H) * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * |velwater - vel| (velwater-vel)
-            tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * ((OX.col(0) - vx.col(0)).array().abs() / H.col(0).array() * OX.col(0).array()).matrix();
-            tmpX -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * (vx.array().colwise() * ((OX.col(0) - vx.col(0)).array().abs() / H.col(0).array())).matrix();
-            tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * ((OY.col(0) - vy.col(0)).array().abs() / H.col(0).array() * OY.col(0).array()).matrix();
-            tmpY -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * (vy.array().colwise() * ((OY.col(0) - vy.col(0)).array().abs() / H.col(0).array())).matrix();
+            // L/(rho H) * RefScale::F_ocean * |velwater - vel| (velwater-vel)
+            tmpX.col(0) += 1 / RefScale::rho_ice * RefScale::F_ocean * ((OX.col(0) - vx.col(0)).array().abs() / H.col(0).array() * OX.col(0).array()).matrix();
+            tmpX -= 1 / RefScale::rho_ice * RefScale::F_ocean * (vx.array().colwise() * ((OX.col(0) - vx.col(0)).array().abs() / H.col(0).array())).matrix();
+            tmpY.col(0) += 1 / RefScale::rho_ice * RefScale::F_ocean * ((OY.col(0) - vy.col(0)).array().abs() / H.col(0).array() * OY.col(0).array()).matrix();
+            tmpY -= 1 / RefScale::rho_ice * RefScale::F_ocean * (vy.array().colwise() * ((OY.col(0) - vy.col(0)).array().abs() / H.col(0).array())).matrix();
 
             // atm.
-            // L/(rho H) * ReferenceScale::C_atm * ReferenceScale::rho_atm * |velatm| velatm
-            tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (AX.col(0).array().abs() / H.col(0).array() * AX.col(0).array()).matrix();
-            tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (AY.col(0).array().abs() / H.col(0).array() * AY.col(0).array()).matrix();
+            // L/(rho H) * RefScale::F_atm * |velatm| velatm
+            tmpX.col(0) += 1 / RefScale::rho_ice * RefScale::F_atm * (AX.col(0).array().abs() / H.col(0).array() * AX.col(0).array()).matrix();
+            tmpY.col(0) += 1 / RefScale::rho_ice * RefScale::F_atm * (AY.col(0).array().abs() / H.col(0).array() * AY.col(0).array()).matrix();
+
+            // Coriolis  + surface
+            //tmpX.col(0) += RefScale::rho_ice * RefScale::fc * (((OX.col(0) - vx.col(0)).array() * H.col(0).array())).matrix();
+            //tmpY.col(0) += RefScale::rho_ice * RefScale::fc * (((OY.col(0) - vy.col(0)).array() * H.col(0).array())).matrix();
+            //tmpX += RefScale::rho_ice * RefScale::fc * (((OX - vx).array() * H.array())).matrix();
+            //tmpY += RefScale::rho_ice * RefScale::fc * (((OY - vy).array() * H.array())).matrix();
 
             /* 
              Compute the stress tensor
@@ -318,8 +328,8 @@ int main()
             const double scaleSigma = -1.; //!< -1 since -div(S)  term goes to rhs
 
             dynamics.addStressTensor(scaleSigma, mesh, tmpX, tmpY, S11, S12, S22); //!<  +div(S, nabla phi) - < Sn, phi>
-            dynamics.velocityContinuity(1e6, mesh, tmpX, tmpY, vx, vy); //!< penalize velocity jump in inner edges
-            dynamics.velocityDirichletBoundary(1e6, mesh, tmpX, tmpY, vx, vy); //!< no-slip for velocity
+            dynamics.velocityContinuity(gamma, mesh, tmpX, tmpY, vx, vy); //!< penalize velocity jump in inner edges
+            dynamics.velocityDirichletBoundary(gammaboundary, mesh, tmpX, tmpY, vx, vy); //!< no-slip for velocity
 
             vx += timemesh.dt_momentum * tmpX;
             vy += timemesh.dt_momentum * tmpY;
@@ -328,22 +338,22 @@ int main()
 
             // Sigma = D = sym(grad v)
             dynamics.computeStrainRateTensor(mesh, vx, vy, E11, E12, E22); //!< S = 1/2 (nabla v + nabla v^T)
-
+            //std::cout << "ELOOOO" << std::endl;
             Nextsim::GlobalTimer.start("dyn -- mom -- damage");
 #pragma omp parallel for
             for (size_t i = 0; i < mesh.n; ++i) {
                 // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
                 double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
                 //std::cout << Pmax << " " << sigma_n << std::endl;
-                double const expC = std::exp(ReferenceScale::compaction_param * (1. - A(i, 0)));
-                double const time_viscous = ReferenceScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, ReferenceScale::exponent_relaxation_sigma - 1.);
+                double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
+                double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
 
                 // Plastic failure tildeP
                 double tildeP;
                 if (sigma_n < 0.) {
                     //below line copied from nextsim finiteelement.cpp
                     //double const Pmax = std::pow(M_thick[cpt], exponent_compression_factor)*compression_factor*expC;
-                    double const Pmax = ReferenceScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+                    double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
                     // tildeP must be capped at 1 to get an elastic response
                     tildeP = std::min(1., -Pmax / sigma_n);
                 } else {
@@ -355,9 +365,9 @@ int main()
                 double const multiplicator = std::min(1. - 1e-12,
                     time_viscous / (time_viscous + timemesh.dt_momentum * (1. - tildeP)));
 
-                double const elasticity = ReferenceScale::young * (1. - D(i, 0)) * expC;
+                double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
 
-                double const Dunit_factor = 1. / (1. - SQR(ReferenceScale::nu0));
+                double const Dunit_factor = 1. / (1. - SQR(RefScale::nu0));
                 /* Stiffness matrix
                 * 1  nu 0
                 * nu 1  0
@@ -370,9 +380,9 @@ int main()
                 //M_Dunit[8] = Dunit_factor * (1. - nu0) ;
 
                 //compute SigmaE
-                double SigmaE11 = Dunit_factor * (E11(i, 0) + ReferenceScale::nu0 * E22(i, 0));
-                double SigmaE22 = Dunit_factor * (ReferenceScale::nu0 * E11(i, 0) + E22(i, 0));
-                double SigmaE12 = 1. / (1 - ReferenceScale::nu0) * E12(i, 0);
+                double SigmaE11 = Dunit_factor * (E11(i, 0) + RefScale::nu0 * E22(i, 0));
+                double SigmaE22 = Dunit_factor * (RefScale::nu0 * E11(i, 0) + E22(i, 0));
+                double SigmaE12 = 1. / (1 - RefScale::nu0) * E12(i, 0);
 
                 //Elasit prediction Eqn. (32)
                 S11(i, 0) += timemesh.dt_momentum * elasticity * SigmaE11;
@@ -389,25 +399,25 @@ int main()
                 sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
                 //cohesion Eqn. (21)
                 //Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10 cm)
-                double const C_fix = ReferenceScale::C_lab * std::sqrt(0.1 / mesh.hx);
+                double const C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
                 ; // C_lab;...  : cohesion (Pa)
 
                 // d critical Eqn. (29)
                 double dcrit;
-                if (sigma_n < -ReferenceScale::compr_strength)
-                    dcrit = -ReferenceScale::compr_strength / sigma_n;
+                if (sigma_n < -RefScale::compr_strength)
+                    dcrit = -RefScale::compr_strength / sigma_n;
                 else
                     // M_Cohesion[cpt] depends on local random contribution
                     // M_Cohesion[i] = C_fix+C_alea*(M_random_number[i]);
                     // finiteelement.cpp#L3834
-                    dcrit = C_fix / (sigma_s + ReferenceScale::tan_phi * sigma_n);
+                    dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
 
                 /* Calculate the adjusted level of damage */
                 if ((0. < dcrit) && (dcrit < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
                 {
                     /* Calculate the characteristic time for damage and damage increment */
                     // M_delta_x[cpt] = mesh.hx ???
-                    double const td = mesh.hx * std::sqrt(2. * (1. + ReferenceScale::nu0) * ReferenceScale::rho_ice)
+                    double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
                         / std::sqrt(elasticity);
 
                     // Eqn. (34)
