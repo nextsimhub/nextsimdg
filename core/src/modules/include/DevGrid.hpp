@@ -26,7 +26,6 @@ public:
     : cursor(*this)
     , pio(nullptr)
     {
-        processedStructureName = ourStructureName;
     }
 
     //! Destructor. The lifetime of pio should be the lifetime of the instance.
@@ -43,6 +42,8 @@ public:
     void init(const std::string& filePath) override;
 
     void dump(const std::string& filePath) const override;
+
+    std::string structureType() const override { return ourStructureName; };
 
     // Cursor manipulation override functions
     int resetCursor() override;
