@@ -20,6 +20,8 @@ public:
     void setInitFile(const std::string& filePath) { initialRestartFilePath = filePath; };
     virtual void writeRestartFile(const std::string& filePath) = 0;
 
+    virtual void setInitialData(IStructure& dataStructure) = 0;
+
     // Member functions inherited from Iterant
     virtual void init() = 0;
     virtual void start(const Iterator::TimePoint& startTime) = 0;

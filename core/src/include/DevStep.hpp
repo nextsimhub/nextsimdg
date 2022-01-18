@@ -23,6 +23,8 @@ public:
     // Member functions inherited from IModelStep
     void writeRestartFile(const std::string& filePath) override {};
 
+    void setInitialData(IStructure& dataStructure) { pStructure = &dataStructure; };
+
     // Member functions inherited from Iterant
     void init() override {};
     void start(const Iterator::TimePoint& startTime) override {};
