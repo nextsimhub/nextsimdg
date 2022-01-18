@@ -3,11 +3,13 @@
 #include <iostream>
 #include <vector>
 
-//#include "benchmark_data.hpp"
 #include "dginitial.hpp"
+#include "dgtransport.hpp"
 #include "dgvisu.hpp"
-#include "dynamics.hpp"
+#include "mesh.hpp"
+#include "newdynamics.hpp"
 #include "stopwatch.hpp"
+#include "timemesh.hpp"
 
 bool WRITE_VTK = true;
 int WRITE_EVERY = 10000;
@@ -130,7 +132,7 @@ public:
 
 int main()
 {
-    Nextsim::Dynamics dynamics;
+    Nextsim::NewDynamics dynamics;
 
     //! initialize the mesh
     //constexpr size_t N = 25; //!< Number of mesh nodes
@@ -140,7 +142,7 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 100; //!< Number of mesh nodes
+    constexpr size_t N = 50; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -164,7 +166,7 @@ int main()
     constexpr size_t NT_log = T_log / k_adv + 1.e-4;
 
     // Compute Parabolic CFL
-    constexpr double gamma = 5.; //!< Penalty parameter for internal continuity
+    constexpr double gamma = 25.; //!< Penalty parameter for internal continuity
     constexpr double gammaboundary = gamma; //!< Penalty parameter for boundary data
 
     //const double gamma = 5.0; //!< parameter in front of internal penalty terms
@@ -315,9 +317,9 @@ int main()
             // This is already defined in benchmark.cpp
             const double scaleSigma = -1.; //!< -1 since -div(S)  term goes to rhs
 
-            dynamics.addStressTensor(scaleSigma); //!<  +div(S, nabla phi) - < Sn, phi>
-            dynamics.velocityContinuity(gamma); //!< penalize velocity jump in inner edges
-            dynamics.velocityDirichletBoundary(gammaboundary); //!< no-slip for velocity
+            dynamics.addStressTensor(scaleSigma, mesh, tmpX, tmpY, S11, S12, S22); //!<  +div(S, nabla phi) - < Sn, phi>
+            dynamics.velocityContinuity(1e6, mesh, tmpX, tmpY, vx, vy); //!< penalize velocity jump in inner edges
+            dynamics.velocityDirichletBoundary(1e6, mesh, tmpX, tmpY, vx, vy); //!< no-slip for velocity
 
             vx += timemesh.dt_momentum * tmpX;
             vy += timemesh.dt_momentum * tmpY;
@@ -325,7 +327,7 @@ int main()
             //DAMAGE EQUATION
 
             // Sigma = D = sym(grad v)
-            dynamics.computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
+            dynamics.computeStrainRateTensor(mesh, vx, vy, E11, E12, E22); //!< S = 1/2 (nabla v + nabla v^T)
 
             Nextsim::GlobalTimer.start("dyn -- mom -- damage");
 #pragma omp parallel for
@@ -357,10 +359,10 @@ int main()
 
                 double const Dunit_factor = 1. / (1. - SQR(ReferenceScale::nu0));
                 /* Stiffness matrix
-        * 1  nu 0
-        * nu 1  0
-        * 0  0  (1-nu)
-        */
+                * 1  nu 0
+                * nu 1  0
+                * 0  0  (1-nu)
+                */
                 //M_Dunit[0] = Dunit_factor * 1.;
                 //M_Dunit[1] = Dunit_factor * nu0;
                 //M_Dunit[3] = Dunit_factor * nu0;
