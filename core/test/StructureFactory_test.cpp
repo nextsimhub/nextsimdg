@@ -10,17 +10,13 @@
 
 #include "include/StructureFactory.hpp"
 
-#include <iostream>
-
 namespace Nextsim {
 
 TEST_CASE("A valid structure name", "[StructureFactory]")
 {
     DevGrid grid;
-//    grid.init("");
     std::shared_ptr<IStructure> ps = StructureFactory::generate(grid.structureType());
-    std::cerr << grid.structureType();
-//    REQUIRE(ps->structureType() == grid.structureType());
+    REQUIRE(ps->structureType() == grid.structureType());
 }
 
 TEST_CASE("An invalid structure name", "[StructureFactory]")

@@ -20,6 +20,7 @@ std::shared_ptr<IStructure> StructureFactory::generate(const std::string& struct
         loader.setImplementation(iStruct, struc);
         if (loader.getImplementation<IStructure>().structureType() == structureName) {
             shst = std::move(loader.getInstance<IStructure>());
+            return shst;
         }
     }
     // If we reach here, then no valid handlers of the named structure were
