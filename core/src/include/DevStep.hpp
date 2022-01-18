@@ -8,19 +8,32 @@
 #ifndef CORE_SRC_INCLUDE_DEVSTEP_HPP
 #define CORE_SRC_INCLUDE_DEVSTEP_HPP
 
-#include "include/Iterator.hpp"
+#include "include/IModelStep.hpp"
+#include "include/IStructure.hpp"
+
+#include <string>
 
 namespace Nextsim {
 
-class DevStep : public Iterator::Iterant {
+class DevStep : public IModelStep {
 public:
     DevStep() = default;
     virtual ~DevStep() = default;
 
-    void init(const Environment& env) override {};
+    // Member functions inherited from IModelStep
+    void writeRestartFile(const std::string& filePath) override {};
+
+    // Member functions inherited from Iterant
+    void init() override {};
     void start(const Iterator::TimePoint& startTime) override {};
     void iterate(const Iterator::Duration& dt) override;
     void stop(const Iterator::TimePoint& stopTime) override {};
+
+
+private:
+    IStructure* pStructure;
+
+
 };
 
 } /* namespace Nextsim */

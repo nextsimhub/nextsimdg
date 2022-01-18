@@ -24,7 +24,7 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
 
 Model::Model()
 {
-    iterator.setIterant(&iterant);
+    iterator.setIterant(&modelStep);
 
     dataStructure = nullptr;
 }
@@ -43,6 +43,8 @@ void Model::configure()
     iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
 
     std::string restartFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+
+    modelStep.setInitFile(restartFileName);
 
     dataStructure = new DevGrid;
 }

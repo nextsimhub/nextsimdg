@@ -39,7 +39,7 @@ public:
 
 private:
     Iterator iterator;
-    DevStep iterant; // Change the model master iterant here
+    DevStep modelStep; // Change the model step calculation here
 
     std::string restartFileName;
 
