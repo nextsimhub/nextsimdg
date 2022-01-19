@@ -16,6 +16,7 @@ set(BaseSources
     "ExternalData.cpp"
     "DevGridIO.cpp"
     "DevStep.cpp"
+    "StructureFactory.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
