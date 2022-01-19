@@ -46,7 +46,7 @@ private:
     std::string initialFileName;
     std::string finalFileName;
 
-    IStructure* dataStructure;
+    std::shared_ptr<IStructure> dataStructure;
 };
 
 } /* namespace Nextsim */

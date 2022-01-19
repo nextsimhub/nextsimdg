@@ -17,8 +17,10 @@ namespace Nextsim {
 class Iterator : public Logged {
 public:
     typedef std::chrono::system_clock Clock;
-    typedef std::chrono::time_point<Clock> TimePoint;
-    typedef std::chrono::seconds Duration;
+//    typedef std::chrono::time_point<Clock> TimePoint;
+//    typedef std::chrono::seconds Duration;
+    typedef int TimePoint;
+    typedef int Duration;
     class Iterant;
 
     Iterator();
@@ -60,7 +62,7 @@ public:
      * @param durationStr string to parse for the model run duration.
      * @param stepStr string to parse for the model time step length.
      */
-    virtual void parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
+    void parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
         const std::string& durationStr, const std::string& stepStr);
     //! Run the Iterant over the specified time period.
     void run();

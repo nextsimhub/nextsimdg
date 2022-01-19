@@ -32,6 +32,21 @@ public:
     int stopCount;
 };
 
+template<typename T>
+T zeroTime();
+
+template<>
+std::chrono::time_point<Iterator::Clock> zeroTime<std::chrono::time_point<Iterator::Clock>>()
+{
+    return Iterator::Clock::now();
+}
+template<>
+int zeroTime<int>()
+{
+    return 0;
+}
+
+
 TEST_CASE("Count iterator testing", "[Iterator]")
 {
     Counterant cant = Counterant();
@@ -39,8 +54,8 @@ TEST_CASE("Count iterator testing", "[Iterator]")
 
     int nSteps = 5;
 
-    Iterator::TimePoint start = std::chrono::system_clock::now();
-    std::chrono::seconds dt(1);
+    Iterator::TimePoint start = zeroTime<Iterator::TimePoint>();
+    Iterator::Duration dt = 1;
     iterator.setStartStopStep(start, start + nSteps * dt, dt);
     iterator.run();
 
