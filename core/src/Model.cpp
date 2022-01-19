@@ -9,6 +9,8 @@
 #include "include/Configurator.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
+#include "include/StructureFactory.hpp"
+
 #include <string>
 
 namespace Nextsim {
@@ -27,10 +29,25 @@ Model::Model()
     iterator.setIterant(&modelStep);
 
     dataStructure = nullptr;
+
+    finalFileName = "restart.nc";
 }
 
 Model::~Model()
 {
+    /*
+     * Try writing out a valid restart file. If the model and computer are in a
+     * state where this can be completed, great! If they are not then the
+     * restart file is unlikely to be valid or otherwise stored properly, and
+     * we abandon the writing.
+     */
+    try {
+        if (dataStructure) {
+            dataStructure->dump(finalFileName);
+        }
+    } catch (std::exception& e) {
+        // If there are any exceptions at all, fail without writing
+    }
 }
 
 void Model::configure()
@@ -42,11 +59,15 @@ void Model::configure()
 
     iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
 
-    std::string restartFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+    initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
-    modelStep.setInitFile(restartFileName);
+    modelStep.setInitFile(initialFileName);
 
-    dataStructure = new DevGrid;
+    // Currently, initialize the data here in Model and pass the pointer to the
+    // data structure to IModelStep
+    dataStructure = StructureFactory::generateFromFile(initialFileName);
+    dataStructure->init(initialFileName);
+    modelStep.setInitialData(*dataStructure);
 }
 
 void Model::run() { iterator.run(); }

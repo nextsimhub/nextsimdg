@@ -37,11 +37,14 @@ public:
     //! Run the model
     void run();
 
+    //! Sets the filename of the restart file that would currently be written out.
+    void setFinalFilename(const std::string& finalFile);
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
 
-    std::string restartFileName;
+    std::string initialFileName;
+    std::string finalFileName;
 
     IStructure* dataStructure;
 };
