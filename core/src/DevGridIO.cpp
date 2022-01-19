@@ -56,8 +56,8 @@ static const std::map<std::string, ProgDoubleFn> variableFunctions
 
 void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath) const
 {
-    NameMap nameMap = { {StringName::METADATA_NODE, grid->metadataNodeName},
-            {StringName::DATA_NODE, grid->dataNodeName},
+    NameMap nameMap = { {StringName::METADATA_NODE, IStructure::metadataNodeName()},
+            {StringName::DATA_NODE, IStructure::dataNodeName()},
             {StringName::STRUCTURE, DevGrid::ourStructureName},
             {StringName::X_DIM, DevGrid::xDimName},
             {StringName::Y_DIM, DevGrid::yDimName},
@@ -69,8 +69,8 @@ void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath
 
 void DevGridIO::dump(const std::vector<ElementData>& data, const std::string& filePath) const
 {
-    NameMap nameMap = { {StringName::METADATA_NODE, grid->metadataNodeName},
-            {StringName::DATA_NODE, grid->dataNodeName},
+    NameMap nameMap = { {StringName::METADATA_NODE, IStructure::metadataNodeName()},
+            {StringName::DATA_NODE, IStructure::dataNodeName()},
             {StringName::STRUCTURE, DevGrid::ourStructureName},
             {StringName::X_DIM, DevGrid::xDimName},
             {StringName::Y_DIM, DevGrid::yDimName},

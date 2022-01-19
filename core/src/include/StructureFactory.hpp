@@ -16,8 +16,22 @@ namespace Nextsim {
 
 class StructureFactory {
 public:
+    /*!
+     * @brief Returns a shared_ptr to a instance of IStructure which matches
+     * the passed structure name.
+     *
+     * @param structureName the name of the structure that should provide the
+     *        implementation.
+     */
     static std::shared_ptr<IStructure> generate(const std::string& structureName);
 
+    /*!
+     * @brief Returns a shared_ptr to a instance of IStructure which implements
+     * the structure named in the passed NetCDF file.
+     *
+     * @param filePath the name of the file to be read.
+     */
+    static std::shared_ptr<IStructure> generateFromFile(const std::string& fielPath);
 private:
     StructureFactory() = default;
 };

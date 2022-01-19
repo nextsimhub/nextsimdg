@@ -7,7 +7,11 @@
 
 #include "include/StructureFactory.hpp"
 
+#include <ncFile.h>
+#include <ncGroup.h>
+#include <ncGroupAtt.h>
 #include <stdexcept>
+#include <string>
 
 namespace Nextsim {
 
@@ -28,6 +32,21 @@ std::shared_ptr<IStructure> StructureFactory::generate(const std::string& struct
     std::string what = "StructureSelector: Invalid structure name (";
     what += structureName + ") provided.";
     throw std::invalid_argument(what);
+}
+
+std::shared_ptr<IStructure> StructureFactory::generateFromFile(const std::string& filePath)
+{
+    netCDF::NcFile ncf(filePath, netCDF::NcFile::read);
+    netCDF::NcGroup metaGroup(ncf.getGroup(IStructure::metadataNodeName()));
+    netCDF::NcGroupAtt att = metaGroup.getAtt(IStructure::typeNodeName());
+    int len = att.getAttLength();
+    // Initialize a std::string of len, filled with zeros
+    std::string structureName(len, '\0');
+    // &str[0] gives access to the buffer, guaranteed by C++11
+    att.getValues(&structureName[0]);
+    ncf.close();
+
+    return generate(structureName);
 }
 
 } /* namespace Nextsim */

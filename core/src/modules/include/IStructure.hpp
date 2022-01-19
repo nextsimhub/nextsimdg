@@ -44,7 +44,7 @@ public:
     virtual void init(const std::string& filePath) = 0;
 
     //! Returns the structure name that this class will process
-    virtual std::string structureType() const { return "none"; }
+    virtual std::string structureType() const { return processedStructureName; }
     /*!
      * @brief Checks if the passed string matches (ignoring case) the name of
      * the structure that this class constructs.
@@ -99,17 +99,19 @@ public:
         virtual IStructure& operator++() const = 0;
     };
 
+    // Node names in the default structure
+
+    //! Returns the name of the metadata node.
+    static const std::string metadataNodeName() { return "structure"; };
+    //! Returns the name of the data node.
+    static const std::string dataNodeName() { return "data"; };
     //! The name of the node holding the name of the structure type processed
     //! by this class.
     static const std::string typeNodeName() { return "type"; };
 
-protected:
-    //! Name of the metadata node.
-    std::string metadataNodeName = "structure";
-    //! Name of the data node.
-    std::string dataNodeName = "data";
+private:
     //! Name of the structure type processed by this class.
-    std::string processedStructureName = "none";
+    const std::string processedStructureName = "none";
 };
 
 }
