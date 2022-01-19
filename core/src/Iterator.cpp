@@ -40,7 +40,7 @@ void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& s
     ss >> timestep;
     if (!durationStr.empty()) {
         ss = std::stringstream(durationStr);
-        int duration;
+        Duration duration;
         ss >> duration;
         stopTime = startTime + duration;
     } else {
