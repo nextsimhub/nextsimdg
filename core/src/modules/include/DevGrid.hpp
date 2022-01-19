@@ -23,8 +23,7 @@ class DevGridIO;
 class DevGrid : public IStructure {
 public:
     DevGrid()
-    : cursor(*this)
-    , pio(nullptr)
+    : pio(nullptr)
     {
     }
 
@@ -51,27 +50,6 @@ public:
     ElementData& cursorData() override;
     const ElementData& cursorData() const override;
     void incrCursor() override;
-
-    //! A class that implements IStructure::Cursor for DevGrid.
-    class Cursor : public IStructure::Cursor {
-    public:
-        Cursor(DevGrid& dg)
-            : owner(dg)
-        {
-        }
-
-        ~Cursor() = default;
-        IStructure& operator=(const int) const override;
-        operator bool() const override;
-        ElementData& operator*() const override;
-        ElementData* operator->() const override;
-        IStructure& operator++() const override;
-
-    private:
-        DevGrid& owner;
-    };
-
-    const Cursor cursor;
 
     /*!
      * @brief A class that deals with all the netCDF related parts of DevGrid.

@@ -43,23 +43,4 @@ ElementData& DevGrid::cursorData() { return *iCursor; }
 const ElementData& DevGrid::cursorData() const { return *iCursor; }
 void DevGrid::incrCursor() { ++iCursor; }
 
-IStructure& DevGrid::Cursor::operator=(const int i) const
-{
-    if (0 == i)
-        owner.resetCursor();
-    return owner;
-}
-
-DevGrid::Cursor::operator bool() const { return owner.validCursor(); }
-
-ElementData& DevGrid::Cursor::operator*() const { return owner.cursorData(); }
-
-ElementData* DevGrid::Cursor::operator->() const { return &owner.cursorData(); }
-
-IStructure& DevGrid::Cursor::operator++() const
-{
-    owner.incrCursor();
-    return owner;
-}
-
 } /* namespace Nextsim */

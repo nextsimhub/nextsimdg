@@ -33,7 +33,9 @@ namespace Nextsim {
  */
 class IStructure {
 public:
-    IStructure() = default;
+    IStructure()
+    : cursor(*this)
+    {}
     virtual ~IStructure() = default;
 
     /*!
@@ -91,13 +93,29 @@ public:
 
     class Cursor {
     public:
-        virtual ~Cursor() = default;
-        virtual IStructure& operator=(const int) const = 0;
-        virtual operator bool() const = 0;
-        virtual ElementData& operator*() const = 0;
-        virtual ElementData* operator->() const = 0;
-        virtual IStructure& operator++() const = 0;
+        Cursor(IStructure& ownerer)
+        : owner(ownerer)
+        {}
+        ~Cursor() = default;
+        IStructure& operator=(const int i) const
+        {
+            if (0 == i)
+                owner.resetCursor();
+            return owner;
+        }
+        operator bool() const { return owner.validCursor(); };
+        ElementData& operator*() const { return owner.cursorData(); };
+        ElementData* operator->() const { return &owner.cursorData(); };
+        IStructure& operator++() const
+        {
+            owner.incrCursor();
+            return owner;
+        };
+    private:
+        IStructure& owner;
     };
+
+    const Cursor cursor;
 
     // Node names in the default structure
 
