@@ -31,11 +31,8 @@ public:
     void iterate(const Iterator::Duration& dt) override;
     void stop(const Iterator::TimePoint& stopTime) override {};
 
-
 private:
     IStructure* pStructure;
-
-
 };
 
 } /* namespace Nextsim */
