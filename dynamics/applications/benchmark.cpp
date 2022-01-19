@@ -289,11 +289,8 @@ int main()
         Nextsim::GlobalTimer.stop("time loop - advection");
 
         //! Time step
-        //dynamics.step();
-        // momentum step
         Nextsim::GlobalTimer.start("time loop -- mom");
         //! Momentum subcycling
-        //dynamics.momentumSubsteps();
         for (size_t mom_step = 0; mom_step < mom_substeps; ++mom_step) {
 
             //MOMENTUM EQUATION

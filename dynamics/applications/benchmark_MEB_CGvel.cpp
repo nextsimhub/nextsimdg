@@ -136,7 +136,7 @@ class InitialD : virtual public Nextsim::InitialBase {
 public:
     double operator()(double x, double y) const
     {
-        return 1.0;
+        return 0.0;
     }
 };
 
@@ -148,13 +148,13 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 100; //!< Number of mesh nodes
+    constexpr size_t N = 128; //!< Number of mesh nodes
     mesh.BasicInit(N, N, RefScale::L / N, RefScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double k_adv = 60.0; //!< Time step of advection problem
+    constexpr double k_adv = 120.0; //!< Time step of advection problem
     constexpr size_t NT = RefScale::T / k_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t mom_substeps = 100;
@@ -170,7 +170,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 4.0 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 1.0 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / k_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -214,13 +214,19 @@ int main()
     Nextsim::CellVector<DGadvection> D(mesh); //!< ice damage. ?? Really dG(0) ??
     Nextsim::L2ProjectInitial(mesh, D, InitialD());
 
-    // // save initial condition
-    //   Nextsim::GlobalTimer.start("time loop - i/o");
-    //   Nextsim::VTK::write_dg<2>("ResultsMEB_CGvel/vx", 0, dynamics.GetVX(), dynamics.GetMesh());
-    //   Nextsim::VTK::write_dg<2>("ResultsMEB_CGvel/vy", 0, dynamics.GetVY(), dynamics.GetMesh());
-    //   Nextsim::VTK::write_dg<2>("ResultsMEB_CGvel/A", 0, dynamics.GetA(), dynamics.GetMesh());
-    //   Nextsim::VTK::write_dg<2>("ResultsMEB_CGvel/H", 0, dynamics.GetH(), dynamics.GetMesh());
-    //   Nextsim::GlobalTimer.stop("time loop - i/o");
+    // save initial condition
+    Nextsim::GlobalTimer.start("time loop - i/o");
+    Nextsim::VTK::write_cg("ResultsMEB_CGvel/vx", 0, vx, mesh);
+    Nextsim::VTK::write_cg("ResultsMEB_CGvel/vy", 0, vy, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/shear", 0, SHEAR, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/delta", 0, DELTA, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/A", 0, A, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", 0, H, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/D", 0, D, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/S11", 0, S11, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/S12", 0, S12, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/S22", 0, S22, mesh);
+    Nextsim::GlobalTimer.stop("time loop - i/o");
 
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
@@ -352,6 +358,9 @@ int main()
                 double SigmaE22 = Dunit_factor * (RefScale::nu0 * E11(i, 0) + E22(i, 0));
                 double SigmaE12 = 1. / (1 - RefScale::nu0) * E12(i, 0);
 
+                //std::cout << elasticity << " dt " << timemesh.dt_momentum << " " << multiplicator << std::endl;
+                //std::cout << "Multiplicator " << multiplicator << std::endl;
+
                 //Elasit prediction Eqn. (32)
                 S11(i, 0) += timemesh.dt_momentum * elasticity * SigmaE11;
                 S11(i, 0) *= multiplicator;
@@ -361,16 +370,17 @@ int main()
                 S22(i, 0) *= multiplicator;
 
                 //continiue if stress in inside the failure envelope
-                /* Compute the shear and normal stresses, which are two invariants of the internal stress tensor */
+                // Compute the shear and normal stresses, which are two invariants of the internal stress tensor
                 double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
                 //update sigma_n
                 sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
                 //cohesion Eqn. (21)
                 //Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10 cm)
                 double const C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
-                ; // C_lab;...  : cohesion (Pa)
+                // C_lab;...  : cohesion (Pa)
 
                 // d critical Eqn. (29)
+
                 double dcrit;
                 if (sigma_n < -RefScale::compr_strength)
                     dcrit = -RefScale::compr_strength / sigma_n;
@@ -380,10 +390,10 @@ int main()
                     // finiteelement.cpp#L3834
                     dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
 
-                /* Calculate the adjusted level of damage */
+                // Calculate the adjusted level of damage
                 if ((0. < dcrit) && (dcrit < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
                 {
-                    /* Calculate the characteristic time for damage and damage increment */
+                    // Calculate the characteristic time for damage and damage increment
                     // M_delta_x[cpt] = mesh.hx ???
                     double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
                         / std::sqrt(elasticity);
@@ -398,8 +408,6 @@ int main()
                 }
 
                 /*
-
-
                 // replacement pressure
                 //                P = P * DELTA(i, 0) / (RefScale::DeltaMin + DELTA(i, 0));
 
@@ -435,17 +443,18 @@ int main()
             //	    update by a loop.. implicit parts and h-dependent
 
             //
-            vx = (1.0 / (RefScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+            //k_adv * (1.0 + beta) = k
+            vx = (1.0 / (RefScale::rho_ice * cg_H.array() / k // implicit parts
                       + cg_A.array() * RefScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
-                * (RefScale::rho_ice * cg_H.array() / k_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
+                * (RefScale::rho_ice * cg_H.array() / k * (vx.array()) + // pseudo-timestepping
                     cg_A.array() * (RefScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
                         RefScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
                     + RefScale::rho_ice * cg_H.array() * RefScale::fc * (vx - OX).array() // cor + surface
                     ))
                      .matrix();
-            vy = (1.0 / (RefScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+            vy = (1.0 / (RefScale::rho_ice * cg_H.array() / k // implicit parts
                       + cg_A.array() * RefScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
-                * (RefScale::rho_ice * cg_H.array() / k_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
+                * (RefScale::rho_ice * cg_H.array() / k * (vy.array()) + // pseudo-timestepping
                     cg_A.array() * (RefScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
                         RefScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
                     + RefScale::rho_ice * cg_H.array() * RefScale::fc * (OY - vy).array() // cor + surface
@@ -454,15 +463,17 @@ int main()
             Nextsim::GlobalTimer.stop("time loop - mevp - update1");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update2");
+
             // Implicit etwas ineffizient
             tmpx.zero();
             tmpy.zero();
             momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
-            vx += (1.0 / (RefScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+
+            vx += (1.0 / (RefScale::rho_ice * cg_H.array() / k // implicit parts
                        + cg_A.array() * RefScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
                 * tmpx.array())
                       .matrix();
-            vy += (1.0 / (RefScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+            vy += (1.0 / (RefScale::rho_ice * cg_H.array() / k // implicit parts
                        + cg_A.array() * RefScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
                 * tmpy.array())
                       .matrix();
@@ -508,10 +519,10 @@ int main()
                 // dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S12", printstep,
                 // dynamics.GetS12(), dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S22",
                 // printstep, dynamics.GetS22(), dynamics.GetMesh());
-                Nextsim::VTK::write_dg(
-                    "ResultsMEB_CGvel/A", printstep, A, mesh);
-                Nextsim::VTK::write_dg(
-                    "ResultsMEB_CGvel/H", printstep, H, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/A", printstep, A, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", printstep, H, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/D", printstep, D, mesh);
+
                 //	    Nextsim::VTK::write_dg<0>("ResultsMEB_CGvel/zeta", printstep, zeta, dynamics.GetMesh());
 
                 // Nextsim::VTK::write_dg<0>("ResultsMEB_CGvel/D",printstep,dynamics.GetD(),
@@ -522,9 +533,9 @@ int main()
                 // dynamics.GetMesh());
                 // Nextsim::VTK::write_dg<0>("ResultsMEB_CGvel/ax",printstep,dynamics.GetAtmX(),
                 // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S11", printstep, S11, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S12", printstep, S12, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S22", printstep, S22, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/S11", printstep, S11, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/S12", printstep, S12, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/S22", printstep, S22, mesh);
                 // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E11", printstep, E11, mesh);
                 // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E12", printstep, E12, mesh);
                 // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E22", printstep, E22, mesh);
