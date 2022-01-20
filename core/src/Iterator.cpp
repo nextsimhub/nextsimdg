@@ -32,7 +32,8 @@ void Iterator::setStartStopStep(
     this->timestep = timestep;
 }
 
-void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr, const std::string& durationStr, const std::string& stepStr)
+void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
+    const std::string& durationStr, const std::string& stepStr)
 {
     std::stringstream ss(startTimeStr);
     ss >> startTime;

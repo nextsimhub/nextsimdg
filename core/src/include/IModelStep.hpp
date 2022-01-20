@@ -8,8 +8,8 @@
 #ifndef CORE_SRC_INCLUDE_IMODELSTEP_HPP
 #define CORE_SRC_INCLUDE_IMODELSTEP_HPP
 
-#include "include/Iterator.hpp"
 #include "include/IStructure.hpp"
+#include "include/Iterator.hpp"
 
 namespace Nextsim {
 

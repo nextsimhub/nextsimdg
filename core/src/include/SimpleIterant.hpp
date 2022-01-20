@@ -25,16 +25,16 @@ public:
     //! Prints an informative message about stopping.
     void stop(const Iterator::TimePoint& stopTime);
 
-    template<typename T>
-    static T zeroTime();
+    template <typename T> static T zeroTime();
+
 private:
     // Functions to deal with different realizations of the Iterator time types
     static int count(const std::chrono::seconds& dt) { return dt.count(); };
     static int count(const int dt) { return dt; };
 
-    static std::string stringFromTimePoint(const std::chrono::time_point<std::chrono::system_clock>& t);
+    static std::string stringFromTimePoint(
+        const std::chrono::time_point<std::chrono::system_clock>& t);
     static std::string stringFromTimePoint(const int t);
-
 };
 
 } /* namespace Nextsim */

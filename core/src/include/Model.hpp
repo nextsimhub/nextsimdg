@@ -10,11 +10,11 @@
 #include "include/Logged.hpp"
 
 #include "include/Configured.hpp"
-#include "include/Iterator.hpp"
 #include "include/IStructure.hpp"
+#include "include/Iterator.hpp"
 
-#include <string>
 #include "DevStep.hpp"
+#include <string>
 
 namespace Nextsim {
 
@@ -39,6 +39,7 @@ public:
 
     //! Sets the filename of the restart file that would currently be written out.
     void setFinalFilename(const std::string& finalFile);
+
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here

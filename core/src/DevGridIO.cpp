@@ -56,11 +56,12 @@ static const std::map<std::string, ProgDoubleFn> variableFunctions
 
 void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath) const
 {
-    NameMap nameMap = { {StringName::METADATA_NODE, IStructure::metadataNodeName()},
-            {StringName::DATA_NODE, IStructure::dataNodeName()},
-            {StringName::STRUCTURE, DevGrid::ourStructureName},
-            {StringName::X_DIM, DevGrid::xDimName},
-            {StringName::Y_DIM, DevGrid::yDimName},
+    NameMap nameMap = {
+        { StringName::METADATA_NODE, IStructure::metadataNodeName() },
+        { StringName::DATA_NODE, IStructure::dataNodeName() },
+        { StringName::STRUCTURE, DevGrid::ourStructureName },
+        { StringName::X_DIM, DevGrid::xDimName },
+        { StringName::Y_DIM, DevGrid::yDimName },
     };
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
     initGroup(data, ncFile, nameMap);
@@ -69,11 +70,12 @@ void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath
 
 void DevGridIO::dump(const std::vector<ElementData>& data, const std::string& filePath) const
 {
-    NameMap nameMap = { {StringName::METADATA_NODE, IStructure::metadataNodeName()},
-            {StringName::DATA_NODE, IStructure::dataNodeName()},
-            {StringName::STRUCTURE, DevGrid::ourStructureName},
-            {StringName::X_DIM, DevGrid::xDimName},
-            {StringName::Y_DIM, DevGrid::yDimName},
+    NameMap nameMap = {
+        { StringName::METADATA_NODE, IStructure::metadataNodeName() },
+        { StringName::DATA_NODE, IStructure::dataNodeName() },
+        { StringName::STRUCTURE, DevGrid::ourStructureName },
+        { StringName::X_DIM, DevGrid::xDimName },
+        { StringName::Y_DIM, DevGrid::yDimName },
     };
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
     dumpGroup(data, ncFile, nameMap);
@@ -125,7 +127,8 @@ void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameM
     initData(data, dataGroup);
 }
 
-void dumpMeta(const std::vector<ElementData>& data, netCDF::NcGroup& metaGroup, const NameMap& nameMap)
+void dumpMeta(
+    const std::vector<ElementData>& data, netCDF::NcGroup& metaGroup, const NameMap& nameMap)
 {
     metaGroup.putAtt(IStructure::typeNodeName(), nameMap.at(StringName::STRUCTURE));
 }
@@ -144,7 +147,8 @@ std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pF
     return gathered;
 }
 
-void dumpData(const std::vector<ElementData>& data, netCDF::NcGroup& dataGroup, const NameMap& nameMap)
+void dumpData(
+    const std::vector<ElementData>& data, netCDF::NcGroup& dataGroup, const NameMap& nameMap)
 {
     int nx = DevGrid::nx;
     // Create the dimension data, since it has to be in the same group as the
@@ -161,13 +165,13 @@ void dumpData(const std::vector<ElementData>& data, netCDF::NcGroup& dataGroup, 
     }
 }
 
-void dumpGroup(const std::vector<ElementData>& data, netCDF::NcGroup& headGroup, const NameMap& nameMap)
+void dumpGroup(
+    const std::vector<ElementData>& data, netCDF::NcGroup& headGroup, const NameMap& nameMap)
 {
     netCDF::NcGroup metaGroup = headGroup.addGroup(nameMap.at(StringName::METADATA_NODE));
     netCDF::NcGroup dataGroup = headGroup.addGroup(nameMap.at(StringName::DATA_NODE));
     dumpMeta(data, metaGroup, nameMap);
     dumpData(data, dataGroup, nameMap);
-
 }
 
 } /* namespace Nextsim */

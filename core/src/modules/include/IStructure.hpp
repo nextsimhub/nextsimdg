@@ -34,8 +34,9 @@ namespace Nextsim {
 class IStructure {
 public:
     IStructure()
-    : cursor(*this)
-    {}
+        : cursor(*this)
+    {
+    }
     virtual ~IStructure() = default;
 
     /*!
@@ -94,8 +95,9 @@ public:
     class Cursor {
     public:
         Cursor(IStructure& ownerer)
-        : owner(ownerer)
-        {}
+            : owner(ownerer)
+        {
+        }
         ~Cursor() = default;
         IStructure& operator=(const int i) const
         {
@@ -111,6 +113,7 @@ public:
             owner.incrCursor();
             return owner;
         };
+
     private:
         IStructure& owner;
     };

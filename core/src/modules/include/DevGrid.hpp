@@ -23,7 +23,7 @@ class DevGridIO;
 class DevGrid : public IStructure {
 public:
     DevGrid()
-    : pio(nullptr)
+        : pio(nullptr)
     {
     }
 
@@ -64,7 +64,8 @@ public:
     public:
         IDevGridIO(DevGrid& grid)
             : grid(&grid)
-        {}
+        {
+        }
         virtual ~IDevGridIO() = default;
         /*!
          * @brief Reads data from the file location into the vector of data elements.
@@ -79,13 +80,16 @@ public:
          * @param dg The vector of ElementData instances containing the data.
          * @param filePath The location of the NetCDF restart file to be written.
          */
-        virtual void dump(const std::vector<ElementData>& dg, const std::string& fielPath) const = 0;
+        virtual void dump(
+            const std::vector<ElementData>& dg, const std::string& fielPath) const = 0;
+
     protected:
         DevGrid* grid;
     };
 
     //! Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO
     void setIO(IDevGridIO* p) { pio = p; }
+
 private:
     const static std::string ourStructureName;
     const static std::string xDimName;

@@ -19,7 +19,8 @@ class DevGridIO : public DevGrid::IDevGridIO {
 public:
     DevGridIO(DevGrid& grid)
         : IDevGridIO(grid)
-    {}
+    {
+    }
     virtual ~DevGridIO() = default;
 
     void init(std::vector<ElementData>& data, const std::string& filePath) const override;

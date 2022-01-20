@@ -18,10 +18,7 @@ SimpleIterant::SimpleIterant()
     // It's so simple, there's nothing here
 }
 
-void SimpleIterant::init()
-{
-    std::cout << "SimpleIterant::init" << std::endl;
-}
+void SimpleIterant::init() { std::cout << "SimpleIterant::init" << std::endl; }
 
 void SimpleIterant::start(const Iterator::TimePoint& startTime)
 {
@@ -38,8 +35,8 @@ void SimpleIterant::stop(const Iterator::TimePoint& stopTime)
     std::cout << "SimpleIterant::stop at " << stringFromTimePoint(stopTime) << std::endl;
 }
 
-
-std::string SimpleIterant::stringFromTimePoint(const std::chrono::time_point<std::chrono::system_clock>& t)
+std::string SimpleIterant::stringFromTimePoint(
+    const std::chrono::time_point<std::chrono::system_clock>& t)
 {
     std::time_t t_c = Nextsim::Iterator::Clock::to_time_t(t);
     return std::string(ctime(&t_c));
@@ -52,15 +49,12 @@ std::string SimpleIterant::stringFromTimePoint(const int t)
     return ss.str();
 }
 
-template<>
-std::chrono::time_point<Iterator::Clock> SimpleIterant::zeroTime<std::chrono::time_point<Iterator::Clock>>()
+template <>
+std::chrono::time_point<Iterator::Clock>
+SimpleIterant::zeroTime<std::chrono::time_point<Iterator::Clock>>()
 {
     return Iterator::Clock::now();
 }
 
-template<>
-int SimpleIterant::zeroTime<int>()
-{
-    return 0;
-}
+template <> int SimpleIterant::zeroTime<int>() { return 0; }
 } /* namespace Nextsim */

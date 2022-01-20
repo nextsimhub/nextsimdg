@@ -17,8 +17,8 @@ namespace Nextsim {
 class Iterator : public Logged {
 public:
     typedef std::chrono::system_clock Clock;
-//    typedef std::chrono::time_point<Clock> TimePoint;
-//    typedef std::chrono::seconds Duration;
+    //    typedef std::chrono::time_point<Clock> TimePoint;
+    //    typedef std::chrono::seconds Duration;
     typedef int TimePoint;
     typedef int Duration;
     class Iterant;
