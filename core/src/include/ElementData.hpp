@@ -57,7 +57,8 @@ public:
     //!  object.
     void configure() override;
 
-    void updateDerivedData(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+    void updateDerivedData(
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
     void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 

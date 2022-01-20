@@ -68,12 +68,14 @@ void ElementData::configure()
     Nextsim::tryConfigure(&ModuleLoader::getLoader().getImplementation<IPhysics1d>());
 }
 
-void ElementData::updateDerivedData(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+void ElementData::updateDerivedData(
+    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     m_physicsImplData->updateDerivedData(prog, exter, phys);
 }
 
-void ElementData::calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+void ElementData::calculate(
+    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     m_physicsImplData->calculate(prog, exter, phys);
 }
