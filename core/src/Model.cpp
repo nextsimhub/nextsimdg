@@ -9,6 +9,7 @@
 #include "include/Configurator.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
+#include "include/DummyExternalData.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>
@@ -68,6 +69,9 @@ void Model::configure()
     dataStructure = StructureFactory::generateFromFile(initialFileName);
     dataStructure->init(initialFileName);
     modelStep.setInitialData(*dataStructure);
+
+    // TODO Real external data handling (in the model step?)
+    DummyExternalData::setAll(*dataStructure);
 }
 
 void Model::run() { iterator.run(); }
