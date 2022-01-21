@@ -14,6 +14,9 @@
 
 #include <string>
 
+// TODO Replace with real logging
+#include <iostream>
+
 namespace Nextsim {
 
 template <>
@@ -43,9 +46,7 @@ Model::~Model()
      * we abandon the writing.
      */
     try {
-        if (dataStructure) {
-            dataStructure->dump(finalFileName);
-        }
+        writeRestartFile();
     } catch (std::exception& e) {
         // If there are any exceptions at all, fail without writing
     }
@@ -75,5 +76,18 @@ void Model::configure()
     DummyExternalData::setAll(*dataStructure);
 }
 
-void Model::run() { iterator.run(); }
+void Model::run()
+{
+    iterator.run();
+}
+
+void Model::writeRestartFile()
+{
+    if (dataStructure) {
+        // TODO Replace with real logging
+        std::cout << "  Writing restart file: " << finalFileName << std::endl;
+        dataStructure->dump(finalFileName);
+    }
+
+}
 } /* namespace Nextsim */

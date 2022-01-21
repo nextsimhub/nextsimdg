@@ -5,6 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#include "include/DevGridIO.hpp"
+#include "include/DevGrid.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <ncFile.h>
@@ -24,6 +26,13 @@ std::shared_ptr<IStructure> StructureFactory::generate(const std::string& struct
         loader.setImplementation(iStruct, struc);
         if (loader.getImplementation<IStructure>().structureType() == structureName) {
             shst = std::move(loader.getInstance<IStructure>());
+
+            // TODO There must be a better way
+            if (shst->structureTypeCheck(DevGrid::structureName)) {
+                std::shared_ptr<DevGrid> shdg = std::dynamic_pointer_cast<DevGrid>(shst);
+                shdg->setIO(new DevGridIO(*shdg));
+            }
+
             return shst;
         }
     }

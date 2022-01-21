@@ -21,7 +21,9 @@ int main(int argc, char* argv[])
     // Pass the config file names to Configurator
     Nextsim::Configurator::addFiles(cmdLine.getConfigFileNames());
 
-    // Translate the configuration to the ModuleLoader
+    // Load all defaults for modules that are not explicitly configured
+    ModuleLoader::getLoader().setAllDefaults();
+    // Parse the configuration to load those that are explicitly configured
     Nextsim::ConfiguredModule::parseConfigurator();
 
     // Construct the Model

@@ -6,19 +6,22 @@
  */
 
 #include "include/DevGrid.hpp"
+#include "include/ElementData.hpp"
 
 #include <cstddef>
 #include <vector>
 
 namespace Nextsim {
 
-const std::string DevGrid::ourStructureName = "devgrid";
+const std::string DevGrid::structureName = "devgrid";
 const std::string DevGrid::xDimName = "x";
 const std::string DevGrid::yDimName = "y";
 const int DevGrid::nx = 10;
 
 void DevGrid::init(const std::string& filePath)
 {
+    ElementData configureMe;
+    configureMe.configure();
     data.resize(nx * nx);
     if (pio && !filePath.empty()) {
         pio->init(data, filePath);

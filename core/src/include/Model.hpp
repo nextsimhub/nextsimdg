@@ -37,6 +37,8 @@ public:
     //! Run the model
     void run();
 
+    void writeRestartFile();
+
     //! Sets the filename of the restart file that would currently be written out.
     void setFinalFilename(const std::string& finalFile);
 

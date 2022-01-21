@@ -8,14 +8,16 @@
 #ifndef CORE_SRC_INCLUDE_DEVGRIDIO_HPP
 #define CORE_SRC_INCLUDE_DEVGRIDIO_HPP
 
-#include "include/DevGrid.hpp"
+#include "include/IDevGridIO.hpp"
 #include "include/ElementData.hpp"
 
 #include <vector>
 
 namespace Nextsim {
 
-class DevGridIO : public DevGrid::IDevGridIO {
+class DevGrid;
+
+class DevGridIO : public IDevGridIO {
 public:
     DevGridIO(DevGrid& grid)
         : IDevGridIO(grid)
@@ -25,6 +27,8 @@ public:
 
     void init(std::vector<ElementData>& data, const std::string& filePath) const override;
     void dump(const std::vector<ElementData>& data, const std::string& filePath) const override;
+private:
+    DevGrid* grid;
 };
 
 } /* namespace Nextsim */

@@ -59,7 +59,7 @@ void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath
     NameMap nameMap = {
         { StringName::METADATA_NODE, IStructure::metadataNodeName() },
         { StringName::DATA_NODE, IStructure::dataNodeName() },
-        { StringName::STRUCTURE, DevGrid::ourStructureName },
+        { StringName::STRUCTURE, DevGrid::structureName },
         { StringName::X_DIM, DevGrid::xDimName },
         { StringName::Y_DIM, DevGrid::yDimName },
     };
@@ -73,7 +73,7 @@ void DevGridIO::dump(const std::vector<ElementData>& data, const std::string& fi
     NameMap nameMap = {
         { StringName::METADATA_NODE, IStructure::metadataNodeName() },
         { StringName::DATA_NODE, IStructure::dataNodeName() },
-        { StringName::STRUCTURE, DevGrid::ourStructureName },
+        { StringName::STRUCTURE, DevGrid::structureName },
         { StringName::X_DIM, DevGrid::xDimName },
         { StringName::Y_DIM, DevGrid::yDimName },
     };

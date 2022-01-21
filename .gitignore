@@ -5,3 +5,4 @@
 /.settings/*
 /src/modules/generated/moduleLoader*.ipp
 /*/src/modules/generated/moduleLoader*.ipp
+/run/*
