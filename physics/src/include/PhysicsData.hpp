@@ -46,7 +46,6 @@ public:
     //! Mean thickness of snow (averaged over data element) [m]
     double updatedSnowThickness() const override { return m_hs * m_conc_new; }
 
-
     //! Updated value of the ice surface temperature [˚C]
     inline double& updatedIceSurfaceTemperature() { return m_TiceNew[0]; }
 
