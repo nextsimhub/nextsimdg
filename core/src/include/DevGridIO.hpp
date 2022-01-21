@@ -8,8 +8,8 @@
 #ifndef CORE_SRC_INCLUDE_DEVGRIDIO_HPP
 #define CORE_SRC_INCLUDE_DEVGRIDIO_HPP
 
-#include "include/IDevGridIO.hpp"
 #include "include/ElementData.hpp"
+#include "include/IDevGridIO.hpp"
 
 #include <vector>
 
@@ -27,6 +27,7 @@ public:
 
     void init(std::vector<ElementData>& data, const std::string& filePath) const override;
     void dump(const std::vector<ElementData>& data, const std::string& filePath) const override;
+
 private:
     DevGrid* grid;
 };
