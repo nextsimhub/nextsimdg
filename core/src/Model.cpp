@@ -76,10 +76,7 @@ void Model::configure()
     DummyExternalData::setAll(*dataStructure);
 }
 
-void Model::run()
-{
-    iterator.run();
-}
+void Model::run() { iterator.run(); }
 
 void Model::writeRestartFile()
 {
@@ -88,6 +85,5 @@ void Model::writeRestartFile()
         std::cout << "  Writing restart file: " << finalFileName << std::endl;
         dataStructure->dump(finalFileName);
     }
-
 }
 } /* namespace Nextsim */

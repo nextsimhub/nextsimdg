@@ -25,7 +25,7 @@ class DevGrid;
 class IDevGridIO {
 public:
     IDevGridIO(DevGrid& grid)
-    : grid(&grid)
+        : grid(&grid)
     {
     }
     virtual ~IDevGridIO() = default;
@@ -42,8 +42,7 @@ public:
      * @param dg The vector of ElementData instances containing the data.
      * @param filePath The location of the NetCDF restart file to be written.
      */
-    virtual void dump(
-            const std::vector<ElementData>& dg, const std::string& fielPath) const = 0;
+    virtual void dump(const std::vector<ElementData>& dg, const std::string& fielPath) const = 0;
 
 protected:
     DevGrid* grid;

@@ -5,9 +5,9 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/DevGridIO.hpp"
-#include "include/DevGrid.hpp"
 #include "include/StructureFactory.hpp"
+#include "include/DevGrid.hpp"
+#include "include/DevGridIO.hpp"
 
 #include <ncFile.h>
 #include <ncGroup.h>

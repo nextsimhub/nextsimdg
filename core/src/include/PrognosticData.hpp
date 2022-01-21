@@ -29,7 +29,8 @@ public:
      * Assigns new values from an implementation of IPrognosticUpdater
      * @param updater The IPrognosticUpdater providing the updated values
      */
-    void updateAndIntegrate(const IPrognosticUpdater& updater) {
+    void updateAndIntegrate(const IPrognosticUpdater& updater)
+    {
         m_thick = updater.updatedIceThickness();
         m_conc = updater.updatedIceConcentration();
         m_snow = updater.updatedSnowThickness();
