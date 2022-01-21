@@ -46,6 +46,7 @@ constexpr double DeltaMin = 2.e-9; //!< Viscous regime
 // parameters form nextsim options.cpp line 302
 constexpr double compaction_param = -20; //!< Compation parameter
 constexpr double undamaged_time_relaxation_sigma = 1e7; //!< seconds
+//constexpr double undamaged_time_relaxation_sigma = 1e4; //!< seconds
 constexpr double exponent_relaxation_sigma = 5;
 constexpr double young = 5.9605e+08;
 constexpr double nu0 = 1. / 3.; //!< \param Poisson's ratio
@@ -148,13 +149,13 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 128; //!< Number of mesh nodes
+    constexpr size_t N = 100; //!< Number of mesh nodes
     mesh.BasicInit(N, N, RefScale::L / N, RefScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double k_adv = 120.0; //!< Time step of advection problem
+    constexpr double k_adv = 60.0; //!< Time step of advection problem
     constexpr size_t NT = RefScale::T / k_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t mom_substeps = 100;
@@ -170,7 +171,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 1.0 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 4.0 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / k_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -214,6 +215,15 @@ int main()
     Nextsim::CellVector<DGadvection> D(mesh); //!< ice damage. ?? Really dG(0) ??
     Nextsim::L2ProjectInitial(mesh, D, InitialD());
 
+    //! Transport
+    Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
+    Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
+    dgtransport.settimesteppingscheme("rk1");
+    dgtransport.setmesh(mesh);
+    //Nextsim::TimeMesh timemesh(NT, k_adv, NT_evp);
+    Nextsim::TimeMesh timemesh(NT, k_adv, mom_substeps);
+    dgtransport.settimemesh(timemesh);
+
     // save initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
     Nextsim::VTK::write_cg("ResultsMEB_CGvel/vx", 0, vx, mesh);
@@ -226,16 +236,9 @@ int main()
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/S11", 0, S11, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/S12", 0, S12, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/S22", 0, S22, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvx", 0, dgvx, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvy", 0, dgvy, mesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
-
-    //! Transport
-    Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
-    Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
-    dgtransport.settimesteppingscheme("rk1");
-    dgtransport.setmesh(mesh);
-    //Nextsim::TimeMesh timemesh(NT, k_adv, NT_evp);
-    Nextsim::TimeMesh timemesh(NT, k_adv, mom_substeps);
-    dgtransport.settimemesh(timemesh);
 
     //! Initial Forcing
     AtmForcingX.settime(0);
@@ -318,10 +321,12 @@ int main()
                     + 1.50 * E11(i, 0) * E22(i, 0)
                     + SQR(E12(i, 0)));
                 // We hit this assertion
-                //assert(DELTA(i, 0) > 0);
+                assert(DELTA(i, 0) > 0);
 
                 //! Ice strength
                 double P = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+
+                SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
 
                 double zeta = P / 2.0 / DELTA(i, 0);
                 double eta = zeta / 4;
@@ -337,12 +342,18 @@ int main()
                 if (sigma_n < 0.) {
                     //below line copied from nextsim finiteelement.cpp
                     //double const Pmax = std::pow(M_thick[cpt], exponent_compression_factor)*compression_factor*expC;
-                    double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+                    //double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+                    // skipping 1.5 power
+                    double const Pmax = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+
                     // tildeP must be capped at 1 to get an elastic response
                     tildeP = std::min(1., -Pmax / sigma_n);
                 } else {
                     tildeP = 0.;
                 }
+
+                //if (tildeP > 0 && tildeP < 1)
+                //    std::cout << "\n Pmax = " << P << "\n Ptilde " << tildeP << std::endl;
 
                 // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
                 // min and - from nextsim
@@ -350,24 +361,44 @@ int main()
                     time_viscous / (time_viscous + timemesh.dt_momentum * (1. - tildeP)));
 
                 double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
-
                 double const Dunit_factor = 1. / (1. - SQR(RefScale::nu0));
 
-                //compute SigmaE
-                double SigmaE11 = Dunit_factor * (E11(i, 0) + RefScale::nu0 * E22(i, 0));
-                double SigmaE22 = Dunit_factor * (RefScale::nu0 * E11(i, 0) + E22(i, 0));
-                double SigmaE12 = 1. / (1 - RefScale::nu0) * E12(i, 0);
+                //Do multiplication
+                //S11.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma * (1. - tildeP));
+                //S12.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma * (1. - tildeP));
+                //S22.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma * (1. - tildeP));
+
+                //S11.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma);
+                //S12.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma);
+                //S22.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma);
+
+                //std::cout << "1 " << timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma * (1. - tildeP) << std::endl;
+
+                //mEVP multiplication
+                S11.row(i) *= (1.0 - 1.0 / alpha);
+                S12.row(i) *= (1.0 - 1.0 / alpha);
+                S22.row(i) *= (1.0 - 1.0 / alpha);
 
                 //std::cout << elasticity << " dt " << timemesh.dt_momentum << " " << multiplicator << std::endl;
                 //std::cout << "Multiplicator " << multiplicator << std::endl;
 
                 //Elasit prediction Eqn. (32)
-                S11(i, 0) += timemesh.dt_momentum * elasticity * SigmaE11;
-                S11(i, 0) *= multiplicator;
-                S12(i, 0) += timemesh.dt_momentum * elasticity * SigmaE12;
-                S12(i, 0) *= multiplicator;
-                S22(i, 0) += timemesh.dt_momentum * elasticity * SigmaE22;
-                S22(i, 0) *= multiplicator;
+                S11.row(i) += timemesh.dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+                S12.row(i) += timemesh.dt_momentum * elasticity * 1 / (1 + RefScale::nu0) * E12.row(i);
+                S22.row(i) += timemesh.dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+                //S11.row(i) *= multiplicator;
+                //S12.row(i) *= multiplicator;
+                //S22.row(i) *= multiplicator;
+
+                //std::cout << "dt " << timemesh.dt_momentum << std::endl;
+                //std::cout << "\n mEVP eta " << eta / alpha << " zeta - eta " << (zeta - eta) / alpha << std::endl;
+                //std::cout << "\n MEB eta " << timemesh.dt_momentum * elasticity * (1 / (1 + RefScale::nu0)) << " zeta - eta " << timemesh.dt_momentum * elasticity * Dunit_factor * RefScale::nu0 << std::endl;
+
+
+                //mEVP
+                //S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
+                //S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
+                //S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
 
                 //continiue if stress in inside the failure envelope
                 // Compute the shear and normal stresses, which are two invariants of the internal stress tensor
@@ -402,37 +433,16 @@ int main()
                     D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * timemesh.dt_momentum / td;
 
                     // Recalculate the new state of stress by relaxing elstically Eqn. (36)
-                    S11(i, 0) -= S11(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
-                    S12(i, 0) -= S12(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
-                    S22(i, 0) -= S22(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+                    S11.row(i) -= S11.row(i) * (1. - dcrit) * timemesh.dt_momentum / td;
+                    S12.row(i) -= S12.row(i) * (1. - dcrit) * timemesh.dt_momentum / td;
+                    S22.row(i) -= S22.row(i) * (1. - dcrit) * timemesh.dt_momentum / td;
                 }
-
-                /*
-                // replacement pressure
-                //                P = P * DELTA(i, 0) / (RefScale::DeltaMin + DELTA(i, 0));
-
-                SHEAR(i, 0) = sqrt((SQR(RefScale::DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
-
-                // S = S_old + 1/alpha (S(u)-S_old)
-                //   = (1-1/alpha) S_old + 1/alpha S(u)
-                S11.row(i) *= (1.0 - 1.0 / alpha);
-                S12.row(i) *= (1.0 - 1.0 / alpha);
-                S22.row(i) *= (1.0 - 1.0 / alpha);
-
-                S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-                S11(i, 0) -= 1.0 / alpha * 0.5 * P;
-
-                S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
-
-                S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-                S22(i, 0) -= 1.0 / alpha * 0.5 * P;
 
                 // prepare for ellipse-output
                 if ((timestep % NT_vtk == 0)) {
                     S1(i) = (S11(i, 0) + S22(i, 0)) / P;
                     S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
                 }
-                */
             }
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
@@ -512,8 +522,8 @@ int main()
                 // Nextsim::CellVector<2> dgvx(mesh), dgvy(mesh);
                 // momentum.ProjectCGToDG(mesh, dgvx, vx);
                 // momentum.ProjectCGToDG(mesh, dgvy, vy);
-                // Nextsim::VTK::write_dg<2>("ResultsMEB_CGvel/dvx", printstep, dgvx, mesh);
-                // Nextsim::VTK::write_dg<2>("ResultsMEB_CGvel/dvy", printstep, dgvy, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvx", printstep, dgvx, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvy", printstep, dgvy, mesh);
 
                 // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S11", printstep, dynamics.GetS11(),
                 // dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S12", printstep,
@@ -523,16 +533,8 @@ int main()
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", printstep, H, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/D", printstep, D, mesh);
 
-                //	    Nextsim::VTK::write_dg<0>("ResultsMEB_CGvel/zeta", printstep, zeta, dynamics.GetMesh());
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/shear", printstep, SHEAR, mesh);
 
-                // Nextsim::VTK::write_dg<0>("ResultsMEB_CGvel/D",printstep,dynamics.GetD(),
-                // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("ResultsMEB_CGvel/ox",printstep,dynamics.GetOceanX(),
-                // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("ResultsMEB_CGvel/oy",printstep,dynamics.GetOceanY(),
-                // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("ResultsMEB_CGvel/ax",printstep,dynamics.GetAtmX(),
-                // dynamics.GetMesh());
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S11", printstep, S11, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S12", printstep, S12, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S22", printstep, S22, mesh);
