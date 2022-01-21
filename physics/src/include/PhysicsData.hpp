@@ -8,12 +8,13 @@
 #define SRC_INCLUDE_PHYSICSDATA_HPP
 
 #include "include/BaseElementData.hpp"
+#include "include/IPrognosticUpdater.hpp"
 #include "include/PrognosticData.hpp"
 
 namespace Nextsim {
 
 //! A class holding common physics data.
-class PhysicsData : public BaseElementData {
+class PhysicsData : public BaseElementData, public IPrognosticUpdater {
 public:
     PhysicsData() = default;
     ~PhysicsData() = default;
@@ -37,15 +38,22 @@ public:
 
     //! True ice thickness as updated [m]
     inline double& updatedIceTrueThickness() { return m_hi_new; }
+    //! Mean ice thickness, as updated [m]
+    double updatedIceThickness() const override { return m_hi_new * m_conc_new; }
 
     //! Mean thickness of snow (averaged over ice covered fraction) [m]
     inline double& updatedSnowTrueThickness() { return m_hs; }
+    //! Mean thickness of snow (averaged over data element) [m]
+    double updatedSnowThickness() const override { return m_hs * m_conc_new; }
+
 
     //! Updated value of the ice surface temperature [˚C]
     inline double& updatedIceSurfaceTemperature() { return m_TiceNew[0]; }
 
     //! Updated value of the ice concentration [1]
     inline double& updatedIceConcentration() { return m_conc_new; }
+    //! Updated value of the ice concentration [1]
+    double updatedIceConcentration() const override { return m_conc_new; }
 
 private:
     double m_rho;

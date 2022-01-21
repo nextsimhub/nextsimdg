@@ -10,6 +10,8 @@
 #include "BaseElementData.hpp"
 #include "Configured.hpp"
 #include "include/IFreezingPoint.hpp"
+#include "include/IPrognosticUpdater.hpp"
+
 #include <array>
 
 namespace Nextsim {
@@ -22,6 +24,16 @@ class PrognosticData : public BaseElementData, public Configured<PrognosticData>
 public:
     PrognosticData();
     ~PrognosticData() = default;
+
+    /*!
+     * Assigns new values from an implementation of IPrognosticUpdater
+     * @param updater The IPrognosticUpdater providing the updated values
+     */
+    void updateAndIntegrate(const IPrognosticUpdater& updater) {
+        m_thick = updater.updatedIceThickness();
+        m_conc = updater.updatedIceConcentration();
+        m_snow = updater.updatedSnowThickness();
+    };
 
     void configure() override;
 
