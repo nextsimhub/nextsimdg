@@ -9,7 +9,6 @@
 #include "mesh.hpp"
 #include "newdynamics.hpp"
 #include "stopwatch.hpp"
-#include "timemesh.hpp"
 
 bool WRITE_VTK = true;
 int WRITE_EVERY = 10000;
@@ -154,20 +153,20 @@ int main()
     //! define the time mesh
     const int hours = 48;
     constexpr double T = hours * 60 * 60; //!< Time horizon (in sec) max hours = 2 *  24
-    constexpr double k_adv = 120; // 90 //!< Time step of advection problem
-    constexpr size_t NT = T / k_adv + 1.e-4; //!< Number of Advections steps
+    constexpr double dt_adv = 120; // 90 //!< Time step of advection problem
+    constexpr size_t NT = T / dt_adv + 1.e-4; //!< Number of Advections steps
     constexpr size_t mom_substeps = 100;
-    constexpr double k = k_adv / mom_substeps; //!< Time step of momentum problem
+    constexpr double dt_momentum = dt_adv / mom_substeps; //!< Time step of momentum problem
 
-    std::cout << "Time step size (advection) " << k_adv << "\t" << NT << " time steps" << std::endl
+    std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "Momentym substeps " << mom_substeps << std::endl;
 
     //! VTK output
     constexpr double T_vtk = 1.0 * 60.0 * 60.0; // evey 1 hours
-    constexpr size_t NT_vtk = T_vtk / k_adv + 1.e-4;
+    constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
-    constexpr size_t NT_log = T_log / k_adv + 1.e-4;
+    constexpr size_t NT_log = T_log / dt_adv + 1.e-4;
 
     // Compute Parabolic CFL
     constexpr double gamma = 1e6; //!< Penalty parameter for internal continuity
@@ -183,8 +182,6 @@ int main()
     Nextsim::DGTransport<2> dgtransport(vx, vy);
     dgtransport.settimesteppingscheme("rk3");
     dgtransport.setmesh(mesh);
-    Nextsim::TimeMesh timemesh(NT, k_adv, mom_substeps);
-    dgtransport.settimemesh(timemesh);
 
     //Damage Transport DGDegree = 0
     //Nextsim::DGTransport<0> dg0transport(vx, vy);
@@ -248,7 +245,7 @@ int main()
     Nextsim::GlobalTimer.start("time loop");
 
     for (size_t timestep = 1; timestep <= NT; ++timestep) {
-        double time = k_adv * timestep;
+        double time = dt_adv * timestep;
         double timeInMinutes = time / 60.0;
         double timeInHours = time / 60.0 / 60.0;
         double timeInDays = time / 60.0 / 60.0 / 24.;
@@ -278,10 +275,10 @@ int main()
         //! Advection
         Nextsim::GlobalTimer.start("time loop - advection");
         dgtransport.reinitvelocity();
-        dgtransport.step(A);
-        dgtransport.step(H);
+        dgtransport.step(dt_adv, A);
+        dgtransport.step(dt_adv, H);
         //dg0transport.step(D);
-        dgtransport.step(D);
+        dgtransport.step(dt_adv, D);
 
         A.col(0) = A.col(0).cwiseMin(1.0);
         A.col(0) = A.col(0).cwiseMax(0.0);
@@ -328,8 +325,8 @@ int main()
             dynamics.velocityContinuity(gamma, mesh, tmpX, tmpY, vx, vy); //!< penalize velocity jump in inner edges
             dynamics.velocityDirichletBoundary(gammaboundary, mesh, tmpX, tmpY, vx, vy); //!< no-slip for velocity
 
-            vx += timemesh.dt_momentum * tmpX;
-            vy += timemesh.dt_momentum * tmpY;
+            vx += dt_momentum * tmpX;
+            vy += dt_momentum * tmpY;
 
             //DAMAGE EQUATION
 
@@ -360,7 +357,7 @@ int main()
                 // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
                 // min and - from nextsim
                 double const multiplicator = std::min(1. - 1e-12,
-                    time_viscous / (time_viscous + timemesh.dt_momentum * (1. - tildeP)));
+                    time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
 
                 double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
 
@@ -382,11 +379,11 @@ int main()
                 double SigmaE12 = 1. / (1 - RefScale::nu0) * E12(i, 0);
 
                 //Elasit prediction Eqn. (32)
-                S11(i, 0) += timemesh.dt_momentum * elasticity * SigmaE11;
+                S11(i, 0) += dt_momentum * elasticity * SigmaE11;
                 S11(i, 0) *= multiplicator;
-                S12(i, 0) += timemesh.dt_momentum * elasticity * SigmaE12;
+                S12(i, 0) += dt_momentum * elasticity * SigmaE12;
                 S12(i, 0) *= multiplicator;
-                S22(i, 0) += timemesh.dt_momentum * elasticity * SigmaE22;
+                S22(i, 0) += dt_momentum * elasticity * SigmaE22;
                 S22(i, 0) *= multiplicator;
 
                 //continiue if stress in inside the failure envelope
@@ -418,12 +415,12 @@ int main()
                         / std::sqrt(elasticity);
 
                     // Eqn. (34)
-                    D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * timemesh.dt_momentum / td;
+                    D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
 
                     // Recalculate the new state of stress by relaxing elstically Eqn. (36)
-                    S11(i, 0) -= S11(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
-                    S12(i, 0) -= S12(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
-                    S22(i, 0) -= S22(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+                    S11(i, 0) -= S11(i, 0) * (1. - dcrit) * dt_momentum / td;
+                    S12(i, 0) -= S12(i, 0) * (1. - dcrit) * dt_momentum / td;
+                    S22(i, 0) -= S22(i, 0) * (1. - dcrit) * dt_momentum / td;
                 }
             }
             Nextsim::GlobalTimer.stop("dyn -- mom -- damage");

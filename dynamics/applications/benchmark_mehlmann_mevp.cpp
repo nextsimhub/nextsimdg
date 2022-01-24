@@ -137,24 +137,24 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double k_adv = 60.0; //!< Time step of advection problem
-    constexpr size_t NT = ReferenceScale::T / k_adv + 1.e-4; //!< Number of Advections steps
+    constexpr double dt_adv = 120.0; //!< Time step of advection problem
+    constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
     constexpr double alpha = 800.0;
     constexpr double beta = 800.0;
     constexpr size_t NT_evp = 100;
 
-    std::cout << "Time step size (advection) " << k_adv << "\t" << NT << " time steps" << std::endl
+    std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
               << std::endl;
 
     //! VTK output
     constexpr double T_vtk = 4.0 * 60.0 * 60.0; // evey 4 hours
-    constexpr size_t NT_vtk = T_vtk / k_adv + 1.e-4;
+    constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
-    constexpr size_t NT_log = T_log / k_adv + 1.e-4;
+    constexpr size_t NT_log = T_log / dt_adv + 1.e-4;
 
     //! Variables
     Nextsim::CGVector<CG> vx(mesh), vy(mesh); //!< velocity
@@ -204,8 +204,6 @@ int main()
     Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk2");
     dgtransport.setmesh(mesh);
-    Nextsim::TimeMesh timemesh(NT, k_adv, NT_evp);
-    dgtransport.settimemesh(timemesh);
 
     //! Initial Forcing
     AtmForcingX.settime(0);
@@ -216,7 +214,7 @@ int main()
     Nextsim::GlobalTimer.start("time loop");
 
     for (size_t timestep = 1; timestep <= NT; ++timestep) {
-        double time = k_adv * timestep;
+        double time = dt_adv * timestep;
         double timeInMinutes = time / 60.0;
         double timeInHours = time / 60.0 / 60.0;
         double timeInDays = time / 60.0 / 60.0 / 24.;
@@ -247,8 +245,8 @@ int main()
         momentum.ProjectCGToDG(mesh, dgvx, vx);
         momentum.ProjectCGToDG(mesh, dgvy, vy);
         dgtransport.reinitvelocity();
-        dgtransport.step(A);
-        dgtransport.step(H);
+        dgtransport.step(dt_adv, A);
+        dgtransport.step(dt_adv, H);
 
         //! Very simple limiting (just constants)
         A.col(0) = A.col(0).cwiseMin(1.0);
@@ -294,17 +292,17 @@ int main()
             //	    update by a loop.. implicit parts and h-dependent
 
             //
-            vx = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+            vx = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
                       + cg_A.array() * ReferenceScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
-                * (ReferenceScale::rho_ice * cg_H.array() / k_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
+                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
                     cg_A.array() * (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
                         ReferenceScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
                     + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (vy - OY).array() // cor + surface
                     ))
                      .matrix();
-            vy = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+            vy = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
                       + cg_A.array() * ReferenceScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
-                * (ReferenceScale::rho_ice * cg_H.array() / k_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
+                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
                     cg_A.array() * (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
                         ReferenceScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
                     + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (OX - vx).array() // cor + surface
@@ -317,11 +315,11 @@ int main()
             tmpx.zero();
             tmpy.zero();
             momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
-            vx += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+            vx += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
                        + cg_A.array() * ReferenceScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
                 * tmpx.array())
                       .matrix();
-            vy += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
+            vy += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
                        + cg_A.array() * ReferenceScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
                 * tmpy.array())
                       .matrix();

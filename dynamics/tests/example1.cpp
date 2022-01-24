@@ -8,7 +8,6 @@
 #include "dgtransport.hpp"
 #include "dgvisu.hpp"
 #include "mesh.hpp"
-#include "timemesh.hpp"
 //#include "stopwatch.hpp"
 #include "testtools.hpp"
 
@@ -90,8 +89,10 @@ class Test {
 
     size_t N; //!< size of mesh N x N
 
+    size_t NT; //!< number of time steps
+    double dt; //!< time step size
+
     Nextsim::Mesh mesh; //!< space mesh
-    Nextsim::TimeMesh timemesh; //!< time mesh
 
     //! Velocity vectors and density
     Nextsim::CellVector<DGdegree> vx, vy, phi, finalphi;
@@ -133,14 +134,12 @@ public:
 
         //! Init Time Mesh
         double cfl = 0.2;
-        double k = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
+        dt = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
         double tmax = 2.0 * M_PI;
-        int NT = (static_cast<int>((tmax / k + 1) / 100 + 1) * 100); // No time steps dividable by 100
-        timemesh.BasicInit(tmax, NT, 1);
+        NT = (static_cast<int>((tmax / dt + 1) / 100 + 1) * 100); // No time steps dividable by 100
 
         //! Init Transport Scheme
         dgtransport.setmesh(mesh);
-        dgtransport.settimemesh(timemesh);
 
         //! Init Vectors
         vx.resize_by_mesh(mesh);
@@ -181,10 +180,10 @@ public:
 
             //! time loop
             Nextsim::Timer::main.tick("run -- loop");
-            for (size_t iter = 1; iter <= timemesh.N; ++iter) {
+            for (size_t iter = 1; iter <= NT; ++iter) {
                 Nextsim::Timer::main.tick("run -- loop -- vel");
-                VX.settime(timemesh.dt * iter);
-                VY.settime(timemesh.dt * iter);
+                VX.settime(dt * iter);
+                VY.settime(dt * iter);
                 Nextsim::Timer::main.tick("run -- loop -- vel -- l2");
                 Nextsim::L2ProjectInitial(mesh, vx, VX);
                 Nextsim::L2ProjectInitial(mesh, vy, VY);
@@ -192,11 +191,11 @@ public:
                 dgtransport.reinitvelocity();
                 Nextsim::Timer::main.tock("run -- loop -- vel");
 
-                dgtransport.step(phi); // performs one time step with the 2nd Order Heun scheme
+                dgtransport.step(dt, phi); // performs one time step with the 2nd Order Heun scheme
                 if (WRITE_VTK)
-                    if (iter % (timemesh.N / writestep) == 0) {
+                    if (iter % (NT / writestep) == 0) {
                         Nextsim::Timer::main.tick("run -- loop -- vtk");
-                        Nextsim::VTK::write_dg<DGdegree>("Results/dg", iter / (timemesh.N / writestep), phi, mesh);
+                        Nextsim::VTK::write_dg<DGdegree>("Results/dg", iter / (NT / writestep), phi, mesh);
                         Nextsim::Timer::main.tock("run -- loop -- vtk");
                     }
             }

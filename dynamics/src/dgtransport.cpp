@@ -21,12 +21,6 @@ void DGTransport<DGdegree>::setmesh(const Mesh& _mesh)
 }
 
 template <int DGdegree>
-void DGTransport<DGdegree>::settimemesh(const TimeMesh& _timemesh)
-{
-    timemesh = _timemesh; // copy mesh
-}
-
-template <int DGdegree>
 void DGTransport<DGdegree>::reinitvelocity()
 {
     // average the velocity to the edges
@@ -35,10 +29,9 @@ void DGTransport<DGdegree>::reinitvelocity()
 }
 
 template <int DGdegree>
-void DGTransport<DGdegree>::step_rk1(CellVector<DGdegree>& phi)
+void DGTransport<DGdegree>::step_rk1(const double dt, CellVector<DGdegree>& phi)
 {
-    transportoperator<DGdegree>(mesh,
-        timemesh,
+    transportoperator<DGdegree>(mesh, dt,
         velx,
         vely,
         velx_edgeY,
@@ -50,10 +43,9 @@ void DGTransport<DGdegree>::step_rk1(CellVector<DGdegree>& phi)
 }
 
 template <int DGdegree>
-void DGTransport<DGdegree>::step_rk2(CellVector<DGdegree>& phi)
+void DGTransport<DGdegree>::step_rk2(const double dt, CellVector<DGdegree>& phi)
 {
-    transportoperator<DGdegree>(mesh,
-        timemesh,
+    transportoperator<DGdegree>(mesh, dt,
         velx,
         vely,
         velx_edgeY,
@@ -63,9 +55,7 @@ void DGTransport<DGdegree>::step_rk2(CellVector<DGdegree>& phi)
 
     phi += tmp1; // phi = phi + k * F(u)     (i.e.: implicit Euler)
 
-    transportoperator<DGdegree>(mesh,
-        timemesh,
-        velx,
+    transportoperator<DGdegree>(mesh, dt, velx,
         vely,
         velx_edgeY,
         vely_edgeX,
@@ -76,11 +66,9 @@ void DGTransport<DGdegree>::step_rk2(CellVector<DGdegree>& phi)
 }
 
 template <int DGdegree>
-void DGTransport<DGdegree>::step_rk3(CellVector<DGdegree>& phi)
+void DGTransport<DGdegree>::step_rk3(const double dt, CellVector<DGdegree>& phi)
 {
-    transportoperator<DGdegree>(mesh,
-        timemesh,
-        velx,
+    transportoperator<DGdegree>(mesh, dt, velx,
         vely,
         velx_edgeY,
         vely_edgeX,
@@ -88,9 +76,7 @@ void DGTransport<DGdegree>::step_rk3(CellVector<DGdegree>& phi)
         tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
 
     phi += 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
-    transportoperator<DGdegree>(mesh,
-        timemesh,
-        velx,
+    transportoperator<DGdegree>(mesh, dt, velx,
         vely,
         velx_edgeY,
         vely_edgeX,
@@ -99,9 +85,7 @@ void DGTransport<DGdegree>::step_rk3(CellVector<DGdegree>& phi)
     phi -= 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
 
     phi += 2. / 3. * tmp2;
-    transportoperator<DGdegree>(mesh,
-        timemesh,
-        velx,
+    transportoperator<DGdegree>(mesh, dt, velx,
         vely,
         velx_edgeY,
         vely_edgeX,
@@ -113,15 +97,15 @@ void DGTransport<DGdegree>::step_rk3(CellVector<DGdegree>& phi)
 }
 
 template <int DGdegree>
-void DGTransport<DGdegree>::step(CellVector<DGdegree>& phi)
+void DGTransport<DGdegree>::step(const double dt, CellVector<DGdegree>& phi)
 {
     GlobalTimer.start("-- --> step");
     if (timesteppingscheme == "rk1")
-        step_rk1(phi);
+        step_rk1(dt, phi);
     else if (timesteppingscheme == "rk2")
-        step_rk2(phi);
+        step_rk2(dt, phi);
     else if (timesteppingscheme == "rk3")
-        step_rk3(phi);
+        step_rk3(dt, phi);
     else {
         std::cerr << "Time stepping scheme '" << timesteppingscheme << "' not known!" << std::endl;
         abort();

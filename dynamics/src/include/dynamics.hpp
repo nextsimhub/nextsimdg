@@ -7,7 +7,6 @@
 #include "dgtransport.hpp"
 #include "dgvector.hpp"
 #include "mesh.hpp"
-#include "timemesh.hpp"
 
 namespace Nextsim {
 // pre-computed matrices for assembling dG-transport
@@ -29,7 +28,6 @@ class Dynamics {
      */
 public:
     Mesh mesh;
-    TimeMesh timemesh;
 
     /*!
    * Main variables for the ice model. 
@@ -65,7 +63,6 @@ public:
 
     //! Access
     Mesh& GetMesh() { return mesh; }
-    TimeMesh& GetTimeMesh() { return timemesh; }
     CellVector<2>& GetTMPX() { return tmpX; }
     CellVector<2>& GetTMPY() { return tmpY; }
 
@@ -109,9 +106,9 @@ public:
 
     void momentumSymmetry();
 
-    void advectionStep();
-    void momentumSubsteps();
-    void step();
+    void advectionStep(const double dt);
+    void momentumSubsteps(const double dt_momentum);
+    void step(const double dt, const double dt_momentum);
 
     //! functions required to compute various terms of the momentum eq.
 

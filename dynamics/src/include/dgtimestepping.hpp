@@ -5,7 +5,6 @@
 
 #include "dgvector_manipulations.hpp"
 #include "stopwatch.hpp"
-#include "timemesh.hpp"
 
 namespace Nextsim {
 
@@ -88,8 +87,7 @@ void cell_term(const Mesh& mesh,
 
 // compute the edge terms for the horizontal edges:  n = (0, +/- 1)
 template <int DGdegree>
-void edge_term_X(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void edge_term_X(const Mesh& mesh, const double dt,
     CellVector<DGdegree>& phiup,
     const CellVector<DGdegree>& phi,
     const EdgeVector<DGdegree>& evy,
@@ -98,8 +96,7 @@ void edge_term_X(const Mesh& mesh,
     const size_t e);
 
 template <>
-void edge_term_X(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void edge_term_X(const Mesh& mesh, const double dt,
     CellVector<0>& phiup,
     const CellVector<0>& phi,
     const EdgeVector<0>& evy,
@@ -111,13 +108,13 @@ void edge_term_X(const Mesh& mesh,
     double top = phi(c2, 0);
     double vel = evy(ie, 0);
 
-    phiup(c1, 0) -= timemesh.dt / mesh.hy * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
-    phiup(c2, 0) += timemesh.dt / mesh.hy * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
+    phiup(c1, 0) -= dt / mesh.hy * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
+    phiup(c2, 0) += dt / mesh.hy * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
 }
 
 template <>
 void edge_term_X(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<1>& phiup,
     const CellVector<1>& phi,
     const EdgeVector<1>& evy,
@@ -134,13 +131,12 @@ void edge_term_X(const Mesh& mesh,
 
     const LocalEdgeVector<1> vel_gauss = evy.block<1, 2>(ie, 0) * BiGe12;
     const LocalEdgeVector<1> tmp = (vel_gauss.array().max(0) * (bottom * BiGe12).array() + vel_gauss.array().min(0) * (top * BiGe12).array());
-    phiup.block<1, 3>(c1, 0) -= timemesh.dt / mesh.hy * tmp * BiG12_2;
-    phiup.block<1, 3>(c2, 0) += timemesh.dt / mesh.hy * tmp * BiG12_0;
+    phiup.block<1, 3>(c1, 0) -= dt / mesh.hy * tmp * BiG12_2;
+    phiup.block<1, 3>(c2, 0) += dt / mesh.hy * tmp * BiG12_0;
 }
 
 template <>
-void edge_term_X(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void edge_term_X(const Mesh& mesh, const double dt,
     CellVector<2>& phiup,
     const CellVector<2>& phi,
     const EdgeVector<2>& evy,
@@ -158,14 +154,13 @@ void edge_term_X(const Mesh& mesh,
 
     const LocalEdgeVector<2> vel_gauss = evy.block<1, 3>(ie, 0) * BiGe23;
     const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (bottom * BiGe23).array() + vel_gauss.array().min(0) * (top * BiGe23).array());
-    phiup.block<1, 6>(c1, 0) -= timemesh.dt / mesh.hy * tmp * BiG23_2;
-    phiup.block<1, 6>(c2, 0) += timemesh.dt / mesh.hy * tmp * BiG23_0;
+    phiup.block<1, 6>(c1, 0) -= dt / mesh.hy * tmp * BiG23_2;
+    phiup.block<1, 6>(c2, 0) += dt / mesh.hy * tmp * BiG23_0;
 }
 
 // compute the edge terms for the vertical edges:  n = (+/- 1, 0)
 template <int DGdegree>
-void edge_term_Y(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void edge_term_Y(const Mesh& mesh, const double dt,
     CellVector<DGdegree>& phiup,
 
     const CellVector<DGdegree>& phi,
@@ -176,8 +171,7 @@ void edge_term_Y(const Mesh& mesh,
     const size_t e);
 
 template <>
-void edge_term_Y(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void edge_term_Y(const Mesh& mesh, const double dt,
     CellVector<0>& phiup,
 
     const CellVector<0>& phi,
@@ -191,13 +185,12 @@ void edge_term_Y(const Mesh& mesh,
     double right = phi(c2, 0);
     double vel = evx(ie, 0);
 
-    phiup(c1, 0) -= timemesh.dt / mesh.hy * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
-    phiup(c2, 0) += timemesh.dt / mesh.hy * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
+    phiup(c1, 0) -= dt / mesh.hy * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
+    phiup(c2, 0) += dt / mesh.hy * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
 }
 
 template <>
-void edge_term_Y(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void edge_term_Y(const Mesh& mesh, const double dt,
     CellVector<1>& phiup,
     const CellVector<1>& phi,
     const EdgeVector<1>& evx,
@@ -216,13 +209,12 @@ void edge_term_Y(const Mesh& mesh,
     const LocalEdgeVector<1> tmp = (vel_gauss.array().max(0) * (left * BiGe12).array() + vel_gauss.array().min(0) * (right * BiGe12).array());
 
     // - [[psi]] sind we're on the left side
-    phiup.block<1, 3>(c1, 0) -= timemesh.dt / mesh.hx * tmp * BiG12_1;
-    phiup.block<1, 3>(c2, 0) += timemesh.dt / mesh.hx * tmp * BiG12_3;
+    phiup.block<1, 3>(c1, 0) -= dt / mesh.hx * tmp * BiG12_1;
+    phiup.block<1, 3>(c2, 0) += dt / mesh.hx * tmp * BiG12_3;
 }
 
 template <>
-void edge_term_Y(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void edge_term_Y(const Mesh& mesh, const double dt,
     CellVector<2>& phiup,
     const CellVector<2>& phi,
     const EdgeVector<2>& evx,
@@ -243,8 +235,8 @@ void edge_term_Y(const Mesh& mesh,
     const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (left * BiGe23).array() + vel_gauss.array().min(0) * (right * BiGe23).array());
 
     // - [[psi]] sind we're on the left side
-    phiup.block<1, 6>(c1, 0) -= timemesh.dt / mesh.hx * tmp * BiG23_1;
-    phiup.block<1, 6>(c2, 0) += timemesh.dt / mesh.hx * tmp * BiG23_3;
+    phiup.block<1, 6>(c1, 0) -= dt / mesh.hx * tmp * BiG23_1;
+    phiup.block<1, 6>(c2, 0) += dt / mesh.hx * tmp * BiG23_3;
 }
 
 //////////////////////////////////////////////////
@@ -252,19 +244,17 @@ void edge_term_Y(const Mesh& mesh,
 //  <<  <v*n>^+ Psi Phi >>
 
 template <int DGdegree>
-void boundary_lower(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void boundary_lower(const Mesh& mesh, const double dt,
     CellVector<DGdegree>& phiup,
     const CellVector<DGdegree>& phi,
     const EdgeVector<DGdegree>& evy,
     const size_t c,
     const size_t e)
 {
-    phiup(c, 0) -= timemesh.dt / mesh.hy * std::max(0., -evy(e, 0)) * phi(c, 0);
+    phiup(c, 0) -= dt / mesh.hy * std::max(0., -evy(e, 0)) * phi(c, 0);
 }
 template <>
-void boundary_lower(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void boundary_lower(const Mesh& mesh, const double dt,
     CellVector<1>& phiup,
     const CellVector<1>& phi,
     const EdgeVector<1>& evy,
@@ -275,11 +265,10 @@ void boundary_lower(const Mesh& mesh,
         = LocalEdgeVector<1>(phi(c, 0) - 0.5 * phi(c, 2), phi(c, 1)) * BiGe12;
     LocalEdgeVector<1> vel_gauss = evy.block<1, 2>(e, 0) * BiGe12;
     LocalEdgeVector<1> tmp = (phi_lower.array() * (-vel_gauss.array()).max(0));
-    phiup.block<1, 3>(c, 0) -= timemesh.dt / mesh.hy * tmp * BiG12_0;
+    phiup.block<1, 3>(c, 0) -= dt / mesh.hy * tmp * BiG12_0;
 }
 template <>
-void boundary_lower(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void boundary_lower(const Mesh& mesh, const double dt,
     CellVector<2>& phiup,
     const CellVector<2>& phi,
     const EdgeVector<2>& evy,
@@ -295,22 +284,21 @@ void boundary_lower(const Mesh& mesh,
     // LocalEdgeVector<2> phi_gauss = phi_lower * BiGe23; // X
     LocalEdgeVector<2> vel_gauss = evy.block<1, 3>(e, 0) * BiGe23;
     LocalEdgeVector<2> tmp = (phi_lower.array() * (-vel_gauss.array()).max(0));
-    phiup.block<1, 6>(c, 0) -= timemesh.dt / mesh.hy * tmp * BiG23_0;
+    phiup.block<1, 6>(c, 0) -= dt / mesh.hy * tmp * BiG23_0;
 }
 template <int DGdegree>
-void boundary_upper(const Mesh& mesh,
-    const TimeMesh& timemesh,
+void boundary_upper(const Mesh& mesh, const double dt,
     CellVector<DGdegree>& phiup,
     const CellVector<DGdegree>& phi,
     const EdgeVector<DGdegree>& evy,
     const size_t c,
     const size_t e)
 {
-    phiup(c, 0) -= timemesh.dt / mesh.hy * std::max(0., evy(e, 0)) * phi(c, 0);
+    phiup(c, 0) -= dt / mesh.hy * std::max(0., evy(e, 0)) * phi(c, 0);
 }
 template <>
 void boundary_upper(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<1>& phiup,
     const CellVector<1>& phi,
     const EdgeVector<1>& evy,
@@ -325,11 +313,11 @@ void boundary_upper(const Mesh& mesh,
     // LocalEdgeVector<2> phi_gauss = phi_upper * BiGe23; // X
     LocalEdgeVector<1> vel_gauss = evy.block<1, 2>(e, 0) * BiGe12;
     LocalEdgeVector<1> tmp = (phi_upper.array() * (vel_gauss.array()).max(0));
-    phiup.block<1, 3>(c, 0) -= timemesh.dt / mesh.hy * tmp * BiG12_2;
+    phiup.block<1, 3>(c, 0) -= dt / mesh.hy * tmp * BiG12_2;
 }
 template <>
 void boundary_upper(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<2>& phiup,
     const CellVector<2>& phi,
     const EdgeVector<2>& evy,
@@ -345,23 +333,23 @@ void boundary_upper(const Mesh& mesh,
     // LocalEdgeVector<2> phi_gauss = phi_upper * BiGe23; // X
     LocalEdgeVector<2> vel_gauss = evy.block<1, 3>(e, 0) * BiGe23;
     LocalEdgeVector<2> tmp = (phi_upper.array() * (vel_gauss.array()).max(0));
-    phiup.block<1, 6>(c, 0) -= timemesh.dt / mesh.hy * tmp * BiG23_2;
+    phiup.block<1, 6>(c, 0) -= dt / mesh.hy * tmp * BiG23_2;
 }
 
 template <int DGdegree>
 void boundary_left(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<DGdegree>& phiup,
     const CellVector<DGdegree>& phi,
     const EdgeVector<DGdegree>& evx,
     const size_t c,
     const size_t e)
 {
-    phiup(c, 0) -= timemesh.dt / mesh.hx * std::max(0., -evx(e, 0)) * phi(c, 0);
+    phiup(c, 0) -= dt / mesh.hx * std::max(0., -evx(e, 0)) * phi(c, 0);
 }
 template <>
 void boundary_left(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<1>& phiup,
     const CellVector<1>& phi,
     const EdgeVector<1>& evx,
@@ -374,11 +362,11 @@ void boundary_left(const Mesh& mesh,
     // LocalEdgeVector<2> phi_gauss = phi_left * BiGe23; // Y
     LocalEdgeVector<1> vel_gauss = evx.block<1, 2>(e, 0) * BiGe12;
     LocalEdgeVector<1> tmp = (phi_left.array() * (-vel_gauss.array()).max(0));
-    phiup.block<1, 3>(c, 0) -= timemesh.dt / mesh.hx * tmp * BiG12_3;
+    phiup.block<1, 3>(c, 0) -= dt / mesh.hx * tmp * BiG12_3;
 }
 template <>
 void boundary_left(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<2>& phiup,
     const CellVector<2>& phi,
     const EdgeVector<2>& evx,
@@ -393,23 +381,23 @@ void boundary_left(const Mesh& mesh,
     // LocalEdgeVector<2> phi_gauss = phi_left * BiGe23; // Y
     LocalEdgeVector<2> vel_gauss = evx.block<1, 3>(e, 0) * BiGe23;
     LocalEdgeVector<2> tmp = (phi_left.array() * (-vel_gauss.array()).max(0));
-    phiup.block<1, 6>(c, 0) -= timemesh.dt / mesh.hx * tmp * BiG23_3;
+    phiup.block<1, 6>(c, 0) -= dt / mesh.hx * tmp * BiG23_3;
 }
 
 template <int DGdegree>
 void boundary_right(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<DGdegree>& phiup,
     const CellVector<DGdegree>& phi,
     const EdgeVector<DGdegree>& evx,
     const size_t c,
     const size_t e)
 {
-    phiup(c, 0) -= timemesh.dt / mesh.hx * std::max(0., evx(e, 0)) * phi(c, 0);
+    phiup(c, 0) -= dt / mesh.hx * std::max(0., evx(e, 0)) * phi(c, 0);
 }
 template <>
 void boundary_right(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<1>& phiup,
     const CellVector<1>& phi,
     const EdgeVector<1>& evx,
@@ -424,11 +412,11 @@ void boundary_right(const Mesh& mesh,
     LocalEdgeVector<1> vel_gauss = evx.block<1, 2>(e, 0) * BiGe12;
     LocalEdgeVector<1> tmp = (phi_right.array() * (vel_gauss.array().max(0)));
 
-    phiup.block<1, 3>(c, 0) -= timemesh.dt / mesh.hx * tmp * BiG12_1;
+    phiup.block<1, 3>(c, 0) -= dt / mesh.hx * tmp * BiG12_1;
 }
 template <>
 void boundary_right(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     CellVector<2>& phiup,
     const CellVector<2>& phi,
     const EdgeVector<2>& evx,
@@ -444,7 +432,7 @@ void boundary_right(const Mesh& mesh,
     // LocalEdgeVector<2> phi_gauss = phi_right * BiGe23; // Y
     LocalEdgeVector<2> vel_gauss = evx.block<1, 3>(e, 0) * BiGe23;
     LocalEdgeVector<2> tmp = (phi_right.array() * (vel_gauss.array().max(0)));
-    phiup.block<1, 6>(c, 0) -= timemesh.dt / mesh.hx * tmp * BiG23_1;
+    phiup.block<1, 6>(c, 0) -= dt / mesh.hx * tmp * BiG23_1;
 }
 
 //////////////////////////////////////////////////
@@ -452,11 +440,11 @@ void boundary_right(const Mesh& mesh,
 //! Computes the "something" like the inverse of the mass matrix. GIVE DETAILS!
 template <int DGdegree>
 void inversemassmatrix(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     LocalCellVector<DGdegree>& inversemasscell);
 template <>
 void inversemassmatrix(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     LocalCellVector<0>& inversemasscell)
 {
     inversemasscell(0) = 0; // not used for DG0
@@ -470,7 +458,7 @@ void inversemassmatrix(const Mesh& mesh,
 
 template <>
 void inversemassmatrix(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     LocalCellVector<1>& inversemasscell)
 {
     // Mass = h^2 diag(1.0, 1.0/12, 1.0/12) / k
@@ -480,13 +468,13 @@ void inversemassmatrix(const Mesh& mesh,
     // scaling comes from integral of cell term divided by integral of mass term
     // scaling from derivative is added later in the computation
     inversemasscell(0) = 0.0; // used for cell-term (v Psi, phi)
-    inversemasscell(1) = timemesh.dt * 12.0;
-    inversemasscell(2) = timemesh.dt * 12.0;
+    inversemasscell(1) = dt * 12.0;
+    inversemasscell(2) = dt * 12.0;
 }
 
 template <>
 void inversemassmatrix(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     LocalCellVector<2>& inversemasscell)
 {
     // Mass = h^2 diag(1.0, 1.0/12, 1.0/12) / k
@@ -494,11 +482,11 @@ void inversemassmatrix(const Mesh& mesh,
     // (Psi[0], nabla Phi) = diag(0, h, h)
 
     inversemasscell(0) = 0.0; // used for cell-term (v Psi, phi)
-    inversemasscell(1) = timemesh.dt * 12.0;
-    inversemasscell(2) = timemesh.dt * 12.0;
-    inversemasscell(3) = timemesh.dt * 180.0;
-    inversemasscell(4) = timemesh.dt * 180.0;
-    inversemasscell(5) = timemesh.dt * 144.0;
+    inversemasscell(1) = dt * 12.0;
+    inversemasscell(2) = dt * 12.0;
+    inversemasscell(3) = dt * 180.0;
+    inversemasscell(4) = dt * 180.0;
+    inversemasscell(5) = dt * 144.0;
 }
 
 //! Applies the linear transport operator 'div (v Psi)' in upwind formulation,
@@ -506,7 +494,7 @@ void inversemassmatrix(const Mesh& mesh,
 //! The result is written to phiup (which is set to zero at the beginning)
 template <int DGdegree>
 void transportoperator(const Mesh& mesh,
-    const TimeMesh& timemesh,
+    const double dt,
     const CellVector<DGdegree>& vx,
     const CellVector<DGdegree>& vy,
     const EdgeVector<DGdegree>& evx,
@@ -517,7 +505,7 @@ void transportoperator(const Mesh& mesh,
     phiup.zero();
 
     LocalCellVector<DGdegree> inversemasscell;
-    inversemassmatrix(mesh, timemesh, inversemasscell);
+    inversemassmatrix(mesh, dt, inversemasscell);
 
     GlobalTimer.start("-- -- --> cell term");
     // Cell terms
@@ -538,7 +526,7 @@ void transportoperator(const Mesh& mesh,
 
         for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic, ++ie)
             edge_term_Y<DGdegree>(
-                mesh, timemesh, phiup, phi, evx, ic, ic + 1, ie);
+                mesh, dt, phiup, phi, evx, ic, ic + 1, ie);
     }
 
     // X - edges, only inner ones
@@ -548,7 +536,7 @@ void transportoperator(const Mesh& mesh,
         size_t ie = ix + mesh.nx; // first index of inner velocity in column
         for (size_t i = 0; i < mesh.ny - 1; ++i, ic += mesh.nx, ie += mesh.nx)
             edge_term_X<DGdegree>(
-                mesh, timemesh, phiup, phi, evy, ic, ic + mesh.nx, ie);
+                mesh, dt, phiup, phi, evy, ic, ic + mesh.nx, ie);
     }
     GlobalTimer.stop("-- -- --> edge terms");
 
@@ -564,9 +552,9 @@ void transportoperator(const Mesh& mesh,
         const size_t eupper = eupper0 + ix;
 
         boundary_lower<DGdegree>(
-            mesh, timemesh, phiup, phi, evy, clower, elower);
+            mesh, dt, phiup, phi, evy, clower, elower);
         boundary_upper<DGdegree>(
-            mesh, timemesh, phiup, phi, evy, cupper, eupper);
+            mesh, dt, phiup, phi, evy, cupper, eupper);
     }
     // left & right
     //#pragma omp parallel for
@@ -579,9 +567,9 @@ void transportoperator(const Mesh& mesh,
         const size_t eright = eright0 + iy * (mesh.nx + 1);
 
         boundary_left<DGdegree>(
-            mesh, timemesh, phiup, phi, evx, cleft, eleft);
+            mesh, dt, phiup, phi, evx, cleft, eleft);
         boundary_right<DGdegree>(
-            mesh, timemesh, phiup, phi, evx, cright, eright);
+            mesh, dt, phiup, phi, evx, cright, eright);
     }
 
     GlobalTimer.stop("-- -- --> boundaries");

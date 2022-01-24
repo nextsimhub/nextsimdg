@@ -116,20 +116,18 @@ int main()
         double gammaboundary = gamma; //!< parameter in front of boundary penalty terms
         double cfl = 0.05 / gamma;
 
-        double k = cfl * rho_ice * L * L / 2.0 / eta / N / N;
-        std::cout << "Time step:\t" << k << std::endl
+        double dt = cfl * rho_ice * L * L / 2.0 / eta / N / N;
+        double dt_momentum = dt;
+        std::cout << "Time step:\t" << dt << std::endl
                   << "Mesh size:\t" << h << std::endl;
 
         dynamics.GetMesh().BasicInit(N, N, h, h);
-        size_t NT = T / k;
-
-        dynamics.GetTimeMesh().BasicInit(NT, k, k);
-
-        WRITE_EVERY = T / 5 / dynamics.GetTimeMesh().dt_momentum + 1.e-6;
+        size_t NT = T / dt + 1.e-8;
+        WRITE_EVERY = T / 5 / dt_momentum + 1.e-6;
 
         std::cout << "--------------------------------------------" << std::endl;
         std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
-        std::cout << "Time mesh with " << NT << " steps, step-size " << k << std::endl;
+        std::cout << "Time mesh with " << NT << " steps, step-size " << dt << std::endl;
 
         //! Initialize the Dynamical Core (vector sizes, etc.)
         dynamics.BasicInit();
@@ -149,7 +147,7 @@ int main()
         Nextsim::GlobalTimer.start("time loop");
         //        dynamics.GetTimeMesh().N = 1;
 
-        for (size_t timestep = 1; timestep <= dynamics.GetTimeMesh().N; ++timestep) {
+        for (size_t timestep = 1; timestep <= NT; ++timestep) {
 
             // v += k * ( F + div( 1/2 (nabla v + nabla v^T) ) )
             dynamics.GetTMPX() = fx;
@@ -170,12 +168,12 @@ int main()
             } else if (solver == "EVP") {
                 constexpr double E = 100.0;
 
-                dynamics.GetS11() += E * dynamics.GetTimeMesh().dt_momentum * stressscale * dynamics.GetE11();
-                dynamics.GetS11() *= 1.0 / (1.0 + E * dynamics.GetTimeMesh().dt_momentum);
-                dynamics.GetS12() += E * dynamics.GetTimeMesh().dt_momentum * stressscale * dynamics.GetE12();
-                dynamics.GetS12() *= 1.0 / (1.0 + E * dynamics.GetTimeMesh().dt_momentum);
-                dynamics.GetS22() += E * dynamics.GetTimeMesh().dt_momentum * stressscale * dynamics.GetE22();
-                dynamics.GetS22() *= 1.0 / (1.0 + E * dynamics.GetTimeMesh().dt_momentum);
+                dynamics.GetS11() += E * dt_momentum * stressscale * dynamics.GetE11();
+                dynamics.GetS11() *= 1.0 / (1.0 + E * dt_momentum);
+                dynamics.GetS12() += E * dt_momentum * stressscale * dynamics.GetE12();
+                dynamics.GetS12() *= 1.0 / (1.0 + E * dt_momentum);
+                dynamics.GetS22() += E * dt_momentum * stressscale * dynamics.GetE22();
+                dynamics.GetS22() *= 1.0 / (1.0 + E * dt_momentum);
 
                 dynamics.addStressTensor(-1.0); //!< tmp += div(S)
                 dynamics.velocityContinuity(gamma * stressscale); //!< tmp += < [v], [phi] >
@@ -186,15 +184,15 @@ int main()
                 abort();
             }
 
-            dynamics.GetVX() += dynamics.GetTimeMesh().dt_momentum * dynamics.GetTMPX();
-            dynamics.GetVY() += dynamics.GetTimeMesh().dt_momentum * dynamics.GetTMPY();
+            dynamics.GetVX() += dt_momentum * dynamics.GetTMPX();
+            dynamics.GetVY() += dt_momentum * dynamics.GetTMPY();
 
             if (timestep % WRITE_EVERY == 0) {
 
                 double error = (sqrt(pow(L2Error(dynamics.GetMesh(), dynamics.GetVX(), ExactVX()), 2.0) + pow(L2Error(dynamics.GetMesh(), dynamics.GetVY(), ExactVY()), 2.0)))
                     / exactsolutionnorm;
                 std::cout.precision(10);
-                std::cout << "Time step " << timestep << " / " << dynamics.GetTimeMesh().dt_momentum * timestep << std::flush;
+                std::cout << "Time step " << timestep << " / " << dt_momentum * timestep << std::flush;
                 std::cout << "\terror: " << error << std::endl;
             }
         }

@@ -10,7 +10,6 @@
  */
 
 #include "dgvector.hpp"
-#include "timemesh.hpp"
 
 namespace Nextsim {
 
@@ -31,8 +30,6 @@ protected:
 
     //! spatial mesh.
     Mesh mesh;
-    //! time mesh.
-    TimeMesh timemesh;
 
     //! velocity in edges
     EdgeVector<DGdegree> velx_edgeY, vely_edgeX;
@@ -66,9 +63,6 @@ public:
    */
     void setmesh(const Mesh& _mesh);
 
-    //! Sets the timemesh. Just a copy
-    void settimemesh(const TimeMesh& _timemesh);
-
     /*!
    * Sets the velocity vector and prepares it for use in edges
    *
@@ -85,28 +79,28 @@ public:
    *
    * @params phi is the vector of values to be transported
    */
-    void step_rk1(CellVector<DGdegree>& phi);
+    void step_rk1(const double dt, CellVector<DGdegree>& phi);
 
     /*!
    * Performs one time step transporting phi with the 2nd Order Heun Scheme
    *
    * @params phi is the vector of values to be transported
    */
-    void step_rk2(CellVector<DGdegree>& phi);
+    void step_rk2(const double dt, CellVector<DGdegree>& phi);
 
     /*!
    * Performs one time step transporting phi with the 2nd Order Heun Scheme
    *
    * @params phi is the vector of values to be transported
    */
-    void step_rk3(CellVector<DGdegree>& phi);
+    void step_rk3(const double dt, CellVector<DGdegree>& phi);
 
     /*!
    * Performs one time step transporting phi
    *
    * @params phi is the vector of values to be transported
    */
-    void step(CellVector<DGdegree>& phi);
+    void step(const double dt, CellVector<DGdegree>& phi);
 };
 
 } // namespace Nextsim

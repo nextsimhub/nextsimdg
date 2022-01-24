@@ -155,27 +155,27 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double k_adv = 60.0; //!< Time step of advection problem
-    constexpr size_t NT = RefScale::T / k_adv + 1.e-4; //!< Number of Advections steps
+    constexpr double dt_adv = 60.0; //!< Time step of advection problem
+    constexpr size_t NT = RefScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t mom_substeps = 100;
-    constexpr double k = k_adv / mom_substeps; //!< Time step of momentum problem
+    constexpr double dt_momentum = dt_adv / mom_substeps; //!< Time step of momentum problem
 
     //! MEVP parameters
     constexpr double alpha = 1500.0;
     constexpr double beta = 1500.0;
     constexpr size_t NT_evp = 100;
 
-    std::cout << "Time step size (advection) " << k_adv << "\t" << NT << " time steps" << std::endl
+    std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
               << std::endl;
 
     //! VTK output
     constexpr double T_vtk = 4.0 * 60.0 * 60.0; // evey 4 hours
-    constexpr size_t NT_vtk = T_vtk / k_adv + 1.e-4;
+    constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
-    constexpr size_t NT_log = T_log / k_adv + 1.e-4;
+    constexpr size_t NT_log = T_log / dt_adv + 1.e-4;
 
     //! Variables
     Nextsim::CGVector<CG> vx(mesh), vy(mesh); //!< velocity
@@ -220,9 +220,6 @@ int main()
     Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk1");
     dgtransport.setmesh(mesh);
-    //Nextsim::TimeMesh timemesh(NT, k_adv, NT_evp);
-    Nextsim::TimeMesh timemesh(NT, k_adv, mom_substeps);
-    dgtransport.settimemesh(timemesh);
 
     // save initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
@@ -249,7 +246,7 @@ int main()
     Nextsim::GlobalTimer.start("time loop");
 
     for (size_t timestep = 1; timestep <= NT; ++timestep) {
-        double time = k_adv * timestep;
+        double time = dt_adv * timestep;
         double timeInMinutes = time / 60.0;
         double timeInHours = time / 60.0 / 60.0;
         double timeInDays = time / 60.0 / 60.0 / 24.;
@@ -279,9 +276,9 @@ int main()
         momentum.ProjectCGToDG(mesh, dgvx, vx);
         momentum.ProjectCGToDG(mesh, dgvy, vy);
         dgtransport.reinitvelocity();
-        dgtransport.step(A);
-        dgtransport.step(H);
-        dgtransport.step(D);
+        dgtransport.step(dt_adv, A);
+        dgtransport.step(dt_adv, H);
+        dgtransport.step(dt_adv, D);
 
         A.col(0) = A.col(0).cwiseMin(1.0);
         A.col(0) = A.col(0).cwiseMax(0.0);
@@ -358,7 +355,7 @@ int main()
                 // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
                 // min and - from nextsim
                 double const multiplicator = std::min(1. - 1e-12,
-                    time_viscous / (time_viscous + timemesh.dt_momentum * (1. - tildeP)));
+                    time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
 
                 double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
                 double const Dunit_factor = 1. / (1. - SQR(RefScale::nu0));
@@ -383,9 +380,9 @@ int main()
                 //std::cout << "Multiplicator " << multiplicator << std::endl;
 
                 //Elasit prediction Eqn. (32)
-                S11.row(i) += timemesh.dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
-                S12.row(i) += timemesh.dt_momentum * elasticity * 1 / (1 + RefScale::nu0) * E12.row(i);
-                S22.row(i) += timemesh.dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+                S11.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+                S12.row(i) += dt_momentum * elasticity * 1 / (1 + RefScale::nu0) * E12.row(i);
+                S22.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
                 //S11.row(i) *= multiplicator;
                 //S12.row(i) *= multiplicator;
                 //S22.row(i) *= multiplicator;
@@ -429,12 +426,12 @@ int main()
                         / std::sqrt(elasticity);
 
                     // Eqn. (34)
-                    D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * timemesh.dt_momentum / td;
+                    D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
 
                     // Recalculate the new state of stress by relaxing elstically Eqn. (36)
-                    S11.row(i) -= S11.row(i) * (1. - dcrit) * timemesh.dt_momentum / td;
-                    S12.row(i) -= S12.row(i) * (1. - dcrit) * timemesh.dt_momentum / td;
-                    S22.row(i) -= S22.row(i) * (1. - dcrit) * timemesh.dt_momentum / td;
+                    S11.row(i) -= S11.row(i) * (1. - dcrit) * dt_momentum / td;
+                    S12.row(i) -= S12.row(i) * (1. - dcrit) * dt_momentum / td;
+                    S22.row(i) -= S22.row(i) * (1. - dcrit) * dt_momentum / td;
                 }
 
                 // prepare for ellipse-output
@@ -452,18 +449,18 @@ int main()
             //	    update by a loop.. implicit parts and h-dependent
 
             //
-            //k_adv * (1.0 + beta) = k
-            vx = (1.0 / (RefScale::rho_ice * cg_H.array() / k // implicit parts
+            //dt_adv * (1.0 + beta) = k
+            vx = (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                       + cg_A.array() * RefScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
-                * (RefScale::rho_ice * cg_H.array() / k * (vx.array()) + // pseudo-timestepping
+                * (RefScale::rho_ice * cg_H.array() / dt_momentum * (vx.array()) + // pseudo-timestepping
                     cg_A.array() * (RefScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
                         RefScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
                     + RefScale::rho_ice * cg_H.array() * RefScale::fc * (vx - OX).array() // cor + surface
                     ))
                      .matrix();
-            vy = (1.0 / (RefScale::rho_ice * cg_H.array() / k // implicit parts
+            vy = (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                       + cg_A.array() * RefScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
-                * (RefScale::rho_ice * cg_H.array() / k * (vy.array()) + // pseudo-timestepping
+                * (RefScale::rho_ice * cg_H.array() / dt_momentum * (vy.array()) + // pseudo-timestepping
                     cg_A.array() * (RefScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
                         RefScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
                     + RefScale::rho_ice * cg_H.array() * RefScale::fc * (OY - vy).array() // cor + surface
@@ -478,11 +475,11 @@ int main()
             tmpy.zero();
             momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
 
-            vx += (1.0 / (RefScale::rho_ice * cg_H.array() / k // implicit parts
+            vx += (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                        + cg_A.array() * RefScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
                 * tmpx.array())
                       .matrix();
-            vy += (1.0 / (RefScale::rho_ice * cg_H.array() / k // implicit parts
+            vy += (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                        + cg_A.array() * RefScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
                 * tmpy.array())
                       .matrix();

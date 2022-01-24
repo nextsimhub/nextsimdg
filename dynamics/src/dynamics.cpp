@@ -16,7 +16,6 @@ void Dynamics::BasicInit()
 
     //! set meshes
     dgtransport.setmesh(mesh);
-    dgtransport.settimemesh(timemesh);
 
     //! Init Vectors
     vx.resize_by_mesh(mesh);
@@ -47,15 +46,15 @@ void Dynamics::BasicInit()
    * controls the flow of the dynamical core
    */
 
-void Dynamics::advectionStep()
+void Dynamics::advectionStep(const double dt)
 {
     GlobalTimer.start("dyn -- adv -- reinit");
     dgtransport.reinitvelocity();
     GlobalTimer.stop("dyn -- adv -- reinit");
 
     GlobalTimer.start("dyn -- adv -- step");
-    dgtransport.step(A); // performs one time step with the 2nd Order Heun scheme
-    dgtransport.step(H); // performs one time step with the 2nd Order Heun scheme
+    dgtransport.step(dt, A); // performs one time step with the 2nd Order Heun scheme
+    dgtransport.step(dt, H); // performs one time step with the 2nd Order Heun scheme
 
     // Limit H and A
 #pragma omp parallel for
@@ -197,7 +196,7 @@ void Dynamics::addStressTensor(double scaleSigma)
     addStressTensorBoundary(scaleSigma);
 }
 
-void Dynamics::momentumSubsteps()
+void Dynamics::momentumSubsteps(const double dt_momentum)
 {
     //MOMENTUM EQUATION
     tmpX.zero();
@@ -236,8 +235,8 @@ void Dynamics::momentumSubsteps()
     velocityContinuity(gamma); //!< penalize velocity jump in inner edges
     velocityDirichletBoundary(gammaboundary); //!< no-slip for velocity
 
-    vx += timemesh.dt_momentum * tmpX;
-    vy += timemesh.dt_momentum * tmpY;
+    vx += dt_momentum * tmpX;
+    vy += dt_momentum * tmpY;
 
     //DAMAGE EQUATION
 
@@ -268,7 +267,7 @@ void Dynamics::momentumSubsteps()
         // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
         // min and - from nextsim
         double const multiplicator = std::min(1. - 1e-12,
-            time_viscous / (time_viscous + timemesh.dt_momentum * (1. - tildeP)));
+            time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
 
         double const elasticity = ReferenceScale::young * (1. - D(i, 0)) * expC;
 
@@ -290,11 +289,11 @@ void Dynamics::momentumSubsteps()
         double SigmaE12 = 1. / (1 - ReferenceScale::nu0) * E12(i, 0);
 
         //Elasit prediction Eqn. (32)
-        S11(i, 0) += timemesh.dt_momentum * elasticity * SigmaE11;
+        S11(i, 0) += dt_momentum * elasticity * SigmaE11;
         S11(i, 0) *= multiplicator;
-        S12(i, 0) += timemesh.dt_momentum * elasticity * SigmaE12;
+        S12(i, 0) += dt_momentum * elasticity * SigmaE12;
         S12(i, 0) *= multiplicator;
-        S22(i, 0) += timemesh.dt_momentum * elasticity * SigmaE22;
+        S22(i, 0) += dt_momentum * elasticity * SigmaE22;
         S22(i, 0) *= multiplicator;
 
         //continiue if stress in inside the failure envelope
@@ -326,27 +325,27 @@ void Dynamics::momentumSubsteps()
                 / std::sqrt(elasticity);
 
             // Eqn. (34)
-            D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * timemesh.dt_momentum / td;
+            D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
 
             // Recalculate the new state of stress by relaxing elstically Eqn. (36)
-            S11(i, 0) -= S11(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
-            S12(i, 0) -= S12(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
-            S22(i, 0) -= S22(i, 0) * (1. - dcrit) * timemesh.dt_momentum / td;
+            S11(i, 0) -= S11(i, 0) * (1. - dcrit) * dt_momentum / td;
+            S12(i, 0) -= S12(i, 0) * (1. - dcrit) * dt_momentum / td;
+            S22(i, 0) -= S22(i, 0) * (1. - dcrit) * dt_momentum / td;
         }
     }
     GlobalTimer.stop("dyn -- mom -- damage");
 }
 
 //! Performs one macro timestep1
-void Dynamics::step()
+void Dynamics::step(const double dt, const double dt_momentum)
 {
     GlobalTimer.start("dyn");
     GlobalTimer.start("dyn -- adv");
-    advectionStep();
+    advectionStep(dt);
     GlobalTimer.stop("dyn -- adv");
 
     GlobalTimer.start("dyn -- mom");
-    momentumSubsteps();
+    momentumSubsteps(dt_momentum);
     GlobalTimer.stop("dyn -- mom");
     GlobalTimer.stop("dyn");
 }
