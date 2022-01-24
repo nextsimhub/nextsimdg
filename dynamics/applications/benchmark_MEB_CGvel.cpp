@@ -394,7 +394,6 @@ int main()
                 //std::cout << "\n mEVP eta " << eta / alpha << " zeta - eta " << (zeta - eta) / alpha << std::endl;
                 //std::cout << "\n MEB eta " << timemesh.dt_momentum * elasticity * (1 / (1 + RefScale::nu0)) << " zeta - eta " << timemesh.dt_momentum * elasticity * Dunit_factor * RefScale::nu0 << std::endl;
 
-
                 //mEVP
                 //S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
                 //S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));

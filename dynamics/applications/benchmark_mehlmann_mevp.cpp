@@ -9,6 +9,7 @@
 #include "dginitial.hpp"
 #include "dgvisu.hpp"
 #include "dynamics.hpp"
+#include "mevp.hpp"
 #include "stopwatch.hpp"
 
 bool WRITE_VTK = true;
@@ -140,8 +141,8 @@ int main()
     constexpr size_t NT = ReferenceScale::T / k_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 1500.0;
-    constexpr double beta = 1500.0;
+    constexpr double alpha = 800.0;
+    constexpr double beta = 800.0;
     constexpr size_t NT_evp = 100;
 
     std::cout << "Time step size (advection) " << k_adv << "\t" << NT << " time steps" << std::endl
@@ -201,7 +202,7 @@ int main()
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
     Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
-    dgtransport.settimesteppingscheme("rk1");
+    dgtransport.settimesteppingscheme("rk2");
     dgtransport.setmesh(mesh);
     Nextsim::TimeMesh timemesh(NT, k_adv, NT_evp);
     dgtransport.settimemesh(timemesh);
@@ -233,7 +234,7 @@ int main()
                       << std::setw(6) << std::right
                       << timeInDays << "d\t\t" << std::flush;
 
-        //! Initialize time-dependent forcing
+        //! Initialize time-dependent data
         Nextsim::GlobalTimer.start("time loop - forcing");
         AtmForcingX.settime(time);
         AtmForcingY.settime(time);
@@ -241,6 +242,7 @@ int main()
         Nextsim::InterpolateCG(mesh, AY, AtmForcingY);
         Nextsim::GlobalTimer.stop("time loop - forcing");
 
+        //! Advection step
         Nextsim::GlobalTimer.start("time loop - advection");
         momentum.ProjectCGToDG(mesh, dgvx, vx);
         momentum.ProjectCGToDG(mesh, dgvy, vy);
@@ -248,6 +250,7 @@ int main()
         dgtransport.step(A);
         dgtransport.step(H);
 
+        //! Very simple limiting (just constants)
         A.col(0) = A.col(0).cwiseMin(1.0);
         A.col(0) = A.col(0).cwiseMax(0.0);
         H.col(0) = H.col(0).cwiseMax(0.0);
@@ -275,48 +278,13 @@ int main()
             Nextsim::GlobalTimer.stop("time loop - mevp - strain");
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
-            //! Stress Update
-#pragma omp parallel for
-            for (size_t i = 0; i < mesh.n; ++i) {
 
-                DELTA(i, 0) = sqrt(
-                    SQR(ReferenceScale::DeltaMin)
-                    + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
-                    + 1.50 * E11(i, 0) * E22(i, 0)
-                    + SQR(E12(i, 0)));
-                assert(DELTA(i, 0) > 0);
+            Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22,
+                E11, E12, E22, H, A,
+                ReferenceScale::Pstar,
+                ReferenceScale::DeltaMin,
+                alpha, beta);
 
-                //! Ice strength
-                double P = ReferenceScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-
-                double zeta = P / 2.0 / DELTA(i, 0);
-                double eta = zeta / 4;
-
-                // replacement pressure
-                //                P = P * DELTA(i, 0) / (ReferenceScale::DeltaMin + DELTA(i, 0));
-
-                SHEAR(i, 0) = sqrt((SQR(ReferenceScale::DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
-
-                // S = S_old + 1/alpha (S(u)-S_old)
-                //   = (1-1/alpha) S_old + 1/alpha S(u)
-                S11.row(i) *= (1.0 - 1.0 / alpha);
-                S12.row(i) *= (1.0 - 1.0 / alpha);
-                S22.row(i) *= (1.0 - 1.0 / alpha);
-
-                S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-                S11(i, 0) -= 1.0 / alpha * 0.5 * P;
-
-                S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
-
-                S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-                S22(i, 0) -= 1.0 / alpha * 0.5 * P;
-
-                // prepare for ellipse-output
-                if ((timestep % NT_vtk == 0)) {
-                    S1(i) = (S11(i, 0) + S22(i, 0)) / P;
-                    S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
-                }
-            }
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update");
@@ -331,7 +299,7 @@ int main()
                 * (ReferenceScale::rho_ice * cg_H.array() / k_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
                     cg_A.array() * (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
                         ReferenceScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
-                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (vx - OX).array() // cor + surface
+                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (vy - OY).array() // cor + surface
                     ))
                      .matrix();
             vy = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / k_adv * (1.0 + beta) // implicit parts
@@ -339,7 +307,7 @@ int main()
                 * (ReferenceScale::rho_ice * cg_H.array() / k_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
                     cg_A.array() * (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
                         ReferenceScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
-                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (OY - vy).array() // cor + surface
+                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (OX - vx).array() // cor + surface
                     ))
                      .matrix();
             Nextsim::GlobalTimer.stop("time loop - mevp - update1");
