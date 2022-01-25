@@ -34,6 +34,7 @@ class ElementData : public PrognosticData,
                     public Configured<ElementData> {
 public:
     ElementData();
+    ElementData(int nIceLayers);
 
     //! Copy constructor
     ElementData(const ElementData& src);

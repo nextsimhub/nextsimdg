@@ -107,7 +107,7 @@ void initData(std::vector<ElementData>& data, const netCDF::NcGroup& dataGroup)
             dataGroup.getVar("sst").getVar(loc, &sst);
             dataGroup.getVar("sss").getVar(loc, &sss);
             // TODO How to store ice temperature data?
-            std::array<double, N_ICE_TEMPERATURES> tice = { 0., 0., 0. };
+            std::vector<double> tice = { 0., 0., 0. };
             data[linearIndex] = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
         }
     }

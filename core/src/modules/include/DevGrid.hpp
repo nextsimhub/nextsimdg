@@ -46,6 +46,8 @@ public:
 
     std::string structureType() const override { return structureName; };
 
+    int nIceLayers() const override { return 1; };
+
     // Cursor manipulation override functions
     int resetCursor() override;
     bool validCursor() const override;

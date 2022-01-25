@@ -8,10 +8,15 @@
 
 namespace Nextsim {
 ElementData::ElementData()
+    : ElementData(1)
+{
+}
+
+ElementData::ElementData(int nIceLayers)
+    : PrognosticData(nIceLayers)
 {
     m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
 }
-
 //! Copy constructor
 ElementData::ElementData(const ElementData& src)
 {
