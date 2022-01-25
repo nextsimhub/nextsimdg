@@ -9,6 +9,7 @@
 #include "dginitial.hpp"
 #include "dgvisu.hpp"
 #include "dynamics.hpp"
+#include "mevp.hpp"
 #include "stopwatch.hpp"
 
 bool WRITE_VTK = true;
@@ -265,42 +266,13 @@ int main()
             Nextsim::GlobalTimer.stop("time loop - mevp - strain");
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
-            //! Stress Update
-#pragma omp parallel for
-            for (size_t i = 0; i < mesh.n; ++i) {
 
-                DELTA(i, 0) = sqrt(
-                    SQR(ReferenceScale::DeltaMin)
-                    + (SQR(E11(i, 0)) + SQR(E22(i, 0))) * 1.25 + 1.5 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
-                assert(DELTA(i, 0) > 0);
+            Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22,
+                E11, E12, E22, H, A,
+                ReferenceScale::Pstar,
+                ReferenceScale::DeltaMin,
+                alpha, beta);
 
-                //! Ice strength
-                double P = ReferenceScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-
-                double zeta = P / 2.0 / DELTA(i, 0);
-                double eta = zeta / 4;
-                SHEAR(i, 0) = (SQR(ReferenceScale::DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) - 4.0 * SQR(E12(i, 0)));
-
-                // S = S_old + 1/alpha (S(u)-S_old)
-                //   = (1-1/alpha) S_old + 1/alpha S(u)
-                S11.row(i) *= (1.0 - 1.0 / alpha);
-                S12.row(i) *= (1.0 - 1.0 / alpha);
-                S22.row(i) *= (1.0 - 1.0 / alpha);
-
-                S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-                S11(i, 0) -= 1.0 / alpha * 0.5 * P;
-
-                S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
-
-                S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-                S22(i, 0) -= 1.0 / alpha * 0.5 * P;
-
-                // prepare for ellipse-output
-                if ((timestep % NT_vtk == 0)) {
-                    S1(i) = (S11(i, 0) + S22(i, 0)) / P;
-                    S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
-                }
-            }
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update");

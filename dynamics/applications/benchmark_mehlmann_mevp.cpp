@@ -131,7 +131,7 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 256; //!< Number of mesh nodes
+    constexpr size_t N = 100; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -150,7 +150,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 4.0 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 2.0 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -193,10 +193,10 @@ int main()
 
     // // save initial condition
     //   Nextsim::GlobalTimer.start("time loop - i/o");
-    //   Nextsim::VTK::write_dg<2>("ResultsBenchmark/vx", 0, dynamics.GetVX(), dynamics.GetMesh());
-    //   Nextsim::VTK::write_dg<2>("ResultsBenchmark/vy", 0, dynamics.GetVY(), dynamics.GetMesh());
-    //   Nextsim::VTK::write_dg<2>("ResultsBenchmark/A", 0, dynamics.GetA(), dynamics.GetMesh());
-    //   Nextsim::VTK::write_dg<2>("ResultsBenchmark/H", 0, dynamics.GetH(), dynamics.GetMesh());
+    //Nextsim::VTK::write_cg("ResultsBenchmark/vx", 0, vx, mesh);
+    //Nextsim::VTK::write_cg("ResultsBenchmark/vy", 0, vy, mesh);
+    //Nextsim::VTK::write_dg("ResultsBenchmark/A", 0, A, mesh);
+    //Nextsim::VTK::write_dg("ResultsBenchmark/H", 0, H, mesh);
     //   Nextsim::GlobalTimer.stop("time loop - i/o");
 
     //! Transport
@@ -351,40 +351,20 @@ int main()
                 Nextsim::GlobalTimer.start("time loop - i/o");
                 Nextsim::VTK::write_cg("ResultsBenchmark/vx", printstep, vx, mesh);
                 Nextsim::VTK::write_cg("ResultsBenchmark/vy", printstep, vy, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/A", printstep, A, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/H", printstep, H, mesh);
 
                 Nextsim::VTK::write_dg("ResultsBenchmark/delta", printstep, DELTA, mesh);
                 Nextsim::VTK::write_dg("ResultsBenchmark/shear", printstep, SHEAR, mesh);
 
-                // Nextsim::CellVector<2> dgvx(mesh), dgvy(mesh);
-                // momentum.ProjectCGToDG(mesh, dgvx, vx);
-                // momentum.ProjectCGToDG(mesh, dgvy, vy);
-                // Nextsim::VTK::write_dg<2>("ResultsBenchmark/dvx", printstep, dgvx, mesh);
-                // Nextsim::VTK::write_dg<2>("ResultsBenchmark/dvy", printstep, dgvy, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/DELTA", printstep, DELTA, mesh);
 
-                // Nextsim::VTK::write_dg<1>("ResultsBenchmark/S11", printstep, dynamics.GetS11(),
-                // dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsBenchmark/S12", printstep,
-                // dynamics.GetS12(), dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsBenchmark/S22",
-                // printstep, dynamics.GetS22(), dynamics.GetMesh());
-                Nextsim::VTK::write_dg(
-                    "ResultsBenchmark/A", printstep, A, mesh);
-                Nextsim::VTK::write_dg(
-                    "ResultsBenchmark/H", printstep, H, mesh);
-                //	    Nextsim::VTK::write_dg<0>("ResultsBenchmark/zeta", printstep, zeta, dynamics.GetMesh());
-
-                // Nextsim::VTK::write_dg<0>("ResultsBenchmark/D",printstep,dynamics.GetD(),
-                // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("ResultsBenchmark/ox",printstep,dynamics.GetOceanX(),
-                // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("ResultsBenchmark/oy",printstep,dynamics.GetOceanY(),
-                // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<0>("ResultsBenchmark/ax",printstep,dynamics.GetAtmX(),
-                // dynamics.GetMesh());
-                // Nextsim::VTK::write_dg<1>("ResultsBenchmark/S11", printstep, S11, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsBenchmark/S12", printstep, S12, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsBenchmark/S22", printstep, S22, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsBenchmark/E11", printstep, E11, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsBenchmark/E12", printstep, E12, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsBenchmark/E22", printstep, E22, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/S11", printstep, S11, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/S12", printstep, S12, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/S22", printstep, S22, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/E11", printstep, E11, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/E12", printstep, E12, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/E22", printstep, E22, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
