@@ -155,15 +155,15 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double dt_adv = 60.0; //!< Time step of advection problem
+    constexpr double dt_adv = 120.0; //!< Time step of advection problem
     constexpr size_t NT = RefScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t mom_substeps = 100;
     constexpr double dt_momentum = dt_adv / mom_substeps; //!< Time step of momentum problem
 
     //! MEVP parameters
-    constexpr double alpha = 1500.0;
-    constexpr double beta = 1500.0;
+    constexpr double alpha = 800.0;
+    constexpr double beta = 800.0;
     constexpr size_t NT_evp = 100;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
@@ -171,7 +171,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 4.0 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 2.0 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -211,6 +211,10 @@ int main()
     Nextsim::CellVector<0> DELTA(mesh); //!< Storing DELTA
     Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
     Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
+
+    //Temporary variables
+    Nextsim::CellVector<0> eta1(mesh), eta2(mesh);
+    Nextsim::CellVector<0> mu1(mesh), mu2(mesh);
 
     Nextsim::CellVector<DGadvection> D(mesh); //!< ice damage. ?? Really dG(0) ??
     Nextsim::L2ProjectInitial(mesh, D, InitialD());
@@ -312,33 +316,53 @@ int main()
 #pragma omp parallel for
             for (size_t i = 0; i < mesh.n; ++i) {
 
+                // Check 1: Not mentioned in the paper
+                // There's no ice so we set sigma to 0 and carry on
+                const double min_c = 0.1;
+                //if (M_conc[cpt] <= min_c) {
+                if (A(i, 0) <= min_c) {
+
+                    //M_damage[cpt] = 0.;
+                    D(i, 0) = 0.0;
+
+                    //for(int i=0;i<3;i++)
+                    //    M_sigma[i][cpt] = 0.;
+                    S11.row(i) *= 0.0;
+                    S12.row(i) *= 0.0;
+                    S22.row(i) *= 0.0;
+                    std::cout << "NO ICE" << std::endl;
+                    continue;
+                }
+
+                // For comparison with mEVP
                 DELTA(i, 0) = sqrt(
                     SQR(RefScale::DeltaMin)
                     + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
                     + 1.50 * E11(i, 0) * E22(i, 0)
                     + SQR(E12(i, 0)));
-                // We hit this assertion
                 assert(DELTA(i, 0) > 0);
-
                 //! Ice strength
                 double P = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-
                 SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
-
                 double zeta = P / 2.0 / DELTA(i, 0);
                 double eta = zeta / 4;
 
-                //TODO MOVE EVP AND MEB TO SEPARATE ROUTINES
+                /*======================================================================
+                //! - Updates the internal stress
+                *======================================================================
+                */
+
                 // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
                 double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
                 double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
-                double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
+
+                // New 1
+                //double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
+                double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow(H(i, 0) * expC, RefScale::exponent_relaxation_sigma - 1.);
 
                 // Plastic failure tildeP
                 double tildeP;
                 if (sigma_n < 0.) {
-                    //below line copied from nextsim finiteelement.cpp
-                    //double const Pmax = std::pow(M_thick[cpt], exponent_compression_factor)*compression_factor*expC;
                     //double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
                     // skipping 1.5 power
                     double const Pmax = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
@@ -349,59 +373,38 @@ int main()
                     tildeP = 0.;
                 }
 
-                //if (tildeP > 0 && tildeP < 1)
-                //    std::cout << "\n Pmax = " << P << "\n Ptilde " << tildeP << std::endl;
-
                 // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-                // min and - from nextsim
+                // Check 2: min 1.-1e-12 Not mentioned in the paper from nextsim
                 double const multiplicator = std::min(1. - 1e-12,
                     time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
 
-                double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
+                // NEW 1 Initially elastcity is deformed by H
+                //double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
+                double const elasticity = RefScale::young * H(i, 0) * expC;
+
                 double const Dunit_factor = 1. / (1. - SQR(RefScale::nu0));
-
-                //Do multiplication
-                //S11.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma * (1. - tildeP));
-                //S12.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma * (1. - tildeP));
-                //S22.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma * (1. - tildeP));
-
-                //S11.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma);
-                //S12.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma);
-                //S22.row(i) *= (1.0 - timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma);
-
-                //std::cout << "1 " << timemesh.dt_momentum / RefScale::undamaged_time_relaxation_sigma * (1. - tildeP) << std::endl;
-
-                //mEVP multiplication
-                S11.row(i) *= (1.0 - 1.0 / alpha);
-                S12.row(i) *= (1.0 - 1.0 / alpha);
-                S22.row(i) *= (1.0 - 1.0 / alpha);
-
-                //std::cout << elasticity << " dt " << timemesh.dt_momentum << " " << multiplicator << std::endl;
-                //std::cout << "Multiplicator " << multiplicator << std::endl;
 
                 //Elasit prediction Eqn. (32)
                 S11.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
                 S12.row(i) += dt_momentum * elasticity * 1 / (1 + RefScale::nu0) * E12.row(i);
                 S22.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
-                //S11.row(i) *= multiplicator;
-                //S12.row(i) *= multiplicator;
-                //S22.row(i) *= multiplicator;
+                S11.row(i) *= multiplicator;
+                S12.row(i) *= multiplicator;
+                S22.row(i) *= multiplicator;
 
-                //std::cout << "dt " << timemesh.dt_momentum << std::endl;
-                //std::cout << "\n mEVP eta " << eta / alpha << " zeta - eta " << (zeta - eta) / alpha << std::endl;
-                //std::cout << "\n MEB eta " << timemesh.dt_momentum * elasticity * (1 / (1 + RefScale::nu0)) << " zeta - eta " << timemesh.dt_momentum * elasticity * Dunit_factor * RefScale::nu0 << std::endl;
-
-                //mEVP
-                //S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-                //S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
-                //S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
+                /*======================================================================
+                 //! - Estimates the level of damage from the updated internal stress and the local damage criterion
+                 *======================================================================
+                 */
 
                 //continiue if stress in inside the failure envelope
                 // Compute the shear and normal stresses, which are two invariants of the internal stress tensor
                 double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
                 //update sigma_n
                 sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-                //cohesion Eqn. (21)
+
+                // Check 3: Discuss Cohesion with Einar
+                //Cohesion Eqn. (21)
                 //Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10 cm)
                 double const C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
                 // C_lab;...  : cohesion (Pa)
@@ -417,14 +420,13 @@ int main()
                     // finiteelement.cpp#L3834
                     dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
 
+                // Calculate the characteristic time for damage and damage increment
+                // M_delta_x[cpt] = mesh.hx ???
+                double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
+                    / std::sqrt(elasticity);
                 // Calculate the adjusted level of damage
                 if ((0. < dcrit) && (dcrit < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
                 {
-                    // Calculate the characteristic time for damage and damage increment
-                    // M_delta_x[cpt] = mesh.hx ???
-                    double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
-                        / std::sqrt(elasticity);
-
                     // Eqn. (34)
                     D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
 
@@ -434,7 +436,11 @@ int main()
                     S22.row(i) -= S22.row(i) * (1. - dcrit) * dt_momentum / td;
                 }
 
-                // prepare for ellipse-output
+                //Relax damage
+                //Check 4: Values are not in the Paper, cf. Eqn. (30)
+                D(i, 0) = std::max(0., D(i, 0) - dt_momentum / td * std::exp(-20. * (1. - A(i, 0))));
+
+                // For comparison with mEVP prepare for ellipse-output
                 if ((timestep % NT_vtk == 0)) {
                     S1(i) = (S11(i, 0) + S22(i, 0)) / P;
                     S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
@@ -447,9 +453,7 @@ int main()
             Nextsim::GlobalTimer.start("time loop - mevp - update1");
 
             //	    update by a loop.. implicit parts and h-dependent
-
             //
-            //dt_adv * (1.0 + beta) = k
             vx = (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                       + cg_A.array() * RefScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
                 * (RefScale::rho_ice * cg_H.array() / dt_momentum * (vx.array()) + // pseudo-timestepping
@@ -529,14 +533,17 @@ int main()
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", printstep, H, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/D", printstep, D, mesh);
 
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/shear", printstep, SHEAR, mesh);
-
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S11", printstep, S11, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S12", printstep, S12, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S22", printstep, S22, mesh);
                 // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E11", printstep, E11, mesh);
                 // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E12", printstep, E12, mesh);
                 // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E22", printstep, E22, mesh);
+
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu1", printstep, mu1, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu2", printstep, mu2, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta1", printstep, eta1, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta2", printstep, eta2, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
