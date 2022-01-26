@@ -5,6 +5,41 @@
 
 #include "dgvector.hpp"
 
+namespace RefScale {
+// Benchmark testcase from [Mehlmann / Richter, ...]
+constexpr double T = 2 * 24. * 60. * 60.; //!< Time horizon 2 days
+constexpr double L = 512000.0; //!< Size of domain
+constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
+constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
+
+constexpr double rho_ice = 900.0; //!< Sea ice density
+constexpr double rho_atm = 1.3; //!< Air density
+constexpr double rho_ocean = 1026.0; //!< Ocean density
+
+constexpr double C_atm = 1.2e-3; //!< Air drag coefficient
+constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
+
+constexpr double F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
+constexpr double F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
+
+constexpr double Pstar = 27500.0; //!< Ice strength
+constexpr double fc = 1.46e-4; //!< Coriolis
+
+constexpr double DeltaMin = 2.e-9; //!< Viscous regime
+
+// parameters form nextsim options.cpp line 302
+constexpr double compaction_param = -20; //!< Compation parameter
+constexpr double undamaged_time_relaxation_sigma = 1e7; //!< seconds
+//constexpr double undamaged_time_relaxation_sigma = 1e4; //!< seconds
+constexpr double exponent_relaxation_sigma = 5;
+constexpr double young = 5.9605e+08;
+constexpr double nu0 = 1. / 3.; //!< \param Poisson's ratio
+constexpr double compr_strength = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
+constexpr double tan_phi = 0.7; //! \param tan_phi (double) Internal friction coefficient (mu)
+constexpr double C_lab = 2.0e6; //! \param C_lab (double) Cohesion at the lab scale (10 cm) [Pa]
+
+}
+
 namespace Nextsim {
 
 /*!
@@ -21,10 +56,12 @@ namespace MEB {
     void StressUpdate(const Mesh& mesh,
         CellVector<DGstress>& S11, CellVector<DGstress>& S12, CellVector<DGstress>& S22,
         const CellVector<DGstress>& E11, const CellVector<DGstress>& E12, const CellVector<DGstress>& E22,
-        const CellVector<DGtracer>& H, const CellVector<DGtracer>& A,
+        const CellVector<DGtracer>& H, const CellVector<DGtracer>& A, CellVector<DGtracer>& D,
         const double Pstar, const double DeltaMin,
         const double alpha, const double beta)
     {
+
+            double dt_momentum = alpha;
 
             //! Stress Update
 #pragma omp parallel for
@@ -44,21 +81,20 @@ namespace MEB {
                     S11.row(i) *= 0.0;
                     S12.row(i) *= 0.0;
                     S22.row(i) *= 0.0;
-                    std::cout << "NO ICE" << std::endl;
                     continue;
                 }
 
                 // For comparison with mEVP
-                DELTA(i, 0) = sqrt(
+                double DELTA = sqrt(
                     SQR(RefScale::DeltaMin)
                     + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
                     + 1.50 * E11(i, 0) * E22(i, 0)
                     + SQR(E12(i, 0)));
-                assert(DELTA(i, 0) > 0);
+                assert(DELTA > 0);
                 //! Ice strength
-                double P = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-                SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
-                double zeta = P / 2.0 / DELTA(i, 0);
+                double P = RefScale::Pstar * H(i, 0) * exp(RefScale::compaction_param * (1.0 - A(i, 0)));
+                //SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
+                double zeta = P / 2.0 / DELTA;
                 double eta = zeta / 4;
 
                 /*======================================================================
@@ -71,15 +107,15 @@ namespace MEB {
                 double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
 
                 // New 1
-                //double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
-                double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow(H(i, 0) * expC, RefScale::exponent_relaxation_sigma - 1.);
+                double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
+                //double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow(H(i, 0) * expC, RefScale::exponent_relaxation_sigma - 1.);
 
                 // Plastic failure tildeP
                 double tildeP;
                 if (sigma_n < 0.) {
-                    //double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+                    double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(RefScale::compaction_param * (1.0 - A(i, 0)));
                     // skipping 1.5 power
-                    double const Pmax = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+                    //double const Pmax = RefScale::Pstar * H(i, 0) * exp(RefScale::compaction_param * (1.0 - A(i, 0)));
 
                     // tildeP must be capped at 1 to get an elastic response
                     tildeP = std::min(1., -Pmax / sigma_n);
@@ -152,17 +188,17 @@ namespace MEB {
 
                 //Relax damage
                 //Check 4: Values are not in the Paper, cf. Eqn. (30)
-                D(i, 0) = std::max(0., D(i, 0) - dt_momentum / td * std::exp(-20. * (1. - A(i, 0))));
+                D(i, 0) = std::max(0., D(i, 0) - dt_momentum / td * std::exp(RefScale::compaction_param * (1. - A(i, 0))));
 
                 // For comparison with mEVP prepare for ellipse-output
-                if ((timestep % NT_vtk == 0)) {
-                    S1(i) = (S11(i, 0) + S22(i, 0)) / P;
-                    S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
-                }
+                //if ((timestep % NT_vtk == 0)) {
+                //    S1(i) = (S11(i, 0) + S22(i, 0)) / P;
+                //    S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
+                //}
             }
 
 }
-
+}
 }
 
 /*----------------------------   meb.hpp     ---------------------------*/

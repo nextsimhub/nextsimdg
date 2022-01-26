@@ -9,6 +9,7 @@
 #include "dginitial.hpp"
 #include "dgvisu.hpp"
 #include "dynamics.hpp"
+#include "meb.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
 
@@ -133,8 +134,8 @@ int main()
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 300.0;
-    constexpr double beta = 300.0;
+    constexpr double alpha = 12; //300.0;
+    constexpr double beta = 99; //300.0;
     constexpr size_t NT_evp = 100;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
@@ -180,7 +181,8 @@ int main()
     Nextsim::CellVector<DGstress> S11(mesh), S12(mesh), S22(mesh); //!< storing stresses rates
 
     Nextsim::CellVector<0> DELTA(mesh); //!< Storing DELTA
-    Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
+    Nextsim::CellVector<0> SHEAR(mesh); //!< Storing SHEAR
+    Nextsim::CellVector<0> D(mesh); //!< Storing damage
     Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
 
     // // save initial condition
@@ -267,8 +269,14 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
 
-            Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22,
-                E11, E12, E22, H, A,
+            //Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22,
+            //    E11, E12, E22, H, A,
+            //    ReferenceScale::Pstar,
+            //    ReferenceScale::DeltaMin,
+            //    alpha, beta);
+
+            Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
+                E11, E12, E22, H, A, D,
                 ReferenceScale::Pstar,
                 ReferenceScale::DeltaMin,
                 alpha, beta);
