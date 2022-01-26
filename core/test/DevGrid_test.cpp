@@ -40,7 +40,7 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
             if (grid.validCursor()) {
                 double fractional = j * yFactor + i * xFactor;
                 grid.cursorData() = PrognosticData::generate(1 + fractional, 2 + fractional,
-                    3 + fractional, 4 + fractional, 5 + fractional, { 0., 0., 0. });
+                    3 + fractional, 4 + fractional, 5 + fractional, { -(1. + fractional) });
                 grid.incrCursor();
             }
         }
@@ -90,6 +90,9 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
     REQUIRE(grid2.cursor->iceThickness() < 2);
     REQUIRE(grid2.cursor->iceThickness() == 1.0703);
     REQUIRE(grid2.cursor->iceThickness() != unInitIce);
+
+    REQUIRE(grid2.cursor->iceTemperature(0) < -1);
+    REQUIRE(grid2.cursor->iceTemperature(0) > -2);
 
     std::remove(filename.c_str());
 }

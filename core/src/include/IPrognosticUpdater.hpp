@@ -16,6 +16,7 @@ public:
     virtual double updatedIceThickness() const = 0;
     virtual double updatedSnowThickness() const = 0;
     virtual double updatedIceConcentration() const = 0;
+    virtual const std::vector<double>& updatedIceTemperatures() const = 0;
 };
 
 }

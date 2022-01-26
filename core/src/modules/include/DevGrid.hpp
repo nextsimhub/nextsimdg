@@ -10,8 +10,8 @@
 
 #include "include/IStructure.hpp"
 
-#include "include/IDevGridIO.hpp"
 #include "include/ElementData.hpp"
+#include "include/IDevGridIO.hpp"
 #include "include/PrognosticData.hpp"
 
 #include <map>
@@ -61,6 +61,7 @@ public:
 private:
     const static std::string xDimName;
     const static std::string yDimName;
+    const static std::string nIceLayersName;
 
     std::vector<ElementData> data;
 

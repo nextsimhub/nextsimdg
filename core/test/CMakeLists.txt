@@ -138,6 +138,7 @@ add_executable(exampleDevGridOutput
     "${PhysicsModulesDir}/ThermoIce0.cpp"
     )
 
+message("NetCDF lib dir = ${netCDF_LIB_DIR}")
 target_include_directories(exampleDevGridOutput PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(exampleDevGridOutput PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(exampleDevGridOutput LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")

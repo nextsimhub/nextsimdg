@@ -11,6 +11,7 @@
 #include "include/IPrognosticUpdater.hpp"
 #include "include/PrognosticData.hpp"
 
+#include <vector>
 namespace Nextsim {
 
 //! A class holding common physics data.
@@ -48,6 +49,8 @@ public:
 
     //! Updated value of the ice surface temperature [˚C]
     inline double& updatedIceSurfaceTemperature() { return m_TiceNew[0]; }
+    //! Updated layer-wise ice temperatures [˚C]
+    const std::vector<double>& updatedIceTemperatures() const override { return m_TiceNew; };
 
     //! Updated value of the ice concentration [1]
     inline double& updatedIceConcentration() { return m_conc_new; }
@@ -66,7 +69,7 @@ private:
     // thermodynamic values
     double m_hi_new; // updated true ice thickness [m]
     double m_hs;
-    std::array<double, N_ICE_TEMPERATURES> m_TiceNew;
+    std::vector<double> m_TiceNew;
     double m_conc_new; // updated ice concentration
 };
 

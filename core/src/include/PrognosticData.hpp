@@ -17,8 +17,6 @@
 
 namespace Nextsim {
 
-const int N_ICE_TEMPERATURES = 3;
-
 //! A class holding all of the data for an element that is carried from one
 //! timestep to another.
 class PrognosticData : public BaseElementData, public Configured<PrognosticData> {
@@ -38,6 +36,18 @@ public:
         m_thick = updater.updatedIceThickness();
         m_conc = updater.updatedIceConcentration();
         m_snow = updater.updatedSnowThickness();
+        // Copy up to as many levels as there are currently.
+        // Fill missing layers with the lowest valid temperature
+        int nLayers = nIceLayers();
+        int newLayers = updater.updatedIceTemperatures().size();
+
+        m_tice = updater.updatedIceTemperatures();
+        if (nLayers != newLayers) {
+            m_tice.resize(nLayers);
+            for (int i = updater.updatedIceTemperatures().size(); i < nLayers; ++i) {
+                m_tice[i] = m_tice[newLayers - 1];
+            }
+        }
     };
 
     void configure() override;
@@ -58,10 +68,7 @@ public:
 
     //! Ice temperatures [˚C]
     inline const std::vector<double>& iceTemperatures() const { return m_tice; }
-    template <int I> double iceTemperature() const
-    {
-        return m_tice[I];
-    }
+    template <int I> double iceTemperature() const { return m_tice[I]; }
     double iceTemperature(int i) const { return m_tice[i]; };
 
     //! Mean snow thickness [m]
@@ -87,8 +94,8 @@ public:
      * @param hs Snow thickness [m]
      * @param tice Array of ice temperatures [˚C]
      */
-    inline static PrognosticData generate(double h, double c, double t, double s, double hs,
-        std::vector<double> tice)
+    inline static PrognosticData generate(
+        double h, double c, double t, double s, double hs, std::vector<double> tice)
     {
         PrognosticData data;
         data.m_thick = h;
