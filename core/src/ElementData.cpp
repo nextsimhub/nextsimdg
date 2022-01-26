@@ -14,6 +14,7 @@ ElementData::ElementData()
 
 ElementData::ElementData(int nIceLayers)
     : PrognosticData(nIceLayers)
+    , PhysicsData(nIceLayers)
 {
     m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
 }
