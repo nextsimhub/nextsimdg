@@ -8,7 +8,7 @@
 #ifndef CORE_SRC_INCLUDE_IPROGNOSTICUPDATER_HPP
 #define CORE_SRC_INCLUDE_IPROGNOSTICUPDATER_HPP
 
-namespace {
+namespace Nextsim {
 class IPrognosticUpdater {
 public:
     virtual ~IPrognosticUpdater() = default;
