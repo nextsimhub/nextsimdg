@@ -14,7 +14,8 @@ IFreezingPoint* PrognosticData::m_freezer = nullptr;
 
 PrognosticData::PrognosticData()
     : PrognosticData(1)
-{}
+{
+}
 
 PrognosticData::PrognosticData(int nIceLayers)
     : m_conc(0)
@@ -24,7 +25,7 @@ PrognosticData::PrognosticData(int nIceLayers)
     , m_thick(0)
     , m_tice(nIceLayers, 0.)
 {
-//    m_tice.resize(nIceLayers);
+    //    m_tice.resize(nIceLayers);
 }
 
 void PrognosticData::configure()
