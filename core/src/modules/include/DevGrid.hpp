@@ -10,8 +10,8 @@
 
 #include "include/IStructure.hpp"
 
-#include "include/IDevGridIO.hpp"
 #include "include/ElementData.hpp"
+#include "include/IDevGridIO.hpp"
 #include "include/PrognosticData.hpp"
 
 #include <map>
@@ -46,6 +46,8 @@ public:
 
     std::string structureType() const override { return structureName; };
 
+    int nIceLayers() const override { return 1; };
+
     // Cursor manipulation override functions
     int resetCursor() override;
     bool validCursor() const override;
@@ -59,6 +61,7 @@ public:
 private:
     const static std::string xDimName;
     const static std::string yDimName;
+    const static std::string nIceLayersName;
 
     std::vector<ElementData> data;
 

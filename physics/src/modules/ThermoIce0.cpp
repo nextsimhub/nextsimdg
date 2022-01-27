@@ -52,7 +52,7 @@ void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter
 
     double oldIceThickness = prog.iceTrueThickness();
 
-    double iceTemperature = prog.iceTemperatures()[0];
+    double iceTemperature = prog.iceTemperature(0);
     double tBot = prog.freezingPoint();
     // Heat transfer coefficient
     double k_lSlab = k_s * Ice::kappa

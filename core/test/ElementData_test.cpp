@@ -38,7 +38,7 @@ TEST_CASE("Physics test using NextsimPhysics", "[ElementData]")
     double pair = 100000; // Pa, slightly low pressure
     double sst = -1; //˚C
     double sss = 32; // PSU
-    std::array<double, N_ICE_TEMPERATURES> tice = { -1., -1., -1. }; //˚C
+    std::vector<double> tice = { -1., -1., -1. }; //˚C
     double hice = 0.1; // m
     double cice = 0.5;
     double hsnow = 0.01; // m
@@ -48,7 +48,8 @@ TEST_CASE("Physics test using NextsimPhysics", "[ElementData]")
     ConfiguredModule::parseConfigurator();
     tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
 
-    ElementData data;
+    ElementData data(3);
+    REQUIRE(data.nIceLayers() == 3);
     data.configure(); // Configure with the UNESCO freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);

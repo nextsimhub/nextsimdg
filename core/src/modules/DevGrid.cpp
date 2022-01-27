@@ -16,6 +16,7 @@ namespace Nextsim {
 const std::string DevGrid::structureName = "devgrid";
 const std::string DevGrid::xDimName = "x";
 const std::string DevGrid::yDimName = "y";
+const std::string DevGrid::nIceLayersName = "nLayers";
 const int DevGrid::nx = 10;
 
 void DevGrid::init(const std::string& filePath)
@@ -30,7 +31,7 @@ void DevGrid::init(const std::string& filePath)
 
 void DevGrid::dump(const std::string& filePath) const
 {
-    if (pio  && !filePath.empty()) {
+    if (pio && !filePath.empty()) {
         pio->dump(data, filePath);
     }
 };

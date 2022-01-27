@@ -59,6 +59,9 @@ public:
         return boost::algorithm::iequals(structureType(), str);
     }
 
+    //! The number of ice layers in this data structure.
+    virtual int nIceLayers() const = 0;
+
     /*!
      * @brief Dumps the data to a file path.
      *

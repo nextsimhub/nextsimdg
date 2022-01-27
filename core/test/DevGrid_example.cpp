@@ -39,7 +39,7 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
             if (grid.validCursor()) {
                 double fractional = j * yFactor + i * xFactor;
                 grid.cursorData() = PrognosticData::generate(1 + fractional, 2 + fractional,
-                    3 + fractional, 4 + fractional, 5 + fractional, { 0., 0., 0. });
+                    3 + fractional, 4 + fractional, 5 + fractional, { 0.,});
                 grid.incrCursor();
             }
         }

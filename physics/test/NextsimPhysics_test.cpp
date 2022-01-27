@@ -58,7 +58,7 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
     double pair = 100000; // Slightly low pressure
     double sst = -1;
     double sss = 32; // PSU
-    std::array<double, N_ICE_TEMPERATURES> tice = { -2., -2, -2 };
+    std::vector<double> tice = { -2., -2, -2 };
     double hice = 0.1;
     double cice = 0.5;
 
@@ -91,7 +91,7 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     double pair = 100000; // Pa, slightly low pressure
     double sst = -1.5; //˚C
     double sss = 32; // PSU
-    std::array<double, N_ICE_TEMPERATURES> tice = { -2., -2, -2 }; //˚C
+    std::vector<double> tice = { -2., -2, -2 }; //˚C
     double hice = 0.1; // m
     double cice = 0.5;
     double dml = 10.; // m
@@ -99,7 +99,7 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
 
-    ElementData data;
+    ElementData data(3);
     data.configure(); // Configure with the default linear freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
@@ -130,7 +130,7 @@ TEST_CASE("Drag pressure", "[NextsimPhysics]")
     double pair = 100000; // Pa, slightly low pressure
     double sst = -1.5; //˚C
     double sss = 32; // PSU
-    std::array<double, N_ICE_TEMPERATURES> tice = { -1., -1, -1 }; //˚C
+    std::vector<double> tice = { -1., -1, -1 }; //˚C
     double hice = 0.1; // m
     double cice = 0.5;
     double dml = 10.; // m
@@ -138,7 +138,7 @@ TEST_CASE("Drag pressure", "[NextsimPhysics]")
     ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
 
-    ElementData data;
+    ElementData data(3);
     data.configure(); // Configure with the default linear freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
@@ -193,7 +193,7 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     double pair = 100000; // Pa, slightly low pressure
     double sst = -1; //˚C
     double sss = 32; // PSU
-    std::array<double, N_ICE_TEMPERATURES> tice = { -1., -1., -1. }; //˚C
+    std::vector<double> tice = { -1., -1., -1. }; //˚C
     double hice = 0.1; // m
     double cice = 0.5;
     double hsnow = 0.01; // m
@@ -203,7 +203,7 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     ConfiguredModule::parseConfigurator();
     tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
 
-    ElementData data;
+    ElementData data(3);
     data.configure(); // Configure with the UNESCO freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
@@ -262,7 +262,7 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
     double pair = 100000; // Pa, slightly low pressure
     double sst = -1.75; //˚C
     double sss = 32; // PSU
-    std::array<double, N_ICE_TEMPERATURES> tice = { -9., -9., -9. }; //˚C
+    std::vector<double> tice = { -9., -9. }; //˚C
     double hice = 0.1; // m
     double cice = 0.5;
     double hsnow = 0.01; // m
@@ -272,7 +272,7 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
     ConfiguredModule::parseConfigurator();
     tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
 
-    ElementData data;
+    ElementData data(2);
     data.configure(); // Configure with the UNESCO freezing point
 
     data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
