@@ -123,7 +123,7 @@ void initData(std::vector<ElementData>& data, const netCDF::NcGroup& dataGroup)
             std::vector<double> tice(nLayers);
             for (int l = 0; l < nLayers; ++l) {
                 std::vector<std::size_t> loc3 = { loc[0], loc[1], std::size_t(l) };
-                dataGroup.getVar(ticeName).getVar(loc, &tice[l]);
+                dataGroup.getVar(ticeName).getVar(loc3, &tice[l]);
             }
             data[linearIndex] = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
         }
