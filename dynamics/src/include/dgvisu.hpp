@@ -45,6 +45,9 @@ public:
         const CGVector<1>& v,
         const Mesh& mesh)
     {
+        //extract variable name
+        std::string variableName = fname.substr(fname.find("/") + 1, fname.find_first_of(".") - fname.find("/") - 1);
+
         std::ofstream OUT(fname.c_str());
         if (!OUT.is_open()) {
             std::cerr << "Failed to open '" << fname << "'." << std::endl;
@@ -60,7 +63,7 @@ public:
             << "ORIGIN 0 0 0" << std::endl
             << "SPACING " << mesh.hx << " " << mesh.hy << " " << 0 << std::endl;
         OUT << "POINT_DATA " << (mesh.nx + 1) * (mesh.ny + 1) << std::endl
-            << "SCALARS cg DOUBLE 1" << std::endl
+            << "SCALARS " << variableName << " DOUBLE " << std::endl
             << "LOOKUP_TABLE default" << std::endl;
 
         for (int i = 0; i < v.rows(); ++i)
@@ -72,6 +75,9 @@ public:
         const CGVector<2>& v,
         const Mesh& mesh)
     {
+        //extract variable name
+        std::string variableName = fname.substr(fname.find("/") + 1, fname.find_first_of(".") - fname.find("/") - 1);
+
         std::ofstream OUT(fname.c_str());
         if (!OUT.is_open()) {
             std::cerr << "Failed to open '" << fname << "'." << std::endl;
@@ -87,7 +93,7 @@ public:
             << "ORIGIN 0 0 0" << std::endl
             << "SPACING " << 0.5 * mesh.hx << " " << 0.5 * mesh.hy << " " << 0 << std::endl;
         OUT << "POINT_DATA " << (2 * mesh.nx + 1) * (2 * mesh.ny + 1) << std::endl
-            << "SCALARS cg DOUBLE 1" << std::endl
+            << "SCALARS " << variableName << " DOUBLE " << std::endl
             << "LOOKUP_TABLE default" << std::endl;
 
         for (int i = 0; i < v.rows(); ++i)
