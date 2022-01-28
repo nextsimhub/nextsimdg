@@ -121,10 +121,10 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double dt_adv = 120.0; //!< Time step of advection problem
+    constexpr double dt_adv = 60; //120.0; //!< Time step of advection problem
     constexpr size_t NT = RefScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
-    constexpr size_t mom_substeps = 100;
+    constexpr size_t mom_substeps = 1000;
     constexpr double dt_momentum = dt_adv / mom_substeps; //!< Time step of momentum problem
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
@@ -132,7 +132,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 2.0 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 1.0 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -266,8 +266,13 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
             //! Stress Update
-            Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
+            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
+            //    E11, E12, E22, H, A, D,
+            //    dt_momentum);
+
+            Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22,
                 E11, E12, E22, H, A, D,
+                DELTA, SHEAR, S1, S2,
                 dt_momentum);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
