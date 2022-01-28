@@ -124,7 +124,7 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 32; //!< Number of mesh nodes
+    constexpr size_t N = 128; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -134,8 +134,11 @@ int main()
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 12; //300.0;
-    constexpr double beta = 99; //300.0;
+    //constexpr double alpha = 300.0;
+    //constexpr double beta = 300.0;
+    //! MEB parameters
+    constexpr double alpha = 1.2; // = dtmomentum = dt_adv/100
+    constexpr double beta = 0;
     constexpr size_t NT_evp = 100;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
@@ -256,6 +259,10 @@ int main()
 
         Nextsim::GlobalTimer.start("time loop - mevp");
         //! Store last velocity for MEVP
+        //vx_mevp = vx;
+        //vy_mevp = vy;
+
+        //! MEB
         vx_mevp = vx;
         vy_mevp = vy;
 
@@ -269,17 +276,17 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
 
-            //Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22,
-            //    E11, E12, E22, H, A,
-            //    ReferenceScale::Pstar,
-            //    ReferenceScale::DeltaMin,
-            //    alpha, beta);
-
-            Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
-                E11, E12, E22, H, A, D,
+            Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22,
+                E11, E12, E22, H, A,
                 ReferenceScale::Pstar,
                 ReferenceScale::DeltaMin,
                 alpha, beta);
+
+            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
+            //    E11, E12, E22, H, A, D,
+            //    ReferenceScale::Pstar,
+            //    ReferenceScale::DeltaMin,
+            //    alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
@@ -290,16 +297,18 @@ int main()
             //	    update by a loop.. implicit parts and h-dependent
 
             //
-            vx = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+            vx = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / alpha * (1.0 + beta) // implicit parts
                       + ReferenceScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts // NO SCALING WITH A
-                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
+                //* (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
+                * (ReferenceScale::rho_ice * cg_H.array() / alpha * (1.0 + beta) * vx.array() + // pseudo-timestepping
                     (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
                         ReferenceScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
                     ))
                      .matrix();
-            vy = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+            vy = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / alpha * (1.0 + beta) // implicit parts
                       + ReferenceScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts // NO SCALING WITH A
-                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
+                //* (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
+                * (ReferenceScale::rho_ice * cg_H.array() / alpha * (beta + 1.) * vy.array() + // pseudo-timestepping
                     (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
                         ReferenceScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
                     ))
@@ -311,11 +320,11 @@ int main()
             tmpx.zero();
             tmpy.zero();
             momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
-            vx += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+            vx += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / alpha * (1.0 + beta) // implicit parts
                        + ReferenceScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts // NO SCALING WITH A
                 * tmpx.array())
                       .matrix();
-            vy += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+            vy += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / alpha * (1.0 + beta) // implicit parts
                        + ReferenceScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts // NO SCALING WITH A
                 * tmpy.array())
                       .matrix();

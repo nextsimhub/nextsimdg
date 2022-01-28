@@ -9,6 +9,7 @@
 #include "dginitial.hpp"
 #include "dgvisu.hpp"
 #include "dynamics.hpp"
+#include "meb.hpp"
 #include "stopwatch.hpp"
 
 bool WRITE_VTK = true;
@@ -19,41 +20,6 @@ bool WRITE_VTK = true;
 
 namespace Nextsim {
 extern Timer GlobalTimer;
-}
-
-namespace RefScale {
-// Benchmark testcase from [Mehlmann / Richter, ...]
-constexpr double T = 2 * 24. * 60. * 60.; //!< Time horizon 2 days
-constexpr double L = 512000.0; //!< Size of domain
-constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
-constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
-
-constexpr double rho_ice = 900.0; //!< Sea ice density
-constexpr double rho_atm = 1.3; //!< Air density
-constexpr double rho_ocean = 1026.0; //!< Ocean density
-
-constexpr double C_atm = 1.2e-3; //!< Air drag coefficient
-constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
-
-constexpr double F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
-constexpr double F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
-
-constexpr double Pstar = 27500.0; //!< Ice strength
-constexpr double fc = 1.46e-4; //!< Coriolis
-
-constexpr double DeltaMin = 2.e-9; //!< Viscous regime
-
-// parameters form nextsim options.cpp line 302
-constexpr double compaction_param = -20; //!< Compation parameter
-constexpr double undamaged_time_relaxation_sigma = 1e7; //!< seconds
-//constexpr double undamaged_time_relaxation_sigma = 1e4; //!< seconds
-constexpr double exponent_relaxation_sigma = 5;
-constexpr double young = 5.9605e+08;
-constexpr double nu0 = 1. / 3.; //!< \param Poisson's ratio
-constexpr double compr_strength = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
-constexpr double tan_phi = 0.7; //! \param tan_phi (double) Internal friction coefficient (mu)
-constexpr double C_lab = 2.0e6; //! \param C_lab (double) Cohesion at the lab scale (10 cm) [Pa]
-
 }
 
 inline constexpr double SQR(double x)
@@ -161,13 +127,8 @@ int main()
     constexpr size_t mom_substeps = 100;
     constexpr double dt_momentum = dt_adv / mom_substeps; //!< Time step of momentum problem
 
-    //! MEVP parameters
-    constexpr double alpha = 800.0;
-    constexpr double beta = 800.0;
-    constexpr size_t NT_evp = 100;
-
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
-              << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
+              << "Momentum subcycling NTevp " << mom_substeps << "\t dt_momentum " << dt_momentum
               << std::endl;
 
     //! VTK output
@@ -181,11 +142,9 @@ int main()
     Nextsim::CGVector<CG> vx(mesh), vy(mesh); //!< velocity
     Nextsim::CGVector<CG> tmpx(mesh), tmpy(mesh); //!< tmp for stress.. should be removed
     Nextsim::CGVector<CG> cg_A(mesh), cg_H(mesh); //!< interpolation of ice height and conc.
-    Nextsim::CGVector<CG> vx_mevp(mesh), vy_mevp(mesh); //!< temp. Velocity used for MEVP
+    //Nextsim::CGVector<CG> vx_mevp(mesh), vy_mevp(mesh); //!< temp. Velocity used for MEVP
     vx.zero();
     vy.zero();
-    vx_mevp = vx;
-    vy_mevp = vy;
 
     Nextsim::CGVector<CG> OX(mesh); //!< x-component of ocean velocity
     Nextsim::CGVector<CG> OY(mesh); //!< y-component of ocean velocity
@@ -199,8 +158,6 @@ int main()
     AtmForcingY.settime(0.0);
     AX.zero();
     AY.zero();
-    // Nextsim::InterpolateCG(mesh, AX, AtmForcingX);
-    // Nextsim::InterpolateCG(mesh, AY, AtmForcingY);
 
     Nextsim::CellVector<DGadvection> H(mesh), A(mesh); //!< ice height and concentration
     Nextsim::L2ProjectInitial(mesh, H, InitialH());
@@ -298,12 +255,8 @@ int main()
         Nextsim::GlobalTimer.stop("time loop - advection");
 
         Nextsim::GlobalTimer.start("time loop - mevp");
-        //! Store last velocity for MEVP
-        vx_mevp = vx;
-        vy_mevp = vy;
 
         //! Momentum subcycling
-        //for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
         for (size_t mom_step = 0; mom_step < mom_substeps; ++mom_step) {
 
             Nextsim::GlobalTimer.start("time loop - mevp - strain");
@@ -313,150 +266,20 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
             //! Stress Update
-#pragma omp parallel for
-            for (size_t i = 0; i < mesh.n; ++i) {
+            Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
+                E11, E12, E22, H, A, D,
+                dt_momentum);
 
-                // Check 1: Not mentioned in the paper
-                // There's no ice so we set sigma to 0 and carry on
-                const double min_c = 0.1;
-                //if (M_conc[cpt] <= min_c) {
-                if (A(i, 0) <= min_c) {
-
-                    //M_damage[cpt] = 0.;
-                    D(i, 0) = 0.0;
-
-                    //for(int i=0;i<3;i++)
-                    //    M_sigma[i][cpt] = 0.;
-                    S11.row(i) *= 0.0;
-                    S12.row(i) *= 0.0;
-                    S22.row(i) *= 0.0;
-                    std::cout << "NO ICE" << std::endl;
-                    continue;
-                }
-
-                // For comparison with mEVP
-                DELTA(i, 0) = sqrt(
-                    SQR(RefScale::DeltaMin)
-                    + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
-                    + 1.50 * E11(i, 0) * E22(i, 0)
-                    + SQR(E12(i, 0)));
-                assert(DELTA(i, 0) > 0);
-                //! Ice strength
-                double P = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-                SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
-                double zeta = P / 2.0 / DELTA(i, 0);
-                double eta = zeta / 4;
-
-                /*======================================================================
-                //! - Updates the internal stress
-                *======================================================================
-                */
-
-                // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
-                double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-                double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
-
-                // New 1
-                //double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
-                double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow(H(i, 0) * expC, RefScale::exponent_relaxation_sigma - 1.);
-
-                // Plastic failure tildeP
-                double tildeP;
-                if (sigma_n < 0.) {
-                    //double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
-                    // skipping 1.5 power
-                    double const Pmax = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-
-                    // tildeP must be capped at 1 to get an elastic response
-                    tildeP = std::min(1., -Pmax / sigma_n);
-                } else {
-                    tildeP = 0.;
-                }
-
-                // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-                // Check 2: min 1.-1e-12 Not mentioned in the paper from nextsim
-                double const multiplicator = std::min(1. - 1e-12,
-                    time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
-
-                // NEW 1 Initially elastcity is deformed by H
-                //double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
-                double const elasticity = RefScale::young * H(i, 0) * expC;
-
-                double const Dunit_factor = 1. / (1. - SQR(RefScale::nu0));
-
-                //Elasit prediction Eqn. (32)
-                S11.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
-                S12.row(i) += dt_momentum * elasticity * 1 / (1 + RefScale::nu0) * E12.row(i);
-                S22.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
-                S11.row(i) *= multiplicator;
-                S12.row(i) *= multiplicator;
-                S22.row(i) *= multiplicator;
-
-                /*======================================================================
-                 //! - Estimates the level of damage from the updated internal stress and the local damage criterion
-                 *======================================================================
-                 */
-
-                //continiue if stress in inside the failure envelope
-                // Compute the shear and normal stresses, which are two invariants of the internal stress tensor
-                double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
-                //update sigma_n
-                sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-
-                // Check 3: Discuss Cohesion with Einar
-                //Cohesion Eqn. (21)
-                //Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10 cm)
-                double const C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
-                // C_lab;...  : cohesion (Pa)
-
-                // d critical Eqn. (29)
-
-                double dcrit;
-                if (sigma_n < -RefScale::compr_strength)
-                    dcrit = -RefScale::compr_strength / sigma_n;
-                else
-                    // M_Cohesion[cpt] depends on local random contribution
-                    // M_Cohesion[i] = C_fix+C_alea*(M_random_number[i]);
-                    // finiteelement.cpp#L3834
-                    dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
-
-                // Calculate the characteristic time for damage and damage increment
-                // M_delta_x[cpt] = mesh.hx ???
-                double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
-                    / std::sqrt(elasticity);
-                // Calculate the adjusted level of damage
-                if ((0. < dcrit) && (dcrit < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
-                {
-                    // Eqn. (34)
-                    D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
-
-                    // Recalculate the new state of stress by relaxing elstically Eqn. (36)
-                    S11.row(i) -= S11.row(i) * (1. - dcrit) * dt_momentum / td;
-                    S12.row(i) -= S12.row(i) * (1. - dcrit) * dt_momentum / td;
-                    S22.row(i) -= S22.row(i) * (1. - dcrit) * dt_momentum / td;
-                }
-
-                //Relax damage
-                //Check 4: Values are not in the Paper, cf. Eqn. (30)
-                D(i, 0) = std::max(0., D(i, 0) - dt_momentum / td * std::exp(-20. * (1. - A(i, 0))));
-
-                // For comparison with mEVP prepare for ellipse-output
-                if ((timestep % NT_vtk == 0)) {
-                    S1(i) = (S11(i, 0) + S22(i, 0)) / P;
-                    S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
-                }
-            }
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update");
             //! Update
             Nextsim::GlobalTimer.start("time loop - mevp - update1");
 
-            //	    update by a loop.. implicit parts and h-dependent
-            //
+            //	    update by a loop.. explicit parts and h-dependent
             vx = (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                       + cg_A.array() * RefScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
-                * (RefScale::rho_ice * cg_H.array() / dt_momentum * (vx.array()) + // pseudo-timestepping
+                * (RefScale::rho_ice * cg_H.array() / dt_momentum * vx.array() + //
                     cg_A.array() * (RefScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
                         RefScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
                     + RefScale::rho_ice * cg_H.array() * RefScale::fc * (vx - OX).array() // cor + surface
@@ -464,9 +287,8 @@ int main()
                      .matrix();
             vy = (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                       + cg_A.array() * RefScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
-                * (RefScale::rho_ice * cg_H.array() / dt_momentum * (vy.array()) + // pseudo-timestepping
-                    cg_A.array() * (RefScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
-                        RefScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
+                * (RefScale::rho_ice * cg_H.array() / dt_momentum * vy.array() + cg_A.array() * (RefScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
+                                                                                     RefScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
                     + RefScale::rho_ice * cg_H.array() * RefScale::fc * (OY - vy).array() // cor + surface
                     ))
                      .matrix();
@@ -519,16 +341,11 @@ int main()
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/delta", printstep, DELTA, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/shear", printstep, SHEAR, mesh);
 
-                // Nextsim::CellVector<2> dgvx(mesh), dgvy(mesh);
                 // momentum.ProjectCGToDG(mesh, dgvx, vx);
                 // momentum.ProjectCGToDG(mesh, dgvy, vy);
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvx", printstep, dgvx, mesh);
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvy", printstep, dgvy, mesh);
+                //Nextsim::VTK::write_dg("ResultsMEB_CGvel/dgvx", printstep, dgvx, mesh);
+                //Nextsim::VTK::write_dg("ResultsMEB_CGvel/dgvy", printstep, dgvy, mesh);
 
-                // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S11", printstep, dynamics.GetS11(),
-                // dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S12", printstep,
-                // dynamics.GetS12(), dynamics.GetMesh()); Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/S22",
-                // printstep, dynamics.GetS22(), dynamics.GetMesh());
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/A", printstep, A, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", printstep, H, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/D", printstep, D, mesh);
@@ -536,9 +353,9 @@ int main()
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S11", printstep, S11, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S12", printstep, S12, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/S22", printstep, S22, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E11", printstep, E11, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E12", printstep, E12, mesh);
-                // Nextsim::VTK::write_dg<1>("ResultsMEB_CGvel/E22", printstep, E22, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/E11", printstep, E11, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/E12", printstep, E12, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/E22", printstep, E22, mesh);
 
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu1", printstep, mu1, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu2", printstep, mu2, mesh);
