@@ -11,6 +11,7 @@
 #include "dynamics.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
+#include "tools.hpp"
 
 bool WRITE_VTK = true;
 
@@ -131,7 +132,7 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 100; //!< Number of mesh nodes
+    constexpr size_t N = 128; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -150,7 +151,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 2.0 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 1.0 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -191,13 +192,25 @@ int main()
     Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
     Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
 
-    // // save initial condition
-    //   Nextsim::GlobalTimer.start("time loop - i/o");
-    //Nextsim::VTK::write_cg("ResultsBenchmark/vx", 0, vx, mesh);
-    //Nextsim::VTK::write_cg("ResultsBenchmark/vy", 0, vy, mesh);
-    //Nextsim::VTK::write_dg("ResultsBenchmark/A", 0, A, mesh);
-    //Nextsim::VTK::write_dg("ResultsBenchmark/H", 0, H, mesh);
-    //   Nextsim::GlobalTimer.stop("time loop - i/o");
+    // save initial condition
+    Nextsim::GlobalTimer.start("time loop - i/o");
+    Nextsim::VTK::write_cg("ResultsBenchmark/vx", 0, vx, mesh);
+    Nextsim::VTK::write_cg("ResultsBenchmark/vy", 0, vy, mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/A", 0, A, mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/H", 0, H, mesh);
+
+    Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin, DELTA);
+    Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, DELTA, mesh);
+    Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
+    Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, SHEAR, mesh);
+
+    Nextsim::VTK::write_dg("ResultsBenchmark/S11", 0, S11, mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/S12", 0, S12, mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/S22", 0, S22, mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/E11", 0, E11, mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/E12", 0, E12, mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/E22", 0, E22, mesh);
+    Nextsim::GlobalTimer.stop("time loop - i/o");
 
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
@@ -354,10 +367,10 @@ int main()
                 Nextsim::VTK::write_dg("ResultsBenchmark/A", printstep, A, mesh);
                 Nextsim::VTK::write_dg("ResultsBenchmark/H", printstep, H, mesh);
 
-                Nextsim::VTK::write_dg("ResultsBenchmark/delta", printstep, DELTA, mesh);
-                Nextsim::VTK::write_dg("ResultsBenchmark/shear", printstep, SHEAR, mesh);
-
-                Nextsim::VTK::write_dg("ResultsBenchmark/DELTA", printstep, DELTA, mesh);
+                Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin, DELTA);
+                Nextsim::VTK::write_dg("ResultsBenchmark/Delta", printstep, DELTA, mesh);
+                Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
+                Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, SHEAR, mesh);
 
                 Nextsim::VTK::write_dg("ResultsBenchmark/S11", printstep, S11, mesh);
                 Nextsim::VTK::write_dg("ResultsBenchmark/S12", printstep, S12, mesh);

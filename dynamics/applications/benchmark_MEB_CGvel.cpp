@@ -11,6 +11,7 @@
 #include "dynamics.hpp"
 #include "meb.hpp"
 #include "stopwatch.hpp"
+#include "tools.hpp"
 
 bool WRITE_VTK = true;
 
@@ -186,8 +187,10 @@ int main()
     Nextsim::GlobalTimer.start("time loop - i/o");
     Nextsim::VTK::write_cg("ResultsMEB_CGvel/vx", 0, vx, mesh);
     Nextsim::VTK::write_cg("ResultsMEB_CGvel/vy", 0, vy, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/shear", 0, SHEAR, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/delta", 0, DELTA, mesh);
+    Nextsim::Tools::Delta(mesh, E11, E12, E22, RefScale::DeltaMin, DELTA);
+    Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, DELTA, mesh);
+    Nextsim::Tools::Shear(mesh, E11, E12, E22, RefScale::DeltaMin, SHEAR);
+    Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, SHEAR, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/A", 0, A, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", 0, H, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/D", 0, D, mesh);
@@ -343,13 +346,10 @@ int main()
                 Nextsim::VTK::write_cg("ResultsMEB_CGvel/vx", printstep, vx, mesh);
                 Nextsim::VTK::write_cg("ResultsMEB_CGvel/vy", printstep, vy, mesh);
 
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/delta", printstep, DELTA, mesh);
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/shear", printstep, SHEAR, mesh);
-
-                // momentum.ProjectCGToDG(mesh, dgvx, vx);
-                // momentum.ProjectCGToDG(mesh, dgvy, vy);
-                //Nextsim::VTK::write_dg("ResultsMEB_CGvel/dgvx", printstep, dgvx, mesh);
-                //Nextsim::VTK::write_dg("ResultsMEB_CGvel/dgvy", printstep, dgvy, mesh);
+                Nextsim::Tools::Delta(mesh, E11, E12, E22, RefScale::DeltaMin, DELTA);
+                Nextsim::VTK::write_dg("ResultsBenchmark/Delta", printstep, DELTA, mesh);
+                Nextsim::Tools::Shear(mesh, E11, E12, E22, RefScale::DeltaMin, SHEAR);
+                Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, SHEAR, mesh);
 
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/A", printstep, A, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", printstep, H, mesh);
