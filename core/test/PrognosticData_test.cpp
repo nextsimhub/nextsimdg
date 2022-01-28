@@ -8,6 +8,7 @@
 #include <catch2/catch.hpp>
 
 #include "include/PrognosticData.hpp"
+#include "include/PrognosticGenerator.hpp"
 #include "include/ModuleLoader.hpp"
 
 namespace Nextsim {
@@ -15,8 +16,7 @@ namespace Nextsim {
 TEST_CASE("Ice-layer access function", "[PrognosticData]")
 {
     std::vector<double> tice = { -0.1, -0.2, -0.3 };
-    PrognosticData pd(3);
-    pd = PrognosticData::generate(0.1, 0.5, -1., 32, 0, tice);
+    PrognosticData pd(PrognosticGenerator().hice(0.1).cice(0.5).hsnow(0.).tice(tice).sst(-1.).sss(32.));
     ModuleLoader::getLoader().setAllDefaults();
     tryConfigure(pd);
 

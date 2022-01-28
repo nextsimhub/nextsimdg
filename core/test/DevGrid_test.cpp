@@ -39,8 +39,7 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
         for (int i = 0; i < nx; ++i) {
             if (grid.validCursor()) {
                 double fractional = j * yFactor + i * xFactor;
-                grid.cursorData() = PrognosticData::generate(1 + fractional, 2 + fractional,
-                    3 + fractional, 4 + fractional, 5 + fractional, { -(1. + fractional) });
+                grid.cursorData() = PrognosticGenerator().hice(1 + fractional).cice(2 + fractional).sst(3 + fractional).sss(4 + fractional).hsnow(5 + fractional).tice({ -(1. + fractional) });
                 grid.incrCursor();
             }
         }
@@ -57,7 +56,7 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
     for (int j = 0; j < ny; ++j) {
         for (int i = 0; i < nx; ++i) {
             if (grid2.cursor) {
-                *(grid2.cursor) = PrognosticData::generate(0., 0, 0, 0, 0, { 0., 0., 0. });
+                *(grid2.cursor) = PrognosticGenerator();
                 ++grid2.cursor;
             }
         }

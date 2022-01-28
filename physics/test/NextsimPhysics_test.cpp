@@ -62,7 +62,7 @@ TEST_CASE("Update derived data", "[NextsimPhysics]")
     double hice = 0.1;
     double cice = 0.5;
 
-    data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
+    data = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(0.).tice(tice);
     data.airTemperature() = tair;
     data.dewPoint2m() = tdew;
     data.airPressure() = pair;
@@ -102,7 +102,7 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     ElementData data(3);
     data.configure(); // Configure with the default linear freezing point
 
-    data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
+    data = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(0.).tice(tice);
     data.setTimestep(86400.); // s. Very long TS to get below freezing
 
     data.airTemperature() = tair;
@@ -141,7 +141,7 @@ TEST_CASE("Drag pressure", "[NextsimPhysics]")
     ElementData data(3);
     data.configure(); // Configure with the default linear freezing point
 
-    data = PrognosticData::generate(hice, cice, sst, sss, 0., tice);
+    data = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(0.).tice(tice);
     data.setTimestep(86400.); // s. Very long TS to get below freezing
 
     data.airTemperature() = tair;
@@ -206,7 +206,7 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     ElementData data(3);
     data.configure(); // Configure with the UNESCO freezing point
 
-    data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
+    data = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(hsnow).tice(tice);
     data.setTimestep(600.); // s. Very long TS to get below freezing
 
     data.airTemperature() = tair;
@@ -275,7 +275,7 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
     ElementData data(2);
     data.configure(); // Configure with the UNESCO freezing point
 
-    data = PrognosticData::generate(hice, cice, sst, sss, hsnow, tice);
+    data = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(hsnow).tice(tice);
     data.setTimestep(600.); // s. Very long TS to get below freezing
 
     data.airTemperature() = tair;
