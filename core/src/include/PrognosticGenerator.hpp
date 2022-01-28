@@ -27,9 +27,7 @@ public:
         , m_hsnow(0)
         , m_tice(nLayers, 0.)
         , m_sst(0.)
-        , m_sss(0.)
-    {
-    };
+        , m_sss(0.) {};
 
     virtual ~PrognosticGenerator() = default;
 

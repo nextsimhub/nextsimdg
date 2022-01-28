@@ -125,7 +125,9 @@ void initData(std::vector<ElementData>& data, const netCDF::NcGroup& dataGroup)
                 std::vector<std::size_t> loc3 = { loc[0], loc[1], std::size_t(l) };
                 dataGroup.getVar(ticeName).getVar(loc3, &tice[l]);
             }
-            data[linearIndex] = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(hsnow).tice(tice);
+            data[linearIndex]
+                = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(hsnow).tice(
+                    tice);
         }
     }
 

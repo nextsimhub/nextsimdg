@@ -52,8 +52,7 @@ TEST_CASE("Physics test using NextsimPhysics", "[ElementData]")
     REQUIRE(data.nIceLayers() == 3);
     data.configure(); // Configure with the UNESCO freezing point
 
-    data =
-        PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(hsnow).tice(tice);
+    data = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(hsnow).tice(tice);
     data.setTimestep(600.); // s. Very long TS to get below freezing
     REQUIRE(data.iceThickness() == hice);
     REQUIRE(data.iceConcentration() == cice);

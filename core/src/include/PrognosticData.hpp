@@ -46,7 +46,7 @@ public:
      * @param sst sea surface temperature
      * @param sss sea surface salinity
      */
-     PrognosticData& setSeaSurface(double sst, double sss);
+    PrognosticData& setSeaSurface(double sst, double sss);
 
     void configure() override;
 
@@ -81,31 +81,6 @@ public:
     inline double timestep() const { return m_dt; }
     //! Set a new value for the timestep
     static void setTimestep(double newDt) { m_dt = newDt; }
-
-
-    /*!
-     * @brief Set the data from passed arguments.
-     *
-     * @param h Ice thickness [m]
-     * @param c Ice concentration [1]
-     * @param t Sea surface temperature [˚C]
-     * @param s Sea surface salinity [PSU]
-     * @param hs Snow thickness [m]
-     * @param tice Array of ice temperatures [˚C]
-     */
-//    inline static PrognosticData generate(
-//        double h, double c, double t, double s, double hs, std::vector<double> tice)
-//    {
-//        PrognosticData data;
-//        data.m_thick = h;
-//        data.m_conc = c;
-//        data.m_sst = t;
-//        data.m_sss = s;
-//        data.m_snow = hs;
-//        data.m_tice = tice;
-//
-//        return data;
-//    }
 
     //! Returns the number of ice layers in this element.
     int nIceLayers() const { return m_tice.size(); };

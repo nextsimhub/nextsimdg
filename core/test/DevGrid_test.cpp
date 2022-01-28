@@ -39,7 +39,13 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
         for (int i = 0; i < nx; ++i) {
             if (grid.validCursor()) {
                 double fractional = j * yFactor + i * xFactor;
-                grid.cursorData() = PrognosticGenerator().hice(1 + fractional).cice(2 + fractional).sst(3 + fractional).sss(4 + fractional).hsnow(5 + fractional).tice({ -(1. + fractional) });
+                grid.cursorData() = PrognosticGenerator()
+                                        .hice(1 + fractional)
+                                        .cice(2 + fractional)
+                                        .sst(3 + fractional)
+                                        .sss(4 + fractional)
+                                        .hsnow(5 + fractional)
+                                        .tice({ -(1. + fractional) });
                 grid.incrCursor();
             }
         }
