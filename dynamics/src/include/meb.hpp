@@ -22,7 +22,9 @@ constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
 constexpr double F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
 constexpr double F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 
+//constexpr double Pstar = 27500.0; //!< Ice strength
 constexpr double Pstar = 27500.0; //!< Ice strength
+
 constexpr double fc = 1.46e-4; //!< Coriolis
 
 constexpr double DeltaMin = 2.e-9; //!< Viscous regime
@@ -31,6 +33,10 @@ constexpr double DeltaMin = 2.e-9; //!< Viscous regime
 constexpr double compaction_param = -20; //!< Compation parameter
 constexpr double undamaged_time_relaxation_sigma = 1e7; //!< seconds
 //constexpr double undamaged_time_relaxation_sigma = 1e4; //!< seconds
+
+constexpr double compression_factor = 10e3; //! \param Max pressure for damaged converging ice
+constexpr double exponent_compression_factor = 1.5; //! \param Power of ice thickness in the pressure coefficient
+
 constexpr double exponent_relaxation_sigma = 5;
 constexpr double young = 5.9605e+08;
 constexpr double nu0 = 1. / 3.; //!< \param Poisson's ratio
@@ -95,7 +101,7 @@ namespace MEB {
                 // Plastic failure tildeP
                 double tildeP;
                 if (sigma_n < 0.) {
-                    double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(RefScale::compaction_param * (1.0 - A(i, 0)));
+                    double const Pmax = RefScale::compression_factor * pow(H(i, 0), RefScale::exponent_compression_factor) * exp(RefScale::compaction_param * (1.0 - A(i, 0)));
              
                     // tildeP must be capped at 1 to get an elastic response
                     tildeP = std::min(1., -Pmax / sigma_n);
@@ -220,15 +226,19 @@ namespace MEB {
                 double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
 
                 // New 1
-                //double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
-                double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow(H(i, 0) * expC, RefScale::exponent_relaxation_sigma - 1.);
+                double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
+                //double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow(H(i, 0) * expC, RefScale::exponent_relaxation_sigma - 1.);
 
                 // Plastic failure tildeP
                 double tildeP;
                 if (sigma_n < 0.) {
-                    //double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+                    
+                    double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+                    // double const Pmax = RefScale::compression_factor * pow(H(i, 0), RefScale::exponent_compression_factor) * exp(RefScale::compaction_param * (1.0 - A(i, 0)));
+
+
                     // skipping 1.5 power
-                    double const Pmax = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+                    //double const Pmax = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
 
                     // tildeP must be capped at 1 to get an elastic response
                     tildeP = std::min(1., -Pmax / sigma_n);
@@ -242,10 +252,11 @@ namespace MEB {
                     time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
 
                 // NEW 1 Initially elastcity is deformed by H
-                //double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
-                double const elasticity = RefScale::young * H(i, 0) * expC;
+                double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
+                //double const elasticity = RefScale::young * H(i, 0) * expC;
 
                 double const Dunit_factor = 1. / (1. - SQR(RefScale::nu0));
+
 
                 //Elasit prediction Eqn. (32)
                 S11.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
