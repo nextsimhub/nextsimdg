@@ -6,39 +6,38 @@
 
 #include "include/Logged.hpp"
 
+#include <boost/log/common.hpp>
+#include <boost/log/utility/setup/file.hpp>
+
 namespace Nextsim {
 
-// TODO Empty implementations of the declared functions
+// Initialize the logger, that is set up boost::log how we want it
+void Logged::configure()
+{
+    boost::log::add_file_log(
+            boost::log::keywords::file_name = "nextsim_%Timestep%.log"
+            // All logs go to file
+    );
+}
+
 void Logged::log(const std::string& message, Logged::level lvl)
 {
     switch (lvl) {
-    case (INFO):
-        info(message);
-        break;
-    case (DEBUG):
-    case (NOTICE):
-    case (WARNING):
-    case (ERROR):
-    case (CRITICAL):
-    case (ALERT):
+    case (level::TRACE):
+    case (level::DEBUG):
+    case (level::INFO):
+    case (level::NOTICE):
+    case (level::WARNING):
+    case (level::ERROR):
+    case (level::CRITICAL):
+    case (level::ALERT):
         // TODO implement these levels
         break;
-    case (EMERGENCY):
-        emergency(message);
+    case (level::EMERGENCY):
         break;
     default:
         break;
     }
-}
-
-void Logged::info(const std::string& message)
-{
-    // TODO Replace empty implementation
-}
-
-void Logged::emergency(const std::string& message)
-{
-    // TODO Replace empty implementation
 }
 
 } /* namespace Nextsim */
