@@ -191,12 +191,3 @@ add_executable(testStructureFactory
 target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(testStructureFactory PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testStructureFactory PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
-
-add_executable(exampleLogged
-    "Logged_example.cpp"
-    "${SRC_DIR}/Logged.cpp"
-    "${SRC_DIR}/Configurator.cpp"
-    )
-    
-target_include_directories(exampleLogged PUBLIC "${SRC_DIR}")
-target_link_libraries(exampleLogged PUBLIC "${Boost_LIBRARIES}")
