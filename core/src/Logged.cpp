@@ -6,22 +6,45 @@
 
 #include "include/Logged.hpp"
 
+#include "include/Configured.hpp"
+
 #include <boost/log/common.hpp>
 #include <boost/log/utility/setup/file.hpp>
 
 namespace Nextsim {
 
+const std::map<std::string, Logged::level> Logged::levelNames = {
+        { "trace", level::TRACE }, { "TRACE", level::TRACE },
+        { "debug", level::DEBUG }, { "DEBUG", level::DEBUG },
+        { "info", level::INFO }, { "INFO", level::INFO },
+        { "warning", level::WARNING }, { "WARNING", level::WARNING },
+        { "error", level::ERROR }, { "ERROR", level::ERROR },
+        { "critical", level::CRITICAL }, { "CRITICAL", level::CRITICAL },
+        { "fatal", level::CRITICAL }, { "FATAL", level::CRITICAL },
+        { "alert", level::ALERT }, { "ALERT", level::ALERT },
+        { "emergency", level::EMERGENCY }, { "EMERGENCY", level::EMERGENCY },
+};
+
+const std::map<int, std::string> keyMap = {
+    { Logged::MINIMUM_LOG_LEVEL_KEY, "Logged.minimum_log_level" },
+};
+BOOST_LOG_ATTRIBUTE_KEYWORD(Severity, "Severity", Logged::level)
+
 // Initialize the logger, that is set up boost::log how we want it
-void Logged::configure()
+void Logged::configureLogging()
 {
+    level minimumLogLevel = levelNames.at(Configured<Logged>::getConfiguration(keyMap.at(MINIMUM_LOG_LEVEL_KEY), std::string("info")));
     boost::log::add_file_log(
-            boost::log::keywords::file_name = "nextsim_%Timestep%.log"
-            // All logs go to file
+            boost::log::keywords::file_name = "nextsim_%Timestep%.log",
+            // All logs go to file above the minimum level
+            boost::log::keywords::filter = (Severity >= minimumLogLevel)
     );
 }
 
 void Logged::log(const std::string& message, Logged::level lvl)
 {
+
+
     switch (lvl) {
     case (level::TRACE):
     case (level::DEBUG):

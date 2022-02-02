@@ -7,17 +7,21 @@
 #ifndef SRC_INCLUDE_LOGGED_HPP
 #define SRC_INCLUDE_LOGGED_HPP
 
-#include "include/Configured.hpp"
-
+#include <map>
 #include <string>
 
 namespace Nextsim {
 
-class Logged : public Configured<Logged> {
+class Logged {
 public:
     //! Static function that configures the logger.
-    static void configure();
+    static void configureLogging();
     enum class level { TRACE, DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY };
+
+    enum {
+        MINIMUM_LOG_LEVEL_KEY,
+    };
+    static const std::map<std::string, level> levelNames;
 
     static void log(const std::string& message, const level lvl);
     static void trace(const std::string& message) { log(message, level::TRACE); };
@@ -30,7 +34,7 @@ public:
     static void alert(const std::string& message) { log(message, level::ALERT); };
     static void emergency(const std::string& message) { log(message, level::EMERGENCY); };
 
-protected:
+    protected:
     Logged() = default;
     // TODO: Add implementation to actually do some logging
 };

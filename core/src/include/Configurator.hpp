@@ -12,6 +12,7 @@
 #include <fstream>
 #include <istream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -79,6 +80,12 @@ public:
             addStream(stream);
         }
     }
+
+    /*!
+     * @brief Adds a std::stringstream configuration stream, wrapping all the pointer mechanics.
+     * @param sstream The std::stringstream containiong the configuration text to be added.
+     */
+    static void addSStream(const std::stringstream& sstream);
 
     /*!
      * Removes previously assigned stream data sources, both files and istreams.
