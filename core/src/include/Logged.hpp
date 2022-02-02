@@ -16,7 +16,7 @@ class Logged {
 public:
     //! Static function that configures the logger.
     static void configure();
-    enum class level { TRACE, DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY, NONE };
+    enum class level { ALL, TRACE, DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY, NONE };
 
     enum {
         MINIMUM_LOG_LEVEL_KEY,

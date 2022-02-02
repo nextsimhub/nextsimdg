@@ -16,6 +16,7 @@
 namespace Nextsim {
 
 const std::map<std::string, Logged::level> Logged::levelNames = {
+        { "all", level::ALL }, { "All", level::ALL }, { "ALL", level::ALL },
         { "trace", level::TRACE }, { "TRACE", level::TRACE },
         { "debug", level::DEBUG }, { "DEBUG", level::DEBUG },
         { "info", level::INFO }, { "INFO", level::INFO },
