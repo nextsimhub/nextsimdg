@@ -151,7 +151,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 1.0 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 1. * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -191,6 +191,7 @@ int main()
     Nextsim::CellVector<0> DELTA(mesh); //!< Storing DELTA
     Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
     Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
+    Nextsim::CellVector<0> MU1(mesh), MU2(mesh); //!< Stress invariants
 
     // save initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
@@ -203,6 +204,10 @@ int main()
     Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, DELTA, mesh);
     Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
     Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, SHEAR, mesh);
+    Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
+        ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
+    Nextsim::VTK::write_dg("ResultsBenchmark/mu1", 0, MU1, mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/mu2", 0, MU2, mesh);
 
     Nextsim::VTK::write_dg("ResultsBenchmark/S11", 0, S11, mesh);
     Nextsim::VTK::write_dg("ResultsBenchmark/S12", 0, S12, mesh);
@@ -371,6 +376,11 @@ int main()
                 Nextsim::VTK::write_dg("ResultsBenchmark/Delta", printstep, DELTA, mesh);
                 Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
                 Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, SHEAR, mesh);
+
+                Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
+                    ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
+                Nextsim::VTK::write_dg("ResultsBenchmark/mu1", printstep, MU1, mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/mu2", printstep, MU2, mesh);
 
                 Nextsim::VTK::write_dg("ResultsBenchmark/S11", printstep, S11, mesh);
                 Nextsim::VTK::write_dg("ResultsBenchmark/S12", printstep, S12, mesh);
