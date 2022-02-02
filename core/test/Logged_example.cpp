@@ -19,6 +19,9 @@ int main()
     std::stringstream config;
 
     config << "[Logged]" << std::endl;
+    config << "minimum_log_level = emergency" << std::endl;
+//    config << "file_name_pattern = loggy_mclogface.log" << std::endl;
+    config << "console_log_level = trace" << std::endl;
     Nextsim::Configurator::addSStream(config);
 
     Nextsim::Logged::configureLogging();
@@ -31,7 +34,6 @@ int main()
     Nextsim::Logged::critical("A CRITICAL message");
     Nextsim::Logged::alert("An ALERT message");
     Nextsim::Logged::emergency("An EMERGENCY message");
-
 
 }
 

@@ -19,7 +19,7 @@
 namespace Nextsim {
 
 //! A class that encapsulates the whole of the model
-class Model : public Logged, public Configured<Model> {
+class Model : public Configured<Model> {
 public:
     Model(); // TODO add arguments to pass the desired
              // environment and configuration to the model
