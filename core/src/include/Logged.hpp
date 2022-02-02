@@ -16,7 +16,19 @@ class Logged {
 public:
     //! Static function that configures the logger.
     static void configure();
-    enum class level { ALL, TRACE, DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY, NONE };
+    enum class level {
+        ALL,
+        TRACE,
+        DEBUG,
+        INFO,
+        NOTICE,
+        WARNING,
+        ERROR,
+        CRITICAL,
+        ALERT,
+        EMERGENCY,
+        NONE
+    };
 
     enum {
         MINIMUM_LOG_LEVEL_KEY,
@@ -36,7 +48,7 @@ public:
     static void alert(const std::string& message) { log(message, level::ALERT); };
     static void emergency(const std::string& message) { log(message, level::EMERGENCY); };
 
-    protected:
+protected:
     Logged() = default;
     // TODO: Add implementation to actually do some logging
 };
