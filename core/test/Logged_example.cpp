@@ -18,7 +18,7 @@ int main()
 
     std::stringstream config;
 
-    config << "[Logging]" << std::endl;
+    config << "[Logged]" << std::endl;
     Nextsim::Configurator::addSStream(config);
 
     Nextsim::Logged::configureLogging();
