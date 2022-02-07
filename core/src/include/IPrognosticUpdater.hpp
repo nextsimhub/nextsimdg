@@ -8,6 +8,8 @@
 #ifndef CORE_SRC_INCLUDE_IPROGNOSTICUPDATER_HPP
 #define CORE_SRC_INCLUDE_IPROGNOSTICUPDATER_HPP
 
+#include <vector>
+
 namespace Nextsim {
 class IPrognosticUpdater {
 public:
