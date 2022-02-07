@@ -56,13 +56,12 @@ add_executable(nextsim "${NextsimSources}")
 
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${Boost_INCLUDE_DIRS}"
     "${ModuleLoaderIppTargetDirectory}"
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
     )
 target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES} "${NSDG_NetCDF_Library}")
+target_link_libraries(nextsim LINK_PUBLIC Boost::program_options "${NSDG_NetCDF_Library}")
 
 #The parse_modules target is inherited from src
 add_dependencies(nextsim parse_modules)
