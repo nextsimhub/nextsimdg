@@ -11,8 +11,6 @@
 #include "include/ElementData.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <ncFile.h>
-#include <ncGroup.h>
 #include <string>
 
 // See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
