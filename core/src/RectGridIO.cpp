@@ -7,9 +7,9 @@
 
 #include "include/RectGridIO.hpp"
 
-#include "include/RectangularGrid.hpp"
 #include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
+#include "include/RectangularGrid.hpp"
 
 #include <ncDim.h>
 #include <ncDouble.h>
@@ -58,12 +58,14 @@ static const std::map<std::string, ProgDoubleFn> variableFunctions
        { sssName, &PrognosticData::seaSurfaceSalinity } };
 // clang-format on
 
-static void initMeta(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims, const netCDF::NcGroup& metaGroup)
+static void initMeta(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims,
+    const netCDF::NcGroup& metaGroup)
 {
     // No metadata to initialize
 }
 
-static void initData(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims, const netCDF::NcGroup& dataGroup)
+static void initData(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims,
+    const netCDF::NcGroup& dataGroup)
 {
     // Get the number of array sizes from the dimension data of the ice temperature array
     int nDims = 3;
@@ -112,7 +114,8 @@ static void initData(std::vector<ElementData>& data, RectGridIO::GridDimensions&
     }
 }
 
-void RectGridIO::init(std::vector<ElementData>& data, const std::string& filePath, GridDimensions& dims)
+void RectGridIO::init(
+    std::vector<ElementData>& data, const std::string& filePath, GridDimensions& dims)
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 
@@ -179,8 +182,8 @@ static void dumpData(const std::vector<ElementData>& data, const RectGridIO::Gri
     iceT.putVar(tice.data());
 }
 
-
-void RectGridIO::dump(const std::vector<ElementData>& data, const std::string& filePath, const GridDimensions& dims) const
+void RectGridIO::dump(const std::vector<ElementData>& data, const std::string& filePath,
+    const GridDimensions& dims) const
 {
     NameMap nameMap = {
         { StringName::METADATA_NODE, IStructure::metadataNodeName() },

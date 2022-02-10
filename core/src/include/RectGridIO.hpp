@@ -22,13 +22,13 @@ public:
 
     typedef RectangularGrid::GridDimensions GridDimensions;
 
-    void init(std::vector<ElementData>& dg, const std::string& filePath, GridDimensions& dims) override;
-    void dump(const std::vector<ElementData>& dg, const std::string& filePath, const GridDimensions& dims) const override;
-
+    void init(
+        std::vector<ElementData>& dg, const std::string& filePath, GridDimensions& dims) override;
+    void dump(const std::vector<ElementData>& dg, const std::string& filePath,
+        const GridDimensions& dims) const override;
 
 private:
     RectGridIO() = default;
-
 };
 
 } /* namespace Nextsim */

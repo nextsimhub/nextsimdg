@@ -60,7 +60,8 @@ public:
     const ElementData& cursorData() const override;
     void incrCursor() override;
 
-    void setDimensions(const GridDimensions& dims) {
+    void setDimensions(const GridDimensions& dims)
+    {
         nx = dims.nx;
         ny = dims.ny;
         nz = dims.nz;
@@ -74,26 +75,31 @@ public:
         }
         virtual ~IRectGridIO() = default;
 
-        virtual void init(std::vector<ElementData>& dg, const std::string& filePath, GridDimensions& dims) = 0;
+        virtual void init(
+            std::vector<ElementData>& dg, const std::string& filePath, GridDimensions& dims)
+            = 0;
         /*!
          * @brief Writes data from the vector of data elements into the file location.
          *
          * @param dg The vector of ElementData instances containing the data.
          * @param filePath The location of the NetCDF restart file to be written.
          */
-        virtual void dump(const std::vector<ElementData>& dg, const std::string& filePath, const GridDimensions& dims) const = 0;
-protected:
+        virtual void dump(const std::vector<ElementData>& dg, const std::string& filePath,
+            const GridDimensions& dims) const = 0;
+
+    protected:
         IRectGridIO() = default;
+
     private:
         RectangularGrid* grid;
-};
+    };
 
     //! Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO
     void setIO(IRectGridIO* p) { pio = p; }
 
     const static std::string structureName;
-private:
 
+private:
     int nx;
     int ny;
     int nz; // Number of ice layers
