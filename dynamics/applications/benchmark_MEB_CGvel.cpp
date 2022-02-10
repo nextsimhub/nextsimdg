@@ -10,6 +10,7 @@
 #include "dgvisu.hpp"
 #include "dynamics.hpp"
 #include "meb.hpp"
+#include "mevp.hpp"
 #include "stopwatch.hpp"
 #include "tools.hpp"
 
@@ -116,24 +117,24 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 100; //!< Number of mesh nodes
+    constexpr size_t N = 128; //!< Number of mesh nodes
     mesh.BasicInit(N, N, RefScale::L / N, RefScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double dt_adv = 60; //120.0; //!< Time step of advection problem
+    constexpr double dt_adv = 120.0; //!< Time step of advection problem
     constexpr size_t NT = RefScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
-    constexpr size_t mom_substeps = 1000;
+    constexpr size_t mom_substeps = 100;
     constexpr double dt_momentum = dt_adv / mom_substeps; //!< Time step of momentum problem
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
-              << "Momentum subcycling NTevp " << mom_substeps << "\t dt_momentum " << dt_momentum
+              << "Momentum subcycling " << mom_substeps << "\t dt_momentum " << dt_momentum
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 1.0 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 1. * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -172,7 +173,11 @@ int main()
 
     //Temporary variables
     Nextsim::CellVector<0> eta1(mesh), eta2(mesh);
-    Nextsim::CellVector<0> mu1(mesh), mu2(mesh);
+    Nextsim::CellVector<0> MU1(mesh), MU2(mesh);
+    Nextsim::CellVector<0> stressrelax(mesh);
+    Nextsim::CellVector<0> sigma_outside(mesh);
+    Nextsim::CellVector<0> tildeP(mesh);
+    Nextsim::CellVector<0> Pmax(mesh);
 
     Nextsim::CellVector<DGadvection> D(mesh); //!< ice damage. ?? Really dG(0) ??
     Nextsim::L2ProjectInitial(mesh, D, InitialD());
@@ -188,9 +193,9 @@ int main()
     Nextsim::VTK::write_cg("ResultsMEB_CGvel/vx", 0, vx, mesh);
     Nextsim::VTK::write_cg("ResultsMEB_CGvel/vy", 0, vy, mesh);
     Nextsim::Tools::Delta(mesh, E11, E12, E22, RefScale::DeltaMin, DELTA);
-    Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, DELTA, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Delta", 0, DELTA, mesh);
     Nextsim::Tools::Shear(mesh, E11, E12, E22, RefScale::DeltaMin, SHEAR);
-    Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, SHEAR, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Shear", 0, SHEAR, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/A", 0, A, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", 0, H, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/D", 0, D, mesh);
@@ -199,6 +204,19 @@ int main()
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/S22", 0, S22, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvx", 0, dgvx, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvy", 0, dgvy, mesh);
+
+    Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
+        RefScale::DeltaMin, RefScale::Pstar, MU1, MU2);
+
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu1", 0, MU1, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu2", 0, MU2, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta1", 0, eta1, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta2", 0, eta2, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/stressrelax", 0, stressrelax, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/stressOutside", 0, sigma_outside, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Pmax", 0, Pmax, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", 0, S1, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", 0, S2, mesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     //! Initial Forcing
@@ -257,32 +275,36 @@ int main()
 
         Nextsim::GlobalTimer.stop("time loop - advection");
 
-        Nextsim::GlobalTimer.start("time loop - mevp");
+        Nextsim::GlobalTimer.start("time loop - meb");
 
         //! Momentum subcycling
         for (size_t mom_step = 0; mom_step < mom_substeps; ++mom_step) {
 
-            Nextsim::GlobalTimer.start("time loop - mevp - strain");
+            Nextsim::GlobalTimer.start("time loop - meb - strain");
             //! Compute Strain Rate
             momentum.ProjectCG2VelocityToDG1Strain(mesh, E11, E12, E22, vx, vy);
-            Nextsim::GlobalTimer.stop("time loop - mevp - strain");
+            Nextsim::GlobalTimer.stop("time loop - meb - strain");
 
-            Nextsim::GlobalTimer.start("time loop - mevp - stress");
+            Nextsim::GlobalTimer.start("time loop - meb - stress");
             //! Stress Update
-            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
-            //    E11, E12, E22, H, A, D,
-            //    dt_momentum);
+
+            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
+            //    H, A, D, dt_momentum);
 
             Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22,
                 E11, E12, E22, H, A, D,
-                DELTA, SHEAR, S1, S2,
+                DELTA, SHEAR, S1, S2, eta1, eta2,
+                stressrelax, sigma_outside, tildeP, Pmax,
                 dt_momentum);
 
-            Nextsim::GlobalTimer.stop("time loop - mevp - stress");
+            //Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
+            //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
-            Nextsim::GlobalTimer.start("time loop - mevp - update");
+            Nextsim::GlobalTimer.stop("time loop - meb - stress");
+
+            Nextsim::GlobalTimer.start("time loop - meb - update");
             //! Update
-            Nextsim::GlobalTimer.start("time loop - mevp - update1");
+            Nextsim::GlobalTimer.start("time loop - meb - update1");
 
             //	    update by a loop.. explicit parts and h-dependent
             vx = (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
@@ -300,9 +322,9 @@ int main()
                     + RefScale::rho_ice * cg_H.array() * RefScale::fc * (OY - vy).array() // cor + surface
                     ))
                      .matrix();
-            Nextsim::GlobalTimer.stop("time loop - mevp - update1");
+            Nextsim::GlobalTimer.stop("time loop - meb - update1");
 
-            Nextsim::GlobalTimer.start("time loop - mevp - update2");
+            Nextsim::GlobalTimer.start("time loop - meb - update2");
 
             // Implicit etwas ineffizient
             tmpx.zero();
@@ -318,15 +340,15 @@ int main()
                 * tmpy.array())
                       .matrix();
 
-            Nextsim::GlobalTimer.stop("time loop - mevp - update2");
-            Nextsim::GlobalTimer.stop("time loop - mevp - update");
+            Nextsim::GlobalTimer.stop("time loop - meb - update2");
+            Nextsim::GlobalTimer.stop("time loop - meb - update");
 
-            Nextsim::GlobalTimer.start("time loop - mevp - bound.");
+            Nextsim::GlobalTimer.start("time loop - meb - bound.");
             momentum.DirichletZero(mesh, vx);
             momentum.DirichletZero(mesh, vy);
-            Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
+            Nextsim::GlobalTimer.stop("time loop - meb - bound.");
         }
-        Nextsim::GlobalTimer.stop("time loop - mevp");
+        Nextsim::GlobalTimer.stop("time loop - meb");
 
         //         //! Output
         if (WRITE_VTK)
@@ -336,7 +358,7 @@ int main()
                 size_t printstep = timestep / NT_vtk + 1.e-4;
 
                 char s[80];
-                sprintf(s, "ResultsMEB_CGvel/ellipse_%03d.txt");
+                sprintf(s, "ResultsMEB_CGvel/ellipse_%03ld.txt", printstep);
                 std::ofstream ELLOUT(s);
                 for (size_t i = 0; i < mesh.n; ++i)
                     ELLOUT << S1(i, 0) << "\t" << S2(i, 0) << std::endl;
@@ -347,9 +369,9 @@ int main()
                 Nextsim::VTK::write_cg("ResultsMEB_CGvel/vy", printstep, vy, mesh);
 
                 Nextsim::Tools::Delta(mesh, E11, E12, E22, RefScale::DeltaMin, DELTA);
-                Nextsim::VTK::write_dg("ResultsBenchmark/Delta", printstep, DELTA, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/Delta", printstep, DELTA, mesh);
                 Nextsim::Tools::Shear(mesh, E11, E12, E22, RefScale::DeltaMin, SHEAR);
-                Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, SHEAR, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/Shear", printstep, SHEAR, mesh);
 
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/A", printstep, A, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/H", printstep, H, mesh);
@@ -362,10 +384,19 @@ int main()
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/E12", printstep, E12, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/E22", printstep, E22, mesh);
 
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu1", printstep, mu1, mesh);
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu2", printstep, mu2, mesh);
+                Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
+                    RefScale::DeltaMin, RefScale::Pstar, MU1, MU2);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu1", printstep, MU1, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu2", printstep, MU2, mesh);
+
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/stressOutside", printstep, sigma_outside, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/tildeP", printstep, tildeP, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/Pmax", printstep, Pmax, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", printstep, S1, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", printstep, S2, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta1", printstep, eta1, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta2", printstep, eta2, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/stressrelax", printstep, stressrelax, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }

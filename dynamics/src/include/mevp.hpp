@@ -54,12 +54,12 @@ namespace mEVP {
             S22.row(i) *= (1.0 - 1.0 / alpha);
 
             S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-            S11(i, 0) -= 1.0 / alpha * 0.5 * P;
+            //S11(i, 0) -= 1.0 / alpha * 0.5 * P;
 
             S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
 
             S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-            S22(i, 0) -= 1.0 / alpha * 0.5 * P;
+            //S22(i, 0) -= 1.0 / alpha * 0.5 * P;
 
             // // prepare for ellipse-output
             // if ((timestep % NT_vtk == 0)) {
