@@ -6,6 +6,8 @@
 
 #include "include/Iterator.hpp"
 
+#include <sstream>
+
 namespace Nextsim {
 
 Iterator::NullIterant Iterator::nullIterant;
@@ -28,6 +30,24 @@ void Iterator::setStartStopStep(
     this->startTime = startTime;
     this->stopTime = stopTime;
     this->timestep = timestep;
+}
+
+void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
+    const std::string& durationStr, const std::string& stepStr)
+{
+    std::stringstream ss(startTimeStr);
+    ss >> startTime;
+    ss = std::stringstream(stepStr);
+    ss >> timestep;
+    if (!durationStr.empty()) {
+        ss = std::stringstream(durationStr);
+        Duration duration;
+        ss >> duration;
+        stopTime = startTime + duration;
+    } else {
+        ss = std::stringstream(stopTimeStr);
+        ss >> stopTime;
+    }
 }
 
 void Iterator::run()

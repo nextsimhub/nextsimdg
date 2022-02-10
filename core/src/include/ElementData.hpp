@@ -33,33 +33,35 @@ class ElementData : public PrognosticData,
                     public UnusedData,
                     public Configured<ElementData> {
 public:
-    ElementData()
-    {
-        m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
-    }
+    ElementData();
+    ElementData(int nIceLayers);
+
+    //! Copy constructor
+    ElementData(const ElementData& src);
+
+    //! Move constructor
+    ElementData(ElementData&& src);
+
     ~ElementData() = default;
 
     using PrognosticData::operator=;
     using PhysicsData::operator=;
     using ExternalData::operator=;
 
+    //! Copy assignment operator
+    ElementData& operator=(ElementData other);
+
+    //! Move assignment operator
+    ElementData& operator=(ElementData&& other);
+
     //! Configures the PrognosticData and physics implementation aspects of the
     //!  object.
-    void configure() override
-    {
-        PrognosticData::configure();
-        Nextsim::tryConfigure(&ModuleLoader::getLoader().getImplementation<IPhysics1d>());
-    }
+    void configure() override;
 
-    void updateDerivedData(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
-    {
-        m_physicsImplData->updateDerivedData(prog, exter, phys);
-    }
+    void updateDerivedData(
+        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
-    void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
-    {
-        m_physicsImplData->calculate(prog, exter, phys);
-    }
+    void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
 
 private:
     std::unique_ptr<IPhysics1d> m_physicsImplData;

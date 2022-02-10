@@ -13,14 +13,14 @@
 
 namespace Nextsim {
 
-class Environment;
-
 //! A class that controls how time steps are performed.
 class Iterator : public Logged {
 public:
     typedef std::chrono::system_clock Clock;
-    typedef std::chrono::time_point<Clock> TimePoint;
-    typedef std::chrono::seconds Duration;
+    //    typedef std::chrono::time_point<Clock> TimePoint;
+    //    typedef std::chrono::seconds Duration;
+    typedef int TimePoint;
+    typedef int Duration;
     class Iterant;
 
     Iterator();
@@ -44,7 +44,7 @@ public:
      */
     void setStartStopStep(TimePoint startTime, TimePoint stopTime, Duration timestep);
     /*!
-     * @briefSets the time parameters as a start time, run length and timestep
+     * @brief Sets the time parameters as a start time, run length and timestep
      * length.
      *
      * @param startTime Start time point.
@@ -53,6 +53,17 @@ public:
      */
     void setStartDurationStep(TimePoint startTime, Duration duration, Duration timestep);
 
+    /*!
+     * @brief Parses the four strings and sets the time parameters from them.
+     *
+     * @details
+     * @param startTimeStr string to parse for the model start time.
+     * @param stopTimeStr string to parse for the model stop time.
+     * @param durationStr string to parse for the model run duration.
+     * @param stepStr string to parse for the model time step length.
+     */
+    void parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
+        const std::string& durationStr, const std::string& stepStr);
     //! Run the Iterant over the specified time period.
     void run();
 
@@ -76,8 +87,8 @@ public:
 
         virtual ~Iterant() = default;
 
-        //! Initializes the model, based on some environment.
-        virtual void init(const Environment&) = 0;
+        //! Initializes the model, based on some environment stored in the implementing class.
+        virtual void init() = 0;
         /*!
          * Initializes the iterant based on the start time.
          *
@@ -100,7 +111,7 @@ public:
 
     //! A simple Iterant that does nothing.
     class NullIterant : public Iterant {
-        inline void init(const Environment& env) {};
+        inline void init() {};
         inline void start(const Iterator::TimePoint& startTime) {};
         inline void iterate(const Iterator::Duration& dt) {};
         inline void stop(const Iterator::TimePoint& stopTime) {};
