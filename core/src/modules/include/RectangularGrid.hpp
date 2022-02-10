@@ -12,11 +12,29 @@
 
 namespace Nextsim {
 
+class RectGridIO;
+
 class RectangularGrid : public IStructure {
 public:
+    struct GridDimensions {
+        int nx;
+        int ny;
+        int nz;
+    };
+
     RectangularGrid()
-        : pio (nullptr)
+        : pio(nullptr)
+        , nx(0)
+        , ny(0)
+        , nz(0)
     {
+    }
+
+    RectangularGrid(const GridDimensions& dims)
+        : pio(nullptr)
+    {
+        setDimensions(dims);
+        data.resize(nx * ny);
     }
 
     virtual ~RectangularGrid()
@@ -31,7 +49,6 @@ public:
 
     void dump(const std::string& filePath) const override;
 
-
     std::string structureType() const override { return structureName; };
 
     int nIceLayers() const override { return nz; };
@@ -43,6 +60,12 @@ public:
     const ElementData& cursorData() const override;
     void incrCursor() override;
 
+    void setDimensions(const GridDimensions& dims) {
+        nx = dims.nx;
+        ny = dims.ny;
+        nz = dims.nz;
+    }
+
     class IRectGridIO {
     public:
         IRectGridIO(RectangularGrid& grid)
@@ -51,25 +74,29 @@ public:
         }
         virtual ~IRectGridIO() = default;
 
-        virtual void init(std::vector<ElementData>& dg, const std::string& filePath) const = 0;
+        virtual void init(std::vector<ElementData>& dg, const std::string& filePath, GridDimensions& dims) = 0;
         /*!
          * @brief Writes data from the vector of data elements into the file location.
          *
          * @param dg The vector of ElementData instances containing the data.
          * @param filePath The location of the NetCDF restart file to be written.
          */
-        virtual void dump(const std::vector<ElementData>& dg, const std::string& fielPath) const = 0;
-
+        virtual void dump(const std::vector<ElementData>& dg, const std::string& filePath, const GridDimensions& dims) const = 0;
+protected:
+        IRectGridIO() = default;
     private:
         RectangularGrid* grid;
 };
 
+    //! Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO
+    void setIO(IRectGridIO* p) { pio = p; }
+
 private:
     const static std::string structureName;
-    // Only one size of RectangularGrid at a time
-    static int nx;
-    static int ny;
-    static int nz; // Number of ice layers
+
+    int nx;
+    int ny;
+    int nz; // Number of ice layers
 
     const static std::string xDimName;
     const static std::string yDimName;
@@ -80,6 +107,8 @@ private:
     std::vector<ElementData>::iterator iCursor;
 
     IRectGridIO* pio;
+
+    friend RectGridIO;
 };
 
 } /* namespace Nextsim */

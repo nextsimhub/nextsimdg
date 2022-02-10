@@ -163,6 +163,28 @@ target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}
 target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testDevGrid LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
 
+add_executable(testRectGrid
+    "RectGrid_test.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ModuleLoader.cpp"
+    "${SRC_DIR}/ElementData.cpp"
+    "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/RectGridIO.cpp"
+    "${PhysicsModulesDir}/NextsimPhysics.cpp"
+    "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
+    "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
+    "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
+    "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysicsModulesDir}/HiblerConcentration.cpp"
+    "${PhysicsModulesDir}/ThermoIce0.cpp"
+    )
+
+target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
+target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}")
+
 add_executable(testStructureFactory
     "StructureFactory_test.cpp"
     "${SRC_DIR}/StructureFactory.cpp"
