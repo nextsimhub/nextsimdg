@@ -35,8 +35,8 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
     double yFactor = 0.01;
     double xFactor = 0.0001;
 
-    for (int j = 0; j < ny; ++j) {
-        for (int i = 0; i < nx; ++i) {
+    for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < ny; ++j) {
             if (grid.validCursor()) {
                 double fractional = j * yFactor + i * xFactor;
                 grid.cursorData() = PrognosticGenerator()
