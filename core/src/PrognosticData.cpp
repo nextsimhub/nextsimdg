@@ -37,6 +37,8 @@ PrognosticData::PrognosticData(const PrognosticGenerator& up)
     , m_sss(up.seaSurfaceSalinity())
 {
     m_tice = up.updatedIceTemperatures();
+
+    configure();
 }
 
 PrognosticData& PrognosticData::operator=(const PrognosticGenerator& up)
@@ -49,6 +51,8 @@ PrognosticData& PrognosticData::operator=(const PrognosticGenerator& up)
 
     m_sst = up.seaSurfaceTemperature();
     m_sss = up.seaSurfaceSalinity();
+
+    configure();
 
     return *this;
 }
