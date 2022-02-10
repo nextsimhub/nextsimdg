@@ -31,12 +31,12 @@ enum class StringName {
     Z_DIM,
 };
 
-std::string hiceName = "hice";
-std::string ciceName = "cice";
-std::string hsnowName = "hsnow";
-std::string ticeName = "tice";
-std::string sstName = "sst";
-std::string sssName = "sss";
+static std::string hiceName = "hice";
+static std::string ciceName = "cice";
+static std::string hsnowName = "hsnow";
+static std::string ticeName = "tice";
+static std::string sstName = "sst";
+static std::string sssName = "sss";
 
 typedef std::map<StringName, std::string> NameMap;
 
@@ -58,12 +58,12 @@ static const std::map<std::string, ProgDoubleFn> variableFunctions
        { sssName, &PrognosticData::seaSurfaceSalinity } };
 // clang-format on
 
-void initMeta(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims, const netCDF::NcGroup& metaGroup)
+static void initMeta(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims, const netCDF::NcGroup& metaGroup)
 {
     // No metadata to initialize
 }
 
-void initData(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims, const netCDF::NcGroup& dataGroup)
+static void initData(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims, const netCDF::NcGroup& dataGroup)
 {
     // Get the number of array sizes from the dimension data of the ice temperature array
     int nDims = 3;
@@ -125,7 +125,7 @@ void RectGridIO::init(std::vector<ElementData>& data, const std::string& filePat
     ncFile.close();
 }
 
-void dumpMeta(
+static void dumpMeta(
     const std::vector<ElementData>& data, netCDF::NcGroup& metaGroup, const NameMap& nameMap)
 {
     metaGroup.putAtt(IStructure::typeNodeName(), nameMap.at(StringName::STRUCTURE));
@@ -136,7 +136,7 @@ void dumpMeta(
  * element by element. Please see the references in the comments associated
  * with ProgDoubleFn and CALL_MEMBER_FN for more details.
  */
-std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pFunc)
+static std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pFunc)
 {
     std::vector<double> gathered(data.size());
     for (int i = 0; i < data.size(); ++i) {
@@ -145,7 +145,7 @@ std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pF
     return gathered;
 }
 
-void dumpData(const std::vector<ElementData>& data, const RectGridIO::GridDimensions& dims,
+static void dumpData(const std::vector<ElementData>& data, const RectGridIO::GridDimensions& dims,
     netCDF::NcGroup& dataGroup, const NameMap& nameMap)
 {
     // Create the dimension data, since it has to be in the same group as the

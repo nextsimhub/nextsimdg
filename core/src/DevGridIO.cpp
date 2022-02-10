@@ -32,17 +32,17 @@ enum class StringName {
     Z_DIM,
 };
 
-std::string hiceName = "hice";
-std::string ciceName = "cice";
-std::string hsnowName = "hsnow";
-std::string ticeName = "tice";
-std::string sstName = "sst";
-std::string sssName = "sss";
+static std::string hiceName = "hice";
+static std::string ciceName = "cice";
+static std::string hsnowName = "hsnow";
+static std::string ticeName = "tice";
+static std::string sstName = "sst";
+static std::string sssName = "sss";
 
 typedef std::map<StringName, std::string> NameMap;
 
-void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
-void dumpGroup(const std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
+static void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
+static void dumpGroup(const std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
 
 // See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
@@ -92,13 +92,13 @@ void DevGridIO::dump(const std::vector<ElementData>& data, const std::string& fi
     ncFile.close();
 }
 
-void initMeta(std::vector<ElementData>& data, const netCDF::NcGroup& metaGroup)
+static void initMeta(std::vector<ElementData>& data, const netCDF::NcGroup& metaGroup)
 {
     int nx = DevGrid::nx;
     data.resize(nx * nx);
 }
 
-void initData(std::vector<ElementData>& data, const netCDF::NcGroup& dataGroup)
+static void initData(std::vector<ElementData>& data, const netCDF::NcGroup& dataGroup)
 {
     // Get the number of ice layers from the ice temperature data
     const int layersDim = 2;
@@ -137,7 +137,7 @@ void initData(std::vector<ElementData>& data, const netCDF::NcGroup& dataGroup)
     }
 }
 
-void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap)
+static void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap)
 {
     netCDF::NcGroup metaGroup(grp.getGroup(nameMap.at(StringName::METADATA_NODE)));
     netCDF::NcGroup dataGroup(grp.getGroup(nameMap.at(StringName::DATA_NODE)));
@@ -146,7 +146,7 @@ void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameM
     initData(data, dataGroup);
 }
 
-void dumpMeta(
+static void dumpMeta(
     const std::vector<ElementData>& data, netCDF::NcGroup& metaGroup, const NameMap& nameMap)
 {
     metaGroup.putAtt(IStructure::typeNodeName(), nameMap.at(StringName::STRUCTURE));
@@ -157,7 +157,7 @@ void dumpMeta(
  * element by element. Please see the references in the comments associated
  * with ProgDoubleFn and CALL_MEMBER_FN for more details.
  */
-std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pFunc)
+static std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pFunc)
 {
     std::vector<double> gathered(data.size());
     for (int i = 0; i < data.size(); ++i) {
@@ -166,7 +166,7 @@ std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pF
     return gathered;
 }
 
-void dumpData(
+static void dumpData(
     const std::vector<ElementData>& data, netCDF::NcGroup& dataGroup, const NameMap& nameMap)
 {
     int nx = DevGrid::nx;
@@ -200,7 +200,7 @@ void dumpData(
     iceT.putVar(tice.data());
 }
 
-void dumpGroup(
+static void dumpGroup(
     const std::vector<ElementData>& data, netCDF::NcGroup& headGroup, const NameMap& nameMap)
 {
     netCDF::NcGroup metaGroup = headGroup.addGroup(nameMap.at(StringName::METADATA_NODE));

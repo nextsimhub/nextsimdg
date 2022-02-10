@@ -91,8 +91,8 @@ protected:
     //! Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO
     void setIO(IRectGridIO* p) { pio = p; }
 
-private:
     const static std::string structureName;
+private:
 
     int nx;
     int ny;

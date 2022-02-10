@@ -9,7 +9,8 @@
     {
         "name": "Nextsim::IStructure",
         "implementations": [
-            "Nextsim::DevGrid"
+            "Nextsim::DevGrid",
+            "Nextsim::RectangularGrid"
         ]
     }
 ]
