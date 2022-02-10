@@ -32,8 +32,8 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
     grid.resetCursor();
     int nx = DevGrid::nx;
     int ny = DevGrid::nx;
-    double yFactor = 0.01;
-    double xFactor = 0.0001;
+    double yFactor = 0.0001;
+    double xFactor = 0.01;
 
     for (int i = 0; i < nx; ++i) {
         for (int j = 0; j < ny; ++j) {
@@ -59,8 +59,8 @@ TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
 
     grid2.cursor = 0;
 
-    for (int j = 0; j < ny; ++j) {
-        for (int i = 0; i < nx; ++i) {
+    for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < ny; ++j) {
             if (grid2.cursor) {
                 *(grid2.cursor) = PrognosticGenerator();
                 ++grid2.cursor;
