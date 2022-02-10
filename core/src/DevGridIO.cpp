@@ -42,7 +42,8 @@ static std::string sssName = "sss";
 typedef std::map<StringName, std::string> NameMap;
 
 static void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
-static void dumpGroup(const std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
+static void dumpGroup(
+    const std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
 
 // See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))

@@ -9,8 +9,8 @@
 #include "include/DevGrid.hpp"
 #include "include/DevGridIO.hpp"
 
-#include "include/RectangularGrid.hpp"
 #include "include/RectGridIO.hpp"
+#include "include/RectangularGrid.hpp"
 
 #include <ncFile.h>
 #include <ncGroup.h>
@@ -35,7 +35,8 @@ std::shared_ptr<IStructure> StructureFactory::generate(const std::string& struct
                 std::shared_ptr<DevGrid> shdg = std::dynamic_pointer_cast<DevGrid>(shst);
                 shdg->setIO(new DevGridIO(*shdg));
             } else if (shst->structureTypeCheck(RectangularGrid::structureName)) {
-                std::shared_ptr<RectangularGrid> shrg = std::dynamic_pointer_cast<RectangularGrid>(shst);
+                std::shared_ptr<RectangularGrid> shrg
+                    = std::dynamic_pointer_cast<RectangularGrid>(shst);
                 shrg->setIO(new RectGridIO(*shrg));
             }
 
