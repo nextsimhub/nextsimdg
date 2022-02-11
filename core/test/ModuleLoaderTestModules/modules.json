@@ -1,0 +1,9 @@
+[
+    {
+    "name": "ITest",
+    "implementations": [
+        "Impl1",
+        "Impl2"
+        ]
+    }
+]

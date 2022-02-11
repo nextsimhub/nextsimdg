@@ -1,11 +1,10 @@
 PROJECT_NAME = "netxsimdg"
 XML_OUTPUT = xml
-INPUT = ../src
+INPUT = ../core
 GENERATE_LATEX = NO
 GENERATE_MAN = NO
 GENERATE_RTF = NO
 CASE_SENSE_NAMES = NO
-GENERATE_HTML = YES
 GENERATE_XML = YES
 RECURSIVE = YES
 QUIET = YES
@@ -17,7 +16,83 @@ EXCLUDE_SYMBOLS = detail
 GENERATE_TREEVIEW = YES
 SOURCE_BROWSER = YES
 # WARN_IF_UNDOCUMENTED = YES
+#---------------------------------------------------------------------------
+# Configuration options related to the dot tool
+#---------------------------------------------------------------------------
+CLASS_DIAGRAMS         = YES
+MSCGEN_PATH            = 
+DIA_PATH               = 
+HIDE_UNDOC_RELATIONS   = YES
+HAVE_DOT               = YES
+DOT_NUM_THREADS        = 0
+DOT_FONTNAME           = Helvetica
+DOT_FONTSIZE           = 10
+DOT_FONTPATH           = 
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+GROUP_GRAPHS           = YES
+UML_LOOK               = YES
+UML_LIMIT_NUM_FIELDS   = 50
+TEMPLATE_RELATIONS     = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = YES
+DOT_IMAGE_FORMAT       = png
+INTERACTIVE_SVG        = NO
+DOT_PATH               = 
+DOTFILE_DIRS           = 
+MSCFILE_DIRS           = 
+DIAFILE_DIRS           = 
+PLANTUML_JAR_PATH      = 
+PLANTUML_INCLUDE_PATH  = 
+DOT_GRAPH_MAX_NODES    = 100
+MAX_DOT_GRAPH_DEPTH    = 0
+DOT_TRANSPARENT        = YES
+DOT_MULTI_TARGETS      = NO
+GENERATE_LEGEND        = YES
+DOT_CLEANUP            = YES
 
+#---------------------------------------------------------------------------
+# Configuration options related to the dot tool
+#---------------------------------------------------------------------------
+CLASS_DIAGRAMS         = YES
+MSCGEN_PATH            = 
+DIA_PATH               = 
+HIDE_UNDOC_RELATIONS   = YES
+HAVE_DOT               = YES
+DOT_NUM_THREADS        = 0
+DOT_FONTNAME           = Helvetica
+DOT_FONTSIZE           = 10
+DOT_FONTPATH           = 
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+GROUP_GRAPHS           = YES
+UML_LOOK               = YES
+UML_LIMIT_NUM_FIELDS   = 50
+TEMPLATE_RELATIONS     = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = YES
+DOT_IMAGE_FORMAT       = png
+INTERACTIVE_SVG        = NO
+DOT_PATH               = 
+DOTFILE_DIRS           = 
+MSCFILE_DIRS           = 
+DIAFILE_DIRS           = 
+PLANTUML_JAR_PATH      = 
+PLANTUML_INCLUDE_PATH  = 
+DOT_GRAPH_MAX_NODES    = 100
+MAX_DOT_GRAPH_DEPTH    = 0
+DOT_TRANSPARENT        = YES
+DOT_MULTI_TARGETS      = NO
+GENERATE_LEGEND        = YES
+DOT_CLEANUP            = YES
 # Allow for rst directives and advanced functions e.g. grid tables
 ALIASES  = "rst=\verbatim embed:rst:leading-asterisk"
 ALIASES += "endrst=\endverbatim"

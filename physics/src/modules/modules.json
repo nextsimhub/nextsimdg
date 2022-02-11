@@ -1,0 +1,34 @@
+[
+    {
+    "name": "Nextsim::IIceAlbedo",
+    "implementations": [
+        "Nextsim::SMUIceAlbedo",
+        "Nextsim::SMU2IceAlbedo",
+        "Nextsim::CCSMIceAlbedo"
+        ]
+    },
+    {
+    "name": "Nextsim::IIceOceanHeatFlux",
+    "implementations": [
+        "Nextsim::BasicIceOceanHeatFlux"
+        ]
+    },
+    {
+        "name": "Nextsim::IConcentrationModel",
+        "implementations": [
+            "Nextsim::HiblerConcentration"
+        ]
+    },
+    {
+        "name": "Nextsim::IThermodynamics",
+        "implementations": [
+            "Nextsim::ThermoIce0"
+        ]
+    },
+    {
+        "name": "Nextsim::IPhysics1d",
+        "implementations": [
+            "Nextsim::NextsimPhysics"
+        ]
+    }
+]
