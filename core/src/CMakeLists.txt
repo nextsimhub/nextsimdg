@@ -15,6 +15,7 @@ set(BaseSources
     "PrognosticData.cpp"
     "ExternalData.cpp"
     "DevGridIO.cpp"
+    "RectGridIO.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
     )
@@ -25,6 +26,7 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 set(StructureModuleSources
     "DevGrid.cpp"
+    "RectangularGrid.cpp"
     )
     
 set(ModuleSources

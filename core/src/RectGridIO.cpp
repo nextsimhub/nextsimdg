@@ -1,17 +1,16 @@
 /*!
- * @file DevGridIO.cpp
+ * @file RectGridIO.cpp
  *
- * @date Jan 14, 2022
+ * @date Feb 8, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/DevGridIO.hpp"
+#include "include/RectGridIO.hpp"
 
-#include "include/DevGrid.hpp"
 #include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
+#include "include/RectangularGrid.hpp"
 
-#include <cstddef>
 #include <ncDim.h>
 #include <ncDouble.h>
 #include <ncFile.h>
@@ -41,10 +40,6 @@ static std::string sssName = "sss";
 
 typedef std::map<StringName, std::string> NameMap;
 
-static void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
-static void dumpGroup(
-    const std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
-
 // See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
@@ -63,51 +58,32 @@ static const std::map<std::string, ProgDoubleFn> variableFunctions
        { sssName, &PrognosticData::seaSurfaceSalinity } };
 // clang-format on
 
-void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath) const
+static void initMeta(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims,
+    const netCDF::NcGroup& metaGroup)
 {
-    NameMap nameMap = {
-        { StringName::METADATA_NODE, IStructure::metadataNodeName() },
-        { StringName::DATA_NODE, IStructure::dataNodeName() },
-        { StringName::STRUCTURE, DevGrid::structureName },
-        { StringName::X_DIM, DevGrid::xDimName },
-        { StringName::Y_DIM, DevGrid::yDimName },
-        { StringName::Z_DIM, DevGrid::nIceLayersName },
-    };
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-    initGroup(data, ncFile, nameMap);
-    ncFile.close();
+    // No metadata to initialize
 }
 
-void DevGridIO::dump(const std::vector<ElementData>& data, const std::string& filePath) const
+static void initData(std::vector<ElementData>& data, RectGridIO::GridDimensions& dims,
+    const netCDF::NcGroup& dataGroup)
 {
-    NameMap nameMap = {
-        { StringName::METADATA_NODE, IStructure::metadataNodeName() },
-        { StringName::DATA_NODE, IStructure::dataNodeName() },
-        { StringName::STRUCTURE, DevGrid::structureName },
-        { StringName::X_DIM, DevGrid::xDimName },
-        { StringName::Y_DIM, DevGrid::yDimName },
-        { StringName::Z_DIM, DevGrid::nIceLayersName },
-    };
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
-    dumpGroup(data, ncFile, nameMap);
-    ncFile.close();
-}
+    // Get the number of array sizes from the dimension data of the ice temperature array
+    int nDims = 3;
+    int dimArray[nDims];
 
-static void initMeta(std::vector<ElementData>& data, const netCDF::NcGroup& metaGroup)
-{
-    int nx = DevGrid::nx;
-    data.resize(nx * nx);
-}
+    for (int iDim = 0; iDim < nDims; ++iDim) {
+        dimArray[iDim] = dataGroup.getVar(ticeName).getDim(iDim).getSize();
+    }
 
-static void initData(std::vector<ElementData>& data, const netCDF::NcGroup& dataGroup)
-{
-    // Get the number of ice layers from the ice temperature data
-    const int layersDim = 2;
-    int nLayers = dataGroup.getVar(ticeName).getDim(layersDim).getSize();
-    int nx = DevGrid::nx;
-    for (int i = 0; i < nx; ++i) {
-        for (int j = 0; j < nx; ++j) {
-            int linearIndex = i * nx + j;
+    dims.nx = dimArray[0];
+    dims.ny = dimArray[1];
+    dims.nz = dimArray[2];
+
+    data.resize(dims.nx * dims.ny);
+
+    for (int i = 0; i < dims.nx; ++i) {
+        for (int j = 0; j < dims.ny; ++j) {
+            int linearIndex = i * dims.ny + j;
             double hice;
             double cice;
             double hsnow;
@@ -121,8 +97,8 @@ static void initData(std::vector<ElementData>& data, const netCDF::NcGroup& data
             dataGroup.getVar(sssName).getVar(loc, &sss);
             // Retrieve ice temperature data
 
-            std::vector<double> tice(nLayers);
-            for (int l = 0; l < nLayers; ++l) {
+            std::vector<double> tice(dims.nz);
+            for (int l = 0; l < dims.nz; ++l) {
                 std::vector<std::size_t> loc3 = { loc[0], loc[1], std::size_t(l) };
                 dataGroup.getVar(ticeName).getVar(loc3, &tice[l]);
             }
@@ -138,13 +114,18 @@ static void initData(std::vector<ElementData>& data, const netCDF::NcGroup& data
     }
 }
 
-static void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap)
+void RectGridIO::init(
+    std::vector<ElementData>& data, const std::string& filePath, GridDimensions& dims)
 {
-    netCDF::NcGroup metaGroup(grp.getGroup(nameMap.at(StringName::METADATA_NODE)));
-    netCDF::NcGroup dataGroup(grp.getGroup(nameMap.at(StringName::DATA_NODE)));
+    netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 
-    initMeta(data, metaGroup);
-    initData(data, dataGroup);
+    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
+    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
+
+    initMeta(data, dims, metaGroup);
+    initData(data, dims, dataGroup);
+
+    ncFile.close();
 }
 
 static void dumpMeta(
@@ -167,24 +148,24 @@ static std::vector<double> gather(const std::vector<ElementData>& data, ProgDoub
     return gathered;
 }
 
-static void dumpData(
-    const std::vector<ElementData>& data, netCDF::NcGroup& dataGroup, const NameMap& nameMap)
+static void dumpData(const std::vector<ElementData>& data, const RectGridIO::GridDimensions& dims,
+    netCDF::NcGroup& dataGroup, const NameMap& nameMap)
 {
-    int nx = DevGrid::nx;
     // Create the dimension data, since it has to be in the same group as the
     // data or the parent group
-    netCDF::NcDim xDim = dataGroup.addDim(nameMap.at(StringName::X_DIM), nx);
-    netCDF::NcDim yDim = dataGroup.addDim(nameMap.at(StringName::Y_DIM), nx);
+    netCDF::NcDim xDim = dataGroup.addDim(nameMap.at(StringName::X_DIM), dims.nx);
+    netCDF::NcDim yDim = dataGroup.addDim(nameMap.at(StringName::Y_DIM), dims.ny);
 
     std::vector<netCDF::NcDim> dims2 = { xDim, yDim };
     for (auto fnNamePair : variableFunctions) {
         const std::string& name = fnNamePair.first;
         netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
         std::vector<double> gathered = gather(data, variableFunctions.at(name));
+
         var.putVar(gathered.data());
     }
 
-    int nLayers = data[0].nIceLayers();
+    int nLayers = dims.nz;
     netCDF::NcDim zDim = dataGroup.addDim(nameMap.at(StringName::Z_DIM), nLayers);
     std::vector<netCDF::NcDim> dims3 = { xDim, yDim, zDim };
     netCDF::NcVar iceT(dataGroup.addVar(ticeName, netCDF::ncDouble, dims3));
@@ -201,13 +182,26 @@ static void dumpData(
     iceT.putVar(tice.data());
 }
 
-static void dumpGroup(
-    const std::vector<ElementData>& data, netCDF::NcGroup& headGroup, const NameMap& nameMap)
+void RectGridIO::dump(const std::vector<ElementData>& data, const std::string& filePath,
+    const GridDimensions& dims) const
 {
-    netCDF::NcGroup metaGroup = headGroup.addGroup(nameMap.at(StringName::METADATA_NODE));
-    netCDF::NcGroup dataGroup = headGroup.addGroup(nameMap.at(StringName::DATA_NODE));
+    NameMap nameMap = {
+        { StringName::METADATA_NODE, IStructure::metadataNodeName() },
+        { StringName::DATA_NODE, IStructure::dataNodeName() },
+        { StringName::STRUCTURE, RectangularGrid::structureName },
+        { StringName::X_DIM, RectangularGrid::xDimName },
+        { StringName::Y_DIM, RectangularGrid::yDimName },
+        { StringName::Z_DIM, RectangularGrid::nIceLayersName },
+    };
+    netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
+
+    netCDF::NcGroup metaGroup = ncFile.addGroup(nameMap.at(StringName::METADATA_NODE));
+    netCDF::NcGroup dataGroup = ncFile.addGroup(nameMap.at(StringName::DATA_NODE));
+
     dumpMeta(data, metaGroup, nameMap);
-    dumpData(data, dataGroup, nameMap);
+    dumpData(data, dims, dataGroup, nameMap);
+
+    ncFile.close();
 }
 
 } /* namespace Nextsim */

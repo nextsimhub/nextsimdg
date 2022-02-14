@@ -21,6 +21,7 @@ add_executable(testNextsimPhysics
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
