@@ -350,10 +350,10 @@ int main()
             if ((timestep % NT_vtk == 0)) {
                 std::cout << "VTK output at day " << time / 24. / 60. / 60. << std::endl;
 
-                size_t printstep = timestep / NT_vtk + 1.e-4;
+                int printstep = timestep / NT_vtk + 1.e-4;
 
                 char s[80];
-                sprintf(s, "ResultsBox/ellipse_%03d.txt");
+                sprintf(s, "ResultsBox/ellipse_%03d.txt", printstep);
                 std::ofstream ELLOUT(s);
                 for (size_t i = 0; i < mesh.n; ++i)
                     ELLOUT << S1(i, 0) << "\t" << S2(i, 0) << std::endl;

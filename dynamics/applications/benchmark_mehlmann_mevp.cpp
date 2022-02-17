@@ -144,7 +144,7 @@ int main()
     //! MEVP parameters
     constexpr double alpha = 800.0;
     constexpr double beta = 800.0;
-    constexpr size_t NT_evp = 100;
+    constexpr size_t NT_evp = 200;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
@@ -357,10 +357,10 @@ int main()
             if ((timestep % NT_vtk == 0)) {
                 std::cout << "VTK output at day " << time / 24. / 60. / 60. << std::endl;
 
-                size_t printstep = timestep / NT_vtk + 1.e-4;
+                int printstep = timestep / NT_vtk + 1.e-4;
 
                 char s[80];
-                sprintf(s, "ResultsBenchmark/ellipse_%03d.txt");
+                sprintf(s, "ResultsBenchmark/ellipse_%03d.txt", printstep);
                 std::ofstream ELLOUT(s);
                 for (size_t i = 0; i < mesh.n; ++i)
                     ELLOUT << S1(i, 0) << "\t" << S2(i, 0) << std::endl;
@@ -377,17 +377,17 @@ int main()
                 Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
                 Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, SHEAR, mesh);
 
-                Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
-                    ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
-                Nextsim::VTK::write_dg("ResultsBenchmark/mu1", printstep, MU1, mesh);
-                Nextsim::VTK::write_dg("ResultsBenchmark/mu2", printstep, MU2, mesh);
+                // Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
+                //     ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
+                // Nextsim::VTK::write_dg("ResultsBenchmark/mu1", printstep, MU1, mesh);
+                // Nextsim::VTK::write_dg("ResultsBenchmark/mu2", printstep, MU2, mesh);
 
-                Nextsim::VTK::write_dg("ResultsBenchmark/S11", printstep, S11, mesh);
-                Nextsim::VTK::write_dg("ResultsBenchmark/S12", printstep, S12, mesh);
-                Nextsim::VTK::write_dg("ResultsBenchmark/S22", printstep, S22, mesh);
-                Nextsim::VTK::write_dg("ResultsBenchmark/E11", printstep, E11, mesh);
-                Nextsim::VTK::write_dg("ResultsBenchmark/E12", printstep, E12, mesh);
-                Nextsim::VTK::write_dg("ResultsBenchmark/E22", printstep, E22, mesh);
+                // Nextsim::VTK::write_dg("ResultsBenchmark/S11", printstep, S11, mesh);
+                // Nextsim::VTK::write_dg("ResultsBenchmark/S12", printstep, S12, mesh);
+                // Nextsim::VTK::write_dg("ResultsBenchmark/S22", printstep, S22, mesh);
+                // Nextsim::VTK::write_dg("ResultsBenchmark/E11", printstep, E11, mesh);
+                // Nextsim::VTK::write_dg("ResultsBenchmark/E12", printstep, E12, mesh);
+                // Nextsim::VTK::write_dg("ResultsBenchmark/E22", printstep, E22, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
