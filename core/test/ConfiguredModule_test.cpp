@@ -88,7 +88,6 @@ TEST_CASE("Don't configure a module from a stream", "[Configurator]")
     config << "[Modules]" << std::endl
             << "ITestNotReally = NotImpl2" << std::endl;
 
-//    ModuleLoader::getLoader().setImplementation("ITest", "Impl2");
     Module::setImplementation<ITest>("Impl2");
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
