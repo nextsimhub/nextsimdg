@@ -57,7 +57,7 @@ TEST_CASE("Configure a module", "[Configurator]")
     });
     ConfiguredModule::parseConfigurator();
 
-    ITest& impler = Module::getImplementation<ITest>();// = ModuleLoader::getLoader().getImplementation<ITest>();
+    ITest& impler = Module::getImplementation<ITest>();
 
     REQUIRE(impler() == 1);
 }
@@ -77,7 +77,7 @@ TEST_CASE("Configure a module from a stream", "[Configurator]")
     });
     ConfiguredModule::parseConfigurator();
 
-    ITest& impler = Module::getImplementation<ITest>();// = ModuleLoader::getLoader().getImplementation<ITest>();
+    ITest& impler = Module::getImplementation<ITest>();
     REQUIRE(impler() == 2);
 }
 
@@ -88,8 +88,8 @@ TEST_CASE("Don't configure a module from a stream", "[Configurator]")
     config << "[Modules]" << std::endl
             << "ITestNotReally = NotImpl2" << std::endl;
 
-    // Set the implementation to not the default
 //    ModuleLoader::getLoader().setImplementation("ITest", "Impl2");
+    Module::setImplementation<ITest>("Impl2");
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -101,7 +101,7 @@ TEST_CASE("Don't configure a module from a stream", "[Configurator]")
     // to the default.
     ConfiguredModule::parseConfigurator();
 
-    ITest& impler = Module::getImplementation<ITest>(); // = ModuleLoader::getLoader().getImplementation<ITest>();
+    ITest& impler = Module::getImplementation<ITest>();
     REQUIRE(impler() == 2);
 }
 
