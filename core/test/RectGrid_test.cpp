@@ -12,7 +12,6 @@
 #include "include/RectGridIO.hpp"
 #include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
-#include "include/ModuleLoader.hpp"
 
 #include <cstdio>
 #include <fstream>
@@ -23,8 +22,6 @@ namespace Nextsim {
 
 TEST_CASE("Write out a RectangularGrid restart file", "[RectangularGrid]")
 {
-    ModuleLoader::getLoader().setAllDefaults();
-
     int nx = 25;
     int ny = 35;
     int nLayers = 2;
