@@ -6,6 +6,9 @@
  */
 
 #include "include/StructureFactory.hpp"
+
+#include "include/IStructureModule.hpp"
+
 #include "include/DevGrid.hpp"
 #include "include/DevGridIO.hpp"
 
@@ -22,13 +25,12 @@ namespace Nextsim {
 
 std::shared_ptr<IStructure> StructureFactory::generate(const std::string& structureName)
 {
-    ModuleLoader& loader = ModuleLoader::getLoader();
     std::string iStruct = "Nextsim::IStructure";
     std::shared_ptr<IStructure> shst;
-    for (auto struc : loader.listImplementations(iStruct)) {
-        loader.setImplementation(iStruct, struc);
-        if (loader.getImplementation<IStructure>().structureType() == structureName) {
-            shst = std::move(loader.getInstance<IStructure>());
+    for (auto struc : Module::IStructureModule::listImplementations()) {
+        Module::setImplementation<IStructure>(struc);
+        if (Module::getImplementation<IStructure>().structureType() == structureName) {
+            shst = std::move(Module::getInstance<IStructure>());
 
             // TODO There must be a better way
             if (shst->structureTypeCheck(DevGrid::structureName)) {

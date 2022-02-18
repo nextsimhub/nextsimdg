@@ -27,6 +27,7 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 set(StructureModuleSources
     "DevGrid.cpp"
     "RectangularGrid.cpp"
+    "IStructureModule.cpp"
     )
     
 set(ModuleSources

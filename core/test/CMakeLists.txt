@@ -189,6 +189,7 @@ add_executable(testStructureFactory
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
     "${PhysicsModulesDir}/IPhysics1dModule.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
     )
 
 target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")

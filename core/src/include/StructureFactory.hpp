@@ -8,9 +8,7 @@
 #ifndef CORE_SRC_INCLUDE_STRUCTUREFACTORY_HPP
 #define CORE_SRC_INCLUDE_STRUCTUREFACTORY_HPP
 
-#include "include/DevGrid.hpp"
 #include "include/IStructure.hpp"
-#include "include/ModuleLoader.hpp"
 
 namespace Nextsim {
 
@@ -31,7 +29,7 @@ public:
      *
      * @param filePath the name of the file to be read.
      */
-    static std::shared_ptr<IStructure> generateFromFile(const std::string& fielPath);
+    static std::shared_ptr<IStructure> generateFromFile(const std::string& filePath);
 
 private:
     StructureFactory() = default;
