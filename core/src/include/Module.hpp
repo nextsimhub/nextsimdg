@@ -17,6 +17,9 @@
 namespace Module {
 
 template <typename I>
+std::unique_ptr<I> getInstance();
+
+template <typename I>
 I& getImplementation();
 
 template <typename I>
@@ -38,6 +41,12 @@ template <typename M>
 void setImplTemplate(const std::string& implName)
 {
     M::setImplementation(implName);
+}
+
+template <typename I, typename M>
+std::unique_ptr<I> getInstTemplate()
+{
+    return M::getInstance();
 }
 
 template <typename I>

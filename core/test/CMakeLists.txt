@@ -117,6 +117,7 @@ add_executable(testElementData
     "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
+    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
     )
 
 target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}")
@@ -138,6 +139,7 @@ add_executable(testDevGrid
     "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
+    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
     )
 
 target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -160,6 +162,7 @@ add_executable(testRectGrid
     "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
+    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
     )
 
 target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -185,6 +188,7 @@ add_executable(testStructureFactory
     "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
+    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
     )
 
 target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")

@@ -35,6 +35,7 @@ Module<ITest>::map Module<ITest>::functionMap = {
 template <> Module<ITest>::fn Module<ITest>::spf = functionMap.at(IMPL1);
 template <> std::unique_ptr<ITest> Module<ITest>::staticInstance = std::move(Module<ITest>::spf());
 template <> std::string Module<ITest>::moduleName() { return "ITest"; };
+template <> std::unique_ptr<ITest> getInstance<ITest>() { return getInstTemplate<ITest, ITestModule>(); };
 template <> ITest& getImplementation<ITest>() { return getImplTemplate<ITest, ITestModule>(); };
 template <> void setImplementation<ITest>(const std::string& implName)
 {

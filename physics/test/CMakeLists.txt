@@ -30,6 +30,8 @@ add_executable(testNextsimPhysics
     "${CoreSourceDir}/PrognosticData.cpp"
     "${ModulesDir}/HiblerConcentration.cpp"
     "${ModulesDir}/ThermoIce0.cpp"
+    "${ModulesDir}/IPhysics1dModule.cpp"
+    
     )
 target_include_directories(testNextsimPhysics PRIVATE
     "${ModuleLoaderIppTargetDirectory}"

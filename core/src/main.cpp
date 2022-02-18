@@ -10,6 +10,7 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/Model.hpp"
+#include "include/ModuleLoader.hpp"
 
 int main(int argc, char* argv[])
 {

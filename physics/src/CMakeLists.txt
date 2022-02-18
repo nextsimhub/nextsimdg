@@ -12,6 +12,7 @@ set(IceOceanHeatFluxModuleSources
 
 set(ColumnPhysicsModuleSources
     "NextsimPhysics.cpp"
+    "IPhysics1dModule.cpp"
     )
 
 set(ThermodynamicsModuleSources
