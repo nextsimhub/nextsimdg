@@ -133,7 +133,7 @@ public:
         mesh.BasicInit(N, N, 1.0 / N, 1.0 / N);
 
         //! Init Time Mesh
-        double cfl = 0.2;
+        double cfl = 0.1;
         dt = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
         double tmax = 2.0 * M_PI;
         NT = (static_cast<int>((tmax / dt + 1) / 100 + 1) * 100); // No time steps dividable by 100
@@ -215,11 +215,11 @@ public:
 
             Nextsim::Timer::main.tock("run");
 
-            //	Nextsim::GlobalTimer.print();
-
             if (iter < NITER - 1)
                 N *= 2; //!< double the problem size
         }
+
+        std::cout.precision(16);
     }
 
     void print_error(const std::string& message) const
@@ -265,14 +265,14 @@ public:
 
         if (N == 80) {
             if (DGdegree == 0) {
-                val_ref = std::array<double, 3>({ 0.1041620796203775, 0.1196262461401992, 0.1264044476119508 });
-                err_ref = std::array<double, 3>({ 0.2052188657233615, 0.1544332132653233, 0.1110687031463838 });
+                val_ref = std::array<double, 3>({ 0.1040973014386282, 0.1196042191148516, 0.1264035055795092 });
+                err_ref = std::array<double, 3>({ 0.2055757930605657, 0.1547718388297195, 0.1111151282733836 });
             } else if (DGdegree == 1) {
-                val_ref = std::array<double, 3>({ 0.1297379288134224, 0.1290796184183312, 0.1290992302048382 });
-                err_ref = std::array<double, 3>({ 0.07213309600190464, 0.01905730153394329, 0.004537411616573561 });
+                val_ref = std::array<double, 3>({ 0.1297377725023032, 0.1290794989188777, 0.1290992303550586 });
+                err_ref = std::array<double, 3>({ 0.07138784362943089, 0.01941901084543833, 0.004572185826845114 });
             } else if (DGdegree == 2) {
-                val_ref = std::array<double, 3>({ 0.1290846500028399, 0.129099699867661, 0.1290996998773258 });
-                err_ref = std::array<double, 3>({ 0.03042875264858447, 0.005337828057657737, 0.0005416593875619044 });
+                val_ref = std::array<double, 3>({ 0.1290847613765785, 0.129099700340886, 0.1290996998763931 });
+                err_ref = std::array<double, 3>({ 0.03113698402363593, 0.008527051921868931, 0.001234126542186417 });
             } else
                 abort();
         } else {
@@ -289,6 +289,7 @@ public:
 int main()
 {
     size_t N = 20;
+
     Test<0> test0(N);
     test0.run();
     if (!test0.check())
