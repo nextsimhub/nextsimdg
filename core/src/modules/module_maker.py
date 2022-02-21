@@ -1,8 +1,3 @@
-
-# Fake data
-fake_interface_name = "Nextsim::IIceAlbedo"
-fake_impl_names = ["Nextsim::SNUAlbedo", "Nextsim::CCSMAlbedo"]
-
 def denamespace(nname):
     """Returns the last element of the name, without any of the qualifying
     namespaces."""
@@ -78,5 +73,15 @@ def generator(fq_interface_name, fq_impl_names):
     print("} /* namespace Module */")
 
 if __name__ == "__main__":
-    generator(fake_interface_name, fake_impl_names)
 
+    import argparse
+    parser = argparse.ArgumentParser(description = "Write out the text for a Nextsim module class source file.")
+    parser.add_argument("impl", metavar = "impls", nargs = '*', default = None, help = "Fully qualified name of the implementation classes.")
+    parser.add_argument("--interface", dest = "interface", help = "Fully qualified name of the interface class.")
+
+    args = parser.parse_args()
+    
+    if (len(args.impl) == 0):
+        raise SystemExit
+
+    generator(args.interface, args.impl)
