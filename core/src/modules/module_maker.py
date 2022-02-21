@@ -29,7 +29,7 @@ def generator(fq_interface_name, fq_impl_names):
     print("")
     
     # Create the functionMap from the FQ implementation and FQ module names
-    print("template<>")
+    print("template <>")
     print(f"Module<{fq_interface_name}>::map Module<{fq_interface_name}>::functionMap" + " = {")
     for fq_impl_name in fq_impl_names:
         print("    {" + f"{denamespace(fq_impl_name).upper()}, newImpl<{fq_interface_name}, {fq_impl_name}>" + "},")
@@ -37,15 +37,15 @@ def generator(fq_interface_name, fq_impl_names):
     print("")
     
     # Set up the function and static pointer (FQ Module)
-    print("template<>")
+    print("template <>")
     print(f"Module<{fq_interface_name}>::fn Module<{fq_interface_name}>::spf = functionMap.at({denamespace(fq_impl_names[0]).upper()});")
-    print("template<>")
+    print("template <>")
     print(f"std::unique_ptr<{fq_interface_name}> Module<{fq_interface_name}>::staticInstance")
     print(f"= std::move(Module<{fq_interface_name}>::spf());")
     print("")
 
     # Module name string
-    print("template<>")
+    print("template <>")
     print(f"std::string Module<{fq_interface_name}>::moduleName()" + "{" + f"    return \"{denamespace(fq_interface_name)}\";" + "}")
     print("")
 
