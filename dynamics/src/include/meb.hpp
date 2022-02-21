@@ -152,6 +152,10 @@ namespace MEB {
                     //double const Pmax = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
 
                     // tildeP must be capped at 1 to get an elastic response
+                    //if (sigma_n<-Pmax)
+                    //  tildeP = Pmax/sigma_n;
+                    //else
+                    //  tildeP = -1;
                     tildeP = std::min(1., -Pmax / sigma_n);
                 } else {
                     tildeP = 0.;
@@ -163,7 +167,7 @@ namespace MEB {
                 Pm(i) = Pmax;
                 // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
                 // Check 2: min 1.-1e-12 Not mentioned in the paper from nextsim
-                double const multiplicator = std::min(1. - 2e-4,
+                double const multiplicator = std::min(1. - 1e-12,
                     time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
                 // -12 -> -3
 
@@ -180,11 +184,11 @@ namespace MEB {
 
 
                 //Elasit prediction Eqn. (32)
-                S11.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
-                S12.row(i) += dt_momentum * elasticity * 1 / (1 + RefScale::nu0) * E12.row(i);
-                S22.row(i) += dt_momentum * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+                S11.row(i) += dt_momentum * elasticity * (1. / (1. + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+                S12.row(i) += dt_momentum * elasticity *  1. / (1.+ RefScale::nu0) * E12.row(i);
+                S22.row(i) += dt_momentum * elasticity * (1. / (1. + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
                 
-                eta1(i) = elasticity * (1 / (1 + RefScale::nu0));
+                eta1(i) = elasticity * (1. / (1. + RefScale::nu0));
                 eta2(i) = elasticity * Dunit_factor * RefScale::nu0;
 
                 S11.row(i) *= multiplicator;

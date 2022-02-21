@@ -134,7 +134,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 1. * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 4. * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -265,6 +265,8 @@ int main()
         A.col(0) = A.col(0).cwiseMin(1.0);
         A.col(0) = A.col(0).cwiseMax(0.0);
         H.col(0) = H.col(0).cwiseMax(0.0);
+        D.col(0) = D.col(0).cwiseMin(1.0);
+        D.col(0) = D.col(0).cwiseMax(0.0);
 
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);
