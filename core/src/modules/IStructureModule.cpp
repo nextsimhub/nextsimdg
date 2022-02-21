@@ -17,34 +17,28 @@ const std::string RECT_GRID = "RectangularGrid";
 
 template <>
 Module<Nextsim::IStructure>::map Module<Nextsim::IStructure>::functionMap = {
-        {DEV_GRID, newImpl<Nextsim::IStructure, Nextsim::DevGrid>},
-        {RECT_GRID, newImpl<Nextsim::IStructure, Nextsim::RectangularGrid>},
+    { DEV_GRID, newImpl<Nextsim::IStructure, Nextsim::DevGrid> },
+    { RECT_GRID, newImpl<Nextsim::IStructure, Nextsim::RectangularGrid> },
 };
 template <>
 Module<Nextsim::IStructure>::fn Module<Nextsim::IStructure>::spf = functionMap.at(DEV_GRID);
 template <>
-std::unique_ptr<Nextsim::IStructure> Module<Nextsim::IStructure>::staticInstance = std::move(Module<Nextsim::IStructure>::spf());
+std::unique_ptr<Nextsim::IStructure> Module<Nextsim::IStructure>::staticInstance
+    = std::move(Module<Nextsim::IStructure>::spf());
 
-template <>
-std::string Module<Nextsim::IStructure>::moduleName()
-{
-    return "IStructure";
-}
+template <> std::string Module<Nextsim::IStructure>::moduleName() { return "IStructure"; }
 
-template <>
-Nextsim::IStructure& getImplementation<Nextsim::IStructure>()
+template <> Nextsim::IStructure& getImplementation<Nextsim::IStructure>()
 {
     return getImplTemplate<Nextsim::IStructure, IStructureModule>();
 }
 
-template <>
-void setImplementation<Nextsim::IStructure>(const std::string& implName)
+template <> void setImplementation<Nextsim::IStructure>(const std::string& implName)
 {
     setImplTemplate<IStructureModule>(implName);
 }
 
-template <>
-std::unique_ptr<Nextsim::IStructure> getInstance()
+template <> std::unique_ptr<Nextsim::IStructure> getInstance()
 {
     return getInstTemplate<Nextsim::IStructure, IStructureModule>();
 }

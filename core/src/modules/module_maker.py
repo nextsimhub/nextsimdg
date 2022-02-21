@@ -32,7 +32,7 @@ def generator(fq_interface_name, fq_impl_names):
     print("template<>")
     print(f"Module<{fq_interface_name}>::map Module<{fq_interface_name}>::functionMap" + " = {")
     for fq_impl_name in fq_impl_names:
-        print("        {" + f"{denamespace(fq_impl_name).upper()}, newImpl<{fq_interface_name}, {fq_impl_name}>" + "},")
+        print("    {" + f"{denamespace(fq_impl_name).upper()}, newImpl<{fq_interface_name}, {fq_impl_name}>" + "},")
     print("};")
     print("")
     
@@ -40,15 +40,13 @@ def generator(fq_interface_name, fq_impl_names):
     print("template<>")
     print(f"Module<{fq_interface_name}>::fn Module<{fq_interface_name}>::spf = functionMap.at({denamespace(fq_impl_names[0]).upper()});")
     print("template<>")
-    print(f"std::unique_ptr<{fq_interface_name}> Module<{fq_interface_name}>::staticInstance = std::move(Module<{fq_interface_name}>::spf());")
+    print(f"std::unique_ptr<{fq_interface_name}> Module<{fq_interface_name}>::staticInstance")
+    print(f"= std::move(Module<{fq_interface_name}>::spf());")
     print("")
 
     # Module name string
     print("template<>")
-    print(f"std::string Module<{fq_interface_name}>::moduleName()")
-    print("{")
-    print(f"    return \"{denamespace(fq_interface_name)}\";")
-    print("}")
+    print(f"std::string Module<{fq_interface_name}>::moduleName()" + "{" + f"    return \"{denamespace(fq_interface_name)}\";" + "}")
     print("")
 
     # global functions (FQ module & module class names)
