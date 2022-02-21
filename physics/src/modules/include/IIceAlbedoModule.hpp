@@ -1,0 +1,22 @@
+/*!
+ * @file IIceAlbedoModule.hpp
+ *
+ * @date Feb 21, 2022
+ * @author Tim Spain <timothy.spain@nersc.no>
+ */
+
+#ifndef PHYSICS_SRC_MODULES_INCLUDE_IICEALBEDOMODULE_HPP
+#define PHYSICS_SRC_MODULES_INCLUDE_IICEALBEDOMODULE_HPP
+
+#include "include/Module.hpp"
+
+#include "include/IIceAlbedo.hpp"
+
+namespace Module {
+
+class IIceAlbedoModule : public Module<Nextsim::IIceAlbedo> {
+};
+
+} /* namespace Module */
+
+#endif /* PHYSICS_SRC_MODULES_INCLUDE_IICEALBEDOMODULE_HPP */
