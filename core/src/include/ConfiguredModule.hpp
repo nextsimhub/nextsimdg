@@ -21,7 +21,6 @@ namespace Nextsim {
  */
 class ConfiguredModule {
 public:
-
     typedef std::function<void(const std::string&)> fn;
     typedef std::map<const std::string, fn> map;
     ConfiguredModule() = default;
@@ -52,6 +51,7 @@ public:
 
     //! The configuration options section name for modules.
     static const std::string MODULE_PREFIX;
+
 private:
     static map configuredModules;
 };
