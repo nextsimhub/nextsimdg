@@ -86,12 +86,12 @@ jobs:
     - name: run tests
       run: |
         cd core/test
-        for file in $(ls test*); do echo "Testing " $file; ./$file; done
+        for file in $(ls test*); do ./$file; done
         cd -
         for component in physics
         do
             cd $component/test
-            for file in $(ls test*); do echo "Testing " $file; ./$file; done
+            for file in $(ls test*); do ./$file; done
             cd -
         done
 
