@@ -84,11 +84,13 @@ target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 add_executable(testPrognosticData
     "PrognosticData_test.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
+    "${SRC_DIR}/Configurator.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     )
     # Set the location of the test module loader classes
 set(PDTestIppDir "${CMAKE_CURRENT_SOURCE_DIR}/PrognosticDataTestModules")
-target_link_libraries(testPrognosticData PRIVATE Catch2::Catch2)
+target_link_libraries(testPrognosticData PRIVATE Catch2::Catch2 Boost::program_options)
 target_include_directories(testPrognosticData PRIVATE "${SRC_DIR}" "${CoreModulesDir}" "${PDTestIppDir}")
 
 set(PhysicsDir "${PROJECT_SOURCE_DIR}/physics/src")
@@ -122,6 +124,7 @@ add_executable(testDevGrid
     "${CoreModulesDir}/DevGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/ElementData.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
     "${SRC_DIR}/DevGridIO.cpp"
@@ -148,6 +151,7 @@ add_executable(testRectGrid
     "RectGrid_test.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/ElementData.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
     "${SRC_DIR}/RectGridIO.cpp"

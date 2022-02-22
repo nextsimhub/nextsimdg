@@ -15,6 +15,10 @@
 namespace Module {
 
 class IFreezingPointModule : public Module<Nextsim::IFreezingPoint> {
+    struct Constructor {
+        Constructor();
+    };
+    static Constructor ctor;
 };
 
 } /* namespace Module */

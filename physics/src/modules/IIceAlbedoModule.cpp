@@ -14,9 +14,9 @@
 #include <string>
 
 namespace Module {
-const std::string SMUICEALBEDO = "SMUIceAlbedo";
-const std::string SMU2ICEALBEDO = "SMU2IceAlbedo";
-const std::string CCSMICEALBEDO = "CCSMIceAlbedo";
+const std::string SMUICEALBEDO = "Nextsim::SMUIceAlbedo";
+const std::string SMU2ICEALBEDO = "Nextsim::SMU2IceAlbedo";
+const std::string CCSMICEALBEDO = "Nextsim::CCSMIceAlbedo";
 
 template <>
 Module<Nextsim::IIceAlbedo>::map Module<Nextsim::IIceAlbedo>::functionMap = {
@@ -31,7 +31,7 @@ template <>
 std::unique_ptr<Nextsim::IIceAlbedo> Module<Nextsim::IIceAlbedo>::staticInstance
     = std::move(Module<Nextsim::IIceAlbedo>::spf());
 
-template <> std::string Module<Nextsim::IIceAlbedo>::moduleName() { return "IIceAlbedo"; }
+template <> std::string Module<Nextsim::IIceAlbedo>::moduleName() { return "Nextsim::IIceAlbedo"; }
 
 template <> Nextsim::IIceAlbedo& getImplementation<Nextsim::IIceAlbedo>()
 {
@@ -45,4 +45,11 @@ template <> std::unique_ptr<Nextsim::IIceAlbedo> getInstance()
 {
     return getInstTemplate<Nextsim::IIceAlbedo, IIceAlbedoModule>();
 }
+
+IIceAlbedoModule::Constructor IIceAlbedoModule::ctor;
+IIceAlbedoModule::Constructor::Constructor()
+{
+   addToConfiguredModules<Nextsim::IIceAlbedo, IIceAlbedoModule>();
+}
+
 } /* namespace Module */

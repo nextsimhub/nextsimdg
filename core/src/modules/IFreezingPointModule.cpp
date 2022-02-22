@@ -13,8 +13,8 @@
 #include <string>
 
 namespace Module {
-const std::string LINEARFREEZING = "LinearFreezing";
-const std::string UNESCOFREEZING = "UnescoFreezing";
+const std::string LINEARFREEZING = "Nextsim::LinearFreezing";
+const std::string UNESCOFREEZING = "Nextsim::UnescoFreezing";
 
 template <>
 Module<Nextsim::IFreezingPoint>::map Module<Nextsim::IFreezingPoint>::functionMap = {
@@ -29,7 +29,7 @@ template <>
 std::unique_ptr<Nextsim::IFreezingPoint> Module<Nextsim::IFreezingPoint>::staticInstance
     = std::move(Module<Nextsim::IFreezingPoint>::spf());
 
-template <> std::string Module<Nextsim::IFreezingPoint>::moduleName() { return "IFreezingPoint"; }
+template <> std::string Module<Nextsim::IFreezingPoint>::moduleName() { return "Nextsim::IFreezingPoint"; }
 
 template <> Nextsim::IFreezingPoint& getImplementation<Nextsim::IFreezingPoint>()
 {
@@ -43,4 +43,11 @@ template <> std::unique_ptr<Nextsim::IFreezingPoint> getInstance()
 {
     return getInstTemplate<Nextsim::IFreezingPoint, IFreezingPointModule>();
 }
+
+IFreezingPointModule::Constructor IFreezingPointModule::ctor;
+IFreezingPointModule::Constructor::Constructor()
+{
+   addToConfiguredModules<Nextsim::IFreezingPoint, IFreezingPointModule>();
+}
+
 } /* namespace Module */
