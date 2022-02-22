@@ -24,8 +24,8 @@ def generator(fq_interface_name, fq_impl_names):
     print("namespace Module {")
 
     # String constants to name the implementations
-    for impl_name in map(denamespace, fq_impl_names):
-        print(f"const std::string {impl_name.upper()} = \"{impl_name}\";")
+    for impl_name in fq_impl_names:
+        print(f"const std::string {denamespace(impl_name).upper()} = \"{impl_name}\";")
     print("")
     
     # Create the functionMap from the FQ implementation and FQ module names
@@ -46,7 +46,7 @@ def generator(fq_interface_name, fq_impl_names):
 
     # Module name string
     print("template <>")
-    print(f"std::string Module<{fq_interface_name}>::moduleName()" + "{" + f"    return \"{denamespace(fq_interface_name)}\";" + "}")
+    print(f"std::string Module<{fq_interface_name}>::moduleName()" + "{" + f"    return \"{fq_interface_name}\";" + "}")
     print("")
 
     # global functions (FQ module & module class names)
@@ -68,6 +68,12 @@ def generator(fq_interface_name, fq_impl_names):
     print(f"    return getInstTemplate<{fq_interface_name}, {module_class_name}>();")
     print("}")
 
+    print(f"{module_class_name}::Constructor {module_class_name}::ctor;")
+    print(f"{module_class_name}::Constructor::Constructor()")
+    print("{")
+    print(f"    addToConfiguredModules<{fq_interface_name}, {module_class_name}>();")
+    print("}")
+    print("")
     print("} /* namespace Module */")
 
 if __name__ == "__main__":

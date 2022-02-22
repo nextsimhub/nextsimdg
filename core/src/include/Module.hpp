@@ -8,6 +8,8 @@
 #ifndef SRC_MODULE_HPP
 #define SRC_MODULE_HPP
 
+#include "include/ConfiguredModule.hpp"
+
 #include <functional>
 #include <list>
 #include <map>
@@ -96,5 +98,13 @@ template <typename I>
 std::unique_ptr<I> Module<I>::staticInstance;
 template <typename I>
 typename Module<I>::map Module<I>::functionMap;
+
+
+template <typename I, typename M>
+void addToConfiguredModules()
+{
+    Nextsim::ConfiguredModule::configureModule(Module<I>::moduleName(), M::setImplementation);
+}
+
 }
 #endif /* SRC_MODULE_HPP */
