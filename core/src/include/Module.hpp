@@ -70,10 +70,6 @@ private:
     static map functionMap;
 };
 
-template <typename I> typename Module<I>::fn Module<I>::spf;
-template <typename I> std::unique_ptr<I> Module<I>::staticInstance;
-template <typename I> typename Module<I>::map Module<I>::functionMap;
-
 template <typename I, typename M> void addToConfiguredModules()
 {
     Nextsim::ConfiguredModule::configureModule(Module<I>::moduleName(), M::setImplementation);
