@@ -51,6 +51,3 @@ set(NextsimIncludeDirs
     "${ModuleDir}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     PARENT_SCOPE)
-
-# Build the module loader files. Defines the 'parse_modules' target
-add_subdirectory(modules)
