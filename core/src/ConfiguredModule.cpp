@@ -56,7 +56,7 @@ void ConfiguredModule::setConfiguredModules(const map& ls)
     }
 }
 
-void ConfiguredModule::configureModule(const std::string& mod, fn& function)
+void ConfiguredModule::configureModule(const std::string& mod, const fn& function)
 {
     configuredModules[mod] = function;
 }
