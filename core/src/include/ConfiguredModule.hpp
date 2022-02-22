@@ -41,7 +41,7 @@ public:
      * Adds the name of a module to the list to be configured
      * @param name the name of the class to be configured.
      */
-    static void configureModule(const std::string& mod, fn&);
+    static void configureModule(const std::string& mod, const fn&);
 
     /*!
      * @brief Transforms a module name into a configuration option name.
