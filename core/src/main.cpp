@@ -10,7 +10,6 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/Model.hpp"
-#include "include/ModuleLoader.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -22,8 +21,6 @@ int main(int argc, char* argv[])
     // Pass the config file names to Configurator
     Nextsim::Configurator::addFiles(cmdLine.getConfigFileNames());
 
-    // Load all defaults for modules that are not explicitly configured
-    ModuleLoader::getLoader().setAllDefaults();
     // Parse the configuration to load those that are explicitly configured
     Nextsim::ConfiguredModule::parseConfigurator();
 

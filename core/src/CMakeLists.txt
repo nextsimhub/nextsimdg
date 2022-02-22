@@ -10,7 +10,6 @@ set(BaseSources
     "Configurator.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
-    "ModuleLoader.cpp"
     "ElementData.cpp"
     "PrognosticData.cpp"
     "ExternalData.cpp"
@@ -29,9 +28,14 @@ set(StructureModuleSources
     "RectangularGrid.cpp"
     "IStructureModule.cpp"
     )
-    
+
+set(FreezingPointModuleSources
+    "IFreezingPointModule.cpp"
+    )
+
 set(ModuleSources
     "${StructureModuleSources}"
+    "${FreezingPointModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

@@ -1,25 +1,30 @@
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 set(IceAlbedoModuleSources
+    "IIceAlbedoModule.cpp"
     "CCSMIceAlbedo.cpp"
     "SMUIceAlbedo.cpp"
     "SMU2IceAlbedo.cpp"
     )
 
 set(IceOceanHeatFluxModuleSources
+    "IIceOceanHeatFluxModule.cpp"
     "BasicIceOceanHeatFlux.cpp"
+    
     )
 
 set(ColumnPhysicsModuleSources
-    "NextsimPhysics.cpp"
     "IPhysics1dModule.cpp"
+    "NextsimPhysics.cpp"
     )
 
 set(ThermodynamicsModuleSources
+    "IThermodynamicsModule.cpp"
     "ThermoIce0.cpp"
     )
 
 set(ConcentrationModelModuleSources
+    "IConcentrationModelModule.cpp"
     "HiblerConcentration.cpp"
     )
     

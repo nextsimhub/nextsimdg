@@ -11,7 +11,7 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/ElementData.hpp"
 #include "include/IIceAlbedo.hpp"
-#include "include/ModuleLoader.hpp"
+#include "include/Module.hpp"
 #include "include/NextsimPhysics.hpp"
 
 namespace Nextsim {
@@ -44,9 +44,8 @@ TEST_CASE("Physics test using NextsimPhysics", "[ElementData]")
     double hsnow = 0.01; // m
     double dml = 10.; // m
 
-    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
-    tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
+    tryConfigure(Module::getImplementation<IIceAlbedo>());
 
     ElementData data(3);
     REQUIRE(data.nIceLayers() == 3);

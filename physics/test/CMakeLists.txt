@@ -17,11 +17,8 @@ set(ModulesDir "${SourceDir}/modules")
 add_executable(testNextsimPhysics
     "NextsimPhysics_test.cpp"
     "${ModulesDir}/NextsimPhysics.cpp"
-    "${CoreSourceDir}/ModuleLoader.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
-    "${CoreModulesDir}/RectangularGrid.cpp"
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
@@ -31,6 +28,11 @@ add_executable(testNextsimPhysics
     "${ModulesDir}/HiblerConcentration.cpp"
     "${ModulesDir}/ThermoIce0.cpp"
     "${ModulesDir}/IPhysics1dModule.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${ModulesDir}/IIceAlbedoModule.cpp"
+    "${ModulesDir}/IThermodynamicsModule.cpp"
+    "${ModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${ModulesDir}/IConcentrationModelModule.cpp"
     
     )
 target_include_directories(testNextsimPhysics PRIVATE

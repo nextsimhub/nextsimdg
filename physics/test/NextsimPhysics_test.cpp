@@ -12,7 +12,7 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/ElementData.hpp"
 #include "include/IIceAlbedo.hpp"
-#include "include/ModuleLoader.hpp"
+#include "include/Module.hpp"
 #include "include/NextsimPhysics.hpp"
 #include "include/constants.hpp"
 
@@ -46,7 +46,6 @@ TEST_CASE("Minimum ice & i0", "[NextsimPhysics]")
 
 TEST_CASE("Update derived data", "[NextsimPhysics]")
 {
-    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
 
     ElementData data;
@@ -96,7 +95,6 @@ TEST_CASE("New ice formation", "[NextsimPhysics]")
     double cice = 0.5;
     double dml = 10.; // m
 
-    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
 
     ElementData data(3);
@@ -135,7 +133,6 @@ TEST_CASE("Drag pressure", "[NextsimPhysics]")
     double cice = 0.5;
     double dml = 10.; // m
 
-    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
 
     ElementData data(3);
@@ -199,9 +196,8 @@ TEST_CASE("Melting conditions", "[NextsimPhysics]")
     double hsnow = 0.01; // m
     double dml = 10.; // m
 
-    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
-    tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
+    tryConfigure(Module::getImplementation<IIceAlbedo>());
 
     ElementData data(3);
     data.configure(); // Configure with the UNESCO freezing point
@@ -268,9 +264,8 @@ TEST_CASE("Freezing conditions", "[NextsimPhysics]")
     double hsnow = 0.01; // m
     double dml = 10.; // m
 
-    ModuleLoader::getLoader().setAllDefaults();
     ConfiguredModule::parseConfigurator();
-    tryConfigure(ModuleLoader::getLoader().getImplementation<IIceAlbedo>());
+    tryConfigure(Module::getImplementation<IIceAlbedo>());
 
     ElementData data(2);
     data.configure(); // Configure with the UNESCO freezing point
