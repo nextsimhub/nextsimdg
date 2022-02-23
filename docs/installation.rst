@@ -80,9 +80,9 @@ Install conda via anaconda or miniconda (no root priviledges required)
         conda create --name nextsimdg
         conda activate nextsimdg
         conda install netCDF4
-        conda -c conda-forge boost
-        conda -c anaconda cmake
-        conda -c conda-forge catch2
+        conda install -c conda-forge boost
+        conda install -c anaconda cmake
+        conda install -c conda-forge catch2
         
         cd nextsimdg
         mkdir -p build
