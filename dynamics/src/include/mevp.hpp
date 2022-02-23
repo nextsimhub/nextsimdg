@@ -43,29 +43,20 @@ namespace mEVP {
             double eta = zeta / 4;
 
             // replacement pressure
-            //                P = P * DELTA(i, 0) / (ReferenceScale::DeltaMin + DELTA(i, 0));
+            P = P * DELTA / (DeltaMin + DELTA);
 
-            //SHEAR(i, 0) = sqrt((SQR(ReferenceScale::DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
-
-            // S = S_old + 1/alpha (S(u)-S_old)
-            //   = (1-1/alpha) S_old + 1/alpha S(u)
+            // S = S_old + 1/alpha (S(u)-S_old) = (1-1/alpha) S_old + 1/alpha S(u)
             S11.row(i) *= (1.0 - 1.0 / alpha);
             S12.row(i) *= (1.0 - 1.0 / alpha);
             S22.row(i) *= (1.0 - 1.0 / alpha);
 
             S11.row(i) += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-            //S11(i, 0) -= 1.0 / alpha * 0.5 * P;
+            S11(i, 0) -= 1.0 / alpha * 0.5 * P;
 
             S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
 
             S22.row(i) += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
-            //S22(i, 0) -= 1.0 / alpha * 0.5 * P;
-
-            // // prepare for ellipse-output
-            // if ((timestep % NT_vtk == 0)) {
-            //   S1(i) = (S11(i, 0) + S22(i, 0)) / P;
-            //   S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0)))) / P;
-            // }
+            S22(i, 0) -= 1.0 / alpha * 0.5 * P;
         }
     }
 
