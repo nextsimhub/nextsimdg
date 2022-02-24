@@ -15,6 +15,7 @@
 
 namespace Module {
 
+template <> Module<Nextsim::IIceAlbedo>::map Module<Nextsim::IIceAlbedo>::functionMap;
 class IIceAlbedoModule : public Module<Nextsim::IIceAlbedo> {
     struct Constructor {
         Constructor();

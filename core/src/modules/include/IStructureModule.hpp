@@ -14,6 +14,7 @@
 
 namespace Module {
 
+template <> Module<Nextsim::IStructure>::map Module<Nextsim::IStructure>::functionMap;
 class IStructureModule : public Module<Nextsim::IStructure> {
 };
 

@@ -14,6 +14,7 @@
 
 namespace Module {
 
+template <> Module<Nextsim::IPhysics1d>::map Module<Nextsim::IPhysics1d>::functionMap;
 class IPhysics1dModule : public Module<Nextsim::IPhysics1d> {
 };
 

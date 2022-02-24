@@ -14,6 +14,7 @@
 
 namespace Module {
 
+template <> Module<Nextsim::IFreezingPoint>::map Module<Nextsim::IFreezingPoint>::functionMap;
 class IFreezingPointModule : public Module<Nextsim::IFreezingPoint> {
     struct Constructor {
         Constructor();

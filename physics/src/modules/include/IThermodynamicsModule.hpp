@@ -14,6 +14,7 @@
 
 namespace Module {
 
+template <> Module<Nextsim::IThermodynamics>::map Module<Nextsim::IThermodynamics>::functionMap;
 class IThermodynamicsModule : public Module<Nextsim::IThermodynamics> {
 };
 

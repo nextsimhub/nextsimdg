@@ -13,6 +13,8 @@
 #include "include/IConcentrationModel.hpp"
 namespace Module {
 
+template <> Module<Nextsim::IConcentrationModel>::map Module<Nextsim::IConcentrationModel>::functionMap;
+
 class IConcentrationModelModule : public Module<Nextsim::IConcentrationModel> {
 };
 
