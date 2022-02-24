@@ -8,8 +8,7 @@
 
 namespace Nextsim {
 
-template <int DGdegree>
-class Limiter {
+template <int DGdegree> class Limiter {
 
     const Mesh& mesh;
     Nextsim::CellVector<DGdegree - 1> alpha;
@@ -82,9 +81,7 @@ public:
                 int j = 0;
 
                 for (auto s : shift) {
-                    auto A = { v(ii + s, 0),
-                        v(ii - 1 + s, 0),
-                        v(ii - mesh.nx - 1 + s, 0),
+                    auto A = { v(ii + s, 0), v(ii - 1 + s, 0), v(ii - mesh.nx - 1 + s, 0),
                         v(ii - mesh.nx + s, 0) };
 
                     // const auto [min, max] = std::minmax_element(A.begin(), A.end());
@@ -169,17 +166,11 @@ public:
                 int j = 0;
 
                 for (auto s : shift) {
-                    auto A = { v(ii + s, 0),
-                        v(ii - 1 + s, 0),
-                        v(ii - mesh.nx - 1 + s, 0),
+                    auto A = { v(ii + s, 0), v(ii - 1 + s, 0), v(ii - mesh.nx - 1 + s, 0),
                         v(ii - mesh.nx + s, 0) };
-                    auto Ax = { v(ii + s, 1),
-                        v(ii - 1 + s, 1),
-                        v(ii - mesh.nx - 1 + s, 1),
+                    auto Ax = { v(ii + s, 1), v(ii - 1 + s, 1), v(ii - mesh.nx - 1 + s, 1),
                         v(ii - mesh.nx + s, 1) };
-                    auto Ay = { v(ii + s, 2),
-                        v(ii - 1 + s, 2),
-                        v(ii - mesh.nx - 1 + s, 2),
+                    auto Ay = { v(ii + s, 2), v(ii - 1 + s, 2), v(ii - mesh.nx - 1 + s, 2),
                         v(ii - mesh.nx + s, 2) };
 
                     // const auto [min, max] = std::minmax_element(A.begin(), A.end());
@@ -208,22 +199,22 @@ public:
                     if (std::abs(Ux[j] - Ucx) < 1e-10)
                         alpha2x = std::min(alpha2x, 1.0);
                     else if (Ux[j] > Ucx)
-                        alpha2x = std::min(alpha2x,
-                            std::min(1.0, (Umaxx[j] - Ucx) / (Ux[j] - Ucx)));
+                        alpha2x
+                            = std::min(alpha2x, std::min(1.0, (Umaxx[j] - Ucx) / (Ux[j] - Ucx)));
                     else
-                        alpha2x = std::min(alpha2x,
-                            std::min(1.0, (Uminx[j] - Ucx) / (Ux[j] - Ucx)));
+                        alpha2x
+                            = std::min(alpha2x, std::min(1.0, (Uminx[j] - Ucx) / (Ux[j] - Ucx)));
                 }
                 double alpha2y(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(Uy[j] - Ucy) < 1e-10)
                         alpha2y = std::min(alpha2y, 1.0);
                     else if (Uy[j] > Ucy)
-                        alpha2y = std::min(alpha2y,
-                            std::min(1.0, (Umaxy[j] - Ucy) / (Uy[j] - Ucy)));
+                        alpha2y
+                            = std::min(alpha2y, std::min(1.0, (Umaxy[j] - Ucy) / (Uy[j] - Ucy)));
                     else
-                        alpha2y = std::min(alpha2y,
-                            std::min(1.0, (Uminy[j] - Ucy) / (Uy[j] - Ucy)));
+                        alpha2y
+                            = std::min(alpha2y, std::min(1.0, (Uminy[j] - Ucy) / (Uy[j] - Ucy)));
                 }
 
                 alpha(ii, 1) = std::min(alpha2x, alpha2y);

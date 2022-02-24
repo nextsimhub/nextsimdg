@@ -46,10 +46,7 @@ constexpr double fc = 1.46e-4; //!< Coriolis
 constexpr double DeltaMin = 2.e-9; //!< Viscous regime
 }
 
-inline constexpr double SQR(double x)
-{
-    return x * x;
-}
+inline constexpr double SQR(double x) { return x * x; }
 
 //! Description of the problem data, wind & ocean fields
 struct OceanX {
@@ -71,10 +68,7 @@ struct AtmX {
     double time;
 
 public:
-    void settime(double t)
-    {
-        time = t;
-    }
+    void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
         constexpr double oneday = 24.0 * 60.0 * 60.0;
@@ -92,10 +86,7 @@ struct AtmY {
     double time;
 
 public:
-    void settime(double t)
-    {
-        time = t;
-    }
+    void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
         constexpr double oneday = 24.0 * 60.0 * 60.0;
@@ -118,10 +109,7 @@ public:
 };
 struct InitialA {
 public:
-    double operator()(double x, double y) const
-    {
-        return 1.0;
-    }
+    double operator()(double x, double y) const { return 1.0; }
 };
 
 int main()
@@ -204,8 +192,8 @@ int main()
     Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, DELTA, mesh);
     Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
     Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, SHEAR, mesh);
-    Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
-        ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
+    Nextsim::Tools::ElastoParams(
+        mesh, E11, E12, E22, H, A, ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
     Nextsim::VTK::write_dg("ResultsBenchmark/mu1", 0, MU1, mesh);
     Nextsim::VTK::write_dg("ResultsBenchmark/mu2", 0, MU2, mesh);
 
@@ -238,17 +226,11 @@ int main()
         double timeInDays = time / 60.0 / 60.0 / 24.;
 
         if (timestep % NT_log == 0)
-            std::cout << "\rAdvection step " << timestep << "\t "
-                      << std::setprecision(2)
-                      << std::fixed
-                      << std::setw(10) << std::right
-                      << time << "s\t"
-                      << std::setw(8) << std::right
-                      << timeInMinutes << "m\t"
-                      << std::setw(6) << std::right
-                      << timeInHours << "h\t"
-                      << std::setw(6) << std::right
-                      << timeInDays << "d\t\t" << std::flush;
+            std::cout << "\rAdvection step " << timestep << "\t " << std::setprecision(2)
+                      << std::fixed << std::setw(10) << std::right << time << "s\t" << std::setw(8)
+                      << std::right << timeInMinutes << "m\t" << std::setw(6) << std::right
+                      << timeInHours << "h\t" << std::setw(6) << std::right << timeInDays << "d\t\t"
+                      << std::flush;
 
         //! Initialize time-dependent data
         Nextsim::GlobalTimer.start("time loop - forcing");
@@ -295,11 +277,8 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
 
-            Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22,
-                E11, E12, E22, H, A,
-                ReferenceScale::Pstar,
-                ReferenceScale::DeltaMin,
-                alpha, beta);
+            Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22, E11, E12, E22, H, A,
+                ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
@@ -310,20 +289,34 @@ int main()
             //	    update by a loop.. implicit parts and h-dependent
 
             //
-            vx = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-                      + cg_A.array() * ReferenceScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
-                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (beta * vx.array() + vx_mevp.array()) + // pseudo-timestepping
-                    cg_A.array() * (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
-                        ReferenceScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
-                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (vy - OY).array() // cor + surface
+            vx = (1.0
+                / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+                    + cg_A.array() * ReferenceScale::F_ocean
+                        * (OX.array() - vx.array()).abs()) // implicit parts
+                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv
+                        * (beta * vx.array() + vx_mevp.array())
+                    + // pseudo-timestepping
+                    cg_A.array()
+                        * (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
+                            ReferenceScale::F_ocean * (OX - vx).array().abs()
+                                * OX.array()) // ocean forcing
+                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc
+                        * (vy - OY).array() // cor + surface
                     ))
                      .matrix();
-            vy = (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-                      + cg_A.array() * ReferenceScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
-                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (beta * vy.array() + vy_mevp.array()) + // pseudo-timestepping
-                    cg_A.array() * (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
-                        ReferenceScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
-                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc * (OX - vx).array() // cor + surface
+            vy = (1.0
+                / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+                    + cg_A.array() * ReferenceScale::F_ocean
+                        * (OY.array() - vy.array()).abs()) // implicit parts
+                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv
+                        * (beta * vy.array() + vy_mevp.array())
+                    + // pseudo-timestepping
+                    cg_A.array()
+                        * (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
+                            ReferenceScale::F_ocean * (OY - vy).array().abs()
+                                * OY.array()) // ocean forcing
+                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc
+                        * (OX - vx).array() // cor + surface
                     ))
                      .matrix();
             Nextsim::GlobalTimer.stop("time loop - mevp - update1");
@@ -333,12 +326,16 @@ int main()
             tmpx.zero();
             tmpy.zero();
             momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
-            vx += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-                       + cg_A.array() * ReferenceScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
+            vx += (1.0
+                / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+                    + cg_A.array() * ReferenceScale::F_ocean
+                        * (OX.array() - vx.array()).abs()) // implicit parts
                 * tmpx.array())
                       .matrix();
-            vy += (1.0 / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-                       + cg_A.array() * ReferenceScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
+            vy += (1.0
+                / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+                    + cg_A.array() * ReferenceScale::F_ocean
+                        * (OY.array() - vy.array()).abs()) // implicit parts
                 * tmpy.array())
                       .matrix();
 

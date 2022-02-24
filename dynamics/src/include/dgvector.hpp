@@ -10,8 +10,7 @@
 #include "mesh.hpp"
 
 namespace Nextsim {
-#define CELLDOFS(DGdegree) \
-    (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
+#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
 
 template <int DGdegree>
 class LocalCellVector : public Eigen::Matrix<double, 1, CELLDOFS(DGdegree)> {
@@ -37,8 +36,7 @@ public:
     }
 };
 
-template <int DGdegree>
-class LocalEdgeVector : public Eigen::Matrix<double, 1, DGdegree + 1> {
+template <int DGdegree> class LocalEdgeVector : public Eigen::Matrix<double, 1, DGdegree + 1> {
 public:
     LocalEdgeVector(void)
         : Eigen::Matrix<double, 1, DGdegree + 1>()
@@ -87,10 +85,11 @@ public:
  *
  **/
 template <int DGdegree>
-class CellVector
-    : public Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree), (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor> {
+class CellVector : public Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree),
+                       (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor> {
 public:
-    typedef Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree), (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>
+    typedef Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree),
+        (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>
         EigenCellVector;
 
     inline int dofs_in_cell() const { return CELLDOFS(DGdegree); }
@@ -104,10 +103,7 @@ public:
     }
 
     //! resizes the vector and sets it to the mesh size
-    void resize_by_mesh(const Mesh& mesh)
-    {
-        EigenCellVector::resize(mesh.n, dofs_in_cell());
-    }
+    void resize_by_mesh(const Mesh& mesh) { EigenCellVector::resize(mesh.n, dofs_in_cell()); }
 
     // operations
     void zero() { EigenCellVector::setZero(); }
@@ -122,23 +118,21 @@ public:
     template <typename OtherDerived>
     CellVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
     {
-        this->Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree), (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>::operator=(other);
+        this->Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree),
+            (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>::operator=(other);
         return *this;
     }
     template <typename OtherDerived>
     CellVector& operator+=(const Eigen::MatrixBase<OtherDerived>& other)
     {
-        this->Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree), (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
+        this->Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree),
+            (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
         return *this;
     }
 };
 
 //! data set to store the type of the edges
-typedef enum {
-    none,
-    X,
-    Y
-} EdgeType;
+typedef enum { none, X, Y } EdgeType;
 
 /*!
  * Stores coefficients of DGdegree vector on edges
@@ -206,10 +200,7 @@ public:
     }
 
     // operations
-    void zero()
-    {
-        Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1>::setZero();
-    }
+    void zero() { Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1>::setZero(); }
 };
 
 } // namespace Nextsim

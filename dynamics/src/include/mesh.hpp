@@ -49,10 +49,7 @@ public:
         n = NX * NY;
     }
 
-    Vertex midpoint(size_t ix, size_t iy) const
-    {
-        return { hx * (ix + 0.5), hy * (iy + 0.5) };
-    }
+    Vertex midpoint(size_t ix, size_t iy) const { return { hx * (ix + 0.5), hy * (iy + 0.5) }; }
 };
 
 } // namespace Nextsim

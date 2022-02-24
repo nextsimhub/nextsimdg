@@ -23,10 +23,7 @@ struct InitialVX {
     double time;
 
 public:
-    void settime(double t)
-    {
-        time = t;
-    }
+    void settime(double t) { time = t; }
 
     double operator()(double x, double y) const
     {
@@ -39,10 +36,7 @@ struct InitialVY {
     double time;
 
 public:
-    void settime(double t)
-    {
-        time = t;
-    }
+    void settime(double t) { time = t; }
 
     double operator()(double x, double y) const
     {
@@ -59,8 +53,7 @@ public:
     }
 };
 
-template <int DGdegree>
-class Test {
+template <int DGdegree> class Test {
     //! Meshes
     Nextsim::Mesh mesh;
     size_t NT; //!< number of time steps
@@ -87,7 +80,8 @@ public:
     double reference() const
     {
         if ((mesh.nx != 50) || (mesh.ny != 50)) {
-            std::cerr << "Reference values only for nx=ny=50. Test might still be correct" << std::endl;
+            std::cerr << "Reference values only for nx=ny=50. Test might still be correct"
+                      << std::endl;
         }
 
         if (DGdegree == 0)
@@ -155,12 +149,8 @@ public:
         double mass = phi.mass(mesh);
         double masserror = fabs(exactmass - mass);
 
-        std::cerr << "Mass [Exact / Reference / Numerical / Error]\t"
-                  << std::setprecision(8)
-                  << exactmass << "\t"
-                  << refmass << "\t"
-                  << mass << "\t"
-                  << masserror << "\t"
+        std::cerr << "Mass [Exact / Reference / Numerical / Error]\t" << std::setprecision(8)
+                  << exactmass << "\t" << refmass << "\t" << mass << "\t" << masserror << "\t"
                   << std::endl;
         return (fabs(mass - refmass) < 1.e-8);
     }

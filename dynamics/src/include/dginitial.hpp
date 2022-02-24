@@ -54,14 +54,9 @@ public:
 //! Functions to project an analytical solution into the DG spaces
 
 template <int DGdegree>
-void L2ProjectInitial(const Mesh& mesh,
-    CellVector<DGdegree>& phi,
-    InitialOp initial);
+void L2ProjectInitial(const Mesh& mesh, CellVector<DGdegree>& phi, InitialOp initial);
 
-template <>
-void L2ProjectInitial(const Mesh& mesh,
-    CellVector<0>& phi,
-    InitialOp initial)
+template <> void L2ProjectInitial(const Mesh& mesh, CellVector<0>& phi, InitialOp initial)
 {
     phi.setZero();
 
@@ -75,10 +70,7 @@ void L2ProjectInitial(const Mesh& mesh,
     }
 }
 
-template <>
-void L2ProjectInitial(const Mesh& mesh,
-    CellVector<1>& phi,
-    InitialOp initial)
+template <> void L2ProjectInitial(const Mesh& mesh, CellVector<1>& phi, InitialOp initial)
 {
     phi.setZero();
 
@@ -95,7 +87,8 @@ void L2ProjectInitial(const Mesh& mesh,
             for (unsigned short int gx = 0; gx < 2; ++gx)
                 for (unsigned short int gy = 0; gy < 2; ++gy) {
                     // (f, phi0)
-                    const double tmp = 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hy * g2[gy]);
+                    const double tmp
+                        = 0.25 * initial(xm[0] + mesh.hx * g2[gx], xm[1] + mesh.hy * g2[gy]);
                     phi(ic, 0) += imass[0] * tmp;
                     phi(ic, 1) += imass[1] * tmp * g2[gx];
                     phi(ic, 2) += imass[2] * tmp * g2[gy];
@@ -104,10 +97,7 @@ void L2ProjectInitial(const Mesh& mesh,
     }
 }
 
-template <>
-void L2ProjectInitial(const Mesh& mesh,
-    CellVector<2>& phi,
-    InitialOp initial)
+template <> void L2ProjectInitial(const Mesh& mesh, CellVector<2>& phi, InitialOp initial)
 {
     phi.setZero();
 
@@ -145,14 +135,9 @@ void L2ProjectInitial(const Mesh& mesh,
 //! Functions to compute the error of a DG vector w.r.t. an analytical solution measured in L2
 
 template <int DGdegree>
-double L2Error(const Mesh& mesh,
-    const CellVector<DGdegree>& phi,
-    InitialOp initial);
+double L2Error(const Mesh& mesh, const CellVector<DGdegree>& phi, InitialOp initial);
 
-template <>
-double L2Error(const Mesh& mesh,
-    const CellVector<2>& phi,
-    InitialOp ex)
+template <> double L2Error(const Mesh& mesh, const CellVector<2>& phi, InitialOp ex)
 {
     double res = 0.0; //!< stores the integral
 
@@ -175,7 +160,10 @@ double L2Error(const Mesh& mesh,
                     const double X = 0.5 + g3[gx];
                     const double Y = 0.5 + g3[gy];
 
-                    const double PHI = phi(ic, 0) + phi(ic, 1) * (X - 0.5) + phi(ic, 2) * (Y - 0.5) + phi(ic, 3) * ((X - 0.5) * (X - 0.5) - 1.0 / 12) + phi(ic, 4) * ((Y - 0.5) * (Y - 0.5) - 1.0 / 12) + phi(ic, 5) * (X - 0.5) * (Y - 0.5);
+                    const double PHI = phi(ic, 0) + phi(ic, 1) * (X - 0.5) + phi(ic, 2) * (Y - 0.5)
+                        + phi(ic, 3) * ((X - 0.5) * (X - 0.5) - 1.0 / 12)
+                        + phi(ic, 4) * ((Y - 0.5) * (Y - 0.5) - 1.0 / 12)
+                        + phi(ic, 5) * (X - 0.5) * (Y - 0.5);
 
 #pragma omp atomic
                     res += w3[gx] * w3[gy] * hxhy * (PHI - ex(x, y)) * (PHI - ex(x, y));
@@ -190,14 +178,9 @@ double L2Error(const Mesh& mesh,
 //! Functions to project an analytical solution into the DG spaces
 
 template <int CGdegree>
-void InterpolateCG(const Mesh& mesh,
-    CGVector<CGdegree>& phi,
-    InitialOp initial);
+void InterpolateCG(const Mesh& mesh, CGVector<CGdegree>& phi, InitialOp initial);
 
-template <>
-void InterpolateCG(const Mesh& mesh,
-    CGVector<2>& phi,
-    InitialOp initial)
+template <> void InterpolateCG(const Mesh& mesh, CGVector<2>& phi, InitialOp initial)
 {
     assert(static_cast<long int>((2 * mesh.nx + 1) * (2 * mesh.ny + 1)) == phi.rows());
 
@@ -212,10 +195,7 @@ void InterpolateCG(const Mesh& mesh,
         }
     }
 }
-template <>
-void InterpolateCG(const Mesh& mesh,
-    CGVector<1>& phi,
-    InitialOp initial)
+template <> void InterpolateCG(const Mesh& mesh, CGVector<1>& phi, InitialOp initial)
 {
     assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == phi.rows());
 

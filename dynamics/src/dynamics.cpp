@@ -205,19 +205,30 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
     // d_t U = ...
 
     // ocean
-    // L/(rho H) * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * |velwater - vel| (velwater-vel)
-    tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * ((oceanX.col(0) - vx.col(0)).array().abs() / H.col(0).array() * oceanX.col(0).array()).matrix();
+    // L/(rho H) * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * |velwater - vel|
+    // (velwater-vel)
+    tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean
+        * ((oceanX.col(0) - vx.col(0)).array().abs() / H.col(0).array() * oceanX.col(0).array())
+              .matrix();
 
-    tmpX -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * (vx.array().colwise() * ((oceanX.col(0) - vx.col(0)).array().abs() / H.col(0).array())).matrix();
+    tmpX -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean
+        * (vx.array().colwise() * ((oceanX.col(0) - vx.col(0)).array().abs() / H.col(0).array()))
+              .matrix();
 
-    tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * ((oceanY.col(0) - vy.col(0)).array().abs() / H.col(0).array() * oceanY.col(0).array()).matrix();
+    tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean
+        * ((oceanY.col(0) - vy.col(0)).array().abs() / H.col(0).array() * oceanY.col(0).array())
+              .matrix();
 
-    tmpY -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean * (vy.array().colwise() * ((oceanY.col(0) - vy.col(0)).array().abs() / H.col(0).array())).matrix();
+    tmpY -= 1 / ReferenceScale::rho_ice * ReferenceScale::C_ocean * ReferenceScale::rho_ocean
+        * (vy.array().colwise() * ((oceanY.col(0) - vy.col(0)).array().abs() / H.col(0).array()))
+              .matrix();
 
     // atm.
     // L/(rho H) * ReferenceScale::C_atm * ReferenceScale::rho_atm * |velatm| velatm
-    tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmX.col(0).array().abs() / H.col(0).array() * atmX.col(0).array()).matrix();
-    tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmY.col(0).array().abs() / H.col(0).array() * atmY.col(0).array()).matrix();
+    tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm
+        * (atmX.col(0).array().abs() / H.col(0).array() * atmX.col(0).array()).matrix();
+    tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm
+        * (atmY.col(0).array().abs() / H.col(0).array() * atmY.col(0).array()).matrix();
 
     /**!
      *
@@ -250,14 +261,17 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
         double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
         // std::cout << Pmax << " " << sigma_n << std::endl;
         double const expC = std::exp(ReferenceScale::compaction_param * (1. - A(i, 0)));
-        double const time_viscous = ReferenceScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, ReferenceScale::exponent_relaxation_sigma - 1.);
+        double const time_viscous = ReferenceScale::undamaged_time_relaxation_sigma
+            * std::pow((1. - D(i, 0)) * expC, ReferenceScale::exponent_relaxation_sigma - 1.);
 
         // Plastic failure tildeP
         double tildeP;
         if (sigma_n < 0.) {
             // below line copied from nextsim finiteelement.cpp
-            // double const Pmax = std::pow(M_thick[cpt], exponent_compression_factor)*compression_factor*expC;
-            double const Pmax = ReferenceScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
+            // double const Pmax = std::pow(M_thick[cpt],
+            // exponent_compression_factor)*compression_factor*expC;
+            double const Pmax
+                = ReferenceScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
             // tildeP must be capped at 1 to get an elastic response
             tildeP = std::min(1., -Pmax / sigma_n);
         } else {
@@ -266,8 +280,8 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
 
         // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
         // min and - from nextsim
-        double const multiplicator = std::min(1. - 1e-12,
-            time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
+        double const multiplicator
+            = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
 
         double const elasticity = ReferenceScale::young * (1. - D(i, 0)) * expC;
 
@@ -297,7 +311,8 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
         S22(i, 0) *= multiplicator;
 
         // continiue if stress in inside the failure envelope
-        /* Compute the shear and normal stresses, which are two invariants of the internal stress tensor */
+        /* Compute the shear and normal stresses, which are two invariants of the internal stress
+         * tensor */
         double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
         // update sigma_n
         sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
@@ -317,11 +332,13 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
             dcrit = C_fix / (sigma_s + ReferenceScale::tan_phi * sigma_n);
 
         /* Calculate the adjusted level of damage */
-        if ((0. < dcrit) && (dcrit < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+        if ((0. < dcrit)
+            && (dcrit < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
         {
             /* Calculate the characteristic time for damage and damage increment */
             // M_delta_x[cpt] = mesh.hx ???
-            double const td = mesh.hx * std::sqrt(2. * (1. + ReferenceScale::nu0) * ReferenceScale::rho_ice)
+            double const td = mesh.hx
+                * std::sqrt(2. * (1. + ReferenceScale::nu0) * ReferenceScale::rho_ice)
                 / std::sqrt(elasticity);
 
             // Eqn. (34)

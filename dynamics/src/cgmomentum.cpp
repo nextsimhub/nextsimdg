@@ -18,9 +18,9 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<1>& dg, const CGVect
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 2) {
             Eigen::Matrix<double, 9, 1> cg_local;
-            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2),
-                cg(cgi + cgshift), cg(cgi + 1 + cgshift), cg(cgi + 2 + cgshift),
-                cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift), cg(cgi + 2 + 2 * cgshift);
+            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift), cg(cgi + 1 + cgshift),
+                cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift),
+                cg(cgi + 2 + 2 * cgshift);
             dg.row(dgi) = CG2_to_DG1 * cg_local;
         }
     }
@@ -41,9 +41,9 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<2>& dg, const CGVect
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 2) {
             Eigen::Matrix<double, 9, 1> cg_local;
-            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2),
-                cg(cgi + cgshift), cg(cgi + 1 + cgshift), cg(cgi + 2 + cgshift),
-                cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift), cg(cgi + 2 + 2 * cgshift);
+            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift), cg(cgi + 1 + cgshift),
+                cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift),
+                cg(cgi + 2 + 2 * cgshift);
 
             dg.row(dgi) = CG2_to_DG2 * cg_local;
         }
@@ -65,8 +65,7 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<2>& dg, const CGVect
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
             Eigen::Matrix<double, 4, 1> cg_local;
-            cg_local << cg(cgi), cg(cgi + 1),
-                cg(cgi + cgshift), cg(cgi + 1 + cgshift);
+            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + cgshift), cg(cgi + 1 + cgshift);
 
             dg.row(dgi) = CG1_to_DG2 * cg_local;
         }
@@ -88,8 +87,7 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<1>& dg, const CGVect
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
             Eigen::Matrix<double, 4, 1> cg_local;
-            cg_local << cg(cgi), cg(cgi + 1),
-                cg(cgi + cgshift), cg(cgi + 1 + cgshift);
+            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + cgshift), cg(cgi + 1 + cgshift);
 
             dg.row(dgi) = CG1_to_DG1 * cg_local;
         }
@@ -111,8 +109,7 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<0>& dg, const CGVect
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
             Eigen::Matrix<double, 4, 1> cg_local;
-            cg_local << cg(cgi), cg(cgi + 1),
-                cg(cgi + cgshift), cg(cgi + 1 + cgshift);
+            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + cgshift), cg(cgi + 1 + cgshift);
 
             dg.row(dgi) = CG1_to_DG0 * cg_local;
         }
@@ -123,9 +120,8 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<0>& dg, const CGVect
  * projects the symmatric gradient of the continuous CG2 velocity into a dg vector
  */
 template <>
-void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
-    CellVector<1>& E11, CellVector<1>& E12, CellVector<1>& E22,
-    const CGVector<2>& vx, const CGVector<2>& vy)
+void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh, CellVector<1>& E11,
+    CellVector<1>& E12, CellVector<1>& E22, const CGVector<2>& vx, const CGVector<2>& vy)
 {
     assert(static_cast<long int>((2 * mesh.nx + 1) * (2 * mesh.ny + 1)) == vx.rows());
     assert(static_cast<long int>((2 * mesh.nx + 1) * (2 * mesh.ny + 1)) == vy.rows());
@@ -143,24 +139,24 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 2) {
             Eigen::Matrix<double, 9, 1> vx_local;
-            vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2),
-                vx(cgi + cgshift), vx(cgi + 1 + cgshift), vx(cgi + 2 + cgshift),
-                vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift), vx(cgi + 2 + 2 * cgshift);
+            vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2), vx(cgi + cgshift), vx(cgi + 1 + cgshift),
+                vx(cgi + 2 + cgshift), vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift),
+                vx(cgi + 2 + 2 * cgshift);
             Eigen::Matrix<double, 9, 1> vy_local;
-            vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2),
-                vy(cgi + cgshift), vy(cgi + 1 + cgshift), vy(cgi + 2 + cgshift),
-                vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift), vy(cgi + 2 + 2 * cgshift);
+            vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2), vy(cgi + cgshift), vy(cgi + 1 + cgshift),
+                vy(cgi + 2 + cgshift), vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift),
+                vy(cgi + 2 + 2 * cgshift);
 
             E11.row(dgi) = CG2_to_DG1_dX * vx_local / mesh.hx;
             E22.row(dgi) = CG2_to_DG1_dY * vy_local / mesh.hy;
-            E12.row(dgi) = 0.5 * CG2_to_DG1_dX * vy_local / mesh.hx + 0.5 * CG2_to_DG1_dY * vx_local / mesh.hy;
+            E12.row(dgi) = 0.5 * CG2_to_DG1_dX * vy_local / mesh.hx
+                + 0.5 * CG2_to_DG1_dY * vx_local / mesh.hy;
         }
     }
 }
 template <>
-void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
-    CellVector<1>& E11, CellVector<1>& E12, CellVector<1>& E22,
-    const CGVector<1>& vx, const CGVector<1>& vy)
+void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh, CellVector<1>& E11,
+    CellVector<1>& E12, CellVector<1>& E22, const CGVector<1>& vx, const CGVector<1>& vy)
 {
     assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == vx.rows());
     assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == vy.rows());
@@ -177,25 +173,21 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
         int cgi = cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
-            Eigen::Matrix<double, 4, 1> vx_local = {
-                vx(cgi), vx(cgi + 1),
-                vx(cgi + cgshift), vx(cgi + 1 + cgshift)
-            };
-            Eigen::Matrix<double, 4, 1> vy_local = {
-                vy(cgi), vy(cgi + 1),
-                vy(cgi + cgshift), vy(cgi + 1 + cgshift)
-            };
+            Eigen::Matrix<double, 4, 1> vx_local
+                = { vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift) };
+            Eigen::Matrix<double, 4, 1> vy_local
+                = { vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift) };
 
             E11.row(dgi) = CG1_to_DG1_dX * vx_local / mesh.hx;
             E22.row(dgi) = CG1_to_DG1_dY * vy_local / mesh.hy;
-            E12.row(dgi) = 0.5 * CG1_to_DG1_dX * vy_local / mesh.hx + 0.5 * CG1_to_DG1_dY * vx_local / mesh.hy;
+            E12.row(dgi) = 0.5 * CG1_to_DG1_dX * vy_local / mesh.hx
+                + 0.5 * CG1_to_DG1_dY * vx_local / mesh.hy;
         }
     }
 }
 template <>
-void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
-    CellVector<0>& E11, CellVector<0>& E12, CellVector<0>& E22,
-    const CGVector<1>& vx, const CGVector<1>& vy)
+void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh, CellVector<0>& E11,
+    CellVector<0>& E12, CellVector<0>& E22, const CGVector<1>& vx, const CGVector<1>& vy)
 {
     assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == vx.rows());
     assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == vy.rows());
@@ -212,26 +204,23 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
         int cgi = cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 1) {
-            Eigen::Matrix<double, 4, 1> vx_local = {
-                vx(cgi), vx(cgi + 1),
-                vx(cgi + cgshift), vx(cgi + 1 + cgshift)
-            };
-            Eigen::Matrix<double, 4, 1> vy_local = {
-                vy(cgi), vy(cgi + 1),
-                vy(cgi + cgshift), vy(cgi + 1 + cgshift)
-            };
+            Eigen::Matrix<double, 4, 1> vx_local
+                = { vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift) };
+            Eigen::Matrix<double, 4, 1> vy_local
+                = { vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift) };
 
             E11.row(dgi) = CG1_to_DG0_dX * vx_local / mesh.hx;
             E22.row(dgi) = CG1_to_DG0_dY * vy_local / mesh.hy;
-            E12.row(dgi) = 0.5 * CG1_to_DG0_dX * vy_local / mesh.hx + 0.5 * CG1_to_DG0_dY * vx_local / mesh.hy;
+            E12.row(dgi) = 0.5 * CG1_to_DG0_dX * vy_local / mesh.hx
+                + 0.5 * CG1_to_DG0_dY * vx_local / mesh.hy;
         }
     }
 }
 
 template <int CG, int DG>
-void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
-    CGVector<CG>& tx, CGVector<CG>& ty,
-    const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const
+void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, CGVector<CG>& tx,
+    CGVector<CG>& ty, const CellVector<DG>& S11, const CellVector<DG>& S12,
+    const CellVector<DG>& S22) const
 {
     // parallelization in tripes
     for (size_t p = 0; p < 2; ++p)
@@ -247,8 +236,7 @@ void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
 }
 
 //! Sets the vector to zero along the boundary
-template <>
-void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<1>& v) const
+template <> void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<1>& v) const
 {
 
     size_t upperleftindex = (mesh.nx + 1) * mesh.ny;
@@ -263,8 +251,7 @@ void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<1>& v) const
         v(lowerrightindex + indecesperrow * i, 0) = 0.0;
     }
 }
-template <>
-void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
+template <> void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
 {
 
     size_t upperleftindex = (2 * mesh.nx + 1) * 2 * mesh.ny;
@@ -281,7 +268,8 @@ void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
 }
 
 template <int CG, int DG>
-void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<CG>& cg_A, const CellVector<DG>& A) const
+void CGMomentum::InterpolateDGToCG(
+    const Mesh& mesh, CGVector<CG>& cg_A, const CellVector<DG>& A) const
 {
     cg_A.zero();
 
@@ -305,20 +293,23 @@ void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<CG>& cg_A, const C
 
 // --------------------------------------------------
 
-template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
-    CGVector<1>& tx, CGVector<1>& ty,
-    const CellVector<0>& S11, const CellVector<0>& S12, const CellVector<0>& S22) const;
+template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, CGVector<1>& tx,
+    CGVector<1>& ty, const CellVector<0>& S11, const CellVector<0>& S12,
+    const CellVector<0>& S22) const;
 
-template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
-    CGVector<1>& tx, CGVector<1>& ty,
-    const CellVector<1>& S11, const CellVector<1>& S12, const CellVector<1>& S22) const;
+template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, CGVector<1>& tx,
+    CGVector<1>& ty, const CellVector<1>& S11, const CellVector<1>& S12,
+    const CellVector<1>& S22) const;
 
-template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale,
-    CGVector<2>& tx, CGVector<2>& ty,
-    const CellVector<1>& S11, const CellVector<1>& S12, const CellVector<1>& S22) const;
+template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, CGVector<2>& tx,
+    CGVector<2>& ty, const CellVector<1>& S11, const CellVector<1>& S12,
+    const CellVector<1>& S22) const;
 
-template void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<1>& cg_A, const CellVector<0>& A) const;
-template void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<1>& cg_A, const CellVector<1>& A) const;
-template void CGMomentum::InterpolateDGToCG(const Mesh& mesh, CGVector<2>& cg_A, const CellVector<0>& A) const;
+template void CGMomentum::InterpolateDGToCG(
+    const Mesh& mesh, CGVector<1>& cg_A, const CellVector<0>& A) const;
+template void CGMomentum::InterpolateDGToCG(
+    const Mesh& mesh, CGVector<1>& cg_A, const CellVector<1>& A) const;
+template void CGMomentum::InterpolateDGToCG(
+    const Mesh& mesh, CGVector<2>& cg_A, const CellVector<0>& A) const;
 
 }

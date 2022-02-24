@@ -55,8 +55,7 @@ public:
 
 //////////////////////////////////////////////////
 
-template <int DGdegree>
-class Test {
+template <int DGdegree> class Test {
     //! Mesh size (given as parameter to constructor)
     size_t N;
 
@@ -84,10 +83,7 @@ public:
         dgtransport.settimesteppingscheme("rk3");
     }
 
-    Test()
-    {
-        std::cerr << "call Test(N). N is number of mesh elements per row" << std::endl;
-    }
+    Test() { std::cerr << "call Test(N). N is number of mesh elements per row" << std::endl; }
 
     void init()
     {
@@ -155,8 +151,7 @@ public:
 
         //! Check that mass is ok.
         double mass = phi.mass(mesh);
-        std::cerr << std::setprecision(16)
-                  << mass << "\t";
+        std::cerr << std::setprecision(16) << mass << "\t";
 
         Nextsim::CellVector<DGdegree> errorphi = phi;
         errorphi += -finalphi;

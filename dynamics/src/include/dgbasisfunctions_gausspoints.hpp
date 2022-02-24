@@ -36,37 +36,98 @@ constexpr double gauss_weights3[3] = { 0.2777777777777778, 0.4444444444444444, 0
 
 //------------------------------ Basis Functions in Gauss Points
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_0 = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -1.7320508075688772, -3.0, 0.5, 1.7320508075688772, -3.0).finished();
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_0
+    = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -1.7320508075688772, -3.0, 0.5,
+        1.7320508075688772, -3.0)
+          .finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_1 = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, 3.0, -1.7320508075688772, 0.5, 3.0, 1.7320508075688772).finished();
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_1
+    = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, 3.0, -1.7320508075688772, 0.5, 3.0,
+        1.7320508075688772)
+          .finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_2 = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -1.7320508075688772, 3.0, 0.5, 1.7320508075688772, 3.0).finished();
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_2
+    = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -1.7320508075688772, 3.0, 0.5,
+        1.7320508075688772, 3.0)
+          .finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_3 = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -3.0, -1.7320508075688772, 0.5, -3.0, 1.7320508075688772).finished();
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_3
+    = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -3.0, -1.7320508075688772, 0.5, -3.0,
+        1.7320508075688772)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_0 = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058, -1.6666666666666667, 3.333333333333335, 8.333333333333334, 7.745966692414834, 0.4444444444444444, 0.0, -2.6666666666666665, -6.666666666666666, 13.333333333333336, -0.0, 0.2777777777777778, 1.2909944487358058, -1.6666666666666667, 3.333333333333335, 8.333333333333334, -7.745966692414834).finished();
+static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_0
+    = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058,
+        -1.6666666666666667, 3.333333333333335, 8.333333333333334, 7.745966692414834,
+        0.4444444444444444, 0.0, -2.6666666666666665, -6.666666666666666, 13.333333333333336, -0.0,
+        0.2777777777777778, 1.2909944487358058, -1.6666666666666667, 3.333333333333335,
+        8.333333333333334, -7.745966692414834)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_1 = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, 1.6666666666666667, -1.2909944487358058, 8.333333333333334, 3.333333333333335, -7.745966692414834, 0.4444444444444444, 2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, 0.0, 0.2777777777777778, 1.6666666666666667, 1.2909944487358058, 8.333333333333334, 3.333333333333335, 7.745966692414834).finished();
+static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_1
+    = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, 1.6666666666666667,
+        -1.2909944487358058, 8.333333333333334, 3.333333333333335, -7.745966692414834,
+        0.4444444444444444, 2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, 0.0,
+        0.2777777777777778, 1.6666666666666667, 1.2909944487358058, 8.333333333333334,
+        3.333333333333335, 7.745966692414834)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_2 = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058, 1.6666666666666667, 3.333333333333335, 8.333333333333334, -7.745966692414834, 0.4444444444444444, 0.0, 2.6666666666666665, -6.666666666666666, 13.333333333333336, 0.0, 0.2777777777777778, 1.2909944487358058, 1.6666666666666667, 3.333333333333335, 8.333333333333334, 7.745966692414834).finished();
+static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_2
+    = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058,
+        1.6666666666666667, 3.333333333333335, 8.333333333333334, -7.745966692414834,
+        0.4444444444444444, 0.0, 2.6666666666666665, -6.666666666666666, 13.333333333333336, 0.0,
+        0.2777777777777778, 1.2909944487358058, 1.6666666666666667, 3.333333333333335,
+        8.333333333333334, 7.745966692414834)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_3 = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.6666666666666667, -1.2909944487358058, 8.333333333333334, 3.333333333333335, 7.745966692414834, 0.4444444444444444, -2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, -0.0, 0.2777777777777778, -1.6666666666666667, 1.2909944487358058, 8.333333333333334, 3.333333333333335, -7.745966692414834).finished();
+static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_3
+    = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.6666666666666667,
+        -1.2909944487358058, 8.333333333333334, 3.333333333333335, 7.745966692414834,
+        0.4444444444444444, -2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, -0.0,
+        0.2777777777777778, -1.6666666666666667, 1.2909944487358058, 8.333333333333334,
+        3.333333333333335, -7.745966692414834)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_0 = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058, -1.6666666666666667, 0.4444444444444444, 0.0, -2.6666666666666665, 0.2777777777777778, 1.2909944487358058, -1.6666666666666667).finished();
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_0
+    = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058,
+        -1.6666666666666667, 0.4444444444444444, 0.0, -2.6666666666666665, 0.2777777777777778,
+        1.2909944487358058, -1.6666666666666667)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_1 = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, 1.6666666666666667, -1.2909944487358058, 0.4444444444444444, 2.6666666666666665, 0.0, 0.2777777777777778, 1.6666666666666667, 1.2909944487358058).finished();
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_1
+    = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, 1.6666666666666667,
+        -1.2909944487358058, 0.4444444444444444, 2.6666666666666665, 0.0, 0.2777777777777778,
+        1.6666666666666667, 1.2909944487358058)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_2 = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058, 1.6666666666666667, 0.4444444444444444, 0.0, 2.6666666666666665, 0.2777777777777778, 1.2909944487358058, 1.6666666666666667).finished();
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_2
+    = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058,
+        1.6666666666666667, 0.4444444444444444, 0.0, 2.6666666666666665, 0.2777777777777778,
+        1.2909944487358058, 1.6666666666666667)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_3 = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.6666666666666667, -1.2909944487358058, 0.4444444444444444, -2.6666666666666665, 0.0, 0.2777777777777778, -1.6666666666666667, 1.2909944487358058).finished();
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_3
+    = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.6666666666666667,
+        -1.2909944487358058, 0.4444444444444444, -2.6666666666666665, 0.0, 0.2777777777777778,
+        -1.6666666666666667, 1.2909944487358058)
+          .finished();
 
 //------------------------------ Edge Basis Functions in Gauss Points
 
-static const Eigen::Matrix<double, 2, 2, Eigen::RowMajor> BiGe12 = (Eigen::Matrix<double, 2, 2, Eigen::RowMajor>() << 1.0, 1.0, -0.28867513459481287, 0.28867513459481287).finished();
+static const Eigen::Matrix<double, 2, 2, Eigen::RowMajor> BiGe12
+    = (Eigen::Matrix<double, 2, 2, Eigen::RowMajor>() << 1.0, 1.0, -0.28867513459481287,
+        0.28867513459481287)
+          .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiGe23 = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 1.0, 1.0, 1.0, -0.3872983346207417, 0.0, 0.3872983346207417, 0.0666666666666667, -0.08333333333333333, 0.0666666666666667).finished();
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiGe23
+    = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 1.0, 1.0, 1.0, -0.3872983346207417, 0.0,
+        0.3872983346207417, 0.0666666666666667, -0.08333333333333333, 0.0666666666666667)
+          .finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiGe13 = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 1.0, 1.0, 1.0, -0.3872983346207417, 0.0, 0.3872983346207417).finished();
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiGe13
+    = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 1.0, 1.0, 1.0, -0.3872983346207417, 0.0,
+        0.3872983346207417)
+          .finished();
 
 //------------------------------------
 #endif

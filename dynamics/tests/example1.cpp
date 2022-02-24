@@ -58,15 +58,11 @@ struct InitialVX {
     double _time;
 
 public:
-    void settime(double t)
-    {
-        _time = t;
-    }
+    void settime(double t) { _time = t; }
 
     double operator()(double x, double y) const
     {
-        return (0.5 * M_PI * sin(0.5 * _time))
-            * ((y - 0.5));
+        return (0.5 * M_PI * sin(0.5 * _time)) * ((y - 0.5));
     }
 };
 struct InitialVY {
@@ -74,18 +70,17 @@ struct InitialVY {
     double _time;
 
 public:
-    void settime(double t)
-    {
-        _time = t;
-    }
+    void settime(double t) { _time = t; }
 
-    double operator()(double x, double y) const { return (0.5 * M_PI * sin(0.5 * _time)) * (-(x - 0.5)); }
+    double operator()(double x, double y) const
+    {
+        return (0.5 * M_PI * sin(0.5 * _time)) * (-(x - 0.5));
+    }
 };
 
 //////////////////////////////////////////////////
 
-template <int DGdegree>
-class Test {
+template <int DGdegree> class Test {
 
     size_t N; //!< size of mesh N x N
 
@@ -122,10 +117,7 @@ public:
             dgtransport.settimesteppingscheme("rk3");
     }
 
-    Test()
-    {
-        std::cout << "call Test(N). N is number of mesh elements per row" << std::endl;
-    }
+    Test() { std::cout << "call Test(N). N is number of mesh elements per row" << std::endl; }
 
     void init()
     {
@@ -195,7 +187,8 @@ public:
                 if (WRITE_VTK)
                     if (iter % (NT / writestep) == 0) {
                         Nextsim::Timer::main.tick("run -- loop -- vtk");
-                        Nextsim::VTK::write_dg<DGdegree>("Results/dg", iter / (NT / writestep), phi, mesh);
+                        Nextsim::VTK::write_dg<DGdegree>(
+                            "Results/dg", iter / (NT / writestep), phi, mesh);
                         Nextsim::Timer::main.tock("run -- loop -- vtk");
                     }
             }
@@ -229,8 +222,7 @@ public:
             std::cerr << values[i] << "\t" << errors[i] << std::endl;
     }
 
-    void print_error(const std::array<double, 3>& v,
-        const std::array<double, 3>& e,
+    void print_error(const std::array<double, 3>& v, const std::array<double, 3>& e,
         const std::string& message) const
     {
         std::cerr << "dG(" << DGdegree << ") FAILED: " << message << std::endl;
@@ -238,7 +230,8 @@ public:
         assert(values.size() >= 3);
 
         for (size_t i = 0; i < 3; ++i)
-            std::cerr << v[i] << " = " << values[i + values.size() - 3] << "\t" << e[i] << " = " << errors[i + values.size() - 3] << std::endl;
+            std::cerr << v[i] << " = " << values[i + values.size() - 3] << "\t" << e[i] << " = "
+                      << errors[i + values.size() - 3] << std::endl;
     }
 
     bool check_references(const std::array<double, 3>& v, const std::array<double, 3>& e) const
@@ -265,14 +258,20 @@ public:
 
         if (N == 80) {
             if (DGdegree == 0) {
-                val_ref = std::array<double, 3>({ 0.1040973014386282, 0.1196042191148516, 0.1264035055795092 });
-                err_ref = std::array<double, 3>({ 0.2055757930605657, 0.1547718388297195, 0.1111151282733836 });
+                val_ref = std::array<double, 3>(
+                    { 0.1040973014386282, 0.1196042191148516, 0.1264035055795092 });
+                err_ref = std::array<double, 3>(
+                    { 0.2055757930605657, 0.1547718388297195, 0.1111151282733836 });
             } else if (DGdegree == 1) {
-                val_ref = std::array<double, 3>({ 0.1297377725023032, 0.1290794989188777, 0.1290992303550586 });
-                err_ref = std::array<double, 3>({ 0.07138784362943089, 0.01941901084543833, 0.004572185826845114 });
+                val_ref = std::array<double, 3>(
+                    { 0.1297377725023032, 0.1290794989188777, 0.1290992303550586 });
+                err_ref = std::array<double, 3>(
+                    { 0.07138784362943089, 0.01941901084543833, 0.004572185826845114 });
             } else if (DGdegree == 2) {
-                val_ref = std::array<double, 3>({ 0.1290847613765785, 0.129099700340886, 0.1290996998763931 });
-                err_ref = std::array<double, 3>({ 0.03113698402363593, 0.008527051921868931, 0.001234126542186417 });
+                val_ref = std::array<double, 3>(
+                    { 0.1290847613765785, 0.129099700340886, 0.1290996998763931 });
+                err_ref = std::array<double, 3>(
+                    { 0.03113698402363593, 0.008527051921868931, 0.001234126542186417 });
             } else
                 abort();
         } else {
