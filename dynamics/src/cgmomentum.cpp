@@ -120,8 +120,8 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<0>& dg, const CGVect
 }
 
 /*!
-   * projects the symmatric gradient of the continuous CG2 velocity into a dg vector
-   */
+ * projects the symmatric gradient of the continuous CG2 velocity into a dg vector
+ */
 template <>
 void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh,
     CellVector<1>& E11, CellVector<1>& E12, CellVector<1>& E22,

@@ -45,7 +45,7 @@ public:
         const CGVector<1>& v,
         const Mesh& mesh)
     {
-        //extract variable name
+        // extract variable name
         std::string variableName = fname.substr(fname.find("/") + 1, fname.find_first_of(".") - fname.find("/") - 1);
 
         std::ofstream OUT(fname.c_str());
@@ -75,7 +75,7 @@ public:
         const CGVector<2>& v,
         const Mesh& mesh)
     {
-        //extract variable name
+        // extract variable name
         std::string variableName = fname.substr(fname.find("/") + 1, fname.find_first_of(".") - fname.find("/") - 1);
 
         std::ofstream OUT(fname.c_str());
@@ -189,7 +189,7 @@ public:
         const CellVector<DGdegree>& v,
         const Mesh& mesh)
     {
-        //extract variable name
+        // extract variable name
         std::string variableName = fname.substr(fname.find("/") + 1, fname.find_first_of(".") - fname.find("/") - 1);
 
         std::ofstream OUT(fname.c_str());

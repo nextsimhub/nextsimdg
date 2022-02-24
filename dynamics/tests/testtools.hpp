@@ -4,10 +4,10 @@
 /*----------------------------   testtools.hpp     ---------------------------*/
 
 /*!
-* @file   testtools.hpp
-* @author Thomas Richter <thomas.richter@ovgu.de>
-* @date   27/10/2021
-*/
+ * @file   testtools.hpp
+ * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @date   27/10/2021
+ */
 
 #include <array>
 #include <vector>
@@ -15,12 +15,12 @@
 namespace Nextsim {
 
 /*!
-   * 
-   * Computes the  experimental order of convergence
-   *
-   * @param values is list of numerical values on meshes (h, h/2, h/4, ...)
-   * @return {C,a,q}  a(h) = a + C * h^q
-   */
+ *
+ * Computes the  experimental order of convergence
+ *
+ * @param values is list of numerical values on meshes (h, h/2, h/4, ...)
+ * @return {C,a,q}  a(h) = a + C * h^q
+ */
 std::array<double, 3> extrapolate(const std::vector<double>& values)
 {
     if (values.size() < 3) {

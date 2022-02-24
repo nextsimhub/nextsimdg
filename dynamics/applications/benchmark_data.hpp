@@ -37,14 +37,14 @@ inline constexpr double SQR(double x)
 }
 
 //! Description of the problem data, wind & ocean fields
-class OceanX : virtual public Nextsim::InitialBase {
+struct OceanX {
 public:
     double operator()(double x, double y) const
     {
         return ReferenceScale::vmax_ocean * (2.0 * y / ReferenceScale::L - 1);
     }
 };
-class OceanY : virtual public Nextsim::InitialBase {
+struct OceanY {
 public:
     double operator()(double x, double y) const
     {
@@ -52,7 +52,7 @@ public:
     }
 };
 
-class AtmX : virtual public Nextsim::InitialBase {
+struct AtmX {
     double time;
 
 public:
@@ -80,7 +80,7 @@ public:
         return -scale * ReferenceScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
     }
 };
-class AtmY : virtual public Nextsim::InitialBase {
+struct AtmY {
     double time;
 
 public:
@@ -108,7 +108,7 @@ public:
         return -scale * ReferenceScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
     }
 };
-class ExX : virtual public Nextsim::InitialBase {
+struct ExX {
 
 public:
     double operator()(double x, double y) const
@@ -118,7 +118,7 @@ public:
         return sin(X) * sin(Y);
     }
 };
-class ExY : virtual public Nextsim::InitialBase {
+struct ExY {
 
 public:
     double operator()(double x, double y) const
@@ -129,7 +129,7 @@ public:
     }
 };
 
-class InitialH : virtual public Nextsim::InitialBase {
+struct InitialH {
 public:
     double operator()(double x, double y) const
     {
@@ -137,7 +137,7 @@ public:
         return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
-class InitialA : virtual public Nextsim::InitialBase {
+struct InitialA {
 public:
     double operator()(double x, double y) const
     {

@@ -145,7 +145,7 @@ typedef enum {
  *
  * DGdegree 0:    1
  * DGdegree 1: +  (t-1/2)
- * DGdegree 2: +  (t-1/2)^2-1/12 
+ * DGdegree 2: +  (t-1/2)^2-1/12
  *
  * edges (t) are oriented in positive x- and y-direction
  *
@@ -159,11 +159,11 @@ public:
     inline int dofs_in_edge() const { return DGdegree + 1; }
 
     /*!
-   * Type of the edge:
-   * none: not assigned
-   * X:    edge is parallel to X-axes. Vector has size nx * (ny+1)
-   * Y:    edge is parallel to Y-axes. Vector has size (nx+1) * ny
-   */
+     * Type of the edge:
+     * none: not assigned
+     * X:    edge is parallel to X-axes. Vector has size nx * (ny+1)
+     * Y:    edge is parallel to Y-axes. Vector has size (nx+1) * ny
+     */
 
     EdgeType edgetype;
 

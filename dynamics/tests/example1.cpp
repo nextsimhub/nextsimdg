@@ -25,7 +25,7 @@ double TOL = 1.e-10; //!< tolerance for checking test results
 
 //! Initially a smooth bump centered at (0.4,0.4)
 //! This will be transported in a circle with (-y, x) for one complete revolution
-class InitialPhi : virtual public Nextsim::InitialBase {
+struct InitialPhi {
 
 public:
     double smooth(double x) const // smooth transition from 0 to 1 on [0,1]
@@ -53,7 +53,7 @@ public:
 };
 
 // Velocity
-class InitialVX : virtual public Nextsim::InitialBase {
+struct InitialVX {
 
     double _time;
 
@@ -69,7 +69,7 @@ public:
             * ((y - 0.5));
     }
 };
-class InitialVY : virtual public Nextsim::InitialBase {
+struct InitialVY {
 
     double _time;
 
@@ -155,12 +155,12 @@ public:
 
         //! Iteration with successive mesh refinement
         for (size_t iter = 0; iter < NITER; ++iter) {
-            //Nextsim::GlobalTimer.reset();
+            // Nextsim::GlobalTimer.reset();
             Nextsim::Timer::main.reset();
-            //Nextsim::Timer::main.tick("run");
+            // Nextsim::Timer::main.tick("run");
             Nextsim::Timer::main.tick("run");
 
-            //Nextsim::Timer::main.tick("run -- init");
+            // Nextsim::Timer::main.tick("run -- init");
             Nextsim::Timer::main.tick("run -- init");
 
             init();

@@ -17,7 +17,7 @@ bool WRITE_VTK = false;
 
 //! Initially a smooth bump centered at (0.4,0.4)
 //! This will be transported in a circle with (-y, x) for one complete revolution
-class InitialPhi : virtual public Nextsim::InitialBase {
+struct InitialPhi {
 public:
     double smooth(double x) const // smooth transition from 0 to 1 on [0,1]
     {
@@ -44,13 +44,13 @@ public:
 };
 
 // Velocity
-class InitialVX : virtual public Nextsim::InitialBase {
+struct InitialVX {
 public:
-    virtual double operator()(double x, double y) const { return y - 0.5; }
+    double operator()(double x, double y) const { return y - 0.5; }
 };
-class InitialVY : virtual public Nextsim::InitialBase {
+struct InitialVY {
 public:
-    virtual double operator()(double x, double y) const { return 0.5 - x; }
+    double operator()(double x, double y) const { return 0.5 - x; }
 };
 
 //////////////////////////////////////////////////

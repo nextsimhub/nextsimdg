@@ -32,14 +32,14 @@ extern Timer GlobalTimer;
  */
 
 //! Defines the exact solution
-class ExactVX : virtual public Nextsim::InitialBase {
+struct ExactVX {
 public:
     double operator()(double x, double y) const
     {
         return sin(M_PI * x / L) * sin(M_PI * y / L);
     }
 };
-class ExactVY : virtual public Nextsim::InitialBase {
+struct ExactVY {
 public:
     double operator()(double x, double y) const
     {
@@ -47,14 +47,14 @@ public:
     }
 };
 //! Defines the initial solution
-class InitialVX : virtual public Nextsim::InitialBase {
+struct InitialVX {
 public:
     double operator()(double x, double y) const
     {
         return sin(M_PI * x / L) * sin(M_PI * y / L);
     }
 };
-class InitialVY : virtual public Nextsim::InitialBase {
+struct InitialVY {
 public:
     double operator()(double x, double y) const
     {
@@ -63,7 +63,7 @@ public:
 };
 
 //! Defines the right hand side f = -div(nabla v + nabla v^T)
-class FX : virtual public Nextsim::InitialBase {
+struct FX {
 public:
     double operator()(double x, double y) const
     {
@@ -74,7 +74,7 @@ public:
         return (3.0 * M_PI * M_PI / 2. * sx * sy - 2.0 * M_PI * M_PI * c2x * c2y) / L / L;
     }
 };
-class FY : virtual public Nextsim::InitialBase {
+struct FY {
 
 public:
     double operator()(double x, double y) const

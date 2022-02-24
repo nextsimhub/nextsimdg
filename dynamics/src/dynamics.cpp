@@ -6,9 +6,9 @@
 namespace Nextsim {
 extern Nextsim::Timer GlobalTimer;
 
-/*! 
-   * Sets important parameters, initializes these and that
-   */
+/*!
+ * Sets important parameters, initializes these and that
+ */
 void Dynamics::BasicInit()
 {
     //! Degree of the time stepping in advection
@@ -43,8 +43,8 @@ void Dynamics::BasicInit()
 //////////////////////////////////////////////////
 
 /**!
-   * controls the flow of the dynamical core
-   */
+ * controls the flow of the dynamical core
+ */
 
 void Dynamics::advectionStep(const double dt)
 {
@@ -198,7 +198,7 @@ void Dynamics::addStressTensor(double scaleSigma)
 
 void Dynamics::momentumSubsteps(const double dt_momentum)
 {
-    //MOMENTUM EQUATION
+    // MOMENTUM EQUATION
     tmpX.zero();
     tmpY.zero();
 
@@ -219,7 +219,7 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
     tmpX.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmX.col(0).array().abs() / H.col(0).array() * atmX.col(0).array()).matrix();
     tmpY.col(0) += 1 / ReferenceScale::rho_ice * ReferenceScale::C_atm * ReferenceScale::rho_atm * (atmY.col(0).array().abs() / H.col(0).array() * atmY.col(0).array()).matrix();
 
-    /**! 
+    /**!
      *
      * Compute the stress tensor ...
      * ...
@@ -238,7 +238,7 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
     vx += dt_momentum * tmpX;
     vy += dt_momentum * tmpY;
 
-    //DAMAGE EQUATION
+    // DAMAGE EQUATION
 
     // Sigma = D = sym(grad v)
     computeStrainRateTensor(); //!< S = 1/2 (nabla v + nabla v^T)
@@ -248,15 +248,15 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
     for (size_t i = 0; i < mesh.n; ++i) {
         // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
         double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-        //std::cout << Pmax << " " << sigma_n << std::endl;
+        // std::cout << Pmax << " " << sigma_n << std::endl;
         double const expC = std::exp(ReferenceScale::compaction_param * (1. - A(i, 0)));
         double const time_viscous = ReferenceScale::undamaged_time_relaxation_sigma * std::pow((1. - D(i, 0)) * expC, ReferenceScale::exponent_relaxation_sigma - 1.);
 
         // Plastic failure tildeP
         double tildeP;
         if (sigma_n < 0.) {
-            //below line copied from nextsim finiteelement.cpp
-            //double const Pmax = std::pow(M_thick[cpt], exponent_compression_factor)*compression_factor*expC;
+            // below line copied from nextsim finiteelement.cpp
+            // double const Pmax = std::pow(M_thick[cpt], exponent_compression_factor)*compression_factor*expC;
             double const Pmax = ReferenceScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
             // tildeP must be capped at 1 to get an elastic response
             tildeP = std::min(1., -Pmax / sigma_n);
@@ -273,22 +273,22 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
 
         double const Dunit_factor = 1. / (1. - SQR(ReferenceScale::nu0));
         /* Stiffness matrix
-        * 1  nu 0
-        * nu 1  0
-        * 0  0  (1-nu)
-        */
-        //M_Dunit[0] = Dunit_factor * 1.;
-        //M_Dunit[1] = Dunit_factor * nu0;
-        //M_Dunit[3] = Dunit_factor * nu0;
-        //M_Dunit[4] = Dunit_factor * 1.;
-        //M_Dunit[8] = Dunit_factor * (1. - nu0) ;
+         * 1  nu 0
+         * nu 1  0
+         * 0  0  (1-nu)
+         */
+        // M_Dunit[0] = Dunit_factor * 1.;
+        // M_Dunit[1] = Dunit_factor * nu0;
+        // M_Dunit[3] = Dunit_factor * nu0;
+        // M_Dunit[4] = Dunit_factor * 1.;
+        // M_Dunit[8] = Dunit_factor * (1. - nu0) ;
 
-        //compute SigmaE
+        // compute SigmaE
         double SigmaE11 = Dunit_factor * (E11(i, 0) + ReferenceScale::nu0 * E22(i, 0));
         double SigmaE22 = Dunit_factor * (ReferenceScale::nu0 * E11(i, 0) + E22(i, 0));
         double SigmaE12 = 1. / (1 - ReferenceScale::nu0) * E12(i, 0);
 
-        //Elasit prediction Eqn. (32)
+        // Elasit prediction Eqn. (32)
         S11(i, 0) += dt_momentum * elasticity * SigmaE11;
         S11(i, 0) *= multiplicator;
         S12(i, 0) += dt_momentum * elasticity * SigmaE12;
@@ -296,13 +296,13 @@ void Dynamics::momentumSubsteps(const double dt_momentum)
         S22(i, 0) += dt_momentum * elasticity * SigmaE22;
         S22(i, 0) *= multiplicator;
 
-        //continiue if stress in inside the failure envelope
+        // continiue if stress in inside the failure envelope
         /* Compute the shear and normal stresses, which are two invariants of the internal stress tensor */
         double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
-        //update sigma_n
+        // update sigma_n
         sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-        //cohesion Eqn. (21)
-        //Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10 cm)
+        // cohesion Eqn. (21)
+        // Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10 cm)
         double const C_fix = ReferenceScale::C_lab * std::sqrt(0.1 / mesh.hx);
         ; // C_lab;...  : cohesion (Pa)
 

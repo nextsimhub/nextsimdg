@@ -27,8 +27,8 @@ public:
         const CGVector<CG>& vx, const CGVector<CG>& vy);
 
     /*!
-   * Evaluates (S, nabla phi) and adds it to tx/ty - Vector
-   */
+     * Evaluates (S, nabla phi) and adds it to tx/ty - Vector
+     */
     template <int CG, int DG>
     void AddStressTensor(const Mesh& mesh, const double scale,
         CGVector<CG>& tx, CGVector<CG>& ty,

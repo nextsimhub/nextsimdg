@@ -54,14 +54,14 @@ inline constexpr double SQR(double x)
     return x * x;
 }
 //! Description of the problem data, wind & ocean fields
-class OceanX : virtual public Nextsim::InitialBase {
+struct OceanX {
 public:
     double operator()(double x, double y) const
     {
         return ReferenceScale::vmax_ocean * (2.0 * y / ReferenceScale::L - 1);
     }
 };
-class OceanY : virtual public Nextsim::InitialBase {
+struct OceanY {
 public:
     double operator()(double x, double y) const
     {
@@ -69,7 +69,7 @@ public:
     }
 };
 
-class AtmX : virtual public Nextsim::InitialBase {
+struct AtmX {
     double time;
 
 public:
@@ -85,7 +85,7 @@ public:
         return 5.0 + (sin(2 * M_PI * time / T) - 3.0) * sin(2 * X) * sin(Y);
     }
 };
-class AtmY : virtual public Nextsim::InitialBase {
+struct AtmY {
     double time;
 
 public:
@@ -102,14 +102,14 @@ public:
     }
 };
 
-class InitialH : virtual public Nextsim::InitialBase {
+struct InitialH {
 public:
     double operator()(double x, double y) const
     {
         return 2.0; //!< constant ice height for box test
     }
 };
-class InitialA : virtual public Nextsim::InitialBase {
+struct InitialA {
 public:
     double operator()(double x, double y) const
     {
@@ -138,8 +138,8 @@ int main()
     constexpr double alpha = 300.0;
     constexpr double beta = 300.0;
     //! MEB parameters
-    //constexpr double alpha = 1.2; // = dtmomentum = dt_adv/100
-    //constexpr double beta = 0;
+    // constexpr double alpha = 1.2; // = dtmomentum = dt_adv/100
+    // constexpr double beta = 0;
     constexpr size_t NT_evp = 100;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
@@ -290,11 +290,11 @@ int main()
                 ReferenceScale::DeltaMin,
                 alpha, beta);
 
-            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
-            //    E11, E12, E22, H, A, D,
-            //    ReferenceScale::Pstar,
-            //    ReferenceScale::DeltaMin,
-            //    alpha, beta);
+            // Nextsim::MEB::StressUpdate(mesh, S11, S12, S22,
+            //     E11, E12, E22, H, A, D,
+            //     ReferenceScale::Pstar,
+            //     ReferenceScale::DeltaMin,
+            //     alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 

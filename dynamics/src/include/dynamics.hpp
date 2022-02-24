@@ -15,12 +15,12 @@ namespace Nextsim {
 #include "dgbasisfunctions_gausspoints.hpp"
 
 /*!
-   * This class controls the timestepping of the dynamical core
-   * - Advection
-   * - Subcycling of momentum and damage
-   *
-   * This class is the main class that contains all the required data
-   */
+ * This class controls the timestepping of the dynamical core
+ * - Advection
+ * - Subcycling of momentum and damage
+ *
+ * This class is the main class that contains all the required data
+ */
 class Dynamics {
     /*!
      * Here we define mesh and time mesh. References
@@ -30,9 +30,9 @@ public:
     Mesh mesh;
 
     /*!
-   * Main variables for the ice model. 
-   * ?? What are good DG spaces and combinations?
-   */
+     * Main variables for the ice model.
+     * ?? What are good DG spaces and combinations?
+     */
     CellVector<2> vx, vy; //!< velocity fields
     CellVector<1> S11, S12, S22; //!< entries of (symmetric) stress tensor
     CellVector<1> E11, E12, E22; //!< entries of (symmetric) strain stress tensor
@@ -46,16 +46,16 @@ public:
     //! temporary vectors for time stepping
     CellVector<2> tmpX, tmpY;
 
-    /*! 
-   * Subclasses for managing DG transport and the momentum problem
-   */
+    /*!
+     * Subclasses for managing DG transport and the momentum problem
+     */
     DGTransport<2> dgtransport;
 
-    //public:
-    /*! 
-   * Constructor, initializes the subclasses and gives references to vectors
-   * such as the velocity field
-   */
+    // public:
+    /*!
+     * Constructor, initializes the subclasses and gives references to vectors
+     * such as the velocity field
+     */
     Dynamics()
         : dgtransport(vx, vy)
     {
@@ -78,31 +78,31 @@ public:
     CellVector<2>& GetH() { return H; }
     CellVector<2>& GetA() { return A; }
     // TODO: First order need to implement stabilisations etc.
-    //CellVector<1>& GetVX() { return vx; }
-    //CellVector<1>& GetVY() { return vy; }
-    //CellVector<0>& GetS11() { return S11; }
-    //CellVector<0>& GetS12() { return S12; }
-    //CellVector<0>& GetS21() { return S21; }
-    //CellVector<0>& GetS22() { return S22; }
-    //CellVector<0>& GetD() { return D; }
-    //CellVector<1>& GetH() { return H; }
-    //CellVector<1>& GetA() { return A; }
+    // CellVector<1>& GetVX() { return vx; }
+    // CellVector<1>& GetVY() { return vy; }
+    // CellVector<0>& GetS11() { return S11; }
+    // CellVector<0>& GetS12() { return S12; }
+    // CellVector<0>& GetS21() { return S21; }
+    // CellVector<0>& GetS22() { return S22; }
+    // CellVector<0>& GetD() { return D; }
+    // CellVector<1>& GetH() { return H; }
+    // CellVector<1>& GetA() { return A; }
 
     CellVector<0>& GetAtmX() { return atmX; }
     CellVector<0>& GetAtmY() { return atmY; }
     CellVector<2>& GetOceanX() { return oceanX; }
     CellVector<2>& GetOceanY() { return oceanY; }
 
-    /*! 
-   * Sets important parameters, initializes these and that
-   */
+    /*!
+     * Sets important parameters, initializes these and that
+     */
     void BasicInit();
 
     //////////////////////////////////////////////////
 
     /**!
-   * controls the flow of the dynamical core
-   */
+     * controls the flow of the dynamical core
+     */
 
     void momentumSymmetry();
 
@@ -122,7 +122,7 @@ private:
     void addStressTensorCell(double scaleSigma); //!< (S, \nabla Phi)
     void addStressTensorEdges(double scaleSigma); //!< < {{S}} , Phi >
     void addStressTensorBoundary(double scaleSigma); //!< same on boundary (from one side)
-        //! consistency edge terms coming from integration by parts
+                                                     //! consistency edge terms coming from integration by parts
     void stressTensorEdgesY(double scaleSigma, size_t c1, size_t c2)
     {
         const LocalEdgeVector<1> S11left( // left/right refers to the element
@@ -283,7 +283,7 @@ public:
 
 private:
     void velocityDirichletBoundaryLeft(const size_t c2, double gamma)
-    { //x=0, y=t
+    { // x=0, y=t
         const LocalEdgeVector<2> rightX(vx(c2, 0) - 0.5 * vx(c2, 1) + 1. / 6. * vx(c2, 3),
             vx(c2, 2) - 0.5 * vx(c2, 5),
             vx(c2, 4));
@@ -296,7 +296,7 @@ private:
     }
 
     void velocityDirichletBoundaryRight(const size_t c1, double gamma)
-    { //x=1, y=t
+    { // x=1, y=t
         const LocalEdgeVector<2> leftX(vx(c1, 0) + 0.5 * vx(c1, 1) + 1. / 6. * vx(c1, 3),
             vx(c1, 2) + 0.5 * vx(c1, 5),
             vx(c1, 4));

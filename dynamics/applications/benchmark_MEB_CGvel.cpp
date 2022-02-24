@@ -30,14 +30,14 @@ inline constexpr double SQR(double x)
 }
 
 //! Description of the problem data, wind & ocean fields
-class OceanX : virtual public Nextsim::InitialBase {
+struct OceanX {
 public:
     double operator()(double x, double y) const
     {
         return RefScale::vmax_ocean * (2.0 * y / RefScale::L - 1.0);
     }
 };
-class OceanY : virtual public Nextsim::InitialBase {
+struct OceanY {
 public:
     double operator()(double x, double y) const
     {
@@ -45,7 +45,7 @@ public:
     }
 };
 
-class AtmX : virtual public Nextsim::InitialBase {
+struct AtmX {
     double time;
 
 public:
@@ -66,7 +66,7 @@ public:
         return -scale * RefScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
     }
 };
-class AtmY : virtual public Nextsim::InitialBase {
+struct AtmY {
     double time;
 
 public:
@@ -87,21 +87,21 @@ public:
         return -scale * RefScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
     }
 };
-class InitialH : virtual public Nextsim::InitialBase {
+struct InitialH {
 public:
     double operator()(double x, double y) const
     {
         return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
-class InitialA : virtual public Nextsim::InitialBase {
+struct InitialA {
 public:
     double operator()(double x, double y) const
     {
         return 1.0;
     }
 };
-class InitialD : virtual public Nextsim::InitialBase {
+struct InitialD {
 public:
     double operator()(double x, double y) const
     {
@@ -144,7 +144,7 @@ int main()
     Nextsim::CGVector<CG> vx(mesh), vy(mesh); //!< velocity
     Nextsim::CGVector<CG> tmpx(mesh), tmpy(mesh); //!< tmp for stress.. should be removed
     Nextsim::CGVector<CG> cg_A(mesh), cg_H(mesh); //!< interpolation of ice height and conc.
-    //Nextsim::CGVector<CG> vx_mevp(mesh), vy_mevp(mesh); //!< temp. Velocity used for MEVP
+    // Nextsim::CGVector<CG> vx_mevp(mesh), vy_mevp(mesh); //!< temp. Velocity used for MEVP
     vx.zero();
     vy.zero();
 
@@ -171,7 +171,7 @@ int main()
     Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
     Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
 
-    //Temporary variables
+    // Temporary variables
     Nextsim::CellVector<0> eta1(mesh), eta2(mesh);
     Nextsim::CellVector<0> MU1(mesh), MU2(mesh);
     Nextsim::CellVector<0> stressrelax(mesh);
@@ -290,8 +290,8 @@ int main()
             Nextsim::GlobalTimer.start("time loop - meb - stress");
             //! Stress Update
 
-            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
-            //    H, A, D, dt_momentum);
+            // Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
+            //     H, A, D, dt_momentum);
 
             Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22,
                 E11, E12, E22, H, A, D,
@@ -299,8 +299,8 @@ int main()
                 stressrelax, sigma_outside, tildeP, Pmax,
                 dt_momentum);
 
-            //Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
-            //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
+            // Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
+            //     H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
             Nextsim::GlobalTimer.stop("time loop - meb - stress");
 

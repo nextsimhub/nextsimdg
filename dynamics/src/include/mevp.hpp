@@ -8,8 +8,8 @@
 namespace Nextsim {
 
 /*!
-   * This namespace collects the routines required for the mEVP solver
-   */
+ * This namespace collects the routines required for the mEVP solver
+ */
 namespace mEVP {
 
     inline constexpr double SQR(double x)

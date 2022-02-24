@@ -16,10 +16,10 @@
 namespace Nextsim {
 
 /*!
-   * Stores a CG vector in std. Lagrangian Basis, e.g. having
-   * (CGdegree*nx+1)*(CGdegree*ny+1) elements
-   * Sorting lower left -> lower right -> ... -> upper right
-   */
+ * Stores a CG vector in std. Lagrangian Basis, e.g. having
+ * (CGdegree*nx+1)*(CGdegree*ny+1) elements
+ * Sorting lower left -> lower right -> ... -> upper right
+ */
 template <int CGdegree>
 class CGVector
     : public Eigen::Matrix<double, Eigen::Dynamic, 1> {

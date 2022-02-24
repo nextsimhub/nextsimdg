@@ -8,8 +8,8 @@
 namespace Nextsim {
 
 /*!
-   * This namespace collects the auxiliary routines 
-   */
+ * This namespace collects the auxiliary routines
+ */
 namespace Tools {
 
     inline constexpr double SQR(double x)
