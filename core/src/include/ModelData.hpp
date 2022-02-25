@@ -18,7 +18,10 @@ class ModelData {
 public:
     ModelData();
     ModelData(const std::string&);
+    ModelData(const ModelData&);
     virtual ~ModelData() {};
+
+    ModelData& operator=(const ModelData&);
 
     typedef std::vector<size_t> Dimensions;
 
@@ -30,7 +33,7 @@ public:
 
     const std::string& name() const { return m_name; }
 
-    void setData(double* pData);
+    void setData(const double* pData);
     void setData(const std::vector<double>&);
 
     std::vector<double>::iterator begin() { return m_data.begin(); }

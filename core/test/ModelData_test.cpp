@@ -100,4 +100,23 @@ TEST_CASE("Naming", "[ModelData]")
     REQUIRE(named.name() == dataName);
 }
 
+TEST_CASE("Moving data", "[ModelData]")
+{
+    size_t n = 10;
+    ModelData::setDimensions({n, n});
+
+    ModelData src("data");
+    for (int i = 0; i < n * n; ++i) {
+        src[i] = i;
+    }
+
+    ModelData cpyCtor(src);
+    REQUIRE(cpyCtor.name() == src.name());
+    REQUIRE(cpyCtor(2, 3) == src(2, 3));
+
+    ModelData cpyAss;
+    cpyAss = src;
+    REQUIRE(cpyAss(2, 3) == 23);
+}
+
 } /* namespace Nextsim */

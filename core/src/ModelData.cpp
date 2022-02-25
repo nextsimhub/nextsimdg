@@ -27,14 +27,27 @@ ModelData::ModelData()
     : ModelData("")
 {}
 
-void ModelData::setData(double* pData)
+ModelData::ModelData(const ModelData& orig)
+    : ModelData(orig.m_name)
+{
+    setData(orig.m_data.data());
+}
+
+ModelData& ModelData::operator=(const ModelData& orig)
+{
+    m_name = orig.m_name;
+    setData(orig.m_data.data());
+
+    return *this;
+}
+
+void ModelData::setData(const double* pData)
 {
     m_data.assign(pData, pData + m_sz);
 }
 
 void ModelData::setData(const std::vector<double>& from) {
-    m_data.clear();
-    std::copy(from.begin(), from.end(), std::back_inserter(m_data));
+    setData(from.data());
 }
 
 void ModelData::setDimensions(const Dimensions& newDims)
