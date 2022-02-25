@@ -24,20 +24,17 @@ namespace Nextsim {
 extern Timer GlobalTimer;
 }
 
-inline constexpr double SQR(double x)
-{
-    return x * x;
-}
+inline constexpr double SQR(double x) { return x * x; }
 
 //! Description of the problem data, wind & ocean fields
-class OceanX : virtual public Nextsim::InitialBase {
+struct OceanX {
 public:
     double operator()(double x, double y) const
     {
         return RefScale::vmax_ocean * (2.0 * y / RefScale::L - 1.0);
     }
 };
-class OceanY : virtual public Nextsim::InitialBase {
+struct OceanY {
 public:
     double operator()(double x, double y) const
     {
@@ -45,14 +42,11 @@ public:
     }
 };
 
-class AtmX : virtual public Nextsim::InitialBase {
+struct AtmX {
     double time;
 
 public:
-    void settime(double t)
-    {
-        time = t;
-    }
+    void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
         constexpr double oneday = 24.0 * 60.0 * 60.0;
@@ -66,14 +60,11 @@ public:
         return -scale * RefScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
     }
 };
-class AtmY : virtual public Nextsim::InitialBase {
+struct AtmY {
     double time;
 
 public:
-    void settime(double t)
-    {
-        time = t;
-    }
+    void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
         constexpr double oneday = 24.0 * 60.0 * 60.0;
@@ -87,26 +78,20 @@ public:
         return -scale * RefScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
     }
 };
-class InitialH : virtual public Nextsim::InitialBase {
+struct InitialH {
 public:
     double operator()(double x, double y) const
     {
         return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
-class InitialA : virtual public Nextsim::InitialBase {
+struct InitialA {
 public:
-    double operator()(double x, double y) const
-    {
-        return 1.0;
-    }
+    double operator()(double x, double y) const { return 1.0; }
 };
-class InitialD : virtual public Nextsim::InitialBase {
+struct InitialD {
 public:
-    double operator()(double x, double y) const
-    {
-        return 0.0;
-    }
+    double operator()(double x, double y) const { return 0.0; }
 };
 
 int main()
@@ -144,7 +129,7 @@ int main()
     Nextsim::CGVector<CG> vx(mesh), vy(mesh); //!< velocity
     Nextsim::CGVector<CG> tmpx(mesh), tmpy(mesh); //!< tmp for stress.. should be removed
     Nextsim::CGVector<CG> cg_A(mesh), cg_H(mesh); //!< interpolation of ice height and conc.
-    //Nextsim::CGVector<CG> vx_mevp(mesh), vy_mevp(mesh); //!< temp. Velocity used for MEVP
+    // Nextsim::CGVector<CG> vx_mevp(mesh), vy_mevp(mesh); //!< temp. Velocity used for MEVP
     vx.zero();
     vy.zero();
 
@@ -171,7 +156,7 @@ int main()
     Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
     Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
 
-    //Temporary variables
+    // Temporary variables
     Nextsim::CellVector<0> eta1(mesh), eta2(mesh);
     Nextsim::CellVector<0> MU1(mesh), MU2(mesh);
     Nextsim::CellVector<0> stressrelax(mesh);
@@ -205,8 +190,8 @@ int main()
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvx", 0, dgvx, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/dvy", 0, dgvy, mesh);
 
-    Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
-        RefScale::DeltaMin, RefScale::Pstar, MU1, MU2);
+    Nextsim::Tools::ElastoParams(
+        mesh, E11, E12, E22, H, A, RefScale::DeltaMin, RefScale::Pstar, MU1, MU2);
 
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu1", 0, MU1, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu2", 0, MU2, mesh);
@@ -234,17 +219,11 @@ int main()
         double timeInDays = time / 60.0 / 60.0 / 24.;
 
         if (timestep % NT_log == 0)
-            std::cout << "\rAdvection step " << timestep << "\t "
-                      << std::setprecision(2)
-                      << std::fixed
-                      << std::setw(10) << std::right
-                      << time << "s\t"
-                      << std::setw(8) << std::right
-                      << timeInMinutes << "m\t"
-                      << std::setw(6) << std::right
-                      << timeInHours << "h\t"
-                      << std::setw(6) << std::right
-                      << timeInDays << "d\t\t" << std::flush;
+            std::cout << "\rAdvection step " << timestep << "\t " << std::setprecision(2)
+                      << std::fixed << std::setw(10) << std::right << time << "s\t" << std::setw(8)
+                      << std::right << timeInMinutes << "m\t" << std::setw(6) << std::right
+                      << timeInHours << "h\t" << std::setw(6) << std::right << timeInDays << "d\t\t"
+                      << std::flush;
 
         //! Initialize time-dependent forcing
         Nextsim::GlobalTimer.start("time loop - forcing");
@@ -290,17 +269,14 @@ int main()
             Nextsim::GlobalTimer.start("time loop - meb - stress");
             //! Stress Update
 
-            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
-            //    H, A, D, dt_momentum);
+            // Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
+            //     H, A, D, dt_momentum);
 
-            Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22,
-                E11, E12, E22, H, A, D,
-                DELTA, SHEAR, S1, S2, eta1, eta2,
-                stressrelax, sigma_outside, tildeP, Pmax,
-                dt_momentum);
+            Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22, E11, E12, E22, H, A, D, DELTA,
+                SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, dt_momentum);
 
-            //Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
-            //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
+            // Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
+            //     H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
             Nextsim::GlobalTimer.stop("time loop - meb - stress");
 
@@ -309,19 +285,30 @@ int main()
             Nextsim::GlobalTimer.start("time loop - meb - update1");
 
             //	    update by a loop.. explicit parts and h-dependent
-            vx = (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
-                      + cg_A.array() * RefScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
+            vx = (1.0
+                / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
+                    + cg_A.array() * RefScale::F_ocean
+                        * (OX.array() - vx.array()).abs()) // implicit parts
                 * (RefScale::rho_ice * cg_H.array() / dt_momentum * vx.array() + //
-                    cg_A.array() * (RefScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
-                        RefScale::F_ocean * (OX - vx).array().abs() * OX.array()) // ocean forcing
-                    + RefScale::rho_ice * cg_H.array() * RefScale::fc * (vx - OX).array() // cor + surface
+                    cg_A.array()
+                        * (RefScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
+                            RefScale::F_ocean * (OX - vx).array().abs()
+                                * OX.array()) // ocean forcing
+                    + RefScale::rho_ice * cg_H.array() * RefScale::fc
+                        * (vx - OX).array() // cor + surface
                     ))
                      .matrix();
-            vy = (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
-                      + cg_A.array() * RefScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
-                * (RefScale::rho_ice * cg_H.array() / dt_momentum * vy.array() + cg_A.array() * (RefScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
-                                                                                     RefScale::F_ocean * (OY - vy).array().abs() * OY.array()) // ocean forcing
-                    + RefScale::rho_ice * cg_H.array() * RefScale::fc * (OY - vy).array() // cor + surface
+            vy = (1.0
+                / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
+                    + cg_A.array() * RefScale::F_ocean
+                        * (OY.array() - vy.array()).abs()) // implicit parts
+                * (RefScale::rho_ice * cg_H.array() / dt_momentum * vy.array()
+                    + cg_A.array()
+                        * (RefScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
+                            RefScale::F_ocean * (OY - vy).array().abs()
+                                * OY.array()) // ocean forcing
+                    + RefScale::rho_ice * cg_H.array() * RefScale::fc
+                        * (OY - vy).array() // cor + surface
                     ))
                      .matrix();
             Nextsim::GlobalTimer.stop("time loop - meb - update1");
@@ -333,12 +320,16 @@ int main()
             tmpy.zero();
             momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
 
-            vx += (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
-                       + cg_A.array() * RefScale::F_ocean * (OX.array() - vx.array()).abs()) // implicit parts
+            vx += (1.0
+                / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
+                    + cg_A.array() * RefScale::F_ocean
+                        * (OX.array() - vx.array()).abs()) // implicit parts
                 * tmpx.array())
                       .matrix();
-            vy += (1.0 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
-                       + cg_A.array() * RefScale::F_ocean * (OY.array() - vy.array()).abs()) // implicit parts
+            vy += (1.0
+                / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
+                    + cg_A.array() * RefScale::F_ocean
+                        * (OY.array() - vy.array()).abs()) // implicit parts
                 * tmpy.array())
                       .matrix();
 
@@ -386,19 +377,21 @@ int main()
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/E12", printstep, E12, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/E22", printstep, E22, mesh);
 
-                Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
-                    RefScale::DeltaMin, RefScale::Pstar, MU1, MU2);
+                Nextsim::Tools::ElastoParams(
+                    mesh, E11, E12, E22, H, A, RefScale::DeltaMin, RefScale::Pstar, MU1, MU2);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu1", printstep, MU1, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/mu2", printstep, MU2, mesh);
 
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/stressOutside", printstep, sigma_outside, mesh);
+                Nextsim::VTK::write_dg(
+                    "ResultsMEB_CGvel/stressOutside", printstep, sigma_outside, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/tildeP", printstep, tildeP, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/Pmax", printstep, Pmax, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", printstep, S1, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", printstep, S2, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta1", printstep, eta1, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta2", printstep, eta2, mesh);
-                Nextsim::VTK::write_dg("ResultsMEB_CGvel/stressrelax", printstep, stressrelax, mesh);
+                Nextsim::VTK::write_dg(
+                    "ResultsMEB_CGvel/stressrelax", printstep, stressrelax, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }

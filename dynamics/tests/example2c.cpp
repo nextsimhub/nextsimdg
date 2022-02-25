@@ -11,56 +11,49 @@ bool WRITE_VTK = true;
 
 /*!
  * This test case tests the boundary  handling of the DG transport scheme
- * An initial density is first transported to the upper right corner, 
+ * An initial density is first transported to the upper right corner,
  * then back to the lower left and finally back to the origin.
- * All boundaries are involved and we check if the final solution has the correct 
+ * All boundaries are involved and we check if the final solution has the correct
  * behavior
  *
  * Domain is [0,2] x [0,1] with 2N * N elements
  */
 
-class InitialVX : virtual public Nextsim::InitialBase {
+struct InitialVX {
     double time;
 
 public:
-    void settime(double t)
-    {
-        time = t;
-    }
+    void settime(double t) { time = t; }
 
-    virtual double operator()(double x, double y) const
+    double operator()(double x, double y) const
     {
         if ((time < 0.4) || (time > 1.2))
             return 2.;
         return -2.;
     }
 };
-class InitialVY : virtual public Nextsim::InitialBase {
+struct InitialVY {
     double time;
 
 public:
-    void settime(double t)
-    {
-        time = t;
-    }
+    void settime(double t) { time = t; }
 
-    virtual double operator()(double x, double y) const
+    double operator()(double x, double y) const
     {
         if ((time < 0.4) || (time > 1.2))
             return 1.;
         return -1.;
     }
 };
-class InitialPhi : virtual public Nextsim::InitialBase {
+struct InitialPhi {
 public:
-    virtual double operator()(double x, double y) const
+    double operator()(double x, double y) const
     {
         return exp(-50.0 * pow(x - 1.0, 2.0) - 50.0 * pow(y - 0.5, 2.0));
     }
 };
 
-template <int DGdegree>
-class Test {
+template <int DGdegree> class Test {
     //! Meshes
     Nextsim::Mesh mesh;
     size_t NT; //!< number of time steps
@@ -87,7 +80,8 @@ public:
     double reference() const
     {
         if ((mesh.nx != 50) || (mesh.ny != 50)) {
-            std::cerr << "Reference values only for nx=ny=50. Test might still be correct" << std::endl;
+            std::cerr << "Reference values only for nx=ny=50. Test might still be correct"
+                      << std::endl;
         }
 
         if (DGdegree == 0)
@@ -155,12 +149,8 @@ public:
         double mass = phi.mass(mesh);
         double masserror = fabs(exactmass - mass);
 
-        std::cerr << "Mass [Exact / Reference / Numerical / Error]\t"
-                  << std::setprecision(8)
-                  << exactmass << "\t"
-                  << refmass << "\t"
-                  << mass << "\t"
-                  << masserror << "\t"
+        std::cerr << "Mass [Exact / Reference / Numerical / Error]\t" << std::setprecision(8)
+                  << exactmass << "\t" << refmass << "\t" << mass << "\t" << masserror << "\t"
                   << std::endl;
         return (fabs(mass - refmass) < 1.e-8);
     }

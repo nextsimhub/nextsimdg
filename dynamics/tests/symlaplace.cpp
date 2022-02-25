@@ -32,14 +32,11 @@ extern Timer GlobalTimer;
  */
 
 //! Defines the exact solution
-class ExactVX : virtual public Nextsim::InitialBase {
+struct ExactVX {
 public:
-    double operator()(double x, double y) const
-    {
-        return sin(M_PI * x / L) * sin(M_PI * y / L);
-    }
+    double operator()(double x, double y) const { return sin(M_PI * x / L) * sin(M_PI * y / L); }
 };
-class ExactVY : virtual public Nextsim::InitialBase {
+struct ExactVY {
 public:
     double operator()(double x, double y) const
     {
@@ -47,14 +44,11 @@ public:
     }
 };
 //! Defines the initial solution
-class InitialVX : virtual public Nextsim::InitialBase {
+struct InitialVX {
 public:
-    double operator()(double x, double y) const
-    {
-        return sin(M_PI * x / L) * sin(M_PI * y / L);
-    }
+    double operator()(double x, double y) const { return sin(M_PI * x / L) * sin(M_PI * y / L); }
 };
-class InitialVY : virtual public Nextsim::InitialBase {
+struct InitialVY {
 public:
     double operator()(double x, double y) const
     {
@@ -63,7 +57,7 @@ public:
 };
 
 //! Defines the right hand side f = -div(nabla v + nabla v^T)
-class FX : virtual public Nextsim::InitialBase {
+struct FX {
 public:
     double operator()(double x, double y) const
     {
@@ -74,7 +68,7 @@ public:
         return (3.0 * M_PI * M_PI / 2. * sx * sy - 2.0 * M_PI * M_PI * c2x * c2y) / L / L;
     }
 };
-class FY : virtual public Nextsim::InitialBase {
+struct FY {
 
 public:
     double operator()(double x, double y) const
@@ -118,8 +112,7 @@ int main()
 
         double dt = cfl * rho_ice * L * L / 2.0 / eta / N / N;
         double dt_momentum = dt;
-        std::cout << "Time step:\t" << dt << std::endl
-                  << "Mesh size:\t" << h << std::endl;
+        std::cout << "Time step:\t" << dt << std::endl << "Mesh size:\t" << h << std::endl;
 
         dynamics.GetMesh().BasicInit(N, N, h, h);
         size_t NT = T / dt + 1.e-8;
@@ -164,7 +157,8 @@ int main()
 
                 dynamics.addStressTensor(-1.0 * stressscale); //!< tmp += div(S)
                 dynamics.velocityContinuity(gamma * stressscale); //!< tmp += < [v], [phi] >
-                dynamics.velocityDirichletBoundary(gammaboundary * stressscale); //!< tmp += < v, [phi] >_G
+                dynamics.velocityDirichletBoundary(
+                    gammaboundary * stressscale); //!< tmp += < v, [phi] >_G
             } else if (solver == "EVP") {
                 constexpr double E = 100.0;
 
@@ -177,7 +171,8 @@ int main()
 
                 dynamics.addStressTensor(-1.0); //!< tmp += div(S)
                 dynamics.velocityContinuity(gamma * stressscale); //!< tmp += < [v], [phi] >
-                dynamics.velocityDirichletBoundary(gammaboundary * stressscale); //!< tmp += < v, [phi] >_G
+                dynamics.velocityDirichletBoundary(
+                    gammaboundary * stressscale); //!< tmp += < v, [phi] >_G
 
             } else {
                 std::cerr << "Solver " << solver << " not known. Only VP / EVP" << std::endl;
@@ -189,10 +184,13 @@ int main()
 
             if (timestep % WRITE_EVERY == 0) {
 
-                double error = (sqrt(pow(L2Error(dynamics.GetMesh(), dynamics.GetVX(), ExactVX()), 2.0) + pow(L2Error(dynamics.GetMesh(), dynamics.GetVY(), ExactVY()), 2.0)))
+                double error
+                    = (sqrt(pow(L2Error(dynamics.GetMesh(), dynamics.GetVX(), ExactVX()), 2.0)
+                          + pow(L2Error(dynamics.GetMesh(), dynamics.GetVY(), ExactVY()), 2.0)))
                     / exactsolutionnorm;
                 std::cout.precision(10);
-                std::cout << "Time step " << timestep << " / " << dt_momentum * timestep << std::flush;
+                std::cout << "Time step " << timestep << " / " << dt_momentum * timestep
+                          << std::flush;
                 std::cout << "\terror: " << error << std::endl;
             }
         }

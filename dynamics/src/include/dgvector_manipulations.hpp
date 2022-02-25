@@ -17,60 +17,54 @@ namespace Nextsim {
 * _X refers to a horizontal edge, _Y to a vertical edge
 **/
 template <int DGdegree>
-LocalEdgeVector<DGdegree>
-average_to_X(const LocalCellVector<DGdegree>& down,
-    const LocalCellVector<DGdegree>& up);
+LocalEdgeVector<DGdegree> average_to_X(
+    const LocalCellVector<DGdegree>& down, const LocalCellVector<DGdegree>& up);
 
 template <>
-LocalEdgeVector<0>
-average_to_X(const LocalCellVector<0>& down, const LocalCellVector<0>& up)
+LocalEdgeVector<0> average_to_X(const LocalCellVector<0>& down, const LocalCellVector<0>& up)
 {
     return 0.5 * (down + up);
 }
 template <>
-LocalEdgeVector<1>
-average_to_X(const LocalCellVector<1>& down, const LocalCellVector<1>& up)
+LocalEdgeVector<1> average_to_X(const LocalCellVector<1>& down, const LocalCellVector<1>& up)
 {
     return LocalEdgeVector<1>(0.5 * (down(0, 0) + up(0, 0)) + 0.25 * (down(0, 2) - up(0, 2)),
         0.5 * (down(0, 1) + up(0, 1)));
 }
 template <>
-LocalEdgeVector<2>
-average_to_X(const LocalCellVector<2>& down, const LocalCellVector<2>& up)
+LocalEdgeVector<2> average_to_X(const LocalCellVector<2>& down, const LocalCellVector<2>& up)
 {
-    return LocalEdgeVector<2>(
-        0.5 * (up(0, 0) - 0.5 * up(0, 2) + 1. / 6. * up(0, 4) + (down(0, 0) + 0.5 * down(0, 2) + 1. / 6. * down(0, 4))),
+    return LocalEdgeVector<2>(0.5
+            * (up(0, 0) - 0.5 * up(0, 2) + 1. / 6. * up(0, 4)
+                + (down(0, 0) + 0.5 * down(0, 2) + 1. / 6. * down(0, 4))),
         0.5 * (up(0, 1) - 0.5 * up(0, 5) + (down(0, 1) + 0.5 * down(0, 5))),
         0.5 * (up(0, 3) + down(0, 3)));
 }
 
 template <int DGdegree>
-LocalEdgeVector<DGdegree>
-average_to_Y(const Eigen::Matrix<double, 1, CELLDOFS(DGdegree)>& left,
+LocalEdgeVector<DGdegree> average_to_Y(const Eigen::Matrix<double, 1, CELLDOFS(DGdegree)>& left,
     const Eigen::Matrix<double, 1, CELLDOFS(DGdegree)>& right);
 
 template <>
-LocalEdgeVector<0>
-average_to_Y(const Eigen::Matrix<double, 1, 1>& left,
-    const Eigen::Matrix<double, 1, 1>& right)
+LocalEdgeVector<0> average_to_Y(
+    const Eigen::Matrix<double, 1, 1>& left, const Eigen::Matrix<double, 1, 1>& right)
 {
     return 0.5 * (left + right);
 }
 template <>
-LocalEdgeVector<1>
-average_to_Y(const Eigen::Matrix<double, 1, 3>& left,
-    const Eigen::Matrix<double, 1, 3>& right)
+LocalEdgeVector<1> average_to_Y(
+    const Eigen::Matrix<double, 1, 3>& left, const Eigen::Matrix<double, 1, 3>& right)
 {
     return LocalEdgeVector<1>(0.5 * (left(0, 0) + right(0, 0)) + 0.25 * (left(0, 1) - right(0, 1)),
         0.5 * (left(0, 2) + right(0, 2)));
 }
 template <>
-LocalEdgeVector<2>
-average_to_Y(const Eigen::Matrix<double, 1, 6>& left,
-    const Eigen::Matrix<double, 1, 6>& right)
+LocalEdgeVector<2> average_to_Y(
+    const Eigen::Matrix<double, 1, 6>& left, const Eigen::Matrix<double, 1, 6>& right)
 {
-    return LocalEdgeVector<2>(
-        0.5 * (right(0, 0) - 0.5 * right(0, 1) + 1. / 6. * right(0, 3) + (left(0, 0) + 0.5 * left(0, 1) + 1. / 6. * left(0, 3))),
+    return LocalEdgeVector<2>(0.5
+            * (right(0, 0) - 0.5 * right(0, 1) + 1. / 6. * right(0, 3)
+                + (left(0, 0) + 0.5 * left(0, 1) + 1. / 6. * left(0, 3))),
         0.5 * (right(0, 1) - 0.5 * right(0, 5) + (left(0, 1) + 0.5 * left(0, 5))),
         0.5 * (right(0, 4) + left(0, 4)));
 }
@@ -84,24 +78,20 @@ average_to_Y(const Eigen::Matrix<double, 1, 6>& left,
  *    only the x-compoennt is given, [u] = left - right
  **/
 template <int DGdegree>
-LocalEdgeVector<DGdegree>
-jump_to_X(const LocalCellVector<DGdegree>& down,
-    const LocalCellVector<DGdegree>& up);
+LocalEdgeVector<DGdegree> jump_to_X(
+    const LocalCellVector<DGdegree>& down, const LocalCellVector<DGdegree>& up);
 
 template <>
-LocalEdgeVector<0>
-jump_to_X(const LocalCellVector<0>& down, const LocalCellVector<0>& up)
+LocalEdgeVector<0> jump_to_X(const LocalCellVector<0>& down, const LocalCellVector<0>& up)
 {
     return down - up;
 }
 template <int DGdegree>
-LocalEdgeVector<DGdegree>
-jump_to_Y(const LocalCellVector<DGdegree>& left,
-    const LocalCellVector<DGdegree>& right);
+LocalEdgeVector<DGdegree> jump_to_Y(
+    const LocalCellVector<DGdegree>& left, const LocalCellVector<DGdegree>& right);
 
 template <>
-LocalEdgeVector<0>
-jump_to_Y(const LocalCellVector<0>& left, const LocalCellVector<0>& right)
+LocalEdgeVector<0> jump_to_Y(const LocalCellVector<0>& left, const LocalCellVector<0>& right)
 {
     return left - right;
 }
@@ -111,18 +101,13 @@ jump_to_Y(const LocalCellVector<0>& left, const LocalCellVector<0>& right)
 //! Functions to average a DGdegree cell vector onto the edges
 
 template <int DGdegree>
-void average_to_edges_Y(const Mesh& mesh,
-    EdgeVector<DGdegree>& edgevector,
-    const CellVector<DGdegree>& cellvector,
-    bool settozero = true,
+void average_to_edges_Y(const Mesh& mesh, EdgeVector<DGdegree>& edgevector,
+    const CellVector<DGdegree>& cellvector, bool settozero = true,
     bool settozeroonouteredges = false);
 
 template <>
-void average_to_edges_Y(const Mesh& mesh,
-    EdgeVector<0>& edgevector,
-    const CellVector<0>& cellvector,
-    bool settozero,
-    bool settozeroonouteredges)
+void average_to_edges_Y(const Mesh& mesh, EdgeVector<0>& edgevector,
+    const CellVector<0>& cellvector, bool settozero, bool settozeroonouteredges)
 {
     assert(edgevector.edgetype == EdgeType::Y);
 
@@ -152,11 +137,8 @@ void average_to_edges_Y(const Mesh& mesh,
 }
 
 template <>
-void average_to_edges_Y(const Mesh& mesh,
-    EdgeVector<1>& edgevector,
-    const CellVector<1>& cellvector,
-    bool settozero,
-    bool settozeroonouteredges)
+void average_to_edges_Y(const Mesh& mesh, EdgeVector<1>& edgevector,
+    const CellVector<1>& cellvector, bool settozero, bool settozeroonouteredges)
 {
     assert(edgevector.edgetype == EdgeType::Y);
 
@@ -168,7 +150,8 @@ void average_to_edges_Y(const Mesh& mesh,
         size_t ey = iy * (mesh.nx + 1); // first edge index in row
         size_t cy = iy * mesh.nx; // first cell index in row
 
-        edgevector.block(ey, 0, mesh.nx, 1) += 0.5 * cellvector.block(cy, 0, mesh.nx, 1); // constant
+        edgevector.block(ey, 0, mesh.nx, 1)
+            += 0.5 * cellvector.block(cy, 0, mesh.nx, 1); // constant
         edgevector.block(ey + 1, 0, mesh.nx, 1) += 0.5 * cellvector.block(cy, 0, mesh.nx, 1);
 
         edgevector.block(ey, 0, mesh.nx, 1) += -0.25 * cellvector.block(cy, 1, mesh.nx, 1); // x-1/2
@@ -198,11 +181,8 @@ void average_to_edges_Y(const Mesh& mesh,
 }
 
 template <>
-void average_to_edges_Y(const Mesh& mesh,
-    EdgeVector<2>& edgevector,
-    const CellVector<2>& cellvector,
-    bool settozero,
-    bool settozeroonouteredges)
+void average_to_edges_Y(const Mesh& mesh, EdgeVector<2>& edgevector,
+    const CellVector<2>& cellvector, bool settozero, bool settozeroonouteredges)
 {
     assert(edgevector.edgetype == EdgeType::Y);
 
@@ -218,13 +198,11 @@ void average_to_edges_Y(const Mesh& mesh,
             // add to left
             edgevector.block<1, 3>(ie, 0) += LocalEdgeVector<2>(
                 0.5 * ((cellvector(ic, 0) - 0.5 * cellvector(ic, 1) + 1. / 6. * cellvector(ic, 3))),
-                0.5 * ((cellvector(ic, 2) - 0.5 * cellvector(ic, 5))),
-                0.5 * (cellvector(ic, 4)));
+                0.5 * ((cellvector(ic, 2) - 0.5 * cellvector(ic, 5))), 0.5 * (cellvector(ic, 4)));
             // add to right
             edgevector.block<1, 3>(ie + 1, 0) += LocalEdgeVector<2>(
                 0.5 * ((cellvector(ic, 0) + 0.5 * cellvector(ic, 1) + 1. / 6. * cellvector(ic, 3))),
-                0.5 * ((cellvector(ic, 2) + 0.5 * cellvector(ic, 5))),
-                0.5 * (cellvector(ic, 4)));
+                0.5 * ((cellvector(ic, 2) + 0.5 * cellvector(ic, 5))), 0.5 * (cellvector(ic, 4)));
         }
     }
 
@@ -250,18 +228,13 @@ void average_to_edges_Y(const Mesh& mesh,
 //////////////////////////////////////////////////
 
 template <int DGdegree>
-void average_to_edges_X(const Mesh& mesh,
-    EdgeVector<DGdegree>& edgevector,
-    const CellVector<DGdegree>& cellvector,
-    bool settozero = true,
+void average_to_edges_X(const Mesh& mesh, EdgeVector<DGdegree>& edgevector,
+    const CellVector<DGdegree>& cellvector, bool settozero = true,
     bool settozeroonouteredges = false);
 
 template <>
-void average_to_edges_X(const Mesh& mesh,
-    EdgeVector<0>& edgevector,
-    const CellVector<0>& cellvector,
-    bool settozero,
-    bool settozeroonouteredges)
+void average_to_edges_X(const Mesh& mesh, EdgeVector<0>& edgevector,
+    const CellVector<0>& cellvector, bool settozero, bool settozeroonouteredges)
 {
     assert(edgevector.edgetype == EdgeType::X);
 
@@ -291,11 +264,8 @@ void average_to_edges_X(const Mesh& mesh,
 }
 
 template <>
-void average_to_edges_X(const Mesh& mesh,
-    EdgeVector<1>& edgevector,
-    const CellVector<1>& cellvector,
-    bool settozero,
-    bool settozeroonouteredges)
+void average_to_edges_X(const Mesh& mesh, EdgeVector<1>& edgevector,
+    const CellVector<1>& cellvector, bool settozero, bool settozeroonouteredges)
 {
     assert(edgevector.edgetype == EdgeType::X);
 
@@ -304,7 +274,8 @@ void average_to_edges_X(const Mesh& mesh,
     //#pragma omp parallel for !!! see above!
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ex = iy * mesh.nx; // index of edge x-vector
-        edgevector.block(ex, 0, mesh.nx, 1) += 0.5 * cellvector.block(ex, 0, mesh.nx, 1); // constants
+        edgevector.block(ex, 0, mesh.nx, 1)
+            += 0.5 * cellvector.block(ex, 0, mesh.nx, 1); // constants
         edgevector.block(ex + mesh.nx, 0, mesh.nx, 1) += 0.5 * cellvector.block(ex, 0, mesh.nx, 1);
 
         edgevector.block(ex, 1, mesh.nx, 1) += 0.5 * cellvector.block(ex, 1, mesh.nx, 1); // x-1/2
@@ -334,11 +305,8 @@ void average_to_edges_X(const Mesh& mesh,
 }
 
 template <>
-void average_to_edges_X(const Mesh& mesh,
-    EdgeVector<2>& edgevector,
-    const CellVector<2>& cellvector,
-    bool settozero,
-    bool settozeroonouteredges)
+void average_to_edges_X(const Mesh& mesh, EdgeVector<2>& edgevector,
+    const CellVector<2>& cellvector, bool settozero, bool settozeroonouteredges)
 {
     assert(edgevector.edgetype == EdgeType::X);
 
@@ -351,13 +319,13 @@ void average_to_edges_X(const Mesh& mesh,
         size_t ie = ix; // first edge
         for (size_t i = 0; i < mesh.ny; ++i, ic += mesh.nx, ie += mesh.nx) {
             // add to bottom
-            edgevector.block<1, 3>(ie, 0) += LocalEdgeVector<2>(0.5 * ((cellvector(ic, 0) - 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
-                0.5 * ((cellvector(ic, 1) - 0.5 * cellvector(ic, 5))),
-                0.5 * (cellvector(ic, 3)));
+            edgevector.block<1, 3>(ie, 0) += LocalEdgeVector<2>(
+                0.5 * ((cellvector(ic, 0) - 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
+                0.5 * ((cellvector(ic, 1) - 0.5 * cellvector(ic, 5))), 0.5 * (cellvector(ic, 3)));
             // add to top
-            edgevector.block<1, 3>(ie + mesh.nx, 0) += LocalEdgeVector<2>(0.5 * ((cellvector(ic, 0) + 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
-                0.5 * ((cellvector(ic, 1) + 0.5 * cellvector(ic, 5))),
-                0.5 * (cellvector(ic, 3)));
+            edgevector.block<1, 3>(ie + mesh.nx, 0) += LocalEdgeVector<2>(
+                0.5 * ((cellvector(ic, 0) + 0.5 * cellvector(ic, 2) + 1. / 6. * cellvector(ic, 4))),
+                0.5 * ((cellvector(ic, 1) + 0.5 * cellvector(ic, 5))), 0.5 * (cellvector(ic, 3)));
         }
     }
     if (settozeroonouteredges) {

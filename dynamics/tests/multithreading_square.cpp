@@ -17,7 +17,7 @@ bool WRITE_VTK = false;
 
 //! Initially a smooth bump centered at (0.4,0.4)
 //! This will be transported in a circle with (-y, x) for one complete revolution
-class InitialPhi : virtual public Nextsim::InitialBase {
+struct InitialPhi {
 public:
     double smooth(double x) const // smooth transition from 0 to 1 on [0,1]
     {
@@ -44,19 +44,18 @@ public:
 };
 
 // Velocity
-class InitialVX : virtual public Nextsim::InitialBase {
+struct InitialVX {
 public:
-    virtual double operator()(double x, double y) const { return y - 0.5; }
+    double operator()(double x, double y) const { return y - 0.5; }
 };
-class InitialVY : virtual public Nextsim::InitialBase {
+struct InitialVY {
 public:
-    virtual double operator()(double x, double y) const { return 0.5 - x; }
+    double operator()(double x, double y) const { return 0.5 - x; }
 };
 
 //////////////////////////////////////////////////
 
-template <int DGdegree>
-class Test {
+template <int DGdegree> class Test {
     //! Mesh size (given as parameter to constructor)
     size_t N;
 
@@ -84,10 +83,7 @@ public:
         dgtransport.settimesteppingscheme("rk3");
     }
 
-    Test()
-    {
-        std::cerr << "call Test(N). N is number of mesh elements per row" << std::endl;
-    }
+    Test() { std::cerr << "call Test(N). N is number of mesh elements per row" << std::endl; }
 
     void init()
     {
@@ -150,8 +146,7 @@ public:
 
         //! Check that mass is ok.
         double mass = phi.mass(mesh);
-        std::cerr << std::setprecision(16)
-                  << mass << "\t";
+        std::cerr << std::setprecision(16) << mass << "\t";
 
         Nextsim::CellVector<DGdegree> errorphi = phi;
         errorphi += -finalphi;

@@ -86,9 +86,9 @@ public:
 
     virtual void stop()
     {
-        std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
-        sum_time += std::chrono::duration_cast<std::chrono::duration<double>>(
-            now - last_time);
+        std::chrono::high_resolution_clock::time_point now
+            = std::chrono::high_resolution_clock::now();
+        sum_time += std::chrono::duration_cast<std::chrono::duration<double>>(now - last_time);
         last_time = std::chrono::high_resolution_clock::now();
 
         std::clock_t now_cpu = std::clock();
@@ -210,11 +210,10 @@ public:
         auto it = watches.find(label);
         assert(it != watches.end());
 
-        std::cout << std::setw(24) << std::left << label << std::setw(12)
-                  << std::right << it->second.read() << std::setw(12) << std::right
-                  << it->second.readCPU() << std::setw(12) << std::right
-                  << it->second.readPerActivations() << std::setw(12) << std::right
-                  << it->second.readActivations() << std::endl;
+        std::cout << std::setw(24) << std::left << label << std::setw(12) << std::right
+                  << it->second.read() << std::setw(12) << std::right << it->second.readCPU()
+                  << std::setw(12) << std::right << it->second.readPerActivations() << std::setw(12)
+                  << std::right << it->second.readActivations() << std::endl;
     }
 
     void print100(const std::string& label) const
@@ -222,8 +221,8 @@ public:
         auto it = watches.find(label);
         assert(it != watches.end());
 
-        std::cout << label << "\t" << it->second.read100() << "\t"
-                  << it->second.readCPU100() << std::endl;
+        std::cout << label << "\t" << it->second.read100() << "\t" << it->second.readCPU100()
+                  << std::endl;
     }
 
     void print100tofile(const std::string& filename) const
@@ -244,11 +243,10 @@ public:
             print(it.first);
         }
         for (auto it : counters) {
-            std::cerr << std::setw(24) << std::left << it.first << std::setw(12)
-                      << std::right << it.second << std::endl;
+            std::cerr << std::setw(24) << std::left << it.first << std::setw(12) << std::right
+                      << it.second << std::endl;
         }
-        std::cout << std::endl
-                  << std::noshowpoint;
+        std::cout << std::endl << std::noshowpoint;
     }
 
     void print100() const
