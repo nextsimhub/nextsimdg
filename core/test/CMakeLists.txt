@@ -1,8 +1,9 @@
 # Build the unit, integration and model tests for neXtSIM
 
-set(SRC_DIR "../src")
-set(INCLUDE_DIR "${SRC_DIR}/include")
-set(CoreModulesDir "${SRC_DIR}/modules")
+set(CoreSrc "../src")
+set(SRC_DIR "${CoreSrc}")
+set(INCLUDE_DIR "${CoreSrc}/include")
+set(CoreModulesDir "${CoreSrc}/modules")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
@@ -204,3 +205,11 @@ add_executable(testStructureFactory
 target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(testStructureFactory PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testStructureFactory PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
+
+add_executable(testModelData
+    "ModelData_test.cpp"
+    "${CoreSrc}/ModelData.cpp"
+    )
+
+target_include_directories(testModelData PRIVATE "${CoreSrc}")
+target_link_libraries(testModelData PRIVATE Catch2::Catch2)
