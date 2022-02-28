@@ -8,17 +8,17 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "include/ModelData.hpp"
+#include "../src/include/ModelArray.hpp"
 
 namespace Nextsim {
 
 TEST_CASE("Two dimensional data access test", "[ModelData]")
 {
-    ModelData::Dimensions dims2 = {15, 25};
+    ModelArray::Dimensions dims2 = {15, 25};
 
-    ModelData::setDimensions(dims2);
+    ModelArray::setDimensions(dims2);
 
-    ModelData check1d;
+    ModelArray check1d;
 
     REQUIRE(check1d.nDimensions() == 2);
 
@@ -42,10 +42,10 @@ TEST_CASE("Higher dimensional indexing", "[ModelData]")
 {
     size_t dimLen = 10;
     size_t arrayLen = dimLen * dimLen * dimLen * dimLen;
-    ModelData::Dimensions dims4 = {dimLen, dimLen, dimLen, dimLen};
-    ModelData::setDimensions(dims4);
+    ModelArray::Dimensions dims4 = {dimLen, dimLen, dimLen, dimLen};
+    ModelArray::setDimensions(dims4);
 
-    ModelData check4d;
+    ModelArray check4d;
 
     REQUIRE(check4d.nDimensions() == 4);
     REQUIRE(check4d.size() == dimLen * dimLen * dimLen * dimLen);
@@ -95,7 +95,7 @@ TEST_CASE("Naming", "[ModelData]")
 {
     std::string dataName = "u10m";
 
-    ModelData named(dataName);
+    ModelArray named(dataName);
 
     REQUIRE(named.name() == dataName);
 }
@@ -103,18 +103,18 @@ TEST_CASE("Naming", "[ModelData]")
 TEST_CASE("Moving data", "[ModelData]")
 {
     size_t n = 10;
-    ModelData::setDimensions({n, n});
+    ModelArray::setDimensions({n, n});
 
-    ModelData src("data");
+    ModelArray src("data");
     for (int i = 0; i < n * n; ++i) {
         src[i] = i;
     }
 
-    ModelData cpyCtor(src);
+    ModelArray cpyCtor(src);
     REQUIRE(cpyCtor.name() == src.name());
     REQUIRE(cpyCtor(2, 3) == src(2, 3));
 
-    ModelData cpyAss;
+    ModelArray cpyAss;
     cpyAss = src;
     REQUIRE(cpyAss(2, 3) == 23);
 }

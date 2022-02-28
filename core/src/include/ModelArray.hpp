@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_MODELDATA_HPP
-#define CORE_SRC_INCLUDE_MODELDATA_HPP
+#ifndef CORE_SRC_INCLUDE_MODELARRAY_HPP
+#define CORE_SRC_INCLUDE_MODELARRAY_HPP
 
 #include <cstddef>
 #include <string>
@@ -14,14 +14,14 @@
 
 namespace Nextsim {
 
-class ModelData {
+class ModelArray {
 public:
-    ModelData();
-    ModelData(const std::string&);
-    ModelData(const ModelData&);
-    virtual ~ModelData() {};
+    ModelArray();
+    ModelArray(const std::string&);
+    ModelArray(const ModelArray&);
+    virtual ~ModelArray() {};
 
-    ModelData& operator=(const ModelData&);
+    ModelArray& operator=(const ModelArray&);
 
     typedef std::vector<size_t> Dimensions;
 
@@ -62,4 +62,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_MODELDATA_HPP */
+#endif /* CORE_SRC_INCLUDE_MODELARRAY_HPP */

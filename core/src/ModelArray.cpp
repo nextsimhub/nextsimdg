@@ -5,17 +5,17 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/ModelData.hpp"
+#include "include/ModelArray.hpp"
 
 #include <algorithm>
 #include <cstdarg>
 
 namespace Nextsim {
 
-size_t ModelData::m_sz;
-ModelData::Dimensions ModelData::m_dims;
+size_t ModelArray::m_sz;
+ModelArray::Dimensions ModelArray::m_dims;
 
-ModelData::ModelData(const std::string& name)
+ModelArray::ModelArray(const std::string& name)
     : m_name(name)
 {
     if (m_sz > 0) {
@@ -23,17 +23,17 @@ ModelData::ModelData(const std::string& name)
     }
 }
 
-ModelData::ModelData()
-    : ModelData("")
+ModelArray::ModelArray()
+    : ModelArray("")
 {}
 
-ModelData::ModelData(const ModelData& orig)
-    : ModelData(orig.m_name)
+ModelArray::ModelArray(const ModelArray& orig)
+    : ModelArray(orig.m_name)
 {
     setData(orig.m_data.data());
 }
 
-ModelData& ModelData::operator=(const ModelData& orig)
+ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
     m_name = orig.m_name;
     setData(orig.m_data.data());
@@ -41,16 +41,16 @@ ModelData& ModelData::operator=(const ModelData& orig)
     return *this;
 }
 
-void ModelData::setData(const double* pData)
+void ModelArray::setData(const double* pData)
 {
     m_data.assign(pData, pData + m_sz);
 }
 
-void ModelData::setData(const std::vector<double>& from) {
+void ModelArray::setData(const std::vector<double>& from) {
     setData(from.data());
 }
 
-void ModelData::setDimensions(const Dimensions& newDims)
+void ModelArray::setDimensions(const Dimensions& newDims)
 {
     size_t newSize = 1;
     for (size_t dimLen: newDims) {
@@ -61,7 +61,7 @@ void ModelData::setDimensions(const Dimensions& newDims)
     m_sz = newSize;
 }
 
-double& ModelData::operator[](const Dimensions& dims)
+double& ModelArray::operator[](const Dimensions& dims)
 {
     switch (dims.size()) {
     case (1):
@@ -83,35 +83,35 @@ double& ModelData::operator[](const Dimensions& dims)
     }
 }
 
-double& ModelData::operator()(size_t i, size_t j) { return (*this)(i * m_dims[1] + j); }
+double& ModelArray::operator()(size_t i, size_t j) { return (*this)(i * m_dims[1] + j); }
 
-double& ModelData::operator()(size_t i, size_t j, size_t k)
+double& ModelArray::operator()(size_t i, size_t j, size_t k)
 {
     return (*this)(i * m_dims[2], j * m_dims[2] + k);
 }
 
-double& ModelData::operator()(size_t i, size_t j, size_t k, size_t l)
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l)
 {
     return (*this)(i * m_dims[3], j * m_dims[3], k * m_dims[3] + l);
 }
 
-double& ModelData::operator()(size_t i, size_t j, size_t k, size_t l, size_t m)
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m)
 {
     return (*this)(i * m_dims[4], j * m_dims[4], k * m_dims[4], l * m_dims[4] + m);
 }
 
-double& ModelData::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n)
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n)
 {
     return (*this)(i * m_dims[5], j * m_dims[5], k * m_dims[5], l * m_dims[5], m * m_dims[5] + n);
 }
 
-double& ModelData::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p)
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p)
 {
     return (*this)(i * m_dims[6], j * m_dims[6], k * m_dims[6], l * m_dims[6], m * m_dims[6],
         n * m_dims[6] + p);
 }
 
-double& ModelData::operator()(
+double& ModelArray::operator()(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q)
 {
     return (*this)(i * m_dims[7], j * m_dims[7], k * m_dims[7], l * m_dims[7], m * m_dims[7],
