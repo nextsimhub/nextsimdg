@@ -12,7 +12,7 @@
 
 namespace Nextsim {
 
-TEST_CASE("Two dimensional data access test", "[ModelData]")
+TEST_CASE("Two dimensional data access test", "[ModelArray]")
 {
     ModelArray::Dimensions dims2 = {15, 25};
 
@@ -38,7 +38,7 @@ TEST_CASE("Two dimensional data access test", "[ModelData]")
     REQUIRE(check1d(dims2[0]-1, dims2[1]-1) == dims2[0] * dims2[1] - 1);
 }
 
-TEST_CASE("Higher dimensional indexing", "[ModelData]")
+TEST_CASE("Higher dimensional indexing", "[ModelArray]")
 {
     size_t dimLen = 10;
     size_t arrayLen = dimLen * dimLen * dimLen * dimLen;
@@ -91,7 +91,7 @@ TEST_CASE("Higher dimensional indexing", "[ModelData]")
     REQUIRE(check4d[{4, 7, 2, 6}] == 4726);
 }
 
-TEST_CASE("Naming", "[ModelData]")
+TEST_CASE("Naming", "[ModelArray]")
 {
     std::string dataName = "u10m";
 
@@ -100,7 +100,7 @@ TEST_CASE("Naming", "[ModelData]")
     REQUIRE(named.name() == dataName);
 }
 
-TEST_CASE("Moving data", "[ModelData]")
+TEST_CASE("Moving data", "[ModelArray]")
 {
     size_t n = 10;
     ModelArray::setDimensions({n, n});
