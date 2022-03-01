@@ -12,9 +12,8 @@
 
 #include "include/ElementData.hpp"
 #include "include/IDevGridIO.hpp"
-#include "include/PrognosticData.hpp"
-
 #include <map>
+#include "../../include/PrognosticElementData.hpp"
 
 namespace Nextsim {
 

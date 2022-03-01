@@ -30,20 +30,20 @@ public:
      * @brief Calculates the amount of freezing during the timestep from the
      * Hibler model.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param phys PhysicsData for this element.
      * @param nsphys Nextsim physics implementation data for this element.
      */
-    double freeze(const PrognosticData&, PhysicsData&, NextsimPhysics&) const override;
+    double freeze(const PrognosticElementData&, PhysicsData&, NextsimPhysics&) const override;
     /*!
      * @brief Calculates the amount of melting during the timestep from the
      * Hibler model.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param phys PhysicsData for this element.
      * @param nsphys Nextsim physics implementation data for this element.
      */
-    double melt(const PrognosticData&, PhysicsData&, NextsimPhysics&) const override;
+    double melt(const PrognosticElementData&, PhysicsData&, NextsimPhysics&) const override;
 
     /*!
      * @brief Sets the value of the h0 parameter.

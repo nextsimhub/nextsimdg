@@ -9,7 +9,7 @@
 #define SRC_INCLUDE_ITHERMODYNAMICS_HPP
 
 namespace Nextsim {
-class PrognosticData;
+class PrognosticElementData;
 class PhysicsData;
 class ExternalData;
 class NextsimPhysics;
@@ -22,12 +22,12 @@ public:
     /*!
      * @brief Calculate the ice thermodynamics.
      *
-     * @param prog PrognosticData for this element (constant)
+     * @param prog PrognosticElementData for this element (constant)
      * @param exter ExternalData for this element (constant)
      * @param phys PhysicsData for this element
      * @param nsphys Nextsim physics implementation data for this element.
      */
-    virtual void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
+    virtual void calculate(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys,
         NextsimPhysics& nsphys)
         = 0;
 };

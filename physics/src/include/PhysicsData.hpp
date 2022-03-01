@@ -9,9 +9,9 @@
 
 #include "include/BaseElementData.hpp"
 #include "include/IPrognosticUpdater.hpp"
-#include "include/PrognosticData.hpp"
-
 #include <vector>
+
+#include "../../../core/src/include/PrognosticElementData.hpp"
 namespace Nextsim {
 
 //! A class holding common physics data.

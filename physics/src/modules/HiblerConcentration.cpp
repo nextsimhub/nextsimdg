@@ -7,9 +7,9 @@
 
 #include "include/HiblerConcentration.hpp"
 
+#include "../../../core/src/include/PrognosticElementData.hpp"
 #include "include/NextsimPhysics.hpp"
 #include "include/PhysicsData.hpp"
-#include "include/PrognosticData.hpp"
 
 namespace Nextsim {
 
@@ -29,7 +29,7 @@ void HiblerConcentration::configure()
 }
 
 double HiblerConcentration::freeze(
-    const PrognosticData& prog, PhysicsData& phys, NextsimPhysics& nsphys) const
+    const PrognosticElementData& prog, PhysicsData& phys, NextsimPhysics& nsphys) const
 {
     // Set the value of the reciprocal on the first invocation of freeze()
     static const double ooh0 = 1. / h0;
@@ -37,7 +37,7 @@ double HiblerConcentration::freeze(
 }
 
 double HiblerConcentration::melt(
-    const PrognosticData& prog, PhysicsData& phys, NextsimPhysics& nsphys) const
+    const PrognosticElementData& prog, PhysicsData& phys, NextsimPhysics& nsphys) const
 {
     if (prog.iceConcentration() >= 1)
         return 0;

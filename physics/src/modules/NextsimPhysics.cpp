@@ -9,9 +9,9 @@
 #include "include/ElementData.hpp"
 #include "include/ExternalData.hpp"
 #include "include/PhysicsData.hpp"
-#include "include/PrognosticData.hpp"
 #include <cmath>
 
+#include "../../../core/src/include/PrognosticElementData.hpp"
 #include "include/IConcentrationModel.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
@@ -86,7 +86,7 @@ void NextsimPhysics::updateSpecificHumidityAir(const ExternalData& exter, Physic
 };
 
 void NextsimPhysics::updateSpecificHumidityWater(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     phys.specificHumidityWater() = specHumWater(
         prog.seaSurfaceTemperature(), exter.airPressure(), prog.seaSurfaceSalinity());
@@ -94,7 +94,7 @@ void NextsimPhysics::updateSpecificHumidityWater(
 }
 
 void NextsimPhysics::updateSpecificHumidityIce(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     phys.specificHumidityIce() = specHumIce(prog.iceTemperature(0), exter.airPressure());
 }
@@ -112,7 +112,7 @@ void NextsimPhysics::updateHeatCapacityWetAir(const ExternalData& exter, Physics
 };
 
 void NextsimPhysics::calculate(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     massFluxOpenWater(phys);
     momentumFluxOpenWater(phys);
@@ -140,7 +140,7 @@ void NextsimPhysics::momentumFluxOpenWater(PhysicsData& phys)
 }
 
 void NextsimPhysics::heatFluxOpenWater(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     // Latent heat flux from evaporation and condensation
     m_Qlhow = m_evap * latentHeatWater(prog.seaSurfaceTemperature());
@@ -159,14 +159,14 @@ void NextsimPhysics::heatFluxOpenWater(
     m_Qow = m_Qlhow + m_Qshow + m_Qlwow + m_Qswow;
 }
 
-void NextsimPhysics::massFluxIceAtmosphere(const PrognosticData& prog, PhysicsData& phys)
+void NextsimPhysics::massFluxIceAtmosphere(const PrognosticElementData& prog, PhysicsData& phys)
 {
     m_subl = dragIce_t * phys.airDensity() * phys.windSpeed()
         * (phys.specificHumidityIce() - phys.specificHumidityAir());
 }
 
 void NextsimPhysics::heatFluxIceAtmosphere(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     // Latent heat flux from sublimation
     m_Qlhi = m_subl * latentHeatIce(prog.iceTemperature(0));
@@ -196,7 +196,7 @@ void NextsimPhysics::heatFluxIceAtmosphere(
 }
 
 void NextsimPhysics::massFluxIceOcean(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     m_hifroms = 0;
 
@@ -218,13 +218,13 @@ void NextsimPhysics::massFluxIceOcean(
 }
 
 void NextsimPhysics::heatFluxIceOcean(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     m_Qio = iceOceanHeatFluxImpl->flux(prog, exter, phys, *this);
 }
 
 void NextsimPhysics::newIceFormation(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     // Flux cooling the ocean from open water
     // TODO Add assimilation fluxes here
@@ -258,7 +258,7 @@ double updateThickness(double& thick, double oldConc, double deltaC, double delt
 }
 
 void NextsimPhysics::lateralGrowth(
-    const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+    const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
 {
     NextsimPhysics& nsphys = *this;
     double del_c = 0; // Change in concentration due to lateral growth

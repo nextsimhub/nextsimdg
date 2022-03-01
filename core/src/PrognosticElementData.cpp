@@ -1,23 +1,23 @@
 /*!
- * @file PrognosticData.cpp
+ * @file PrognosticElementData.cpp
  * @date Sep 8, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/PrognosticData.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/Module.hpp"
+#include "include/PrognosticElementData.hpp"
 namespace Nextsim {
 
-double PrognosticData::m_dt = 0;
-IFreezingPoint* PrognosticData::m_freezer = nullptr;
+double PrognosticElementData::m_dt = 0;
+IFreezingPoint* PrognosticElementData::m_freezer = nullptr;
 
-PrognosticData::PrognosticData()
-    : PrognosticData(1)
+PrognosticElementData::PrognosticElementData()
+    : PrognosticElementData(1)
 {
 }
 
-PrognosticData::PrognosticData(int nIceLayers)
+PrognosticElementData::PrognosticElementData(int nIceLayers)
     : m_conc(0)
     , m_snow(0)
     , m_sss(0)
@@ -28,7 +28,7 @@ PrognosticData::PrognosticData(int nIceLayers)
     //    m_tice.resize(nIceLayers);
 }
 
-PrognosticData::PrognosticData(const PrognosticGenerator& up)
+PrognosticElementData::PrognosticElementData(const PrognosticGenerator& up)
     : m_conc(up.updatedIceConcentration())
     , m_snow(up.updatedSnowThickness())
     , m_thick(up.updatedIceThickness())
@@ -41,7 +41,7 @@ PrognosticData::PrognosticData(const PrognosticGenerator& up)
     configure();
 }
 
-PrognosticData& PrognosticData::operator=(const PrognosticGenerator& up)
+PrognosticElementData& PrognosticElementData::operator=(const PrognosticGenerator& up)
 {
     m_thick = up.updatedIceThickness();
     m_conc = up.updatedIceConcentration();
@@ -57,13 +57,13 @@ PrognosticData& PrognosticData::operator=(const PrognosticGenerator& up)
     return *this;
 }
 
-void PrognosticData::configure()
+void PrognosticElementData::configure()
 {
     m_freezer = &Module::getImplementation<IFreezingPoint>();
     tryConfigure(m_freezer);
 }
 
-PrognosticData& PrognosticData::updateAndIntegrate(const IPrognosticUpdater& updater)
+PrognosticElementData& PrognosticElementData::updateAndIntegrate(const IPrognosticUpdater& updater)
 {
     m_thick = updater.updatedIceThickness();
     m_conc = updater.updatedIceConcentration();
@@ -73,7 +73,7 @@ PrognosticData& PrognosticData::updateAndIntegrate(const IPrognosticUpdater& upd
     return *this;
 }
 
-PrognosticData& PrognosticData::setSeaSurface(double sst, double sss)
+PrognosticElementData& PrognosticElementData::setSeaSurface(double sst, double sss)
 {
     m_sst = sst;
     m_sss = sss;
@@ -82,7 +82,7 @@ PrognosticData& PrognosticData::setSeaSurface(double sst, double sss)
 
 // Copy up to as many levels as there are currently.
 // Fill missing layers with the lowest valid temperature
-void PrognosticData::copyInIceLayerData(const std::vector<double>& src, std::vector<double>& tgt)
+void PrognosticElementData::copyInIceLayerData(const std::vector<double>& src, std::vector<double>& tgt)
 {
     int tLayers = tgt.size();
     int sLayers = src.size();

@@ -7,14 +7,14 @@
 
 #include "include/BasicIceOceanHeatFlux.hpp"
 
+#include "../../../core/src/include/PrognosticElementData.hpp"
 #include "include/ExternalData.hpp"
-#include "include/PrognosticData.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
 double BasicIceOceanHeatFlux::flux(
-    const PrognosticData& prog, const ExternalData& exter, const PhysicsData& phys, const NextsimPhysics& nsp)
+    const PrognosticElementData& prog, const ExternalData& exter, const PhysicsData& phys, const NextsimPhysics& nsp)
 {
     // The ice bottom temperature is the freezing point of the surface seawater
     double iceBottomTemperature = prog.freezingPoint();

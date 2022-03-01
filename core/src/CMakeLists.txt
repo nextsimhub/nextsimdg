@@ -11,7 +11,7 @@ set(BaseSources
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "ElementData.cpp"
-    "PrognosticData.cpp"
+    "PrognosticElementData.cpp"
     "ExternalData.cpp"
     "DevGridIO.cpp"
     "RectGridIO.cpp"

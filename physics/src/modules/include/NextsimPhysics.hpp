@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-class PrognosticData;
+class PrognosticElementData;
 class PhysicsData;
 class ExternalData;
 class UnusedData;
@@ -46,10 +46,10 @@ public:
         MINH_KEY,
     };
 
-    void calculate(const PrognosticData&, const ExternalData&, PhysicsData&) override;
+    void calculate(const PrognosticElementData&, const ExternalData&, PhysicsData&) override;
 
     //! Calculate the new ice formed this timestep on open water
-    void newIceFormation(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+    void newIceFormation(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys);
     //! The thickness of newly created ice in the current timestep
     inline double newIce() const { return m_newice; };
 
@@ -172,22 +172,22 @@ protected:
      * @brief Calculates the specific humidity at the temperature of the sea
      * surface and saturation.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param exter ExternalData for this element (constant).
      * @param phys PhysicsData for this element.
      */
     void updateSpecificHumidityWater(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
+        const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys) override;
     /*!
      * @brief Calculates the specific humidity at the temperature of the ice
      * surface and saturation over ice.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param exter ExternalData for this element (constant).
      * @param phys PhysicsData for this element.
      */
     void updateSpecificHumidityIce(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys) override;
+        const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys) override;
     /*!
      * @brief Calculates the air density.
      *
@@ -207,14 +207,14 @@ private:
     void massFluxOpenWater(PhysicsData& phys);
     void momentumFluxOpenWater(PhysicsData& phys);
     void heatFluxOpenWater(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+        const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys);
 
-    void massFluxIceAtmosphere(const PrognosticData& prog, PhysicsData& phys);
+    void massFluxIceAtmosphere(const PrognosticElementData& prog, PhysicsData& phys);
     void heatFluxIceAtmosphere(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-    void massFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-    void heatFluxIceOcean(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
-    void lateralGrowth(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+        const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys);
+    void massFluxIceOcean(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys);
+    void heatFluxIceOcean(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys);
+    void lateralGrowth(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys);
 
     // Phase change rates
     double m_evap;

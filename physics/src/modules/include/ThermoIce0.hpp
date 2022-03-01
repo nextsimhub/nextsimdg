@@ -13,7 +13,7 @@
 
 namespace Nextsim {
 
-class PrognosticData;
+class PrognosticElementData;
 class PhysicsData;
 class ExternalData;
 class NextsimPhysics;
@@ -33,12 +33,12 @@ public:
     /*!
      * @brief Calculate the NeXtSIM thermo0 ice thermodynamics.
      *
-     * @param prog PrognosticData for this element (constant)
+     * @param prog PrognosticElementData for this element (constant)
      * @param exter ExternalData for this element (constant)
      * @param phys PhysicsData for this element
      * @param nsphys Nextsim physics implementation data for this element.
      */
-    void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
+    void calculate(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys,
         NextsimPhysics& nsphys) override;
 
 private:

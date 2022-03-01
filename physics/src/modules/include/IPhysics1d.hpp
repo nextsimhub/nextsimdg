@@ -8,8 +8,8 @@
 #ifndef SRC_INCLUDE_IPHYSICS1D_HPP
 #define SRC_INCLUDE_IPHYSICS1D_HPP
 
+#include "../../../../core/src/include/PrognosticElementData.hpp"
 #include "include/PhysicsData.hpp"
-#include "include/PrognosticData.hpp"
 
 namespace Nextsim {
 
@@ -26,12 +26,12 @@ public:
      * @details This function is declared virtual to be overridden if the implementing class needs to update
      * any class specific derived data.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param exter ExternalData for this element (constant).
      * @param phys PhysicsData for this element.
      */
     virtual void updateDerivedData(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+        const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
     {
         updateSpecificHumidityAir(exter, phys);
         updateSpecificHumidityWater(prog, exter, phys);
@@ -50,11 +50,11 @@ public:
      * @details Performs the one-dimensional physics calculation for this
      * element, writing the data to the PhysicsData argument.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param exter ExternalData for this element (constant).
      * @param phys PhysicsData for this element.
      */
-    virtual void calculate(const PrognosticData&, const ExternalData&, PhysicsData&) = 0;
+    virtual void calculate(const PrognosticElementData&, const ExternalData&, PhysicsData&) = 0;
 
 protected:
     /*!
@@ -69,23 +69,23 @@ protected:
      * @brief A virtual function that calculates the specific humidity at the
      * temperature of the sea surface and saturation.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param exter ExternalData for this element (constant).
      * @param phys PhysicsData for this element.
      */
     virtual void updateSpecificHumidityWater(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+        const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
         = 0;
     /*!
      * @brief A virtual function that calculates the specific humidity at the
      * temperature of the ice surface and saturation over ice.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param exter ExternalData for this element (constant).
      * @param phys PhysicsData for this element.
      */
     virtual void updateSpecificHumidityIce(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys)
+        const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys)
         = 0;
     /*!
      * @brief A virtual function that calculates the air density.

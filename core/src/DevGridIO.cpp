@@ -48,19 +48,19 @@ static void dumpGroup(
 // See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
-// pointer to a member of PrognosticData that takes no arguments and returns a
+// pointer to a member of PrognosticElementData that takes no arguments and returns a
 // double. See https://isocpp.org/wiki/faq/pointers-to-members#typedef-for-ptr-to-memfn
-typedef double (PrognosticData::*ProgDoubleFn)() const;
+typedef double (PrognosticElementData::*ProgDoubleFn)() const;
 
 // Map between variable names and retrieval functions
 // See https://isocpp.org/wiki/faq/pointers-to-members#array-memfnptrs
 // clang-format off
 static const std::map<std::string, ProgDoubleFn> variableFunctions
-= {    { hiceName, &PrognosticData::iceThickness },
-       { ciceName, &PrognosticData::iceConcentration },
-       { hsnowName, &PrognosticData::snowThickness },
-       { sstName, &PrognosticData::seaSurfaceTemperature },
-       { sssName, &PrognosticData::seaSurfaceSalinity } };
+= {    { hiceName, &PrognosticElementData::iceThickness },
+       { ciceName, &PrognosticElementData::iceConcentration },
+       { hsnowName, &PrognosticElementData::snowThickness },
+       { sstName, &PrognosticElementData::seaSurfaceTemperature },
+       { sssName, &PrognosticElementData::seaSurfaceSalinity } };
 // clang-format on
 
 void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath) const
@@ -154,7 +154,7 @@ static void dumpMeta(
 }
 
 /*
- * Uses a pointer-to-member-function to access the data in PrognosticData
+ * Uses a pointer-to-member-function to access the data in PrognosticElementData
  * element by element. Please see the references in the comments associated
  * with ProgDoubleFn and CALL_MEMBER_FN for more details.
  */

@@ -88,17 +88,17 @@ add_executable(testScopedTimer
 target_link_libraries(testScopedTimer PRIVATE Catch2::Catch2)
 target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 
-add_executable(testPrognosticData
-    "PrognosticData_test.cpp"
-    "${SRC_DIR}/PrognosticData.cpp"
+add_executable(testPrognosticEData
+    "PrognosticElementData_test.cpp"
+    "${SRC_DIR}/PrognosticElementData.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     )
     # Set the location of the test module loader classes
 set(PDTestIppDir "${CMAKE_CURRENT_SOURCE_DIR}/PrognosticDataTestModules")
-target_link_libraries(testPrognosticData PRIVATE Catch2::Catch2 Boost::program_options)
-target_include_directories(testPrognosticData PRIVATE "${SRC_DIR}" "${CoreModulesDir}" "${PDTestIppDir}")
+target_link_libraries(testPrognosticEData PRIVATE Catch2::Catch2 Boost::program_options)
+target_include_directories(testPrognosticEData PRIVATE "${SRC_DIR}" "${CoreModulesDir}" "${PDTestIppDir}")
 
 set(PhysicsDir "${PROJECT_SOURCE_DIR}/physics/src")
 set(PhysicsModulesDir "${PhysicsDir}/modules")
@@ -107,7 +107,7 @@ add_executable(testElementData
     "${SRC_DIR}/ElementData.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
-    "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/PrognosticElementData.cpp"
     "${PhysicsModulesDir}/NextsimPhysics.cpp"
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
     "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
@@ -133,7 +133,7 @@ add_executable(testDevGrid
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/ElementData.cpp"
-    "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/PrognosticElementData.cpp"
     "${SRC_DIR}/DevGridIO.cpp"
     "${PhysicsModulesDir}/NextsimPhysics.cpp"
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
@@ -160,7 +160,7 @@ add_executable(testRectGrid
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/ElementData.cpp"
-    "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/PrognosticElementData.cpp"
     "${SRC_DIR}/RectGridIO.cpp"
     "${PhysicsModulesDir}/NextsimPhysics.cpp"
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
@@ -187,7 +187,7 @@ add_executable(testStructureFactory
     "${SRC_DIR}/ElementData.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
-    "${SRC_DIR}/PrognosticData.cpp"
+    "${SRC_DIR}/PrognosticElementData.cpp"
     "${SRC_DIR}/DevGridIO.cpp"
     "${SRC_DIR}/RectGridIO.cpp"
     "${CoreModulesDir}/DevGrid.cpp"

@@ -24,7 +24,7 @@ add_executable(testNextsimPhysics
     "${ModulesDir}/SMU2IceAlbedo.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${CoreSourceDir}/ElementData.cpp"
-    "${CoreSourceDir}/PrognosticData.cpp"
+    "${CoreSourceDir}/PrognosticElementData.cpp"
     "${ModulesDir}/HiblerConcentration.cpp"
     "${ModulesDir}/ThermoIce0.cpp"
     "${ModulesDir}/IPhysics1dModule.cpp"
@@ -44,10 +44,3 @@ target_include_directories(testNextsimPhysics PRIVATE
     "${netCDF_INCLUDE_DIR}"
     )
 target_link_libraries(testNextsimPhysics PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)
-
-#add_executable(testThermoIce0
-#    "ThermoIce0_test.cpp"
-#    "${SourceDir}/ThermoIce0.cpp"
-#    "${SourceDir}/PrognosticData.cpp"
-#    )
-#target_link_libraries(testThermoIce0 PRIVATE Catch2::Catch2)

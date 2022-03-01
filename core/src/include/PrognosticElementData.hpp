@@ -1,5 +1,5 @@
 /*!
- * @file PrognosticData.hpp
+ * @file PrognosticElementData.hpp
  * @date Sep 8, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */
@@ -20,33 +20,33 @@ namespace Nextsim {
 
 //! A class holding all of the data for an element that is carried from one
 //! timestep to another.
-class PrognosticData : public BaseElementData, public Configured<PrognosticData> {
+class PrognosticElementData : public BaseElementData, public Configured<PrognosticElementData> {
 public:
     //! Constructs an instance with a default of 1 ice layer.
-    PrognosticData();
+    PrognosticElementData();
     //! Constructs an instance with a number of ice layers.
-    PrognosticData(int nIceLayers);
-    PrognosticData(const PrognosticGenerator&);
-    ~PrognosticData() = default;
+    PrognosticElementData(int nIceLayers);
+    PrognosticElementData(const PrognosticGenerator&);
+    ~PrognosticElementData() = default;
 
     /*!
      * Assigns directly from an IPrognosticUpdater.
      * @param up the updater containing the new data values.
      */
-    PrognosticData& operator=(const PrognosticGenerator& up);
+    PrognosticElementData& operator=(const PrognosticGenerator& up);
 
     /*!
      * Assigns new values from an implementation of IPrognosticUpdater
      * @param updater The IPrognosticUpdater providing the updated values
      */
-    PrognosticData& updateAndIntegrate(const IPrognosticUpdater& updater);
+    PrognosticElementData& updateAndIntegrate(const IPrognosticUpdater& updater);
 
     /*!
      * Sets the sea surface parameters, if required
      * @param sst sea surface temperature
      * @param sss sea surface salinity
      */
-    PrognosticData& setSeaSurface(double sst, double sss);
+    PrognosticElementData& setSeaSurface(double sst, double sss);
 
     void configure() override;
 

@@ -7,11 +7,10 @@
 
 #include "include/ThermoIce0.hpp"
 
+#include "../../../core/src/include/PrognosticElementData.hpp"
 #include "include/ExternalData.hpp"
 #include "include/NextsimPhysics.hpp"
 #include "include/PhysicsData.hpp"
-#include "include/PrognosticData.hpp"
-
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -31,7 +30,7 @@ void ThermoIce0::configure()
     doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), true);
 }
 
-void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
+void ThermoIce0::calculate(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys,
     NextsimPhysics& nsphys)
 {
     // True constants

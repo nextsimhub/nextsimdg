@@ -9,9 +9,9 @@
 
 #include "Configured.hpp"
 #include "ExternalData.hpp"
-#include "PrognosticData.hpp"
 #include "include/IPhysics1d.hpp"
 #include "include/PhysicsData.hpp"
+#include "PrognosticElementData.hpp"
 
 namespace Nextsim {
 
@@ -23,10 +23,10 @@ class UnusedData : public BaseElementData {
 /*!
  * @brief The class which holds all the data for a single element of the model.
  *
- * @details Inherits from PrognosticData, PhysicsData and ExternalData. The
- * physics implementation is provided as a per-instance module.
+ * @details Inherits from PrognosticElementData, PhysicsData and ExternalData.
+ * The physics implementation is provided as a per-instance module.
  */
-class ElementData : public PrognosticData,
+class ElementData : public PrognosticElementData,
                     public PhysicsData,
                     public ExternalData,
                     public UnusedData,
@@ -43,7 +43,7 @@ public:
 
     ~ElementData() = default;
 
-    using PrognosticData::operator=;
+    using PrognosticElementData::operator=;
     using PhysicsData::operator=;
     using ExternalData::operator=;
 
@@ -53,14 +53,14 @@ public:
     //! Move assignment operator
     ElementData& operator=(ElementData&& other);
 
-    //! Configures the PrognosticData and physics implementation aspects of the
-    //!  object.
+    //! Configures the PrognosticElementData and physics implementation aspects
+    //! of the object.
     void configure() override;
 
     void updateDerivedData(
-        const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+        const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys);
 
-    void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys);
+    void calculate(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys);
 
 private:
     std::unique_ptr<IPhysics1d> m_physicsImplData;
