@@ -20,6 +20,12 @@ class ModelModule;
 
 class ModelModule {
 public:
+    typedef Logged::level OutputLevel;
+    typedef ModelArray HField;
+    typedef ModelArray UField;
+    typedef ModelArray VField;
+    typedef ModelArray ZField; // This needs to be made into a 3d field
+
     ModelModule();
     virtual ~ModelModule() = default;
 
@@ -27,7 +33,7 @@ public:
 
     virtual void setData(const ModelState&) = 0;
     virtual ModelState getState() const = 0;
-    virtual ModelState getState(Logged::level&) const = 0;
+    virtual ModelState getState(const OutputLevel&) const = 0;
 
     static void setAllModuleData(const ModelState& stateIn);
     static ModelState getAllModuleState();

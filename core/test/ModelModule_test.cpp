@@ -28,7 +28,7 @@ public:
         throw(HappyExcept(std::string("setData for ") + getName()));
     }
     ModelState getState() const override { return ModelState(); }
-    ModelState getState(Logged::level& lvl) const override { return getState(); }
+    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 };
 
 TEST_CASE("Register a new module", "[ModelModule]")
