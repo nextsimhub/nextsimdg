@@ -9,7 +9,7 @@
 
 namespace Nextsim {
 
-std::map<std::string, std::reference_wrapper<ModelModule>> ModelModule::registeredModules;
+std::map<std::string, ModelModule*> ModelModule::registeredModules;
 
 ModelModule::ModelModule()
 {
@@ -19,20 +19,19 @@ ModelModule::ModelModule()
 void ModelModule::setAllModuleData(const ModelState& stateIn)
 {
     for (auto entry : registeredModules) {
-        entry.second.get().setData(stateIn);
+        entry.second->setData(stateIn);
     }
 }
 ModelState ModelModule::getAllModuleState()
 {
     ModelState overallState;
     for (auto entry : registeredModules) {
-        overallState.merge(entry.second.get().getState());
+        overallState.merge(entry.second->getState());
     }
     return overallState;
 }
 
-void ModelModule::registerModule()
-{
-    registeredModules[getName()] = *this;
-}
+void ModelModule::registerModule() { registeredModules[getName()] = this; }
+
+void ModelModule::unregisterAllModules() { registeredModules.clear(); }
 } /* namespace Nextsim */

@@ -11,7 +11,6 @@
 #include "include/Logged.hpp"
 #include "include/ModelState.hpp"
 
-#include <functional>
 #include <map>
 #include <string>
 
@@ -32,12 +31,13 @@ public:
 
     static void setAllModuleData(const ModelState& stateIn);
     static ModelState getAllModuleState();
+    static void unregisterAllModules();
 
 protected:
     void registerModule();
 
 private:
-    static std::map<std::string, std::reference_wrapper<ModelModule>> registeredModules;
+    static std::map<std::string, ModelModule*> registeredModules;
 };
 
 } /* namespace Nextsim */
