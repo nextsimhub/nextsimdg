@@ -9,14 +9,30 @@
 
 namespace Nextsim {
 
+std::map<std::string, std::reference_wrapper<ModelModule>> ModelModule::registeredModules;
+
 ModelModule::ModelModule()
 {
     // TODO Auto-generated constructor stub
 }
 
-ModelModule::~ModelModule()
+void ModelModule::setAllModuleData(const ModelState& stateIn)
 {
-    // TODO Auto-generated destructor stub
+    for (auto entry : registeredModules) {
+        entry.second.get().setData(stateIn);
+    }
+}
+ModelState ModelModule::getAllModuleState()
+{
+    ModelState overallState;
+    for (auto entry : registeredModules) {
+        overallState.merge(entry.second.get().getState());
+    }
+    return overallState;
 }
 
+void ModelModule::registerModule()
+{
+    registeredModules[getName()] = *this;
+}
 } /* namespace Nextsim */

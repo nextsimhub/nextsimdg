@@ -206,10 +206,19 @@ target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTarget
 target_link_directories(testStructureFactory PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testStructureFactory PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
 
-add_executable(testModelData
-    "ModelData_test.cpp"
-    "${CoreSrc}/ModelData.cpp"
+add_executable(testModelArray
+    "ModelArray_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
     )
 
-target_include_directories(testModelData PRIVATE "${CoreSrc}")
-target_link_libraries(testModelData PRIVATE Catch2::Catch2)
+target_include_directories(testModelArray PRIVATE "${CoreSrc}")
+target_link_libraries(testModelArray PRIVATE Catch2::Catch2)
+
+add_executable(testModelModule
+    "ModelModule_test.cpp"
+    "${CoreSrc}/ModelModule.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+)
+
+target_include_directories(testModelModule PRIVATE "${CoreSrc}")
+target_link_libraries(testModelModule PRIVATE Catch2::Catch2)
