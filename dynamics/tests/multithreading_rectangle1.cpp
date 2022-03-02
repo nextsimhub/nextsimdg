@@ -55,7 +55,8 @@ public:
 
 //////////////////////////////////////////////////
 
-template <int DGdegree> class Test {
+template <int DGdegree>
+class Test {
     //! Mesh size (given as parameter to constructor)
     size_t N;
 

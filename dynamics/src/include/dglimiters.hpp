@@ -8,7 +8,8 @@
 
 namespace Nextsim {
 
-template <int DGdegree> class Limiter {
+template <int DGdegree>
+class Limiter {
 
     const Mesh& mesh;
     Nextsim::CellVector<DGdegree - 1> alpha;

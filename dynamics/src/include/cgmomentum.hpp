@@ -118,7 +118,8 @@ public:
     }
 
     //! Sets the vector to zero along the boundary
-    template <int CG> void DirichletZero(const Mesh& mesh, CGVector<CG>& v) const;
+    template <int CG>
+    void DirichletZero(const Mesh& mesh, CGVector<CG>& v) const;
 
     //! Interpolates a DG-Vector to a CG-Vector
     template <int CG, int DG>
@@ -168,7 +169,8 @@ public:
     }
 
     //! Adjusts the interpolation on the boundary
-    template <int CG> void InterpolateDGToCGBoundary(const Mesh& mesh, CGVector<CG>& cg_A) const;
+    template <int CG>
+    void InterpolateDGToCGBoundary(const Mesh& mesh, CGVector<CG>& cg_A) const;
     void InterpolateDGToCGBoundary(const Mesh& mesh, CGVector<1>& cg_A) const
     {
         const size_t CGDofsPerRow = mesh.nx + 1;

@@ -123,7 +123,7 @@ private:
     void addStressTensorEdges(double scaleSigma); //!< < {{S}} , Phi >
     void addStressTensorBoundary(
         double scaleSigma); //!< same on boundary (from one side)
-                            //! consistency edge terms coming from integration by parts
+    //! consistency edge terms coming from integration by parts
     void stressTensorEdgesY(double scaleSigma, size_t c1, size_t c2)
     {
         const LocalEdgeVector<1> S11left( // left/right refers to the element

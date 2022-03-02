@@ -56,7 +56,8 @@ public:
 template <int DGdegree>
 void L2ProjectInitial(const Mesh& mesh, CellVector<DGdegree>& phi, InitialOp initial);
 
-template <> void L2ProjectInitial(const Mesh& mesh, CellVector<0>& phi, InitialOp initial)
+template <>
+void L2ProjectInitial(const Mesh& mesh, CellVector<0>& phi, InitialOp initial)
 {
     phi.setZero();
 
@@ -70,7 +71,8 @@ template <> void L2ProjectInitial(const Mesh& mesh, CellVector<0>& phi, InitialO
     }
 }
 
-template <> void L2ProjectInitial(const Mesh& mesh, CellVector<1>& phi, InitialOp initial)
+template <>
+void L2ProjectInitial(const Mesh& mesh, CellVector<1>& phi, InitialOp initial)
 {
     phi.setZero();
 
@@ -97,7 +99,8 @@ template <> void L2ProjectInitial(const Mesh& mesh, CellVector<1>& phi, InitialO
     }
 }
 
-template <> void L2ProjectInitial(const Mesh& mesh, CellVector<2>& phi, InitialOp initial)
+template <>
+void L2ProjectInitial(const Mesh& mesh, CellVector<2>& phi, InitialOp initial)
 {
     phi.setZero();
 
@@ -137,7 +140,8 @@ template <> void L2ProjectInitial(const Mesh& mesh, CellVector<2>& phi, InitialO
 template <int DGdegree>
 double L2Error(const Mesh& mesh, const CellVector<DGdegree>& phi, InitialOp initial);
 
-template <> double L2Error(const Mesh& mesh, const CellVector<2>& phi, InitialOp ex)
+template <>
+double L2Error(const Mesh& mesh, const CellVector<2>& phi, InitialOp ex)
 {
     double res = 0.0; //!< stores the integral
 
@@ -180,7 +184,8 @@ template <> double L2Error(const Mesh& mesh, const CellVector<2>& phi, InitialOp
 template <int CGdegree>
 void InterpolateCG(const Mesh& mesh, CGVector<CGdegree>& phi, InitialOp initial);
 
-template <> void InterpolateCG(const Mesh& mesh, CGVector<2>& phi, InitialOp initial)
+template <>
+void InterpolateCG(const Mesh& mesh, CGVector<2>& phi, InitialOp initial)
 {
     assert(static_cast<long int>((2 * mesh.nx + 1) * (2 * mesh.ny + 1)) == phi.rows());
 
@@ -195,7 +200,8 @@ template <> void InterpolateCG(const Mesh& mesh, CGVector<2>& phi, InitialOp ini
         }
     }
 }
-template <> void InterpolateCG(const Mesh& mesh, CGVector<1>& phi, InitialOp initial)
+template <>
+void InterpolateCG(const Mesh& mesh, CGVector<1>& phi, InitialOp initial)
 {
     assert(static_cast<long int>((mesh.nx + 1) * (mesh.ny + 1)) == phi.rows());
 

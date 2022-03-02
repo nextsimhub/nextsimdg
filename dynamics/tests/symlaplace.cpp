@@ -112,7 +112,8 @@ int main()
 
         double dt = cfl * rho_ice * L * L / 2.0 / eta / N / N;
         double dt_momentum = dt;
-        std::cout << "Time step:\t" << dt << std::endl << "Mesh size:\t" << h << std::endl;
+        std::cout << "Time step:\t" << dt << std::endl
+                  << "Mesh size:\t" << h << std::endl;
 
         dynamics.GetMesh().BasicInit(N, N, h, h);
         size_t NT = T / dt + 1.e-8;

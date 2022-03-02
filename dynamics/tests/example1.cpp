@@ -80,7 +80,8 @@ public:
 
 //////////////////////////////////////////////////
 
-template <int DGdegree> class Test {
+template <int DGdegree>
+class Test {
 
     size_t N; //!< size of mesh N x N
 

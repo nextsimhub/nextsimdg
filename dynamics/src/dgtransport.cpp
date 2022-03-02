@@ -6,7 +6,8 @@ namespace Nextsim {
 
 extern Timer GlobalTimer;
 
-template <int DGdegree> void DGTransport<DGdegree>::setmesh(const Mesh& _mesh)
+template <int DGdegree>
+void DGTransport<DGdegree>::setmesh(const Mesh& _mesh)
 {
     mesh = _mesh; // copy mesh
 
@@ -19,7 +20,8 @@ template <int DGdegree> void DGTransport<DGdegree>::setmesh(const Mesh& _mesh)
     vely_edgeX.resize_by_mesh(mesh, EdgeType::X);
 }
 
-template <int DGdegree> void DGTransport<DGdegree>::reinitvelocity()
+template <int DGdegree>
+void DGTransport<DGdegree>::reinitvelocity()
 {
     // average the velocity to the edges
     average_to_edges_Y(mesh, velx_edgeY, velx);
@@ -67,7 +69,8 @@ void DGTransport<DGdegree>::step_rk3(const double dt, CellVector<DGdegree>& phi)
     phi += 0.25 * tmp1 + 0.75 * tmp3;
 }
 
-template <int DGdegree> void DGTransport<DGdegree>::step(const double dt, CellVector<DGdegree>& phi)
+template <int DGdegree>
+void DGTransport<DGdegree>::step(const double dt, CellVector<DGdegree>& phi)
 {
     GlobalTimer.start("-- --> step");
     if (timesteppingscheme == "rk1")

@@ -36,7 +36,8 @@ public:
     }
 };
 
-template <int DGdegree> class LocalEdgeVector : public Eigen::Matrix<double, 1, DGdegree + 1> {
+template <int DGdegree>
+class LocalEdgeVector : public Eigen::Matrix<double, 1, DGdegree + 1> {
 public:
     LocalEdgeVector(void)
         : Eigen::Matrix<double, 1, DGdegree + 1>()
@@ -132,7 +133,9 @@ public:
 };
 
 //! data set to store the type of the edges
-typedef enum { none, X, Y } EdgeType;
+typedef enum { none,
+    X,
+    Y } EdgeType;
 
 /*!
  * Stores coefficients of DGdegree vector on edges

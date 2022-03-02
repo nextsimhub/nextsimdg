@@ -236,7 +236,8 @@ void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, CGVector<
 }
 
 //! Sets the vector to zero along the boundary
-template <> void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<1>& v) const
+template <>
+void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<1>& v) const
 {
 
     size_t upperleftindex = (mesh.nx + 1) * mesh.ny;
@@ -251,7 +252,8 @@ template <> void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<1>& v) con
         v(lowerrightindex + indecesperrow * i, 0) = 0.0;
     }
 }
-template <> void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
+template <>
+void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
 {
 
     size_t upperleftindex = (2 * mesh.nx + 1) * 2 * mesh.ny;

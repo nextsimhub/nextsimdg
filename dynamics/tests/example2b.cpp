@@ -53,7 +53,8 @@ public:
     }
 };
 
-template <int DGdegree> class Test {
+template <int DGdegree>
+class Test {
     //! Meshes
     Nextsim::Mesh mesh;
 
