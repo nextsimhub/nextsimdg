@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstdarg>
+#include <utility>
 
 namespace Nextsim {
 
@@ -61,7 +62,7 @@ void ModelArray::setDimensions(const Dimensions& newDims)
     m_sz = newSize;
 }
 
-double& ModelArray::operator[](const Dimensions& dims)
+const double& ModelArray::operator[](const Dimensions& dims) const
 {
     switch (dims.size()) {
     case (1):
@@ -83,39 +84,65 @@ double& ModelArray::operator[](const Dimensions& dims)
     }
 }
 
-double& ModelArray::operator()(size_t i, size_t j) { return (*this)(i * m_dims[1] + j); }
+const double& ModelArray::operator()(size_t i, size_t j) const { return (*this)(i * m_dims[1] + j); }
 
-double& ModelArray::operator()(size_t i, size_t j, size_t k)
+const double& ModelArray::operator()(size_t i, size_t j, size_t k) const
 {
     return (*this)(i * m_dims[2], j * m_dims[2] + k);
 }
 
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l)
+const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l) const
 {
     return (*this)(i * m_dims[3], j * m_dims[3], k * m_dims[3] + l);
 }
 
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m)
+const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
 {
     return (*this)(i * m_dims[4], j * m_dims[4], k * m_dims[4], l * m_dims[4] + m);
 }
 
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n)
+const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
 {
     return (*this)(i * m_dims[5], j * m_dims[5], k * m_dims[5], l * m_dims[5], m * m_dims[5] + n);
 }
 
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p)
+const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
 {
     return (*this)(i * m_dims[6], j * m_dims[6], k * m_dims[6], l * m_dims[6], m * m_dims[6],
         n * m_dims[6] + p);
 }
 
-double& ModelArray::operator()(
-    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q)
+const double& ModelArray::operator()(
+    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
 {
     return (*this)(i * m_dims[7], j * m_dims[7], k * m_dims[7], l * m_dims[7], m * m_dims[7],
         n * m_dims[7], p * m_dims[7] + q);
+}
+
+double& ModelArray::operator[](const Dimensions& dims) {
+    return const_cast<double&>(std::as_const(*this)[dims]);
+}
+double& ModelArray::operator()(size_t i, size_t j) {
+    return const_cast<double&>(std::as_const(*this)(i, j));
+}
+double& ModelArray::operator()(size_t i, size_t j, size_t k) {
+    return const_cast<double&>(std::as_const(*this)(i, j, k));
+}
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l) {
+    return const_cast<double&>(std::as_const(*this)(i, j, k, l));
+}
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m) {
+    return const_cast<double&>(std::as_const(*this)(i, j, k, l, m));
+}
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) {
+    return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n));
+}
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) {
+    return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n, p));
+}
+double& ModelArray::operator()(
+    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) {
+    return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n, p, q));
 }
 
 } /* namespace Nextsim */

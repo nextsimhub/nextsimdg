@@ -23,22 +23,17 @@ public:
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
-    HField& iceThickness() { return m_thick; }
-    double& iceThickness(size_t i, size_t j) { return m_thick(i, j); }
+    const HField& iceThickness() { return m_thick; }
 
-    HField& iceConcentration() { return m_conc; }
-    double& iceConcentration(size_t i, size_t j) { return m_conc(i, j); }
+    const HField& iceConcentration() { return m_conc; }
 
-    HField& snowThickness() { return m_snow; }
-    double& snowThickness(size_t i, size_t j) { return m_snow(i, j); }
+    const HField& snowThickness() { return m_snow; }
 
-    UField& u() { return m_u; }
-    double& u(size_t i, size_t j) { return m_u(i, j); }
+    const UField& u() { return m_u; }
 
-    VField& v() { return m_v; }
-    double& v(size_t i, size_t j) { return m_v(i, j); }
+    const VField& v() { return m_v; }
 
-    ZField& iceTemperature() { return m_tice; }
+    const ZField& iceTemperature() { return m_tice; }
 
 private:
     HField m_thick;

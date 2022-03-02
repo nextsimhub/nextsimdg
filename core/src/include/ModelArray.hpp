@@ -39,6 +39,19 @@ public:
     std::vector<double>::iterator begin() { return m_data.begin(); }
     std::vector<double>::iterator end() { return m_data.end(); }
 
+    const double& operator[](size_t i) const { return m_data[i]; }
+    const double& operator[](const Dimensions& dims) const;
+
+    const double& operator()(size_t i) const { return m_data[i]; }
+    const double& operator()(size_t i, size_t j) const;
+    const double& operator()(size_t i, size_t j, size_t k) const;
+    const double& operator()(size_t i, size_t j, size_t k, size_t l) const;
+    const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const;
+    const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const;
+    const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const;
+    const double& operator()(
+        size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const;
+
     //! One dimensional indexing
     double& operator[](size_t i) { return m_data[i]; }
     double& operator[](const Dimensions&);
