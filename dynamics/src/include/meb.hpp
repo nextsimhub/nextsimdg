@@ -1,3 +1,9 @@
+/*!
+ * @file meb.hpp
+ * @date 1 Mar 2022
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
+ */
+
 /*----------------------------   meb.hpp     ---------------------------*/
 #ifndef __meb_HPP
 #define __meb_HPP
@@ -60,6 +66,35 @@ namespace MEB {
 
     inline constexpr double SQR(double x) { return x * x; }
 
+    /**
+     * @brief Calculate Stresses for the current time step and update damage.
+     * 
+     * @details MEB model with additional outputs for development
+     * 
+     * @tparam DGstress Stress adn Strain DG degree 
+     * @tparam DGtracer H, A, D DG degree 
+     * @param mesh mesh
+     * @param S11 Stress component 11 
+     * @param S12 Stress component 12
+     * @param S22 Stress component 22
+     * @param E11 Strain component 11
+     * @param E12 Strain component 12
+     * @param E22 Strain component 22
+     * @param H ice height
+     * @param A ice concentation
+     * @param D damage
+     * @param DELTA delta
+     * @param SHEAR shear
+     * @param S1 Stress invariant 1
+     * @param S2 Stress invariant 2
+     * @param eta1 viscosity 1
+     * @param eta2 viscosity 2
+     * @param stressrelax indicator where stress is relaxed
+     * @param sigma_outside indicator where sigma is outside plastic envelope
+     * @param tP tilda P
+     * @param Pm maximum P
+     * @param dt_momentum timestep for momentum subcycle 
+     */
     template <int DGstress, int DGtracer>
     void StressUpdateSandbox(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
@@ -91,27 +126,6 @@ namespace MEB {
                 continue;
             }
 
-            /*
-                // For comparison with mEVP
-                DELTA(i, 0) = sqrt(
-                    SQR(RefScale::DeltaMin)
-                    + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
-                    + 1.50 * E11(i, 0) * E22(i, 0)
-                    + SQR(E12(i, 0)));
-                if (!(DELTA(i, 0) > 0)){
-                    std::cout << DELTA(i, 0) << std::endl;
-                    assert(DELTA(i, 0) > 0);
-                }
-
-                //! Ice strength
-                double P = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-                SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
-                //double zeta = P / 2.0 / DELTA(i, 0);
-                //double eta = zeta / 4;
-                // save mu and nu fro mEVP
-                //mu1(i, 0) = 2*eta ;  mu2(i, 0) = zeta - eta;
-                */
-
             //======================================================================
             //! - Updates the internal stress
             //======================================================================
@@ -119,7 +133,8 @@ namespace MEB {
             // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
             double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
             // shear stress
-            double tau = std::sqrt(SQR(0.5 * (S11(i, 0) - S22(i, 0))) + SQR(S12(i, 0)));
+            double tau = std::hypot(0.5 * (S11(i, 0) - S22(i, 0)), S12(i, 0));
+
             // /assert(tau > 0);
             const double C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
 
@@ -132,11 +147,8 @@ namespace MEB {
 
             double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
 
-            // Check 1
             double const time_viscous = RefScale::undamaged_time_relaxation_sigma
                 * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
-            // double const time_viscous = RefScale::undamaged_time_relaxation_sigma * std::pow(H(i,
-            // 0) * expC, RefScale::exponent_relaxation_sigma - 1.);
 
             // Plastic failure tildeP
             double tildeP;
@@ -144,18 +156,6 @@ namespace MEB {
                 = RefScale::compression_factor * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
             if (sigma_n < 0.) {
 
-                // double const Pmax = RefScale::Pstar * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i,
-                // 0))); double const Pmax = RefScale::compression_factor * pow(H(i, 0),
-                // RefScale::exponent_compression_factor) * exp(RefScale::compaction_param * (1.0 -
-                // A(i, 0)));
-                //  skipping 1.5 power
-                // double const Pmax = RefScale::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-
-                // tildeP must be capped at 1 to get an elastic response
-                // if (sigma_n<-Pmax)
-                //  tildeP = Pmax/sigma_n;
-                // else
-                //  tildeP = -1;
                 tildeP = std::min(1., -Pmax / sigma_n);
             } else {
                 tildeP = 0.;
@@ -166,21 +166,11 @@ namespace MEB {
             tP(i) = tildeP;
             Pm(i) = Pmax;
             // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-            // Check 2: min 1.-1e-12 Not mentioned in the paper from nextsim
             double const multiplicator
                 = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
-            // -12 -> -3
 
-            // if ( time_viscous < 100000-1)
-            // std::cout << "ELO1" << time_viscous / (time_viscous + dt_momentum * (1. - tildeP)) <<
-            // std::endl; std::cout << "" << time_viscous / (time_viscous + dt_momentum * (1. -
-            // tildeP)) << std::endl;
-
-            // NEW 1 Initially elastcity is deformed by H
             double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
-            // double const elasticity = RefScale::young * H(i, 0) * expC;
-
-            double const Dunit_factor = 1. / (1. - SQR(RefScale::nu0));
+            double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
             // Elasit prediction Eqn. (32)
             S11.row(i) += dt_momentum * elasticity
@@ -264,10 +254,30 @@ namespace MEB {
 
             // ellipse-output
             S1(i) = 0.5 * (S11(i, 0) + S22(i, 0));
-            S2(i) = sqrt(SQR(S12(i, 0)) + SQR(0.5 * (S11(i, 0) - S22(i, 0))));
+            S2(i) = std::hypot(S12(i, 0), 0.5 * (S11(i, 0) - S22(i, 0)));
         }
     }
-
+    /*!
+     * @brief Stress update for VP Model
+     *
+     * @details Function used to validate frocing gives same results as mEVP
+     * 
+     * 
+     * @tparam DGstress Stress adn Strain DG degree 
+     * @tparam DGtracer H, A, D DG degree 
+     * @param mesh mesh
+     * @param S11 Stress component 11 
+     * @param S12 Stress component 12
+     * @param S22 Stress component 22
+     * @param E11 Strain component 11
+     * @param E12 Strain component 12
+     * @param E22 Strain component 22
+     * @param H ice height
+     * @param A ice concentation
+     * @param Pstar ice strength
+     * @param DeltaMin Delta min 2e-9
+     * @param dt_momentum timestep for momentum subcycle 
+     */
     template <int DGstress, int DGtracer>
     void StressUpdateVP(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
@@ -281,6 +291,7 @@ namespace MEB {
         for (size_t i = 0; i < mesh.n; ++i) {
             double DELTA = sqrt(SQR(DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
                 + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
+
             assert(DELTA > 0);
 
             //! Ice strength
@@ -300,6 +311,25 @@ namespace MEB {
         }
     }
 
+    /*!
+     * @brief Calculate Stresses for the current time step and update damage.
+     * 
+     * @details MEB model
+     * 
+     * @tparam DGstress Stress adn Strain DG degree 
+     * @tparam DGtracer H, A, D DG degree 
+     * @param mesh mesh
+     * @param S11 Stress component 11 
+     * @param S12 Stress component 12
+     * @param S22 Stress component 22
+     * @param E11 Strain component 11
+     * @param E12 Strain component 12
+     * @param E22 Strain component 22
+     * @param H ice height
+     * @param A ice concentation
+     * @param D damage
+     * @param dt_momentum timestep for momentum subcycle 
+     */
     template <int DGstress, int DGtracer>
     void StressUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
@@ -311,41 +341,28 @@ namespace MEB {
 #pragma omp parallel for
         for (size_t i = 0; i < mesh.n; ++i) {
 
-            // Check 1: Not mentioned in the paper
             // There's no ice so we set sigma to 0 and carry on
             const double min_c = 0.1;
-            // if (M_conc[cpt] <= min_c) {
             if (A(i, 0) <= min_c) {
-
-                // M_damage[cpt] = 0.;
                 D(i, 0) = 0.0;
-
-                // for(int i=0;i<3;i++)
-                //     M_sigma[i][cpt] = 0.;
                 S11.row(i) *= 0.0;
                 S12.row(i) *= 0.0;
                 S22.row(i) *= 0.0;
                 continue;
             }
 
-            /*======================================================================
-                //! - Updates the internal stress
-                *======================================================================
-                */
-
-            // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
+            //! - Updates the internal stress
             double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
             double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
             double const time_viscous = RefScale::undamaged_time_relaxation_sigma
                 * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
 
-            // Plastic failure tildeP
+            //! Plastic failure tildeP
             double tildeP;
             if (sigma_n < 0.) {
                 double const Pmax = RefScale::compression_factor
                     * pow(H(i, 0), RefScale::exponent_compression_factor)
                     * exp(RefScale::compaction_param * (1.0 - A(i, 0)));
-
                 // tildeP must be capped at 1 to get an elastic response
                 tildeP = std::min(1., -Pmax / sigma_n);
             } else {
@@ -353,12 +370,11 @@ namespace MEB {
             }
 
             // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-            // Check 2: min 1.-1e-12 Not mentioned in the paper from nextsim
             double const multiplicator
                 = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
             double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
 
-            double const Dunit_factor = 1. / (1. - SQR(RefScale::nu0));
+            double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
             // Elasit prediction Eqn. (32)
             S11.row(i) += dt_momentum * elasticity
@@ -372,11 +388,7 @@ namespace MEB {
             S12.row(i) *= multiplicator;
             S22.row(i) *= multiplicator;
 
-            /*======================================================================
-                 //! - Estimates the level of damage from the updated internal stress and the local
-               damage criterion
-                 *======================================================================
-                 */
+            //! - Estimates the level of damage from updated stress and the local damage criterion
 
             // continiue if stress in inside the failure envelope
             //  Compute the shear and normal stresses, which are two invariants of the internal
@@ -385,12 +397,10 @@ namespace MEB {
             // update sigma_n
             sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
 
-            // Check 3: Discuss Cohesion with Einar
             // Cohesion Eqn. (21)
             // Reference length scale is fixed 0.1 since its cohesion parameter at the lab scale (10
             // cm)
             double const C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
-            // C_lab;...  : cohesion (Pa)
 
             // d critical Eqn. (29)
             double dcrit;
@@ -407,10 +417,7 @@ namespace MEB {
             double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
                 / std::sqrt(elasticity);
             // Calculate the adjusted level of damage
-            if ((0. < dcrit)
-                && (dcrit
-                    < 1.)) // sigma_s - tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
-            {
+            if ((0. < dcrit) && (dcrit < 1.)) {
                 // Eqn. (34)
                 D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
 
@@ -421,11 +428,7 @@ namespace MEB {
             }
 
             // Relax damage
-            // Check 4: Values are not in the Paper, cf. Eqn. (30)
-            D(i, 0) = std::max(0.,
-                D(i, 0)
-                    - dt_momentum / 2160000.
-                        * std::exp(RefScale::compaction_param * (1. - A(i, 0))));
+            D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage * std::exp(RefScale::compaction_param * (1. - A(i, 0))));
         }
     }
 
