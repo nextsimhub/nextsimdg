@@ -28,7 +28,7 @@ jobs:
         done
   
   
-  build-on-ubuntu:
+  build-and-tests-on-ubuntu:
 
     runs-on: ubuntu-latest
 
@@ -47,42 +47,6 @@ jobs:
       run: |
         cmake .
         make
-
-  build-on-mac:
-
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: installs
-      run: |
-        brew install netcdf
-        brew install boost
-        brew install catch2
-        brew install cmake
-    - name: make
-      run: |
-        cmake .
-        make
-        
-        
-
-  tests-on-mac:
-
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: installs
-      run: |
-        brew install netcdf
-        brew install boost
-        brew install catch2
-        brew install cmake
-    - name: make
-      run: |
-        cmake .
-        make        
     - name: run tests
       run: |
         cd core/test
@@ -95,22 +59,19 @@ jobs:
             cd -
         done
 
-  
-  tests-on-ubuntu:
 
-    runs-on: ubuntu-latest
+  build-and-tests-on-mac:
+
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v2
     - name: installs
       run: |
-        sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake
-        git clone -b v2.x https://github.com/catchorg/Catch2.git
-        cd Catch2
-        cmake -Bbuild -H. -DBUILD_TESTING=OFF
-        sudo cmake --build build/ --target install
-        cd ..
+        brew install netcdf
+        brew install boost
+        brew install catch2
+        brew install cmake
     - name: make
       run: |
         cmake .
