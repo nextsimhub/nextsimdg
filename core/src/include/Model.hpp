@@ -12,6 +12,7 @@
 #include "include/Configured.hpp"
 #include "include/IStructure.hpp"
 #include "include/Iterator.hpp"
+#include "include/PrognosticData.hpp"
 
 #include "DevStep.hpp"
 #include <string>
@@ -45,6 +46,8 @@ public:
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
+    //PrognosticData pData;
+    //std::unique_ptr<IIceGrowth> pIceGrowth;
 
     std::string initialFileName;
     std::string finalFileName;

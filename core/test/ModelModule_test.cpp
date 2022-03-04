@@ -29,13 +29,77 @@ public:
     }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
+    std::set<std::string> uFields() const override { return { "u1" }; }
+    std::set<std::string> vFields() const override { return { "v1", "v2" }; }
+    std::set<std::string> zFields() const override { return { "z1", "z2", "z3" }; }
 };
 
 TEST_CASE("Register a new module", "[ModelModule]")
 {
     Module1 m1;
     REQUIRE_THROWS_AS(ModelModule::setAllModuleData(ModelState()), HappyExcept);
+
+    std::set<std::string> uu;
+    std::set<std::string> vv;
+    std::set<std::string> zz;
+
+    ModelModule::getAllFieldNames(uu, vv, zz);
+    REQUIRE(uu.size() == 1);
+    REQUIRE(vv.size() == 2);
+    REQUIRE(zz.size() == 3);
+
     ModelModule::unregisterAllModules();
+}
+
+class ModuleSupplyAndWait : public ModelModule {
+public:
+    ModuleSupplyAndWait()
+        : p_cice(nullptr)
+    {
+        registerModule();
+        registerSharedArray(SharedArray::H_ICE, &hice);
+        requestSharedArray(SharedArray::C_ICE, &p_cice);
+    }
+    void setData(const ModelState& ms) override { }
+    std::string getName() const override { return "SupplyAndWait"; }
+    ModelState getState() const override { return { { "hice", hice }, { "cice", *p_cice } }; }
+    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
+
+    bool checkNotNull() { return p_cice; }
+
+private:
+    ModelArray hice;
+    ModelArray* p_cice;
+};
+
+class ModuleRequestAndSupply : public ModelModule {
+public:
+    ModuleRequestAndSupply()
+        : p_hice(nullptr)
+    {
+        registerModule();
+        registerSharedArray(SharedArray::C_ICE, &cice);
+        requestSharedArray(SharedArray::H_ICE, &p_hice);
+    }
+    void setData(const ModelState& ms) override { }
+    std::string getName() const override { return "SupplyAndWait"; }
+    ModelState getState() const override { return { { "hice", *p_hice }, { "cice", cice } }; }
+    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
+
+    bool checkNotNull() { return p_hice; }
+
+private:
+    ModelArray cice;
+    ModelArray* p_hice;
+};
+
+TEST_CASE("Test array registration", "[ModelModule]")
+{
+    ModuleSupplyAndWait saw;
+    ModuleRequestAndSupply ras;
+
+    REQUIRE(ras.checkNotNull());
+    REQUIRE(saw.checkNotNull());
 }
 
 } /* namespace Nextsim */

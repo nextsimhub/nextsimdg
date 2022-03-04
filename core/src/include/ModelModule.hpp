@@ -5,13 +5,14 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_MODELMODULE_HPP_
-#define CORE_SRC_INCLUDE_MODELMODULE_HPP_
+#ifndef CORE_SRC_INCLUDE_MODELMODULE_HPP
+#define CORE_SRC_INCLUDE_MODELMODULE_HPP
 
 #include "include/Logged.hpp"
 #include "include/ModelState.hpp"
 
 #include <map>
+#include <set>
 #include <string>
 
 namespace Nextsim {
@@ -26,6 +27,14 @@ public:
     typedef ModelArray VField;
     typedef ModelArray ZField; // This needs to be made into a 3d field
 
+    enum class SharedArray {
+        H_ICE, // Ice thickness
+        C_ICE, // Ice concentration
+        H_SNOW, // Snow depth
+        T_ICE, // Ice temperature
+        Q_OW, // Open water heat flux
+    };
+
     ModelModule();
     virtual ~ModelModule() = default;
 
@@ -35,17 +44,29 @@ public:
     virtual ModelState getState() const = 0;
     virtual ModelState getState(const OutputLevel&) const = 0;
 
+    virtual std::set<std::string> uFields() const { return {}; }
+    virtual std::set<std::string> vFields() const { return {}; }
+    virtual std::set<std::string> zFields() const { return {}; }
+
     static void setAllModuleData(const ModelState& stateIn);
     static ModelState getAllModuleState();
     static void unregisterAllModules();
 
+    static void getAllFieldNames(
+        std::set<std::string>& uF, std::set<std::string>& vF, std::set<std::string>& zF);
+
 protected:
     void registerModule();
 
+    static void registerSharedArray(SharedArray type, ModelArray* addr);
+    static void requestSharedArray(SharedArray type, ModelArray** addr);
+
 private:
     static std::map<std::string, ModelModule*> registeredModules;
+    static std::map<SharedArray, ModelArray*> registeredArrays;
+    static std::map<SharedArray, std::set<ModelArray**>> reservedArrays;
 };
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_MODELMODULE_HPP_ */
+#endif /* CORE_SRC_INCLUDE_MODELMODULE_HPP */
