@@ -23,6 +23,10 @@ public:
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
+    std::set<std::string> uFields() const override { return {"u"}; }
+    std::set<std::string> vFields() const override { return {"v"}; }
+    std::set<std::string> zFields() const override { return {"tice"}; }
+
     const HField& iceThickness() { return m_thick; }
 
     const HField& iceConcentration() { return m_conc; }

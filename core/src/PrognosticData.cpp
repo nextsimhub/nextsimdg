@@ -10,13 +10,16 @@
 namespace Nextsim {
 
 PrognosticData::PrognosticData()
+    : m_dt(1)
 {
-    // TODO Auto-generated constructor stub
+    registerSharedArray(SharedArray::H_ICE, &m_thick);
+    registerSharedArray(SharedArray::C_ICE, &m_conc);
+    registerSharedArray(SharedArray::H_SNOW, &m_snow);
+    registerSharedArray(SharedArray::T_ICE, &m_tice);
 }
 
 PrognosticData::~PrognosticData()
 {
-    // TODO Auto-generated destructor stub
 }
 
 } /* namespace Nextsim */
