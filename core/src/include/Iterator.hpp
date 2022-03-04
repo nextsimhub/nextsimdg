@@ -14,7 +14,7 @@
 namespace Nextsim {
 
 //! A class that controls how time steps are performed.
-class Iterator : public Logged {
+class Iterator {
 public:
     typedef std::chrono::system_clock Clock;
     //    typedef std::chrono::time_point<Clock> TimePoint;
@@ -75,7 +75,7 @@ private:
 
 public:
     //! A base class for classes that specify what happens during one timestep.
-    class Iterant : public Logged {
+    class Iterant {
     public:
         // Define the constructors and copy operator as default to be
         // rule of 5 compliant, given the virtual destructor

@@ -11,7 +11,7 @@ if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
 else()
     set(NSDG_NetCDF_Library "netcdf_c++4")
 endif()
-find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(Boost COMPONENTS program_options log REQUIRED)
 find_package(Catch2 REQUIRED)
 
 # To add netCDF to a target:

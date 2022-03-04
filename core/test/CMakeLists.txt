@@ -20,8 +20,11 @@ add_executable(testIterator
     "${SRC_DIR}/Iterator.cpp"
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    
     )
-target_link_libraries(testIterator PRIVATE Catch2::Catch2)
+target_include_directories(testIterator PUBLIC "${SRC_DIR}")
+target_link_libraries(testIterator PRIVATE Catch2::Catch2 "${Boost_LIBRARIES}")
 
 add_executable(testSimpleIter
     "SimpleIterant_test.cpp"
@@ -29,8 +32,11 @@ add_executable(testSimpleIter
     "${SRC_DIR}/Iterator.cpp"
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    
     )
-target_link_libraries(testSimpleIter PRIVATE Catch2::Catch2)
+target_include_directories(testSimpleIter PUBLIC "${SRC_DIR}")
+target_link_libraries(testSimpleIter PRIVATE Catch2::Catch2 "${Boost_LIBRARIES}")
 
 add_executable(testCommandLineParser
     "CommandLineParser_test.cpp"
