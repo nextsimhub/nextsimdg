@@ -62,14 +62,19 @@ public:
     }
     void setData(const ModelState& ms) override { }
     std::string getName() const override { return "SupplyAndWait"; }
-    ModelState getState() const override { return { { "hice", hice }, { "cice", *p_cice } }; }
+    ModelState getState() const override
+    {
+        return {
+            { "hice", &hice },
+        };
+    }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
     bool checkNotNull() { return p_cice; }
 
 private:
-    ModelArray hice;
-    const ModelArray* p_cice;
+    HField hice;
+    const HField* p_cice;
 };
 
 class ModuleRequestAndSupply : public ModelModule {
@@ -83,14 +88,19 @@ public:
     }
     void setData(const ModelState& ms) override { }
     std::string getName() const override { return "SupplyAndWait"; }
-    ModelState getState() const override { return { { "hice", *p_hice }, { "cice", cice } }; }
+    ModelState getState() const override
+    {
+        return {
+            { "cice", &cice },
+        };
+    }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
     bool checkNotNull() { return p_hice; }
 
 private:
-    ModelArray cice;
-    const ModelArray* p_hice;
+    HField cice;
+    const HField* p_hice;
 };
 
 TEST_CASE("Test array registration", "[ModelModule]")

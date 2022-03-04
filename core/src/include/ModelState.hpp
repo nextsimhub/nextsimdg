@@ -14,13 +14,7 @@
 
 namespace Nextsim {
 
-typedef std::map<std::string, ModelArray> ModelState;
-
-//class ModelState {
-//public:
-//    ModelState();
-//    virtual ~ModelState();
-//};
+typedef std::map<std::string, const ModelArray*> ModelState;
 
 } /* namespace Nextsim */
 
