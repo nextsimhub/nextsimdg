@@ -1,12 +1,15 @@
-/*----------------------------   initial.h     ---------------------------*/
-/*      $Id:$                 */
-#ifndef __initial_H
-#define __initial_H
-/*----------------------------   initial.h     ---------------------------*/
+/*!
+ * @file dgInitial.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
 
-#include "cgvector.hpp"
-#include "dgvector.hpp"
-#include "mesh.hpp"
+#ifndef __DGINITIAL_HPP
+#define __DGINITIAL_HPP
+
+#include "Mesh.hpp"
+#include "cgVector.hpp"
+#include "dgVector.hpp"
 
 namespace Nextsim {
 
@@ -49,10 +52,7 @@ public:
     }
 };
 
-//////////////////////////////////////////////////
-
 //! Functions to project an analytical solution into the DG spaces
-
 template <int DGdegree>
 void L2ProjectInitial(const Mesh& mesh, CellVector<DGdegree>& phi, InitialOp initial);
 
@@ -177,8 +177,6 @@ double L2Error(const Mesh& mesh, const CellVector<2>& phi, InitialOp ex)
     return sqrt(res);
 }
 
-//////////////////////////////////////////////////
-
 //! Functions to project an analytical solution into the DG spaces
 
 template <int CGdegree>
@@ -217,9 +215,6 @@ void InterpolateCG(const Mesh& mesh, CGVector<1>& phi, InitialOp initial)
     }
 }
 
-} // namespace Nextsim
+} /* namespace Nextsim */
 
-/*----------------------------   initial.h     ---------------------------*/
-/* end of #ifndef __initial_H */
-#endif
-/*----------------------------   initial.h     ---------------------------*/
+#endif /* __DGINITIAL_H */

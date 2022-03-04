@@ -1,13 +1,16 @@
-/*----------------------------   dgvector.h     ---------------------------*/
-/*      $Id:$                 */
-#ifndef __dgvector_H
-#define __dgvector_H
-/*----------------------------   dgvector.h     ---------------------------*/
+/*!
+ * @file dgVector.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#ifndef __DGVECTOR_HPP
+#define __DGVECTOR_HPP
+
+#include "Mesh.hpp"
 
 #include <Eigen/Dense>
 #include <iostream>
-
-#include "mesh.hpp"
 
 namespace Nextsim {
 #define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
@@ -206,9 +209,6 @@ public:
     void zero() { Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1>::setZero(); }
 };
 
-} // namespace Nextsim
+} /* namespace Nextsim */
 
-/*----------------------------   dgvector.h     ---------------------------*/
-/* end of #ifndef __dgvector_H */
-#endif
-/*----------------------------   dgvector.h     ---------------------------*/
+#endif /* __DGVECTOR_HPP */

@@ -4,12 +4,10 @@
  * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
  */
 
-/*----------------------------   meb.hpp     ---------------------------*/
-#ifndef __meb_HPP
-#define __meb_HPP
-/*----------------------------   meb.hpp     ---------------------------*/
+#ifndef __MEB_HPP
+#define __MEB_HPP
 
-#include "dgvector.hpp"
+#include "dgVector.hpp"
 
 namespace RefScale {
 // Benchmark testcase from [Mehlmann / Richter, ...]
@@ -435,7 +433,4 @@ namespace MEB {
 }
 }
 
-/*----------------------------   meb.hpp     ---------------------------*/
-/* end of #ifndef __men_HPP */
-#endif
-/*----------------------------   meb.hpp     ---------------------------*/
+#endif /* __MEB_HPP */

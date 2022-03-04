@@ -1,9 +1,13 @@
-/*----------------------------   dgtimestepping.h ---------------------------*/
-#ifndef __dgtimestepping_H
-#define __dgtimestepping_H
-/*----------------------------   dgtimestepping.h ---------------------------*/
+/*!
+ * @file dgTimeStepping.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
 
-#include "dgvector_manipulations.hpp"
+#ifndef __DGTIMESTEPPING_HPP
+#define __DGTIMESTEPPING_HPP
+
+#include "dgVectorManipulations.hpp"
 #include "stopwatch.hpp"
 
 namespace Nextsim {
@@ -13,7 +17,7 @@ extern Timer GlobalTimer;
 // pre-computed matrices for assembling dG-transport
 // the Gauss rule for dG(n) is set to n+1 points
 // this might not be enough?
-#include "dgbasisfunctions_gausspoints.hpp"
+#include "dgBasisFunctionsGaussPoints.hpp"
 
 // compute the cell terms starting dG(1)
 template <int DGdegree>
@@ -457,9 +461,6 @@ void transportoperator(const Mesh& mesh, const double dt, const CellVector<DGdeg
     GlobalTimer.stop("-- -- --> boundaries");
 }
 
-} // namespace Nextsim
+} /* namespace Nextsim */
 
-/*----------------------------   dgtimestepping.h ---------------------------*/
-/* end of #ifndef __dgtimestepping_H */
-#endif
-/*----------------------------   dgtimestepping.h ---------------------------*/
+#endif /* __DGTIMESTEPPING_HPP */

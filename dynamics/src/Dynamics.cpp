@@ -1,5 +1,11 @@
-#include "dynamics.hpp"
-#include "dgvisu.hpp"
+/*!
+ * @file Dynamics.cpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#include "Dynamics.hpp"
+#include "dgVisu.hpp"
 #include "stopwatch.hpp"
 
 namespace Nextsim {
@@ -195,4 +201,4 @@ void Dynamics::addStressTensor(double scaleSigma)
     addStressTensorBoundary(scaleSigma);
 }
 
-}
+} /* namespace Nextsim */

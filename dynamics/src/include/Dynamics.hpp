@@ -1,18 +1,21 @@
-/*----------------------------   dynamics.h     ---------------------------*/
-/*      $Id:$                 */
-#ifndef __dynamics_H
-#define __dynamics_H
-/*----------------------------   dynamics.h     ---------------------------*/
+/*!
+ * @file Dynamics.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
 
-#include "dgtransport.hpp"
-#include "dgvector.hpp"
-#include "mesh.hpp"
+#ifndef __DYNAMICS_HPP
+#define __DYNAMICS_HPP
+
+#include "Mesh.hpp"
+#include "dgTransport.hpp"
+#include "dgVector.hpp"
 
 namespace Nextsim {
 // pre-computed matrices for assembling dG-transport
 // the Gauss rule for dG(n) is set to n+1 points
 // this might not be enough?
-#include "dgbasisfunctions_gausspoints.hpp"
+#include "dgBasisFunctionsGaussPoints.hpp"
 
 /*!
  * This class controls the timestepping of the dynamical core
@@ -292,9 +295,6 @@ private:
     }
 };
 
-}
+} /* namespace Nextsim */
 
-/*----------------------------   dynamics.h     ---------------------------*/
-/* end of #ifndef __dynamics_H */
-#endif
-/*----------------------------   dynamics.h     ---------------------------*/
+#endif /* __DYNAMICS_HPP */

@@ -1,18 +1,17 @@
-/*----------------------------   vector_manipulations.h
- * ---------------------------*/
-/*      $Id:$                 */
-#ifndef __vector_manipulations_H
-#define __vector_manipulations_H
-/*----------------------------   vector_manipulations.h
- * ---------------------------*/
+/*!
+ * @file dgVectorManipulations.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
 
+#ifndef __DGVECTOR_MANIPULATIONS_HPP
+#define __DGVECTOR_MANIPULATIONS_HPP
+
+#include "dgVector.hpp"
 #include <iomanip>
-
-#include "dgvector.hpp"
 
 namespace Nextsim {
 /**
-
 * Average onto an edge between two adjacent elements 1/2 (c1 + c2)
 * _X refers to a horizontal edge, _Y to a vertical edge
 **/
@@ -224,8 +223,6 @@ void average_to_edges_Y(const Mesh& mesh, EdgeVector<2>& edgevector,
         }
     }
 }
-
-//////////////////////////////////////////////////
 
 template <int DGdegree>
 void average_to_edges_X(const Mesh& mesh, EdgeVector<DGdegree>& edgevector,
@@ -514,11 +511,6 @@ void average_to_edges_X(const Mesh& mesh, EdgeVector<2>& edgevector,
 //     }
 //   }
 
-} // namespace Nextsim
+} /* namespace Nextsim */
 
-/*----------------------------   vector_manipulations.h
- * ---------------------------*/
-/* end of #ifndef __vector_manipulations_H */
-#endif
-/*----------------------------   vector_manipulations.h
- * ---------------------------*/
+#endif /* __DGVECTOR_MANIPULATIONS_HPP */

@@ -1,10 +1,13 @@
-/*----------------------------   limiters.h     ---------------------------*/
-/*      $Id:$                 */
-#ifndef __limiters_H
-#define __limiters_H
-/*----------------------------   limiters.h     ---------------------------*/
+/*!
+ * @file dgLimiters.hpp
+ * @date 1 Mar 2022
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
+ */
 
-#include "dgvector.hpp"
+#ifndef __LIMITERS_HPP
+#define __LIMITERS_HPP
+
+#include "dgVector.hpp"
 
 namespace Nextsim {
 
@@ -217,7 +220,4 @@ public:
 };
 }
 
-/*----------------------------   limiters.h     ---------------------------*/
-/* end of #ifndef __limiters_H */
-#endif
-/*----------------------------   limiters.h     ---------------------------*/
+#endif /* __LIMITERS_HPP */

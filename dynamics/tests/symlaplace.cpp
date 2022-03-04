@@ -1,12 +1,18 @@
+/*!
+ * @file synlaplace.cpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#include "Dynamics.hpp"
+#include "dgInitial.hpp"
+#include "dgVisu.hpp"
+#include "stopwatch.hpp"
+
 #include <cassert>
 #include <chrono>
 #include <iostream>
 #include <vector>
-
-#include "dginitial.hpp"
-#include "dgvisu.hpp"
-#include "dynamics.hpp"
-#include "stopwatch.hpp"
 
 bool WRITE_VTK = true;
 int WRITE_EVERY = 10000;

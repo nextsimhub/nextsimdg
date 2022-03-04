@@ -1,5 +1,11 @@
-#ifndef __REFERENCESCALE_HPP__
-#define __REFERENCESCALE_HPP__
+/*!
+ * @file ReferenceScale.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#ifndef __REFERENCESCALE_HPP
+#define __REFERENCESCALE_HPP
 
 namespace Nextsim {
 
@@ -16,6 +22,6 @@ public:
     static constexpr double S = 1.e5; // 1  |-> 100 kPa
 };
 
-}
+} /* namespace Nextsim */
 
-#endif
+#endif /* __REFERENCESCALE_HPP */

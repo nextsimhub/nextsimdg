@@ -1,15 +1,13 @@
-/*----------------------------   dgtransport.h     ---------------------------*/
-#ifndef __dgtransport_H
-#define __dgtransport_H
-/*----------------------------   dgtransport.h     ---------------------------*/
-
 /*!
- * @file    dgtransport.h
- * @author  Thomas Richter <thomas.richter@ovgu.de>
+ * @file    dgTransport.hpp
  * @date    Oct. 5, 2021
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
-#include "dgvector.hpp"
+#ifndef __DGTRANSPORT_HPP
+#define __DGTRANSPORT_HPP
+
+#include "dgVector.hpp"
 
 namespace Nextsim {
 
@@ -103,9 +101,6 @@ public:
     void step(const double dt, CellVector<DGdegree>& phi);
 };
 
-} // namespace Nextsim
+} /* namespace Nextsim */
 
-/*----------------------------   dgtransport.h     ---------------------------*/
-/* end of #ifndef __dgtransport_H */
-#endif
-/*----------------------------   dgtransport.h     ---------------------------*/
+#endif /* __DGTRANSPORT_HPP */

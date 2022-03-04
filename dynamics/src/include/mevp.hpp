@@ -1,9 +1,13 @@
-/*----------------------------   mevp.hpp     ---------------------------*/
-#ifndef __mevp_HPP
-#define __mevp_HPP
-/*----------------------------   mevp.hpp     ---------------------------*/
+/*!
+ * @file mevp.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
 
-#include "dgvector.hpp"
+#ifndef __MEVP_HPP
+#define __MEVP_HPP
+
+#include "dgVector.hpp"
 
 namespace Nextsim {
 
@@ -55,11 +59,8 @@ namespace mEVP {
         }
     }
 
-}
+} /* namespace mEVP */
 
-}
+} /* namespace Nextsim */
 
-/*----------------------------   mevp.hpp     ---------------------------*/
-/* end of #ifndef __mevp_HPP */
-#endif
-/*----------------------------   mevp.hpp     ---------------------------*/
+#endif /* __MEVP_HPP */

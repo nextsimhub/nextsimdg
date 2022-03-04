@@ -1,9 +1,13 @@
-/*----------------------------   tools.hpp     ---------------------------*/
-#ifndef __tools_HPP
-#define __tools_HPP
-/*----------------------------   tools.hpp     ---------------------------*/
+/*!
+ * @file Tools.hpp
+ * @date 1 Mar 2022
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
+ */
 
-#include "dgvector.hpp"
+#ifndef __TOOLS_HPP
+#define __TOOLS_HPP
+
+#include "dgVector.hpp"
 
 namespace Nextsim {
 
@@ -63,11 +67,8 @@ namespace Tools {
         }
     }
 
-}
+} /* namespace Tools */
 
-}
+} /* namespace Nextsim */
 
-/*----------------------------   tools.hpp     ---------------------------*/
-/* end of #ifndef __tools_HPP */
-#endif
-/*----------------------------   tools.hpp     ---------------------------*/
+#endif /* __TOOLS_HPP */

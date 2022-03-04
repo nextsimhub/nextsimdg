@@ -1,13 +1,11 @@
-/*----------------------------   testtools.hpp     ---------------------------*/
-#ifndef __testtools_HPP
-#define __testtools_HPP
-/*----------------------------   testtools.hpp     ---------------------------*/
-
 /*!
  * @file   testtools.hpp
  * @author Thomas Richter <thomas.richter@ovgu.de>
  * @date   27/10/2021
  */
+
+#ifndef __TESTTOOLS_HPP
+#define __TESTTOOLS_HPP
 
 #include <array>
 #include <vector>
@@ -46,7 +44,4 @@ std::array<double, 3> extrapolate(const std::vector<double>& values)
 
 }
 
-/*----------------------------   testtools.hpp     ---------------------------*/
-/* end of #ifndef __testtools_HPP */
-#endif
-/*----------------------------   testtools.hpp     ---------------------------*/
+#endif /* __TESTTOOLS_HPP */

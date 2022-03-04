@@ -1,10 +1,14 @@
-/*----------------------------   mesh.h     ---------------------------*/
-/*      $Id:$                 */
-#ifndef __mesh_H
-#define __mesh_H
-/*----------------------------   mesh.h     ---------------------------*/
+/*!
+ * @file Mesh.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#ifndef __MESH_HPP
+#define __MESH_HPP
 
 #include <array>
+#include <cassert>
 
 namespace Nextsim {
 
@@ -52,9 +56,6 @@ public:
     Vertex midpoint(size_t ix, size_t iy) const { return { hx * (ix + 0.5), hy * (iy + 0.5) }; }
 };
 
-} // namespace Nextsim
+} /* namespace Nextsim */
 
-/*----------------------------   mesh.h     ---------------------------*/
-/* end of #ifndef __mesh_H */
-#endif
-/*----------------------------   mesh.h     ---------------------------*/
+#endif /* __MESH_HPP */

@@ -1,11 +1,15 @@
-/*----------------------------   cgmomentum.hpp     ---------------------------*/
-#ifndef __cgmomentum_HPP
-#define __cgmomentum_HPP
-/*----------------------------   cgmomentum.hpp     ---------------------------*/
+/*!
+ * @file Mesh.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
 
-#include "cgvector.hpp"
-#include "codegeneration_cg_to_dg.hpp"
-#include "dgvector.hpp"
+#ifndef __CGMOMENTUM_HPP
+#define __CGMOMENTUM_HPP
+
+#include "cgVector.hpp"
+#include "codeGenerationGgToDg.hpp"
+#include "dgVector.hpp"
 
 namespace Nextsim {
 
@@ -204,10 +208,6 @@ public:
         }
     }
 };
+} /* namespace Nextsim */
 
-}
-
-/*----------------------------   cgmomentum.hpp     ---------------------------*/
-/* end of #ifndef __cgmomentum_HPP */
-#endif
-/*----------------------------   cgmomentum.hpp     ---------------------------*/
+#endif /* __CGMOMENTUM_HPP */

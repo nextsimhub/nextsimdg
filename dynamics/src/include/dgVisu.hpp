@@ -1,17 +1,19 @@
-/*----------------------------   visu.h     ---------------------------*/
-/*      $Id:$                 */
-#ifndef __visu_H
-#define __visu_H
-/*----------------------------   visu.h     ---------------------------*/
+/*!
+ * @file dgVisu.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
 
+#ifndef __DGVISU_HPP
+#define __DGVISU_HPP
+
+#include "Mesh.hpp"
+#include "cgVector.hpp"
+#include "dgVector.hpp"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-
-#include "cgvector.hpp"
-#include "dgvector.hpp"
-#include "mesh.hpp"
 
 namespace Nextsim {
 
@@ -271,9 +273,6 @@ public:
     }
 };
 
-} // namespace Nextsim
+} /* namespace Nextsim */
 
-/*----------------------------   visu.h     ---------------------------*/
-/* end of #ifndef __visu_H */
-#endif
-/*----------------------------   visu.h     ---------------------------*/
+#endif /* __DGVISU_HPP */

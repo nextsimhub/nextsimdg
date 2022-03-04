@@ -1,4 +1,10 @@
-#include "cgmomentum.hpp"
+/*!
+ * @file Mesh.hpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#include "cgMomentum.hpp"
 
 namespace Nextsim {
 
@@ -314,4 +320,4 @@ template void CGMomentum::InterpolateDGToCG(
 template void CGMomentum::InterpolateDGToCG(
     const Mesh& mesh, CGVector<2>& cg_A, const CellVector<0>& A) const;
 
-}
+} /* namespace Nextsim */

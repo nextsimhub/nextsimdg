@@ -1,13 +1,19 @@
+/*!
+ * @file multithreading_square.cpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#include "Mesh.hpp"
+#include "dgInitial.hpp"
+#include "dgLimiters.hpp"
+#include "dgTransport.hpp"
+#include "dgVisu.hpp"
+#include "stopwatch.hpp"
+
 #include <cassert>
 #include <chrono>
 #include <iostream>
-
-#include "dginitial.hpp"
-#include "dglimiters.hpp"
-#include "dgtransport.hpp"
-#include "dgvisu.hpp"
-#include "mesh.hpp"
-#include "stopwatch.hpp"
 
 namespace Nextsim {
 extern Timer GlobalTimer;

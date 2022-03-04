@@ -1,5 +1,11 @@
-#include "dgtransport.hpp"
-#include "dgtimestepping.hpp"
+/*!
+ * @file dgTransport.cpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#include "dgTransport.hpp"
+#include "dgTimeStepping.hpp"
 #include "stopwatch.hpp"
 
 namespace Nextsim {
@@ -90,4 +96,4 @@ template class DGTransport<0>;
 template class DGTransport<1>;
 template class DGTransport<2>;
 
-} // namespace Nextsim
+} /* namespace Nextsim */

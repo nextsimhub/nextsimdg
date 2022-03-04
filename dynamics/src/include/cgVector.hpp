@@ -1,17 +1,15 @@
-/*----------------------------   cgvector.hpp     ---------------------------*/
-#ifndef __cgvector_HPP
-#define __cgvector_HPP
-/*----------------------------   cgvector.hpp     ---------------------------*/
-
 /*!
- * @file   cgvector.hpp
+ * @file cgVector.hpp
+ * @date 1 Mar 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
+#ifndef __CGVECTOR_HPP
+#define __CGVECTOR_HPP
+
+#include "Mesh.hpp"
 #include <Eigen/Dense>
 #include <iostream>
-
-#include "mesh.hpp"
 
 namespace Nextsim {
 
@@ -51,9 +49,6 @@ public:
     }
 };
 
-}
+} /* namespace Nextsim */
 
-/*----------------------------   cgvector.hpp     ---------------------------*/
-/* end of #ifndef __cgvector_HPP */
-#endif
-/*----------------------------   cgvector.hpp     ---------------------------*/
+#endif /* __CGVECTOR_HPP */

@@ -1,11 +1,17 @@
+/*!
+ * @file eexample2a.cpp
+ * @date 1 Mar 2022
+ * @author Thomas Richter <thomas.richter@ovgu.no>
+ */
+
+#include "Mesh.hpp"
+#include "dgInitial.hpp"
+#include "dgTransport.hpp"
+#include "dgVisu.hpp"
+
 #include <cassert>
 #include <iomanip>
 #include <iostream>
-
-#include "dginitial.hpp"
-#include "dgtransport.hpp"
-#include "dgvisu.hpp"
-#include "mesh.hpp"
 
 /*!
  * This test case tests the boundary  handling of the DG transport scheme
