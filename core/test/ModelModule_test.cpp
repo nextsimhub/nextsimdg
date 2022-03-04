@@ -57,8 +57,8 @@ public:
         : p_cice(nullptr)
     {
         registerModule();
-        registerSharedArray(SharedArray::H_ICE, &hice);
-        requestSharedArray(SharedArray::C_ICE, &p_cice);
+        registerProtectedArray(ProtectedArray::H_ICE, &hice);
+        requestProtectedArray(ProtectedArray::C_ICE, &p_cice);
     }
     void setData(const ModelState& ms) override { }
     std::string getName() const override { return "SupplyAndWait"; }
@@ -69,7 +69,7 @@ public:
 
 private:
     ModelArray hice;
-    ModelArray* p_cice;
+    const ModelArray* p_cice;
 };
 
 class ModuleRequestAndSupply : public ModelModule {
@@ -78,8 +78,8 @@ public:
         : p_hice(nullptr)
     {
         registerModule();
-        registerSharedArray(SharedArray::C_ICE, &cice);
-        requestSharedArray(SharedArray::H_ICE, &p_hice);
+        registerProtectedArray(ProtectedArray::C_ICE, &cice);
+        requestProtectedArray(ProtectedArray::H_ICE, &p_hice);
     }
     void setData(const ModelState& ms) override { }
     std::string getName() const override { return "SupplyAndWait"; }
@@ -90,7 +90,7 @@ public:
 
 private:
     ModelArray cice;
-    ModelArray* p_hice;
+    const ModelArray* p_hice;
 };
 
 TEST_CASE("Test array registration", "[ModelModule]")

@@ -12,10 +12,10 @@ namespace Nextsim {
 PrognosticData::PrognosticData()
     : m_dt(1)
 {
-    registerSharedArray(SharedArray::H_ICE, &m_thick);
-    registerSharedArray(SharedArray::C_ICE, &m_conc);
-    registerSharedArray(SharedArray::H_SNOW, &m_snow);
-    registerSharedArray(SharedArray::T_ICE, &m_tice);
+    registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
+    registerProtectedArray(ProtectedArray::C_ICE, &m_conc);
+    registerProtectedArray(ProtectedArray::H_SNOW, &m_snow);
+    registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
 }
 
 PrognosticData::~PrognosticData()

@@ -12,6 +12,8 @@ namespace Nextsim {
 std::map<std::string, ModelModule*> ModelModule::registeredModules;
 std::map<ModelModule::SharedArray, ModelArray*> ModelModule::registeredArrays;
 std::map<ModelModule::SharedArray, std::set<ModelArray**>> ModelModule::reservedArrays;
+std::map<ModelModule::ProtectedArray, const ModelArray*> ModelModule::registeredProtectedArrays;
+std::map<ModelModule::ProtectedArray, std::set<const ModelArray**>> ModelModule::reservedProtectedArrays;
 ModelModule::ModelModule() { }
 
 void ModelModule::setAllModuleData(const ModelState& stateIn)
@@ -57,6 +59,23 @@ void ModelModule::requestSharedArray(SharedArray type, ModelArray** addr)
         *addr = registeredArrays[type];
     } else {
         reservedArrays[type].insert(addr);
+    }
+}
+
+void ModelModule::registerProtectedArray(ProtectedArray type, const ModelArray* addr)
+{
+    registeredProtectedArrays[type] = addr;
+    for (const ModelArray** addrAddr : reservedProtectedArrays[type]) {
+        *addrAddr = addr;
+    }
+}
+
+void ModelModule::requestProtectedArray(ProtectedArray type, const ModelArray** addr)
+{
+    if (registeredProtectedArrays.count(type) > 0) {
+        *addr = registeredProtectedArrays[type];
+    } else {
+        reservedProtectedArrays[type].insert(addr);
     }
 }
 } /* namespace Nextsim */
