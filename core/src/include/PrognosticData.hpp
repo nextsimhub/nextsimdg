@@ -19,7 +19,7 @@ public:
 
     std::string getName() const override { return "PrognosticData"; };
 
-    void setData(const ModelState& ms) override { }
+    void setData(const ModelState& ms) override;
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 

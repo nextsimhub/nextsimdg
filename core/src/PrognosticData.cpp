@@ -18,8 +18,19 @@ PrognosticData::PrognosticData()
     registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
 }
 
-PrognosticData::~PrognosticData()
+void PrognosticData::setData(const ModelState& ms)
 {
+    m_thick = *ms["hice"];
+    m_conc = *ms["cice"];
+    m_tice = *ms["tice"];
+    m_snow = *ms["hsnow"];
+    m_u = *ms["u"];
+    m_v = *ms["v"];
 }
 
+ModelState PrognosticData::getState() const
+{
+    ModelState ms;
+
+    return ms;
 } /* namespace Nextsim */
