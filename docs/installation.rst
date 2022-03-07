@@ -73,7 +73,7 @@ You must have root priviledge :
 Compilation with dependencies installation via conda
 ----------------------------------------------------
 
-Install conda via anaconda or miniconda (no root priviledges required)
+Install conda via `anaconda`_ or `miniconda`_ (no root priviledges required)
 
 .. code::
 
@@ -89,9 +89,26 @@ Install conda via anaconda or miniconda (no root priviledges required)
         cd build
         cmake ..
         make
+        
+Extra dependencies needed to run the simple example
+---------------------------------------------------
+
+To run the simple example described `here`_, you need to install python and netCDF4 library. If you already installed the dependencies for compilation with conda, nothing else is needed.
+
+Otherwise, install them via `anaconda`_ or `minconda`_ (no root priviledges required)
+
+.. code::
+
+        conda create --name nextsimdg
+        conda activate nextsimdg
+        conda install netCDF4
+
     
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
 .. _Catch2: https://github.com/catchorg/Catch2
 .. _CMake: https://cmake.org/
 .. _Homebrew: https://brew.sh/
+.. _here: https://nextsim-dg.readthedocs.io/en/latest/getting_started.html
+.. _anaconda: https://www.anaconda.com/products/individual
+.. _miniconda: https://docs.conda.io/en/latest/miniconda.html
