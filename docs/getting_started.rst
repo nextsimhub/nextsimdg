@@ -33,11 +33,7 @@ An example of a configuration file (``dev1.res.nc``) can be found in the ``run``
 Running the model
 ~~~~~~~~~~~~~~~~~
 
-All is happenning in the ``run`` directory : you have the configuration file and the restart file there, you need to make a link to the compiled model ``nextsim``:
-
-.. code::
-
-        ln -sf ../build/nextsim .
+All is happenning in the ``run`` directory : you have the configuration file and the restart file there, you need to make a link to the compiled model ``nextsim``: ``ln -sf ../build/nextsim``.
 
 With the value of the ``model.init_file`` variable set to the name of the correct initialization file, add the name of the configuration file as a ``config-file`` argument to the command line and execute. 
 
