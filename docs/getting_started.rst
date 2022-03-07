@@ -5,7 +5,7 @@
 Getting Started
 ===============
 
-This short guide explains how to get started with nextsimdg once you have installed it with one of the methods described in the installation section.
+This short guide explains how to get started with nextsimdg once you have installed it with one of the methods described in the `Installation`_ section.
 
 Simple Example
 --------------
@@ -22,3 +22,6 @@ First Example
 -------------
 
 In this first example, we are going to ...
+
+
+.. _Installation: https://nextsim-dg.readthedocs.io/en/latest/installation.html
