@@ -11,13 +11,13 @@ First step to install neXtSIM is to download this repository :
 
 .. code::
 
-    git clone https://github.com/nextsimdg/nextsimdg.git
+    git clone https://github.com/nextsimdg/nextsimdg.git or git clone git@github.com:nextsimdg/nextsimdg.git
     
 or a specific version :
 
 .. code::
 
-    git clone -b v1.0 https://github.com/nextsimdg/nextsimdg.git
+    git clone -b v0.1.0 https://github.com/nextsimdg/nextsimdg.git or git clone -b v0.1.0 git@github.com:nextsimdg/nextsimdg.git
 
 
 Dependencies
