@@ -16,9 +16,9 @@ TEST_CASE("Two dimensional data access test", "[ModelArray]")
 {
     ModelArray::Dimensions dims2 = {15, 25};
 
-    ModelArray::setDimensions(dims2);
+    ModelArray::setDimensions(ModelArray::Type::H, dims2);
 
-    ModelArray check1d;
+    ModelArray check1d = ModelArray::HField("check1d");
 
     REQUIRE(check1d.nDimensions() == 2);
 
@@ -43,9 +43,9 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
     size_t dimLen = 10;
     size_t arrayLen = dimLen * dimLen * dimLen * dimLen;
     ModelArray::Dimensions dims4 = {dimLen, dimLen, dimLen, dimLen};
-    ModelArray::setDimensions(dims4);
+    ModelArray::setDimensions(ModelArray::Type::H, dims4);
 
-    ModelArray check4d;
+    ModelArray check4d = ModelArray::HField("check4d");
 
     REQUIRE(check4d.nDimensions() == 4);
     REQUIRE(check4d.size() == dimLen * dimLen * dimLen * dimLen);
@@ -95,7 +95,7 @@ TEST_CASE("Naming", "[ModelArray]")
 {
     std::string dataName = "u10m";
 
-    ModelArray named(dataName);
+    ModelArray named = ModelArray::HField(dataName);
 
     REQUIRE(named.name() == dataName);
 }
@@ -103,9 +103,9 @@ TEST_CASE("Naming", "[ModelArray]")
 TEST_CASE("Moving data", "[ModelArray]")
 {
     size_t n = 10;
-    ModelArray::setDimensions({n, n});
+    ModelArray::setDimensions(ModelArray::Type::H, {n, n});
 
-    ModelArray src("data");
+    ModelArray src = ModelArray::HField("data");
     for (int i = 0; i < n * n; ++i) {
         src[i] = i;
     }
@@ -114,9 +114,19 @@ TEST_CASE("Moving data", "[ModelArray]")
     REQUIRE(cpyCtor.name() == src.name());
     REQUIRE(cpyCtor(2, 3) == src(2, 3));
 
-    ModelArray cpyAss;
+    ModelArray cpyAss = ModelArray::HField("cpyAss");
     cpyAss = src;
     REQUIRE(cpyAss(2, 3) == 23);
 }
 
+TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
+{
+    ModelArray uu = ModelArray::UField("uu");
+    REQUIRE(uu.size() == 0);
+    ModelArray::Dimensions udim = {5, 5};
+    uu.setDimensions(udim);
+    REQUIRE(uu.size() == udim[0] * udim[1]);
+    REQUIRE(uu.nDimensions() == 2);
+    REQUIRE(uu.dimensions() == udim);
+}
 } /* namespace Nextsim */

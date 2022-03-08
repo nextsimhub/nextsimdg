@@ -22,10 +22,6 @@ class ModelModule;
 class ModelModule {
 public:
     typedef Logged::level OutputLevel;
-    typedef ModelArray HField;
-    typedef ModelArray UField;
-    typedef ModelArray VField;
-    typedef ModelArray ZField; // This needs to be made into a 3d field
 
     enum class ProtectedArray {
         H_ICE, // Ice thickness

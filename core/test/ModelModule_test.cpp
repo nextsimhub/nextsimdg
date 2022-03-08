@@ -54,7 +54,8 @@ TEST_CASE("Register a new module", "[ModelModule]")
 class ModuleSupplyAndWait : public ModelModule {
 public:
     ModuleSupplyAndWait()
-        : p_cice(nullptr)
+        : hice(ModelArray::HField("hice"))
+        , p_cice(nullptr)
     {
         registerModule();
         registerProtectedArray(ProtectedArray::H_ICE, &hice);
@@ -80,7 +81,8 @@ private:
 class ModuleRequestAndSupply : public ModelModule {
 public:
     ModuleRequestAndSupply()
-        : p_hice(nullptr)
+        : cice(ModelArray::HField("cice"))
+        , p_hice(nullptr)
     {
         registerModule();
         registerProtectedArray(ProtectedArray::C_ICE, &cice);

@@ -9,27 +9,30 @@
 
 #include <algorithm>
 #include <cstdarg>
+#include <set>
 #include <utility>
 
 namespace Nextsim {
 
-size_t ModelArray::m_sz;
-ModelArray::Dimensions ModelArray::m_dims;
+ModelArray::SizeMap ModelArray::m_sz;
+ModelArray::DimensionMap ModelArray::m_dims;
 
-ModelArray::ModelArray(const std::string& name)
-    : m_name(name)
+ModelArray::ModelArray(const Type type, const std::string& name)
+    : type(type)
+    , m_name(name)
 {
-    if (m_sz > 0) {
-        m_data.reserve(m_sz);
+    if (m_sz.at(type) > 0) {
+        m_data.reserve(m_sz.at(type));
     }
 }
 
 ModelArray::ModelArray()
-    : ModelArray("")
-{}
+    : ModelArray(Type::H, "")
+{
+}
 
 ModelArray::ModelArray(const ModelArray& orig)
-    : ModelArray(orig.m_name)
+    : ModelArray(orig.type, orig.m_name)
 {
     setData(orig.m_data.data());
 }
@@ -42,24 +45,19 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
     return *this;
 }
 
-void ModelArray::setData(const double* pData)
-{
-    m_data.assign(pData, pData + m_sz);
-}
+void ModelArray::setData(const double* pData) { m_data.assign(pData, pData + m_sz.at(type)); }
 
-void ModelArray::setData(const std::vector<double>& from) {
-    setData(from.data());
-}
+void ModelArray::setData(const std::vector<double>& from) { setData(from.data()); }
 
-void ModelArray::setDimensions(const Dimensions& newDims)
+void ModelArray::setDimensions(Type type, const Dimensions& newDims)
 {
     size_t newSize = 1;
-    for (size_t dimLen: newDims) {
+    for (size_t dimLen : newDims) {
         newSize *= dimLen;
     }
-    m_dims.clear();
-    std::copy(newDims.begin(), newDims.end(), std::back_inserter(m_dims));
-    m_sz = newSize;
+    m_dims.at(type).clear();
+    std::copy(newDims.begin(), newDims.end(), std::back_inserter(m_dims.at(type)));
+    m_sz.at(type) = newSize;
 }
 
 const double& ModelArray::operator[](const Dimensions& dims) const
@@ -84,64 +82,81 @@ const double& ModelArray::operator[](const Dimensions& dims) const
     }
 }
 
-const double& ModelArray::operator()(size_t i, size_t j) const { return (*this)(i * m_dims[1] + j); }
+const double& ModelArray::operator()(size_t i, size_t j) const
+{
+    return (*this)(i * m_dims.at(type)[1] + j);
+}
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k) const
 {
-    return (*this)(i * m_dims[2], j * m_dims[2] + k);
+    size_t dim2 = m_dims.at(type)[2];
+    return (*this)(i * dim2, j * dim2 + k);
 }
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l) const
 {
-    return (*this)(i * m_dims[3], j * m_dims[3], k * m_dims[3] + l);
+    size_t dim3 = m_dims.at(type)[3];
+    return (*this)(i * dim3, j * dim3, k * dim3 + l);
 }
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
 {
-    return (*this)(i * m_dims[4], j * m_dims[4], k * m_dims[4], l * m_dims[4] + m);
+    size_t dim4 = m_dims.at(type)[4];
+    return (*this)(i * dim4, j * dim4, k * dim4, l * dim4 + m);
 }
 
-const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
+const double& ModelArray::operator()(
+    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
 {
-    return (*this)(i * m_dims[5], j * m_dims[5], k * m_dims[5], l * m_dims[5], m * m_dims[5] + n);
+    size_t dim5 = m_dims.at(type)[5];
+    return (*this)(i * dim5, j * dim5, k * dim5, l * dim5, m * dim5 + n);
 }
 
-const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
+const double& ModelArray::operator()(
+    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
 {
-    return (*this)(i * m_dims[6], j * m_dims[6], k * m_dims[6], l * m_dims[6], m * m_dims[6],
-        n * m_dims[6] + p);
+    size_t dim6 = m_dims.at(type)[6];
+    return (*this)(i * dim6, j * dim6, k * dim6, l * dim6, m * dim6, n * dim6 + p);
 }
 
 const double& ModelArray::operator()(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
 {
-    return (*this)(i * m_dims[7], j * m_dims[7], k * m_dims[7], l * m_dims[7], m * m_dims[7],
-        n * m_dims[7], p * m_dims[7] + q);
+    size_t dim7 = m_dims.at(type)[7];
+    return (*this)(i * dim7, j * dim7, k * dim7, l * dim7, m * dim7, n * dim7, p * dim7 + q);
 }
 
-double& ModelArray::operator[](const Dimensions& dims) {
+double& ModelArray::operator[](const Dimensions& dims)
+{
     return const_cast<double&>(std::as_const(*this)[dims]);
 }
-double& ModelArray::operator()(size_t i, size_t j) {
+double& ModelArray::operator()(size_t i, size_t j)
+{
     return const_cast<double&>(std::as_const(*this)(i, j));
 }
-double& ModelArray::operator()(size_t i, size_t j, size_t k) {
+double& ModelArray::operator()(size_t i, size_t j, size_t k)
+{
     return const_cast<double&>(std::as_const(*this)(i, j, k));
 }
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l) {
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l)
+{
     return const_cast<double&>(std::as_const(*this)(i, j, k, l));
 }
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m) {
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m)
+{
     return const_cast<double&>(std::as_const(*this)(i, j, k, l, m));
 }
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) {
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n)
+{
     return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n));
 }
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) {
+double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p)
+{
     return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n, p));
 }
 double& ModelArray::operator()(
-    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) {
+    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q)
+{
     return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n, p, q));
 }
 

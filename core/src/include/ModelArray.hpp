@@ -9,6 +9,7 @@
 #define CORE_SRC_INCLUDE_MODELARRAY_HPP
 
 #include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -16,8 +17,18 @@ namespace Nextsim {
 
 class ModelArray {
 public:
-    ModelArray();
-    ModelArray(const std::string&);
+    enum class Type {
+        H,
+        U,
+        V,
+        Z,
+    };
+
+    static ModelArray HField(const std::string& name) { return ModelArray(Type::H, name); }
+    static ModelArray UField(const std::string& name) { return ModelArray(Type::U, name); }
+    static ModelArray VField(const std::string& name) { return ModelArray(Type::V, name); }
+    static ModelArray ZField(const std::string& name) { return ModelArray(Type::Z, name); }
+
     ModelArray(const ModelArray&);
     virtual ~ModelArray() {};
 
@@ -25,11 +36,16 @@ public:
 
     typedef std::vector<size_t> Dimensions;
 
-    static size_t nDimensions() { return m_dims.size(); }
-    static const Dimensions& dimensions() { return m_dims; }
-    static size_t size() { return m_sz; }
+    size_t nDimensions() { return m_dims.at(type).size(); }
+    const Dimensions& dimensions() { return m_dims.at(type); }
+    size_t size() { return m_sz.at(type); }
 
-    static void setDimensions(const Dimensions& dims);
+    static void setDimensions(Type, const Dimensions&);
+    void setDimensions(const Dimensions& dims)
+    {
+        setDimensions(type, dims);
+        m_data.resize(m_sz.at(type));
+    }
 
     const std::string& name() const { return m_name; }
 
@@ -48,7 +64,8 @@ public:
     const double& operator()(size_t i, size_t j, size_t k, size_t l) const;
     const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const;
     const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const;
-    const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const;
+    const double& operator()(
+        size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const;
     const double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const;
 
@@ -66,12 +83,58 @@ public:
     double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q);
 
+protected:
+    Type type;
+    ModelArray();
+    ModelArray(const Type, const std::string&);
+
 private:
-    static size_t m_sz;
-    static Dimensions m_dims;
+    class SizeMap {
+    public:
+        SizeMap()
+            : m_sizes({ { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 } })
+        {
+        }
+        size_t& at(const Type& type) { return m_sizes.at(type); }
+        const size_t& at(const Type& type) const { return m_sizes.at(type); }
+
+        size_t& operator[](const Type& type) { return m_sizes[type]; }
+        size_t& operator[](Type&& type) { return m_sizes[type]; }
+
+        size_t size() const noexcept { return m_sizes.size(); }
+
+    private:
+        std::map<Type, size_t> m_sizes;
+    };
+    static SizeMap m_sz;
+
+    class DimensionMap {
+    public:
+        DimensionMap()
+            : m_dimensions({ { Type::H, { 0 } }, { Type::U, { 0 } }, { Type::V, { 0 } },
+                { Type::Z, { 0, 1 } } })
+        {
+        }
+        Dimensions& at(const Type& type) { return m_dimensions.at(type); }
+        const Dimensions& at(const Type& type) const { return m_dimensions.at(type); }
+
+        Dimensions& operator[](const Type& type) { return m_dimensions[type]; }
+        Dimensions& operator[](Type&& type) { return m_dimensions[type]; }
+
+        size_t size() const noexcept { return m_dimensions.size(); }
+
+    private:
+        std::map<Type, Dimensions> m_dimensions;
+    };
+    static DimensionMap m_dims;
     std::vector<double> m_data;
     std::string m_name;
 };
+
+typedef ModelArray HField;
+typedef ModelArray UField;
+typedef ModelArray VField;
+typedef ModelArray ZField;
 
 } /* namespace Nextsim */
 
