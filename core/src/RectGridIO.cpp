@@ -9,6 +9,7 @@
 
 #include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
+#include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/RectangularGrid.hpp"
 
@@ -17,7 +18,9 @@
 #include <ncFile.h>
 #include <ncVar.h>
 
+#include <list>
 #include <map>
+#include <string>
 #include <vector>
 
 namespace Nextsim {
@@ -248,5 +251,38 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     ncFile.close();
     return state;
 }
+
+void RectGridIO::dumpModelState(const ModelState& state, const std::string& filePath) const
+{
+    netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
+
+    netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
+    netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
+
+    metaGroup.putAtt(IStructure::typeNodeName(), RectangularGrid::structureName);
+
+    typedef ModelArray::Type Type;
+
+    std::map<Type, std::list<std::string>> fields = {
+            { Type::H, {hiceName, ciceName, hsnowName, sstName, sssName} },
+            { Type::U, { } },
+            { Type::V, { } },
+            { Type::Z, {ticeName} },
+    };
+
+    for (auto entry : fields) {
+        Type type = entry.first;
+        // Create the dimension data
+        std::vector<netCDF::NcDim> dimVec;
+        for (size_t d = 0; d < ModelArray::nDimensions(type); ++d) {
+
+        }
+    }
+//    dumpData(data, dims, dataGroup, nameMap);
+
+    ncFile.close();
+
+}
+
 
 } /* namespace Nextsim */

@@ -28,6 +28,7 @@ public:
     void init(std::vector<ElementData>& data, const std::string& filePath) const override;
     void dump(const std::vector<ElementData>& data, const std::string& filePath) const override;
     ModelState getModelState(const std::string& filePath) const override;
+    void dumpModelState(const ModelState& state, const std::string& filePath) const override;
 
 private:
     DevGrid* grid;

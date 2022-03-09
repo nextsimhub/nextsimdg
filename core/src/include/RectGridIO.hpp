@@ -30,6 +30,8 @@ public:
     void dump(const std::vector<ElementData>& dg, const std::string& filePath,
         const GridDimensions& dims) const override;
 
+    void dumpModelState(const ModelState& state, const std::string& filePath) const override;
+
 private:
     RectGridIO() = default;
 };

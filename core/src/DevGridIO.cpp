@@ -214,4 +214,9 @@ ModelState DevGridIO::getModelState(const std::string& filePath) const {
     return ModelState();
 }
 
+void DevGridIO::dumpModelState(const ModelState& state, const std::string& filePath) const
+{
+    // Does nothing
+}
+
 } /* namespace Nextsim */

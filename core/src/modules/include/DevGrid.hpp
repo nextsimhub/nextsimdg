@@ -50,6 +50,11 @@ public:
 
     void dump(const std::string& filePath) const override;
 
+    void dumpModelState(const ModelState& state, const std::string& filePath) const override
+    {
+        if (pio)
+            pio->dumpModelState(state, filePath);
+    }
     std::string structureType() const override { return structureName; };
 
     int nIceLayers() const override { return 1; };

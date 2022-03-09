@@ -56,6 +56,11 @@ public:
 
     void dump(const std::string& filePath) const override;
 
+    void dumpModelState(const ModelState& state, const std::string& filePath) const override
+    {
+        if (pio)
+            pio->dumpModelState(state, filePath);
+    }
     std::string structureType() const override { return structureName; };
 
     int nIceLayers() const override { return nz; };
@@ -95,6 +100,14 @@ public:
             const GridDimensions& dims) const = 0;
 
         virtual ModelState getModelState(const std::string& filePath) = 0;
+
+        /*!
+         * @brief Dumps the given ModelState to the given file path.
+         *
+         * @param state The ModelState data
+         * @param filePath The path to attempt to write the data to.
+         */
+        virtual void dumpModelState(const ModelState& state, const std::string& filePath) const = 0;
     protected:
         IRectGridIO() = default;
 

@@ -73,6 +73,15 @@ public:
      * @param filePath The path to attempt writing the data to.
      */
     virtual void dump(const std::string& filePath) const = 0;
+
+    /*!
+     * @brief Dumps the given ModelState to the given file path.
+     *
+     * @param state The ModelState data
+     * @param filePath The path to attempt to write the data to.
+     */
+    virtual void dumpModelState(const ModelState& state, const std::string& filePath) const = 0;
+
     /*!
      * @brief Resets the data cursor.
      *
