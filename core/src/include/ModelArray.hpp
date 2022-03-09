@@ -37,10 +37,11 @@ public:
 
     typedef std::vector<size_t> Dimensions;
 
-    size_t nDimensions() { return m_dims.at(type).size(); }
-    const Dimensions& dimensions() { return m_dims.at(type); }
+    size_t nDimensions() const { return nDimensions(type); }
+    static size_t nDimensions(Type type) { return m_dims.at(type).size(); }
+    const Dimensions& dimensions() { return dimensions(type); }
     static const Dimensions& dimensions(Type type) { return m_dims.at(type); }
-    size_t size() { return m_sz.at(type); }
+    size_t size() { return size(type); }
     size_t trueSize() { return m_data.size(); }
     static size_t size(Type type) { return m_sz.at(type); }
 
