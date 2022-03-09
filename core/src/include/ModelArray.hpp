@@ -24,6 +24,8 @@ public:
         Z,
     };
 
+    static const std::map<Type, std::string> typeNames;
+
     static ModelArray HField(const std::string& name) { return ModelArray(Type::H, name); }
     static ModelArray UField(const std::string& name) { return ModelArray(Type::U, name); }
     static ModelArray VField(const std::string& name) { return ModelArray(Type::V, name); }
