@@ -72,6 +72,10 @@ void Model::configure()
     dataStructure->init(initialFileName);
     modelStep.setInitialData(*dataStructure);
 
+    // ModelState initialization
+    ModelState state = dataStructure->getModelState(initialFileName);
+    pData.setData(state);
+
     // TODO Real external data handling (in the model step?)
     DummyExternalData::setAll(*dataStructure);
 }

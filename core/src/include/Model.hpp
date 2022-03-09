@@ -46,7 +46,7 @@ public:
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
-    //PrognosticData pData;
+    PrognosticData pData;
     //std::unique_ptr<IIceGrowth> pIceGrowth;
 
     std::string initialFileName;
