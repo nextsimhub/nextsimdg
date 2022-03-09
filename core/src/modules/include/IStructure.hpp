@@ -10,6 +10,8 @@
 
 #include "include/ElementData.hpp"
 
+#include "include/ModelState.hpp"
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <string>
 
@@ -43,6 +45,11 @@ public:
      * @param filePath The path to attempt writing the data to.
      */
     virtual void init(const std::string& filePath) = 0;
+
+    /*!
+     * @brief Returns the ModelState stored in the file
+     */
+    virtual ModelState getModelState(const std::string& filePath) = 0;
 
     //! Returns the structure name that this class will process
     virtual std::string structureType() const { return processedStructureName; }

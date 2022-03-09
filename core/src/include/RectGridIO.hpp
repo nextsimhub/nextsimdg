@@ -24,6 +24,9 @@ public:
 
     void init(
         std::vector<ElementData>& dg, const std::string& filePath, GridDimensions& dims) override;
+
+    ModelState getModelState(const std::string& filePath) override;
+
     void dump(const std::vector<ElementData>& dg, const std::string& filePath,
         const GridDimensions& dims) const override;
 

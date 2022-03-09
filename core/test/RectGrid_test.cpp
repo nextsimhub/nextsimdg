@@ -77,6 +77,24 @@ TEST_CASE("Write out a RectangularGrid restart file", "[RectangularGrid]")
     REQUIRE(grid2.cursor->iceTemperature(1) > -3);
     REQUIRE(grid2.cursor->iceTemperature(1) == Approx(-2.1733).epsilon(1e-14));
 
+    // Read the file again, this time using the ModelState system
+    ModelState state = grid2.getModelState(filename);
+    ModelArray::Dimensions loc = {17, 33};
+
+    std::string hice = "hice";
+    REQUIRE(state[hice][loc] != 0);
+    REQUIRE(state[hice][loc] > 1);
+    REQUIRE(state[hice][loc] < 2);
+    REQUIRE(state[hice][loc] == 1.1733);
+
+
+    ModelArray::Dimensions zoc = {loc[0], loc[1], 1};
+    std::string tice = "tice";
+    REQUIRE(state[tice][zoc] < -2);
+    REQUIRE(state[tice][zoc] > -3);
+    REQUIRE(state[tice][zoc] == Approx(-2.1733).epsilon(1e-14));
+
+
     std::remove(filename.c_str());
 }
 } /* namespace Nextsim */

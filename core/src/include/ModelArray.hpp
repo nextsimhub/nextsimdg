@@ -29,6 +29,7 @@ public:
     static ModelArray VField(const std::string& name) { return ModelArray(Type::V, name); }
     static ModelArray ZField(const std::string& name) { return ModelArray(Type::Z, name); }
 
+    ModelArray();
     ModelArray(const ModelArray&);
     virtual ~ModelArray() {};
 
@@ -38,7 +39,10 @@ public:
 
     size_t nDimensions() { return m_dims.at(type).size(); }
     const Dimensions& dimensions() { return m_dims.at(type); }
+    static const Dimensions& dimensions(Type type) { return m_dims.at(type); }
     size_t size() { return m_sz.at(type); }
+    size_t trueSize() { return m_data.size(); }
+    static size_t size(Type type) { return m_sz.at(type); }
 
     static void setDimensions(Type, const Dimensions&);
     void setDimensions(const Dimensions& dims)
@@ -85,7 +89,6 @@ public:
 
 protected:
     Type type;
-    ModelArray();
     ModelArray(const Type, const std::string&);
 
 private:

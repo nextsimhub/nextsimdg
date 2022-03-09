@@ -9,6 +9,7 @@
 #define CORE_SRC_INCLUDE_IDEVGRIDIO_HPP_
 
 #include "include/ElementData.hpp"
+#include "include/ModelState.hpp"
 
 namespace Nextsim {
 
@@ -36,6 +37,14 @@ public:
      * @param filePath The location of the NetCDF restart file to be read.
      */
     virtual void init(std::vector<ElementData>& dg, const std::string& filePath) const = 0;
+
+    /*!
+     * @brief Generates the ModelState based on the data in the given file.
+     *
+     * @param filePath The location of the NetCDF restart file to be read.
+     */
+    virtual ModelState getModelState(const std::string& filePath) const = 0;
+
     /*!
      * @brief Writes data from the vector of data elements into the file location.
      *

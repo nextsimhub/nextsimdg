@@ -66,7 +66,7 @@ public:
     ModelState getState() const override
     {
         return {
-            { "hice", &hice },
+            { "hice", hice },
         };
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
@@ -93,7 +93,7 @@ public:
     ModelState getState() const override
     {
         return {
-            { "cice", &cice },
+            { "cice", cice },
         };
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }

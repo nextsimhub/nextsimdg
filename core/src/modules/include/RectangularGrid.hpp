@@ -10,6 +10,8 @@
 
 #include "IStructure.hpp"
 
+#include "include/ModelState.hpp"
+
 namespace Nextsim {
 
 class RectGridIO;
@@ -46,6 +48,11 @@ public:
 
     // Read/write override functions
     void init(const std::string& filePath) override;
+
+    ModelState getModelState(const std::string& filePath) override
+    {
+        return pio ? pio->getModelState(filePath) : ModelState();
+    }
 
     void dump(const std::string& filePath) const override;
 
@@ -87,6 +94,7 @@ public:
         virtual void dump(const std::vector<ElementData>& dg, const std::string& filePath,
             const GridDimensions& dims) const = 0;
 
+        virtual ModelState getModelState(const std::string& filePath) = 0;
     protected:
         IRectGridIO() = default;
 

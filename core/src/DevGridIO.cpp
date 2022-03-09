@@ -210,4 +210,8 @@ static void dumpGroup(
     dumpData(data, dataGroup, nameMap);
 }
 
+ModelState DevGridIO::getModelState(const std::string& filePath) const {
+    return ModelState();
+}
+
 } /* namespace Nextsim */

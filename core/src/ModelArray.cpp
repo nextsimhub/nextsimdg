@@ -39,6 +39,7 @@ ModelArray::ModelArray(const ModelArray& orig)
 
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
+    type = orig.type;
     m_name = orig.m_name;
     setData(orig.m_data.data());
 

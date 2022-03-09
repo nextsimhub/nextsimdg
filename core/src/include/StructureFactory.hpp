@@ -10,6 +10,10 @@
 
 #include "include/IStructure.hpp"
 
+#include "include/ModelState.hpp"
+
+#include <string>
+
 namespace Nextsim {
 
 class StructureFactory {
@@ -30,6 +34,13 @@ public:
      * @param filePath the name of the file to be read.
      */
     static std::shared_ptr<IStructure> generateFromFile(const std::string& filePath);
+
+    /*!
+     * @brief Returns the ModelState of the named restart file.
+     *
+     * @param filePath the name of the file to be read.
+     */
+    static ModelState stateFromFile(const std::string& filePath);
 
 private:
     StructureFactory() = default;

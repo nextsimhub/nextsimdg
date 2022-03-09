@@ -52,7 +52,7 @@ std::shared_ptr<IStructure> StructureFactory::generate(const std::string& struct
     throw std::invalid_argument(what);
 }
 
-std::shared_ptr<IStructure> StructureFactory::generateFromFile(const std::string& filePath)
+std::string structureNameFromFile(const std::string& filePath)
 {
     netCDF::NcFile ncf(filePath, netCDF::NcFile::read);
     netCDF::NcGroup metaGroup(ncf.getGroup(IStructure::metadataNodeName()));
@@ -64,7 +64,19 @@ std::shared_ptr<IStructure> StructureFactory::generateFromFile(const std::string
     att.getValues(&structureName[0]);
     ncf.close();
 
-    return generate(structureName);
+    return structureName;
+}
+
+std::shared_ptr<IStructure> StructureFactory::generateFromFile(const std::string& filePath)
+{
+    return generate(structureNameFromFile(filePath));
+}
+
+ModelState StructureFactory::stateFromFile(const std::string& filePath)
+{
+    ModelState state;
+    std::string structureName = structureNameFromFile(filePath);
+    return state;
 }
 
 } /* namespace Nextsim */

@@ -12,8 +12,10 @@
 
 #include "include/ElementData.hpp"
 #include "include/IDevGridIO.hpp"
+#include "include/ModelState.hpp"
+#include "include/PrognosticElementData.hpp"
+
 #include <map>
-#include "../../include/PrognosticElementData.hpp"
 
 namespace Nextsim {
 
@@ -40,6 +42,11 @@ public:
 
     // Read/write override functions
     void init(const std::string& filePath) override;
+
+    ModelState getModelState(const std::string& filePath) override
+    {
+        return pio ? pio->getModelState(filePath) : ModelState();
+    }
 
     void dump(const std::string& filePath) const override;
 
