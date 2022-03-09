@@ -270,12 +270,22 @@ void RectGridIO::dumpModelState(const ModelState& state, const std::string& file
             { Type::Z, {ticeName} },
     };
 
+    std::vector<std::string> dimensionNames = {"x", "y", "z", "t", "component", "u", "v", "w"};
+
     for (auto entry : fields) {
+        if (entry.second.size() == 0) continue;
         Type type = entry.first;
+
         // Create the dimension data
         std::vector<netCDF::NcDim> dimVec;
         for (size_t d = 0; d < ModelArray::nDimensions(type); ++d) {
+            dimVec.push_back(dataGroup.addDim(ModelArray::typeNames.at(type) + dimensionNames[d], ModelArray::dimensions(type)[d]));
+        }
 
+        // Write out the data for each field of this type
+        for (auto field : entry.second) {
+            netCDF::NcVar var(dataGroup.addVar(field, netCDF::ncDouble, dimVec));
+            var.putVar(&state.at(field)[0]);
         }
     }
 //    dumpData(data, dims, dataGroup, nameMap);

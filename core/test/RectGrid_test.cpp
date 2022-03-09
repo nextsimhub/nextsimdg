@@ -77,8 +77,50 @@ TEST_CASE("Write out a RectangularGrid restart file", "[RectangularGrid]")
     REQUIRE(grid2.cursor->iceTemperature(1) > -3);
     REQUIRE(grid2.cursor->iceTemperature(1) == Approx(-2.1733).epsilon(1e-14));
 
-    // Read the file again, this time using the ModelState system
-    ModelState state = grid2.getModelState(filename);
+    std::remove(filename.c_str());
+
+    // Create the ModelState to be written
+    // Set the size of the arrays
+    size_t snx = nx;
+    size_t sny = ny;
+    size_t snLayers = nLayers;
+    ModelArray::Dimensions hdim = {snx, sny};
+    ModelArray::setDimensions(ModelArray::Type::H, hdim);
+    ModelArray::setDimensions(ModelArray::Type::U, hdim);
+    ModelArray::setDimensions(ModelArray::Type::V, hdim);
+    ModelArray::Dimensions zdim = {snx, sny, snLayers};
+    ModelArray::setDimensions(ModelArray::Type::Z, zdim);
+
+    // Create the data arrays, storing them in the ModelState
+    ModelState ms;
+    for (const std::string fieldName : { "hice", "cice", "hsnow", "sst", "sss"}) {
+        ms[fieldName] = ModelArray::HField(fieldName);
+    }
+    std::string tice = "tice";
+    ms[tice] = ModelArray::ZField(tice);
+
+    for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < ny; ++j) {
+            double fractional = j * yFactor + i * xFactor;
+            ms["hice"](i, j) = (1 + fractional);
+            ms["cice"](i, j) = (2 + fractional);
+            ms["sst"](i, j) = (3 + fractional);
+            ms["sss"](i, j) = (4 + fractional);
+            ms["hsnow"](i, j) = (5 + fractional);
+            ms[tice](i, j, 0) = (-(1. + fractional));
+            ms[tice](i, j, 1) = (-(2. + fractional));
+        }
+    }
+
+    RectangularGrid grid3;
+    grid3.setIO(new RectGridIO(grid));
+    grid3.dumpModelState(ms, filename);
+
+
+// Read the file again, this time using the ModelState system
+    RectangularGrid grid4;
+    grid4.setIO(new RectGridIO(grid));
+    ModelState state = grid4.getModelState(filename);
     ModelArray::Dimensions loc = {17, 33};
 
     std::string hice = "hice";
@@ -89,11 +131,9 @@ TEST_CASE("Write out a RectangularGrid restart file", "[RectangularGrid]")
 
 
     ModelArray::Dimensions zoc = {loc[0], loc[1], 1};
-    std::string tice = "tice";
     REQUIRE(state[tice][zoc] < -2);
     REQUIRE(state[tice][zoc] > -3);
     REQUIRE(state[tice][zoc] == Approx(-2.1733).epsilon(1e-14));
-
 
     std::remove(filename.c_str());
 }
