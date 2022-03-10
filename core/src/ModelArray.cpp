@@ -53,7 +53,11 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
     return *this;
 }
 
-void ModelArray::setData(const double* pData) { m_data.assign(pData, pData + m_sz.at(type)); }
+void ModelArray::setData(const double* pData)
+{
+    resize();
+    m_data.assign(pData, pData + m_sz.at(type));
+}
 
 void ModelArray::setData(const std::vector<double>& from) { setData(from.data()); }
 

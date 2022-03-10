@@ -51,7 +51,13 @@ public:
     void setDimensions(const Dimensions& dims)
     {
         setDimensions(type, dims);
-        m_data.resize(m_sz.at(type));
+        resize();
+    }
+
+    void resize()
+    {
+        if (size() != trueSize())
+            m_data.resize(m_sz.at(type));
     }
 
     const std::string& name() const { return m_name; }
