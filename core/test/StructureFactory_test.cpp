@@ -32,8 +32,6 @@ TEST_CASE("Read a structure name from file", "[StructureFactory]")
 {
     const std::string filename = "StructureFactory_test.nc";
 
-    ModuleLoader::getLoader().setAllDefaults();
-
     DevGrid grid;
     grid.init("");
     grid.setIO(new DevGridIO(grid));

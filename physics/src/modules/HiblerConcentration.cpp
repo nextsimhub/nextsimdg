@@ -7,7 +7,6 @@
 
 #include "include/HiblerConcentration.hpp"
 
-#include "include/ModuleLoader.hpp"
 #include "include/NextsimPhysics.hpp"
 #include "include/PhysicsData.hpp"
 #include "include/PrognosticData.hpp"

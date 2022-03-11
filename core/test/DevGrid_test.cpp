@@ -12,7 +12,6 @@
 #include "include/DevGridIO.hpp"
 #include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
-#include "include/ModuleLoader.hpp"
 
 #include <cstdio>
 #include <fstream>
@@ -23,8 +22,6 @@ namespace Nextsim {
 
 TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
 {
-    ModuleLoader::getLoader().setAllDefaults();
-
     DevGrid grid;
     grid.init("");
     grid.setIO(new DevGridIO(grid));

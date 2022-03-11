@@ -63,21 +63,13 @@ target_link_libraries(testEnumWrapper LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Cat
 # Set the location of the test module loader classes
 set(TEST_IPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoaderTestModules")
 
-add_executable(testModuleLoader
-    "ModuleLoader_test.cpp"
-    "${SRC_DIR}/ModuleLoader.cpp"
-)
-target_include_directories(testModuleLoader PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${TEST_IPP_DIR}")
-target_link_libraries(testModuleLoader LINK_PUBLIC Catch2::Catch2)
-
 add_executable(testConfiguredModule
     "ConfiguredModule_test.cpp"
     "ArgV.cpp"
-    "${SRC_DIR}/ModuleLoader.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
 )
-target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${INCLUDE_DIR}" "${TEST_IPP_DIR}" ${Boost_INCLUDE_DIRS})
+target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_DIR}" "${TEST_IPP_DIR}" ${Boost_INCLUDE_DIRS})
 target_link_libraries(testConfiguredModule PRIVATE Catch2::Catch2 ${Boost_LIBRARIES})
 
 add_executable(testTimer
@@ -98,11 +90,13 @@ target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 add_executable(testPrognosticData
     "PrognosticData_test.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
-    "${SRC_DIR}/ModuleLoader.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
     )
     # Set the location of the test module loader classes
 set(PDTestIppDir "${CMAKE_CURRENT_SOURCE_DIR}/PrognosticDataTestModules")
-target_link_libraries(testPrognosticData PRIVATE Catch2::Catch2)
+target_link_libraries(testPrognosticData PRIVATE Catch2::Catch2 Boost::program_options)
 target_include_directories(testPrognosticData PRIVATE "${SRC_DIR}" "${CoreModulesDir}" "${PDTestIppDir}")
 
 set(PhysicsDir "${PROJECT_SOURCE_DIR}/physics/src")
@@ -110,12 +104,9 @@ set(PhysicsModulesDir "${PhysicsDir}/modules")
 add_executable(testElementData
     "ElementData_test.cpp"
     "${SRC_DIR}/ElementData.cpp"
-    "${SRC_DIR}/ModuleLoader.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
-    "${CoreModulesDir}/RectangularGrid.cpp"
     "${PhysicsModulesDir}/NextsimPhysics.cpp"
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
     "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
@@ -123,6 +114,12 @@ add_executable(testElementData
     "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
+    "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
+    "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
+    "${PhysicsModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
     )
 
 target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}")
@@ -133,7 +130,7 @@ add_executable(testDevGrid
     "${CoreModulesDir}/DevGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${SRC_DIR}/Configurator.cpp"
-    "${SRC_DIR}/ModuleLoader.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/ElementData.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
     "${SRC_DIR}/DevGridIO.cpp"
@@ -144,6 +141,12 @@ add_executable(testDevGrid
     "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
+    "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
+    "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
+    "${PhysicsModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
     )
 
 target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -152,10 +155,9 @@ target_link_libraries(testDevGrid LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch
 
 add_executable(testRectGrid
     "RectGrid_test.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${SRC_DIR}/Configurator.cpp"
-    "${SRC_DIR}/ModuleLoader.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/ElementData.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
     "${SRC_DIR}/RectGridIO.cpp"
@@ -166,6 +168,12 @@ add_executable(testRectGrid
     "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
+    "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
+    "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
+    "${PhysicsModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
     )
 
 target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -176,7 +184,6 @@ add_executable(testStructureFactory
     "StructureFactory_test.cpp"
     "${SRC_DIR}/StructureFactory.cpp"
     "${SRC_DIR}/ElementData.cpp"
-    "${SRC_DIR}/ModuleLoader.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/PrognosticData.cpp"
@@ -191,6 +198,13 @@ add_executable(testStructureFactory
     "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
+    "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
+    "${PhysicsModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
+    "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
     )
 
 target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")

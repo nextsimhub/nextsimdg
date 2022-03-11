@@ -17,7 +17,7 @@
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/IThermodynamics.hpp"
 
-#include "include/ModuleLoader.hpp"
+#include "include/Module.hpp"
 
 #include "include/constants.hpp"
 
@@ -59,18 +59,16 @@ const std::map<int, std::string> Configured<NextsimPhysics>::keyMap = {
 
 void NextsimPhysics::configure()
 {
-    ModuleLoader& loader = ModuleLoader::getLoader();
-
-    iceOceanHeatFluxImpl = &loader.getImplementation<IIceOceanHeatFlux>();
+    iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFlux>();
     tryConfigure(iceOceanHeatFluxImpl);
 
-    iIceAlbedoImpl = &loader.getImplementation<IIceAlbedo>();
+    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 
-    iThermo = &loader.getImplementation<IThermodynamics>();
+    iThermo = &Module::getImplementation<IThermodynamics>();
     tryConfigure(iThermo);
 
-    iConcentrationModelImpl = &loader.getImplementation<IConcentrationModel>();
+    iConcentrationModelImpl = &Module::getImplementation<IConcentrationModel>();
     tryConfigure(iConcentrationModelImpl);
 
     dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), 1.5e-3);

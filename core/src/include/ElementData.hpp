@@ -9,7 +9,6 @@
 
 #include "Configured.hpp"
 #include "ExternalData.hpp"
-#include "ModuleLoader.hpp"
 #include "PrognosticData.hpp"
 #include "include/IPhysics1d.hpp"
 #include "include/PhysicsData.hpp"

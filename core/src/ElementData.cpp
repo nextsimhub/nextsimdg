@@ -5,6 +5,7 @@
  */
 
 #include "include/ElementData.hpp"
+#include "include/Module.hpp"
 
 namespace Nextsim {
 ElementData::ElementData()
@@ -16,7 +17,7 @@ ElementData::ElementData(int nIceLayers)
     : PrognosticData(nIceLayers)
     , PhysicsData(nIceLayers)
 {
-    m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
+    m_physicsImplData = std::move(Module::getInstance<IPhysics1d>());
 }
 //! Copy constructor
 ElementData::ElementData(const ElementData& src)
@@ -24,7 +25,7 @@ ElementData::ElementData(const ElementData& src)
     *this = static_cast<PrognosticData>(src);
     *this = static_cast<ExternalData>(src);
     *this = static_cast<PhysicsData>(src);
-    this->m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
+    this->m_physicsImplData = std::move(Module::getInstance<IPhysics1d>());
     *(this->m_physicsImplData) = *(src.m_physicsImplData);
 }
 
@@ -46,7 +47,7 @@ ElementData& ElementData::operator=(ElementData other)
     *this = static_cast<PrognosticData>(other);
     *this = static_cast<ExternalData>(other);
     *this = static_cast<PhysicsData>(other);
-    this->m_physicsImplData = std::move(ModuleLoader::getLoader().getInstance<IPhysics1d>());
+    this->m_physicsImplData = std::move(Module::getInstance<IPhysics1d>());
     *(this->m_physicsImplData) = *(other.m_physicsImplData);
 
     return *this;
@@ -71,7 +72,7 @@ ElementData& ElementData::operator=(ElementData&& other)
 void ElementData::configure()
 {
     PrognosticData::configure();
-    Nextsim::tryConfigure(&ModuleLoader::getLoader().getImplementation<IPhysics1d>());
+    Nextsim::tryConfigure(&Module::getImplementation<IPhysics1d>());
 }
 
 void ElementData::updateDerivedData(
