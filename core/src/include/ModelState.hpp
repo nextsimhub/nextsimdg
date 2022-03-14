@@ -8,9 +8,9 @@
 #ifndef CORE_SRC_INCLUDE_MODELSTATE_HPP
 #define CORE_SRC_INCLUDE_MODELSTATE_HPP
 
+#include "ModelArray.hpp"
 #include <map>
 #include <string>
-#include "ModelArray.hpp"
 
 namespace Nextsim {
 

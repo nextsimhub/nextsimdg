@@ -18,10 +18,10 @@ ModelArray::SizeMap ModelArray::m_sz;
 ModelArray::DimensionMap ModelArray::m_dims;
 
 const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
-        {ModelArray::Type::H, "HField"},
-        {ModelArray::Type::U, "UField"},
-        {ModelArray::Type::V, "VField"},
-        {ModelArray::Type::Z, "ZField"},
+    { ModelArray::Type::H, "HField" },
+    { ModelArray::Type::U, "UField" },
+    { ModelArray::Type::V, "VField" },
+    { ModelArray::Type::Z, "ZField" },
 };
 
 ModelArray::ModelArray(const Type type, const std::string& name)

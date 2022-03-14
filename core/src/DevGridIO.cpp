@@ -210,9 +210,7 @@ static void dumpGroup(
     dumpData(data, dataGroup, nameMap);
 }
 
-ModelState DevGridIO::getModelState(const std::string& filePath) const {
-    return ModelState();
-}
+ModelState DevGridIO::getModelState(const std::string& filePath) const { return ModelState(); }
 
 void DevGridIO::dumpModelState(const ModelState& state, const std::string& filePath) const
 {

@@ -9,9 +9,9 @@
 
 #include "Configured.hpp"
 #include "ExternalData.hpp"
+#include "PrognosticElementData.hpp"
 #include "include/IPhysics1d.hpp"
 #include "include/PhysicsData.hpp"
-#include "PrognosticElementData.hpp"
 
 namespace Nextsim {
 

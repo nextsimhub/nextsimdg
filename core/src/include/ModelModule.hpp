@@ -71,6 +71,7 @@ protected:
 
     static void registerProtectedArray(ProtectedArray type, const ModelArray* addr);
     static void requestProtectedArray(ProtectedArray, const ModelArray** addr);
+
 private:
     static std::map<std::string, ModelModule*> registeredModules;
     static std::map<SharedArray, ModelArray*> registeredArrays;

@@ -208,7 +208,8 @@ void RectGridIO::dump(const std::vector<ElementData>& data, const std::string& f
     ncFile.close();
 }
 
-void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldName, ModelArray::Type type)
+void dimensionSetter(
+    const netCDF::NcGroup& dataGroup, const std::string& fieldName, ModelArray::Type type)
 {
     size_t nDims = dataGroup.getVar(fieldName).getDimCount();
     ModelArray::Dimensions dims;
@@ -264,22 +265,24 @@ void RectGridIO::dumpModelState(const ModelState& state, const std::string& file
     typedef ModelArray::Type Type;
 
     std::map<Type, std::list<std::string>> fields = {
-            { Type::H, {hiceName, ciceName, hsnowName, sstName, sssName} },
-            { Type::U, { } },
-            { Type::V, { } },
-            { Type::Z, {ticeName} },
+        { Type::H, { hiceName, ciceName, hsnowName, sstName, sssName } },
+        { Type::U, {} },
+        { Type::V, {} },
+        { Type::Z, { ticeName } },
     };
 
-    std::vector<std::string> dimensionNames = {"x", "y", "z", "t", "component", "u", "v", "w"};
+    std::vector<std::string> dimensionNames = { "x", "y", "z", "t", "component", "u", "v", "w" };
 
     for (auto entry : fields) {
-        if (entry.second.size() == 0) continue;
+        if (entry.second.size() == 0)
+            continue;
         Type type = entry.first;
 
         // Create the dimension data
         std::vector<netCDF::NcDim> dimVec;
         for (size_t d = 0; d < ModelArray::nDimensions(type); ++d) {
-            dimVec.push_back(dataGroup.addDim(ModelArray::typeNames.at(type) + dimensionNames[d], ModelArray::dimensions(type)[d]));
+            dimVec.push_back(dataGroup.addDim(ModelArray::typeNames.at(type) + dimensionNames[d],
+                ModelArray::dimensions(type)[d]));
         }
 
         // Write out the data for each field of this type
@@ -288,11 +291,9 @@ void RectGridIO::dumpModelState(const ModelState& state, const std::string& file
             var.putVar(&state.at(field)[0]);
         }
     }
-//    dumpData(data, dims, dataGroup, nameMap);
+    //    dumpData(data, dims, dataGroup, nameMap);
 
     ncFile.close();
-
 }
-
 
 } /* namespace Nextsim */

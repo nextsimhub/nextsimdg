@@ -4,9 +4,9 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#include "include/PrognosticElementData.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/Module.hpp"
-#include "include/PrognosticElementData.hpp"
 namespace Nextsim {
 
 double PrognosticElementData::m_dt = 0;
@@ -82,7 +82,8 @@ PrognosticElementData& PrognosticElementData::setSeaSurface(double sst, double s
 
 // Copy up to as many levels as there are currently.
 // Fill missing layers with the lowest valid temperature
-void PrognosticElementData::copyInIceLayerData(const std::vector<double>& src, std::vector<double>& tgt)
+void PrognosticElementData::copyInIceLayerData(
+    const std::vector<double>& src, std::vector<double>& tgt)
 {
     int tLayers = tgt.size();
     int sLayers = src.size();
