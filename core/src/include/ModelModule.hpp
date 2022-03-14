@@ -24,10 +24,20 @@ public:
     typedef Logged::level OutputLevel;
 
     enum class ProtectedArray {
-        H_ICE, // Ice thickness
+        // Prognostic model fields
+        H_ICE, // Ice thickness, m
         C_ICE, // Ice concentration
-        H_SNOW, // Snow depth
-        T_ICE, // Ice temperature
+        H_SNOW, // Snow depth, m
+        T_ICE, // Ice temperature, ˚C
+        // External data fields
+        T_AIR, // Air temperature, ˚C
+        DEW_2M, // Dew point at 2 m, ˚C
+        P_AIR, // sea level air pressure, Pa
+        MIXRAT, // water vapour mass mixing ratio
+        SW_IN, // incoming shortwave flux, W m⁻²
+        LW_IN, // incoming longwave flux, W m⁻²
+        MLD, // mixed layer depth, m
+        SNOW, // snow fall, kg m⁻² s⁻¹
     };
     enum class SharedArray {
         Q_OW, // Open water heat flux
