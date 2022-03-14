@@ -10,12 +10,19 @@
 
 #include "include/ModelModule.hpp"
 
+#include "include/Configured.hpp"
+#include "include/Iterator.hpp"
+
 namespace Nextsim {
 
-class PrognosticData : public ModelModule {
+class PrognosticData : public ModelModule, public Configured<PrognosticData> {
 public:
     PrognosticData();
     virtual ~PrognosticData() = default;
+
+    typedef Iterator::TimePoint TimePoint;
+
+    void configure() override;
 
     std::string getName() const override { return "PrognosticData"; };
 
@@ -23,9 +30,17 @@ public:
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
+    std::set<std::string> hFields() const override { return { "h_ice", "c_cice", "h_snow" }; };
     std::set<std::string> uFields() const override { return { "u" }; }
     std::set<std::string> vFields() const override { return { "v" }; }
     std::set<std::string> zFields() const override { return { "tice" }; }
+
+    /*!
+     *  @brief Updates the state of the prognostic data for this timestep
+     *
+     *  @param tsInitialTime the time at the start of the timestep
+     */
+    void update(const TimePoint& tsIntialTime);
 
     const HField& iceThickness() { return m_thick; }
 

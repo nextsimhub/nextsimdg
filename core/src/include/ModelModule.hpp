@@ -52,6 +52,7 @@ public:
     virtual ModelState getState() const = 0;
     virtual ModelState getState(const OutputLevel&) const = 0;
 
+    virtual std::set<std::string> hFields() const { return {}; }
     virtual std::set<std::string> uFields() const { return {}; }
     virtual std::set<std::string> vFields() const { return {}; }
     virtual std::set<std::string> zFields() const { return {}; }

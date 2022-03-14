@@ -18,6 +18,10 @@ PrognosticData::PrognosticData()
     registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
 }
 
+void PrognosticData::configure()
+{
+}
+
 void PrognosticData::setData(const ModelState& ms)
 {
     m_thick = ms.at("hice");
