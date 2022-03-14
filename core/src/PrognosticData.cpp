@@ -20,17 +20,12 @@ PrognosticData::PrognosticData()
 
 void PrognosticData::setData(const ModelState& ms)
 {
-    m_thick = *ms["hice"];
-    m_conc = *ms["cice"];
-    m_tice = *ms["tice"];
-    m_snow = *ms["hsnow"];
-    m_u = *ms["u"];
-    m_v = *ms["v"];
+    m_thick = ms.at("hice");
+    m_conc = ms.at("cice");
+    m_tice = ms.at("tice");
+    m_snow = ms.at("hsnow");
+    m_u = ms.at("u");
+    m_v = ms.at("v");
 }
 
-ModelState PrognosticData::getState() const
-{
-    ModelState ms;
-
-    return ms;
 } /* namespace Nextsim */
