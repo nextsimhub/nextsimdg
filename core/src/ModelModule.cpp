@@ -13,7 +13,8 @@ std::map<std::string, ModelModule*> ModelModule::registeredModules;
 std::map<ModelModule::SharedArray, ModelArray*> ModelModule::registeredArrays;
 std::map<ModelModule::SharedArray, std::set<ModelArray**>> ModelModule::reservedArrays;
 std::map<ModelModule::ProtectedArray, const ModelArray*> ModelModule::registeredProtectedArrays;
-std::map<ModelModule::ProtectedArray, std::set<const ModelArray**>> ModelModule::reservedProtectedArrays;
+std::map<ModelModule::ProtectedArray, std::set<const ModelArray**>>
+    ModelModule::reservedProtectedArrays;
 ModelModule::ModelModule() { }
 
 void ModelModule::setAllModuleData(const ModelState& stateIn)
