@@ -12,6 +12,12 @@ In order to better understand the role of sea-ice mechanics and dynamics in the 
 
 The core idea behind neXtSIM_DG remains the same as that behind the original neXtSIM: to explore the role of sea-ice mechanics and dynamics in determining the large-scale behaviour of Arctic sea ice. With the new version we aim to extend the use of the model to fully coupled and global simulations, resulting in a model that can be used from regional short term forecasting applications to global climate simulations. To achieve this, the model infrastructure will be modular and flexible, so that it can easily be coupled to other models and systems and so that new parameterisations and physical routines can easily be added. The dynamical core will use the DG method to ensure the best possible preservation of high gradients in an Eulerian framework, while still maintaining good computational performance.
 
+.. raw:: html
+
+    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; height: auto;">
+        <iframe src="https://www.youtube.com/embed/ZLhtYUB_Xfo" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+    </div>
+
 References
 ----------
 
