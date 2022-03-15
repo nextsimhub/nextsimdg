@@ -7,7 +7,7 @@
 Installation
 ============
 
-First step to install neXtSIM is to download this repository :
+First step to install neXtSIM is to download `this repository`_ :
 
 .. code::
 
@@ -97,7 +97,7 @@ Extra dependencies needed to run the simple example
 
 To run the simple example described `here`_, you need to install python and netCDF4 library. If you already installed the dependencies for compilation with conda, nothing else is needed.
 
-Otherwise, install them via `anaconda`_ or `minconda`_ (no root priviledges required)
+Otherwise, install them via `anaconda`_ or `miniconda`_ (no root priviledges required)
 
 .. code::
 
@@ -105,7 +105,7 @@ Otherwise, install them via `anaconda`_ or `minconda`_ (no root priviledges requ
         conda activate nextsimdg
         conda install netCDF4
 
-    
+.. _`this repository`: https://github.com/nextsimdg/nextsimdg    
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
 .. _Catch2: https://github.com/catchorg/Catch2
