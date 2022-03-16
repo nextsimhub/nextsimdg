@@ -14,8 +14,8 @@ namespace Nextsim {
 
 typedef int TimePoint; // TODO Use a real time type
 typedef int Duration; // TODO Use a real duration type
-        //    typedef std::chrono::time_point<Clock> TimePoint;
-        //    typedef std::chrono::seconds Duration;
+                      //    typedef std::chrono::time_point<Clock> TimePoint;
+                      //    typedef std::chrono::seconds Duration;
 
 }; // namespace Nextsim
 
