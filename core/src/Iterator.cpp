@@ -25,7 +25,7 @@ Iterator::Iterator(Iterant* iterant)
 void Iterator::setIterant(Iterant* iterant) { this->iterant = iterant; }
 
 void Iterator::setStartStopStep(
-    Iterator::TimePoint startTime, Iterator::TimePoint stopTime, Iterator::Duration timestep)
+    TimePoint startTime, TimePoint stopTime, Duration timestep)
 {
     this->startTime = startTime;
     this->stopTime = stopTime;

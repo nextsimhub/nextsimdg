@@ -27,9 +27,9 @@ public:
 
     // Member functions inherited from Iterant
     void init() override {};
-    void start(const Iterator::TimePoint& startTime) override {};
-    void iterate(const Iterator::Duration& dt) override;
-    void stop(const Iterator::TimePoint& stopTime) override {};
+    void start(const TimePoint& startTime) override {};
+    void iterate(const Duration& dt) override;
+    void stop(const TimePoint& stopTime) override {};
 
 private:
     IStructure* pStructure;

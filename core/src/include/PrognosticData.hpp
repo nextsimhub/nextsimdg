@@ -11,7 +11,7 @@
 #include "include/ModelModule.hpp"
 
 #include "include/Configured.hpp"
-#include "include/Iterator.hpp"
+#include "include/Time.hpp"
 
 namespace Nextsim {
 
@@ -19,8 +19,6 @@ class PrognosticData : public ModelModule, public Configured<PrognosticData> {
 public:
     PrognosticData();
     virtual ~PrognosticData() = default;
-
-    typedef Iterator::TimePoint TimePoint;
 
     void configure() override;
 

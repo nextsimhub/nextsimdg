@@ -19,11 +19,11 @@ public:
     //! Prints an informative message about initialization.
     void init();
     //! Prints an informative message about starting.
-    void start(const Iterator::TimePoint& startTime);
+    void start(const TimePoint& startTime);
     //! Prints an informative message about iterating.
-    void iterate(const Iterator::Duration& dt);
+    void iterate(const Duration& dt);
     //! Prints an informative message about stopping.
-    void stop(const Iterator::TimePoint& stopTime);
+    void stop(const TimePoint& stopTime);
 
     template <typename T> static T zeroTime();
 

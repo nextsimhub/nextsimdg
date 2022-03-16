@@ -20,17 +20,17 @@ SimpleIterant::SimpleIterant()
 
 void SimpleIterant::init() { std::cout << "SimpleIterant::init" << std::endl; }
 
-void SimpleIterant::start(const Iterator::TimePoint& startTime)
+void SimpleIterant::start(const TimePoint& startTime)
 {
     std::cout << "SimpleIterant::start at " << stringFromTimePoint(startTime) << std::endl;
 }
 
-void SimpleIterant::iterate(const Iterator::Duration& dt)
+void SimpleIterant::iterate(const Duration& dt)
 {
     std::cout << "SimpleIterant::iterate for " << count(dt) << std::endl;
 }
 
-void SimpleIterant::stop(const Iterator::TimePoint& stopTime)
+void SimpleIterant::stop(const TimePoint& stopTime)
 {
     std::cout << "SimpleIterant::stop at " << stringFromTimePoint(stopTime) << std::endl;
 }

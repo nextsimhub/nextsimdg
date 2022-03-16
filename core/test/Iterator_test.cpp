@@ -21,9 +21,9 @@ public:
         startCount = 0;
         stopCount = 0;
     };
-    void start(const Iterator::TimePoint& startTime) { startCount++; };
-    void iterate(const Iterator::Duration& dt) { count++; };
-    void stop(const Iterator::TimePoint& stopTime) { stopCount++; };
+    void start(const TimePoint& startTime) { startCount++; };
+    void iterate(const Duration& dt) { count++; };
+    void stop(const TimePoint& stopTime) { stopCount++; };
 
     int getCount() { return count; };
 
@@ -54,8 +54,8 @@ TEST_CASE("Count iterator testing", "[Iterator]")
 
     int nSteps = 5;
 
-    Iterator::TimePoint start = zeroTime<Iterator::TimePoint>();
-    Iterator::Duration dt = 1;
+    TimePoint start = zeroTime<TimePoint>();
+    Duration dt = 1;
     iterator.setStartStopStep(start, start + nSteps * dt, dt);
     iterator.run();
 

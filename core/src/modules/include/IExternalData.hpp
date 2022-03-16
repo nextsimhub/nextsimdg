@@ -5,7 +5,7 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/Iterator.hpp"
+#include "include/Time.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelModule.hpp"
 
@@ -27,8 +27,6 @@ public:
         registerProtectedArray(ProtectedArray::SNOW, &snowfall);
     }
     virtual ~IExternalData() = default;
-
-    typedef Iterator::TimePoint TimePoint;
 
     virtual void getData(const TimePoint&);
 private:

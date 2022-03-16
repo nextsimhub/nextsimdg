@@ -16,9 +16,9 @@ TEST_CASE("SimpleIterant testing", "[SimpleIterant]")
 
     int nSteps = 5;
 
-    Iterator::TimePoint startTime = SimpleIterant::zeroTime<Iterator::TimePoint>();
-    Iterator::Duration dt = Iterator::Duration(1);
-    Iterator::TimePoint stopTime = startTime + nSteps * dt;
+    TimePoint startTime = SimpleIterant::zeroTime<TimePoint>();
+    Duration dt = Duration(1);
+    TimePoint stopTime = startTime + nSteps * dt;
 
     simps.start(startTime);
     for (int i = 0; i < nSteps; i++) {

@@ -25,9 +25,9 @@ public:
 
     // Member functions inherited from Iterant
     virtual void init() = 0;
-    virtual void start(const Iterator::TimePoint& startTime) = 0;
-    virtual void iterate(const Iterator::Duration& dt) = 0;
-    virtual void stop(const Iterator::TimePoint& stopTime) = 0;
+    virtual void start(const TimePoint& startTime) = 0;
+    virtual void iterate(const Duration& dt) = 0;
+    virtual void stop(const TimePoint& stopTime) = 0;
 
 protected:
     std::string initialRestartFilePath;
