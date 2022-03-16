@@ -10,12 +10,9 @@
 namespace Nextsim {
 
 const std::map<int, std::string> keyMap = {
-        {IceGrowth::VERTICAL_GROWTH_KEY, "VerticalIceModel"},
-        {IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel"},
+    { IceGrowth::VERTICAL_GROWTH_KEY, "VerticalIceModel" },
+    { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
 };
 
-void IceGrowth::configure()
-{
-
-}
+void IceGrowth::configure() { }
 } /* namespace Nextsim */

@@ -8,8 +8,8 @@
 #ifndef PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
-#include "include/ModelModule.hpp"
 #include "include/Configured.hpp"
+#include "include/ModelModule.hpp"
 
 namespace Nextsim {
 
@@ -31,9 +31,9 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::set<std::string> hFields() const override { return { "updated_hice", "updated_cice" }; }
-    std::set<std::string> uFields() const override { return { }; }
-    std::set<std::string> vFields() const override { return { }; }
-    std::set<std::string> zFields() const override { return { }; }
+    std::set<std::string> uFields() const override { return {}; }
+    std::set<std::string> vFields() const override { return {}; }
+    std::set<std::string> zFields() const override { return {}; }
 
     void update();
 
