@@ -11,6 +11,7 @@
 #include "include/ModelModule.hpp"
 
 #include "include/Configured.hpp"
+#include "include/IceGrowth.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
@@ -60,6 +61,8 @@ private:
     UField m_u;
     VField m_v;
     double m_dt;
+
+    IceGrowth iceGrowth;
 };
 
 } /* namespace Nextsim */
