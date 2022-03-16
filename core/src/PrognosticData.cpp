@@ -18,10 +18,7 @@ PrognosticData::PrognosticData()
     registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
 }
 
-void PrognosticData::configure()
-{
-    tryConfigure(iceGrowth);
-}
+void PrognosticData::configure() { tryConfigure(iceGrowth); }
 
 void PrognosticData::setData(const ModelState& ms)
 {
