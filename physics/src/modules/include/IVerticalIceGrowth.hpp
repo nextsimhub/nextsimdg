@@ -10,24 +10,27 @@
 
 #include "include/ModelArray.hpp"
 #include "include/ModelModule.hpp"
+#include "include/Time.hpp"
 
 namespace Nextsim {
 class IVerticalIceGrowth : public ModelModule {
 public:
     ~IVerticalIceGrowth() = default;
 
+    virtual void update(const TimePoint& tsIntialTime);
 protected:
     IVerticalIceGrowth()
     {
+        registerModule();
         ModelModule::requestSharedArray(SharedArray::H_ICE, &hice);
         ModelModule::requestSharedArray(SharedArray::C_ICE, &cice);
         ModelModule::requestSharedArray(SharedArray::H_SNOW, &hsnow);
         ModelModule::requestSharedArray(SharedArray::T_ICE, &tice);
-        ModelModule::requestSharedArray(SharedArray::Q_IA, &qia);
         ModelModule::requestSharedArray(SharedArray::Q_IC, &qic);
         ModelModule::requestSharedArray(SharedArray::Q_IO, &qio);
-        ModelModule::requestSharedArray(SharedArray::DQIA_DT, &dQia_dT);
-        ModelModule::requestSharedArray(SharedArray::SUBLIM, &sublim);
+        ModelModule::requestProtectedArray(SharedArray::Q_IA, &qia);
+        ModelModule::requestProtectedArray(SharedArray::DQIA_DT, &dQia_dT);
+        ModelModule::requestProtectedArray(SharedArray::SUBLIM, &sublim);
         ModelModule::requestProtectedArray(ProtectedArray::SNOW, &snowfall);
     }
 
@@ -36,12 +39,13 @@ protected:
     HField* hsnow; // From Ice Growth?
     ZField* tice; // Updated value from IceTemperature
     HField* qic; // From IceTemperature. Conductive heat flux to the ice surface.
-    HField* qia; // From FluxCalculation
-    HField* dQia_dT; // From FluxCalculation
     HField* qio; // From FluxCalculation
-    HField* sublim; // From AtmosphereState
+    const HField* qia; // From FluxCalculation
+    const HField* dQia_dT; // From FluxCalculation
+    const HField* sublim; // From AtmosphereState
     const HField* snowfall; // From ExternalData
-    // And owns nothing of its own
+    // Owned, Module-private arrays
+    HField snowToIce;
 };
 
 } /* namespace Nextsim */
