@@ -40,7 +40,19 @@ public:
         SNOW, // snow fall, kg m⁻² s⁻¹
     };
     enum class SharedArray {
-        Q_OW, // Open water heat flux
+        // Values of the prognostic fields updated during the timestep
+        H_ICE, // Updated ice thickness, m
+        C_ICE, // Updated ice concentration
+        H_SNOW, // Updated snow depth, m
+        T_ICE, // Updated ice temperatures, ˚C
+        // Heat fluxes
+        Q_IA, // Ice to atmosphere heat flux W m⁻²
+        Q_IC, // Ice conduction heat flux W m⁻²
+        Q_IO, // Ice to ocean heat flux W m⁻²
+        Q_OW, // Open water heat flux W m⁻²
+        DQIA_DT, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
+        // Atmospheric conditions
+        SUBLIM, // Upward sublimation rate kg m⁻² s⁻¹
     };
 
     ModelModule();
