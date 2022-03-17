@@ -81,6 +81,7 @@ protected:
 
     static void registerSharedArray(SharedArray type, ModelArray* addr);
     static void requestSharedArray(SharedArray type, ModelArray** addr);
+    static void requestProtectedArray(SharedArray type, const ModelArray** addr);
 
     static void registerProtectedArray(ProtectedArray type, const ModelArray* addr);
     static void requestProtectedArray(ProtectedArray, const ModelArray** addr);
@@ -89,6 +90,7 @@ private:
     static std::map<std::string, ModelModule*> registeredModules;
     static std::map<SharedArray, ModelArray*> registeredArrays;
     static std::map<SharedArray, std::set<ModelArray**>> reservedArrays;
+    static std::map<SharedArray, std::set<const ModelArray**>> reservedSemiArrays;
     static std::map<ProtectedArray, const ModelArray*> registeredProtectedArrays;
     static std::map<ProtectedArray, std::set<const ModelArray**>> reservedProtectedArrays;
 };

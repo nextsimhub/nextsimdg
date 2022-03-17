@@ -114,4 +114,68 @@ TEST_CASE("Test array registration", "[ModelModule]")
     REQUIRE(saw.checkNotNull());
 }
 
+class ModuleSemiShared: public ModelModule {
+public:
+    ModuleSemiShared()
+        : qic(ModelArray::HField("qic"))
+        , p_qio(nullptr)
+    {
+        registerModule();
+        registerSharedArray(SharedArray::Q_IC, &qic);
+        requestProtectedArray(SharedArray::Q_IO, &p_qio);
+    }
+    void setData(const ModelState& ms) override { }
+    std::string getName() const override { return "SemiShared"; }
+    ModelState getState() const override
+    {
+        return {
+            { "qic", qic },
+        };
+    }
+    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
+
+    bool checkNotNull() { return p_qio; }
+
+private:
+    const HField* p_qio;
+    HField qic;
+};
+
+class ModuleShared: public ModelModule {
+public:
+    ModuleShared()
+        : qio(ModelArray::HField("qio"))
+        , p_qic(nullptr)
+    {
+        registerModule();
+        registerSharedArray(SharedArray::Q_IO, &qio);
+        requestSharedArray(SharedArray::Q_IC, &p_qic);
+    }
+    void setData(const ModelState& ms) override { }
+    std::string getName() const override { return "Shared"; }
+    ModelState getState() const override
+    {
+        return {
+            { "qio", qio },
+        };
+    }
+    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
+
+    bool checkNotNull() { return p_qic; }
+
+private:
+    HField* p_qic;
+    HField qio;
+};
+
+TEST_CASE("Shared and semi-protected arrays", "[ModelModule]")
+{
+
+    ModuleSemiShared semi;
+    ModuleShared share;
+
+    REQUIRE(share.checkNotNull());
+    REQUIRE(semi.checkNotNull());
+}
+
 } /* namespace Nextsim */

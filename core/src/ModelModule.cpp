@@ -12,6 +12,7 @@ namespace Nextsim {
 std::map<std::string, ModelModule*> ModelModule::registeredModules;
 std::map<ModelModule::SharedArray, ModelArray*> ModelModule::registeredArrays;
 std::map<ModelModule::SharedArray, std::set<ModelArray**>> ModelModule::reservedArrays;
+std::map<ModelModule::SharedArray, std::set<const ModelArray**>> ModelModule::reservedSemiArrays;
 std::map<ModelModule::ProtectedArray, const ModelArray*> ModelModule::registeredProtectedArrays;
 std::map<ModelModule::ProtectedArray, std::set<const ModelArray**>>
     ModelModule::reservedProtectedArrays;
@@ -52,6 +53,9 @@ void ModelModule::registerSharedArray(SharedArray type, ModelArray* addr)
     for (ModelArray** addrAddr : reservedArrays[type]) {
         *addrAddr = addr;
     }
+    for (const ModelArray** addrAddr : reservedSemiArrays[type]) {
+        *addrAddr = addr;
+    }
 }
 
 void ModelModule::requestSharedArray(SharedArray type, ModelArray** addr)
@@ -60,6 +64,15 @@ void ModelModule::requestSharedArray(SharedArray type, ModelArray** addr)
         *addr = registeredArrays[type];
     } else {
         reservedArrays[type].insert(addr);
+    }
+}
+
+void ModelModule::requestProtectedArray(SharedArray type, const ModelArray** addr)
+{
+    if (registeredArrays.count(type) > 0) {
+        *addr = registeredArrays[type];
+    } else {
+        reservedSemiArrays[type].insert(addr);
     }
 }
 
