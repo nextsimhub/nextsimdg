@@ -18,6 +18,7 @@ public:
     ~IVerticalIceGrowth() = default;
 
     virtual void update(const TimePoint& tsIntialTime);
+
 protected:
     IVerticalIceGrowth()
     {

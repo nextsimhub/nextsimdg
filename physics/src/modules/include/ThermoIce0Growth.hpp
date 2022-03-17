@@ -15,8 +15,9 @@ namespace Nextsim {
 class ThermoIce0Growth : public IVerticalIceGrowth {
 public:
     ThermoIce0Growth()
-    : IVerticalIceGrowth()
-    {}
+        : IVerticalIceGrowth()
+    {
+    }
     virtual ~ThermoIce0Growth() = default;
 
     void update(const TimePoint& tsIntialTime) override;

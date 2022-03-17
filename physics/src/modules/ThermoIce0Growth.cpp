@@ -13,8 +13,6 @@ namespace Nextsim {
 void ThermoIce0Growth::update(const TimePoint& tsInitialTime)
 {
     // Loop over the entire HField domain
-    for (size_t i = 0; i < ModelArray::size(ModelArray::HField); ++i) {
-    }
-
+    for (size_t i = 0; i < ModelArray::size(ModelArray::HField); ++i) { }
 }
 } /* namespace Nextsim */
