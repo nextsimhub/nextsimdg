@@ -17,7 +17,11 @@ class IVerticalIceGrowth : public ModelModule {
 public:
     ~IVerticalIceGrowth() = default;
 
-    virtual void update(const TimePoint& tsInitialTime);
+    std::string getName() const override { return "VerticalIceGrowth"; }
+    void setData(const ModelState& ms) override { }
+    ModelState getState() const override { return ModelState(); }
+    ModelState getState(const OutputLevel&) const override { return getState(); }
+    virtual void update(const TimestepTime& tsTime) = 0;
 
 protected:
     IVerticalIceGrowth()

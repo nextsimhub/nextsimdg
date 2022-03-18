@@ -21,8 +21,10 @@ TEST_CASE("SimpleIterant testing", "[SimpleIterant]")
     TimePoint stopTime = startTime + nSteps * dt;
 
     simps.start(startTime);
+    TimePoint tt = startTime;
     for (int i = 0; i < nSteps; i++) {
-        simps.iterate(dt);
+        simps.iterate({tt, dt});
+        tt += dt;
     }
     simps.stop(stopTime);
 }

@@ -16,7 +16,10 @@ typedef int TimePoint; // TODO Use a real time type
 typedef int Duration; // TODO Use a real duration type
                       //    typedef std::chrono::time_point<Clock> TimePoint;
                       //    typedef std::chrono::seconds Duration;
-
+struct TimestepTime {
+    TimePoint start;
+    Duration step;
+};
 }; // namespace Nextsim
 
 #endif /* CORE_SRC_INCLUDE_TIME_HPP */

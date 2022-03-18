@@ -37,7 +37,7 @@ public:
     std::set<std::string> vFields() const override { return {}; }
     std::set<std::string> zFields() const override { return {}; }
 
-    void update(const TimePoint&);
+    void update(const TimestepTime&);
 
 private:
     // Vertical Growth ModelModule & Module

@@ -97,7 +97,7 @@ public:
          *
          * @param dt The length of the timestep.
          */
-        virtual void iterate(const Duration& dt) = 0;
+        virtual void iterate(const TimestepTime& dt) = 0;
         /*!
          * Finalizes the iterant based on the stop time.
          *
@@ -110,7 +110,7 @@ public:
     class NullIterant : public Iterant {
         inline void init() {};
         inline void start(const TimePoint& startTime) {};
-        inline void iterate(const Duration& dt) {};
+        inline void iterate(const TimestepTime& dt) {};
         inline void stop(const TimePoint& stopTime) {};
     };
 

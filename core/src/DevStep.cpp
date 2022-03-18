@@ -11,9 +11,9 @@
 
 namespace Nextsim {
 
-void DevStep::iterate(const Duration& dt)
+void DevStep::iterate(const TimestepTime& tst)
 {
-    PrognosticElementData::setTimestep(dt);
+    PrognosticElementData::setTimestep(tst.step);
     for (pStructure->cursor = 0; pStructure->cursor; ++pStructure->cursor) {
         auto& data = *pStructure->cursor;
         data.updateDerivedData(data, data, data);

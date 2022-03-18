@@ -21,7 +21,7 @@ public:
     //! Prints an informative message about starting.
     void start(const TimePoint& startTime);
     //! Prints an informative message about iterating.
-    void iterate(const Duration& dt);
+    void iterate(const TimestepTime& tst);
     //! Prints an informative message about stopping.
     void stop(const TimePoint& stopTime);
 

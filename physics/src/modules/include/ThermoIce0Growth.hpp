@@ -20,7 +20,7 @@ public:
     }
     virtual ~ThermoIce0Growth() = default;
 
-    void update(const TimePoint& tsInitialTime) override;
+    void update(const TimestepTime& tsTime) override;
 
 private:
     void calculateElement(size_t i);

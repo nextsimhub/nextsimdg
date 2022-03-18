@@ -28,12 +28,18 @@ set(ConcentrationModelModuleSources
     "HiblerConcentration.cpp"
     )
     
+set(VerticalIceGrowthModuleSources
+    "VerticalIceGrowthModule.cpp"
+    "ThermoIce0Growth.cpp"
+    )
+    
 set(ModuleSources
     "${IceAlbedoModuleSources}"
     "${IceOceanHeatFluxModuleSources}"
     "${ColumnPhysicsModuleSources}"
     "${ThermodynamicsModuleSources}"
     "${ConcentrationModelModuleSources}"
+    "${VerticalIceGrowthModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

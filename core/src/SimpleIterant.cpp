@@ -25,9 +25,9 @@ void SimpleIterant::start(const TimePoint& startTime)
     std::cout << "SimpleIterant::start at " << stringFromTimePoint(startTime) << std::endl;
 }
 
-void SimpleIterant::iterate(const Duration& dt)
+void SimpleIterant::iterate(const TimestepTime& tst)
 {
-    std::cout << "SimpleIterant::iterate for " << count(dt) << std::endl;
+    std::cout << "SimpleIterant::iterate for " << count(tst.step) << std::endl;
 }
 
 void SimpleIterant::stop(const TimePoint& stopTime)

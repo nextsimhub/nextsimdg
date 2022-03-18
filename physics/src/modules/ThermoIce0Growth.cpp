@@ -11,7 +11,7 @@
 
 namespace Nextsim {
 
-void ThermoIce0Growth::update(const TimePoint& tsInitialTime)
+void ThermoIce0Growth::update(const TimestepTime& tsTime)
 {
     // Loop over the entire HField domain
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
@@ -23,8 +23,8 @@ void ThermoIce0Growth::calculateElement(size_t i)
 {
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
 
-    double remainingFlux = *qic[i] - *qia[i];
+    double remainingFlux = (*qic)[i] - (*qia)[i];
     double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow;
-    double snowSublRate = *sublim[i] / Ice::rhoSnow;
+    double snowSublRate = (*sublim)[i] / Ice::rhoSnow;
 }
 } /* namespace Nextsim */

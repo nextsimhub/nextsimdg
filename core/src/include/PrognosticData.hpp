@@ -39,7 +39,7 @@ public:
      *
      *  @param tsInitialTime the time at the start of the timestep
      */
-    void update(const TimePoint& tsIntialTime);
+    void update(const TimestepTime& tsTime);
 
     const HField& iceThickness() { return m_thick; }
 

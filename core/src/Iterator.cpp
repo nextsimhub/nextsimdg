@@ -54,7 +54,8 @@ void Iterator::run()
     iterant->start(startTime);
 
     for (auto t = startTime; t < stopTime; t += timestep) {
-        iterant->iterate(timestep);
+        TimestepTime tsTime = {t, timestep};
+        iterant->iterate(tsTime);
     }
 
     iterant->stop(stopTime);

@@ -22,7 +22,7 @@ public:
         stopCount = 0;
     };
     void start(const TimePoint& startTime) { startCount++; };
-    void iterate(const Duration& dt) { count++; };
+    void iterate(const TimestepTime& tst) { count++; };
     void stop(const TimePoint& stopTime) { stopCount++; };
 
     int getCount() { return count; };
