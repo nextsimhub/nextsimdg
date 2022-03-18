@@ -17,18 +17,22 @@ public:
     ThermoIce0Growth()
         : IVerticalIceGrowth()
     {
+        ModelModule::requestProtectedArray(ModelModule::ProtectedArray::H_ICE, &oldHi);
     }
     virtual ~ThermoIce0Growth() = default;
 
     void update(const TimestepTime& tsTime) override;
 
 private:
-    void calculateElement(size_t i);
+    void calculateElement(size_t i, const TimestepTime &tst);
 
-    HField delta_hi;
-    HField delta_hs_melt;
-    HField delta_hi_topmelt;
-    HField delta_hi_botmelt;
+    HField deltaHi;
+    HField snowMelt;
+    HField topMelt;
+    HField botMelt;
+    const HField* oldHi;
+
+    bool doFlooding = true; // TODO: read from configuration
 };
 
 } /* namespace Nextsim */
