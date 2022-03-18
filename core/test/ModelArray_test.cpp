@@ -129,4 +129,41 @@ TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
     REQUIRE(uu.nDimensions() == 2);
     REQUIRE(uu.dimensions() == udim);
 }
-} /* namespace Nextsim */
+
+TEST_CASE("Intrinsic pointer functionality", "[ModelArray]")
+{
+    ModelArray src = ModelArray::HField("src");
+    ModelArray ptr = ModelArray::UField("");
+    ptr.pointAt(src);
+
+    // Array dimensions should now match
+    REQUIRE(src.dimensions() == ptr.dimensions());
+
+    ModelArray::setDimensions(ModelArray::Type::H, {15, 15});
+
+    size_t i = 8;
+    size_t j = 7;
+    double v87 = 15;
+    src[{i, j}] = v87;
+    REQUIRE(ptr[{i, j}] == v87);
+
+    i = 6;
+    j = 9;
+    double v69 = 234;
+    ptr[{i, j}] = v69;
+    REQUIRE(src[{i, j}] == v69);
+    v69 = 87.5;
+    src[{i, j}] = v69;
+    REQUIRE(ptr[{i, j}] == v69);
+
+    // Copy constructor
+    ModelArray cpy(ptr);
+    REQUIRE(cpy[{i, j}] == v69);
+    v69 = 4667.23;
+    cpy[{i, j}] = v69;
+    // Should be a deep copy, leaving the original and its reference unchanged
+    REQUIRE(ptr[{i, j}] != v69);
+    REQUIRE(src[{i, j}] != v69);
+
+}
+    } /* namespace Nextsim */

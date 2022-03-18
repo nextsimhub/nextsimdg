@@ -9,11 +9,19 @@
 #define CORE_SRC_INCLUDE_MODELARRAY_HPP
 
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
 
+#include <iostream> // FIXME Remove me
+
+// See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
+#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
+
 namespace Nextsim {
+
+class ModelArray;
 
 class ModelArray {
 public:
@@ -23,6 +31,10 @@ public:
         V,
         Z,
     };
+
+    // pointer to a member that takes a size_t argument and returns a double.
+    // See https://isocpp.org/wiki/faq/pointers-to-members#typedef-for-ptr-to-memfn
+    typedef const double& (ModelArray::*IndexFn)(size_t) const;
 
     static const std::map<Type, std::string> typeNames;
 
@@ -56,22 +68,24 @@ public:
 
     void resize()
     {
-        if (size() != trueSize())
+        if (!p_data && size() != trueSize())
             m_data.resize(m_sz.at(type));
     }
 
-    const std::string& name() const { return m_name; }
+    const std::string& name() const { return (p_data) ? p_data->name() : m_name; }
 
     void setData(const double* pData);
     void setData(const std::vector<double>&);
 
-    std::vector<double>::iterator begin() { return m_data.begin(); }
-    std::vector<double>::iterator end() { return m_data.end(); }
+    void pointAt(ModelArray& src);
 
-    const double& operator[](size_t i) const { return m_data[i]; }
+    std::vector<double>::iterator begin() { return (p_data) ? p_data->begin() : m_data.begin(); }
+    std::vector<double>::iterator end() { return (p_data) ? p_data->end() : m_data.end(); }
+
+    const double& operator[](size_t i) const { return CALL_MEMBER_FN(*this, indexFn)(i); }//std::invoke(indexFn, *this, i); }
     const double& operator[](const Dimensions& dims) const;
 
-    const double& operator()(size_t i) const { return m_data[i]; }
+    const double& operator()(size_t i) const { return this->operator[](i); }
     const double& operator()(size_t i, size_t j) const;
     const double& operator()(size_t i, size_t j, size_t k) const;
     const double& operator()(size_t i, size_t j, size_t k, size_t l) const;
@@ -83,10 +97,10 @@ public:
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const;
 
     //! One dimensional indexing
-    double& operator[](size_t i) { return m_data[i]; }
+    double& operator[](size_t i) { return const_cast<double &>(std::as_const(*this).operator[](i)); }
     double& operator[](const Dimensions&);
     //! Multi (one) dimensional indexing
-    double& operator()(size_t i) { return m_data[i]; }
+    double& operator()(size_t i) { return this->operator[](i); }
     double& operator()(size_t i, size_t j);
     double& operator()(size_t i, size_t j, size_t k);
     double& operator()(size_t i, size_t j, size_t k, size_t l);
@@ -100,7 +114,16 @@ protected:
     Type type;
     ModelArray(const Type, const std::string&);
 
+    double* data() { return (p_data) ? p_data->data() : m_data.data(); }
+    const double* data() const { return (p_data) ? p_data->data() : m_data.data(); }
+
 private:
+    const double& directIndex(size_t i) const { return m_data[i]; }
+
+    const double& indirectIndex(size_t i) const { return (*p_data)[i]; }
+
+    IndexFn indexFn;
+
     class SizeMap {
     public:
         SizeMap()
@@ -141,6 +164,7 @@ private:
     static DimensionMap m_dims;
     std::vector<double> m_data;
     std::string m_name;
+    ModelArray* p_data;
 };
 
 typedef ModelArray HField;
@@ -150,4 +174,5 @@ typedef ModelArray ZField;
 
 } /* namespace Nextsim */
 
+#undef CALL_MEMBER_FN
 #endif /* CORE_SRC_INCLUDE_MODELARRAY_HPP */

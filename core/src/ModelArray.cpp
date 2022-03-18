@@ -27,6 +27,8 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
 ModelArray::ModelArray(const Type type, const std::string& name)
     : type(type)
     , m_name(name)
+    , p_data(nullptr)
+    , indexFn(&ModelArray::directIndex)
 {
     if (m_sz.at(type) > 0) {
         m_data.reserve(m_sz.at(type));
@@ -39,27 +41,39 @@ ModelArray::ModelArray()
 }
 
 ModelArray::ModelArray(const ModelArray& orig)
-    : ModelArray(orig.type, orig.m_name)
+    : ModelArray(orig.type, orig.name())
 {
-    setData(orig.m_data.data());
+    setData(orig.data());
 }
 
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
     type = orig.type;
     m_name = orig.m_name;
-    setData(orig.m_data.data());
+    setData(orig.data());
 
     return *this;
 }
 
 void ModelArray::setData(const double* pData)
 {
-    resize();
-    m_data.assign(pData, pData + m_sz.at(type));
+    // Only set the data if there is no pointed-at data. Setting data cannot be
+    // done through ModelArrays that refer to others.
+    if (!p_data) {
+        resize();
+        m_data.assign(pData, pData + m_sz.at(type));
+    }
 }
 
 void ModelArray::setData(const std::vector<double>& from) { setData(from.data()); }
+
+void ModelArray::pointAt(ModelArray& src)
+{
+     p_data = &src;
+     m_data.resize(0);
+     indexFn = &ModelArray::indirectIndex;
+     type = src.type;
+}
 
 void ModelArray::setDimensions(Type type, const Dimensions& newDims)
 {
