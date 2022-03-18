@@ -17,7 +17,7 @@ class IVerticalIceGrowth : public ModelModule {
 public:
     ~IVerticalIceGrowth() = default;
 
-    virtual void update(const TimePoint& tsIntialTime);
+    virtual void update(const TimePoint& tsInitialTime);
 
 protected:
     IVerticalIceGrowth()

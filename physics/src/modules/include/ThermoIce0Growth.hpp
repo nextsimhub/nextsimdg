@@ -20,7 +20,15 @@ public:
     }
     virtual ~ThermoIce0Growth() = default;
 
-    void update(const TimePoint& tsIntialTime) override;
+    void update(const TimePoint& tsInitialTime) override;
+
+private:
+    void calculateElement(size_t i);
+
+    HField delta_hi;
+    HField delta_hs_melt;
+    HField delta_hi_topmelt;
+    HField delta_hi_botmelt;
 };
 
 } /* namespace Nextsim */

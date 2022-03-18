@@ -6,6 +6,7 @@
  */
 
 #include "include/IceGrowth.hpp"
+#include "include/VerticalIceGrowthModule.hpp"
 
 namespace Nextsim {
 
@@ -14,5 +15,14 @@ const std::map<int, std::string> keyMap = {
     { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
 };
 
-void IceGrowth::configure() { }
+void IceGrowth::configure()
+{
+    // Configure the vertical and lateral growth modules
+    iVertical = std::move(Module::getInstance<IVerticalIceGrowth>());
+}
+
+void IceGrowth::update(const TimePoint& tsInitialTime)
+{
+    iVertical->update(tsInitialTime);
+}
 } /* namespace Nextsim */

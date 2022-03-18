@@ -9,7 +9,9 @@
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
 #include "include/Configured.hpp"
+#include "include/IVerticalIceGrowth.hpp"
 #include "include/ModelModule.hpp"
+#include "include/Time.hpp"
 
 namespace Nextsim {
 
@@ -35,10 +37,11 @@ public:
     std::set<std::string> vFields() const override { return {}; }
     std::set<std::string> zFields() const override { return {}; }
 
-    void update();
+    void update(const TimePoint&);
 
 private:
     // Vertical Growth ModelModule & Module
+    std::unique_ptr<IVerticalIceGrowth> iVertical;
     // Lateral Growth ModuleModule & Module
 };
 
