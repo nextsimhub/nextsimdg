@@ -41,10 +41,10 @@ public:
 
     size_t nDimensions() const { return nDimensions(type); }
     static size_t nDimensions(Type type) { return m_dims.at(type).size(); }
-    const Dimensions& dimensions() { return dimensions(type); }
+    const Dimensions& dimensions() const { return dimensions(type); }
     static const Dimensions& dimensions(Type type) { return m_dims.at(type); }
-    size_t size() { return size(type); }
-    size_t trueSize() { return m_data.size(); }
+    size_t size() const { return size(type); }
+    size_t trueSize() const { return m_data.size(); }
     static size_t size(Type type) { return m_sz.at(type); }
 
     static void setDimensions(Type, const Dimensions&);
@@ -96,6 +96,15 @@ public:
     double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q);
 
+
+    /*!
+     * @brief Special access function for ZFields
+     *
+     * @detail Index a ZField using an index from an HField of the same
+     * horizontal extent and a layer index for the final dimension.
+     */
+    double& zIndexAndLayer(size_t hIndex, size_t layer) {return this->operator[](hIndex * dimensions()[nDimensions()-1] + layer); }
+    const double& zIndexAndLayer(size_t hIndex, size_t layer) const {return this->operator[](hIndex * dimensions()[nDimensions()-1] + layer); }
 protected:
     Type type;
     ModelArray(const Type, const std::string&);
