@@ -96,15 +96,21 @@ public:
     double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q);
 
-
     /*!
      * @brief Special access function for ZFields
      *
      * @detail Index a ZField using an index from an HField of the same
      * horizontal extent and a layer index for the final dimension.
      */
-    double& zIndexAndLayer(size_t hIndex, size_t layer) {return this->operator[](hIndex * dimensions()[nDimensions()-1] + layer); }
-    const double& zIndexAndLayer(size_t hIndex, size_t layer) const {return this->operator[](hIndex * dimensions()[nDimensions()-1] + layer); }
+    double& zIndexAndLayer(size_t hIndex, size_t layer)
+    {
+        return this->operator[](hIndex * dimensions()[nDimensions() - 1] + layer);
+    }
+    const double& zIndexAndLayer(size_t hIndex, size_t layer) const
+    {
+        return this->operator[](hIndex * dimensions()[nDimensions() - 1] + layer);
+    }
+
 protected:
     Type type;
     ModelArray(const Type, const std::string&);

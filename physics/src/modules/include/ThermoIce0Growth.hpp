@@ -24,7 +24,7 @@ public:
     void update(const TimestepTime& tsTime) override;
 
 private:
-    void calculateElement(size_t i, const TimestepTime &tst);
+    void calculateElement(size_t i, const TimestepTime& tst);
 
     HField deltaHi;
     HField snowMelt;

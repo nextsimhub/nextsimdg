@@ -9,9 +9,8 @@
 
 #include "include/IFreezingPointModule.hpp"
 #include "include/ModelArray.hpp"
-#include "include/constants.hpp"
 #include "include/NextsimPhysics.hpp"
-
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
@@ -23,10 +22,10 @@ void ThermoIce0Growth::update(const TimestepTime& tsTime)
     }
 }
 
-void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime &tst)
+void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime& tst)
 {
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
-    static const double bulkLHFusionIce= Water::Lf * Ice::rho;
+    static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
     double remainingFlux = (*qic)[i] - (*qia)[i];
     // Top melt. Melting rate is non-positive.
@@ -42,8 +41,7 @@ void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime &tst)
     (*hsnow)[i] += (*snowfall)[i] * tst.step / Ice::rhoSnow;
 
     // Bottom melt or growth
-    double iceBottomChange
-        = ((*qic)[i] - (*qio)[i]) * tst.step / bulkLHFusionIce;
+    double iceBottomChange = ((*qic)[i] - (*qio)[i]) * tst.step / bulkLHFusionIce;
     // Total thickness change
     deltaHi[i] = excessIceMelt + iceBottomChange;
     (*hice)[i] += deltaHi[i];
@@ -64,7 +62,7 @@ void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime &tst)
 
     // Melt all ice if it is below minimum threshold
     // TODO: Move the minimum ice thickness somewhere other than NextsimPhysics
-    if( (*hice)[i] < NextsimPhysics::minimumIceThickness()) {
+    if ((*hice)[i] < NextsimPhysics::minimumIceThickness()) {
         if (deltaHi[i] < 0) {
             double scaling = (*oldHi)[i] / deltaHi[i];
             topMelt[i] *= scaling;
@@ -78,8 +76,8 @@ void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime &tst)
         deltaHi[i] = -(*oldHi)[i];
 
         // The ice-ocean flux includes all the latent heat
-        (*qio)[i] += (*hice)[i] * bulkLHFusionIce / tst.step
-                + (*hsnow)[i] * bulkLHFusionSnow / tst.step;
+        (*qio)[i]
+            += (*hice)[i] * bulkLHFusionIce / tst.step + (*hsnow)[i] * bulkLHFusionSnow / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
         (*hice)[i] = 0.;
