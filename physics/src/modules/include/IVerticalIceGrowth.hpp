@@ -37,6 +37,7 @@ protected:
         ModelModule::requestProtectedArray(SharedArray::DQIA_DT, &dQia_dT);
         ModelModule::requestProtectedArray(SharedArray::SUBLIM, &sublim);
         ModelModule::requestProtectedArray(ProtectedArray::SNOW, &snowfall);
+        ModelModule::requestProtectedArray(ProtectedArray::SSS, &sss);
     }
 
     HField* hice; // From IceGrowth
@@ -49,6 +50,7 @@ protected:
     const HField* dQia_dT; // From FluxCalculation
     const HField* sublim; // From AtmosphereState
     const HField* snowfall; // From ExternalData
+    const HField* sss; // From ExternalData (possibly PrognosticData)
     // Owned, Module-private arrays
     HField snowToIce;
 };

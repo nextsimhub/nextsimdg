@@ -38,6 +38,7 @@ public:
         LW_IN, // incoming longwave flux, W m⁻²
         MLD, // mixed layer depth, m
         SNOW, // snow fall, kg m⁻² s⁻¹
+        SSS, // sea surface salinity, PSU
     };
     enum class SharedArray {
         // Values of the prognostic fields updated during the timestep

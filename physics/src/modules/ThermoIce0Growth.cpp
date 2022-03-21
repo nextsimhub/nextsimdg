@@ -6,9 +6,12 @@
  */
 
 #include "include/ThermoIce0Growth.hpp"
+
+#include "include/IFreezingPointModule.hpp"
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
 #include "include/NextsimPhysics.hpp"
+
 
 namespace Nextsim {
 
@@ -81,7 +84,7 @@ void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime &tst)
         // No ice, no snow and the surface temperature is the melting point of ice
         (*hice)[i] = 0.;
         (*hsnow)[i] = 0.;
-        // surface temperature to something
+        tice->zIndexAndLayer(i, 0) = Module::getImplementation<IFreezingPoint>()((*sss)[i]);
     }
 }
 } /* namespace Nextsim */
