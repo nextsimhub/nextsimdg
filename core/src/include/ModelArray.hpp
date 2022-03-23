@@ -15,6 +15,8 @@
 
 namespace Nextsim {
 
+const static int DGdegree = 0; // TODO: Replace with the same source as the dynamics
+const static int CellDoF = (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)));
 class ModelArray {
 public:
     enum class Type {
