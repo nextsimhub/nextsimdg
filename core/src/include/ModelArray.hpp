@@ -97,23 +97,40 @@ public:
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q);
 
     /*!
-     * @brief Special access function for ZFields
+     * @brief Special access function for ZFields.
      *
      * @detail Index a ZField using an index from an HField of the same
      * horizontal extent and a layer index for the final dimension.
+     *
+     * @param hIndex the equivalent positional index in an HField array
+     * @param layer the vertical layer to be accessed
      */
     double& zIndexAndLayer(size_t hIndex, size_t layer)
     {
-        return this->operator[](hIndex * dimensions()[nDimensions() - 1] + layer);
+        return this->operator[](zLayerIndex(hIndex, layer));
     }
+    /*!
+     * @brief Special access function for ZFields, const version.
+     *
+     * @detail Index a ZField using an index from an HField of the same
+     * horizontal extent and a layer index for the final dimension.
+     *
+     * @param hIndex the equivalent positional index in an HField array
+     * @param layer the vertical layer to be accessed
+     */
     const double& zIndexAndLayer(size_t hIndex, size_t layer) const
     {
-        return this->operator[](hIndex * dimensions()[nDimensions() - 1] + layer);
+        return this->operator[](zLayerIndex(hIndex, layer));
     }
 
 protected:
     Type type;
     ModelArray(const Type, const std::string&);
+
+    size_t zLayerIndex(size_t hIndex, size_t layer) const
+    {
+        return hIndex * dimensions()[nDimensions() - 1] + layer;
+    }
 
 private:
     class SizeMap {
