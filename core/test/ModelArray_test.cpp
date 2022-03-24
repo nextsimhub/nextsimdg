@@ -83,7 +83,7 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
         vData[i] = i;
     }
 
-    check4d.setData(vData);
+    check4d.setData(vData.data());
 
     REQUIRE(check4d(4, 7, 2, 5) == 4725);
 

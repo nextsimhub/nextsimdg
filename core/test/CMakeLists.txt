@@ -153,7 +153,7 @@ add_executable(testDevGrid
 
 target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testDevGrid LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
+target_link_libraries(testDevGrid LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testRectGrid
     "RectGrid_test.cpp"
@@ -181,7 +181,7 @@ add_executable(testRectGrid
 
 target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}")
+target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testStructureFactory
     "StructureFactory_test.cpp"
@@ -213,7 +213,7 @@ add_executable(testStructureFactory
 
 target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(testStructureFactory PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testStructureFactory PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
+target_link_libraries(testStructureFactory PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testModelArray
     "ModelArray_test.cpp"
@@ -221,7 +221,7 @@ add_executable(testModelArray
     )
 
 target_include_directories(testModelArray PRIVATE "${CoreSrc}")
-target_link_libraries(testModelArray PRIVATE Catch2::Catch2)
+target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testModelModule
     "ModelModule_test.cpp"
@@ -230,4 +230,4 @@ add_executable(testModelModule
 )
 
 target_include_directories(testModelModule PRIVATE "${CoreSrc}")
-target_link_libraries(testModelModule PRIVATE Catch2::Catch2)
+target_link_libraries(testModelModule PRIVATE Catch2::Catch2 Eigen3::Eigen)

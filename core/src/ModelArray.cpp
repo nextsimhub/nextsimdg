@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstdarg>
+#include <iterator>
 #include <set>
 #include <utility>
 
@@ -22,6 +23,7 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::U, "UField" },
     { ModelArray::Type::V, "VField" },
     { ModelArray::Type::Z, "ZField" },
+    { ModelArray::Type::DG, "DGHField--DO-NOT-USE--" },
 };
 
 ModelArray::ModelArray(const Type type, const std::string& name)
@@ -29,7 +31,7 @@ ModelArray::ModelArray(const Type type, const std::string& name)
     , m_name(name)
 {
     if (m_sz.at(type) > 0) {
-        m_data.reserve(m_sz.at(type));
+        m_data.resize(m_sz.at(type), nComponents());
     }
 }
 
@@ -41,14 +43,14 @@ ModelArray::ModelArray()
 ModelArray::ModelArray(const ModelArray& orig)
     : ModelArray(orig.type, orig.m_name)
 {
-    setData(orig.m_data.data());
+    setData(orig.m_data);
 }
 
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
     type = orig.type;
     m_name = orig.m_name;
-    setData(orig.m_data.data());
+    setData(orig.m_data);
 
     return *this;
 }
@@ -56,10 +58,10 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
 void ModelArray::setData(const double* pData)
 {
     resize();
-    m_data.assign(pData, pData + m_sz.at(type));
+    std::copy(pData, pData + m_sz.at(type), m_data.data());
 }
 
-void ModelArray::setData(const std::vector<double>& from) { setData(from.data()); }
+void ModelArray::setData(const DataType& from) { setData(from.data()); }
 
 void ModelArray::setDimensions(Type type, const Dimensions& newDims)
 {
