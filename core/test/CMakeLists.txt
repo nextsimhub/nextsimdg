@@ -24,7 +24,7 @@ add_executable(testIterator
     
     )
 target_include_directories(testIterator PUBLIC "${SRC_DIR}")
-target_link_libraries(testIterator PRIVATE Catch2::Catch2 "${Boost_LIBRARIES}")
+target_link_libraries(testIterator PRIVATE Catch2::Catch2 Boost::program_options Boost::log)
 
 add_executable(testSimpleIter
     "SimpleIterant_test.cpp"
@@ -36,29 +36,26 @@ add_executable(testSimpleIter
     
     )
 target_include_directories(testSimpleIter PUBLIC "${SRC_DIR}")
-target_link_libraries(testSimpleIter PRIVATE Catch2::Catch2 "${Boost_LIBRARIES}")
+target_link_libraries(testSimpleIter PRIVATE Catch2::Catch2 Boost::program_options Boost::log)
 
 add_executable(testCommandLineParser
     "CommandLineParser_test.cpp"
     "ArgV.cpp"
     "${SRC_DIR}/CommandLineParser.cpp"
     )
-target_include_directories(testCommandLineParser PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(testCommandLineParser LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Catch2)
+target_link_libraries(testCommandLineParser LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
 add_executable(testConfigurator
     "Configurator_test.cpp"
     "ArgV.cpp"
     "${SRC_DIR}/Configurator.cpp"
     )
-target_include_directories(testConfigurator PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(testConfigurator LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Catch2)
+target_link_libraries(testConfigurator LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
 add_executable(testEnumWrapper
     "EnumWrapper_test.cpp"
     )
-target_include_directories(testEnumWrapper PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(testEnumWrapper LINK_PUBLIC ${Boost_LIBRARIES} Catch2::Catch2)
+target_link_libraries(testEnumWrapper LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
 # Set the location of the test module loader classes
 set(TEST_IPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoaderTestModules")
@@ -69,8 +66,8 @@ add_executable(testConfiguredModule
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
 )
-target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_DIR}" "${TEST_IPP_DIR}" ${Boost_INCLUDE_DIRS})
-target_link_libraries(testConfiguredModule PRIVATE Catch2::Catch2 ${Boost_LIBRARIES})
+target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_DIR}" "${TEST_IPP_DIR}")
+target_link_libraries(testConfiguredModule PRIVATE Catch2::Catch2 Boost::program_options Boost::log)
 
 add_executable(testTimer
     "Timer_test.cpp"
@@ -123,7 +120,7 @@ add_executable(testElementData
     )
 
 target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}")
-target_link_libraries(testElementData PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)
+target_link_libraries(testElementData PRIVATE Boost::program_options Boost::log Catch2::Catch2)
 
 add_executable(testDevGrid
     "DevGrid_test.cpp"
@@ -151,7 +148,7 @@ add_executable(testDevGrid
 
 target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testDevGrid LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
+target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2 "${NSDG_NetCDF_Library}")
 
 add_executable(testRectGrid
     "RectGrid_test.cpp"
@@ -209,4 +206,4 @@ add_executable(testStructureFactory
 
 target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
 target_link_directories(testStructureFactory PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testStructureFactory PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 "${NSDG_NetCDF_Library}")
+target_link_libraries(testStructureFactory PRIVATE Boost::program_options Boost::log Catch2::Catch2 "${NSDG_NetCDF_Library}")
