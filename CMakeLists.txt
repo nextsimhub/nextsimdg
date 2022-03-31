@@ -20,7 +20,7 @@ endif()
 # static mode. Use the following definition to indicate that
 # the code will be linked against dynamically loaded boost
 # libraries.
-ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
+add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost COMPONENTS program_options log REQUIRED)
 
 find_package(Catch2 REQUIRED)
