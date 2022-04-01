@@ -96,7 +96,7 @@ public:
     const double& operator[](size_t i) const { return m_data(i, 0); }
     const double& operator[](const Dimensions& dims) const;
 
-    const double& operator()(size_t i) const { return this->operator[](i); }
+    const double& operator()(size_t i) const { return (*this)[i]; }
     const double& operator()(size_t i, size_t j) const;
     const double& operator()(size_t i, size_t j, size_t k) const;
     const double& operator()(size_t i, size_t j, size_t k, size_t l) const;
@@ -108,10 +108,10 @@ public:
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const;
 
     //! One dimensional indexing
-    double& operator[](size_t i) { return m_data(i, 0); }
+    double& operator[](size_t i) { return const_cast<double&>(std::as_const(*this)(i)); }
     double& operator[](const Dimensions&);
     //! Multi (one) dimensional indexing
-    double& operator()(size_t i) { return this->operator[](i); }
+    double& operator()(size_t i) { return (*this)[i]; }
     double& operator()(size_t i, size_t j);
     double& operator()(size_t i, size_t j, size_t k);
     double& operator()(size_t i, size_t j, size_t k, size_t l);
