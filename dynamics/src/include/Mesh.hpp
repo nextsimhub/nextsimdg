@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
 
 namespace Nextsim {
 

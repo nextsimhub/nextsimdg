@@ -1,18 +1,23 @@
-# Build the main neXtSIM model
-
-set (INC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-
 ### Set the list of all cpp files
-FILE(GLOB Nextsim_Sources *.cpp)
+file(GLOB NextsimDGLib_Sources *.cpp)
+add_library(${NextsimDGLib} ${NextsimDGLib_Sources})
+# Create an alias for our library
+add_library(${PROJECT_NAME}::${NextsimDGLib} ALIAS ${NextsimDGLib})
+target_include_directories(${NextsimDGLib}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
+target_link_libraries(${NextsimDGLib} PUBLIC Eigen3::Eigen)
 
+# Set the header files that need to be installed
+file(GLOB NextsimDGLib_Headers *.hpp)
+set_target_properties(${NextsimDGLib} PROPERTIES PUBLIC_HEADER "${NextsimDGLib_Headers}")
 
-###
-INCLUDE_DIRECTORIES(${Nextsim_INCLUDE_DIRS})
-
-add_library(${NextsimDGLib} ${Nextsim_Sources})
-
-target_link_libraries (${NextsimDGLib} Eigen3::Eigen)
-
-
-
+install(TARGETS ${NextsimDGLib}
+  EXPORT ${PROJECT_NAME}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  PRIVATE_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
