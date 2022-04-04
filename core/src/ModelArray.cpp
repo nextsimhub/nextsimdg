@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstdarg>
+#include <iterator>
 #include <set>
 #include <utility>
 
@@ -22,6 +23,7 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::U, "UField" },
     { ModelArray::Type::V, "VField" },
     { ModelArray::Type::Z, "ZField" },
+    { ModelArray::Type::DG, "DGHField--DO-NOT-USE--" },
 };
 
 ModelArray::ModelArray(const Type type, const std::string& name)
@@ -29,7 +31,7 @@ ModelArray::ModelArray(const Type type, const std::string& name)
     , m_name(name)
 {
     if (m_sz.at(type) > 0) {
-        m_data.reserve(m_sz.at(type));
+        m_data.resize(m_sz.at(type), nComponents());
     }
 }
 
@@ -41,14 +43,14 @@ ModelArray::ModelArray()
 ModelArray::ModelArray(const ModelArray& orig)
     : ModelArray(orig.type, orig.m_name)
 {
-    setData(orig.m_data.data());
+    setData(orig.m_data);
 }
 
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
     type = orig.type;
     m_name = orig.m_name;
-    setData(orig.m_data.data());
+    setData(orig.m_data);
 
     return *this;
 }
@@ -56,10 +58,10 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
 void ModelArray::setData(const double* pData)
 {
     resize();
-    m_data.assign(pData, pData + m_sz.at(type));
+    std::copy(pData, pData + m_sz.at(type), m_data.data());
 }
 
-void ModelArray::setData(const std::vector<double>& from) { setData(from.data()); }
+void ModelArray::setData(const DataType& from) { setData(from.data()); }
 
 void ModelArray::setDimensions(Type type, const Dimensions& newDims)
 {
@@ -70,6 +72,69 @@ void ModelArray::setDimensions(Type type, const Dimensions& newDims)
     m_dims.at(type).clear();
     std::copy(newDims.begin(), newDims.end(), std::back_inserter(m_dims.at(type)));
     m_sz.at(type) = newSize;
+}
+
+inline size_t indexr(size_t i, size_t j, const size_t* d) { return i * d[1] + j; }
+
+inline size_t indexr(size_t i, size_t j, size_t k, const size_t* d)
+{
+    size_t dLast = d[2];
+    return indexr(i * dLast, j * dLast + k, d);
+}
+
+inline size_t indexr(size_t i, size_t j, size_t k, size_t l, const size_t* d)
+{
+    size_t dLast = d[3];
+    return indexr(i * dLast, j * dLast, k * dLast + l, d);
+}
+
+inline size_t indexr(size_t i, size_t j, size_t k, size_t l, size_t m, const size_t* d)
+{
+    size_t dLast = d[4];
+    return indexr(i * dLast, j * dLast, k * dLast, l * dLast + m, d);
+}
+
+inline size_t indexr(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, const size_t* d)
+{
+    size_t dLast = d[5];
+    return indexr(i * dLast, j * dLast, k * dLast, l * dLast, m * dLast + n, d);
+}
+
+inline size_t indexr(
+    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, const size_t* d)
+{
+    size_t dLast = d[6];
+    return indexr(i * dLast, j * dLast, k * dLast, l * dLast, m * dLast, n * dLast + p, d);
+}
+
+inline size_t indexr(
+    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q, const size_t* d)
+{
+    size_t dLast = d[6];
+    return indexr(
+        i * dLast, j * dLast, k * dLast, l * dLast, m * dLast, n * dLast, p * dLast + q, d);
+}
+
+size_t indexr(const ModelArray::Dimensions& loc, const size_t* dims)
+{
+    switch (loc.size()) {
+    case (1):
+        return loc[0];
+    case (2):
+        return indexr(loc[0], loc[1], dims);
+    case (3):
+        return indexr(loc[0], loc[1], loc[2], dims);
+    case (4):
+        return indexr(loc[0], loc[1], loc[2], loc[3], dims);
+    case (5):
+        return indexr(loc[0], loc[1], loc[2], loc[3], loc[4], dims);
+    case (6):
+        return indexr(loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], dims);
+    case (7):
+        return indexr(loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], loc[6], dims);
+    default:
+        return indexr(loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], loc[6], loc[7], dims);
+    }
 }
 
 const double& ModelArray::operator[](const Dimensions& dims) const
@@ -96,46 +161,40 @@ const double& ModelArray::operator[](const Dimensions& dims) const
 
 const double& ModelArray::operator()(size_t i, size_t j) const
 {
-    return (*this)(i * m_dims.at(type)[1] + j);
+    return (*this)(indexr(i, j, dimensions().data()));
 }
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k) const
 {
-    size_t dim2 = m_dims.at(type)[2];
-    return (*this)(i * dim2, j * dim2 + k);
+    return (*this)(indexr(i, j, k, dimensions().data()));
 }
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l) const
 {
-    size_t dim3 = m_dims.at(type)[3];
-    return (*this)(i * dim3, j * dim3, k * dim3 + l);
+    return (*this)(indexr(i, j, k, l, dimensions().data()));
 }
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
 {
-    size_t dim4 = m_dims.at(type)[4];
-    return (*this)(i * dim4, j * dim4, k * dim4, l * dim4 + m);
+    return (*this)(indexr(i, j, k, l, m, dimensions().data()));
 }
 
 const double& ModelArray::operator()(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
 {
-    size_t dim5 = m_dims.at(type)[5];
-    return (*this)(i * dim5, j * dim5, k * dim5, l * dim5, m * dim5 + n);
+    return (*this)(indexr(i, j, k, l, m, n, dimensions().data()));
 }
 
 const double& ModelArray::operator()(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
 {
-    size_t dim6 = m_dims.at(type)[6];
-    return (*this)(i * dim6, j * dim6, k * dim6, l * dim6, m * dim6, n * dim6 + p);
+    return (*this)(indexr(i, j, k, l, m, n, p, dimensions().data()));
 }
 
 const double& ModelArray::operator()(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
 {
-    size_t dim7 = m_dims.at(type)[7];
-    return (*this)(i * dim7, j * dim7, k * dim7, l * dim7, m * dim7, n * dim7, p * dim7 + q);
+    return (*this)(indexr(i, j, k, l, m, n, p, q, dimensions().data()));
 }
 
 double& ModelArray::operator[](const Dimensions& dims)
@@ -172,4 +231,8 @@ double& ModelArray::operator()(
     return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n, p, q));
 }
 
+ModelArray::Component ModelArray::components(const Dimensions& loc)
+{
+    return components(indexr(loc, dimensions().data()));
+}
 } /* namespace Nextsim */

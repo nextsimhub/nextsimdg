@@ -83,12 +83,39 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
         vData[i] = i;
     }
 
-    check4d.setData(vData);
+    check4d.setData(vData.data());
 
     REQUIRE(check4d(4, 7, 2, 5) == 4725);
 
 
     REQUIRE(check4d[{4, 7, 2, 6}] == 4726);
+}
+
+TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
+{
+    ModelArray::Dimensions dims4 = {3, 5, 7, 11};
+    size_t totalSize = dims4[0] * dims4[1] * dims4[2] * dims4[3];
+    ModelArray::setDimensions(ModelArray::Type::H, dims4);
+
+    HField primorial = ModelArray::HField("primorial");
+
+    REQUIRE(primorial.nDimensions() == 4);
+    REQUIRE(primorial.size() == totalSize);
+
+    for (size_t i = 0; i < primorial.size(); ++i) {
+        primorial[i] = i;
+    }
+
+    size_t i = 2;
+    size_t j = 4;
+    size_t k = 5;
+    size_t l = 7;
+
+    size_t target = (((i) * dims4[1] + j) * dims4[2] + k) * dims4[3] + l;
+    REQUIRE(primorial[target] == target);
+
+    REQUIRE(primorial(i, j, k, l) == target);
+
 }
 
 TEST_CASE("Naming", "[ModelArray]")
