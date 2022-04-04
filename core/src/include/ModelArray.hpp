@@ -53,6 +53,18 @@ public:
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
 //    typedef std::vector<double> DataType;
 
+    class Component : Eigen::Array<double, 1, Eigen::Dynamic> {
+    public:
+        Component()
+            : Eigen::Array<double, 1, Eigen::Dynamic>()
+        {
+        }
+        Component(const Eigen::Array<double, 1, Eigen::Dynamic>& other)
+            : Eigen::Array<double, 1, Eigen::Dynamic>(other)
+        {
+        }
+    };
+
     static ModelArray HField(const std::string& name) { return ModelArray(Type::H, name); }
     static ModelArray UField(const std::string& name) { return ModelArray(Type::U, name); }
     static ModelArray VField(const std::string& name) { return ModelArray(Type::V, name); }
@@ -120,6 +132,23 @@ public:
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p);
     double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q);
+
+    /*!
+     * @brief Accesses the full Discontinuous Galerkin coefficient vector at
+     * the indexed location.
+     *
+     * @param i one-dimensional index of the target point.
+     */
+    Component components(size_t i) {
+        return Component(m_data.col(i));
+    }
+
+    /*!
+     * @brief Accesses the full Discontinuous Galerkin coefficient vector at the specified location.
+     *
+     * @param dims indexing argument of the target point.
+     */
+    Component components(const Dimensions& loc);
 
     /*!
      * @brief Special access function for ZFields.
