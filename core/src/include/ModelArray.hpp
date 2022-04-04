@@ -8,8 +8,8 @@
 #ifndef CORE_SRC_INCLUDE_MODELARRAY_HPP
 #define CORE_SRC_INCLUDE_MODELARRAY_HPP
 
-#include <cstddef>
 #include <Eigen/Core>
+#include <cstddef>
 #include <map>
 #include <string>
 #include <vector>
@@ -18,7 +18,7 @@ namespace Nextsim {
 
 const static int DGdegree = 0; // TODO: Replace with the same source as the dynamics
 const static int CellDoF = 1;
-//TODO: (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)));
+// TODO: (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)));
 const static Eigen::StorageOptions majority = DGdegree == 0 ? Eigen::ColMajor : Eigen::RowMajor;
 
 /*!
@@ -51,7 +51,7 @@ public:
     static const std::map<Type, std::string> typeNames;
 
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
-//    typedef std::vector<double> DataType;
+    //    typedef std::vector<double> DataType;
 
     class Component : Eigen::Array<double, 1, Eigen::Dynamic> {
     public:
@@ -139,9 +139,7 @@ public:
      *
      * @param i one-dimensional index of the target point.
      */
-    Component components(size_t i) {
-        return Component(m_data.col(i));
-    }
+    Component components(size_t i) { return Component(m_data.col(i)); }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at the specified location.
@@ -186,22 +184,11 @@ protected:
         return hIndex * dimensions()[nDimensions() - 1] + layer;
     }
 
-    inline size_t nComponents() const
-    {
-        return nComponents(type);
-    }
-    inline static size_t nComponents(const Type type)
-    {
-        return (hasDoF(type)) ? CellDoF : 1;
-    }
-    inline bool hasDoF() const
-    {
-        return hasDoF(type);
-    }
-    inline static bool hasDoF(const Type type)
-    {
-        return type == Type::DG;
-    }
+    inline size_t nComponents() const { return nComponents(type); }
+    inline static size_t nComponents(const Type type) { return (hasDoF(type)) ? CellDoF : 1; }
+    inline bool hasDoF() const { return hasDoF(type); }
+    inline static bool hasDoF(const Type type) { return type == Type::DG; }
+
 private:
     class SizeMap {
     public:
