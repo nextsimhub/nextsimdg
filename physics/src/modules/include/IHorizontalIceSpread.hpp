@@ -15,13 +15,14 @@ namespace Nextsim {
 
 class IHorizontalIceSpread : public ModelComponent {
 public:
-    virtual ~IHorizontalIceSpread();
+    virtual ~IHorizontalIceSpread() = default;
 
     std::string getName() const override {return "HorizontalIceSpread"; }
     void setData(const ModelState& ms) override { }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
-    virtual void update(const TimestepTime&) = 0;
+    virtual void freeze(const TimestepTime&) = 0;
+    virtual void melt(const TimestepTime&) = 0;
 protected:
     IHorizontalIceSpread()
     {
