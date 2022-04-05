@@ -1,12 +1,12 @@
 /*!
- * @file ModelModule.hpp
+ * @file ModelComponent.hpp
  *
  * @date Feb 28, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_MODELMODULE_HPP
-#define CORE_SRC_INCLUDE_MODELMODULE_HPP
+#ifndef MODELCOMPONENT_HPP
+#define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
 #include "include/ModelState.hpp"
@@ -17,9 +17,9 @@
 
 namespace Nextsim {
 
-class ModelModule;
+class ModelComponent;
 
-class ModelModule {
+class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
 
@@ -56,8 +56,8 @@ public:
         SUBLIM, // Upward sublimation rate kg m⁻² s⁻¹
     };
 
-    ModelModule();
-    virtual ~ModelModule() = default;
+    ModelComponent();
+    virtual ~ModelComponent() = default;
 
     virtual std::string getName() const = 0;
 
@@ -88,7 +88,7 @@ protected:
     static void requestProtectedArray(ProtectedArray, const ModelArray** addr);
 
 private:
-    static std::map<std::string, ModelModule*> registeredModules;
+    static std::map<std::string, ModelComponent*> registeredModules;
     static std::map<SharedArray, ModelArray*> registeredArrays;
     static std::map<SharedArray, std::set<ModelArray**>> reservedArrays;
     static std::map<SharedArray, std::set<const ModelArray**>> reservedSemiArrays;
@@ -98,4 +98,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_MODELMODULE_HPP */
+#endif /* MODELCOMPONENT_HPP */

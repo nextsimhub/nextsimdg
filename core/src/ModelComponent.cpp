@@ -1,30 +1,30 @@
 /*!
- * @file ModelModule.cpp
+ * @file ModelComponent.cpp
  *
  * @date Feb 28, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/ModelModule.hpp"
+#include "include/ModelComponent.hpp"
 
 namespace Nextsim {
 
-std::map<std::string, ModelModule*> ModelModule::registeredModules;
-std::map<ModelModule::SharedArray, ModelArray*> ModelModule::registeredArrays;
-std::map<ModelModule::SharedArray, std::set<ModelArray**>> ModelModule::reservedArrays;
-std::map<ModelModule::SharedArray, std::set<const ModelArray**>> ModelModule::reservedSemiArrays;
-std::map<ModelModule::ProtectedArray, const ModelArray*> ModelModule::registeredProtectedArrays;
-std::map<ModelModule::ProtectedArray, std::set<const ModelArray**>>
-    ModelModule::reservedProtectedArrays;
-ModelModule::ModelModule() { }
+std::map<std::string, ModelComponent*> ModelComponent::registeredModules;
+std::map<ModelComponent::SharedArray, ModelArray*> ModelComponent::registeredArrays;
+std::map<ModelComponent::SharedArray, std::set<ModelArray**>> ModelComponent::reservedArrays;
+std::map<ModelComponent::SharedArray, std::set<const ModelArray**>> ModelComponent::reservedSemiArrays;
+std::map<ModelComponent::ProtectedArray, const ModelArray*> ModelComponent::registeredProtectedArrays;
+std::map<ModelComponent::ProtectedArray, std::set<const ModelArray**>>
+    ModelComponent::reservedProtectedArrays;
+ModelComponent::ModelComponent() { }
 
-void ModelModule::setAllModuleData(const ModelState& stateIn)
+void ModelComponent::setAllModuleData(const ModelState& stateIn)
 {
     for (auto entry : registeredModules) {
         entry.second->setData(stateIn);
     }
 }
-ModelState ModelModule::getAllModuleState()
+ModelState ModelComponent::getAllModuleState()
 {
     ModelState overallState;
     for (auto entry : registeredModules) {
@@ -33,11 +33,11 @@ ModelState ModelModule::getAllModuleState()
     return overallState;
 }
 
-void ModelModule::registerModule() { registeredModules[getName()] = this; }
+void ModelComponent::registerModule() { registeredModules[getName()] = this; }
 
-void ModelModule::unregisterAllModules() { registeredModules.clear(); }
+void ModelComponent::unregisterAllModules() { registeredModules.clear(); }
 
-void ModelModule::getAllFieldNames(
+void ModelComponent::getAllFieldNames(
     std::set<std::string>& uF, std::set<std::string>& vF, std::set<std::string>& zF)
 {
     for (auto entry : registeredModules) {
@@ -47,7 +47,7 @@ void ModelModule::getAllFieldNames(
     }
 }
 
-void ModelModule::registerSharedArray(SharedArray type, ModelArray* addr)
+void ModelComponent::registerSharedArray(SharedArray type, ModelArray* addr)
 {
     registeredArrays[type] = addr;
     for (ModelArray** addrAddr : reservedArrays[type]) {
@@ -58,7 +58,7 @@ void ModelModule::registerSharedArray(SharedArray type, ModelArray* addr)
     }
 }
 
-void ModelModule::requestSharedArray(SharedArray type, ModelArray** addr)
+void ModelComponent::requestSharedArray(SharedArray type, ModelArray** addr)
 {
     if (registeredArrays.count(type) > 0) {
         *addr = registeredArrays[type];
@@ -67,7 +67,7 @@ void ModelModule::requestSharedArray(SharedArray type, ModelArray** addr)
     }
 }
 
-void ModelModule::requestProtectedArray(SharedArray type, const ModelArray** addr)
+void ModelComponent::requestProtectedArray(SharedArray type, const ModelArray** addr)
 {
     if (registeredArrays.count(type) > 0) {
         *addr = registeredArrays[type];
@@ -76,7 +76,7 @@ void ModelModule::requestProtectedArray(SharedArray type, const ModelArray** add
     }
 }
 
-void ModelModule::registerProtectedArray(ProtectedArray type, const ModelArray* addr)
+void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArray* addr)
 {
     registeredProtectedArrays[type] = addr;
     for (const ModelArray** addrAddr : reservedProtectedArrays[type]) {
@@ -84,7 +84,7 @@ void ModelModule::registerProtectedArray(ProtectedArray type, const ModelArray* 
     }
 }
 
-void ModelModule::requestProtectedArray(ProtectedArray type, const ModelArray** addr)
+void ModelComponent::requestProtectedArray(ProtectedArray type, const ModelArray** addr)
 {
     if (registeredProtectedArrays.count(type) > 0) {
         *addr = registeredProtectedArrays[type];

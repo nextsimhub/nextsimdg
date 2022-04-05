@@ -18,7 +18,7 @@ set(BaseSources
     "DevStep.cpp"
     "StructureFactory.cpp"
     "ModelArray.cpp"
-    "ModelModule.cpp"
+    "ModelComponent.cpp"
     "PrognosticData.cpp"
     )
 

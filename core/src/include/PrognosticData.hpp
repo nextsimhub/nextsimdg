@@ -8,15 +8,14 @@
 #ifndef CORE_SRC_INCLUDE_PROGNOSTICDATA_HPP
 #define CORE_SRC_INCLUDE_PROGNOSTICDATA_HPP
 
-#include "include/ModelModule.hpp"
-
 #include "include/Configured.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/Time.hpp"
+#include "ModelComponent.hpp"
 
 namespace Nextsim {
 
-class PrognosticData : public ModelModule, public Configured<PrognosticData> {
+class PrognosticData : public ModelComponent, public Configured<PrognosticData> {
 public:
     PrognosticData();
     virtual ~PrognosticData() = default;

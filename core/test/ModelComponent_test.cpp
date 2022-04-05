@@ -1,5 +1,5 @@
 /*!
- * @file ModelModule_test.cpp
+ * @file ModelComponent_test.cpp
  *
  * @date Feb 28, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
@@ -8,7 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "include/ModelModule.hpp"
+#include "../src/include/ModelComponent.hpp"
 
 #include <stdexcept>
 
@@ -19,7 +19,7 @@ class HappyExcept : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
-class Module1 : public ModelModule {
+class Module1 : public ModelComponent {
 public:
     Module1() { registerModule(); }
     std::string getName() const override { return "Module1"; }
@@ -34,24 +34,24 @@ public:
     std::set<std::string> zFields() const override { return { "z1", "z2", "z3" }; }
 };
 
-TEST_CASE("Register a new module", "[ModelModule]")
+TEST_CASE("Register a new module", "[ModelComponent]")
 {
     Module1 m1;
-    REQUIRE_THROWS_AS(ModelModule::setAllModuleData(ModelState()), HappyExcept);
+    REQUIRE_THROWS_AS(ModelComponent::setAllModuleData(ModelState()), HappyExcept);
 
     std::set<std::string> uu;
     std::set<std::string> vv;
     std::set<std::string> zz;
 
-    ModelModule::getAllFieldNames(uu, vv, zz);
+    ModelComponent::getAllFieldNames(uu, vv, zz);
     REQUIRE(uu.size() == 1);
     REQUIRE(vv.size() == 2);
     REQUIRE(zz.size() == 3);
 
-    ModelModule::unregisterAllModules();
+    ModelComponent::unregisterAllModules();
 }
 
-class ModuleSupplyAndWait : public ModelModule {
+class ModuleSupplyAndWait : public ModelComponent {
 public:
     ModuleSupplyAndWait()
         : hice(ModelArray::HField("hice"))
@@ -78,7 +78,7 @@ private:
     const HField* p_cice;
 };
 
-class ModuleRequestAndSupply : public ModelModule {
+class ModuleRequestAndSupply : public ModelComponent {
 public:
     ModuleRequestAndSupply()
         : cice(ModelArray::HField("cice"))
@@ -105,7 +105,7 @@ private:
     const HField* p_hice;
 };
 
-TEST_CASE("Test array registration", "[ModelModule]")
+TEST_CASE("Test array registration", "[ModelComponent]")
 {
     ModuleSupplyAndWait saw;
     ModuleRequestAndSupply ras;
@@ -114,7 +114,7 @@ TEST_CASE("Test array registration", "[ModelModule]")
     REQUIRE(saw.checkNotNull());
 }
 
-class ModuleSemiShared: public ModelModule {
+class ModuleSemiShared: public ModelComponent {
 public:
     ModuleSemiShared()
         : qic(ModelArray::HField("qic"))
@@ -141,7 +141,7 @@ private:
     HField qic;
 };
 
-class ModuleShared: public ModelModule {
+class ModuleShared: public ModelComponent {
 public:
     ModuleShared()
         : qio(ModelArray::HField("qio"))
@@ -168,7 +168,7 @@ private:
     HField qio;
 };
 
-TEST_CASE("Shared and semi-protected arrays", "[ModelModule]")
+TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")
 {
 
     ModuleSemiShared semi;

@@ -17,7 +17,7 @@ public:
     ThermoIce0Growth()
         : IVerticalIceGrowth()
     {
-        ModelModule::requestProtectedArray(ModelModule::ProtectedArray::H_ICE, &oldHi);
+        ModelComponent::requestProtectedArray(ModelComponent::ProtectedArray::H_ICE, &oldHi);
     }
     virtual ~ThermoIce0Growth() = default;
 

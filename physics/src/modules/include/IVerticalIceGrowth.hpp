@@ -8,12 +8,12 @@
 #ifndef IVERTICALICEGROWTH_HPP
 #define IVERTICALICEGROWTH_HPP
 
+#include "include/ModelComponent.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelModule.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
-class IVerticalIceGrowth : public ModelModule {
+class IVerticalIceGrowth : public ModelComponent {
 public:
     ~IVerticalIceGrowth() = default;
 
@@ -27,17 +27,17 @@ protected:
     IVerticalIceGrowth()
     {
         registerModule();
-        ModelModule::requestSharedArray(SharedArray::H_ICE, &hice);
-        ModelModule::requestSharedArray(SharedArray::C_ICE, &cice);
-        ModelModule::requestSharedArray(SharedArray::H_SNOW, &hsnow);
-        ModelModule::requestSharedArray(SharedArray::T_ICE, &tice);
-        ModelModule::requestSharedArray(SharedArray::Q_IC, &qic);
-        ModelModule::requestSharedArray(SharedArray::Q_IO, &qio);
-        ModelModule::requestProtectedArray(SharedArray::Q_IA, &qia);
-        ModelModule::requestProtectedArray(SharedArray::DQIA_DT, &dQia_dT);
-        ModelModule::requestProtectedArray(SharedArray::SUBLIM, &sublim);
-        ModelModule::requestProtectedArray(ProtectedArray::SNOW, &snowfall);
-        ModelModule::requestProtectedArray(ProtectedArray::SSS, &sss);
+        ModelComponent::requestSharedArray(SharedArray::H_ICE, &hice);
+        ModelComponent::requestSharedArray(SharedArray::C_ICE, &cice);
+        ModelComponent::requestSharedArray(SharedArray::H_SNOW, &hsnow);
+        ModelComponent::requestSharedArray(SharedArray::T_ICE, &tice);
+        ModelComponent::requestSharedArray(SharedArray::Q_IC, &qic);
+        ModelComponent::requestSharedArray(SharedArray::Q_IO, &qio);
+        ModelComponent::requestProtectedArray(SharedArray::Q_IA, &qia);
+        ModelComponent::requestProtectedArray(SharedArray::DQIA_DT, &dQia_dT);
+        ModelComponent::requestProtectedArray(SharedArray::SUBLIM, &sublim);
+        ModelComponent::requestProtectedArray(ProtectedArray::SNOW, &snowfall);
+        ModelComponent::requestProtectedArray(ProtectedArray::SSS, &sss);
     }
 
     HField* hice; // From IceGrowth

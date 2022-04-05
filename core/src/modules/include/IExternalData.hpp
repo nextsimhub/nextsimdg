@@ -5,15 +5,15 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelModule.hpp"
 
 #ifndef IEXTERNALDATA_HPP
 #define IEXTERNALDATA_HPP
 
 namespace Nextsim {
-class IExternalData : public ModelModule {
+class IExternalData : public ModelComponent {
 public:
     IExternalData()
     {

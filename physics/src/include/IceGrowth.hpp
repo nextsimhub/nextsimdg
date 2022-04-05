@@ -8,14 +8,14 @@
 #ifndef PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
+#include "include/ModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IVerticalIceGrowth.hpp"
-#include "include/ModelModule.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
 
-class IceGrowth : public ModelModule, public Configured<IceGrowth> {
+class IceGrowth : public ModelComponent, public Configured<IceGrowth> {
 public:
     IceGrowth() = default;
     virtual ~IceGrowth() = default;
@@ -40,9 +40,9 @@ public:
     void update(const TimestepTime&);
 
 private:
-    // Vertical Growth ModelModule & Module
+    // Vertical Growth ModelComponent & Module
     std::unique_ptr<IVerticalIceGrowth> iVertical;
-    // Lateral Growth ModuleModule & Module
+    // Lateral Growth ModuleComponent & Module
 };
 
 } /* namespace Nextsim */

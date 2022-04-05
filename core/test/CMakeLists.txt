@@ -223,11 +223,11 @@ add_executable(testModelArray
 target_include_directories(testModelArray PRIVATE "${CoreSrc}")
 target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
 
-add_executable(testModelModule
-    "ModelModule_test.cpp"
-    "${CoreSrc}/ModelModule.cpp"
+add_executable(testModelComponent
+    "ModelComponent_test.cpp"
+    "${CoreSrc}/ModelComponent.cpp"
     "${CoreSrc}/ModelArray.cpp"
 )
 
-target_include_directories(testModelModule PRIVATE "${CoreSrc}")
-target_link_libraries(testModelModule PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_include_directories(testModelComponent PRIVATE "${CoreSrc}")
+target_link_libraries(testModelComponent PRIVATE Catch2::Catch2 Eigen3::Eigen)
