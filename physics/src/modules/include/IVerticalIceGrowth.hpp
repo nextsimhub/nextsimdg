@@ -38,6 +38,8 @@ protected:
         ModelComponent::requestProtectedArray(SharedArray::SUBLIM, &sublim);
         ModelComponent::requestProtectedArray(ProtectedArray::SNOW, &snowfall);
         ModelComponent::requestProtectedArray(ProtectedArray::SSS, &sss);
+
+        ModelComponent::registerSharedArray(SharedArray::DELTA_HICE, &deltaHi);
     }
 
     HField* hice; // From IceGrowth
@@ -51,6 +53,8 @@ protected:
     const HField* sublim; // From AtmosphereState
     const HField* snowfall; // From ExternalData
     const HField* sss; // From ExternalData (possibly PrognosticData)
+    // Owned, shared arrays
+    HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
 };

@@ -54,6 +54,8 @@ public:
         DQIA_DT, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
         // Atmospheric conditions
         SUBLIM, // Upward sublimation rate kg m⁻² s⁻¹
+        DELTA_HICE, // Change in sea ice thickness, m
+        DELTA_CICE, // Change in sea ice concentration
     };
 
     ModelComponent();
