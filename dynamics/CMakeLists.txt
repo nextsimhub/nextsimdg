@@ -1,12 +1,12 @@
 ### Main CMAKE-FILE for DG Nextsim
 
-# FIXME
 cmake_minimum_required(VERSION 3.1.0)
 # Project definition
 set(PROJECT_NAME NextsimDG)
 project(${PROJECT_NAME} CXX)
 
 # CMake options
+enable_testing()
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 # Set RPATH behaviour
 set(CMAKE_SKIP_RPATH FALSE)
@@ -33,12 +33,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Setup compiler flags and compile definitions:
-set(NEXTSIM_CXX_FLAGS
-  "-Wpedantic -Wall -Wno-unknown-pragmas" CACHE STRING "Configuration flags"
-  )
-#separate_arguments(NEXTSIM_CXX_FLAGS)
-#add_compile_options(${NEXTSIM_CXX_FLAGS})
+# Setup compiler flags and compile definitions
 add_compile_options(-Wpedantic -Wall -Wno-unknown-pragmas)
 
 # Required packages
@@ -84,7 +79,7 @@ set(NextsimDGLib NextsimDG)
 
 # Compile the library
 add_subdirectory(src)
-# Compile the test cases
-add_subdirectory(tests)
 # Compile larger application examples
 add_subdirectory(applications)
+# Compile the test cases
+add_subdirectory(tests)

@@ -14,14 +14,16 @@ function(add_nextdimdg_test)
     ${ARGN})
 
   add_executable(${ARG_TARGET} ${ARG_SOURCES})
-  #target_link_libraries(${ARG_TARGET} PRIVATE ${PROJECT_NAME}::${NextsimDGLib})
-  target_link_libraries(${ARG_TARGET} PRIVATE ${NextsimDGLib})  
-  foreach(numProcs RANGE 1 2)
-    add_test(NAME ${ARG_TARGET}_n${numProcs} COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${numProcs} ${MPIEXEC_PREFLAGS} ./${ARG_TARGET})
-    if(ARG_ENABLE_OPENMP)
-      set_tests_properties(${ARG_TARGET}_n${numProcs} PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2")
-    endif()
-  endforeach()
+  target_link_libraries(${ARG_TARGET} PRIVATE ${PROJECT_NAME}::${NextsimDGLib})
+  add_test(NAME ${ARG_TARGET} COMMAND ./${ARG_TARGET})
+  # Ignore exit code, check output to determine the pass/fail status
+  set_tests_properties(${ARG_TARGET} PROPERTIES
+    #PASS_REGULAR_EXPRESSION "passed|Passed|PASSED"
+    FAIL_REGULAR_EXPRESSION "failed|Failed|FAILED"
+    )
+  if(ARG_ENABLE_OPENMP)
+    set_tests_properties(${ARG_TARGET} PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2")
+  endif()
 endfunction()
 
 # Define tests
