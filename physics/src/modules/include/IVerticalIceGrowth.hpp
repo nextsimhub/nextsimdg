@@ -42,17 +42,17 @@ protected:
         ModelComponent::registerSharedArray(SharedArray::DELTA_HICE, &deltaHi);
     }
 
-    HField* hice; // From IceGrowth
-    HField* cice; // From IceGrowth
-    HField* hsnow; // From Ice Growth?
-    ZField* tice; // Updated value from IceTemperature
-    HField* qic; // From IceTemperature. Conductive heat flux to the ice surface.
-    HField* qio; // From FluxCalculation
-    const HField* qia; // From FluxCalculation
-    const HField* dQia_dT; // From FluxCalculation
-    const HField* sublim; // From AtmosphereState
-    const HField* snowfall; // From ExternalData
-    const HField* sss; // From ExternalData (possibly PrognosticData)
+    pHField hice; // From IceGrowth
+    pHField cice; // From IceGrowth
+    pHField hsnow; // From Ice Growth
+    pZField tice; // Updated value from IceTemperature
+    pHField qic; // From IceTemperature. Conductive heat flux to the ice surface.
+    pHField qio; // From FluxCalculation
+    pConstHField qia; // From FluxCalculation
+    pConstHField dQia_dT; // From FluxCalculation
+    pConstHField sublim; // From AtmosphereState
+    pConstHField snowfall; // From ExternalData
+    pConstHField sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
     HField deltaHi;
     // Owned, Module-private arrays

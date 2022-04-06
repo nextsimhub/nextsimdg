@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef PHYSICS_SRC_MODULES_INCLUDE_THERMOICE0GROWTH_HPP_
-#define PHYSICS_SRC_MODULES_INCLUDE_THERMOICE0GROWTH_HPP_
+#ifndef THERMOICE0GROWTH_HPP
+#define THERMOICE0GROWTH_HPP
 
 #include "include/IVerticalIceGrowth.hpp"
 
@@ -30,11 +30,11 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    const HField* oldHi;
+    pConstHField oldHi;
 
     bool doFlooding = true; // TODO: read from configuration
 };
 
 } /* namespace Nextsim */
 
-#endif /* PHYSICS_SRC_MODULES_INCLUDE_THERMOICE0GROWTH_HPP_ */
+#endif /* THERMOICE0GROWTH_HPP */
