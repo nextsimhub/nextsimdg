@@ -175,6 +175,118 @@ public:
         return this->operator[](zLayerIndex(hIndex, layer));
     }
 
+    class pModelArray {
+    public:
+        pModelArray()
+            : p(nullptr)
+        {
+        }
+
+        pModelArray(ModelArray* q)
+            : p(q)
+        {
+        }
+
+        operator ModelArray*() const { return p; }
+        operator bool() const { return p != nullptr; }
+        ModelArray** operator&() { return &p; }
+
+        ModelArray** addr() { return &p; }
+
+        double& operator[](size_t i) { return (*p)[i]; }
+
+        double& operator()(size_t i) { return (*p)(i); }
+        double& operator()(size_t i, size_t j) { return (*p)(i, j); }
+        double& operator()(size_t i, size_t j, size_t k) { return (*p)(i, j, k); }
+        double& operator()(size_t i, size_t j, size_t k, size_t l) { return (*p)(i, j, k, l); }
+        double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m)
+        {
+            return (*p)(i, j, k, l, m);
+        }
+        double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n)
+        {
+            return (*p)(i, j, k, l, m, n);
+        }
+        double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t pp)
+        {
+            return (*p)(i, j, k, l, m, n, pp);
+        }
+        double& operator()(
+            size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t pp, size_t q)
+        {
+            return (*p)(i, j, k, l, m, n, pp, q);
+        }
+
+        //! Returns the number of dimensions of the physical grid
+        size_t nDimensions() const { return p->nDimensions(); }
+        const Dimensions& dimensions() const { return p->dimensions(); }
+        size_t size() const { return p->size(); }
+        size_t trueSize() const { return p->trueSize(); }
+
+        void setDimensions(const Dimensions& dims) { p->setDimensions(dims); }
+
+        void resize() { p->resize(); }
+
+        const std::string& name() const { return p->name(); }
+
+    private:
+        ModelArray* p;
+    };
+
+    class pConstModelArray {
+    public:
+        pConstModelArray()
+            : p(nullptr)
+        {
+        }
+
+        pConstModelArray(const ModelArray* q)
+            : p(q)
+        {
+        }
+
+        operator const ModelArray*() const { return p; }
+        operator bool() const { return p != nullptr; }
+
+        const ModelArray** operator&() { return &p; }
+        const ModelArray** addr() { return &p; }
+
+        const double& operator[](size_t i) { return (*p)[i]; }
+
+        const double& operator()(size_t i) const { return (*p)(i); }
+        const double& operator()(size_t i, size_t j) const { return (*p)(i, j); }
+        const double& operator()(size_t i, size_t j, size_t k) const { return (*p)(i, j, k); }
+        const double& operator()(size_t i, size_t j, size_t k, size_t l) const { return (*p)(i, j, k, l); }
+        const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
+        {
+            return (*p)(i, j, k, l, m);
+        }
+        const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
+        {
+            return (*p)(i, j, k, l, m, n);
+        }
+        const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t pp) const
+        {
+            return (*p)(i, j, k, l, m, n, pp);
+        }
+        const double& operator()(
+            size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t pp, size_t q) const
+        {
+            return (*p)(i, j, k, l, m, n, pp, q);
+        }
+
+        //! Returns the number of dimensions of the physical grid
+        size_t nDimensions() const { return p->nDimensions(); }
+        const Dimensions& dimensions() const { return p->dimensions(); }
+        size_t size() const { return p->size(); }
+        size_t trueSize() const { return p->trueSize(); }
+
+        const std::string& name() const { return p->name(); }
+
+    private:
+        const ModelArray* p;
+    };
+
 protected:
     Type type;
     ModelArray(const Type, const std::string&);
@@ -236,6 +348,18 @@ typedef ModelArray HField;
 typedef ModelArray UField;
 typedef ModelArray VField;
 typedef ModelArray ZField;
+
+typedef ModelArray::pModelArray pHField;
+typedef ModelArray::pModelArray pUField;
+typedef ModelArray::pModelArray pVField;
+typedef ModelArray::pModelArray pZField;
+
+typedef ModelArray::pConstModelArray pConstHField;
+typedef ModelArray::pConstModelArray pConstUField;
+typedef ModelArray::pConstModelArray pConstVField;
+typedef ModelArray::pConstModelArray pConstZField;
+
+
 
 } /* namespace Nextsim */
 

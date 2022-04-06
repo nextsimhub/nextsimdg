@@ -75,7 +75,7 @@ public:
 
 private:
     HField hice;
-    const HField* p_cice;
+    pConstHField p_cice;
 };
 
 class ModuleRequestAndSupply : public ModelComponent {
@@ -102,7 +102,7 @@ public:
 
 private:
     HField cice;
-    const HField* p_hice;
+    pConstHField p_hice;
 };
 
 TEST_CASE("Test array registration", "[ModelComponent]")
@@ -137,7 +137,7 @@ public:
     bool checkNotNull() { return p_qio; }
 
 private:
-    const HField* p_qio;
+    pConstHField p_qio;
     HField qic;
 };
 
@@ -164,7 +164,7 @@ public:
     bool checkNotNull() { return p_qic; }
 
 private:
-    HField* p_qic;
+    pHField p_qic;
     HField qio;
 };
 
