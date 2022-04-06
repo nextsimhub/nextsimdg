@@ -1,30 +1,30 @@
 /*!
- * @file IHorizontalIceSpread.hpp
+ * @file ILateralIceSpread.hpp
  *
  * @date Apr 5, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef IHORIZONTALICESPREAD_HPP
-#define IHORIZONTALICESPREAD_HPP
+#ifndef ILATERALICESPREAD_HPP
+#define ILATERALICESPREAD_HPP
 
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
 
-class IHorizontalIceSpread : public ModelComponent {
+class ILateralIceSpread : public ModelComponent {
 public:
-    virtual ~IHorizontalIceSpread() = default;
+    virtual ~ILateralIceSpread() = default;
 
-    std::string getName() const override {return "HorizontalIceSpread"; }
+    std::string getName() const override {return "LateralIceSpread"; }
     void setData(const ModelState& ms) override { }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     virtual void freeze(const TimestepTime&) = 0;
     virtual void melt(const TimestepTime&) = 0;
 protected:
-    IHorizontalIceSpread()
+    ILateralIceSpread()
     {
         registerModule();
 
@@ -50,4 +50,4 @@ protected:
 
 } /* namespace Nextsim */
 
-#endif /* IHORIZONTALICESPREAD_HPP */
+#endif /* ILATERALICESPREAD_HPP */

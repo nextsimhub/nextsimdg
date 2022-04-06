@@ -8,16 +8,15 @@
 #ifndef HIBLERSPREAD_HPP
 #define HIBLERSPREAD_HPP
 
-#include "include/IHorizontalIceSpread.hpp"
-
 #include "include/Configured.hpp"
+#include "ILateralIceSpread.hpp"
 
 namespace Nextsim {
 
-class HiblerSpread : public IHorizontalIceSpread, public Configured<HiblerSpread> {
+class HiblerSpread : public ILateralIceSpread, public Configured<HiblerSpread> {
 public:
     HiblerSpread()
-        : IHorizontalIceSpread()
+        : ILateralIceSpread()
     {
     }
     virtual ~HiblerSpread() = default;
