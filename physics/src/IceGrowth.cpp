@@ -21,5 +21,10 @@ void IceGrowth::configure()
     iVertical = std::move(Module::getInstance<IVerticalIceGrowth>());
 }
 
-void IceGrowth::update(const TimestepTime& tsTime) { iVertical->update(tsTime); }
+void IceGrowth::update(const TimestepTime& tsTime)
+{
+
+
+    iVertical->update(tsTime);
+}
 } /* namespace Nextsim */

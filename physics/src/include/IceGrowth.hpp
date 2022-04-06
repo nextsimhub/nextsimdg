@@ -11,13 +11,21 @@
 #include "include/ModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IVerticalIceGrowth.hpp"
+#include "include/ILateralIceSpread.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
 
 class IceGrowth : public ModelComponent, public Configured<IceGrowth> {
 public:
-    IceGrowth() = default;
+    IceGrowth()
+    {
+        registerModule();
+        ModelComponent::registerSharedArray(SharedArray::H_ICE, &hice);
+        ModelComponent::registerSharedArray(SharedArray::C_ICE, &cice);
+        ModelComponent::registerSharedArray(SharedArray::H_SNOW, &hsnow);
+
+    }
     virtual ~IceGrowth() = default;
 
     void configure() override;
@@ -32,7 +40,7 @@ public:
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
-    std::set<std::string> hFields() const override { return { "updated_hice", "updated_cice" }; }
+    std::set<std::string> hFields() const override { return { "updated_hice", "updated_cice", "updated_hsnow" }; }
     std::set<std::string> uFields() const override { return {}; }
     std::set<std::string> vFields() const override { return {}; }
     std::set<std::string> zFields() const override { return {}; }
@@ -43,6 +51,13 @@ private:
     // Vertical Growth ModelComponent & Module
     std::unique_ptr<IVerticalIceGrowth> iVertical;
     // Lateral Growth ModuleComponent & Module
+    std::unique_ptr<ILateralIceSpread> iLateral;
+
+    // Data fields
+    // Owned, shared data fields
+    HField hice; // Updated true ice thickness, m
+    HField cice; // Updated ice concentration
+    HField hsnow; // Updated true snow thickness, m
 };
 
 } /* namespace Nextsim */
