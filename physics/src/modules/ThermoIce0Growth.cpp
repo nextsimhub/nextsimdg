@@ -16,10 +16,8 @@ namespace Nextsim {
 
 void ThermoIce0Growth::update(const TimestepTime& tsTime)
 {
-    // Loop over the entire HField domain
-    for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        calculateElement(i, tsTime);
-    }
+    overElements(std::bind(&ThermoIce0Growth::calculateElement, this, std::placeholders::_1, std::placeholders::_2), tsTime);
+
 }
 
 void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime& tst)

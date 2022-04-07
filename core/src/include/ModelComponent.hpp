@@ -41,6 +41,9 @@ public:
         MLD, // mixed layer depth, m
         SNOW, // snow fall, kg m⁻² s⁻¹
         SSS, // sea surface salinity, PSU
+        SST, // sea surface temperature ˚C
+        ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
+        TF, // Ocean freezing temperature, ˚C
     };
     enum class SharedArray {
         // Values of the prognostic fields updated during the timestep

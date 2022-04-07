@@ -25,6 +25,11 @@ public:
         ModelComponent::registerSharedArray(SharedArray::C_ICE, &cice);
         ModelComponent::registerSharedArray(SharedArray::H_SNOW, &hsnow);
 
+        ModelComponent::requestSharedArray(SharedArray::Q_OW, &qow);
+
+        ModelComponent::requestProtectedArray(ProtectedArray::SST, &sst);
+        ModelComponent::requestProtectedArray(ProtectedArray::ML_BULK_CP, &mixedLayerBulkHeatCapacity);
+        ModelComponent::requestProtectedArray(ProtectedArray::TF, &tf);
     }
     virtual ~IceGrowth() = default;
 
@@ -58,6 +63,15 @@ private:
     HField hice; // Updated true ice thickness, m
     HField cice; // Updated ice concentration
     HField hsnow; // Updated true snow thickness, m
+
+    HField newice; // New ice thickness this timestep, m
+
+    pHField qow; // open water heat flux, from FluxCalculation
+    pConstHField mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
+    pConstHField sst; // sea surface temperature, ˚C
+    pConstHField tf; // ocean freezing point, ˚C
+
+    void newIceFormation(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */

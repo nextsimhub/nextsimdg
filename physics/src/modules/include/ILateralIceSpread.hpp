@@ -17,12 +17,17 @@ class ILateralIceSpread : public ModelComponent {
 public:
     virtual ~ILateralIceSpread() = default;
 
-    std::string getName() const override {return "LateralIceSpread"; }
+    std::string getName() const override { return "LateralIceSpread"; }
     void setData(const ModelState& ms) override { }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
-    virtual void freeze(const TimestepTime&) = 0;
-    virtual void melt(const TimestepTime&) = 0;
+    virtual void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
+        double newIce, double& cice, double& qow, double& deltaCfreeze)
+        = 0;
+    virtual void melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
+        double& cice, double& qow, double& deltaCmelt)
+        = 0;
+
 protected:
     ILateralIceSpread()
     {

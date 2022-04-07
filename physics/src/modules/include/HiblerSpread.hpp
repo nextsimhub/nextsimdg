@@ -27,8 +27,12 @@ public:
         PHIM_KEY,
     };
 
-    void freeze(const TimestepTime& tsTime) override;
-    void melt(const TimestepTime& tsTime) override;
+//    void freeze(const TimestepTime& tsTime) override;
+//    void melt(const TimestepTime& tsTime) override;
+    void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
+        double newIce, double& cice, double& qow, double& deltaCfreeze) override;
+    void melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double& cice,
+        double& qow, double& deltaCmelt) override;
 
 private:
     static double h0;
