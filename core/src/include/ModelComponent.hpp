@@ -10,7 +10,9 @@
 
 #include "include/Logged.hpp"
 #include "include/ModelState.hpp"
+#include "include/Time.hpp"
 
+#include <functional>
 #include <map>
 #include <set>
 #include <string>
@@ -57,6 +59,7 @@ public:
         DELTA_HICE, // Change in sea ice thickness, m
         DELTA_CICE, // Change in sea ice concentration
     };
+    typedef std::function<void(size_t, const TimestepTime&)> IteratedFn;
 
     ModelComponent();
     virtual ~ModelComponent() = default;
@@ -88,6 +91,8 @@ protected:
 
     static void registerProtectedArray(ProtectedArray type, const ModelArray* addr);
     static void requestProtectedArray(ProtectedArray, const ModelArray** addr);
+
+    static void overElements(IteratedFn fn, const TimestepTime& tst);
 
 private:
     static std::map<std::string, ModelComponent*> registeredModules;

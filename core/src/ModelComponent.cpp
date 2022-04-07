@@ -92,4 +92,12 @@ void ModelComponent::requestProtectedArray(ProtectedArray type, const ModelArray
         reservedProtectedArrays[type].insert(addr);
     }
 }
+
+void ModelComponent::overElements(IteratedFn fn, const TimestepTime& tst)
+{
+    for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
+      fn(i, tst);
+    }
+
+}
 } /* namespace Nextsim */
