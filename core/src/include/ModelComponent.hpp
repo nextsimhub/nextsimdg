@@ -92,7 +92,12 @@ protected:
     static void registerProtectedArray(ProtectedArray type, const ModelArray* addr);
     static void requestProtectedArray(ProtectedArray, const ModelArray** addr);
 
-    static void overElements(IteratedFn fn, const TimestepTime& tst);
+    inline static void overElements(IteratedFn fn, const TimestepTime& tst)
+    {
+        for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
+          fn(i, tst);
+        }
+    }
 
 private:
     static std::map<std::string, ModelComponent*> registeredModules;
