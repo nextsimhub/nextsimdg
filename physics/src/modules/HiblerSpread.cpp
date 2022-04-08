@@ -14,8 +14,8 @@ double HiblerSpread::phiM = 0;
 
 template <>
 const std::map<int, std::string> Configured<HiblerSpread>::keyMap = {
-        {HiblerSpread::H0_KEY, "Hibler.h0" },
-        {HiblerSpread::PHIM_KEY, "Hibler.phiM" },
+    { HiblerSpread::H0_KEY, "Hibler.h0" },
+    { HiblerSpread::PHIM_KEY, "Hibler.phiM" },
 };
 
 void HiblerSpread::configure()
@@ -24,8 +24,8 @@ void HiblerSpread::configure()
     phiM = Configured::getConfiguration(keyMap.at(PHIM_KEY), 0.5);
 }
 
-void HiblerSpread::freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double newIce,
-    double& cice, double& qow, double& deltaCfreeze)
+void HiblerSpread::freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
+    double newIce, double& cice, double& qow, double& deltaCfreeze)
 {
     static const double ooh0 = 1. / h0;
     deltaCfreeze = newIce * ooh0;
@@ -37,7 +37,6 @@ void HiblerSpread::melt(const TimestepTime& tstep, double hice, double hsnow, do
     if (cice < 1) {
         deltaCmelt = deltaHi * cice * phiM / hice;
     }
-
 }
 
 }

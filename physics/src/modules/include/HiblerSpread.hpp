@@ -8,8 +8,8 @@
 #ifndef HIBLERSPREAD_HPP
 #define HIBLERSPREAD_HPP
 
-#include "include/Configured.hpp"
 #include "ILateralIceSpread.hpp"
+#include "include/Configured.hpp"
 
 namespace Nextsim {
 
@@ -27,10 +27,10 @@ public:
         PHIM_KEY,
     };
 
-//    void freeze(const TimestepTime& tsTime) override;
-//    void melt(const TimestepTime& tsTime) override;
-    void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
-        double newIce, double& cice, double& qow, double& deltaCfreeze) override;
+    //    void freeze(const TimestepTime& tsTime) override;
+    //    void melt(const TimestepTime& tsTime) override;
+    void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double newIce,
+        double& cice, double& qow, double& deltaCfreeze) override;
     void melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double& cice,
         double& qow, double& deltaCmelt) override;
 
