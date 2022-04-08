@@ -8,10 +8,10 @@
 #ifndef PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
-#include "include/ModelComponent.hpp"
 #include "include/Configured.hpp"
-#include "include/IVerticalIceGrowth.hpp"
 #include "include/ILateralIceSpread.hpp"
+#include "include/IVerticalIceGrowth.hpp"
+#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
@@ -28,7 +28,8 @@ public:
         ModelComponent::requestSharedArray(SharedArray::Q_OW, &qow);
 
         ModelComponent::requestProtectedArray(ProtectedArray::SST, &sst);
-        ModelComponent::requestProtectedArray(ProtectedArray::ML_BULK_CP, &mixedLayerBulkHeatCapacity);
+        ModelComponent::requestProtectedArray(
+            ProtectedArray::ML_BULK_CP, &mixedLayerBulkHeatCapacity);
         ModelComponent::requestProtectedArray(ProtectedArray::TF, &tf);
     }
     virtual ~IceGrowth() = default;
@@ -38,6 +39,7 @@ public:
         VERTICAL_GROWTH_KEY,
         LATERAL_GROWTH_KEY,
         MINC_KEY,
+        MINH_KEY,
     };
 
     std::string getName() const override { return "IceGrowth"; }
@@ -46,7 +48,10 @@ public:
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
-    std::set<std::string> hFields() const override { return { "updated_hice", "updated_cice", "updated_hsnow" }; }
+    std::set<std::string> hFields() const override
+    {
+        return { "updated_hice", "updated_cice", "updated_hsnow" };
+    }
     std::set<std::string> uFields() const override { return {}; }
     std::set<std::string> vFields() const override { return {}; }
     std::set<std::string> zFields() const override { return {}; }
@@ -77,9 +82,17 @@ private:
     pConstHField tf; // ocean freezing point, ˚C
 
     static double minc; // Minimum sea ice concentration
+    static double minh; // Minimum sea ice thickness
 
     void newIceFormation(size_t i, const TimestepTime&);
     void lateralIceSpread(size_t i, const TimestepTime&);
+    void applyLimits(size_t i, const TimestepTime&);
+    void updateWrapper(size_t i, const TimestepTime& tst)
+    {
+        newIceFormation(i, tst);
+        lateralIceSpread(i, tst);
+        applyLimits(i, tst);
+    }
 };
 
 } /* namespace Nextsim */

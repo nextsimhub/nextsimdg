@@ -7,18 +7,21 @@
 
 #include "include/IceGrowth.hpp"
 
-#include "include/constants.hpp"
 #include "include/VerticalIceGrowthModule.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
 double IceGrowth::minc;
+double IceGrowth::minh;
 
 template <>
 const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
     { IceGrowth::VERTICAL_GROWTH_KEY, "VerticalIceModel" },
     { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
     { IceGrowth::MINC_KEY, "nextsim_thermo.min_conc" },
+    { IceGrowth::MINH_KEY, "nextsim_thermo.min_thick" },
+
 };
 
 void IceGrowth::configure()
@@ -28,7 +31,7 @@ void IceGrowth::configure()
 
     // Configure constants
     minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 1e-12);
-
+    minh = Configured::getConfiguration(keyMap.at(MINH_KEY), 0.01);
 }
 
 void IceGrowth::update(const TimestepTime& tsTime)
@@ -36,9 +39,9 @@ void IceGrowth::update(const TimestepTime& tsTime)
     iVertical->update(tsTime);
 
     // new ice formation
-    overElements(std::bind(&IceGrowth::newIceFormation, this, std::placeholders::_1, std::placeholders::_2), tsTime);
-    overElements(std::bind(&IceGrowth::lateralIceSpread, this, std::placeholders::_1, std::placeholders::_2), tsTime);
-
+    overElements(
+        std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),
+        tsTime);
 }
 
 void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
@@ -63,8 +66,7 @@ void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
         double latentFlux = coolingFlux - sensibleFlux;
 
         qow[i] = sensibleFlux;
-        newice[i]
-            = latentFlux * tst.step * (1 - cice[i]) / (Ice::Lf * Ice::rho);
+        newice[i] = latentFlux * tst.step * (1 - cice[i]) / (Ice::Lf * Ice::rho);
     }
 }
 
@@ -76,7 +78,8 @@ static double updateThickness(double& thick, double newConc, double deltaC, doub
 
 void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 {
-    iLateral->freeze(tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
+    iLateral->freeze(
+        tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
     if (deltaHi[i] < 0) {
         iLateral->melt(tstep, hice[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
@@ -88,13 +91,21 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
         updateThickness(hice[i], cice[i], deltaC, newice[i]);
         if (deltaC < 0) {
             // Snow is lost if the concentration decreases, and energy is returned to the ocean
-            qow[i] -= deltaC * hsnow[i] * Water::Lf * Ice::rhoSnow
-                / tstep.step;
+            qow[i] -= deltaC * hsnow[i] * Water::Lf * Ice::rhoSnow / tstep.step;
         } else {
             // Update snow thickness. Currently no new snow is implemented
             updateThickness(hsnow[i], cice[i], deltaC, 0);
         }
+    }
+}
 
+void IceGrowth::applyLimits(size_t i, const TimestepTime& tstep)
+{
+    if (cice[i] < minc || hice[i] < minh) {
+        qow[i] += cice[i] * Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
+        hice[i] = 0;
+        cice[i] = 0;
+        hsnow[i] = 0;
     }
 }
 } /* namespace Nextsim */
