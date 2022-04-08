@@ -28,6 +28,7 @@ void IceGrowth::configure()
 {
     // Configure the vertical and lateral growth modules
     iVertical = std::move(Module::getInstance<IVerticalIceGrowth>());
+    iLateral = std::move(Module::getInstance<ILateralIceSpread>());
 
     // Configure constants
     minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 1e-12);
@@ -81,6 +82,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
     iLateral->freeze(
         tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
     if (deltaHi[i] < 0) {
+
         iLateral->melt(tstep, hice[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
     double deltaC = deltaCFreeze[i] + deltaCMelt[i];
