@@ -85,6 +85,15 @@ public:
     static void getAllFieldNames(
         std::set<std::string>& uF, std::set<std::string>& vF, std::set<std::string>& zF);
 
+    static void registerExternalSharedArray(SharedArray type, ModelArray* addr)
+    {
+        registerSharedArray(type, addr);
+    }
+    static void registerExternalProtectedArray(ProtectedArray type, ModelArray *addr)
+    {
+        registerProtectedArray(type, addr);
+    }
+
 protected:
     void registerModule();
 
