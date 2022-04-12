@@ -4,7 +4,7 @@ channels:
   - conda-forge
 
 dependencies:
-  - breathe==4.16.0
+  - breathe
   - sphinx==4.0.2
   - pip :
     - exhale
