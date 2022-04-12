@@ -5,6 +5,6 @@ channels:
 
 dependencies:
   - breathe
-  - sphinx==4.2.0
+  - Jinja2<3.1
   - pip :
     - exhale
