@@ -8,8 +8,9 @@
 #ifndef IVERTICALICEGROWTH_HPP
 #define IVERTICALICEGROWTH_HPP
 
-#include "include/ModelComponent.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelArrayRef.hpp"
+#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
@@ -27,32 +28,22 @@ protected:
     IVerticalIceGrowth()
     {
         registerModule();
-        ModelComponent::requestSharedArray(SharedArray::H_ICE, &hice);
-        ModelComponent::requestSharedArray(SharedArray::C_ICE, &cice);
-        ModelComponent::requestSharedArray(SharedArray::H_SNOW, &hsnow);
-        ModelComponent::requestSharedArray(SharedArray::T_ICE, &tice);
-        ModelComponent::requestSharedArray(SharedArray::Q_IC, &qic);
-        ModelComponent::requestSharedArray(SharedArray::Q_IO, &qio);
-        ModelComponent::requestProtectedArray(SharedArray::Q_IA, &qia);
-        ModelComponent::requestProtectedArray(SharedArray::DQIA_DT, &dQia_dT);
-        ModelComponent::requestProtectedArray(SharedArray::SUBLIM, &sublim);
-        ModelComponent::requestProtectedArray(ProtectedArray::SNOW, &snowfall);
-        ModelComponent::requestProtectedArray(ProtectedArray::SSS, &sss);
 
         ModelComponent::registerSharedArray(SharedArray::DELTA_HICE, &deltaHi);
     }
 
-    pHField hice; // From IceGrowth
-    pHField cice; // From IceGrowth
-    pHField hsnow; // From Ice Growth
-    pZField tice; // Updated value from IceTemperature
-    pHField qic; // From IceTemperature. Conductive heat flux to the ice surface.
-    pHField qio; // From FluxCalculation
-    pConstHField qia; // From FluxCalculation
-    pConstHField dQia_dT; // From FluxCalculation
-    pConstHField sublim; // From AtmosphereState
-    pConstHField snowfall; // From ExternalData
-    pConstHField sss; // From ExternalData (possibly PrognosticData)
+    ModelArrayRef<SharedArray::H_ICE, RW> hice; // From IceGrowth
+    ModelArrayRef<SharedArray::C_ICE, RW> cice; // From IceGrowth
+    ModelArrayRef<SharedArray::H_SNOW, RW> hsnow; // From Ice Growth
+    ModelArrayRef<SharedArray::T_ICE, RW> tice; // Updated value from IceTemperature
+    ModelArrayRef<SharedArray::Q_IC, RW>
+        qic; // From IceTemperature. Conductive heat flux to the ice surface.
+    ModelArrayRef<SharedArray::Q_IO, RW> qio; // From FluxCalculation
+    ModelArrayRef<SharedArray::Q_IA, RO> qia; // From FluxCalculation
+    ModelArrayRef<SharedArray::DQIA_DT, RO> dQia_dT; // From FluxCalculation
+    ModelArrayRef<SharedArray::SUBLIM, RO> sublim; // From AtmosphereState
+    ModelArrayRef<ProtectedArray::SNOW> snowfall; // From ExternalData
+    ModelArrayRef<ProtectedArray::SSS> sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
     HField deltaHi;
     // Owned, Module-private arrays

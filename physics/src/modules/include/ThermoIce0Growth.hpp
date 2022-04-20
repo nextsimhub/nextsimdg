@@ -9,7 +9,7 @@
 #define THERMOICE0GROWTH_HPP
 
 #include "include/IVerticalIceGrowth.hpp"
-
+#include "include/ModelArrayRef.hpp"
 namespace Nextsim {
 
 class ThermoIce0Growth : public IVerticalIceGrowth {
@@ -17,7 +17,6 @@ public:
     ThermoIce0Growth()
         : IVerticalIceGrowth()
     {
-        ModelComponent::requestProtectedArray(ModelComponent::ProtectedArray::H_ICE, &oldHi);
     }
     virtual ~ThermoIce0Growth() = default;
 
@@ -30,7 +29,7 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    pConstHField oldHi;
+    ModelArrayRef<ProtectedArray::H_ICE> oldHi;
 
     bool doFlooding = true; // TODO: read from configuration
 };

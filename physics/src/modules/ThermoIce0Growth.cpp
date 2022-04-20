@@ -80,7 +80,7 @@ void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime& tst)
         // No ice, no snow and the surface temperature is the melting point of ice
         hice[i] = 0.;
         hsnow[i] = 0.;
-        (*tice).zIndexAndLayer(i, 0) = Module::getImplementation<IFreezingPoint>()((*sss)[i]);
+        tice.zIndexAndLayer(i, 0) = Module::getImplementation<IFreezingPoint>()(sss[i]);
     }
 }
 } /* namespace Nextsim */

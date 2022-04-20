@@ -65,24 +65,6 @@ void ModelComponent::registerSharedArray(SharedArray type, ModelArray* addr)
     sharedArrays[static_cast<size_t>(type)] = addr;
 }
 
-void ModelComponent::requestSharedArray(SharedArray type, ModelArray** addr)
-{
-    if (registeredArrays.count(type) > 0) {
-        *addr = registeredArrays[type];
-    } else {
-        reservedArrays[type].insert(addr);
-    }
-}
-
-void ModelComponent::requestProtectedArray(SharedArray type, const ModelArray** addr)
-{
-    if (registeredArrays.count(type) > 0) {
-        *addr = registeredArrays[type];
-    } else {
-        reservedSemiArrays[type].insert(addr);
-    }
-}
-
 void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArray* addr)
 {
     registeredProtectedArrays[type] = addr;
@@ -92,15 +74,6 @@ void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArra
 
     // Assignment of pointer in array
     protectedArrays[static_cast<size_t>(type)] = addr;
-}
-
-void ModelComponent::requestProtectedArray(ProtectedArray type, const ModelArray** addr)
-{
-    if (registeredProtectedArrays.count(type) > 0) {
-        *addr = registeredProtectedArrays[type];
-    } else {
-        reservedProtectedArrays[type].insert(addr);
-    }
 }
 
 } /* namespace Nextsim */

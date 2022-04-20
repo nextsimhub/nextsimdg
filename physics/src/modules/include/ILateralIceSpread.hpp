@@ -8,6 +8,7 @@
 #ifndef ILATERALICESPREAD_HPP
 #define ILATERALICESPREAD_HPP
 
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -32,22 +33,15 @@ protected:
     ILateralIceSpread()
     {
         registerModule();
-
-        ModelComponent::requestSharedArray(SharedArray::C_ICE, &cice);
-        ModelComponent::requestSharedArray(SharedArray::Q_OW, &qow);
-
-        ModelComponent::requestProtectedArray(SharedArray::H_ICE, &hice);
-        ModelComponent::requestProtectedArray(SharedArray::H_SNOW, &hsnow);
-        ModelComponent::requestProtectedArray(SharedArray::DELTA_HICE, &deltaHi);
-
         ModelComponent::registerSharedArray(SharedArray::DELTA_CICE, &deltaCi);
     }
 
-    HField* cice; // From IceGrowth
-    HField* qow; // From FluxCalculation
-    const HField* hice; // From IceGrowth
-    const HField* hsnow; // From Ice Growth?
-    const HField* deltaHi; // From Vertical Ice Growth
+    ModelArrayRef<SharedArray::C_ICE, RW> cice; // From IceGrowth
+    ModelArrayRef<SharedArray::Q_OW, RW> qow; // From FluxCalculation
+
+    ModelArrayRef<SharedArray::H_ICE, RO> hice; // From IceGrowth
+    ModelArrayRef<SharedArray::H_SNOW, RO> hsnow; // From Ice Growth?
+    ModelArrayRef<SharedArray::DELTA_HICE, RO> deltaHi; // From Vertical Ice Growth
 
     // Owned, shared arrays
     HField deltaCi;

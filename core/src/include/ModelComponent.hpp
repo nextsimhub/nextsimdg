@@ -115,11 +115,8 @@ protected:
     void registerModule();
 
     static void registerSharedArray(SharedArray type, ModelArray* addr);
-    static void requestSharedArray(SharedArray type, ModelArray** addr);
-    static void requestProtectedArray(SharedArray type, const ModelArray** addr);
 
     static void registerProtectedArray(ProtectedArray type, const ModelArray* addr);
-    static void requestProtectedArray(ProtectedArray, const ModelArray** addr);
 
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
