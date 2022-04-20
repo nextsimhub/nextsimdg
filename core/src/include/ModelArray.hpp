@@ -256,7 +256,10 @@ public:
         const double& operator()(size_t i) const { return (*p)(i); }
         const double& operator()(size_t i, size_t j) const { return (*p)(i, j); }
         const double& operator()(size_t i, size_t j, size_t k) const { return (*p)(i, j, k); }
-        const double& operator()(size_t i, size_t j, size_t k, size_t l) const { return (*p)(i, j, k, l); }
+        const double& operator()(size_t i, size_t j, size_t k, size_t l) const
+        {
+            return (*p)(i, j, k, l);
+        }
         const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
         {
             return (*p)(i, j, k, l, m);
@@ -265,7 +268,8 @@ public:
         {
             return (*p)(i, j, k, l, m, n);
         }
-        const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t pp) const
+        const double& operator()(
+            size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t pp) const
         {
             return (*p)(i, j, k, l, m, n, pp);
         }
@@ -358,8 +362,6 @@ typedef ModelArray::pConstModelArray pConstHField;
 typedef ModelArray::pConstModelArray pConstUField;
 typedef ModelArray::pConstModelArray pConstVField;
 typedef ModelArray::pConstModelArray pConstZField;
-
-
 
 } /* namespace Nextsim */
 

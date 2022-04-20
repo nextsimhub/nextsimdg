@@ -8,8 +8,8 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "../src/include/ModelComponent.hpp"
 #include "../src/include/ModelArrayRef.hpp"
+#include "../src/include/ModelComponent.hpp"
 
 #include <stdexcept>
 
@@ -89,7 +89,7 @@ public:
         registerModule();
         registerProtectedArray(ProtectedArray::C_ICE, &cice);
     }
-    void setData(const ModelState& ms) override { cice[0] = ciceData;}
+    void setData(const ModelState& ms) override { cice[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
@@ -110,7 +110,7 @@ private:
 
 TEST_CASE("Test array registration", "[ModelComponent]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, {1});
+    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
     ModuleSupplyAndWait saw;
     ModuleRequestAndSupply ras;
 
@@ -118,7 +118,7 @@ TEST_CASE("Test array registration", "[ModelComponent]")
     REQUIRE(saw.data() == ras.refData());
 }
 
-class ModuleSemiShared: public ModelComponent {
+class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()
         : qic(ModelArray::HField("qic"))
@@ -137,7 +137,6 @@ public:
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
-
     const double qicData = 123;
     double data() { return qic[0]; }
     double refData() { return qio_ref[0]; }
@@ -147,7 +146,7 @@ private:
     ModelArrayRef<SharedArray::Q_IO, RO> qio_ref;
 };
 
-class ModuleShared: public ModelComponent {
+class ModuleShared : public ModelComponent {
 public:
     ModuleShared()
         : qio(ModelArray::HField("qio"))
@@ -166,12 +165,12 @@ public:
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
-
     const double qioData = 234;
     const double qicData = 246;
     double data() { return qio[0]; }
     double& refData() { return qic_ref[0]; }
     void setRefData() { qic_ref[0] = qicData; }
+
 private:
     HField qio;
     ModelArrayRef<SharedArray::Q_IC, RW> qic_ref;
@@ -179,7 +178,7 @@ private:
 
 TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, {1});
+    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
 
     ModuleSemiShared semi;
     ModuleShared share;
@@ -190,7 +189,6 @@ TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")
     share.refData() = share.qicData;
 
     REQUIRE(semi.data() == share.qicData);
-
 }
 
 } /* namespace Nextsim */

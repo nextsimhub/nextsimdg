@@ -14,8 +14,10 @@ ModelArray* ModelComponent::sharedArrays[static_cast<size_t>(SharedArray::COUNT)
 const ModelArray* ModelComponent::protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
 std::map<ModelComponent::SharedArray, ModelArray*> ModelComponent::registeredArrays;
 std::map<ModelComponent::SharedArray, std::set<ModelArray**>> ModelComponent::reservedArrays;
-std::map<ModelComponent::SharedArray, std::set<const ModelArray**>> ModelComponent::reservedSemiArrays;
-std::map<ModelComponent::ProtectedArray, const ModelArray*> ModelComponent::registeredProtectedArrays;
+std::map<ModelComponent::SharedArray, std::set<const ModelArray**>>
+    ModelComponent::reservedSemiArrays;
+std::map<ModelComponent::ProtectedArray, const ModelArray*>
+    ModelComponent::registeredProtectedArrays;
 std::map<ModelComponent::ProtectedArray, std::set<const ModelArray**>>
     ModelComponent::reservedProtectedArrays;
 ModelComponent::ModelComponent() { }
@@ -90,7 +92,6 @@ void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArra
 
     // Assignment of pointer in array
     protectedArrays[static_cast<size_t>(type)] = addr;
-
 }
 
 void ModelComponent::requestProtectedArray(ProtectedArray type, const ModelArray** addr)

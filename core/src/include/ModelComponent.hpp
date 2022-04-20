@@ -96,14 +96,20 @@ public:
         registerProtectedArray(type, addr);
     }
 
-    template <SharedArray arrayName>
-    static const ModelArray* getConstArray() { return sharedArrays[static_cast<size_t>(arrayName)]; }
+    template <SharedArray arrayName> static const ModelArray* getConstArray()
+    {
+        return sharedArrays[static_cast<size_t>(arrayName)];
+    }
 
-    template <ProtectedArray arrayName>
-    static const ModelArray* getConstArray() { return protectedArrays[static_cast<size_t>(arrayName)]; }
+    template <ProtectedArray arrayName> static const ModelArray* getConstArray()
+    {
+        return protectedArrays[static_cast<size_t>(arrayName)];
+    }
 
-    template <SharedArray arrayName>
-    static ModelArray* getArray() { return sharedArrays[static_cast<size_t>(arrayName)]; }
+    template <SharedArray arrayName> static ModelArray* getArray()
+    {
+        return sharedArrays[static_cast<size_t>(arrayName)];
+    }
 
 protected:
     void registerModule();
