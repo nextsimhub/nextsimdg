@@ -58,6 +58,11 @@ public:
     {
         return ModelComponent::getConstArray<autoType>()->operator()(i, j, k, l, m, n, p, q);
     }
+
+    const double& zIndexAndLayer(size_t hIndex, size_t layer)
+    {
+        return ModelComponent::getConstArray<autoType>()->zIndexAndLayer(hIndex, layer);
+    }
 };
 
 template <ModelComponent::SharedArray sh> class ModelArrayRef<sh, RW> {
@@ -99,6 +104,11 @@ public:
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
     {
         return ModelComponent::getArray<sh>()->operator()(i, j, k, l, m, n, p, q);
+    }
+
+    double& zIndexAndLayer(size_t hIndex, size_t layer)
+    {
+        return ModelComponent::getArray<sh>()->zIndexAndLayer(hIndex, layer);
     }
 };
 }
