@@ -56,13 +56,12 @@ class ModuleSupplyAndWait : public ModelComponent {
 public:
     ModuleSupplyAndWait()
         : hice(ModelArray::HField("hice"))
-        , p_cice(nullptr)
+        , cice_ref()
     {
         registerModule();
         registerProtectedArray(ProtectedArray::H_ICE, &hice);
-        requestProtectedArray(ProtectedArray::C_ICE, &p_cice);
     }
-    void setData(const ModelState& ms) override { }
+    void setData(const ModelState& ms) override { hice[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
@@ -72,24 +71,25 @@ public:
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
-    bool checkNotNull() { return p_cice; }
+    const double hiceData = 1.2;
+    double data() { return hice[0]; }
+    double refData() { return cice_ref[0]; }
 
 private:
     HField hice;
-    pConstHField p_cice;
+    ModelArrayRef<ProtectedArray::C_ICE> cice_ref;
 };
 
 class ModuleRequestAndSupply : public ModelComponent {
 public:
     ModuleRequestAndSupply()
         : cice(ModelArray::HField("cice"))
-        , p_hice(nullptr)
+        , hice_ref()
     {
         registerModule();
         registerProtectedArray(ProtectedArray::C_ICE, &cice);
-        requestProtectedArray(ProtectedArray::H_ICE, &p_hice);
     }
-    void setData(const ModelState& ms) override { }
+    void setData(const ModelState& ms) override { cice[0] = ciceData;}
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
@@ -99,20 +99,23 @@ public:
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
-    bool checkNotNull() { return p_hice; }
+    const double ciceData = 0.6;
+    double data() { return cice[0]; }
+    double refData() { return hice_ref[0]; }
 
 private:
     HField cice;
-    pConstHField p_hice;
+    ModelArrayRef<ProtectedArray::H_ICE> hice_ref;
 };
 
 TEST_CASE("Test array registration", "[ModelComponent]")
 {
+    ModelArray::setDimensions(ModelArray::Type::H, {1});
     ModuleSupplyAndWait saw;
     ModuleRequestAndSupply ras;
 
-    REQUIRE(ras.checkNotNull());
-    REQUIRE(saw.checkNotNull());
+    REQUIRE(ras.data() == saw.refData());
+    REQUIRE(saw.data() == ras.refData());
 }
 
 class ModuleSemiShared: public ModelComponent {

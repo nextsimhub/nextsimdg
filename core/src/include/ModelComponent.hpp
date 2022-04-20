@@ -96,8 +96,8 @@ public:
         registerProtectedArray(type, addr);
     }
 
-    template <auto arrayName>
-    static const ModelArray* getConstArray();
+//    template <auto arrayName>
+//    static const ModelArray* getConstArray();
 
     template <SharedArray arrayName>
     static const ModelArray* getConstArray() { return sharedArrays[static_cast<size_t>(arrayName)]; }
