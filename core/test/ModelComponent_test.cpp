@@ -9,6 +9,7 @@
 #include <catch2/catch.hpp>
 
 #include "../src/include/ModelComponent.hpp"
+#include "../src/include/ModelArrayRef.hpp"
 
 #include <stdexcept>
 

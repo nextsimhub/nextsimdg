@@ -11,7 +11,7 @@ namespace Nextsim {
 
 std::map<std::string, ModelComponent*> ModelComponent::registeredModules;
 ModelArray* ModelComponent::sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
-ModelArray* ModelComponent::protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
+const ModelArray* ModelComponent::protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
 std::map<ModelComponent::SharedArray, ModelArray*> ModelComponent::registeredArrays;
 std::map<ModelComponent::SharedArray, std::set<ModelArray**>> ModelComponent::reservedArrays;
 std::map<ModelComponent::SharedArray, std::set<const ModelArray**>> ModelComponent::reservedSemiArrays;
@@ -58,6 +58,9 @@ void ModelComponent::registerSharedArray(SharedArray type, ModelArray* addr)
     for (const ModelArray** addrAddr : reservedSemiArrays[type]) {
         *addrAddr = addr;
     }
+
+    // Assignment of pointer in array
+    sharedArrays[static_cast<size_t>(type)] = addr;
 }
 
 void ModelComponent::requestSharedArray(SharedArray type, ModelArray** addr)
@@ -84,6 +87,10 @@ void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArra
     for (const ModelArray** addrAddr : reservedProtectedArrays[type]) {
         *addrAddr = addr;
     }
+
+    // Assignment of pointer in array
+    protectedArrays[static_cast<size_t>(type)] = addr;
+
 }
 
 void ModelComponent::requestProtectedArray(ProtectedArray type, const ModelArray** addr)

@@ -96,6 +96,18 @@ public:
         registerProtectedArray(type, addr);
     }
 
+    template <auto arrayName>
+    static const ModelArray* getConstArray();
+
+    template <SharedArray arrayName>
+    static const ModelArray* getConstArray() { return sharedArrays[static_cast<size_t>(arrayName)]; }
+
+    template <ProtectedArray arrayName>
+    static const ModelArray* getConstArray() { return protectedArrays[static_cast<size_t>(arrayName)]; }
+
+    template <SharedArray arrayName>
+    static ModelArray* getArray() { return sharedArrays[static_cast<size_t>(arrayName)]; }
+
 protected:
     void registerModule();
 
@@ -115,7 +127,7 @@ protected:
 
 private:
     static ModelArray* sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
-    static ModelArray* protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
+    static const ModelArray* protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
     static std::map<std::string, ModelComponent*> registeredModules;
     static std::map<SharedArray, ModelArray*> registeredArrays;
     static std::map<SharedArray, std::set<ModelArray**>> reservedArrays;
