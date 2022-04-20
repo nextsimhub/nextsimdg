@@ -122,13 +122,12 @@ class ModuleSemiShared: public ModelComponent {
 public:
     ModuleSemiShared()
         : qic(ModelArray::HField("qic"))
-        , p_qio(nullptr)
+        , qio_ref()
     {
         registerModule();
         registerSharedArray(SharedArray::Q_IC, &qic);
-        requestProtectedArray(SharedArray::Q_IO, &p_qio);
     }
-    void setData(const ModelState& ms) override { }
+    void setData(const ModelState& ms) override { qic[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
     ModelState getState() const override
     {
@@ -138,24 +137,26 @@ public:
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
-    bool checkNotNull() { return p_qio; }
+
+    const double qicData = 123;
+    double data() { return qic[0]; }
+    double refData() { return qio_ref[0]; }
 
 private:
-    pConstHField p_qio;
     HField qic;
+    ModelArrayRef<SharedArray::Q_IO, RO> qio_ref;
 };
 
 class ModuleShared: public ModelComponent {
 public:
     ModuleShared()
         : qio(ModelArray::HField("qio"))
-        , p_qic(nullptr)
+        , qic_ref()
     {
         registerModule();
         registerSharedArray(SharedArray::Q_IO, &qio);
-        requestSharedArray(SharedArray::Q_IC, &p_qic);
     }
-    void setData(const ModelState& ms) override { }
+    void setData(const ModelState& ms) override { qio[0]; }
     std::string getName() const override { return "Shared"; }
     ModelState getState() const override
     {
@@ -165,21 +166,31 @@ public:
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
-    bool checkNotNull() { return p_qic; }
 
+    const double qioData = 234;
+    const double qicData = 246;
+    double data() { return qio[0]; }
+    double& refData() { return qic_ref[0]; }
+    void setRefData() { qic_ref[0] = qicData; }
 private:
-    pHField p_qic;
     HField qio;
+    ModelArrayRef<SharedArray::Q_IC, RW> qic_ref;
 };
 
 TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")
 {
+    ModelArray::setDimensions(ModelArray::Type::H, {1});
 
     ModuleSemiShared semi;
     ModuleShared share;
 
-    REQUIRE(share.checkNotNull());
-    REQUIRE(semi.checkNotNull());
+    REQUIRE(share.data() == semi.refData());
+    REQUIRE(semi.data() == share.refData());
+
+    share.refData() = share.qicData;
+
+    REQUIRE(semi.data() == share.qicData);
+
 }
 
 } /* namespace Nextsim */
