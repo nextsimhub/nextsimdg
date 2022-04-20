@@ -33,6 +33,11 @@ set(VerticalIceGrowthModuleSources
     "ThermoIce0Growth.cpp"
     )
     
+set(LateralIceSpreadModuleSources
+    "LateralIceSpreadModule.cpp"
+    "HiblerSpread.cpp"
+    )
+    
 set(ModuleSources
     "${IceAlbedoModuleSources}"
     "${IceOceanHeatFluxModuleSources}"
@@ -40,6 +45,7 @@ set(ModuleSources
     "${ThermodynamicsModuleSources}"
     "${ConcentrationModelModuleSources}"
     "${VerticalIceGrowthModuleSources}"
+    "${LateralIceSpreadModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
