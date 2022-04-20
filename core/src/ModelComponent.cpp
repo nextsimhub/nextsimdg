@@ -10,6 +10,8 @@
 namespace Nextsim {
 
 std::map<std::string, ModelComponent*> ModelComponent::registeredModules;
+ModelArray* ModelComponent::sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
+ModelArray* ModelComponent::protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
 std::map<ModelComponent::SharedArray, ModelArray*> ModelComponent::registeredArrays;
 std::map<ModelComponent::SharedArray, std::set<ModelArray**>> ModelComponent::reservedArrays;
 std::map<ModelComponent::SharedArray, std::set<const ModelArray**>> ModelComponent::reservedSemiArrays;

@@ -44,6 +44,7 @@ public:
         SST, // sea surface temperature ˚C
         ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
         TF, // Ocean freezing temperature, ˚C
+        COUNT // Count of enum values
     };
     enum class SharedArray {
         // Values of the prognostic fields updated during the timestep
@@ -61,6 +62,7 @@ public:
         SUBLIM, // Upward sublimation rate kg m⁻² s⁻¹
         DELTA_HICE, // Change in sea ice thickness, m
         DELTA_CICE, // Change in sea ice concentration
+        COUNT // Count of enum values
     };
     typedef std::function<void(size_t, const TimestepTime&)> IteratedFn;
 
@@ -89,7 +91,7 @@ public:
     {
         registerSharedArray(type, addr);
     }
-    static void registerExternalProtectedArray(ProtectedArray type, ModelArray *addr)
+    static void registerExternalProtectedArray(ProtectedArray type, ModelArray* addr)
     {
         registerProtectedArray(type, addr);
     }
@@ -107,11 +109,13 @@ protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
         for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-          fn(i, tst);
+            fn(i, tst);
         }
     }
 
 private:
+    static ModelArray* sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
+    static ModelArray* protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
     static std::map<std::string, ModelComponent*> registeredModules;
     static std::map<SharedArray, ModelArray*> registeredArrays;
     static std::map<SharedArray, std::set<ModelArray**>> reservedArrays;
