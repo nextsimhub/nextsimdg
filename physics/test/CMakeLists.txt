@@ -36,7 +36,6 @@ add_executable(testNextsimPhysics
     
     )
 target_include_directories(testNextsimPhysics PRIVATE
-    "${ModuleLoaderIppTargetDirectory}"
     "${CoreSourceDir}"
     "${CoreModulesDir}"
     "${SourceDir}"
