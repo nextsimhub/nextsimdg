@@ -62,6 +62,8 @@ public:
         SUBLIM, // Upward sublimation rate kg m⁻² s⁻¹
         DELTA_HICE, // Change in sea ice thickness, m
         DELTA_CICE, // Change in sea ice concentration
+        // Ice growth (that is not included above)
+        NEW_ICE, // Volume of new ice formed [m]
         COUNT // Count of enum values
     };
     typedef std::function<void(size_t, const TimestepTime&)> IteratedFn;

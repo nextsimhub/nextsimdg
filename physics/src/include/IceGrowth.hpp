@@ -24,6 +24,7 @@ public:
         ModelComponent::registerSharedArray(SharedArray::H_ICE, &hice);
         ModelComponent::registerSharedArray(SharedArray::C_ICE, &cice);
         ModelComponent::registerSharedArray(SharedArray::H_SNOW, &hsnow);
+        ModelComponent::registerSharedArray(SharedArray::NEW_ICE, &newice);
     }
     virtual ~IceGrowth() = default;
 
@@ -65,9 +66,9 @@ private:
     HField hice; // Updated true ice thickness, m
     HField cice; // Updated ice concentration
     HField hsnow; // Updated true snow thickness, m
+    HField newice; // New ice over open water this timestep, m
 
     // Owned data fields, not shared
-    HField newice; // New ice over open water this timestep, m
     HField deltaHi; // New ice thickness this timestep, m
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
