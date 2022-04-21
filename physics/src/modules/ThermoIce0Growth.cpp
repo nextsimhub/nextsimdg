@@ -7,9 +7,9 @@
 
 #include "include/ThermoIce0Growth.hpp"
 
+#include "include/IceGrowth.hpp"
 #include "include/IFreezingPointModule.hpp"
 #include "include/ModelArray.hpp"
-#include "include/NextsimPhysics.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -59,8 +59,7 @@ void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime& tst)
     }
 
     // Melt all ice if it is below minimum threshold
-    // TODO: Move the minimum ice thickness somewhere other than NextsimPhysics
-    if (hice[i] < NextsimPhysics::minimumIceThickness()) {
+    if (hice[i] < IceGrowth::minimumIceThickness()) {
         if (deltaHi[i] < 0) {
             double scaling = oldHi[i] / deltaHi[i];
             topMelt[i] *= scaling;

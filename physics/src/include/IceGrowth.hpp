@@ -51,6 +51,9 @@ public:
 
     void update(const TimestepTime&);
 
+    static double minimumIceThickness() { return minh; }
+    static double minimumIceConcentration() { return minc; }
+
 private:
     // Vertical Growth ModelComponent & Module
     std::unique_ptr<IVerticalIceGrowth> iVertical;
