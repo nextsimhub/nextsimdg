@@ -43,3 +43,25 @@ target_include_directories(testNextsimPhysics PRIVATE
     "${netCDF_INCLUDE_DIR}"
     )
 target_link_libraries(testNextsimPhysics PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)
+
+add_executable(testIceGrowth
+    "IceGrowth_test.cpp"
+    "${SourceDir}/IceGrowth.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${ModulesDir}/VerticalIceGrowthModule.cpp"
+    "${ModulesDir}/LateralIceSpreadModule.cpp"
+    "${ModulesDir}/HiblerSpread.cpp"
+    "${ModulesDir}/ThermoIce0Growth.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    )
+target_include_directories(testIceGrowth PRIVATE
+    "${CoreSourceDir}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testIceGrowth PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 Eigen3::Eigen)
+    
