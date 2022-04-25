@@ -24,7 +24,7 @@ Module<Nextsim::IConcentrationModel>::fn Module<Nextsim::IConcentrationModel>::s
     = functionMap.at(HIBLERCONCENTRATION);
 template <>
 std::unique_ptr<Nextsim::IConcentrationModel> Module<Nextsim::IConcentrationModel>::staticInstance
-    = std::move(Module<Nextsim::IConcentrationModel>::spf());
+    = std::move(newImpl<Nextsim::IConcentrationModel, Nextsim::HiblerConcentration>());
 
 template <> std::string Module<Nextsim::IConcentrationModel>::moduleName()
 {

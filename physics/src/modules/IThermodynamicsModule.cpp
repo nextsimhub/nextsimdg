@@ -24,7 +24,7 @@ Module<Nextsim::IThermodynamics>::fn Module<Nextsim::IThermodynamics>::spf
     = functionMap.at(THERMOICE0);
 template <>
 std::unique_ptr<Nextsim::IThermodynamics> Module<Nextsim::IThermodynamics>::staticInstance
-    = std::move(Module<Nextsim::IThermodynamics>::spf());
+    = std::move(newImpl<Nextsim::IThermodynamics, Nextsim::ThermoIce0>());
 
 template <> std::string Module<Nextsim::IThermodynamics>::moduleName() { return "IThermodynamics"; }
 

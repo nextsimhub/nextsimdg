@@ -24,7 +24,7 @@ Module<Nextsim::ILateralIceSpread>::fn Module<Nextsim::ILateralIceSpread>::spf
     = functionMap.at(HIBLERSPREAD);
 template <>
 std::unique_ptr<Nextsim::ILateralIceSpread> Module<Nextsim::ILateralIceSpread>::staticInstance
-    = std::move(Module<Nextsim::ILateralIceSpread>::spf());
+    = std::move(newImpl<Nextsim::ILateralIceSpread, Nextsim::HiblerSpread>());
 
 template <> std::string Module<Nextsim::ILateralIceSpread>::moduleName()
 {

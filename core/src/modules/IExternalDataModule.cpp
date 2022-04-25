@@ -23,7 +23,7 @@ template <>
 Module<Nextsim::IExternalData>::fn Module<Nextsim::IExternalData>::spf = functionMap.at(CONSTANTEXTERNALDATA);
 template <>
 std::unique_ptr<Nextsim::IExternalData> Module<Nextsim::IExternalData>::staticInstance
-= std::move(Module<Nextsim::IExternalData>::spf());
+= std::move(newImpl<Nextsim::IExternalData, Nextsim::ConstantExternalData>());
 
 template <>
 std::string Module<Nextsim::IExternalData>::moduleName(){    return "Nextsim::IExternalData";}

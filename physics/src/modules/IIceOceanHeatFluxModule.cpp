@@ -24,7 +24,7 @@ Module<Nextsim::IIceOceanHeatFlux>::fn Module<Nextsim::IIceOceanHeatFlux>::spf
     = functionMap.at(BASICICEOCEANHEATFLUX);
 template <>
 std::unique_ptr<Nextsim::IIceOceanHeatFlux> Module<Nextsim::IIceOceanHeatFlux>::staticInstance
-    = std::move(Module<Nextsim::IIceOceanHeatFlux>::spf());
+    = std::move(newImpl<Nextsim::IIceOceanHeatFlux, Nextsim::BasicIceOceanHeatFlux>());
 
 template <> std::string Module<Nextsim::IIceOceanHeatFlux>::moduleName()
 {

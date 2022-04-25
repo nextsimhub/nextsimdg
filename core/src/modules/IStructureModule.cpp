@@ -24,7 +24,7 @@ template <>
 Module<Nextsim::IStructure>::fn Module<Nextsim::IStructure>::spf = functionMap.at(DEV_GRID);
 template <>
 std::unique_ptr<Nextsim::IStructure> Module<Nextsim::IStructure>::staticInstance
-    = std::move(Module<Nextsim::IStructure>::spf());
+    = std::move(newImpl<Nextsim::IStructure, Nextsim::DevGrid>());
 
 template <> std::string Module<Nextsim::IStructure>::moduleName() { return "IStructure"; }
 

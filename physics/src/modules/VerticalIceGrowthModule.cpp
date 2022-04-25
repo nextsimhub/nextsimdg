@@ -24,7 +24,7 @@ Module<Nextsim::IVerticalIceGrowth>::fn Module<Nextsim::IVerticalIceGrowth>::spf
     = functionMap.at(THERMOICE0GROWTH);
 template <>
 std::unique_ptr<Nextsim::IVerticalIceGrowth> Module<Nextsim::IVerticalIceGrowth>::staticInstance
-    = std::move(Module<Nextsim::IVerticalIceGrowth>::spf());
+    = std::move(newImpl<Nextsim::IVerticalIceGrowth, Nextsim::ThermoIce0Growth>());
 
 template <> std::string Module<Nextsim::IVerticalIceGrowth>::moduleName()
 {
