@@ -37,6 +37,10 @@ void IceGrowth::configure()
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
+    hice = hice0;
+    cice = cice0;
+    hsnow = hsnow0;
+
     iVertical->update(tsTime);
 
     // new ice formation
@@ -68,6 +72,8 @@ void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
 
         qow[i] = sensibleFlux;
         newice[i] = latentFlux * tst.step * (1 - cice[i]) / (Ice::Lf * Ice::rho);
+    } else {
+        newice[0] = 0;
     }
 }
 
