@@ -77,7 +77,8 @@ private:
     ModelArrayRef<ProtectedArray::C_ICE> cice0; // initial ice concentration
     ModelArrayRef<ProtectedArray::H_SNOW> hsnow0; // initial snow thickness
     ModelArrayRef<SharedArray::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
-    ModelArrayRef<ProtectedArray::ML_BULK_CP> mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
+    ModelArrayRef<ProtectedArray::ML_BULK_CP>
+        mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
     ModelArrayRef<ProtectedArray::SST> sst; // sea surface temperature, ˚C
     ModelArrayRef<ProtectedArray::TF> tf; // ocean freezing point, ˚C
 

@@ -116,7 +116,6 @@ public:
 
     ModelArray& data() const { return *ModelComponent::getArray<sh>(); }
     operator ModelArray&() const { return data(); }
-
 };
 }
 #endif /* MODELARRAYREF_HPP */
