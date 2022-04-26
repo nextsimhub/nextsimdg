@@ -63,6 +63,8 @@ public:
     {
         return ModelComponent::getConstArray<autoType>()->zIndexAndLayer(hIndex, layer);
     }
+
+    const ModelArray& data() const { return *ModelComponent::getConstArray<autoType>(); }
 };
 
 template <ModelComponent::SharedArray sh> class ModelArrayRef<sh, RW> {
@@ -110,6 +112,9 @@ public:
     {
         return ModelComponent::getArray<sh>()->zIndexAndLayer(hIndex, layer);
     }
+
+    ModelArray& data() const { return *ModelComponent::getArray<sh>(); }
+
 };
 }
 #endif /* MODELARRAYREF_HPP */
