@@ -65,6 +65,7 @@ public:
     }
 
     const ModelArray& data() const { return *ModelComponent::getConstArray<autoType>(); }
+    operator const ModelArray&() const { return data(); }
 };
 
 template <ModelComponent::SharedArray sh> class ModelArrayRef<sh, RW> {
@@ -114,6 +115,7 @@ public:
     }
 
     ModelArray& data() const { return *ModelComponent::getArray<sh>(); }
+    operator ModelArray&() const { return data(); }
 
 };
 }
