@@ -27,9 +27,9 @@ public:
 
     enum class ProtectedArray {
         // Prognostic model fields
-        H_ICE, // Ice thickness, m
+        H_ICE, // Ice thickness, cell average, m
         C_ICE, // Ice concentration
-        H_SNOW, // Snow depth, m
+        H_SNOW, // Snow depth, cell average, m
         T_ICE, // Ice temperature, ˚C
         // External data fields
         T_AIR, // Air temperature, ˚C
@@ -48,9 +48,9 @@ public:
     };
     enum class SharedArray {
         // Values of the prognostic fields updated during the timestep
-        H_ICE, // Updated ice thickness, m
+        H_ICE, // Updated ice thickness, ice average, m
         C_ICE, // Updated ice concentration
-        H_SNOW, // Updated snow depth, m
+        H_SNOW, // Updated snow depth, ice average, m
         T_ICE, // Updated ice temperatures, ˚C
         // Heat fluxes
         Q_IA, // Ice to atmosphere heat flux W m⁻²
