@@ -66,6 +66,11 @@ public:
 
     const ModelArray& data() const { return *ModelComponent::getConstArray<autoType>(); }
     operator const ModelArray&() const { return data(); }
+
+    ModelArray operator+(const ModelArray& addend) const { return data() + addend; }
+    ModelArray operator-(const ModelArray& subtrahend) const { return data() - subtrahend; }
+    ModelArray operator*(const ModelArray& multiplier) const { return data() * multiplier; }
+    ModelArray operator/(const ModelArray& divisor) const { return data() / divisor; }
 };
 
 template <ModelComponent::SharedArray sh> class ModelArrayRef<sh, RW> {
