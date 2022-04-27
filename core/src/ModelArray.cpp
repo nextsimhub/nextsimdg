@@ -55,6 +55,50 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
     return *this;
 }
 
+ModelArray ModelArray::operator+(const ModelArray& addend) const
+{
+    ModelArray result(type, m_name + "+" + addend.m_name);
+
+    for (size_t i = 0; i < m_sz.at(type); ++i) {
+        result[i] = (*this)[i] + addend[i];
+    }
+
+    return result;
+}
+
+ModelArray ModelArray::operator-(const ModelArray& subtrahend) const
+{
+    ModelArray result(type, m_name + "-" + subtrahend.m_name);
+
+    for (size_t i = 0; i < m_sz.at(type); ++i) {
+        result[i] = (*this)[i] - subtrahend[i];
+    }
+
+    return result;
+}
+
+ModelArray ModelArray::operator*(const ModelArray& multiplier) const
+{
+    ModelArray result(type, m_name + "*" + multiplier.m_name);
+
+    for (size_t i = 0; i < m_sz.at(type); ++i) {
+        result[i] = (*this)[i] * multiplier[i];
+    }
+
+    return result;
+}
+
+ModelArray ModelArray::operator/(const ModelArray& divisor) const
+{
+    ModelArray result(type, m_name + "/" + divisor.m_name);
+
+    for (size_t i = 0; i < m_sz.at(type); ++i) {
+        result[i] = (*this)[i] / divisor[i];
+    }
+
+    return result;
+}
+
 void ModelArray::setData(const double* pData)
 {
     resize();

@@ -76,6 +76,12 @@ public:
 
     ModelArray& operator=(const ModelArray&);
 
+    // ModelArray arithmetic
+    ModelArray operator+(const ModelArray&) const;
+    ModelArray operator-(const ModelArray&) const;
+    ModelArray operator*(const ModelArray&) const;
+    ModelArray operator/(const ModelArray&) const;
+
     typedef std::vector<size_t> Dimensions;
 
     //! Returns the number of dimensions of the physical grid

@@ -156,4 +156,29 @@ TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
     REQUIRE(uu.nDimensions() == 2);
     REQUIRE(uu.dimensions() == udim);
 }
+
+TEST_CASE("Arithmetic tests", "[ModelArray]")
+{
+    // Only test HField for now
+    ModelArray::setDimensions(ModelArray::Type::H, {1, 2});
+    HField lhs;
+    HField rhs;
+    lhs[0] = 9.;
+    lhs[1] = 10.;
+    rhs[0] = 3.;
+    rhs[1] = -5.;
+
+    HField sum = lhs + rhs;
+    REQUIRE(sum[0] == 12.);
+    REQUIRE(sum[1] == 5.);
+    HField difference = lhs - rhs;
+    REQUIRE(difference[0] == 6.);
+    REQUIRE(difference[1] == 15.);
+    HField product = lhs * rhs;
+    REQUIRE(product[0] == 27.);
+    REQUIRE(product[1] == -50.);
+    HField quotient = lhs / rhs;
+    REQUIRE(quotient[0] == 3.);
+    REQUIRE(quotient[1] == -2.);
+}
 } /* namespace Nextsim */
