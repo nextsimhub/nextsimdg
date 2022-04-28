@@ -56,6 +56,8 @@ add_executable(testIceGrowth
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoIce0Growth.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${ModulesDir}/IceTemperatureModule.cpp"
+    "${ModulesDir}/ThermoIce0Temperature.cpp"
     )
 target_include_directories(testIceGrowth PRIVATE
     "${CoreSourceDir}"

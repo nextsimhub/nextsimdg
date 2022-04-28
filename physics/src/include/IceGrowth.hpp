@@ -9,6 +9,7 @@
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
 #include "include/Configured.hpp"
+#include "include/IIceTemperature.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/IVerticalIceGrowth.hpp"
 #include "include/ModelComponent.hpp"
@@ -32,6 +33,7 @@ public:
     enum {
         VERTICAL_GROWTH_KEY,
         LATERAL_GROWTH_KEY,
+        ICE_TEMPERATURE_KEY,
         MINC_KEY,
         MINH_KEY,
     };
@@ -60,6 +62,8 @@ private:
     std::unique_ptr<IVerticalIceGrowth> iVertical;
     // Lateral Growth ModuleComponent & Module
     std::unique_ptr<ILateralIceSpread> iLateral;
+    // Ice temperature Module Component
+    std::unique_ptr<IIceTemperature> iIceTemp;
 
     // Data fields
     // Owned, shared data fields

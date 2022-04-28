@@ -35,10 +35,16 @@ void IceGrowth::configure()
     iLateral = std::move(Module::getInstance<ILateralIceSpread>());
     tryConfigure(*iVertical);
     tryConfigure(*iLateral);
+
+    // Configure the ice temperature module
+    iIceTemp = std::move(Module::getInstance<IIceTemperature>());
+    tryConfigure(*iIceTemp);
 }
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
+    iIceTemp->update(tsTime);
+
     // Copy the ice data from the prognostic fields to the modifiable fields.
     // Also divide by c_ice to go from cell-averaged to ice-averaged values.
     cice = cice0;
@@ -93,7 +99,8 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
         tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
     if (deltaHi[i] < 0) {
         // Note that the cell-averaged hice0 is converted to a ice averaged value
-        iLateral->melt(tstep, hice0[i]/cice[0], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
+        iLateral->melt(
+            tstep, hice0[i] / cice[0], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
     double deltaC = deltaCFreeze[i] + deltaCMelt[i];
     cice[i] += deltaC;

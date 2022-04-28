@@ -16,6 +16,7 @@ namespace Module {
 
 template <>
 Module<Nextsim::IVerticalIceGrowth>::map Module<Nextsim::IVerticalIceGrowth>::functionMap;
+template <> Module<Nextsim::IVerticalIceGrowth>::fn Module<Nextsim::IVerticalIceGrowth>::spf;
 class VerticalIceGrowthModule : public Module<Nextsim::IVerticalIceGrowth> {
     struct Constructor {
         Constructor();
