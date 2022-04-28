@@ -25,7 +25,6 @@ public:
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    HField deltaHi;
     HField snowMelt;
     HField topMelt;
     HField botMelt;

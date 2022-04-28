@@ -26,20 +26,24 @@ const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
 
 void IceGrowth::configure()
 {
-    // Configure the vertical and lateral growth modules
-    iVertical = std::move(Module::getInstance<IVerticalIceGrowth>());
-    iLateral = std::move(Module::getInstance<ILateralIceSpread>());
-
     // Configure constants
     minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 1e-12);
     minh = Configured::getConfiguration(keyMap.at(MINH_KEY), 0.01);
+
+    // Configure the vertical and lateral growth modules
+    iVertical = std::move(Module::getInstance<IVerticalIceGrowth>());
+    iLateral = std::move(Module::getInstance<ILateralIceSpread>());
+    tryConfigure(*iVertical);
+    tryConfigure(*iLateral);
 }
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
-    hice = hice0;
+    // Copy the ice data from the prognostic fields to the modifiable fields.
+    // Also divide by c_ice to go from cell-averaged to ice-averaged values.
     cice = cice0;
-    hsnow = hsnow0;
+    hice = hice0 / cice0;
+    hsnow = hsnow0 / cice0;
 
     iVertical->update(tsTime);
 
@@ -88,12 +92,11 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
     iLateral->freeze(
         tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
     if (deltaHi[i] < 0) {
-
-        iLateral->melt(tstep, hice[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
+        // Note that the cell-averaged hice0 is converted to a ice averaged value
+        iLateral->melt(tstep, hice0[i]/cice[0], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
     double deltaC = deltaCFreeze[i] + deltaCMelt[i];
     cice[i] += deltaC;
-
     if (cice[i] >= minc) {
         // The updated ice thickness must conserve volume
         updateThickness(hice[i], cice[i], deltaC, newice[i]);

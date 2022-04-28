@@ -53,9 +53,11 @@ void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime& tst)
 
     if (doFlooding && iceDraught > hice[i]) {
         double snowDraught = iceDraught - hice[i];
-        snowToIce[i] += snowDraught;
+        snowToIce[i] = snowDraught;
         hsnow[i] -= snowDraught * Ice::rho / Ice::rhoSnow;
         hice[i] = iceDraught;
+    } else {
+        snowToIce[i] = 0;
     }
 
     // Melt all ice if it is below minimum threshold

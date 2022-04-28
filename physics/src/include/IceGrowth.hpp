@@ -69,7 +69,6 @@ private:
     HField newice; // New ice over open water this timestep, m
 
     // Owned data fields, not shared
-    HField deltaHi; // New ice thickness this timestep, m
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
@@ -81,6 +80,7 @@ private:
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
     ModelArrayRef<ProtectedArray::SST> sst; // sea surface temperature, ˚C
     ModelArrayRef<ProtectedArray::TF> tf; // ocean freezing point, ˚C
+    ModelArrayRef<SharedArray::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
 
     static double minc; // Minimum sea ice concentration
     static double minh; // Minimum sea ice thickness
