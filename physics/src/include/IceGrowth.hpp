@@ -9,6 +9,7 @@
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
 #include "include/Configured.hpp"
+#include "include/IFluxCalculation.hpp"
 #include "include/IIceTemperature.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/IVerticalIceGrowth.hpp"
@@ -34,6 +35,7 @@ public:
         VERTICAL_GROWTH_KEY,
         LATERAL_GROWTH_KEY,
         ICE_TEMPERATURE_KEY,
+        FLUX_CALCULATOR_KEY,
         MINC_KEY,
         MINH_KEY,
     };
@@ -64,6 +66,8 @@ private:
     std::unique_ptr<ILateralIceSpread> iLateral;
     // Ice temperature Module Component
     std::unique_ptr<IIceTemperature> iIceTemp;
+    // Flux calculation Module Component
+    std::unique_ptr<IFluxCalculation> iFluxes;
 
     // Data fields
     // Owned, shared data fields

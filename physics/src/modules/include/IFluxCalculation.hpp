@@ -25,15 +25,19 @@ public:
     }
     virtual ~IFluxCalculation() = default;
 
-    void setData(const ModelState &) override {}
+    void setData(const ModelState&) override { }
 
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IFluxCalculation"; }
 
-    std::set<std::string> hFields() const override { return { "qow", "subl", "qia", "dqia_dt", "qio" }; }
+    std::set<std::string> hFields() const override
+    {
+        return { "qow", "subl", "qia", "dqia_dt", "qio" };
+    }
 
+    virtual void update(const TimestepTime&) = 0;
 
 protected:
     // All fluxes are positive upwards, including incident radiation fluxes

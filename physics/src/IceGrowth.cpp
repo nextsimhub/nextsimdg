@@ -39,10 +39,15 @@ void IceGrowth::configure()
     // Configure the ice temperature module
     iIceTemp = std::move(Module::getInstance<IIceTemperature>());
     tryConfigure(*iIceTemp);
+
+    // Configure the flux calculation module
+    iFluxes = std::move(Module::getInstance<IFluxCalculation>());
+    tryConfigure(*iFluxes);
 }
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
+    iFluxes->update(tsTime);
     iIceTemp->update(tsTime);
 
     // Copy the ice data from the prognostic fields to the modifiable fields.

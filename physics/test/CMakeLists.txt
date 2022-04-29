@@ -58,6 +58,8 @@ add_executable(testIceGrowth
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${ModulesDir}/IceTemperatureModule.cpp"
     "${ModulesDir}/ThermoIce0Temperature.cpp"
+    "${ModulesDir}/FluxCalculationModule.cpp"
+    "${ModulesDir}/FiniteElementFluxes.cpp"
     )
 target_include_directories(testIceGrowth PRIVATE
     "${CoreSourceDir}"

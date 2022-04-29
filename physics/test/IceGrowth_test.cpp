@@ -36,9 +36,9 @@ TEST_CASE("New ice formation", "[IceGrowth]")
 
     ConfiguredModule::parseConfigurator();
 
-    class NewIceData : public IIceTemperature, public Configured<NewIceData> {
+    class IceTemperatureData : public IIceTemperature, public Configured<IceTemperatureData> {
     public:
-        NewIceData()
+        IceTemperatureData()
             : IIceTemperature()
         {
             registerProtectedArray(ProtectedArray::H_ICE, &hice);
@@ -49,14 +49,8 @@ TEST_CASE("New ice formation", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
-
-            registerSharedArray(SharedArray::Q_OW, &qow);
-            registerSharedArray(SharedArray::Q_IO, &qio);
-            registerSharedArray(SharedArray::Q_IA, &qia);
-            registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-            registerSharedArray(SharedArray::SUBLIM, &subl);
         }
-        std::string getName() const override { return "NewIceData"; }
+        std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState&) override
         {
@@ -65,17 +59,11 @@ TEST_CASE("New ice formation", "[IceGrowth]")
             hsnow[0] = 0;
             sst[0] = -1.5;
             sss[0] = 32.;
-            snow[0] = 0.;
+            snow[0] = 0;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
 
-            qow[0] = 307.546;
-            qio[0] = 124.689;
             qic[0] = 2.53124;
-            qia[0] = 305.288;
-            dqia_dt[0] = 4.5036;
-            subl[0] = 0;
-
             tice[0] = -2;
         }
 
@@ -88,12 +76,6 @@ TEST_CASE("New ice formation", "[IceGrowth]")
         HField snow;
         HField mlbhc; // Mixed layer bulk heat capacity
 
-        HField qow;
-        HField qio;
-        HField qia;
-        HField dqia_dt;
-        HField subl;
-
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
 
@@ -101,7 +83,33 @@ TEST_CASE("New ice formation", "[IceGrowth]")
         void configure() override { setData(ModelState()); }
     };
     Module::Module<IIceTemperature>::setExternalImplementation(
-        Module::newImpl<IIceTemperature, NewIceData>);
+        Module::newImpl<IIceTemperature, IceTemperatureData>);
+
+    class FluxData : public IFluxCalculation, public Configured<FluxData> {
+    public:
+        FluxData()
+            : IFluxCalculation()
+        {
+        }
+        std::string getName() const override { return "FluxData"; }
+
+        void setData(const ModelState&) override
+        {
+            qow[0] = 307.546;
+            qio[0] = 124.689;
+            qia[0] = 305.288;
+            dqia_dt[0] = 4.5036;
+            subl[0] = 0;
+       }
+
+        ModelState getState() const override { return ModelState(); }
+        ModelState getState(const OutputLevel&) const override { return getState(); }
+
+        void update(const TimestepTime&) override { }
+        void configure() override { setData(ModelState()); }
+    };
+    Module::Module<IFluxCalculation>::setExternalImplementation(
+        Module::newImpl<IFluxCalculation, FluxData>);
 
     TimestepTime tst = { 0, 86400 };
     IceGrowth ig;
@@ -133,9 +141,9 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
 
     ConfiguredModule::parseConfigurator();
 
-    class NewIceData : public IIceTemperature, public Configured<NewIceData> {
+    class IceTemperatureData : public IIceTemperature, public Configured<IceTemperatureData> {
     public:
-        NewIceData()
+        IceTemperatureData()
             : IIceTemperature()
         {
             registerProtectedArray(ProtectedArray::H_ICE, &hice);
@@ -146,14 +154,8 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
-
-            registerSharedArray(SharedArray::Q_OW, &qow);
-            registerSharedArray(SharedArray::Q_IO, &qio);
-            registerSharedArray(SharedArray::Q_IA, &qia);
-            registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-            registerSharedArray(SharedArray::SUBLIM, &subl);
         }
-        std::string getName() const override { return "NewIceData"; }
+        std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState&) override
         {
@@ -166,14 +168,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
 
-            qow[0] = -109.923;
-            qio[0]
-                = 53717.8; // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
             qic[0] = -4.60879;
-            qia[0] = -84.5952;
-            dqia_dt[0] = 19.7016;
-            subl[0] = -7.3858e-06;
-
             tice[0] = -1;
         }
 
@@ -186,12 +181,6 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         HField snow;
         HField mlbhc; // Mixed layer bulk heat capacity
 
-        HField qow;
-        HField qio;
-        HField qia;
-        HField dqia_dt;
-        HField subl;
-
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
 
@@ -199,7 +188,34 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         void configure() override { setData(ModelState()); }
     };
     Module::Module<IIceTemperature>::setExternalImplementation(
-        Module::newImpl<IIceTemperature, NewIceData>);
+        Module::newImpl<IIceTemperature, IceTemperatureData>);
+
+    class FluxData : public IFluxCalculation, public Configured<FluxData> {
+    public:
+        FluxData()
+            : IFluxCalculation()
+        {
+        }
+        std::string getName() const override { return "FluxData"; }
+
+        void setData(const ModelState&) override
+        {
+            qow[0] = -109.923;
+            qio[0]
+                = 53717.8; // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
+            qia[0] = -84.5952;
+            dqia_dt[0] = 19.7016;
+            subl[0] = -7.3858e-06;
+        }
+
+        ModelState getState() const override { return ModelState(); }
+        ModelState getState(const OutputLevel&) const override { return getState(); }
+
+        void update(const TimestepTime&) override { }
+        void configure() override { setData(ModelState()); }
+    };
+    Module::Module<IFluxCalculation>::setExternalImplementation(
+        Module::newImpl<IFluxCalculation, FluxData>);
 
     TimestepTime tst = { 0, 600 };
     IceGrowth ig;
@@ -240,9 +256,9 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
 
     ConfiguredModule::parseConfigurator();
 
-    class NewIceData : public IIceTemperature, public Configured<NewIceData> {
+    class IceTemperatureData : public IIceTemperature, public Configured<IceTemperatureData> {
     public:
-        NewIceData()
+        IceTemperatureData()
             : IIceTemperature()
         {
             registerProtectedArray(ProtectedArray::H_ICE, &hice);
@@ -253,14 +269,8 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
-
-            registerSharedArray(SharedArray::Q_OW, &qow);
-            registerSharedArray(SharedArray::Q_IO, &qio);
-            registerSharedArray(SharedArray::Q_IA, &qia);
-            registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-            registerSharedArray(SharedArray::SUBLIM, &subl);
         }
-        std::string getName() const override { return "NewIceData"; }
+        std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState&) override
         {
@@ -273,13 +283,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
 
-            qow[0] = 143.266;
-            qio[0] = 73.9465;
             qic[0] = 44.4839;
-            qia[0] = 42.2955;
-            dqia_dt[0] = 16.7615;
-            subl[0] = 2.15132e-6;
-
             tice[0] = -9;
         }
 
@@ -292,12 +296,6 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         HField snow;
         HField mlbhc; // Mixed layer bulk heat capacity
 
-        HField qow;
-        HField qio;
-        HField qia;
-        HField dqia_dt;
-        HField subl;
-
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
 
@@ -305,7 +303,33 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         void configure() override { setData(ModelState()); }
     };
     Module::Module<IIceTemperature>::setExternalImplementation(
-        Module::newImpl<IIceTemperature, NewIceData>);
+        Module::newImpl<IIceTemperature, IceTemperatureData>);
+
+    class FluxData : public IFluxCalculation, public Configured<FluxData> {
+    public:
+        FluxData()
+            : IFluxCalculation()
+        {
+        }
+        std::string getName() const override { return "FluxData"; }
+
+        void setData(const ModelState&) override
+        {
+            qow[0] = 143.266;
+            qio[0] = 73.9465;
+            qia[0] = 42.2955;
+            dqia_dt[0] = 16.7615;
+            subl[0] = 2.15132e-6;
+        }
+
+        ModelState getState() const override { return ModelState(); }
+        ModelState getState(const OutputLevel&) const override { return getState(); }
+
+        void update(const TimestepTime&) override { }
+        void configure() override { setData(ModelState()); }
+    };
+    Module::Module<IFluxCalculation>::setExternalImplementation(
+        Module::newImpl<IFluxCalculation, FluxData>);
 
     TimestepTime tst = { 0, 600 };
     IceGrowth ig;
