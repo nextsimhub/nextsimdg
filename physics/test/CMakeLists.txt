@@ -69,3 +69,22 @@ target_include_directories(testIceGrowth PRIVATE
     )
 target_link_libraries(testIceGrowth PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 Eigen3::Eigen)
     
+add_executable(testIceTemperature
+    "IceTemperature_test.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+#    "${ModulesDir}/IceTemperatureModule.cpp"
+    "${ModulesDir}/ThermoIce0Temperature.cpp"
+    "${ModulesDir}/FluxCalculationModule.cpp"
+    "${ModulesDir}/FiniteElementFluxes.cpp"
+    )
+target_include_directories(testIceTemperature PRIVATE
+    "${CoreSourceDir}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testIceTemperature PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 Eigen3::Eigen)

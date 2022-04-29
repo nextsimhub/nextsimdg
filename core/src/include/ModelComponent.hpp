@@ -51,6 +51,8 @@ public:
         DENSITY_AIR, // Density of the atmosphere, kg m⁻³
         CP_AIR, // Specific heat capacity at constant pressure of the atmosphere J K⁻¹ kg⁻¹
         WIND_SPEED, // Wind speed, m s⁻¹
+        HTRUE_ICE, // Ice thickness, ice average, m
+        HTRUE_SNOW, // Snow thickness, ice average, m
         COUNT // Count of enum values
     };
     enum class SharedArray {

@@ -45,8 +45,10 @@ protected:
     // Prognostic
     ModelArrayRef<ProtectedArray::T_ICE> tice0;
     ModelArrayRef<ProtectedArray::TF> tf;
-    ModelArrayRef<ProtectedArray::H_ICE> hice;
-    ModelArrayRef<ProtectedArray::H_SNOW> hsnow;
+    // Temperature calculations almost certainly need the true, ice-averaged
+    // thickness, not the cell-averaged value
+    ModelArrayRef<ProtectedArray::HTRUE_ICE> hice;
+    ModelArrayRef<ProtectedArray::HTRUE_SNOW> hsnow;
     // Derived data
     ModelArrayRef<SharedArray::Q_IA, RO> qia;
     ModelArrayRef<SharedArray::DQIA_DT, RO> dqia_dt;
