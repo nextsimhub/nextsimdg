@@ -92,8 +92,8 @@ void DGTransport<DGcell, DGedge>::step(const double dt, CellVector<DGcell>& phi)
     GlobalTimer.stop("-- --> step");
 }
 
-  template class DGTransport<1,1>;
-  template class DGTransport<3,2>;
-  template class DGTransport<6,3>;
+template class DGTransport<1, 1>;
+template class DGTransport<3, 2>;
+template class DGTransport<6, 3>;
 
 } /* namespace Nextsim */

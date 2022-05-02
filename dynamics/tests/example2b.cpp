@@ -25,7 +25,7 @@ bool WRITE_VTK = true;
  * Domain is [0,2] x [0,1] with 2N * N elements
  */
 
-#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 struct InitialVX {
     double time;
@@ -73,7 +73,7 @@ class Test {
     Nextsim::CellVector<DG> vx, vy, phi;
 
     //! Transport main class
-  Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
+    Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
 
     //! Velocity Field
     InitialVX VX;

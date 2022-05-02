@@ -21,7 +21,7 @@ extern Timer GlobalTimer;
 
 bool WRITE_VTK = false;
 
-#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 //! Initially a smooth bump centered at (0.4,0.4)
 //! This will be transported in a circle with (-y, x) for one complete revolution
@@ -78,7 +78,7 @@ class Test {
     Nextsim::CellVector<DG> vx, vy, phi, finalphi;
 
     //! Transport main class
-  Nextsim::DGTransport<DG,EDGEDOFS(DG)> dgtransport;
+    Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
 
     //! Velocity Field
     InitialVX VX;

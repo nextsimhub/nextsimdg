@@ -440,8 +440,6 @@ namespace MEB {
                 dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
 
             //Calcutate d_critical as Veronique:
-            
-
 
             // Calculate the characteristic time for damage and damage increment
             // M_delta_x[cpt] = mesh.hx ???

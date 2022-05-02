@@ -177,7 +177,6 @@ int main()
     Nextsim::CellVector<1> Multip(mesh);
     Nextsim::CellVector<1> Lambda(mesh);
 
-
     Nextsim::CellVector<DGadvection> D(mesh); //!< ice damage. ?? Really dG(0) ??
     Nextsim::L2ProjectInitial(mesh, D, InitialD());
 

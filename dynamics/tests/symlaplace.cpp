@@ -21,7 +21,7 @@ constexpr double L = 512000.0;
 constexpr double eta = 1.e8;
 constexpr double rho_ice = 900;
 
-#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 namespace Nextsim {
 extern Timer GlobalTimer;

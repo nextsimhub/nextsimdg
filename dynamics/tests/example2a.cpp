@@ -23,8 +23,7 @@
 
 double WRITE_VTK = false;
 
-#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
-
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 struct InitialVX {
     double time;
@@ -69,7 +68,7 @@ class Test {
     Nextsim::CellVector<DG> vx, vy, phi;
 
     //! Transport main class
-  Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
+    Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
 
     size_t NT; //!< number of time steps
     double dt; //!< time step size

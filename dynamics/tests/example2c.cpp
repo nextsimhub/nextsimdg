@@ -15,8 +15,7 @@
 
 bool WRITE_VTK = true;
 
-#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
-
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 /*!
  * This test case tests the boundary  handling of the DG transport scheme
@@ -73,7 +72,7 @@ class Test {
     Nextsim::CellVector<DG> vx, vy, phi;
 
     //! Transport main class
-  Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
+    Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
 
     //! Velocity Field
     InitialVX VX;

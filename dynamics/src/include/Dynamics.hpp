@@ -52,7 +52,7 @@ public:
     /*!
      * Subclasses for managing DG transport and the momentum problem
      */
-  DGTransport<6,3> dgtransport;
+    DGTransport<6, 3> dgtransport;
 
     // public:
     /*!

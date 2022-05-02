@@ -16,7 +16,7 @@ namespace Nextsim {
  *
  * template parameter DGdegree is degree (0,1,2) of dg scheme
  */
-  template <int DGcell, int DGedge>
+template <int DGcell, int DGedge>
 class DGTransport {
 protected:
     //! reference to the current velocity

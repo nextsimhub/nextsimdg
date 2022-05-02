@@ -26,7 +26,7 @@ bool WRITE_VTK = true;
 #define DGadvection 1
 #define DGstress 1
 
-#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 namespace Nextsim {
 extern Timer GlobalTimer;

@@ -21,7 +21,7 @@ extern Timer GlobalTimer;
 
 bool WRITE_VTK = false;
 
-#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 //! Initially a smooth bump centered at (0.4,0.4)
 //! This will be transported in a circle with (-y, x) for one complete revolution
@@ -75,10 +75,10 @@ class Test {
     double dt; //!< time step size
 
     //! Velocity vectors and density
-  Nextsim::CellVector<DG> vx, vy, phi, finalphi;
+    Nextsim::CellVector<DG> vx, vy, phi, finalphi;
 
     //! Transport main class
-  Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
+    Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -125,7 +125,7 @@ public:
         Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
         if (WRITE_VTK)
-	  Nextsim::VTK::write_dg<DG>("Results/dg", 0, phi, mesh);
+            Nextsim::VTK::write_dg<DG>("Results/dg", 0, phi, mesh);
 
         //! Save initial solution for error control
         finalphi = phi;
@@ -187,7 +187,7 @@ int main()
 
     N = 20;
     for (int n = 0; n < ITER; ++n) {
-      Test<3> test1(N);
+        Test<3> test1(N);
         test1.init();
         test1.run();
         if (!test1.check())
