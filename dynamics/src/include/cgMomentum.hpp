@@ -28,7 +28,7 @@ public:
     template <int CG, int DG>
     void ProjectCG2VelocityToDG1Strain(const Mesh& mesh, CellVector<DG>& E11, CellVector<DG>& E12,
         CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
-  
+
     /*!
      * Evaluates (S, nabla phi) and adds it to tx/ty - Vector
      */
@@ -210,7 +210,7 @@ public:
         ty(cg_i + 1 + CGROW * 2) += lup2(7);
         ty(cg_i + 2 + CGROW * 2) += lup2(8);
     }
-  void AddStressTensorCell(const Mesh& mesh, const double scale, const size_t c, const size_t cx,
+    void AddStressTensorCell(const Mesh& mesh, const double scale, const size_t c, const size_t cx,
         const size_t cy, CGVector<2>& tx, CGVector<2>& ty, const CellVector<1>& S11,
         const CellVector<1>& S12, const CellVector<1>& S22) const
     {
@@ -244,9 +244,16 @@ public:
         ty(cg_i + 2 + CGROW * 2) += lup2(8);
     }
 
-    //! Sets the vector to zero along the boundary
+    //! Sets the velocity vector to zero along the boundary
     template <int CG>
     void DirichletZero(const Mesh& mesh, CGVector<CG>& v) const;
+
+    //! Sets the velocity vector for compresion testcase along the boundary
+    template <int CG>
+    void DirichletCompressionVx(const Mesh& mesh, CGVector<CG>& v) const;
+
+    template <int CG>
+    void DirichletCompressionVy(const Mesh& mesh, CGVector<CG>& v, const double& vtop) const;
 
     //! Interpolates a DG-Vector to a CG-Vector
     template <int CG, int DG>
@@ -300,15 +307,15 @@ public:
         const size_t CGDofsPerRow = 2 * mesh.nx + 1;
         const size_t cgi = 2 * CGDofsPerRow * cy
             + 2 * cx; //!< lower left index of CG-vector in element c = (cx,cy)
-        cg_A(cgi)                        += 0.25 * (A(c,0) - 0.5 * A(c,1) - 0.5 * A(c,2));
-        cg_A(cgi + 1)                    += 0.5 *  (A(c,0)                - 0.5 * A(c,2));
-        cg_A(cgi + 2)                    += 0.25 * (A(c,0) + 0.5 * A(c,1) - 0.5 * A(c,2));
-        cg_A(cgi + CGDofsPerRow)         += 0.5 *  (A(c,0) - 0.5 * A(c,1));
-        cg_A(cgi + CGDofsPerRow + 1)     += A(c,0);
-        cg_A(cgi + CGDofsPerRow + 2)     += 0.5 *  (A(c,0) + 0.5 * A(c,1));
-        cg_A(cgi + 2 * CGDofsPerRow)     += 0.25 * (A(c,0) - 0.5 * A(c,1) + 0.5 * A(c,2));
-        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 *  (A(c,0)                + 0.5 * A(c,2));
-        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c,0) + 0.5 * A(c,1) + 0.5 * A(c,2));
+        cg_A(cgi) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) - 0.5 * A(c, 2));
+        cg_A(cgi + 1) += 0.5 * (A(c, 0) - 0.5 * A(c, 2));
+        cg_A(cgi + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) - 0.5 * A(c, 2));
+        cg_A(cgi + CGDofsPerRow) += 0.5 * (A(c, 0) - 0.5 * A(c, 1));
+        cg_A(cgi + CGDofsPerRow + 1) += A(c, 0);
+        cg_A(cgi + CGDofsPerRow + 2) += 0.5 * (A(c, 0) + 0.5 * A(c, 1));
+        cg_A(cgi + 2 * CGDofsPerRow) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
+        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * (A(c, 0) + 0.5 * A(c, 2));
+        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
     }
 
     //! Adjusts the interpolation on the boundary
