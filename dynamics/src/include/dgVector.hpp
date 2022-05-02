@@ -13,20 +13,20 @@
 #include <iostream>
 
 namespace Nextsim {
-#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
+  //#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
 
-template <int DGdegree>
-class LocalCellVector : public Eigen::Matrix<double, 1, CELLDOFS(DGdegree)> {
+template <int DG>
+class LocalCellVector : public Eigen::Matrix<double, 1, DG> {
 public:
     // required by Eigen
     LocalCellVector()
-        : Eigen::Matrix<double, 1, CELLDOFS(DGdegree)>()
+        : Eigen::Matrix<double, 1, DG>()
     {
     }
 
     template <typename OtherDerived>
     LocalCellVector(const Eigen::MatrixBase<OtherDerived>& other)
-        : Eigen::Matrix<double, 1, CELLDOFS(DGdegree)>(other)
+        : Eigen::Matrix<double, 1, DG>(other)
     {
     }
 
@@ -34,38 +34,38 @@ public:
     template <typename OtherDerived>
     LocalCellVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
     {
-        this->Eigen::Matrix<double, 1, CELLDOFS(DGdegree)>::operator=(other);
+        this->Eigen::Matrix<double, 1, DG>::operator=(other);
         return *this;
     }
 };
 
-template <int DGdegree>
-class LocalEdgeVector : public Eigen::Matrix<double, 1, DGdegree + 1> {
+template <int DG>
+class LocalEdgeVector : public Eigen::Matrix<double, 1, DG> {
 public:
     LocalEdgeVector(void)
-        : Eigen::Matrix<double, 1, DGdegree + 1>()
+        : Eigen::Matrix<double, 1, DG>()
     {
     }
 
     template <typename OtherDerived>
     LocalEdgeVector(const Eigen::MatrixBase<OtherDerived>& other)
-        : Eigen::Matrix<double, 1, DGdegree + 1>(other)
+        : Eigen::Matrix<double, 1, DG>(other)
     {
     }
 
     template <typename T1>
     LocalEdgeVector(const T1& t1)
-        : Eigen::Matrix<double, 1, DGdegree + 1>(t1)
+        : Eigen::Matrix<double, 1, DG>(t1)
     {
     }
     template <typename T1, typename T2>
     LocalEdgeVector(const T1& t1, const T2& t2)
-        : Eigen::Matrix<double, 1, DGdegree + 1>(t1, t2)
+        : Eigen::Matrix<double, 1, DG>(t1, t2)
     {
     }
     template <typename T1, typename T2, typename T3>
     LocalEdgeVector(const T1& t1, const T2& t2, const T3& t3)
-        : Eigen::Matrix<double, 1, DGdegree + 1>(t1, t2, t3)
+        : Eigen::Matrix<double, 1, DG>(t1, t2, t3)
     {
     }
 
@@ -73,7 +73,7 @@ public:
     template <typename OtherDerived>
     LocalEdgeVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
     {
-        this->Eigen::Matrix<double, 1, DGdegree + 1>::operator=(other);
+        this->Eigen::Matrix<double, 1, DG>::operator=(other);
         return *this;
     }
 };
@@ -84,19 +84,20 @@ public:
  * Basis in local coordinate system:
  *
  * DGdegree 0:      1
- * DGdegree 1:      + (x-1/2), (y-1/2)
- * DGdegree 2:      + (x-1/2)^2-1/12, (y-1/2)^2-1/12, (x-1/2)(y-1/2)
+ * DGdegree 1-2:    + (x-1/2), 
+ * DGdegree 3-5:    + (x-1/2)^2-1/12, (y-1/2)^2-1/12, (x-1/2)(y-1/2)
+ * DGdegree 6-7:    + (y-1/2)(x-1/2)^2-1/12, (x-1/2)(y-1/2)^2-1/12
  *
  **/
-template <int DGdegree>
-class CellVector : public Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree),
-                       (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor> {
+template <int DG>
+class CellVector : public Eigen::Matrix<double, Eigen::Dynamic, DG,
+                       (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor> {
 public:
-    typedef Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree),
-        (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>
+    typedef Eigen::Matrix<double, Eigen::Dynamic, DG,
+        (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>
         EigenCellVector;
 
-    inline int dofs_in_cell() const { return CELLDOFS(DGdegree); }
+    inline int dofs_in_cell() const { return DG; }
 
     //! empty constructor
     CellVector() { }
@@ -122,15 +123,15 @@ public:
     template <typename OtherDerived>
     CellVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
     {
-        this->Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree),
-            (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>::operator=(other);
+        this->Eigen::Matrix<double, Eigen::Dynamic, DG,
+            (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>::operator=(other);
         return *this;
     }
     template <typename OtherDerived>
     CellVector& operator+=(const Eigen::MatrixBase<OtherDerived>& other)
     {
-        this->Eigen::Matrix<double, Eigen::Dynamic, CELLDOFS(DGdegree),
-            (DGdegree == 0) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
+        this->Eigen::Matrix<double, Eigen::Dynamic, DG,
+	  (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
         return *this;
     }
 };
@@ -151,12 +152,12 @@ typedef enum { none,
  *
  *
  **/
-template <int DGdegree>
-class EdgeVector : public Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1> {
+template <int DG>
+class EdgeVector : public Eigen::Matrix<double, Eigen::Dynamic, DG> {
 
 public:
     //! Number of unknowns on each edge
-    inline int dofs_in_edge() const { return DGdegree + 1; }
+    inline int dofs_in_edge() const { return DG; }
 
     /*!
      * Type of the edge:
@@ -177,10 +178,10 @@ public:
         : edgetype(et)
     {
         if (edgetype == X)
-            Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1>::resize(
+            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
                 mesh.nx * (mesh.ny + 1), dofs_in_edge());
         else if (edgetype == Y)
-            Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1>::resize(
+            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
                 (mesh.nx + 1) * mesh.ny, dofs_in_edge());
         else {
             std::cerr << "EdgeType must be set to X or Y" << std::endl;
@@ -194,10 +195,10 @@ public:
         edgetype = et;
 
         if (edgetype == X)
-            Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1>::resize(
+            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
                 mesh.nx * (mesh.ny + 1), dofs_in_edge());
         else if (edgetype == Y)
-            Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1>::resize(
+            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
                 (mesh.nx + 1) * mesh.ny, dofs_in_edge());
         else {
             std::cerr << "EdgeType must be set to X or Y" << std::endl;
@@ -206,7 +207,7 @@ public:
     }
 
     // operations
-    void zero() { Eigen::Matrix<double, Eigen::Dynamic, DGdegree + 1>::setZero(); }
+    void zero() { Eigen::Matrix<double, Eigen::Dynamic, DG>::setZero(); }
 };
 
 } /* namespace Nextsim */

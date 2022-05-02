@@ -23,8 +23,10 @@
 bool WRITE_VTK = true;
 
 #define CG 1
-#define DGadvection 0
-#define DGstress 0
+#define DGadvection 1
+#define DGstress 1
+
+#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -119,7 +121,7 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 128; //!< Number of mesh nodes
+    constexpr size_t N = 32; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -204,7 +206,7 @@ int main()
 
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
-    Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
+    Nextsim::DGTransport<DGadvection, EDGEDOFS(DGadvection)> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk3");
     dgtransport.setmesh(mesh);
 

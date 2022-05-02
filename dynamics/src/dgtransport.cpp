@@ -12,8 +12,8 @@ namespace Nextsim {
 
 extern Timer GlobalTimer;
 
-template <int DGdegree>
-void DGTransport<DGdegree>::setmesh(const Mesh& _mesh)
+template <int DGcell, int DGedge>
+void DGTransport<DGcell, DGedge>::setmesh(const Mesh& _mesh)
 {
     mesh = _mesh; // copy mesh
 
@@ -26,57 +26,57 @@ void DGTransport<DGdegree>::setmesh(const Mesh& _mesh)
     vely_edgeX.resize_by_mesh(mesh, EdgeType::X);
 }
 
-template <int DGdegree>
-void DGTransport<DGdegree>::reinitvelocity()
+template <int DGcell, int DGedge>
+void DGTransport<DGcell, DGedge>::reinitvelocity()
 {
     // average the velocity to the edges
     average_to_edges_Y(mesh, velx_edgeY, velx);
     average_to_edges_X(mesh, vely_edgeX, vely);
 }
 
-template <int DGdegree>
-void DGTransport<DGdegree>::step_rk1(const double dt, CellVector<DGdegree>& phi)
+template <int DGcell, int DGedge>
+void DGTransport<DGcell, DGedge>::step_rk1(const double dt, CellVector<DGcell>& phi)
 {
-    transportoperator<DGdegree>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi, tmp1);
+    transportoperator<DGcell, DGedge>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi, tmp1);
 
     phi += tmp1;
 }
 
-template <int DGdegree>
-void DGTransport<DGdegree>::step_rk2(const double dt, CellVector<DGdegree>& phi)
+template <int DGcell, int DGedge>
+void DGTransport<DGcell, DGedge>::step_rk2(const double dt, CellVector<DGcell>& phi)
 {
-    transportoperator<DGdegree>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
+    transportoperator<DGcell, DGedge>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
         tmp1); // tmp1 = k * F(u)
 
     phi += tmp1; // phi = phi + k * F(u)     (i.e.: implicit Euler)
 
-    transportoperator<DGdegree>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
+    transportoperator<DGcell, DGedge>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
         tmp2); // tmp1 = k * F( u + k * F(u) )
 
     phi += 0.5 * (tmp2 - tmp1);
 }
 
-template <int DGdegree>
-void DGTransport<DGdegree>::step_rk3(const double dt, CellVector<DGdegree>& phi)
+template <int DGcell, int DGedge>
+void DGTransport<DGcell, DGedge>::step_rk3(const double dt, CellVector<DGcell>& phi)
 {
-    transportoperator<DGdegree>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
+    transportoperator<DGcell, DGedge>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
         tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
 
     phi += 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
-    transportoperator<DGdegree>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
+    transportoperator<DGcell, DGedge>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
         tmp2); // k * F(k1) // K2 in Heun(3)
     phi -= 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
 
     phi += 2. / 3. * tmp2;
-    transportoperator<DGdegree>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
+    transportoperator<DGcell, DGedge>(mesh, dt, velx, vely, velx_edgeY, vely_edgeX, phi,
         tmp3); // k * F(k2) // K3 in Heun(3)
     phi -= 2. / 3. * tmp2;
 
     phi += 0.25 * tmp1 + 0.75 * tmp3;
 }
 
-template <int DGdegree>
-void DGTransport<DGdegree>::step(const double dt, CellVector<DGdegree>& phi)
+template <int DGcell, int DGedge>
+void DGTransport<DGcell, DGedge>::step(const double dt, CellVector<DGcell>& phi)
 {
     GlobalTimer.start("-- --> step");
     if (timesteppingscheme == "rk1")
@@ -92,8 +92,8 @@ void DGTransport<DGdegree>::step(const double dt, CellVector<DGdegree>& phi)
     GlobalTimer.stop("-- --> step");
 }
 
-template class DGTransport<0>;
-template class DGTransport<1>;
-template class DGTransport<2>;
+  template class DGTransport<1,1>;
+  template class DGTransport<3,2>;
+  template class DGTransport<6,3>;
 
 } /* namespace Nextsim */

@@ -21,6 +21,8 @@ extern Timer GlobalTimer;
 
 bool WRITE_VTK = false;
 
+#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+
 //! Initially a smooth bump centered at (0.4,0.4)
 //! This will be transported in a circle with (-y, x) for one complete revolution
 struct InitialPhi {
@@ -61,7 +63,7 @@ public:
 
 //////////////////////////////////////////////////
 
-template <int DGdegree>
+template <int DG>
 class Test {
     //! Mesh size (given as parameter to constructor)
     size_t N;
@@ -73,10 +75,10 @@ class Test {
     Nextsim::Mesh mesh;
 
     //! Velocity vectors and density
-    Nextsim::CellVector<DGdegree> vx, vy, phi, finalphi;
+    Nextsim::CellVector<DG> vx, vy, phi, finalphi;
 
     //! Transport main class
-    Nextsim::DGTransport<DGdegree> dgtransport;
+  Nextsim::DGTransport<DG,EDGEDOFS(DG)> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -123,7 +125,7 @@ public:
         Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
         if (WRITE_VTK)
-            Nextsim::VTK::write_dg<DGdegree>("Results/dg", 0, phi, mesh);
+            Nextsim::VTK::write_dg<DG>("Results/dg", 0, phi, mesh);
 
         //! Save initial solution for error control
         finalphi = phi;
@@ -139,7 +141,7 @@ public:
             dgtransport.step(dt, phi); // performs one time step with the 2nd Order Heun scheme
             if (WRITE_VTK)
                 if (iter % (NT / 10) == 0)
-                    Nextsim::VTK::write_dg<DGdegree>("Results/dg", iter / (NT / 10), phi, mesh);
+                    Nextsim::VTK::write_dg<DG>("Results/dg", iter / (NT / 10), phi, mesh);
         }
 
         Nextsim::GlobalTimer.stop("--> run");
@@ -149,16 +151,16 @@ public:
 
     bool check() const
     {
-        std::cerr << "k " << 1. / N << " dG " << DGdegree << "\t";
+        std::cerr << "k " << 1. / N << " dG " << DG << "\t";
 
         //! Check that mass is ok.
         double mass = phi.mass(mesh);
         std::cerr << std::setprecision(16) << mass << "\t";
 
-        Nextsim::CellVector<DGdegree> errorphi = phi;
+        Nextsim::CellVector<DG> errorphi = phi;
         errorphi += -finalphi;
         if (WRITE_VTK)
-            Nextsim::VTK::write_dg<DGdegree>("Results/error", N, errorphi, mesh);
+            Nextsim::VTK::write_dg<DG>("Results/error", N, errorphi, mesh);
 
         std::cerr << errorphi.norm() * sqrt(mesh.hx * mesh.hy) << std::endl;
 
@@ -175,7 +177,7 @@ int main()
     int N = 20;
     // for (int n=0;n<ITER;++n)
     //   {
-    //     Test<0> test0(N);
+    //     Test<1> test0(N);
     //     test0.init();
     //     test0.run();
     //     if (!test0.check())
@@ -187,7 +189,7 @@ int main()
     // N = 20;
     // for (int n=0;n<ITER;++n)
     //   {
-    //     Test<1> test1(N);
+    //     Test<3> test1(N);
     //     test1.init();
     //     test1.run();
     //     if (!test1.check())
@@ -198,7 +200,7 @@ int main()
 
     N = 20;
     for (int n = 0; n < ITER; ++n) {
-        Test<2> test2(N);
+        Test<6> test2(N);
         test2.init();
         test2.run();
         if (!test2.check())

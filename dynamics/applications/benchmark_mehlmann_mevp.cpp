@@ -10,6 +10,7 @@
 #include "dgInitial.hpp"
 #include "dgTransport.hpp"
 #include "dgVisu.hpp"
+#include "dgLimit.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
 
@@ -21,9 +22,12 @@
 
 bool WRITE_VTK = true;
 
-#define CG 1
-#define DGadvection 0
-#define DGstress 0
+#define CG 2
+#define DGadvection 3
+#define DGstress 8
+
+#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3))
+
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -182,10 +186,10 @@ int main()
     Nextsim::CellVector<DGstress> E11(mesh), E12(mesh), E22(mesh); //!< storing strain rates
     Nextsim::CellVector<DGstress> S11(mesh), S12(mesh), S22(mesh); //!< storing stresses rates
 
-    Nextsim::CellVector<0> DELTA(mesh); //!< Storing DELTA
-    Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
-    Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
-    Nextsim::CellVector<0> MU1(mesh), MU2(mesh); //!< Stress invariants
+    Nextsim::CellVector<1> DELTA(mesh); //!< Storing DELTA
+    Nextsim::CellVector<1> SHEAR(mesh); //!< Storing DELTA
+    Nextsim::CellVector<1> S1(mesh), S2(mesh); //!< Stress invariants
+    Nextsim::CellVector<1> MU1(mesh), MU2(mesh); //!< Stress invariants
 
     // save initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
@@ -198,8 +202,8 @@ int main()
     Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, DELTA, mesh);
     Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
     Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, SHEAR, mesh);
-    Nextsim::Tools::ElastoParams(
-        mesh, E11, E12, E22, H, A, ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
+    //    Nextsim::Tools::ElastoParams(
+    //        mesh, E11, E12, E22, H, A, ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
     Nextsim::VTK::write_dg("ResultsBenchmark/mu1", 0, MU1, mesh);
     Nextsim::VTK::write_dg("ResultsBenchmark/mu2", 0, MU2, mesh);
 
@@ -213,7 +217,7 @@ int main()
 
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
-    Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
+    Nextsim::DGTransport<DGadvection, EDGEDOFS(DGadvection)> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk2");
     dgtransport.setmesh(mesh);
 
@@ -255,13 +259,16 @@ int main()
         dgtransport.step(dt_adv, H);
 
         //! Very simple limiting (just constants)
-        A.col(0) = A.col(0).cwiseMin(1.0);
-        A.col(0) = A.col(0).cwiseMax(0.0);
-        H.col(0) = H.col(0).cwiseMax(0.0);
+	Nextsim::LimitMax(A,1.0);
+	Nextsim::LimitMin(A,0.0);
+	Nextsim::LimitMin(H,0.0);
+        // A.col(0) = A.col(0).cwiseMin(1.0);
+        // A.col(0) = A.col(0).cwiseMax(0.0);
+        // H.col(0) = H.col(0).cwiseMax(0.0);
 
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);
-
+	
         cg_A = cg_A.cwiseMin(1.0);
         cg_A = cg_A.cwiseMax(0.0);
         cg_H = cg_H.cwiseMax(1.e-4); //!< Limit H from below
@@ -283,8 +290,8 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
 
-            Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22, E11, E12, E22, H, A,
-                ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
+            Nextsim::mEVP::StressUpdateHighOrder(mesh, S11, S12, S22, E11, E12, E22, H, A,
+					ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
@@ -345,6 +352,8 @@ int main()
                 * tmpy.array())
                       .matrix();
 
+
+
             Nextsim::GlobalTimer.stop("time loop - mevp - update2");
             Nextsim::GlobalTimer.stop("time loop - mevp - update");
 
@@ -374,6 +383,7 @@ int main()
                 Nextsim::VTK::write_cg("ResultsBenchmark/vy", printstep, vy, mesh);
                 Nextsim::VTK::write_dg("ResultsBenchmark/A", printstep, A, mesh);
                 Nextsim::VTK::write_dg("ResultsBenchmark/H", printstep, H, mesh);
+		Nextsim::VTK::write_cg("ResultsBenchmark/cgH", printstep, cg_H, mesh);
 
                 Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin, DELTA);
                 Nextsim::VTK::write_dg("ResultsBenchmark/Delta", printstep, DELTA, mesh);
@@ -385,12 +395,12 @@ int main()
                 // Nextsim::VTK::write_dg("ResultsBenchmark/mu1", printstep, MU1, mesh);
                 // Nextsim::VTK::write_dg("ResultsBenchmark/mu2", printstep, MU2, mesh);
 
-                // Nextsim::VTK::write_dg("ResultsBenchmark/S11", printstep, S11, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/S12", printstep, S12, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/S22", printstep, S22, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/E11", printstep, E11, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/E12", printstep, E12, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/E22", printstep, E22, mesh);
+		Nextsim::VTK::write_dg("ResultsBenchmark/S11", printstep, S11, mesh);
+		Nextsim::VTK::write_dg("ResultsBenchmark/S12", printstep, S12, mesh);
+		Nextsim::VTK::write_dg("ResultsBenchmark/S22", printstep, S22, mesh);
+		Nextsim::VTK::write_dg("ResultsBenchmark/E11", printstep, E11, mesh);
+		Nextsim::VTK::write_dg("ResultsBenchmark/E12", printstep, E12, mesh);
+		Nextsim::VTK::write_dg("ResultsBenchmark/E22", printstep, E22, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }

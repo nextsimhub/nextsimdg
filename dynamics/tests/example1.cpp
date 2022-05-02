@@ -30,6 +30,8 @@ int WRITE_EVERY = 5;
 
 double TOL = 1.e-10; //!< tolerance for checking test results
 
+#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+
 //! Initially a smooth bump centered at (0.4,0.4)
 //! This will be transported in a circle with (-y, x) for one complete revolution
 struct InitialPhi {
@@ -87,7 +89,7 @@ public:
 
 //////////////////////////////////////////////////
 
-template <int DGdegree>
+template <int DG>
 class Test {
 
     size_t N; //!< size of mesh N x N
@@ -98,10 +100,10 @@ class Test {
     Nextsim::Mesh mesh; //!< space mesh
 
     //! Velocity vectors and density
-    Nextsim::CellVector<DGdegree> vx, vy, phi, finalphi;
+    Nextsim::CellVector<DG> vx, vy, phi, finalphi;
 
     //! Transport main class
-    Nextsim::DGTransport<DGdegree> dgtransport;
+  Nextsim::DGTransport<DG,EDGEDOFS(DG)> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -119,7 +121,7 @@ public:
         , writestep(40)
     {
         //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2
-        if (DGdegree < 2)
+        if (DG < 3)
             dgtransport.settimesteppingscheme("rk2");
         else
             dgtransport.settimesteppingscheme("rk3");
@@ -170,7 +172,7 @@ public:
 
             if (WRITE_VTK) {
                 Nextsim::Timer::main.tick("run -- init -- vtk");
-                Nextsim::VTK::write_dg<DGdegree>("Results/dg", 0, phi, mesh);
+                Nextsim::VTK::write_dg<DG>("Results/dg", 0, phi, mesh);
                 Nextsim::Timer::main.tock("run -- init -- vtk");
             }
 
@@ -195,7 +197,7 @@ public:
                 if (WRITE_VTK)
                     if (iter % (NT / writestep) == 0) {
                         Nextsim::Timer::main.tick("run -- loop -- vtk");
-                        Nextsim::VTK::write_dg<DGdegree>(
+                        Nextsim::VTK::write_dg<DG>(
                             "Results/dg", iter / (NT / writestep), phi, mesh);
                         Nextsim::Timer::main.tock("run -- loop -- vtk");
                     }
@@ -203,11 +205,11 @@ public:
             Nextsim::Timer::main.tock("run -- loop");
 
             Nextsim::Timer::main.tick("run -- error");
-            Nextsim::CellVector<DGdegree> errorphi = phi;
+            Nextsim::CellVector<DG> errorphi = phi;
             errorphi += -finalphi;
             if (WRITE_VTK) {
                 Nextsim::Timer::main.tick("run -- error- vtk");
-                Nextsim::VTK::write_dg<DGdegree>("Results/error", N, errorphi, mesh);
+                Nextsim::VTK::write_dg<DG>("Results/error", N, errorphi, mesh);
                 Nextsim::Timer::main.tock("run -- error- vtk");
             }
             errors.push_back(errorphi.norm() * sqrt(mesh.hx * mesh.hy));
@@ -225,7 +227,7 @@ public:
 
     void print_error(const std::string& message) const
     {
-        std::cerr << "dG(" << DGdegree << ") FAILED: " << message << std::endl;
+        std::cerr << "dG(" << DG << ") FAILED: " << message << std::endl;
         for (size_t i = 0; i < values.size(); ++i)
             std::cerr << values[i] << "\t" << errors[i] << std::endl;
     }
@@ -233,7 +235,7 @@ public:
     void print_error(const std::array<double, 3>& v, const std::array<double, 3>& e,
         const std::string& message) const
     {
-        std::cerr << "dG(" << DGdegree << ") FAILED: " << message << std::endl;
+        std::cerr << "dG(" << DG << ") FAILED: " << message << std::endl;
 
         assert(values.size() >= 3);
 
@@ -265,17 +267,17 @@ public:
         std::array<double, 3> val_ref, err_ref;
 
         if (N == 80) {
-            if (DGdegree == 0) {
+            if (DG == 1) {
                 val_ref = std::array<double, 3>(
                     { 0.1040973014386282, 0.1196042191148516, 0.1264035055795092 });
                 err_ref = std::array<double, 3>(
                     { 0.2055757930605657, 0.1547718388297195, 0.1111151282733836 });
-            } else if (DGdegree == 1) {
+            } else if (DG == 3) {
                 val_ref = std::array<double, 3>(
                     { 0.1297377725023032, 0.1290794989188777, 0.1290992303550586 });
                 err_ref = std::array<double, 3>(
                     { 0.07138784362943089, 0.01941901084543833, 0.004572185826845114 });
-            } else if (DGdegree == 2) {
+            } else if (DG == 6) {
                 val_ref = std::array<double, 3>(
                     { 0.1290847613765785, 0.129099700340886, 0.1290996998763931 });
                 err_ref = std::array<double, 3>(
@@ -297,21 +299,21 @@ int main()
 {
     size_t N = 20;
 
-    Test<0> test0(N);
+    Test<1> test0(N);
     test0.run();
     if (!test0.check())
         std::cout << "dG(0) TEST FAILED" << std::endl;
     else
         std::cout << "dG(0) TEST PASSED" << std::endl;
 
-    Test<1> test1(N);
+    Test<3> test1(N);
     test1.run();
     if (!test1.check())
         std::cout << "dG(1) TEST FAILED" << std::endl;
     else
         std::cout << "dG(1) TEST PASSED" << std::endl;
 
-    Test<2> test2(N);
+    Test<6> test2(N);
     test2.run();
     if (!test2.check())
         std::cout << "dG(2) TEST FAILED" << std::endl;

@@ -21,6 +21,8 @@ constexpr double L = 512000.0;
 constexpr double eta = 1.e8;
 constexpr double rho_ice = 900;
 
+#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+
 namespace Nextsim {
 extern Timer GlobalTimer;
 }
@@ -140,7 +142,7 @@ int main()
         dynamics.GetVY().zero();
 
         //! right hand side
-        Nextsim::CellVector<2> fx(dynamics.GetMesh()), fy(dynamics.GetMesh());
+        Nextsim::CellVector<6> fx(dynamics.GetMesh()), fy(dynamics.GetMesh());
         Nextsim::L2ProjectInitial(dynamics.GetMesh(), fx, FX());
         Nextsim::L2ProjectInitial(dynamics.GetMesh(), fy, FY());
 
@@ -204,12 +206,12 @@ int main()
         Nextsim::GlobalTimer.stop("time loop");
 
         Nextsim::GlobalTimer.start("VTK");
-        Nextsim::VTK::write_dg<2>("Results/vx", refine, dynamics.GetVX(), dynamics.GetMesh());
-        Nextsim::VTK::write_dg<2>("Results/vy", refine, dynamics.GetVY(), dynamics.GetMesh());
+        Nextsim::VTK::write_dg<6>("Results/vx", refine, dynamics.GetVX(), dynamics.GetMesh());
+        Nextsim::VTK::write_dg<6>("Results/vy", refine, dynamics.GetVY(), dynamics.GetMesh());
 
-        Nextsim::VTK::write_dg<1>("Results/S11", refine, dynamics.GetS11(), dynamics.GetMesh());
-        Nextsim::VTK::write_dg<1>("Results/S12", refine, dynamics.GetS12(), dynamics.GetMesh());
-        Nextsim::VTK::write_dg<1>("Results/S22", refine, dynamics.GetS22(), dynamics.GetMesh());
+        Nextsim::VTK::write_dg<3>("Results/S11", refine, dynamics.GetS11(), dynamics.GetMesh());
+        Nextsim::VTK::write_dg<3>("Results/S12", refine, dynamics.GetS12(), dynamics.GetMesh());
+        Nextsim::VTK::write_dg<3>("Results/S22", refine, dynamics.GetS22(), dynamics.GetMesh());
         Nextsim::GlobalTimer.stop("VTK");
         Nextsim::GlobalTimer.print();
 

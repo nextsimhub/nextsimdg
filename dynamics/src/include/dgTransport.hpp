@@ -16,12 +16,12 @@ namespace Nextsim {
  *
  * template parameter DGdegree is degree (0,1,2) of dg scheme
  */
-template <int DGdegree>
+  template <int DGcell, int DGedge>
 class DGTransport {
 protected:
     //! reference to the current velocity
-    const CellVector<DGdegree>& velx;
-    const CellVector<DGdegree>& vely;
+    const CellVector<DGcell>& velx;
+    const CellVector<DGcell>& vely;
 
     //! Specifies the time stepping scheme [rk1, rk2, rk3]
     std::string timesteppingscheme;
@@ -30,13 +30,13 @@ protected:
     Mesh mesh;
 
     //! velocity in edges
-    EdgeVector<DGdegree> velx_edgeY, vely_edgeX;
+    EdgeVector<DGedge> velx_edgeY, vely_edgeX;
 
     //! temporary vectors for time stepping
-    CellVector<DGdegree> tmp1, tmp2, tmp3;
+    CellVector<DGcell> tmp1, tmp2, tmp3;
 
 public:
-    DGTransport(const CellVector<DGdegree>& vx, const CellVector<DGdegree>& vy)
+    DGTransport(const CellVector<DGcell>& vx, const CellVector<DGcell>& vy)
         : velx(vx)
         , vely(vy)
         , timesteppingscheme("rk2")
@@ -77,28 +77,28 @@ public:
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk1(const double dt, CellVector<DGdegree>& phi);
+    void step_rk1(const double dt, CellVector<DGcell>& phi);
 
     /*!
      * Performs one time step transporting phi with the 2nd Order Heun Scheme
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk2(const double dt, CellVector<DGdegree>& phi);
+    void step_rk2(const double dt, CellVector<DGcell>& phi);
 
     /*!
      * Performs one time step transporting phi with the 2nd Order Heun Scheme
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk3(const double dt, CellVector<DGdegree>& phi);
+    void step_rk3(const double dt, CellVector<DGcell>& phi);
 
     /*!
      * Performs one time step transporting phi
      *
      * @params phi is the vector of values to be transported
      */
-    void step(const double dt, CellVector<DGdegree>& phi);
+    void step(const double dt, CellVector<DGcell>& phi);
 };
 
 } /* namespace Nextsim */

@@ -25,6 +25,8 @@ bool WRITE_VTK = true;
  * Domain is [0,2] x [0,1] with 2N * N elements
  */
 
+#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+
 struct InitialVX {
     double time;
 
@@ -59,7 +61,7 @@ public:
     }
 };
 
-template <int DGdegree>
+template <int DG>
 class Test {
     //! Meshes
     Nextsim::Mesh mesh;
@@ -68,10 +70,10 @@ class Test {
     double dt; //!< time step size
 
     //! Velocity vectors and density
-    Nextsim::CellVector<DGdegree> vx, vy, phi;
+    Nextsim::CellVector<DG> vx, vy, phi;
 
     //! Transport main class
-    Nextsim::DGTransport<DGdegree> dgtransport;
+  Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -90,11 +92,11 @@ public:
         assert(mesh.nx == 100);
         assert(mesh.ny == 50);
 
-        if (DGdegree == 0)
+        if (DG == 1)
             return 0.0209529644049705;
-        else if (DGdegree == 1)
+        else if (DG == 3)
             return 0.04068581235936104;
-        else if (DGdegree == 2)
+        else if (DG == 6)
             return 0.04075915956821777;
         abort();
     }
@@ -128,7 +130,7 @@ public:
         Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
         if (WRITE_VTK)
-            Nextsim::VTK::write_dg<DGdegree>("Results/dg", 0, phi, mesh);
+            Nextsim::VTK::write_dg<DG>("Results/dg", 0, phi, mesh);
 
         // time loop
         for (size_t iter = 1; iter <= NT; ++iter) {
@@ -143,7 +145,7 @@ public:
             dgtransport.step(dt, phi); // performs one time step with the 2nd Order Heun scheme
             if (WRITE_VTK)
                 if (iter % (NT / 10) == 0)
-                    Nextsim::VTK::write_dg<DGdegree>("Results/dg", iter / (NT / 10), phi, mesh);
+                    Nextsim::VTK::write_dg<DG>("Results/dg", iter / (NT / 10), phi, mesh);
         }
     }
 
@@ -164,19 +166,19 @@ public:
 
 int main()
 {
-    Test<0> test0;
+    Test<1> test0;
     test0.init();
     test0.run();
     if (!test0.check())
         std::cerr << "TEST FAILED!" << std::endl;
 
-    Test<1> test1;
+    Test<3> test1;
     test1.init();
     test1.run();
     if (!test1.check())
         std::cerr << "TEST FAILED!" << std::endl;
 
-    Test<2> test2;
+    Test<6> test2;
     test2.init();
     test2.run();
     if (!test2.check())

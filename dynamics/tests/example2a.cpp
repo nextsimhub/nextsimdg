@@ -23,6 +23,9 @@
 
 double WRITE_VTK = false;
 
+#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+
+
 struct InitialVX {
     double time;
 
@@ -57,16 +60,16 @@ public:
     }
 };
 
-template <int DGdegree>
+template <int DG>
 class Test {
     //! Meshes
     Nextsim::Mesh mesh;
 
     //! Velocity vectors and density
-    Nextsim::CellVector<DGdegree> vx, vy, phi;
+    Nextsim::CellVector<DG> vx, vy, phi;
 
     //! Transport main class
-    Nextsim::DGTransport<DGdegree> dgtransport;
+  Nextsim::DGTransport<DG, EDGEDOFS(DG)> dgtransport;
 
     size_t NT; //!< number of time steps
     double dt; //!< time step size
@@ -88,11 +91,11 @@ public:
         assert(mesh.nx == 50);
         assert(mesh.ny == 50);
 
-        if (DGdegree == 0)
+        if (DG == 1)
             return 0.01471306095991658;
-        else if (DGdegree == 1)
+        else if (DG == 3)
             return 0.02876612522677796;
-        else if (DGdegree == 2)
+        else if (DG == 6)
             return 0.02889040496900962;
         abort();
     }
@@ -126,7 +129,7 @@ public:
         Nextsim::L2ProjectInitial(mesh, phi, InitialPhi());
 
         if (WRITE_VTK)
-            Nextsim::VTK::write_dg<DGdegree>("Results/dg", 0, phi, mesh);
+            Nextsim::VTK::write_dg<DG>("Results/dg", 0, phi, mesh);
 
         // time loop
         for (size_t iter = 1; iter <= NT; ++iter) {
@@ -142,7 +145,7 @@ public:
 
             if (WRITE_VTK)
                 if (iter % (NT / 10) == 0)
-                    Nextsim::VTK::write_dg<DGdegree>("Results/dg", iter / (NT / 10), phi, mesh);
+                    Nextsim::VTK::write_dg<DG>("Results/dg", iter / (NT / 10), phi, mesh);
         }
     }
 
@@ -163,19 +166,19 @@ public:
 
 int main()
 {
-    Test<0> test0;
+    Test<1> test0;
     test0.init();
     test0.run();
     if (!test0.check())
         std::cerr << "TEST FAILED!" << std::endl;
 
-    Test<1> test1;
+    Test<3> test1;
     test1.init();
     test1.run();
     if (!test1.check())
         std::cerr << "TEST FAILED!" << std::endl;
 
-    Test<2> test2;
+    Test<6> test2;
     test2.init();
     test2.run();
     if (!test2.check())

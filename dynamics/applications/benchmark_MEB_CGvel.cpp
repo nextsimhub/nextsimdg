@@ -23,8 +23,8 @@
 bool WRITE_VTK = true;
 
 #define CG 1
-#define DGadvection 0
-#define DGstress 0
+#define DGadvection 1
+#define DGstress 1
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -158,24 +158,24 @@ int main()
     Nextsim::CellVector<DGstress> E11(mesh), E12(mesh), E22(mesh); //!< storing strain rates
     Nextsim::CellVector<DGstress> S11(mesh), S12(mesh), S22(mesh); //!< storing stresses rates
 
-    Nextsim::CellVector<0> DELTA(mesh); //!< Storing DELTA
-    Nextsim::CellVector<0> SHEAR(mesh); //!< Storing DELTA
-    Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
+    Nextsim::CellVector<1> DELTA(mesh); //!< Storing DELTA
+    Nextsim::CellVector<1> SHEAR(mesh); //!< Storing DELTA
+    Nextsim::CellVector<1> S1(mesh), S2(mesh); //!< Stress invariants
 
     // Temporary variables
-    Nextsim::CellVector<0> eta1(mesh), eta2(mesh);
-    Nextsim::CellVector<0> MU1(mesh), MU2(mesh);
-    Nextsim::CellVector<0> stressrelax(mesh);
-    Nextsim::CellVector<0> sigma_outside(mesh);
-    Nextsim::CellVector<0> tildeP(mesh);
-    Nextsim::CellVector<0> Pmax(mesh);
+    Nextsim::CellVector<1> eta1(mesh), eta2(mesh);
+    Nextsim::CellVector<1> MU1(mesh), MU2(mesh);
+    Nextsim::CellVector<1> stressrelax(mesh);
+    Nextsim::CellVector<1> sigma_outside(mesh);
+    Nextsim::CellVector<1> tildeP(mesh);
+    Nextsim::CellVector<1> Pmax(mesh);
 
     Nextsim::CellVector<DGadvection> D(mesh); //!< ice damage. ?? Really dG(0) ??
     Nextsim::L2ProjectInitial(mesh, D, InitialD());
 
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
-    Nextsim::DGTransport<DGadvection> dgtransport(dgvx, dgvy);
+    Nextsim::DGTransport<DGadvection, DGadvection> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk1");
     dgtransport.setmesh(mesh);
 
