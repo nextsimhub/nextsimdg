@@ -1,7 +1,7 @@
 /*!
  * @file benchmark_MEB_CGvel.cpp
  * @date 1 Mar 2022
- * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #include "Tools.hpp"
@@ -169,6 +169,14 @@ int main()
     Nextsim::CellVector<1> sigma_outside(mesh);
     Nextsim::CellVector<1> tildeP(mesh);
     Nextsim::CellVector<1> Pmax(mesh);
+    Nextsim::CellVector<1> td(mesh);
+    Nextsim::CellVector<1> d_crit(mesh);
+    Nextsim::CellVector<1> tau(mesh);
+    Nextsim::CellVector<1> sigma_n(mesh);
+    Nextsim::CellVector<1> Regime(mesh);
+    Nextsim::CellVector<1> Multip(mesh);
+    Nextsim::CellVector<1> Lambda(mesh);
+
 
     Nextsim::CellVector<DGadvection> D(mesh); //!< ice damage. ?? Really dG(0) ??
     Nextsim::L2ProjectInitial(mesh, D, InitialD());
@@ -206,8 +214,14 @@ int main()
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/stressrelax", 0, stressrelax, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/stressOutside", 0, sigma_outside, mesh);
     Nextsim::VTK::write_dg("ResultsMEB_CGvel/Pmax", 0, Pmax, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", 0, S1, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", 0, S2, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", 0, sigma_n, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", 0, tau, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/td", 0, td, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/d_crit", 0, d_crit, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Regime", 0, Regime, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Multip", 0, Multip, mesh);
+    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Lambda", 0, Lambda, mesh);
+
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     //! Initial Forcing
@@ -275,14 +289,15 @@ int main()
             Nextsim::GlobalTimer.start("time loop - meb - stress");
             //! Stress Update
 
-            // Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
-            //     H, A, D, dt_momentum);
+            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
+            //    H, A, D, dt_momentum);
 
             Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22, E11, E12, E22, H, A, D, DELTA,
-                SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, dt_momentum);
+                SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, td, d_crit,
+                Regime, Multip, Lambda, dt_momentum);
 
-            // Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
-            //     H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
+            //Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
+            //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
             Nextsim::GlobalTimer.stop("time loop - meb - stress");
 
@@ -290,7 +305,7 @@ int main()
             //! Update
             Nextsim::GlobalTimer.start("time loop - meb - update1");
 
-            //	    update by a loop.. explicit parts and h-dependent
+            //update by a loop.. explicit parts and h-dependent
             vx = (1.0
                 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                     + cg_A.array() * RefScale::F_ocean
@@ -349,7 +364,7 @@ int main()
         }
         Nextsim::GlobalTimer.stop("time loop - meb");
 
-        //         //! Output
+        //! Output
         if (WRITE_VTK)
             if ((timestep % NT_vtk == 0)) {
                 std::cout << "VTK output at day " << time / 24. / 60. / 60. << std::endl;
@@ -392,12 +407,17 @@ int main()
                     "ResultsMEB_CGvel/stressOutside", printstep, sigma_outside, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/tildeP", printstep, tildeP, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/Pmax", printstep, Pmax, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/td", printstep, td, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/d_crit", printstep, d_crit, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", printstep, S1, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", printstep, S2, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta1", printstep, eta1, mesh);
                 Nextsim::VTK::write_dg("ResultsMEB_CGvel/eta2", printstep, eta2, mesh);
                 Nextsim::VTK::write_dg(
                     "ResultsMEB_CGvel/stressrelax", printstep, stressrelax, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/Regime", printstep, Regime, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/Multip", printstep, Multip, mesh);
+                Nextsim::VTK::write_dg("ResultsMEB_CGvel/Lambda", printstep, Lambda, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }

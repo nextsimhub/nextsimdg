@@ -1,7 +1,7 @@
 /*!
  * @file benchmark_mehlmann_mevp.cpp
  * @date 1 Mar 2022
- * @author Thomas Richter <thomas.richter@ovgu.no>
+ * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #include "Tools.hpp"
@@ -280,8 +280,26 @@ int main()
         vx_mevp = vx;
         vy_mevp = vy;
 
+        Nextsim::CGVector<CG> vx_p(mesh), vy_p(mesh);
+        Nextsim::CellVector<DGstress> S11_p(mesh), S12_p(mesh), S22_p(mesh);
+
         //! MEVP subcycling
         for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
+
+            //Check now close are v^p and v^{p-1} and S^p S^{p-1}
+            if ((mevpstep + 1) % 50 == 0) {
+                std::cout << "Advection step " << timestep << " mEV iteration " << mevpstep + 1 << std::endl;
+                std::cout << "Norm vx = " << std::setprecision(6) << (vx - vx_p).norm() << std::endl;
+                std::cout << "Norm vy = " << (vy - vy_p).norm() << std::endl;
+                std::cout << "Norm S11 = " << (S11 - S11_p).norm() << std::endl;
+                std::cout << "Norm S12 = " << (S12 - S12_p).norm() << std::endl;
+                std::cout << "Norm S22 = " << (S22 - S22_p).norm() << std::endl;
+            }
+            vx_p = vx;
+            vy_p = vy;
+            S11_p = S11;
+            S12_p = S12;
+            S22_p = S22;
 
             Nextsim::GlobalTimer.start("time loop - mevp - strain");
             //! Compute Strain Rate

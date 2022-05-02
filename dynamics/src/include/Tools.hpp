@@ -1,7 +1,7 @@
 /*!
  * @file Tools.hpp
  * @date 1 Mar 2022
- * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef __TOOLS_HPP
@@ -54,7 +54,10 @@ namespace Tools {
         for (size_t i = 0; i < mesh.n; ++i) {
             double DELTA = sqrt(SQR(DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
                 + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
-            assert(DELTA > 0);
+            if (DELTA <= 0)
+                std::cout << DELTA << std::endl;
+
+            assert(DELTA >= 0);
 
             //! Ice strength
             double P = Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
