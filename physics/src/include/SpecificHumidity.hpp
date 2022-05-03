@@ -14,8 +14,10 @@ namespace Nextsim {
 
 class SpecificHumidity {
 public:
-    static SpecificHumidity water();
-    static SpecificHumidity ice();
+    //! @brief Returns a reference to the static water instance
+    static SpecificHumidity& water();
+    //! @brief Returns a reference to the static ice instance
+    static SpecificHumidity& ice();
 
     /*!
      * @brief Calculates humidity over fresh water or ice
@@ -23,7 +25,7 @@ public:
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
      */
-    double operator()(const double temperature, const double pressure) const;
+    double operator()(double temperature, double pressure) const;
     /*!
      * @brief Calculates humidity over sea water.
      *
@@ -31,8 +33,7 @@ public:
      * @param pressure Hydrostatic pressure [Pa]
      * @param salinity Salinity of the liquid water [PSU]
      */
-    double operator()(
-        const double temperature, const double pressure, const double salinity) const;
+    double operator()(double temperature, double pressure, double salinity) const;
 
     /*!
      * @brief Calculates humidity and its temperature dependence over fresh
@@ -41,7 +42,7 @@ public:
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
      */
-    std::pair<double, double> valueAndDerivative(const double temperature, const double pressure) const;
+    std::pair<double, double> valueAndDerivative(double temperature, double pressure) const;
     /*!
      * @brief Calculates humidity and its temperature dependence over sea
      * water.
@@ -50,11 +51,40 @@ public:
      * @param pressure Hydrostatic pressure [Pa]
      * @param salinity Salinity of the liquid water [PSU]
      */
-    std::pair<double, double> valueAndDerivative(
-        const double temperature, const double pressure, const double salinity) const;
+    std::pair<double, double> valueAndDerivative(double temperature,
+            double pressure, double salinity) const;
 
 private:
+    // Default constructor is for water
     SpecificHumidity();
+    // General constructor
+    SpecificHumidity(double a, double b, double c, double d, double bigA, double bigB, double bigC);
+
+    /*!
+     * @brief Performs the calculation
+     *
+     * @param temperature Temperature of the water vapour [˚C]
+     * @param pressure Hydrostatic pressure [Pa]
+     * @param salinity Salinity of the liquid water [PSU]
+     * @param doDeriv perform the derivative calculation
+     */
+    std::pair<double, double> calculate(double temperature, double pressure, double salinity, bool doDeriv) const;
+
+    /*!
+     * @brief Calculates the f factor.
+     *
+     * @param temperature Water vapour temperature [˚C]
+     * @param pressurePa Hydrostatic pressure [Pa]
+     */
+    double f(double temperature, double pressurePa) const;
+    /*!
+     * @brief Calculates the est factor.
+     *
+     * @param temperature Water vapour temperature [˚C]
+     * @param salinity Liquid water salinity [PSU]
+     */
+    double est(double temperature, double salinity) const;
+
     const double m_a;
     const double m_b;
     const double m_c;
@@ -65,6 +95,8 @@ private:
     const double m_alpha;
     const double m_beta;
 
+    static SpecificHumidity waterInst;
+    static SpecificHumidity iceInst;
 };
 
 } /* namespace Nextsim */
