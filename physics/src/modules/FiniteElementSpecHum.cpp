@@ -1,26 +1,22 @@
 /*
- * @file SpecificHumidity.cpp
+ * @file FiniteElementSpecHum.cpp
  *
- * @date May 2, 2022
+ * @date May 3, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/SpecificHumidity.hpp"
+#include "include/FiniteElementSpecHum.hpp"
 
 namespace Nextsim {
 
-// Construct water and ice instances
-SpecificHumidity SpecificHumidity::waterInst(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10);
-SpecificHumidity SpecificHumidity::iceInst(6.1115e2, 23.036, 279.82, 333.7, 2.2e-4, 3.83e-6, 6.4e-10);
-
 // Default construction constructs a water instance
-SpecificHumidity::SpecificHumidity()
-    : SpecificHumidity(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10)
-{
-}
+FiniteElementSpecHum::FiniteElementSpecHum()
+    :FiniteElementSpecHum(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10)
+     {
+     }
 
 // General constructor
-SpecificHumidity::SpecificHumidity(double a, double b, double c, double d, double bigA,
+FiniteElementSpecHum::FiniteElementSpecHum(double a, double b, double c, double d, double bigA,
         double bigB, double bigC)
     : m_a(a)
     , m_b(b)
@@ -34,31 +30,42 @@ SpecificHumidity::SpecificHumidity(double a, double b, double c, double d, doubl
 {
 }
 
-SpecificHumidity& SpecificHumidity::water() { return waterInst; }
-SpecificHumidity& SpecificHumidity::ice() { return iceInst; }
+void FiniteElementSpecHum::configure()
+{
+    if (waterPtr) {
+        delete waterPtr;
+    }
+    if (icePtr) {
+        delete icePtr;
+    }
 
-double SpecificHumidity::operator()(double temperature, double pressure) const
+    // Construct the water and ice calculators
+    waterPtr = new FiniteElementSpecHum(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10);
+    icePtr = new FiniteElementSpecHum(6.1115e2, 23.036, 279.82, 333.7, 2.2e-4, 3.83e-6, 6.4e-10);
+}
+
+double FiniteElementSpecHum::operator()(double temperature, double pressure) const
 {
     return operator()(temperature, pressure, 0);
 }
 
-double SpecificHumidity::operator()(double temperature, double pressure, double salinity) const
+double FiniteElementSpecHum::operator()(double temperature, double pressure, double salinity) const
 {
     return calculate(temperature, pressure, salinity, false).first;
 }
 
-std::pair<double, double> SpecificHumidity::valueAndDerivative(double temperature, double pressure) const
+std::pair<double, double> FiniteElementSpecHum::valueAndDerivative(double temperature, double pressure) const
 {
     return valueAndDerivative(temperature, pressure, 0);
 }
 
-std::pair<double, double> SpecificHumidity::valueAndDerivative(double temperature,
+std::pair<double, double> FiniteElementSpecHum::valueAndDerivative(double temperature,
         double pressure, double salinity) const
 {
     return calculate(temperature, pressure, salinity, true);
 }
 
-std::pair<double, double> SpecificHumidity::calculate(double temperature, double pressure, double salinity, bool doDeriv) const
+std::pair<double, double> FiniteElementSpecHum::calculate(double temperature, double pressure, double salinity, bool doDeriv) const
 {
     double estCalc = est(temperature, salinity);
     double fCalc = f(temperature, pressure);
@@ -83,13 +90,13 @@ std::pair<double, double> SpecificHumidity::calculate(double temperature, double
 }
 
 // Specific humidity terms
-double SpecificHumidity::f(double temperature, double pressurePa) const
+double FiniteElementSpecHum::f(double temperature, double pressurePa) const
 {
     double pressure_mb = pressurePa * 0.01;
     return 1 + m_bigA + pressure_mb * (m_bigB + m_bigC * temperature * temperature);
 }
 
-double SpecificHumidity::est(double temperature, double salinity) const
+double FiniteElementSpecHum::est(double temperature, double salinity) const
 {
     double salFactor = 1 - 5.37e-4 * salinity;
     return m_a * exp((m_b - temperature / m_d) * temperature / (temperature + m_c)) * salFactor;
