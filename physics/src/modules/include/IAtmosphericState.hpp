@@ -24,6 +24,7 @@ public:
     ModelState getState(const OutputLevel&) const override {return getState(); }
     std::set<std::string> hFields() override{ return {"sh_air", "sh_water", "sh_ice", "rho_air", "p_air", "cp_air"}; }
 
+    virtual void update(const TimestepTime&) = 0;
 protected:
     IAtmosphericState()
     {
@@ -35,11 +36,12 @@ protected:
     HField sh_water;
     HField sh_ice;
     HField rho_air;
-    HField cp_air;
+    HField cp_wet;
 
     ModelArrayRef<ProtectedArray::T_AIR> t_air;
     ModelArrayRef<ProtectedArray::DEW_2M> t_dew2;
     ModelArrayRef<ProtectedArray::SST> sst;
+    ModelArrayRef<ProtectedArray::SSS> sss;
     ModelArrayRef<ProtectedArray::T_ICE> tice;
     ModelArrayRef<ProtectedArray::P_AIR> p_air;
 };

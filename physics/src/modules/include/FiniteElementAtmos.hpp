@@ -21,6 +21,9 @@ public:
     }
 
     std::string getName() const override { return "FiniteElementAtmos"; }
+
+    void update(const TimestepTime&) override;
+    void updateElement(size_t i, const TimestepTime& tst);
 };
 
 } /* namespace Nextsim */
