@@ -1,5 +1,5 @@
 /*!
- * @file IceTemperature_test.cpp
+ * @file ThermoIce0Temperature_test.cpp
  *
  * @date Apr 29, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
