@@ -1,11 +1,11 @@
 /*!
- * @file ThermoIce0Growth.cpp
+ * @file ThermoIce0.cpp
  *
  * @date Mar 17, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/ThermoIce0Growth.hpp"
+#include "include/ThermoIce0.hpp"
 
 #include "include/IceGrowth.hpp"
 #include "include/IFreezingPointModule.hpp"
@@ -14,26 +14,26 @@
 
 namespace Nextsim {
 
-double ThermoIce0Growth::k_s;
-const double ThermoIce0Growth::freezingPointIce = -Water::mu * Ice::s;
+double ThermoIce0::k_s;
+const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 
-void ThermoIce0Growth::update(const TimestepTime& tsTime)
+void ThermoIce0::update(const TimestepTime& tsTime)
 {
-    overElements(std::bind(&ThermoIce0Growth::calculateElement, this, std::placeholders::_1, std::placeholders::_2), tsTime);
+    overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1, std::placeholders::_2), tsTime);
 
 }
 
 template <>
-const std::map<int, std::string> Configured<ThermoIce0Growth>::keyMap = {
-    { ThermoIce0Growth::KS_KEY, "thermoice0.ks" },
+const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
+    { ThermoIce0::KS_KEY, "thermoice0.ks" },
 };
 
-void ThermoIce0Growth::configure()
+void ThermoIce0::configure()
 {
     k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096);
 }
 
-void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime& tst)
+void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;

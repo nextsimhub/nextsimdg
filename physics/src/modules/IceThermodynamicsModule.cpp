@@ -7,16 +7,15 @@
 
 #include "include/IceThermodynamicsModule.hpp"
 
-#include "include/ThermoIce0Growth.hpp"
-
 #include <string>
+#include "include/ThermoIce0.hpp"
 
 namespace Module {
 const std::string THERMOICE0GROWTH = "Nextsim::ThermoIce0Growth";
 
 template <>
 Module<Nextsim::IIceThermodynamics>::map Module<Nextsim::IIceThermodynamics>::functionMap = {
-    { THERMOICE0GROWTH, newImpl<Nextsim::IIceThermodynamics, Nextsim::ThermoIce0Growth> },
+    { THERMOICE0GROWTH, newImpl<Nextsim::IIceThermodynamics, Nextsim::ThermoIce0> },
 };
 
 template <>
@@ -24,7 +23,7 @@ Module<Nextsim::IIceThermodynamics>::fn Module<Nextsim::IIceThermodynamics>::spf
     = functionMap.at(THERMOICE0GROWTH);
 template <>
 std::unique_ptr<Nextsim::IIceThermodynamics> Module<Nextsim::IIceThermodynamics>::staticInstance
-    = std::move(newImpl<Nextsim::IIceThermodynamics, Nextsim::ThermoIce0Growth>());
+    = std::move(newImpl<Nextsim::IIceThermodynamics, Nextsim::ThermoIce0>());
 
 template <> std::string Module<Nextsim::IIceThermodynamics>::moduleName()
 {

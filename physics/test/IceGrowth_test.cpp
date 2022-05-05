@@ -36,40 +36,39 @@ TEST_CASE("New ice formation", "[IceGrowth]")
 
     ConfiguredModule::parseConfigurator();
 
-    class IceTemperatureData : public IIceTemperature, public Configured<IceTemperatureData> {
+    class AtmosphericData : public ModelComponent {
     public:
-        IceTemperatureData()
-            : IIceTemperature()
+        AtmosphericData()
         {
             registerProtectedArray(ProtectedArray::H_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
         }
-        std::string getName() const override { return "IceTemperatureData"; }
+        std::string getName() const override { return "AtmosphericData"; }
 
         void setData(const ModelState&) override
         {
             hice[0] = 0.2;
             cice[0] = 0.5;
             hsnow[0] = 0;
+            tice0[0] = -2;
             sst[0] = -1.5;
             sss[0] = 32.;
             snow[0] = 0;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
-
-            qic[0] = 2.53124;
-            tice[0] = -2;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
+        ZField tice0;
         HField sst;
         HField sss;
         HField tf;
@@ -78,12 +77,8 @@ TEST_CASE("New ice formation", "[IceGrowth]")
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
-
-        void update(const TimestepTime&) override { }
-        void configure() override { setData(ModelState()); }
-    };
-    Module::Module<IIceTemperature>::setExternalImplementation(
-        Module::newImpl<IIceTemperature, IceTemperatureData>);
+    } atmData;
+    atmData.setData(ModelState());
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:
@@ -141,40 +136,39 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
 
     ConfiguredModule::parseConfigurator();
 
-    class IceTemperatureData : public IIceTemperature, public Configured<IceTemperatureData> {
+    class AtmosphericData : public ModelComponent {
     public:
-        IceTemperatureData()
-            : IIceTemperature()
+        AtmosphericData()
         {
             registerProtectedArray(ProtectedArray::H_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
         }
-        std::string getName() const override { return "IceTemperatureData"; }
+        std::string getName() const override { return "AtmosphericData"; }
 
         void setData(const ModelState&) override
         {
             cice[0] = 0.5;
             hice[0] = 0.1;
             hsnow[0] = 0.01;
+            tice0[0] = -1;
             sst[0] = -1;
             sss[0] = 32.;
             snow[0] = 0.00;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
-
-            qic[0] = -4.60879;
-            tice[0] = -1;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
+        ZField tice0;
         HField sst;
         HField sss;
         HField tf;
@@ -183,12 +177,8 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
-
-        void update(const TimestepTime&) override { }
-        void configure() override { setData(ModelState()); }
-    };
-    Module::Module<IIceTemperature>::setExternalImplementation(
-        Module::newImpl<IIceTemperature, IceTemperatureData>);
+    } atmData;
+    atmData.setData(ModelState());
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:
@@ -256,40 +246,39 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
 
     ConfiguredModule::parseConfigurator();
 
-    class IceTemperatureData : public IIceTemperature, public Configured<IceTemperatureData> {
+    class AtmosphericData : public ModelComponent {
     public:
-        IceTemperatureData()
-            : IIceTemperature()
+        AtmosphericData()
         {
             registerProtectedArray(ProtectedArray::H_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
         }
-        std::string getName() const override { return "IceTemperatureData"; }
+        std::string getName() const override { return "AtmosphericData"; }
 
         void setData(const ModelState&) override
         {
             cice[0] = 0.5;
             hice[0] = 0.1;
             hsnow[0] = 0.01;
+            tice0[0] = -9;
             sst[0] = -1.75;
             sss[0] = 32.;
             snow[0] = 1e-3;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
-
-            qic[0] = 44.4839;
-            tice[0] = -9;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
+        ZField tice0;
         HField sst;
         HField sss;
         HField tf;
@@ -298,12 +287,8 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
-
-        void update(const TimestepTime&) override { }
-        void configure() override { setData(ModelState()); }
-    };
-    Module::Module<IIceTemperature>::setExternalImplementation(
-        Module::newImpl<IIceTemperature, IceTemperatureData>);
+    } atmData;
+    atmData.setData(ModelState());
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:

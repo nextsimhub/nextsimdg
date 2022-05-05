@@ -30,7 +30,7 @@ set(ConcentrationModelModuleSources
     
 set(IceThermodynamicsModuleSources
     "IceThermodynamicsModule.cpp"
-    "ThermoIce0Growth.cpp"
+    "ThermoIce0.cpp"
     )
     
 set(LateralIceSpreadModuleSources

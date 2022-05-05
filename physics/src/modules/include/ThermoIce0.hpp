@@ -1,25 +1,25 @@
 /*!
- * @file ThermoIce0Growth.hpp
+ * @file ThermoIce0.hpp
  *
  * @date Mar 17, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef THERMOICE0GROWTH_HPP
-#define THERMOICE0GROWTH_HPP
+#ifndef THERMOICE0HPP
+#define THERMOICE0HPP
 
 #include "include/Configured.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "IIceThermodynamics.hpp"
+#include "include/IIceThermodynamics.hpp"
 namespace Nextsim {
 
-class ThermoIce0Growth : public IIceThermodynamics, public Configured<ThermoIce0Growth> {
+class ThermoIce0 : public IIceThermodynamics, public Configured<ThermoIce0> {
 public:
-    ThermoIce0Growth()
+    ThermoIce0()
         : IIceThermodynamics()
     {
     }
-    virtual ~ThermoIce0Growth() = default;
+    virtual ~ThermoIce0() = default;
 
     enum {
         KS_KEY,
@@ -45,4 +45,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* THERMOICE0GROWTH_HPP */
+#endif /* THERMOICE0HPP */

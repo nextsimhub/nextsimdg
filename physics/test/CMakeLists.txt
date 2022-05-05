@@ -54,10 +54,8 @@ add_executable(testIceGrowth
     "${ModulesDir}/IceThermodynamicsModule.cpp"
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
-    "${ModulesDir}/ThermoIce0Growth.cpp"
+    "${ModulesDir}/ThermoIce0.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
-    "${ModulesDir}/IceTemperatureModule.cpp"
-    "${ModulesDir}/ThermoIce0Temperature.cpp"
     "${ModulesDir}/FluxCalculationModule.cpp"
     "${ModulesDir}/FiniteElementFluxes.cpp"
     )
@@ -68,25 +66,6 @@ target_include_directories(testIceGrowth PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testIceGrowth PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 Eigen3::Eigen)
-    
-add_executable(testTI0Temperature
-    "ThermoIce0Temperature_test.cpp"
-    "${CoreSourceDir}/Configurator.cpp"
-    "${CoreSourceDir}/ConfiguredModule.cpp"
-    "${CoreSourceDir}/ModelArray.cpp"
-    "${CoreSourceDir}/ModelComponent.cpp"
-    "${CoreModulesDir}/IFreezingPointModule.cpp"
-    "${ModulesDir}/ThermoIce0Temperature.cpp"
-    "${ModulesDir}/FluxCalculationModule.cpp"
-    "${ModulesDir}/FiniteElementFluxes.cpp"
-    )
-target_include_directories(testTI0Temperature PRIVATE
-    "${CoreSourceDir}"
-    "${CoreModulesDir}"
-    "${SourceDir}"
-    "${ModulesDir}"
-    )
-target_link_libraries(testTI0Temperature PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 Eigen3::Eigen)
 
 #add_executable(testFEFluxes
 #    "FiniteElementFluxes_test.cpp"

@@ -8,10 +8,9 @@
 #ifndef PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
-#include "../modules/include/IIceThermodynamics.hpp"
+#include "include/IIceThermodynamics.hpp"
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
-#include "include/IIceTemperature.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
@@ -63,8 +62,6 @@ private:
     std::unique_ptr<IIceThermodynamics> iVertical;
     // Lateral Growth ModuleComponent & Module
     std::unique_ptr<ILateralIceSpread> iLateral;
-    // Ice temperature Module Component
-    std::unique_ptr<IIceTemperature> iIceTemp;
     // Flux calculation Module Component
     std::unique_ptr<IFluxCalculation> iFluxes;
 
