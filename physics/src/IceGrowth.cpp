@@ -48,7 +48,6 @@ void IceGrowth::configure()
 void IceGrowth::update(const TimestepTime& tsTime)
 {
     iFluxes->update(tsTime);
-    iIceTemp->update(tsTime);
 
     // Copy the ice data from the prognostic fields to the modifiable fields.
     // Also divide by c_ice to go from cell-averaged to ice-averaged values.
