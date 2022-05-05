@@ -38,7 +38,7 @@ IIceAlbedo* NextsimPhysics::iIceAlbedoImpl = nullptr;
 IThermodynamics* NextsimPhysics::iThermo = nullptr;
 IConcentrationModel* NextsimPhysics::iConcentrationModelImpl = nullptr;
 
-double stefanBoltzmannLaw(double temperature);
+static double stefanBoltzmannLaw(double temperature);
 
 NextsimPhysics::NextsimPhysics()
     : m_Qio(0)
