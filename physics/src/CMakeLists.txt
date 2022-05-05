@@ -20,7 +20,7 @@ set(ColumnPhysicsModuleSources
 
 set(ThermodynamicsModuleSources
     "IThermodynamicsModule.cpp"
-    "ThermoIce0.cpp"
+    "ThermoIce0ED.cpp"
     )
 
 set(ConcentrationModelModuleSources
@@ -28,19 +28,14 @@ set(ConcentrationModelModuleSources
     "HiblerConcentration.cpp"
     )
     
-set(VerticalIceGrowthModuleSources
-    "VerticalIceGrowthModule.cpp"
+set(IceThermodynamicsModuleSources
+    "IceThermodynamicsModule.cpp"
     "ThermoIce0Growth.cpp"
     )
     
 set(LateralIceSpreadModuleSources
     "LateralIceSpreadModule.cpp"
     "HiblerSpread.cpp"
-    )
-    
-set(IceTemperatureModuleSources
-    "IceTemperatureModule.cpp"
-    "ThermoIce0Temperature.cpp"
     )
 
 set(FluxCalculationModuleSources
@@ -54,9 +49,8 @@ set(ModuleSources
     "${ColumnPhysicsModuleSources}"
     "${ThermodynamicsModuleSources}"
     "${ConcentrationModelModuleSources}"
-    "${VerticalIceGrowthModuleSources}"
+    "${IceThermodynamicsModuleSources}"
     "${LateralIceSpreadModuleSources}"
-    "${IceTemperatureModuleSources}"
     "${FluxCalculationModuleSources}"
     )
 

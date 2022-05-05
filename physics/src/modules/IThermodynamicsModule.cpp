@@ -7,16 +7,15 @@
 
 #include "include/IThermodynamicsModule.hpp"
 
-#include "include/ThermoIce0.hpp"
-
 #include <string>
+#include "include/ThermoIce0ED.hpp"
 
 namespace Module {
 const std::string THERMOICE0 = "ThermoIce0";
 
 template <>
 Module<Nextsim::IThermodynamics>::map Module<Nextsim::IThermodynamics>::functionMap = {
-    { THERMOICE0, newImpl<Nextsim::IThermodynamics, Nextsim::ThermoIce0> },
+    { THERMOICE0, newImpl<Nextsim::IThermodynamics, Nextsim::ThermoIce0ED> },
 };
 
 template <>
@@ -24,7 +23,7 @@ Module<Nextsim::IThermodynamics>::fn Module<Nextsim::IThermodynamics>::spf
     = functionMap.at(THERMOICE0);
 template <>
 std::unique_ptr<Nextsim::IThermodynamics> Module<Nextsim::IThermodynamics>::staticInstance
-    = std::move(newImpl<Nextsim::IThermodynamics, Nextsim::ThermoIce0>());
+    = std::move(newImpl<Nextsim::IThermodynamics, Nextsim::ThermoIce0ED>());
 
 template <> std::string Module<Nextsim::IThermodynamics>::moduleName() { return "IThermodynamics"; }
 

@@ -5,7 +5,7 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/ThermoIce0.hpp"
+#include "include/ThermoIce0ED.hpp"
 
 #include "../../../core/src/include/PrognosticElementData.hpp"
 #include "include/ExternalData.hpp"
@@ -15,22 +15,22 @@
 
 namespace Nextsim {
 
-double ThermoIce0::k_s = 0;
-bool ThermoIce0::doFlooding = true;
+double ThermoIce0ED::k_s = 0;
+bool ThermoIce0ED::doFlooding = true;
 
 template <>
-const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
-    { ThermoIce0::KS_KEY, "thermoice0.ks" },
-    { ThermoIce0::FLOODING_KEY, "thermoice0.flooding" },
+const std::map<int, std::string> Configured<ThermoIce0ED>::keyMap = {
+    { ThermoIce0ED::KS_KEY, "thermoice0.ks" },
+    { ThermoIce0ED::FLOODING_KEY, "thermoice0.flooding" },
 };
 
-void ThermoIce0::configure()
+void ThermoIce0ED::configure()
 {
     k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096);
     doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), true);
 }
 
-void ThermoIce0::calculate(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys,
+void ThermoIce0ED::calculate(const PrognosticElementData& prog, const ExternalData& exter, PhysicsData& phys,
     NextsimPhysics& nsphys)
 {
     // True constants

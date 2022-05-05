@@ -1,12 +1,12 @@
 /*!
- * @file IVerticalIceGrowth.hpp
+ * @file IIceThermodynamics.hpp
  *
  * @date Mar 16, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef IVERTICALICEGROWTH_HPP
-#define IVERTICALICEGROWTH_HPP
+#ifndef IICETHERMODYNAMICS_HPP
+#define IICETHERMODYNAMICS_HPP
 
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
@@ -14,18 +14,18 @@
 #include "include/Time.hpp"
 
 namespace Nextsim {
-class IVerticalIceGrowth : public ModelComponent {
+class IIceThermodynamics : public ModelComponent {
 public:
-    ~IVerticalIceGrowth() = default;
+    ~IIceThermodynamics() = default;
 
-    std::string getName() const override { return "VerticalIceGrowth"; }
+    std::string getName() const override { return "IceThermodynamics"; }
     void setData(const ModelState& ms) override { }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     virtual void update(const TimestepTime& tsTime) = 0;
 
 protected:
-    IVerticalIceGrowth()
+    IIceThermodynamics()
     {
         registerModule();
 
@@ -55,4 +55,4 @@ protected:
 
 } /* namespace Nextsim */
 
-#endif /* IVERTICALICEGROWTH_HPP */
+#endif /* IICETHERMODYNAMICS_HPP */

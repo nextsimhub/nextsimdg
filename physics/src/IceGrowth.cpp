@@ -7,8 +7,8 @@
 
 #include "include/IceGrowth.hpp"
 
-#include "include/VerticalIceGrowthModule.hpp"
 #include "include/constants.hpp"
+#include "modules/include/IceThermodynamicsModule.hpp"
 
 namespace Nextsim {
 
@@ -17,7 +17,7 @@ double IceGrowth::minh;
 
 template <>
 const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
-    { IceGrowth::VERTICAL_GROWTH_KEY, "VerticalIceModel" },
+    { IceGrowth::ICE_THERMODYNAMICS_KEY, "IceThermodynamicsModel" },
     { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
     { IceGrowth::MINC_KEY, "nextsim_thermo.min_conc" },
     { IceGrowth::MINH_KEY, "nextsim_thermo.min_thick" },
@@ -31,14 +31,10 @@ void IceGrowth::configure()
     minh = Configured::getConfiguration(keyMap.at(MINH_KEY), 0.01);
 
     // Configure the vertical and lateral growth modules
-    iVertical = std::move(Module::getInstance<IVerticalIceGrowth>());
+    iVertical = std::move(Module::getInstance<IIceThermodynamics>());
     iLateral = std::move(Module::getInstance<ILateralIceSpread>());
     tryConfigure(*iVertical);
     tryConfigure(*iLateral);
-
-    // Configure the ice temperature module
-    iIceTemp = std::move(Module::getInstance<IIceTemperature>());
-    tryConfigure(*iIceTemp);
 
     // Configure the flux calculation module
     iFluxes = std::move(Module::getInstance<IFluxCalculation>());

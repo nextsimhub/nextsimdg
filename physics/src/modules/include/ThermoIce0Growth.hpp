@@ -8,16 +8,15 @@
 #ifndef THERMOICE0GROWTH_HPP
 #define THERMOICE0GROWTH_HPP
 
-#include "include/IVerticalIceGrowth.hpp"
-
 #include "include/Configured.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "IIceThermodynamics.hpp"
 namespace Nextsim {
 
-class ThermoIce0Growth : public IVerticalIceGrowth, public Configured<ThermoIce0Growth> {
+class ThermoIce0Growth : public IIceThermodynamics, public Configured<ThermoIce0Growth> {
 public:
     ThermoIce0Growth()
-        : IVerticalIceGrowth()
+        : IIceThermodynamics()
     {
     }
     virtual ~ThermoIce0Growth() = default;

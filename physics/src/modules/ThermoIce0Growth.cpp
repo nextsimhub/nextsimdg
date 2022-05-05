@@ -49,7 +49,6 @@ void ThermoIce0Growth::calculateElement(size_t i, const TimestepTime& tst)
     double meltingLimit = (hsnow[i] > 0) ? 0 : freezingPointIce;
     tice_i = std::min(meltingLimit, tice_i);
 
-    double remainingFlux = qic[i] - qia[i];
     // Top melt. Melting rate is non-positive.
     double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow;
     snowMelt[i] = snowMeltRate * tst.step;

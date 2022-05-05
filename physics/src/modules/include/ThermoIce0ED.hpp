@@ -19,10 +19,10 @@ class ExternalData;
 class NextsimPhysics;
 
 //! The implementation class for the NeXtSIM therm0 ice thermodynamics.
-class ThermoIce0 : public IThermodynamics, public Configured<ThermoIce0> {
+class ThermoIce0ED : public IThermodynamics, public Configured<ThermoIce0ED> {
 public:
-    ThermoIce0() = default;
-    virtual ~ThermoIce0() = default;
+    ThermoIce0ED() = default;
+    virtual ~ThermoIce0ED() = default;
 
     void configure() override;
     enum {
