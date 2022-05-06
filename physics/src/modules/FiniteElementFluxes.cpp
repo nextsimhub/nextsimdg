@@ -78,7 +78,7 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     // Heat flux ice-atmosphere
     // Latent heat from sublimation
     Q_lh_ia[i] = subl[i] * latentHeatIce(tice.zIndexAndLayer(i, 0));
-    double dmdot_dT = dragIce_t * rho_air[i] * v_air[i]
+    double dmdot_dT = dragIce_t * rho_air[i] * v_air[i] * dshice_dT[i];
         ; // FIXME * specHumIce.dq_dT(tice.zIndexAndLayer(i, 0), p_air[i]);
     double dQlh_dT = latentHeatIce(tice.zIndexAndLayer(i, 0)) * dmdot_dT;
     // Sensible heat flux

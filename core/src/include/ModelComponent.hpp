@@ -45,11 +45,6 @@ public:
         // Derived fields, calculated once per timestep
         ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
         TF, // Ocean freezing temperature, ˚C
-        SPEC_HUM_WATER, // Specific humidity over the ocean, kg kg⁻¹
-        SPEC_HUM_ICE, // Specific humidity over the ice, kg kg⁻¹
-        SPEC_HUM_AIR, // Specific humidity of the atmosphere, kg kg⁻¹
-        DENSITY_AIR, // Density of the atmosphere, kg m⁻³
-        CP_AIR, // Specific heat capacity at constant pressure of the atmosphere J K⁻¹ kg⁻¹
         WIND_SPEED, // Wind speed, m s⁻¹
         HTRUE_ICE, // Ice thickness, ice average, m
         HTRUE_SNOW, // Snow thickness, ice average, m

@@ -68,16 +68,19 @@ private:
     HField Q_sh_ia; // Ice sensible heat flux [W m⁻²]
     HField Q_sw_ia; // Ice incident shortwave radiative flux [W m⁻²]
     HField Q_lw_ia; // Ice net longwave radiative flux [W m⁻²]
+    // Derived air properties
+    HField rho_air;
+    HField cp_air;
+    // Specific humidity and T derivative
+    HField sh_air;
+    HField sh_water;
+    HField sh_ice;
+    HField dshice_dT;
     // Input fields
     ModelArrayRef<ProtectedArray::SST> sst;
     ModelArrayRef<ProtectedArray::T_AIR> t_air;
     ModelArrayRef<ProtectedArray::P_AIR> p_air;
-    ModelArrayRef<ProtectedArray::DENSITY_AIR> rho_air;
     ModelArrayRef<ProtectedArray::WIND_SPEED> v_air;
-    ModelArrayRef<ProtectedArray::CP_AIR> cp_air;
-    ModelArrayRef<ProtectedArray::SPEC_HUM_AIR> sh_air;
-    ModelArrayRef<ProtectedArray::SPEC_HUM_WATER> sh_water;
-    ModelArrayRef<ProtectedArray::SPEC_HUM_ICE> sh_ice;
     ModelArrayRef<ProtectedArray::H_SNOW> h_snow; // cell-averaged value
     ModelArrayRef<ProtectedArray::C_ICE> cice;
     ModelArrayRef<ProtectedArray::T_ICE> tice;
