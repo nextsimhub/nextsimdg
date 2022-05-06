@@ -5,15 +5,15 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "../src/include/ThermoIce0.hpp"
+#include "include/ThermoIce0ED.hpp"
 
 #include <memory>
 
-#include "../../core/src/include/PrognosticElementData.hpp"
-#include "../src/include/ExternalData.hpp"
-#include "../src/include/NextsimPhysics.hpp"
-#include "../src/include/PhysicsData.hpp"
-#include "../src/include/constants.hpp"
+#include "include/PrognosticElementData.hpp"
+#include "include/ExternalData.hpp"
+#include "include/NextsimPhysics.hpp"
+#include "include/PhysicsData.hpp"
+#include "include/constants.hpp"
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
@@ -27,7 +27,7 @@ TEST_CASE("Test no ice", "[ThermoIce0]")
     PhysicsData phys;
     NextsimPhysics nsp;
 
-    ThermoIce0 ti0;
+    ThermoIce0ED ti0;
     double freezingPointIce = -Water::mu * Ice::s;
 
     prog = PrognosticElementData::generate(0, 0.99, 25, 34.56, 0, { -0.5, -0.6, -0.7 });

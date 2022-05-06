@@ -42,8 +42,12 @@ public:
         SNOW, // snow fall, kg m⁻² s⁻¹
         SSS, // sea surface salinity, PSU
         SST, // sea surface temperature ˚C
+        // Derived fields, calculated once per timestep
         ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
         TF, // Ocean freezing temperature, ˚C
+        WIND_SPEED, // Wind speed, m s⁻¹
+        HTRUE_ICE, // Ice thickness, ice average, m
+        HTRUE_SNOW, // Snow thickness, ice average, m
         COUNT // Count of enum values
     };
     enum class SharedArray {

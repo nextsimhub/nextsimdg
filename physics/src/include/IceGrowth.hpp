@@ -8,10 +8,10 @@
 #ifndef PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
+#include "include/IIceThermodynamics.hpp"
 #include "include/Configured.hpp"
-#include "include/IIceTemperature.hpp"
+#include "include/IFluxCalculation.hpp"
 #include "include/ILateralIceSpread.hpp"
-#include "include/IVerticalIceGrowth.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -31,9 +31,9 @@ public:
 
     void configure() override;
     enum {
-        VERTICAL_GROWTH_KEY,
+        ICE_THERMODYNAMICS_KEY,
         LATERAL_GROWTH_KEY,
-        ICE_TEMPERATURE_KEY,
+        FLUX_CALCULATOR_KEY,
         MINC_KEY,
         MINH_KEY,
     };
@@ -59,11 +59,11 @@ public:
 
 private:
     // Vertical Growth ModelComponent & Module
-    std::unique_ptr<IVerticalIceGrowth> iVertical;
+    std::unique_ptr<IIceThermodynamics> iVertical;
     // Lateral Growth ModuleComponent & Module
     std::unique_ptr<ILateralIceSpread> iLateral;
-    // Ice temperature Module Component
-    std::unique_ptr<IIceTemperature> iIceTemp;
+    // Flux calculation Module Component
+    std::unique_ptr<IFluxCalculation> iFluxes;
 
     // Data fields
     // Owned, shared data fields
