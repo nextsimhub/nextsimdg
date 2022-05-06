@@ -7,6 +7,7 @@
 
 #include "include/FiniteElementFluxes.hpp"
 
+#include "include/FiniteElementSpecHum.hpp"
 #include "include/constants.hpp"
 
 #include <memory>
@@ -38,14 +39,8 @@ void FiniteElementFluxes::configure()
     m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), 0.07);
     m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), 0.17);
 }
-ModelState FiniteElementFluxes::getState() const
-{
-    return ModelState();
-}
-ModelState FiniteElementFluxes::getState(const OutputLevel&) const
-{
-    return getState();
-}
+ModelState FiniteElementFluxes::getState() const { return ModelState(); }
+ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
 
 void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 {
@@ -79,14 +74,15 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     // Latent heat from sublimation
     Q_lh_ia[i] = subl[i] * latentHeatIce(tice.zIndexAndLayer(i, 0));
     double dmdot_dT = dragIce_t * rho_air[i] * v_air[i] * dshice_dT[i];
-        ; // FIXME * specHumIce.dq_dT(tice.zIndexAndLayer(i, 0), p_air[i]);
+    ; // FIXME * specHumIce.dq_dT(tice.zIndexAndLayer(i, 0), p_air[i]);
     double dQlh_dT = latentHeatIce(tice.zIndexAndLayer(i, 0)) * dmdot_dT;
     // Sensible heat flux
-    Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * v_air[i] * (tice.zIndexAndLayer(i, 0) - t_air[i]);
+    Q_sh_ia[i]
+        = dragIce_t * rho_air[i] * cp_air[i] * v_air[i] * (tice.zIndexAndLayer(i, 0) - t_air[i]);
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
     // Shortwave flux
-    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0),
-        (cice[i] > 0) ? (h_snow[i] / cice[i]) : 0.);
+    double albedoValue = iIceAlbedoImpl->albedo(
+        tice.zIndexAndLayer(i, 0), (cice[i] > 0) ? (h_snow[i] / cice[i]) : 0.);
     Q_sw_ia[i] = -sw_in[i] * (1. - m_I0) * (1 - albedoValue);
     // Longwave flux
     Q_lw_ia[i] = stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0)) - lw_in[i];
@@ -103,9 +99,31 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {
-
+    overElements(std::bind(&FiniteElementFluxes::calculateAtmos, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tst);
 }
 
+void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
+{
+    // Specific heat of...
+    // ...the air
+    sh_air[i] = FiniteElementSpecHum::water()(t_dew2[i], p_air[i]);
+    // ...over the open ocean
+    sh_water[i] = FiniteElementSpecHum::water()(sst[i], p_air[i], sss[i]);
+    // ...over the ice
+    std::pair<double, double> iceData
+        = FiniteElementSpecHum::ice().valueAndDerivative(tice.zIndexAndLayer(i, 0), p_air[i]);
+    sh_ice[i] = iceData.first;
+    dshice_dT[i] = iceData.second;
+
+    // Density of the wet air
+    double Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
+    rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
+
+    // Heat capacity of the wet air
+    cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
+}
 
 double FiniteElementFluxes::latentHeatWater(double temperature)
 {
@@ -121,7 +139,7 @@ double FiniteElementFluxes::latentHeatIce(double temperature)
 
 template <>
 const std::map<int, std::string> Configured<FiniteElementFluxCalc>::keyMap = {
-        { FiniteElementFluxCalc::OW_FLUX_KEY, "OceanFluxModel" },
+    { FiniteElementFluxCalc::OW_FLUX_KEY, "OceanFluxModel" },
 };
 
 void FiniteElementFluxCalc::configure()
@@ -130,18 +148,12 @@ void FiniteElementFluxCalc::configure()
     fef = new FiniteElementFluxes();
     iOWFluxesImpl = std::unique_ptr<IOWFluxes>(fef);
     iIceFluxesImpl = fef;
-    //iOWFluxesImpl = std::move(Module::getInstance<IOWFluxes>());
+    // iOWFluxesImpl = std::move(Module::getInstance<IOWFluxes>());
     tryConfigure(fef);
 }
 
-ModelState FiniteElementFluxCalc::getState() const
-{
-    return ModelState();
-}
-ModelState FiniteElementFluxCalc::getState(const OutputLevel&) const
-{
-    return getState();
-}
+ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }
+ModelState FiniteElementFluxCalc::getState(const OutputLevel&) const { return getState(); }
 
 void FiniteElementFluxCalc::update(const TimestepTime& tst)
 {

@@ -18,7 +18,9 @@
 
 namespace Nextsim {
 
-class FiniteElementFluxes : public IIceFluxes, public IOWFluxes, public Configured<FiniteElementFluxes> {
+class FiniteElementFluxes : public IIceFluxes,
+                            public IOWFluxes,
+                            public Configured<FiniteElementFluxes> {
 public:
     FiniteElementFluxes()
         : IIceFluxes()
@@ -70,7 +72,7 @@ private:
     HField Q_lw_ia; // Ice net longwave radiative flux [W m⁻²]
     // Derived air properties
     HField rho_air;
-    HField cp_air;
+    HField cp_air; // Specific heat capacity of the wet air [J kg⁻¹ K⁻¹]
     // Specific humidity and T derivative
     HField sh_air;
     HField sh_water;
@@ -78,7 +80,9 @@ private:
     HField dshice_dT;
     // Input fields
     ModelArrayRef<ProtectedArray::SST> sst;
+    ModelArrayRef<ProtectedArray::SSS> sss;
     ModelArrayRef<ProtectedArray::T_AIR> t_air;
+    ModelArrayRef<ProtectedArray::DEW_2M> t_dew2;
     ModelArrayRef<ProtectedArray::P_AIR> p_air;
     ModelArrayRef<ProtectedArray::WIND_SPEED> v_air;
     ModelArrayRef<ProtectedArray::H_SNOW> h_snow; // cell-averaged value
@@ -89,6 +93,7 @@ private:
 
     void calculateOW(size_t i, const TimestepTime& tst);
     void calculateIce(size_t i, const TimestepTime& tst);
+    void calculateAtmos(size_t i, const TimestepTime& tst);
 
     static double dragOcean_q;
     static double dragOcean_m(double windSpeed);
@@ -108,9 +113,9 @@ private:
 class FiniteElementFluxCalc : public IFluxCalculation, public Configured<FiniteElementFluxCalc> {
 public:
     FiniteElementFluxCalc()
-    : IFluxCalculation()
-    , fef(nullptr)
-    , iIceFluxesImpl(nullptr)
+        : IFluxCalculation()
+        , fef(nullptr)
+        , iIceFluxesImpl(nullptr)
     {
     }
 

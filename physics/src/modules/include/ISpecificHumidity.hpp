@@ -14,18 +14,7 @@ namespace Nextsim {
 
 class ISpecificHumidity {
 public:
-    // Default constructor is for water
-    ISpecificHumidity()
-    : waterPtr(nullptr)
-    , icePtr(nullptr)
-    {
-    }
     virtual ~ISpecificHumidity() = default;
-
-    //! @brief Returns a reference to the static water instance
-    static ISpecificHumidity& water() { return *waterPtr; }
-    //! @brief Returns a reference to the static ice instance
-    static ISpecificHumidity& ice() { return *icePtr; }
 
     /*!
      * @brief Calculates humidity over fresh water or ice
@@ -50,7 +39,8 @@ public:
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
      */
-    virtual std::pair<double, double> valueAndDerivative(double temperature, double pressure) const = 0;
+    virtual std::pair<double, double> valueAndDerivative(
+        double temperature, double pressure) const = 0;
     /*!
      * @brief Calculates humidity and its temperature dependence over sea
      * water.
@@ -59,12 +49,8 @@ public:
      * @param pressure Hydrostatic pressure [Pa]
      * @param salinity Salinity of the liquid water [PSU]
      */
-    virtual std::pair<double, double> valueAndDerivative(double temperature,
-            double pressure, double salinity) const = 0;
-
-protected:
-    ISpecificHumidity* waterPtr;
-    ISpecificHumidity* icePtr;
+    virtual std::pair<double, double> valueAndDerivative(
+        double temperature, double pressure, double salinity) const = 0;
 };
 
 } /* namespace Nextsim */

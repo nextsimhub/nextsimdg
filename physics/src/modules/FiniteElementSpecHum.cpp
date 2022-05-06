@@ -7,7 +7,12 @@
 
 #include "include/FiniteElementSpecHum.hpp"
 
+#include <cmath>
+
 namespace Nextsim {
+
+FiniteElementSpecHum FiniteElementSpecHum::m_water(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10);
+FiniteElementSpecHum FiniteElementSpecHum::m_ice(6.1115e2, 23.036, 279.82, 333.7, 2.2e-4, 3.83e-6, 6.4e-10);
 
 // Default construction constructs a water instance
 FiniteElementSpecHum::FiniteElementSpecHum()
@@ -28,20 +33,6 @@ FiniteElementSpecHum::FiniteElementSpecHum(double a, double b, double c, double 
     , m_alpha(0.62197)
     , m_beta(1 - m_alpha)
 {
-}
-
-void FiniteElementSpecHum::configure()
-{
-    if (waterPtr) {
-        delete waterPtr;
-    }
-    if (icePtr) {
-        delete icePtr;
-    }
-
-    // Construct the water and ice calculators
-    waterPtr = new FiniteElementSpecHum(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10);
-    icePtr = new FiniteElementSpecHum(6.1115e2, 23.036, 279.82, 333.7, 2.2e-4, 3.83e-6, 6.4e-10);
 }
 
 double FiniteElementSpecHum::operator()(double temperature, double pressure) const

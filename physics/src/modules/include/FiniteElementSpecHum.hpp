@@ -10,14 +10,10 @@
 
 #include "ISpecificHumidity.hpp"
 
-#include "include/Configured.hpp"
-
 namespace Nextsim {
 
-class FiniteElementSpecHum: public ISpecificHumidity, public Configured<FiniteElementSpecHum> {
+class FiniteElementSpecHum: public ISpecificHumidity {
 public:
-
-    void configure() override;
 
     double operator()(double temperature, double pressure) const override;
     double operator()(double temperature, double pressure, double salinity) const override;
@@ -26,6 +22,8 @@ public:
     std::pair<double, double> valueAndDerivative(double temperature,
             double pressure, double salinity) const override;
 
+    static FiniteElementSpecHum& water() { return m_water; }
+    static FiniteElementSpecHum& ice() { return m_ice; }
 private:
     FiniteElementSpecHum();
     // General constructor
@@ -46,6 +44,13 @@ private:
     const double m_alpha;
     const double m_beta;
 
+    static FiniteElementSpecHum m_water;
+    static FiniteElementSpecHum m_ice;
+
+    struct Constructor {
+        Constructor();
+    };
+    static Constructor cons;
 };
 
 } /* namespace Nextsim */

@@ -41,6 +41,7 @@ set(LateralIceSpreadModuleSources
 set(FluxCalculationModuleSources
     "FluxCalculationModule.cpp"
     "FiniteElementFluxes.cpp"
+    "FiniteElementSpecHum.cpp"
     )
 
 set(ModuleSources
