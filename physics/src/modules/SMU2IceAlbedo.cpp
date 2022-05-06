@@ -24,7 +24,7 @@ double SMU2IceAlbedo::albedo(double temperature, double snowThickness)
         return std::fmin(
             SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.2);
     } else {
-        return ICE_ALBEDO + 0.4 * (1 - ICE_ALBEDO) * NextsimPhysics::i0();
+        return ICE_ALBEDO + 0.4 * (1 - ICE_ALBEDO) * 0.17;// FIXME NextsimPhysics::i0();
     }
 }
 }
