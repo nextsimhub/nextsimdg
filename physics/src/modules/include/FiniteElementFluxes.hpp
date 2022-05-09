@@ -12,6 +12,7 @@
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceFluxes.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
 #include "include/IOWFluxes.hpp"
 
 #include "include/ModelArrayRef.hpp"
@@ -118,6 +119,7 @@ public:
         , fef(nullptr)
         , iIceFluxesImpl(nullptr)
         , iOWFluxesImpl(nullptr)
+        , iceOceanHeatFluxImpl(nullptr)
     {
     }
 
@@ -138,6 +140,7 @@ private:
     std::unique_ptr<IOWFluxes> iOWFluxesImpl;
     IIceFluxes* iIceFluxesImpl;
     FiniteElementFluxes* fef;
+    IIceOceanHeatFlux* iceOceanHeatFluxImpl;
 };
 
 } /* namespace Nextsim */

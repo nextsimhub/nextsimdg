@@ -8,6 +8,7 @@
 #include "include/FiniteElementFluxes.hpp"
 
 #include "include/FiniteElementSpecHum.hpp"
+#include "include/IceOceanHeatFluxModule.hpp"
 #include "include/IIceAlbedoModule.hpp"
 #include "include/constants.hpp"
 
@@ -95,8 +96,6 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     // Total temperature dependence of flux
     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
 
-    // Ice-ocean heat flux
-    qio[i] = 12;
 }
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
@@ -150,6 +149,9 @@ void FiniteElementFluxCalc::configure()
     iIceFluxesImpl = fef;
     // iOWFluxesImpl = std::move(Module::getInstance<IOWFluxes>());
     fef->configure();
+
+    iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFlux>();
+    tryConfigure(iceOceanHeatFluxImpl);
 }
 
 ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }
@@ -163,6 +165,7 @@ void FiniteElementFluxCalc::update(const TimestepTime& tst)
     iOWFluxesImpl->updateOW(tst);
     // Call the fixed ice flux calculation
     iIceFluxesImpl->updateIce(tst);
+    iceOceanHeatFluxImpl->update(tst);
 }
 
 double stefanBoltzmannLaw(double temperatureC)

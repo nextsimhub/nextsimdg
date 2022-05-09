@@ -5,11 +5,9 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/IIceOceanHeatFluxModule.hpp"
-
-#include "include/BasicIceOceanHeatFlux.hpp"
-
 #include <string>
+#include "include/BasicIceOceanHeatFlux.hpp"
+#include "include/IceOceanHeatFluxModule.hpp"
 
 namespace Module {
 const std::string BASICICEOCEANHEATFLUX = "BasicIceOceanHeatFlux";
@@ -33,14 +31,14 @@ template <> std::string Module<Nextsim::IIceOceanHeatFlux>::moduleName()
 
 template <> Nextsim::IIceOceanHeatFlux& getImplementation<Nextsim::IIceOceanHeatFlux>()
 {
-    return getImplTemplate<Nextsim::IIceOceanHeatFlux, IIceOceanHeatFluxModule>();
+    return getImplTemplate<Nextsim::IIceOceanHeatFlux, IceOceanHeatFluxModule>();
 }
 template <> void setImplementation<Nextsim::IIceOceanHeatFlux>(const std::string& implName)
 {
-    setImplTemplate<IIceOceanHeatFluxModule>(implName);
+    setImplTemplate<IceOceanHeatFluxModule>(implName);
 }
 template <> std::unique_ptr<Nextsim::IIceOceanHeatFlux> getInstance()
 {
-    return getInstTemplate<Nextsim::IIceOceanHeatFlux, IIceOceanHeatFluxModule>();
+    return getInstTemplate<Nextsim::IIceOceanHeatFlux, IceOceanHeatFluxModule>();
 }
 } /* namespace Module */

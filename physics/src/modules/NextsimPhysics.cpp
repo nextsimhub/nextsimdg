@@ -14,7 +14,7 @@
 #include "../../../core/src/include/PrognosticElementData.hpp"
 #include "include/IConcentrationModel.hpp"
 #include "include/IIceAlbedo.hpp"
-#include "include/IIceOceanHeatFlux.hpp"
+#include "include/IIceOceanHeatFluxED.hpp"
 #include "include/IThermodynamics.hpp"
 
 #include "include/Module.hpp"
@@ -33,7 +33,7 @@ double NextsimPhysics::m_I0;
 double NextsimPhysics::minc;
 double NextsimPhysics::minh;
 
-IIceOceanHeatFlux* NextsimPhysics::iceOceanHeatFluxImpl = nullptr;
+IIceOceanHeatFluxED* NextsimPhysics::iceOceanHeatFluxImpl = nullptr;
 IIceAlbedo* NextsimPhysics::iIceAlbedoImpl = nullptr;
 IThermodynamics* NextsimPhysics::iThermo = nullptr;
 IConcentrationModel* NextsimPhysics::iConcentrationModelImpl = nullptr;
@@ -59,7 +59,7 @@ const std::map<int, std::string> Configured<NextsimPhysics>::keyMap = {
 
 void NextsimPhysics::configure()
 {
-    iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFlux>();
+    iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFluxED>();
     tryConfigure(iceOceanHeatFluxImpl);
 
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();

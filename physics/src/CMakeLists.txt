@@ -7,8 +7,14 @@ set(IceAlbedoModuleSources
     "SMU2IceAlbedo.cpp"
     )
 
+set(IceOceanHeatFluxEDModuleSources
+    "IIceOceanHeatFluxEDModule.cpp"
+    "BasicIceOceanHeatFluxED.cpp"
+    
+    )
+
 set(IceOceanHeatFluxModuleSources
-    "IIceOceanHeatFluxModule.cpp"
+    "IceOceanHeatFluxModule.cpp"
     "BasicIceOceanHeatFlux.cpp"
     
     )
@@ -46,6 +52,7 @@ set(FluxCalculationModuleSources
 
 set(ModuleSources
     "${IceAlbedoModuleSources}"
+    "${IceOceanHeatFluxEDModuleSources}"
     "${IceOceanHeatFluxModuleSources}"
     "${ColumnPhysicsModuleSources}"
     "${ThermodynamicsModuleSources}"

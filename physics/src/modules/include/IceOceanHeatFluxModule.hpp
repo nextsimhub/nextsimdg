@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef PHYSICS_SRC_MODULES_INCLUDE_IICEOCEANHEATFLUXMODULE_HPP
-#define PHYSICS_SRC_MODULES_INCLUDE_IICEOCEANHEATFLUXMODULE_HPP
+#ifndef ICEOCEANHEATFLUXMODULE_HPP
+#define ICEOCEANHEATFLUXMODULE_HPP
 
 #include "include/Module.hpp"
 
@@ -15,9 +15,9 @@
 namespace Module {
 
 template <> Module<Nextsim::IIceOceanHeatFlux>::map Module<Nextsim::IIceOceanHeatFlux>::functionMap;
-class IIceOceanHeatFluxModule : public Module<Nextsim::IIceOceanHeatFlux> {
+class IceOceanHeatFluxModule : public Module<Nextsim::IIceOceanHeatFlux> {
 };
 
 } /* namespace Module */
 
-#endif /* PHYSICS_SRC_MODULES_INCLUDE_IICEOCEANHEATFLUXMODULE_HPP */
+#endif /* ICEOCEANHEATFLUXMODULE_HPP */

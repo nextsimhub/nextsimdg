@@ -22,7 +22,7 @@ class UnusedData;
 
 class IIceAlbedo;
 class IThermodynamics;
-class IIceOceanHeatFlux;
+class IIceOceanHeatFluxED;
 class IConcentrationModel;
 
 class ElementData;
@@ -252,7 +252,7 @@ private:
     static double m_oceanAlbedo;
 
     // Ice-ocean heat flux
-    static IIceOceanHeatFlux* iceOceanHeatFluxImpl;
+    static IIceOceanHeatFluxED* iceOceanHeatFluxImpl;
     // New ice created by cooling below freezing
     double m_newice;
 

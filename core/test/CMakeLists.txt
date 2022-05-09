@@ -112,19 +112,19 @@ add_executable(testElementData
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
     "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
     "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
-    "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysicsModulesDir}/BasicIceOceanHeatFluxED.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0ED.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${PhysicsModulesDir}/IPhysics1dModule.cpp"
     "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
     "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
-    "${PhysicsModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${PhysicsModulesDir}/IIceOceanHeatFluxEDModule.cpp"
     "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
     )
 
 target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}")
-target_link_libraries(testElementData PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2)
+target_link_libraries(testElementData PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testDevGrid
     "DevGrid_test.cpp"
@@ -140,14 +140,14 @@ add_executable(testDevGrid
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
     "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
     "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
-    "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysicsModulesDir}/BasicIceOceanHeatFluxED.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0ED.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${PhysicsModulesDir}/IPhysics1dModule.cpp"
     "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
     "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
-    "${PhysicsModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${PhysicsModulesDir}/IIceOceanHeatFluxEDModule.cpp"
     "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
     )
 
@@ -168,14 +168,14 @@ add_executable(testRectGrid
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
     "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
     "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
-    "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysicsModulesDir}/BasicIceOceanHeatFluxED.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0ED.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${PhysicsModulesDir}/IPhysics1dModule.cpp"
     "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
     "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
-    "${PhysicsModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${PhysicsModulesDir}/IIceOceanHeatFluxEDModule.cpp"
     "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
     )
 
@@ -199,14 +199,14 @@ add_executable(testStructureFactory
     "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
     "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
     "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
-    "${PhysicsModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysicsModulesDir}/BasicIceOceanHeatFluxED.cpp"
     "${PhysicsModulesDir}/HiblerConcentration.cpp"
     "${PhysicsModulesDir}/ThermoIce0ED.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${PhysicsModulesDir}/IPhysics1dModule.cpp"
     "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
-    "${PhysicsModulesDir}/IIceOceanHeatFluxModule.cpp"
+    "${PhysicsModulesDir}/IIceOceanHeatFluxEDModule.cpp"
     "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
     "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
     )
