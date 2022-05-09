@@ -24,7 +24,7 @@ void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
 
 void BasicIceOceanHeatFlux::updateElement(size_t i, const TimestepTime& tst)
 {
-    qio[i] = doOne(sst[i], tf[i], mlBulkCp[i], tst.step);
+    qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], tst.step);
 }
 
 } /* namespace Nextsim */

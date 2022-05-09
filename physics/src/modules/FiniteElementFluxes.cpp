@@ -8,8 +8,8 @@
 #include "include/FiniteElementFluxes.hpp"
 
 #include "include/FiniteElementSpecHum.hpp"
-#include "include/IceOceanHeatFluxModule.hpp"
 #include "include/IIceAlbedoModule.hpp"
+#include "include/IceOceanHeatFluxModule.hpp"
 #include "include/constants.hpp"
 
 #include <memory>
@@ -95,7 +95,6 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
     // Total temperature dependence of flux
     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
-
 }
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
