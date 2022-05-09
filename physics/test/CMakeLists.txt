@@ -99,3 +99,12 @@ target_include_directories(testFEFluxes PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testFEFluxes PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testSpecHum
+    "SpecificHumidity_test.cpp"
+    "${ModulesDir}/FiniteElementSpecHum.cpp"
+    )
+target_include_directories(testSpecHum PRIVATE
+    "${ModulesDir}"
+    )
+target_link_libraries(testSpecHum PRIVATE Catch2::Catch2)
