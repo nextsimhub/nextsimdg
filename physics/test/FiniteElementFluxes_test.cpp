@@ -53,6 +53,12 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            registerProtectedArray(ProtectedArray::T_AIR, &tair);
+            registerProtectedArray(ProtectedArray::DEW_2M, &tdew2m);
+            registerProtectedArray(ProtectedArray::P_AIR, &pair);
+            registerProtectedArray(ProtectedArray::WIND_SPEED, &vwind);
+            registerProtectedArray(ProtectedArray::SW_IN, &swin);
+            registerProtectedArray(ProtectedArray::LW_IN, &lwin);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -67,6 +73,12 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
             tice0[0] = -1;
+            tair[0] = 3;
+            tdew2m[0] = 2;
+            pair[0] = 100000.;
+            vwind[0] = 5;
+            swin[0] = 50;
+            lwin[0] = 330;
         }
 
         HField hice;
@@ -78,6 +90,12 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
         HField snow;
         HField mlbhc; // Mixed layer bulk heat capacity
         HField tice0;
+        HField tair;
+        HField tdew2m;
+        HField pair;
+        HField vwind;
+        HField swin;
+        HField lwin;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -111,7 +129,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 
     TimestepTime tst = { 0, 600 };
     FiniteElementFluxCalc fefc;
-//    fef.configure();
+    fefc.configure();
     fefc.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::Q_OW, RO> qow;
@@ -160,6 +178,12 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            registerProtectedArray(ProtectedArray::T_AIR, &tair);
+            registerProtectedArray(ProtectedArray::DEW_2M, &tdew2m);
+            registerProtectedArray(ProtectedArray::P_AIR, &pair);
+            registerProtectedArray(ProtectedArray::WIND_SPEED, &vwind);
+            registerProtectedArray(ProtectedArray::SW_IN, &swin);
+            registerProtectedArray(ProtectedArray::LW_IN, &lwin);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -174,6 +198,12 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
             tice0[0] = -9.;
+            tair[0] = -12;
+            tdew2m[0] = -12;
+            pair[0] = 100000.;
+            vwind[0] = 5;
+            swin[0] = 0;
+            lwin[0] = 265;
         }
 
         HField hice;
@@ -185,40 +215,46 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
         HField snow;
         HField mlbhc; // Mixed layer bulk heat capacity
         HField tice0;
+        HField tair;
+        HField tdew2m;
+        HField pair;
+        HField vwind;
+        HField swin;
+        HField lwin;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmoState;
     atmoState.setData(ModelState());
 
-    class FluxData : public IFluxCalculation {
-    public:
-        FluxData()
-            : IFluxCalculation()
-        {
-        }
-        std::string getName() const override { return "FluxData"; }
-
-        void setData(const ModelState&) override
-        {
-            qow[0] = 143.266;
-            qio[0] = 73.9465;
-            qia[0] = 42.2955;
-            dqia_dt[0] = 16.7615;
-            subl[0] = 2.15132e-6;
-        }
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
-
-        void update(const TimestepTime&) override { }
-    } fluxData;
-
-    fluxData.setData(ModelState());
+//    class FluxData : public IFluxCalculation {
+//    public:
+//        FluxData()
+//            : IFluxCalculation()
+//        {
+//        }
+//        std::string getName() const override { return "FluxData"; }
+//
+//        void setData(const ModelState&) override
+//        {
+//            qow[0] = 143.266;
+//            qio[0] = 73.9465;
+//            qia[0] = 42.2955;
+//            dqia_dt[0] = 16.7615;
+//            subl[0] = 2.15132e-6;
+//        }
+//
+//        ModelState getState() const override { return ModelState(); }
+//        ModelState getState(const OutputLevel&) const override { return getState(); }
+//
+//        void update(const TimestepTime&) override { }
+//    } fluxData;
+//
+//    fluxData.setData(ModelState());
 
     TimestepTime tst = { 0, 600 };
     FiniteElementFluxCalc fefc;
-//    fef.configure();
+    fefc.configure();
     fefc.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::Q_OW, RO> qow;

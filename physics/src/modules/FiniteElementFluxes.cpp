@@ -8,6 +8,7 @@
 #include "include/FiniteElementFluxes.hpp"
 
 #include "include/FiniteElementSpecHum.hpp"
+#include "include/IIceAlbedoModule.hpp"
 #include "include/constants.hpp"
 
 #include <memory>
@@ -33,6 +34,9 @@ const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
 
 void FiniteElementFluxes::configure()
 {
+    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
+    tryConfigure(iIceAlbedoImpl);
+
     dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), 1.5e-3);
     dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), 0.83e-3);
     dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), 1.3e-3);
@@ -74,15 +78,13 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     // Latent heat from sublimation
     Q_lh_ia[i] = subl[i] * latentHeatIce(tice.zIndexAndLayer(i, 0));
     double dmdot_dT = dragIce_t * rho_air[i] * v_air[i] * dshice_dT[i];
-    ; // FIXME * specHumIce.dq_dT(tice.zIndexAndLayer(i, 0), p_air[i]);
     double dQlh_dT = latentHeatIce(tice.zIndexAndLayer(i, 0)) * dmdot_dT;
     // Sensible heat flux
     Q_sh_ia[i]
         = dragIce_t * rho_air[i] * cp_air[i] * v_air[i] * (tice.zIndexAndLayer(i, 0) - t_air[i]);
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
     // Shortwave flux
-    double albedoValue = iIceAlbedoImpl->albedo(
-        tice.zIndexAndLayer(i, 0), (cice[i] > 0) ? (h_snow[i] / cice[i]) : 0.);
+    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i]);
     Q_sw_ia[i] = -sw_in[i] * (1. - m_I0) * (1 - albedoValue);
     // Longwave flux
     Q_lw_ia[i] = stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0)) - lw_in[i];
@@ -94,7 +96,7 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
 
     // Ice-ocean heat flux
-    qio[i];
+    qio[i] = 12;
 }
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
@@ -106,7 +108,7 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 
 void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
 {
-    // Specific heat of...
+    // Specific humidity of...
     // ...the air
     sh_air[i] = FiniteElementSpecHum::water()(t_dew2[i], p_air[i]);
     // ...over the open ocean
@@ -116,11 +118,9 @@ void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
         = FiniteElementSpecHum::ice().valueAndDerivative(tice.zIndexAndLayer(i, 0), p_air[i]);
     sh_ice[i] = iceData.first;
     dshice_dT[i] = iceData.second;
-
     // Density of the wet air
     double Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
     rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
-
     // Heat capacity of the wet air
     cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
 }
@@ -145,11 +145,11 @@ const std::map<int, std::string> Configured<FiniteElementFluxCalc>::keyMap = {
 void FiniteElementFluxCalc::configure()
 {
     // FIXME: Here we assume that no other implementation of IOWFluxes is requested
-    fef = new FiniteElementFluxes();
+    fef = new FiniteElementFluxes;
     iOWFluxesImpl = std::unique_ptr<IOWFluxes>(fef);
     iIceFluxesImpl = fef;
     // iOWFluxesImpl = std::move(Module::getInstance<IOWFluxes>());
-    tryConfigure(fef);
+    fef->configure();
 }
 
 ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }

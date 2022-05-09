@@ -86,6 +86,7 @@ private:
     ModelArrayRef<ProtectedArray::P_AIR> p_air;
     ModelArrayRef<ProtectedArray::WIND_SPEED> v_air;
     ModelArrayRef<ProtectedArray::H_SNOW> h_snow; // cell-averaged value
+    ModelArrayRef<ProtectedArray::HTRUE_SNOW> h_snow_true; // cell-averaged value
     ModelArrayRef<ProtectedArray::C_ICE> cice;
     ModelArrayRef<ProtectedArray::T_ICE> tice;
     ModelArrayRef<ProtectedArray::SW_IN> sw_in;
@@ -107,7 +108,7 @@ private:
     static double latentHeatWater(double temperature);
     static double latentHeatIce(double temperature);
 
-    std::unique_ptr<IIceAlbedo> iIceAlbedoImpl;
+    IIceAlbedo* iIceAlbedoImpl;
 };
 
 class FiniteElementFluxCalc : public IFluxCalculation, public Configured<FiniteElementFluxCalc> {
@@ -116,6 +117,7 @@ public:
         : IFluxCalculation()
         , fef(nullptr)
         , iIceFluxesImpl(nullptr)
+        , iOWFluxesImpl(nullptr)
     {
     }
 

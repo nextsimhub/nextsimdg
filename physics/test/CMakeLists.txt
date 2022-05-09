@@ -59,6 +59,10 @@ add_executable(testIceGrowth
     "${ModulesDir}/FluxCalculationModule.cpp"
     "${ModulesDir}/FiniteElementFluxes.cpp"
     "${ModulesDir}/FiniteElementSpecHum.cpp"
+    "${ModulesDir}/IIceAlbedoModule.cpp"
+    "${ModulesDir}/SMUIceAlbedo.cpp"
+    "${ModulesDir}/CCSMIceAlbedo.cpp"
+    "${ModulesDir}/SMU2IceAlbedo.cpp"
     )
 target_include_directories(testIceGrowth PRIVATE
     "${CoreSourceDir}"
@@ -77,6 +81,11 @@ add_executable(testFEFluxes
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${ModulesDir}/FiniteElementFluxes.cpp"
     "${ModulesDir}/FiniteElementSpecHum.cpp"
+    "${ModulesDir}/IIceAlbedoModule.cpp"
+    "${ModulesDir}/SMUIceAlbedo.cpp"
+    "${ModulesDir}/CCSMIceAlbedo.cpp"
+    "${ModulesDir}/SMU2IceAlbedo.cpp"
+    
     )
 target_include_directories(testFEFluxes PRIVATE
     "${CoreSourceDir}"
