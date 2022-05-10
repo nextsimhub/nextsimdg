@@ -34,7 +34,7 @@ Model::Model()
 
     dataStructure = nullptr;
 
-    finalFileName = "restart.nc";
+    finalFileName = "output.nc";
 }
 
 Model::~Model()
