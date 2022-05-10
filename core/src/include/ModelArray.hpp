@@ -108,6 +108,7 @@ public:
 
     const std::string& name() const { return m_name; }
 
+    void setData(double value);
     void setData(const double* pData);
     void setData(const DataType&);
 

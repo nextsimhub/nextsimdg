@@ -99,6 +99,11 @@ ModelArray ModelArray::operator/(const ModelArray& divisor) const
     return result;
 }
 
+void ModelArray::setData(double value)
+{
+    m_data = value;
+}
+
 void ModelArray::setData(const double* pData)
 {
     resize();
