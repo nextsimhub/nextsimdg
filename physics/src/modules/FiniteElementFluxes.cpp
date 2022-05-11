@@ -142,6 +142,8 @@ const std::map<int, std::string> Configured<FiniteElementFluxCalc>::keyMap = {
 
 void FiniteElementFluxCalc::configure()
 {
+    IFluxCalculation::configure();
+
     // FIXME: Here we assume that no other implementation of IOWFluxes is requested
     fef = new FiniteElementFluxes;
     iOWFluxesImpl = std::unique_ptr<IOWFluxes>(fef);
@@ -151,6 +153,8 @@ void FiniteElementFluxCalc::configure()
 
     iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFlux>();
     tryConfigure(iceOceanHeatFluxImpl);
+
+
 }
 
 ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }

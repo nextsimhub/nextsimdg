@@ -24,6 +24,7 @@ public:
     void writeRestartFile(const std::string& filePath) override {};
 
     void setInitialData(IStructure& dataStructure) override { pStructure = &dataStructure; };
+    void setInitialData(PrognosticData& pDat) override { pData = &pDat; }
 
     // Member functions inherited from Iterant
     void init() override {};
@@ -33,6 +34,7 @@ public:
 
 private:
     IStructure* pStructure;
+    PrognosticData* pData;
 };
 
 } /* namespace Nextsim */

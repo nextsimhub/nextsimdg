@@ -10,6 +10,7 @@
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
 #include "include/DummyExternalData.hpp"
+#include "include/ModelState.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>
@@ -64,20 +65,27 @@ void Model::configure()
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
+    pData.configure();
+
     modelStep.setInitFile(initialFileName);
 
+//8<---------------------------------------------------------------------------
     // Currently, initialize the data here in Model and pass the pointer to the
     // data structure to IModelStep
-    dataStructure = StructureFactory::generateFromFile(initialFileName);
-    dataStructure->init(initialFileName);
-    modelStep.setInitialData(*dataStructure);
+//    dataStructure = StructureFactory::generateFromFile(initialFileName);
+//    dataStructure->init(initialFileName);
+//    modelStep.setInitialData(*dataStructure);
+//
+//    // TODO Real external data handling (in the model step?)
+//    DummyExternalData::setAll(*dataStructure);
+
+//8<---------------------------------------------------------------------------
 
     // ModelState initialization
-    ModelState state = dataStructure->getModelState(initialFileName);
-    pData.setData(state);
+    ModelState initialState(StructureFactory::stateFromFile(initialFileName));
+    modelStep.setInitialData(pData);
+    pData.setData(initialState);
 
-    // TODO Real external data handling (in the model step?)
-    DummyExternalData::setAll(*dataStructure);
 }
 
 void Model::run() { iterator.run(); }
@@ -89,5 +97,7 @@ void Model::writeRestartFile()
         std::cout << "  Writing restart file: " << finalFileName << std::endl;
         dataStructure->dump(finalFileName);
     }
+
+        std::cout << "  Writing state-based restart file: " << finalFileName << std::endl;
 }
 } /* namespace Nextsim */

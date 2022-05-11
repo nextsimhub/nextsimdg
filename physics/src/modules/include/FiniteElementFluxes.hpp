@@ -112,7 +112,7 @@ private:
     IIceAlbedo* iIceAlbedoImpl;
 };
 
-class FiniteElementFluxCalc : public IFluxCalculation, public Configured<FiniteElementFluxCalc> {
+class FiniteElementFluxCalc : public IFluxCalculation/*, public Configured<FiniteElementFluxCalc>*/ {
 public:
     FiniteElementFluxCalc()
         : IFluxCalculation()

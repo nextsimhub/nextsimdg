@@ -6,6 +6,8 @@
  */
 
 #include "include/AtmosphereOceanState.hpp"
+#include "include/AtmosphereStateModule.hpp"
+#include "include/OceanStateModule.hpp"
 
 namespace Nextsim {
 
@@ -15,7 +17,11 @@ AtmosphereOceanState::AtmosphereOceanState()
     registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hTrueSnow);
 }
 
-void AtmosphereOceanState::setData(const ModelState&) { }
+void AtmosphereOceanState::setData(const ModelState& ms)
+{
+    atmosStateImpl->setData(ms);
+    oceanStateImpl->setData(ms);
+}
 ModelState AtmosphereOceanState::getState() const
 {
     return {
@@ -30,8 +36,20 @@ std::set<std::string> AtmosphereOceanState::hFields() const
     return { "True ice thickness", "True snow thickness" };
 }
 
+void AtmosphereOceanState::configure()
+{
+    atmosStateImpl = std::move(Module::getInstance<AtmosphereState>());
+    tryConfigure(*atmosStateImpl);
+
+    oceanStateImpl = std::move(Module::getInstance<OceanState>());
+    tryConfigure(*oceanStateImpl);
+}
+
 void AtmosphereOceanState::update(const TimestepTime& tst)
 {
+    atmosStateImpl->update(tst);
+    oceanStateImpl->update(tst);
+
     hTrueSnow = hSnowCell / cIce;
     hTrueIce = hIceCell / cIce;
 }

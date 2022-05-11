@@ -13,13 +13,14 @@ namespace Nextsim {
 
 void DevStep::iterate(const TimestepTime& tst)
 {
-    PrognosticElementData::setTimestep(tst.step);
-    for (pStructure->cursor = 0; pStructure->cursor; ++pStructure->cursor) {
-        auto& data = *pStructure->cursor;
-        data.updateDerivedData(data, data, data);
-        data.calculate(data, data, data);
-        data.updateAndIntegrate(data);
-    }
+//    PrognosticElementData::setTimestep(tst.step);
+//    for (pStructure->cursor = 0; pStructure->cursor; ++pStructure->cursor) {
+//        auto& data = *pStructure->cursor;
+//        data.updateDerivedData(data, data, data);
+//        data.calculate(data, data, data);
+//        data.updateAndIntegrate(data);
+//    }
+    pData->update(tst);
 }
 
 } /* namespace Nextsim */

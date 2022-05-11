@@ -5,17 +5,22 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef PHYSICS_SRC_INCLUDE_ATMOSPHEREOCEANSTATE_HPP_
-#define PHYSICS_SRC_INCLUDE_ATMOSPHEREOCEANSTATE_HPP_
+#ifndef ATMOSPHEREOCEANSTATE_HPP
+#define ATMOSPHEREOCEANSTATE_HPP
 
+#include "include/AtmosphereState.hpp"
 #include "include/Configured.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/OceanState.hpp"
+
+#include <memory>
 
 namespace Nextsim {
 
 class AtmosphereOceanState : public ModelComponent, public Configured<AtmosphereOceanState> {
+public:
     AtmosphereOceanState();
 
     void setData(const ModelState&) override;
@@ -26,6 +31,7 @@ class AtmosphereOceanState : public ModelComponent, public Configured<Atmosphere
 
     void update(const TimestepTime&);
 
+    void configure() override;
 protected:
     HField hTrueSnow;
     HField hTrueIce;
@@ -33,8 +39,11 @@ protected:
     ModelArrayRef<ProtectedArray::H_SNOW> hSnowCell;
     ModelArrayRef<ProtectedArray::H_ICE> hIceCell;
     ModelArrayRef<ProtectedArray::C_ICE> cIce;
+
+    std::unique_ptr<AtmosphereState> atmosStateImpl;
+    std::unique_ptr<OceanState> oceanStateImpl;
 };
 
 } /* namespace Nextsim */
 
-#endif /* PHYSICS_SRC_INCLUDE_ATMOSPHEREOCEANSTATE_HPP_ */
+#endif /* ATMOSPHEREOCEANSTATE_HPP */

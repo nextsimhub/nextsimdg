@@ -40,7 +40,7 @@ public:
 
     std::string getName() const override { return "IceGrowth"; }
 
-    void setData(const ModelState&) override {};
+    void setData(const ModelState&) override;
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
 

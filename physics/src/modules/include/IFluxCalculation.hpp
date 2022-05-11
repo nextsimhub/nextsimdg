@@ -8,11 +8,13 @@
 #ifndef IFLUXCALCULATION_HPP
 #define IFLUXCALCULATION_HPP
 
+#include "include/AtmosphereOceanState.hpp"
+#include "include/Configured.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
-class IFluxCalculation : public ModelComponent {
+class IFluxCalculation : public ModelComponent, public Configured<IFluxCalculation> {
 public:
     IFluxCalculation()
     {
@@ -25,7 +27,10 @@ public:
     }
     virtual ~IFluxCalculation() = default;
 
-    void setData(const ModelState&) override { }
+    void setData(const ModelState& ms) override
+    {
+        aoState.setData(ms);
+    }
 
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -37,6 +42,10 @@ public:
         return { "qow", "subl", "qia", "dqia_dt", "qio" };
     }
 
+    void configure() override
+    {
+        aoState.configure();
+    }
     virtual void update(const TimestepTime&) = 0;
 
 protected:
@@ -47,6 +56,9 @@ protected:
     HField qia; // Ice-atmosphere heat flux [W m⁻²]
     HField dqia_dt; // Derivative of qia w.r.t. ice surface temperature
     HField qio; // Ice-ocean heat flux [W m⁻²]
+
+    // The interface to the rest of the world
+    AtmosphereOceanState aoState;
 };
 }
 #endif /* IFLUXCALCULATION_HPP */

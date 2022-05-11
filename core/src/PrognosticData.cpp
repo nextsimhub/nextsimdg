@@ -7,6 +7,8 @@
 
 #include "include/PrognosticData.hpp"
 
+#include "include/ModelArrayRef.hpp"
+
 namespace Nextsim {
 
 PrognosticData::PrognosticData()
@@ -26,8 +28,33 @@ void PrognosticData::setData(const ModelState& ms)
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
-    m_u = ms.at("u");
-    m_v = ms.at("v");
+    if (ms.count("u")) {
+        m_u = ms.at("u");
+    }
+    if (ms.count("v")) {
+        m_v = ms.at("v");
+    }
+
+    iceGrowth.setData(ms);
+}
+
+void PrognosticData::update(const TimestepTime& tst)
+{
+    iceGrowth.update(tst);
+
+    ModelArrayRef<SharedArray::H_ICE, RO> hiceTrueUpd;
+    ModelArrayRef<SharedArray::C_ICE, RO> ciceUpd;
+    ModelArrayRef<SharedArray::H_SNOW, RO> hsnowTrueUpd;
+    ModelArrayRef<SharedArray::T_ICE, RO> ticeUpd;
+
+    // Calculate the cell average thicknesses
+    HField hiceUpd = hiceTrueUpd * ciceUpd;
+    HField hsnowUpd = hsnowTrueUpd * ciceUpd;
+
+    m_thick.setData(hiceUpd);
+    m_conc.setData(ciceUpd);
+    m_snow.setData(hsnowUpd);
+    m_tice.setData(ticeUpd);
 }
 
 } /* namespace Nextsim */

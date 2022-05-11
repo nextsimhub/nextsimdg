@@ -49,6 +49,15 @@ set(FluxCalculationModuleSources
     "FiniteElementFluxes.cpp"
     "FiniteElementSpecHum.cpp"
     )
+    
+set(StateModuleSources
+    "AtmosphereStateModule.cpp"
+    "AtmosphereState.cpp"
+    "DummyAtmosphereState.cpp"
+    "OceanStateModule.cpp"
+    "OceanState.cpp"
+    "DummyOceanState.cpp"
+    )
 
 set(ModuleSources
     "${IceAlbedoModuleSources}"
@@ -60,12 +69,14 @@ set(ModuleSources
     "${IceThermodynamicsModuleSources}"
     "${LateralIceSpreadModuleSources}"
     "${FluxCalculationModuleSources}"
+    "${StateModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
 set(Sources
     "IceGrowth.cpp"
+    "AtmosphereOceanState.cpp"
     )
 
 list(TRANSFORM Sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")

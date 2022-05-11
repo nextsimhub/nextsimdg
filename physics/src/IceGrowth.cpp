@@ -24,6 +24,12 @@ const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
 
 };
 
+void IceGrowth::setData(const ModelState& ms) {
+    iVertical->setData(ms);
+    iLateral->setData(ms);
+    iFluxes->setData(ms);
+}
+
 void IceGrowth::configure()
 {
     // Configure constants

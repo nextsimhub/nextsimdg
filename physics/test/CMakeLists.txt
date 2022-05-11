@@ -67,6 +67,13 @@ add_executable(testIceGrowth
     "${ModulesDir}/SMU2IceAlbedo.cpp"
     "${ModulesDir}/IceOceanHeatFluxModule.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${SourceDir}/AtmosphereOceanState.cpp"
+    "${ModulesDir}/AtmosphereStateModule.cpp"
+    "${ModulesDir}/AtmosphereState.cpp"
+    "${ModulesDir}/DummyAtmosphereState.cpp"
+    "${ModulesDir}/OceanStateModule.cpp"
+    "${ModulesDir}/OceanState.cpp"
+    "${ModulesDir}/DummyOceanState.cpp"
     )
 target_include_directories(testIceGrowth PRIVATE
     "${CoreSourceDir}"
@@ -91,6 +98,13 @@ add_executable(testFEFluxes
     "${ModulesDir}/SMU2IceAlbedo.cpp"
     "${ModulesDir}/IceOceanHeatFluxModule.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${SourceDir}/AtmosphereOceanState.cpp"
+    "${ModulesDir}/AtmosphereStateModule.cpp"
+    "${ModulesDir}/AtmosphereState.cpp"
+    "${ModulesDir}/DummyAtmosphereState.cpp"
+    "${ModulesDir}/OceanStateModule.cpp"
+    "${ModulesDir}/OceanState.cpp"
+    "${ModulesDir}/DummyOceanState.cpp"
     )
 target_include_directories(testFEFluxes PRIVATE
     "${CoreSourceDir}"

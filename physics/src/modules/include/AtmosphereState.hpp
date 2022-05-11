@@ -16,7 +16,7 @@ namespace Nextsim {
 class AtmosphereState : public ModelComponent {
 public:
     AtmosphereState();
-    virtual ~AtmosphereState();
+    virtual ~AtmosphereState() = default;
 
     void setData(const ModelState&) override;
     ModelState getState() const override;

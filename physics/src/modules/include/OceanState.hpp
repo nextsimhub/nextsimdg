@@ -18,7 +18,7 @@ namespace Nextsim {
 class OceanState : public ModelComponent, public Configured<OceanState> {
 public:
     OceanState();
-    virtual ~OceanState();
+    virtual ~OceanState() = default;
 
     void setData(const ModelState&) override;
     ModelState getState() const override;
