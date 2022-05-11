@@ -210,5 +210,12 @@ TEST_CASE("Arithmetic tests", "[ModelArray]")
     quotient = four / rhs;
     REQUIRE(quotient[0] == (4. / 3.));
     REQUIRE(quotient[1] == (4. / -5.));
+
+    HField fill = ModelArray::HField("");
+    double filldub = 5.2354;
+    fill = filldub;
+
+    REQUIRE(fill[0] == filldub);
+    REQUIRE(fill[1] == filldub);
 }
 } /* namespace Nextsim */

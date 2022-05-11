@@ -56,6 +56,14 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
     return *this;
 }
 
+ModelArray& ModelArray::operator=(const double& fill)
+{
+    m_name = std::to_string(fill);
+    setData(fill);
+
+    return *this;
+}
+
 ModelArray ModelArray::operator+(const ModelArray& addend) const
 {
     ModelArray result(type, m_name + "+" + addend.m_name);

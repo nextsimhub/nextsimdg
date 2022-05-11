@@ -76,6 +76,7 @@ public:
     virtual ~ModelArray() {};
 
     ModelArray& operator=(const ModelArray&);
+    ModelArray& operator=(const double&);
 
     // ModelArray arithmetic
     ModelArray operator+(const ModelArray&) const;
