@@ -69,11 +69,11 @@ public:
     //! Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO
     void setIO(IDevGridIO* p) { pio = p; }
 
-private:
     const static std::string xDimName;
     const static std::string yDimName;
     const static std::string nIceLayersName;
 
+private:
     std::vector<ElementData> data;
 
     std::vector<ElementData>::iterator iCursor;
