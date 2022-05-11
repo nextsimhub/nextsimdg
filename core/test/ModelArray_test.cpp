@@ -180,5 +180,35 @@ TEST_CASE("Arithmetic tests", "[ModelArray]")
     HField quotient = lhs / rhs;
     REQUIRE(quotient[0] == 3.);
     REQUIRE(quotient[1] == -2.);
+    HField negative = -rhs;
+    REQUIRE(negative[0] == -3);
+    REQUIRE(negative[1] == 5);
+
+    double three = 3;
+    double four = 4;
+    sum = lhs + three;
+    REQUIRE(sum[0] == 12);
+    REQUIRE(sum[1] == 13);
+    sum = four + rhs;
+    REQUIRE(sum[0] == 7);
+    REQUIRE(sum[1] == -1);
+    difference = lhs - three;
+    REQUIRE(difference[0] == 6);
+    REQUIRE(difference[1] == 7);
+    difference = four - rhs;
+    REQUIRE(difference[0] == 1);
+    REQUIRE(difference[1] == 9);
+    product = lhs * three;
+    REQUIRE(product[0] == 27);
+    REQUIRE(product[1] == 30);
+    product = four * rhs;
+    REQUIRE(product[0] == 12);
+    REQUIRE(product[1] == -20);
+    quotient = lhs / three;
+    REQUIRE(quotient[0] == 3);
+    REQUIRE(quotient[1] == (10. / 3.));
+    quotient = four / rhs;
+    REQUIRE(quotient[0] == (4. / 3.));
+    REQUIRE(quotient[1] == (4. / -5.));
 }
 } /* namespace Nextsim */

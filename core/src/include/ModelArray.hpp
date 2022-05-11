@@ -71,6 +71,7 @@ public:
     static ModelArray ZField(const std::string& name) { return ModelArray(Type::Z, name); }
 
     ModelArray();
+    ModelArray(const Type, const std::string&);
     ModelArray(const ModelArray&);
     virtual ~ModelArray() {};
 
@@ -81,6 +82,12 @@ public:
     ModelArray operator-(const ModelArray&) const;
     ModelArray operator*(const ModelArray&) const;
     ModelArray operator/(const ModelArray&) const;
+    ModelArray operator-() const;
+
+    ModelArray operator+(const double&) const;
+    ModelArray operator-(const double&) const;
+    ModelArray operator*(const double&) const;
+    ModelArray operator/(const double&) const;
 
     typedef std::vector<size_t> Dimensions;
 
@@ -92,6 +99,9 @@ public:
     size_t size() const { return size(type); }
     size_t trueSize() const { return m_data.rows(); }
     static size_t size(Type type) { return m_sz.at(type); }
+
+    const double* getData() const { return m_data.data(); }
+    const Type getType() const { return type; }
 
     static void setDimensions(Type, const Dimensions&);
     void setDimensions(const Dimensions& dims)
@@ -111,6 +121,7 @@ public:
     void setData(double value);
     void setData(const double* pData);
     void setData(const DataType&);
+    void setData(const ModelArray&);
 
     const double& operator[](size_t i) const { return m_data(i, 0); }
     const double& operator[](const Dimensions& dims) const;
@@ -184,7 +195,6 @@ public:
 
 protected:
     Type type;
-    ModelArray(const Type, const std::string&);
 
     size_t zLayerIndex(size_t hIndex, size_t layer) const
     {
@@ -244,6 +254,11 @@ typedef ModelArray UField;
 typedef ModelArray VField;
 typedef ModelArray ZField;
 
+// ModelArray arithmetic with doubles
+ModelArray operator+(const double&, const ModelArray&);
+ModelArray operator-(const double&, const ModelArray&);
+ModelArray operator*(const double&, const ModelArray&);
+ModelArray operator/(const double&, const ModelArray&);
 } /* namespace Nextsim */
 
 #endif /* CORE_SRC_INCLUDE_MODELARRAY_HPP */

@@ -11,6 +11,7 @@
 #include <cstdarg>
 #include <iterator>
 #include <set>
+#include <string>
 #include <utility>
 
 namespace Nextsim {
@@ -99,6 +100,63 @@ ModelArray ModelArray::operator/(const ModelArray& divisor) const
     return result;
 }
 
+ModelArray ModelArray::operator-() const
+{
+    ModelArray copy(type, std::string("-") + m_name);
+    copy.m_data = -m_data;
+    return copy;
+}
+
+ModelArray ModelArray::operator+(const double& x) const
+{
+    ModelArray copy(type, m_name + "+" + std::to_string(x));
+    copy.m_data = m_data + x;
+    return copy;
+}
+
+ModelArray ModelArray::operator-(const double& x) const
+{
+    ModelArray copy(type, m_name + "-" + std::to_string(x));
+    copy.m_data = m_data - x;
+    return copy;
+}
+
+ModelArray ModelArray::operator*(const double& x) const
+{
+    ModelArray copy(type, m_name + "*" + std::to_string(x));
+    copy.m_data = m_data * x;
+    return copy;
+}
+
+ModelArray ModelArray::operator/(const double& x) const
+{
+    ModelArray copy(type, m_name + "/" + std::to_string(x));
+    copy.m_data = m_data / x;
+    return copy;
+}
+
+ModelArray operator+(const double& x, const ModelArray& y)
+{
+    return y + x;
+}
+
+ModelArray operator-(const double& x, const ModelArray& y)
+{
+    return -(y - x);
+}
+
+ModelArray operator*(const double& x, const ModelArray& y)
+{
+    return y * x;
+}
+
+ModelArray operator/(const double& x, const ModelArray& y)
+{
+    ModelArray xArray(y.getType(), std::to_string(x));
+    xArray.setData(x);
+    return xArray / y;
+}
+
 void ModelArray::setData(double value)
 {
     m_data = value;
@@ -111,6 +169,8 @@ void ModelArray::setData(const double* pData)
 }
 
 void ModelArray::setData(const DataType& from) { setData(from.data()); }
+
+void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
 void ModelArray::setDimensions(Type type, const Dimensions& newDims)
 {
