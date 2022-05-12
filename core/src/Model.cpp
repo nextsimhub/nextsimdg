@@ -79,7 +79,7 @@ void Model::run()
 void Model::writeRestartFile()
 {
         // TODO Replace with real logging
-    std::cout << "  (Not) Writing state-based restart file: " << finalFileName << std::endl;
-    std::cout << "T_ice (2, 2, 0) = " << pData.iceTemperature()(2, 2, 0) << std::endl;
+    std::cout << "  Writing state-based restart file: " << finalFileName << std::endl;
+    StructureFactory::fileFromState(pData.getState(), finalFileName);
 }
 } /* namespace Nextsim */

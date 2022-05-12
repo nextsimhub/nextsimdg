@@ -25,7 +25,7 @@ public:
     std::string getName() const override { return "PrognosticData"; };
 
     void setData(const ModelState& ms) override;
-    ModelState getState() const override { return ModelState(); }
+    ModelState getState() const override;
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
     std::set<std::string> hFields() const override { return { "h_ice", "c_cice", "h_snow" }; };

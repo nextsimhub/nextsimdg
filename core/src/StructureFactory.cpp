@@ -23,35 +23,6 @@
 
 namespace Nextsim {
 
-//std::shared_ptr<IStructure> StructureFactory::generate(const std::string& structureName)
-//{
-//    std::string iStruct = "Nextsim::IStructure";
-//    std::shared_ptr<IStructure> shst;
-//    for (auto struc : Module::IStructureModule::listImplementations()) {
-//        Module::setImplementation<IStructure>(struc);
-//        if (Module::getImplementation<IStructure>().structureType() == structureName) {
-//            shst = std::move(Module::getInstance<IStructure>());
-//
-//            // TODO There must be a better way
-//            if (shst->structureTypeCheck(DevGrid::structureName)) {
-//                std::shared_ptr<DevGrid> shdg = std::dynamic_pointer_cast<DevGrid>(shst);
-//                shdg->setIO(new DevGridIO(*shdg));
-//            } else if (shst->structureTypeCheck(RectangularGrid::structureName)) {
-//                std::shared_ptr<RectangularGrid> shrg
-//                    = std::dynamic_pointer_cast<RectangularGrid>(shst);
-//                shrg->setIO(new RectGridIO(*shrg));
-//            }
-//
-//            return shst;
-//        }
-//    }
-//    // If we reach here, then no valid handlers of the named structure were
-//    // found. Throw a invalid argument exception.
-//    std::string what = "StructureSelector: Invalid structure name (";
-//    what += structureName + ") provided.";
-//    throw std::invalid_argument(what);
-//}
-
 std::string structureNameFromFile(const std::string& filePath)
 {
     netCDF::NcFile ncf(filePath, netCDF::NcFile::read);
@@ -67,32 +38,39 @@ std::string structureNameFromFile(const std::string& filePath)
     return structureName;
 }
 
-//std::shared_ptr<IStructure> StructureFactory::generateFromFile(const std::string& filePath)
-//{
-//    return generate(structureNameFromFile(filePath));
-//}
-
 ModelState StructureFactory::stateFromFile(const std::string& filePath)
 {
     std::string structureName = structureNameFromFile(filePath);
-    for (auto struc : Module::IStructureModule::listImplementations()) {
-        Module::setImplementation<IStructure>(struc);
-        if (Module::getImplementation<IStructure>().structureType() == structureName) {
-            // TODO There must be a better way
-            if (DevGrid::structureName == structureName) {
-                DevGrid gridIn;
-                gridIn.setIO(new DevGridIO(gridIn));
-                return gridIn.getModelState(filePath);
-            } else if (RectangularGrid::structureName == structureName) {
-                RectangularGrid gridIn;
-                gridIn.setIO(new RectGridIO(gridIn));
-                // return gridIn.getModelState(filePath);
-                return ModelState();
-            }
-        }
+    // TODO There must be a better way
+    if (DevGrid::structureName == structureName) {
+        DevGrid gridIn;
+        gridIn.setIO(new DevGridIO(gridIn));
+        return gridIn.getModelState(filePath);
+    } else if (RectangularGrid::structureName == structureName) {
+        RectangularGrid gridIn;
+        gridIn.setIO(new RectGridIO(gridIn));
+        // return gridIn.getModelState(filePath);
+        return ModelState();
+    } else {
+        throw std::invalid_argument(
+            std::string("fileFromName: structure not implemented: ") + structureName);
     }
     // TODO: throw some kind of exception if we get here.
     return ModelState();
+}
+
+void StructureFactory::fileFromState(const ModelState& state, const std::string& filePath)
+{
+    std::string structureName = Module::getImplementation<IStructure>().structureType();
+
+    if (DevGrid::structureName == structureName) {
+        DevGrid gridOut;
+        gridOut.setIO(new DevGridIO(gridOut));
+        gridOut.dumpModelState(state, filePath);
+    } else {
+        throw std::invalid_argument(
+            std::string("fileFromName: structure not implemented: ") + structureName);
+    }
 }
 
 } /* namespace Nextsim */
