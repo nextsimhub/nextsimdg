@@ -6,7 +6,6 @@ set(BaseSources
     "Timer.cpp"
     "Model.cpp"
     "Iterator.cpp"
-    "SimpleIterant.cpp"
     "Configurator.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
