@@ -14,6 +14,8 @@
 #include <string>
 #include <utility>
 
+#include <iostream> // FIXME Remove me
+
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;
@@ -31,9 +33,7 @@ ModelArray::ModelArray(const Type type, const std::string& name)
     : type(type)
     , m_name(name)
 {
-    if (m_sz.at(type) > 0) {
-        m_data.resize(m_sz.at(type), nComponents());
-    }
+    m_data.resize(std::max(std::size_t{0}, m_sz.at(type)), nComponents());
 }
 
 ModelArray::ModelArray()
@@ -173,7 +173,7 @@ void ModelArray::setData(double value)
 void ModelArray::setData(const double* pData)
 {
     resize();
-    std::copy(pData, pData + m_sz.at(type), m_data.data());
+    auto out = std::copy(pData, pData + m_sz.at(type), m_data.data());
 }
 
 void ModelArray::setData(const DataType& from) { setData(from.data()); }
