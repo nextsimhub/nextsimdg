@@ -74,9 +74,25 @@ std::shared_ptr<IStructure> StructureFactory::generateFromFile(const std::string
 
 ModelState StructureFactory::stateFromFile(const std::string& filePath)
 {
-    ModelState state;
     std::string structureName = structureNameFromFile(filePath);
-    return state;
+    for (auto struc : Module::IStructureModule::listImplementations()) {
+        Module::setImplementation<IStructure>(struc);
+        if (Module::getImplementation<IStructure>().structureType() == structureName) {
+            // TODO There must be a better way
+            if (DevGrid::structureName == structureName) {
+                DevGrid gridIn;
+                gridIn.setIO(new DevGridIO(gridIn));
+                return gridIn.getModelState(filePath);
+            } else if (RectangularGrid::structureName == structureName) {
+                RectangularGrid gridIn;
+                gridIn.setIO(new RectGridIO(gridIn));
+                // return gridIn.getModelState(filePath);
+                return ModelState();
+            }
+        }
+    }
+    // TODO: throw some kind of exception if we get here.
+    return ModelState();
 }
 
 } /* namespace Nextsim */

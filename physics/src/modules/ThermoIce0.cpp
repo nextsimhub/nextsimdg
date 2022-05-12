@@ -7,8 +7,8 @@
 
 #include "include/ThermoIce0.hpp"
 
-#include "include/IceGrowth.hpp"
 #include "include/IFreezingPointModule.hpp"
+#include "include/IceGrowth.hpp"
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
 
@@ -17,10 +17,20 @@ namespace Nextsim {
 double ThermoIce0::k_s;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 
+ThermoIce0::ThermoIce0()
+    : IIceThermodynamics()
+    , snowMelt(ModelArray::Type::H, "melt")
+    , topMelt(ModelArray::Type::H, "topmelt")
+    , botMelt(ModelArray::Type::H, "botmelt")
+    , qic(ModelArray::Type::H, "qic")
+{
+}
+
 void ThermoIce0::update(const TimestepTime& tsTime)
 {
-    overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1, std::placeholders::_2), tsTime);
-
+    overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tsTime);
 }
 
 template <>
@@ -28,9 +38,16 @@ const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
     { ThermoIce0::KS_KEY, "thermoice0.ks" },
 };
 
-void ThermoIce0::configure()
+void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096); }
+
+void ThermoIce0::setData(const ModelState& ms)
 {
-    k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096);
+    IIceThermodynamics::setData(ms);
+
+    snowMelt.resize();
+    topMelt.resize();
+    botMelt.resize();
+    qic.resize();
 }
 
 void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
@@ -70,7 +87,6 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     // Amount of melting (only) at the top and bottom of the ice
     topMelt[i] = std::min(excessIceMelt, 0.);
     botMelt[i] = std::min(iceBottomChange, 0.);
-
     // Snow to ice conversion
     double iceDraught = (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / Water::rhoOcean;
 
@@ -98,8 +114,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         deltaHi[i] = -oldHi[i];
 
         // The ice-ocean flux includes all the latent heat
-        qio[i]
-            += hice[i] * bulkLHFusionIce / tst.step + hsnow[i] * bulkLHFusionSnow / tst.step;
+        qio[i] += hice[i] * bulkLHFusionIce / tst.step + hsnow[i] * bulkLHFusionSnow / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
         hice[i] = 0.;

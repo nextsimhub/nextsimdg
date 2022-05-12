@@ -21,6 +21,11 @@ static const std::map<ModelComponent::ProtectedArray, std::string> fieldNames = 
 
 OceanState::OceanState()
     : tfImpl(nullptr)
+    , sst(ModelArray::Type::H, "sst")
+    , sss(ModelArray::Type::H, "sss")
+    , mld(ModelArray::Type::H, "mld")
+    , tf(ModelArray::Type::H, "tf")
+    , cpml(ModelArray::Type::H, "cpml")
 {
     registerProtectedArray(ProtectedArray::SST, &sst);
     registerProtectedArray(ProtectedArray::SSS, &sss);
@@ -67,6 +72,7 @@ void OceanState::update(const TimestepTime& tst)
     // Mixed layer heat capacity per unit area
     cpml = mld * Water::rho * Water::cp;
     // Sea surface freezing point
+    tf.resize();
     overElements(std::bind(&OceanState::updateFreezingPoint, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);

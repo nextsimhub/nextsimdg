@@ -13,7 +13,6 @@
 
 int main(int argc, char* argv[])
 {
-
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
     // Extract any config files defined on the command line

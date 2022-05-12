@@ -69,26 +69,28 @@ void Model::configure()
 
     modelStep.setInitFile(initialFileName);
 
-//8<---------------------------------------------------------------------------
-    // Currently, initialize the data here in Model and pass the pointer to the
-    // data structure to IModelStep
-//    dataStructure = StructureFactory::generateFromFile(initialFileName);
-//    dataStructure->init(initialFileName);
-//    modelStep.setInitialData(*dataStructure);
-//
-//    // TODO Real external data handling (in the model step?)
-//    DummyExternalData::setAll(*dataStructure);
+    // 8<---------------------------------------------------------------------------
+    //  Currently, initialize the data here in Model and pass the pointer to the
+    //  data structure to IModelStep
+    //    dataStructure = StructureFactory::generateFromFile(initialFileName);
+    //    dataStructure->init(initialFileName);
+    //    modelStep.setInitialData(*dataStructure);
+    //
+    //    // TODO Real external data handling (in the model step?)
+    //    DummyExternalData::setAll(*dataStructure);
 
-//8<---------------------------------------------------------------------------
+    // 8<---------------------------------------------------------------------------
 
     // ModelState initialization
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
     modelStep.setInitialData(pData);
     pData.setData(initialState);
-
 }
 
-void Model::run() { iterator.run(); }
+void Model::run()
+{
+    iterator.run();
+}
 
 void Model::writeRestartFile()
 {
@@ -98,6 +100,7 @@ void Model::writeRestartFile()
         dataStructure->dump(finalFileName);
     }
 
-        std::cout << "  Writing state-based restart file: " << finalFileName << std::endl;
+    std::cout << "  (Not) Writing state-based restart file: " << finalFileName << std::endl;
+    std::cout << "T_ice (2, 2, 0) = " << pData.iceTemperature()(2, 2, 0) << std::endl;
 }
 } /* namespace Nextsim */

@@ -13,6 +13,11 @@ namespace Nextsim {
 
 PrognosticData::PrognosticData()
     : m_dt(1)
+    , m_thick(ModelArray::Type::H, "hice")
+    , m_conc(ModelArray::Type::H, "cice")
+    , m_snow(ModelArray::Type::H, "hsnow")
+    , m_tice(ModelArray::Type::Z, "tice")
+
 {
     registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
     registerProtectedArray(ProtectedArray::C_ICE, &m_conc);
@@ -24,6 +29,7 @@ void PrognosticData::configure() { tryConfigure(iceGrowth); }
 
 void PrognosticData::setData(const ModelState& ms)
 {
+
     m_thick = ms.at("hice");
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");

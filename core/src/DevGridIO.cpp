@@ -19,10 +19,8 @@
 #include <ncVar.h>
 
 #include <map>
-#include <vector>
 #include <string>
-
-#include <iostream> // FIXME Remove me
+#include <vector>
 
 namespace Nextsim {
 
@@ -217,10 +215,8 @@ static void dumpGroup(
     dumpData(data, dataGroup, nameMap);
 }
 
-    // Metadata initialization
-static void initModelMetaData(const netCDF::NcGroup& metaGroup)
-{
-}
+// Metadata initialization
+static void initModelMetaData(const netCDF::NcGroup& metaGroup) { }
 
 static ModelState initModelData(const netCDF::NcGroup& dataGroup)
 {
@@ -258,7 +254,7 @@ static ModelState initModelData(const netCDF::NcGroup& dataGroup)
         if (nDims == 2) {
             HField data = ModelArray::HField(varName);
             data.setData(buffer.data());
-            auto [i, y] = state.insert({varName, data});
+            auto [i, y] = state.insert({ varName, data });
         } else if (nDims == 3) {
             ZField data = ModelArray::ZField(varName);
             data.setData(buffer.data());
@@ -310,7 +306,6 @@ void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
             var.putVar(entry.second.getData());
         }
     }
-
 }
 
 void DevGridIO::dumpModelState(const ModelState& state, const std::string& filePath) const
@@ -321,7 +316,6 @@ void DevGridIO::dumpModelState(const ModelState& state, const std::string& fileP
     dumpModelMeta(state, metaGroup);
     dumpModelData(state, dataGroup);
     ncFile.close();
-
 }
 
 } /* namespace Nextsim */

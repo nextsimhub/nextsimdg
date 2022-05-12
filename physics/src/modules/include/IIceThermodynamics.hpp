@@ -19,13 +19,21 @@ public:
     ~IIceThermodynamics() = default;
 
     std::string getName() const override { return "IceThermodynamics"; }
-    void setData(const ModelState& ms) override { }
+    void setData(const ModelState& ms) override
+    {
+        tice.resize();
+        deltaHi.resize();
+        snowToIce.resize();
+    }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     virtual void update(const TimestepTime& tsTime) = 0;
 
 protected:
     IIceThermodynamics()
+        : tice(ModelArray::Type::Z, "tice")
+        , deltaHi(ModelArray::Type::H, "deltaHi")
+        , snowToIce(ModelArray::Type::H, "snow2ice")
     {
         registerModule();
 

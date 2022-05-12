@@ -15,10 +15,7 @@ namespace Nextsim {
 
 class ThermoIce0 : public IIceThermodynamics, public Configured<ThermoIce0> {
 public:
-    ThermoIce0()
-        : IIceThermodynamics()
-    {
-    }
+    ThermoIce0();
     virtual ~ThermoIce0() = default;
 
     enum {
@@ -26,6 +23,7 @@ public:
     };
     void configure() override;
 
+    void setData(const ModelState&) override;
     void update(const TimestepTime& tsTime) override;
 
 private:

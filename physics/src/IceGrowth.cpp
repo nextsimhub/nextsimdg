@@ -7,8 +7,8 @@
 
 #include "include/IceGrowth.hpp"
 
+#include "include/IceThermodynamicsModule.hpp"
 #include "include/constants.hpp"
-#include "modules/include/IceThermodynamicsModule.hpp"
 
 namespace Nextsim {
 
@@ -24,10 +24,33 @@ const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
 
 };
 
-void IceGrowth::setData(const ModelState& ms) {
+IceGrowth::IceGrowth()
+    : hice(ModelArray::Type::H, "hice")
+    , cice(ModelArray::Type::H, "cice")
+    , hsnow(ModelArray::Type::H, "hsnow")
+    , newice(ModelArray::Type::H, "newice")
+    , deltaCFreeze(ModelArray::Type::H, "Δc_freeze")
+    , deltaCMelt(ModelArray::Type::H, "Δc_melt")
+{
+    registerModule();
+    ModelComponent::registerSharedArray(SharedArray::H_ICE, &hice);
+    ModelComponent::registerSharedArray(SharedArray::C_ICE, &cice);
+    ModelComponent::registerSharedArray(SharedArray::H_SNOW, &hsnow);
+    ModelComponent::registerSharedArray(SharedArray::NEW_ICE, &newice);
+}
+
+void IceGrowth::setData(const ModelState& ms)
+{
     iVertical->setData(ms);
     iLateral->setData(ms);
     iFluxes->setData(ms);
+
+    hice.resize();
+    cice.resize();
+    hsnow.resize();
+    newice.resize();
+    deltaCFreeze.resize();
+    deltaCMelt.resize();
 }
 
 void IceGrowth::configure()
@@ -50,7 +73,6 @@ void IceGrowth::configure()
 void IceGrowth::update(const TimestepTime& tsTime)
 {
     iFluxes->update(tsTime);
-
     // Copy the ice data from the prognostic fields to the modifiable fields.
     // Also divide by c_ice to go from cell-averaged to ice-averaged values.
     cice = cice0;
@@ -58,7 +80,6 @@ void IceGrowth::update(const TimestepTime& tsTime)
     hsnow = hsnow0 / cice0;
 
     iVertical->update(tsTime);
-
     // new ice formation
     overElements(
         std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),

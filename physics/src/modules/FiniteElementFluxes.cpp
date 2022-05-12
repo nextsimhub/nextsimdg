@@ -44,6 +44,30 @@ void FiniteElementFluxes::configure()
     m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), 0.07);
     m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), 0.17);
 }
+
+void FiniteElementFluxes::setData(const ModelState& ms)
+{
+    IIceFluxes::setData(ms);
+    IOWFluxes::setData(ms);
+
+    // Data arrays can now be set to the correct size
+    evap.resize();
+    Q_lh_ow.resize();
+    Q_sh_ow.resize();
+    Q_sw_ow.resize();
+    Q_lw_ow.resize();
+    Q_lh_ia.resize();
+    Q_sh_ia.resize();
+    Q_sw_ia.resize();
+    Q_lw_ia.resize();
+    rho_air.resize();
+    cp_air.resize();
+    sh_air.resize();
+    sh_water.resize();
+    sh_ice.resize();
+    dshice_dT.resize();
+}
+
 ModelState FiniteElementFluxes::getState() const { return ModelState(); }
 ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
 
@@ -153,8 +177,16 @@ void FiniteElementFluxCalc::configure()
 
     iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFlux>();
     tryConfigure(iceOceanHeatFluxImpl);
+}
 
+void FiniteElementFluxCalc::setData(const ModelState& ms)
+{
+    IFluxCalculation::setData(ms);
 
+    iOWFluxesImpl->setData(ms);
+    iIceFluxesImpl->setData(ms);
+    fef->setData(ms);
+    iceOceanHeatFluxImpl->setData(ms);
 }
 
 ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }
@@ -162,6 +194,7 @@ ModelState FiniteElementFluxCalc::getState(const OutputLevel&) const { return ge
 
 void FiniteElementFluxCalc::update(const TimestepTime& tst)
 {
+    aoState.update(tst);
     // Update the atmospheric state
     fef->updateAtmosphere(tst);
     // Call the modular open water flux calculation

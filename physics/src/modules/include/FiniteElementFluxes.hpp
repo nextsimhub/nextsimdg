@@ -26,9 +26,36 @@ public:
     FiniteElementFluxes()
         : IIceFluxes()
         , IOWFluxes()
+        , iIceAlbedoImpl(nullptr)
+        , evap(ModelArray::Type::H, "evap")
+        , Q_lh_ow(ModelArray::Type::H, "q_lh_ow")
+        , Q_sh_ow(ModelArray::Type::H, "q_sh_ow")
+        , Q_sw_ow(ModelArray::Type::H, "q_sw_ow")
+        , Q_lw_ow(ModelArray::Type::H, "q_lw_ow")
+        , Q_lh_ia(ModelArray::Type::H, "q_lh_ia")
+        , Q_sh_ia(ModelArray::Type::H, "q_sh_ia")
+        , Q_sw_ia(ModelArray::Type::H, "q_sw_ia")
+        , Q_lw_ia(ModelArray::Type::H, "q_lw_ia")
+        , rho_air(ModelArray::Type::H, "rho_air")
+        , cp_air(ModelArray::Type::H, "cp_air")
+        , sh_air(ModelArray::Type::H, "sh_air")
+        , sh_water(ModelArray::Type::H, "sh_water")
+        , sh_ice(ModelArray::Type::H, "sh_ice")
+        , dshice_dT(ModelArray::Type::H, "dshice_dT")
     {
     }
     ~FiniteElementFluxes() = default;
+
+    enum {
+        DRAGOCEANQ_KEY,
+        DRAGOCEANT_KEY,
+        DRAGICET_KEY,
+        OCEANALBEDO_KEY,
+        I0_KEY,
+    };
+    void configure() override;
+
+    void setData(const ModelState&) override;
 
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
@@ -51,14 +78,6 @@ public:
 
     void updateAtmosphere(const TimestepTime& tst);
 
-    void configure() override;
-    enum {
-        DRAGOCEANQ_KEY,
-        DRAGOCEANT_KEY,
-        DRAGICET_KEY,
-        OCEANALBEDO_KEY,
-        I0_KEY,
-    };
 
 private:
     // Owned diagnostic fields
@@ -123,7 +142,7 @@ public:
     {
     }
 
-    void setData(const ModelState&) override { }
+    void setData(const ModelState&) override;
 
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;

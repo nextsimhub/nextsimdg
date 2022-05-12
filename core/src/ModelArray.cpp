@@ -14,8 +14,6 @@
 #include <string>
 #include <utility>
 
-#include <iostream> // FIXME Remove me
-
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;
@@ -33,7 +31,7 @@ ModelArray::ModelArray(const Type type, const std::string& name)
     : type(type)
     , m_name(name)
 {
-    m_data.resize(std::max(std::size_t{0}, m_sz.at(type)), nComponents());
+    m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
 }
 
 ModelArray::ModelArray()
@@ -143,20 +141,11 @@ ModelArray ModelArray::operator/(const double& x) const
     return copy;
 }
 
-ModelArray operator+(const double& x, const ModelArray& y)
-{
-    return y + x;
-}
+ModelArray operator+(const double& x, const ModelArray& y) { return y + x; }
 
-ModelArray operator-(const double& x, const ModelArray& y)
-{
-    return -(y - x);
-}
+ModelArray operator-(const double& x, const ModelArray& y) { return -(y - x); }
 
-ModelArray operator*(const double& x, const ModelArray& y)
-{
-    return y * x;
-}
+ModelArray operator*(const double& x, const ModelArray& y) { return y * x; }
 
 ModelArray operator/(const double& x, const ModelArray& y)
 {

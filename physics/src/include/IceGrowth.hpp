@@ -19,14 +19,7 @@ namespace Nextsim {
 
 class IceGrowth : public ModelComponent, public Configured<IceGrowth> {
 public:
-    IceGrowth()
-    {
-        registerModule();
-        ModelComponent::registerSharedArray(SharedArray::H_ICE, &hice);
-        ModelComponent::registerSharedArray(SharedArray::C_ICE, &cice);
-        ModelComponent::registerSharedArray(SharedArray::H_SNOW, &hsnow);
-        ModelComponent::registerSharedArray(SharedArray::NEW_ICE, &newice);
-    }
+    IceGrowth();
     virtual ~IceGrowth() = default;
 
     void configure() override;

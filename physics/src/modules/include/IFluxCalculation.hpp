@@ -17,6 +17,11 @@ namespace Nextsim {
 class IFluxCalculation : public ModelComponent, public Configured<IFluxCalculation> {
 public:
     IFluxCalculation()
+        : qow(ModelArray::Type::H, "qow")
+        , subl(ModelArray::Type::H, "subl")
+        , qia(ModelArray::Type::H, "qia")
+        , dqia_dt(ModelArray::Type::H, "dqia_dt")
+        , qio(ModelArray::Type::H, "qio")
     {
         // register shared arrays
         registerSharedArray(SharedArray::Q_OW, &qow);
@@ -30,6 +35,12 @@ public:
     void setData(const ModelState& ms) override
     {
         aoState.setData(ms);
+
+        qow.resize();
+        subl.resize();
+        qia.resize();
+        dqia_dt.resize();
+        qio.resize();
     }
 
     ModelState getState() const override { return ModelState(); }
@@ -42,10 +53,7 @@ public:
         return { "qow", "subl", "qia", "dqia_dt", "qio" };
     }
 
-    void configure() override
-    {
-        aoState.configure();
-    }
+    void configure() override { aoState.configure(); }
     virtual void update(const TimestepTime&) = 0;
 
 protected:
