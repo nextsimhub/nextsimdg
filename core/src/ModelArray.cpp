@@ -167,6 +167,7 @@ ModelArray operator/(const double& x, const ModelArray& y)
 
 void ModelArray::setData(double value)
 {
+    resize();
     m_data = value;
 }
 
