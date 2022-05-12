@@ -96,18 +96,6 @@ add_executable(testDevGrid
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/DevGridIO.cpp"
     "${SRC_DIR}/ModelArray.cpp"
-#    "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
-#    "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
-#    "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
-#    "${PhysicsModulesDir}/BasicIceOceanHeatFluxED.cpp"
-#    "${PhysicsModulesDir}/HiblerConcentration.cpp"
-#    "${PhysicsModulesDir}/ThermoIce0ED.cpp"
-#    "${CoreModulesDir}/IFreezingPointModule.cpp"
-#    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
-#    "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
-#    "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
-#    "${PhysicsModulesDir}/IIceOceanHeatFluxEDModule.cpp"
-#    "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
     )
 
 target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -121,19 +109,6 @@ target_link_libraries(testDevGrid LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch
 #    "${SRC_DIR}/ConfiguredModule.cpp"
 #    "${SRC_DIR}/RectGridIO.cpp"
 #    "${SRC_DIR}/ModelArray.cpp"
-#    "${PhysicsModulesDir}/NextsimPhysics.cpp"
-#    "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
-#    "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
-#    "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
-#    "${PhysicsModulesDir}/BasicIceOceanHeatFluxED.cpp"
-#    "${PhysicsModulesDir}/HiblerConcentration.cpp"
-#    "${PhysicsModulesDir}/ThermoIce0ED.cpp"
-#    "${CoreModulesDir}/IFreezingPointModule.cpp"
-#    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
-#    "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
-#    "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
-#    "${PhysicsModulesDir}/IIceOceanHeatFluxEDModule.cpp"
-#    "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
 #    )
 #
 #target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -150,20 +125,6 @@ target_link_libraries(testDevGrid LINK_PUBLIC "${Boost_LIBRARIES}" Catch2::Catch
 #    "${SRC_DIR}/ModelArray.cpp"
 #    "${CoreModulesDir}/DevGrid.cpp"
 #    "${CoreModulesDir}/RectangularGrid.cpp"
-#    "${PhysicsModulesDir}/NextsimPhysics.cpp"
-#    "${PhysicsModulesDir}/SMUIceAlbedo.cpp"
-#    "${PhysicsModulesDir}/CCSMIceAlbedo.cpp"
-#    "${PhysicsModulesDir}/SMU2IceAlbedo.cpp"
-#    "${PhysicsModulesDir}/BasicIceOceanHeatFluxED.cpp"
-#    "${PhysicsModulesDir}/HiblerConcentration.cpp"
-#    "${PhysicsModulesDir}/ThermoIce0ED.cpp"
-#    "${CoreModulesDir}/IStructureModule.cpp"
-#    "${CoreModulesDir}/IFreezingPointModule.cpp"
-#    "${PhysicsModulesDir}/IPhysics1dModule.cpp"
-#    "${PhysicsModulesDir}/IThermodynamicsModule.cpp"
-#    "${PhysicsModulesDir}/IIceOceanHeatFluxEDModule.cpp"
-#    "${PhysicsModulesDir}/IConcentrationModelModule.cpp"
-#    "${PhysicsModulesDir}/IIceAlbedoModule.cpp"
 #    )
 #
 #target_include_directories(testStructureFactory PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
