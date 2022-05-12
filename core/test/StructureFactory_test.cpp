@@ -19,29 +19,14 @@ namespace Nextsim {
 TEST_CASE("A valid structure name", "[StructureFactory]")
 {
     DevGrid grid;
-    std::shared_ptr<IStructure> ps = StructureFactory::generate(grid.structureType());
-    REQUIRE(ps->structureType() == grid.structureType());
 }
 
 TEST_CASE("An invalid structure name", "[StructureFactory]")
 {
-    REQUIRE_THROWS_AS(StructureFactory::generate("Øresundbro"), std::invalid_argument);
 }
 
 TEST_CASE("Read a structure name from file", "[StructureFactory]")
 {
-    const std::string filename = "StructureFactory_test.nc";
-
-    DevGrid grid;
-    grid.init("");
-    grid.setIO(new DevGridIO(grid));
-
-    grid.dump(filename);
-
-    std::shared_ptr<IStructure> ps = StructureFactory::generateFromFile(filename);
-    REQUIRE(ps->structureType() == grid.structureType());
-
-    std::remove(filename.c_str());
 }
 
 }

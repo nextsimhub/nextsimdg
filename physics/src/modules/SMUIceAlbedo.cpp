@@ -6,7 +6,6 @@
  */
 
 #include "include/SMUIceAlbedo.hpp"
-#include "include/NextsimPhysics.hpp"
 
 namespace Nextsim {
 

@@ -7,33 +7,12 @@ set(IceAlbedoModuleSources
     "SMU2IceAlbedo.cpp"
     )
 
-set(IceOceanHeatFluxEDModuleSources
-    "IIceOceanHeatFluxEDModule.cpp"
-    "BasicIceOceanHeatFluxED.cpp"
-    
-    )
-
 set(IceOceanHeatFluxModuleSources
     "IceOceanHeatFluxModule.cpp"
     "BasicIceOceanHeatFlux.cpp"
     
     )
 
-set(ColumnPhysicsModuleSources
-    "IPhysics1dModule.cpp"
-    "NextsimPhysics.cpp"
-    )
-
-set(ThermodynamicsModuleSources
-    "IThermodynamicsModule.cpp"
-    "ThermoIce0ED.cpp"
-    )
-
-set(ConcentrationModelModuleSources
-    "IConcentrationModelModule.cpp"
-    "HiblerConcentration.cpp"
-    )
-    
 set(IceThermodynamicsModuleSources
     "IceThermodynamicsModule.cpp"
     "ThermoIce0.cpp"

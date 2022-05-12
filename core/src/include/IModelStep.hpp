@@ -5,10 +5,9 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_IMODELSTEP_HPP
-#define CORE_SRC_INCLUDE_IMODELSTEP_HPP
+#ifndef IMODELSTEP_HPP
+#define IMODELSTEP_HPP
 
-#include "include/IStructure.hpp"
 #include "include/Iterator.hpp"
 #include "include/PrognosticData.hpp"
 
@@ -22,7 +21,6 @@ public:
     void setInitFile(const std::string& filePath) { initialRestartFilePath = filePath; };
     virtual void writeRestartFile(const std::string& filePath) = 0;
 
-    virtual void setInitialData(IStructure& dataStructure) = 0;
     virtual void setInitialData(PrognosticData& data) = 0;
 
     // Member functions inherited from Iterant
@@ -37,4 +35,4 @@ protected:
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_IMODELSTEP_HPP */
+#endif /* IMODELSTEP_HPP */

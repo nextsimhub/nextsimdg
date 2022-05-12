@@ -25,7 +25,7 @@ public:
      * @param structureName the name of the structure that should provide the
      *        implementation.
      */
-    static std::shared_ptr<IStructure> generate(const std::string& structureName);
+//    static std::shared_ptr<IStructure> generate(const std::string& structureName);
 
     /*!
      * @brief Returns a shared_ptr to a instance of IStructure which implements
@@ -33,7 +33,7 @@ public:
      *
      * @param filePath the name of the file to be read.
      */
-    static std::shared_ptr<IStructure> generateFromFile(const std::string& filePath);
+//    static std::shared_ptr<IStructure> generateFromFile(const std::string& filePath);
 
     /*!
      * @brief Returns the ModelState of the named restart file.

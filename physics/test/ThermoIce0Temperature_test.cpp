@@ -9,7 +9,7 @@
 #include <catch2/catch.hpp>
 #include <sstream>
 
-#include "include/ThermoIce0Temperature.hpp"
+#include "include/ThermoIce0.hpp"
 #include "include/IFluxCalculation.hpp"
 
 #include "include/Configurator.hpp"
@@ -112,7 +112,7 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
     fluxData.setData(ModelState());
 
     TimestepTime tst = { 0, 600 };
-    ThermoIce0Temperature ti0t;
+    ThermoIce0 ti0t;
     ti0t.configure();
     ti0t.update(tst);
 
@@ -214,7 +214,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
     fluxData.setData(ModelState());
 
     TimestepTime tst = { 0, 600 };
-    ThermoIce0Temperature ti0t;
+    ThermoIce0 ti0t;
     ti0t.configure();
     ti0t.update(tst);
 

@@ -8,15 +8,10 @@
 #ifndef CORE_SRC_INCLUDE_ISTRUCTURE_HPP
 #define CORE_SRC_INCLUDE_ISTRUCTURE_HPP
 
-#include "include/ElementData.hpp"
-
 #include "include/ModelState.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <string>
-
-// See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
-#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
 namespace Nextsim {
 
@@ -33,10 +28,7 @@ namespace Nextsim {
  */
 class IStructure {
 public:
-    IStructure()
-        : cursor(*this)
-    {
-    }
+    IStructure() { }
     virtual ~IStructure() = default;
 
     /*!
@@ -44,7 +36,7 @@ public:
      *
      * @param filePath The path to attempt writing the data to.
      */
-    virtual void init(const std::string& filePath) = 0;
+//    virtual void init(const std::string& filePath) = 0;
 
     /*!
      * @brief Returns the ModelState stored in the file
@@ -72,7 +64,7 @@ public:
      *
      * @param filePath The path to attempt writing the data to.
      */
-    virtual void dump(const std::string& filePath) const = 0;
+//    virtual void dump(const std::string& filePath) const = 0;
 
     /*!
      * @brief Dumps the given ModelState to the given file path.
@@ -81,61 +73,6 @@ public:
      * @param filePath The path to attempt to write the data to.
      */
     virtual void dumpModelState(const ModelState& state, const std::string& filePath) const = 0;
-
-    /*!
-     * @brief Resets the data cursor.
-     *
-     * @returns 0 as an int.
-     */
-    virtual int resetCursor() { return 0; };
-
-    /*!
-     * @brief Returns whether the current cursor is valid.
-     */
-    virtual bool validCursor() const { return false; };
-
-    /*!
-     * @brief Returns the data value at the cursor.
-     */
-    virtual ElementData& cursorData() = 0;
-
-    /*!
-     * @brief Returns a const reference to the data value at the cursor.
-     */
-    virtual const ElementData& cursorData() const = 0;
-
-    /*!
-     * @brief Increments the cursor.
-     */
-    virtual void incrCursor() = 0;
-
-    class Cursor {
-    public:
-        Cursor(IStructure& ownerer)
-            : owner(ownerer)
-        {
-        }
-        ~Cursor() = default;
-        IStructure& operator=(const int i) const
-        {
-            if (0 == i)
-                owner.resetCursor();
-            return owner;
-        }
-        operator bool() const { return owner.validCursor(); };
-        ElementData& operator*() const { return owner.cursorData(); };
-        ElementData* operator->() const { return &owner.cursorData(); };
-        IStructure& operator++() const
-        {
-            owner.incrCursor();
-            return owner;
-        };
-
-    private:
-        IStructure& owner;
-    };
-
-    const Cursor cursor;
 
     // Node names in the default structure
 

@@ -6,7 +6,6 @@
  */
 
 #include "include/SMU2IceAlbedo.hpp"
-#include "include/NextsimPhysics.hpp"
 
 #include <cmath>
 

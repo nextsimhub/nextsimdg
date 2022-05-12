@@ -5,10 +5,9 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_IDEVGRIDIO_HPP_
-#define CORE_SRC_INCLUDE_IDEVGRIDIO_HPP_
+#ifndef IDEVGRIDIO_HPP
+#define IDEVGRIDIO_HPP
 
-#include "include/ElementData.hpp"
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
@@ -30,13 +29,6 @@ public:
     {
     }
     virtual ~IDevGridIO() = default;
-    /*!
-     * @brief Reads data from the file location into the vector of data elements.
-     *
-     * @param dg The vector of ElementData instances to be filled.
-     * @param filePath The location of the NetCDF restart file to be read.
-     */
-    virtual void init(std::vector<ElementData>& dg, const std::string& filePath) const = 0;
 
     /*!
      * @brief Generates the ModelState based on the data in the given file.
@@ -44,14 +36,6 @@ public:
      * @param filePath The location of the NetCDF restart file to be read.
      */
     virtual ModelState getModelState(const std::string& filePath) const = 0;
-
-    /*!
-     * @brief Writes data from the vector of data elements into the file location.
-     *
-     * @param dg The vector of ElementData instances containing the data.
-     * @param filePath The location of the NetCDF restart file to be written.
-     */
-    virtual void dump(const std::vector<ElementData>& dg, const std::string& fielPath) const = 0;
 
     /*!
      * @brief Dumps the given ModelState to the given file path.
@@ -66,4 +50,4 @@ protected:
 };
 
 }
-#endif /* CORE_SRC_INCLUDE_IDEVGRIDIO_HPP_ */
+#endif /* IDEVGRIDIO_HPP */

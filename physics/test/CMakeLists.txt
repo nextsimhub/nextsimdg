@@ -14,38 +14,6 @@ set(ModulesDir "${SourceDir}/modules")
 # include(Catch)
 # catch_discover_tests(testexe)
 
-add_executable(testNextsimPhysics
-    "NextsimPhysics_test.cpp"
-    "${ModulesDir}/NextsimPhysics.cpp"
-    "${CoreSourceDir}/Configurator.cpp"
-    "${CoreSourceDir}/ConfiguredModule.cpp"
-    "${ModulesDir}/SMUIceAlbedo.cpp"
-    "${ModulesDir}/CCSMIceAlbedo.cpp"
-    "${ModulesDir}/SMU2IceAlbedo.cpp"
-    "${ModulesDir}/BasicIceOceanHeatFluxED.cpp"
-    "${CoreSourceDir}/ElementData.cpp"
-    "${CoreSourceDir}/PrognosticElementData.cpp"
-    "${CoreSourceDir}/ModelArray.cpp"
-    "${CoreSourceDir}/ModelComponent.cpp"
-    "${ModulesDir}/HiblerConcentration.cpp"
-    "${ModulesDir}/ThermoIce0ED.cpp"
-    "${ModulesDir}/IPhysics1dModule.cpp"
-    "${CoreModulesDir}/IFreezingPointModule.cpp"
-    "${ModulesDir}/IIceAlbedoModule.cpp"
-    "${ModulesDir}/IThermodynamicsModule.cpp"
-    "${ModulesDir}/IIceOceanHeatFluxEDModule.cpp"
-    "${ModulesDir}/IConcentrationModelModule.cpp"
-    
-    )
-target_include_directories(testNextsimPhysics PRIVATE
-    "${CoreSourceDir}"
-    "${CoreModulesDir}"
-    "${SourceDir}"
-    "${ModulesDir}"
-    "${netCDF_INCLUDE_DIR}"
-    )
-target_link_libraries(testNextsimPhysics PRIVATE "${Boost_LIBRARIES}" Catch2::Catch2 Eigen3::Eigen)
-
 add_executable(testIceGrowth
     "IceGrowth_test.cpp"
     "${SourceDir}/IceGrowth.cpp"

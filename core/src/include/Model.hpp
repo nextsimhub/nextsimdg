@@ -4,13 +4,12 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_MODEL_HPP
-#define SRC_INCLUDE_MODEL_HPP
+#ifndef MODEL_HPP
+#define MODEL_HPP
 
 #include "include/Logged.hpp"
 
 #include "include/Configured.hpp"
-#include "include/IStructure.hpp"
 #include "include/Iterator.hpp"
 #include "include/PrognosticData.hpp"
 
@@ -51,10 +50,8 @@ private:
 
     std::string initialFileName;
     std::string finalFileName;
-
-    std::shared_ptr<IStructure> dataStructure;
 };
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_MODEL_HPP */
+#endif /* MODEL_HPP */

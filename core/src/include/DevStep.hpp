@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_DEVSTEP_HPP
-#define CORE_SRC_INCLUDE_DEVSTEP_HPP
+#ifndef DEVSTEP_HPP
+#define DEVSTEP_HPP
 
 #include "include/IModelStep.hpp"
 #include "include/IStructure.hpp"
@@ -23,7 +23,6 @@ public:
     // Member functions inherited from IModelStep
     void writeRestartFile(const std::string& filePath) override {};
 
-    void setInitialData(IStructure& dataStructure) override { pStructure = &dataStructure; };
     void setInitialData(PrognosticData& pDat) override { pData = &pDat; }
 
     // Member functions inherited from Iterant
@@ -33,10 +32,9 @@ public:
     void stop(const TimePoint& stopTime) override {};
 
 private:
-    IStructure* pStructure;
     PrognosticData* pData;
 };
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_DEVSTEP_HPP */
+#endif /* DEVSTEP_HPP */
