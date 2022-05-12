@@ -7,17 +7,21 @@
 Installation
 ============
 
-First step to install neXtSIM is to download this repository :
+First step to install neXtSIM is to download `this repository`_ :
 
 .. code::
 
-    git clone https://github.com/nextsimdg/nextsimdg.git
+    git clone https://github.com/nextsimdg/nextsimdg.git 
+    or 
+    git clone git@github.com:nextsimdg/nextsimdg.git
     
 or a specific version :
 
 .. code::
 
-    git clone -b v1.0 https://github.com/nextsimdg/nextsimdg.git
+    git clone -b v0.1.0 https://github.com/nextsimdg/nextsimdg.git 
+    or 
+    git clone -b v0.1.0 git@github.com:nextsimdg/nextsimdg.git
 
 
 Dependencies
@@ -73,25 +77,44 @@ You must have root priviledge :
 Compilation with dependencies installation via conda
 ----------------------------------------------------
 
-Install conda via anaconda or miniconda (no root priviledges required)
+Install conda via `anaconda`_ or `miniconda`_ (no root priviledges required)
 
 .. code::
 
         conda create --name nextsimdg
         conda activate nextsimdg
+        conda install libgcc
         conda install netCDF4
-        conda -c conda-forge boost
-        conda -c anaconda cmake
-        conda -c conda-forge catch2
+        conda install -c conda-forge boost
+        conda install -c anaconda cmake
+        conda install -c conda-forge catch2
+        conda install -c conda-forge netcdf-cxx4
         
         cd nextsimdg
         mkdir -p build
         cd build
         cmake ..
         make
-    
+        
+Extra dependencies needed to run the simple example
+---------------------------------------------------
+
+To run the simple example described `here`_, you need to install python and netCDF4 library. If you already installed the dependencies for compilation with conda, nothing else is needed.
+
+Otherwise, install them via `anaconda`_ or `miniconda`_ (no root priviledges required)
+
+.. code::
+
+        conda create --name nextsimdg
+        conda activate nextsimdg
+        conda install netCDF4
+
+.. _`this repository`: https://github.com/nextsimdg/nextsimdg    
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
 .. _Catch2: https://github.com/catchorg/Catch2
 .. _CMake: https://cmake.org/
 .. _Homebrew: https://brew.sh/
+.. _here: https://nextsim-dg.readthedocs.io/en/latest/getting_started.html
+.. _anaconda: https://www.anaconda.com/products/individual
+.. _miniconda: https://docs.conda.io/en/latest/miniconda.html

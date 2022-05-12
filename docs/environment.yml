@@ -4,6 +4,7 @@ channels:
   - conda-forge
 
 dependencies:
-  - breathe==4.16.0
+  - breathe
+  - Jinja2<3.1
   - pip :
     - exhale
