@@ -69,9 +69,9 @@ private:
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
-    ModelArrayRef<ProtectedArray::H_ICE> hice0; // initial ice thickness
+    ModelArrayRef<ProtectedArray::HTRUE_ICE> hice0; // initial ice thickness (ice averaged)
     ModelArrayRef<ProtectedArray::C_ICE> cice0; // initial ice concentration
-    ModelArrayRef<ProtectedArray::H_SNOW> hsnow0; // initial snow thickness
+    ModelArrayRef<ProtectedArray::HTRUE_SNOW> hsnow0; // initial snow thickness (ice averaged)
     ModelArrayRef<SharedArray::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
     ModelArrayRef<ProtectedArray::ML_BULK_CP>
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state

@@ -76,8 +76,8 @@ void IceGrowth::update(const TimestepTime& tsTime)
     // Copy the ice data from the prognostic fields to the modifiable fields.
     // Also divide by c_ice to go from cell-averaged to ice-averaged values.
     cice = cice0;
-    hice = hice0 / cice0;
-    hsnow = hsnow0 / cice0;
+    hice = hice0;
+    hsnow = hsnow0;
 
     iVertical->update(tsTime);
     // new ice formation
@@ -127,7 +127,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
     if (deltaHi[i] < 0) {
         // Note that the cell-averaged hice0 is converted to a ice averaged value
         iLateral->melt(
-            tstep, hice0[i] / cice[0], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
+            tstep, hice0[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
     double deltaC = deltaCFreeze[i] + deltaCMelt[i];
     cice[i] += deltaC;
