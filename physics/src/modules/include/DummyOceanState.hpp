@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+//! A class implementing a constant value OceanState.
 class DummyOceanState : public OceanState {
 public:
     DummyOceanState() = default;
@@ -21,6 +22,7 @@ public:
     std::string getName() const override { return "DummyOceanState"; }
 
 protected:
+    //! Performs the implementation specific updates. Does nothing.
     void updateSpecial(const TimestepTime&) override { }
 };
 

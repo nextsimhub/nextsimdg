@@ -11,18 +11,20 @@
 
 namespace Nextsim {
 
-FiniteElementSpecHum FiniteElementSpecHum::m_water(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10);
-FiniteElementSpecHum FiniteElementSpecHum::m_ice(6.1115e2, 23.036, 279.82, 333.7, 2.2e-4, 3.83e-6, 6.4e-10);
+FiniteElementSpecHum FiniteElementSpecHum::m_water(
+    6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10);
+FiniteElementSpecHum FiniteElementSpecHum::m_ice(
+    6.1115e2, 23.036, 279.82, 333.7, 2.2e-4, 3.83e-6, 6.4e-10);
 
 // Default construction constructs a water instance
 FiniteElementSpecHum::FiniteElementSpecHum()
-    :FiniteElementSpecHum(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10)
-     {
-     }
+    : FiniteElementSpecHum(6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10)
+{
+}
 
 // General constructor
-FiniteElementSpecHum::FiniteElementSpecHum(double a, double b, double c, double d, double bigA,
-        double bigB, double bigC)
+FiniteElementSpecHum::FiniteElementSpecHum(
+    double a, double b, double c, double d, double bigA, double bigB, double bigC)
     : m_a(a)
     , m_b(b)
     , m_c(c)
@@ -45,18 +47,20 @@ double FiniteElementSpecHum::operator()(double temperature, double pressure, dou
     return calculate(temperature, pressure, salinity, false).first;
 }
 
-std::pair<double, double> FiniteElementSpecHum::valueAndDerivative(double temperature, double pressure) const
+std::pair<double, double> FiniteElementSpecHum::valueAndDerivative(
+    double temperature, double pressure) const
 {
     return valueAndDerivative(temperature, pressure, 0);
 }
 
-std::pair<double, double> FiniteElementSpecHum::valueAndDerivative(double temperature,
-        double pressure, double salinity) const
+std::pair<double, double> FiniteElementSpecHum::valueAndDerivative(
+    double temperature, double pressure, double salinity) const
 {
     return calculate(temperature, pressure, salinity, true);
 }
 
-std::pair<double, double> FiniteElementSpecHum::calculate(double temperature, double pressure, double salinity, bool doDeriv) const
+std::pair<double, double> FiniteElementSpecHum::calculate(
+    double temperature, double pressure, double salinity, bool doDeriv) const
 {
     double estCalc = est(temperature, salinity);
     double fCalc = f(temperature, pressure);

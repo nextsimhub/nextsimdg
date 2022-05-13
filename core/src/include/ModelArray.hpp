@@ -70,85 +70,259 @@ public:
     static ModelArray VField(const std::string& name) { return ModelArray(Type::V, name); }
     static ModelArray ZField(const std::string& name) { return ModelArray(Type::Z, name); }
 
+    /*!
+     * Construct an unnamed ModelArray of Type::H
+     */
     ModelArray();
-    ModelArray(const Type, const std::string&);
+    /*!
+     * @brief Construct a ModelArray of the given type and name
+     *
+     * @param type The ModelArray::Type for the new object.
+     * @param name The name of the new object.
+     */
+    ModelArray(const Type type, const std::string& name);
+    //! Copy constructor
     ModelArray(const ModelArray&);
     virtual ~ModelArray() {};
 
+    //! Copy assignment operator
     ModelArray& operator=(const ModelArray&);
-    ModelArray& operator=(const double&);
+    /*!
+     * @brief Assigns a double value to all elements of the object.
+     *
+     * @param val The value to be assigned.
+     */
+    ModelArray& operator=(const double& val);
 
     // ModelArray arithmetic
+    //! Returns a ModelArray containing the per-element sum of the
+    //! object and the provided ModelArray.
     ModelArray operator+(const ModelArray&) const;
+    //! Returns a ModelArray containing the per-element difference between the
+    //! object and the provided ModelArray.
     ModelArray operator-(const ModelArray&) const;
+    //! Returns a ModelArray containing the per-element product of the
+    //! object and the provided ModelArray.
     ModelArray operator*(const ModelArray&) const;
+    //! Returns a ModelArray containing the per-element ratio between the
+    //! object and the provided ModelArray.
     ModelArray operator/(const ModelArray&) const;
+    // Returns a ModelArray containing the element-wise negation of this.
     ModelArray operator-() const;
 
+    //! Returns a ModelArray with a constant added to every element of the object.
     ModelArray operator+(const double&) const;
+    //! Returns a ModelArray with a constant subtracted from every element of the object.
     ModelArray operator-(const double&) const;
+    //! Returns a ModelArray with every element of the object multiplied by a constant.
     ModelArray operator*(const double&) const;
+    //! Returns a ModelArray with every element of the object divided by a constant.
     ModelArray operator/(const double&) const;
 
     typedef std::vector<size_t> Dimensions;
 
-    //! Returns the number of dimensions of the physical grid
+    //! Returns the number of dimensions of this type of ModelArray.
     size_t nDimensions() const { return nDimensions(type); }
+    //! Returns the number of dimensions of the specified type of ModelArray.
     static size_t nDimensions(Type type) { return m_dims.at(type).size(); }
+    //! Returns a vector<size_t> of the size of each dimension of this type of ModelArray.
     const Dimensions& dimensions() const { return dimensions(type); }
+    //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
     static const Dimensions& dimensions(Type type) { return m_dims.at(type); }
+    //! Returns the total number of elements of this type of ModelArray.
     size_t size() const { return size(type); }
-    size_t trueSize() const { return m_data.rows(); }
+    //! Returns the total number of elements of the specified type of ModelArray.
     static size_t size(Type type) { return m_sz.at(type); }
+    //! Returns the size of the data array of this object.
+    size_t trueSize() const { return m_data.rows(); }
 
+    //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
+    //! Retuns the (enum of) the ModelArray::Type of this.
     const Type getType() const { return type; }
 
+    /*!
+     * @brief Sets the number and size of the dimensions of a specified type of
+     * ModelArray.
+     *
+     * @param type The type of array the dimensions are to be specified for.
+     * @param dim The per-dimension size to be set.
+     */
     static void setDimensions(Type, const Dimensions&);
+    /*!
+     * @brief Sets the number and size of the dimensions of this type of ModelArray.
+     *
+     * @details Sets the number and size of the dimensions of this type of
+     * ModelArray. The data buffer of this object is then resized to match the
+     * new definition.
+     *
+     * @param dim The per-dimension size to be set.
+     */
     void setDimensions(const Dimensions& dims)
     {
         setDimensions(type, dims);
         resize();
     }
 
+    //! Conditionally updates the size of the object data buffer to match the
+    //! class specification.
     void resize()
     {
         if (size() != trueSize())
             m_data.resize(m_sz.at(type), Eigen::NoChange);
     }
 
+    //! Returns the name of the object.
     const std::string& name() const { return m_name; }
 
+    /*!
+     * @brief Sets the value of every element in the object to the provided value.
+     *
+     * @param value The new value for every element.
+     */
     void setData(double value);
+    /*!
+     * @brief Reads and sets data from a raw buffer of double data.
+     *
+     * @details The given pointer is the address of the first element read.
+     * Subsequent doubles in memory are read until every element in the object
+     * has been read. Ensure the provided buffer contains sufficient data to
+     * fill every element of the object, as no further bounds checking is performed.
+     *
+     * @param pData The pointer to the data buffer to be read.
+     */
     void setData(const double* pData);
-    void setData(const DataType&);
-    void setData(const ModelArray&);
+    /*!
+     * @brief Reads and sets data from an instance of the underlying data class
+     * (Eigen::Array).
+     *
+     * @param data The data object to be copied from.
+     */
+    void setData(const DataType& data);
+    /*!
+     * @brief Reads and sets data from another ModelArray.
+     *
+     * @details This function reads the data buffer only, and performs no
+     * bounds checking on the ModelArray argument. Unlike the assignment
+     * operator or copy constructor, it does not change the size or type of the
+     * object.
+     *
+     * @param source The object to be copied from.
+     */
+    void setData(const ModelArray& source);
 
+    /*!
+     * @brief Returns the data at the specified one dimensional index.
+     *
+     * @details The argument is used to directly index the data buffer. If the
+     * object holds discontinuous Galerkin components, only the cell averaged
+     * value is returned. Here the data is a const reference.
+     *
+     * @param i The one dimensional index of the target point.
+     */
     const double& operator[](size_t i) const { return m_data(i, 0); }
+    /*!
+     * @brief Returns the data at the indices.
+     *
+     * @details The argument is a list of dimension indices (actually a
+     * std::vector<size_t>). The number of dimensions provided can be lower
+     * than that of the ModelArray type. If the object holds discontinuous
+     * Galerkin components, only the cell averaged value is returned. Here the
+     * data is a const reference.
+     *
+     * @param dims The indices of the target point.
+     */
     const double& operator[](const Dimensions& dims) const;
 
+    //! Returns the specified point from a 1 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Const version.
     const double& operator()(size_t i) const { return (*this)[i]; }
+    //! Returns the specified point from a 2 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Const version.
     const double& operator()(size_t i, size_t j) const;
+    //! Returns the specified point from a 3 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Const version.
     const double& operator()(size_t i, size_t j, size_t k) const;
+    //! Returns the specified point from a 4 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Const version.
     const double& operator()(size_t i, size_t j, size_t k, size_t l) const;
+    //! Returns the specified point from a 5 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Const version.
     const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const;
+    //! Returns the specified point from a 6 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Const version.
     const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const;
+    //! Returns the specified point from a 7 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Const version.
     const double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const;
+    //! Returns the specified point from an 8 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Const version.
     const double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const;
 
-    //! One dimensional indexing
+    /*!
+     * @brief Returns the data at the specified one dimensional index.
+     *
+     * @details The argument is used to directly index the data buffer. If the
+     * object holds discontinuous Galerkin components, only the cell averaged
+     * value is returned. Here the data is a reference and so can be used for
+     * assignment.
+     *
+     * @param i The one dimensional index of the target point.
+     */
     double& operator[](size_t i) { return const_cast<double&>(std::as_const(*this)(i)); }
+    /*!
+     * @brief Returns the data at the indices.
+     *
+     * @details The argument is a list of dimension indices (actually a
+     * std::vector<size_t>). The number of dimensions provided can be lower
+     * than that of the ModelArray type. If the object holds discontinuous
+     * Galerkin components, only the cell averaged value is returned. Here the
+     * data is a reference and so can be used for assignment.
+     *
+     * @param dims The indices of the target point.
+     */
     double& operator[](const Dimensions&);
-    //! Multi (one) dimensional indexing
+    //! Returns the specified point from a 1 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Non-const version.
     double& operator()(size_t i) { return (*this)[i]; }
+    //! Returns the specified point from a 2 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Non-const version.
     double& operator()(size_t i, size_t j);
+    //! Returns the specified point from a 3 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Non-const version.
     double& operator()(size_t i, size_t j, size_t k);
+    //! Returns the specified point from a 4 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Non-const version.
     double& operator()(size_t i, size_t j, size_t k, size_t l);
+    //! Returns the specified point from a 5 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Non-const version.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m);
+    //! Returns the specified point from a 6 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Non-const version.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n);
+    //! Returns the specified point from a 7 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Non-const version.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p);
+    //! Returns the specified point from a 8 dimensional ModelArray. If the
+    //! object holds discontinuous Galerkin components, only the cell averaged
+    //! value is returned. Non-const version.
     double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q);
 
@@ -197,14 +371,31 @@ public:
 protected:
     Type type;
 
+    /*!
+     * @brief Special access function for ZFields, common implementation version.
+     *
+     * @detail Index a ZField using an index from an HField of the same
+     * horizontal extent and a layer index for the final dimension.
+     *
+     * @param hIndex the equivalent positional index in an HField array
+     * @param layer the vertical layer to be accessed
+     */
     size_t zLayerIndex(size_t hIndex, size_t layer) const
     {
         return hIndex * dimensions()[nDimensions() - 1] + layer;
     }
 
+    //! Returns the number of discontinuous Galerkin components held in this
+    //! type of ModelArray.
     inline size_t nComponents() const { return nComponents(type); }
+    //! Returns the number of discontinuous Galerkin components held in the
+    //! specified type of ModelArray.
     inline static size_t nComponents(const Type type) { return (hasDoF(type)) ? CellDoF : 1; }
+    //! Returns whether this type of ModelArray has additional discontinuous
+    //! Galerkin components.
     inline bool hasDoF() const { return hasDoF(type); }
+    //! Returns whether the specified type of ModelArray has additional
+    //! discontinuous Galerkin components.
     inline static bool hasDoF(const Type type) { return type == Type::DG; }
 
 private:

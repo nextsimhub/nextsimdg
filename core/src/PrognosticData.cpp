@@ -66,10 +66,10 @@ void PrognosticData::update(const TimestepTime& tst)
 ModelState PrognosticData::getState() const
 {
     return {
-        {"hice", m_thick},
-        {"cice", m_conc},
-        {"hsnow", m_snow},
-        {"tice", m_tice},
+        { "hice", m_thick },
+        { "cice", m_conc },
+        { "hsnow", m_snow },
+        { "tice", m_tice },
     };
 }
 

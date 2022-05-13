@@ -14,6 +14,7 @@
 #include "include/Time.hpp"
 
 namespace Nextsim {
+//! An interface class to update the ice thermodynamics.
 class IIceThermodynamics : public ModelComponent {
 public:
     ~IIceThermodynamics() = default;
@@ -27,6 +28,11 @@ public:
     }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
+    /*!
+     * Updates the ice thermodynamic and thickness growth calculation for the timestep.
+     *
+     * @param tStep The object containing the timestep start and duration times.
+     */
     virtual void update(const TimestepTime& tsTime) = 0;
 
 protected:

@@ -13,11 +13,9 @@
 #include "include/IFluxCalculation.hpp"
 namespace Module {
 
-template <>
-Module<Nextsim::IFluxCalculation>::map Module<Nextsim::IFluxCalculation>::functionMap;
+template <> Module<Nextsim::IFluxCalculation>::map Module<Nextsim::IFluxCalculation>::functionMap;
 
-template <>
-Module<Nextsim::IFluxCalculation>::fn Module<Nextsim::IFluxCalculation>::spf;
+template <> Module<Nextsim::IFluxCalculation>::fn Module<Nextsim::IFluxCalculation>::spf;
 
 class FluxCalculationModule : public Module<Nextsim::IFluxCalculation> {
     struct Constructor {

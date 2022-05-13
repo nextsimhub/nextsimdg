@@ -14,6 +14,7 @@
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
+//! An interface class for calculating ocean-ice-atmosphere fluxes
 class IFluxCalculation : public ModelComponent, public Configured<IFluxCalculation> {
 public:
     IFluxCalculation()
@@ -54,6 +55,11 @@ public:
     }
 
     void configure() override { aoState.configure(); }
+    /*!
+     * Updates the flux calculation for the timestep.
+     *
+     * @param tStep The object containing the timestep start and duration times.
+     */
     virtual void update(const TimestepTime&) = 0;
 
 protected:

@@ -21,6 +21,11 @@ namespace Nextsim {
 
 class ModelComponent;
 
+/*!
+ * A class encapsulating a component of the model. It also provide a method of
+ * communicating data between ModelComponents using enums, static arrays of
+ * pointers and the ModelArrayRef class.
+ */
 class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
@@ -75,15 +80,43 @@ public:
     ModelComponent();
     virtual ~ModelComponent() = default;
 
+    //! Returns the name of the component
     virtual std::string getName() const = 0;
 
-    virtual void setData(const ModelState&) = 0;
+    /*!
+     * @brief Set the initial data of the component from the passed ModelState.
+     *
+     * @param state The ModelState containing the data to be set.
+     */
+    virtual void setData(const ModelState& state) = 0;
+    /*!
+     * @brief Returns a ModelState from this component.
+     *
+     * @details The ModelState is map between field names and ModelArray data
+     * arrays. The intention is to merge together different ModelSatates to
+     * produce a combined state. The returned ModelState will include the
+     * states of any subsidiary components held by the object. This is the
+     * default level of output and should include all and only fields to be
+     * placed in the restart file.
+     */
     virtual ModelState getState() const = 0;
+    /*!
+     * @brief Returns a ModelState from this component at a specified level.
+     *
+     * @details See the zero argument version for more details. The output
+     * levels reuse those defined in the Logged class. The default level is
+     * NOTICE, and only levels such as INFO, DEBUG and TRACE should be used,
+     * and should provide extra diagnostic fields.
+     */
     virtual ModelState getState(const OutputLevel&) const = 0;
 
+    //! @brief Returns the names of all Type::H ModelArrays defined in this component.
     virtual std::set<std::string> hFields() const { return {}; }
+    //! @brief Returns the names of all Type::U ModelArrays defined in this component.
     virtual std::set<std::string> uFields() const { return {}; }
+    //! @brief Returns the names of all Type::V ModelArrays defined in this component.
     virtual std::set<std::string> vFields() const { return {}; }
+    //! @brief Returns the names of all Type::Z ModelArrays defined in this component.
     virtual std::set<std::string> zFields() const { return {}; }
 
     static void setAllModuleData(const ModelState& stateIn);
@@ -93,25 +126,45 @@ public:
     static void getAllFieldNames(
         std::set<std::string>& uF, std::set<std::string>& vF, std::set<std::string>& zF);
 
+    /*!
+     * @brief Registers a ModelArray into a SharedArray slot from outside any
+     *        ModelComponent object. Intended for testing and debugging.
+     */
     static void registerExternalSharedArray(SharedArray type, ModelArray* addr)
     {
         registerSharedArray(type, addr);
     }
+    /*!
+     * @brief Registers a ModelArray into a ProtectedArray slot from outside
+     *        any ModelComponent object. Intended for testing and debugging.
+     */
     static void registerExternalProtectedArray(ProtectedArray type, ModelArray* addr)
     {
         registerProtectedArray(type, addr);
     }
 
+    /*!
+     * @brief Returns a (raw) const pointer to a ModelArray with registered to
+     * a SharedArray slot.
+     */
     template <SharedArray arrayName> static const ModelArray* getConstArray()
     {
         return sharedArrays[static_cast<size_t>(arrayName)];
     }
 
+    /*!
+     * @brief Returns a (raw) const pointer to a ModelArray with registered to
+     * a ProtectedArray slot.
+     */
     template <ProtectedArray arrayName> static const ModelArray* getConstArray()
     {
         return protectedArrays[static_cast<size_t>(arrayName)];
     }
 
+    /*!
+     * @brief Returns a (raw) pointer to a ModelArray with registered to
+     * a SharedArray slot.
+     */
     template <SharedArray arrayName> static ModelArray* getArray()
     {
         return sharedArrays[static_cast<size_t>(arrayName)];
@@ -120,8 +173,20 @@ public:
 protected:
     void registerModule();
 
+    /*!
+     * Adds a pointer to a slot into the SharedArray array.
+     *
+     * @param type The SharedArray slot to add the ModelArray into.
+     * @param addr The address of the ModelArray to be shared.
+     */
     static void registerSharedArray(SharedArray type, ModelArray* addr);
 
+    /*!
+     * Adds a pointer to a slot into the ProtectedArray array.
+     *
+     * @param type The ProtectedArray slot to add the ModelArray into.
+     * @param addr The address of the ModelArray to be shared (read only).
+     */
     static void registerProtectedArray(ProtectedArray type, const ModelArray* addr);
 
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)

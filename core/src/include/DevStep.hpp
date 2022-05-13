@@ -15,6 +15,7 @@
 
 namespace Nextsim {
 
+//! A class providing a simple implementation of Iterator.
 class DevStep : public IModelStep {
 public:
     DevStep() = default;

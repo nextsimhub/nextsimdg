@@ -9,11 +9,12 @@
 #define IOWFLUXES_HPP
 
 #include "include/ModelArrayRef.hpp"
-#include "include/ModelState.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/ModelState.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
+//! An interface class to calculate the open water ocean-atmsophere fluxes.
 class IOWFluxes : public ModelComponent {
 public:
     virtual ~IOWFluxes() = default;
@@ -23,6 +24,11 @@ public:
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) { return getState(); }
 
+    /*!
+     * Updates the open water fluxes for the timestep.
+     *
+     * @param tStep The object containing the timestep start and duration times.
+     */
     virtual void updateOW(const TimestepTime&) = 0;
 
 protected:

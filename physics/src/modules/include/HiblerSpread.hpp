@@ -13,6 +13,7 @@
 
 namespace Nextsim {
 
+//! A class implementing the lateral spread of ice according to Hibler (1979)
 class HiblerSpread : public ILateralIceSpread, public Configured<HiblerSpread> {
 public:
     HiblerSpread()
@@ -27,8 +28,6 @@ public:
         PHIM_KEY,
     };
 
-    //    void freeze(const TimestepTime& tsTime) override;
-    //    void melt(const TimestepTime& tsTime) override;
     void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double newIce,
         double& cice, double& qow, double& deltaCfreeze) override;
     void melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double& cice,

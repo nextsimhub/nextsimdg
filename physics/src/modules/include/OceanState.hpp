@@ -12,9 +12,9 @@
 #include "include/IFreezingPointModule.hpp"
 #include "include/ModelComponent.hpp"
 
-
 namespace Nextsim {
 
+//! A class providing an interface to the ocean climatologies or coupled model.
 class OceanState : public ModelComponent, public Configured<OceanState> {
 public:
     OceanState();
@@ -27,6 +27,14 @@ public:
     std::set<std::string> hFields() const override;
 
     void configure() override;
+    /*!
+     * @brief Updates the ocean state.
+     *
+     * @details Performs any common calculations, then any implementation
+     * specific updates.
+     *
+     * @param tStep The object containing the timestep start and duration times.
+     */
     void update(const TimestepTime&);
 
 protected:
@@ -40,6 +48,7 @@ protected:
     IFreezingPoint* tfImpl;
 
     virtual void updateSpecial(const TimestepTime&) = 0;
+
 private:
     void updateFreezingPoint(size_t i, const TimestepTime&);
 };

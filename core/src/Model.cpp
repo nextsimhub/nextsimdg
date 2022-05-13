@@ -71,14 +71,11 @@ void Model::configure()
     pData.setData(initialState);
 }
 
-void Model::run()
-{
-    iterator.run();
-}
+void Model::run() { iterator.run(); }
 
 void Model::writeRestartFile()
 {
-        // TODO Replace with real logging
+    // TODO Replace with real logging
     std::cout << "  Writing state-based restart file: " << finalFileName << std::endl;
     StructureFactory::fileFromState(pData.getState(), finalFileName);
 }

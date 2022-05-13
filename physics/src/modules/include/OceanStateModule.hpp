@@ -14,11 +14,9 @@
 
 namespace Module {
 
-template <>
-Module<Nextsim::OceanState>::map Module<Nextsim::OceanState>::functionMap;
+template <> Module<Nextsim::OceanState>::map Module<Nextsim::OceanState>::functionMap;
 
-template <>
-Module<Nextsim::OceanState>::fn Module<Nextsim::OceanState>::spf;
+template <> Module<Nextsim::OceanState>::fn Module<Nextsim::OceanState>::spf;
 
 class OceanStateModule : public Module<Nextsim::OceanState> {
     struct Constructor {

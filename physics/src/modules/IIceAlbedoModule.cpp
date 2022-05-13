@@ -49,7 +49,7 @@ template <> std::unique_ptr<Nextsim::IIceAlbedo> getInstance()
 IIceAlbedoModule::Constructor IIceAlbedoModule::ctor;
 IIceAlbedoModule::Constructor::Constructor()
 {
-   addToConfiguredModules<Nextsim::IIceAlbedo, IIceAlbedoModule>();
+    addToConfiguredModules<Nextsim::IIceAlbedo, IIceAlbedoModule>();
 }
 
 } /* namespace Module */

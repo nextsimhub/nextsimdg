@@ -19,6 +19,7 @@
 
 namespace Nextsim {
 
+//! A class that implements ice fluxes and open water fluxes according finiteelement.cpp.
 class FiniteElementFluxes : public IIceFluxes,
                             public IOWFluxes,
                             public Configured<FiniteElementFluxes> {
@@ -76,8 +77,8 @@ public:
             tst);
     }
 
+    //! Performs atmosphere updates.
     void updateAtmosphere(const TimestepTime& tst);
-
 
 private:
     // Owned diagnostic fields
@@ -131,7 +132,8 @@ private:
     IIceAlbedo* iIceAlbedoImpl;
 };
 
-class FiniteElementFluxCalc : public IFluxCalculation/*, public Configured<FiniteElementFluxCalc>*/ {
+class FiniteElementFluxCalc
+    : public IFluxCalculation /*, public Configured<FiniteElementFluxCalc>*/ {
 public:
     FiniteElementFluxCalc()
         : IFluxCalculation()

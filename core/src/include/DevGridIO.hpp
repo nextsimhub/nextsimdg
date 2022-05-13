@@ -16,6 +16,8 @@ namespace Nextsim {
 
 class DevGrid;
 
+//! A class to implemented the actual IO for DevGrid, isolating the NetCDF
+//! libraries from the rest of the code.
 class DevGridIO : public IDevGridIO {
 public:
     DevGridIO(DevGrid& grid)

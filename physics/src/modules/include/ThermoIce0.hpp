@@ -9,10 +9,11 @@
 #define THERMOICE0HPP
 
 #include "include/Configured.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/IIceThermodynamics.hpp"
+#include "include/ModelArrayRef.hpp"
 namespace Nextsim {
 
+//! A class implementing IICeThermodynamics as the ThermoIce0 model.
 class ThermoIce0 : public IIceThermodynamics, public Configured<ThermoIce0> {
 public:
     ThermoIce0();

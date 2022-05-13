@@ -11,7 +11,7 @@
 #include <utility>
 
 namespace Nextsim {
-
+//! An interface class for the specific humidity calculations.
 class ISpecificHumidity {
 public:
     virtual ~ISpecificHumidity() = default;

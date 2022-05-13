@@ -7,8 +7,8 @@
 
 #include "include/IceThermodynamicsModule.hpp"
 
-#include <string>
 #include "include/ThermoIce0.hpp"
+#include <string>
 
 namespace Module {
 const std::string THERMOICE0GROWTH = "Nextsim::ThermoIce0Growth";

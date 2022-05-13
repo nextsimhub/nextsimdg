@@ -16,30 +16,30 @@ const std::string FINITEELEMENTFLUXES = "Nextsim::FiniteElementFluxCalc";
 
 template <>
 Module<Nextsim::IFluxCalculation>::map Module<Nextsim::IFluxCalculation>::functionMap = {
-    {FINITEELEMENTFLUXES, newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxCalc>},
+    { FINITEELEMENTFLUXES, newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxCalc> },
 };
 
 template <>
-Module<Nextsim::IFluxCalculation>::fn Module<Nextsim::IFluxCalculation>::spf = functionMap.at(FINITEELEMENTFLUXES);
+Module<Nextsim::IFluxCalculation>::fn Module<Nextsim::IFluxCalculation>::spf
+    = functionMap.at(FINITEELEMENTFLUXES);
 template <>
 std::unique_ptr<Nextsim::IFluxCalculation> Module<Nextsim::IFluxCalculation>::staticInstance
-= std::move(newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxCalc>());
+    = std::move(newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxCalc>());
 
-template <>
-std::string Module<Nextsim::IFluxCalculation>::moduleName(){    return "Nextsim::IFluxCalculation";}
+template <> std::string Module<Nextsim::IFluxCalculation>::moduleName()
+{
+    return "Nextsim::IFluxCalculation";
+}
 
-template <>
-Nextsim::IFluxCalculation& getImplementation<Nextsim::IFluxCalculation>()
+template <> Nextsim::IFluxCalculation& getImplementation<Nextsim::IFluxCalculation>()
 {
     return getImplTemplate<Nextsim::IFluxCalculation, FluxCalculationModule>();
 }
-template <>
-void setImplementation<Nextsim::IFluxCalculation>(const std::string& implName)
+template <> void setImplementation<Nextsim::IFluxCalculation>(const std::string& implName)
 {
     setImplTemplate<FluxCalculationModule>(implName);
 }
-template <>
-std::unique_ptr<Nextsim::IFluxCalculation> getInstance()
+template <> std::unique_ptr<Nextsim::IFluxCalculation> getInstance()
 {
     return getInstTemplate<Nextsim::IFluxCalculation, FluxCalculationModule>();
 }

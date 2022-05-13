@@ -13,6 +13,7 @@
 
 namespace Nextsim {
 
+//! A class providing an interface to the atmosphere climatologies or coupled model.
 class AtmosphereState : public ModelComponent {
 public:
     AtmosphereState();
@@ -24,7 +25,15 @@ public:
     std::string getName() const override;
     std::set<std::string> hFields() const override;
 
-    void update(const TimestepTime&);
+    /*!
+     * @brief Updates the atmosphere state.
+     *
+     * @details Performs any common calculations, then any implementation
+     * specific updates.
+     *
+     * @param tStep The object containing the timestep start and duration times.
+     */
+    void update(const TimestepTime& tStep);
 
 protected:
     HField tair;

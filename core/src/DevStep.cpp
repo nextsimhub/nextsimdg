@@ -9,9 +9,6 @@
 
 namespace Nextsim {
 
-void DevStep::iterate(const TimestepTime& tst)
-{
-    pData->update(tst);
-}
+void DevStep::iterate(const TimestepTime& tst) { pData->update(tst); }
 
 } /* namespace Nextsim */

@@ -5,9 +5,9 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include <string>
-#include "include/BasicIceOceanHeatFlux.hpp"
 #include "include/IceOceanHeatFluxModule.hpp"
+#include "include/BasicIceOceanHeatFlux.hpp"
+#include <string>
 
 namespace Module {
 const std::string BASICICEOCEANHEATFLUX = "BasicIceOceanHeatFlux";

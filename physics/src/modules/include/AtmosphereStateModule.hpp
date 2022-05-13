@@ -14,11 +14,9 @@
 
 namespace Module {
 
-template <>
-Module<Nextsim::AtmosphereState>::map Module<Nextsim::AtmosphereState>::functionMap;
+template <> Module<Nextsim::AtmosphereState>::map Module<Nextsim::AtmosphereState>::functionMap;
 
-template <>
-Module<Nextsim::AtmosphereState>::fn Module<Nextsim::AtmosphereState>::spf;
+template <> Module<Nextsim::AtmosphereState>::fn Module<Nextsim::AtmosphereState>::spf;
 
 class AtmosphereStateModule : public Module<Nextsim::AtmosphereState> {
     struct Constructor {
