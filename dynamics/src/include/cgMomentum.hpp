@@ -250,10 +250,22 @@ public:
 
     //! Sets the velocity vector for compresion testcase along the boundary
     template <int CG>
-    void DirichletCompressionVx(const Mesh& mesh, CGVector<CG>& v) const;
+    void DirichletCompressionVx(const Mesh& mesh, CGVector<CG>& vector) const;
+    template <int CG>
+    void DirichletCompressionVy(const Mesh& mesh, CGVector<CG>& vector, const double& value) const;
+
+    template <int Degree, template <int> typename VectorType>
+    void DirichletCompressionBottom(const Mesh& mesh, VectorType<Degree>& vector, const double& value) const;
+
+    template <int Degree, template <int> typename VectorType>
+    void DirichletCompressionTop(const Mesh& mesh, VectorType<Degree>& vector, const double& value) const;
 
     template <int CG>
-    void DirichletCompressionVy(const Mesh& mesh, CGVector<CG>& v, const double& vtop) const;
+    void DirichletCompressionLeft(const Mesh& mesh, CGVector<CG>& vector, const double& value) const;
+    template <int CG>
+    void DirichletCompressionRight(const Mesh& mesh, CGVector<CG>& vector, const double& value) const;
+    template <int CG>
+    void DirichletCompressionFixCorner(const Mesh& mesh, CGVector<CG>& vector) const;
 
     //! Interpolates a DG-Vector to a CG-Vector
     template <int CG, int DG>

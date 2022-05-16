@@ -114,7 +114,7 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double dt_adv = 120.0; //!< Time step of advection problem
+    constexpr double dt_adv = 12.0; //!< Time step of advection problem
     constexpr size_t NT = RefScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t mom_substeps = 100;
@@ -291,12 +291,12 @@ int main()
             //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
             //    H, A, D, dt_momentum);
 
-            Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22, E11, E12, E22, H, A, D, DELTA,
-                SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, td, d_crit,
-                Regime, Multip, Lambda, dt_momentum);
+            //Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22, E11, E12, E22, H, A, D, DELTA,
+            //    SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, td, d_crit,
+            //    Regime, Multip, Lambda, dt_momentum);
 
-            //Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
-            //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
+            Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
+                H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
             Nextsim::GlobalTimer.stop("time loop - meb - stress");
 

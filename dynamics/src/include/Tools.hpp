@@ -44,6 +44,20 @@ namespace Tools {
     }
 
     template <int DGstress, int DGtracer>
+    void TensorInvariants(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+        const CellVector<DGstress>& E22, CellVector<DGtracer>& Inv1, CellVector<DGtracer>& Inv2)
+    {
+
+#pragma omp parallel for
+        for (size_t i = 0; i < mesh.n; ++i) {
+            // \dot E_I
+            Inv1(i, 0) = 0.5 * (E11(i, 0) + E22(i, 0));
+            // \dot E_II
+            Inv2(i, 0) = std::hypot(0.5 * (E11(i, 0) - E22(i, 0)), E12(i, 0));
+        }
+    }
+
+    template <int DGstress, int DGtracer>
     void ElastoParams(const Mesh& mesh, const CellVector<DGstress>& E11,
         const CellVector<DGstress>& E12, const CellVector<DGstress>& E22,
         const CellVector<DGtracer>& H, const CellVector<DGtracer>& A, const double DeltaMin,

@@ -439,28 +439,62 @@ void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
 //! Sets the velocity vector for compression testcase
 //! consant value for DG0 component
 template <>
-void CGMomentum::DirichletCompressionVy(const Mesh& mesh, CGVector<1>& v,
-    const double& vtop) const
+void CGMomentum::DirichletCompressionFixCorner(const Mesh& mesh, CGVector<1>& v) const
+{
+    //! fix the bottom left corner
+    v(0, 0) = 0.0;
+}
+
+//! Implementation for both CellVector and CGVector
+template <>
+void CGMomentum::DirichletCompressionBottom(const Mesh& mesh, CGVector<1>& vector,
+    const double& value) const
+{
+    for (size_t i = 0; i < mesh.nx + 1; ++i)
+        vector(i, 0) = value;
+}
+template <>
+void CGMomentum::DirichletCompressionTop(const Mesh& mesh, CGVector<1>& vector,
+    const double& value) const
 {
     size_t upperleftindex = (mesh.nx + 1) * mesh.ny;
-    for (size_t i = 0; i < mesh.nx + 1; ++i) {
-        v(i, 0) = 0.0;
-        v(upperleftindex + i, 0) = -vtop;
-    }
+    for (size_t i = 0; i < mesh.nx + 1; ++i)
+        vector(upperleftindex + i, 0) = value;
+}
+template <>
+void CGMomentum::DirichletCompressionBottom(const Mesh& mesh, CellVector<1>& vector,
+    const double& value) const
+{
+    for (size_t i = 0; i < mesh.nx; ++i)
+        vector(i, 0) = value;
+}
+template <>
+void CGMomentum::DirichletCompressionTop(const Mesh& mesh, CellVector<1>& vector,
+    const double& value) const
+{
+    size_t upperleftindex = mesh.n - mesh.nx;
+    for (size_t i = 0; i < mesh.nx; ++i)
+        vector(upperleftindex + i, 0) = value;
 }
 
 template <>
-void CGMomentum::DirichletCompressionVx(const Mesh& mesh, CGVector<1>& v) const
+void CGMomentum::DirichletCompressionLeft(const Mesh& mesh, CGVector<1>& vector,
+    const double& value) const
 {
-    //! fix the bottom left corner
-    v(0, 0)
-        = 0.0;
-    //size_t indecesperrow = mesh.nx + 1;
-    //size_t lowerrightindex = mesh.nx;
-    //for (size_t i = 0; i < mesh.ny + 1; ++i) {
-    //    v(indecesperrow * i, 0) = 0.0;
-    //    v(lowerrightindex + indecesperrow * i, 0) = 0.0;
-    //}
+    size_t indecesperrow = mesh.nx + 1;
+    for (size_t i = 0; i < mesh.ny + 1; ++i) {
+        vector(indecesperrow * i, 0) = 0.0;
+    }
+}
+template <>
+void CGMomentum::DirichletCompressionRight(const Mesh& mesh, CGVector<1>& vector,
+    const double& value) const
+{
+    size_t indecesperrow = mesh.nx + 1;
+    size_t lowerrightindex = mesh.nx;
+    for (size_t i = 0; i < mesh.ny + 1; ++i) {
+        vector(lowerrightindex + indecesperrow * i, 0) = 0.0;
+    }
 }
 
 /*
