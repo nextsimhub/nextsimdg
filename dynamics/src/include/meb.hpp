@@ -630,16 +630,16 @@ namespace MEB {
             //double const multiplicator
             //    = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_adv * (1. - tildeP)));
 
-            double const multiplicator
-                = std::min(1. - 1e-12, 1. / (1. + alpha + dt_adv / time_viscous * (1. - tildeP)));
+            //double const multiplicator
+            //    = std::min(1. - 1e-12, 1. / (1. + alpha + dt_adv / time_viscous * (1. - tildeP)));
 
             double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
 
             double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
             double X = (1. - tildeP) / time_viscous;
-            double Z = (alpha + 1) / dt_adv + X; //alpha + 1. / dt_adv + X; //
-            double Y = alpha + 1. + dt_adv * X;
+            //double Z = (alpha + 1) / dt_adv + X; //alpha + 1. / dt_adv + X; //
+            //double Y = alpha + 1. + dt_adv * X;
 
             /*
             S11.row(i) *= alpha / Y;
