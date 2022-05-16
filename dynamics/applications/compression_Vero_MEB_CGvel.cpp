@@ -37,7 +37,6 @@ struct OceanX {
 public:
     double operator()(double x, double y) const
     {
-        //return RefScale::vmax_ocean * (2.0 * y / RefScale::L - 1.0);
         return 0.0;
     }
 };
@@ -45,7 +44,6 @@ struct OceanY {
 public:
     double operator()(double x, double y) const
     {
-        //return RefScale::vmax_ocean * (1.0 - 2.0 * x / RefScale::L);
         return 0.0;
     }
 };
@@ -57,15 +55,6 @@ public:
     void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
-        constexpr double oneday = 24.0 * 60.0 * 60.0;
-        //! Center of cyclone (in m)
-        double cM = 256000. + 51200. * time / oneday;
-
-        //! scaling factor to reduce wind away from center
-        double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
-
-        double alpha = 72.0 / 180.0 * M_PI;
-        //return -scale * RefScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
         return 0.0;
     }
 };
@@ -76,15 +65,6 @@ public:
     void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
-        constexpr double oneday = 24.0 * 60.0 * 60.0;
-        //! Center of cyclone (in m)
-        double cM = 256000. + 51200. * time / oneday;
-
-        //! scaling factor to reduce wind away from center
-        double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
-
-        double alpha = 72.0 / 180.0 * M_PI;
-        //return -scale * RefScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
         return 0.0;
     }
 };
@@ -92,7 +72,7 @@ struct InitialH {
 public:
     double operator()(double x, double y) const
     {
-        return 1.; //0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+        return 1.;
     }
 };
 struct InitialA {

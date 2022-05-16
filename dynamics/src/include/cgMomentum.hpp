@@ -254,11 +254,15 @@ public:
     template <int CG>
     void DirichletCompressionVy(const Mesh& mesh, CGVector<CG>& vector, const double& value) const;
 
-    template <int Degree, template <int> typename VectorType>
-    void DirichletCompressionBottom(const Mesh& mesh, VectorType<Degree>& vector, const double& value) const;
+    template <int DG>
+    void DirichletCompressionBottom(const Mesh& mesh, CellVector<DG>& vector, const double& value) const;
+    template <int CG>
+    void DirichletCompressionBottom(const Mesh& mesh, CGVector<CG>& vector, const double& value) const;
 
-    template <int Degree, template <int> typename VectorType>
-    void DirichletCompressionTop(const Mesh& mesh, VectorType<Degree>& vector, const double& value) const;
+    template <int DG>
+    void DirichletCompressionTop(const Mesh& mesh, CellVector<DG>& vector, const double& value) const;
+    template <int CG>
+    void DirichletCompressionTop(const Mesh& mesh, CGVector<CG>& vector, const double& value) const;
 
     template <int CG>
     void DirichletCompressionLeft(const Mesh& mesh, CGVector<CG>& vector, const double& value) const;
