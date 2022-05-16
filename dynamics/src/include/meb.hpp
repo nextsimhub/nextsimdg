@@ -1,7 +1,7 @@
 /*!
  * @file meb.hpp
  * @date 1 Mar 2022
- * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef __MEB_HPP
@@ -9,12 +9,7 @@
 
 #include "dgVector.hpp"
 
-namespace RefScale {
-// Benchmark testcase from [Mehlmann / Richter, ...]
-constexpr double T = 2 * 24. * 60. * 60.; //!< Time horizon 2 days
-constexpr double L = 512000.0; //!< Size of domain
-constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
-constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
+namespace RefScaleMain {
 
 constexpr double rho_ice = 900.0; //!< Sea ice density
 constexpr double rho_atm = 1.3; //!< Air density
@@ -26,10 +21,58 @@ constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
 constexpr double F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
 constexpr double F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 
+// parameters form nextsim options.cpp line 302
+constexpr double compaction_param = -20.; //!< Compation parameter
+
+constexpr double nu0 = 1. / 3.; //!< \param Poisson's ratio
+}
+
+// Benchmark testcase from [Plante Tremblay, 2021]
+namespace RefScaleCanada {
+using namespace RefScaleMain;
+
+constexpr double T = 4 * 60. * 60.; //!< Time horizon 2 hours
+constexpr double L = 60000.0; //!< Size of domain
+constexpr double vmax_ocean = 0.0; //!< Maximum velocity of ocean
+constexpr double vmax_atm = 20; //!< Max. vel. of wind
+
+// Parameters from Table 1. [Plante Tremblay, 2021]
+constexpr double damage_timescale = 1.; //<! Damage timescale
+constexpr double undamaged_time_relaxation_sigma = 1e5; //!< Test more viscous
+constexpr double exponent_relaxation_sigma = 3;
+constexpr double young = 1e9;
+constexpr double compr_strength
+    = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
+
+//TODO missing 45\deg it goes to Compresssion
+constexpr double tan_phi = 0.7; //! \param tan_phi (double) Internal friction coefficient (mu)
+constexpr double sin_phi = 0.7; //! \param sin_phi (double) Internal friction coefficient (mu)
+
+constexpr double c0 = 10.e3; //! \param tan_phi (double) Internal friction coefficient (mu)
+constexpr double sigma_c0 = 50.e3; //! \param tan_phi (double) Internal friction coefficient (mu)
+
+//constexpr double C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
+//constexpr double time_relaxation_damage = 2160000.; //!< 25 days in seconds
+//
+//constexpr double compression_factor = 10e3; //! \param Max pressure for damaged converging ice
+//constexpr double exponent_compression_factor
+//    = 1.5; //! \param Power of ice thickness in the pressure coefficient
+
+constexpr double fc = 0.0; //!< Coriolis
+
+}
+
+// Benchmark testcase from [Mehlmann / Richter, ...]
+namespace RefScale {
+using namespace RefScaleMain;
+
+constexpr double T = 2 * 24. * 60. * 60.; //!< Time horizon 2 days
+constexpr double L = 512000.0; //!< Size of domain
+constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
+constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
+
 constexpr double Pstar = 27500.0; //!< Ice strength
-
 constexpr double fc = 1.46e-4; //!< Coriolis
-
 constexpr double DeltaMin = 2.e-9; //!< Viscous regime
 
 // parameters form nextsim options.cpp line 302
@@ -63,6 +106,16 @@ namespace Nextsim {
 namespace MEB {
 
     inline constexpr double SQR(double x) { return x * x; }
+
+    /*
+    template <class... CellVectorDGstress, class... CellVectorDGtracer>
+    void StressUpdateParameters(const Mesh& mesh, const double dt_momentum,
+        CellVectorDGstress... argsStress,
+        CellVectorDGtracer... argsTracer)
+    {
+        //std::cout << argsStress... << std::endl;
+        //std::cout << argsTracer... << std::endl;
+    }*/
 
     /**
      * @brief Calculate Stresses for the current time step and update damage.
@@ -101,6 +154,9 @@ namespace MEB {
         CellVector<DGtracer>& SHEAR, CellVector<DGtracer>& S1, CellVector<DGtracer>& S2,
         CellVector<DGtracer>& eta1, CellVector<DGtracer>& eta2, CellVector<DGtracer>& stressrelax,
         CellVector<DGtracer>& sigma_outside, CellVector<DGtracer>& tP, CellVector<DGtracer>& Pm,
+        CellVector<DGtracer>& Td, CellVector<DGtracer>& d_crit, CellVector<DGtracer>& Regime,
+        CellVector<DGtracer>& Multip, CellVector<DGtracer>& Lambda,
+
         const double dt_momentum)
     {
 #pragma omp parallel for
@@ -114,7 +170,6 @@ namespace MEB {
 
                 // M_damage[cpt] = 0.;
                 D(i, 0) = 0.0;
-
                 // for(int i=0;i<3;i++)
                 //     M_sigma[i][cpt] = 0.;
                 S11.row(i) *= 0.0;
@@ -132,10 +187,9 @@ namespace MEB {
             double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
             // shear stress
             double tau = std::hypot(0.5 * (S11(i, 0) - S22(i, 0)), S12(i, 0));
+            assert(tau >= 0);
 
-            // /assert(tau > 0);
             const double C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
-
             // std::cout << "cfix = " << C_fix << std::endl; std::abort();
 
             // Outside Envelope
@@ -152,20 +206,31 @@ namespace MEB {
             double tildeP;
             double const Pmax
                 = RefScale::compression_factor * pow(H(i, 0), 1.5) * exp(-20.0 * (1.0 - A(i, 0)));
-            if (sigma_n < 0.) {
 
+            // Strange Function make plot
+            if (sigma_n < 0.) {
                 tildeP = std::min(1., -Pmax / sigma_n);
             } else {
                 tildeP = 0.;
             }
 
-            // tildeP = 0.0;
+            //Region
+            if (sigma_n > 0)
+                Regime(i) = 3;
+            else if (-Pmax > sigma_n)
+                Regime(i) = 2;
+            else
+                Regime(i) = 1;
 
+            // tildeP = 0.0;
             tP(i) = tildeP;
             Pm(i) = Pmax;
             // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
             double const multiplicator
                 = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
+
+            Multip(i) = multiplicator;
+            Lambda(i) = time_viscous;
 
             double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
             double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
@@ -182,6 +247,7 @@ namespace MEB {
             eta1(i) = elasticity * (1. / (1. + RefScale::nu0));
             eta2(i) = elasticity * Dunit_factor * RefScale::nu0;
 
+            // Eqn. (34)
             S11.row(i) *= multiplicator;
             S12.row(i) *= multiplicator;
             S22.row(i) *= multiplicator;
@@ -219,9 +285,12 @@ namespace MEB {
 
             // Calculate the characteristic time for damage and damage increment
             // M_delta_x[cpt] = mesh.hx ???
-            double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
+            double td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
                 / std::sqrt(elasticity);
 
+            Td(i) = td;
+            td = 20;
+            d_crit(i) = dcrit;
             // Calculate the adjusted level of damage
             stressrelax(i) = 0.0;
 
@@ -312,7 +381,7 @@ namespace MEB {
     /*!
      * @brief Calculate Stresses for the current time step and update damage.
      * 
-     * @details MEB model
+     * @details BBM model
      * 
      * @tparam DGstress Stress adn Strain DG degree 
      * @tparam DGtracer H, A, D DG degree 
@@ -368,10 +437,13 @@ namespace MEB {
             }
 
             // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-            double const multiplicator
-                = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
-            double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
+            //double const multiplicator
+            //    = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
 
+            double const multiplicator = 1. / (1. + dt_momentum / time_viscous * (1. - tildeP));
+            tildeP = multiplicator;
+
+            double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
             double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
             // Elasit prediction Eqn. (32)
@@ -410,6 +482,8 @@ namespace MEB {
                 // finiteelement.cpp#L3834
                 dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
 
+            //Calcutate d_critical as Veronique:
+
             // Calculate the characteristic time for damage and damage increment
             // M_delta_x[cpt] = mesh.hx ???
             double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
@@ -427,10 +501,336 @@ namespace MEB {
 
             // Relax damage
             D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage * std::exp(RefScale::compaction_param * (1. - A(i, 0))));
+            //D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage * std::exp(RefScale::compaction_param * (1. - A(i, 0))));
         }
     }
 
-}
-}
+    template <int DGstress, int DGtracer>
+    void mMEBStressRelaxation(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
+        CellVector<DGstress>& S22, CellVector<DGtracer>& D, CellVector<DGtracer>& A, const double dt_momentum)
+    {
+
+        //! Stress Update
+#pragma omp parallel for
+        for (size_t i = 0; i < mesh.n; ++i) {
+
+            double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
+            double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
+
+            double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
+            // update sigma_n
+            double const sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            double const C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
+
+            // d critical Eqn. (29)
+            double dcrit;
+            if (sigma_n < -RefScale::compr_strength)
+                dcrit = -RefScale::compr_strength / sigma_n;
+            else
+                dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
+
+            double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
+                / std::sqrt(elasticity);
+
+            // Calculate the adjusted level of damage
+            if ((0. < dcrit) && (dcrit < 1.)) {
+                // Eqn. (34)
+                D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
+
+                S11.row(i) -= S11.row(i) * (1. - dcrit) * dt_momentum / td;
+                S12.row(i) -= S12.row(i) * (1. - dcrit) * dt_momentum / td;
+                S22.row(i) -= S22.row(i) * (1. - dcrit) * dt_momentum / td;
+            }
+            // Relax damage
+            D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage);
+        }
+    }
+
+    template <int DGstress, int DGtracer>
+    void mMEBDamageUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
+        CellVector<DGstress>& S22, CellVector<DGtracer>& D, CellVector<DGtracer>& A, const double dt_momentum)
+    {
+
+        //! Stress Update
+#pragma omp parallel for
+        for (size_t i = 0; i < mesh.n; ++i) {
+
+            double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
+            double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
+
+            double const sigma_s = std::hypot((S11(i, 0) - S22(i, 0)) / 2., S12(i, 0));
+            // update sigma_n
+            double const sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            double const C_fix = RefScale::C_lab * std::sqrt(0.1 / mesh.hx);
+
+            // d critical Eqn. (29)
+            double dcrit;
+            if (sigma_n < -RefScale::compr_strength)
+                dcrit = -RefScale::compr_strength / sigma_n;
+            else
+                dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
+
+            double const td = mesh.hx * std::sqrt(2. * (1. + RefScale::nu0) * RefScale::rho_ice)
+                / std::sqrt(elasticity);
+            // Calculate the adjusted level of damage
+            if ((0. < dcrit) && (dcrit < 1.)) {
+                // Eqn. (34)
+                D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
+
+                //S11.row(i) -= S11.row(i) * (1. - dcrit) * dt_momentum / td;
+                //S12.row(i) -= S12.row(i) * (1. - dcrit) * dt_momentum / td;
+                //S22.row(i) -= S22.row(i) * (1. - dcrit) * dt_momentum / td;
+            }
+            // Relax damage
+            //D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage);
+        }
+    }
+
+    template <int DGstress, int DGtracer>
+    void mMEBStressUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
+        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+        const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
+        const CellVector<DGtracer>& A, CellVector<DGtracer>& D, const double dt_adv,
+        const double alpha, CellVector<DGstress>& S11_mmeb, CellVector<DGstress>& S12_mmeb,
+        CellVector<DGstress>& S22_mmeb)
+    {
+
+        //! Stress Update
+#pragma omp parallel for
+        for (size_t i = 0; i < mesh.n; ++i) {
+
+            // There's no ice so we set sigma to 0 and carry on
+            const double min_c = 0.1;
+            if (A(i, 0) <= min_c) {
+                D(i, 0) = 0.0;
+                S11.row(i) *= 0.0;
+                S12.row(i) *= 0.0;
+                S22.row(i) *= 0.0;
+                continue;
+            }
+
+            //! - Updates the internal stress
+            double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
+            double const time_viscous = RefScale::undamaged_time_relaxation_sigma
+                * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
+
+            //! Plastic failure tildeP
+            double tildeP;
+            if (sigma_n < 0.) {
+                double const Pmax = RefScale::compression_factor
+                    * pow(H(i, 0), RefScale::exponent_compression_factor)
+                    * exp(RefScale::compaction_param * (1.0 - A(i, 0)));
+                tildeP = std::min(1., -Pmax / sigma_n);
+            } else {
+                tildeP = 0.;
+            }
+
+            // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
+            //double const multiplicator
+            //    = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_adv * (1. - tildeP)));
+
+            double const multiplicator
+                = std::min(1. - 1e-12, 1. / (1. + alpha + dt_adv / time_viscous * (1. - tildeP)));
+
+            double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
+
+            double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
+
+            double X = (1. - tildeP) / time_viscous;
+            double Z = (alpha + 1) / dt_adv + X; //alpha + 1. / dt_adv + X; //
+            double Y = alpha + 1. + dt_adv * X;
+
+            /*
+            S11.row(i) *= alpha / Y;
+            S12.row(i) *= alpha / Y;
+            S22.row(i) *= alpha / Y;
+
+            S11.row(i) += 1. / Y * S11_mmeb.row(i) + 1. / Y * dt_adv * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+            S12.row(i) += 1. / Y * S12_mmeb.row(i) + 1. / Y * dt_adv * elasticity * 1 / (1 + RefScale::nu0) * E12.row(i);
+            S22.row(i) += 1. / Y * S22_mmeb.row(i) + 1. / Y * dt_adv * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+            */
+
+            // Alternative
+            //S11.row(i) = 1. / Z * (1. / dt_adv * (alpha * S11.row(i) + S11_mmeb.row(i)) + elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i))));
+            //S12.row(i) = 1. / Z * (1. / dt_adv * (alpha * S12.row(i) + S12_mmeb.row(i)) + elasticity * 1 / (1 + RefScale::nu0) * E12.row(i));
+            //S22.row(i) = 1. / Z * (1. / dt_adv * (alpha * S22.row(i) + S22_mmeb.row(i)) + elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i))));
+
+            // Step by step
+            /*
+            S11.row(i) *= (1.0 - 1.0 / alpha);
+            S12.row(i) *= (1.0 - 1.0 / alpha);
+            S22.row(i) *= (1.0 - 1.0 / alpha);
+
+            S11.row(i) += 1. / alpha * elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+            S12.row(i) += 1. / alpha * elasticity * 1 / (1 + RefScale::nu0) * E12.row(i);
+            S22.row(i) += 1. / alpha * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+            */
+
+            //std::cout << 1 / dt_adv << std::endl;std::exit(0);
+
+            // Step by step
+            S11.row(i) *= (1. - (X - 1. / dt_adv) / (alpha + 1. / dt_adv));
+            S12.row(i) *= (1. - (X - 1. / dt_adv) / (alpha + 1. / dt_adv));
+            S22.row(i) *= (1. - (X - 1. / dt_adv) / (alpha + 1. / dt_adv));
+
+            //add eplitic parts
+            S11.row(i) += 1. / (alpha + 1. / dt_adv) * (1. / dt_adv * S11_mmeb.row(i));
+            S12.row(i) += 1. / (alpha + 1. / dt_adv) * (1. / dt_adv * S12_mmeb.row(i));
+            S22.row(i) += 1. / (alpha + 1. / dt_adv) * (1. / dt_adv * S22_mmeb.row(i));
+            //add elasticity
+            S11.row(i) += 1. / (alpha + 1. / dt_adv) * elasticity * (1. / (1. + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+            S12.row(i) += 1. / (alpha + 1. / dt_adv) * elasticity * 1. / (1. + RefScale::nu0) * E12.row(i);
+            S22.row(i) += 1. / (alpha + 1. / dt_adv) * elasticity * (1. / (1. + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+        }
+    }
+
+    template <int DGstress, int DGtracer>
+    void StressUpdateMEB(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
+        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+        const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
+        const CellVector<DGtracer>& A, CellVector<DGtracer>& D, CellVector<DGtracer>& DELTA,
+        CellVector<DGtracer>& SHEAR, CellVector<DGtracer>& S1, CellVector<DGtracer>& S2,
+        CellVector<DGtracer>& eta1, CellVector<DGtracer>& eta2, CellVector<DGtracer>& stressrelax,
+        CellVector<DGtracer>& sigma_outside, CellVector<DGtracer>& tP, CellVector<DGtracer>& Pm,
+        CellVector<DGtracer>& Td, CellVector<DGtracer>& d_crit, CellVector<DGtracer>& Regime,
+        CellVector<DGtracer>& Multip, CellVector<DGtracer>& Lambda,
+
+        const double dt_momentum)
+    {
+#pragma omp parallel for
+        for (size_t i = 0; i < mesh.n; ++i) {
+
+            //======================================================================
+            //! Visco-Elasatic Prediction
+            //======================================================================
+            double const expC = std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
+
+            // Eqn. 25
+            double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
+                * std::pow((1. - D(i, 0)), RefScaleCanada::exponent_relaxation_sigma - 1.) / (H(i, 0) * expC);
+
+            // Eqn. 24 Additional multiplic0cation by H
+            double elasticity = RefScaleCanada::young * H(i, 0) * (1. - D(i, 0)) * expC;
+
+            eta1(i) = time_viscous;
+            eta2(i) = elasticity;
+
+            // 1. / (1. + dt / lambda) Eqn. 18
+            double const multiplicator = 1. / (1. + dt_momentum / time_viscous);
+
+            Multip(i, 0) = multiplicator;
+            Lambda(i, 0) = time_viscous;
+
+            time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma;
+            elasticity = RefScaleCanada::young;
+
+            double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
+
+            // Elasit prediction Eqn. (32)
+            S11.row(i) += dt_momentum * elasticity
+                * (1. / (1. + RefScaleCanada::nu0) * E11.row(i)
+                    + Dunit_factor * RefScaleCanada::nu0 * (E11.row(i) + E22.row(i)));
+            S12.row(i) += dt_momentum * elasticity * 1. / (1. + RefScaleCanada::nu0) * E12.row(i);
+            S22.row(i) += dt_momentum * elasticity
+                * (1. / (1. + RefScaleCanada::nu0) * E22.row(i)
+                    + Dunit_factor * RefScaleCanada::nu0 * (E11.row(i) + E22.row(i)));
+
+            //eta1(i) = elasticity * (1. / (1. + RefScaleCanada::nu0));
+            //eta2(i) = elasticity * Dunit_factor * RefScaleCanada::nu0;
+
+            // Eqn. (34)
+            S12.row(i) *= multiplicator;
+            S11.row(i) *= multiplicator;
+            S22.row(i) *= multiplicator;
+
+            //======================================================================
+            //! - Estimates the level of damage from the updated internal stress and the local
+            //! damage criterion
+            //======================================================================
+
+            // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
+            double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            // shear stress
+            double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
+            assert(tau >= 0);
+
+            //
+            const double c = RefScaleCanada::c0 * H(i, 0) * expC;
+            const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * expC;
+
+            double dcrit(1.0);
+            Regime(i, 0) = 0;
+            // Mohr-Coulomb condition
+            if (tau + RefScaleCanada::sin_phi * sigma_n - c < 0) {
+                Regime(i, 0) = 1;
+            }
+            if (sigma_n - tau > sigma_c) {
+                Regime(i, 0) = 2;
+            }
+
+            if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
+                dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
+
+            //dcrit = std::min(std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n)), sigma_c / (sigma_n - tau));
+            d_crit(i) = dcrit;
+
+            //Relax stress
+            S11.row(i) *= dcrit;
+            S12.row(i) *= dcrit;
+            S22.row(i) *= dcrit;
+
+            //Update damage
+            D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
+            DELTA(i, 0) = D(i, 0);
+
+            // ellipse-output
+            S1(i) = 0.5 * (S11(i, 0) + S22(i, 0));
+            S2(i) = std::hypot(S12(i, 0), 0.5 * (S11(i, 0) - S22(i, 0)));
+        }
+    }
+
+    template <int DGstress, int DGtracer>
+    void ElasticUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
+        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+        const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
+        const CellVector<DGtracer>& A, CellVector<DGtracer>& D, const double dt_momentum)
+    {
+
+        //! Stress Update
+#pragma omp parallel for
+        for (size_t i = 0; i < mesh.n; ++i) {
+
+            //! - Updates the internal stress
+            double const expC = std::exp(RefScale::compaction_param * (1. - A(i, 0)));
+
+            //double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            //double const time_viscous = RefScale::undamaged_time_relaxation_sigma
+            //    * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
+
+            // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
+            //double const multiplicator
+            //    = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
+
+            //double const multiplicator = 1. / (1. + dt_momentum / time_viscous * (1. - tildeP));
+            //tildeP = multiplicator;
+
+            double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
+            double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
+
+            // Elasit prediction Eqn. (32)
+            S11.row(i) = RefScale::young
+                * (1 / (1 + RefScale::nu0) * E11.row(i)
+                    + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+            S12.row(i) = RefScale::young * 1 / (1 + RefScale::nu0) * E12.row(i);
+            S22.row(i) = RefScale::young
+                * (1 / (1 + RefScale::nu0) * E22.row(i)
+                    + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
+        }
+    }
+
+} /* namespace MEB */
+
+} /* namespace Nextsim */
 
 #endif /* __MEB_HPP */

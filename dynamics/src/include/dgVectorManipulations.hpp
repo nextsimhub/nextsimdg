@@ -1,7 +1,7 @@
 /*!
  * @file dgVectorManipulations.hpp
  * @date 1 Mar 2022
- * @author Thomas Richter <thomas.richter@ovgu.no>
+ * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __DGVECTOR_MANIPULATIONS_HPP
@@ -90,7 +90,7 @@ LocalEdgeVector<1> jump_to_Y(const LocalCellVector<1>& left, const LocalCellVect
 //! Functions to average a DG cell vector onto the edges
 
 void average_to_edges_Y(const Mesh& mesh, EdgeVector<1>& edgevector,
-    const CellVector<1>& cellvector, bool settozero=true, bool settozeroonouteredges=false)
+    const CellVector<1>& cellvector, bool settozero = true, bool settozeroonouteredges = false)
 {
     assert(edgevector.edgetype == EdgeType::Y);
 
@@ -120,7 +120,7 @@ void average_to_edges_Y(const Mesh& mesh, EdgeVector<1>& edgevector,
 }
 
 void average_to_edges_Y(const Mesh& mesh, EdgeVector<2>& edgevector,
-    const CellVector<3>& cellvector, bool settozero=true, bool settozeroonouteredges=false)
+    const CellVector<3>& cellvector, bool settozero = true, bool settozeroonouteredges = false)
 {
     assert(edgevector.edgetype == EdgeType::Y);
 
@@ -163,7 +163,7 @@ void average_to_edges_Y(const Mesh& mesh, EdgeVector<2>& edgevector,
 }
 
 void average_to_edges_Y(const Mesh& mesh, EdgeVector<3>& edgevector,
-    const CellVector<6>& cellvector, bool settozero=true, bool settozeroonouteredges=false)
+    const CellVector<6>& cellvector, bool settozero = true, bool settozeroonouteredges = false)
 {
     assert(edgevector.edgetype == EdgeType::Y);
 
@@ -207,7 +207,7 @@ void average_to_edges_Y(const Mesh& mesh, EdgeVector<3>& edgevector,
 }
 
 void average_to_edges_X(const Mesh& mesh, EdgeVector<1>& edgevector,
-    const CellVector<1>& cellvector, bool settozero=true, bool settozeroonouteredges=false)
+    const CellVector<1>& cellvector, bool settozero = true, bool settozeroonouteredges = false)
 {
     assert(edgevector.edgetype == EdgeType::X);
 
@@ -236,9 +236,8 @@ void average_to_edges_X(const Mesh& mesh, EdgeVector<1>& edgevector,
     }
 }
 
-
 void average_to_edges_X(const Mesh& mesh, EdgeVector<2>& edgevector,
-    const CellVector<3>& cellvector, bool settozero=true, bool settozeroonouteredges=false)
+    const CellVector<3>& cellvector, bool settozero = true, bool settozeroonouteredges = false)
 {
     assert(edgevector.edgetype == EdgeType::X);
 
@@ -277,9 +276,8 @@ void average_to_edges_X(const Mesh& mesh, EdgeVector<2>& edgevector,
     }
 }
 
-
 void average_to_edges_X(const Mesh& mesh, EdgeVector<3>& edgevector,
-    const CellVector<6>& cellvector, bool settozero=true, bool settozeroonouteredges=false)
+    const CellVector<6>& cellvector, bool settozero = true, bool settozeroonouteredges = false)
 {
     assert(edgevector.edgetype == EdgeType::X);
 

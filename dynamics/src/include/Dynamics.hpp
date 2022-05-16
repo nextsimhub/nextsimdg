@@ -1,7 +1,7 @@
 /*!
  * @file Dynamics.hpp
  * @date 1 Mar 2022
- * @author Thomas Richter <thomas.richter@ovgu.no>
+ * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __DYNAMICS_HPP
@@ -52,7 +52,7 @@ public:
     /*!
      * Subclasses for managing DG transport and the momentum problem
      */
-  DGTransport<6,3> dgtransport;
+    DGTransport<6, 3> dgtransport;
 
     // public:
     /*!

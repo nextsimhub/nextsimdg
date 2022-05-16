@@ -1,7 +1,7 @@
 /*!
  * @file benchmark_box_mevp.cpp
  * @date 1 Mar 2022
- * @author Thomas Richter <thomas.richter@ovgu.no>
+ * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #include "Tools.hpp"
@@ -26,7 +26,7 @@ bool WRITE_VTK = true;
 #define DGadvection 1
 #define DGstress 1
 
-#define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3) )
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 namespace Nextsim {
 extern Timer GlobalTimer;

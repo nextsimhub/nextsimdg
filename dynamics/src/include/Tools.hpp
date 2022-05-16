@@ -1,7 +1,7 @@
 /*!
  * @file Tools.hpp
  * @date 1 Mar 2022
- * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef __TOOLS_HPP
@@ -44,6 +44,20 @@ namespace Tools {
     }
 
     template <int DGstress, int DGtracer>
+    void TensorInvariants(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+        const CellVector<DGstress>& E22, CellVector<DGtracer>& Inv1, CellVector<DGtracer>& Inv2)
+    {
+
+#pragma omp parallel for
+        for (size_t i = 0; i < mesh.n; ++i) {
+            // \dot E_I
+            Inv1(i, 0) = 0.5 * (E11(i, 0) + E22(i, 0));
+            // \dot E_II
+            Inv2(i, 0) = std::hypot(0.5 * (E11(i, 0) - E22(i, 0)), E12(i, 0));
+        }
+    }
+
+    template <int DGstress, int DGtracer>
     void ElastoParams(const Mesh& mesh, const CellVector<DGstress>& E11,
         const CellVector<DGstress>& E12, const CellVector<DGstress>& E22,
         const CellVector<DGtracer>& H, const CellVector<DGtracer>& A, const double DeltaMin,
@@ -54,7 +68,10 @@ namespace Tools {
         for (size_t i = 0; i < mesh.n; ++i) {
             double DELTA = sqrt(SQR(DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
                 + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
-            assert(DELTA > 0);
+            if (DELTA <= 0)
+                std::cout << DELTA << std::endl;
+
+            assert(DELTA >= 0);
 
             //! Ice strength
             double P = Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));

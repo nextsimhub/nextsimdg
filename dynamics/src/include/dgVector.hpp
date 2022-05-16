@@ -1,7 +1,7 @@
 /*!
  * @file dgVector.hpp
  * @date 1 Mar 2022
- * @author Thomas Richter <thomas.richter@ovgu.no>
+ * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __DGVECTOR_HPP
@@ -13,7 +13,7 @@
 #include <iostream>
 
 namespace Nextsim {
-  //#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
+//#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
 
 template <int DG>
 class LocalCellVector : public Eigen::Matrix<double, 1, DG> {
@@ -131,7 +131,7 @@ public:
     CellVector& operator+=(const Eigen::MatrixBase<OtherDerived>& other)
     {
         this->Eigen::Matrix<double, Eigen::Dynamic, DG,
-	  (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
+            (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
         return *this;
     }
 };

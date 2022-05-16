@@ -1,7 +1,7 @@
 /*!
  * @file dgLimiters.hpp
  * @date 1 Mar 2022
- * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef __LIMITERS_HPP

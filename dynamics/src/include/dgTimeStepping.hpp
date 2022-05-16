@@ -1,7 +1,7 @@
 /*!
  * @file dgTimeStepping.hpp
  * @date 1 Mar 2022
- * @author Thomas Richter <thomas.richter@ovgu.no>
+ * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __DGTIMESTEPPING_HPP
@@ -94,7 +94,6 @@ void cell_term(const Mesh& mesh, const LocalCellVector<6> inversemasscell, CellV
     // all further contributions are zero
 }
 
-
 void edge_term_X(const Mesh& mesh, const double dt, CellVector<1>& phiup, const CellVector<1>& phi,
     const EdgeVector<1>& evy, const size_t c1, const size_t c2, const size_t ie)
 {
@@ -136,8 +135,8 @@ void edge_term_X(const Mesh& mesh, const double dt, CellVector<6>& phiup, const 
 
 // compute the edge terms for the vertical edges:  n = (+/- 1, 0)
 void edge_term_Y(const Mesh& mesh, const double dt, CellVector<1>& phiup,
-		 const CellVector<1>& phi,
-		 const EdgeVector<1>& evx, const size_t c1, const size_t c2, const size_t ie)
+    const CellVector<1>& phi,
+    const EdgeVector<1>& evx, const size_t c1, const size_t c2, const size_t ie)
 {
     double left = phi(c1, 0);
     double right = phi(c2, 0);
@@ -209,7 +208,7 @@ void boundary_lower(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     LocalEdgeVector<3> phi_lower
         = LocalEdgeVector<3>(phi(c, 0) - 0.5 * phi(c, 2) + 1. / 6. * phi(c, 4),
               phi(c, 1) - 0.5 * phi(c, 5), phi(c, 3))
-      * BiGe33;
+        * BiGe33;
     // LocalEdgeVector<2> phi_gauss = phi_lower * BiGe23; // X
     LocalEdgeVector<3> vel_gauss = evy.block<1, 3>(e, 0) * BiGe33;
     LocalEdgeVector<3> tmp = (phi_lower.array() * (-vel_gauss.array()).max(0));
@@ -388,7 +387,7 @@ void transportoperator(const Mesh& mesh, const double dt, const CellVector<DGcel
         size_t ie = iy * (mesh.nx + 1) + 1; // first index of inner velocity in row
 
         for (size_t i = 0; i < mesh.nx - 1; ++i, ++ic, ++ie)
-	  edge_term_Y(mesh, dt, phiup, phi, evx, ic, ic + 1, ie);
+            edge_term_Y(mesh, dt, phiup, phi, evx, ic, ic + 1, ie);
     }
 
     // X - edges, only inner ones
