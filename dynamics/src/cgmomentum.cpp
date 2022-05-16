@@ -498,5 +498,7 @@ template void CGMomentum::InterpolateDGToCG(
     const Mesh& mesh, CGVector<2>& cg_A, const CellVector<1>& A) const;
 template void CGMomentum::InterpolateDGToCG(
     const Mesh& mesh, CGVector<2>& cg_A, const CellVector<3>& A) const;
+template void CGMomentum::InterpolateDGToCG(
+    const Mesh& mesh, CGVector<2>& cg_A, const CellVector<6>& A) const;
 
 } /* namespace Nextsim */

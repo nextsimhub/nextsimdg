@@ -8,6 +8,7 @@
 #define __DGLIMIT_HPP
 
 #include "dgVector.hpp"
+#include "codeGenerationDGinGauss.hpp"
 
 namespace Nextsim {
 
@@ -33,7 +34,23 @@ namespace Nextsim {
 	  }
       }
   }
+  void LimitMax(CellVector<6>& dg, double max)
+  {
+#pragma omp parallel for
+    for (long int i=0;i<dg.rows();++i)
+      {
+	dg(i,0) = std::min(max,dg(i,0));
 
+	LocalCellVector<9> dgingauss = dg.block<1,6>(i,0)  * BiG63;
+	const double l0 = dgingauss.maxCoeff() - dg(i,0);
+	if (l0>max-dg(i,0))
+	  {
+	    dg.block<1,5>(i,1) *= (max-dg(i,0))/l0;
+	  }
+      }
+  }
+
+ 
   //! Limit a dg vector from above
   void LimitMin(CellVector<1>& dg, double min)
   {
@@ -55,6 +72,22 @@ namespace Nextsim {
 	  }
       }
   }
+  void LimitMin(CellVector<6>& dg, double min)
+  {
+#pragma omp parallel for
+    for (long int i=0;i<dg.rows();++i)
+      {
+	dg(i,0) = std::max(min,dg(i,0));
+
+	LocalCellVector<9> dgingauss = dg.block<1,6>(i,0) * BiG63;
+	const double l0 = dgingauss.minCoeff() - dg(i,0);
+	if (l0<min-dg(i,0))
+	  {
+	    dg.block<1,5>(i,1) *= (min-dg(i,0))/l0;
+	  }
+      }
+  }
+
 
 
 

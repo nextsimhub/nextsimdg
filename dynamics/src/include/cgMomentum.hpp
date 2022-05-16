@@ -310,6 +310,22 @@ public:
         cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 *  (A(c,0)                + 0.5 * A(c,2));
         cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c,0) + 0.5 * A(c,1) + 0.5 * A(c,2));
     }
+    void InterpolateDGToCGCell(const Mesh& mesh, const size_t c, const size_t cx, const size_t cy,
+        CGVector<2>& cg_A, const CellVector<6>& A) const
+    {
+        const size_t CGDofsPerRow = 2 * mesh.nx + 1;
+        const size_t cgi = 2 * CGDofsPerRow * cy
+            + 2 * cx; //!< lower left index of CG-vector in element c = (cx,cy)
+        cg_A(cgi)                        += 0.25 * (A(c,0) - 0.5 * A(c,1) - 0.5 * A(c,2));
+        cg_A(cgi + 1)                    += 0.5 *  (A(c,0)                - 0.5 * A(c,2));
+        cg_A(cgi + 2)                    += 0.25 * (A(c,0) + 0.5 * A(c,1) - 0.5 * A(c,2));
+        cg_A(cgi + CGDofsPerRow)         += 0.5 *  (A(c,0) - 0.5 * A(c,1));
+        cg_A(cgi + CGDofsPerRow + 1)     += A(c,0);
+        cg_A(cgi + CGDofsPerRow + 2)     += 0.5 *  (A(c,0) + 0.5 * A(c,1));
+        cg_A(cgi + 2 * CGDofsPerRow)     += 0.25 * (A(c,0) - 0.5 * A(c,1) + 0.5 * A(c,2));
+        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 *  (A(c,0)                + 0.5 * A(c,2));
+        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c,0) + 0.5 * A(c,1) + 0.5 * A(c,2));
+    }
 
     //! Adjusts the interpolation on the boundary
     template <int CG>

@@ -23,7 +23,7 @@
 bool WRITE_VTK = true;
 
 #define CG 2
-#define DGadvection 3
+#define DGadvection 6
 #define DGstress 8
 
 #define EDGEDOFS(DG) ( (DG==1)?1:( (DG==3)?2:3))
@@ -36,7 +36,7 @@ extern Timer GlobalTimer;
 namespace ReferenceScale {
 // Benchmark testcase from [Mehlmann / Richter, ...]
 constexpr double T = 2 * 24. * 60. * 60.; //!< Time horizon 2 days
-constexpr double L = 512000.0; //!< Size of domain
+constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 
@@ -107,6 +107,7 @@ public:
         double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
 
         double alpha = 72.0 / 180.0 * M_PI;
+
         return -scale * ReferenceScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
     }
 };
@@ -114,7 +115,7 @@ struct InitialH {
 public:
     double operator()(double x, double y) const
     {
-        return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+      return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
 struct InitialA {
@@ -130,13 +131,13 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 128; //!< Number of mesh nodes
+    constexpr size_t N = 256; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double dt_adv = 120.0; //!< Time step of advection problem
+    constexpr double dt_adv = 60.0; //!< Time step of advection problem
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
