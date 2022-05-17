@@ -22,9 +22,9 @@
 
 bool WRITE_VTK = true;
 
-#define CG 1
+#define CG 2
 #define DGadvection 3
-#define DGstress 1
+#define DGstress 6
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
@@ -130,7 +130,7 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 256; //!< Number of mesh nodes
+    constexpr size_t N = 64; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
