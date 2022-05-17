@@ -46,8 +46,12 @@ def basisfunctions_in_gausspoints_edge(edge, d, g):
 def integration_basisfunctions_in_gausspoints_cell(d, g):
 
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} ='.format(g*g,d,d,g))
-    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(g*g,d))
+    if d>1:
+        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} ='.format(g*g,d,d,g))
+        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(g*g,d))
+    else:
+        print('static const Eigen::Matrix<double, {0}, {1}> IBC{2}{3} ='.format(g*g,d,d,g))
+        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(g*g,d))
     print('\t',end=' ')
     for gx in range(g):
         for gy in range(g):
@@ -181,7 +185,7 @@ for dg in [3,6,8]:
     basisfunctions_in_gausspoints_cell(dg,3)
 
 
-for dg in [3,6,8]:
+for dg in [1,3,6,8]:
     integration_basisfunctions_in_gausspoints_cell(dg,2)
     integration_basisfunctions_in_gausspoints_cell(dg,3)
 
