@@ -33,6 +33,8 @@ void LimitMax(CellVector<3>& dg, double max)
 	  }
       }
   }
+
+  // limits in the gauss nodes
   void LimitMax(CellVector<6>& dg, double max)
   {
 #pragma omp parallel for
