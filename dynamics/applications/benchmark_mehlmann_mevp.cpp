@@ -114,7 +114,7 @@ struct InitialH {
 public:
     double operator()(double x, double y) const
     {
-      return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+        return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
 struct InitialA {
@@ -280,9 +280,7 @@ int main()
         vx_mevp = vx;
         vy_mevp = vy;
 
-
-
-	//! MEVP subcycling
+        //! MEVP subcycling
         for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
 
             Nextsim::GlobalTimer.start("time loop - mevp - strain");

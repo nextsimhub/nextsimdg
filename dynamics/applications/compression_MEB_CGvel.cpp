@@ -23,8 +23,10 @@
 bool WRITE_VTK = true;
 
 #define CG 1
-#define DGadvection 1
-#define DGstress 1
+#define DGadvection 3
+#define DGstress 3
+
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -97,7 +99,7 @@ int main()
     Nextsim::Mesh mesh;
     constexpr size_t N = 60; //!< Number of mesh nodes
     //restricted domain for the sake of tests
-    mesh.BasicInit(N, 120, RefScaleCanada::L / N, RefScaleCanada::L / N);
+    mesh.BasicInit(N, 2 * N, RefScaleCanada::L / N, RefScaleCanada::L / N);
     //mesh.BasicInit(N, 250, RefScaleCanada::L / N, RefScaleCanada::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -149,8 +151,8 @@ int main()
 
     Nextsim::CellVector<1> DELTA(mesh); //!< Storing DELTA
     Nextsim::CellVector<1> SHEAR(mesh); //!< Storing DELTA
-    Nextsim::CellVector<1> S1(mesh), S2(mesh); //!< Stress invariants
-    Nextsim::CellVector<1> E1(mesh), E2(mesh); //!< Strain invariants
+    Nextsim::CellVector<1> Sinv1(mesh), Sinv2(mesh); //!< Stress invariants
+    Nextsim::CellVector<1> Einv1(mesh), Einv2(mesh); //!< Strain invariants
 
     // Temporary variables
     Nextsim::CellVector<1> eta1(mesh), eta2(mesh);
@@ -172,7 +174,7 @@ int main()
 
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(mesh), dgvy(mesh);
-    Nextsim::DGTransport<DGadvection, DGadvection> dgtransport(dgvx, dgvy);
+    Nextsim::DGTransport<DGadvection, EDGEDOFS(DGadvection)> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk1");
     dgtransport.setmesh(mesh);
 
@@ -189,9 +191,13 @@ int main()
     //Nextsim::VTK::write_dg("ResultsCompression/dvx", 0, dgvx, mesh);
     //Nextsim::VTK::write_dg("ResultsCompression/dvy", 0, dgvy, mesh);
 
-    Nextsim::Tools::TensorInvariants(mesh, E11, E12, E22, E1, E2);
-    Nextsim::VTK::write_dg("ResultsCompression/E1", 0, E1, mesh);
-    Nextsim::VTK::write_dg("ResultsCompression/E2", 0, E2, mesh);
+    Nextsim::Tools::TensorInvariants(mesh, E11, E12, E22, Einv1, Einv2);
+    Nextsim::VTK::write_dg("ResultsCompression/Einv1", 0, Einv1, mesh);
+    Nextsim::VTK::write_dg("ResultsCompression/Einv2", 0, Einv2, mesh);
+
+    Nextsim::Tools::TensorInvariants(mesh, S11, S12, S22, Sinv1, Sinv2);
+    Nextsim::VTK::write_dg("ResultsCompression/sigma_n", 0, Sinv1, mesh);
+    Nextsim::VTK::write_dg("ResultsCompression/tau", 0, Sinv2, mesh);
 
     //Nextsim::Tools::ElastoParams(
     //    mesh, E11, E12, E22, H, A, RefScaleCanada::DeltaMin, RefScaleCanada::Pstar, MU1, MU2);
@@ -199,18 +205,18 @@ int main()
     //Nextsim::VTK::write_dg("ResultsCompression/mu1", 0, MU1, mesh);
     //Nextsim::VTK::write_dg("ResultsCompression/mu2", 0, MU2, mesh);
 
-    Nextsim::VTK::write_dg("ResultsCompression/eta1", 0, eta1, mesh);
-    Nextsim::VTK::write_dg("ResultsCompression/eta2", 0, eta2, mesh);
-    Nextsim::VTK::write_dg("ResultsCompression/stressrelax", 0, stressrelax, mesh);
-    Nextsim::VTK::write_dg("ResultsCompression/stressOutside", 0, sigma_outside, mesh);
-    Nextsim::VTK::write_dg("ResultsCompression/Pmax", 0, Pmax, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", 0, sigma_n, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", 0, tau, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/td", 0, td, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/d_crit", 0, d_crit, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Regime", 0, Regime, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Multip", 0, Multip, mesh);
-    Nextsim::VTK::write_dg("ResultsMEB_CGvel/Lambda", 0, Lambda, mesh);
+    //Nextsim::VTK::write_dg("ResultsCompression/eta1", 0, eta1, mesh);
+    //Nextsim::VTK::write_dg("ResultsCompression/eta2", 0, eta2, mesh);
+    //Nextsim::VTK::write_dg("ResultsCompression/stressrelax", 0, stressrelax, mesh);
+    //Nextsim::VTK::write_dg("ResultsCompression/stressOutside", 0, sigma_outside, mesh);
+    //Nextsim::VTK::write_dg("ResultsCompression/Pmax", 0, Pmax, mesh);
+    //Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", 0, sigma_n, mesh);
+    //Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", 0, tau, mesh);
+    //Nextsim::VTK::write_dg("ResultsMEB_CGvel/td", 0, td, mesh);
+    //Nextsim::VTK::write_dg("ResultsMEB_CGvel/d_crit", 0, d_crit, mesh);
+    //Nextsim::VTK::write_dg("ResultsMEB_CGvel/Regime", 0, Regime, mesh);
+    //Nextsim::VTK::write_dg("ResultsMEB_CGvel/Multip", 0, Multip, mesh);
+    //Nextsim::VTK::write_dg("ResultsMEB_CGvel/Lambda", 0, Lambda, mesh);
 
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
@@ -290,9 +296,11 @@ int main()
             //    SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, td, d_crit,
             //    Regime, Multip, Lambda, dt_momentum);
 
-            Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
-                H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
+            //Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
+            //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
+            Nextsim::MEB::StressUpdateMEB(mesh, S11, S12, S22, E11, E12, E22,
+                H, A, D, dt_momentum);
             //Nextsim::MEB::ElasticUpdate(mesh, S11, S12, S22, E11, E12, E22,
             //    H, A, D, dt_momentum);
 
@@ -380,18 +388,13 @@ int main()
                 sprintf(s, "ResultsCompression/ellipse_%03ld.txt", printstep);
                 std::ofstream ELLOUT(s);
                 for (size_t i = 0; i < mesh.n; ++i)
-                    ELLOUT << S1(i, 0) << "\t" << S2(i, 0) << std::endl;
+                    ELLOUT << Sinv1(i, 0) << "\t" << Sinv2(i, 0) << std::endl;
                 ELLOUT.close();
 
                 Nextsim::GlobalTimer.start("time loop - i/o");
+                // Model Variables
                 Nextsim::VTK::write_cg("ResultsCompression/vx", printstep, vx, mesh);
                 Nextsim::VTK::write_cg("ResultsCompression/vy", printstep, vy, mesh);
-
-                //Nextsim::Tools::Delta(mesh, E11, E12, E22, RefScaleCanada::DeltaMin, DELTA);
-                //Nextsim::VTK::write_dg("ResultsCompression/Delta", printstep, DELTA, mesh);
-                Nextsim::Tools::TensorInvariants(mesh, E11, E12, E22, E1, E2);
-                Nextsim::VTK::write_dg("ResultsCompression/E1", printstep, E1, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/E2", printstep, E2, mesh);
 
                 Nextsim::VTK::write_dg("ResultsCompression/A", printstep, A, mesh);
                 Nextsim::VTK::write_dg("ResultsCompression/H", printstep, H, mesh);
@@ -404,26 +407,36 @@ int main()
                 Nextsim::VTK::write_dg("ResultsCompression/E12", printstep, E12, mesh);
                 Nextsim::VTK::write_dg("ResultsCompression/E22", printstep, E22, mesh);
 
+                // Output Variables
+                //Nextsim::Tools::Delta(mesh, E11, E12, E22, RefScaleCanada::DeltaMin, DELTA);
+                //Nextsim::VTK::write_dg("ResultsCompression/Delta", printstep, DELTA, mesh);
+
+                Nextsim::Tools::TensorInvariants(mesh, E11, E12, E22, Einv1, Einv2);
+                Nextsim::VTK::write_dg("ResultsCompression/Einv1", printstep, Einv1, mesh);
+                Nextsim::VTK::write_dg("ResultsCompression/Einv2", printstep, Einv2, mesh);
+
+                Nextsim::Tools::TensorInvariants(mesh, S11, S12, S22, Sinv1, Sinv2);
+                Nextsim::VTK::write_dg("ResultsCompression/sigma_n", printstep, Sinv1, mesh);
+                Nextsim::VTK::write_dg("ResultsCompression/tau", printstep, Sinv2, mesh);
+
                 //Nextsim::Tools::ElastoParams(
                 //    mesh, E11, E12, E22, H, A, RefScaleCanada::DeltaMin, RefScaleCanada::Pstar, MU1, MU2);
                 //Nextsim::VTK::write_dg("ResultsCompression/mu1", printstep, MU1, mesh);
                 //Nextsim::VTK::write_dg("ResultsCompression/mu2", printstep, MU2, mesh);
 
-                Nextsim::VTK::write_dg(
-                    "ResultsCompression/stressOutside", printstep, sigma_outside, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/tildeP", printstep, tildeP, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/Pmax", printstep, Pmax, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/td", printstep, td, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/d_crit", printstep, d_crit, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/sigma_n", printstep, S1, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/tau", printstep, S2, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/eta1", printstep, eta1, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/eta2", printstep, eta2, mesh);
-                Nextsim::VTK::write_dg(
-                    "ResultsCompression/stressrelax", printstep, stressrelax, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/Regime", printstep, Regime, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/Multip", printstep, Multip, mesh);
-                Nextsim::VTK::write_dg("ResultsCompression/Lambda", printstep, Lambda, mesh);
+                //Nextsim::VTK::write_dg(
+                //    "ResultsCompression/stressOutside", printstep, sigma_outside, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/tildeP", printstep, tildeP, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/Pmax", printstep, Pmax, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/td", printstep, td, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/d_crit", printstep, d_crit, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/eta1", printstep, eta1, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/eta2", printstep, eta2, mesh);
+                //Nextsim::VTK::write_dg(
+                //    "ResultsCompression/stressrelax", printstep, stressrelax, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/Regime", printstep, Regime, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/Multip", printstep, Multip, mesh);
+                //Nextsim::VTK::write_dg("ResultsCompression/Lambda", printstep, Lambda, mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
