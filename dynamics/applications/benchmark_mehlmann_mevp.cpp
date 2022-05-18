@@ -22,9 +22,9 @@
 
 bool WRITE_VTK = true;
 
-#define CG 1
+#define CG 2
 #define DGadvection 3
-#define DGstress 1
+#define DGstress 6
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
@@ -34,7 +34,7 @@ extern Timer GlobalTimer;
 
 namespace ReferenceScale {
 // Benchmark testcase from [Mehlmann / Richter, ...]
-constexpr double T = 2 * 24. * 60. * 60.; //!< Time horizon 2 days
+constexpr double T = 2 * 2 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -124,13 +124,11 @@ public:
 
 int main()
 {
-    //!
-
     Nextsim::CGMomentum momentum;
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 256; //!< Number of mesh nodes
+    constexpr size_t N = 64; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -300,57 +298,63 @@ int main()
             Nextsim::GlobalTimer.start("time loop - mevp - update1");
 
             //	    update by a loop.. implicit parts and h-dependent
+#pragma omp parallel for
+            for (int i = 0; i < vx.rows(); ++i) {
+                vx(i) = (1.0
+                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                        + cg_A(i) * ReferenceScale::F_ocean
+                            * (OX(i) - fabs(vx(i)))) // implicit parts
+                    * (ReferenceScale::rho_ice * cg_H(i) / dt_adv
+                            * (beta * vx(i) + vx_mevp(i))
+                        + // pseudo-timestepping
+                        cg_A(i)
+                            * (ReferenceScale::F_atm * fabs(AX(i)) * AX(i) + // atm forcing
+                                ReferenceScale::F_ocean * fabs(OX(i) - vx(i))
+                                    * OX(i)) // ocean forcing
+                        + ReferenceScale::rho_ice * cg_H(i) * ReferenceScale::fc
+                            * (vy(i) - OY(i)) // cor + surface
+                        ));
+                vy(i) = (1.0
+                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                        + cg_A(i) * ReferenceScale::F_ocean
+                            * (OY(i) - fabs(vy(i)))) // implicit parts
+                    * (ReferenceScale::rho_ice * cg_H(i) / dt_adv
+                            * (beta * vy(i) + vy_mevp(i))
+                        + // pseudo-timestepping
+                        cg_A(i)
+                            * (ReferenceScale::F_atm * fabs(AY(i)) * AY(i) + // atm forcing
+                                ReferenceScale::F_ocean * fabs(OY(i) - vy(i))
+                                    * OY(i)) // ocean forcing
+                        + ReferenceScale::rho_ice * cg_H(i) * ReferenceScale::fc
+                            * (OX(i) - vx(i))));
+            }
 
-            //
-            vx = (1.0
-                / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-                    + cg_A.array() * ReferenceScale::F_ocean
-                        * (OX.array() - vx.array()).abs()) // implicit parts
-                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv
-                        * (beta * vx.array() + vx_mevp.array())
-                    + // pseudo-timestepping
-                    cg_A.array()
-                        * (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
-                            ReferenceScale::F_ocean * (OX - vx).array().abs()
-                                * OX.array()) // ocean forcing
-                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc
-                        * (vy - OY).array() // cor + surface
-                    ))
-                     .matrix();
-            vy = (1.0
-                / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-                    + cg_A.array() * ReferenceScale::F_ocean
-                        * (OY.array() - vy.array()).abs()) // implicit parts
-                * (ReferenceScale::rho_ice * cg_H.array() / dt_adv
-                        * (beta * vy.array() + vy_mevp.array())
-                    + // pseudo-timestepping
-                    cg_A.array()
-                        * (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
-                            ReferenceScale::F_ocean * (OY - vy).array().abs()
-                                * OY.array()) // ocean forcing
-                    + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc
-                        * (OX - vx).array() // cor + surface
-                    ))
-                     .matrix();
             Nextsim::GlobalTimer.stop("time loop - mevp - update1");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update2");
             // Implicit etwas ineffizient
-            tmpx.zero();
-            tmpy.zero();
+#pragma omp parallel for
+            for (int i = 0; i < tmpx.rows(); ++i)
+                tmpx(i) = tmpy(i) = 0;
+
+            Nextsim::GlobalTimer.start("time loop - mevp - update2 -stress");
             momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
-            vx += (1.0
-                / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-                    + cg_A.array() * ReferenceScale::F_ocean
-                        * (OX.array() - vx.array()).abs()) // implicit parts
-                * tmpx.array())
-                      .matrix();
-            vy += (1.0
-                / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-                    + cg_A.array() * ReferenceScale::F_ocean
-                        * (OY.array() - vy.array()).abs()) // implicit parts
-                * tmpy.array())
-                      .matrix();
+            Nextsim::GlobalTimer.stop("time loop - mevp - update2 -stress");
+
+#pragma omp parallel for
+            for (int i = 0; i < vx.rows(); ++i) {
+                vx(i) += (1.0
+                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                        + cg_A(i) * ReferenceScale::F_ocean
+                            * fabs(OX(i) - vx(i))) // implicit parts
+                    * tmpx(i));
+
+                vy(i) += (1.0
+                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                        + cg_A(i) * ReferenceScale::F_ocean
+                            * fabs(OY(i) - vy(i))) // implicit parts
+                    * tmpy(i));
+            }
 
             Nextsim::GlobalTimer.stop("time loop - mevp - update2");
             Nextsim::GlobalTimer.stop("time loop - mevp - update");
