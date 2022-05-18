@@ -24,7 +24,7 @@ public:
     // Member functions inherited from IModelStep
     void writeRestartFile(const std::string& filePath) override {};
 
-    void setInitialData(PrognosticData& pDat) override { pData = &pDat; }
+    void setData(PrognosticData& pDat) override { pData = &pDat; }
 
     // Member functions inherited from Iterant
     void init() override {};

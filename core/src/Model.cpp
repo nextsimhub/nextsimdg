@@ -67,7 +67,7 @@ void Model::configure()
     modelStep.setInitFile(initialFileName);
 
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
-    modelStep.setInitialData(pData);
+    modelStep.setData(pData);
     pData.setData(initialState);
 }
 

@@ -35,12 +35,11 @@ public:
     virtual void writeRestartFile(const std::string& filePath) = 0;
 
     /*!
-     * @brief Sets the initial data of the model to that in the provided
-     * PrognosticData object.
+     * @brief Sets the data object that will be used within the timesteps.
      *
-     * @param data The PrognosticData holding the initial model data.
+     * @param data The PrognosticData holding the model data.
      */
-    virtual void setInitialData(PrognosticData& data) = 0;
+    virtual void setData(PrognosticData& data) = 0;
 
     // Member functions inherited from Iterant
     virtual void init() = 0;
