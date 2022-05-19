@@ -73,20 +73,6 @@ add_executable(testScopedTimer
 target_link_libraries(testScopedTimer PRIVATE Catch2::Catch2)
 target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 
-<<<<<<< HEAD
-=======
-add_executable(testPrognosticData
-    "PrognosticData_test.cpp"
-    "${SRC_DIR}/PrognosticData.cpp"
-    "${SRC_DIR}/ConfiguredModule.cpp"
-    "${SRC_DIR}/Configurator.cpp"
-    "${CoreModulesDir}/IFreezingPointModule.cpp"
-    )
-    # Set the location of the test module loader classes
-set(PDTestIppDir "${CMAKE_CURRENT_SOURCE_DIR}/PrognosticDataTestModules")
-target_link_libraries(testPrognosticData PRIVATE Catch2::Catch2 Boost::program_options)
-target_include_directories(testPrognosticData PRIVATE "${SRC_DIR}" "${CoreModulesDir}" "${PDTestIppDir}")
-
 set(PhysicsDir "${PROJECT_SOURCE_DIR}/physics/src")
 set(PhysicsModulesDir "${PhysicsDir}/modules")
 add_executable(testElementData
@@ -113,7 +99,6 @@ add_executable(testElementData
 target_include_directories(testElementData PRIVATE "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}")
 target_link_libraries(testElementData PRIVATE Boost::program_options Boost::log Catch2::Catch2)
 
->>>>>>> refs/heads/develop
 add_executable(testDevGrid
     "DevGrid_test.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
