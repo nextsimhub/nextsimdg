@@ -49,7 +49,7 @@ target_include_directories(testIceGrowth PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testNextsimPhysics PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testIceGrowth PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testFEFluxes
     "FiniteElementFluxes_test.cpp"
