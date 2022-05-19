@@ -40,9 +40,9 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     public:
         AtmosphericData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
@@ -54,8 +54,8 @@ TEST_CASE("New ice formation", "[IceGrowth]")
 
         void setData(const ModelState&) override
         {
-            hice[0] = 0.2;
             cice[0] = 0.5;
+            hice[0] = 0.2;
             hsnow[0] = 0;
             tice0[0] = -2;
             sst[0] = -1.5;
@@ -140,9 +140,9 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     public:
         AtmosphericData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
@@ -155,8 +155,8 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         void setData(const ModelState&) override
         {
             cice[0] = 0.5;
-            hice[0] = 0.1;
-            hsnow[0] = 0.01;
+            hice[0] = 0.1 / cice[0];
+            hsnow[0] = 0.01 / cice[0];
             tice0[0] = -1;
             sst[0] = -1;
             sss[0] = 32.;
@@ -250,9 +250,9 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
     public:
         AtmosphericData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
@@ -265,8 +265,8 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         void setData(const ModelState&) override
         {
             cice[0] = 0.5;
-            hice[0] = 0.1;
-            hsnow[0] = 0.01;
+            hice[0] = 0.1 / cice[0];
+            hsnow[0] = 0.01 / cice[0];
             tice0[0] = -9;
             sst[0] = -1.75;
             sss[0] = 32.;

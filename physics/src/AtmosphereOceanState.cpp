@@ -13,12 +13,12 @@ namespace Nextsim {
 
 AtmosphereOceanState::AtmosphereOceanState()
 {
-    registerProtectedArray(ProtectedArray::HTRUE_ICE, &hTrueIce);
-    registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hTrueSnow);
 }
 
 void AtmosphereOceanState::setData(const ModelState& ms)
 {
+    registerProtectedArray(ProtectedArray::HTRUE_ICE, &hTrueIce);
+    registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hTrueSnow);
     atmosStateImpl->setData(ms);
     oceanStateImpl->setData(ms);
 }
