@@ -8,9 +8,9 @@
 #ifndef PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 #define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
 
-#include "include/IIceThermodynamics.hpp"
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
+#include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"

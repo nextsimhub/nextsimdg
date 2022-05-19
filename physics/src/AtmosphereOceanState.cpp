@@ -11,9 +11,7 @@
 
 namespace Nextsim {
 
-AtmosphereOceanState::AtmosphereOceanState()
-{
-}
+AtmosphereOceanState::AtmosphereOceanState() { }
 
 void AtmosphereOceanState::setData(const ModelState& ms)
 {
