@@ -71,6 +71,7 @@ jobs:
         brew install netcdf
         brew install boost
         brew install catch2
+        brew install eigen
         brew install cmake
     - name: make
       run: |
