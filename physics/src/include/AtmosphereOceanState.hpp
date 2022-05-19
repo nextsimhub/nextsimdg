@@ -32,6 +32,7 @@ public:
     void update(const TimestepTime&);
 
     void configure() override;
+
 protected:
     HField hTrueSnow;
     HField hTrueIce;
