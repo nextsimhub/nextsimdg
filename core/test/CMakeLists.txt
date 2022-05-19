@@ -87,18 +87,18 @@ target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}
 target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
-#add_executable(testRectGrid
-#    "RectGrid_test.cpp"
-#    "${CoreModulesDir}/RectangularGrid.cpp"
-#    "${SRC_DIR}/Configurator.cpp"
-#    "${SRC_DIR}/ConfiguredModule.cpp"
-#    "${SRC_DIR}/RectGridIO.cpp"
-#    "${SRC_DIR}/ModelArray.cpp"
-#    )
-#
-#target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
-#target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
-#target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+add_executable(testRectGrid
+    "RectGrid_test.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
+    "${SRC_DIR}/RectGridIO.cpp"
+    "${SRC_DIR}/ModelArray.cpp"
+    )
+
+target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
+target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 #add_executable(testStructureFactory
 #    "StructureFactory_test.cpp"
