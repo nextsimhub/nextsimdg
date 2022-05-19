@@ -55,7 +55,8 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);
     }
-    // TODO: throw some kind of exception if we get here.
+    throw std::invalid_argument(std::string("fileFromName: structure not implemented: ")
+        + structureName + "\nAlso, how did you get here?");
     return ModelState();
 }
 
@@ -66,6 +67,10 @@ void StructureFactory::fileFromState(const ModelState& state, const std::string&
     if (DevGrid::structureName == structureName) {
         DevGrid gridOut;
         gridOut.setIO(new DevGridIO(gridOut));
+        gridOut.dumpModelState(state, filePath);
+    } else if (RectangularGrid::structureName == structureName) {
+        RectangularGrid gridOut;
+        gridOut.setIO(new RectGridIO(gridOut));
         gridOut.dumpModelState(state, filePath);
     } else {
         throw std::invalid_argument(

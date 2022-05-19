@@ -100,22 +100,6 @@ target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory
 target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
-#add_executable(testStructureFactory
-#    "StructureFactory_test.cpp"
-#    "${SRC_DIR}/StructureFactory.cpp"
-#    "${SRC_DIR}/Configurator.cpp"
-#    "${SRC_DIR}/ConfiguredModule.cpp"
-#    "${SRC_DIR}/DevGridIO.cpp"
-#    "${SRC_DIR}/RectGridIO.cpp"
-#    "${SRC_DIR}/ModelArray.cpp"
-#    "${CoreModulesDir}/DevGrid.cpp"
-#    "${CoreModulesDir}/RectangularGrid.cpp"
-#    )
-#
-#target_include_directories(testStructureFactory PRIVATE "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
-#target_link_directories(testStructureFactory PUBLIC "${netCDF_LIB_DIR}")
-#target_link_libraries(testStructureFactory PRIVATE Boost::program_options Boost::log Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
-
 add_executable(testModelArray
     "ModelArray_test.cpp"
     "${CoreSrc}/ModelArray.cpp"
