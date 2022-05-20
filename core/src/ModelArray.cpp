@@ -217,7 +217,7 @@ inline size_t indexr(
 inline size_t indexr(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q, const size_t* d)
 {
-    size_t dLast = d[6];
+    size_t dLast = d[7];
     return indexr(
         i * dLast, j * dLast, k * dLast, l * dLast, m * dLast, n * dLast, p * dLast + q, d);
 }
