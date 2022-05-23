@@ -182,10 +182,7 @@ void ModelArray::setDimensions(Type type, const Dimensions& newDims)
 }
 
 // Simple 1d indexing
-inline size_t indexr(const size_t* dims, const size_t nDims, size_t i)
-{
-    return i;
-}
+inline size_t indexr(const size_t* dims, const size_t nDims, size_t i) { return i; }
 
 // Special case for 2d indexing
 inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j)
@@ -194,38 +191,39 @@ inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j)
 }
 
 // General case for up to 8d indexing
-inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j, size_t k, size_t l = 0, size_t m = 0, size_t n = 0, size_t p = 0, size_t q = 0)
+inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j, size_t k,
+    size_t l = 0, size_t m = 0, size_t n = 0, size_t p = 0, size_t q = 0)
 {
-  size_t stepLength = 1;
-  size_t out = 0;
-  switch(nDims) {
-  case 8:
-    out += stepLength * q;
-    stepLength *= dims[7];
-  case 7:
-    out += stepLength * p;
-    stepLength *= dims[6];
-  case 6:
-    out += stepLength * n;
-    stepLength *= dims[5];
-  case 5:
-    out += stepLength * m;
-    stepLength *= dims[4];
-  case 4:
-    out += stepLength * l;
-    stepLength *= dims[3];
-  case 3:
-    out += stepLength * k;
-    stepLength *= dims[2];
-  case 2:
-    out += stepLength * j;
-    stepLength *= dims[1];
-  case 1:
-  default:
-    out += stepLength * i;
-    return out;
-  }
-  return 0;
+    size_t stepLength = 1;
+    size_t out = 0;
+    switch (nDims) {
+    case 8:
+        out += stepLength * q;
+        stepLength *= dims[7];
+    case 7:
+        out += stepLength * p;
+        stepLength *= dims[6];
+    case 6:
+        out += stepLength * n;
+        stepLength *= dims[5];
+    case 5:
+        out += stepLength * m;
+        stepLength *= dims[4];
+    case 4:
+        out += stepLength * l;
+        stepLength *= dims[3];
+    case 3:
+        out += stepLength * k;
+        stepLength *= dims[2];
+    case 2:
+        out += stepLength * j;
+        stepLength *= dims[1];
+    case 1:
+    default:
+        out += stepLength * i;
+        return out;
+    }
+    return 0;
 }
 
 size_t indexr(const ModelArray::Dimensions& loc, const size_t* dims)
