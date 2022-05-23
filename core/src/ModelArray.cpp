@@ -181,67 +181,56 @@ void ModelArray::setDimensions(Type type, const Dimensions& newDims)
     m_sz.at(type) = newSize;
 }
 
-inline size_t indexr(size_t i, size_t j, const size_t* d) { return i * d[1] + j; }
-
-inline size_t indexr(size_t i, size_t j, size_t k, const size_t* d)
+// Simple 1d indexing
+inline size_t indexr(const size_t* dims, const size_t nDims, size_t i)
 {
-    size_t dLast = d[2];
-    return indexr(i * dLast, j * dLast + k, d);
+    return i;
 }
 
-inline size_t indexr(size_t i, size_t j, size_t k, size_t l, const size_t* d)
+// Special case for 2d indexing
+inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j)
 {
-    size_t dLast = d[3];
-    return indexr(i * dLast, j * dLast, k * dLast + l, d);
+    return i * dims[1] + j;
 }
 
-inline size_t indexr(size_t i, size_t j, size_t k, size_t l, size_t m, const size_t* d)
+// General case for up to 8d indexing
+inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j, size_t k, size_t l = 0, size_t m = 0, size_t n = 0, size_t p = 0, size_t q = 0)
 {
-    size_t dLast = d[4];
-    return indexr(i * dLast, j * dLast, k * dLast, l * dLast + m, d);
-}
-
-inline size_t indexr(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, const size_t* d)
-{
-    size_t dLast = d[5];
-    return indexr(i * dLast, j * dLast, k * dLast, l * dLast, m * dLast + n, d);
-}
-
-inline size_t indexr(
-    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, const size_t* d)
-{
-    size_t dLast = d[6];
-    return indexr(i * dLast, j * dLast, k * dLast, l * dLast, m * dLast, n * dLast + p, d);
-}
-
-inline size_t indexr(
-    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q, const size_t* d)
-{
-    size_t dLast = d[7];
-    return indexr(
-        i * dLast, j * dLast, k * dLast, l * dLast, m * dLast, n * dLast, p * dLast + q, d);
+  size_t stepLength = 1;
+  size_t out = 0;
+  switch(nDims) {
+  case 8:
+    out += stepLength * q;
+    stepLength *= dims[7];
+  case 7:
+    out += stepLength * p;
+    stepLength *= dims[6];
+  case 6:
+    out += stepLength * n;
+    stepLength *= dims[5];
+  case 5:
+    out += stepLength * m;
+    stepLength *= dims[4];
+  case 4:
+    out += stepLength * l;
+    stepLength *= dims[3];
+  case 3:
+    out += stepLength * k;
+    stepLength *= dims[2];
+  case 2:
+    out += stepLength * j;
+    stepLength *= dims[1];
+  case 1:
+  default:
+    out += stepLength * i;
+    return out;
+  }
+  return 0;
 }
 
 size_t indexr(const ModelArray::Dimensions& loc, const size_t* dims)
 {
-    switch (loc.size()) {
-    case (1):
-        return loc[0];
-    case (2):
-        return indexr(loc[0], loc[1], dims);
-    case (3):
-        return indexr(loc[0], loc[1], loc[2], dims);
-    case (4):
-        return indexr(loc[0], loc[1], loc[2], loc[3], dims);
-    case (5):
-        return indexr(loc[0], loc[1], loc[2], loc[3], loc[4], dims);
-    case (6):
-        return indexr(loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], dims);
-    case (7):
-        return indexr(loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], loc[6], dims);
-    default:
-        return indexr(loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], loc[6], loc[7], dims);
-    }
+    return indexr(dims, loc.size(), loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], loc[6], loc[7]);
 }
 
 const double& ModelArray::operator[](const Dimensions& dims) const
@@ -268,40 +257,40 @@ const double& ModelArray::operator[](const Dimensions& dims) const
 
 const double& ModelArray::operator()(size_t i, size_t j) const
 {
-    return (*this)(indexr(i, j, dimensions().data()));
+    return (*this)(indexr(dimensions().data(), 2, i, j));
 }
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k) const
 {
-    return (*this)(indexr(i, j, k, dimensions().data()));
+    return (*this)(indexr(dimensions().data(), 3, i, j, k));
 }
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l) const
 {
-    return (*this)(indexr(i, j, k, l, dimensions().data()));
+    return (*this)(indexr(dimensions().data(), 4, i, j, k, l));
 }
 
 const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
 {
-    return (*this)(indexr(i, j, k, l, m, dimensions().data()));
+    return (*this)(indexr(dimensions().data(), 5, i, j, k, l, m));
 }
 
 const double& ModelArray::operator()(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
 {
-    return (*this)(indexr(i, j, k, l, m, n, dimensions().data()));
+    return (*this)(indexr(dimensions().data(), 6, i, j, k, l, m, n));
 }
 
 const double& ModelArray::operator()(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
 {
-    return (*this)(indexr(i, j, k, l, m, n, p, dimensions().data()));
+    return (*this)(indexr(dimensions().data(), 7, i, j, k, l, m, n, p));
 }
 
 const double& ModelArray::operator()(
     size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
 {
-    return (*this)(indexr(i, j, k, l, m, n, p, q, dimensions().data()));
+    return (*this)(indexr(dimensions().data(), 8, i, j, k, l, m, n, p, q));
 }
 
 double& ModelArray::operator[](const Dimensions& dims)
