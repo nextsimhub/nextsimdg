@@ -32,9 +32,15 @@ set(FreezingPointModuleSources
     "IFreezingPointModule.cpp"
     )
 
+set(DiagnosticOutputModuleSources
+    "DiagnosticOutputModule.cpp"
+    "SimpleOutput.cpp"
+    )
+
 set(ModuleSources
     "${StructureModuleSources}"
     "${FreezingPointModuleSources}"
+    "${DiagnosticOutputModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

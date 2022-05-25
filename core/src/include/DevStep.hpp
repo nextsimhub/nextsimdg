@@ -27,7 +27,7 @@ public:
     void setData(PrognosticData& pDat) override { pData = &pDat; }
 
     // Member functions inherited from Iterant
-    void init() override {};
+    void init() override;
     void start(const TimePoint& startTime) override {};
     void iterate(const TimestepTime& dt) override;
     void stop(const TimePoint& stopTime) override {};

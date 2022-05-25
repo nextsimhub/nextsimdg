@@ -34,7 +34,7 @@ public:
     std::string getName() const override { return "IceGrowth"; }
 
     void setData(const ModelState&) override;
-    ModelState getState() const override { return ModelState(); }
+    ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::set<std::string> hFields() const override

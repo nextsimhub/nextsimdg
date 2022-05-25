@@ -32,6 +32,7 @@ public:
     void setData(const ModelState& ms) override;
     ModelState getState() const override;
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
+    ModelState getStateRecursive(const OutputSpec& os) const override;
 
     std::set<std::string> hFields() const override { return { "h_ice", "c_cice", "h_snow" }; };
     std::set<std::string> uFields() const override { return { "u" }; }
