@@ -41,7 +41,7 @@ std::chrono::time_point<Iterator::Clock> zeroTime<std::chrono::time_point<Iterat
     return Iterator::Clock::now();
 }
 template<>
-int zeroTime<int>()
+size_t zeroTime<size_t>()
 {
     return 0;
 }
