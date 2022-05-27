@@ -10,7 +10,6 @@
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
 
-
 namespace Nextsim {
 
 //! Limit a dg vector from above

@@ -8,6 +8,7 @@
 #include "cgMomentum.hpp"
 #include "cgVector.hpp"
 #include "dgInitial.hpp"
+#include "dgLimit.hpp"
 #include "dgTransport.hpp"
 #include "dgVisu.hpp"
 #include "meb.hpp"
@@ -257,11 +258,11 @@ int main()
         dgtransport.step(dt_adv, H);
         dgtransport.step(dt_adv, D);
 
-        A.col(0) = A.col(0).cwiseMin(1.0);
-        A.col(0) = A.col(0).cwiseMax(0.0);
-        H.col(0) = H.col(0).cwiseMax(0.0);
-        D.col(0) = D.col(0).cwiseMin(1.0);
-        D.col(0) = D.col(0).cwiseMax(0.0);
+        Nextsim::LimitMax(A, 1.0);
+        Nextsim::LimitMin(A, 0.0);
+        Nextsim::LimitMin(H, 0.0);
+        Nextsim::LimitMax(D, 1.0);
+        Nextsim::LimitMin(D, 0.0);
 
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);
@@ -276,6 +277,12 @@ int main()
 
         //! Momentum subcycling
         for (size_t mom_step = 0; mom_step < mom_substeps; ++mom_step) {
+
+            Nextsim::LimitMax(A, 1.0);
+            Nextsim::LimitMin(A, 0.0);
+            Nextsim::LimitMin(H, 0.0);
+            Nextsim::LimitMax(D, 1.0);
+            Nextsim::LimitMin(D, 0.0);
 
             Nextsim::GlobalTimer.start("time loop - meb - strain");
             //! Compute Strain Rate

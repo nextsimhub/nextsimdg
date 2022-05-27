@@ -946,25 +946,24 @@ namespace MEB {
             //! damage criterion
             //======================================================================
 
-            //const Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 3>(i, 0) * BiG33;
-            //const Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 3>(i, 0) * BiG33;
-            //const Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 3>(i, 0) * BiG33;
+            const Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 3>(i, 0) * BiG33;
+            const Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 3>(i, 0) * BiG33;
+            const Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 3>(i, 0) * BiG33;
 
             // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
-            double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            //double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            const Eigen::Matrix<double, 1, 9> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
 
-            //const Eigen::Matrix<double, 1, 9> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
             // shear stress
-            double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
-            //const Eigen::Matrix<double, 1, 9> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
+            //double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
 
+            const Eigen::Matrix<double, 1, 9> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
             //assert(tau >= 0);
 
-            //
-            const double c = RefScaleCanada::c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
-            const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
-            //const Eigen::Matrix<double, 1, 9> c = RefScaleCanada::c0 * h_gauss.array() * expC;
-            //const Eigen::Matrix<double, 1, 9> sigma_c = RefScaleCanada::sigma_c0 * h_gauss.array() * expC;
+            //const double c = RefScaleCanada::c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
+            //const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
+            const Eigen::Matrix<double, 1, 9> c = RefScaleCanada::c0 * h_gauss.array() * expC;
+            const Eigen::Matrix<double, 1, 9> sigma_c = RefScaleCanada::sigma_c0 * h_gauss.array() * expC;
 
             /*
             //Regime(i, 0) = 0;
@@ -976,17 +975,25 @@ namespace MEB {
             //    Regime(i, 0) = 2;
             //}
             */
-            double dcrit(1.0);
-            if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
-                dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
+            //double dcrit(1.0);
+            Eigen::Matrix<double, 1, 9> dcrit;
+            dcrit << 1., 1., 1., 1., 1., 1., 1., 1., 1.;
+            //if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
+            //    dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
 
+            dcrit = (tau.array() + RefScaleCanada::sin_phi * sigma_n.array() - c.array() > 0).select(c.array() / (tau.array() + RefScaleCanada::sin_phi * sigma_n.array()), dcrit);
+            auto dcrit_int = dcrit * IBC33;
             //Relax stress
-            S11.row(i) *= dcrit;
-            S12.row(i) *= dcrit;
-            S22.row(i) *= dcrit;
+            //S11.row(i) *= dcrit;
+            //S12.row(i) *= dcrit;
+            //S22.row(i) *= dcrit;
+            S11.row(i) = (s11_gauss.array() * dcrit.array()).matrix() * IBC33;
+            S12.row(i) = (s12_gauss.array() * dcrit.array()).matrix() * IBC33;
+            S22.row(i) = (s22_gauss.array() * dcrit.array()).matrix() * IBC33;
 
             //Update damage
-            D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
+            //D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
+            D.row(i) += ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_momentum / RefScaleCanada::damage_timescale).matrix() * IBC33;
         }
     }
 
