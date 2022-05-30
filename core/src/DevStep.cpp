@@ -20,7 +20,7 @@ void DevStep::init()
 void DevStep::iterate(const TimestepTime& tst)
 {
     pData->update(tst);
-    // TODO: More fine grained control than "all the fields, every timestep"
+    // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
     ModelState overallState = pData->getStateRecursive(true);
     Module::getImplementation<IDiagnosticOutput>().outputState(overallState, tst);
 }
