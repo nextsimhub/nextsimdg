@@ -16,12 +16,12 @@ class SimpleOutput : public IDiagnosticOutput {
 public:
     SimpleOutput() = default;
 
-    void setFilename(const std::string& fileName) override { m_fileName = fileName; }
+    void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
 
     void outputState(const ModelState& state, const TimestepTime& tst) const override;
 
 private:
-    std::string m_fileName;
+    std::string m_filePrefix;
 };
 
 } /* namespace Nextsim */

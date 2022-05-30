@@ -14,7 +14,7 @@ namespace Nextsim {
 
 void SimpleOutput::outputState(const ModelState& state, const TimestepTime& tst) const
 {
-    std::string timeFileName = std::to_string(tst.start) + ".nc";
+    std::string timeFileName = m_filePrefix + "." + std::to_string(tst.start) + ".nc";
     std::cout << "Outputting " << state.size() << " fields to " << timeFileName << std::endl;
 
     StructureFactory::fileFromState(state, timeFileName);

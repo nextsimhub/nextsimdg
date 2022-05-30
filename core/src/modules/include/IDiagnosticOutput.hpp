@@ -24,7 +24,7 @@ public:
      *
      * @param fileName The file name to be set.
      */
-    virtual void setFilename(const std::string& fileName) = 0;
+    virtual void setFilenamePrefix(const std::string& filePrefix) = 0;
 
     /*!
      * @brief Outputs the passed ModelState.
