@@ -56,12 +56,12 @@ void IceGrowth::setData(const ModelState& ms)
 ModelState IceGrowth::getState() const
 {
     return {
-            {"hice_updated", hice},
-            {"cice_updated", cice},
-            {"hsnow_updated", hsnow},
-            {"hice_initial", hice0},
-            {"cice_initial", cice0},
-            {"hsnow_initial", hsnow0},
+        { "hice_updated", hice },
+        { "cice_updated", cice },
+        { "hsnow_updated", hsnow },
+        { "hice_initial", hice0 },
+        { "cice_initial", cice0 },
+        { "hsnow_initial", hsnow0 },
     };
 }
 
