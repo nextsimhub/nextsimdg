@@ -29,7 +29,7 @@ ModelState AtmosphereOceanState::getState() const
 }
 ModelState AtmosphereOceanState::getState(const OutputLevel&) const { return getState(); }
 std::string AtmosphereOceanState::getName() const { return "AtmosphereOceanState"; }
-std::set<std::string> AtmosphereOceanState::hFields() const
+std::unordered_set<std::string> AtmosphereOceanState::hFields() const
 {
     return { "True ice thickness", "True snow thickness" };
 }

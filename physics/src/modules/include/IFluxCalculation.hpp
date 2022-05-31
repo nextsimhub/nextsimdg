@@ -49,7 +49,7 @@ public:
 
     std::string getName() const override { return "IFluxCalculation"; }
 
-    std::set<std::string> hFields() const override
+    std::unordered_set<std::string> hFields() const override
     {
         return { "qow", "subl", "qia", "dqia_dt", "qio" };
     }

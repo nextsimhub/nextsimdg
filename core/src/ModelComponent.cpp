@@ -9,17 +9,10 @@
 
 namespace Nextsim {
 
-std::map<std::string, ModelComponent*> ModelComponent::registeredModules;
+std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
 ModelArray* ModelComponent::sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
 const ModelArray* ModelComponent::protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
-std::map<ModelComponent::SharedArray, ModelArray*> ModelComponent::registeredArrays;
-std::map<ModelComponent::SharedArray, std::set<ModelArray**>> ModelComponent::reservedArrays;
-std::map<ModelComponent::SharedArray, std::set<const ModelArray**>>
-    ModelComponent::reservedSemiArrays;
-std::map<ModelComponent::ProtectedArray, const ModelArray*>
-    ModelComponent::registeredProtectedArrays;
-std::map<ModelComponent::ProtectedArray, std::set<const ModelArray**>>
-    ModelComponent::reservedProtectedArrays;
+
 ModelComponent::ModelComponent() { }
 
 void ModelComponent::setAllModuleData(const ModelState& stateIn)
@@ -42,7 +35,7 @@ void ModelComponent::registerModule() { registeredModules[getName()] = this; }
 void ModelComponent::unregisterAllModules() { registeredModules.clear(); }
 
 void ModelComponent::getAllFieldNames(
-    std::set<std::string>& uF, std::set<std::string>& vF, std::set<std::string>& zF)
+    std::unordered_set<std::string>& uF, std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF)
 {
     for (auto entry : registeredModules) {
         uF.merge(entry.second->uFields());
@@ -53,25 +46,12 @@ void ModelComponent::getAllFieldNames(
 
 void ModelComponent::registerSharedArray(SharedArray type, ModelArray* addr)
 {
-    registeredArrays[type] = addr;
-    for (ModelArray** addrAddr : reservedArrays[type]) {
-        *addrAddr = addr;
-    }
-    for (const ModelArray** addrAddr : reservedSemiArrays[type]) {
-        *addrAddr = addr;
-    }
-
     // Assignment of pointer in array
     sharedArrays[static_cast<size_t>(type)] = addr;
 }
 
 void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArray* addr)
 {
-    registeredProtectedArrays[type] = addr;
-    for (const ModelArray** addrAddr : reservedProtectedArrays[type]) {
-        *addrAddr = addr;
-    }
-
     // Assignment of pointer in array
     protectedArrays[static_cast<size_t>(type)] = addr;
 }

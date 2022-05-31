@@ -27,7 +27,7 @@ public:
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
     std::string getName() const override;
-    std::set<std::string> hFields() const override;
+    std::unordered_set<std::string> hFields() const override;
 
     void update(const TimestepTime&);
 

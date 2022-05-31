@@ -33,10 +33,10 @@ public:
     ModelState getState() const override;
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
-    std::set<std::string> hFields() const override { return { "h_ice", "c_cice", "h_snow" }; };
-    std::set<std::string> uFields() const override { return { "u" }; }
-    std::set<std::string> vFields() const override { return { "v" }; }
-    std::set<std::string> zFields() const override { return { "tice" }; }
+    std::unordered_set<std::string> hFields() const override { return { "h_ice", "c_cice", "h_snow" }; };
+    std::unordered_set<std::string> uFields() const override { return { "u" }; }
+    std::unordered_set<std::string> vFields() const override { return { "v" }; }
+    std::unordered_set<std::string> zFields() const override { return { "tice" }; }
 
     /*!
      *  @brief Updates the state of the prognostic data for this timestep

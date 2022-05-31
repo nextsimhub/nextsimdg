@@ -228,7 +228,13 @@ inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j,
 
 size_t indexr(const ModelArray::Dimensions& loc, const size_t* dims)
 {
-    return indexr(dims, loc.size(), loc[0], loc[1], loc[2], loc[3], loc[4], loc[5], loc[6], loc[7]);
+    size_t loc8[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    for (char i = 0; i < loc.size(); ++i) {
+        loc8[i] = loc[i];
+    }
+
+    return indexr(
+        dims, loc.size(), loc8[0], loc8[1], loc8[2], loc8[3], loc8[4], loc8[5], loc8[6], loc8[7]);
 }
 
 const double& ModelArray::operator[](const Dimensions& dims) const

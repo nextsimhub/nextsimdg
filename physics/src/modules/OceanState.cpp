@@ -52,9 +52,9 @@ ModelState OceanState::getState(const OutputLevel& lvl) const { return getState(
 
 std::string OceanState::getName() const { return "OceanState"; }
 
-std::set<std::string> OceanState::hFields() const
+std::unordered_set<std::string> OceanState::hFields() const
 {
-    std::set<std::string> fields;
+    std::unordered_set<std::string> fields;
     for (const auto typeName : fieldNames) {
         fields.insert(typeName.second);
     }

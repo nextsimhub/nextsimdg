@@ -54,9 +54,9 @@ ModelState AtmosphereState::getState(const OutputLevel& lvl) const { return getS
 
 std::string AtmosphereState::getName() const { return "AtmosphereState"; }
 
-std::set<std::string> AtmosphereState::hFields() const
+std::unordered_set<std::string> AtmosphereState::hFields() const
 {
-    std::set<std::string> fields;
+    std::unordered_set<std::string> fields;
     for (const auto typeName : fieldNames) {
         fields.insert(typeName.second);
     }
