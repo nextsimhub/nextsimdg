@@ -461,6 +461,7 @@ void CGMomentum::DirichletCompressionTop(const Mesh& mesh, CGVector<1>& vector,
     for (size_t i = 0; i < mesh.nx + 1; ++i)
         vector(upperleftindex + i, 0) = value;
 }
+
 template <>
 void CGMomentum::DirichletCompressionBottom(const Mesh& mesh, CellVector<1>& vector,
     const double& value) const
@@ -475,6 +476,17 @@ void CGMomentum::DirichletCompressionTop(const Mesh& mesh, CellVector<1>& vector
     size_t upperleftindex = mesh.n - mesh.nx;
     for (size_t i = 0; i < mesh.nx; ++i)
         vector(upperleftindex + i, 0) = value;
+}
+template <>
+void CGMomentum::DirichletCompressionTop(const Mesh& mesh, CellVector<3>& vector,
+    const double& value) const
+{
+    size_t upperleftindex = mesh.n - mesh.nx;
+    for (size_t i = 0; i < mesh.nx; ++i) {
+        vector(upperleftindex + i, 0) = value;
+        vector(upperleftindex + i, 1) = 0.0;
+        vector(upperleftindex + i, 2) = 0.0;
+    }
 }
 
 template <>
