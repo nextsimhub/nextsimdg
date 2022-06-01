@@ -897,7 +897,7 @@ namespace MEB {
     void StressUpdateMEB(const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
         CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
         const CellVector<3>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, CellVector<3>& D, const double dt_momentum)
+        const CellVector<3>& A, CellVector<3>& D, const double dt_momentum, CellVector<3>& Dcrit)
     {
 
         //! Stress Update
@@ -965,7 +965,6 @@ namespace MEB {
             const Eigen::Matrix<double, 1, 9> c = RefScaleCanada::c0 * h_gauss.array() * expC;
             const Eigen::Matrix<double, 1, 9> sigma_c = RefScaleCanada::sigma_c0 * h_gauss.array() * expC;
 
-            /*
             //Regime(i, 0) = 0;
             //// Mohr-Coulomb condition
             //if (tau + RefScaleCanada::sin_phi * sigma_n - c < 0) {
@@ -974,7 +973,7 @@ namespace MEB {
             //if (sigma_n - tau > sigma_c) {
             //    Regime(i, 0) = 2;
             //}
-            */
+
             //double dcrit(1.0);
             Eigen::Matrix<double, 1, 9> dcrit;
             dcrit << 1., 1., 1., 1., 1., 1., 1., 1., 1.;
@@ -982,11 +981,17 @@ namespace MEB {
             //    dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
 
             dcrit = (tau.array() + RefScaleCanada::sin_phi * sigma_n.array() - c.array() > 0).select(c.array() / (tau.array() + RefScaleCanada::sin_phi * sigma_n.array()), dcrit);
+
+            dcrit = dcrit.array().min(1.0).matrix();
+
             auto dcrit_int = dcrit * IBC33;
-            //Relax stress
-            //S11.row(i) *= dcrit;
-            //S12.row(i) *= dcrit;
-            //S22.row(i) *= dcrit;
+            Dcrit.row(i) = dcrit_int;
+
+            //S11.row(i).array() *= dcrit_int.array();
+            //S12.row(i).array() *= dcrit_int.array();
+            //S22.row(i).array() *= dcrit_int.array();
+
+            //Relax stress in Gassus points
             S11.row(i) = (s11_gauss.array() * dcrit.array()).matrix() * IBC33;
             S12.row(i) = (s12_gauss.array() * dcrit.array()).matrix() * IBC33;
             S22.row(i) = (s22_gauss.array() * dcrit.array()).matrix() * IBC33;

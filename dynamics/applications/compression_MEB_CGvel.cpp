@@ -4,6 +4,7 @@
  * @author Piotr Minakowski <piotr.minakowski@ovgu.no>
  */
 
+#include "CheckPoints.hpp"
 #include "Tools.hpp"
 #include "cgMomentum.hpp"
 #include "cgVector.hpp"
@@ -73,9 +74,9 @@ public:
         constexpr double twohours = 2.0 * 60.0 * 60.0;
         //! maximum is 20 m/s corresponds to 0.625 Pa forcing
         if (time < twohours)
-            return -20 * 0.5 * (1. - cos(M_PI * time / twohours));
+            return -20. * 0.5 * (1. - cos(M_PI * time / twohours));
         else
-            return -20;
+            return -20.;
     }
 };
 struct InitialH {
@@ -117,7 +118,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = .25 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = .1 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -152,8 +153,8 @@ int main()
 
     Nextsim::CellVector<1> DELTA(mesh); //!< Storing DELTA
     Nextsim::CellVector<1> SHEAR(mesh); //!< Storing DELTA
-    Nextsim::CellVector<1> Sinv1(mesh), Sinv2(mesh); //!< Stress invariants
-    Nextsim::CellVector<1> Einv1(mesh), Einv2(mesh); //!< Strain invariants
+    Nextsim::CellVector<DGstress> Sinv1(mesh), Sinv2(mesh); //!< Stress invariants
+    Nextsim::CellVector<DGstress> Einv1(mesh), Einv2(mesh); //!< Strain invariants
 
     // Temporary variables
     Nextsim::CellVector<1> eta1(mesh), eta2(mesh);
@@ -163,13 +164,14 @@ int main()
     Nextsim::CellVector<1> tildeP(mesh);
     Nextsim::CellVector<1> Pmax(mesh);
     Nextsim::CellVector<1> td(mesh);
-    Nextsim::CellVector<1> d_crit(mesh);
+
     Nextsim::CellVector<1> tau(mesh);
     Nextsim::CellVector<1> sigma_n(mesh);
     Nextsim::CellVector<1> Regime(mesh);
     Nextsim::CellVector<1> Multip(mesh);
     Nextsim::CellVector<1> Lambda(mesh);
 
+    Nextsim::CellVector<DGadvection> d_crit(mesh);
     Nextsim::CellVector<DGadvection> D(mesh); //!< ice damage. ?? Really dG(0) ??
     Nextsim::L2ProjectInitial(mesh, D, InitialD());
 
@@ -178,6 +180,19 @@ int main()
     Nextsim::DGTransport<DGadvection, EDGEDOFS(DGadvection)> dgtransport(dgvx, dgvy);
     dgtransport.settimesteppingscheme("rk1");
     dgtransport.setmesh(mesh);
+
+    //read initial
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/vx3.00003.vtk", vx);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/vy3.00003.vtk", vy);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/A3.00003.vtk", A);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/H3.00003.vtk", H);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/D3.00003.vtk", D);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S113.00003.vtk", S11);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S123.00003.vtk", S12);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S223.00003.vtk", S22);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E113.00003.vtk", E11);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E123.00003.vtk", E12);
+    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E223.00003.vtk", E22);
 
     // save initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
@@ -214,7 +229,7 @@ int main()
     //Nextsim::VTK::write_dg("ResultsMEB_CGvel/sigma_n", 0, sigma_n, mesh);
     //Nextsim::VTK::write_dg("ResultsMEB_CGvel/tau", 0, tau, mesh);
     //Nextsim::VTK::write_dg("ResultsMEB_CGvel/td", 0, td, mesh);
-    //Nextsim::VTK::write_dg("ResultsMEB_CGvel/d_crit", 0, d_crit, mesh);
+    Nextsim::VTK::write_dg("ResultsCompression/d_crit", 0, d_crit, mesh);
     //Nextsim::VTK::write_dg("ResultsMEB_CGvel/Regime", 0, Regime, mesh);
     //Nextsim::VTK::write_dg("ResultsMEB_CGvel/Multip", 0, Multip, mesh);
     //Nextsim::VTK::write_dg("ResultsMEB_CGvel/Lambda", 0, Lambda, mesh);
@@ -307,7 +322,7 @@ int main()
             //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
             Nextsim::MEB::StressUpdateMEB(mesh, S11, S12, S22, E11, E12, E22,
-                H, A, D, dt_momentum);
+                H, A, D, dt_momentum, d_crit);
             //Nextsim::MEB::ElasticUpdate(mesh, S11, S12, S22, E11, E12, E22,
             //    H, A, D, dt_momentum);
 
@@ -370,6 +385,7 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - meb - bound.");
             momentum.DirichletCompressionBottom(mesh, vx, 0.0);
+            //momentum.DirichletCompressionFixCorner(mesh, vx);
             momentum.DirichletCompressionBottom(mesh, vy, 0.0);
             //! inflow from top of concentrated ice
             momentum.DirichletCompressionTop(mesh, cg_H, 1.0);
@@ -414,6 +430,19 @@ int main()
                 Nextsim::VTK::write_dg("ResultsCompression/E12", printstep, E12, mesh);
                 Nextsim::VTK::write_dg("ResultsCompression/E22", printstep, E22, mesh);
 
+                //save checkpoint
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/vx", printstep, vx);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/vy", printstep, vy);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/A", printstep, A);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/H", printstep, H);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/D", printstep, D);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/S11", printstep, S11);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/S12", printstep, S12);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/S22", printstep, S22);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/E11", printstep, E11);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/E12", printstep, E12);
+                Nextsim::CheckPoints::saveData("ResultsCompression/Checkpoints/E22", printstep, E22);
+
                 // Output Variables
                 //Nextsim::Tools::Delta(mesh, E11, E12, E22, RefScaleCanada::DeltaMin, DELTA);
                 //Nextsim::VTK::write_dg("ResultsCompression/Delta", printstep, DELTA, mesh);
@@ -436,7 +465,7 @@ int main()
                 //Nextsim::VTK::write_dg("ResultsCompression/tildeP", printstep, tildeP, mesh);
                 //Nextsim::VTK::write_dg("ResultsCompression/Pmax", printstep, Pmax, mesh);
                 //Nextsim::VTK::write_dg("ResultsCompression/td", printstep, td, mesh);
-                //Nextsim::VTK::write_dg("ResultsCompression/d_crit", printstep, d_crit, mesh);
+                Nextsim::VTK::write_dg("ResultsCompression/d_crit", printstep, d_crit, mesh);
                 //Nextsim::VTK::write_dg("ResultsCompression/eta1", printstep, eta1, mesh);
                 //Nextsim::VTK::write_dg("ResultsCompression/eta2", printstep, eta2, mesh);
                 //Nextsim::VTK::write_dg(
