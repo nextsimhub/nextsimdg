@@ -44,7 +44,6 @@ jobs:
         conda install -c anaconda cmake=3.23.1
         conda install -c conda-forge catch2=2.9.13
         conda install -c conda-forge netcdf-cxx4
-
     - name: make
       run: |
         cmake .
@@ -78,7 +77,6 @@ jobs:
         conda install -c anaconda cmake=3.23.1
         conda install -c conda-forge catch2=2.9.13
         conda install -c conda-forge netcdf-cxx4
-	
     - name: make
       run: |
         cmake .
