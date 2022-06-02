@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: clang
       run: |
-        pip install clang-format=13.0.1
+        pip install clang-format==13.0.1
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
         cd -
