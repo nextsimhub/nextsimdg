@@ -251,8 +251,7 @@ private:
             loc8[i] = loc[i];
         }
 
-        return indexr(
-            dims, loc8[0], loc8[1], loc8[2], loc8[3], loc8[4], loc8[5], loc8[6], loc8[7]);
+        return indexr(dims, loc8[0], loc8[1], loc8[2], loc8[3], loc8[4], loc8[5], loc8[6], loc8[7]);
     }
 
 public:
