@@ -39,11 +39,13 @@ jobs:
     - uses: actions/checkout@v2
     - name: installs
       run: |
-        conda install libgcc
-        conda install -c conda-forge boost=1.78.0
-        conda install -c anaconda cmake=3.22.1
-        conda install -c conda-forge catch2=2.9.2
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev
+        sudo apt-get update
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake
+        git clone -b v2.x https://github.com/catchorg/Catch2.git
+        cd Catch2
+        cmake -Bbuild -H. -DBUILD_TESTING=OFF
+        sudo cmake --build build/ --target install
+        cd ..
     - name: make
       run: |
         cmake .
@@ -69,11 +71,13 @@ jobs:
     - uses: actions/checkout@v2
     - name: installs
       run: |
-        conda install libgcc
-        conda install -c anaconda cmake=3.22.1
-        conda install -c conda-forge catch2=2.9.2
         brew install netcdf
         brew install boost
+        brew install catch2
+        brew install cmake
+        brew uninstall catch2
+        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/f14a06e3846adf7c7b27fb445ced10803c0c4db4/Formula/catch2.rb > $(find $(brew --repository) -name catch2.rb)
+        brew install catch2
     - name: make
       run: |
         cmake .
