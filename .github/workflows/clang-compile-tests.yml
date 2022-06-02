@@ -76,7 +76,7 @@ jobs:
         brew install catch2
         brew install cmake
         brew uninstall catch2
-        curl https://github.com/Homebrew/homebrew-core/blob/5e5abb11bf49787d01164c4066119365262c21ed/Formula/catch2.rb > $(find $(brew --repository) -name catch2.rb)
+        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/5e5abb11bf49787d01164c4066119365262c21ed/Formula/catch2.rb > $(find $(brew --repository) -name catch2.rb)
         brew install catch2
     - name: make
       run: |
