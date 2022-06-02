@@ -80,7 +80,7 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
     ZField ticeIn = ms.at("tice");
 
     REQUIRE(ticeIn.dimensions()[2] == 1);
-    REQUIRE(ticeIn(targetX, targetY, 0) == -1.0703);
+    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0703);
 
     std::remove(stateFilename.c_str());
 }

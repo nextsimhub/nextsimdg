@@ -212,48 +212,46 @@ public:
     void setData(const ModelArray& source);
 
 private:
-    template <typename T, typename I>
-    static inline T indexrHelper(const T* dims, T cdim, T& stride, I first)
-    {
-        stride *= dims[cdim];
-        return first;
-    }
-
-    template <typename T, typename I, typename... Args>
-    static inline T indexrHelper(const T* dims, T cdim, T& stride, I first, Args... args)
-    {
-        T lower = indexrHelper(dims, cdim + 1, stride, args...);
-        T incr = stride * first;
-        stride *= dims[cdim];
-        return incr + lower;
-    }
-
+    // Fast special case for 1-d indexing
     template <typename T, typename I> static inline T indexr(const T* dims, I first)
     {
-        return first;
+        return static_cast<T>(first);
     }
 
+    // Fast special case for 2-d indexing
     template <typename T, typename I> static inline T indexr(const T* dims, I first, I second)
     {
         return first * dims[1] + second;
     }
 
-    template <typename T, typename... Args> static inline T indexr(const T* dims, Args... args)
+    // Indices as separate function parameters
+    template <typename T, typename I, typename... Args> static inline T indexr(const T* dims, I first, Args... args)
     {
+        std::initializer_list<I> loc{first, args...};
+        return indexrHelper(dims, loc);
+    }
+
+    // Indices as a Dimensions object
+    template <typename T>
+    static T indexr(const T* dims, const ModelArray::Dimensions& loc)
+    {
+        return indexrHelper(dims, loc);
+    }
+
+    // Generic index generator that will work on any container
+    template <typename T, typename C>
+    static T indexrHelper(const T* dims, const C& loc)
+    {
+        size_t ndims = loc.size();
         T stride = 1;
-        return indexrHelper(dims, static_cast<T>(0), stride, args...);
-    }
-
-    static size_t indexr(const ModelArray::Dimensions& loc, const size_t* dims)
-    {
-        size_t loc8[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        for (char i = 0; i < loc.size(); ++i) {
-            loc8[i] = loc[i];
+        T ii = 0;
+        auto iloc = rbegin(loc);
+        for (size_t dim = ndims; dim > 0; --dim) {
+            ii += stride * (*iloc++);
+            stride *= dims[dim-1];
         }
-
-        return indexr(dims, loc8[0], loc8[1], loc8[2], loc8[3], loc8[4], loc8[5], loc8[6], loc8[7]);
+        return ii;
     }
-
 public:
     /*!
      * @brief Returns the data at the specified one dimensional index.

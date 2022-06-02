@@ -181,26 +181,9 @@ void ModelArray::setDimensions(Type type, const Dimensions& newDims)
     m_sz.at(type) = newSize;
 }
 
-const double& ModelArray::operator[](const Dimensions& dims) const
+const double& ModelArray::operator[](const Dimensions& loc) const
 {
-    switch (dims.size()) {
-    case (1):
-        return (*this)(dims[0]);
-    case (2):
-        return (*this)(dims[0], dims[1]);
-    case (3):
-        return (*this)(dims[0], dims[1], dims[2]);
-    case (4):
-        return (*this)(dims[0], dims[1], dims[2], dims[3]);
-    case (5):
-        return (*this)(dims[0], dims[1], dims[2], dims[3], dims[4]);
-    case (6):
-        return (*this)(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5]);
-    case (7):
-        return (*this)(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5], dims[6]);
-    default:
-        return (*this)(dims[0], dims[1], dims[2], dims[3], dims[4], dims[5], dims[6], dims[7]);
-    }
+    return (*this)[indexr(this->dimensions().data(), loc)];
 }
 
 double& ModelArray::operator[](const Dimensions& dims)
@@ -210,6 +193,6 @@ double& ModelArray::operator[](const Dimensions& dims)
 
 ModelArray::Component ModelArray::components(const Dimensions& loc)
 {
-    return components(indexr(loc, dimensions().data()));
+    return components(indexr(dimensions().data(), loc));
 }
 } /* namespace Nextsim */
