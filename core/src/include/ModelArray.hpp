@@ -225,22 +225,21 @@ private:
     }
 
     // Indices as separate function parameters
-    template <typename T, typename I, typename... Args> static inline T indexr(const T* dims, I first, Args... args)
+    template <typename T, typename I, typename... Args>
+    static inline T indexr(const T* dims, I first, Args... args)
     {
-        std::initializer_list<I> loc{first, args...};
+        std::initializer_list<I> loc { first, args... };
         return indexrHelper(dims, loc);
     }
 
     // Indices as a Dimensions object
-    template <typename T>
-    static T indexr(const T* dims, const ModelArray::Dimensions& loc)
+    template <typename T> static T indexr(const T* dims, const ModelArray::Dimensions& loc)
     {
         return indexrHelper(dims, loc);
     }
 
     // Generic index generator that will work on any container
-    template <typename T, typename C>
-    static T indexrHelper(const T* dims, const C& loc)
+    template <typename T, typename C> static T indexrHelper(const T* dims, const C& loc)
     {
         size_t ndims = loc.size();
         T stride = 1;
@@ -248,10 +247,11 @@ private:
         auto iloc = rbegin(loc);
         for (size_t dim = ndims; dim > 0; --dim) {
             ii += stride * (*iloc++);
-            stride *= dims[dim-1];
+            stride *= dims[dim - 1];
         }
         return ii;
     }
+
 public:
     /*!
      * @brief Returns the data at the specified one dimensional index.
