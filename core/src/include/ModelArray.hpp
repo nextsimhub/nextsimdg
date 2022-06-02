@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_MODELARRAY_HPP
-#define CORE_SRC_INCLUDE_MODELARRAY_HPP
+#ifndef MODELARRAY_HPP
+#define MODELARRAY_HPP
 
 #include <Eigen/Core>
 #include <cstddef>
@@ -211,6 +211,48 @@ public:
      */
     void setData(const ModelArray& source);
 
+private:
+    template <typename T, typename I>
+    static inline T indexrHelper(const T* dims, T cdim, T& stride, I first)
+    {
+        stride *= dims[cdim];
+        return first;
+    }
+
+    template <typename T, typename I>
+    static inline T indexrHelper(const T* dims, T cdim, T& stride, I first, I second)
+    {
+        stride *= dims[cdim] * dims[cdim + 1];
+        return dims[cdim + 1] * first + second;
+    }
+
+    template <typename T, typename I, typename... Args>
+    static inline T indexrHelper(const T* dims, T cdim, T& stride, I first, Args... args)
+    {
+        T lower = indexrHelper(dims, cdim + 1, stride, args...);
+        T incr = stride * first;
+        stride *= dims[cdim];
+        return incr + lower;
+    }
+
+    template <typename T, typename... Args> static inline T indexr(const T* dims, Args... args)
+    {
+        T stride = 1;
+        return indexrHelper(dims, static_cast<T>(0), stride, args...);
+    }
+
+    static size_t indexr(const ModelArray::Dimensions& loc, const size_t* dims)
+    {
+        size_t loc8[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        for (char i = 0; i < loc.size(); ++i) {
+            loc8[i] = loc[i];
+        }
+
+        return indexr(
+            dims, loc8[0], loc8[1], loc8[2], loc8[3], loc8[4], loc8[5], loc8[6], loc8[7]);
+    }
+
+public:
     /*!
      * @brief Returns the data at the specified one dimensional index.
      *
@@ -234,40 +276,13 @@ public:
      */
     const double& operator[](const Dimensions& dims) const;
 
-    //! Returns the specified point from a 1 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i) const { return (*this)[i]; }
-    //! Returns the specified point from a 2 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j) const;
-    //! Returns the specified point from a 3 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j, size_t k) const;
-    //! Returns the specified point from a 4 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j, size_t k, size_t l) const;
-    //! Returns the specified point from a 5 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const;
-    //! Returns the specified point from a 6 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const;
-    //! Returns the specified point from a 7 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(
-        size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const;
-    //! Returns the specified point from an 8 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(
-        size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const;
+    /*!
+     * @brief Returns the data at the given set of indices
+     */
+    template <typename... Args> const double& operator()(Args... args) const
+    {
+        return (*this)[indexr(dimensions().data(), args...)];
+    }
 
     /*!
      * @brief Returns the data at the specified one dimensional index.
@@ -292,39 +307,13 @@ public:
      * @param dims The indices of the target point.
      */
     double& operator[](const Dimensions&);
-    //! Returns the specified point from a 1 dimensional ModelArray. If the
+    //! Returns the specified point from a ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned. Non-const version.
-    double& operator()(size_t i) { return (*this)[i]; }
-    //! Returns the specified point from a 2 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j);
-    //! Returns the specified point from a 3 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k);
-    //! Returns the specified point from a 4 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k, size_t l);
-    //! Returns the specified point from a 5 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m);
-    //! Returns the specified point from a 6 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n);
-    //! Returns the specified point from a 7 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p);
-    //! Returns the specified point from a 8 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(
-        size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q);
+    template <typename... Args> double& operator()(Args... args)
+    {
+        return const_cast<double&>(std::as_const(*this)(args...));
+    }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at
@@ -453,4 +442,4 @@ ModelArray operator*(const double&, const ModelArray&);
 ModelArray operator/(const double&, const ModelArray&);
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_MODELARRAY_HPP */
+#endif /* MODELARRAY_HPP */

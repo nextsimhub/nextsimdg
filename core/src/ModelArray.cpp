@@ -181,62 +181,6 @@ void ModelArray::setDimensions(Type type, const Dimensions& newDims)
     m_sz.at(type) = newSize;
 }
 
-// Simple 1d indexing
-inline size_t indexr(const size_t* dims, const size_t nDims, size_t i) { return i; }
-
-// Special case for 2d indexing
-inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j)
-{
-    return i * dims[1] + j;
-}
-
-// General case for up to 8d indexing
-inline size_t indexr(const size_t* dims, const size_t nDims, size_t i, size_t j, size_t k,
-    size_t l = 0, size_t m = 0, size_t n = 0, size_t p = 0, size_t q = 0)
-{
-    size_t stepLength = 1;
-    size_t out = 0;
-    switch (nDims) {
-    case 8:
-        out += stepLength * q;
-        stepLength *= dims[7];
-    case 7:
-        out += stepLength * p;
-        stepLength *= dims[6];
-    case 6:
-        out += stepLength * n;
-        stepLength *= dims[5];
-    case 5:
-        out += stepLength * m;
-        stepLength *= dims[4];
-    case 4:
-        out += stepLength * l;
-        stepLength *= dims[3];
-    case 3:
-        out += stepLength * k;
-        stepLength *= dims[2];
-    case 2:
-        out += stepLength * j;
-        stepLength *= dims[1];
-    case 1:
-    default:
-        out += stepLength * i;
-        return out;
-    }
-    return 0;
-}
-
-size_t indexr(const ModelArray::Dimensions& loc, const size_t* dims)
-{
-    size_t loc8[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-    for (char i = 0; i < loc.size(); ++i) {
-        loc8[i] = loc[i];
-    }
-
-    return indexr(
-        dims, loc.size(), loc8[0], loc8[1], loc8[2], loc8[3], loc8[4], loc8[5], loc8[6], loc8[7]);
-}
-
 const double& ModelArray::operator[](const Dimensions& dims) const
 {
     switch (dims.size()) {
@@ -259,76 +203,9 @@ const double& ModelArray::operator[](const Dimensions& dims) const
     }
 }
 
-const double& ModelArray::operator()(size_t i, size_t j) const
-{
-    return (*this)(indexr(dimensions().data(), 2, i, j));
-}
-
-const double& ModelArray::operator()(size_t i, size_t j, size_t k) const
-{
-    return (*this)(indexr(dimensions().data(), 3, i, j, k));
-}
-
-const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l) const
-{
-    return (*this)(indexr(dimensions().data(), 4, i, j, k, l));
-}
-
-const double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
-{
-    return (*this)(indexr(dimensions().data(), 5, i, j, k, l, m));
-}
-
-const double& ModelArray::operator()(
-    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
-{
-    return (*this)(indexr(dimensions().data(), 6, i, j, k, l, m, n));
-}
-
-const double& ModelArray::operator()(
-    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
-{
-    return (*this)(indexr(dimensions().data(), 7, i, j, k, l, m, n, p));
-}
-
-const double& ModelArray::operator()(
-    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
-{
-    return (*this)(indexr(dimensions().data(), 8, i, j, k, l, m, n, p, q));
-}
-
 double& ModelArray::operator[](const Dimensions& dims)
 {
     return const_cast<double&>(std::as_const(*this)[dims]);
-}
-double& ModelArray::operator()(size_t i, size_t j)
-{
-    return const_cast<double&>(std::as_const(*this)(i, j));
-}
-double& ModelArray::operator()(size_t i, size_t j, size_t k)
-{
-    return const_cast<double&>(std::as_const(*this)(i, j, k));
-}
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l)
-{
-    return const_cast<double&>(std::as_const(*this)(i, j, k, l));
-}
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m)
-{
-    return const_cast<double&>(std::as_const(*this)(i, j, k, l, m));
-}
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n)
-{
-    return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n));
-}
-double& ModelArray::operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p)
-{
-    return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n, p));
-}
-double& ModelArray::operator()(
-    size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q)
-{
-    return const_cast<double&>(std::as_const(*this)(i, j, k, l, m, n, p, q));
 }
 
 ModelArray::Component ModelArray::components(const Dimensions& loc)
