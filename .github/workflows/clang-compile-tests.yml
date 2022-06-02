@@ -37,14 +37,14 @@ jobs:
     - name: installs
       run: |
         conda create --name nextsimdg
-	conda activate nextsimdg
-	conda install libgcc
-	conda install netCDF4=4.8.1
-	conda install -c conda-forge boost=1.78.0
-	conda install -c anaconda cmake=3.23.1
-	conda install -c conda-forge catch2=2.9.13
-	conda install -c conda-forge netcdf-cxx4
-	
+        conda activate nextsimdg
+        conda install libgcc
+        conda install netCDF4=4.8.1
+        conda install -c conda-forge boost=1.78.0
+        conda install -c anaconda cmake=3.23.1
+        conda install -c conda-forge catch2=2.9.13
+        conda install -c conda-forge netcdf-cxx4
+
     - name: make
       run: |
         cmake .
@@ -71,13 +71,13 @@ jobs:
     - name: installs
       run: |
         conda create --name nextsimdg
-	conda activate nextsimdg
-	conda install libgcc
-	conda install netCDF4=4.8.1
-	conda install -c conda-forge boost=1.78.0
-	conda install -c anaconda cmake=3.23.1
-	conda install -c conda-forge catch2=2.9.13
-	conda install -c conda-forge netcdf-cxx4
+        conda activate nextsimdg
+        conda install libgcc
+        conda install netCDF4=4.8.1
+        conda install -c conda-forge boost=1.78.0
+        conda install -c anaconda cmake=3.23.1
+        conda install -c conda-forge catch2=2.9.13
+        conda install -c conda-forge netcdf-cxx4
 	
     - name: make
       run: |
