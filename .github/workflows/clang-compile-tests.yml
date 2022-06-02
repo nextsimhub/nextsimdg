@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: clang
       run: |
-        brew install clang-format
+        conda install -c conda-forge clang-tools=13.0.1
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
         cd -
