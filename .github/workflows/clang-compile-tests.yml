@@ -40,6 +40,7 @@ jobs:
     - name: installs
       run: |
         conda create --name nextsimdg
+        conda init bash
         conda activate nextsimdg
         conda install libgcc
         conda install netCDF4=4.8.1
@@ -73,6 +74,7 @@ jobs:
     - name: installs
       run: |
         conda create --name nextsimdg
+        conda init bash
         conda activate nextsimdg
         conda install libgcc
         conda install netCDF4=4.8.1
