@@ -219,13 +219,6 @@ private:
         return first;
     }
 
-    template <typename T, typename I>
-    static inline T indexrHelper(const T* dims, T cdim, T& stride, I first, I second)
-    {
-        stride *= dims[cdim] * dims[cdim + 1];
-        return dims[cdim + 1] * first + second;
-    }
-
     template <typename T, typename I, typename... Args>
     static inline T indexrHelper(const T* dims, T cdim, T& stride, I first, Args... args)
     {
@@ -233,6 +226,16 @@ private:
         T incr = stride * first;
         stride *= dims[cdim];
         return incr + lower;
+    }
+
+    template <typename T, typename I> static inline T indexr(const T* dims, I first)
+    {
+        return first;
+    }
+
+    template <typename T, typename I> static inline T indexr(const T* dims, I first, I second)
+    {
+        return first * dims[1] + second;
     }
 
     template <typename T, typename... Args> static inline T indexr(const T* dims, Args... args)
