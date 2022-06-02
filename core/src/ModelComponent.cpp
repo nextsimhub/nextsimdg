@@ -34,8 +34,8 @@ void ModelComponent::registerModule() { registeredModules[getName()] = this; }
 
 void ModelComponent::unregisterAllModules() { registeredModules.clear(); }
 
-void ModelComponent::getAllFieldNames(
-    std::unordered_set<std::string>& uF, std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF)
+void ModelComponent::getAllFieldNames(std::unordered_set<std::string>& uF,
+    std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF)
 {
     for (auto entry : registeredModules) {
         uF.merge(entry.second->uFields());

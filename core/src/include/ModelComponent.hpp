@@ -123,8 +123,8 @@ public:
     static ModelState getAllModuleState();
     static void unregisterAllModules();
 
-    static void getAllFieldNames(
-        std::unordered_set<std::string>& uF, std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF);
+    static void getAllFieldNames(std::unordered_set<std::string>& uF,
+        std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF);
 
     /*!
      * @brief Registers a ModelArray into a SharedArray slot from outside any
