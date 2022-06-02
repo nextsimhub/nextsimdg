@@ -45,6 +45,7 @@ jobs:
         conda install -c anaconda cmake=3.22.1
         conda install -c conda-forge catch2=2.9.2
         conda install -c conda-forge netcdf-cxx4
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev
     - name: make
       run: |
         cmake .
@@ -76,6 +77,7 @@ jobs:
         conda install -c anaconda cmake=3.22.1
         conda install -c conda-forge catch2=2.9.2
         conda install -c conda-forge netcdf-cxx4
+        rew install netcdf
     - name: make
       run: |
         cmake .
