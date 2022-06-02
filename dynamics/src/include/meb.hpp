@@ -701,8 +701,11 @@ namespace MEB {
             double const expC = std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
 
             // Eqn. 25
+            //double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
+            //    * std::pow((1. - D(i, 0)), RefScaleCanada::exponent_relaxation_sigma - 1.) / (H(i, 0) * expC);
+            // Eqn 9.
             double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
-                * std::pow((1. - D(i, 0)), RefScaleCanada::exponent_relaxation_sigma - 1.) / (H(i, 0) * expC);
+                * std::pow((1. - D(i, 0)), RefScaleCanada::exponent_relaxation_sigma - 1.);
 
             // Eqn. 24 Additional multiplic0cation by H
             double elasticity = RefScaleCanada::young * H(i, 0) * (1. - D(i, 0)) * expC;
@@ -711,7 +714,7 @@ namespace MEB {
             double const multiplicator = 1. / (1. + dt_momentum / time_viscous);
 
             time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma;
-            elasticity = RefScaleCanada::young;
+            //elasticity = RefScaleCanada::young;
 
             double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
@@ -980,7 +983,10 @@ namespace MEB {
             //if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
             //    dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
 
+            // Mohr-Coulomb Criterion
             dcrit = (tau.array() + RefScaleCanada::sin_phi * sigma_n.array() - c.array() > 0).select(c.array() / (tau.array() + RefScaleCanada::sin_phi * sigma_n.array()), dcrit);
+            // Compression cutoff
+            dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
 
             dcrit = dcrit.array().min(1.0).matrix();
 

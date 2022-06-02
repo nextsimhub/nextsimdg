@@ -25,8 +25,8 @@
 bool WRITE_VTK = true;
 
 #define CG 1
-#define DGadvection 3
-#define DGstress 3
+#define DGadvection 1
+#define DGstress 1
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
@@ -107,7 +107,7 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double dt_adv = .5; //!< Time step of advection problem
+    constexpr double dt_adv = .1; //!< Time step of advection problem
     constexpr size_t NT = RefScaleCanada::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t mom_substeps = 100;
@@ -118,7 +118,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = .1 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = .01 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -182,17 +182,17 @@ int main()
     dgtransport.setmesh(mesh);
 
     //read initial
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/vx3.00003.vtk", vx);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/vy3.00003.vtk", vy);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/A3.00003.vtk", A);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/H3.00003.vtk", H);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/D3.00003.vtk", D);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S113.00003.vtk", S11);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S123.00003.vtk", S12);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S223.00003.vtk", S22);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E113.00003.vtk", E11);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E123.00003.vtk", E12);
-    Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E223.00003.vtk", E22);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/vy.00014.txt", vy);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/vx.00014.txt", vx);
+    ////Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/A.00014.txt", A);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/H.00014.txt", H);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/D.00014.txt", D);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S12.00014.txt", S12);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S11.00014.txt", S11);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/S22.00014.txt", S22);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E11.00014.txt", E11);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E12.00014.txt", E12);
+    //Nextsim::CheckPoints::loadData("RestartCompression/Checkpoints/E22.00014.txt", E22);
 
     // save initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
@@ -269,12 +269,12 @@ int main()
         momentum.ProjectCGToDG(mesh, dgvx, vx);
         momentum.ProjectCGToDG(mesh, dgvy, vy);
         dgtransport.reinitvelocity();
-        dgtransport.step(dt_adv, A);
+        //dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
         dgtransport.step(dt_adv, D);
 
-        Nextsim::LimitMax(A, 1.0);
-        Nextsim::LimitMin(A, 0.0);
+        //Nextsim::LimitMax(A, 1.0);
+        //Nextsim::LimitMin(A, 0.0);
         Nextsim::LimitMin(H, 0.0);
         Nextsim::LimitMax(D, 1.0);
         Nextsim::LimitMin(D, 0.0);
@@ -322,7 +322,7 @@ int main()
             //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
             Nextsim::MEB::StressUpdateMEB(mesh, S11, S12, S22, E11, E12, E22,
-                H, A, D, dt_momentum, d_crit);
+                H, A, D, dt_momentum);
             //Nextsim::MEB::ElasticUpdate(mesh, S11, S12, S22, E11, E12, E22,
             //    H, A, D, dt_momentum);
 
@@ -385,13 +385,13 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - meb - bound.");
             momentum.DirichletCompressionBottom(mesh, vx, 0.0);
-            //momentum.DirichletCompressionFixCorner(mesh, vx);
             momentum.DirichletCompressionBottom(mesh, vy, 0.0);
+            //momentum.DirichletCompressionFixCorner(mesh, vx); // Does not work
             //! inflow from top of concentrated ice
             momentum.DirichletCompressionTop(mesh, cg_H, 1.0);
-            momentum.DirichletCompressionTop(mesh, cg_A, 1.0);
             momentum.DirichletCompressionTop(mesh, H, 1.0);
-            momentum.DirichletCompressionTop(mesh, A, 1.0);
+            //momentum.DirichletCompressionTop(mesh, cg_A, 1.0);
+            //momentum.DirichletCompressionTop(mesh, A, 1.0);
             momentum.DirichletCompressionTop(mesh, D, 0.0);
 
             Nextsim::GlobalTimer.stop("time loop - meb - bound.");

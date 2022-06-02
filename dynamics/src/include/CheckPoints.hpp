@@ -48,6 +48,7 @@ void loadData (const std::string & path, Nextsim::CellVector<DG>& matrix) {
     
     std::ifstream indata;
     indata.open(path);
+    assert(indata.is_open());
     std::string line;
     std::vector<double> values;
     uint rows = 0;
@@ -73,6 +74,7 @@ void loadData (const std::string & path, Nextsim::CGVector<CG>& matrix) {
     
     std::ifstream indata;
     indata.open(path);
+    assert(indata.is_open());
     std::string line;
     std::vector<double> values;
     uint rows = 0;
