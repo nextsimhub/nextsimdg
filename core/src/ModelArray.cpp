@@ -27,20 +27,19 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::DG, "DGHField--DO-NOT-USE--" },
 };
 
-ModelArray::ModelArray(const Type type, const std::string& name)
+ModelArray::ModelArray(const Type type)
     : type(type)
-    , m_name(name)
 {
     m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
 }
 
 ModelArray::ModelArray()
-    : ModelArray(Type::H, "")
+    : ModelArray(Type::H)
 {
 }
 
 ModelArray::ModelArray(const ModelArray& orig)
-    : ModelArray(orig.type, orig.m_name)
+    : ModelArray(orig.type)
 {
     setData(orig.m_data);
 }
@@ -48,7 +47,6 @@ ModelArray::ModelArray(const ModelArray& orig)
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
     type = orig.type;
-    m_name = orig.m_name;
     setData(orig.m_data);
 
     return *this;
@@ -56,7 +54,6 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
 
 ModelArray& ModelArray::operator=(const double& fill)
 {
-    m_name = std::to_string(fill);
     setData(fill);
 
     return *this;
@@ -64,8 +61,7 @@ ModelArray& ModelArray::operator=(const double& fill)
 
 ModelArray ModelArray::operator+(const ModelArray& addend) const
 {
-    ModelArray result(type, m_name + "+" + addend.m_name);
-
+    ModelArray result(type);
     for (size_t i = 0; i < m_sz.at(type); ++i) {
         result[i] = (*this)[i] + addend[i];
     }
@@ -75,7 +71,7 @@ ModelArray ModelArray::operator+(const ModelArray& addend) const
 
 ModelArray ModelArray::operator-(const ModelArray& subtrahend) const
 {
-    ModelArray result(type, m_name + "-" + subtrahend.m_name);
+    ModelArray result(type);
 
     for (size_t i = 0; i < m_sz.at(type); ++i) {
         result[i] = (*this)[i] - subtrahend[i];
@@ -86,7 +82,7 @@ ModelArray ModelArray::operator-(const ModelArray& subtrahend) const
 
 ModelArray ModelArray::operator*(const ModelArray& multiplier) const
 {
-    ModelArray result(type, m_name + "*" + multiplier.m_name);
+    ModelArray result(type);
 
     for (size_t i = 0; i < m_sz.at(type); ++i) {
         result[i] = (*this)[i] * multiplier[i];
@@ -97,7 +93,7 @@ ModelArray ModelArray::operator*(const ModelArray& multiplier) const
 
 ModelArray ModelArray::operator/(const ModelArray& divisor) const
 {
-    ModelArray result(type, m_name + "/" + divisor.m_name);
+    ModelArray result(type);
 
     for (size_t i = 0; i < m_sz.at(type); ++i) {
         result[i] = (*this)[i] / divisor[i];
@@ -108,35 +104,35 @@ ModelArray ModelArray::operator/(const ModelArray& divisor) const
 
 ModelArray ModelArray::operator-() const
 {
-    ModelArray copy(type, std::string("-") + m_name);
+    ModelArray copy(type);
     copy.m_data = -m_data;
     return copy;
 }
 
 ModelArray ModelArray::operator+(const double& x) const
 {
-    ModelArray copy(type, m_name + "+" + std::to_string(x));
+    ModelArray copy(type);
     copy.m_data = m_data + x;
     return copy;
 }
 
 ModelArray ModelArray::operator-(const double& x) const
 {
-    ModelArray copy(type, m_name + "-" + std::to_string(x));
+    ModelArray copy(type);
     copy.m_data = m_data - x;
     return copy;
 }
 
 ModelArray ModelArray::operator*(const double& x) const
 {
-    ModelArray copy(type, m_name + "*" + std::to_string(x));
+    ModelArray copy(type);
     copy.m_data = m_data * x;
     return copy;
 }
 
 ModelArray ModelArray::operator/(const double& x) const
 {
-    ModelArray copy(type, m_name + "/" + std::to_string(x));
+    ModelArray copy(type);
     copy.m_data = m_data / x;
     return copy;
 }
@@ -149,7 +145,7 @@ ModelArray operator*(const double& x, const ModelArray& y) { return y * x; }
 
 ModelArray operator/(const double& x, const ModelArray& y)
 {
-    ModelArray xArray(y.getType(), std::to_string(x));
+    ModelArray xArray(y.getType());
     xArray.setData(x);
     return xArray / y;
 }

@@ -21,11 +21,11 @@ static const std::map<ModelComponent::ProtectedArray, std::string> fieldNames = 
 
 OceanState::OceanState()
     : tfImpl(nullptr)
-    , sst(ModelArray::Type::H, "sst")
-    , sss(ModelArray::Type::H, "sss")
-    , mld(ModelArray::Type::H, "mld")
-    , tf(ModelArray::Type::H, "tf")
-    , cpml(ModelArray::Type::H, "cpml")
+    , sst(ModelArray::Type::H)
+    , sss(ModelArray::Type::H)
+    , mld(ModelArray::Type::H)
+    , tf(ModelArray::Type::H)
+    , cpml(ModelArray::Type::H)
 {
     registerProtectedArray(ProtectedArray::SST, &sst);
     registerProtectedArray(ProtectedArray::SSS, &sss);

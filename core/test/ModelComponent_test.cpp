@@ -55,7 +55,7 @@ TEST_CASE("Register a new module", "[ModelComponent]")
 class ModuleSupplyAndWait : public ModelComponent {
 public:
     ModuleSupplyAndWait()
-        : hice(ModelArray::HField("hice"))
+        : hice(ModelArray::HField())
         , cice_ref()
     {
         registerModule();
@@ -83,7 +83,7 @@ private:
 class ModuleRequestAndSupply : public ModelComponent {
 public:
     ModuleRequestAndSupply()
-        : cice(ModelArray::HField("cice"))
+        : cice(ModelArray::HField())
         , hice_ref()
     {
         registerModule();
@@ -121,7 +121,7 @@ TEST_CASE("Test array registration", "[ModelComponent]")
 class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()
-        : qic(ModelArray::HField("qic"))
+        : qic(ModelArray::HField())
         , qio_ref()
     {
         registerModule();
@@ -149,7 +149,7 @@ private:
 class ModuleShared : public ModelComponent {
 public:
     ModuleShared()
-        : qio(ModelArray::HField("qio"))
+        : qio(ModelArray::HField())
         , qic_ref()
     {
         registerModule();

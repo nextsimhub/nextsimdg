@@ -71,17 +71,17 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z);
 
-    state[hiceName] = ModelArray::HField(hiceName);
+    state[hiceName] = ModelArray::HField();
     dataGroup.getVar(hiceName).getVar(&state[hiceName][0]);
-    state[ciceName] = ModelArray::HField(ciceName);
+    state[ciceName] = ModelArray::HField();
     dataGroup.getVar(ciceName).getVar(&state[ciceName][0]);
-    state[hsnowName] = ModelArray::HField(hsnowName);
+    state[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(&state[hsnowName][0]);
-    state[sstName] = ModelArray::HField(sstName);
+    state[sstName] = ModelArray::HField();
     dataGroup.getVar(sstName).getVar(&state[sstName][0]);
-    state[sssName] = ModelArray::HField(sssName);
+    state[sssName] = ModelArray::HField();
     dataGroup.getVar(sssName).getVar(&state[sssName][0]);
-    state[ticeName] = ModelArray::ZField(ticeName);
+    state[ticeName] = ModelArray::ZField();
     dataGroup.getVar(ticeName).getVar(&state[ticeName][0]);
 
     ncFile.close();

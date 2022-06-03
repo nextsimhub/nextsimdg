@@ -65,10 +65,10 @@ public:
         }
     };
 
-    static ModelArray HField(const std::string& name) { return ModelArray(Type::H, name); }
-    static ModelArray UField(const std::string& name) { return ModelArray(Type::U, name); }
-    static ModelArray VField(const std::string& name) { return ModelArray(Type::V, name); }
-    static ModelArray ZField(const std::string& name) { return ModelArray(Type::Z, name); }
+    static ModelArray HField() { return ModelArray(Type::H); }
+    static ModelArray UField() { return ModelArray(Type::U); }
+    static ModelArray VField() { return ModelArray(Type::V); }
+    static ModelArray ZField() { return ModelArray(Type::Z); }
 
     /*!
      * Construct an unnamed ModelArray of Type::H
@@ -80,7 +80,7 @@ public:
      * @param type The ModelArray::Type for the new object.
      * @param name The name of the new object.
      */
-    ModelArray(const Type type, const std::string& name);
+    ModelArray(const Type type);
     //! Copy constructor
     ModelArray(const ModelArray&);
     virtual ~ModelArray() {};
@@ -221,9 +221,6 @@ public:
         if (size() != trueSize())
             m_data.resize(m_sz.at(type), Eigen::NoChange);
     }
-
-    //! Returns the name of the object.
-    const std::string& name() const { return m_name; }
 
     /*!
      * @brief Sets the value of every element in the object to the provided value.
@@ -477,7 +474,6 @@ private:
     };
     static DimensionMap m_dims;
     DataType m_data;
-    std::string m_name;
 };
 
 typedef ModelArray HField;

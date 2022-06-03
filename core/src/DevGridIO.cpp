@@ -82,11 +82,11 @@ static ModelState initModelData(const netCDF::NcGroup& dataGroup)
         std::vector<double> buffer(totalSz);
         var.second.getVar(buffer.data());
         if (nDims == 2) {
-            HField data = ModelArray::HField(varName);
+            HField data = ModelArray::HField();
             data.setData(buffer.data());
             auto [i, y] = state.insert({ varName, data });
         } else if (nDims == 3) {
-            ZField data = ModelArray::ZField(varName);
+            ZField data = ModelArray::ZField();
             data.setData(buffer.data());
             state[varName] = data;
         }
