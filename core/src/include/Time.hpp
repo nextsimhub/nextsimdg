@@ -48,6 +48,82 @@ private:
     TimePoint m_stop;
     TimePoint m_last;
 };
+
+class TimePointImpl {
+public:
+    TimePointImpl();
+    TimePointImpl(const std::string&);
+    TimePointImpl(const TimePoint&);
+    TimePointImpl(const TimePoint&, const Duration&);
+
+    Duration operator-(const TimePoint& a) { return m_t - a; }
+    TimePoint& operator+=(const Duration& d)
+    {
+        m_t += d;
+        return *this;
+    }
+    TimePoint operator+(const Duration& d) { return m_t + d; }
+
+    bool operator<=(const TimePoint& a) { return m_t <= a; }
+    bool operator<(const TimePoint& a) { return m_t < a; }
+    bool operator>=(const TimePoint& a) { return m_t >= a; }
+    bool operator>(const TimePoint& a) { return m_t > a; }
+    bool operator==(const TimePoint& a) { return m_t == a; }
+    bool operator!=(const TimePoint& a) { return m_t != a; }
+private:
+    TimePoint m_t; //FIXME: Once implemented, change this to a chrono::time_point and the typedef to point here.
+};
+
+class DurationImpl {
+public:
+    DurationImpl();
+    DurationImpl(const std::string&);
+    DurationImpl(const Duration&);
+
+    TimePoint operator+(const TimePoint& t) const { return t + *this; }
+
+    Duration& operator+=(const Duration& a)
+    {
+        m_d += a;
+        return *this;
+    }
+    Duration& operator-=(const Duration& a)
+    {
+        m_d -= a;
+        return *this;
+    }
+
+    Duration& operator*=(double a)
+    {
+        m_d *= a;
+        return *this;
+    }
+    Duration& operator/=(double a)
+    {
+        m_d /= a;
+        return *this;
+    }
+
+    Duration operator+(const DurationImpl& a) const
+    {
+        Duration d = m_d;
+        return d + a.m_d;
+    }
+    Duration operator-(const DurationImpl& a) const
+    {
+        Duration d = m_d;
+        return d - a.m_d;
+    }
+
+    double seconds() const { return m_d; }
+private:
+    Duration m_d; //FIXME: Once implemented, change this to a chrono::duration and the typedef to point here.
+};
+
+inline double operator*(double a, const DurationImpl& b) { return a * b.seconds(); }
+inline double operator/(double a, const DurationImpl& b) { return a / b.seconds(); }
+inline double operator*(const DurationImpl& a, double b) { return b * a; }
+inline double operator/(const DurationImpl& a, double b) { return a.seconds() / b; }
 }; // namespace Nextsim
 
 #endif /* TIME_HPP */
