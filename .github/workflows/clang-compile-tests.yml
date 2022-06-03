@@ -2,9 +2,9 @@ name: compile code and tests
 
 on:
   push:
-    branches: [ main, develop, issue15_CI_workflow ]
+    branches: [ main, develop, issue103_CI ]
   pull_request:
-    branches: [ main, develop,  issue15_CI_workflow ]
+    branches: [ main, develop,  issue103_CI ]
 
 jobs:
 
@@ -16,7 +16,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: clang
       run: |
-        brew install clang-format
+        brew extract --version=13.0.1 clang-format homebrew/cask
+        brew install clang-format@13.0.1
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
         cd -
@@ -70,9 +71,10 @@ jobs:
       run: |
         brew install netcdf
         brew install boost
-        brew install catch2
         brew install eigen
         brew install cmake
+        brew extract --version=2.13.9 catch2 homebrew/cask
+        brew install catch2@2.13.9
     - name: make
       run: |
         cmake .
