@@ -738,7 +738,7 @@ namespace MEB {
             if (sigma_n < 0.) {
                 double tildeP = std::min(1., -Pmax / sigma_n);
                 // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-                multiplicator = 1. / (1. + dt_momentum / time_viscous) * (1. - tildeP);
+                multiplicator = 1. / (1. + (1. - tildeP) * dt_momentum / time_viscous)  ;
             }
 
             S12.row(i) *= multiplicator;
