@@ -95,6 +95,56 @@ public:
     ModelArray& operator=(const double& val);
 
     // ModelArray arithmetic
+    //! In place addition of another ModelArray
+    ModelArray& operator+=(const ModelArray& b)
+    {
+        m_data += b.m_data;
+        return *this;
+    }
+    //! In place subtraction of another ModelArray
+    ModelArray& operator-=(const ModelArray& b)
+    {
+        m_data -= b.m_data;
+        return *this;
+    }
+    //! In place multiplication by another ModelArray
+    ModelArray& operator*=(const ModelArray& b)
+    {
+        m_data *= b.m_data;
+        return *this;
+    }
+    //! In place division by another ModelArray
+    ModelArray& operator/=(const ModelArray& b)
+    {
+        m_data /= b.m_data;
+        return *this;
+    }
+
+    //! In place addition of a double
+    ModelArray& operator+=(double b)
+    {
+        m_data += b;
+        return *this;
+    }
+    //! In place subtraction of a double
+    ModelArray& operator-=(double b)
+    {
+        m_data -= b;
+        return *this;
+    }
+    //! In place multiplication by a double
+    ModelArray& operator*=(double b)
+    {
+        m_data *= b;
+        return *this;
+    }
+    //! In place division by a double
+    ModelArray& operator/=(double b)
+    {
+        m_data /= b;
+        return *this;
+    }
+
     //! Returns a ModelArray containing the per-element sum of the
     //! object and the provided ModelArray.
     ModelArray operator+(const ModelArray&) const;

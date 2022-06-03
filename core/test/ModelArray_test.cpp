@@ -211,6 +211,33 @@ TEST_CASE("Arithmetic tests", "[ModelArray]")
     REQUIRE(quotient[0] == (4. / 3.));
     REQUIRE(quotient[1] == (4. / -5.));
 
+    // Finally, in-place arithmetic
+    lhs += rhs;
+    REQUIRE(lhs[0] == 12);
+    REQUIRE(lhs[1] == 5);
+    lhs -= rhs;
+    REQUIRE(lhs[0] == 9);
+    REQUIRE(lhs[1] == 10);
+    lhs *= rhs;
+    REQUIRE(lhs[0] == 27);
+    REQUIRE(lhs[1] == -50);
+    lhs /= rhs;
+    REQUIRE(lhs[0] == 9);
+    REQUIRE(lhs[1] == 10);
+
+    lhs += three;
+    REQUIRE(lhs[0] == 12);
+    REQUIRE(lhs[1] == 13);
+    lhs -= four;
+    REQUIRE(lhs[0] == 8);
+    REQUIRE(lhs[1] == 9);
+    lhs *= three;
+    REQUIRE(lhs[0] == 24);
+    REQUIRE(lhs[1] == 27);
+    lhs /= four;
+    REQUIRE(lhs[0] == 6);
+    REQUIRE(lhs[1] == 6.75);
+
     HField fill = ModelArray::HField("");
     double filldub = 5.2354;
     fill = filldub;
