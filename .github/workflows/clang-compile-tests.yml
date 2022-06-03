@@ -16,10 +16,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: clang
       run: |
-        brew install clang-format
-        brew uninstall clang-format
-        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/8fa79e8a7cb2a63efd3eaedf41a2c04a38252efe/Formula/clang-format.rb > $(find $(brew --repository) -name clang-format.rb)
-        brew install clang-format
+        brew extract --version=14.0.4 clang-format homebrew/cask
+        brew install clang-format@14.0.4
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
         cd -
