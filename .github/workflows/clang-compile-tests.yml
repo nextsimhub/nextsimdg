@@ -73,11 +73,9 @@ jobs:
       run: |
         brew install netcdf
         brew install boost
-        brew install catch2
         brew install cmake
-        brew uninstall catch2
-        curl https://raw.githubusercontent.com/Homebrew/homebrew-core/5e5abb11bf49787d01164c4066119365262c21ed/Formula/catch2.rb > $(find $(brew --repository) -name catch2.rb)
-        brew install catch2
+        brew extract --version=2.13.9 catch2 homebrew/cask
+        brew install catch2@2.13.9
     - name: make
       run: |
         cmake .
