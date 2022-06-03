@@ -118,7 +118,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = .01 * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = .1 * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute

@@ -506,6 +506,7 @@ namespace MEB {
         }
     }
 
+    //! WIP new discretization scheme
     template <int DGstress, int DGtracer>
     void mMEBStressRelaxation(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, CellVector<DGtracer>& D, CellVector<DGtracer>& A, const double dt_momentum)
@@ -547,6 +548,7 @@ namespace MEB {
         }
     }
 
+    //! WIP new discretization scheme
     template <int DGstress, int DGtracer>
     void mMEBDamageUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, CellVector<DGtracer>& D, CellVector<DGtracer>& A, const double dt_momentum)
@@ -587,6 +589,7 @@ namespace MEB {
         }
     }
 
+    //! WIP new discretization scheme
     template <int DGstress, int DGtracer>
     void mMEBStressUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
@@ -686,6 +689,7 @@ namespace MEB {
         }
     }
 
+    //! DG0 for Stress and Strain
     template <int DGstress, int DGtracer>
     void StressUpdateMEB(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
@@ -699,6 +703,7 @@ namespace MEB {
             //! Visco-Elasatic Prediction
             //======================================================================
             double const expC = std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
+            double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
 
             // Eqn. 25
             //double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
@@ -711,7 +716,7 @@ namespace MEB {
             double elasticity = RefScaleCanada::young * H(i, 0) * (1. - D(i, 0)) * expC;
 
             // 1. / (1. + dt / lambda) Eqn. 18
-            double const multiplicator = 1. / (1. + dt_momentum / time_viscous);
+            double multiplicator = 1. / (1. + dt_momentum / time_viscous);
 
             time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma;
             //elasticity = RefScaleCanada::young;
@@ -727,7 +732,15 @@ namespace MEB {
                 * (1. / (1. + RefScaleCanada::nu0) * E22.row(i)
                     + Dunit_factor * RefScaleCanada::nu0 * (E11.row(i) + E22.row(i)));
 
-            // Eqn. (34)
+            //BBM
+            double const Pmax = RefScale::compression_factor * pow(H(i, 0), 1.5); // * exp(-20.0 * (1.0 - A(i, 0)));
+            // Strange Discountinious function
+            if (sigma_n < 0.) {
+                double tildeP = std::min(1., -Pmax / sigma_n);
+                // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
+                multiplicator = 1. / (1. + dt_momentum / time_viscous) * (1. - tildeP);
+            }
+
             S12.row(i) *= multiplicator;
             S11.row(i) *= multiplicator;
             S22.row(i) *= multiplicator;
@@ -738,7 +751,7 @@ namespace MEB {
             //======================================================================
 
             // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
-            double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
             // shear stress
             double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
             assert(tau >= 0);
@@ -916,9 +929,10 @@ namespace MEB {
             const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 3>(i, 0) * BiG33;
             const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 3>(i, 0) * BiG33;
 
-            auto expC = (-20.0 * (1.0 - a_gauss.array())).exp();
+            auto expC = 1.; //(-20.0 * (1.0 - a_gauss.array())).exp();
             // Eqn. 24 Additional multiplic0cation by H
-            const Eigen::Matrix<double, 1, 9> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array()) * expC.array()).matrix();
+            //const Eigen::Matrix<double, 1, 9> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array()) * expC.array()).matrix();
+            const Eigen::Matrix<double, 1, 9> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array())).matrix();
 
             auto powalpha = (1. - d_gauss.array()).pow(RefScaleCanada::exponent_relaxation_sigma - 1.);
             // Eqn. 25
@@ -986,7 +1000,7 @@ namespace MEB {
             // Mohr-Coulomb Criterion
             dcrit = (tau.array() + RefScaleCanada::sin_phi * sigma_n.array() - c.array() > 0).select(c.array() / (tau.array() + RefScaleCanada::sin_phi * sigma_n.array()), dcrit);
             // Compression cutoff
-            dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
+            //dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
 
             dcrit = dcrit.array().min(1.0).matrix();
 
