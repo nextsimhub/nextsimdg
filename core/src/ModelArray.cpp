@@ -61,45 +61,26 @@ ModelArray& ModelArray::operator=(const double& fill)
 
 ModelArray ModelArray::operator+(const ModelArray& addend) const
 {
-    ModelArray result(type);
-    for (size_t i = 0; i < m_sz.at(type); ++i) {
-        result[i] = (*this)[i] + addend[i];
-    }
-
-    return result;
+    ModelArray result = *this;
+    return result += addend;
 }
 
 ModelArray ModelArray::operator-(const ModelArray& subtrahend) const
 {
-    ModelArray result(type);
-
-    for (size_t i = 0; i < m_sz.at(type); ++i) {
-        result[i] = (*this)[i] - subtrahend[i];
-    }
-
-    return result;
+    ModelArray result = *this;
+    return result -= subtrahend;
 }
 
 ModelArray ModelArray::operator*(const ModelArray& multiplier) const
 {
-    ModelArray result(type);
-
-    for (size_t i = 0; i < m_sz.at(type); ++i) {
-        result[i] = (*this)[i] * multiplier[i];
-    }
-
-    return result;
+    ModelArray result = *this;
+    return result *= multiplier;
 }
 
 ModelArray ModelArray::operator/(const ModelArray& divisor) const
 {
-    ModelArray result(type);
-
-    for (size_t i = 0; i < m_sz.at(type); ++i) {
-        result[i] = (*this)[i] / divisor[i];
-    }
-
-    return result;
+    ModelArray result = *this;
+    return result /= divisor;
 }
 
 ModelArray ModelArray::operator-() const
@@ -111,30 +92,26 @@ ModelArray ModelArray::operator-() const
 
 ModelArray ModelArray::operator+(const double& x) const
 {
-    ModelArray copy(type);
-    copy.m_data = m_data + x;
-    return copy;
+    ModelArray result = *this;
+    return result += x;
 }
 
 ModelArray ModelArray::operator-(const double& x) const
 {
-    ModelArray copy(type);
-    copy.m_data = m_data - x;
-    return copy;
+    ModelArray result = *this;
+    return result -= x;
 }
 
 ModelArray ModelArray::operator*(const double& x) const
 {
-    ModelArray copy(type);
-    copy.m_data = m_data * x;
-    return copy;
+    ModelArray result = *this;
+    return result *= x;
 }
 
 ModelArray ModelArray::operator/(const double& x) const
 {
-    ModelArray copy(type);
-    copy.m_data = m_data / x;
-    return copy;
+    ModelArray result = *this;
+    return result /= x;
 }
 
 ModelArray operator+(const double& x, const ModelArray& y) { return y + x; }
@@ -147,7 +124,7 @@ ModelArray operator/(const double& x, const ModelArray& y)
 {
     ModelArray xArray(y.getType());
     xArray.setData(x);
-    return xArray / y;
+    return xArray /= y;
 }
 
 void ModelArray::setData(double value)
