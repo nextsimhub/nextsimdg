@@ -738,7 +738,7 @@ namespace MEB {
             if (sigma_n < 0.) {
                 double tildeP = std::min(1., -Pmax / sigma_n);
                 // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-                multiplicator = 1. / (1. + (1. - tildeP) * dt_momentum / time_viscous)  ;
+                multiplicator = 1. / (1. + (1. - tildeP) * dt_momentum / time_viscous);
             }
 
             S12.row(i) *= multiplicator;
@@ -929,6 +929,10 @@ namespace MEB {
             const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 3>(i, 0) * BiG33;
             const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 3>(i, 0) * BiG33;
 
+            Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 3>(i, 0) * BiG33;
+            Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 3>(i, 0) * BiG33;
+            Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 3>(i, 0) * BiG33;
+
             auto expC = 1.; //(-20.0 * (1.0 - a_gauss.array())).exp();
             // Eqn. 24 Additional multiplic0cation by H
             //const Eigen::Matrix<double, 1, 9> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array()) * expC.array()).matrix();
@@ -941,7 +945,7 @@ namespace MEB {
             double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
             // 1. / (1. + dt / lambda) Eqn. 18
-            const Eigen::Matrix<double, 1, 3> multiplicator = (1. / (1. + dt_momentum / time_viscous.array())).matrix() * IBC33;
+            Eigen::Matrix<double, 1, 9> multiplicator = (1. / (1. + dt_momentum / time_viscous.array())).matrix();
 
             // Elasit prediction Eqn. (32)
             S11.row(i) += dt_momentum * 1. / (1. + RefScaleCanada::nu0) * (elasticity.array() * e11_gauss.array()).matrix() * IBC33
@@ -952,24 +956,35 @@ namespace MEB {
             S22.row(i) += dt_momentum * 1. / (1. + RefScaleCanada::nu0) * (elasticity.array() * e22_gauss.array()).matrix() * IBC33
                 + dt_momentum * Dunit_factor * RefScaleCanada::nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array())).matrix() * IBC33;
 
+            //BBM
+            Eigen::Matrix<double, 1, 9> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
+
+            const Eigen::Matrix<double, 1, 9> Pmax = RefScale::compression_factor * h_gauss.array().pow(1.5);
+            // Strange Discountinious function
+            const Eigen::Matrix<double, 1, 9> tildeP = (-Pmax.array() / sigma_n.array()).min(1.0).matrix();
+
+            // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
+            multiplicator = (sigma_n.array() < 0.).select((1. / (1. + (1. - tildeP.array()) * dt_momentum / time_viscous.array())).matrix(), multiplicator);
+
+            //multiplicator = multiplicator_gp * IBC33;
             // Eqn. (34)
             //! Coefficient-wise multiplication
-            S12.row(i).array() *= multiplicator.array();
-            S11.row(i).array() *= multiplicator.array();
-            S22.row(i).array() *= multiplicator.array();
+            S11.row(i) = (s11_gauss.array() * multiplicator.array()).matrix() * IBC33;
+            S12.row(i) = (s12_gauss.array() * multiplicator.array()).matrix() * IBC33;
+            S22.row(i) = (s22_gauss.array() * multiplicator.array()).matrix() * IBC33;
 
             //======================================================================
             //! - Estimates the level of damage from the updated internal stress and the local
             //! damage criterion
             //======================================================================
 
-            const Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 3>(i, 0) * BiG33;
-            const Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 3>(i, 0) * BiG33;
-            const Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 3>(i, 0) * BiG33;
+            s11_gauss = S11.block<1, 3>(i, 0) * BiG33;
+            s12_gauss = S12.block<1, 3>(i, 0) * BiG33;
+            s22_gauss = S22.block<1, 3>(i, 0) * BiG33;
 
             // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
             //double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-            const Eigen::Matrix<double, 1, 9> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
+            sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
 
             // shear stress
             //double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
@@ -981,15 +996,6 @@ namespace MEB {
             //const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
             const Eigen::Matrix<double, 1, 9> c = RefScaleCanada::c0 * h_gauss.array() * expC;
             const Eigen::Matrix<double, 1, 9> sigma_c = RefScaleCanada::sigma_c0 * h_gauss.array() * expC;
-
-            //Regime(i, 0) = 0;
-            //// Mohr-Coulomb condition
-            //if (tau + RefScaleCanada::sin_phi * sigma_n - c < 0) {
-            //    Regime(i, 0) = 1;
-            //}
-            //if (sigma_n - tau > sigma_c) {
-            //    Regime(i, 0) = 2;
-            //}
 
             //double dcrit(1.0);
             Eigen::Matrix<double, 1, 9> dcrit;
