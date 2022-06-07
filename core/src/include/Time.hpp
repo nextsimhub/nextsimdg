@@ -57,7 +57,7 @@ public:
     TimePointImpl(const TimePoint&, const Duration&);
 
     Duration operator-(const TimePoint& a) { return m_t - a; }
-    TimePoint& operator+=(const Duration& d)
+    TimePointImpl& operator+=(const Duration& d)
     {
         m_t += d;
         return *this;
@@ -80,25 +80,25 @@ public:
     DurationImpl(const std::string&);
     DurationImpl(const Duration&);
 
-    TimePoint operator+(const TimePoint& t) const { return t + *this; }
+    TimePoint operator+(const TimePoint& t) const { return t + this->m_d; }
 
-    Duration& operator+=(const Duration& a)
+    DurationImpl& operator+=(const Duration& a)
     {
         m_d += a;
         return *this;
     }
-    Duration& operator-=(const Duration& a)
+    DurationImpl& operator-=(const Duration& a)
     {
         m_d -= a;
         return *this;
     }
 
-    Duration& operator*=(double a)
+    DurationImpl& operator*=(double a)
     {
         m_d *= a;
         return *this;
     }
-    Duration& operator/=(double a)
+    DurationImpl& operator/=(double a)
     {
         m_d /= a;
         return *this;
