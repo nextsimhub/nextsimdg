@@ -47,7 +47,7 @@ TEST_CASE("Julian-Gregorian shifts", "[Time]")
 
 TEST_CASE("mkgmtime", "[Time]")
 {
-    char iso[] = "%Y-%m-%dT%H:%M:%S";
+    const char* iso = TimePointImpl::isoFormatString;
     std::stringstream ss("1970-01-01T00:00:00");
     std::tm epoch_tm;
     ss >> std::get_time(&epoch_tm, iso);

@@ -11,7 +11,7 @@
 
 namespace Nextsim {
 
-const char TimePointImpl::isoFormatString[] = "%Y-%m-%dT%H:%M:%S";
+const char TimePointImpl::isoFormatString[] = "%Y-%m-%dT%H:%M:%SZ";
 
 std::tm& tmDoy(std::tm& tm)
 {
