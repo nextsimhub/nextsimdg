@@ -116,3 +116,10 @@ add_executable(testModelComponent
 
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}")
 target_link_libraries(testModelComponent PRIVATE Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testTimeClasses
+    "Time_test.cpp"
+    "${CoreSrc}/Time.cpp"
+)
+target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
+target_link_libraries(testTimeClasses PRIVATE Catch2::Catch2)
