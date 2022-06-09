@@ -16,7 +16,8 @@ namespace Nextsim {
 
 TEST_CASE("TimePoint parsing and formating", "[TimePoint]")
 {
-    std::stringstream is("2022-06-07T14:16:01");
+    // Time with explicit timezone marker so the initial and final strings match.
+    std::stringstream is("2022-06-07T14:16:01Z");
 
     TimePointImpl tp;
     tp.parse(is);
@@ -47,7 +48,10 @@ TEST_CASE("Julian-Gregorian shifts", "[Time]")
 
 TEST_CASE("mkgmtime", "[Time]")
 {
-    const char* iso = TimePointImpl::isoFormatString;
+    const int days = 24 * 60 * 60;
+
+    const char* iso = TimePointImpl::ymdhmsFormat.c_str();
+
     std::stringstream ss("1970-01-01T00:00:00");
     std::tm epoch_tm;
     ss >> std::get_time(&epoch_tm, iso);
@@ -60,7 +64,7 @@ TEST_CASE("mkgmtime", "[Time]")
     std::tm tm;
 //    tmZero(tm);
     ss1 >> std::get_time(&tm, iso);
-    REQUIRE(mkgmtime(&tm) == 365 * 24 * 60 * 60);
+    REQUIRE(mkgmtime(&tm) == 365 * days);
 
     std::tm tow_tm;
     std::stringstream stow("2022-06-07T15:37:45"); // UTC
@@ -76,8 +80,9 @@ TEST_CASE("mkgmtime", "[Time]")
     std::stringstream("1980-03-01T00:00:00") >> std::get_time(&tm, iso);
     std::time_t after = mkgmtime(&tm);
 
-    REQUIRE((after - before) == 2 * 24 * 60 * 60);
-    REQUIRE(timeFromISO("1980-02-13T00:00:00") == 319248000);
+    REQUIRE((after - before) == 2 * days);
+    std::stringstream("1980-02-13T00:00:00") >> std::get_time(&tm, iso);
+    REQUIRE(mkgmtime(&tm) == 319248000);
 
     // Gregorian non-leap day
     std::stringstream("2100-02-28T00:00:00") >> std::get_time(&tm, iso);
@@ -86,16 +91,47 @@ TEST_CASE("mkgmtime", "[Time]")
     std::stringstream("2100-03-01T00:00:00") >> std::get_time(&tm, iso);
     after = mkgmtime(&tm);
 
-    REQUIRE((after - before) == 24 * 60 * 60);
+    REQUIRE((after - before) == 1 * days);
     REQUIRE(std::mktime(&tm) > 0);
     REQUIRE(before == 4107456000);
     REQUIRE(after == 4107542400);
 
     // Turn of the 22nd century
-    REQUIRE(timeFromISO("2099-12-31T00:00:00") == 4102358400);
-    REQUIRE(timeFromISO("2100-01-01T00:00:00") == 4102444800);
-    REQUIRE(timeFromISO("2101-01-01T00:00:00") == 4133980800);
-    REQUIRE(timeFromISO("2101-01-01T00:00:00") - timeFromISO("2100-01-01T00:00:00") == 365 * 86400);
+    std::stringstream("2099-12-31T00:00:00") >> std::get_time(&tm, iso);
+    REQUIRE(mkgmtime(&tm) == 4102358400);
+    std::stringstream("2100-01-01T00:00:00") >> std::get_time(&tm, iso);
+    REQUIRE(mkgmtime(&tm) == 4102444800);
+    std::stringstream("2101-01-01T00:00:00") >> std::get_time(&tm, iso);
+    REQUIRE(mkgmtime(&tm) == 4133980800);
+    std::stringstream("2101-01-01T00:00:00") >> std::get_time(&tm, iso);
+    after = mkgmtime(&tm);
+    std::stringstream("2100-01-01T00:00:00") >> std::get_time(&tm, iso);
+    before = mkgmtime(&tm);
+    REQUIRE(after - before == 365 * days);
+
 }
 
+TEST_CASE("timeFromISO", "[Time]")
+{
+    const int days = 24 * 60 * 60;
+
+    // Not a date, should throw
+    REQUIRE_THROWS(timeFromISO("fhqwhgads"));
+
+    // Default format
+    REQUIRE(timeFromISO("1970-01-03T12:00:00Z") == 2 * days + (days / 2));
+    // No Zulu time marker
+    REQUIRE(timeFromISO("1970-02-01T06:00:00") == 31 * days + (days / 4));
+    // No time value (defaults to 00UT)
+    REQUIRE(timeFromISO("1971-01-02") == 366 * days);
+
+    // YYYY-DDD parsing
+    REQUIRE(timeFromISO("1971-003T00:00:00") == 367 * days);
+    REQUIRE(timeFromISO("1971-031") == 395 * days);
+
+    // Set DoY only parsing, try reading YMD
+    TimeOptions::useDOY() = true;
+    REQUIRE_THROWS(timeFromISO("1971-01-02"));
+
+}
 }

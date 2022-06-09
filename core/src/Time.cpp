@@ -7,11 +7,17 @@
 
 #include "include/Time.hpp"
 
+#include <regex>
 #include <sstream>
 
 namespace Nextsim {
 
-const char TimePointImpl::isoFormatString[] = "%Y-%m-%dT%H:%M:%SZ";
+const std::string TimePointImpl::ymdFormat = "%Y-%m-%d";
+const std::string TimePointImpl::doyFormat = "%Y-%j";
+const std::string TimePointImpl::hmsFormat = "T%H:%M:%SZ";
+const std::string TimePointImpl::ymdhmsFormat = ymdFormat + hmsFormat;
+const std::string TimePointImpl::doyhmsFormat = doyFormat + hmsFormat;
+std::array<bool, TimeOptions::COUNT> TimeOptions::m_opt = { false, false };
 
 std::tm& tmDoy(std::tm& tm)
 {
@@ -22,7 +28,7 @@ std::tm& tmDoy(std::tm& tm)
     return tm;
 }
 
-std::time_t mkgmtime(std::tm* tm)
+std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
 {
     const int minuteSeconds = 60;
     const int hourSeconds = minuteSeconds * 60;
@@ -31,7 +37,8 @@ std::time_t mkgmtime(std::tm* tm)
     const int tmEpochYear = 1900;
     const int unixEpochYear = 1970;
 
-    tmDoy(*tm);
+    if (recalculateDoy)
+        tmDoy(*tm);
     std::time_t sum = tm->tm_sec;
     sum += tm->tm_min * minuteSeconds;
     sum += tm->tm_hour * hourSeconds;
@@ -59,15 +66,38 @@ int julianGregorianShiftDays(int year)
 
 std::time_t timeFromISO(const std::string& iso)
 {
+    const std::regex ymd("-\\d\\d-"); // Search for the month (exactly two digits)
+    const std::regex doy("-\\d\\d\\d"); // Search for the day of year (exactly three digits)
+
+    bool isYMD = std::regex_search(iso, ymd);
+    bool isDOY = std::regex_search(iso, doy);
+
+    if (!isYMD && !isDOY)
+        throw std::invalid_argument("Unrecognized date format: " + iso);
+
+    if (TimeOptions::useDOY() && !isDOY)
+        throw std::invalid_argument("Inconsistent date format: " + iso
+                + " with useDOY = " + (TimeOptions::useDOY() ? "true" : "false"));
+
+    std::tm tm;
+    // Reset the time values
+    tm.tm_hour = 0;
+    tm.tm_min = 0;
+    tm.tm_sec = 0;
+
+    const char* formatCStr
+        = (isYMD) ? TimePointImpl::ymdhmsFormat.c_str() : TimePointImpl::doyhmsFormat.c_str();
+
     std::stringstream isoStream(iso);
-    return timeFromISO(isoStream);
+    isoStream >> std::get_time(&tm, formatCStr);
+    return mkgmtime(&tm, isYMD);
 }
 
 std::time_t timeFromISO(std::istream& is)
 {
-    std::tm tm;
-    is >> std::get_time(&tm, TimePointImpl::isoFormatString);
-    return mkgmtime(&tm);
+    std::string iso;
+    is >> iso;
+    return timeFromISO(iso);
 }
 
 }

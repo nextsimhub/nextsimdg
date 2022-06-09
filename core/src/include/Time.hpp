@@ -8,12 +8,23 @@
 #ifndef TIME_HPP
 #define TIME_HPP
 
+#include <array>
 #include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
 
 namespace Nextsim {
+
+class TimeOptions {
+    enum TimeOption { USE_DOY, DAYS_360, COUNT };
+
+public:
+    static bool& useDOY() { return m_opt[USE_DOY]; }
+
+private:
+    static std::array<bool, COUNT> m_opt;
+};
 
 typedef size_t TimePoint; // TODO Use a real time type
 typedef int Duration; // TODO Use a real duration type
@@ -60,8 +71,10 @@ private:
  *          std::tm time and directly assigns that value.
  *
  * @param time Pointer to the tm structure to interpret.
+ * @param recalculateDoy Flag argument for whether to calculate the day of the
+ *          year from the year month and day values.
  */
-std::time_t mkgmtime(std::tm* time);
+std::time_t mkgmtime(std::tm* time, bool recalculateDoy = true);
 
 /*!
  * @brief Returns the number of days between the Julian and Gregorian years.
@@ -108,7 +121,7 @@ public:
 
     std::istream& parse(std::istream& is)
     {
-        auto interTime = std::chrono::system_clock::from_time_t(timeFromISO(is));//mkgmtime(&tm));
+        auto interTime = std::chrono::system_clock::from_time_t(timeFromISO(is));
         // Temporary conversion from system_clock to int
         m_t = interTime.time_since_epoch().count() / 1000000;
         return is;
@@ -121,14 +134,19 @@ public:
         std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<int>> sysTime(
             sinceEpoch);
         auto tTime = std::chrono::system_clock::to_time_t(sysTime);
-        os << std::put_time(std::gmtime(&tTime), isoFormatString);
+        os << std::put_time(std::gmtime(&tTime), ymdhmsFormat.c_str());
         return os;
     }
 
     // FIXME Remove me
     TimePoint getTime() { return m_t; }
 
-    static const char isoFormatString[];
+    static const std::string ymdFormat;
+    static const std::string doyFormat;
+    static const std::string ymdhmsFormat;
+    static const std::string doyhmsFormat;
+    static const std::string hmsFormat;
+
 private:
     TimePoint m_t; // FIXME: Once implemented, change this to a chrono::time_point and the typedef
                    // to point here.
