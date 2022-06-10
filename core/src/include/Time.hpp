@@ -27,41 +27,79 @@ private:
     static std::array<bool, COUNT> m_opt;
 };
 
-typedef size_t TimePoint; // TODO Use a real time type
-typedef int Duration; // TODO Use a real duration type
-                      //    typedef std::chrono::time_point<Clock> TimePoint;
-                      //    typedef std::chrono::seconds Duration;
-struct TimestepTime {
-    TimePoint start;
-    Duration step;
-};
+class TimePoint;
 
-class StartStepStop {
+class Duration {
 public:
-    StartStepStop(TimePoint start, Duration step, TimePoint stop)
-        : m_start(start)
-        , m_step(step)
-        , m_stop(stop)
-        , m_last(start)
+    typedef std::chrono::duration<long> Basis;
+    Duration()
+        : m_d()
     {
     }
-
-    inline bool isIn(const TimePoint& query) { return query >= m_start && query < m_stop; }
-
-    inline bool doStep(const TimePoint& query)
+    Duration(const std::string& str)
     {
-        if (m_last + m_step <= query) {
-            m_last += m_step;
-            return true;
-        }
-        return false;
+        this->parse(str);
     }
+
+    TimePoint operator+(const TimePoint& t) const;
+
+    Duration& operator+=(const Duration& a)
+    {
+        m_d += a.m_d;
+        return *this;
+    }
+    Duration& operator-=(const Duration& a)
+    {
+        m_d -= a.m_d;
+        return *this;
+    }
+
+    Duration& operator*=(double a)
+    {
+        m_d *= a;
+        return *this;
+    }
+    Duration& operator/=(double a)
+    {
+        m_d /= a;
+        return *this;
+    }
+
+    Duration operator+(const Duration& a) const { return Duration(m_d + a.m_d); }
+    Duration operator-(const Duration& a) const { return Duration(m_d - a.m_d); }
+
+    double seconds() const { return m_d.count(); }
+
+    std::istream& parse(std::istream& is);
+
+    Duration& parse(const std::string& str)
+    {
+        std::stringstream is(str);
+        parse(is);
+        return *this;
+    }
+
+    std::ostream& format(std::ostream& os) const
+    {
+        return os << m_d.count();
+    }
+
+    std::string format() const
+    {
+        std::stringstream ss;
+        format(ss);
+        return ss.str();
+    }
+
+    friend TimePoint;
+    friend Duration durationFromISO(const std::string&, int);
 
 private:
-    TimePoint m_start;
-    TimePoint m_step;
-    TimePoint m_stop;
-    TimePoint m_last;
+    Duration(const Basis& d)
+        : m_d(d)
+    {
+    }
+    Basis m_d;
 };
 
 /*!
@@ -97,38 +135,42 @@ std::time_t timeFromISO(const std::string& iso);
  * @param iso A std::istream containing an ISO YYYY-MM-DDThh:mm:ss format date.
  */
 std::time_t timeFromISO(std::istream& is);
-class TimePointImpl {
-public:
-    TimePointImpl()
-        : m_t() {};
-    TimePointImpl(const std::string&);
-    TimePointImpl(const TimePoint&);
-    TimePointImpl(const TimePoint&, const Duration&);
 
-    Duration operator-(const TimePoint& a) { return m_t - a; }
-    TimePointImpl& operator+=(const Duration& d)
+class TimePoint {
+public:
+    typedef std::chrono::system_clock Clock;
+    typedef std::chrono::time_point<Clock, Duration::Basis> Basis;
+
+    TimePoint()
+        : m_t() {};
+    TimePoint(const std::string& str)
     {
-        m_t += d;
+        this->parse(str);
+    }
+    TimePoint(const TimePoint&, const Duration&);
+
+    Duration operator-(const TimePoint& a) { return Duration(m_t - a.m_t); }
+    TimePoint& operator+=(const Duration& d)
+    {
+        m_t += d.m_d;
         return *this;
     }
-    TimePoint operator+(const Duration& d) { return m_t + d; }
+    TimePoint operator+(const Duration& d) { return m_t + d.m_d; }
 
-    bool operator<=(const TimePointImpl& a) const { return m_t <= a.m_t; }
-    bool operator<(const TimePointImpl& a) const { return m_t < a.m_t; }
-    bool operator>=(const TimePointImpl& a) const { return m_t >= a.m_t; }
-    bool operator>(const TimePointImpl& a) const { return m_t > a.m_t; }
-    bool operator==(const TimePointImpl& a) const { return m_t == a.m_t; }
-    bool operator!=(const TimePointImpl& a) const { return m_t != a.m_t; }
+    bool operator<=(const TimePoint& a) const { return m_t <= a.m_t; }
+    bool operator<(const TimePoint& a) const { return m_t < a.m_t; }
+    bool operator>=(const TimePoint& a) const { return m_t >= a.m_t; }
+    bool operator>(const TimePoint& a) const { return m_t > a.m_t; }
+    bool operator==(const TimePoint& a) const { return m_t == a.m_t; }
+    bool operator!=(const TimePoint& a) const { return m_t != a.m_t; }
 
     std::istream& parse(std::istream& is)
     {
-        auto interTime = std::chrono::system_clock::from_time_t(timeFromISO(is));
-        // Temporary conversion from system_clock to int
-        m_t = interTime.time_since_epoch().count() / 1000000;
+//        m_t = Clock::from_time_t(timeFromISO(is));
         return is;
     }
 
-    TimePointImpl& parse(const std::string& str)
+    TimePoint& parse(const std::string& str)
     {
         std::stringstream is(str);
         parse(is);
@@ -138,11 +180,8 @@ public:
     std::ostream& format(std::ostream& os) const
     {
         // Temporary conversion from int to system_clock
-        std::chrono::duration<int> sinceEpoch(m_t);
-        std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<int>> sysTime(
-            sinceEpoch);
-        auto tTime = std::chrono::system_clock::to_time_t(sysTime);
-        os << std::put_time(std::gmtime(&tTime), ymdhmsFormat.c_str());
+        auto tt = Clock::to_time_t(m_t);
+        os << std::put_time(std::gmtime(&tt), ymdhmsFormat.c_str());
         return os;
     }
 
@@ -153,7 +192,7 @@ public:
         return ss.str();
     }
     // FIXME Remove me
-    TimePoint& getTime() { return m_t; }
+    Basis& getTime() { return m_t; }
 
     static const std::string ymdFormat;
     static const std::string doyFormat;
@@ -161,89 +200,59 @@ public:
     static const std::string doyhmsFormat;
     static const std::string hmsFormat;
 
+    friend Duration;
+
 private:
-    TimePoint m_t; // FIXME: Once implemented, change this to a chrono::time_point and the typedef
-                   // to point here.
+    TimePoint(const Basis& t)
+    : m_t(t)
+    {
+    }
+    Basis m_t;
 };
 
-class DurationImpl {
+struct TimestepTime {
+    TimePoint start;
+    Duration step;
+};
+
+class StartStepStop {
 public:
-    DurationImpl()
-        : m_d()
+    StartStepStop(TimePoint start, Duration step, TimePoint stop)
+        : m_start(start)
+        , m_step(step)
+        , m_stop(stop)
+        , m_last(start)
     {
     }
-    DurationImpl(const std::string&);
-    DurationImpl(const Duration&);
 
-    TimePoint operator+(const TimePoint& t) const { return t + this->m_d; }
+    inline bool isIn(const TimePoint& query) { return query >= m_start && query < m_stop; }
 
-    DurationImpl& operator+=(const Duration& a)
+    inline bool doStep(const TimePoint& query)
     {
-        m_d += a;
-        return *this;
-    }
-    DurationImpl& operator-=(const Duration& a)
-    {
-        m_d -= a;
-        return *this;
-    }
-
-    DurationImpl& operator*=(double a)
-    {
-        m_d *= a;
-        return *this;
-    }
-    DurationImpl& operator/=(double a)
-    {
-        m_d /= a;
-        return *this;
-    }
-
-    Duration operator+(const DurationImpl& a) const
-    {
-        Duration d = m_d;
-        return d + a.m_d;
-    }
-    Duration operator-(const DurationImpl& a) const
-    {
-        Duration d = m_d;
-        return d - a.m_d;
-    }
-
-    double seconds() const { return m_d; }
-
-    std::istream& parse(std::istream& is);
-
-    DurationImpl& parse(const std::string& str)
-    {
-        std::stringstream is(str);
-        parse(is);
-        return *this;
-    }
-
-    std::ostream& format(std::ostream& os) const
-    {
-        // Temporary conversion from int to std duration
-        std::chrono::duration<int> stdDur(m_d);
-        return os << stdDur.count();
-    }
-
-    std::string format() const
-    {
-        std::stringstream ss;
-        format(ss);
-        return ss.str();
+        if (m_last + m_step <= query) {
+            m_last += m_step;
+            return true;
+        }
+        return false;
     }
 
 private:
-    Duration m_d; // FIXME: Once implemented, change this to a chrono::duration and the typedef to
-                  // point here.
+    TimePoint m_start;
+    Duration m_step;
+    TimePoint m_stop;
+    TimePoint m_last;
 };
 
-inline double operator*(double a, const DurationImpl& b) { return a * b.seconds(); }
-inline double operator/(double a, const DurationImpl& b) { return a / b.seconds(); }
-inline double operator*(const DurationImpl& a, double b) { return b * a; }
-inline double operator/(const DurationImpl& a, double b) { return a.seconds() / b; }
+
+inline double operator*(double a, const Duration& b) { return a * b.seconds(); }
+inline double operator/(double a, const Duration& b) { return a / b.seconds(); }
+inline double operator*(const Duration& a, double b) { return b * a; }
+inline double operator/(const Duration& a, double b) { return a.seconds() / b; }
+
+inline std::istream& operator>>(std::istream& is, TimePoint& tp) { return tp.parse(is); }
+inline std::istream& operator>>(std::istream& is, Duration& dur) { return dur.parse(is); }
+inline std::ostream& operator<<(std::ostream& os, const TimePoint& tp) { return tp.format(os); }
+inline std::ostream& operator<<(std::ostream& os, const Duration& dur) { return dur.format(os); }
 
 }; // namespace Nextsim
 

@@ -19,7 +19,7 @@ TEST_CASE("TimePoint parsing and formating", "[TimePoint]")
     // Time with explicit timezone marker so the initial and final strings match.
     std::stringstream is("2022-06-07T14:16:01Z");
 
-    TimePointImpl tp;
+    TimePoint tp;
     tp.parse(is);
 
     std::stringstream os;
@@ -28,7 +28,7 @@ TEST_CASE("TimePoint parsing and formating", "[TimePoint]")
     REQUIRE(is.str() == os.str());
 
     // Directly with strings
-    TimePointImpl tq;
+    TimePoint tq;
     std::string rightNow = "2022-06-10T09:33:21Z";
     tq.parse(rightNow);
     REQUIRE(tq.format() == rightNow);
@@ -56,7 +56,7 @@ TEST_CASE("mkgmtime", "[Time]")
 {
     const int days = 24 * 60 * 60;
 
-    const char* iso = TimePointImpl::ymdhmsFormat.c_str();
+    const char* iso = TimePoint::ymdhmsFormat.c_str();
 
     std::stringstream ss("1970-01-01T00:00:00");
     std::tm epoch_tm;
@@ -145,8 +145,8 @@ TEST_CASE("timeFromISO", "[Time]")
 
 TEST_CASE("TimePoints", "[TimePoint]")
 {
-    TimePointImpl tp;
-    TimePointImpl tq;
+    TimePoint tp;
+    TimePoint tq;
 
     // Comparison operators
     REQUIRE(tp.parse("1980-07-30") == tq.parse("1980-212"));
@@ -163,7 +163,7 @@ TEST_CASE("Durations", "[Duration]")
 {
     const int days = 24 * 60 * 60;
 
-    DurationImpl dur;
+    Duration dur;
     // Basic values
     REQUIRE_THROWS(dur.parse("0-0-0T0:0:1"));
     REQUIRE(dur.parse("P0-1").seconds() == 1 * days);
@@ -171,19 +171,18 @@ TEST_CASE("Durations", "[Duration]")
     REQUIRE(dur.parse("P-0-0T0:0:1").seconds() == -1);
 
     // arithmetic
-    DurationImpl yr;
-    yr.parse("P1-0");
-    DurationImpl dy;
-    dy.parse("P0-1");
+    Duration yr("P1-0");
+    Duration dy("P0-1");
+    Duration s("P0-0T0:0:1");
 
     int daySeconds = 86400;
     int yearSeconds = 365 * daySeconds;
-    REQUIRE((yr + dy) == yearSeconds + daySeconds);
-    REQUIRE((dy - yr) == daySeconds - yearSeconds);
+    REQUIRE((yr + dy).seconds() == yearSeconds + daySeconds);
+    REQUIRE((dy - yr).seconds() == daySeconds - yearSeconds);
 
-    yr += 1;
+    yr += s;
     REQUIRE(yr.seconds() == yearSeconds + 1);
-    yr -= 1;
+    yr -= s;
     REQUIRE(yr.seconds() == yearSeconds);
     yr *= 2;
     REQUIRE(yr.seconds() == 2 * yearSeconds);
@@ -191,10 +190,10 @@ TEST_CASE("Durations", "[Duration]")
     REQUIRE(yr.seconds() == yearSeconds);
 
     // TimePoint manipulation
-    TimePointImpl tt;
-    tt.parse("2010-01-01T00:00:00Z");
-    TimePoint tt_time = tt.getTime();
+    TimePoint tt("2010-01-01T00:00:00Z");
+    TimePoint tt_day("2010-01-02T00:00:00Z");
 
-    REQUIRE(dy + tt.getTime() == tt_time + daySeconds);
+
+    REQUIRE(dy + tt == tt_day);
 }
 }

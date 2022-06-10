@@ -13,11 +13,11 @@
 
 namespace Nextsim {
 
-const std::string TimePointImpl::ymdFormat = "%Y-%m-%d";
-const std::string TimePointImpl::doyFormat = "%Y-%j";
-const std::string TimePointImpl::hmsFormat = "T%H:%M:%SZ";
-const std::string TimePointImpl::ymdhmsFormat = ymdFormat + hmsFormat;
-const std::string TimePointImpl::doyhmsFormat = doyFormat + hmsFormat;
+const std::string TimePoint::ymdFormat = "%Y-%m-%d";
+const std::string TimePoint::doyFormat = "%Y-%j";
+const std::string TimePoint::hmsFormat = "T%H:%M:%SZ";
+const std::string TimePoint::ymdhmsFormat = ymdFormat + hmsFormat;
+const std::string TimePoint::doyhmsFormat = doyFormat + hmsFormat;
 std::array<bool, TimeOptions::COUNT> TimeOptions::m_opt = { false, false };
 
 static const int minuteSeconds = 60;
@@ -94,7 +94,7 @@ std::time_t timeFromISO(const std::string& iso)
 
     bool isDOY = isDOYFormat(iso);
 
-    const char* formatCStr = (isDOY) ? TimePointImpl::doyhmsFormat.c_str() : TimePointImpl::ymdhmsFormat.c_str();
+    const char* formatCStr = (isDOY) ? TimePoint::doyhmsFormat.c_str() : TimePoint::ymdhmsFormat.c_str();
     std::stringstream isoStream(iso);
     isoStream >> std::get_time(&tm, formatCStr);
     return mkgmtime(&tm, !isDOY);
@@ -107,7 +107,7 @@ std::time_t timeFromISO(std::istream& is)
     return timeFromISO(iso);
 }
 
-Duration durationFromISO(const std::string& iso)
+Duration durationFromISO(const std::string& iso, int sign = +1)
 {
     // (Ab)use the std::tm structure and associated library functions to do the
     // parsing for us.
@@ -119,7 +119,7 @@ Duration durationFromISO(const std::string& iso)
 
     bool isDOY = isDOYFormat(iso);
 
-    const char* formatCStr = (isDOY) ? TimePointImpl::doyhmsFormat.c_str() : TimePointImpl::ymdhmsFormat.c_str();
+    const char* formatCStr = (isDOY) ? TimePoint::doyhmsFormat.c_str() : TimePoint::ymdhmsFormat.c_str();
     std::stringstream isoStream(iso);
     isoStream >> std::get_time(&tm, formatCStr);
 
@@ -135,19 +135,19 @@ Duration durationFromISO(const std::string& iso)
         sum += tm.tm_mday * daySeconds;
     }
     sum += (tmEpochYear + tm.tm_year) * yearSeconds;
-    std::chrono::duration<int> dura(sum);
-    return dura.count();
+    Duration::Basis dura(sign * sum);
+    return Duration(dura);
 
 }
 
-Duration durationFromISO(std::istream& is)
+Duration durationFromISO(std::istream& is, int sign = +1)
 {
     std::string iso;
     is >> iso;
     return durationFromISO(iso);
 }
 
-std::istream& DurationImpl::parse(std::istream& is)
+std::istream& Duration::parse(std::istream& is)
 {
     // read the first character, check it is the ISO standard P
     char possibleP;
@@ -166,9 +166,11 @@ std::istream& DurationImpl::parse(std::istream& is)
         char sign;
         is >> sign;
     }
-    m_d = (isNegative ? -1 : 1) * durationFromISO(is);
+    *this = durationFromISO(is, isNegative ? -1 : 1);
     // Temporary conversion from system_clock to int
     return is;
 }
 
+TimePoint Duration::operator+(const TimePoint& t) const
+{ return TimePoint(t.m_t + this->m_d); }
 }
