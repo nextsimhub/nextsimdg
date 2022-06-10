@@ -13,6 +13,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 namespace Nextsim {
 
@@ -112,12 +113,12 @@ public:
     }
     TimePoint operator+(const Duration& d) { return m_t + d; }
 
-    bool operator<=(const TimePoint& a) { return m_t <= a; }
-    bool operator<(const TimePoint& a) { return m_t < a; }
-    bool operator>=(const TimePoint& a) { return m_t >= a; }
-    bool operator>(const TimePoint& a) { return m_t > a; }
-    bool operator==(const TimePoint& a) { return m_t == a; }
-    bool operator!=(const TimePoint& a) { return m_t != a; }
+    bool operator<=(const TimePointImpl& a) const { return m_t <= a.m_t; }
+    bool operator<(const TimePointImpl& a) const { return m_t < a.m_t; }
+    bool operator>=(const TimePointImpl& a) const { return m_t >= a.m_t; }
+    bool operator>(const TimePointImpl& a) const { return m_t > a.m_t; }
+    bool operator==(const TimePointImpl& a) const { return m_t == a.m_t; }
+    bool operator!=(const TimePointImpl& a) const { return m_t != a.m_t; }
 
     std::istream& parse(std::istream& is)
     {
@@ -127,7 +128,14 @@ public:
         return is;
     }
 
-    std::ostream& format(std::ostream& os)
+    TimePointImpl& parse(const std::string& str)
+    {
+        std::stringstream is(str);
+        parse(is);
+        return *this;
+    }
+
+    std::ostream& format(std::ostream& os) const
     {
         // Temporary conversion from int to system_clock
         std::chrono::duration<int> sinceEpoch(m_t);
@@ -138,8 +146,14 @@ public:
         return os;
     }
 
+    std::string format() const
+    {
+        std::stringstream ss;
+        format(ss);
+        return ss.str();
+    }
     // FIXME Remove me
-    TimePoint getTime() { return m_t; }
+    TimePoint& getTime() { return m_t; }
 
     static const std::string ymdFormat;
     static const std::string doyFormat;
@@ -154,7 +168,10 @@ private:
 
 class DurationImpl {
 public:
-    DurationImpl();
+    DurationImpl()
+        : m_d()
+    {
+    }
     DurationImpl(const std::string&);
     DurationImpl(const Duration&);
 
@@ -194,6 +211,29 @@ public:
     }
 
     double seconds() const { return m_d; }
+
+    std::istream& parse(std::istream& is);
+
+    DurationImpl& parse(const std::string& str)
+    {
+        std::stringstream is(str);
+        parse(is);
+        return *this;
+    }
+
+    std::ostream& format(std::ostream& os) const
+    {
+        // Temporary conversion from int to std duration
+        std::chrono::duration<int> stdDur(m_d);
+        return os << stdDur.count();
+    }
+
+    std::string format() const
+    {
+        std::stringstream ss;
+        format(ss);
+        return ss.str();
+    }
 
 private:
     Duration m_d; // FIXME: Once implemented, change this to a chrono::duration and the typedef to

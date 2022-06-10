@@ -26,6 +26,12 @@ TEST_CASE("TimePoint parsing and formating", "[TimePoint]")
     tp.format(os);
 
     REQUIRE(is.str() == os.str());
+
+    // Directly with strings
+    TimePointImpl tq;
+    std::string rightNow = "2022-06-10T09:33:21Z";
+    tq.parse(rightNow);
+    REQUIRE(tq.format() == rightNow);
 }
 
 TEST_CASE("Julian-Gregorian shifts", "[Time]")
@@ -130,8 +136,65 @@ TEST_CASE("timeFromISO", "[Time]")
     REQUIRE(timeFromISO("1971-031") == 395 * days);
 
     // Set DoY only parsing, try reading YMD
+    bool previousDOY = TimeOptions::useDOY();
     TimeOptions::useDOY() = true;
     REQUIRE_THROWS(timeFromISO("1971-01-02"));
+    TimeOptions::useDOY() = previousDOY;
 
+}
+
+TEST_CASE("TimePoints", "[TimePoint]")
+{
+    TimePointImpl tp;
+    TimePointImpl tq;
+
+    // Comparison operators
+    REQUIRE(tp.parse("1980-07-30") == tq.parse("1980-212"));
+    REQUIRE(tp.parse("1980-07-30") > tq.parse("1980-07-29"));
+    REQUIRE(tp.parse("1980-07-30") >= tq.parse("1980-212"));
+    REQUIRE(tp.parse("1980-07-30") >= tq.parse("1980-07-29"));
+    REQUIRE(tp.parse("1980-07-30") < tq.parse("1980-07-31"));
+    REQUIRE(tp.parse("1980-07-30") <= tq.parse("1980-212"));
+    REQUIRE(tp.parse("1980-07-30") <= tq.parse("1980-07-31"));
+    REQUIRE(tp.parse("1980-07-30") != tq.parse("1980-07-29"));
+}
+
+TEST_CASE("Durations", "[Duration]")
+{
+    const int days = 24 * 60 * 60;
+
+    DurationImpl dur;
+    // Basic values
+    REQUIRE_THROWS(dur.parse("0-0-0T0:0:1"));
+    REQUIRE(dur.parse("P0-1").seconds() == 1 * days);
+    REQUIRE(dur.parse("P0-0T0:0:1").seconds() == 1);
+    REQUIRE(dur.parse("P-0-0T0:0:1").seconds() == -1);
+
+    // arithmetic
+    DurationImpl yr;
+    yr.parse("P1-0");
+    DurationImpl dy;
+    dy.parse("P0-1");
+
+    int daySeconds = 86400;
+    int yearSeconds = 365 * daySeconds;
+    REQUIRE((yr + dy) == yearSeconds + daySeconds);
+    REQUIRE((dy - yr) == daySeconds - yearSeconds);
+
+    yr += 1;
+    REQUIRE(yr.seconds() == yearSeconds + 1);
+    yr -= 1;
+    REQUIRE(yr.seconds() == yearSeconds);
+    yr *= 2;
+    REQUIRE(yr.seconds() == 2 * yearSeconds);
+    yr /= 2;
+    REQUIRE(yr.seconds() == yearSeconds);
+
+    // TimePoint manipulation
+    TimePointImpl tt;
+    tt.parse("2010-01-01T00:00:00Z");
+    TimePoint tt_time = tt.getTime();
+
+    REQUIRE(dy + tt.getTime() == tt_time + daySeconds);
 }
 }
