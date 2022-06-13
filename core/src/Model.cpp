@@ -9,7 +9,7 @@
 #include "include/Configurator.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
-#include "include/DummyExternalData.hpp"
+#include "include/ModelState.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>
@@ -31,8 +31,6 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
 Model::Model()
 {
     iterator.setIterant(&modelStep);
-
-    dataStructure = nullptr;
 
     finalFileName = "restart.nc";
 }
@@ -64,26 +62,21 @@ void Model::configure()
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
+    pData.configure();
+
     modelStep.setInitFile(initialFileName);
 
-    // Currently, initialize the data here in Model and pass the pointer to the
-    // data structure to IModelStep
-    dataStructure = StructureFactory::generateFromFile(initialFileName);
-    dataStructure->init(initialFileName);
-    modelStep.setInitialData(*dataStructure);
-
-    // TODO Real external data handling (in the model step?)
-    DummyExternalData::setAll(*dataStructure);
+    ModelState initialState(StructureFactory::stateFromFile(initialFileName));
+    modelStep.setData(pData);
+    pData.setData(initialState);
 }
 
 void Model::run() { iterator.run(); }
 
 void Model::writeRestartFile()
 {
-    if (dataStructure) {
-        // TODO Replace with real logging
-        std::cout << "  Writing restart file: " << finalFileName << std::endl;
-        dataStructure->dump(finalFileName);
-    }
+    // TODO Replace with real logging
+    std::cout << "  Writing state-based restart file: " << finalFileName << std::endl;
+    StructureFactory::fileFromState(pData.getState(), finalFileName);
 }
 } /* namespace Nextsim */

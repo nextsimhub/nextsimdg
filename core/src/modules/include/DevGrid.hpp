@@ -10,9 +10,8 @@
 
 #include "include/IStructure.hpp"
 
-#include "include/ElementData.hpp"
 #include "include/IDevGridIO.hpp"
-#include "include/PrognosticData.hpp"
+#include "include/ModelState.hpp"
 
 #include <map>
 
@@ -40,33 +39,28 @@ public:
     const static std::string structureName;
 
     // Read/write override functions
-    void init(const std::string& filePath) override;
+    ModelState getModelState(const std::string& filePath) override
+    {
+        return pio ? pio->getModelState(filePath) : ModelState();
+    }
 
-    void dump(const std::string& filePath) const override;
-
+    void dumpModelState(const ModelState& state, const std::string& filePath) const override
+    {
+        if (pio)
+            pio->dumpModelState(state, filePath);
+    }
     std::string structureType() const override { return structureName; };
 
     int nIceLayers() const override { return 1; };
 
-    // Cursor manipulation override functions
-    int resetCursor() override;
-    bool validCursor() const override;
-    ElementData& cursorData() override;
-    const ElementData& cursorData() const override;
-    void incrCursor() override;
-
     //! Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO
     void setIO(IDevGridIO* p) { pio = p; }
 
-private:
     const static std::string xDimName;
     const static std::string yDimName;
     const static std::string nIceLayersName;
 
-    std::vector<ElementData> data;
-
-    std::vector<ElementData>::iterator iCursor;
-
+private:
     IDevGridIO* pio;
 
     friend DevGridIO;

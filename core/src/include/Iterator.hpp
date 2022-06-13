@@ -7,9 +7,8 @@
 #ifndef SRC_INCLUDE_ITERATOR_HPP
 #define SRC_INCLUDE_ITERATOR_HPP
 
-#include <chrono>
-
 #include "Logged.hpp"
+#include "Time.hpp"
 
 namespace Nextsim {
 
@@ -17,10 +16,8 @@ namespace Nextsim {
 class Iterator {
 public:
     typedef std::chrono::system_clock Clock;
-    //    typedef std::chrono::time_point<Clock> TimePoint;
-    //    typedef std::chrono::seconds Duration;
-    typedef int TimePoint;
-    typedef int Duration;
+    //    typedef TimePoint TimePoint;
+    //    typedef Duration Duration;
     class Iterant;
 
     Iterator();
@@ -100,7 +97,7 @@ public:
          *
          * @param dt The length of the timestep.
          */
-        virtual void iterate(const Duration& dt) = 0;
+        virtual void iterate(const TimestepTime& dt) = 0;
         /*!
          * Finalizes the iterant based on the stop time.
          *
@@ -112,9 +109,9 @@ public:
     //! A simple Iterant that does nothing.
     class NullIterant : public Iterant {
         inline void init() {};
-        inline void start(const Iterator::TimePoint& startTime) {};
-        inline void iterate(const Iterator::Duration& dt) {};
-        inline void stop(const Iterator::TimePoint& stopTime) {};
+        inline void start(const TimePoint& startTime) {};
+        inline void iterate(const TimestepTime& dt) {};
+        inline void stop(const TimePoint& stopTime) {};
     };
 
     //! A static instance of the NullIterant class.

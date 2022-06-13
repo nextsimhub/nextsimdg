@@ -43,10 +43,16 @@ public:
     typedef std::function<std::unique_ptr<I>()> fn;
     typedef std::map<std::string, fn> map;
 
+    static void setExternalImplementation(fn generator)
+    {
+        spf = generator;
+        staticInstance = std::move(spf());
+    }
+
     static void setImplementation(const std::string& implName)
     {
-        spf = functionMap.at(implName);
-        staticInstance = std::move(spf());
+        // setExternalImplementation() holds the common functionality
+        setExternalImplementation(functionMap.at(implName));
     }
 
     static std::unique_ptr<I> getInstance() { return spf(); }

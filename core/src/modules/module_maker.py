@@ -41,7 +41,7 @@ def generator(fq_interface_name, fq_impl_names):
     print(f"Module<{fq_interface_name}>::fn Module<{fq_interface_name}>::spf = functionMap.at({denamespace(fq_impl_names[0]).upper()});")
     print("template <>")
     print(f"std::unique_ptr<{fq_interface_name}> Module<{fq_interface_name}>::staticInstance")
-    print(f"= std::move(Module<{fq_interface_name}>::spf());")
+    print(f"= std::move(newImpl<{fq_interface_name}, {fq_impl_names[0]}>());")
     print("")
 
     # Module name string

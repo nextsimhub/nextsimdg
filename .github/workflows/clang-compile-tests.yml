@@ -38,7 +38,7 @@ jobs:
     - name: installs
       run: |
         sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
         git clone -b v2.x https://github.com/catchorg/Catch2.git
         cd Catch2
         cmake -Bbuild -H. -DBUILD_TESTING=OFF
@@ -71,6 +71,7 @@ jobs:
       run: |
         brew install netcdf
         brew install boost
+        brew install eigen
         brew install cmake
         brew extract --version=2.13.9 catch2 homebrew/cask
         brew install catch2@2.13.9

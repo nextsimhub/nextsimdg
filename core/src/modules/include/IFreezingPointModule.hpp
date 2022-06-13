@@ -15,6 +15,8 @@
 namespace Module {
 
 template <> Module<Nextsim::IFreezingPoint>::map Module<Nextsim::IFreezingPoint>::functionMap;
+template <>
+std::unique_ptr<Nextsim::IFreezingPoint> Module<Nextsim::IFreezingPoint>::staticInstance;
 class IFreezingPointModule : public Module<Nextsim::IFreezingPoint> {
     struct Constructor {
         Constructor();

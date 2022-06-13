@@ -27,7 +27,7 @@ Module<Nextsim::IFreezingPoint>::fn Module<Nextsim::IFreezingPoint>::spf
     = functionMap.at(LINEARFREEZING);
 template <>
 std::unique_ptr<Nextsim::IFreezingPoint> Module<Nextsim::IFreezingPoint>::staticInstance
-    = std::move(Module<Nextsim::IFreezingPoint>::spf());
+    = std::move(newImpl<Nextsim::IFreezingPoint, Nextsim::LinearFreezing>());
 
 template <> std::string Module<Nextsim::IFreezingPoint>::moduleName() { return "Nextsim::IFreezingPoint"; }
 

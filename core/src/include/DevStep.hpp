@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_DEVSTEP_HPP
-#define CORE_SRC_INCLUDE_DEVSTEP_HPP
+#ifndef DEVSTEP_HPP
+#define DEVSTEP_HPP
 
 #include "include/IModelStep.hpp"
 #include "include/IStructure.hpp"
@@ -15,6 +15,7 @@
 
 namespace Nextsim {
 
+//! A class providing a simple implementation of Iterator.
 class DevStep : public IModelStep {
 public:
     DevStep() = default;
@@ -23,18 +24,18 @@ public:
     // Member functions inherited from IModelStep
     void writeRestartFile(const std::string& filePath) override {};
 
-    void setInitialData(IStructure& dataStructure) override { pStructure = &dataStructure; };
+    void setData(PrognosticData& pDat) override { pData = &pDat; }
 
     // Member functions inherited from Iterant
     void init() override {};
-    void start(const Iterator::TimePoint& startTime) override {};
-    void iterate(const Iterator::Duration& dt) override;
-    void stop(const Iterator::TimePoint& stopTime) override {};
+    void start(const TimePoint& startTime) override {};
+    void iterate(const TimestepTime& dt) override;
+    void stop(const TimePoint& stopTime) override {};
 
 private:
-    IStructure* pStructure;
+    PrognosticData* pData;
 };
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_DEVSTEP_HPP */
+#endif /* DEVSTEP_HPP */

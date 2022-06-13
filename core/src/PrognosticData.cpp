@@ -1,98 +1,76 @@
 /*!
  * @file PrognosticData.cpp
- * @date Sep 8, 2021
+ *
+ * @date Mar 1, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/PrognosticData.hpp"
-#include "include/IFreezingPoint.hpp"
-#include "include/Module.hpp"
+
+#include "include/ModelArrayRef.hpp"
+
 namespace Nextsim {
 
-double PrognosticData::m_dt = 0;
-IFreezingPoint* PrognosticData::m_freezer = nullptr;
-
 PrognosticData::PrognosticData()
-    : PrognosticData(1)
+    : m_dt(1)
+    , m_thick(ModelArray::Type::H)
+    , m_conc(ModelArray::Type::H)
+    , m_snow(ModelArray::Type::H)
+    , m_tice(ModelArray::Type::Z)
+
 {
+    registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
+    registerProtectedArray(ProtectedArray::C_ICE, &m_conc);
+    registerProtectedArray(ProtectedArray::H_SNOW, &m_snow);
+    registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
 }
 
-PrognosticData::PrognosticData(int nIceLayers)
-    : m_conc(0)
-    , m_snow(0)
-    , m_sss(0)
-    , m_sst(0)
-    , m_thick(0)
-    , m_tice(nIceLayers, 0.)
+void PrognosticData::configure() { tryConfigure(iceGrowth); }
+
+void PrognosticData::setData(const ModelState& ms)
 {
-    //    m_tice.resize(nIceLayers);
-}
 
-PrognosticData::PrognosticData(const PrognosticGenerator& up)
-    : m_conc(up.updatedIceConcentration())
-    , m_snow(up.updatedSnowThickness())
-    , m_thick(up.updatedIceThickness())
-    , m_tice()
-    , m_sst(up.seaSurfaceTemperature())
-    , m_sss(up.seaSurfaceSalinity())
-{
-    m_tice = up.updatedIceTemperatures();
-
-    configure();
-}
-
-PrognosticData& PrognosticData::operator=(const PrognosticGenerator& up)
-{
-    m_thick = up.updatedIceThickness();
-    m_conc = up.updatedIceConcentration();
-    m_snow = up.updatedSnowThickness();
-
-    m_tice = up.updatedIceTemperatures();
-
-    m_sst = up.seaSurfaceTemperature();
-    m_sss = up.seaSurfaceSalinity();
-
-    configure();
-
-    return *this;
-}
-
-void PrognosticData::configure()
-{
-    m_freezer = &Module::getImplementation<IFreezingPoint>();
-    tryConfigure(m_freezer);
-}
-
-PrognosticData& PrognosticData::updateAndIntegrate(const IPrognosticUpdater& updater)
-{
-    m_thick = updater.updatedIceThickness();
-    m_conc = updater.updatedIceConcentration();
-    m_snow = updater.updatedSnowThickness();
-
-    copyInIceLayerData(updater.updatedIceTemperatures(), m_tice);
-    return *this;
-}
-
-PrognosticData& PrognosticData::setSeaSurface(double sst, double sss)
-{
-    m_sst = sst;
-    m_sss = sss;
-    return *this;
-}
-
-// Copy up to as many levels as there are currently.
-// Fill missing layers with the lowest valid temperature
-void PrognosticData::copyInIceLayerData(const std::vector<double>& src, std::vector<double>& tgt)
-{
-    int tLayers = tgt.size();
-    int sLayers = src.size();
-
-    tgt = src;
-    if (tLayers != sLayers) {
-        tgt.resize(tLayers);
-        for (int i = sLayers; i < tLayers; ++i) {
-            tgt[i] = tgt[sLayers - 1];
-        }
+    m_thick = ms.at("hice");
+    m_conc = ms.at("cice");
+    m_tice = ms.at("tice");
+    m_snow = ms.at("hsnow");
+    if (ms.count("u")) {
+        m_u = ms.at("u");
     }
+    if (ms.count("v")) {
+        m_v = ms.at("v");
+    }
+
+    iceGrowth.setData(ms);
 }
+
+void PrognosticData::update(const TimestepTime& tst)
+{
+    iceGrowth.update(tst);
+
+    ModelArrayRef<SharedArray::H_ICE, RO> hiceTrueUpd;
+    ModelArrayRef<SharedArray::C_ICE, RO> ciceUpd;
+    ModelArrayRef<SharedArray::H_SNOW, RO> hsnowTrueUpd;
+    ModelArrayRef<SharedArray::T_ICE, RO> ticeUpd;
+
+    // Calculate the cell average thicknesses
+    HField hiceUpd = hiceTrueUpd * ciceUpd;
+    HField hsnowUpd = hsnowTrueUpd * ciceUpd;
+
+    m_thick.setData(hiceUpd);
+    m_conc.setData(ciceUpd);
+    m_snow.setData(hsnowUpd);
+    m_tice.setData(ticeUpd);
+}
+
+ModelState PrognosticData::getState() const
+{
+    return {
+        { "hice", m_thick },
+        { "cice", m_conc },
+        { "hsnow", m_snow },
+        { "tice", m_tice },
+    };
+}
+
 } /* namespace Nextsim */

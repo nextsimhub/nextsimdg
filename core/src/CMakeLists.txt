@@ -6,17 +6,16 @@ set(BaseSources
     "Timer.cpp"
     "Model.cpp"
     "Iterator.cpp"
-    "SimpleIterant.cpp"
     "Configurator.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
-    "ElementData.cpp"
-    "PrognosticData.cpp"
-    "ExternalData.cpp"
     "DevGridIO.cpp"
     "RectGridIO.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
+    "ModelArray.cpp"
+    "ModelComponent.cpp"
+    "PrognosticData.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")

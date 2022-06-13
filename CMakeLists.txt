@@ -24,6 +24,7 @@ add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost COMPONENTS program_options log REQUIRED)
 
 find_package(Catch2 REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
 
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
@@ -72,4 +73,4 @@ target_include_directories(nextsim PRIVATE
     "${netCDF_INCLUDE_DIR}"
     )
 target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}")
+target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
