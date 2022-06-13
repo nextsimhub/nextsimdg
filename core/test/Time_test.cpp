@@ -193,7 +193,14 @@ TEST_CASE("Durations", "[Duration]")
     TimePoint tt("2010-01-01T00:00:00Z");
     TimePoint tt_day("2010-01-02T00:00:00Z");
 
-
+    REQUIRE(tt + dy == tt_day);
     REQUIRE(dy + tt == tt_day);
+
+    TimePoint ttOther(tt);
+    ttOther += dy;
+    REQUIRE(ttOther == tt_day);
+
+    Duration maybeADay = tt_day - tt;
+    REQUIRE(maybeADay.seconds() == 1 * days);
 }
 }

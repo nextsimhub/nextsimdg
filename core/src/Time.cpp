@@ -66,7 +66,8 @@ int julianGregorianShiftDays(int year)
     return -leaps;
 }
 
-bool isDOYFormat(const std::string& iso) {
+bool isDOYFormat(const std::string& iso)
+{
     const std::regex ymd("^\\d+-\\d+-\\d+($|T)"); // Search for the month
     const std::regex doy("^\\d+-\\d+($|T)"); // Search for the day of year
 
@@ -78,7 +79,7 @@ bool isDOYFormat(const std::string& iso) {
 
     if (TimeOptions::useDOY() && !isDOY)
         throw std::invalid_argument("Inconsistent date format: " + iso
-                + " with useDOY = " + (TimeOptions::useDOY() ? "true" : "false"));
+            + " with useDOY = " + (TimeOptions::useDOY() ? "true" : "false"));
 
     return isDOY;
 }
@@ -94,7 +95,8 @@ std::time_t timeFromISO(const std::string& iso)
 
     bool isDOY = isDOYFormat(iso);
 
-    const char* formatCStr = (isDOY) ? TimePoint::doyhmsFormat.c_str() : TimePoint::ymdhmsFormat.c_str();
+    const char* formatCStr
+        = (isDOY) ? TimePoint::doyhmsFormat.c_str() : TimePoint::ymdhmsFormat.c_str();
     std::stringstream isoStream(iso);
     isoStream >> std::get_time(&tm, formatCStr);
     return mkgmtime(&tm, !isDOY);
@@ -119,7 +121,8 @@ Duration durationFromISO(const std::string& iso, int sign = +1)
 
     bool isDOY = isDOYFormat(iso);
 
-    const char* formatCStr = (isDOY) ? TimePoint::doyhmsFormat.c_str() : TimePoint::ymdhmsFormat.c_str();
+    const char* formatCStr
+        = (isDOY) ? TimePoint::doyhmsFormat.c_str() : TimePoint::ymdhmsFormat.c_str();
     std::stringstream isoStream(iso);
     isoStream >> std::get_time(&tm, formatCStr);
 
@@ -135,16 +138,15 @@ Duration durationFromISO(const std::string& iso, int sign = +1)
         sum += tm.tm_mday * daySeconds;
     }
     sum += (tmEpochYear + tm.tm_year) * yearSeconds;
-    Duration::Basis dura(sign * sum);
+    Duration::Basis dura(std::chrono::seconds(sign * sum));
     return Duration(dura);
-
 }
 
 Duration durationFromISO(std::istream& is, int sign = +1)
 {
     std::string iso;
     is >> iso;
-    return durationFromISO(iso);
+    return durationFromISO(iso, sign);
 }
 
 std::istream& Duration::parse(std::istream& is)
@@ -171,6 +173,5 @@ std::istream& Duration::parse(std::istream& is)
     return is;
 }
 
-TimePoint Duration::operator+(const TimePoint& t) const
-{ return TimePoint(t.m_t + this->m_d); }
+TimePoint Duration::operator+(const TimePoint& t) const { return t + *this; }
 }

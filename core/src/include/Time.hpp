@@ -27,19 +27,19 @@ private:
     static std::array<bool, COUNT> m_opt;
 };
 
+typedef std::chrono::system_clock SystemClock;
+typedef SystemClock::duration SystemDuration;
+
 class TimePoint;
 
 class Duration {
 public:
-    typedef std::chrono::duration<long> Basis;
+    typedef SystemDuration Basis;
     Duration()
         : m_d()
     {
     }
-    Duration(const std::string& str)
-    {
-        this->parse(str);
-    }
+    Duration(const std::string& str) { this->parse(str); }
 
     TimePoint operator+(const TimePoint& t) const;
 
@@ -68,7 +68,7 @@ public:
     Duration operator+(const Duration& a) const { return Duration(m_d + a.m_d); }
     Duration operator-(const Duration& a) const { return Duration(m_d - a.m_d); }
 
-    double seconds() const { return m_d.count(); }
+    double seconds() const { return std::chrono::duration_cast<std::chrono::seconds>(m_d).count(); }
 
     std::istream& parse(std::istream& is);
 
@@ -79,10 +79,7 @@ public:
         return *this;
     }
 
-    std::ostream& format(std::ostream& os) const
-    {
-        return os << m_d.count();
-    }
+    std::ostream& format(std::ostream& os) const { return os << seconds(); }
 
     std::string format() const
     {
@@ -138,15 +135,12 @@ std::time_t timeFromISO(std::istream& is);
 
 class TimePoint {
 public:
-    typedef std::chrono::system_clock Clock;
+    typedef SystemClock Clock;
     typedef std::chrono::time_point<Clock, Duration::Basis> Basis;
 
     TimePoint()
         : m_t() {};
-    TimePoint(const std::string& str)
-    {
-        this->parse(str);
-    }
+    TimePoint(const std::string& str) { this->parse(str); }
     TimePoint(const TimePoint&, const Duration&);
 
     Duration operator-(const TimePoint& a) { return Duration(m_t - a.m_t); }
@@ -155,7 +149,11 @@ public:
         m_t += d.m_d;
         return *this;
     }
-    TimePoint operator+(const Duration& d) { return m_t + d.m_d; }
+    TimePoint operator+(const Duration& d) const
+    {
+        TimePoint t2(*this);
+        return t2 += d;
+    }
 
     bool operator<=(const TimePoint& a) const { return m_t <= a.m_t; }
     bool operator<(const TimePoint& a) const { return m_t < a.m_t; }
@@ -166,7 +164,8 @@ public:
 
     std::istream& parse(std::istream& is)
     {
-//        m_t = Clock::from_time_t(timeFromISO(is));
+        auto fromTime = Clock::from_time_t(timeFromISO(is));
+        m_t = fromTime;
         return is;
     }
 
@@ -204,7 +203,7 @@ public:
 
 private:
     TimePoint(const Basis& t)
-    : m_t(t)
+        : m_t(t)
     {
     }
     Basis m_t;
@@ -242,7 +241,6 @@ private:
     TimePoint m_stop;
     TimePoint m_last;
 };
-
 
 inline double operator*(double a, const Duration& b) { return a * b.seconds(); }
 inline double operator/(double a, const Duration& b) { return a / b.seconds(); }
