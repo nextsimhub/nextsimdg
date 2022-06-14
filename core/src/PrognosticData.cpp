@@ -30,6 +30,12 @@ void PrognosticData::configure() { tryConfigure(iceGrowth); }
 void PrognosticData::setData(const ModelState& ms)
 {
 
+    if (ms.count("mask")) {
+        setOceanMask(ms.at("mask"));
+    } else {
+        noLandMask();
+    }
+
     m_thick = ms.at("hice");
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
@@ -66,10 +72,11 @@ void PrognosticData::update(const TimestepTime& tst)
 ModelState PrognosticData::getState() const
 {
     return {
-        { "hice", m_thick },
-        { "cice", m_conc },
-        { "hsnow", m_snow },
-        { "tice", m_tice },
+        { "mask", oceanMaskH },
+        { "hice", mask(m_thick) },
+        { "cice", mask(m_conc) },
+        { "hsnow", mask(m_snow) },
+        { "tice", mask(m_tice) },
     };
 }
 

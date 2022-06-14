@@ -9,6 +9,7 @@
 
 #include "include/DevGrid.hpp"
 #include "include/IStructure.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
 
 #include <cstddef>
@@ -44,6 +45,7 @@ typedef std::map<StringName, std::string> NameMap;
 
 static const std::string metaName = "meta";
 static const std::string dataName = "data";
+static const std::string mdiName = "missing_value";
 
 // Metadata initialization
 static void initModelMetaData(const netCDF::NcGroup& metaGroup) { }
@@ -130,9 +132,11 @@ void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
         const std::string& name = entry.first;
         if (entry.second.getType() == ModelArray::Type::H) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
             var.putVar(entry.second.getData());
         } else if (entry.second.getType() == ModelArray::Type::Z) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims3));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
             var.putVar(entry.second.getData());
         }
     }

@@ -8,6 +8,7 @@
 #include "include/RectGridIO.hpp"
 
 #include "include/IStructure.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/RectangularGrid.hpp"
@@ -40,6 +41,9 @@ static std::string hsnowName = "hsnow";
 static std::string ticeName = "tice";
 static std::string sstName = "sst";
 static std::string sssName = "sss";
+static std::string maskName = "mask";
+
+static const std::string mdiName = "missing_value";
 
 typedef std::map<StringName, std::string> NameMap;
 
@@ -71,6 +75,8 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z);
 
+    state[maskName] = ModelArray::HField();
+    dataGroup.getVar(maskName).getVar(&state[maskName][0]);
     state[hiceName] = ModelArray::HField();
     dataGroup.getVar(hiceName).getVar(&state[hiceName][0]);
     state[ciceName] = ModelArray::HField();
@@ -123,6 +129,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const std::string& file
         // Write out the data for each field of this type
         for (auto field : entry.second) {
             netCDF::NcVar var(dataGroup.addVar(field, netCDF::ncDouble, dimVec));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
             var.putVar(&state.at(field)[0]);
         }
     }

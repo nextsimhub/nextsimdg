@@ -9,6 +9,7 @@
 #define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
 
@@ -191,15 +192,40 @@ protected:
 
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
-        for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-            fn(i, tst);
+        for (size_t i = 0; i < nOcean; ++i) {
+            fn(oceanIndex[i], tst);
         }
     }
+
+    /*!
+     * @brief Sets the model-wide land-ocean mask (for HField arrays).
+     * @param mask The HField ModelArray containing the mask data.
+     *             0/false is land, >0 is sea.
+     */
+    static void setOceanMask(const ModelArray& mask);
+    /*!
+     * If there is no valid land mask, assume all points are ocean and
+     * initialize accordingly.
+     */
+    static void noLandMask();
+
+    /*!
+     * @brief Returns a copy of the provided ModelArray, masked according to the
+     * land-ocean mask.
+     * @param data The data to be masked.
+     */
+    static ModelArray mask(const ModelArray& data);
+
+protected:
+    static ModelArray oceanMaskH;
 
 private:
     static ModelArray* sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
     static const ModelArray* protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
+
+    static size_t nOcean;
+    static std::vector<size_t> oceanIndex;
 };
 
 } /* namespace Nextsim */

@@ -36,7 +36,7 @@ public:
      *
      * @param filePath The path to attempt writing the data to.
      */
-//    virtual void init(const std::string& filePath) = 0;
+    //    virtual void init(const std::string& filePath) = 0;
 
     /*!
      * @brief Returns the ModelState stored in the file
@@ -64,7 +64,7 @@ public:
      *
      * @param filePath The path to attempt writing the data to.
      */
-//    virtual void dump(const std::string& filePath) const = 0;
+    //    virtual void dump(const std::string& filePath) const = 0;
 
     /*!
      * @brief Dumps the given ModelState to the given file path.
