@@ -9,12 +9,15 @@
 #include "include/StructureFactory.hpp"
 
 #include <iostream>
+#include <sstream>
 
 namespace Nextsim {
 
 void SimpleOutput::outputState(const ModelState& state, const TimestepTime& tst) const
 {
-    std::string timeFileName = m_filePrefix + "." + std::to_string(tst.start) + ".nc";
+    std::stringstream startStream;
+    startStream << tst.start;
+    std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
     std::cout << "Outputting " << state.size() << " fields to " << timeFileName << std::endl;
 
     StructureFactory::fileFromState(state, timeFileName);

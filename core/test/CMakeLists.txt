@@ -19,6 +19,7 @@ include_directories(${INCLUDE_DIR})
 add_executable(testIterator
     "Iterator_test.cpp"
     "${SRC_DIR}/Iterator.cpp"
+    "${SRC_DIR}/Time.cpp"
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
     "${SRC_DIR}/Configurator.cpp"
@@ -116,3 +117,10 @@ add_executable(testModelComponent
 
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}")
 target_link_libraries(testModelComponent PRIVATE Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testTimeClasses
+    "Time_test.cpp"
+    "${CoreSrc}/Time.cpp"
+)
+target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
+target_link_libraries(testTimeClasses PRIVATE Catch2::Catch2)

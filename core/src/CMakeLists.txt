@@ -16,6 +16,7 @@ set(BaseSources
     "ModelArray.cpp"
     "ModelComponent.cpp"
     "PrognosticData.cpp"
+    "Time.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")

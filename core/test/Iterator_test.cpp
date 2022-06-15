@@ -54,9 +54,11 @@ TEST_CASE("Count iterator testing", "[Iterator]")
 
     int nSteps = 5;
 
-    TimePoint start = zeroTime<TimePoint>();
-    Duration dt = 1;
-    iterator.setStartStopStep(start, start + nSteps * dt, dt);
+    TimePoint start;
+    Duration dt("P0-0T0:0:1");
+    Duration overall(dt);
+    overall *= nSteps;
+    iterator.setStartStopStep(start, start + overall, dt);
     iterator.run();
 
     REQUIRE(cant.count == nSteps);
