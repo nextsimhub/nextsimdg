@@ -107,7 +107,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     } iceState;
     iceState.setData(ModelState());
 
-    TimestepTime tst = { 0, 600 };
+    TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     FiniteElementFluxCalc fefc;
     fefc.configure();
     fefc.setData(ModelState());
@@ -211,7 +211,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
     } iceState;
     iceState.setData(ModelState());
 
-    TimestepTime tst = { 0, 600 };
+    TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     FiniteElementFluxCalc fefc;
     fefc.configure();
     fefc.setData(ModelState());
