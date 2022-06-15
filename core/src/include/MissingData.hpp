@@ -19,10 +19,9 @@ public:
     enum {
         MISSINGVALUE_KEY,
     };
+
 private:
     static double m_value;
-
-
 };
 
 } /* namespace Nextsim */

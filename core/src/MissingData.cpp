@@ -11,7 +11,7 @@ namespace Nextsim {
 
 template <>
 const std::map<int, std::string> Configured<MissingData>::keyMap = {
-        { MissingData::MISSINGVALUE_KEY, "model.missing_value" },
+    { MissingData::MISSINGVALUE_KEY, "model.missing_value" },
 };
 double MissingData::m_value = -0x1p300;
 void MissingData::configure()
