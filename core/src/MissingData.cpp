@@ -16,6 +16,6 @@ const std::map<int, std::string> Configured<MissingData>::keyMap = {
 double MissingData::m_value = -0x1p300;
 void MissingData::configure()
 {
-    m_value = Configured::getConfiguration("model.missing_value", m_value);
+    m_value = Configured::getConfiguration(keyMap.at(MissingData::MISSINGVALUE_KEY), m_value);
 }
 } /* namespace Nextsim */
