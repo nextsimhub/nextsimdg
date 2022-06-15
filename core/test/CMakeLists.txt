@@ -113,9 +113,10 @@ target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
     "${CoreSrc}/ModelComponent.cpp"
-    "${SRC_DIR}/MissingData.cpp"
+    "${CoreSrc}/MissingData.cpp"
+    "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ModelArray.cpp"
 )
 
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}")
-target_link_libraries(testModelComponent PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testModelComponent PRIVATE Boost::program_options Catch2::Catch2 Eigen3::Eigen)

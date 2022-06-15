@@ -8,11 +8,21 @@
 #ifndef MISSINGDATA_HPP
 #define MISSINGDATA_HPP
 
+#include "include/Configured.hpp"
+
 namespace Nextsim {
 
-class MissingData {
+class MissingData : public Configured<MissingData> {
 public:
-    static double value;
+    inline static double value() { return m_value; }
+    void configure() override;
+    enum {
+        MISSINGVALUE_KEY,
+    };
+private:
+    static double m_value;
+
+
 };
 
 } /* namespace Nextsim */

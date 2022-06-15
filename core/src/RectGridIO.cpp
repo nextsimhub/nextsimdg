@@ -129,7 +129,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const std::string& file
         // Write out the data for each field of this type
         for (auto field : entry.second) {
             netCDF::NcVar var(dataGroup.addVar(field, netCDF::ncDouble, dimVec));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
             var.putVar(&state.at(field)[0]);
         }
     }

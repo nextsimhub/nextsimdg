@@ -103,12 +103,12 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     case (ModelArray::Type::H):
     case (ModelArray::Type::U):
     case (ModelArray::Type::V): {
-        return data * (oceanMaskH) + MissingData::value * (1 - oceanMaskH);
+        return data * (oceanMaskH) + MissingData::value() * (1 - oceanMaskH);
         break;
     }
     case (ModelArray::Type::Z): {
         ModelArray copy = ModelArray::ZField();
-        copy = MissingData::value;
+        copy = MissingData::value();
         size_t nZ = data.dimensions()[data.nDimensions() - 1];
         for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
             size_t i = oceanIndex[iOcean];
