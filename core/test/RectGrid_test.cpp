@@ -32,7 +32,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, 1 });
 
-    HField fractional(ModelArray::Type::H, "");
+    HField fractional(ModelArray::Type::H);
     for (int j = 0; j < ny; ++j) {
         for (int i = 0; i < nx; ++i) {
             fractional(i, j) = j * yFactor + i * xFactor;
@@ -46,7 +46,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
     HField hsnow = fractional + 5;
 
     HField ticeValue = -(fractional + 1);
-    ZField tice = ModelArray::ZField("tice");
+    ZField tice = ModelArray::ZField();
     tice.setData(ticeValue);
 
     ModelState state = {
@@ -79,7 +79,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
     ZField ticeIn = ms.at("tice");
 
     REQUIRE(ticeIn.dimensions()[2] == 1);
-    REQUIRE(ticeIn(targetX, targetY, 0) == -1.0703);
+    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0703);
 
     std::remove(filename.c_str());
 }

@@ -37,13 +37,13 @@ public:
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
-    std::set<std::string> hFields() const override
+    std::unordered_set<std::string> hFields() const override
     {
         return { "updated_hice", "updated_cice", "updated_hsnow" };
     }
-    std::set<std::string> uFields() const override { return {}; }
-    std::set<std::string> vFields() const override { return {}; }
-    std::set<std::string> zFields() const override { return {}; }
+    std::unordered_set<std::string> uFields() const override { return {}; }
+    std::unordered_set<std::string> vFields() const override { return {}; }
+    std::unordered_set<std::string> zFields() const override { return {}; }
 
     void update(const TimestepTime&);
 

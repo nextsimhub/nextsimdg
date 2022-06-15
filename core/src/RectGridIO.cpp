@@ -8,6 +8,7 @@
 #include "include/RectGridIO.hpp"
 
 #include "include/IStructure.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/RectangularGrid.hpp"
@@ -40,6 +41,9 @@ static std::string hsnowName = "hsnow";
 static std::string ticeName = "tice";
 static std::string sstName = "sst";
 static std::string sssName = "sss";
+static std::string maskName = "mask";
+
+static const std::string mdiName = "missing_value";
 
 typedef std::map<StringName, std::string> NameMap;
 
@@ -71,17 +75,19 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z);
 
-    state[hiceName] = ModelArray::HField(hiceName);
+    state[maskName] = ModelArray::HField();
+    dataGroup.getVar(maskName).getVar(&state[maskName][0]);
+    state[hiceName] = ModelArray::HField();
     dataGroup.getVar(hiceName).getVar(&state[hiceName][0]);
-    state[ciceName] = ModelArray::HField(ciceName);
+    state[ciceName] = ModelArray::HField();
     dataGroup.getVar(ciceName).getVar(&state[ciceName][0]);
-    state[hsnowName] = ModelArray::HField(hsnowName);
+    state[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(&state[hsnowName][0]);
-    state[sstName] = ModelArray::HField(sstName);
+    state[sstName] = ModelArray::HField();
     dataGroup.getVar(sstName).getVar(&state[sstName][0]);
-    state[sssName] = ModelArray::HField(sssName);
+    state[sssName] = ModelArray::HField();
     dataGroup.getVar(sssName).getVar(&state[sssName][0]);
-    state[ticeName] = ModelArray::ZField(ticeName);
+    state[ticeName] = ModelArray::ZField();
     dataGroup.getVar(ticeName).getVar(&state[ticeName][0]);
 
     ncFile.close();
@@ -123,6 +129,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const std::string& file
         // Write out the data for each field of this type
         for (auto field : entry.second) {
             netCDF::NcVar var(dataGroup.addVar(field, netCDF::ncDouble, dimVec));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
             var.putVar(&state.at(field)[0]);
         }
     }

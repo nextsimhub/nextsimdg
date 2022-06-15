@@ -81,6 +81,7 @@ add_executable(testDevGrid
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/DevGridIO.cpp"
+    "${SRC_DIR}/MissingData.cpp"
     "${SRC_DIR}/ModelArray.cpp"
     )
 
@@ -94,6 +95,7 @@ add_executable(testRectGrid
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/RectGridIO.cpp"
+    "${SRC_DIR}/MissingData.cpp"
     "${SRC_DIR}/ModelArray.cpp"
     )
 
@@ -112,11 +114,13 @@ target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
     "${CoreSrc}/ModelComponent.cpp"
+    "${CoreSrc}/MissingData.cpp"
+    "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ModelArray.cpp"
 )
 
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}")
-target_link_libraries(testModelComponent PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testModelComponent PRIVATE Boost::program_options Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testTimeClasses
     "Time_test.cpp"

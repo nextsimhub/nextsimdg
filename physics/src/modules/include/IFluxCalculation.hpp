@@ -18,11 +18,11 @@ namespace Nextsim {
 class IFluxCalculation : public ModelComponent, public Configured<IFluxCalculation> {
 public:
     IFluxCalculation()
-        : qow(ModelArray::Type::H, "qow")
-        , subl(ModelArray::Type::H, "subl")
-        , qia(ModelArray::Type::H, "qia")
-        , dqia_dt(ModelArray::Type::H, "dqia_dt")
-        , qio(ModelArray::Type::H, "qio")
+        : qow(ModelArray::Type::H)
+        , subl(ModelArray::Type::H)
+        , qia(ModelArray::Type::H)
+        , dqia_dt(ModelArray::Type::H)
+        , qio(ModelArray::Type::H)
     {
         // register shared arrays
         registerSharedArray(SharedArray::Q_OW, &qow);
@@ -49,7 +49,7 @@ public:
 
     std::string getName() const override { return "IFluxCalculation"; }
 
-    std::set<std::string> hFields() const override
+    std::unordered_set<std::string> hFields() const override
     {
         return { "qow", "subl", "qia", "dqia_dt", "qio" };
     }

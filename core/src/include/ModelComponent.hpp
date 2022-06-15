@@ -9,13 +9,14 @@
 #define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
 
 #include <functional>
-#include <map>
-#include <set>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace Nextsim {
 
@@ -126,20 +127,20 @@ public:
     }
 
     //! @brief Returns the names of all Type::H ModelArrays defined in this component.
-    virtual std::set<std::string> hFields() const { return {}; }
+    virtual std::unordered_set<std::string> hFields() const { return {}; }
     //! @brief Returns the names of all Type::U ModelArrays defined in this component.
-    virtual std::set<std::string> uFields() const { return {}; }
+    virtual std::unordered_set<std::string> uFields() const { return {}; }
     //! @brief Returns the names of all Type::V ModelArrays defined in this component.
-    virtual std::set<std::string> vFields() const { return {}; }
+    virtual std::unordered_set<std::string> vFields() const { return {}; }
     //! @brief Returns the names of all Type::Z ModelArrays defined in this component.
-    virtual std::set<std::string> zFields() const { return {}; }
+    virtual std::unordered_set<std::string> zFields() const { return {}; }
 
     static void setAllModuleData(const ModelState& stateIn);
     static ModelState getAllModuleState();
     static void unregisterAllModules();
 
-    static void getAllFieldNames(
-        std::set<std::string>& uF, std::set<std::string>& vF, std::set<std::string>& zF);
+    static void getAllFieldNames(std::unordered_set<std::string>& uF,
+        std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF);
 
     /*!
      * @brief Registers a ModelArray into a SharedArray slot from outside any
@@ -206,20 +207,45 @@ protected:
 
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
-        for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-            fn(i, tst);
+        for (size_t i = 0; i < nOcean; ++i) {
+            fn(oceanIndex[i], tst);
         }
     }
+
+    /*!
+     * @brief Sets the model-wide land-ocean mask (for HField arrays).
+     * @param mask The HField ModelArray containing the mask data.
+     *             0/false is land, >0 is sea.
+     */
+    static void setOceanMask(const ModelArray& mask);
+    /*!
+     * If there is no valid land mask, assume all points are ocean and
+     * initialize accordingly.
+     */
+    static void noLandMask();
+
+    /*!
+     * @brief Returns a copy of the provided ModelArray, masked according to the
+     * land-ocean mask.
+     * @param data The data to be masked.
+     */
+    static ModelArray mask(const ModelArray& data);
+
+    /*!
+     * @brief Returns the ocean mask.
+     */
+    static const ModelArray& oceanMask();
+
+protected:
+    static ModelArray* p_oceanMaskH;
 
 private:
     static ModelArray* sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
     static const ModelArray* protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
-    static std::map<std::string, ModelComponent*> registeredModules;
-    static std::map<SharedArray, ModelArray*> registeredArrays;
-    static std::map<SharedArray, std::set<ModelArray**>> reservedArrays;
-    static std::map<SharedArray, std::set<const ModelArray**>> reservedSemiArrays;
-    static std::map<ProtectedArray, const ModelArray*> registeredProtectedArrays;
-    static std::map<ProtectedArray, std::set<const ModelArray**>> reservedProtectedArrays;
+    static std::unordered_map<std::string, ModelComponent*> registeredModules;
+
+    static size_t nOcean;
+    static std::vector<size_t> oceanIndex;
 };
 
 } /* namespace Nextsim */

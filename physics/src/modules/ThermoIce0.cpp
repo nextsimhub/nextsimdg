@@ -19,10 +19,10 @@ const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 
 ThermoIce0::ThermoIce0()
     : IIceThermodynamics()
-    , snowMelt(ModelArray::Type::H, "melt")
-    , topMelt(ModelArray::Type::H, "topmelt")
-    , botMelt(ModelArray::Type::H, "botmelt")
-    , qic(ModelArray::Type::H, "qic")
+    , snowMelt(ModelArray::Type::H)
+    , topMelt(ModelArray::Type::H)
+    , botMelt(ModelArray::Type::H)
+    , qic(ModelArray::Type::H)
 {
 }
 

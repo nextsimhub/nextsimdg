@@ -18,7 +18,7 @@ TEST_CASE("Two dimensional data access test", "[ModelArray]")
 
     ModelArray::setDimensions(ModelArray::Type::H, dims2);
 
-    ModelArray check1d = ModelArray::HField("check1d");
+    ModelArray check1d = ModelArray::HField();
 
     REQUIRE(check1d.nDimensions() == 2);
 
@@ -45,7 +45,7 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
     ModelArray::Dimensions dims4 = {dimLen, dimLen, dimLen, dimLen};
     ModelArray::setDimensions(ModelArray::Type::H, dims4);
 
-    ModelArray check4d = ModelArray::HField("check4d");
+    ModelArray check4d = ModelArray::HField();
 
     REQUIRE(check4d.nDimensions() == 4);
     REQUIRE(check4d.size() == dimLen * dimLen * dimLen * dimLen);
@@ -97,7 +97,7 @@ TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
     size_t totalSize = dims4[0] * dims4[1] * dims4[2] * dims4[3];
     ModelArray::setDimensions(ModelArray::Type::H, dims4);
 
-    HField primorial = ModelArray::HField("primorial");
+    HField primorial = ModelArray::HField();
 
     REQUIRE(primorial.nDimensions() == 4);
     REQUIRE(primorial.size() == totalSize);
@@ -118,37 +118,27 @@ TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
 
 }
 
-TEST_CASE("Naming", "[ModelArray]")
-{
-    std::string dataName = "u10m";
-
-    ModelArray named = ModelArray::HField(dataName);
-
-    REQUIRE(named.name() == dataName);
-}
-
 TEST_CASE("Moving data", "[ModelArray]")
 {
     size_t n = 10;
     ModelArray::setDimensions(ModelArray::Type::H, {n, n});
 
-    ModelArray src = ModelArray::HField("data");
+    ModelArray src = ModelArray::HField();
     for (int i = 0; i < n * n; ++i) {
         src[i] = i;
     }
 
     ModelArray cpyCtor(src);
-    REQUIRE(cpyCtor.name() == src.name());
     REQUIRE(cpyCtor(2, 3) == src(2, 3));
 
-    ModelArray cpyAss = ModelArray::HField("cpyAss");
+    ModelArray cpyAss = ModelArray::HField();
     cpyAss = src;
     REQUIRE(cpyAss(2, 3) == 23);
 }
 
 TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
 {
-    ModelArray uu = ModelArray::UField("uu");
+    ModelArray uu = ModelArray::UField();
     REQUIRE(uu.size() == 0);
     ModelArray::Dimensions udim = {5, 5};
     uu.setDimensions(udim);
@@ -211,7 +201,34 @@ TEST_CASE("Arithmetic tests", "[ModelArray]")
     REQUIRE(quotient[0] == (4. / 3.));
     REQUIRE(quotient[1] == (4. / -5.));
 
-    HField fill = ModelArray::HField("");
+    // Finally, in-place arithmetic
+    lhs += rhs;
+    REQUIRE(lhs[0] == 12);
+    REQUIRE(lhs[1] == 5);
+    lhs -= rhs;
+    REQUIRE(lhs[0] == 9);
+    REQUIRE(lhs[1] == 10);
+    lhs *= rhs;
+    REQUIRE(lhs[0] == 27);
+    REQUIRE(lhs[1] == -50);
+    lhs /= rhs;
+    REQUIRE(lhs[0] == 9);
+    REQUIRE(lhs[1] == 10);
+
+    lhs += three;
+    REQUIRE(lhs[0] == 12);
+    REQUIRE(lhs[1] == 13);
+    lhs -= four;
+    REQUIRE(lhs[0] == 8);
+    REQUIRE(lhs[1] == 9);
+    lhs *= three;
+    REQUIRE(lhs[0] == 24);
+    REQUIRE(lhs[1] == 27);
+    lhs /= four;
+    REQUIRE(lhs[0] == 6);
+    REQUIRE(lhs[1] == 6.75);
+
+    HField fill = ModelArray::HField();
     double filldub = 5.2354;
     fill = filldub;
 

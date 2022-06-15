@@ -13,6 +13,7 @@ set(BaseSources
     "RectGridIO.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
+    "MissingData.cpp"
     "ModelArray.cpp"
     "ModelComponent.cpp"
     "PrognosticData.cpp"

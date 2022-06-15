@@ -25,12 +25,12 @@ const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
 };
 
 IceGrowth::IceGrowth()
-    : hice(ModelArray::Type::H, "hice")
-    , cice(ModelArray::Type::H, "cice")
-    , hsnow(ModelArray::Type::H, "hsnow")
-    , newice(ModelArray::Type::H, "newice")
-    , deltaCFreeze(ModelArray::Type::H, "Δc_freeze")
-    , deltaCMelt(ModelArray::Type::H, "Δc_melt")
+    : hice(ModelArray::Type::H)
+    , cice(ModelArray::Type::H)
+    , hsnow(ModelArray::Type::H)
+    , newice(ModelArray::Type::H)
+    , deltaCFreeze(ModelArray::Type::H)
+    , deltaCMelt(ModelArray::Type::H)
 {
     registerModule();
     ModelComponent::registerSharedArray(SharedArray::H_ICE, &hice);

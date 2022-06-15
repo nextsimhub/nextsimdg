@@ -13,10 +13,10 @@ namespace Nextsim {
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , m_thick(ModelArray::Type::H, "hice")
-    , m_conc(ModelArray::Type::H, "cice")
-    , m_snow(ModelArray::Type::H, "hsnow")
-    , m_tice(ModelArray::Type::Z, "tice")
+    , m_thick(ModelArray::Type::H)
+    , m_conc(ModelArray::Type::H)
+    , m_snow(ModelArray::Type::H)
+    , m_tice(ModelArray::Type::Z)
 
 {
     registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
@@ -29,6 +29,12 @@ void PrognosticData::configure() { tryConfigure(iceGrowth); }
 
 void PrognosticData::setData(const ModelState& ms)
 {
+
+    if (ms.count("mask")) {
+        setOceanMask(ms.at("mask"));
+    } else {
+        noLandMask();
+    }
 
     m_thick = ms.at("hice");
     m_conc = ms.at("cice");
@@ -66,10 +72,11 @@ void PrognosticData::update(const TimestepTime& tst)
 ModelState PrognosticData::getState() const
 {
     return {
-        { "hice", m_thick },
-        { "cice", m_conc },
-        { "hsnow", m_snow },
-        { "tice", m_tice },
+        { "mask", ModelArray(oceanMask()) }, // make a copy
+        { "hice", mask(m_thick) },
+        { "cice", mask(m_conc) },
+        { "hsnow", mask(m_snow) },
+        { "tice", mask(m_tice) },
     };
 }
 

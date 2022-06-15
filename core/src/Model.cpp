@@ -9,6 +9,7 @@
 #include "include/Configurator.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelState.hpp"
 #include "include/StructureFactory.hpp"
 
@@ -59,6 +60,9 @@ void Model::configure()
     std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
     iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
+
+    MissingData mdi;
+    mdi.configure();
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 

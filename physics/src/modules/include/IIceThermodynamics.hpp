@@ -37,9 +37,9 @@ public:
 
 protected:
     IIceThermodynamics()
-        : tice(ModelArray::Type::Z, "tice")
-        , deltaHi(ModelArray::Type::H, "deltaHi")
-        , snowToIce(ModelArray::Type::H, "snow2ice")
+        : tice(ModelArray::Type::Z)
+        , deltaHi(ModelArray::Type::H)
+        , snowToIce(ModelArray::Type::H)
     {
         registerModule();
 

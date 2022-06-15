@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_MODELARRAY_HPP
-#define CORE_SRC_INCLUDE_MODELARRAY_HPP
+#ifndef MODELARRAY_HPP
+#define MODELARRAY_HPP
 
 #include <Eigen/Core>
 #include <cstddef>
@@ -65,10 +65,10 @@ public:
         }
     };
 
-    static ModelArray HField(const std::string& name) { return ModelArray(Type::H, name); }
-    static ModelArray UField(const std::string& name) { return ModelArray(Type::U, name); }
-    static ModelArray VField(const std::string& name) { return ModelArray(Type::V, name); }
-    static ModelArray ZField(const std::string& name) { return ModelArray(Type::Z, name); }
+    static ModelArray HField() { return ModelArray(Type::H); }
+    static ModelArray UField() { return ModelArray(Type::U); }
+    static ModelArray VField() { return ModelArray(Type::V); }
+    static ModelArray ZField() { return ModelArray(Type::Z); }
 
     /*!
      * Construct an unnamed ModelArray of Type::H
@@ -80,7 +80,7 @@ public:
      * @param type The ModelArray::Type for the new object.
      * @param name The name of the new object.
      */
-    ModelArray(const Type type, const std::string& name);
+    ModelArray(const Type type);
     //! Copy constructor
     ModelArray(const ModelArray&);
     virtual ~ModelArray() {};
@@ -95,6 +95,56 @@ public:
     ModelArray& operator=(const double& val);
 
     // ModelArray arithmetic
+    //! In place addition of another ModelArray
+    ModelArray& operator+=(const ModelArray& b)
+    {
+        m_data += b.m_data;
+        return *this;
+    }
+    //! In place subtraction of another ModelArray
+    ModelArray& operator-=(const ModelArray& b)
+    {
+        m_data -= b.m_data;
+        return *this;
+    }
+    //! In place multiplication by another ModelArray
+    ModelArray& operator*=(const ModelArray& b)
+    {
+        m_data *= b.m_data;
+        return *this;
+    }
+    //! In place division by another ModelArray
+    ModelArray& operator/=(const ModelArray& b)
+    {
+        m_data /= b.m_data;
+        return *this;
+    }
+
+    //! In place addition of a double
+    ModelArray& operator+=(double b)
+    {
+        m_data += b;
+        return *this;
+    }
+    //! In place subtraction of a double
+    ModelArray& operator-=(double b)
+    {
+        m_data -= b;
+        return *this;
+    }
+    //! In place multiplication by a double
+    ModelArray& operator*=(double b)
+    {
+        m_data *= b;
+        return *this;
+    }
+    //! In place division by a double
+    ModelArray& operator/=(double b)
+    {
+        m_data /= b;
+        return *this;
+    }
+
     //! Returns a ModelArray containing the per-element sum of the
     //! object and the provided ModelArray.
     ModelArray operator+(const ModelArray&) const;
@@ -172,9 +222,6 @@ public:
             m_data.resize(m_sz.at(type), Eigen::NoChange);
     }
 
-    //! Returns the name of the object.
-    const std::string& name() const { return m_name; }
-
     /*!
      * @brief Sets the value of every element in the object to the provided value.
      *
@@ -211,6 +258,48 @@ public:
      */
     void setData(const ModelArray& source);
 
+private:
+    // Fast special case for 1-d indexing
+    template <typename T, typename I> static inline T indexr(const T* dims, I first)
+    {
+        return static_cast<T>(first);
+    }
+
+    // Fast special case for 2-d indexing
+    template <typename T, typename I> static inline T indexr(const T* dims, I first, I second)
+    {
+        return first * dims[1] + second;
+    }
+
+    // Indices as separate function parameters
+    template <typename T, typename I, typename... Args>
+    static inline T indexr(const T* dims, I first, Args... args)
+    {
+        std::initializer_list<I> loc { first, args... };
+        return indexrHelper(dims, loc);
+    }
+
+    // Indices as a Dimensions object
+    template <typename T> static T indexr(const T* dims, const ModelArray::Dimensions& loc)
+    {
+        return indexrHelper(dims, loc);
+    }
+
+    // Generic index generator that will work on any container
+    template <typename T, typename C> static T indexrHelper(const T* dims, const C& loc)
+    {
+        size_t ndims = loc.size();
+        T stride = 1;
+        T ii = 0;
+        auto iloc = rbegin(loc);
+        for (size_t dim = ndims; dim > 0; --dim) {
+            ii += stride * (*iloc++);
+            stride *= dims[dim - 1];
+        }
+        return ii;
+    }
+
+public:
     /*!
      * @brief Returns the data at the specified one dimensional index.
      *
@@ -234,40 +323,13 @@ public:
      */
     const double& operator[](const Dimensions& dims) const;
 
-    //! Returns the specified point from a 1 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i) const { return (*this)[i]; }
-    //! Returns the specified point from a 2 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j) const;
-    //! Returns the specified point from a 3 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j, size_t k) const;
-    //! Returns the specified point from a 4 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j, size_t k, size_t l) const;
-    //! Returns the specified point from a 5 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const;
-    //! Returns the specified point from a 6 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const;
-    //! Returns the specified point from a 7 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(
-        size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const;
-    //! Returns the specified point from an 8 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Const version.
-    const double& operator()(
-        size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const;
+    /*!
+     * @brief Returns the data at the given set of indices
+     */
+    template <typename... Args> const double& operator()(Args... args) const
+    {
+        return (*this)[indexr(dimensions().data(), args...)];
+    }
 
     /*!
      * @brief Returns the data at the specified one dimensional index.
@@ -292,39 +354,13 @@ public:
      * @param dims The indices of the target point.
      */
     double& operator[](const Dimensions&);
-    //! Returns the specified point from a 1 dimensional ModelArray. If the
+    //! Returns the specified point from a ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned. Non-const version.
-    double& operator()(size_t i) { return (*this)[i]; }
-    //! Returns the specified point from a 2 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j);
-    //! Returns the specified point from a 3 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k);
-    //! Returns the specified point from a 4 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k, size_t l);
-    //! Returns the specified point from a 5 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m);
-    //! Returns the specified point from a 6 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n);
-    //! Returns the specified point from a 7 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p);
-    //! Returns the specified point from a 8 dimensional ModelArray. If the
-    //! object holds discontinuous Galerkin components, only the cell averaged
-    //! value is returned. Non-const version.
-    double& operator()(
-        size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q);
+    template <typename... Args> double& operator()(Args... args)
+    {
+        return const_cast<double&>(std::as_const(*this)(args...));
+    }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at
@@ -438,7 +474,6 @@ private:
     };
     static DimensionMap m_dims;
     DataType m_data;
-    std::string m_name;
 };
 
 typedef ModelArray HField;
@@ -453,4 +488,4 @@ ModelArray operator*(const double&, const ModelArray&);
 ModelArray operator/(const double&, const ModelArray&);
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_MODELARRAY_HPP */
+#endif /* MODELARRAY_HPP */

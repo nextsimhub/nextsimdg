@@ -30,9 +30,9 @@ public:
     }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
-    std::set<std::string> uFields() const override { return { "u1" }; }
-    std::set<std::string> vFields() const override { return { "v1", "v2" }; }
-    std::set<std::string> zFields() const override { return { "z1", "z2", "z3" }; }
+    std::unordered_set<std::string> uFields() const override { return { "u1" }; }
+    std::unordered_set<std::string> vFields() const override { return { "v1", "v2" }; }
+    std::unordered_set<std::string> zFields() const override { return { "z1", "z2", "z3" }; }
 };
 
 TEST_CASE("Register a new module", "[ModelComponent]")
@@ -40,9 +40,9 @@ TEST_CASE("Register a new module", "[ModelComponent]")
     Module1 m1;
     REQUIRE_THROWS_AS(ModelComponent::setAllModuleData(ModelState()), HappyExcept);
 
-    std::set<std::string> uu;
-    std::set<std::string> vv;
-    std::set<std::string> zz;
+    std::unordered_set<std::string> uu;
+    std::unordered_set<std::string> vv;
+    std::unordered_set<std::string> zz;
 
     ModelComponent::getAllFieldNames(uu, vv, zz);
     REQUIRE(uu.size() == 1);
@@ -55,7 +55,7 @@ TEST_CASE("Register a new module", "[ModelComponent]")
 class ModuleSupplyAndWait : public ModelComponent {
 public:
     ModuleSupplyAndWait()
-        : hice(ModelArray::HField("hice"))
+        : hice(ModelArray::HField())
         , cice_ref()
     {
         registerModule();
@@ -83,7 +83,7 @@ private:
 class ModuleRequestAndSupply : public ModelComponent {
 public:
     ModuleRequestAndSupply()
-        : cice(ModelArray::HField("cice"))
+        : cice(ModelArray::HField())
         , hice_ref()
     {
         registerModule();
@@ -121,7 +121,7 @@ TEST_CASE("Test array registration", "[ModelComponent]")
 class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()
-        : qic(ModelArray::HField("qic"))
+        : qic(ModelArray::HField())
         , qio_ref()
     {
         registerModule();
@@ -149,7 +149,7 @@ private:
 class ModuleShared : public ModelComponent {
 public:
     ModuleShared()
-        : qio(ModelArray::HField("qio"))
+        : qio(ModelArray::HField())
         , qic_ref()
     {
         registerModule();
