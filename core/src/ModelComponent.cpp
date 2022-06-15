@@ -66,6 +66,8 @@ void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArra
  */
 void ModelComponent::setOceanMask(const ModelArray& mask)
 {
+    if (p_oceanMaskH)
+        delete p_oceanMaskH;
     p_oceanMaskH = new ModelArray(ModelArray::Type::H);
     ModelArray& oceanMaskH = *p_oceanMaskH;
     oceanMaskH.resize();
