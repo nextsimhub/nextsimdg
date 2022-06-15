@@ -41,7 +41,7 @@ std::chrono::time_point<Iterator::Clock> zeroTime<std::chrono::time_point<Iterat
     return Iterator::Clock::now();
 }
 template<>
-int zeroTime<int>()
+size_t zeroTime<size_t>()
 {
     return 0;
 }
@@ -54,9 +54,11 @@ TEST_CASE("Count iterator testing", "[Iterator]")
 
     int nSteps = 5;
 
-    TimePoint start = zeroTime<TimePoint>();
-    Duration dt = 1;
-    iterator.setStartStopStep(start, start + nSteps * dt, dt);
+    TimePoint start;
+    Duration dt("P0-0T0:0:1");
+    Duration overall(dt);
+    overall *= nSteps;
+    iterator.setStartStopStep(start, start + overall, dt);
     iterator.run();
 
     REQUIRE(cant.count == nSteps);

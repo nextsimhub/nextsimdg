@@ -5,6 +5,6 @@
 /.settings/*
 /src/modules/generated/moduleLoader*.ipp
 /*/src/modules/generated/moduleLoader*.ipp
-/run/*restart.nc
+/run/*.nc
 /run/nextsim
 /run/.DS_Store

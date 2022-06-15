@@ -31,6 +31,9 @@ class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
 
+    // TODO: Replace this with a more fine grained output specification class
+    typedef bool OutputSpec;
+
     enum class ProtectedArray {
         // Prognostic model fields
         H_ICE, // Ice thickness, cell average, m
@@ -110,6 +113,18 @@ public:
      * and should provide extra diagnostic fields.
      */
     virtual ModelState getState(const OutputLevel&) const = 0;
+
+    /*!
+     * @brief Returns the state of the ModelComponent and any ModelComponents
+     * it depends on.
+     *
+     * @details Used to traverse the current tree of ModelComponents and return
+     * the overall model state for diagnostic output.
+     */
+    virtual ModelState getStateRecursive(const OutputSpec& os) const
+    {
+        return os ? getState() : ModelState();
+    }
 
     //! @brief Returns the names of all Type::H ModelArrays defined in this component.
     virtual std::unordered_set<std::string> hFields() const { return {}; }

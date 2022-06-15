@@ -7,8 +7,22 @@
 
 #include "include/DevStep.hpp"
 
+#include "include/DiagnosticOutputModule.hpp"
+
 namespace Nextsim {
 
-void DevStep::iterate(const TimestepTime& tst) { pData->update(tst); }
+void DevStep::init()
+{
+    Module::setImplementation<IDiagnosticOutput>("Nextsim::SimpleOutput");
+    Module::getImplementation<IDiagnosticOutput>().setFilenamePrefix("diagnostic");
+}
+
+void DevStep::iterate(const TimestepTime& tst)
+{
+    pData->update(tst);
+    // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
+    ModelState overallState = pData->getStateRecursive(true);
+    Module::getImplementation<IDiagnosticOutput>().outputState(overallState, tst);
+}
 
 } /* namespace Nextsim */

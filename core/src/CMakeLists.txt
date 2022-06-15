@@ -17,6 +17,7 @@ set(BaseSources
     "ModelArray.cpp"
     "ModelComponent.cpp"
     "PrognosticData.cpp"
+    "Time.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
@@ -33,9 +34,15 @@ set(FreezingPointModuleSources
     "IFreezingPointModule.cpp"
     )
 
+set(DiagnosticOutputModuleSources
+    "DiagnosticOutputModule.cpp"
+    "SimpleOutput.cpp"
+    )
+
 set(ModuleSources
     "${StructureModuleSources}"
     "${FreezingPointModuleSources}"
+    "${DiagnosticOutputModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

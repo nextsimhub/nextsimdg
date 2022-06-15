@@ -106,7 +106,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);
 
-    TimestepTime tst = { 0, 86400 };
+    TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     IceGrowth ig;
     ig.configure();
     ig.update(tst);
@@ -207,7 +207,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);
 
-    TimestepTime tst = { 0, 600 };
+    TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
     ig.update(tst);
@@ -316,7 +316,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);
 
-    TimestepTime tst = { 0, 600 };
+    TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
     ig.update(tst);

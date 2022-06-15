@@ -15,9 +15,7 @@ namespace Nextsim {
 //! A class that controls how time steps are performed.
 class Iterator {
 public:
-    typedef std::chrono::system_clock Clock;
-    //    typedef TimePoint TimePoint;
-    //    typedef Duration Duration;
+    typedef TimePoint::Clock Clock;
     class Iterant;
 
     Iterator();

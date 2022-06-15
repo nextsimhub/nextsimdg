@@ -80,4 +80,11 @@ ModelState PrognosticData::getState() const
     };
 }
 
+ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState otherState = iceGrowth.getState();
+    otherState.merge(getState());
+    return os ? otherState : ModelState();
+}
+
 } /* namespace Nextsim */
