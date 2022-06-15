@@ -34,9 +34,11 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
     ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, 1 });
 
     HField fractional(ModelArray::Type::H);
+    HField mask(ModelArray::Type::H);
     for (int j = 0; j < ny; ++j) {
         for (int i = 0; i < nx; ++i) {
             fractional(i, j) = j * yFactor + i * xFactor;
+            mask(i, j) = (i + j) % 2;
         }
     }
 
@@ -51,6 +53,7 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
     tice.setData(ticeValue);
 
     ModelState state = {
+        { "mask", mask },
         { "hice", hice },
         { "cice", cice },
         { "sst", sst },

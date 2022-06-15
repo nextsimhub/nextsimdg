@@ -106,7 +106,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const std::string& file
     typedef ModelArray::Type Type;
 
     std::map<Type, std::list<std::string>> fields = {
-        { Type::H, { hiceName, ciceName, hsnowName, sstName, sssName } },
+        { Type::H, { maskName, hiceName, ciceName, hsnowName, sstName, sssName } },
         { Type::U, {} },
         { Type::V, {} },
         { Type::Z, { ticeName } },
