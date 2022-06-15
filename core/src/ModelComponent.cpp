@@ -12,7 +12,7 @@ namespace Nextsim {
 std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
 ModelArray* ModelComponent::sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
 const ModelArray* ModelComponent::protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
-ModelArray ModelComponent::oceanMaskH = ModelArray::HField();
+ModelArray* ModelComponent::p_oceanMaskH;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
 
@@ -66,6 +66,8 @@ void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArra
  */
 void ModelComponent::setOceanMask(const ModelArray& mask)
 {
+    p_oceanMaskH = new ModelArray(ModelArray::Type::H);
+    ModelArray& oceanMaskH = *p_oceanMaskH;
     oceanMaskH.resize();
     oceanMaskH = mask;
 
@@ -103,7 +105,7 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     case (ModelArray::Type::H):
     case (ModelArray::Type::U):
     case (ModelArray::Type::V): {
-        return data * (oceanMaskH) + MissingData::value() * (1 - oceanMaskH);
+        return data * oceanMask() + MissingData::value() * (1 - oceanMask());
         break;
     }
     case (ModelArray::Type::Z): {
@@ -121,5 +123,7 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     }
     }
 }
+
+const ModelArray& ModelComponent::oceanMask() { return *p_oceanMaskH; }
 
 } /* namespace Nextsim */

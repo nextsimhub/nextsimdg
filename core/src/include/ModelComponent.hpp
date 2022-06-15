@@ -216,8 +216,13 @@ protected:
      */
     static ModelArray mask(const ModelArray& data);
 
+    /*!
+     * @brief Returns the ocean mask.
+     */
+    static const ModelArray& oceanMask();
+
 protected:
-    static ModelArray oceanMaskH;
+    static ModelArray* p_oceanMaskH;
 
 private:
     static ModelArray* sharedArrays[static_cast<size_t>(SharedArray::COUNT)];

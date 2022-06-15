@@ -72,7 +72,7 @@ void PrognosticData::update(const TimestepTime& tst)
 ModelState PrognosticData::getState() const
 {
     return {
-        { "mask", oceanMaskH },
+        { "mask", ModelArray(oceanMask()) }, // make a copy
         { "hice", mask(m_thick) },
         { "cice", mask(m_conc) },
         { "hsnow", mask(m_snow) },
