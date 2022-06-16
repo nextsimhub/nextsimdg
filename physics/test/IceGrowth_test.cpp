@@ -54,6 +54,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
 
         void setData(const ModelState&) override
         {
+            noLandMask();
             cice[0] = 0.5;
             hice[0] = 0.2;
             hsnow[0] = 0;
@@ -154,6 +155,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
 
         void setData(const ModelState&) override
         {
+            noLandMask();
             cice[0] = 0.5;
             hice[0] = 0.1 / cice[0];
             hsnow[0] = 0.01 / cice[0];
@@ -264,6 +266,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
 
         void setData(const ModelState&) override
         {
+            noLandMask();
             cice[0] = 0.5;
             hice[0] = 0.1 / cice[0];
             hsnow[0] = 0.01 / cice[0];
