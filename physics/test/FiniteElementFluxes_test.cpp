@@ -92,6 +92,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 
         void setData(const ModelState&) override
         {
+            noLandMask();
             cice[0] = 0.5;
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
@@ -196,6 +197,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
 
         void setData(const ModelState&) override
         {
+            noLandMask();
             cice[0] = 0.5;
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;

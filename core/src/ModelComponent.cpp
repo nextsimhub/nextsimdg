@@ -12,7 +12,7 @@ namespace Nextsim {
 std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
 ModelArray* ModelComponent::sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
 const ModelArray* ModelComponent::protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
-ModelArray* ModelComponent::p_oceanMaskH;
+ModelArray* ModelComponent::p_oceanMaskH = nullptr;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
 
@@ -91,7 +91,14 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
 // Fills the nOcean and OceanIndex variables for the zero land case
 void ModelComponent::noLandMask()
 {
+    if (p_oceanMaskH)
+        delete p_oceanMaskH;
+    p_oceanMaskH = new ModelArray(ModelArray::Type::H);
+    p_oceanMaskH->resize();
+    *p_oceanMaskH = 1.; // All ocean
+
     nOcean = ModelArray::size(ModelArray::Type::H);
+    oceanIndex.resize(nOcean);
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         oceanIndex[i] = i;
     }
