@@ -38,7 +38,6 @@ std::tm& tmDoy(std::tm& tm)
 
 std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
 {
-
     if (recalculateDoy)
         tmDoy(*tm);
     std::time_t sum = tm->tm_sec;
@@ -54,6 +53,7 @@ std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
     sum += julianLeapDays * daySeconds;
     // Skipped Gregorian leap days
     sum += (julianGregorianShiftDays(year) - julianGregorianShiftDays(unixEpochYear)) * daySeconds;
+
     return sum;
 }
 
@@ -84,21 +84,67 @@ bool isDOYFormat(const std::string& iso)
     return isDOY;
 }
 
-std::time_t timeFromISO(const std::string& iso)
+std::vector<std::string> splitString(const std::string& str, char delim)
 {
+    std::stringstream ss(str);
+    std::string s;
+    std::vector<std::string> vs;
+    while (std::getline(ss, s, delim)) {
+        vs.push_back(s);
+    }
+    return vs;
+}
 
+std::string addTimeLeadingZeros(const std::string& in)
+{
+    // Linux stdlibc++ doesn't like time components without leading zeros
+    std::vector<std::string> dateTime = splitString(in, 'T');
+    std::string out = dateTime[0];
+    if (dateTime.size() > 1) {
+        std::vector<std::string> hms = splitString(dateTime[1], ':');
+        std::stringstream timeStream;
+        timeStream << std::setfill('0');
+        for (size_t i = 0; i < hms.size(); ++i) {
+            timeStream << std::setw(2) << std::stoi(hms[i]);
+            if (i != hms.size() - 1)
+                timeStream << ':';
+        }
+        out += "T" + timeStream.str();
+    }
+
+    return out;
+}
+std::tm getTimTime(const std::string& in, bool isDOY)
+{
     std::tm tm;
     // Reset the time values
     tm.tm_hour = 0;
     tm.tm_min = 0;
     tm.tm_sec = 0;
 
-    bool isDOY = isDOYFormat(iso);
+    std::string iso = addTimeLeadingZeros(in);
+    if (isDOY) {
+        // Parse the string manually to deal with broken %j format in libstdc++
+        // Split the string into date and time and prepare to parse the time portion later
+        std::vector<std::string> dateTime = splitString(iso, 'T');
+        if (dateTime.size() > 1) {
+            std::stringstream timeStream("T" + dateTime[1]);
+            timeStream >> std::get_time(&tm, TimePoint::hmsFormat.c_str());
+        }
+        // Parse the date portion by splitting on the (lone) hyphen
+        std::vector<std::string> yearDoy = splitString(dateTime[0], '-');
+        tm.tm_year = std::stoi(yearDoy[0]) - tmEpochYear;
+        tm.tm_yday = std::stoi(yearDoy[1]);
+    } else {
+        std::stringstream(iso) >> std::get_time(&tm, TimePoint::ymdhmsFormat.c_str());
+    }
+    return tm;
+}
 
-    const char* formatCStr
-        = (isDOY) ? TimePoint::doyhmsFormat.c_str() : TimePoint::ymdhmsFormat.c_str();
-    std::stringstream isoStream(iso);
-    isoStream >> std::get_time(&tm, formatCStr);
+std::time_t timeFromISO(const std::string& iso)
+{
+    bool isDOY = isDOYFormat(iso);
+    std::tm tm = getTimTime(iso, isDOY);
     return mkgmtime(&tm, !isDOY);
 }
 
@@ -111,21 +157,8 @@ std::time_t timeFromISO(std::istream& is)
 
 Duration durationFromISO(const std::string& iso, int sign = +1)
 {
-    // (Ab)use the std::tm structure and associated library functions to do the
-    // parsing for us.
-    std::tm tm;
-    // Reset the time values
-    tm.tm_hour = 0;
-    tm.tm_min = 0;
-    tm.tm_sec = 0;
-
     bool isDOY = isDOYFormat(iso);
-
-    const char* formatCStr
-        = (isDOY) ? TimePoint::doyhmsFormat.c_str() : TimePoint::ymdhmsFormat.c_str();
-    std::stringstream isoStream(iso);
-    isoStream >> std::get_time(&tm, formatCStr);
-
+    std::tm tm = getTimTime(iso, isDOY);
     // Make up the time duration, analogously to mkgmtime()
     size_t sum = tm.tm_sec;
     sum += tm.tm_min * minuteSeconds;
