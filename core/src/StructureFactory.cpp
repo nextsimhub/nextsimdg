@@ -43,10 +43,12 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
     std::string structureName = structureNameFromFile(filePath);
     // TODO There must be a better way
     if (DevGrid::structureName == structureName) {
+        Module::setImplementation<IStructure>("DevGrid");
         DevGrid gridIn;
         gridIn.setIO(new DevGridIO(gridIn));
         return gridIn.getModelState(filePath);
     } else if (RectangularGrid::structureName == structureName) {
+        Module::setImplementation<IStructure>("RectangularGrid");
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
         return gridIn.getModelState(filePath);
