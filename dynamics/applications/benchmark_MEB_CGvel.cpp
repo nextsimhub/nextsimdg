@@ -4,13 +4,14 @@
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
+#include "MEB.hpp"
+#include "MEBSandbox.hpp"
 #include "Tools.hpp"
 #include "cgMomentum.hpp"
 #include "cgVector.hpp"
 #include "dgInitial.hpp"
 #include "dgTransport.hpp"
 #include "dgVisu.hpp"
-#include "meb.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
 
@@ -295,7 +296,7 @@ int main()
             //    SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, td, d_crit,
             //    Regime, Multip, Lambda, dt_momentum);
 
-            Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
+            Nextsim::MEBSandbox::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
                 H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
             Nextsim::GlobalTimer.stop("time loop - meb - stress");

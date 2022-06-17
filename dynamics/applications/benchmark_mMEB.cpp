@@ -10,7 +10,7 @@
 #include "dgInitial.hpp"
 #include "dgTransport.hpp"
 #include "dgVisu.hpp"
-#include "meb.hpp"
+#include "mMEB.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
 
@@ -301,7 +301,7 @@ int main()
         S22_mmeb = S22;
 
         //! MEVP subcycling
-        Nextsim::MEB::mMEBStressRelaxation(mesh, S11, S12, S22, D, A, dt_adv);
+        Nextsim::mMEB::mMEBStressRelaxation(mesh, S11, S12, S22, D, A, dt_adv);
 
         for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
 
@@ -387,9 +387,9 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
 
-            Nextsim::MEB::mMEBStressUpdate(mesh, S11, S12, S22, E11, E12, E22, H, A, D,
+            Nextsim::mMEB::mMEBStressUpdate(mesh, S11, S12, S22, E11, E12, E22, H, A, D,
                 dt_adv, alpha, S11_mmeb, S12_mmeb, S22_mmeb);
-            Nextsim::MEB::mMEBDamageUpdate(mesh, S11, S12, S22, D, A, dt_adv);
+            Nextsim::mMEB::mMEBDamageUpdate(mesh, S11, S12, S22, D, A, dt_adv);
 
             //Nextsim::MEB::mMEBStressRelaxation(mesh, S11, S12, S22, D, A, dt_adv);
 

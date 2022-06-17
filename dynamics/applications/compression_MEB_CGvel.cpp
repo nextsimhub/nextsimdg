@@ -5,6 +5,8 @@
  */
 
 #include "CheckPoints.hpp"
+#include "MEB.hpp"
+#include "MEBSandbox.hpp"
 #include "Tools.hpp"
 #include "cgMomentum.hpp"
 #include "cgVector.hpp"
@@ -12,7 +14,6 @@
 #include "dgLimit.hpp"
 #include "dgTransport.hpp"
 #include "dgVisu.hpp"
-#include "meb.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
 
@@ -25,8 +26,8 @@
 bool WRITE_VTK = true;
 
 #define CG 1
-#define DGadvection 3
-#define DGstress 3
+#define DGadvection 1
+#define DGstress 1
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
@@ -107,7 +108,7 @@ int main()
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
 
     //! define the time mesh
-    constexpr double dt_adv = .1; //!< Time step of advection problem
+    constexpr double dt_adv = .01; //!< Time step of advection problem
     constexpr size_t NT = RefScaleCanada::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t mom_substeps = 100;
@@ -318,11 +319,11 @@ int main()
             //    SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, td, d_crit,
             //    Regime, Multip, Lambda, dt_momentum);
 
-            //Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
-            //    H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
+            Nextsim::MEBSandbox::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
+                H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
 
-            Nextsim::MEB::StressUpdateMEB(mesh, S11, S12, S22, E11, E12, E22,
-                H, A, D, dt_momentum);
+            //Nextsim::MEB::StressUpdateMEB(mesh, S11, S12, S22, E11, E12, E22,
+            //    H, A, D, dt_momentum);
             //Nextsim::MEB::ElasticUpdate(mesh, S11, S12, S22, E11, E12, E22,
             //    H, A, D, dt_momentum);
 

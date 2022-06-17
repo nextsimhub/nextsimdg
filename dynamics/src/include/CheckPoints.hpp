@@ -7,16 +7,14 @@
 #ifndef __CHECKPOINTS_HPP
 #define __CHECKPOINTS_HPP
 
-#include "dgVector.hpp"
 #include "cgVector.hpp"
+#include "dgVector.hpp"
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <vector>
-
-
 
 namespace Nextsim {
 
@@ -25,73 +23,70 @@ namespace Nextsim {
  */
 namespace CheckPoints {
 
+    template <int DG, template <int> class VectorType>
+    void saveData(const std::string& fileName, int n, VectorType<DG>& matrix)
+    {
 
-template<int DG, template<int> class VectorType>
-void saveData(const std::string& fileName, int n, VectorType<DG>& matrix)
-{
+        const static Eigen::IOFormat CSVFormat(Eigen::FullPrecision, Eigen::DontAlignCols, ", ", "\n");
 
-	const static Eigen::IOFormat CSVFormat(Eigen::FullPrecision, Eigen::DontAlignCols, ", ", "\n");
-    
-    std::ostringstream ss;
-    ss << fileName << "." << std::setw(5) << std::setfill('0') << n << ".txt";
+        std::ostringstream ss;
+        ss << fileName << "." << std::setw(5) << std::setfill('0') << n << ".txt";
 
-	std::ofstream file(ss.str());
-	assert(file.is_open());
-    
-		file << matrix.format(CSVFormat);
-		file.close();
-	
-}
+        std::ofstream file(ss.str());
+        assert(file.is_open());
 
-template<int DG>
-void loadData (const std::string & path, Nextsim::CellVector<DG>& matrix) {
-    
-    std::ifstream indata;
-    indata.open(path);
-    assert(indata.is_open());
-    std::string line;
-    std::vector<double> values;
-    uint rows = 0;
-    while (std::getline(indata, line)) {
-        std::stringstream lineStream(line);
-        std::string cell;
-        while (std::getline(lineStream, cell, ',')) {
-            values.push_back(std::stod(cell));
-        }
-        ++rows;
+        file << matrix.format(CSVFormat);
+        file.close();
     }
 
-#pragma omp parallel for
-    for (size_t i = 0; i < rows; ++i) 
-      for (size_t j = 0; j < DG; ++j) 
-          matrix(i,j) = values[i*DG+j];
+    template <int DG>
+    void loadData(const std::string& path, Nextsim::CellVector<DG>& matrix)
+    {
 
-}
-
-
-template<int CG>
-void loadData (const std::string & path, Nextsim::CGVector<CG>& matrix) {
-    
-    std::ifstream indata;
-    indata.open(path);
-    assert(indata.is_open());
-    std::string line;
-    std::vector<double> values;
-    uint rows = 0;
-    while (std::getline(indata, line)) {
-        std::stringstream lineStream(line);
-        std::string cell;
-        while (std::getline(lineStream, cell, ',')) {
-            values.push_back(std::stod(cell));
+        std::ifstream indata;
+        indata.open(path);
+        assert(indata.is_open());
+        std::string line;
+        std::vector<double> values;
+        uint rows = 0;
+        while (std::getline(indata, line)) {
+            std::stringstream lineStream(line);
+            std::string cell;
+            while (std::getline(lineStream, cell, ',')) {
+                values.push_back(std::stod(cell));
+            }
+            ++rows;
         }
-        ++rows;
+
+#pragma omp parallel for
+        for (size_t i = 0; i < rows; ++i)
+            for (size_t j = 0; j < DG; ++j)
+                matrix(i, j) = values[i * DG + j];
     }
 
-#pragma omp parallel for
-    for (size_t i = 0; i < rows; ++i) 
-          matrix(i,0) = values[i];
-}
+    template <int CG>
+    void loadData(const std::string& path, Nextsim::CGVector<CG>& matrix)
+    {
 
+        std::ifstream indata;
+        indata.open(path);
+        assert(indata.is_open());
+        std::string line;
+        std::vector<double> values;
+        uint rows = 0;
+        while (std::getline(indata, line)) {
+            std::stringstream lineStream(line);
+            std::string cell;
+            while (std::getline(lineStream, cell, ',')) {
+                values.push_back(std::stod(cell));
+            }
+            ++rows;
+        }
+
+#pragma omp parallel for
+        for (size_t i = 0; i < rows; ++i)
+            matrix(i, 0) = values[i];
+    }
 
 } /* namespace CheckPoints */
 
