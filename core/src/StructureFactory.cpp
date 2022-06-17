@@ -49,8 +49,7 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
     } else if (RectangularGrid::structureName == structureName) {
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
-        // return gridIn.getModelState(filePath);
-        return ModelState();
+        return gridIn.getModelState(filePath);
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);
