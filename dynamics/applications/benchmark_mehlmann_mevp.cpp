@@ -256,6 +256,11 @@ int main()
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
 
+	for (int i=0;i<A.rows();++i)
+	  for (int j=0;j<A.cols();++j)
+	    if (!std::isfinite(A(i,j)))
+	      {std::cerr << "NaN!" << std::endl;abort();}
+
         //! Very simple limiting (just constants)
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
@@ -297,13 +302,46 @@ int main()
             //! Update
             Nextsim::GlobalTimer.start("time loop - mevp - update1");
 
+
+	    //            vx = (1.0
+            //     / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+            //         + cg_A.array() * ReferenceScale::F_ocean
+            //             * (OX.array() - vx.array()).abs()) // implicit parts
+            //     * (ReferenceScale::rho_ice * cg_H.array() / dt_adv
+            //             * (beta * vx.array() + vx_mevp.array())
+            //         + // pseudo-timestepping
+            //         cg_A.array()
+            //             * (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
+            //                 ReferenceScale::F_ocean * (OX - vx).array().abs()
+            //                     * OX.array()) // ocean forcing
+            //         + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc
+            //             * (vy - OY).array() // cor + surface
+            //         ))
+            //          .matrix();
+            // vy = (1.0
+            //     / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
+            //         + cg_A.array() * ReferenceScale::F_ocean
+            //             * (OY.array() - vy.array()).abs()) // implicit parts
+            //     * (ReferenceScale::rho_ice * cg_H.array() / dt_adv
+            //             * (beta * vy.array() + vy_mevp.array())
+            //         + // pseudo-timestepping
+            //         cg_A.array()
+            //             * (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
+            //                 ReferenceScale::F_ocean * (OY - vy).array().abs()
+            //                     * OY.array()) // ocean forcing
+            //         + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc
+            //             * (OX - vx).array() // cor + surface
+            //         ))
+            //          .matrix();
+
+
             //	    update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
             for (int i = 0; i < vx.rows(); ++i) {
                 vx(i) = (1.0
                     / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
                         + cg_A(i) * ReferenceScale::F_ocean
-                            * (OX(i) - fabs(vx(i)))) // implicit parts
+                            * fabs(OX(i) - vx(i))) // implicit parts
                     * (ReferenceScale::rho_ice * cg_H(i) / dt_adv
                             * (beta * vx(i) + vx_mevp(i))
                         + // pseudo-timestepping
@@ -317,7 +355,7 @@ int main()
                 vy(i) = (1.0
                     / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
                         + cg_A(i) * ReferenceScale::F_ocean
-                            * (OY(i) - fabs(vy(i)))) // implicit parts
+                            * fabs(OY(i) - vy(i))) // implicit parts
                     * (ReferenceScale::rho_ice * cg_H(i) / dt_adv
                             * (beta * vy(i) + vy_mevp(i))
                         + // pseudo-timestepping

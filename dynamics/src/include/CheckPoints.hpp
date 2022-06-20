@@ -48,7 +48,7 @@ namespace CheckPoints {
         assert(indata.is_open());
         std::string line;
         std::vector<double> values;
-        uint rows = 0;
+        size_t rows = 0;
         while (std::getline(indata, line)) {
             std::stringstream lineStream(line);
             std::string cell;
@@ -73,7 +73,7 @@ namespace CheckPoints {
         assert(indata.is_open());
         std::string line;
         std::vector<double> values;
-        uint rows = 0;
+        size_t rows = 0;
         while (std::getline(indata, line)) {
             std::stringstream lineStream(line);
             std::string cell;
