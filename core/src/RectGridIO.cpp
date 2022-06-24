@@ -94,7 +94,7 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     return state;
 }
 
-void RectGridIO::dumpModelState(const ModelState& state, const std::string& filePath) const
+void RectGridIO::dumpModelState(const ModelState& state, const std::string& filePath, bool isRestart) const
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
 
@@ -105,35 +105,32 @@ void RectGridIO::dumpModelState(const ModelState& state, const std::string& file
 
     typedef ModelArray::Type Type;
 
-    std::map<Type, std::list<std::string>> fields = {
-        { Type::H, { maskName, hiceName, ciceName, hsnowName, sstName, sssName } },
-        { Type::U, {} },
-        { Type::V, {} },
-        { Type::Z, { ticeName } },
-    };
+    int nx = ModelArray::dimensions(Type::H)[0];
+    int ny = ModelArray::dimensions(Type::H)[1];
+    int nz = ModelArray::dimensions(Type::Z)[2];
 
     std::vector<std::string> dimensionNames = { "x", "y", "z", "t", "component", "u", "v", "w" };
 
-    for (auto entry : fields) {
-        if (entry.second.size() == 0)
-            continue;
-        Type type = entry.first;
+    // Create the dimension data, since it has to be in the same group as the
+    // data or the parent group
+    netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], nx);
+    netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], ny);
+    std::vector<netCDF::NcDim> dims2 = { xDim, yDim };
+    netCDF::NcDim zDim = dataGroup.addDim(dimensionNames[2], nz);
+    std::vector<netCDF::NcDim> dims3 = { xDim, yDim, zDim };
 
-        // Create the dimension data
-        std::vector<netCDF::NcDim> dimVec;
-        for (size_t d = 0; d < ModelArray::nDimensions(type); ++d) {
-            dimVec.push_back(dataGroup.addDim(ModelArray::typeNames.at(type) + dimensionNames[d],
-                ModelArray::dimensions(type)[d]));
-        }
-
-        // Write out the data for each field of this type
-        for (auto field : entry.second) {
-            netCDF::NcVar var(dataGroup.addVar(field, netCDF::ncDouble, dimVec));
+    for (const auto entry : state) {
+        const std::string& name = entry.first;
+        if (entry.second.getType() == ModelArray::Type::H) {
+            netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-            var.putVar(&state.at(field)[0]);
+            var.putVar(entry.second.getData());
+        } else if (entry.second.getType() == ModelArray::Type::Z) {
+            netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims3));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+            var.putVar(entry.second.getData());
         }
     }
-    //    dumpData(data, dims, dataGroup, nameMap);
 
     ncFile.close();
 }

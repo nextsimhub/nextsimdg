@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_DEVGRID_HPP
-#define CORE_SRC_INCLUDE_DEVGRID_HPP
+#ifndef DEVGRID_HPP
+#define DEVGRID_HPP
 
 #include "include/IStructure.hpp"
 
@@ -44,10 +44,11 @@ public:
         return pio ? pio->getModelState(filePath) : ModelState();
     }
 
-    void dumpModelState(const ModelState& state, const std::string& filePath) const override
+    void dumpModelState(
+        const ModelState& state, const std::string& filePath, bool isRestart = false) const override
     {
         if (pio)
-            pio->dumpModelState(state, filePath);
+            pio->dumpModelState(state, filePath, isRestart);
     }
     std::string structureType() const override { return structureName; };
 
@@ -68,4 +69,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_DEVGRID_HPP */
+#endif /* DEVGRID_HPP */

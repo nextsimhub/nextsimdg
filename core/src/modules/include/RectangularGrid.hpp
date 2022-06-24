@@ -51,10 +51,11 @@ public:
         return pio ? pio->getModelState(filePath) : ModelState();
     }
 
-    void dumpModelState(const ModelState& state, const std::string& filePath) const override
+    void dumpModelState(
+        const ModelState& state, const std::string& filePath, bool isRestart = false) const override
     {
         if (pio)
-            pio->dumpModelState(state, filePath);
+            pio->dumpModelState(state, filePath, isRestart);
     }
     std::string structureType() const override { return structureName; };
 
@@ -83,7 +84,9 @@ public:
          * @param state The ModelState data
          * @param filePath The path to attempt to write the data to.
          */
-        virtual void dumpModelState(const ModelState& state, const std::string& filePath) const = 0;
+        virtual void dumpModelState(
+            const ModelState& state, const std::string& filePath, bool isRestart) const = 0;
+
     protected:
         IRectGridIO() = default;
 

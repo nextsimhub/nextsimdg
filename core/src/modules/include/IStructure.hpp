@@ -72,7 +72,8 @@ public:
      * @param state The ModelState data
      * @param filePath The path to attempt to write the data to.
      */
-    virtual void dumpModelState(const ModelState& state, const std::string& filePath) const = 0;
+    virtual void dumpModelState(
+        const ModelState& state, const std::string& filePath, bool isRestart) const = 0;
 
     // Node names in the default structure
 
