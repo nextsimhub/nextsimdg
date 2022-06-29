@@ -59,7 +59,8 @@ void Model::configure()
     std::string durationStr = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
     std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
-    iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
+    TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
+    m_etadata.setTime(timeNow);
 
     MissingData mdi;
     mdi.configure();
@@ -73,6 +74,7 @@ void Model::configure()
 
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
     modelStep.setData(pData);
+    modelStep.setMetadata(m_etadata);
     pData.setData(initialState);
 }
 
@@ -82,6 +84,8 @@ void Model::writeRestartFile()
 {
     // TODO Replace with real logging
     std::cout << "  Writing state-based restart file: " << finalFileName << std::endl;
-    StructureFactory::fileFromState(pData.getState(), finalFileName);
+    StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
 }
+
+ModelMetadata& Model::metadata() { return m_etadata; }
 } /* namespace Nextsim */

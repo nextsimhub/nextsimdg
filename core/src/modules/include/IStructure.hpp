@@ -44,7 +44,7 @@ public:
     virtual ModelState getModelState(const std::string& filePath) = 0;
 
     //! Returns the structure name that this class will process
-    virtual std::string structureType() const { return processedStructureName; }
+    virtual const std::string& structureType() const { return processedStructureName; }
     /*!
      * @brief Checks if the passed string matches (ignoring case) the name of
      * the structure that this class constructs.

@@ -57,7 +57,7 @@ public:
         if (pio)
             pio->dumpModelState(state, filePath, isRestart);
     }
-    std::string structureType() const override { return structureName; };
+    const std::string& structureType() const override { return structureName; };
 
     int nIceLayers() const override { return nz; };
 

@@ -25,6 +25,7 @@ public:
     void writeRestartFile(const std::string& filePath) override {};
 
     void setData(PrognosticData& pDat) override { pData = &pDat; }
+    void setMetadata(ModelMetadata& metadata) override { mData = &metadata; }
 
     // Member functions inherited from Iterant
     void init() override;
@@ -34,6 +35,7 @@ public:
 
 private:
     PrognosticData* pData;
+    ModelMetadata* mData;
 };
 
 } /* namespace Nextsim */

@@ -13,13 +13,13 @@
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelState& state, const TimestepTime& tst) const
+void SimpleOutput::outputState(const ModelState& state, const ModelMetadata& meta) const
 {
     std::stringstream startStream;
-    startStream << tst.start;
+    startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
     std::cout << "Outputting " << state.size() << " fields to " << timeFileName << std::endl;
 
-    StructureFactory::fileFromState(state, timeFileName);
+    StructureFactory::fileFromState(state, meta, timeFileName);
 }
 } /* namespace Nextsim */

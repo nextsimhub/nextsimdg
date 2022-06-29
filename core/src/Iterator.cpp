@@ -31,7 +31,7 @@ void Iterator::setStartStopStep(TimePoint startTime, TimePoint stopTime, Duratio
     this->timestep = timestep;
 }
 
-void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
+TimePoint Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
     const std::string& durationStr, const std::string& stepStr)
 {
     std::stringstream ss(startTimeStr);
@@ -47,6 +47,8 @@ void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& s
         ss = std::stringstream(stopTimeStr);
         ss >> stopTime;
     }
+
+    return startTime;
 }
 
 void Iterator::run()

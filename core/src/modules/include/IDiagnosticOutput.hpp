@@ -8,8 +8,8 @@
 #ifndef IDIAGNOSTICOUTPUT_HPP
 #define IDIAGNOSTICOUTPUT_HPP
 
+#include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/Time.hpp"
 
 #include <string>
 
@@ -30,9 +30,9 @@ public:
      * @brief Outputs the passed ModelState.
      *
      * @param state The model state to be written out.
-     * @param tst The time data of the current timestep.
+     * @param meta The model metadata for the the given state.
      */
-    virtual void outputState(const ModelState& state, const TimestepTime& tst) const = 0;
+    virtual void outputState(const ModelState& state, const ModelMetadata& meta) const = 0;
 };
 }
 #endif /* IDIAGNOSTICOUTPUT_HPP */
