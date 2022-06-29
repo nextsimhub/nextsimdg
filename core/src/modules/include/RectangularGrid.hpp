@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef RECTANGULARGRID_HPP_
-#define RECTANGULARGRID_HPP_
+#ifndef RECTANGULARGRID_HPP
+#define RECTANGULARGRID_HPP
 
 #include "IStructure.hpp"
 
@@ -115,4 +115,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* RECTANGULARGRID_HPP_ */
+#endif /* RECTANGULARGRID_HPP */

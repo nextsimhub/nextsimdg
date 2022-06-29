@@ -16,7 +16,7 @@ set(BaseSources
     "MissingData.cpp"
     "ModelArray.cpp"
     "ModelComponent.cpp"
-    "modelMetadata.cpp"
+    "ModelMetadata.cpp"
     "PrognosticData.cpp"
     "Time.cpp"
     )

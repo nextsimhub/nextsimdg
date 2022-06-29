@@ -61,7 +61,8 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
     return ModelState();
 }
 
-void StructureFactory::fileFromState(const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+void StructureFactory::fileFromState(
+    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
     std::string structureName = Module::getImplementation<IStructure>().structureType();
 

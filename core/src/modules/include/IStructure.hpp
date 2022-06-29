@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_ISTRUCTURE_HPP
-#define CORE_SRC_INCLUDE_ISTRUCTURE_HPP
+#ifndef ISTRUCTURE_HPP
+#define ISTRUCTURE_HPP
 
 #include "include/ModelState.hpp"
 
@@ -91,4 +91,4 @@ private:
 };
 
 }
-#endif /* CORE_SRC_INCLUDE_ISTRUCTURE_HPP */
+#endif /* ISTRUCTURE_HPP */
