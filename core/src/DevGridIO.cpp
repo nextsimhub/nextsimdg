@@ -143,8 +143,8 @@ void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
     }
 }
 
-void DevGridIO::dumpModelState(
-    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const
+void DevGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+    const std::string& filePath, bool isRestart) const
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
     netCDF::NcGroup metaGroup = ncFile.addGroup(metaName);

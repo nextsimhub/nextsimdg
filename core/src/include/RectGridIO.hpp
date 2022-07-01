@@ -24,8 +24,8 @@ public:
 
     ModelState getModelState(const std::string& filePath) override;
 
-    void dumpModelState(
-        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const override;
+    void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+        const std::string& filePath, bool isRestart) const override;
 
 private:
     RectGridIO() = default;

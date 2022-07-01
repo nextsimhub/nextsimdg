@@ -9,22 +9,24 @@
 
 #include <cstdint>
 #include <cstring>
-#include <ncString.h>
 #include <ncInt64.h>
+#include <ncString.h>
 #include <ncVar.h>
 
 #include <iostream> // FIXME remove me
 
 namespace Nextsim {
 
-netCDF::NcGroup& CommonRestartMetadata::writeStructureType(netCDF::NcFile& rootGroup, const ModelMetadata& metadata)
+netCDF::NcGroup& CommonRestartMetadata::writeStructureType(
+    netCDF::NcFile& rootGroup, const ModelMetadata& metadata)
 {
     netCDF::NcGroup structGroup = rootGroup.addGroup(IStructure::structureNodeName());
     structGroup.putAtt(IStructure::typeNodeName(), metadata.structureName());
     return rootGroup;
 }
 
-netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(netCDF::NcGroup& metaGroup, const ModelMetadata& metadata)
+netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
+    netCDF::NcGroup& metaGroup, const ModelMetadata& metadata)
 {
     // Structure type
     metaGroup.putAtt(IStructure::typeNodeName(), metadata.structureName());

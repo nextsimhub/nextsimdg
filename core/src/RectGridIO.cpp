@@ -95,8 +95,8 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     return state;
 }
 
-void RectGridIO::dumpModelState(
-    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const
+void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+    const std::string& filePath, bool isRestart) const
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
 

@@ -27,8 +27,8 @@ public:
     virtual ~DevGridIO() = default;
 
     ModelState getModelState(const std::string& filePath) const override;
-    void dumpModelState(
-        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const override;
+    void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+        const std::string& filePath, bool isRestart) const override;
 
 private:
     DevGrid* grid;
