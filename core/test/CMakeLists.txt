@@ -77,12 +77,16 @@ target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 add_executable(testDevGrid
     "DevGrid_test.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
+    "${SRC_DIR}/CommonRestartMetadata.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/DevGridIO.cpp"
     "${SRC_DIR}/MissingData.cpp"
     "${SRC_DIR}/ModelArray.cpp"
+    "${SRC_DIR}/ModelMetadata.cpp"
+    "${SRC_DIR}/Time.cpp"
     )
 
 target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -92,11 +96,16 @@ target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log 
 add_executable(testRectGrid
     "RectGrid_test.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${SRC_DIR}/CommonRestartMetadata.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/RectGridIO.cpp"
     "${SRC_DIR}/MissingData.cpp"
     "${SRC_DIR}/ModelArray.cpp"
+    "${SRC_DIR}/ModelMetadata.cpp"
+    "${SRC_DIR}/Time.cpp"
     )
 
 target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")

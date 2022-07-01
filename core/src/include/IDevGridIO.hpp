@@ -8,6 +8,7 @@
 #ifndef IDEVGRIDIO_HPP
 #define IDEVGRIDIO_HPP
 
+#include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
@@ -46,7 +47,7 @@ public:
      *          diagnostic dump?
      */
     virtual void dumpModelState(
-        const ModelState& state, const std::string& filePath, bool isRestart) const = 0;
+        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
 
 protected:
     DevGrid* grid;

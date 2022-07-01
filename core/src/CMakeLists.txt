@@ -9,6 +9,7 @@ set(BaseSources
     "Configurator.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
+    "CommonRestartMetadata.cpp"
     "DevGridIO.cpp"
     "RectGridIO.cpp"
     "DevStep.cpp"

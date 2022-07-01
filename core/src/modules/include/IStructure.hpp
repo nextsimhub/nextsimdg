@@ -8,6 +8,7 @@
 #ifndef ISTRUCTURE_HPP
 #define ISTRUCTURE_HPP
 
+#include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -73,17 +74,19 @@ public:
      * @param filePath The path to attempt to write the data to.
      */
     virtual void dumpModelState(
-        const ModelState& state, const std::string& filePath, bool isRestart) const = 0;
+        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
 
     // Node names in the default structure
 
     //! Returns the name of the metadata node.
-    static const std::string metadataNodeName() { return "structure"; };
+    static const std::string metadataNodeName() { return "metadata"; }
     //! Returns the name of the data node.
-    static const std::string dataNodeName() { return "data"; };
+    static const std::string dataNodeName() { return "data"; }
+    //! The name of the group holding the definitive structure type
+    static const std::string structureNodeName() { return "structure"; }
     //! The name of the node holding the name of the structure type processed
     //! by this class.
-    static const std::string typeNodeName() { return "type"; };
+    static const std::string typeNodeName() { return "type"; }
 
 private:
     //! Name of the structure type processed by this class.

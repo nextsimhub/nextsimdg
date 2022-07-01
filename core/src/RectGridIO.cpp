@@ -7,6 +7,7 @@
 
 #include "include/RectGridIO.hpp"
 
+#include "include/CommonRestartMetadata.hpp"
 #include "include/IStructure.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
@@ -95,15 +96,15 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
 }
 
 void RectGridIO::dumpModelState(
-    const ModelState& state, const std::string& filePath, bool isRestart) const
+    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
 
+    CommonRestartMetadata::writeStructureType(ncFile, metadata);
     netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
     netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
 
-    metaGroup.putAtt(IStructure::typeNodeName(), RectangularGrid::structureName);
-
+    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
     typedef ModelArray::Type Type;
 
     int nx = ModelArray::dimensions(Type::H)[0];

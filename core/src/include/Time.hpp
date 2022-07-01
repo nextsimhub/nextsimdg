@@ -143,7 +143,7 @@ public:
     TimePoint(const std::string& str) { this->parse(str); }
     TimePoint(const TimePoint&, const Duration&);
 
-    Duration operator-(const TimePoint& a) { return Duration(m_t - a.m_t); }
+    Duration operator-(const TimePoint& a) const { return Duration(m_t - a.m_t); }
     TimePoint& operator+=(const Duration& d)
     {
         m_t += d.m_d;

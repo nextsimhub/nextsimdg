@@ -45,10 +45,10 @@ public:
     }
 
     void dumpModelState(
-        const ModelState& state, const std::string& filePath, bool isRestart = false) const override
+        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart = false) const override
     {
         if (pio)
-            pio->dumpModelState(state, filePath, isRestart);
+            pio->dumpModelState(state, metadata, filePath, isRestart);
     }
     const std::string& structureType() const override { return structureName; };
 

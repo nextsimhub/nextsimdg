@@ -26,7 +26,7 @@ namespace Nextsim {
 std::string structureNameFromFile(const std::string& filePath)
 {
     netCDF::NcFile ncf(filePath, netCDF::NcFile::read);
-    netCDF::NcGroup metaGroup(ncf.getGroup(IStructure::metadataNodeName()));
+    netCDF::NcGroup metaGroup(ncf.getGroup(IStructure::structureNodeName()));
     netCDF::NcGroupAtt att = metaGroup.getAtt(IStructure::typeNodeName());
     int len = att.getAttLength();
     // Initialize a std::string of len, filled with zeros
@@ -69,11 +69,11 @@ void StructureFactory::fileFromState(
     if (DevGrid::structureName == structureName) {
         DevGrid gridOut;
         gridOut.setIO(new DevGridIO(gridOut));
-        gridOut.dumpModelState(state, filePath);
+        gridOut.dumpModelState(state, meta, filePath);
     } else if (RectangularGrid::structureName == structureName) {
         RectangularGrid gridOut;
         gridOut.setIO(new RectGridIO(gridOut));
-        gridOut.dumpModelState(state, filePath);
+        gridOut.dumpModelState(state, meta, filePath);
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);

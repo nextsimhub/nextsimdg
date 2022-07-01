@@ -7,6 +7,7 @@
 
 #include "include/DevGridIO.hpp"
 
+#include "include/CommonRestartMetadata.hpp"
 #include "include/DevGrid.hpp"
 #include "include/IStructure.hpp"
 #include "include/MissingData.hpp"
@@ -111,9 +112,9 @@ ModelState DevGridIO::getModelState(const std::string& filePath) const
     return ms;
 }
 
-void dumpModelMeta(const ModelState& state, netCDF::NcGroup& metaGroup)
+void dumpModelMeta(const ModelMetadata& metadata, netCDF::NcGroup& metaGroup)
 {
-    metaGroup.putAtt(IStructure::typeNodeName(), DevGrid::structureName);
+    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
 }
 
 void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
@@ -143,12 +144,13 @@ void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
 }
 
 void DevGridIO::dumpModelState(
-    const ModelState& state, const std::string& filePath, bool isRestart) const
+    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
     netCDF::NcGroup metaGroup = ncFile.addGroup(metaName);
     netCDF::NcGroup dataGroup = ncFile.addGroup(dataName);
-    dumpModelMeta(state, metaGroup);
+    CommonRestartMetadata::writeStructureType(ncFile, metadata);
+    dumpModelMeta(metadata, metaGroup);
     dumpModelData(state, dataGroup);
     ncFile.close();
 }

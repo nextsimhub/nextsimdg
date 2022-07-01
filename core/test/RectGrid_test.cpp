@@ -8,6 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
+#include "include/CommonRestartMetadata.hpp"
 #include "include/RectangularGrid.hpp"
 #include "include/RectGridIO.hpp"
 #include "include/IStructure.hpp"
@@ -61,7 +62,10 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
         { "tice", tice },
     };
 
-    grid.dumpModelState(state, filename);
+    ModelMetadata metadata;
+    metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
+
+    grid.dumpModelState(state, metadata, filename);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
