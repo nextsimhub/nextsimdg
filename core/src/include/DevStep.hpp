@@ -25,15 +25,17 @@ public:
     void writeRestartFile(const std::string& filePath) override {};
 
     void setData(PrognosticData& pDat) override { pData = &pDat; }
+    void setMetadata(ModelMetadata& metadata) override { mData = &metadata; }
 
     // Member functions inherited from Iterant
-    void init() override {};
+    void init() override;
     void start(const TimePoint& startTime) override {};
     void iterate(const TimestepTime& dt) override;
     void stop(const TimePoint& stopTime) override {};
 
 private:
     PrognosticData* pData;
+    ModelMetadata* mData;
 };
 
 } /* namespace Nextsim */

@@ -7,8 +7,10 @@
 
 #include "include/DevGridIO.hpp"
 
+#include "include/CommonRestartMetadata.hpp"
 #include "include/DevGrid.hpp"
 #include "include/IStructure.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
 
 #include <cstddef>
@@ -44,6 +46,7 @@ typedef std::map<StringName, std::string> NameMap;
 
 static const std::string metaName = "meta";
 static const std::string dataName = "data";
+static const std::string mdiName = "missing_value";
 
 // Metadata initialization
 static void initModelMetaData(const netCDF::NcGroup& metaGroup) { }
@@ -109,9 +112,9 @@ ModelState DevGridIO::getModelState(const std::string& filePath) const
     return ms;
 }
 
-void dumpModelMeta(const ModelState& state, netCDF::NcGroup& metaGroup)
+void dumpModelMeta(const ModelMetadata& metadata, netCDF::NcGroup& metaGroup)
 {
-    metaGroup.putAtt(IStructure::typeNodeName(), DevGrid::structureName);
+    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
 }
 
 void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
@@ -130,20 +133,24 @@ void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
         const std::string& name = entry.first;
         if (entry.second.getType() == ModelArray::Type::H) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
             var.putVar(entry.second.getData());
         } else if (entry.second.getType() == ModelArray::Type::Z) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims3));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
             var.putVar(entry.second.getData());
         }
     }
 }
 
-void DevGridIO::dumpModelState(const ModelState& state, const std::string& filePath) const
+void DevGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+    const std::string& filePath, bool isRestart) const
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
     netCDF::NcGroup metaGroup = ncFile.addGroup(metaName);
     netCDF::NcGroup dataGroup = ncFile.addGroup(dataName);
-    dumpModelMeta(state, metaGroup);
+    CommonRestartMetadata::writeStructureType(ncFile, metadata);
+    dumpModelMeta(metadata, metaGroup);
     dumpModelData(state, dataGroup);
     ncFile.close();
 }

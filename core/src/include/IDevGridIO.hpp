@@ -8,6 +8,7 @@
 #ifndef IDEVGRIDIO_HPP
 #define IDEVGRIDIO_HPP
 
+#include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
@@ -42,8 +43,11 @@ public:
      *
      * @param state The ModelState data
      * @param filePath The path to attempt to write the data to.
+     * @param isRestart Should this file be written as a restart file or a
+     *          diagnostic dump?
      */
-    virtual void dumpModelState(const ModelState& state, const std::string& filePath) const = 0;
+    virtual void dumpModelState(
+        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
 
 protected:
     DevGrid* grid;

@@ -19,6 +19,7 @@ include_directories(${INCLUDE_DIR})
 add_executable(testIterator
     "Iterator_test.cpp"
     "${SRC_DIR}/Iterator.cpp"
+    "${SRC_DIR}/Time.cpp"
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
     "${SRC_DIR}/Configurator.cpp"
@@ -76,11 +77,16 @@ target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 add_executable(testDevGrid
     "DevGrid_test.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
+    "${SRC_DIR}/CommonRestartMetadata.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/DevGridIO.cpp"
+    "${SRC_DIR}/MissingData.cpp"
     "${SRC_DIR}/ModelArray.cpp"
+    "${SRC_DIR}/ModelMetadata.cpp"
+    "${SRC_DIR}/Time.cpp"
     )
 
 target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -90,10 +96,16 @@ target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log 
 add_executable(testRectGrid
     "RectGrid_test.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${SRC_DIR}/CommonRestartMetadata.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/RectGridIO.cpp"
+    "${SRC_DIR}/MissingData.cpp"
     "${SRC_DIR}/ModelArray.cpp"
+    "${SRC_DIR}/ModelMetadata.cpp"
+    "${SRC_DIR}/Time.cpp"
     )
 
 target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
@@ -111,8 +123,17 @@ target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
     "${CoreSrc}/ModelComponent.cpp"
+    "${CoreSrc}/MissingData.cpp"
+    "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ModelArray.cpp"
 )
 
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}")
-target_link_libraries(testModelComponent PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testModelComponent PRIVATE Boost::program_options Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testTimeClasses
+    "Time_test.cpp"
+    "${CoreSrc}/Time.cpp"
+)
+target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
+target_link_libraries(testTimeClasses PRIVATE Catch2::Catch2)

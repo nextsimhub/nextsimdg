@@ -54,6 +54,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
 
         void setData(const ModelState&) override
         {
+            noLandMask();
             cice[0] = 0.5;
             hice[0] = 0.2;
             hsnow[0] = 0;
@@ -106,7 +107,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);
 
-    TimestepTime tst = { 0, 86400 };
+    TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     IceGrowth ig;
     ig.configure();
     ig.update(tst);
@@ -154,6 +155,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
 
         void setData(const ModelState&) override
         {
+            noLandMask();
             cice[0] = 0.5;
             hice[0] = 0.1 / cice[0];
             hsnow[0] = 0.01 / cice[0];
@@ -207,7 +209,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);
 
-    TimestepTime tst = { 0, 600 };
+    TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
     ig.update(tst);
@@ -264,6 +266,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
 
         void setData(const ModelState&) override
         {
+            noLandMask();
             cice[0] = 0.5;
             hice[0] = 0.1 / cice[0];
             hsnow[0] = 0.01 / cice[0];
@@ -316,7 +319,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);
 
-    TimestepTime tst = { 0, 600 };
+    TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
     ig.update(tst);

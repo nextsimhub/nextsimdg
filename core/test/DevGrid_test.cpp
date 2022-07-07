@@ -8,6 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
+#include "include/CommonRestartMetadata.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevGridIO.hpp"
 #include "include/IStructure.hpp"
@@ -34,9 +35,11 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
     ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, 1 });
 
     HField fractional(ModelArray::Type::H);
+    HField mask(ModelArray::Type::H);
     for (int j = 0; j < ny; ++j) {
         for (int i = 0; i < nx; ++i) {
             fractional(i, j) = j * yFactor + i * xFactor;
+            mask(i, j) = (i + j) % 2;
         }
     }
 
@@ -51,6 +54,7 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
     tice.setData(ticeValue);
 
     ModelState state = {
+        { "mask", mask },
         { "hice", hice },
         { "cice", cice },
         { "sst", sst },
@@ -59,7 +63,10 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
         { "tice", tice },
     };
 
-    grid.dumpModelState(state, stateFilename);
+    ModelMetadata metadata;
+    metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
+
+    grid.dumpModelState(state, metadata, stateFilename);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);

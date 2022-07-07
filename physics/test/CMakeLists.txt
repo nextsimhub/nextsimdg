@@ -21,6 +21,7 @@ add_executable(testIceGrowth
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
     "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
     "${ModulesDir}/IceThermodynamicsModule.cpp"
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
@@ -42,6 +43,7 @@ add_executable(testIceGrowth
     "${ModulesDir}/OceanStateModule.cpp"
     "${ModulesDir}/OceanState.cpp"
     "${ModulesDir}/DummyOceanState.cpp"
+    "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testIceGrowth PRIVATE
     "${CoreSourceDir}"
@@ -57,6 +59,7 @@ add_executable(testFEFluxes
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
     "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${ModulesDir}/FiniteElementFluxes.cpp"
     "${ModulesDir}/FiniteElementSpecHum.cpp"
@@ -73,6 +76,7 @@ add_executable(testFEFluxes
     "${ModulesDir}/OceanStateModule.cpp"
     "${ModulesDir}/OceanState.cpp"
     "${ModulesDir}/DummyOceanState.cpp"
+    "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testFEFluxes PRIVATE
     "${CoreSourceDir}"

@@ -9,13 +9,17 @@ set(BaseSources
     "Configurator.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
+    "CommonRestartMetadata.cpp"
     "DevGridIO.cpp"
     "RectGridIO.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
+    "MissingData.cpp"
     "ModelArray.cpp"
     "ModelComponent.cpp"
+    "ModelMetadata.cpp"
     "PrognosticData.cpp"
+    "Time.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
@@ -32,9 +36,15 @@ set(FreezingPointModuleSources
     "IFreezingPointModule.cpp"
     )
 
+set(DiagnosticOutputModuleSources
+    "DiagnosticOutputModule.cpp"
+    "SimpleOutput.cpp"
+    )
+
 set(ModuleSources
     "${StructureModuleSources}"
     "${FreezingPointModuleSources}"
+    "${DiagnosticOutputModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

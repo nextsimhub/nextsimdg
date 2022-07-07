@@ -5,11 +5,12 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef RECTANGULARGRID_HPP_
-#define RECTANGULARGRID_HPP_
+#ifndef RECTANGULARGRID_HPP
+#define RECTANGULARGRID_HPP
 
 #include "IStructure.hpp"
 
+#include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
@@ -51,12 +52,13 @@ public:
         return pio ? pio->getModelState(filePath) : ModelState();
     }
 
-    void dumpModelState(const ModelState& state, const std::string& filePath) const override
+    void dumpModelState(
+        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart = false) const override
     {
         if (pio)
-            pio->dumpModelState(state, filePath);
+            pio->dumpModelState(state, metadata, filePath, isRestart);
     }
-    std::string structureType() const override { return structureName; };
+    const std::string& structureType() const override { return structureName; };
 
     int nIceLayers() const override { return nz; };
 
@@ -83,7 +85,9 @@ public:
          * @param state The ModelState data
          * @param filePath The path to attempt to write the data to.
          */
-        virtual void dumpModelState(const ModelState& state, const std::string& filePath) const = 0;
+        virtual void dumpModelState(
+            const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
+
     protected:
         IRectGridIO() = default;
 
@@ -112,4 +116,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* RECTANGULARGRID_HPP_ */
+#endif /* RECTANGULARGRID_HPP */

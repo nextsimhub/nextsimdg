@@ -9,6 +9,7 @@
 #define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
 
@@ -29,6 +30,9 @@ class ModelComponent;
 class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
+
+    // TODO: Replace this with a more fine grained output specification class
+    typedef bool OutputSpec;
 
     enum class ProtectedArray {
         // Prognostic model fields
@@ -109,6 +113,18 @@ public:
      * and should provide extra diagnostic fields.
      */
     virtual ModelState getState(const OutputLevel&) const = 0;
+
+    /*!
+     * @brief Returns the state of the ModelComponent and any ModelComponents
+     * it depends on.
+     *
+     * @details Used to traverse the current tree of ModelComponents and return
+     * the overall model state for diagnostic output.
+     */
+    virtual ModelState getStateRecursive(const OutputSpec& os) const
+    {
+        return os ? getState() : ModelState();
+    }
 
     //! @brief Returns the names of all Type::H ModelArrays defined in this component.
     virtual std::unordered_set<std::string> hFields() const { return {}; }
@@ -191,15 +207,45 @@ protected:
 
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
-        for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-            fn(i, tst);
+        for (size_t i = 0; i < nOcean; ++i) {
+            fn(oceanIndex[i], tst);
         }
     }
+
+    /*!
+     * @brief Sets the model-wide land-ocean mask (for HField arrays).
+     * @param mask The HField ModelArray containing the mask data.
+     *             0/false is land, >0 is sea.
+     */
+    static void setOceanMask(const ModelArray& mask);
+    /*!
+     * If there is no valid land mask, assume all points are ocean and
+     * initialize accordingly.
+     */
+    static void noLandMask();
+
+    /*!
+     * @brief Returns a copy of the provided ModelArray, masked according to the
+     * land-ocean mask.
+     * @param data The data to be masked.
+     */
+    static ModelArray mask(const ModelArray& data);
+
+    /*!
+     * @brief Returns the ocean mask.
+     */
+    static const ModelArray& oceanMask();
+
+protected:
+    static ModelArray* p_oceanMaskH;
 
 private:
     static ModelArray* sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
     static const ModelArray* protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
+
+    static size_t nOcean;
+    static std::vector<size_t> oceanIndex;
 };
 
 } /* namespace Nextsim */
