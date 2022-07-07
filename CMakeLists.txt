@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
-project(framework_dg)
+project(nextsim_dg)
 
 set (NETCDF_CXX "YES")
 find_package(netCDF REQUIRED)
@@ -11,8 +11,20 @@ if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
 else()
     set(NSDG_NetCDF_Library "netcdf_c++4")
 endif()
+
+# Regarding Boost.Log, if our application consists of more
+# than one modules that use it, we must link to the shared
+# version. If we have a single executable or a single module
+# that works, we may use the static version.
+# By default, it is assumed that the library is built in
+# static mode. Use the following definition to indicate that
+# the code will be linked against dynamically loaded boost
+# libraries.
+add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost COMPONENTS program_options log REQUIRED)
+
 find_package(Catch2 REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
 
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
@@ -56,13 +68,9 @@ add_executable(nextsim "${NextsimSources}")
 
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${Boost_INCLUDE_DIRS}"
     "${ModuleLoaderIppTargetDirectory}"
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
     )
 target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsim LINK_PUBLIC ${Boost_LIBRARIES} "${NSDG_NetCDF_Library}")
-
-#The parse_modules target is inherited from src
-add_dependencies(nextsim parse_modules)
+target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)

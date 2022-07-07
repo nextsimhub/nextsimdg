@@ -5,31 +5,44 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_IICEOCEANHEATFLUX_HPP_
-#define SRC_INCLUDE_IICEOCEANHEATFLUX_HPP_
+#ifndef IICEOCEANHEATFLUX_HPP
+#define IICEOCEANHEATFLUX_HPP
+
+#include "include/ModelArray.hpp"
+#include "include/ModelArrayRef.hpp"
+#include "include/ModelComponent.hpp"
+#include "include/Time.hpp"
 
 namespace Nextsim {
-class PrognosticData;
+class PrognosticElementData;
 class ExternalData;
 class PhysicsData;
 class NextsimPhysics;
 
 //! The interface class for the ice-ocean heat flux calculation.
-class IIceOceanHeatFlux {
+class IIceOceanHeatFlux : public ModelComponent {
 public:
     virtual ~IIceOceanHeatFlux() = default;
 
+    // This superclass has no state
+    void setData(const ModelState&) override {};
+    ModelState getState() const override { return ModelState(); }
+    ModelState getState(const OutputLevel&) const override { return getState(); }
+    // …but it does have a name
+    std::string getName() const override { return "IIceOceanHeatFlux"; }
+
     /*!
-     * @brief Calculate the ice-ocean heat flux.
+     * Updates the ice ocean heat flux calculation for the timestep.
      *
-     * @param prog PrognosticData for this element (constant).
-     * @param exter ExternalData for this element (constant).
-     * @param phys PhysicsData for this element (constant).
-     * @param nsphys Nextsim physics implementation data for this element
-     * (constant).
+     * @param tStep The object containing the timestep start and duration times.
      */
-    virtual double flux(const PrognosticData&, const ExternalData&, const PhysicsData&, const NextsimPhysics&)
-        = 0;
+    virtual void update(const TimestepTime&) = 0;
+
+protected:
+    ModelArrayRef<ProtectedArray::SST> sst;
+    ModelArrayRef<ProtectedArray::TF> tf;
+
+    ModelArrayRef<SharedArray::Q_IO, RW> qio;
 };
 }
 #endif /* SRC_INCLUDE_IICEOCEANHEATFLUX_HPP_ */

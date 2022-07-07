@@ -1,75 +1,46 @@
-# ModuleLoader
+# Modules
+The module system provides a way of selecting the configuration of NextSIM_DG at runtime, without having to re-compile the model to obtain different behaviour. It often operates along with the configuration system to allow selection of the particular implementation using the text config files. The module system provides a method of decoupling the selection of a particular implementation from its point of use.
 
-Defining implementations of an interface to load.
+## Interfaces and implementations
+The module system works with classes defined using typical C++ polymorphic classes. An abstract interface class defines the visible behaviour of the module and one or more implementation classes derived from it. No further code is required in the interface or implementation classes to use the module system. However, and addition Module class is required to provide the necessary infrastructure.
 
-## Brief
-Given multiple implementations of a given function, how can we choose at the start of run time which implementation to use? For example, there might be three different ways of calculating sea-ice albedo. Only one will be used in a particular model run, but we don't want to have to recompile the model just to change to a different implementation.
+## `Module` namespace and class
+The Module infrastructure provides a pair of templated functions `getInstance<T>()` and `getImplementation<T>()` in the `Module` namespace. By calling specializations of these functions, an instance of the  the define implementation class can be obtained. For a new instance `getInstance<T>()` is called which returns a `std::unique_ptr` of type of the interface class, pointing at a new instance of the implementation class. The `getImplementation<T>()` function returns a reference to a static instance of the implementation class, which can be used when a new instance is not needed. This could be used for pseudo-static functions, for instance.
 
-The alternative implementations inherit from an interface class. The specific implementation is then accessed through a base class `std::unique_ptr` and executes the chosen implementation using virtual functions.
+The implementation is set using the `setImplementation<T>()` function, which takes a string argument of the name of the implementaion to be used, allowing the implementation to be set from the text of a configuration file.
 
-The configuration comes from a JSON module configuration file. The selection of the implementation of each module is done on initialization of the module loader. Access to the loaded module is provided by templated `getImplementation<T>()` functions, where the function parameter `T` is the interface class.
+## Implementing a new `IInterfaceModule` class
 
-## Usage
-To use the ModuleLoader module loader, there must be a set of interfaces and implementations of those interfaces. These are coded in the usual way, but the interfaces must have header files named in the pattern `Iheader.hpp`, where `header` is replaced by the name of the interface, as specified below.
+In the following description, the interface class is named `IInterface` and the implementation class is `Implmentation`.
 
-In the code that uses ModuleLoader, new instances of the chosen implementation of the interface are obtained by calling `getImplementation<T>`, where `T` is the name of the interface class, including the leading 'I', as in the header file name.
-
-For example, if the interface is named "Albedo" in the configuration, then the header file will be called `IAlbedo.hpp` and an instance of the implementing class will be pointed to by the return value of `loader.getImplementation<IAlbedo>()`.
-
-The configuration of the interfaces and implementations is specified in a JSON file. By default this is named `modules.json`, but this name can be changed in the `CMakeLists.txt` file by changing the value of the CMake variable `ModuleLoaderFile`.
-
-The JSON file should specify an array. Each element is an object with two members: `name` and `implementations`. The value of `name` is that of the interface. In the example above this would be the string "Albedo". The member  `implementations` is an array of the names of the classes that implement this particular interface. These will be found in the header that is their name suffixed with `.hpp` (with no additional affixes). In that header the class is derived from the `Iinterface` class.
-
-### Example
-Using alternative implementations of albedo as an example, the JSON file looks like:
-
-    [
-        {
-        "name": "Albedo",
-        "implementations": [
-            "SnowAlbedo",
-            "IceAlbedo",
-            ]
-        },
-    ]
-
-The interface class is declared as
-
-    class IAlbedo {
- in the header file `IAlbedo.hpp`. The two implementations would be declared as
-
-    class SnowAlbedo: public IAlbedo {
-in `SnowAlbedo.hpp` and
-
-    class IceAlbedo: public IAlbedo {
-in `IceAlbedo.hpp`, with these classes defined somewhere in the source tree that makes up the overall executable. The ModuleLoader does not care about implementation source file naming.
-
-Within the code, implementations for the interfaces are selected using the `ModuleLoader::setImplementation()` function, which takes the names as string arguments.
-
+### The header
+The header contains the declaration of the Module specialization for `IInterface`. It will contain an include of the `Module` header and of the `IInterface` header. Within the `Module` namespace there is the explicit specialization of the `functionMap` variable.
 ```
-    loader.setImplementation("IAlbedo", "IceAlbedo");
-```
-Once this is done, objects of the implementing class can be accessed using templated functions either as a static instance that is stored within the ModuleLoader class
-
-```
-    IAlbedo& alb = loader.getImplementation<IAlbedo>();
+template <> Module<IInterface>::map Module<IInterface>::functionMap;
 ```
 
-or as a new `std::unique_ptr`.
-
+There is also the declaration of the Module class itself. This consists mostly of boilerplate code to set up the module class.
 ```
-    std::unique_ptr<IAlbedo> pAlb = std::move(loader.getInstance<IAlbedo>();
+class IInterfaceModule : public Module<IInterface> {
+    struct Constructor {
+        Constructor();
+    };
+    static Constructor ctor;
+};
 ```
 
-### Building
-The module file is passed to a Python script that will parse the JSON and produce the inclusion files that are required to implement the ModuleLoader class with the chosen sets of interfaces and implementations. The command line will look like
+### The source
+The source file for the Module class consists of template specializations to relate the names of the implementations to the classes themselves. The code for the source file can be generated using the Python 3 script `module_maker.py`. This takes an `--interface` argument for the interface class name and then a list of the implementation classes. The first implementation in the list is used as the default which will be returned if no other implementation is selected. The text of the source file is then returned to standard output.
 
-    python moduleloader_builder.py [--ipp path_prefix] [--hpp path_prefix] module_file
-The `--ipp` option will apply the specified text directly in front of the defined `.ipp` file names. This will usually be a directory (including trailing separator) where the files are to be found, but could include a file name prefix if desired, and the names in `ModuleLoader.cpp` are edited to match.
+To implement the source of the module without using the python script, it is best to base it off one of the existing source files.
 
-The `--hpp` option will apply the specified text directly in front of the generated header file names in the interface and implementation classes include statements. This will usually be a directory (including trailing separator) where the files are to be found, but could include a file name prefix if desired, as long as the header files have the same prefix.
+## Using the module
+### Selecting an implementation
+When the module is constructed a default implmentation is loaded and will be returned if no other implementation is selected. Otherwise, one of the other implementations will be selected when named as an argument to `setImplementation()`. If the argument to `setImplementation()` is not the name of an implementation of the interface then a `std::out_of_range` exception will be throw, based on the underlying `std::map`.
 
-The module_file argument is the path to the file specifying the interface and implementation names, as specified above. If no name is given, the default file `modules.json` will be tried to be read.
+How the implementation selecting string is selected is entirely up to the developer. The `boost::program_options` based classes `Configurator` and `ConfiguredModule` may be of use.
 
-### CMake integration
-The builder system is designed to be integrated into a CMake build process. This is done by making the executable target depend on a custom target that runs the Python script. An example can be found in `modules/CMakeLists.txt` in this repository, but the custom target is based on information from a StackOverflow [answer](https://stackoverflow.com/a/49021383). This set-up allows the modules to be built with minimal intrusion into the main build process. The subsidiary module loader CMake file `modules/CMakeLists.txt` requires the CMake variable `ModuleLoaderIppTargetDirectory` to be defined. This should be any directory defined as an include directory for the executable, including a trailing directory separator.
+### Using the interface
+The usual way of using a module is to either acquire a fresh instance using `getInstance()` or by using the static instance that can be referenced through `getImplementation()`. The instance returned by `getInstance()` is referred to by the `std::unique_ptr` that is returned, which removes the need for disposing of it when its use is complete.
+
+Either through the reference or the smart pointer, the implementation can be accessed using any of the functions defined in the interface class, just as with any other C++ polymorphic class.

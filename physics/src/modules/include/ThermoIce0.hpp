@@ -1,51 +1,47 @@
 /*!
  * @file ThermoIce0.hpp
  *
- * @date Sep 29, 2021
+ * @date Mar 17, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_THERMOICE0_HPP_
-#define SRC_INCLUDE_THERMOICE0_HPP_
+#ifndef THERMOICE0HPP
+#define THERMOICE0HPP
 
 #include "include/Configured.hpp"
-#include "IThermodynamics.hpp"
-
+#include "include/IIceThermodynamics.hpp"
+#include "include/ModelArrayRef.hpp"
 namespace Nextsim {
 
-class PrognosticData;
-class PhysicsData;
-class ExternalData;
-class NextsimPhysics;
-
-//! The implementation class for the NeXtSIM therm0 ice thermodynamics.
-class ThermoIce0 : public IThermodynamics, public Configured<ThermoIce0> {
+//! A class implementing IICeThermodynamics as the ThermoIce0 model.
+class ThermoIce0 : public IIceThermodynamics, public Configured<ThermoIce0> {
 public:
-    ThermoIce0() = default;
+    ThermoIce0();
     virtual ~ThermoIce0() = default;
 
-    void configure() override;
     enum {
         KS_KEY,
-        FLOODING_KEY,
     };
+    void configure() override;
 
-    /*!
-     * @brief Calculate the NeXtSIM thermo0 ice thermodynamics.
-     *
-     * @param prog PrognosticData for this element (constant)
-     * @param exter ExternalData for this element (constant)
-     * @param phys PhysicsData for this element
-     * @param nsphys Nextsim physics implementation data for this element.
-     */
-    void calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
-        NextsimPhysics& nsphys) override;
+    void setData(const ModelState&) override;
+    void update(const TimestepTime& tsTime) override;
 
 private:
+    void calculateElement(size_t i, const TimestepTime& tst);
+
+    HField snowMelt;
+    HField topMelt;
+    HField botMelt;
+    HField qic;
+    ModelArrayRef<ProtectedArray::HTRUE_ICE> oldHi;
+
     static double k_s;
-    static bool doFlooding;
+    static const double freezingPointIce;
+
+    bool doFlooding = true; // TODO: read from configuration
 };
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_THERMOICE0_HPP_ */
+#endif /* THERMOICE0HPP */

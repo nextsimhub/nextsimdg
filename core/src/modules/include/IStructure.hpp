@@ -5,18 +5,14 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_ISTRUCTURE_HPP
-#define CORE_SRC_INCLUDE_ISTRUCTURE_HPP
+#ifndef ISTRUCTURE_HPP
+#define ISTRUCTURE_HPP
 
-#include "include/ElementData.hpp"
+#include "include/ModelMetadata.hpp"
+#include "include/ModelState.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <ncFile.h>
-#include <ncGroup.h>
 #include <string>
-
-// See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
-#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
 namespace Nextsim {
 
@@ -33,10 +29,7 @@ namespace Nextsim {
  */
 class IStructure {
 public:
-    IStructure()
-        : cursor(*this)
-    {
-    }
+    IStructure() { }
     virtual ~IStructure() = default;
 
     /*!
@@ -44,10 +37,15 @@ public:
      *
      * @param filePath The path to attempt writing the data to.
      */
-    virtual void init(const std::string& filePath) = 0;
+    //    virtual void init(const std::string& filePath) = 0;
+
+    /*!
+     * @brief Returns the ModelState stored in the file
+     */
+    virtual ModelState getModelState(const std::string& filePath) = 0;
 
     //! Returns the structure name that this class will process
-    virtual std::string structureType() const { return processedStructureName; }
+    virtual const std::string& structureType() const { return processedStructureName; }
     /*!
      * @brief Checks if the passed string matches (ignoring case) the name of
      * the structure that this class constructs.
@@ -67,71 +65,28 @@ public:
      *
      * @param filePath The path to attempt writing the data to.
      */
-    virtual void dump(const std::string& filePath) const = 0;
+    //    virtual void dump(const std::string& filePath) const = 0;
+
     /*!
-     * @brief Resets the data cursor.
+     * @brief Dumps the given ModelState to the given file path.
      *
-     * @returns 0 as an int.
+     * @param state The ModelState data
+     * @param filePath The path to attempt to write the data to.
      */
-    virtual int resetCursor() { return 0; };
-
-    /*!
-     * @brief Returns whether the current cursor is valid.
-     */
-    virtual bool validCursor() const { return false; };
-
-    /*!
-     * @brief Returns the data value at the cursor.
-     */
-    virtual ElementData& cursorData() = 0;
-
-    /*!
-     * @brief Returns a const reference to the data value at the cursor.
-     */
-    virtual const ElementData& cursorData() const = 0;
-
-    /*!
-     * @brief Increments the cursor.
-     */
-    virtual void incrCursor() = 0;
-
-    class Cursor {
-    public:
-        Cursor(IStructure& ownerer)
-            : owner(ownerer)
-        {
-        }
-        ~Cursor() = default;
-        IStructure& operator=(const int i) const
-        {
-            if (0 == i)
-                owner.resetCursor();
-            return owner;
-        }
-        operator bool() const { return owner.validCursor(); };
-        ElementData& operator*() const { return owner.cursorData(); };
-        ElementData* operator->() const { return &owner.cursorData(); };
-        IStructure& operator++() const
-        {
-            owner.incrCursor();
-            return owner;
-        };
-
-    private:
-        IStructure& owner;
-    };
-
-    const Cursor cursor;
+    virtual void dumpModelState(
+        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
 
     // Node names in the default structure
 
     //! Returns the name of the metadata node.
-    static const std::string metadataNodeName() { return "structure"; };
+    static const std::string metadataNodeName() { return "metadata"; }
     //! Returns the name of the data node.
-    static const std::string dataNodeName() { return "data"; };
+    static const std::string dataNodeName() { return "data"; }
+    //! The name of the group holding the definitive structure type
+    static const std::string structureNodeName() { return "structure"; }
     //! The name of the node holding the name of the structure type processed
     //! by this class.
-    static const std::string typeNodeName() { return "type"; };
+    static const std::string typeNodeName() { return "type"; }
 
 private:
     //! Name of the structure type processed by this class.
@@ -139,4 +94,4 @@ private:
 };
 
 }
-#endif /* CORE_SRC_INCLUDE_ISTRUCTURE_HPP */
+#endif /* ISTRUCTURE_HPP */

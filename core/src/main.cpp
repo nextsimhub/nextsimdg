@@ -13,7 +13,6 @@
 
 int main(int argc, char* argv[])
 {
-
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
     // Extract any config files defined on the command line
@@ -21,8 +20,6 @@ int main(int argc, char* argv[])
     // Pass the config file names to Configurator
     Nextsim::Configurator::addFiles(cmdLine.getConfigFileNames());
 
-    // Load all defaults for modules that are not explicitly configured
-    ModuleLoader::getLoader().setAllDefaults();
     // Parse the configuration to load those that are explicitly configured
     Nextsim::ConfiguredModule::parseConfigurator();
 

@@ -8,97 +8,88 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
+#include "include/CommonRestartMetadata.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevGridIO.hpp"
-#include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
-#include "include/ModuleLoader.hpp"
 
 #include <cstdio>
 #include <fstream>
 
-const std::string filename = "DevGrid_test.nc";
-
 namespace Nextsim {
 
-TEST_CASE("Write out a DevGrid restart file", "[DevGrid]")
-{
-    ModuleLoader::getLoader().setAllDefaults();
+const std::string stateFilename = "modelState.test.nc";
 
+TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
+{
     DevGrid grid;
-    grid.init("");
     grid.setIO(new DevGridIO(grid));
+
     // Fill in the data. It is not real data.
-    grid.resetCursor();
-    int nx = DevGrid::nx;
-    int ny = DevGrid::nx;
+    size_t nx = DevGrid::nx;
+    size_t ny = DevGrid::nx;
     double yFactor = 0.01;
     double xFactor = 0.0001;
 
+    ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
+    ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, 1 });
+
+    HField fractional(ModelArray::Type::H);
+    HField mask(ModelArray::Type::H);
     for (int j = 0; j < ny; ++j) {
         for (int i = 0; i < nx; ++i) {
-            if (grid.validCursor()) {
-                double fractional = j * yFactor + i * xFactor;
-                grid.cursorData() = PrognosticGenerator()
-                                        .hice(1 + fractional)
-                                        .cice(2 + fractional)
-                                        .sst(3 + fractional)
-                                        .sss(4 + fractional)
-                                        .hsnow(5 + fractional)
-                                        .tice({ -(1. + fractional) });
-                grid.incrCursor();
-            }
+            fractional(i, j) = j * yFactor + i * xFactor;
+            mask(i, j) = (i + j) % 2;
         }
     }
 
-    grid.dump(filename);
+    HField hice = fractional + 1;
+    HField cice = fractional + 2;
+    HField sst = fractional + 3;
+    HField sss = fractional + 4;
+    HField hsnow = fractional + 5;
 
-    DevGrid grid2;
-    grid2.init("");
-    grid2.setIO(new DevGridIO(grid2));
+    HField ticeValue = -(fractional + 1);
+    ZField tice = ModelArray::ZField();
+    tice.setData(ticeValue);
 
-    grid2.cursor = 0;
+    ModelState state = {
+        { "mask", mask },
+        { "hice", hice },
+        { "cice", cice },
+        { "sst", sst },
+        { "sss", sss },
+        { "hsnow", hsnow },
+        { "tice", tice },
+    };
 
-    for (int j = 0; j < ny; ++j) {
-        for (int i = 0; i < nx; ++i) {
-            if (grid2.cursor) {
-                *(grid2.cursor) = PrognosticGenerator();
-                ++grid2.cursor;
-            }
-        }
-    }
+    ModelMetadata metadata;
+    metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
 
-    grid2.cursor = 0;
-    int targetIndex = 7 * DevGrid::nx + 3;
-    for (int i = 0; i < targetIndex; ++i) {
-        ++grid2.cursor;
-    }
-    if (!grid2.cursor) {
-        FAIL("Invalid cursor value of " << targetIndex);
-    }
+    grid.dumpModelState(state, metadata, stateFilename);
 
-    double unInitIce = grid2.cursor->iceThickness();
-    REQUIRE(unInitIce == 0.);
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
+    DevGrid gridIn;
+    size_t targetX = 3;
+    size_t targetY = 7;
 
-    grid2.init(filename);
+    gridIn.setIO(new DevGridIO(grid));
+    ModelState ms = gridIn.getModelState(stateFilename);
 
-    grid2.cursor = 0;
-    for (int i = 0; i < targetIndex; ++i) {
-        ++grid2.cursor;
-    }
-    if (!grid2.cursor) {
-        FAIL("Invalid cursor value of " << targetIndex);
-    }
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == DevGrid::nx);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == DevGrid::nx);
+    REQUIRE(ms.at("hice")(targetX, targetY) != 0);
+    REQUIRE(ms.at("hice")(targetX, targetY) > 1);
+    REQUIRE(ms.at("hice")(targetX, targetY) < 2);
+    REQUIRE(ms.at("hice")(targetX, targetY) == 1.0703);
 
-    REQUIRE(grid2.cursor->iceThickness() != 0);
-    REQUIRE(grid2.cursor->iceThickness() > 1);
-    REQUIRE(grid2.cursor->iceThickness() < 2);
-    REQUIRE(grid2.cursor->iceThickness() == 1.0703);
-    REQUIRE(grid2.cursor->iceThickness() != unInitIce);
+    ZField ticeIn = ms.at("tice");
 
-    REQUIRE(grid2.cursor->iceTemperature(0) < -1);
-    REQUIRE(grid2.cursor->iceTemperature(0) > -2);
+    REQUIRE(ticeIn.dimensions()[2] == 1);
+    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0703);
 
-    std::remove(filename.c_str());
+    std::remove(stateFilename.c_str());
 }
+
 }

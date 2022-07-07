@@ -4,14 +4,15 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_MODEL_HPP
-#define SRC_INCLUDE_MODEL_HPP
+#ifndef MODEL_HPP
+#define MODEL_HPP
 
 #include "include/Logged.hpp"
 
 #include "include/Configured.hpp"
-#include "include/IStructure.hpp"
 #include "include/Iterator.hpp"
+#include "include/ModelMetadata.hpp"
+#include "include/PrognosticData.hpp"
 
 #include "DevStep.hpp"
 #include <string>
@@ -42,16 +43,19 @@ public:
     //! Sets the filename of the restart file that would currently be written out.
     void setFinalFilename(const std::string& finalFile);
 
+    //! Gets the model metadata instance
+    ModelMetadata& metadata();
+
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
+    PrognosticData pData;
+    ModelMetadata m_etadata;
 
     std::string initialFileName;
     std::string finalFileName;
-
-    std::shared_ptr<IStructure> dataStructure;
 };
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_MODEL_HPP */
+#endif /* MODEL_HPP */

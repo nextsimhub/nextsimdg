@@ -11,7 +11,7 @@
 namespace Nextsim {
 
 class PhysicsData;
-class PrognosticData;
+class PrognosticElementData;
 class NextsimPhysics;
 
 //! The interface class for ice concentration update calculations.
@@ -23,20 +23,20 @@ public:
      * @brief A virtual function that calculates the amount of freezing during
      * the timestep.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param phys PhysicsData for this element.
      * @param nsphys Nextsim physics implementation data for this element.
      */
-    virtual double freeze(const PrognosticData&, PhysicsData&, NextsimPhysics&) const = 0;
+    virtual double freeze(const PrognosticElementData&, PhysicsData&, NextsimPhysics&) const = 0;
     /*!
      * @brief A virtual function that calculates the amount of melting during
      * the timestep.
      *
-     * @param prog PrognosticData for this element (constant).
+     * @param prog PrognosticElementData for this element (constant).
      * @param phys PhysicsData for this element.
      * @param nsphys Nextsim physics implementation data for this element.
      */
-    virtual double melt(const PrognosticData&, PhysicsData&, NextsimPhysics&) const = 0;
+    virtual double melt(const PrognosticElementData&, PhysicsData&, NextsimPhysics&) const = 0;
 };
 }
 

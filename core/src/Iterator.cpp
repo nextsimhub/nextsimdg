@@ -24,15 +24,14 @@ Iterator::Iterator(Iterant* iterant)
 
 void Iterator::setIterant(Iterant* iterant) { this->iterant = iterant; }
 
-void Iterator::setStartStopStep(
-    Iterator::TimePoint startTime, Iterator::TimePoint stopTime, Iterator::Duration timestep)
+void Iterator::setStartStopStep(TimePoint startTime, TimePoint stopTime, Duration timestep)
 {
     this->startTime = startTime;
     this->stopTime = stopTime;
     this->timestep = timestep;
 }
 
-void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
+TimePoint Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
     const std::string& durationStr, const std::string& stepStr)
 {
     std::stringstream ss(startTimeStr);
@@ -48,6 +47,8 @@ void Iterator::parseAndSet(const std::string& startTimeStr, const std::string& s
         ss = std::stringstream(stopTimeStr);
         ss >> stopTime;
     }
+
+    return startTime;
 }
 
 void Iterator::run()
@@ -55,7 +56,8 @@ void Iterator::run()
     iterant->start(startTime);
 
     for (auto t = startTime; t < stopTime; t += timestep) {
-        iterant->iterate(timestep);
+        TimestepTime tsTime = { t, timestep };
+        iterant->iterate(tsTime);
     }
 
     iterant->stop(stopTime);
