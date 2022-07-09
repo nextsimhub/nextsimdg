@@ -253,7 +253,7 @@ public:
                     interpolate[3] += -1. / 4. * v(ii, 5);
                 }
                 for (auto it : interpolate)
-                    OUT << it << std::endl;
+		  OUT << cuttol(it,1.e-20) << std::endl;
             }
         OUT.close();
     }

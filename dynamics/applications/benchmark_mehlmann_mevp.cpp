@@ -34,7 +34,7 @@ extern Timer GlobalTimer;
 
 namespace ReferenceScale {
 // Benchmark testcase from [Mehlmann / Richter, ...]
-constexpr double T = 2 * 2 * 60. * 60.; //!< Time horizon 2 days
+constexpr double T = 2 * 24 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -147,7 +147,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 1. * 60.0 * 60.0; // evey 4 hours
+    constexpr double T_vtk = 4. * 60.0 * 60.0; // evey 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -261,13 +261,10 @@ int main()
 	    if (!std::isfinite(A(i,j)))
 	      {std::cerr << "NaN!" << std::endl;abort();}
 
-        //! Very simple limiting (just constants)
+        //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
         Nextsim::LimitMin(H, 0.0);
-        // A.col(0) = A.col(0).cwiseMin(1.0);
-        // A.col(0) = A.col(0).cwiseMax(0.0);
-        // H.col(0) = H.col(0).cwiseMax(0.0);
 
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);

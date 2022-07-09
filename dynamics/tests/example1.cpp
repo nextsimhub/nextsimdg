@@ -25,7 +25,7 @@
   extern Timer GlobalTimer;
 }*/
 
-bool WRITE_VTK = false; //!< set to true for vtk output
+bool WRITE_VTK = true; //!< set to true for vtk output
 int WRITE_EVERY = 5;
 
 double TOL = 1.e-10; //!< tolerance for checking test results
