@@ -45,7 +45,7 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
     boost::program_options::store(parsed, m_arguments);
 
     // Print help and exit
-    if (m_arguments.count("help")) {
+    if (m_arguments.count("help") || m_arguments.empty()) {
         std::cerr << opt << std::endl;
         std::exit(EXIT_SUCCESS);
     }

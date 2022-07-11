@@ -8,13 +8,16 @@
 #include "include/ConfiguredModule.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/ModuleLoader.hpp"
+#include "include/Module.hpp"
 
 #include <boost/program_options.hpp>
 #include <stdexcept>
+
 namespace Nextsim {
 
 const std::string ConfiguredModule::MODULE_PREFIX = "Modules";
+
+ConfiguredModule::map ConfiguredModule::configuredModules;
 
 void ConfiguredModule::parseConfigurator()
 {
@@ -23,9 +26,8 @@ void ConfiguredModule::parseConfigurator()
     // Construct a new options map
     boost::program_options::options_description opt;
 
-    ModuleLoader& loader = ModuleLoader::getLoader();
-    for (const std::string& module : loader.listModules()) {
-        std::string defaultImpl = *loader.listImplementations(module).begin();
+    for (auto entry : configuredModules) {
+        std::string module = entry.first;
         opt.add_options()(addPrefix(module).c_str(),
             boost::program_options::value<std::string>()->default_value(defaultStr),
             ("Load an implementation of " + module).c_str());
@@ -33,24 +35,11 @@ void ConfiguredModule::parseConfigurator()
 
     boost::program_options::variables_map vm = Configurator::parse(opt);
 
-    for (const std::string& module : loader.listModules()) {
-        std::string implString = vm[addPrefix(module)].as<std::string>();
+    for (auto entry : configuredModules) {
+        std::string implString = vm[addPrefix(entry.first)].as<std::string>();
         // Only do anything if the retrieved option is not the default value
         if (implString != defaultStr) {
-            // Check that the retrieved value is one of the implementations
-            // defined for this module
-            std::string moduleImpl = "";
-            for (const std::string implName : loader.listImplementations(module)) {
-                if (implString == implName)
-                    moduleImpl = implName;
-            }
-            if (moduleImpl != "") {
-                loader.setImplementation(module, implString);
-            } else {
-                std::string what = "Invalid implementation \"";
-                what += implString + "\" of module " + module + ".";
-                throw std::domain_error(what);
-            }
+            entry.second(implString);
         }
     }
 }
@@ -60,4 +49,15 @@ std::string ConfiguredModule::addPrefix(const std::string& moduleName)
     return MODULE_PREFIX + "." + moduleName;
 }
 
+void ConfiguredModule::setConfiguredModules(const map& ls)
+{
+    for (auto entry : ls) {
+        configureModule(entry.first, entry.second);
+    }
+}
+
+void ConfiguredModule::configureModule(const std::string& mod, const fn& function)
+{
+    configuredModules[mod] = function;
+}
 } /* namespace Nextsim */

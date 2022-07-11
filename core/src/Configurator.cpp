@@ -58,4 +58,10 @@ boost::program_options::variables_map Configurator::parse(
 
     return vm;
 }
+
+void Configurator::addSStream(const std::stringstream& sstream)
+{
+    addStream(std::move(std::unique_ptr<std::istream>(new std::stringstream(sstream.str()))));
+}
+
 } /* namespace Nextsim */

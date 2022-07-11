@@ -1,135 +1,125 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date Sep 29, 2021
+ * @date Mar 17, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ThermoIce0.hpp"
 
-#include "include/ExternalData.hpp"
-#include "include/NextsimPhysics.hpp"
-#include "include/PhysicsData.hpp"
-#include "include/PrognosticData.hpp"
-
+#include "include/IFreezingPointModule.hpp"
+#include "include/IceGrowth.hpp"
+#include "include/ModelArray.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
-double ThermoIce0::k_s = 0;
-bool ThermoIce0::doFlooding = true;
+double ThermoIce0::k_s;
+const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
+
+ThermoIce0::ThermoIce0()
+    : IIceThermodynamics()
+    , snowMelt(ModelArray::Type::H)
+    , topMelt(ModelArray::Type::H)
+    , botMelt(ModelArray::Type::H)
+    , qic(ModelArray::Type::H)
+{
+}
+
+void ThermoIce0::update(const TimestepTime& tsTime)
+{
+    overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tsTime);
+}
 
 template <>
 const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
     { ThermoIce0::KS_KEY, "thermoice0.ks" },
-    { ThermoIce0::FLOODING_KEY, "thermoice0.flooding" },
 };
 
-void ThermoIce0::configure()
+void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096); }
+
+void ThermoIce0::setData(const ModelState& ms)
 {
-    k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096);
-    doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), true);
+    IIceThermodynamics::setData(ms);
+
+    snowMelt.resize();
+    topMelt.resize();
+    botMelt.resize();
+    qic.resize();
 }
 
-void ThermoIce0::calculate(const PrognosticData& prog, const ExternalData& exter, PhysicsData& phys,
-    NextsimPhysics& nsphys)
+void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
-    // True constants
-    const double freezingPointIce = -Water::mu * Ice::s;
-    const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
-    const double bulkLHFusionIce = Water::Lf * Ice::rho;
+    static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
+    static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
-    // Initialize the updated snow thickness
-    // phys.updatedSnowTrueThickness() = prog.snowTrueThickness();
+    double& tice_i = tice.zIndexAndLayer(i, 0);
+    double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
+    qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
+    double remainingFlux = qic[i] - qia[i];
+    tice_i = tice0.zIndexAndLayer(i, 0) + remainingFlux / (k_lSlab + dQia_dt[i]);
 
-    if (prog.iceThickness() == 0 || prog.iceConcentration() == 0) {
-        phys.updatedIceTrueThickness() = 0;
-        phys.updatedSnowTrueThickness() = 0;
-        phys.updatedIceSurfaceTemperature() = freezingPointIce;
-
-        return;
-    }
-
-    double oldIceThickness = prog.iceTrueThickness();
-
-    double iceTemperature = prog.iceTemperature(0);
-    double tBot = prog.freezingPoint();
-    // Heat transfer coefficient
-    double k_lSlab = k_s * Ice::kappa
-        / (k_s * prog.iceTrueThickness() + Ice::kappa * prog.snowTrueThickness());
-    double QIceConduction = k_lSlab * (tBot - iceTemperature);
-    double remainingFlux = QIceConduction - nsphys.QIceAtmosphere();
-    phys.updatedIceSurfaceTemperature()
-        = iceTemperature + remainingFlux / (k_lSlab + nsphys.QDerivativeWRTTemperature());
-
-    // Clamp the maximum temperature of the ice to the melting point of ice or snow
-    double meltingLimit = (prog.snowTrueThickness() > 0.) ? 0 : freezingPointIce;
-    phys.updatedIceSurfaceTemperature()
-        = std::min(meltingLimit, phys.updatedIceSurfaceTemperature());
+    // Clamp the temperature of the ice to a maximum of the melting point
+    // of ice or snow
+    double meltingLimit = (hsnow[i] > 0) ? 0 : freezingPointIce;
+    tice_i = std::min(meltingLimit, tice_i);
 
     // Top melt. Melting rate is non-positive.
-    double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow; // [m³ s⁻¹]
-    double snowSublRate = nsphys.sublimationRate() / Ice::rhoSnow; // [m³ s⁻¹]
-
-    phys.updatedSnowTrueThickness() += (snowMeltRate - snowSublRate) * prog.timestep();
+    double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow;
+    snowMelt[i] = snowMeltRate * tst.step;
+    double snowSublRate = sublim[i] / Ice::rhoSnow;
+    double nowSnow = hsnow[i] + (snowMeltRate - snowSublRate) * tst.step;
     // Use excess flux to melt ice. Non-positive value
-    double excessIceMelt
-        = std::min(phys.updatedSnowTrueThickness(), 0.) * bulkLHFusionSnow / bulkLHFusionIce;
+    double excessIceMelt = std::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
     // With the excess flux noted, clamp the snow thickness to a minimum of zero.
-    phys.updatedSnowTrueThickness() = std::max(phys.updatedSnowTrueThickness(), 0.);
+    hsnow[i] = std::max(nowSnow, 0.);
     // Then add snowfall back on top
-    phys.updatedSnowTrueThickness() += exter.snowfall() * prog.timestep() / Ice::rhoSnow;
+    hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Bottom melt or growth
-    double iceBottomChange
-        = (QIceConduction - nsphys.QIceOceanHeat()) * prog.timestep() / bulkLHFusionIce;
+    double iceBottomChange = (qic[i] - qio[i]) * tst.step / bulkLHFusionIce;
     // Total thickness change
-    double iceThicknessChange = excessIceMelt + iceBottomChange;
-    phys.updatedIceTrueThickness() += iceThicknessChange;
+    deltaHi[i] = excessIceMelt + iceBottomChange;
+    hice[i] += deltaHi[i];
 
     // Amount of melting (only) at the top and bottom of the ice
-    double topMelt = std::min(excessIceMelt, 0.);
-    double botMelt = std::min(iceBottomChange, 0.);
-
+    topMelt[i] = std::min(excessIceMelt, 0.);
+    botMelt[i] = std::min(iceBottomChange, 0.);
     // Snow to ice conversion
-    double iceDraught = (phys.updatedIceTrueThickness() * Ice::rho
-                            + phys.updatedSnowTrueThickness() * Ice::rhoSnow)
-        / Water::rhoOcean;
-    if (doFlooding && iceDraught > phys.updatedIceTrueThickness()) {
-        // Keep a running total of the ice formed from flooded snow
-        double newIce = iceDraught - phys.updatedIceTrueThickness();
-        nsphys.incrementTotalIceFromSnow(newIce);
+    double iceDraught = (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / Water::rhoOcean;
 
-        // Convert all the submerged snow to ice
-        phys.updatedIceTrueThickness() = iceDraught;
-        phys.updatedSnowTrueThickness() -= newIce * Ice::rho / Ice::rhoSnow;
+    if (doFlooding && iceDraught > hice[i]) {
+        double snowDraught = iceDraught - hice[i];
+        snowToIce[i] = snowDraught;
+        hsnow[i] -= snowDraught * Ice::rho / Ice::rhoSnow;
+        hice[i] = iceDraught;
+    } else {
+        snowToIce[i] = 0;
     }
 
-    if (phys.updatedIceTrueThickness() < NextsimPhysics::minimumIceThickness()) {
-        // Reduce the melting to reach zero thickness, while keeping the
-        // between top and bottom melting
-        if (iceThicknessChange < 0) {
-            double scaling = -oldIceThickness / iceThicknessChange;
-            topMelt *= scaling;
-            botMelt *= scaling;
+    // Melt all ice if it is below minimum threshold
+    if (hice[i] < IceGrowth::minimumIceThickness()) {
+        if (deltaHi[i] < 0) {
+            double scaling = oldHi[i] / deltaHi[i];
+            topMelt[i] *= scaling;
+            botMelt[i] *= scaling;
         }
 
         // No snow was converted to ice
-        nsphys.zeroTotalIceFromSnow();
+        snowToIce[i] = 0.;
 
         // Change in thickness is all of the old thickness
-        iceThicknessChange = -oldIceThickness;
+        deltaHi[i] = -oldHi[i];
 
         // The ice-ocean flux includes all the latent heat
-        double deltaQio = phys.updatedIceTrueThickness() * bulkLHFusionIce / prog.timestep()
-            + phys.updatedSnowTrueThickness() * bulkLHFusionSnow / prog.timestep();
-        nsphys.incrementQIceOceanHeat(deltaQio);
+        qio[i] += hice[i] * bulkLHFusionIce / tst.step + hsnow[i] * bulkLHFusionSnow / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
-        phys.updatedIceTrueThickness() = 0;
-        phys.updatedSnowTrueThickness() = 0;
-        phys.updatedIceSurfaceTemperature() = freezingPointIce;
+        hice[i] = 0.;
+        hsnow[i] = 0.;
+        tice.zIndexAndLayer(i, 0) = Module::getImplementation<IFreezingPoint>()(sss[i]);
     }
 }
-
 } /* namespace Nextsim */
