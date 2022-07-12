@@ -6,6 +6,8 @@
 
 Here you will find the sources for neXtSIM_DG sea-ice model.
 
+**Installation instructions** can be found [here](https://nextsim-dg.readthedocs.io/en/latest/installation.html).
+
 Below are some conventions that every contributors to this model must apply in order to have the most efficient and consistent workflow for the model developments. These conventions deal with :
   - [coding](#coding-conventions)
   - [commenting](#commenting-conventions-for-a-nice-automatic-documentation)
