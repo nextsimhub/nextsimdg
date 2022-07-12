@@ -6,18 +6,20 @@ set(BaseSources
     "Timer.cpp"
     "Model.cpp"
     "Iterator.cpp"
-    "SimpleIterant.cpp"
     "Configurator.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
-    "ModuleLoader.cpp"
-    "ElementData.cpp"
-    "PrognosticData.cpp"
-    "ExternalData.cpp"
+    "CommonRestartMetadata.cpp"
     "DevGridIO.cpp"
     "RectGridIO.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
+    "MissingData.cpp"
+    "ModelArray.cpp"
+    "ModelComponent.cpp"
+    "ModelMetadata.cpp"
+    "PrognosticData.cpp"
+    "Time.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
@@ -27,10 +29,22 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 set(StructureModuleSources
     "DevGrid.cpp"
     "RectangularGrid.cpp"
+    "IStructureModule.cpp"
     )
-    
+
+set(FreezingPointModuleSources
+    "IFreezingPointModule.cpp"
+    )
+
+set(DiagnosticOutputModuleSources
+    "DiagnosticOutputModule.cpp"
+    "SimpleOutput.cpp"
+    )
+
 set(ModuleSources
     "${StructureModuleSources}"
+    "${FreezingPointModuleSources}"
+    "${DiagnosticOutputModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
@@ -46,6 +60,3 @@ set(NextsimIncludeDirs
     "${ModuleDir}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     PARENT_SCOPE)
-
-# Build the module loader files. Defines the 'parse_modules' target
-add_subdirectory(modules)

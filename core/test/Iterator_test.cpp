@@ -21,9 +21,9 @@ public:
         startCount = 0;
         stopCount = 0;
     };
-    void start(const Iterator::TimePoint& startTime) { startCount++; };
-    void iterate(const Iterator::Duration& dt) { count++; };
-    void stop(const Iterator::TimePoint& stopTime) { stopCount++; };
+    void start(const TimePoint& startTime) { startCount++; };
+    void iterate(const TimestepTime& tst) { count++; };
+    void stop(const TimePoint& stopTime) { stopCount++; };
 
     int getCount() { return count; };
 
@@ -41,7 +41,7 @@ std::chrono::time_point<Iterator::Clock> zeroTime<std::chrono::time_point<Iterat
     return Iterator::Clock::now();
 }
 template<>
-int zeroTime<int>()
+size_t zeroTime<size_t>()
 {
     return 0;
 }
@@ -54,11 +54,18 @@ TEST_CASE("Count iterator testing", "[Iterator]")
 
     int nSteps = 5;
 
-    Iterator::TimePoint start = zeroTime<Iterator::TimePoint>();
-    Iterator::Duration dt = 1;
-    iterator.setStartStopStep(start, start + nSteps * dt, dt);
+    TimePoint start;
+    Duration dt("P0-0T0:0:1");
+    Duration overall(dt);
+    overall *= nSteps;
+    TimePoint stop = start + overall;
+    iterator.setStartStopStep(start, start + overall, dt);
     iterator.run();
 
+    REQUIRE(dt.seconds() == 1);
+    REQUIRE(overall.seconds() == nSteps * 1);
+    REQUIRE(stop > start);
+    REQUIRE((stop - start).seconds() == nSteps * 1);
     REQUIRE(cant.count == nSteps);
     REQUIRE(cant.startCount == 1);
     REQUIRE(cant.stopCount == 1);

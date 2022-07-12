@@ -6,6 +6,9 @@
  */
 
 #include "include/StructureFactory.hpp"
+
+#include "include/IStructureModule.hpp"
+
 #include "include/DevGrid.hpp"
 #include "include/DevGridIO.hpp"
 
@@ -20,40 +23,10 @@
 
 namespace Nextsim {
 
-std::shared_ptr<IStructure> StructureFactory::generate(const std::string& structureName)
-{
-    ModuleLoader& loader = ModuleLoader::getLoader();
-    std::string iStruct = "Nextsim::IStructure";
-    std::shared_ptr<IStructure> shst;
-    for (auto struc : loader.listImplementations(iStruct)) {
-        loader.setImplementation(iStruct, struc);
-        if (loader.getImplementation<IStructure>().structureType() == structureName) {
-            shst = std::move(loader.getInstance<IStructure>());
-
-            // TODO There must be a better way
-            if (shst->structureTypeCheck(DevGrid::structureName)) {
-                std::shared_ptr<DevGrid> shdg = std::dynamic_pointer_cast<DevGrid>(shst);
-                shdg->setIO(new DevGridIO(*shdg));
-            } else if (shst->structureTypeCheck(RectangularGrid::structureName)) {
-                std::shared_ptr<RectangularGrid> shrg
-                    = std::dynamic_pointer_cast<RectangularGrid>(shst);
-                shrg->setIO(new RectGridIO(*shrg));
-            }
-
-            return shst;
-        }
-    }
-    // If we reach here, then no valid handlers of the named structure were
-    // found. Throw a invalid argument exception.
-    std::string what = "StructureSelector: Invalid structure name (";
-    what += structureName + ") provided.";
-    throw std::invalid_argument(what);
-}
-
-std::shared_ptr<IStructure> StructureFactory::generateFromFile(const std::string& filePath)
+std::string structureNameFromFile(const std::string& filePath)
 {
     netCDF::NcFile ncf(filePath, netCDF::NcFile::read);
-    netCDF::NcGroup metaGroup(ncf.getGroup(IStructure::metadataNodeName()));
+    netCDF::NcGroup metaGroup(ncf.getGroup(IStructure::structureNodeName()));
     netCDF::NcGroupAtt att = metaGroup.getAtt(IStructure::typeNodeName());
     int len = att.getAttLength();
     // Initialize a std::string of len, filled with zeros
@@ -62,7 +35,49 @@ std::shared_ptr<IStructure> StructureFactory::generateFromFile(const std::string
     att.getValues(&structureName[0]);
     ncf.close();
 
-    return generate(structureName);
+    return structureName;
+}
+
+ModelState StructureFactory::stateFromFile(const std::string& filePath)
+{
+    std::string structureName = structureNameFromFile(filePath);
+    // TODO There must be a better way
+    if (DevGrid::structureName == structureName) {
+        Module::setImplementation<IStructure>("DevGrid");
+        DevGrid gridIn;
+        gridIn.setIO(new DevGridIO(gridIn));
+        return gridIn.getModelState(filePath);
+    } else if (RectangularGrid::structureName == structureName) {
+        Module::setImplementation<IStructure>("RectangularGrid");
+        RectangularGrid gridIn;
+        gridIn.setIO(new RectGridIO(gridIn));
+        return gridIn.getModelState(filePath);
+    } else {
+        throw std::invalid_argument(
+            std::string("fileFromName: structure not implemented: ") + structureName);
+    }
+    throw std::invalid_argument(std::string("fileFromName: structure not implemented: ")
+        + structureName + "\nAlso, how did you get here?");
+    return ModelState();
+}
+
+void StructureFactory::fileFromState(
+    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+{
+    std::string structureName = Module::getImplementation<IStructure>().structureType();
+
+    if (DevGrid::structureName == structureName) {
+        DevGrid gridOut;
+        gridOut.setIO(new DevGridIO(gridOut));
+        gridOut.dumpModelState(state, meta, filePath);
+    } else if (RectangularGrid::structureName == structureName) {
+        RectangularGrid gridOut;
+        gridOut.setIO(new RectGridIO(gridOut));
+        gridOut.dumpModelState(state, meta, filePath);
+    } else {
+        throw std::invalid_argument(
+            std::string("fileFromName: structure not implemented: ") + structureName);
+    }
 }
 
 } /* namespace Nextsim */

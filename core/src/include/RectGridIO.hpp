@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_RECTGRIDIO_HPP
-#define CORE_SRC_INCLUDE_RECTGRIDIO_HPP
+#ifndef RECTGRIDIO_HPP
+#define RECTGRIDIO_HPP
 
 #include "include/RectangularGrid.hpp"
 
@@ -22,10 +22,10 @@ public:
 
     typedef RectangularGrid::GridDimensions GridDimensions;
 
-    void init(
-        std::vector<ElementData>& dg, const std::string& filePath, GridDimensions& dims) override;
-    void dump(const std::vector<ElementData>& dg, const std::string& filePath,
-        const GridDimensions& dims) const override;
+    ModelState getModelState(const std::string& filePath) override;
+
+    void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+        const std::string& filePath, bool isRestart) const override;
 
 private:
     RectGridIO() = default;
@@ -33,4 +33,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_RECTGRIDIO_HPP */
+#endif /* RECTGRIDIO_HPP */
