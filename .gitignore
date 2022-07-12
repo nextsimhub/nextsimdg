@@ -8,3 +8,4 @@
 /run/*.nc
 /run/nextsim
 /run/.DS_Store
+/run/*.log

@@ -53,6 +53,9 @@ Model::~Model()
 
 void Model::configure()
 {
+    // Configure logging
+    Logged::configure();
+
     std::string startTimeStr
         = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
     std::string stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
@@ -83,7 +86,7 @@ void Model::run() { iterator.run(); }
 void Model::writeRestartFile()
 {
     // TODO Replace with real logging
-    std::cout << "  Writing state-based restart file: " << finalFileName << std::endl;
+    Logged::notice(std::string("  Writing state-based restart file: ") + finalFileName + '\n');
     StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
 }
 
