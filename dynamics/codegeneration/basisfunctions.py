@@ -51,6 +51,48 @@ def dgbasis(j,x,y):
         print("dG3 and higher not implemented (yet)")
         assert False
 
+def dx_dgbasis(j,x,y):
+    if j==0:
+        return 0.
+    elif j==1:
+        return 1.
+    elif j==2:
+        return 0.
+    elif j==3:
+        return 2.0*(x-0.5)
+    elif j==4:
+        return 0.
+    elif j==5:
+        return (y-0.5)
+    elif j==6:
+        return (y-0.5)*(2.*(x-0.5))
+    elif j==7:
+        return ((y-0.5)*(y-0.5)-1.0/12.0)
+    else:
+        print("dG3 and higher not implemented (yet)")
+        assert False
+
+def dy_dgbasis(j,x,y):
+    if j==0:
+        return 0.
+    elif j==1:
+        return 0.
+    elif j==2:
+        return 1.
+    elif j==3:
+        return 0.
+    elif j==4:
+        return 2.*(y-0.5)
+    elif j==5:
+        return (x-0.5)
+    elif j==6:
+        return ((x-0.5)*(x-0.5)-1.0/12.0)
+    elif j==7:
+        return (x-0.5)*(2.*(y-0.5))
+    else:
+        print("dG3 and higher not implemented (yet)")
+        assert False
+
 
         
 # Evaluates 1d dG-basis on the edge [0,1]

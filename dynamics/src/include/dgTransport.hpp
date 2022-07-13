@@ -85,7 +85,6 @@ public:
      * @params phi is the vector of values to be transported
      */
     void step_rk2(const double dt, CellVector<DGcell>& phi);
-
     /*!
      * Performs one time step transporting phi with the 2nd Order Heun Scheme
      *

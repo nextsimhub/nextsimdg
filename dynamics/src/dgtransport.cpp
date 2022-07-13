@@ -74,7 +74,6 @@ void DGTransport<DGcell, DGedge>::step_rk3(const double dt, CellVector<DGcell>& 
 
     phi += 0.25 * tmp1 + 0.75 * tmp3;
 }
-
 template <int DGcell, int DGedge>
 void DGTransport<DGcell, DGedge>::step(const double dt, CellVector<DGcell>& phi)
 {
