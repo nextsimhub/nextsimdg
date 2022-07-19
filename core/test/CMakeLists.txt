@@ -89,8 +89,8 @@ add_executable(testDevGrid
     "${SRC_DIR}/Time.cpp"
     )
 
-target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
-target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
+target_include_directories(testDevGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_IncludeDir}")
+target_link_directories(testDevGrid PUBLIC "${netCDF_LibraryDir}")
 target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testRectGrid
@@ -108,8 +108,8 @@ add_executable(testRectGrid
     "${SRC_DIR}/Time.cpp"
     )
 
-target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
-target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
+target_include_directories(testRectGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_IncludeDir}")
+target_link_directories(testRectGrid PUBLIC "${netCDF_LibraryDir}")
 target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testModelArray
