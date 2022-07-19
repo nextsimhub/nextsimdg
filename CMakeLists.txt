@@ -28,8 +28,8 @@ set(NSDG_MPI_Libs MPI::MPI_CXX)
 pkg_search_module(NETCDF_CXX4 netcdf-cxx4)
 if (NETCDF_CXX4_FOUND)
     set(NSDG_NetCDF_Library "${NETCDF_CXX4_LIBRARIES}")
-    set(netCDF_IncludeDir "${NETCDF_CXX4_INCLUDE_DIRS}")
-    set(netCDF_LibraryDir "${NETCDF_CXX4_LIBRARY_DIRS}")
+    set(netCDF_INC_DIR "${NETCDF_CXX4_INCLUDE_DIRS}")
+    set(netCDF_LIB_DIR "${NETCDF_CXX4_LIBRARY_DIRS}")
 else()
     find_package(netCDF REQUIRED)
     if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -109,10 +109,10 @@ add_executable(nextsim "${NextsimSources}")
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"
-    "${netCDF_IncludeDir}"
+    "${netCDF_INC_DIR}"
     "${OasisIncludeDir}"
     )
-target_link_directories(nextsim PUBLIC "${netCDF_LibraryDir}" "${OasisLibraryDir}")
+target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}" "${OasisLibraryDir}")
 target_link_libraries(nextsim LINK_PUBLIC
     Boost::program_options
     Boost::log

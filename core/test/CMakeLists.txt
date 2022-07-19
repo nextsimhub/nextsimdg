@@ -47,16 +47,13 @@ add_executable(testEnumWrapper
     )
 target_link_libraries(testEnumWrapper LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
-# Set the location of the test module loader classes
-set(TEST_IPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoaderTestModules")
-
 add_executable(testConfiguredModule
     "ConfiguredModule_test.cpp"
     "ArgV.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
 )
-target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_DIR}" "${TEST_IPP_DIR}")
+target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_DIR}")
 target_link_libraries(testConfiguredModule PRIVATE Catch2::Catch2 Boost::program_options Boost::log)
 
 add_executable(testTimer
@@ -89,8 +86,8 @@ add_executable(testDevGrid
     "${SRC_DIR}/Time.cpp"
     )
 
-target_include_directories(testDevGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_IncludeDir}")
-target_link_directories(testDevGrid PUBLIC "${netCDF_LibraryDir}")
+target_include_directories(testDevGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INC_DIR}")
+target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testRectGrid
@@ -108,8 +105,8 @@ add_executable(testRectGrid
     "${SRC_DIR}/Time.cpp"
     )
 
-target_include_directories(testRectGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_IncludeDir}")
-target_link_directories(testRectGrid PUBLIC "${netCDF_LibraryDir}")
+target_include_directories(testRectGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INC_DIR}")
+target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testModelArray
