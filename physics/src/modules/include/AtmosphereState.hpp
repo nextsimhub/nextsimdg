@@ -33,7 +33,7 @@ public:
      *
      * @param tStep The object containing the timestep start and duration times.
      */
-    void update(const TimestepTime& tStep);
+    void updateAtmos(const TimestepTime& tStep);
 
 protected:
     HField tair;

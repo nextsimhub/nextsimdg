@@ -45,8 +45,8 @@ void AtmosphereOceanState::configure()
 
 void AtmosphereOceanState::update(const TimestepTime& tst)
 {
-    atmosStateImpl->update(tst);
-    oceanStateImpl->update(tst);
+    atmosStateImpl->updateAtmos(tst);
+    oceanStateImpl->updateOcean(tst);
 
     hTrueSnow = hSnowCell / cIce;
     hTrueIce = hIceCell / cIce;

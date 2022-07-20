@@ -63,7 +63,7 @@ std::unordered_set<std::string> AtmosphereState::hFields() const
     return fields;
 }
 
-void AtmosphereState::update(const TimestepTime& tst)
+void AtmosphereState::updateAtmos(const TimestepTime& tst)
 {
     // Calculate wind speed from velocity components
     updateSpecial(tst);

@@ -35,7 +35,7 @@ public:
      *
      * @param tStep The object containing the timestep start and duration times.
      */
-    void update(const TimestepTime&);
+    void updateOcean(const TimestepTime&);
 
 protected:
     HField sst;

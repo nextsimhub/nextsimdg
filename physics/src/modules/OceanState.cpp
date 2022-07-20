@@ -67,7 +67,7 @@ void OceanState::configure()
     tryConfigure(tfImpl);
 }
 
-void OceanState::update(const TimestepTime& tst)
+void OceanState::updateOcean(const TimestepTime& tst)
 {
     // Mixed layer heat capacity per unit area
     cpml = mld * Water::rho * Water::cp;
