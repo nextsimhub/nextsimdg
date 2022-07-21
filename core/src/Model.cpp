@@ -15,9 +15,6 @@
 
 #include <string>
 
-// TODO Replace with real logging
-#include <iostream>
-
 namespace Nextsim {
 
 template <>
@@ -63,32 +60,34 @@ void Model::configure()
     std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
     TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
-    m_etadata.setTime(timeNow);
+    data.metadata.setTime(timeNow);
 
     MissingData mdi;
     mdi.configure();
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
-    pData.configure();
+    data.pData.configure();
 
     modelStep.init();
     modelStep.setInitFile(initialFileName);
 
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
-    modelStep.setData(pData);
-    modelStep.setMetadata(m_etadata);
-    pData.setData(initialState);
+    data.pData.setData(initialState);
+    modelStep.setData(data);
+
+    data.aoState.configure();
 }
 
-void Model::run() { iterator.run(); }
+void Model::run() {
+    iterator.run();
+}
 
 void Model::writeRestartFile()
 {
     // TODO Replace with real logging
     Logged::notice(std::string("  Writing state-based restart file: ") + finalFileName + '\n');
-    StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
+    StructureFactory::fileFromState(data.pData.getState(), data.getMetadata(), finalFileName);
 }
 
-ModelMetadata& Model::metadata() { return m_etadata; }
 } /* namespace Nextsim */

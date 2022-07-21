@@ -19,13 +19,16 @@ void DevStep::init()
 
 void DevStep::iterate(const TimestepTime& tst)
 {
-    pData->update(tst);
-    // The state of the model has now advanced by one timestep, so update the
-    // model metadata timestamp.
-    mData->incrementTime(tst.step);
+    // Get the state of the ocean and atmosphere
+    pData->updateAtmosOceanState(tst);
+    // Update the model state
+    pData->stepPrognosticData(tst);
+    // Perform any export of model data not captured in the diagnostic output
+    pData->exportData(tst);
+
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    ModelState overallState = pData->getStateRecursive(true);
-    Module::getImplementation<IDiagnosticOutput>().outputState(overallState, *mData);
+    ModelState overallState = pData->getModelState();
+    Module::getImplementation<IDiagnosticOutput>().outputState(overallState, pData->getMetadata());
 }
 
 } /* namespace Nextsim */

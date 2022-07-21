@@ -11,6 +11,7 @@
 
 #include "include/Configured.hpp"
 #include "include/Iterator.hpp"
+#include "include/ModelData.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/PrognosticData.hpp"
 
@@ -43,14 +44,11 @@ public:
     //! Sets the filename of the restart file that would currently be written out.
     void setFinalFilename(const std::string& finalFile);
 
-    //! Gets the model metadata instance
-    ModelMetadata& metadata();
-
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
-    PrognosticData pData;
-    ModelMetadata m_etadata;
+
+    ModelData data;
 
     std::string initialFileName;
     std::string finalFileName;

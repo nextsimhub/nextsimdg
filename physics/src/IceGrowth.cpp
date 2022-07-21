@@ -28,6 +28,8 @@ IceGrowth::IceGrowth()
     : hice(ModelArray::Type::H)
     , cice(ModelArray::Type::H)
     , hsnow(ModelArray::Type::H)
+    , hice0(ModelArray::Type::H)
+    , hsnow0(ModelArray::Type::H)
     , newice(ModelArray::Type::H)
     , deltaCFreeze(ModelArray::Type::H)
     , deltaCMelt(ModelArray::Type::H)
@@ -37,6 +39,9 @@ IceGrowth::IceGrowth()
     ModelComponent::registerSharedArray(SharedArray::C_ICE, &cice);
     ModelComponent::registerSharedArray(SharedArray::H_SNOW, &hsnow);
     ModelComponent::registerSharedArray(SharedArray::NEW_ICE, &newice);
+
+    ModelComponent::registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
+    ModelComponent::registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
 }
 
 void IceGrowth::setData(const ModelState& ms)
@@ -84,6 +89,10 @@ void IceGrowth::configure()
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
+    // Calculate the initial ice-averaged ice and snow depths here
+    hice0 = hIceCell / cice0;
+    hsnow0 = hSnowCell / cice0;
+
     iFluxes->update(tsTime);
     // Copy the ice data from the prognostic fields to the modifiable fields.
     // Also divide by c_ice to go from cell-averaged to ice-averaged values.

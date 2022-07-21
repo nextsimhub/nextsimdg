@@ -9,8 +9,7 @@
 #define IMODELSTEP_HPP
 
 #include "include/Iterator.hpp"
-#include "include/ModelMetadata.hpp"
-#include "include/PrognosticData.hpp"
+#include "include/ModelData.hpp"
 
 namespace Nextsim {
 
@@ -36,23 +35,11 @@ public:
     virtual void writeRestartFile(const std::string& filePath) = 0;
 
     /*!
-     * @brief Sets the data object that will be used within the timesteps.
+     * @brief Sets the model data object that will be used.
      *
-     * @param data The PrognosticData holding the model data.
+     * @param data The ModelData holding the model data.
      */
-    virtual void setData(PrognosticData& data) = 0;
-
-    /*!
-     * @brief Sets the metadata object that will be used within the timesteps.
-     *
-     * @details The ModelMetadata object will contain much constant
-     * information, primarily metadata about the model set up, but also
-     * time-dependent metadata, including the current time for which the model
-     * data is valid.
-     *
-     * @param meta A ModelMetadata reference to the metadata instance
-     */
-    virtual void setMetadata(ModelMetadata& meta) = 0;
+    virtual void setData(ModelData& data) = 0;
 
     // Member functions inherited from Iterant
     virtual void init() = 0;

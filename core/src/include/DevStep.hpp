@@ -24,8 +24,7 @@ public:
     // Member functions inherited from IModelStep
     void writeRestartFile(const std::string& filePath) override {};
 
-    void setData(PrognosticData& pDat) override { pData = &pDat; }
-    void setMetadata(ModelMetadata& metadata) override { mData = &metadata; }
+    void setData(ModelData& dat) override { pData = &dat; }
 
     // Member functions inherited from Iterant
     void init() override;
@@ -34,8 +33,7 @@ public:
     void stop(const TimePoint& stopTime) override {};
 
 private:
-    PrognosticData* pData;
-    ModelMetadata* mData;
+    ModelData* pData;
 };
 
 } /* namespace Nextsim */
