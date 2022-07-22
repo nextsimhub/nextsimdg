@@ -35,6 +35,8 @@ Model::Model()
 
 Model::~Model()
 {
+    // Perform any required shutdown of the coupler, if included.
+    coupler.terminate();
     /*
      * Try writing out a valid restart file. If the model and computer are in a
      * state where this can be completed, great! If they are not then the
@@ -65,6 +67,9 @@ void Model::configure()
     MissingData mdi;
     mdi.configure();
 
+    // Configure the coupler, if included.
+    coupler.configure();
+
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
     data.pData.configure();
@@ -77,6 +82,10 @@ void Model::configure()
     modelStep.setData(data);
 
     data.aoState.configure();
+
+    // With everything configured, do the metadata dependent initialization of
+    // the coupler, if included.
+    coupler.initialize(data.metadata);
 }
 
 void Model::run() {

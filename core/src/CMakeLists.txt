@@ -25,6 +25,23 @@ set(BaseSources
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
+# Coupling (or not) source files
+set("CouplingSources" "")
+if(USE_OASIS)
+set(CouplingSources
+    "OasisCoupler.cpp"
+    "OasisData.cpp"
+    )
+list(TRANSFORM CouplingSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+
+#elseif(USE_SOMETHING_ELSE) For future coupling systems
+else()
+set(CouplingSources
+    "NoCoupler.cpp"
+    )
+list(TRANSFORM CouplingSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+endif()
+
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 set(StructureModuleSources
@@ -54,6 +71,7 @@ set(NextsimSources
     "${NextsimSources}"
     "${BaseSources}"
     "${ModuleSources}"
+    "${CouplingSources}"
     PARENT_SCOPE)
 
 set(NextsimIncludeDirs

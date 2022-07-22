@@ -11,20 +11,17 @@
 
 namespace Nextsim {
 //! The OASIS Coupler class implementation: configuration.
-void Coupler::configure()
-{
-    pData = new CouplerData;
-}
+void Coupler::configure() { pData = new CouplerData; }
 //! The OASIS Coupler class implementation: initialization.
 void Coupler::initialize(const ModelMetadata& meta)
 {
     // Will initialize the Oasis data class for this process
-
 }
 //! The OASIS Coupler class implementation: shut down.
 void Coupler::terminate()
 {
-    delete pData;
+    if (pData)
+        delete pData;
 }
 
 } /* namespace Nextsim */

@@ -9,6 +9,8 @@
 
 namespace Nextsim {
 
+class CouplerData { };
+
 //! The Coupler class implementation when there is no coupler: configuration.
 void Coupler::configure() { }
 //! The Coupler class implementation when there is no coupler: initialization.

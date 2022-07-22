@@ -10,6 +10,7 @@
 #include "include/Logged.hpp"
 
 #include "include/Configured.hpp"
+#include "include/Coupler.hpp"
 #include "include/Iterator.hpp"
 #include "include/ModelData.hpp"
 #include "include/ModelMetadata.hpp"
@@ -47,6 +48,7 @@ public:
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
+    Coupler coupler;
 
     ModelData data;
 
