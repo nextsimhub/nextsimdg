@@ -33,6 +33,7 @@ To compile neXtSIM, you need to install first some libraries :
   - `Boost`_
   - `Catch2`_
   - `CMake`_
+  - `Eigen`
 
 Compilation on MAC OS
 ---------------------
@@ -43,7 +44,8 @@ If your package manager is `Homebrew`_ :
 
         brew install netcdf
         brew install boost
-        brew install catch2
+        brew extract --version=2.13.9 catch2 homebrew/cask
+        brew install catch2@2.13.9 
         brew install cmake
         brew install eigen
         
@@ -116,6 +118,7 @@ Otherwise, install them via `anaconda`_ or `miniconda`_ (no root priviledges req
 .. _Boost: https://www.boost.org/
 .. _Catch2: https://github.com/catchorg/Catch2
 .. _CMake: https://cmake.org/
+.. _Eigen: https://eigen.tuxfamily.org/index.php?title=Main_Page
 .. _Homebrew: https://brew.sh/
 .. _here: https://nextsim-dg.readthedocs.io/en/latest/getting_started.html
 .. _anaconda: https://www.anaconda.com/products/individual
