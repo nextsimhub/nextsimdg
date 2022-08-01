@@ -45,6 +45,7 @@ If your package manager is `Homebrew`_ :
         brew install boost
         brew install catch2
         brew install cmake
+        brew install eigen
         
         cd nextsimdg
         mkdir -p build
@@ -89,6 +90,7 @@ Install conda via `anaconda`_ or `miniconda`_ (no root priviledges required)
         conda install -c anaconda cmake
         conda install -c conda-forge catch2
         conda install -c conda-forge netcdf-cxx4
+        conda install -c omnia eigen3
         
         cd nextsimdg
         mkdir -p build
