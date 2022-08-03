@@ -24,7 +24,7 @@ bool WRITE_VTK = true;
 
 #define CG 2
 #define DGadvection 3
-#define DGstress 6
+#define DGstress 8
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
@@ -114,7 +114,7 @@ struct InitialH {
 public:
     double operator()(double x, double y) const
     {
-        return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+      return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
 struct InitialA {
@@ -252,6 +252,7 @@ int main()
         Nextsim::GlobalTimer.start("time loop - advection");
         momentum.ProjectCGToDG(mesh, dgvx, vx);
         momentum.ProjectCGToDG(mesh, dgvy, vy);
+	
         dgtransport.reinitvelocity();
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
@@ -269,6 +270,7 @@ int main()
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);
 
+       
         cg_A = cg_A.cwiseMin(1.0);
         cg_A = cg_A.cwiseMax(0.0);
         cg_H = cg_H.cwiseMax(1.e-4); //!< Limit H from below
@@ -287,49 +289,18 @@ int main()
             //! Compute Strain Rate
             momentum.ProjectCG2VelocityToDG1Strain(mesh, E11, E12, E22, vx, vy);
             Nextsim::GlobalTimer.stop("time loop - mevp - strain");
-
+	    
+	    
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
-
+	    
             Nextsim::mEVP::StressUpdateHighOrder(mesh, S11, S12, S22, E11, E12, E22, H, A,
-                ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
+						 ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update");
             //! Update
             Nextsim::GlobalTimer.start("time loop - mevp - update1");
-
-
-	    //            vx = (1.0
-            //     / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-            //         + cg_A.array() * ReferenceScale::F_ocean
-            //             * (OX.array() - vx.array()).abs()) // implicit parts
-            //     * (ReferenceScale::rho_ice * cg_H.array() / dt_adv
-            //             * (beta * vx.array() + vx_mevp.array())
-            //         + // pseudo-timestepping
-            //         cg_A.array()
-            //             * (ReferenceScale::F_atm * AX.array().abs() * AX.array() + // atm forcing
-            //                 ReferenceScale::F_ocean * (OX - vx).array().abs()
-            //                     * OX.array()) // ocean forcing
-            //         + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc
-            //             * (vy - OY).array() // cor + surface
-            //         ))
-            //          .matrix();
-            // vy = (1.0
-            //     / (ReferenceScale::rho_ice * cg_H.array() / dt_adv * (1.0 + beta) // implicit parts
-            //         + cg_A.array() * ReferenceScale::F_ocean
-            //             * (OY.array() - vy.array()).abs()) // implicit parts
-            //     * (ReferenceScale::rho_ice * cg_H.array() / dt_adv
-            //             * (beta * vy.array() + vy_mevp.array())
-            //         + // pseudo-timestepping
-            //         cg_A.array()
-            //             * (ReferenceScale::F_atm * AY.array().abs() * AY.array() + // atm forcing
-            //                 ReferenceScale::F_ocean * (OY - vy).array().abs()
-            //                     * OY.array()) // ocean forcing
-            //         + ReferenceScale::rho_ice * cg_H.array() * ReferenceScale::fc
-            //             * (OX - vx).array() // cor + surface
-            //         ))
-            //          .matrix();
 
 
             //	    update by a loop.. implicit parts and h-dependent
@@ -363,7 +334,6 @@ int main()
                         + ReferenceScale::rho_ice * cg_H(i) * ReferenceScale::fc
                             * (OX(i) - vx(i))));
             }
-
             Nextsim::GlobalTimer.stop("time loop - mevp - update1");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update2");
@@ -373,7 +343,7 @@ int main()
                 tmpx(i) = tmpy(i) = 0;
 
             Nextsim::GlobalTimer.start("time loop - mevp - update2 -stress");
-            momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
+	    momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
             Nextsim::GlobalTimer.stop("time loop - mevp - update2 -stress");
 
 #pragma omp parallel for
@@ -390,7 +360,6 @@ int main()
                             * fabs(OY(i) - vy(i))) // implicit parts
                     * tmpy(i));
             }
-
             Nextsim::GlobalTimer.stop("time loop - mevp - update2");
             Nextsim::GlobalTimer.stop("time loop - mevp - update");
 
@@ -403,17 +372,18 @@ int main()
 
         //         //! Output
         if (WRITE_VTK)
-            if ((timestep % NT_vtk == 0)) {
+	  if ((timestep % NT_vtk == 0)) 
+	  {
                 std::cout << "VTK output at day " << time / 24. / 60. / 60. << std::endl;
 
                 int printstep = timestep / NT_vtk + 1.e-4;
 
-                char s[80];
-                sprintf(s, "ResultsBenchmark/ellipse_%03d.txt", printstep);
-                std::ofstream ELLOUT(s);
-                for (size_t i = 0; i < mesh.n; ++i)
-                    ELLOUT << S1(i, 0) << "\t" << S2(i, 0) << std::endl;
-                ELLOUT.close();
+                // char s[80];
+                // sprintf(s, "ResultsBenchmark/ellipse_%03d.txt", printstep);
+                // std::ofstream ELLOUT(s);
+                // for (size_t i = 0; i < mesh.n; ++i)
+                //     ELLOUT << S1(i, 0) << "\t" << S2(i, 0) << std::endl;
+                // ELLOUT.close();
 
                 Nextsim::GlobalTimer.start("time loop - i/o");
                 Nextsim::VTK::write_cg("ResultsBenchmark/vx", printstep, vx, mesh);

@@ -30,10 +30,10 @@ def disty(x,y):
 
 
 
-sx = 0.075*Lx
-sy = 0.075*Ly
+sx = 0.05*Lx
+sy = 0.05*Ly
 
-#sx,sy = 0,0
+sx,sy = 0,0
 
 f = open("distortedrectangle.smesh", "w")
 f.write("SasipMesh 1.0\n")

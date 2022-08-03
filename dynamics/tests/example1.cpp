@@ -299,7 +299,7 @@ int main()
     // else
     //     std::cout << "dG(0) TEST PASSED" << std::endl;
 
-    Test<6> test1(N);
+    Test<3> test1(N);
     test1.run();
     if (!test1.check())
         std::cout << "dG(1) TEST FAILED" << std::endl;

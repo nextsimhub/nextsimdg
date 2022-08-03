@@ -76,15 +76,15 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
 
     # print header
     if d>1:
-        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} ='.format(g*g,d,d,g))
-        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(g*g,d))
+        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} ='.format(d,g*g,d,g))
+        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
     else:
-        print('static const Eigen::Matrix<double, {0}, {1}> IBC{2}{3} ='.format(g*g,d,d,g))
-        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(g*g,d))
+        print('static const Eigen::Matrix<double, {0}, {1}> IBC{2}{3} ='.format(d,g*g,d,g))
+        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
     print('\t',end=' ')
-    for gx in range(g):
+    for dp in range(d):
         for gy in range(g):
-            for dp in range(d):
+            for gx in range(g):
                 print(bf.inversemass[dp]*gq.gaussweights[g-1,gx]*gq.gaussweights[g-1,gy] * bf.dgbasis(dp, gq.gausspoints[g-1,gx],gq.gausspoints[g-1,gy]),end='')
                 
                 if (gx<g-1 or gy<g-1 or dp<d-1):

@@ -339,14 +339,14 @@ void boundary_lower(const SasipMesh& smesh, const double dt, CellVector<3>& phiu
     const CellVector<3>& phi, const EdgeVector<2>& normalvel_X, const size_t c, const size_t e)
 {
   LocalEdgeVector<2> vel_gauss = normalvel_X.block<1, 2>(e, 0) * BiGe22;
-  LocalEdgeVector<2> tmp = (bottomedgeofcell<3,2>(phi,c).array() * (-vel_gauss.array()).max(0));
+  LocalEdgeVector<2> tmp = ((bottomedgeofcell<3,2>(phi,c)*BiGe22).array() * (-vel_gauss.array()).max(0));
   phiup.block<1, 3>(c, 0) -= dt * tmp * PSIe_w_3_2_0;
 }
 void boundary_lower(const SasipMesh& smesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& normalvel_X, const size_t c, const size_t e)
 {
   LocalEdgeVector<3> vel_gauss = normalvel_X.row(e) * BiGe33;
-  LocalEdgeVector<3> tmp = (bottomedgeofcell<6,3>(phi,c).array() * (-vel_gauss.array()).max(0));
+  LocalEdgeVector<3> tmp = ((bottomedgeofcell<6,3>(phi,c)*BiGe33).array() * (-vel_gauss.array()).max(0));
   phiup.row(c) -= dt * tmp * PSIe_w_6_3_0;
 }
 
@@ -361,14 +361,14 @@ void boundary_upper(const SasipMesh& smesh, const double dt, CellVector<3>& phiu
     const CellVector<3>& phi, const EdgeVector<2>& normalvel_X, const size_t c, const size_t e)
 {
   LocalEdgeVector<2> vel_gauss = normalvel_X.row(e) * BiGe22;
-  LocalEdgeVector<2> tmp = (topedgeofcell<3,2>(phi,c).array() * (vel_gauss.array()).max(0));
+  LocalEdgeVector<2> tmp = ((topedgeofcell<3,2>(phi,c)*BiGe22).array() * (vel_gauss.array()).max(0));
   phiup.row(c) -= dt * tmp * PSIe_w_3_2_2;
 }
 void boundary_upper(const SasipMesh& smesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& normalvel_X, const size_t c, const size_t e)
 {
   LocalEdgeVector<3> vel_gauss = normalvel_X.row(e) * BiGe33;
-  LocalEdgeVector<3> tmp = (topedgeofcell<6,3>(phi,c).array() * (vel_gauss.array()).max(0));
+  LocalEdgeVector<3> tmp = ((topedgeofcell<6,3>(phi,c)*BiGe33).array() * (vel_gauss.array()).max(0));
   phiup.row(c) -= dt * tmp * PSIe_w_6_3_2;
 }
 
@@ -383,14 +383,14 @@ void boundary_left(const SasipMesh& smesh, const double dt, CellVector<3>& phiup
     const CellVector<3>& phi, const EdgeVector<2>& normalvel_Y, const size_t c, const size_t e)
 {
     LocalEdgeVector<2> vel_gauss = normalvel_Y.row(e) * BiGe22;
-    LocalEdgeVector<2> tmp = (leftedgeofcell<3,2>(phi,c).array() * (-vel_gauss.array()).max(0));
+    LocalEdgeVector<2> tmp = ((leftedgeofcell<3,2>(phi,c)*BiGe22).array() * (-vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w_3_2_3;
 }
 void boundary_left(const SasipMesh& smesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& normalvel_Y, const size_t c, const size_t e)
 {
     LocalEdgeVector<3> vel_gauss = normalvel_Y.row(e) * BiGe33;
-    LocalEdgeVector<3> tmp = (leftedgeofcell<6,3>(phi,c).array() * (-vel_gauss.array()).max(0));
+    LocalEdgeVector<3> tmp = ((leftedgeofcell<6,3>(phi,c)*BiGe33).array() * (-vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w_6_3_3;
 }
 
@@ -405,14 +405,14 @@ void boundary_right(const SasipMesh& smesh, const double dt, CellVector<3>& phiu
     const CellVector<3>& phi, const EdgeVector<2>& normalvel_Y, const size_t c, const size_t e)
 {
     LocalEdgeVector<2> vel_gauss = normalvel_Y.row(e) * BiGe22;
-    LocalEdgeVector<2> tmp = (rightedgeofcell<3,2>(phi,c).array() * (vel_gauss.array().max(0)));
+    LocalEdgeVector<2> tmp = ((rightedgeofcell<3,2>(phi,c) * BiGe22).array() * (vel_gauss.array().max(0)));
     phiup.row(c) -= dt * tmp * PSIe_w_3_2_1;
 }
 void boundary_right(const SasipMesh& smesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& normalvel_Y, const size_t c, const size_t e)
 {
     LocalEdgeVector<3> vel_gauss = normalvel_Y.row(e) * BiGe33;
-    LocalEdgeVector<3> tmp = (rightedgeofcell<6,3>(phi,c).array() * (vel_gauss.array().max(0)));
+    LocalEdgeVector<3> tmp = ((rightedgeofcell<6,3>(phi,c)*BiGe33).array() * (vel_gauss.array().max(0)));
     phiup.row(c) -= dt * tmp * PSIe_w_6_3_1;
 }
 

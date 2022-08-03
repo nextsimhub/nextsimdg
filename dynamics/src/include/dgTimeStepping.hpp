@@ -35,7 +35,6 @@ template <>
 void cell_term(const Mesh& mesh, const LocalCellVector<3> inversemasscell, CellVector<3>& phiup,
     const CellVector<3>& phi, const CellVector<3>& vx, const CellVector<3>& vy, const size_t ic)
 {
-  return;
     // - (Psi v, \nabla phi)
 
     // vx, vy dG(0) !!!

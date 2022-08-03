@@ -8,6 +8,7 @@
 #define __CGVECTOR_HPP
 
 #include "Mesh.hpp"
+#include "SasipMesh.hpp"
 #include <Eigen/Dense>
 #include <iostream>
 
@@ -30,11 +31,19 @@ public:
         : EigenCGVector((CGdegree * mesh.nx + 1) * (CGdegree * mesh.ny + 1))
     {
     }
+    CGVector(const SasipMesh& smesh)
+        : EigenCGVector((CGdegree * smesh.nx + 1) * (CGdegree * smesh.ny + 1))
+    {
+    }
 
     //! resizes the vector and sets it to the mesh size
     void resize_by_mesh(const Mesh& mesh)
     {
         EigenCGVector::resize((CGdegree * mesh.nx + 1) * (CGdegree * mesh.ny + 1));
+    }
+    void resize_by_mesh(const SasipMesh& smesh)
+    {
+        EigenCGVector::resize((CGdegree * smesh.nx + 1) * (CGdegree * smesh.ny + 1));
     }
 
     // operations

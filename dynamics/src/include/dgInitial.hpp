@@ -278,7 +278,7 @@ double L2Error(const Mesh& mesh, const CellVector<6>& phi, InitialOp ex)
     return sqrt(res);
 }
 
-//! Functions to project an analytical solution into the DG spaces
+//! Functions to project an analytical solution into the DG spaces (OLD MESH)
 void InterpolateCG(const Mesh& mesh, CGVector<2>& phi, InitialOp initial)
 {
     assert(static_cast<long int>((2 * mesh.nx + 1) * (2 * mesh.ny + 1)) == phi.rows());
@@ -308,6 +308,42 @@ void InterpolateCG(const Mesh& mesh, CGVector<1>& phi, InitialOp initial)
             phi(ii) = initial(X, Y);
         }
     }
+}
+
+
+
+//! Functions to project an analytical solution into the DG spaces (SasipMesh)
+void InterpolateCG(const SasipMesh& smesh, CGVector<2>& phi, InitialOp initial)
+{
+    assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == phi.rows());
+
+#pragma omp parallel for
+    for (size_t iy = 0; iy < 2 * smesh.ny + 1; ++iy)
+      {
+        size_t ii = iy * (2 * smesh.nx + 1);
+
+        for (size_t ix = 0; ix < 2 * smesh.nx + 1; ++ix, ++ii)
+	  {
+	    const auto v = smesh.coordinate<2>(ix,iy);
+	    phi(ii) = initial(v[0],v[1]);
+	  }
+      }
+}
+void InterpolateCG(const SasipMesh& smesh, CGVector<1>& phi, InitialOp initial)
+{
+    assert(static_cast<long int>((smesh.nx + 1) * (smesh.ny + 1)) == phi.rows());
+
+#pragma omp parallel for
+    for (size_t iy = 0; iy < smesh.ny + 1; ++iy)
+      {
+        size_t ii = iy * (smesh.nx + 1);
+
+        for (size_t ix = 0; ix < smesh.nx + 1; ++ix, ++ii)
+	  {
+	    const auto v = smesh.coordinate<1>(ix,iy);
+	    phi(ii) = initial(v[0],v[1]);
+	  }
+      }
 }
 
 } /* namespace Nextsim */

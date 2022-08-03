@@ -126,6 +126,57 @@ public:
 
 
   /*!
+   * returns the cooridnate of a vertex by an index (ix,iy)
+   * For CG1 this is directly the corresponding entry ( (nx+1) iy + ix ) in the vertices-array
+   * For CG2 we linearly interpolate.
+   */
+  template<int CGdegree>
+  Vertex coordinate(size_t ix, size_t iy) const
+  {
+    if (CGdegree == 1)
+      {
+	assert(ix<nx+1);
+	assert(iy<ny+1);
+	const size_t ii = (nx+1)*iy+ix;
+	return Vertex({vertices(ii,0),vertices(ii,1)});
+      }
+    else if (CGdegree == 2)
+      {
+	assert(ix<2*nx+1);
+	assert(iy<2*ny+1);
+	const size_t cx = ix/2; // index of the element where the cooridnate belongs to
+	const size_t cy = iy/2;
+	const size_t mx = ix%2; // where are we in the element?
+	const size_t my = iy%2;
+	const size_t n0 = (nx+1)*cy+cx; // lower left node
+	
+	const size_t shift_y = nx+1;
+	
+	if ((my==0)&&(mx==0))
+	  return Vertex ({vertices(n0,0),vertices(n0,1)});
+	else
+	  if ((my==0)&&(mx==1))
+	    return Vertex ({
+		0.5*(vertices(n0,0)+vertices(n0+1,0)),
+		0.5*(vertices(n0,1)+vertices(n0+1,1))});
+	  else
+	    if ((my==1)&&(mx==0))
+	      return Vertex ({
+		  0.5*(vertices(n0,0)+vertices(n0+shift_y,0)),
+		  0.5*(vertices(n0,1)+vertices(n0+shift_y,1))});
+	    else
+	      if ((my==1)&&(mx==1))
+		return Vertex ({
+		    0.25*(vertices(n0,0)+vertices(n0+1,0)+vertices(n0+shift_y,0)+vertices(n0+shift_y+1,0)),
+		    0.25*(vertices(n0,1)+vertices(n0+1,1)+vertices(n0+shift_y,1)+vertices(n0+shift_y+1,1))});
+	      else
+		abort();
+      }
+    else
+      abort();
+  }
+
+  /*!
    * computes the vector between two points n1, n2 (not normed)
    */
   Eigen::Matrix< Nextsim::FloatType, 1, 2 > edgevector(const size_t n1, const size_t n2) const

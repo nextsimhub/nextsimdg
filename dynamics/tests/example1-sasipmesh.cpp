@@ -63,7 +63,6 @@ public:
 
     double operator()(double x, double y) const
     {
-      //      return 1.0;
       return (y/256000-1.0) * 2.0 * M_PI;
     }
 };
@@ -76,7 +75,6 @@ public:
 
     double operator()(double x, double y) const
     {
-      //      return 0.0;
       return (1.0-x/256000.0) * 2.0 * M_PI;
     }
 };
@@ -138,7 +136,7 @@ public:
        	
         dt = cfl * hmin / 1.0; // max-velocity is 1
 	double tmax = 256000.0;
-        NT = (static_cast<int>((tmax / dt + 1) / 10 + 1) * 10); // No time steps dividable by 100
+        NT = (static_cast<int>((tmax / dt + 1) / 100 + 1) * 100); // No time steps dividable by 100
 	std::cout << "dt = " << dt << "\t NT = " << NT << std::endl;
         //! Init Vectors
         vx.resize_by_mesh(smesh);
@@ -167,7 +165,7 @@ public:
 	Nextsim::L2ProjectInitial(smesh, phi, PackmanPlus());
 
 	if (WRITE_VTK) {
-	  Nextsim::VTK::write_dg<DG>("Results/dg", 0, phi, smesh);
+	  Nextsim::VTK::write_dg<DG>("ResultsSasip/dg", 0, phi, smesh);
 	}
 
 	//! Save initial solution for error control
@@ -187,9 +185,9 @@ public:
 	  if (WRITE_VTK)
 	    if (iter % (NT / writestep) == 0)
 	      {
-	      Nextsim::VTK::write_dg<DG>("Results/dg", iter / (NT / writestep), phi, smesh);
-	      Nextsim::VTK::write_dg<DG>("Results/vx", iter / (NT / writestep), vx, smesh);
-	      Nextsim::VTK::write_dg<DG>("Results/vy", iter / (NT / writestep), vy, smesh);
+	      Nextsim::VTK::write_dg<DG>("ResultsSasip/dg", iter / (NT / writestep), phi, smesh);
+	      Nextsim::VTK::write_dg<DG>("ResultsSasip/vx", iter / (NT / writestep), vx, smesh);
+	      Nextsim::VTK::write_dg<DG>("ResultsSasip/vy", iter / (NT / writestep), vy, smesh);
 	    }
 
 	  //	  if (iter==5) abort();
@@ -197,7 +195,7 @@ public:
             Nextsim::CellVector<DG> errorphi = phi;
             errorphi += -finalphi;
             if (WRITE_VTK) {
-                Nextsim::VTK::write_dg<DG>("Results/error", N, errorphi, smesh);
+                Nextsim::VTK::write_dg<DG>("ResultsSasip/error", N, errorphi, smesh);
             }
             errors.push_back(errorphi.norm() * sqrt(mesh.hx * mesh.hy));
             values.push_back(phi.col(0).sum() * mesh.hx * mesh.hy);
@@ -281,7 +279,7 @@ int main()
   Nextsim::SasipMesh smesh;
   smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
 
-  Test<6> test(smesh);
+  Test<3> test(smesh);
   
   test.run();
 }
