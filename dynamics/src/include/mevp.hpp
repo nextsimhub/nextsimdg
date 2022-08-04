@@ -549,10 +549,10 @@ namespace mEVP {
             //   S11(i, 0) -= 1.0 / alpha * 0.5 * P;
 
 
-	    const auto J = ParametricTools::J<3>(smesh,i);
+	    const Eigen::Matrix<Nextsim::FloatType, 1, 9> J = ParametricTools::J<3>(smesh,i);
 	    // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
 	    // with the gauss weights and with J. This is a 8 x 9 matrix
-	    const auto imass_psi = ParametricTools::massMatrix<8>(smesh,i).inverse()
+	    const Eigen::Matrix<Nextsim::FloatType,8,9>   imass_psi = ParametricTools::massMatrix<8>(smesh,i).inverse()
 	      * (BiG83.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
 	    
             S11.row(i) += imass_psi *

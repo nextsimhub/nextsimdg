@@ -39,6 +39,10 @@ public:
   template <int CG, int DG>
   void ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
 				     CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
+  template <int CG, int DG>
+  void ProjectCG2VelocityToDG1Strain(const ParametricTransformation<CG,DG>& ptrans,
+				     const SasipMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
+				     CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
 
     /*!
      * Evaluates (S, nabla phi) and adds it to tx/ty - Vector
@@ -51,6 +55,11 @@ public:
     void AddStressTensor(const SasipMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
         const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
+  template <int CG, int DG>
+  void AddStressTensor(const ParametricTransformation<CG,DG>& ptrans,
+		       const SasipMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
+		       const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
+  
     template <int CG, int DG>
     void AddStressTensorCell(const Mesh& mesh, const double scale, const size_t c, const size_t cx,
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
@@ -60,8 +69,14 @@ public:
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
         const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
+  template<int CG, int DG> 
+  void AddStressTensorCell(const ParametricTransformation<CG,DG>& ptrans,
+			   const SasipMesh& smesh, const double scale, const size_t c, const size_t cx,
+			   const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
+			   const CellVector<DG>& S12, const CellVector<DG>& S22) const;
   
-    void AddStressTensorCell(const Mesh& mesh, const double scale, const size_t c, const size_t cx,
+  
+  void AddStressTensorCell(const Mesh& mesh, const double scale, const size_t c, const size_t cx,
         const size_t cy, CGVector<1>& tx, CGVector<1>& ty, const CellVector<1>& S11,
         const CellVector<1>& S12, const CellVector<1>& S22) const
     {
@@ -269,6 +284,7 @@ public:
         const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy, const CellVector<8>& S11,
         const CellVector<8>& S12, const CellVector<8>& S22) const
     {
+      abort();
       //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
 
       // (M vx)_i = (vx, phi_i) = - (S11, d_x phi_i) - (S12, d_y phi_i)
@@ -294,7 +310,8 @@ public:
 
         const Eigen::Matrix<Nextsim::FloatType, 1, 9> tx = dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose();
 	const Eigen::Matrix<Nextsim::FloatType, 1, 9> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();
-	
+
+
         tmpx(cg_i + 0) += -tx(0);
         tmpx(cg_i + 1) += -tx(1);
         tmpx(cg_i + 2) += -tx(2);
@@ -314,6 +331,26 @@ public:
         tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
         tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
         tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+    }
+
+  void AddStressTensorCell(const ParametricTransformation<2,8>& ptrans,
+			   const SasipMesh& smesh, const double scale, const size_t eid, const size_t cx,
+			   const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy, const CellVector<8>& S11,
+			   const CellVector<8>& S12, const CellVector<8>& S22) const
+  {
+    const Eigen::Matrix<Nextsim::FloatType, 9, 1>  tx = ptrans.divS1[eid] * S11.row(eid).transpose() + ptrans.divS2[eid] * S12.row(eid).transpose();
+    const Eigen::Matrix<Nextsim::FloatType, 9, 1>  ty = ptrans.divS1[eid] * S12.row(eid).transpose() + ptrans.divS2[eid] * S22.row(eid).transpose();
+
+    const size_t CGROW = 2 * smesh.nx + 1;
+    const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
+
+    tmpx.block<3,1>(cg_i,0) -= tx.block<3,1>(0,0);
+    tmpx.block<3,1>(cg_i+CGROW,0) -= tx.block<3,1>(3,0);
+    tmpx.block<3,1>(cg_i+2*CGROW,0) -= tx.block<3,1>(6,0);
+
+    tmpy.block<3,1>(cg_i,0) -= ty.block<3,1>(0,0);
+    tmpy.block<3,1>(cg_i+CGROW,0) -= ty.block<3,1>(3,0);
+    tmpy.block<3,1>(cg_i+2*CGROW,0) -= ty.block<3,1>(6,0);
     }
 
 

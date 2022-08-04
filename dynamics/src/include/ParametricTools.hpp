@@ -10,6 +10,7 @@
 #include "cgVector.hpp"
 #include "SasipMesh.hpp"
 #include "codeGenerationDGinGauss.hpp"
+#include <vector>
 
 /*!
  * Selection of functions required to do integration on the parametric Sasip-Mesh
@@ -21,6 +22,40 @@
 
 
 namespace Nextsim {
+
+#define CGDOFS(Q)  ( (Q==1)?4:9 )
+
+  /*!
+   * This class stores precomputed values (matrices in each mesh element)
+   * that are required to efficiently perform the advection scheme and the
+   * momentum equation on the parametric mesh.
+   *
+   * The values must be initialized once for a mesh. The storage requirements
+   * are substantial. An alternative would be to recompute the quantities
+   * whenever required. (see ParametricTools)
+   */
+  template<int CG, int DG>
+  class ParametricTransformation
+  {
+    
+  public:
+    
+    /*!
+     * These matrices realize the integration of (-div S, phi) = (S, nabla phi)
+     * as matrix-vector producs (divS1 * S11 + divS2 * S12 ; divS1 * S21 + divS2 * S22) 
+     * [ where S12= S21 ]
+     */
+    std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG> > divS1, divS2;
+
+
+        /*!
+	 * These matrices realize the integration of (E, \grad phi) scaled with the
+	 * inverse mass matrix;
+	 */
+    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, CGDOFS(CG)> > iMgradX, iMgradY;
+    
+    void BasicInit(const SasipMesh& smesh);
+  };
 
   namespace ParametricTools
   {
@@ -205,6 +240,8 @@ namespace Nextsim {
     
   }
 
+#undef CGDOFS
+  
 } /* namespace Nextsim */
 
 #endif /* __PARAMETRICTOOLS_HPP */

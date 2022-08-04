@@ -41,7 +41,7 @@ extern Timer GlobalTimer;
 
 namespace ReferenceScale {
 // Benchmark testcase from [Mehlmann / Richter, ...]
-constexpr double T = .02 * 24 * 60. * 60.; //!< Time horizon 2 days
+constexpr double T = 2 * 24 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -136,6 +136,12 @@ int main()
     //! Define the spatial mesh
     Nextsim::SasipMesh smesh;
     smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
+
+    //! Precomputed values for efficient numerics on transformed mesh
+    Nextsim::GlobalTimer.start("time loop - init parametric mesh");
+    Nextsim::ParametricTransformation<CG,DGstress> ptrans_stress;
+    ptrans_stress.BasicInit(smesh);
+    Nextsim::GlobalTimer.stop("time loop - init parametric mesh");
 
     //! define the time mesh
     constexpr double dt_adv = 60.0; //!< Time step of advection problem
@@ -282,11 +288,12 @@ int main()
 
 	  Nextsim::GlobalTimer.start("time loop - mevp - strain");
 	  //! Compute Strain Rate
-	  momentum.ProjectCG2VelocityToDG1Strain(smesh, E11, E12, E22, vx, vy);
+	  momentum.ProjectCG2VelocityToDG1Strain(ptrans_stress,
+						 smesh, E11, E12, E22, vx, vy);
+	  // momentum.ProjectCG2VelocityToDG1Strain(smesh, E11, E12, E22, vx, vy);
 	  Nextsim::GlobalTimer.stop("time loop - mevp - strain");
 
 	  Nextsim::GlobalTimer.start("time loop - mevp - stress");
-
 	  Nextsim::mEVP::StressUpdateHighOrder(smesh, S11, S12, S22, E11, E12, E22, H, A,
 					       ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
 	  Nextsim::GlobalTimer.stop("time loop - mevp - stress");
@@ -337,7 +344,8 @@ int main()
                 tmpx(i) = tmpy(i) = 0;
 
             Nextsim::GlobalTimer.start("time loop - mevp - update2 -stress");
-            momentum.AddStressTensor(smesh, -1.0, tmpx, tmpy, S11, S12, S22);
+	    momentum.AddStressTensor(ptrans_stress, smesh, -1.0, tmpx, tmpy, S11, S12, S22);
+	    //momentum.AddStressTensor(smesh, -1.0, tmpx, tmpy, S11, S12, S22);
             Nextsim::GlobalTimer.stop("time loop - mevp - update2 -stress");
 	    
 #pragma omp parallel for
