@@ -7,14 +7,10 @@
 #ifndef __NEXTSIMFLOATTYPE_HPP
 #define __NEXTSIMFLOATTYPE_HPP
 
+namespace Nextsim {
 
-
-namespace Nextsim
-{
-
-  typedef double FloatType;
+typedef double FloatType;
 
 }
-
 
 #endif //  __NEXTSIMFLOATTYPE_HPP

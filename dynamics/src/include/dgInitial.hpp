@@ -11,7 +11,6 @@
 #include "cgVector.hpp"
 #include "dgVector.hpp"
 
-
 #include "ParametricTools.hpp"
 
 namespace Nextsim {
@@ -55,113 +54,102 @@ public:
     }
 };
 
+////////////////////////////////////////////////// New Interface - SasipMesh
 
-  
-  ////////////////////////////////////////////////// New Interface - SasipMesh
-  
-  void L2ProjectInitial(const SasipMesh& smesh, CellVector<1>& phi, InitialOp initial)
-  { // 2point-gauss rule
+void L2ProjectInitial(const SasipMesh& smesh, CellVector<1>& phi, InitialOp initial)
+{ // 2point-gauss rule
     phi.setZero();
 
 #pragma omp parallel for
-    for (size_t eid = 0; eid<smesh.nelements; ++ eid)
-      {
-	const double mass =  smesh.area(eid);
-	// transform gauss points to real element
+    for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+        const double mass = smesh.area(eid);
+        // transform gauss points to real element
 
-	// GAUSSPOINTS_3 is the 2 x 4 - Matrix with the reference coordinates
-	// BIG33 is the 3 x 4 matrix with DG-Psi_i(q), i=0,1,2; q=0,1,...,8
-	// CG_Q1_3 is the 4 x 4 matrix with the four Q1-basis functions in the GP
-	// coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
+        // GAUSSPOINTS_3 is the 2 x 4 - Matrix with the reference coordinates
+        // BIG33 is the 3 x 4 matrix with DG-Psi_i(q), i=0,1,2; q=0,1,...,8
+        // CG_Q1_3 is the 4 x 4 matrix with the four Q1-basis functions in the GP
+        // coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
 
-	// the Gauss points in the element 2 x 4 - Matrix
-	const auto gp = ParametricTools::getGaussPointsInElement2(smesh,eid);
-	
-	const Eigen::Matrix<Nextsim::FloatType, 4,1>
-	  initial_in_gp(initial(gp(0,0),gp(1,0)),
-			initial(gp(0,1),gp(1,1)),
-			initial(gp(0,2),gp(1,2)),
-			initial(gp(0,3),gp(1,3)));
+        // the Gauss points in the element 2 x 4 - Matrix
+        const auto gp = ParametricTools::getGaussPointsInElement2(smesh, eid);
 
-	// Jq * wq * Psi_i(x_q) * f(x_q)
-	// matrix of size 3 x 4
-	phi.row(eid) = 1./mass * 
-	  ( ((ParametricTools::J<2>(smesh,eid).array() * GAUSSWEIGHTS_2.array())).matrix()*initial_in_gp);
-      }
-  }
+        const Eigen::Matrix<Nextsim::FloatType, 4, 1>
+            initial_in_gp(initial(gp(0, 0), gp(1, 0)),
+                initial(gp(0, 1), gp(1, 1)),
+                initial(gp(0, 2), gp(1, 2)),
+                initial(gp(0, 3), gp(1, 3)));
 
-    
-  void L2ProjectInitial(const SasipMesh& smesh, CellVector<3>& phi, InitialOp initial)
-  { // 2point-gauss rule
+        // Jq * wq * Psi_i(x_q) * f(x_q)
+        // matrix of size 3 x 4
+        phi.row(eid) = 1. / mass * (((ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS_2.array())).matrix() * initial_in_gp);
+    }
+}
+
+void L2ProjectInitial(const SasipMesh& smesh, CellVector<3>& phi, InitialOp initial)
+{ // 2point-gauss rule
     phi.setZero();
 
 #pragma omp parallel for
-    for (size_t eid = 0; eid<smesh.nelements; ++ eid)
-      {
-	const Eigen::Matrix<Nextsim::FloatType, 3,3> mass
-	  = Nextsim::ParametricTools::massMatrix<3>(smesh,eid);
-	// transform gauss points to real element
+    for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+        const Eigen::Matrix<Nextsim::FloatType, 3, 3> mass
+            = Nextsim::ParametricTools::massMatrix<3>(smesh, eid);
+        // transform gauss points to real element
 
-	// GAUSSPOINTS_3 is the 2 x 4 - Matrix with the reference coordinates
-	// BIG33 is the 3 x 4 matrix with DG-Psi_i(q), i=0,1,2; q=0,1,...,8
-	// CG_Q1_3 is the 4 x 4 matrix with the four Q1-basis functions in the GP
-	// coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
+        // GAUSSPOINTS_3 is the 2 x 4 - Matrix with the reference coordinates
+        // BIG33 is the 3 x 4 matrix with DG-Psi_i(q), i=0,1,2; q=0,1,...,8
+        // CG_Q1_3 is the 4 x 4 matrix with the four Q1-basis functions in the GP
+        // coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
 
-	// the Gauss points in the element 2 x 4 - Matrix
-	const auto gp = ParametricTools::getGaussPointsInElement2(smesh,eid);
-	
-	const Eigen::Matrix<Nextsim::FloatType, 4, 1>
-	  initial_in_gp(initial(gp(0,0),gp(1,0)),
-			initial(gp(0,1),gp(1,1)),
-			initial(gp(0,2),gp(1,2)),
-			initial(gp(0,3),gp(1,3)));
+        // the Gauss points in the element 2 x 4 - Matrix
+        const auto gp = ParametricTools::getGaussPointsInElement2(smesh, eid);
 
-	// Jq * wq * Psi_i(x_q) * f(x_q)
-	// matrix of size 3 x 4
-	phi.row(eid) = mass.inverse() * 
-	  ( (BiG32.array().rowwise() * (ParametricTools::J<2>(smesh,eid).array() * GAUSSWEIGHTS_2.array())).matrix()*initial_in_gp);
-      }
-  }
+        const Eigen::Matrix<Nextsim::FloatType, 4, 1>
+            initial_in_gp(initial(gp(0, 0), gp(1, 0)),
+                initial(gp(0, 1), gp(1, 1)),
+                initial(gp(0, 2), gp(1, 2)),
+                initial(gp(0, 3), gp(1, 3)));
+
+        // Jq * wq * Psi_i(x_q) * f(x_q)
+        // matrix of size 3 x 4
+        phi.row(eid) = mass.inverse() * ((BiG32.array().rowwise() * (ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS_2.array())).matrix() * initial_in_gp);
+    }
+}
 void L2ProjectInitial(const SasipMesh& smesh, CellVector<6>& phi, InitialOp initial)
-  { // 3point-gauss rule
+{ // 3point-gauss rule
     phi.setZero();
 
 #pragma omp parallel for
-    for (size_t eid = 0; eid<smesh.nelements; ++ eid)
-      {
-	const Eigen::Matrix<Nextsim::FloatType, 6,6> mass
-	  = Nextsim::ParametricTools::massMatrix<6>(smesh,eid);
-	// transform gauss points to real element
+    for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+        const Eigen::Matrix<Nextsim::FloatType, 6, 6> mass
+            = Nextsim::ParametricTools::massMatrix<6>(smesh, eid);
+        // transform gauss points to real element
 
-	// GAUSSPOINTS_3 is the 2 x 9 - Matrix with the reference coordinates
-	// BIG33 is the 3 x 9 matrix with DG-Psi_i(q), i=0,1,2; q=0,1,...,8
-	// CG_Q1_3 is the 4 x 9 matrix with the four Q1-basis functions in the GP
-	// coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
+        // GAUSSPOINTS_3 is the 2 x 9 - Matrix with the reference coordinates
+        // BIG33 is the 3 x 9 matrix with DG-Psi_i(q), i=0,1,2; q=0,1,...,8
+        // CG_Q1_3 is the 4 x 9 matrix with the four Q1-basis functions in the GP
+        // coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
 
-	// the Gauss points in the element 2 x 9 - Matrix
-	const auto gp = ParametricTools::getGaussPointsInElement3(smesh,eid);
-	
-	const Eigen::Matrix<Nextsim::FloatType, 9, 1>
-	  initial_in_gp({{initial(gp(0,0),gp(1,0)),
-			initial(gp(0,1),gp(1,1)),
-			initial(gp(0,2),gp(1,2)),
-			initial(gp(0,3),gp(1,3)),
-			initial(gp(0,4),gp(1,4)),
-			initial(gp(0,5),gp(1,5)),
-			initial(gp(0,6),gp(1,6)),
-			initial(gp(0,7),gp(1,7)),
-			initial(gp(0,8),gp(1,8))}});
+        // the Gauss points in the element 2 x 9 - Matrix
+        const auto gp = ParametricTools::getGaussPointsInElement3(smesh, eid);
 
-	// Jq * wq * Psi_i(x_q) * f(x_q)
-	// matrix of size 3 x 9
-	phi.row(eid) = mass.inverse() * 
-	  ( (BiG63.array().rowwise() * (ParametricTools::J<3>(smesh,eid).array() * GAUSSWEIGHTS_3.array())).matrix()*initial_in_gp);
-      }
-  }
+        const Eigen::Matrix<Nextsim::FloatType, 9, 1>
+            initial_in_gp({ { initial(gp(0, 0), gp(1, 0)),
+                initial(gp(0, 1), gp(1, 1)),
+                initial(gp(0, 2), gp(1, 2)),
+                initial(gp(0, 3), gp(1, 3)),
+                initial(gp(0, 4), gp(1, 4)),
+                initial(gp(0, 5), gp(1, 5)),
+                initial(gp(0, 6), gp(1, 6)),
+                initial(gp(0, 7), gp(1, 7)),
+                initial(gp(0, 8), gp(1, 8)) } });
 
+        // Jq * wq * Psi_i(x_q) * f(x_q)
+        // matrix of size 3 x 9
+        phi.row(eid) = mass.inverse() * ((BiG63.array().rowwise() * (ParametricTools::J<3>(smesh, eid).array() * GAUSSWEIGHTS_3.array())).matrix() * initial_in_gp);
+    }
+}
 
-
-  ////////////////////////////////////////////////// OLD Interfvace
+////////////////////////////////////////////////// OLD Interfvace
 
 //! Functions to project an analytical solution into the DG spaces
 void L2ProjectInitial(const Mesh& mesh, CellVector<1>& phi, InitialOp initial)
@@ -178,9 +166,7 @@ void L2ProjectInitial(const Mesh& mesh, CellVector<1>& phi, InitialOp initial)
     }
 }
 
-
-
-  void L2ProjectInitial(const Mesh& mesh, CellVector<3>& phi, InitialOp initial)
+void L2ProjectInitial(const Mesh& mesh, CellVector<3>& phi, InitialOp initial)
 {
     phi.setZero();
 
@@ -310,40 +296,34 @@ void InterpolateCG(const Mesh& mesh, CGVector<1>& phi, InitialOp initial)
     }
 }
 
-
-
 //! Functions to project an analytical solution into the DG spaces (SasipMesh)
 void InterpolateCG(const SasipMesh& smesh, CGVector<2>& phi, InitialOp initial)
 {
     assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == phi.rows());
 
 #pragma omp parallel for
-    for (size_t iy = 0; iy < 2 * smesh.ny + 1; ++iy)
-      {
+    for (size_t iy = 0; iy < 2 * smesh.ny + 1; ++iy) {
         size_t ii = iy * (2 * smesh.nx + 1);
 
-        for (size_t ix = 0; ix < 2 * smesh.nx + 1; ++ix, ++ii)
-	  {
-	    const auto v = smesh.coordinate<2>(ix,iy);
-	    phi(ii) = initial(v[0],v[1]);
-	  }
-      }
+        for (size_t ix = 0; ix < 2 * smesh.nx + 1; ++ix, ++ii) {
+            const auto v = smesh.coordinate<2>(ix, iy);
+            phi(ii) = initial(v[0], v[1]);
+        }
+    }
 }
 void InterpolateCG(const SasipMesh& smesh, CGVector<1>& phi, InitialOp initial)
 {
     assert(static_cast<long int>((smesh.nx + 1) * (smesh.ny + 1)) == phi.rows());
 
 #pragma omp parallel for
-    for (size_t iy = 0; iy < smesh.ny + 1; ++iy)
-      {
+    for (size_t iy = 0; iy < smesh.ny + 1; ++iy) {
         size_t ii = iy * (smesh.nx + 1);
 
-        for (size_t ix = 0; ix < smesh.nx + 1; ++ix, ++ii)
-	  {
-	    const auto v = smesh.coordinate<1>(ix,iy);
-	    phi(ii) = initial(v[0],v[1]);
-	  }
-      }
+        for (size_t ix = 0; ix < smesh.nx + 1; ++ix, ++ii) {
+            const auto v = smesh.coordinate<1>(ix, iy);
+            phi(ii) = initial(v[0], v[1]);
+        }
+    }
 }
 
 } /* namespace Nextsim */

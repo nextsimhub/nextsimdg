@@ -15,36 +15,35 @@ template <int DGdegree>
 class Limiter {
 
     const Mesh& mesh;
-  Nextsim::CellVector<2> alpha;
+    Nextsim::CellVector<2> alpha;
 
 public:
     Limiter(const Mesh& m)
         : mesh(m)
     {
-      alpha.resize_by_mesh(mesh);
+        alpha.resize_by_mesh(mesh);
     }
 
     void apply_vertex_based_limiter(CellVector<DGdegree>& v)
     {
         // apply limiter
         //#pragma omp parallel for
-      if (DGdegree>=2)
-        for (int ii = 0; ii < v.rows(); ++ii)
-	  {
-	    v(ii, 1) *= alpha(ii, 0);
-	    v(ii, 2) *= alpha(ii, 0);
-	    
-            if (DGdegree >= 5)
-	      {
-                v(ii, 3) *= alpha(ii, 1);
-                v(ii, 4) *= alpha(ii, 1);
-                v(ii, 5) *= alpha(ii, 1);
-	      }
-	  }
+        if (DGdegree >= 2)
+            for (int ii = 0; ii < v.rows(); ++ii) {
+                v(ii, 1) *= alpha(ii, 0);
+                v(ii, 2) *= alpha(ii, 0);
+
+                if (DGdegree >= 5) {
+                    v(ii, 3) *= alpha(ii, 1);
+                    v(ii, 4) *= alpha(ii, 1);
+                    v(ii, 5) *= alpha(ii, 1);
+                }
+            }
     }
 
-  void compute_vertex_based_limiter(const CellVector<1>& v)
-  {}
+    void compute_vertex_based_limiter(const CellVector<1>& v)
+    {
+    }
     void compute_vertex_based_limiter(const CellVector<3>& v)
     {
 

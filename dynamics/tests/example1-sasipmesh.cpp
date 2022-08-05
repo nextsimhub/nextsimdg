@@ -4,13 +4,13 @@
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
-#include "SasipMesh.hpp"
 #include "ParametricTools.hpp"
+#include "SasipMesh.hpp"
 
 #include "Mesh.hpp"
+#include "ParametricTransport.hpp"
 #include "dgInitial.hpp"
 #include "dgLimiters.hpp"
-#include "ParametricTransport.hpp"
 #include "dgVisu.hpp"
 
 #include <cassert>
@@ -21,10 +21,8 @@
 #include "stopwatch.hpp"
 #include "testtools.hpp"
 
-
-namespace Nextsim
-{
-  extern Timer GlobalTimer;
+namespace Nextsim {
+extern Timer GlobalTimer;
 }
 
 bool WRITE_VTK = true; //!< set to true for vtk output
@@ -39,22 +37,20 @@ double TOL = 1.e-10; //!< tolerance for checking test results
 struct PackmanPlus {
 
 public:
-
     double operator()(double x, double y) const
     {
-      //      return 1;
-      double r = sqrt(pow((x - 240000.0)/64000.0, 2.0) + pow( (y - 120000.0)/64000.0, 2.0));
-      double r1 = sqrt(pow((x - 272000.0)/96000.0, 2.0) + pow( (y - 368000.0)/96000.0, 2.0));
-      if (r < 1.0)
-	if ( (16000.0-fabs(x-240000.0)<0.0) || (y>120000.0 - 16000.0) )
-	  return 1.0 + exp(-5.0*r1*r1);
-      return exp(-5.0*r1*r1);
-
+        //      return 1;
+        double r = sqrt(pow((x - 240000.0) / 64000.0, 2.0) + pow((y - 120000.0) / 64000.0, 2.0));
+        double r1 = sqrt(pow((x - 272000.0) / 96000.0, 2.0) + pow((y - 368000.0) / 96000.0, 2.0));
+        if (r < 1.0)
+            if ((16000.0 - fabs(x - 240000.0) < 0.0) || (y > 120000.0 - 16000.0))
+                return 1.0 + exp(-5.0 * r1 * r1);
+        return exp(-5.0 * r1 * r1);
     }
 };
 
 // Velocity
-struct InitialVX { // (0.5,0.2) m/s 
+struct InitialVX { // (0.5,0.2) m/s
 
     double _time;
 
@@ -63,7 +59,7 @@ public:
 
     double operator()(double x, double y) const
     {
-      return (y/256000-1.0) * 2.0 * M_PI;
+        return (y / 256000 - 1.0) * 2.0 * M_PI;
     }
 };
 struct InitialVY {
@@ -75,7 +71,7 @@ public:
 
     double operator()(double x, double y) const
     {
-      return (1.0-x/256000.0) * 2.0 * M_PI;
+        return (1.0 - x / 256000.0) * 2.0 * M_PI;
     }
 };
 
@@ -84,8 +80,8 @@ public:
 template <int DG>
 class Test {
 
-  const Nextsim::SasipMesh& smesh; //!< Stores a reference to the spacial mesh.
-  
+    const Nextsim::SasipMesh& smesh; //!< Stores a reference to the spacial mesh.
+
     size_t N; //!< size of mesh N x N
 
     size_t NT; //!< number of time steps
@@ -97,7 +93,7 @@ class Test {
     Nextsim::CellVector<DG> vx, vy, phi, finalphi;
 
     //! Transport main class
-  Nextsim::ParametricTransport<DG, EDGEDOFS(DG)> dgtransport;
+    Nextsim::ParametricTransport<DG, EDGEDOFS(DG)> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -108,10 +104,8 @@ class Test {
 
     size_t writestep; //! write out n step in total (for debugging only)
 
-
-  
 public:
-  Test(const Nextsim::SasipMesh& mesh)
+    Test(const Nextsim::SasipMesh& mesh)
         : smesh(mesh)
         , dgtransport(smesh, vx, vy)
         , writestep(40)
@@ -130,14 +124,14 @@ public:
         //! Init Time Mesh
         double cfl = 0.01;
 
-	double hmin = smesh.hmin();
-	double area = smesh.area();
-	std::cout << "SasipMesh: hmin = " << hmin << "\tarea = " << area << std::endl;
-       	
+        double hmin = smesh.hmin();
+        double area = smesh.area();
+        std::cout << "SasipMesh: hmin = " << hmin << "\tarea = " << area << std::endl;
+
         dt = cfl * hmin / 1.0; // max-velocity is 1
-	double tmax = 256000.0;
+        double tmax = 256000.0;
         NT = (static_cast<int>((tmax / dt + 1) / 100 + 1) * 100); // No time steps dividable by 100
-	std::cout << "dt = " << dt << "\t NT = " << NT << std::endl;
+        std::cout << "dt = " << dt << "\t NT = " << NT << std::endl;
         //! Init Vectors
         vx.resize_by_mesh(smesh);
         vy.resize_by_mesh(smesh);
@@ -147,59 +141,54 @@ public:
     void run()
     {
         values.clear();
-	
-	
-	Nextsim::GlobalTimer.reset();
 
-	// init the test case, in particular resize vectors
-	init();
+        Nextsim::GlobalTimer.reset();
 
+        // init the test case, in particular resize vectors
+        init();
 
+        double area = 0.0;
+        for (size_t i = 0; i < smesh.nelements; ++i)
+            area += Nextsim::ParametricTools::massMatrix<DG>(smesh, i)(0, 0);
+        std::cout << "Error in area: " << (area / 512000.0 / 512000.0 - 1.0) << std::endl;
 
-	double area = 0.0;
-	for (size_t i=0;i<smesh.nelements;++i)
-	  area += Nextsim::ParametricTools::massMatrix<DG>(smesh,i)(0,0);
-	std::cout << "Error in area: " << (area/512000.0/512000.0-1.0) << std::endl;
-	
-	// initial density
-	Nextsim::L2ProjectInitial(smesh, phi, PackmanPlus());
+        // initial density
+        Nextsim::L2ProjectInitial(smesh, phi, PackmanPlus());
 
-	if (WRITE_VTK) {
-	  Nextsim::VTK::write_dg<DG>("ResultsSasip/dg", 0, phi, smesh);
-	}
+        if (WRITE_VTK) {
+            Nextsim::VTK::write_dg<DG>("ResultsSasip/dg", 0, phi, smesh);
+        }
 
-	//! Save initial solution for error control
-	finalphi = phi;
+        //! Save initial solution for error control
+        finalphi = phi;
 
-	//! time loop
+        //! time loop
 
-	//	writestep = NT;
-	for (size_t iter = 1; iter <= NT; ++iter) {
-	  VX.settime(dt * iter);
-	  VY.settime(dt * iter);
-	  Nextsim::L2ProjectInitial(smesh, vx, VX);
-	  Nextsim::L2ProjectInitial(smesh, vy, VY);
-	  dgtransport.reinitnormalvelocity();
-	  
-	  dgtransport.step(dt, phi); // performs one time step with the 2nd Order Heun scheme
-	  if (WRITE_VTK)
-	    if (iter % (NT / writestep) == 0)
-	      {
-	      Nextsim::VTK::write_dg<DG>("ResultsSasip/dg", iter / (NT / writestep), phi, smesh);
-	      Nextsim::VTK::write_dg<DG>("ResultsSasip/vx", iter / (NT / writestep), vx, smesh);
-	      Nextsim::VTK::write_dg<DG>("ResultsSasip/vy", iter / (NT / writestep), vy, smesh);
-	    }
+        //	writestep = NT;
+        for (size_t iter = 1; iter <= NT; ++iter) {
+            VX.settime(dt * iter);
+            VY.settime(dt * iter);
+            Nextsim::L2ProjectInitial(smesh, vx, VX);
+            Nextsim::L2ProjectInitial(smesh, vy, VY);
+            dgtransport.reinitnormalvelocity();
 
-	  //	  if (iter==5) abort();
-	}
-            Nextsim::CellVector<DG> errorphi = phi;
-            errorphi += -finalphi;
-            if (WRITE_VTK) {
-                Nextsim::VTK::write_dg<DG>("ResultsSasip/error", N, errorphi, smesh);
-            }
-            errors.push_back(errorphi.norm() * sqrt(mesh.hx * mesh.hy));
-            values.push_back(phi.col(0).sum() * mesh.hx * mesh.hy);
+            dgtransport.step(dt, phi); // performs one time step with the 2nd Order Heun scheme
+            if (WRITE_VTK)
+                if (iter % (NT / writestep) == 0) {
+                    Nextsim::VTK::write_dg<DG>("ResultsSasip/dg", iter / (NT / writestep), phi, smesh);
+                    Nextsim::VTK::write_dg<DG>("ResultsSasip/vx", iter / (NT / writestep), vx, smesh);
+                    Nextsim::VTK::write_dg<DG>("ResultsSasip/vy", iter / (NT / writestep), vy, smesh);
+                }
 
+            //	  if (iter==5) abort();
+        }
+        Nextsim::CellVector<DG> errorphi = phi;
+        errorphi += -finalphi;
+        if (WRITE_VTK) {
+            Nextsim::VTK::write_dg<DG>("ResultsSasip/error", N, errorphi, smesh);
+        }
+        errors.push_back(errorphi.norm() * sqrt(mesh.hx * mesh.hy));
+        values.push_back(phi.col(0).sum() * mesh.hx * mesh.hy);
 
         std::cout.precision(16);
     }
@@ -276,10 +265,10 @@ public:
 
 int main()
 {
-  Nextsim::SasipMesh smesh;
-  smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
+    Nextsim::SasipMesh smesh;
+    smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
 
-  Test<3> test(smesh);
-  
-  test.run();
+    Test<3> test(smesh);
+
+    test.run();
 }

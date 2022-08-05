@@ -47,19 +47,19 @@ constexpr double young = 1e9;
 constexpr double compr_strength
     = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
 
-//TODO missing 45\deg it goes to Compresssion
+// TODO missing 45\deg it goes to Compresssion
 constexpr double tan_phi = 0.7; //! \param tan_phi (double) Internal friction coefficient (mu)
 constexpr double sin_phi = 0.7; //! \param sin_phi (double) Internal friction coefficient (mu)
 
 constexpr double c0 = 10.e3; //! \param tan_phi (double) Internal friction coefficient (mu)
 constexpr double sigma_c0 = 50.e3; //! \param tan_phi (double) Internal friction coefficient (mu)
 
-//constexpr double C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
-//constexpr double time_relaxation_damage = 2160000.; //!< 25 days in seconds
+// constexpr double C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
+// constexpr double time_relaxation_damage = 2160000.; //!< 25 days in seconds
 //
-//constexpr double compression_factor = 10e3; //! \param Max pressure for damaged converging ice
-//constexpr double exponent_compression_factor
-//    = 1.5; //! \param Power of ice thickness in the pressure coefficient
+// constexpr double compression_factor = 10e3; //! \param Max pressure for damaged converging ice
+// constexpr double exponent_compression_factor
+//     = 1.5; //! \param Power of ice thickness in the pressure coefficient
 
 constexpr double fc = 0.0; //!< Coriolis
 
@@ -112,13 +112,13 @@ namespace MEB {
 
     /*!
      * @brief Calculate Stresses for the current time step and update damage.
-     * 
+     *
      * @details BBM model
-     * 
-     * @tparam DGstress Stress adn Strain DG degree 
-     * @tparam DGtracer H, A, D DG degree 
+     *
+     * @tparam DGstress Stress adn Strain DG degree
+     * @tparam DGtracer H, A, D DG degree
      * @param mesh mesh
-     * @param S11 Stress component 11 
+     * @param S11 Stress component 11
      * @param S12 Stress component 12
      * @param S22 Stress component 22
      * @param E11 Strain component 11
@@ -127,7 +127,7 @@ namespace MEB {
      * @param H ice height
      * @param A ice concentation
      * @param D damage
-     * @param dt_momentum timestep for momentum subcycle 
+     * @param dt_momentum timestep for momentum subcycle
      */
     template <int DGstress, int DGtracer>
     void StressUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
@@ -169,7 +169,7 @@ namespace MEB {
             }
 
             // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-            //double const multiplicator
+            // double const multiplicator
             //    = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_momentum * (1. - tildeP)));
 
             double const multiplicator = 1. / (1. + dt_momentum / time_viscous * (1. - tildeP));
@@ -214,7 +214,7 @@ namespace MEB {
                 // finiteelement.cpp#L3834
                 dcrit = C_fix / (sigma_s + RefScale::tan_phi * sigma_n);
 
-            //Calcutate d_critical as Veronique:
+            // Calcutate d_critical as Veronique:
 
             // Calculate the characteristic time for damage and damage increment
             // M_delta_x[cpt] = mesh.hx ???
@@ -233,7 +233,7 @@ namespace MEB {
 
             // Relax damage
             D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage * std::exp(RefScale::compaction_param * (1. - A(i, 0))));
-            //D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage * std::exp(RefScale::compaction_param * (1. - A(i, 0))));
+            // D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage * std::exp(RefScale::compaction_param * (1. - A(i, 0))));
         }
     }
 
@@ -254,7 +254,7 @@ namespace MEB {
             double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
 
             // Eqn. 25
-            //double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
+            // double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
             //    * std::pow((1. - D(i, 0)), RefScaleCanada::exponent_relaxation_sigma - 1.) / (H(i, 0) * expC);
             // Eqn 9.
             double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
@@ -267,7 +267,7 @@ namespace MEB {
             double multiplicator = 1. / (1. + dt_momentum / time_viscous);
 
             time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma;
-            //elasticity = RefScaleCanada::young;
+            // elasticity = RefScaleCanada::young;
 
             double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
@@ -280,7 +280,7 @@ namespace MEB {
                 * (1. / (1. + RefScaleCanada::nu0) * E22.row(i)
                     + Dunit_factor * RefScaleCanada::nu0 * (E11.row(i) + E22.row(i)));
 
-            //BBM
+            // BBM
             double const Pmax = RefScale::compression_factor * pow(H(i, 0), 1.5); // * exp(-20.0 * (1.0 - A(i, 0)));
             // Strange Discountinious function
             if (sigma_n < 0.) {
@@ -309,24 +309,24 @@ namespace MEB {
             const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * expC;
 
             double dcrit(1.0);
-            //Regime(i, 0) = 0;
+            // Regime(i, 0) = 0;
             //// Mohr-Coulomb condition
-            //if (tau + RefScaleCanada::sin_phi * sigma_n - c < 0) {
-            //    Regime(i, 0) = 1;
-            //}
-            //if (sigma_n - tau > sigma_c) {
-            //    Regime(i, 0) = 2;
-            //}
+            // if (tau + RefScaleCanada::sin_phi * sigma_n - c < 0) {
+            //     Regime(i, 0) = 1;
+            // }
+            // if (sigma_n - tau > sigma_c) {
+            //     Regime(i, 0) = 2;
+            // }
 
             if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
                 dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
 
-            //Relax stress
+            // Relax stress
             S11.row(i) *= dcrit;
             S12.row(i) *= dcrit;
             S22.row(i) *= dcrit;
 
-            //Update damage
+            // Update damage
             D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
         }
     }
@@ -344,7 +344,7 @@ namespace MEB {
 
             //!  number of gauss points in each direction equalls 3, for 2d 3^2
             const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * BiG33).array().max(0.0).matrix();
-            //const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
+            // const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
             const Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
 
             const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 3>(i, 0) * BiG33;
@@ -357,7 +357,7 @@ namespace MEB {
 
             auto expC = 1.; //(-20.0 * (1.0 - a_gauss.array())).exp();
             // Eqn. 24 Additional multiplic0cation by H
-            //const Eigen::Matrix<double, 1, 9> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array()) * expC.array()).matrix();
+            // const Eigen::Matrix<double, 1, 9> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array()) * expC.array()).matrix();
             const Eigen::Matrix<double, 1, 9> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array())).matrix();
 
             auto powalpha = (1. - d_gauss.array()).pow(RefScaleCanada::exponent_relaxation_sigma - 1.);
@@ -378,7 +378,7 @@ namespace MEB {
             S22.row(i) += dt_momentum * 1. / (1. + RefScaleCanada::nu0) * (elasticity.array() * e22_gauss.array()).matrix() * IBC33
                 + dt_momentum * Dunit_factor * RefScaleCanada::nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array())).matrix() * IBC33;
 
-            //BBM
+            // BBM
             Eigen::Matrix<double, 1, 9> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
 
             const Eigen::Matrix<double, 1, 9> Pmax = RefScale::compression_factor * h_gauss.array().pow(1.5);
@@ -388,8 +388,8 @@ namespace MEB {
             // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
             multiplicator = (sigma_n.array() < 0.).select((1. / (1. + (1. - tildeP.array()) * dt_momentum / time_viscous.array())).matrix(), multiplicator);
 
-            //multiplicator = multiplicator_gp * IBC33;
-            // Eqn. (34)
+            // multiplicator = multiplicator_gp * IBC33;
+            //  Eqn. (34)
             //! Coefficient-wise multiplication
             S11.row(i) = (s11_gauss.array() * multiplicator.array()).matrix() * IBC33;
             S12.row(i) = (s12_gauss.array() * multiplicator.array()).matrix() * IBC33;
@@ -405,47 +405,47 @@ namespace MEB {
             s22_gauss = S22.block<1, 3>(i, 0) * BiG33;
 
             // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
-            //double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
+            // double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
             sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
 
             // shear stress
-            //double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
+            // double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
 
             const Eigen::Matrix<double, 1, 9> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
-            //assert(tau >= 0);
+            // assert(tau >= 0);
 
-            //const double c = RefScaleCanada::c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
-            //const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
+            // const double c = RefScaleCanada::c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
+            // const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
             const Eigen::Matrix<double, 1, 9> c = RefScaleCanada::c0 * h_gauss.array() * expC;
-            //const Eigen::Matrix<double, 1, 9> sigma_c = RefScaleCanada::sigma_c0 * h_gauss.array() * expC;
+            // const Eigen::Matrix<double, 1, 9> sigma_c = RefScaleCanada::sigma_c0 * h_gauss.array() * expC;
 
-            //double dcrit(1.0);
+            // double dcrit(1.0);
             Eigen::Matrix<double, 1, 9> dcrit;
             dcrit << 1., 1., 1., 1., 1., 1., 1., 1., 1.;
-            //if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
-            //    dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
+            // if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
+            //     dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
 
             // Mohr-Coulomb Criterion
             dcrit = (tau.array() + RefScaleCanada::sin_phi * sigma_n.array() - c.array() > 0).select(c.array() / (tau.array() + RefScaleCanada::sin_phi * sigma_n.array()), dcrit);
             // Compression cutoff
-            //dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
+            // dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
 
             dcrit = dcrit.array().min(1.0).matrix();
 
             auto dcrit_int = dcrit * IBC33;
             Dcrit.row(i) = dcrit_int;
 
-            //S11.row(i).array() *= dcrit_int.array();
-            //S12.row(i).array() *= dcrit_int.array();
-            //S22.row(i).array() *= dcrit_int.array();
+            // S11.row(i).array() *= dcrit_int.array();
+            // S12.row(i).array() *= dcrit_int.array();
+            // S22.row(i).array() *= dcrit_int.array();
 
-            //Relax stress in Gassus points
+            // Relax stress in Gassus points
             S11.row(i) = (s11_gauss.array() * dcrit.array()).matrix() * IBC33;
             S12.row(i) = (s12_gauss.array() * dcrit.array()).matrix() * IBC33;
             S22.row(i) = (s22_gauss.array() * dcrit.array()).matrix() * IBC33;
 
-            //Update damage
-            //D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
+            // Update damage
+            // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
             D.row(i) += ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_momentum / RefScaleCanada::damage_timescale).matrix() * IBC33;
         }
     }

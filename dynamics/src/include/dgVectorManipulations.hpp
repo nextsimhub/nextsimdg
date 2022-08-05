@@ -12,36 +12,32 @@
 
 namespace Nextsim {
 
+// dG1 (3 in cell, 2 on edge)
+Eigen::Matrix<Nextsim::FloatType, 1, 2>
+Leftedgeofcell(const CellVector<3>& cv, size_t eid)
+{
+    return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 1), cv(eid, 2));
+}
+Eigen::Matrix<Nextsim::FloatType, 1, 2>
+Rightedgeofcell(const CellVector<3>& cv, size_t eid)
+{
+    return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 1), cv(eid, 2));
+}
+Eigen::Matrix<Nextsim::FloatType, 1, 2>
+Bottomedgeofcell(const CellVector<3>& cv, size_t eid)
+{
+    return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 2), cv(eid, 1));
+}
+Eigen::Matrix<Nextsim::FloatType, 1, 2>
+Topedgeofcell(const CellVector<3>& cv, size_t eid)
+{
+    return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 2), cv(eid, 1));
+}
 
-  // dG1 (3 in cell, 2 on edge)
-  Eigen::Matrix<Nextsim::FloatType, 1, 2>
-  Leftedgeofcell(const CellVector<3>& cv, size_t eid)
-  {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 2> (cv(eid,0)-0.5*cv(eid,1), cv(eid,2));
-  }  
-  Eigen::Matrix<Nextsim::FloatType, 1, 2>
-  Rightedgeofcell(const CellVector<3>& cv, size_t eid)
-  {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 2> (cv(eid,0)+0.5*cv(eid,1),cv(eid,2));
-  }
-  Eigen::Matrix<Nextsim::FloatType, 1, 2>
-  Bottomedgeofcell(const CellVector<3>& cv, size_t eid)
-  {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 2> (cv(eid,0)- 0.5 * cv(eid,2), cv(eid,1));
-  }
-  Eigen::Matrix<Nextsim::FloatType, 1, 2>
-  Topedgeofcell(const CellVector<3>& cv, size_t eid)
-  {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 2> (cv(eid,0)+ 0.5 * cv(eid,2), cv(eid,1));
-  }
-
-
-
-  
 /**
-* Average onto an edge between two adjacent elements 1/2 (c1 + c2)
-* _X refers to a horizontal edge, _Y to a vertical edge
-**/
+ * Average onto an edge between two adjacent elements 1/2 (c1 + c2)
+ * _X refers to a horizontal edge, _Y to a vertical edge
+ **/
 LocalEdgeVector<1> average_to_X(const LocalCellVector<1>& down, const LocalCellVector<1>& up)
 {
     return 0.5 * (down + up);
@@ -154,32 +150,29 @@ void average_to_edges_Y(const Mesh& mesh, EdgeVector<2>& edgevector,
     if (settozero)
         edgevector.zero();
 
-// #pragma omp parallel for
-//     for (size_t iy = 0; iy < mesh.ny; ++iy) {
-      
-//       size_t ey = iy * (mesh.nx + 1); // first edge-index and node-index in row
-//       size_t cy = iy * mesh.nx;       // first cell index in row
-      
-//       for (size_t ix = 0; ix < mesh.nx; ++ix, ++ey, ++cy)
-// 	{
-// 	  edgevector.row(ey) += 0.5 * Leftedgeofcell(cellvector,cy);
-// 	  edgevector.row(ey+1) += 0.5 * Rightedgeofcell(cellvector,cy);
-// 	}
+        // #pragma omp parallel for
+        //     for (size_t iy = 0; iy < mesh.ny; ++iy) {
 
-//       // scale boundary
-//       edgevector.row(iy * (mesh.nx+1) ) *= 2.0;
-//       edgevector.row((iy+1) * (mesh.nx+1) - 1) *= 2.0;
-//     }
-//     return;
-    
+        //       size_t ey = iy * (mesh.nx + 1); // first edge-index and node-index in row
+        //       size_t cy = iy * mesh.nx;       // first cell index in row
+
+        //       for (size_t ix = 0; ix < mesh.nx; ++ix, ++ey, ++cy)
+        // 	{
+        // 	  edgevector.row(ey) += 0.5 * Leftedgeofcell(cellvector,cy);
+        // 	  edgevector.row(ey+1) += 0.5 * Rightedgeofcell(cellvector,cy);
+        // 	}
+
+        //       // scale boundary
+        //       edgevector.row(iy * (mesh.nx+1) ) *= 2.0;
+        //       edgevector.row((iy+1) * (mesh.nx+1) - 1) *= 2.0;
+        //     }
+        //     return;
 
 #pragma omp parallel for
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ey = iy * (mesh.nx + 1); // first edge index in row
         size_t cy = iy * mesh.nx; // first cell index in row
 
-	
-	
         edgevector.block(ey, 0, mesh.nx, 1)
             += 0.5 * cellvector.block(cy, 0, mesh.nx, 1); // constant
         edgevector.block(ey + 1, 0, mesh.nx, 1) += 0.5 * cellvector.block(cy, 0, mesh.nx, 1);
@@ -292,25 +285,24 @@ void average_to_edges_X(const Mesh& mesh, EdgeVector<2>& edgevector,
     if (settozero)
         edgevector.zero();
 
-// #pragma omp parallel for
-//     for (size_t ix = 0; ix < mesh.nx; ++ix) {
-      
-//       size_t cx = ix; 
-//       size_t nx = ix;
-      
-//       for (size_t iy = 0; iy < mesh.ny; ++iy, cx += mesh.nx, nx += mesh.nx+1)
-// 	{
-// 	  edgevector.row(cx)         += 0.5 * Bottomedgeofcell(cellvector,cx);
-// 	  edgevector.row(cx+mesh.nx) += 0.5 * Topedgeofcell(cellvector,cx);
-// 	}
+    // #pragma omp parallel for
+    //     for (size_t ix = 0; ix < mesh.nx; ++ix) {
 
-//       // scale boundary
-//       edgevector.row(ix) *= 2.0;
-//       edgevector.row(ix + mesh.ny * mesh.nx) *= 2.0;
-//     }
-//     return;
+    //       size_t cx = ix;
+    //       size_t nx = ix;
 
-    
+    //       for (size_t iy = 0; iy < mesh.ny; ++iy, cx += mesh.nx, nx += mesh.nx+1)
+    // 	{
+    // 	  edgevector.row(cx)         += 0.5 * Bottomedgeofcell(cellvector,cx);
+    // 	  edgevector.row(cx+mesh.nx) += 0.5 * Topedgeofcell(cellvector,cx);
+    // 	}
+
+    //       // scale boundary
+    //       edgevector.row(ix) *= 2.0;
+    //       edgevector.row(ix + mesh.ny * mesh.nx) *= 2.0;
+    //     }
+    //     return;
+
     //#pragma omp parallel for !!! see above!
     for (size_t iy = 0; iy < mesh.ny; ++iy) {
         size_t ex = iy * mesh.nx; // index of edge x-vector

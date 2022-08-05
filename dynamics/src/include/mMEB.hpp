@@ -94,12 +94,12 @@ namespace mMEB {
                 // Eqn. (34)
                 D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / td;
 
-                //S11.row(i) -= S11.row(i) * (1. - dcrit) * dt_momentum / td;
-                //S12.row(i) -= S12.row(i) * (1. - dcrit) * dt_momentum / td;
-                //S22.row(i) -= S22.row(i) * (1. - dcrit) * dt_momentum / td;
+                // S11.row(i) -= S11.row(i) * (1. - dcrit) * dt_momentum / td;
+                // S12.row(i) -= S12.row(i) * (1. - dcrit) * dt_momentum / td;
+                // S22.row(i) -= S22.row(i) * (1. - dcrit) * dt_momentum / td;
             }
             // Relax damage
-            //D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage);
+            // D(i, 0) = std::max(0., D(i, 0) - dt_momentum / RefScale::time_relaxation_damage);
         }
     }
 
@@ -145,19 +145,19 @@ namespace mMEB {
             }
 
             // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-            //double const multiplicator
+            // double const multiplicator
             //    = std::min(1. - 1e-12, time_viscous / (time_viscous + dt_adv * (1. - tildeP)));
 
-            //double const multiplicator
-            //    = std::min(1. - 1e-12, 1. / (1. + alpha + dt_adv / time_viscous * (1. - tildeP)));
+            // double const multiplicator
+            //     = std::min(1. - 1e-12, 1. / (1. + alpha + dt_adv / time_viscous * (1. - tildeP)));
 
             double const elasticity = RefScale::young * (1. - D(i, 0)) * expC;
 
             double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
             double X = (1. - tildeP) / time_viscous;
-            //double Z = (alpha + 1) / dt_adv + X; //alpha + 1. / dt_adv + X; //
-            //double Y = alpha + 1. + dt_adv * X;
+            // double Z = (alpha + 1) / dt_adv + X; //alpha + 1. / dt_adv + X; //
+            // double Y = alpha + 1. + dt_adv * X;
 
             /*
             S11.row(i) *= alpha / Y;
@@ -170,9 +170,9 @@ namespace mMEB {
             */
 
             // Alternative
-            //S11.row(i) = 1. / Z * (1. / dt_adv * (alpha * S11.row(i) + S11_mmeb.row(i)) + elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i))));
-            //S12.row(i) = 1. / Z * (1. / dt_adv * (alpha * S12.row(i) + S12_mmeb.row(i)) + elasticity * 1 / (1 + RefScale::nu0) * E12.row(i));
-            //S22.row(i) = 1. / Z * (1. / dt_adv * (alpha * S22.row(i) + S22_mmeb.row(i)) + elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i))));
+            // S11.row(i) = 1. / Z * (1. / dt_adv * (alpha * S11.row(i) + S11_mmeb.row(i)) + elasticity * (1 / (1 + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i))));
+            // S12.row(i) = 1. / Z * (1. / dt_adv * (alpha * S12.row(i) + S12_mmeb.row(i)) + elasticity * 1 / (1 + RefScale::nu0) * E12.row(i));
+            // S22.row(i) = 1. / Z * (1. / dt_adv * (alpha * S22.row(i) + S22_mmeb.row(i)) + elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i))));
 
             // Step by step
             /*
@@ -185,18 +185,18 @@ namespace mMEB {
             S22.row(i) += 1. / alpha * elasticity * (1 / (1 + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
             */
 
-            //std::cout << 1 / dt_adv << std::endl;std::exit(0);
+            // std::cout << 1 / dt_adv << std::endl;std::exit(0);
 
             // Step by step
             S11.row(i) *= (1. - (X - 1. / dt_adv) / (alpha + 1. / dt_adv));
             S12.row(i) *= (1. - (X - 1. / dt_adv) / (alpha + 1. / dt_adv));
             S22.row(i) *= (1. - (X - 1. / dt_adv) / (alpha + 1. / dt_adv));
 
-            //add eplitic parts
+            // add eplitic parts
             S11.row(i) += 1. / (alpha + 1. / dt_adv) * (1. / dt_adv * S11_mmeb.row(i));
             S12.row(i) += 1. / (alpha + 1. / dt_adv) * (1. / dt_adv * S12_mmeb.row(i));
             S22.row(i) += 1. / (alpha + 1. / dt_adv) * (1. / dt_adv * S22_mmeb.row(i));
-            //add elasticity
+            // add elasticity
             S11.row(i) += 1. / (alpha + 1. / dt_adv) * elasticity * (1. / (1. + RefScale::nu0) * E11.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));
             S12.row(i) += 1. / (alpha + 1. / dt_adv) * elasticity * 1. / (1. + RefScale::nu0) * E12.row(i);
             S22.row(i) += 1. / (alpha + 1. / dt_adv) * elasticity * (1. / (1. + RefScale::nu0) * E22.row(i) + Dunit_factor * RefScale::nu0 * (E11.row(i) + E22.row(i)));

@@ -114,7 +114,7 @@ struct InitialH {
 public:
     double operator()(double x, double y) const
     {
-      return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+        return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
 struct InitialA {
@@ -128,7 +128,7 @@ int main()
 
     //! Define the spatial mesh
     Nextsim::Mesh mesh;
-    constexpr size_t N = 64; //!< Number of mesh nodes
+    constexpr size_t N = 256; //!< Number of mesh nodes
     mesh.BasicInit(N, N, ReferenceScale::L / N, ReferenceScale::L / N);
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Spatial mesh with mesh " << N << " x " << N << " elements." << std::endl;
@@ -252,15 +252,17 @@ int main()
         Nextsim::GlobalTimer.start("time loop - advection");
         momentum.ProjectCGToDG(mesh, dgvx, vx);
         momentum.ProjectCGToDG(mesh, dgvy, vy);
-	
+
         dgtransport.reinitvelocity();
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
 
-	for (int i=0;i<A.rows();++i)
-	  for (int j=0;j<A.cols();++j)
-	    if (!std::isfinite(A(i,j)))
-	      {std::cerr << "NaN!" << std::endl;abort();}
+        for (int i = 0; i < A.rows(); ++i)
+            for (int j = 0; j < A.cols(); ++j)
+                if (!std::isfinite(A(i, j))) {
+                    std::cerr << "NaN!" << std::endl;
+                    abort();
+                }
 
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
@@ -270,7 +272,6 @@ int main()
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);
 
-       
         cg_A = cg_A.cwiseMin(1.0);
         cg_A = cg_A.cwiseMax(0.0);
         cg_H = cg_H.cwiseMax(1.e-4); //!< Limit H from below
@@ -289,19 +290,17 @@ int main()
             //! Compute Strain Rate
             momentum.ProjectCG2VelocityToDG1Strain(mesh, E11, E12, E22, vx, vy);
             Nextsim::GlobalTimer.stop("time loop - mevp - strain");
-	    
-	    
+
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
-	    
+
             Nextsim::mEVP::StressUpdateHighOrder(mesh, S11, S12, S22, E11, E12, E22, H, A,
-						 ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
+                ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
             Nextsim::GlobalTimer.start("time loop - mevp - update");
             //! Update
             Nextsim::GlobalTimer.start("time loop - mevp - update1");
-
 
             //	    update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
@@ -343,7 +342,7 @@ int main()
                 tmpx(i) = tmpy(i) = 0;
 
             Nextsim::GlobalTimer.start("time loop - mevp - update2 -stress");
-	    momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
+            momentum.AddStressTensor(mesh, -1.0, tmpx, tmpy, S11, S12, S22);
             Nextsim::GlobalTimer.stop("time loop - mevp - update2 -stress");
 
 #pragma omp parallel for
@@ -372,8 +371,7 @@ int main()
 
         //         //! Output
         if (WRITE_VTK)
-	  if ((timestep % NT_vtk == 0)) 
-	  {
+            if ((timestep % NT_vtk == 0)) {
                 std::cout << "VTK output at day " << time / 24. / 60. / 60. << std::endl;
 
                 int printstep = timestep / NT_vtk + 1.e-4;

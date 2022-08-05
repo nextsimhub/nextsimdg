@@ -11,15 +11,11 @@
 
 namespace Nextsim {
 
-
-  template <int DGcell, int DGedge>
+template <int DGcell, int DGedge>
 void parametricTransportOperator(const SasipMesh& smesh, const double dt, const CellVector<DGcell>& vx,
     const CellVector<DGcell>& vy, const EdgeVector<DGedge>& evx,
-				 const EdgeVector<DGedge>& evy, const CellVector<DGcell>& phi, CellVector<DGcell>& phiup);
+    const EdgeVector<DGedge>& evy, const CellVector<DGcell>& phi, CellVector<DGcell>& phiup);
 
-
-
-  
 /*!
  * Main class to manage the transport scheme on the parametric SasipMesh
  *
@@ -29,39 +25,37 @@ void parametricTransportOperator(const SasipMesh& smesh, const double dt, const 
 template <int DGcell, int DGedge>
 class ParametricTransport {
 protected:
+    //! spatial mesh.
+    const SasipMesh& smesh;
 
-  //! spatial mesh.
-  const SasipMesh& smesh;
-  
-  //! reference to the current velocity
-  const CellVector<DGcell>& velx;
-  const CellVector<DGcell>& vely;
-  
+    //! reference to the current velocity
+    const CellVector<DGcell>& velx;
+    const CellVector<DGcell>& vely;
+
     //! Specifies the time stepping scheme [rk1, rk2, rk3]
     std::string timesteppingscheme;
 
-
     //! normal velocity in edges parallel to X- and Y-axis
-  EdgeVector<DGedge> normalvel_X, normalvel_Y;
+    EdgeVector<DGedge> normalvel_X, normalvel_Y;
 
     //! temporary vectors for time stepping
     CellVector<DGcell> tmp1, tmp2, tmp3;
 
 public:
-  ParametricTransport(const SasipMesh& mesh,
-		const CellVector<DGcell>& vx, const CellVector<DGcell>& vy)
-    : smesh(mesh),
-      velx(vx)
+    ParametricTransport(const SasipMesh& mesh,
+        const CellVector<DGcell>& vx, const CellVector<DGcell>& vy)
+        : smesh(mesh)
+        , velx(vx)
         , vely(vy)
         , timesteppingscheme("rk2")
     {
-      
-      tmp1.resize_by_mesh(smesh); // resize tmp-vectors for time stepping
-      tmp2.resize_by_mesh(smesh);
-      tmp3.resize_by_mesh(smesh);
 
-      normalvel_Y.resize_by_mesh(smesh, EdgeType::Y);
-      normalvel_X.resize_by_mesh(smesh, EdgeType::X);
+        tmp1.resize_by_mesh(smesh); // resize tmp-vectors for time stepping
+        tmp2.resize_by_mesh(smesh);
+        tmp3.resize_by_mesh(smesh);
+
+        normalvel_Y.resize_by_mesh(smesh, EdgeType::Y);
+        normalvel_X.resize_by_mesh(smesh, EdgeType::X);
     }
 
     // High level functions
@@ -74,7 +68,7 @@ public:
 
     /*!
      * Sets the normal-velocity vector on the edges
-     * The normal velocity is scaled with the length of the edge, 
+     * The normal velocity is scaled with the length of the edge,
      * this already serves as the integraiton weight
      */
     void reinitnormalvelocity();

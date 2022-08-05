@@ -43,7 +43,7 @@ namespace Tools {
         }
     }
 
-  template <int DGstress, int DGtracer>
+    template <int DGstress, int DGtracer>
     void Delta(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22, const double DeltaMin, CellVector<DGtracer>& DELTA)
     {

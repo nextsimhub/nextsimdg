@@ -32,30 +32,26 @@ double TOL = 1.e-10; //!< tolerance for checking test results
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
-
 ////////////////////////////////////////////////// Initial & velocity field
- 
 
 //! Packman-initial at 256000, 256000 with radius 128000
 //! plus a smooth initial at 768000, 256000 with smaller radius
 struct PackmanPlus {
 
 public:
-
     double operator()(double x, double y) const
     {
-      double r = sqrt(pow((x - 240000.0)/64000.0, 2.0) + pow( (y - 120000.0)/64000.0, 2.0));
-      double r1 = sqrt(pow((x - 272000.0)/96000.0, 2.0) + pow( (y - 368000.0)/96000.0, 2.0));
-      if (r < 1.0)
-	if ( (16000.0-fabs(x-240000.0)<0.0) || (y>120000.0 - 16000.0) )
-	  return 1.0 + exp(-5.0*r1*r1);
-      return exp(-5.0*r1*r1);
-
+        double r = sqrt(pow((x - 240000.0) / 64000.0, 2.0) + pow((y - 120000.0) / 64000.0, 2.0));
+        double r1 = sqrt(pow((x - 272000.0) / 96000.0, 2.0) + pow((y - 368000.0) / 96000.0, 2.0));
+        if (r < 1.0)
+            if ((16000.0 - fabs(x - 240000.0) < 0.0) || (y > 120000.0 - 16000.0))
+                return 1.0 + exp(-5.0 * r1 * r1);
+        return exp(-5.0 * r1 * r1);
     }
 };
 
 // Velocity
-struct InitialVX { // (0.5,0.2) m/s 
+struct InitialVX { // (0.5,0.2) m/s
 
     double _time;
 
@@ -64,7 +60,7 @@ public:
 
     double operator()(double x, double y) const
     {
-      return (y/256000-1.0) * 2.0 * M_PI;
+        return (y / 256000 - 1.0) * 2.0 * M_PI;
     }
 };
 struct InitialVY {
@@ -76,7 +72,7 @@ public:
 
     double operator()(double x, double y) const
     {
-      return (1.0-x/256000.0) * 2.0 * M_PI;
+        return (1.0 - x / 256000.0) * 2.0 * M_PI;
     }
 };
 
@@ -132,7 +128,7 @@ public:
         dt = cfl * std::min(mesh.hx, mesh.hy) / 1.0; // max-velocity is 1
         double tmax = 256000.0;
         NT = (static_cast<int>((tmax / dt + 1) / 100 + 1) * 100); // No time steps dividable by 100
-	std::cout << "dt = " << dt << "\t NT = " << NT << std::endl;
+        std::cout << "dt = " << dt << "\t NT = " << NT << std::endl;
         //! Init Transport Scheme
         dgtransport.setmesh(mesh);
 

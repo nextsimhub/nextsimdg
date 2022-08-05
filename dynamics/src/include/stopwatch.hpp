@@ -4,7 +4,7 @@
 #define __stopwatch_H
 
 /**
- * This class will ne Removed after merge with physis 
+ * This class will ne Removed after merge with physis
  **/
 
 #include <cassert>

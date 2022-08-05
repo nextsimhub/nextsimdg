@@ -16,8 +16,8 @@ Lx =  512000
 Ly =  512000
 
 # Number of elements
-nx =  64
-ny =  64
+nx =  256
+ny =  256
 
 
 import numpy as np
@@ -33,7 +33,7 @@ def disty(x,y):
 sx = 0.05*Lx
 sy = 0.05*Ly
 
-sx,sy = 0,0
+#sx,sy = 0,0
 
 f = open("distortedrectangle.smesh", "w")
 f.write("SasipMesh 1.0\n")

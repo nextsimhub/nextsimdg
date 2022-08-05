@@ -4,10 +4,9 @@
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
-
-#include "SasipMesh.hpp"
-#include "ParametricTransport.hpp"
 #include "ParametricTools.hpp"
+#include "ParametricTransport.hpp"
+#include "SasipMesh.hpp"
 
 #include "Tools.hpp"
 #include "cgMomentum.hpp"
@@ -31,7 +30,7 @@ bool WRITE_VTK = true;
 #define DGadvection 3
 #define DGstress 8
 
-// 1,x,y, xx, xy, yy,   
+// 1,x,y, xx, xy, yy,
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
@@ -69,14 +68,14 @@ struct OceanX {
 public:
     double operator()(double x, double y) const
     {
-      return ReferenceScale::vmax_ocean * (2.0 * y / ReferenceScale::L - 1.0);
+        return ReferenceScale::vmax_ocean * (2.0 * y / ReferenceScale::L - 1.0);
     }
 };
 struct OceanY {
 public:
     double operator()(double x, double y) const
     {
-      return ReferenceScale::vmax_ocean * (1.0 - 2.0 * x / ReferenceScale::L);
+        return ReferenceScale::vmax_ocean * (1.0 - 2.0 * x / ReferenceScale::L);
     }
 };
 
@@ -139,7 +138,7 @@ int main()
 
     //! Precomputed values for efficient numerics on transformed mesh
     Nextsim::GlobalTimer.start("time loop - init parametric mesh");
-    Nextsim::ParametricTransformation<CG,DGstress> ptrans_stress;
+    Nextsim::ParametricTransformation<CG, DGstress> ptrans_stress;
     ptrans_stress.BasicInit(smesh);
     Nextsim::GlobalTimer.stop("time loop - init parametric mesh");
 
@@ -151,7 +150,7 @@ int main()
     constexpr double alpha = 800.0;
     constexpr double beta = 800.0;
     constexpr size_t NT_evp = 200;
-    
+
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
               << std::endl;
@@ -210,7 +209,6 @@ int main()
     // Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/Shear", 0, SHEAR, smesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
-    
     //! Transport
     Nextsim::CellVector<DGadvection> dgvx(smesh), dgvy(smesh);
     Nextsim::ParametricTransport<DGadvection, EDGEDOFS(DGadvection)> dgtransport(smesh, dgvx, dgvy);
@@ -223,8 +221,8 @@ int main()
     Nextsim::InterpolateCG(smesh, AY, AtmForcingY);
 
     Nextsim::CGVector<CG> lumpedcgmass;
-    Nextsim::ParametricTools::lumpedCGMassMatrix(smesh,lumpedcgmass);
-    
+    Nextsim::ParametricTools::lumpedCGMassMatrix(smesh, lumpedcgmass);
+
     Nextsim::GlobalTimer.start("time loop");
 
     for (size_t timestep = 1; timestep <= NT; ++timestep) {
@@ -253,14 +251,16 @@ int main()
         momentum.ProjectCGToDG(smesh, dgvx, vx);
         momentum.ProjectCGToDG(smesh, dgvy, vy);
 
-	dgtransport.reinitnormalvelocity();
+        dgtransport.reinitnormalvelocity();
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
 
-	for (int i=0;i<A.rows();++i)
-	  for (int j=0;j<A.cols();++j)
-	    if (!std::isfinite(A(i,j)))
-	      {std::cerr << "NaN!" << std::endl;abort();}
+        for (int i = 0; i < A.rows(); ++i)
+            for (int j = 0; j < A.cols(); ++j)
+                if (!std::isfinite(A(i, j))) {
+                    std::cerr << "NaN!" << std::endl;
+                    abort();
+                }
 
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
@@ -274,8 +274,8 @@ int main()
         cg_A = cg_A.cwiseMax(0.0);
         cg_H = cg_H.cwiseMax(1.e-4); //!< Limit H from below
 
-	Nextsim::GlobalTimer.stop("time loop - advection");
-	 
+        Nextsim::GlobalTimer.stop("time loop - advection");
+
         Nextsim::GlobalTimer.start("time loop - mevp");
         //! Store last velocity for MEVP
         vx_mevp = vx;
@@ -284,24 +284,22 @@ int main()
         //! MEVP subcycling
         for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
 
+            Nextsim::GlobalTimer.start("time loop - mevp - strain");
+            //! Compute Strain Rate
+            // momentum.ProjectCG2VelocityToDG1Strain(ptrans_stress, smesh, E11, E12, E22, vx, vy);
+            momentum.ProjectCG2VelocityToDG1Strain(smesh, E11, E12, E22, vx, vy);
+            Nextsim::GlobalTimer.stop("time loop - mevp - strain");
 
+            Nextsim::GlobalTimer.start("time loop - mevp - stress");
+            Nextsim::mEVP::StressUpdateHighOrder(smesh, S11, S12, S22, E11, E12, E22, H, A,
+                ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
+            // Nextsim::mEVP::StressUpdateHighOrder(ptrans_stress, smesh, S11, S12, S22, E11, E12, E22, H, A,
+            //     ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
+            Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
-	  Nextsim::GlobalTimer.start("time loop - mevp - strain");
-	  //! Compute Strain Rate
-	  momentum.ProjectCG2VelocityToDG1Strain(ptrans_stress,
-						 smesh, E11, E12, E22, vx, vy);
-	  // momentum.ProjectCG2VelocityToDG1Strain(smesh, E11, E12, E22, vx, vy);
-	  Nextsim::GlobalTimer.stop("time loop - mevp - strain");
-
-	  Nextsim::GlobalTimer.start("time loop - mevp - stress");
-	  Nextsim::mEVP::StressUpdateHighOrder(smesh, S11, S12, S22, E11, E12, E22, H, A,
-					       ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
-	  Nextsim::GlobalTimer.stop("time loop - mevp - stress");
-
-	  Nextsim::GlobalTimer.start("time loop - mevp - update");
-	  //! Update
-	  Nextsim::GlobalTimer.start("time loop - mevp - update1");
-	  
+            Nextsim::GlobalTimer.start("time loop - mevp - update");
+            //! Update
+            Nextsim::GlobalTimer.start("time loop - mevp - update1");
 
             //	    update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
@@ -319,7 +317,7 @@ int main()
                                     * OX(i)) // ocean forcing
                         + ReferenceScale::rho_ice * cg_H(i) * ReferenceScale::fc
                             * (vy(i) - OY(i)) // cor + surface
-		       ));
+                        ));
                 vy(i) = (1.0
                     / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
                         + cg_A(i) * ReferenceScale::F_ocean
@@ -332,8 +330,7 @@ int main()
                                 ReferenceScale::F_ocean * fabs(OY(i) - vy(i))
                                     * OY(i)) // ocean forcing
                         + ReferenceScale::rho_ice * cg_H(i) * ReferenceScale::fc
-                            * (OX(i) - vx(i))
-		       ));
+                            * (OX(i) - vx(i))));
             }
             Nextsim::GlobalTimer.stop("time loop - mevp - update1");
 
@@ -344,23 +341,27 @@ int main()
                 tmpx(i) = tmpy(i) = 0;
 
             Nextsim::GlobalTimer.start("time loop - mevp - update2 -stress");
-	    momentum.AddStressTensor(ptrans_stress, smesh, -1.0, tmpx, tmpy, S11, S12, S22);
-	    //momentum.AddStressTensor(smesh, -1.0, tmpx, tmpy, S11, S12, S22);
+            // momentum.AddStressTensor(ptrans_stress, smesh, -1.0, tmpx, tmpy, S11, S12, S22);
+            momentum.AddStressTensor(smesh, -1.0, tmpx, tmpy, S11, S12, S22);
             Nextsim::GlobalTimer.stop("time loop - mevp - update2 -stress");
-	    
+
 #pragma omp parallel for
             for (int i = 0; i < vx.rows(); ++i) {
                 vx(i) += (1.0
-                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                        + cg_A(i) * ReferenceScale::F_ocean
-                            * fabs(OX(i) - vx(i))) // implicit parts
-                    * tmpx(i))/lumpedcgmass(i);;
+                             / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                                 + cg_A(i) * ReferenceScale::F_ocean
+                                     * fabs(OX(i) - vx(i))) // implicit parts
+                             * tmpx(i))
+                    / lumpedcgmass(i);
+                ;
 
                 vy(i) += (1.0
-                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                        + cg_A(i) * ReferenceScale::F_ocean
-                            * fabs(OY(i) - vy(i))) // implicit parts
-                    * tmpy(i))/lumpedcgmass(i);;
+                             / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                                 + cg_A(i) * ReferenceScale::F_ocean
+                                     * fabs(OY(i) - vy(i))) // implicit parts
+                             * tmpy(i))
+                    / lumpedcgmass(i);
+                ;
             }
             Nextsim::GlobalTimer.stop("time loop - mevp - update2");
             Nextsim::GlobalTimer.stop("time loop - mevp - update");
@@ -369,14 +370,12 @@ int main()
             momentum.DirichletZero(smesh, vx);
             momentum.DirichletZero(smesh, vy);
             Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
-
-	}
-	Nextsim::GlobalTimer.stop("time loop - mevp");
+        }
+        Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //         //! Output
         if (WRITE_VTK)
-	  if ((timestep % NT_vtk == 0))
-	      {
+            if ((timestep % NT_vtk == 0)) {
                 std::cout << "VTK output at day " << time / 24. / 60. / 60. << std::endl;
 
                 int printstep = timestep / NT_vtk + 1.e-4;
@@ -394,9 +393,9 @@ int main()
                 Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/H", printstep, H, smesh);
                 // Nextsim::VTK::write_cg("ResultsBenchmarkSasipMesh/cgH", printstep, cg_H, mesh);
 
-		Nextsim::Tools::Delta(smesh, E11, E12, E22, ReferenceScale::DeltaMin, DELTA);
+                Nextsim::Tools::Delta(smesh, E11, E12, E22, ReferenceScale::DeltaMin, DELTA);
                 Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/Delta", printstep, DELTA, smesh);
-		Nextsim::Tools::Shear(smesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
+                Nextsim::Tools::Shear(smesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
                 Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/Shear", printstep, SHEAR, smesh);
 
                 // Nextsim::Tools::ElastoParams(smesh, E11, E12, E22, H, A,
@@ -414,7 +413,7 @@ int main()
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }
-     Nextsim::GlobalTimer.stop("time loop");
+    Nextsim::GlobalTimer.stop("time loop");
 
     std::cout << std::endl;
     Nextsim::GlobalTimer.print();

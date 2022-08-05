@@ -7,12 +7,12 @@
 #ifndef __CGMOMENTUM_HPP
 #define __CGMOMENTUM_HPP
 
+#include "ParametricTools.hpp"
 #include "cgVector.hpp"
 #include "codeGenerationCGToDG.hpp"
-#include "codeGenerationDGinGauss.hpp"
 #include "codeGenerationCGinGauss.hpp"
+#include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
-#include "ParametricTools.hpp"
 
 namespace Nextsim {
 
@@ -27,7 +27,7 @@ public:
     template <int CG, int DG>
     void ProjectCGToDG(const Mesh& mesh, CellVector<DG>& dg, const CGVector<CG>& cg);
 
-  template <int CG, int DG>
+    template <int CG, int DG>
     void ProjectCGToDG(const SasipMesh& smesh, CellVector<DG>& dg, const CGVector<CG>& cg);
 
     //! Projects the symmetric gradient of the CG2 velocity into the DG1 space
@@ -35,14 +35,14 @@ public:
     void ProjectCG2VelocityToDG1Strain(const Mesh& mesh, CellVector<DG>& E11, CellVector<DG>& E12,
         CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
 
-  //! Projects the symmetric gradient of the CG2 velocity into the DG1 space
-  template <int CG, int DG>
-  void ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
-				     CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
-  template <int CG, int DG>
-  void ProjectCG2VelocityToDG1Strain(const ParametricTransformation<CG,DG>& ptrans,
-				     const SasipMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
-				     CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
+    //! Projects the symmetric gradient of the CG2 velocity into the DG1 space
+    template <int CG, int DG>
+    void ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
+        CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
+    template <int CG, int DG>
+    void ProjectCG2VelocityToDG1Strain(const ParametricTransformation<CG, DG>& ptrans,
+        const SasipMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
+        CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
 
     /*!
      * Evaluates (S, nabla phi) and adds it to tx/ty - Vector
@@ -51,15 +51,15 @@ public:
     void AddStressTensor(const Mesh& mesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
         const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
-      template <int CG, int DG>
+    template <int CG, int DG>
     void AddStressTensor(const SasipMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
         const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
-  template <int CG, int DG>
-  void AddStressTensor(const ParametricTransformation<CG,DG>& ptrans,
-		       const SasipMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
-		       const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
-  
+    template <int CG, int DG>
+    void AddStressTensor(const ParametricTransformation<CG, DG>& ptrans,
+        const SasipMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
+        const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
+
     template <int CG, int DG>
     void AddStressTensorCell(const Mesh& mesh, const double scale, const size_t c, const size_t cx,
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
@@ -69,14 +69,13 @@ public:
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
         const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
-  template<int CG, int DG> 
-  void AddStressTensorCell(const ParametricTransformation<CG,DG>& ptrans,
-			   const SasipMesh& smesh, const double scale, const size_t c, const size_t cx,
-			   const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
-			   const CellVector<DG>& S12, const CellVector<DG>& S22) const;
-  
-  
-  void AddStressTensorCell(const Mesh& mesh, const double scale, const size_t c, const size_t cx,
+    template <int CG, int DG>
+    void AddStressTensorCell(const ParametricTransformation<CG, DG>& ptrans,
+        const SasipMesh& smesh, const double scale, const size_t c, const size_t cx,
+        const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
+        const CellVector<DG>& S12, const CellVector<DG>& S22) const;
+
+    void AddStressTensorCell(const Mesh& mesh, const double scale, const size_t c, const size_t cx,
         const size_t cy, CGVector<1>& tx, CGVector<1>& ty, const CellVector<1>& S11,
         const CellVector<1>& S12, const CellVector<1>& S22) const
     {
@@ -279,38 +278,31 @@ public:
         ty(cg_i + 2 + CGROW * 2) += lup2(8);
     }
 
-
-  void AddStressTensorCell(const SasipMesh& smesh, const double scale, const size_t eid, const size_t cx,
+    void AddStressTensorCell(const SasipMesh& smesh, const double scale, const size_t eid, const size_t cx,
         const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy, const CellVector<8>& S11,
         const CellVector<8>& S12, const CellVector<8>& S22) const
     {
-      abort();
-      //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
+        //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
 
-      // (M vx)_i = (vx, phi_i) = - (S11, d_x phi_i) - (S12, d_y phi_i)
-      
+        // (M vx)_i = (vx, phi_i) = - (S11, d_x phi_i) - (S12, d_y phi_i)
+
         const size_t CGROW = 2 * smesh.nx + 1;
         const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
 
-	const Eigen::Matrix<Nextsim::FloatType, 1, 9> S11_g = S11.row(eid) * BiG83; //!< velocity in GP
-	const Eigen::Matrix<Nextsim::FloatType, 1, 9> S22_g = S22.row(eid) * BiG83; //!< velocity in GP
-	const Eigen::Matrix<Nextsim::FloatType, 1, 9> S12_g = S12.row(eid) * BiG83; //!< velocity in GP	
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S11_g = S11.row(eid) * BiG83; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S22_g = S22.row(eid) * BiG83; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S12_g = S12.row(eid) * BiG83; //!< velocity in GP
 
-	// J T^{-T} 
-	const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh,eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
-	const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh,eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+        // J T^{-T}
+        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
 
-	const Eigen::Matrix<Nextsim::FloatType, 9, 9> dx_cg2 =
-	  CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(1).array() -
-	  CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(1).array();
+        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dx_cg2 = CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(1).array() - CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(1).array();
 
-	const Eigen::Matrix<Nextsim::FloatType, 9, 9> dy_cg2 =
-	  CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(0).array() -
-	  CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(0).array();
+        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dy_cg2 = CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(0).array() - CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(0).array();
 
         const Eigen::Matrix<Nextsim::FloatType, 1, 9> tx = dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose();
-	const Eigen::Matrix<Nextsim::FloatType, 1, 9> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();
-
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();
 
         tmpx(cg_i + 0) += -tx(0);
         tmpx(cg_i + 1) += -tx(1);
@@ -318,7 +310,7 @@ public:
         tmpx(cg_i + 0 + CGROW) += -tx(3);
         tmpx(cg_i + 1 + CGROW) += -tx(4);
         tmpx(cg_i + 2 + CGROW) += -tx(5);
-        tmpx(cg_i + 0 + CGROW * 2) +=- tx(6);
+        tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
         tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
         tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
 
@@ -333,28 +325,26 @@ public:
         tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
     }
 
-  void AddStressTensorCell(const ParametricTransformation<2,8>& ptrans,
-			   const SasipMesh& smesh, const double scale, const size_t eid, const size_t cx,
-			   const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy, const CellVector<8>& S11,
-			   const CellVector<8>& S12, const CellVector<8>& S22) const
-  {
-    const Eigen::Matrix<Nextsim::FloatType, 9, 1>  tx = ptrans.divS1[eid] * S11.row(eid).transpose() + ptrans.divS2[eid] * S12.row(eid).transpose();
-    const Eigen::Matrix<Nextsim::FloatType, 9, 1>  ty = ptrans.divS1[eid] * S12.row(eid).transpose() + ptrans.divS2[eid] * S22.row(eid).transpose();
+    void AddStressTensorCell(const ParametricTransformation<2, 8>& ptrans,
+        const SasipMesh& smesh, const double scale, const size_t eid, const size_t cx,
+        const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy, const CellVector<8>& S11,
+        const CellVector<8>& S12, const CellVector<8>& S22) const
+    {
+        const Eigen::Matrix<Nextsim::FloatType, 9, 1> tx = ptrans.divS1[eid] * S11.row(eid).transpose() + ptrans.divS2[eid] * S12.row(eid).transpose();
+        const Eigen::Matrix<Nextsim::FloatType, 9, 1> ty = ptrans.divS1[eid] * S12.row(eid).transpose() + ptrans.divS2[eid] * S22.row(eid).transpose();
 
-    const size_t CGROW = 2 * smesh.nx + 1;
-    const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
+        const size_t CGROW = 2 * smesh.nx + 1;
+        const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
 
-    tmpx.block<3,1>(cg_i,0) -= tx.block<3,1>(0,0);
-    tmpx.block<3,1>(cg_i+CGROW,0) -= tx.block<3,1>(3,0);
-    tmpx.block<3,1>(cg_i+2*CGROW,0) -= tx.block<3,1>(6,0);
+        tmpx.block<3, 1>(cg_i, 0) -= tx.block<3, 1>(0, 0);
+        tmpx.block<3, 1>(cg_i + CGROW, 0) -= tx.block<3, 1>(3, 0);
+        tmpx.block<3, 1>(cg_i + 2 * CGROW, 0) -= tx.block<3, 1>(6, 0);
 
-    tmpy.block<3,1>(cg_i,0) -= ty.block<3,1>(0,0);
-    tmpy.block<3,1>(cg_i+CGROW,0) -= ty.block<3,1>(3,0);
-    tmpy.block<3,1>(cg_i+2*CGROW,0) -= ty.block<3,1>(6,0);
+        tmpy.block<3, 1>(cg_i, 0) -= ty.block<3, 1>(0, 0);
+        tmpy.block<3, 1>(cg_i + CGROW, 0) -= ty.block<3, 1>(3, 0);
+        tmpy.block<3, 1>(cg_i + 2 * CGROW, 0) -= ty.block<3, 1>(6, 0);
     }
 
-
-  
     //! Sets the velocity vector to zero along the boundary
     template <int CG>
     void DirichletZero(const Mesh& mesh, CGVector<CG>& v) const;
@@ -499,10 +489,8 @@ public:
         }
     }
 
-
-  
-  //! Interpolates a DG-Vector to a CG-Vector (Sasip-Mesh)
-  // IS THIS ALL OK and does not depend on the mesh degeneration?
+    //! Interpolates a DG-Vector to a CG-Vector (Sasip-Mesh)
+    // IS THIS ALL OK and does not depend on the mesh degeneration?
     template <int CG, int DG>
     void InterpolateDGToCG(const SasipMesh& smesh, CGVector<CG>& cg_A, const CellVector<DG>& A) const;
 

@@ -22,13 +22,13 @@ namespace MEBSandbox {
 
     /**
      * @brief Calculate Stresses for the current time step and update damage.
-     * 
+     *
      * @details MEB model with additional outputs for development
-     * 
-     * @tparam DGstress Stress adn Strain DG degree 
-     * @tparam DGtracer H, A, D DG degree 
+     *
+     * @tparam DGstress Stress adn Strain DG degree
+     * @tparam DGtracer H, A, D DG degree
      * @param mesh mesh
-     * @param S11 Stress component 11 
+     * @param S11 Stress component 11
      * @param S12 Stress component 12
      * @param S22 Stress component 22
      * @param E11 Strain component 11
@@ -47,7 +47,7 @@ namespace MEBSandbox {
      * @param sigma_outside indicator where sigma is outside plastic envelope
      * @param tP tilda P
      * @param Pm maximum P
-     * @param dt_momentum timestep for momentum subcycle 
+     * @param dt_momentum timestep for momentum subcycle
      */
     template <int DGstress, int DGtracer>
     void StressUpdateSandbox(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
@@ -117,7 +117,7 @@ namespace MEBSandbox {
                 tildeP = 0.;
             }
 
-            //Region
+            // Region
             if (sigma_n > 0)
                 Regime(i) = 3;
             else if (-Pmax > sigma_n)
@@ -231,12 +231,12 @@ namespace MEBSandbox {
      * @brief Stress update for VP Model
      *
      * @details Function used to validate frocing gives same results as mEVP
-     * 
-     * 
-     * @tparam DGstress Stress adn Strain DG degree 
-     * @tparam DGtracer H, A, D DG degree 
+     *
+     *
+     * @tparam DGstress Stress adn Strain DG degree
+     * @tparam DGtracer H, A, D DG degree
      * @param mesh mesh
-     * @param S11 Stress component 11 
+     * @param S11 Stress component 11
      * @param S12 Stress component 12
      * @param S22 Stress component 22
      * @param E11 Strain component 11
@@ -246,7 +246,7 @@ namespace MEBSandbox {
      * @param A ice concentation
      * @param Pstar ice strength
      * @param DeltaMin Delta min 2e-9
-     * @param dt_momentum timestep for momentum subcycle 
+     * @param dt_momentum timestep for momentum subcycle
      */
     template <int DGstress, int DGtracer>
     void StressUpdateVP(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
@@ -332,8 +332,8 @@ namespace MEBSandbox {
             // 1. / (1. + dt / lambda) Eqn. 18
             double const multiplicator = 1. / (1. + dt_momentum / time_viscous);
 
-            //time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma;
-            //elasticity = RefScaleCanada::young;
+            // time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma;
+            // elasticity = RefScaleCanada::young;
 
             double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
 
@@ -401,9 +401,9 @@ namespace MEBSandbox {
             S11.row(i).array() *= multiplicator.array();
             S22.row(i).array() *= multiplicator.array();
 
-            //S12.row(i).array() *= 1. / (1. + dt_momentum / RefScaleCanada::undamaged_time_relaxation_sigma);
-            //S11.row(i).array() *= 1. / (1. + dt_momentum / RefScaleCanada::undamaged_time_relaxation_sigma);
-            //S22.row(i).array() *= 1. / (1. + dt_momentum / RefScaleCanada::undamaged_time_relaxation_sigma);
+            // S12.row(i).array() *= 1. / (1. + dt_momentum / RefScaleCanada::undamaged_time_relaxation_sigma);
+            // S11.row(i).array() *= 1. / (1. + dt_momentum / RefScaleCanada::undamaged_time_relaxation_sigma);
+            // S22.row(i).array() *= 1. / (1. + dt_momentum / RefScaleCanada::undamaged_time_relaxation_sigma);
         }
     }
 

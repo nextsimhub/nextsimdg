@@ -289,12 +289,12 @@ int main()
             Nextsim::GlobalTimer.start("time loop - meb - stress");
             //! Stress Update
 
-            //Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
-            //    H, A, D, dt_momentum);
+            // Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
+            //     H, A, D, dt_momentum);
 
-            //Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22, E11, E12, E22, H, A, D, DELTA,
-            //    SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, td, d_crit,
-            //    Regime, Multip, Lambda, dt_momentum);
+            // Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22, E11, E12, E22, H, A, D, DELTA,
+            //     SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, td, d_crit,
+            //     Regime, Multip, Lambda, dt_momentum);
 
             Nextsim::MEBSandbox::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
                 H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
@@ -305,7 +305,7 @@ int main()
             //! Update
             Nextsim::GlobalTimer.start("time loop - meb - update1");
 
-            //update by a loop.. explicit parts and h-dependent
+            // update by a loop.. explicit parts and h-dependent
             vx = (1.0
                 / (RefScale::rho_ice * cg_H.array() / dt_momentum // implicit parts
                     + cg_A.array() * RefScale::F_ocean

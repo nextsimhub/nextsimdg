@@ -12,7 +12,7 @@
 
 #include <Eigen/Dense>
 #include <iostream>
- 
+
 namespace Nextsim {
 //#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
 
@@ -85,7 +85,7 @@ public:
  * Basis in local coordinate system:
  *
  * DGdegree 0:      1
- * DGdegree 1-2:    + (x-1/2), 
+ * DGdegree 1-2:    + (x-1/2),
  * DGdegree 3-5:    + (x-1/2)^2-1/12, (y-1/2)^2-1/12, (x-1/2)(y-1/2)
  * DGdegree 6-7:    + (y-1/2)(x-1/2)^2-1/12, (x-1/2)(y-1/2)^2-1/12
  *
@@ -114,7 +114,7 @@ public:
 
     //! resizes the vector and sets it to the mesh size
     void resize_by_mesh(const Mesh& mesh) { EigenCellVector::resize(mesh.n, dofs_in_cell()); }
-  void resize_by_mesh(const SasipMesh& smesh) { EigenCellVector::resize(smesh.nelements, dofs_in_cell()); }
+    void resize_by_mesh(const SasipMesh& smesh) { EigenCellVector::resize(smesh.nelements, dofs_in_cell()); }
 
     // operations
     void zero() { EigenCellVector::setZero(); }
@@ -141,7 +141,6 @@ public:
         return *this;
     }
 };
-
 
 //! data set to store the type of the edges
 typedef enum { none,
@@ -201,10 +200,10 @@ public:
     {
         if (edgetype == X)
             Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
-							      smesh.nx * (smesh.ny + 1), dofs_in_edge());
+                smesh.nx * (smesh.ny + 1), dofs_in_edge());
         else if (edgetype == Y)
-	  Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
-							    (smesh.nx + 1) * smesh.ny, dofs_in_edge());
+            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
+                (smesh.nx + 1) * smesh.ny, dofs_in_edge());
         else {
             std::cerr << "EdgeType must be set to X or Y" << std::endl;
             abort();
@@ -228,17 +227,17 @@ public:
         }
     }
 
-      //! resize vector
+    //! resize vector
     void resize_by_mesh(const SasipMesh& smesh, EdgeType et)
     {
         edgetype = et;
 
         if (edgetype == X)
             Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
-							      smesh.nx * (smesh.ny + 1), dofs_in_edge());
+                smesh.nx * (smesh.ny + 1), dofs_in_edge());
         else if (edgetype == Y)
-	  Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
-							    (smesh.nx + 1) * smesh.ny, dofs_in_edge());
+            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
+                (smesh.nx + 1) * smesh.ny, dofs_in_edge());
         else {
             std::cerr << "EdgeType must be set to X or Y" << std::endl;
             abort();

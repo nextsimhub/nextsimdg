@@ -70,7 +70,7 @@ if (DEFINED CMAKE_CXX_FLAGS_RELEASE_INIT
 ################################################## Requirements of NextsimDG
 
 ### Use Eigen3
-find_package (Eigen3 3.3 REQUIRED) #
+find_package (Eigen3 3.4 REQUIRED) #
 
 ### Use clang-format
 OPTION(USE_CLANG_FORMAT "Formats the codebase" ON)

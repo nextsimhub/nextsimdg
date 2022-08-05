@@ -141,7 +141,7 @@ int main()
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    //constexpr double alpha = 48000.0;
+    // constexpr double alpha = 48000.0;
     constexpr double alpha = 800.0;
     constexpr double beta = 800.0;
     constexpr size_t NT_evp = 1000;
@@ -295,7 +295,7 @@ int main()
         vx_mevp = vx;
         vy_mevp = vy;
 
-        //Nextsim::MEB::mMEBStressRelaxation(mesh, S11, S12, S22, D, A, dt_adv);
+        // Nextsim::MEB::mMEBStressRelaxation(mesh, S11, S12, S22, D, A, dt_adv);
         S11_mmeb = S11;
         S12_mmeb = S12;
         S22_mmeb = S22;
@@ -305,7 +305,7 @@ int main()
 
         for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
 
-            //Check now close are v^p and v^{p-1} and S^p S^{p-1}
+            // Check now close are v^p and v^{p-1} and S^p S^{p-1}
             if ((mevpstep + 1) % NT_evp == 0) {
                 std::cout << "Advection step " << timestep << " mEV iteration " << mevpstep + 1 << std::endl;
                 std::cout << "Norm vx = " << std::setprecision(6) << (vx - vx_p).norm() << std::endl;
@@ -391,10 +391,10 @@ int main()
                 dt_adv, alpha, S11_mmeb, S12_mmeb, S22_mmeb);
             Nextsim::mMEB::mMEBDamageUpdate(mesh, S11, S12, S22, D, A, dt_adv);
 
-            //Nextsim::MEB::mMEBStressRelaxation(mesh, S11, S12, S22, D, A, dt_adv);
+            // Nextsim::MEB::mMEBStressRelaxation(mesh, S11, S12, S22, D, A, dt_adv);
 
-            //Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22, E11, E12, E22, H, A,
-            //    ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
+            // Nextsim::mEVP::StressUpdate(mesh, S11, S12, S22, E11, E12, E22, H, A,
+            //     ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 

@@ -262,8 +262,8 @@ int main()
             Nextsim::MEB::StressUpdate(mesh, S11, S12, S22, E11, E12, E22,
                 H, A, D, dt_momentum);
 
-            //Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22, E11, E12, E22, H, A, D, DELTA,
-            //    SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, dt_momentum);
+            // Nextsim::MEB::StressUpdateSandbox(mesh, S11, S12, S22, E11, E12, E22, H, A, D, DELTA,
+            //     SHEAR, S1, S2, eta1, eta2, stressrelax, sigma_outside, tildeP, Pmax, dt_momentum);
 
             // Nextsim::MEB::StressUpdateVP(mesh, S11, S12, S22, E11, E12, E22,
             //     H, A, RefScale::Pstar, RefScale::DeltaMin, dt_momentum);
@@ -327,10 +327,10 @@ int main()
             Nextsim::GlobalTimer.stop("time loop - meb - update");
 
             Nextsim::GlobalTimer.start("time loop - meb - bound.");
-            //momentum.DirichletZero(mesh, vx);
-            //momentum.DirichletZero(mesh, vy);
-            //momentum.DirichletCompressionVx(mesh, vx);
-            //momentum.DirichletCompressionVy(mesh, vy, 1.e-3);
+            // momentum.DirichletZero(mesh, vx);
+            // momentum.DirichletZero(mesh, vy);
+            // momentum.DirichletCompressionVx(mesh, vx);
+            // momentum.DirichletCompressionVy(mesh, vy, 1.e-3);
 
             momentum.DirichletCompressionFixCorner(mesh, vx);
             momentum.DirichletCompressionBottom(mesh, vy, 0.0);
