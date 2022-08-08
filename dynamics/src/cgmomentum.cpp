@@ -601,42 +601,6 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVecto
     }
 }
 
-template <>
-void CGMomentum::ProjectCG2VelocityToDG1Strain(const ParametricTransformation<2, 8>& ptrans,
-    const SasipMesh& smesh, CellVector<8>& E11,
-    CellVector<8>& E12, CellVector<8>& E22, const CGVector<2>& vx, const CGVector<2>& vy)
-{
-    assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == vx.rows());
-    assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == vy.rows());
-    assert(static_cast<long int>(smesh.nx * smesh.ny) == E11.rows());
-    assert(static_cast<long int>(smesh.nx * smesh.ny) == E12.rows());
-    assert(static_cast<long int>(smesh.nx * smesh.ny) == E22.rows());
-
-    const int cgshift = 2 * smesh.nx + 1; //!< Index shift for each row
-
-    // parallelize over the rows
-#pragma omp parallel for
-    for (size_t row = 0; row < smesh.ny; ++row) {
-        int dgi = smesh.nx * row; //!< Index of dg vector
-        int cgi = 2 * cgshift * row; //!< Lower left index of cg vector
-
-        for (size_t col = 0; col < smesh.nx; ++col, ++dgi, cgi += 2) {
-
-            // get the 9 local x/y - velocity coefficients on the element
-            const Eigen::Matrix<double, 9, 1> vx_local({ vx(cgi), vx(cgi + 1), vx(cgi + 2), vx(cgi + cgshift), vx(cgi + 1 + cgshift),
-                vx(cgi + 2 + cgshift), vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift),
-                vx(cgi + 2 + 2 * cgshift) });
-            const Eigen::Matrix<double, 9, 1> vy_local({ vy(cgi), vy(cgi + 1), vy(cgi + 2), vy(cgi + cgshift), vy(cgi + 1 + cgshift),
-                vy(cgi + 2 + cgshift), vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift),
-                vy(cgi + 2 + 2 * cgshift) });
-
-            E11.row(dgi) = ptrans.iMgradX[dgi] * vx_local;
-            E22.row(dgi) = ptrans.iMgradY[dgi] * vy_local;
-            E12.row(dgi) = 0.5 * (ptrans.iMgradX[dgi] * vy_local + ptrans.iMgradY[dgi] * vx_local);
-        }
-    }
-}
-
 ////////////////////////////////////////////////// STRESS Tensor
 template <int CG, int DG>
 void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, CGVector<CG>& tx,
@@ -671,26 +635,6 @@ void CGMomentum::AddStressTensor(const SasipMesh& smesh, const double scale, CGV
                 size_t c = smesh.nx * cy;
                 for (size_t cx = 0; cx < smesh.nx; ++cx, ++c) //!< loop over all cells of the mesh
                     AddStressTensorCell(smesh, scale, c, cx, cy, tx, ty, S11, S12, S22);
-            }
-        }
-}
-
-// Sasip-Mesh Interface
-template <int CG, int DG>
-void CGMomentum::AddStressTensor(const ParametricTransformation<CG, DG>& ptrans,
-    const SasipMesh& smesh, const double scale, CGVector<CG>& tx,
-    CGVector<CG>& ty, const CellVector<DG>& S11, const CellVector<DG>& S12,
-    const CellVector<DG>& S22) const
-{
-    // parallelization in tripes
-    for (size_t p = 0; p < 2; ++p)
-#pragma omp parallel for schedule(static)
-        for (size_t cy = 0; cy < smesh.ny; ++cy) //!< loop over all cells of the mesh
-        {
-            if (cy % 2 == p) {
-                size_t c = smesh.nx * cy;
-                for (size_t cx = 0; cx < smesh.nx; ++cx, ++c) //!< loop over all cells of the mesh
-                    AddStressTensorCell(ptrans, smesh, scale, c, cx, cy, tx, ty, S11, S12, S22);
             }
         }
 }
@@ -930,11 +874,6 @@ template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, 
     const CellVector<8>& S22) const;
 
 template void CGMomentum::AddStressTensor(const SasipMesh& smesh, const double scale, CGVector<2>& tx,
-    CGVector<2>& ty, const CellVector<8>& S11, const CellVector<8>& S12,
-    const CellVector<8>& S22) const;
-
-template void CGMomentum::AddStressTensor(const ParametricTransformation<2, 8>& ptrans,
-    const SasipMesh& smesh, const double scale, CGVector<2>& tx,
     CGVector<2>& ty, const CellVector<8>& S11, const CellVector<8>& S12,
     const CellVector<8>& S22) const;
 

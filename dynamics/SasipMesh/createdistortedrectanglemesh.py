@@ -16,8 +16,8 @@ Lx =  512000
 Ly =  512000
 
 # Number of elements
-nx =  32
-ny =  32
+nx =  256
+ny =  256
 
 
 import numpy as np

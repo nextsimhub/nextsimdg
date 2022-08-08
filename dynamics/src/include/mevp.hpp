@@ -12,8 +12,7 @@
 
 namespace Nextsim {
 
-  namespace EVPParameters
-  {
+namespace EVPParameters {
     //! constants specifying the VP model. Where should this go?
     constexpr double rho_ice = 900.0; //!< Sea ice density
     constexpr double rho_atm = 1.3; //!< Air density
@@ -26,7 +25,7 @@ namespace Nextsim {
     constexpr double fc = 1.46e-4; //!< Coriolis
     constexpr double DeltaMin = 2.e-9; //!< Viscous regime
 
-  }
+}
 
 /*!
  * This namespace collects the routines required for the mEVP solver
@@ -39,14 +38,14 @@ namespace mEVP {
     void StressUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
-		      const CellVector<DGtracer>& A,
+        const CellVector<DGtracer>& A,
         const double alpha, const double beta)
     {
 
         //! Stress Update
 #pragma omp parallel for
         for (size_t i = 0; i < mesh.n; ++i) {
-	  double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
                 + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             assert(DELTA > 0);
 
@@ -80,7 +79,7 @@ namespace mEVP {
     void StressUpdateHighOrder(const Mesh& mesh, CellVector<6>& S11, CellVector<6>& S12,
         CellVector<6>& S22, const CellVector<6>& E11, const CellVector<6>& E12,
         const CellVector<6>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, 
+        const CellVector<3>& A,
         const double alpha, const double beta)
     {
 
@@ -150,7 +149,7 @@ namespace mEVP {
     void StressUpdateHighOrder(const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
         CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
         const CellVector<3>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, 
+        const CellVector<3>& A,
         const double alpha, const double beta)
     {
 
@@ -217,11 +216,82 @@ namespace mEVP {
         }
     }
 
+      //! The main EVP stress update using higher order represenatation of A and H
+    void StressUpdateHighOrder(const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
+        CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
+        const CellVector<3>& E22, const CellVector<1>& H,
+        const CellVector<1>& A,
+        const double alpha, const double beta)
+    {
+
+        //! Stress Update
+#pragma omp parallel for
+        for (size_t i = 0; i < mesh.n; ++i) {
+
+            // Here, one should check if it is enough to use a 2-point Gauss rule.
+            // We're dealing with dG???, less points??? 
+
+            const LocalEdgeVector<9> h_gauss = (H(i, 0) * BiG13).array().max(0.0).matrix();
+            const LocalEdgeVector<9> a_gauss = (A(i, 0) * BiG13).array().max(0.0).min(1.0).matrix();
+
+            const LocalEdgeVector<9> e11_gauss = E11.block<1, 3>(i, 0) * BiG33;
+            const LocalEdgeVector<9> e12_gauss = E12.block<1, 3>(i, 0) * BiG33;
+            const LocalEdgeVector<9> e22_gauss = E22.block<1, 3>(i, 0) * BiG33;
+
+            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+                + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
+                + 1.50 * e11_gauss.array() * e22_gauss.array()
+                + e12_gauss.array().square())
+                                                 .sqrt()
+                                                 .matrix();
+
+            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
+            //   assert(DELTA > 0);
+
+            //   //! Ice strength
+            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (EVPParameters::Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+
+            // //   double zeta = P / 2.0 / DELTA;
+            // //   double eta = zeta / 4;
+
+            // //   // replacement pressure
+            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+
+            // std::cout << P << std::endl << DELTA << std::endl;
+            // abort();
+
+            //   // S = S_old + 1/alpha (S(u)-S_old) = (1-1/alpha) S_old + 1/alpha S(u)
+            S11.row(i) *= (1.0 - 1.0 / alpha);
+            S12.row(i) *= (1.0 - 1.0 / alpha);
+            S22.row(i) *= (1.0 - 1.0 / alpha);
+
+            //  zeta = P / 2.0 / DELTA;
+            //  eta = zeta / 4;
+            //  (zeta-eta) = zeta - 1/4 zeta = 3/4 zeta
+
+            //   S11.row(i)
+            //       += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
+            //   S11(i, 0) -= 1.0 / alpha * 0.5 * P;
+            S11.row(i) += IBC33 * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix()).transpose();
+
+            //   S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
+            // 2 eta = 2/4 * P / (2 Delta) = P / (4 Delta)
+            S12.row(i) += IBC33 * (1.0 / alpha * (P.array() / 4.0 / DELTA.array() * e12_gauss.array()).matrix()).transpose();
+
+            //   S22.row(i)
+            //       += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
+            //   S22(i, 0) -= 1.0 / alpha * 0.5 * P;
+            S22.row(i) += IBC33 * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e22_gauss.array() + 3.0 * e11_gauss.array()) - 0.5 * P.array()).matrix()).transpose();
+        }
+    }
+
     //! The main EVP stress update using higher order represenatation of A and H
     void StressUpdateHighOrder(const Mesh& mesh, CellVector<1>& S11, CellVector<1>& S12,
         CellVector<1>& S22, const CellVector<1>& E11, const CellVector<1>& E12,
         const CellVector<1>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, 
+        const CellVector<3>& A,
         const double alpha, const double beta)
     {
 
@@ -294,7 +364,7 @@ namespace mEVP {
     void StressUpdateHighOrder(const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, 
+        const CellVector<3>& A,
         const double alpha, const double beta)
     {
 
@@ -367,7 +437,7 @@ namespace mEVP {
     void StressUpdateHighOrder(const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<6>& H,
-        const CellVector<6>& A, 
+        const CellVector<6>& A,
         const double alpha, const double beta)
     {
 
@@ -437,7 +507,7 @@ namespace mEVP {
     void StressUpdateHighOrder(const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<1>& H,
-        const CellVector<1>& A, 
+        const CellVector<1>& A,
         const double alpha, const double beta)
     {
 
@@ -509,7 +579,7 @@ namespace mEVP {
         const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, 
+        const CellVector<3>& A,
         const double alpha, const double beta)
     {
 
@@ -585,7 +655,7 @@ namespace mEVP {
     void StressUpdateHighOrder(const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, 
+        const CellVector<3>& A,
         const double alpha, const double beta)
     {
 

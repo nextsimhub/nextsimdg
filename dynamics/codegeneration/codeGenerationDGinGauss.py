@@ -294,7 +294,7 @@ for dg in [1,3,6,8]:
 
 print('\n\n//------------------------------ Basis Functions in Gauss Points (cell)\n')
 
-for dg in [3,6,8]:
+for dg in [1, 3,6,8]:
     basisfunctions_in_gausspoints_cell(dg,1)
     basisfunctions_in_gausspoints_cell(dg,2)
     basisfunctions_in_gausspoints_cell(dg,3)

@@ -29,7 +29,7 @@ protected:
     const SasipMesh& smesh;
 
     //! reference to the current velocity
-  CellVector<DGcell> velx, vely;
+    CellVector<DGcell> velx, vely;
 
     //! Specifies the time stepping scheme [rk1, rk2, rk3]
     std::string timesteppingscheme;
@@ -41,40 +41,46 @@ protected:
     CellVector<DGcell> tmp1, tmp2, tmp3;
 
 public:
-  ParametricTransport(const SasipMesh& mesh)
+    ParametricTransport(const SasipMesh& mesh)
         : smesh(mesh)
         , timesteppingscheme("rk2")
     {
-      if (! (smesh.nelements>0) )
-	{
-	  std::cerr << "ParametricTransport: The mesh must already be initialized!" << std::endl;
-	  abort();
-	}
-      // Resize DG vectors for storing the velocity
+        if (!(smesh.nelements > 0)) {
+            std::cerr << "ParametricTransport: The mesh must already be initialized!" << std::endl;
+            abort();
+        }
+        // Resize DG vectors for storing the velocity
         velx.resize_by_mesh(smesh);
         vely.resize_by_mesh(smesh);
-      
-	// resize tmp-vectors for time stepping
+
+        // resize tmp-vectors for time stepping
         tmp1.resize_by_mesh(smesh);
         tmp2.resize_by_mesh(smesh);
         tmp3.resize_by_mesh(smesh);
 
-	// resize vectors to store the normal-velocity on the edges
+        // resize vectors to store the normal-velocity on the edges
         normalvel_Y.resize_by_mesh(smesh, EdgeType::Y);
         normalvel_X.resize_by_mesh(smesh, EdgeType::X);
     }
 
+    // Access members
 
-  // Access members
-  
-  const CellVector<DGcell>& GetVx() const
-  {return velx;}
-  const CellVector<DGcell>& GetVy() const
-  {return vely;}
-  CellVector<DGcell>& GetVx() 
-  {return velx;}
-  CellVector<DGcell>& GetVy() 
-  {return vely;}
+    const CellVector<DGcell>& GetVx() const
+    {
+        return velx;
+    }
+    const CellVector<DGcell>& GetVy() const
+    {
+        return vely;
+    }
+    CellVector<DGcell>& GetVx()
+    {
+        return velx;
+    }
+    CellVector<DGcell>& GetVy()
+    {
+        return vely;
+    }
 
     // High level functions
 
