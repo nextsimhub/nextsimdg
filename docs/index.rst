@@ -57,6 +57,16 @@ limitations under the License.
 
 
 .. toctree::
+   :caption: MODEL DESCRIPTION
+   :maxdepth: 3
+
+   overview
+   model-components
+   numerical-mplementation
+   outputs-diagnostics
+   
+   
+.. toctree::
    :caption: INSTALLATION
    :maxdepth: 1
 
