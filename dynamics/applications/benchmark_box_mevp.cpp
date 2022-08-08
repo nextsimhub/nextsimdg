@@ -10,6 +10,7 @@
 #include "dgInitial.hpp"
 #include "dgTransport.hpp"
 #include "dgVisu.hpp"
+#include "dgLimit.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
 
@@ -234,25 +235,31 @@ int main()
         Nextsim::InterpolateCG(mesh, AY, AtmForcingY);
         Nextsim::GlobalTimer.stop("time loop - forcing");
 
+	//////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - advection");
+        momentum.ProjectCGToDG(mesh, dgvx, vx);
+        momentum.ProjectCGToDG(mesh, dgvy, vy);
+        dgtransport.reinitvelocity();
+        dgtransport.step(dt_adv,A);
+        dgtransport.step(dt_adv,H);
 
-        // momentum.ProjectCGToDG(mesh, dgvx, vx);
-        // momentum.ProjectCGToDG(mesh, dgvy, vy);
-        // dgtransport.reinitvelocity();
-        // dgtransport.step(A);
-        // dgtransport.step(H);
+        A.col(0) = A.col(0).cwiseMin(1.0);
+        A.col(0) = A.col(0).cwiseMax(0.0);
+        H.col(0) = H.col(0).cwiseMax(0.0);
 
-        // A.col(0) = A.col(0).cwiseMin(1.0);
-        // A.col(0) = A.col(0).cwiseMax(0.0);
-        // H.col(0) = H.col(0).cwiseMax(0.0);
-
+	//! Gauss-point limiting
+        Nextsim::LimitMax(A, 1.0);
+        Nextsim::LimitMin(A, 0.0);
+        Nextsim::LimitMin(H, 0.0);
+	
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);
         cg_A = cg_A.cwiseMin(1.0);
         cg_A = cg_A.cwiseMax(0.0);
         cg_H = cg_H.cwiseMax(1.e-4); //!< Limit H from below
 
-        Nextsim::GlobalTimer.stop("time loop - advection");
+        Nextsim::GlobalTimer.stop("time loop - advection");	
+	//////////////////////////////////////////////////
 
         Nextsim::GlobalTimer.start("time loop - mevp");
         //! Store last velocity for MEVP
