@@ -58,7 +58,7 @@ limitations under the License.
 
 .. toctree::
    :caption: MODEL DESCRIPTION
-   :maxdepth: 3
+   :maxdepth: 4
 
    overview
    model-components
