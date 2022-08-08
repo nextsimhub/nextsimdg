@@ -19,6 +19,7 @@ namespace Nextsim {
 class CGMomentum {
 private:
 public:
+  
     /*!
      * The following functions take care of the interpolation and projection
      * between CG and DG functions

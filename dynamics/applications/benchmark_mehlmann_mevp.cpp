@@ -184,8 +184,6 @@ int main()
     Nextsim::CellVector<DGstress> E11(mesh), E12(mesh), E22(mesh); //!< storing strain rates
     Nextsim::CellVector<DGstress> S11(mesh), S12(mesh), S22(mesh); //!< storing stresses rates
 
-    Nextsim::CellVector<1> DELTA(mesh); //!< Storing DELTA
-    Nextsim::CellVector<1> SHEAR(mesh); //!< Storing DELTA
     Nextsim::CellVector<1> S1(mesh), S2(mesh); //!< Stress invariants
     Nextsim::CellVector<1> MU1(mesh), MU2(mesh); //!< Stress invariants
 
@@ -196,10 +194,9 @@ int main()
     Nextsim::VTK::write_dg("ResultsBenchmark/A", 0, A, mesh);
     Nextsim::VTK::write_dg("ResultsBenchmark/H", 0, H, mesh);
 
-    Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin, DELTA);
-    Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, DELTA, mesh);
-    Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
-    Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, SHEAR, mesh);
+    
+    Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin), mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin), mesh);
     //    Nextsim::Tools::ElastoParams(
     //        mesh, E11, E12, E22, H, A, ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
     // Nextsim::VTK::write_dg("ResultsBenchmark/mu1", 0, MU1, mesh);
@@ -293,8 +290,7 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
 
-            Nextsim::mEVP::StressUpdateHighOrder(mesh, S11, S12, S22, E11, E12, E22, H, A,
-                ReferenceScale::Pstar, ReferenceScale::DeltaMin, alpha, beta);
+            Nextsim::mEVP::StressUpdateHighOrder(mesh, S11, S12, S22, E11, E12, E22, H, A,alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
@@ -390,22 +386,9 @@ int main()
                 Nextsim::VTK::write_dg("ResultsBenchmark/H", printstep, H, mesh);
                 // Nextsim::VTK::write_cg("ResultsBenchmark/cgH", printstep, cg_H, mesh);
 
-                Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin, DELTA);
-                Nextsim::VTK::write_dg("ResultsBenchmark/Delta", printstep, DELTA, mesh);
-                Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin, SHEAR);
-                Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, SHEAR, mesh);
-
-                // Nextsim::Tools::ElastoParams(mesh, E11, E12, E22, H, A,
-                //     ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/mu1", printstep, MU1, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/mu2", printstep, MU2, mesh);
-
-                // Nextsim::VTK::write_dg("ResultsBenchmark/S11", printstep, S11, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/S12", printstep, S12, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/S22", printstep, S22, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/E11", printstep, E11, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/E12", printstep, E12, mesh);
-                // Nextsim::VTK::write_dg("ResultsBenchmark/E22", printstep, E22, mesh);
+                
+                Nextsim::VTK::write_dg("ResultsBenchmark/Delta", printstep, Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin), mesh);
+		Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin), mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }

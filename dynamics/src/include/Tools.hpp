@@ -18,54 +18,64 @@ namespace Tools {
 
     inline constexpr double SQR(double x) { return x * x; }
 
-    template <int DGstress, int DGtracer>
-    void Delta(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const double DeltaMin, CellVector<DGtracer>& DELTA)
+    template <int DGstress>
+    CellVector<1> Delta(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+			const CellVector<DGstress>& E22, const double DeltaMin)
     {
-
+      CellVector<1> DELTA(mesh);
+      
 #pragma omp parallel for
-        for (size_t i = 0; i < mesh.n; ++i) {
-
+      for (size_t i = 0; i < mesh.n; ++i) {
+	
             DELTA(i, 0) = sqrt(SQR(DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
-                + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
-            ;
-        }
+			       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
+      }
+      
+      return DELTA;
     }
 
-    template <int DGstress, int DGtracer>
-    void Shear(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const double DeltaMin, CellVector<DGtracer>& SHEAR)
+    template <int DGstress>
+    CellVector<1> Shear(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+			const CellVector<DGstress>& E22, const double DeltaMin)
     {
+      CellVector<1> SHEAR;
 
 #pragma omp parallel for
         for (size_t i = 0; i < mesh.n; ++i) {
             SHEAR(i, 0) = sqrt((SQR(DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
         }
+
+	return SHEAR;
     }
 
-    template <int DGstress, int DGtracer>
-    void Delta(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const double DeltaMin, CellVector<DGtracer>& DELTA)
+    template <int DGstress>
+    CellVector<1> Delta(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+			const CellVector<DGstress>& E22, const double DeltaMin)
     {
-
+      CellVector<1> DELTA(smesh);
+      
 #pragma omp parallel for
-        for (size_t i = 0; i < smesh.nelements; ++i) {
-
+      for (size_t i = 0; i < smesh.nelements; ++i) {
+	
             DELTA(i, 0) = sqrt(SQR(DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
-                + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
-            ;
-        }
+			       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
+      }
+
+      return DELTA;
     }
 
-    template <int DGstress, int DGtracer>
-    void Shear(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const double DeltaMin, CellVector<DGtracer>& SHEAR)
+    template <int DGstress>
+    CellVector<1> Shear(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+			const CellVector<DGstress>& E22, const double DeltaMin)
     {
+      CellVector<1> SHEAR(smesh);
 
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
             SHEAR(i, 0) = sqrt((SQR(DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
         }
+
+	return SHEAR;
     }
 
     template <int DGstress, int DGtracer>

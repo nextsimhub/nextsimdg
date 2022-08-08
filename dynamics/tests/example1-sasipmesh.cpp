@@ -90,7 +90,7 @@ class Test {
     Nextsim::Mesh mesh; //!< space mesh
 
     //! Velocity vectors and density
-    Nextsim::CellVector<DG> vx, vy, phi, finalphi;
+    Nextsim::CellVector<DG> phi, finalphi;
 
     //! Transport main class
     Nextsim::ParametricTransport<DG, EDGEDOFS(DG)> dgtransport;
@@ -107,7 +107,7 @@ class Test {
 public:
     Test(const Nextsim::SasipMesh& mesh)
         : smesh(mesh)
-        , dgtransport(smesh, vx, vy)
+        , dgtransport(smesh)
         , writestep(40)
     {
         //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2
@@ -133,8 +133,6 @@ public:
         NT = (static_cast<int>((tmax / dt + 1) / 100 + 1) * 100); // No time steps dividable by 100
         std::cout << "dt = " << dt << "\t NT = " << NT << std::endl;
         //! Init Vectors
-        vx.resize_by_mesh(smesh);
-        vy.resize_by_mesh(smesh);
         phi.resize_by_mesh(smesh);
     }
 
@@ -168,16 +166,16 @@ public:
         for (size_t iter = 1; iter <= NT; ++iter) {
             VX.settime(dt * iter);
             VY.settime(dt * iter);
-            Nextsim::L2ProjectInitial(smesh, vx, VX);
-            Nextsim::L2ProjectInitial(smesh, vy, VY);
+            Nextsim::L2ProjectInitial(smesh, dgtransport.GetVx(), VX);
+            Nextsim::L2ProjectInitial(smesh, dgtransport.GetVy(), VY);
             dgtransport.reinitnormalvelocity();
 
             dgtransport.step(dt, phi); // performs one time step with the 2nd Order Heun scheme
             if (WRITE_VTK)
                 if (iter % (NT / writestep) == 0) {
                     Nextsim::VTK::write_dg<DG>("ResultsSasip/dg", iter / (NT / writestep), phi, smesh);
-                    Nextsim::VTK::write_dg<DG>("ResultsSasip/vx", iter / (NT / writestep), vx, smesh);
-                    Nextsim::VTK::write_dg<DG>("ResultsSasip/vy", iter / (NT / writestep), vy, smesh);
+                    Nextsim::VTK::write_dg<DG>("ResultsSasip/vx", iter / (NT / writestep), dgtransport.GetVx(), smesh);
+                    Nextsim::VTK::write_dg<DG>("ResultsSasip/vy", iter / (NT / writestep), dgtransport.GetVy(), smesh);
                 }
 
             //	  if (iter==5) abort();
