@@ -155,61 +155,6 @@ void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<1>& dg, const CGVect
     }
 }
 
-/*!
- *
- * Project CG functions onto DG spaces (SasipMesh)
- *
- */
-// template <>
-// void CGMomentum::ProjectCGToDG(const SasipMesh& smesh, CellVector<1>& dg, const CGVector<2>& cg)
-// {
-//     assert(static_cast<long int>((2 * mesh.nx + 1) * (2 * mesh.ny + 1)) == cg.rows());
-//     assert(static_cast<long int>(mesh.nx * mesh.ny) == dg.rows());
-
-//     const int cgshift = 2 * mesh.nx + 1; //!< Index shift for each row
-
-//     // parallelize over the rows
-// #pragma omp parallel for
-//     for (size_t row = 0; row < mesh.ny; ++row) {
-//         int dgi = mesh.nx * row; //!< Index of dg vector
-//         int cgi = 2 * cgshift * row; //!< Lower left index of cg vector
-
-//         for (size_t col = 0; col < mesh.nx; ++col, ++dgi, cgi += 2) {
-//             Eigen::Matrix<double, 9, 1> cg_local;
-//             cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift), cg(cgi + 1 + cgshift),
-//                 cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift),
-//                 cg(cgi + 2 + 2 * cgshift);
-//             dg.row(dgi) = CG2_to_DG1 * cg_local;
-//         }
-//     }
-// }
-template <>
-void CGMomentum::ProjectCGToDG(const SasipMesh& smesh, CellVector<3>& dg, const CGVector<2>& cg)
-{
-    // WHAT GAUSS DEGREE TO TAKE?
-
-    assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == cg.rows());
-    assert(static_cast<long int>(smesh.nx * smesh.ny) == dg.rows());
-
-    const int cgshift = 2 * smesh.nx + 1; //!< Index shift for each row
-
-    // parallelize over the rows
-#pragma omp parallel for
-    for (size_t iy = 0; iy < smesh.ny; ++iy) {
-        size_t dgi = smesh.nx * iy; //!< Index of dg vector
-        size_t cgi = 2 * cgshift * iy; //!< Lower left index of cg vector
-
-        for (size_t ix = 0; ix < smesh.nx; ++ix, ++dgi, cgi += 2) {
-
-            Eigen::Matrix<double, 9, 1> cg_local; //!< the 9 local unknowns in the element
-            cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift), cg(cgi + 1 + cgshift),
-                cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift),
-                cg(cgi + 2 + 2 * cgshift);
-
-            dg.row(dgi) = ParametricTools::massMatrix<3>(smesh, dgi).inverse() * BiG33 * (ParametricTools::J<3>(smesh, dgi).array() * GAUSSWEIGHTS_3.array() * (CG_CG2FUNC_in_GAUSS3 * cg_local).transpose().array()).matrix().transpose();
-        }
-    }
-}
 // template <>
 // void CGMomentum::ProjectCGToDG(const Mesh& mesh, CellVector<6>& dg, const CGVector<2>& cg)
 // {

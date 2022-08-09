@@ -13,6 +13,7 @@
 #include "dgLimit.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
+#include "VPParameters.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -21,9 +22,9 @@
 #include <vector>
 
 bool WRITE_VTK = true;
-
+ 
 #define CG 2
-#define DGadvection 3
+#define DGadvection 1
 #define DGstress 8
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
@@ -36,22 +37,6 @@ namespace ReferenceScale {
 // Box-Test case from [Geosci. Model Dev., 8, 1747–1761, 2015]
 constexpr double L = 1000000.0; //!< Size of domain
 constexpr double vmax_ocean = 0.1; //!< Maximum velocity of ocean
-constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
-
-constexpr double rho_ice = 900.0; //!< Sea ice density
-constexpr double rho_atm = 1.3; //!< Air density
-constexpr double rho_ocean = 1026.0; //!< Ocean density
-
-constexpr double C_atm = 1.2e-3; //!< Air drag coefficient
-constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
-
-constexpr double F_atm = rho_atm * C_atm;
-constexpr double F_ocean = rho_ocean * C_ocean; //!< Ocean drag coefficient
-
-constexpr double Pstar = 27500; //!< Ice strength
-constexpr double fc = 1.46e-4; //!< Coriolis
-
-constexpr double DeltaMin = 2.e-9; //!< Viscous regime
 
 constexpr double T = 30. * 24. * 60. * 60; //!< time
 
@@ -133,10 +118,11 @@ int main()
     //! MEVP parameters
     constexpr double alpha = 300.0;
     constexpr double beta = 300.0;
-    //! MEB parameters
-    // constexpr double alpha = 1.2; // = dtmomentum = dt_adv/100
-    // constexpr double beta = 0;
     constexpr size_t NT_evp = 100;
+
+    Nextsim::VPParameters VP;
+    VP.C_atm = 2.25e-3; //!< See S. Danilov et al.: Finite element sea ice model. GMD 8, 2015
+    VP.F_atm = VP.C_atm * VP.rho_atm;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
@@ -180,24 +166,14 @@ int main()
     Nextsim::CellVector<DGstress> E11(mesh), E12(mesh), E22(mesh); //!< storing strain rates
     Nextsim::CellVector<DGstress> S11(mesh), S12(mesh), S22(mesh); //!< storing stresses rates
 
-    Nextsim::CellVector<0> DELTA(mesh); //!< Storing DELTA
-    Nextsim::CellVector<0> SHEAR(mesh); //!< Storing SHEAR
-    Nextsim::CellVector<0> D(mesh); //!< Storing damage
-    Nextsim::CellVector<0> S1(mesh), S2(mesh); //!< Stress invariants
     // save initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
     Nextsim::VTK::write_cg("ResultsBox/vx", 0, vx, mesh);
     Nextsim::VTK::write_cg("ResultsBox/vy", 0, vy, mesh);
     Nextsim::VTK::write_dg("ResultsBox/A", 0, A, mesh);
     Nextsim::VTK::write_dg("ResultsBox/H", 0, H, mesh);
-
-
-    Nextsim::VTK::write_dg("ResultsBox/S11", 0, S11, mesh);
-    Nextsim::VTK::write_dg("ResultsBox/S12", 0, S12, mesh);
-    Nextsim::VTK::write_dg("ResultsBox/S22", 0, S22, mesh);
-    Nextsim::VTK::write_dg("ResultsBox/E11", 0, E11, mesh);
-    Nextsim::VTK::write_dg("ResultsBox/E12", 0, E12, mesh);
-    Nextsim::VTK::write_dg("ResultsBox/E22", 0, E22, mesh);
+    Nextsim::VTK::write_dg("ResultsBox/Shear", 0, Nextsim::Tools::Shear(mesh, E11, E12, E22), mesh);
+    Nextsim::VTK::write_dg("ResultsBox/Delta", 0, Nextsim::Tools::Delta(mesh, E11, E12, E22, VP.DeltaMin), mesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     //! Transport
@@ -281,7 +257,7 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
 
-            Nextsim::mEVP::StressUpdateHighOrder(mesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+            Nextsim::mEVP::StressUpdateHighOrder(VP, mesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
@@ -293,31 +269,31 @@ int main()
 #pragma omp parallel for
             for (int i = 0; i < vx.rows(); ++i) {
                 vx(i) = (1.0
-                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                        + cg_A(i) * ReferenceScale::F_ocean
+                    / (VP.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                        + cg_A(i) * VP.F_ocean
                             * fabs(OX(i) - vx(i))) // implicit parts
-                    * (ReferenceScale::rho_ice * cg_H(i) / dt_adv
+                    * (VP.rho_ice * cg_H(i) / dt_adv
                             * (beta * vx(i) + vx_mevp(i))
                         + // pseudo-timestepping
                         cg_A(i)
-                            * (ReferenceScale::F_atm * fabs(AX(i)) * AX(i) + // atm forcing
-                                ReferenceScale::F_ocean * fabs(OX(i) - vx(i))
+                            * (VP.F_atm * fabs(AX(i)) * AX(i) + // atm forcing
+                                VP.F_ocean * fabs(OX(i) - vx(i))
                                     * OX(i)) // ocean forcing
-                        + ReferenceScale::rho_ice * cg_H(i) * ReferenceScale::fc
+                        + VP.rho_ice * cg_H(i) * VP.fc
                             * (vy(i) - OY(i)) // cor + surface
                         ));
                 vy(i) = (1.0
-                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                        + cg_A(i) * ReferenceScale::F_ocean
+                    / (VP.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                        + cg_A(i) * VP.F_ocean
                             * fabs(OY(i) - vy(i))) // implicit parts
-                    * (ReferenceScale::rho_ice * cg_H(i) / dt_adv
+                    * (VP.rho_ice * cg_H(i) / dt_adv
                             * (beta * vy(i) + vy_mevp(i))
                         + // pseudo-timestepping
                         cg_A(i)
-                            * (ReferenceScale::F_atm * fabs(AY(i)) * AY(i) + // atm forcing
-                                ReferenceScale::F_ocean * fabs(OY(i) - vy(i))
+                            * (VP.F_atm * fabs(AY(i)) * AY(i) + // atm forcing
+                                VP.F_ocean * fabs(OY(i) - vy(i))
                                     * OY(i)) // ocean forcing
-                        + ReferenceScale::rho_ice * cg_H(i) * ReferenceScale::fc
+                        + VP.rho_ice * cg_H(i) * VP.fc
                             * (OX(i) - vx(i))));
             }
             Nextsim::GlobalTimer.stop("time loop - mevp - update1");
@@ -335,14 +311,14 @@ int main()
 #pragma omp parallel for
             for (int i = 0; i < vx.rows(); ++i) {
                 vx(i) += (1.0
-                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                        + cg_A(i) * ReferenceScale::F_ocean
+                    / (VP.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                        + cg_A(i) * VP.F_ocean
                             * fabs(OX(i) - vx(i))) // implicit parts
                     * tmpx(i));
 
                 vy(i) += (1.0
-                    / (ReferenceScale::rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                        + cg_A(i) * ReferenceScale::F_ocean
+                    / (VP.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                        + cg_A(i) * VP.F_ocean
                             * fabs(OY(i) - vy(i))) // implicit parts
                     * tmpy(i));
             }
@@ -379,12 +355,8 @@ int main()
                 Nextsim::VTK::write_dg("ResultsBox/A", printstep, A, mesh);
                 Nextsim::VTK::write_dg("ResultsBox/H", printstep, H, mesh);
 
-                Nextsim::VTK::write_dg("ResultsBox/S11", printstep, S11, mesh);
-                Nextsim::VTK::write_dg("ResultsBox/S12", printstep, S12, mesh);
-                Nextsim::VTK::write_dg("ResultsBox/S22", printstep, S22, mesh);
-                Nextsim::VTK::write_dg("ResultsBox/E11", printstep, E11, mesh);
-                Nextsim::VTK::write_dg("ResultsBox/E12", printstep, E12, mesh);
-                Nextsim::VTK::write_dg("ResultsBox/E22", printstep, E22, mesh);
+		Nextsim::VTK::write_dg("ResultsBox/Shear", printstep, Nextsim::Tools::Shear(mesh, E11, E12, E22), mesh);
+		Nextsim::VTK::write_dg("ResultsBox/Delta", printstep, Nextsim::Tools::Delta(mesh, E11, E12, E22, VP.DeltaMin), mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }

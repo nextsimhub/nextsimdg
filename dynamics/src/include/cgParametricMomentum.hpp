@@ -13,6 +13,7 @@
 #include "codeGenerationCGinGauss.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
+#include "VPParameters.hpp"
 
 namespace Nextsim {
 
@@ -42,6 +43,10 @@ private:
 
     //! Vector to store the CG-Version of ice concentration and ice height
     CGVector<CG> cg_A, cg_H;
+
+  //! Vectors storing strain and strss
+    CellVector<DGstress> E11, E12, E22;
+    CellVector<DGstress> S11, S12, S22;
 
 public:
     CGParametricMomentum(const SasipMesh& sm)
@@ -73,6 +78,9 @@ public:
         tmpx.resize_by_mesh(smesh);
         tmpy.resize_by_mesh(smesh);
 
+	E11.resize_by_mesh(smesh); E12.resize_by_mesh(smesh); E22.resize_by_mesh(smesh);
+	S11.resize_by_mesh(smesh); S12.resize_by_mesh(smesh); S22.resize_by_mesh(smesh);
+
         //! precomputes matrices
         if (precompute_matrices == 1)
             ptrans.BasicInit(smesh);
@@ -97,44 +105,49 @@ public:
     CGVector<CG>& GetAtmx() { return ax; }
     CGVector<CG>& GetAtmy() { return ay; }
 
+  const CellVector<DGstress> GetE11() const {return E11;}
+  const CellVector<DGstress> GetE12() const {return E12;}
+  const CellVector<DGstress> GetE22() const {return E22;}
+
     // High level Functions
 
     //! performs one complete mEVP cycle with NT_evp subiterations
     template <int DG>
-    void mEVPIteration(size_t NT_evp, double alpha, double beta,
+    void mEVPIteration(const VPParameters& vpparameters,
+		       size_t NT_evp, double alpha, double beta,
         double dt_adv,
-        const CellVector<DG>& H, const CellVector<DG>& A,
-        CellVector<DGstress>& E11, CellVector<DGstress>& E12, CellVector<DGstress>& E22,
-        CellVector<DGstress>& S11, CellVector<DGstress>& S12, CellVector<DGstress>& S22);
+		       const CellVector<DG>& H, const CellVector<DG>& A);
 
     /*!
      * The following functions take care of the interpolation and projection
      * between CG and DG functions
      */
-    //! Projects a CG function to a DG function
-    template <int DG>
-    void ProjectCGToDG(CellVector<DG>& dg, const CGVector<CG>& cg);
-
     //! Projects the symmetric gradient of the CG2 velocity into the DG1 space
-    template <int DG>
-    void ProjectCG2VelocityToDG1Strain(CellVector<DG>& E11, CellVector<DG>& E12,
-        CellVector<DG>& E22);
+    void ProjectCG2VelocityToDG1Strain();
 
     /*!
      * Evaluates (S, nabla phi) and adds it to tx/ty - Vector
      */
-    template <int DG>
-    void AddStressTensor(const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
-        const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
+    void AddStressTensor(const double scale, CGVector<CG>& tx, CGVector<CG>& ty) const;
 
-    template <int DG>
     void AddStressTensorCell(const double scale, const size_t c, const size_t cx,
-        const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
-        const CellVector<DG>& S12, const CellVector<DG>& S22) const;
+        const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty) const;
 
-    void AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
-        const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy, const CellVector<8>& S11,
-        const CellVector<8>& S12, const CellVector<8>& S22) const
+
+    //! Sets the velocity vector to zero along the boundary
+    void DirichletZero()
+    {
+        DirichletZero(vx);
+        DirichletZero(vy);
+    }
+    void DirichletZero(CGVector<CG>& v);
+
+};
+
+
+  template<>
+  void CGParametricMomentum<2,8>::AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
+        const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy) const
     {
         if (precompute_matrices == 0) // all is compute on-the-fly
         {
@@ -198,134 +211,7 @@ public:
             abort();
     }
 
-    //! Sets the velocity vector to zero along the boundary
-    void DirichletZero()
-    {
-        DirichletZero(vx);
-        DirichletZero(vy);
-    }
-    void DirichletZero(CGVector<CG>& v);
-
-    //! Interpolates a DG-Vector to a CG-Vector (Sasip-Mesh)
-    // IS THIS ALL OK and does not depend on the mesh degeneration?
-    template <int DG>
-    void InterpolateDGToCG(CGVector<CG>& cg_A, const CellVector<DG>& A) const;
-
-    template <int DG>
-    void InterpolateDGToCGCell(const size_t c, const size_t cx, const size_t cy,
-        CGVector<CG>& cg_A, const CellVector<DG>& A) const;
-
-    void InterpolateDGToCGCell(const size_t c, const size_t cx, const size_t cy,
-        CGVector<1>& cg_A, const CellVector<1>& A) const
-    {
-        const size_t CGDofsPerRow = smesh.nx + 1;
-        const size_t cgi
-            = CGDofsPerRow * cy + cx; //!< lower left index of CG-vector in element c = (cx,cy)
-        cg_A(cgi) += 0.25 * A(c);
-        cg_A(cgi + 1) += 0.25 * A(c);
-        cg_A(cgi + CGDofsPerRow) += 0.25 * A(c);
-        cg_A(cgi + CGDofsPerRow + 1) += 0.25 * A(c);
-    }
-    void InterpolateDGToCGCell(const size_t c, const size_t cx, const size_t cy,
-        CGVector<1>& cg_A, const CellVector<3>& A) const
-    {
-        const size_t CGDofsPerRow = smesh.nx + 1;
-        const size_t cgi
-            = CGDofsPerRow * cy + cx; //!< lower left index of CG-vector in element c = (cx,cy)
-        cg_A(cgi) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) - 0.5 * A(c, 2));
-        cg_A(cgi + 1) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) - 0.5 * A(c, 2));
-        cg_A(cgi + CGDofsPerRow) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
-        cg_A(cgi + CGDofsPerRow + 1) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    }
-    void InterpolateDGToCGCell(const size_t c, const size_t cx, const size_t cy,
-        CGVector<2>& cg_A, const CellVector<1>& A) const
-    {
-        const size_t CGDofsPerRow = 2 * smesh.nx + 1;
-        const size_t cgi = 2 * CGDofsPerRow * cy
-            + 2 * cx; //!< lower left index of CG-vector in element c = (cx,cy)
-        cg_A(cgi) += 0.25 * A(c);
-        cg_A(cgi + 1) += 0.5 * A(c);
-        cg_A(cgi + 2) += 0.25 * A(c);
-        cg_A(cgi + CGDofsPerRow) += 0.5 * A(c);
-        cg_A(cgi + CGDofsPerRow + 1) += A(c);
-        cg_A(cgi + CGDofsPerRow + 2) += 0.5 * A(c);
-        cg_A(cgi + 2 * CGDofsPerRow) += 0.25 * A(c);
-        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * A(c);
-        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * A(c);
-    }
-    void InterpolateDGToCGCell(const size_t c, const size_t cx, const size_t cy,
-        CGVector<2>& cg_A, const CellVector<3>& A) const
-    {
-        const size_t CGDofsPerRow = 2 * smesh.nx + 1;
-        const size_t cgi = 2 * CGDofsPerRow * cy
-            + 2 * cx; //!< lower left index of CG-vector in element c = (cx,cy)
-        cg_A(cgi) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) - 0.5 * A(c, 2));
-        cg_A(cgi + 1) += 0.5 * (A(c, 0) - 0.5 * A(c, 2));
-        cg_A(cgi + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) - 0.5 * A(c, 2));
-        cg_A(cgi + CGDofsPerRow) += 0.5 * (A(c, 0) - 0.5 * A(c, 1));
-        cg_A(cgi + CGDofsPerRow + 1) += A(c, 0);
-        cg_A(cgi + CGDofsPerRow + 2) += 0.5 * (A(c, 0) + 0.5 * A(c, 1));
-        cg_A(cgi + 2 * CGDofsPerRow) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
-        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * (A(c, 0) + 0.5 * A(c, 2));
-        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    }
-    void InterpolateDGToCGCell(const size_t c, const size_t cx, const size_t cy,
-        CGVector<2>& cg_A, const CellVector<6>& A) const
-    {
-        const size_t CGDofsPerRow = 2 * smesh.nx + 1;
-        const size_t cgi = 2 * CGDofsPerRow * cy
-            + 2 * cx; //!< lower left index of CG-vector in element c = (cx,cy)
-        cg_A(cgi) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) - 0.5 * A(c, 2));
-        cg_A(cgi + 1) += 0.5 * (A(c, 0) - 0.5 * A(c, 2));
-        cg_A(cgi + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) - 0.5 * A(c, 2));
-        cg_A(cgi + CGDofsPerRow) += 0.5 * (A(c, 0) - 0.5 * A(c, 1));
-        cg_A(cgi + CGDofsPerRow + 1) += A(c, 0);
-        cg_A(cgi + CGDofsPerRow + 2) += 0.5 * (A(c, 0) + 0.5 * A(c, 1));
-        cg_A(cgi + 2 * CGDofsPerRow) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
-        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * (A(c, 0) + 0.5 * A(c, 2));
-        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    }
-
-    //! Adjusts the interpolation on the boundary
-    void InterpolateDGToCGBoundary(CGVector<CG>& cg_A) const;
-};
-
-template <>
-void CGParametricMomentum<1, 3>::InterpolateDGToCGBoundary(CGVector<1>& cg_A) const
-{
-    const size_t CGDofsPerRow = smesh.nx + 1;
-    const size_t UpperLeftIndex = CGDofsPerRow * smesh.ny;
-
-#pragma omp parallel for
-    for (size_t i = 0; i < smesh.nx + 1; ++i) {
-        cg_A(i) *= 2.0;
-        cg_A(UpperLeftIndex + i) *= 2.0;
-    }
-#pragma omp parallel for
-    for (size_t i = 0; i < smesh.ny + 1; ++i) {
-        cg_A(i * CGDofsPerRow) *= 2.0;
-        cg_A(i * CGDofsPerRow + smesh.nx) *= 2.0;
-    }
-}
-
-template <>
-void CGParametricMomentum<2, 8>::InterpolateDGToCGBoundary(CGVector<2>& cg_A) const
-{
-    const size_t CGDofsPerRow = 2 * smesh.nx + 1;
-    const size_t UpperLeftIndex = 2 * CGDofsPerRow * smesh.ny;
-
-#pragma omp parallel for
-    for (size_t i = 0; i < 2 * smesh.nx + 1; ++i) {
-        cg_A(i) *= 2.0;
-        cg_A(UpperLeftIndex + i) *= 2.0;
-    }
-#pragma omp parallel for
-    for (size_t i = 0; i < 2 * smesh.ny + 1; ++i) {
-        cg_A(i * CGDofsPerRow) *= 2.0;
-        cg_A(i * CGDofsPerRow + 2 * smesh.nx) *= 2.0;
-    }
-}
-
+  
 } /* namespace Nextsim */
 
 #endif /* __CGMOMENTUM_HPP */

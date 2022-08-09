@@ -6,10 +6,9 @@
 
 #include "ParametricTools.hpp"
 #include "SasipMesh.hpp"
-
+#include "Interpolations.hpp"
 #include "Mesh.hpp"
 #include "ParametricTransport.hpp"
-#include "dgInitial.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
@@ -34,7 +33,7 @@ double TOL = 1.e-10; //!< tolerance for checking test results
 
 //! Packman-initial at 256000, 256000 with radius 128000
 //! plus a smooth initial at 768000, 256000 with smaller radius
-struct PackmanPlus {
+class PackmanPlus : public Nextsim::Interpolations::Function {
 
 public:
     double operator()(double x, double y) const
@@ -50,7 +49,7 @@ public:
 };
 
 // Velocity
-struct InitialVX { // (0.5,0.2) m/s
+class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 
     double _time;
 
@@ -62,7 +61,7 @@ public:
         return (y / 256000 - 1.0) * 2.0 * M_PI;
     }
 };
-struct InitialVY {
+class InitialVY : public Nextsim::Interpolations::Function {
 
     double _time;
 
@@ -151,7 +150,7 @@ public:
         std::cout << "Error in area: " << (area / 512000.0 / 512000.0 - 1.0) << std::endl;
 
         // initial density
-        Nextsim::L2ProjectInitial(smesh, phi, PackmanPlus());
+        Nextsim::Interpolations::Function2DG(smesh, phi, PackmanPlus());
 
         if (WRITE_VTK) {
             Nextsim::VTK::write_dg<DG>("ResultsSasip/dg", 0, phi, smesh);
@@ -166,8 +165,8 @@ public:
         for (size_t iter = 1; iter <= NT; ++iter) {
             VX.settime(dt * iter);
             VY.settime(dt * iter);
-            Nextsim::L2ProjectInitial(smesh, dgtransport.GetVx(), VX);
-            Nextsim::L2ProjectInitial(smesh, dgtransport.GetVy(), VY);
+            Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
+	    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
             dgtransport.reinitnormalvelocity();
 
             dgtransport.step(dt, phi); // performs one time step with the 2nd Order Heun scheme

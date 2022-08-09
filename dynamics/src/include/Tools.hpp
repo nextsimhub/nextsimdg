@@ -36,13 +36,13 @@ namespace Tools {
 
     template <int DGstress>
     CellVector<1> Shear(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const double DeltaMin)
+			const CellVector<DGstress>& E22)
     {
-        CellVector<1> SHEAR;
+      CellVector<1> SHEAR(mesh);
 
 #pragma omp parallel for
         for (size_t i = 0; i < mesh.n; ++i) {
-            SHEAR(i, 0) = sqrt((SQR(DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
+            SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
         }
 
         return SHEAR;
@@ -66,13 +66,13 @@ namespace Tools {
 
     template <int DGstress>
     CellVector<1> Shear(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const double DeltaMin)
+			const CellVector<DGstress>& E22)
     {
         CellVector<1> SHEAR(smesh);
 
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
-            SHEAR(i, 0) = sqrt((SQR(DeltaMin) + SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
+            SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
         }
 
         return SHEAR;

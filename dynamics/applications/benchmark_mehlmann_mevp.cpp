@@ -141,6 +141,7 @@ int main()
     constexpr double alpha = 800.0;
     constexpr double beta = 800.0;
     constexpr size_t NT_evp = 200;
+    Nextsim::VPParameters VP;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
@@ -195,7 +196,7 @@ int main()
     Nextsim::VTK::write_dg("ResultsBenchmark/H", 0, H, mesh);
 
     Nextsim::VTK::write_dg("ResultsBenchmark/Delta", 0, Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin), mesh);
-    Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin), mesh);
+    Nextsim::VTK::write_dg("ResultsBenchmark/Shear", 0, Nextsim::Tools::Shear(mesh, E11, E12, E22), mesh);
     //    Nextsim::Tools::ElastoParams(
     //        mesh, E11, E12, E22, H, A, ReferenceScale::DeltaMin, ReferenceScale::Pstar, MU1, MU2);
     // Nextsim::VTK::write_dg("ResultsBenchmark/mu1", 0, MU1, mesh);
@@ -289,7 +290,7 @@ int main()
 
             Nextsim::GlobalTimer.start("time loop - mevp - stress");
 
-            Nextsim::mEVP::StressUpdateHighOrder(mesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+            Nextsim::mEVP::StressUpdateHighOrder(VP, mesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
 
             Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
@@ -386,7 +387,7 @@ int main()
                 // Nextsim::VTK::write_cg("ResultsBenchmark/cgH", printstep, cg_H, mesh);
 
                 Nextsim::VTK::write_dg("ResultsBenchmark/Delta", printstep, Nextsim::Tools::Delta(mesh, E11, E12, E22, ReferenceScale::DeltaMin), mesh);
-                Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, Nextsim::Tools::Shear(mesh, E11, E12, E22, ReferenceScale::DeltaMin), mesh);
+                Nextsim::VTK::write_dg("ResultsBenchmark/Shear", printstep, Nextsim::Tools::Shear(mesh, E11, E12, E22), mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }

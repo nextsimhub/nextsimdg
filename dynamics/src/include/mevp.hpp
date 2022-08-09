@@ -9,23 +9,10 @@
 
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
+#include "VPParameters.hpp"
 
 namespace Nextsim {
 
-namespace EVPParameters {
-    //! constants specifying the VP model. Where should this go?
-    constexpr double rho_ice = 900.0; //!< Sea ice density
-    constexpr double rho_atm = 1.3; //!< Air density
-    constexpr double rho_ocean = 1026.0; //!< Ocean density
-    constexpr double C_atm = 1.2e-3; //!< Air drag coefficient
-    constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
-    constexpr double F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
-    constexpr double F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
-    constexpr double Pstar = 27500.0; //!< Ice strength
-    constexpr double fc = 1.46e-4; //!< Coriolis
-    constexpr double DeltaMin = 2.e-9; //!< Viscous regime
-
-}
 
 /*!
  * This namespace collects the routines required for the mEVP solver
@@ -35,7 +22,9 @@ namespace mEVP {
     inline constexpr double SQR(double x) { return x * x; }
 
     template <int DGstress, int DGtracer>
-    void StressUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
+    void StressUpdate(const Mesh& mesh,
+		      const VPParameters& vpparameters,
+		      CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
         const CellVector<DGtracer>& A,
@@ -45,18 +34,18 @@ namespace mEVP {
         //! Stress Update
 #pragma omp parallel for
         for (size_t i = 0; i < mesh.n; ++i) {
-            double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
                 + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             assert(DELTA > 0);
 
             //! Ice strength
-            double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
 
             double zeta = P / 2.0 / DELTA;
             double eta = zeta / 4;
 
             // replacement pressure
-            P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // S = S_old + 1/alpha (S(u)-S_old) = (1-1/alpha) S_old + 1/alpha S(u)
             S11.row(i) *= (1.0 - 1.0 / alpha);
@@ -76,7 +65,8 @@ namespace mEVP {
     }
 
     //! The main EVP stress update using higher order represenatation of A and H
-    void StressUpdateHighOrder(const Mesh& mesh, CellVector<6>& S11, CellVector<6>& S12,
+  void StressUpdateHighOrder(const VPParameters& vpparameters,
+			       const Mesh& mesh, CellVector<6>& S11, CellVector<6>& S12,
         CellVector<6>& S22, const CellVector<6>& E11, const CellVector<6>& E12,
         const CellVector<6>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -97,25 +87,25 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12.block<1, 6>(i, 0) * BiG63;
             const LocalEdgeVector<9> e22_gauss = E22.block<1, 6>(i, 0) * BiG63;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<9> P = (EVPParameters::Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -146,7 +136,8 @@ namespace mEVP {
     }
 
     //! The main EVP stress update using higher order represenatation of A and H
-    void StressUpdateHighOrder(const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+			       const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
         CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
         const CellVector<3>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -167,26 +158,26 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12.block<1, 3>(i, 0) * BiG33;
             const LocalEdgeVector<9> e22_gauss = E22.block<1, 3>(i, 0) * BiG33;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
 
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<9> P = (EVPParameters::Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -217,7 +208,8 @@ namespace mEVP {
     }
 
       //! The main EVP stress update using higher order represenatation of A and H
-    void StressUpdateHighOrder(const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
+  void StressUpdateHighOrder(const VPParameters& vpparameters,
+			     const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
         CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
         const CellVector<3>& E22, const CellVector<1>& H,
         const CellVector<1>& A,
@@ -238,26 +230,26 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12.block<1, 3>(i, 0) * BiG33;
             const LocalEdgeVector<9> e22_gauss = E22.block<1, 3>(i, 0) * BiG33;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
 
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<9> P = (EVPParameters::Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -288,7 +280,8 @@ namespace mEVP {
     }
 
     //! The main EVP stress update using higher order represenatation of A and H
-    void StressUpdateHighOrder(const Mesh& mesh, CellVector<1>& S11, CellVector<1>& S12,
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+			       const Mesh& mesh, CellVector<1>& S11, CellVector<1>& S12,
         CellVector<1>& S22, const CellVector<1>& E11, const CellVector<1>& E12,
         const CellVector<1>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -311,26 +304,26 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12(i, 0) * ones;
             const LocalEdgeVector<9> e22_gauss = E22(i, 0) * ones;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
 
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<9> P = (EVPParameters::Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -361,7 +354,8 @@ namespace mEVP {
     }
 
     //! The main EVP stress update using higher order represenatation of A and H
-    void StressUpdateHighOrder(const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+			       const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -382,19 +376,19 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * BiG83;
             const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * BiG83;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<9> P = (EVPParameters::Pstar
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (vpparameters.Pstar
                 * h_gauss.array()
                 * (-20.0 * (1.0 - a_gauss.array())).exp())
                                              .matrix();
@@ -403,7 +397,7 @@ namespace mEVP {
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -434,7 +428,8 @@ namespace mEVP {
     }
 
     //! The main EVP stress update using higher order represenatation of A and H
-    void StressUpdateHighOrder(const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+			       const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<6>& H,
         const CellVector<6>& A,
@@ -455,25 +450,25 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * BiG83;
             const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * BiG83;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<9> P = (EVPParameters::Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -504,7 +499,8 @@ namespace mEVP {
     }
 
     //! The main EVP stress update using higher order represenatation of A and H
-    void StressUpdateHighOrder(const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+			       const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<1>& H,
         const CellVector<1>& A,
@@ -525,25 +521,25 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * BiG83;
             const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * BiG83;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const double P = EVPParameters::Pstar * h_gauss * exp(-20.0 * (1.0 - a_gauss));
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const double P = vpparameters.Pstar * h_gauss * exp(-20.0 * (1.0 - a_gauss));
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -575,7 +571,8 @@ namespace mEVP {
 
     // Stress Update (SasipMesh)
 
-    void StressUpdateHighOrder(const ParametricTransformation<2, 8>& ptrans,
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+			       const ParametricTransformation<2, 8>& ptrans,
         const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
@@ -597,25 +594,25 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * BiG83;
             const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * BiG83;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<9> P = (EVPParameters::Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -652,7 +649,8 @@ namespace mEVP {
         }
     }
 
-    void StressUpdateHighOrder(const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+			       const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -673,25 +671,25 @@ namespace mEVP {
             const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * BiG83;
             const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * BiG83;
 
-            const LocalEdgeVector<9> DELTA = (SQR(EVPParameters::DeltaMin)
+            const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
                                                  .sqrt()
                                                  .matrix();
-            // double DELTA = sqrt(SQR(EVPParameters::DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
+            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = EVPParameters::Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<9> P = (EVPParameters::Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            const LocalEdgeVector<9> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (EVPParameters::DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
