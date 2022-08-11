@@ -35,6 +35,8 @@ public:
         TIMESTEP_KEY,
     };
 
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+
     //! Run the model
     void run();
 

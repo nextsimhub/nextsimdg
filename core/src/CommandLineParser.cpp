@@ -14,6 +14,9 @@
 
 namespace Nextsim {
 
+const std::string CommandLineParser::allModuleString = "all";
+const std::string CommandLineParser::availableModuleString = "avail";
+
 /*!
  * Parse the command line for command line options.
  *
@@ -24,11 +27,18 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
 {
     char oneConfigFile[] = "config-file";
     char manyConfigFiles[] = "config-files";
+    char helpModuleStr[] = "help-module";
 
     boost::program_options::options_description opt("neXtSIM_DG command line options:");
     // clang-format off
+    std::string helpModuleHelp = std::string("arg = [") + availableModuleString + "| module name|" + allModuleString + "]\n"
+            "print help associated with one or more modules.\n"
+            "avail    list all available module names.\n"
+            "module name    print the help message associated with the given module.\n"
+            "all    print all help messages associated with all available modules.";
     opt.add_options()
             ("help,h", "print help message")
+            (helpModuleStr, boost::program_options::value<std::string>(), helpModuleHelp.c_str())
             (oneConfigFile, boost::program_options::value<std::string>(),
                     "specify a configuration file")
             (manyConfigFiles,
@@ -50,12 +60,16 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
         std::exit(EXIT_SUCCESS);
     }
 
+    m_moduleHelp.clear();
+
     // Store the config file names in order. The variables_map does not.
     for (auto& lionOption : parsed.options) {
         if (lionOption.string_key == oneConfigFile || lionOption.string_key == manyConfigFiles) {
             for (auto& stringValue : lionOption.value) {
                 m_configFilenames.push_back(stringValue);
             }
+        } else if (lionOption.string_key == helpModuleStr) {
+            m_moduleHelp = lionOption.value.front();
         }
     }
 }

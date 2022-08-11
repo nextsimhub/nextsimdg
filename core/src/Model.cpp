@@ -81,6 +81,15 @@ void Model::configure()
     pData.setData(initialState);
 }
 
+Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
+{
+    map["Model"] = {
+            {keyMap.at(STARTTIME_KEY), "Start time, formatted as an ISO8601 date." },
+    };
+
+    return map;
+}
+
 void Model::run() { iterator.run(); }
 
 void Model::writeRestartFile()

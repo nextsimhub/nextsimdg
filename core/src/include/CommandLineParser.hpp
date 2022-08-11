@@ -34,11 +34,27 @@ public:
      */
     std::vector<std::string> getConfigFileNames();
 
+    /*!
+     * Returns the name of any module for which help was requested.
+     */
+    std::string moduleHelp() { return m_moduleHelp; }
+
+    /*!
+     * The special string denoting help for all available modules.
+     */
+    const static std::string allModuleString;
+
+    /*!
+     * The special string denoting a request for listing available modules.
+     */
+    const static std::string availableModuleString;
+
 private:
     CommandLineParser() = default;
 
     boost::program_options::variables_map m_arguments;
     std::vector<std::string> m_configFilenames;
+    std::string m_moduleHelp;
 };
 
 } /* namespace Nextsim */

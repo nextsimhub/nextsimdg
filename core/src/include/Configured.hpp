@@ -31,6 +31,9 @@ public:
  */
 template <typename C> class Configured : public ConfiguredBase {
 public:
+    typedef std::map<std::string, std::string> OptionMap;
+    typedef std::map<std::string, OptionMap> HelpMap;
+
     Configured() = default;
     virtual ~Configured() = default;
 
@@ -77,6 +80,13 @@ public:
         addOption(name, defaultValue, opt);
         return retrieveValue<T>(name, opt);
     }
+
+    /*!
+     * @brief Gets the text to be printed as the help text for this configuration.
+     * @param map The map to fill with the new text.
+     * @param getAll Get all options, or just the ones for configured modules?
+     */
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
 
     //! Clear the configuration map. Usually used only in test suites.
     static void clearConfigurationMap() { singleOptions.clear(); }

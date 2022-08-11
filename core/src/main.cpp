@@ -23,12 +23,24 @@ int main(int argc, char* argv[])
     // Parse the configuration to load those that are explicitly configured
     Nextsim::ConfiguredModule::parseConfigurator();
 
-    // Construct the Model
-    Nextsim::Model model;
-    // Apply the model configuration
-    model.configure();
-    // Run the Model
-    model.run();
+    if (!cmdLine.moduleHelp().empty()) {
+        Nextsim::Model::HelpMap map;
+        Nextsim::Model::getHelpText(map, false);
+        for (auto configEntry : map) {
+            std::cout << "*" << configEntry.first << "*\n" << std::endl;
+            for (auto optionEntry : configEntry.second) {
+                std::cout << optionEntry.first << std::endl << optionEntry.second << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    } else {
+        // Construct the Model
+        Nextsim::Model model;
+        // Apply the model configuration
+        model.configure();
+        // Run the Model
+        model.run();
+    }
 
     return 0;
 }
