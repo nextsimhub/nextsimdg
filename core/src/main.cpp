@@ -27,9 +27,9 @@ int main(int argc, char* argv[])
         Nextsim::Model::HelpMap map;
         Nextsim::Model::getHelpText(map, false);
         for (auto configEntry : map) {
-            std::cout << "*" << configEntry.first << "*\n" << std::endl;
+            std::cout << "\033[4m\033[1m" << configEntry.first << "\033[m" << std::endl << std::endl;
             for (auto optionEntry : configEntry.second) {
-                std::cout << optionEntry.first << std::endl << optionEntry.second << std::endl;
+                std::cout << optionEntry << std::endl;
             }
             std::cout << std::endl;
         }

@@ -5,10 +5,11 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_CONFIGURED_HPP
-#define SRC_INCLUDE_CONFIGURED_HPP
+#ifndef CONFIGURED_HPP
+#define CONFIGURED_HPP
 
-#include "Configurator.hpp"
+#include "include/Configurator.hpp"
+#include "include/ConfigurationHelp.hpp"
 
 #include <boost/program_options.hpp>
 #include <map>
@@ -31,8 +32,9 @@ public:
  */
 template <typename C> class Configured : public ConfiguredBase {
 public:
-    typedef std::map<std::string, std::string> OptionMap;
+    typedef std::list<ConfigurationHelp> OptionMap;
     typedef std::map<std::string, OptionMap> HelpMap;
+    using ConfigType = ConfigurationHelp::ConfigType;
 
     Configured() = default;
     virtual ~Configured() = default;
@@ -197,6 +199,7 @@ template <typename T> void tryConfigure(T& t) { Configured<int>::tryConfigure(t)
  * @param ptr A pointer to the class on which to attempt configuration.
  */
 template <typename T> void tryConfigure(T* p_t) { Configured<int>::tryConfigure(p_t); }
+
 }
 
-#endif /* SRC_INCLUDE_CONFIGURED_HPP */
+#endif /* CONFIGURED_HPP */
