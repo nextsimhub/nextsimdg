@@ -36,6 +36,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IIceThermodynamics>(HelpMap& map,
         { Module<Nextsim::IIceThermodynamics>::moduleName(), ConfigType::MODULE,
             { THERMOICE0GROWTH }, THERMOICE0GROWTH, "",
             "The module which calculates the one-dimensional ice thermodynamics." });
+    Nextsim::ThermoIce0Growth::getHelpRecursive(map, getAll);
     return map;
 }
 template <> Nextsim::IIceThermodynamics& getImplementation<Nextsim::IIceThermodynamics>()
