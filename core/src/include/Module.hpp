@@ -5,9 +5,10 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_MODULE_HPP
-#define SRC_MODULE_HPP
+#ifndef MODULE_HPP
+#define MODULE_HPP
 
+#include "include/ConfigurationHelp.hpp"
 #include "include/ConfiguredModule.hpp"
 
 #include <functional>
@@ -37,6 +38,12 @@ template <typename M> void setImplTemplate(const std::string& implName)
 }
 
 template <typename I, typename M> std::unique_ptr<I> getInstTemplate() { return M::getInstance(); }
+
+typedef std::list<Nextsim::ConfigurationHelp> OptionMap;
+typedef std::map<std::string, OptionMap> HelpMap;
+using ConfigType = Nextsim::ConfigurationHelp::ConfigType;
+
+template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 template <typename I> class Module {
 public:
@@ -82,4 +89,4 @@ template <typename I, typename M> void addToConfiguredModules()
 }
 
 }
-#endif /* SRC_MODULE_HPP */
+#endif /* MODULE_HPP */

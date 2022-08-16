@@ -34,7 +34,7 @@ std::ostream& ConfigurationHelp::printString(std::ostream& os) const
     os << "\033[4m" << name << "\033[m" << std::endl;
     os << "\033[3mstring\033[m";
     if (!defaultValue.empty()) {
-        os << "      default = " << defaultValue;
+        os << "           (default = " << defaultValue << ")";
     }
     os << std::endl;
     os << text << std::endl;
@@ -44,9 +44,9 @@ std::ostream& ConfigurationHelp::printString(std::ostream& os) const
 std::ostream& ConfigurationHelp::printNumeric(std::ostream& os) const
 {
     os << "\033[4m" << name << "\033[m" << std::endl;
-    os << "numeric:    " << range[0] << "—" << range[1] << " " << units;
+    os << "\033[3mnumeric\033[m    range: " << range[0] << "—" << range[1] << " " << units;
     if (!defaultValue.empty()) {
-        os << "      default = " << defaultValue << " " << units;
+        os << " (default = " << defaultValue << ")";
     }
     os << std::endl;
     os << text << std::endl;
@@ -55,10 +55,10 @@ std::ostream& ConfigurationHelp::printNumeric(std::ostream& os) const
 
 std::ostream& ConfigurationHelp::printInteger(std::ostream& os) const
 {
-    os << name << std::endl;
-    os << "integer:    " << range[0] << "—" << range[1] << " " << units;
+    os << "\033[4m" << name << "\033[m" << std::endl;
+    os << "\033[3minteger\033[m     range: " << range[0] << "—" << range[1] << " " << units;
     if (!defaultValue.empty()) {
-        os << "      default = " << defaultValue << " " << units;
+        os << " default = " << defaultValue << ")";
     }
     os << std::endl;
     os << text << std::endl;
@@ -67,12 +67,16 @@ std::ostream& ConfigurationHelp::printInteger(std::ostream& os) const
 
 std::ostream& ConfigurationHelp::printModule(std::ostream& os) const
 {
-    os << name << std::endl;
-    os << "module: [";
+    os << "\033[4m" << name << "\033[m" << std::endl;
+    os << "\033[3mmodule\033[m [";
+
+    os << "\033[1m" << defaultValue << "\033[m";
     for (auto impl : range) {
-        os << impl << ",";
+        if (impl != defaultValue) {
+            os << ", " << impl;
+        }
     }
-    os << "]";
+    os << "]" << std::endl;
     os << text << std::endl;
     return os;
 }

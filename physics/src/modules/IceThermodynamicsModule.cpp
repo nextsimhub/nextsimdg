@@ -30,6 +30,14 @@ template <> std::string Module<Nextsim::IIceThermodynamics>::moduleName()
     return "Nextsim::IVerticalIceGrowth";
 }
 
+template <> HelpMap& getHelpRecursive<Nextsim::IIceThermodynamics>(HelpMap& map, bool getAll)
+{
+    map[Nextsim::ConfiguredModule::MODULE_PREFIX].push_back(
+        { Module<Nextsim::IIceThermodynamics>::moduleName(), ConfigType::MODULE,
+            { THERMOICE0GROWTH }, THERMOICE0GROWTH, "",
+            "The module which calculates the one-dimensional ice thermodynamics." });
+    return map;
+}
 template <> Nextsim::IIceThermodynamics& getImplementation<Nextsim::IIceThermodynamics>()
 {
     return getImplTemplate<Nextsim::IIceThermodynamics, IceThermodynamicsModule>();
