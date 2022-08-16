@@ -36,6 +36,7 @@ public:
     };
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     //! Run the model
     void run();

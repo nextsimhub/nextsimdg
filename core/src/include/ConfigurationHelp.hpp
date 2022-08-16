@@ -29,6 +29,8 @@ public:
     std::string name;
     ConfigType type;
     std::vector<std::string> range;
+    std::string defaultValue;
+    std::string units;
     std::string text;
 protected:
     std::ostream& printString(std::ostream& os) const;

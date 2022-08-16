@@ -7,13 +7,16 @@
 
 #include "include/IceGrowth.hpp"
 
-#include "include/IceThermodynamicsModule.hpp"
+//#include "include/Module.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
 double IceGrowth::minc;
 double IceGrowth::minh;
+
+static const double mincDefault = 1e-12;
+static const double minhDefault = 0.01;
 
 template <>
 const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
@@ -65,11 +68,32 @@ ModelState IceGrowth::getState() const
     };
 }
 
+IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
+{
+    map["IceGrowth"] = {
+            { keyMap.at(MINC_KEY), ConfigType::NUMERIC, {"0", "1"}, std::to_string(mincDefault), "",
+                    "Minimum allowed ice concentration."
+            },
+            { keyMap.at(MINH_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(minhDefault), "m",
+                    "Minimum allowed ice thickness."
+            },
+    };
+    return map;
+}
+IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+//    Module::getHelpRecursive<IIceThermodynamics>(map, getAll);
+//    Module::getHelpRecursive<ILateralIceSpread>(map, getAll);
+//    Module::getHelpRecursive<IFluxCalculation>(map, getAll);
+    return map;
+}
+
 void IceGrowth::configure()
 {
     // Configure constants
-    minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 1e-12);
-    minh = Configured::getConfiguration(keyMap.at(MINH_KEY), 0.01);
+    minc = Configured::getConfiguration(keyMap.at(MINC_KEY), mincDefault);
+    minh = Configured::getConfiguration(keyMap.at(MINH_KEY), minhDefault);
 
     // Configure the vertical and lateral growth modules
     iVertical = std::move(Module::getInstance<IIceThermodynamics>());

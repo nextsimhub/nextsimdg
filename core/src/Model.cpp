@@ -84,28 +84,36 @@ void Model::configure()
 Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
 {
     map["Model"] = {
-            { keyMap.at(STARTTIME_KEY), ConfigType::STRING, {},
+            { keyMap.at(STARTTIME_KEY), ConfigType::STRING, {}, "", "",
                     "Model start time, formatted as an ISO8601 date. "
                     "Non-calendretical runs can start from year 0 or 1. "
             },
-            { keyMap.at(STOPTIME_KEY), ConfigType::STRING, {},
+            { keyMap.at(STOPTIME_KEY), ConfigType::STRING, {}, "", "",
                     "Model stop time, formatted as an ISO8601 data. "
                     " Will be overridden if a model run length is set. "
             },
-            { keyMap.at(RUNLENGTH_KEY), ConfigType::STRING, {},
+            { keyMap.at(RUNLENGTH_KEY), ConfigType::STRING, {}, "", "",
                     "Model run length, formatted as an ISO8601 duration (P prefix). "
                     "Overrides the stop time if set. "
             },
-            { keyMap.at(TIMESTEP_KEY), ConfigType::STRING, {},
+            { keyMap.at(TIMESTEP_KEY), ConfigType::STRING, {}, "", "",
                     "Model physics timestep, formatted a ISO8601 duration (P prefix). "
             },
-            { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {},
+            { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
                     "The file path to the restart file to use for the run."
             },
     };
 
     return map;
 }
+
+Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+    PrognosticData::getHelpRecursive(map, getAll);
+    return map;
+}
+
 
 void Model::run() { iterator.run(); }
 

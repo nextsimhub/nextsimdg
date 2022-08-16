@@ -90,6 +90,14 @@ public:
      */
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
 
+    /*!
+     * @brief Gets the configuration help text for the current class as well as
+     * any classes used herein.
+     * @param map The map to fill with the new text.
+     * @param getAll Get all options, or just the ones for configured modules?
+     */
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     //! Clear the configuration map. Usually used only in test suites.
     static void clearConfigurationMap() { singleOptions.clear(); }
 

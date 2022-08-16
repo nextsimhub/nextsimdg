@@ -34,6 +34,9 @@ public:
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override;
 
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     std::unordered_set<std::string> hFields() const override
     {
         return { "h_ice", "c_cice", "h_snow" };

@@ -32,15 +32,23 @@ std::ostream& ConfigurationHelp::print(std::ostream& os) const
 std::ostream& ConfigurationHelp::printString(std::ostream& os) const
 {
     os << "\033[4m" << name << "\033[m" << std::endl;
-    os << "\033[3mstring\033[m" << std::endl;
+    os << "\033[3mstring\033[m";
+    if (!defaultValue.empty()) {
+        os << "      default = " << defaultValue;
+    }
+    os << std::endl;
     os << text << std::endl;
     return os;
 }
 
 std::ostream& ConfigurationHelp::printNumeric(std::ostream& os) const
 {
-    os << name << std::endl;
-    os << "numeric:    " << range[0] << "—" << range[1];
+    os << "\033[4m" << name << "\033[m" << std::endl;
+    os << "numeric:    " << range[0] << "—" << range[1] << " " << units;
+    if (!defaultValue.empty()) {
+        os << "      default = " << defaultValue << " " << units;
+    }
+    os << std::endl;
     os << text << std::endl;
     return os;
 }
@@ -48,7 +56,11 @@ std::ostream& ConfigurationHelp::printNumeric(std::ostream& os) const
 std::ostream& ConfigurationHelp::printInteger(std::ostream& os) const
 {
     os << name << std::endl;
-    os << "integer:    " << range[0] << "—" << range[1];
+    os << "integer:    " << range[0] << "—" << range[1] << " " << units;
+    if (!defaultValue.empty()) {
+        os << "      default = " << defaultValue << " " << units;
+    }
+    os << std::endl;
     os << text << std::endl;
     return os;
 }

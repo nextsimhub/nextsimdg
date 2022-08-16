@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 
     if (!cmdLine.moduleHelp().empty()) {
         Nextsim::Model::HelpMap map;
-        Nextsim::Model::getHelpText(map, false);
+        Nextsim::Model::getHelpRecursive(map, true);
         for (auto configEntry : map) {
             std::cout << "\033[4m\033[1m" << configEntry.first << "\033[m" << std::endl << std::endl;
             for (auto optionEntry : configEntry.second) {

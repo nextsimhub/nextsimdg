@@ -87,4 +87,11 @@ ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
     return os ? otherState : ModelState();
 }
 
+PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }
+PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    IceGrowth::getHelpRecursive(map, getAll);
+    return map;
+}
+
 } /* namespace Nextsim */
