@@ -51,7 +51,7 @@ namespace ReferenceScale {
 constexpr double T = 30. * 24 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 1000000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.1; //!< Maximum velocity of ocean
-constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
+const double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 }
 
 class OceanX : public Nextsim::Interpolations::Function {

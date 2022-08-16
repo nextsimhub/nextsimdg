@@ -37,7 +37,7 @@ namespace ReferenceScale {
 constexpr double T = 2 * 24 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
-constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
+const double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 
 constexpr double rho_ice = 900.0; //!< Sea ice density
 constexpr double rho_atm = 1.3; //!< Air density
