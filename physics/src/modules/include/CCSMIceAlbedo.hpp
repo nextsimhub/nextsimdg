@@ -5,11 +5,11 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_CCSMICEALBEDO_HPP
-#define SRC_INCLUDE_CCSMICEALBEDO_HPP
+#ifndef CCSMICEALBEDO_HPP
+#define CCSMICEALBEDO_HPP
 
-#include "include/Configured.hpp"
 #include "IIceAlbedo.hpp"
+#include "include/Configured.hpp"
 
 namespace Nextsim {
 
@@ -26,6 +26,9 @@ public:
 
     void configure() override;
 
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
 private:
     static double iceAlbedo;
     static double snowAlbedo;
@@ -33,4 +36,4 @@ private:
 
 }
 
-#endif /* SRC_INCLUDE_CCSMICEALBEDO_HPP */
+#endif /* CCSMICEALBEDO_HPP */

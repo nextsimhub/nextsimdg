@@ -24,6 +24,12 @@ double FiniteElementFluxes::dragIce_t;
 double FiniteElementFluxes::m_oceanAlbedo;
 double FiniteElementFluxes::m_I0;
 
+static const double dragOcean_q_default = 1.5e-3;
+static const double dragOcean_t_default = 0.83e-3;
+static const double dragIce_t_default = 1.3e-3;
+static const double oceanAlbedo_default = 0.07;
+static const double i0_default = 0.17;
+
 template <>
 const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
     { FiniteElementFluxes::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q" },
@@ -38,11 +44,11 @@ void FiniteElementFluxes::configure()
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 
-    dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), 1.5e-3);
-    dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), 0.83e-3);
-    dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), 1.3e-3);
-    m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), 0.07);
-    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), 0.17);
+    dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), dragOcean_q_default);
+    dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), dragOcean_t_default);
+    dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), dragIce_t_default);
+    m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), oceanAlbedo_default);
+    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
 void FiniteElementFluxes::setData(const ModelState& ms)
@@ -70,6 +76,34 @@ void FiniteElementFluxes::setData(const ModelState& ms)
 
 ModelState FiniteElementFluxes::getState() const { return ModelState(); }
 ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
+
+FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, bool getAll)
+{
+    map["FiniteElementFluxes"] = {
+            { keyMap.at(DRAGOCEANQ_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(dragOcean_q_default), "??",
+                    "Coefficient for evaporative mass flux calculation."
+            },
+            { keyMap.at(DRAGOCEANT_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(dragOcean_t_default), "??",
+                    "Coefficient for sensible heat flux calculation."
+            },
+            { keyMap.at(DRAGICET_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(dragIce_t_default), "??",
+                    "Ice drag coefficient for heat fluxes."
+            },
+            { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(oceanAlbedo_default), "",
+                    "Shortwave albedo of open ocean water."
+            },
+            { keyMap.at(I0_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(i0_default), "",
+                    "Transmissivity of ice."
+            },
+    };
+    return map;
+}
+FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+    return Module::getHelpRecursive<IIceAlbedo>(map, getAll);
+}
+
 
 void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 {

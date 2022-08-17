@@ -61,6 +61,9 @@ public:
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
 
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     std::string getName() const override { return "FiniteElementFluxes"; }
 
     void updateOW(const TimestepTime& tst) override

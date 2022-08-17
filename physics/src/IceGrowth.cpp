@@ -84,8 +84,8 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
     Module::getHelpRecursive<IIceThermodynamics>(map, getAll);
-//    Module::getHelpRecursive<ILateralIceSpread>(map, getAll);
-//    Module::getHelpRecursive<IFluxCalculation>(map, getAll);
+    Module::getHelpRecursive<ILateralIceSpread>(map, getAll);
+    Module::getHelpRecursive<IFluxCalculation>(map, getAll);
     return map;
 }
 

@@ -12,6 +12,9 @@ namespace Nextsim {
 double HiblerSpread::h0 = 0;
 double HiblerSpread::phiM = 0;
 
+static const double h0Default = 0.25;
+static const double phimDefault = 0.5;
+
 template <>
 const std::map<int, std::string> Configured<HiblerSpread>::keyMap = {
     { HiblerSpread::H0_KEY, "Hibler.h0" },
@@ -20,8 +23,25 @@ const std::map<int, std::string> Configured<HiblerSpread>::keyMap = {
 
 void HiblerSpread::configure()
 {
-    h0 = Configured::getConfiguration(keyMap.at(H0_KEY), 0.25);
-    phiM = Configured::getConfiguration(keyMap.at(PHIM_KEY), 0.5);
+    h0 = Configured::getConfiguration(keyMap.at(H0_KEY), h0Default);
+    phiM = Configured::getConfiguration(keyMap.at(PHIM_KEY), phimDefault);
+}
+
+HiblerSpread::HelpMap& HiblerSpread::getHelpText(HelpMap& map, bool getAll)
+{
+    map["HiblerSpread"] = {
+            { keyMap.at(H0_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(h0Default), "m",
+                    "The thickness of newly frozen ice."
+            },
+            { keyMap.at(PHIM_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(phimDefault), "",
+                    "Power-law exponent for melting ice."
+            },
+    };
+    return map;
+}
+HiblerSpread::HelpMap& HiblerSpread::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    return getHelpText(map, getAll);
 }
 
 void HiblerSpread::freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,

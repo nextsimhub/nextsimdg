@@ -31,6 +31,16 @@ template <> std::string Module<Nextsim::IFluxCalculation>::moduleName()
     return "Nextsim::IFluxCalculation";
 }
 
+template <> HelpMap& getHelpRecursive<Nextsim::IFluxCalculation>(HelpMap& map, bool getAll)
+{
+    map[Nextsim::ConfiguredModule::MODULE_PREFIX].push_back(
+        { Nextsim::ConfiguredModule::MODULE_PREFIX + "."
+                + Module<Nextsim::IFluxCalculation>::moduleName(),
+            ConfigType::MODULE, { FINITEELEMENTFLUXES }, FINITEELEMENTFLUXES, "",
+            "The module for calculating surface-atmosphere exchange fluxes." });
+    Nextsim::FiniteElementFluxes::getHelpRecursive(map, getAll);
+    return map;
+}
 template <> Nextsim::IFluxCalculation& getImplementation<Nextsim::IFluxCalculation>()
 {
     return getImplTemplate<Nextsim::IFluxCalculation, FluxCalculationModule>();
