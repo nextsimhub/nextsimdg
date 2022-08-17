@@ -52,8 +52,7 @@ ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
 }
 ThermoIce0::HelpMap& ThermoIce0::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    getHelpText(map, getAll);
-    return map;
+    return getHelpText(map, getAll);
 }
 
 void ThermoIce0::setData(const ModelState& ms)
