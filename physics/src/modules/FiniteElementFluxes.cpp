@@ -101,7 +101,10 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, boo
 FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
-    return Module::getHelpRecursive<IIceAlbedo>(map, getAll);
+    Module::getHelpRecursive<IIceAlbedo>(map, getAll);
+    // Skip having to write a gHR() function for FEFC by accessing IceOceanHeatFlux here.
+    Module::getHelpRecursive<IIceOceanHeatFlux>(map, getAll);
+    return map;
 }
 
 

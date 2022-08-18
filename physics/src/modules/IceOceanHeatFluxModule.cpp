@@ -29,6 +29,14 @@ template <> std::string Module<Nextsim::IIceOceanHeatFlux>::moduleName()
     return "IIceOceanHeatFlux";
 }
 
+template <> HelpMap& getHelpRecursive<Nextsim::IIceOceanHeatFlux>(HelpMap& map, bool getAll)
+{
+    const std::string pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
+    map[pfx].push_back(
+        { pfx + "." + BASICICEOCEANHEATFLUX, ConfigType::MODULE, {BASICICEOCEANHEATFLUX}, BASICICEOCEANHEATFLUX, "",
+            "The module for calculating the ice-ocean heat fluxes."});
+    return map;
+}
 template <> Nextsim::IIceOceanHeatFlux& getImplementation<Nextsim::IIceOceanHeatFlux>()
 {
     return getImplTemplate<Nextsim::IIceOceanHeatFlux, IceOceanHeatFluxModule>();

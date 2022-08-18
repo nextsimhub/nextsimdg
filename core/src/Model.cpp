@@ -110,6 +110,7 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
 Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
+    MissingData::getHelpRecursive(map, getAll);
     PrognosticData::getHelpRecursive(map, getAll);
     return map;
 }
