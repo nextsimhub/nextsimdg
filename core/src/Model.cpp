@@ -9,6 +9,7 @@
 #include "include/Configurator.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
+#include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelState.hpp"
 #include "include/StructureFactory.hpp"
@@ -112,6 +113,7 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     getHelpText(map, getAll);
     MissingData::getHelpRecursive(map, getAll);
     PrognosticData::getHelpRecursive(map, getAll);
+    Module::getHelpRecursive<IDiagnosticOutput>(map, getAll);
     return map;
 }
 
