@@ -37,7 +37,7 @@ public:
     /*!
      * Returns the name of any module for which help was requested.
      */
-    std::string moduleHelp() { return m_moduleHelp; }
+    std::string configHelp() { return m_configHelp; }
 
     /*!
      * The special string denoting help for all available modules.
@@ -54,7 +54,7 @@ private:
 
     boost::program_options::variables_map m_arguments;
     std::vector<std::string> m_configFilenames;
-    std::string m_moduleHelp;
+    std::string m_configHelp;
 };
 
 } /* namespace Nextsim */

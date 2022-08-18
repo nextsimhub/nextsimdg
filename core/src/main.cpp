@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     // Parse the configuration to load those that are explicitly configured
     Nextsim::ConfiguredModule::parseConfigurator();
 
-    if (!cmdLine.moduleHelp().empty()) {
+    if (!cmdLine.configHelp().empty()) {
         Nextsim::Model::HelpMap map;
         Nextsim::Model::getHelpRecursive(map, true);
         for (auto configEntry : map) {
