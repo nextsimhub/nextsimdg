@@ -7,6 +7,8 @@
 
 #include "include/CommandLineParser.hpp"
 
+#include "include/ConfigurationHelpPrinter.hpp"
+
 #include <boost/program_options.hpp>
 #include <cstdlib>
 #include <iostream>
@@ -14,8 +16,8 @@
 
 namespace Nextsim {
 
-const std::string CommandLineParser::allModuleString = "all";
-const std::string CommandLineParser::availableModuleString = "avail";
+const std::string CommandLineParser::allModuleString = ConfigurationHelpPrinter::allStr;
+const std::string CommandLineParser::availableModuleString = ConfigurationHelpPrinter::availStr;
 
 /*!
  * Parse the command line for command line options.

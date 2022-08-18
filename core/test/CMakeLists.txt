@@ -32,7 +32,9 @@ add_executable(testCommandLineParser
     "CommandLineParser_test.cpp"
     "ArgV.cpp"
     "${SRC_DIR}/CommandLineParser.cpp"
+    "${SRC_DIR}/ConfigurationHelpPrinter.cpp"
     )
+target_include_directories(testCommandLineParser PUBLIC "${SRC_DIR}")
 target_link_libraries(testCommandLineParser LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
 add_executable(testConfigurator

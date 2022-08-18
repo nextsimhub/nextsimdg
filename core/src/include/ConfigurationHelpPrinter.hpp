@@ -26,9 +26,12 @@ public:
         MARKDOWN,
     };
 
+    static const std::string allStr;
+    static const std::string availStr;
+
     static void setOutput(Output out);
 
-    static std::ostream& print(std::ostream& os, const ConfigurationHelp::HelpMap& map);
+    static std::ostream& print(std::ostream& os, const ConfigurationHelp::HelpMap& map, const std::string& target);
     static std::ostream& print(std::ostream& os, const ConfigurationHelp& help);
 
 protected:
