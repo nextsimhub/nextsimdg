@@ -32,7 +32,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IDiagnosticOutput>(HelpMap& map, 
 {
     const std::string pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
     map[pfx].push_back({
-        Module<Nextsim::IDiagnosticOutput>::moduleName(), ConfigType::MODULE, {SIMPLEOUTPUT}, SIMPLEOUTPUT, "",
+        pfx + "." + Module<Nextsim::IDiagnosticOutput>::moduleName(), ConfigType::MODULE, {SIMPLEOUTPUT}, SIMPLEOUTPUT, "",
                 "The module controlling the output of NetCDF files containing diagnostic model data."
     });
     return map;
