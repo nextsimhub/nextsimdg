@@ -32,8 +32,7 @@ public:
  */
 template <typename C> class Configured : public ConfiguredBase {
 public:
-    typedef std::list<ConfigurationHelp> OptionMap;
-    typedef std::map<std::string, OptionMap> HelpMap;
+    typedef ConfigurationHelp::HelpMap HelpMap;
     using ConfigType = ConfigurationHelp::ConfigType;
 
     Configured() = default;

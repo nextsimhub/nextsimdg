@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "include/CommandLineParser.hpp"
+#include "include/ConfigurationHelpPrinter.hpp"
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/Model.hpp"
@@ -26,13 +27,8 @@ int main(int argc, char* argv[])
     if (!cmdLine.configHelp().empty()) {
         Nextsim::Model::HelpMap map;
         Nextsim::Model::getHelpRecursive(map, true);
-        for (auto configEntry : map) {
-            std::cout << "\033[4m\033[1m" << configEntry.first << "\033[m" << std::endl << std::endl;
-            for (auto optionEntry : configEntry.second) {
-                std::cout << optionEntry << std::endl;
-            }
-            std::cout << std::endl;
-        }
+        Nextsim::ConfigurationHelpPrinter::setOutput(Nextsim::ConfigurationHelpPrinter::Output::ANSI);
+        Nextsim::ConfigurationHelpPrinter::print(std::cout, map);
     } else {
         // Construct the Model
         Nextsim::Model model;

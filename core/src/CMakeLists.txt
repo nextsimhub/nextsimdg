@@ -7,7 +7,7 @@ set(BaseSources
     "Model.cpp"
     "Iterator.cpp"
     "Configurator.cpp"
-    "ConfigurationHelp.cpp"
+    "ConfigurationHelpPrinter.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
