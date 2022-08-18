@@ -27,6 +27,15 @@ std::unique_ptr<Nextsim::OceanState> Module<Nextsim::OceanState>::staticInstance
 
 template <> std::string Module<Nextsim::OceanState>::moduleName() { return "Nextsim::OceanState"; }
 
+template <> HelpMap& getHelpRecursive<Nextsim::OceanState>(HelpMap& map, bool getAll)
+{
+    const std::string pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
+    map[pfx].push_back({
+        pfx + "." + Module<Nextsim::OceanState>::moduleName(), ConfigType::MODULE, {DUMMYOCEANSTATE}, DUMMYOCEANSTATE, "",
+                "The module selecting how the state of the ocean is obtained."
+    });
+    return map;
+}
 template <> Nextsim::OceanState& getImplementation<Nextsim::OceanState>()
 {
     return getImplTemplate<Nextsim::OceanState, OceanStateModule>();

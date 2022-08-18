@@ -43,6 +43,13 @@ void AtmosphereOceanState::configure()
     tryConfigure(*oceanStateImpl);
 }
 
+AtmosphereOceanState::HelpMap& AtmosphereOceanState::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    Module::getHelpRecursive<AtmosphereState>(map, getAll);
+    Module::getHelpRecursive<OceanState>(map, getAll);
+    return map;
+}
+
 void AtmosphereOceanState::update(const TimestepTime& tst)
 {
     atmosStateImpl->update(tst);

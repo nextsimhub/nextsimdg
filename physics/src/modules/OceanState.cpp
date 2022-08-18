@@ -67,6 +67,11 @@ void OceanState::configure()
     tryConfigure(tfImpl);
 }
 
+OceanState::HelpMap& OceanState::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    return Module::getHelpRecursive<IFreezingPoint>(map, getAll);
+}
+
 void OceanState::update(const TimestepTime& tst)
 {
     // Mixed layer heat capacity per unit area

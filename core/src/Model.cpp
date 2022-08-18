@@ -6,6 +6,7 @@
 
 #include "include/Model.hpp"
 
+#include "include/AtmosphereOceanState.hpp"
 #include "include/Configurator.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
@@ -114,6 +115,7 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     MissingData::getHelpRecursive(map, getAll);
     PrognosticData::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IDiagnosticOutput>(map, getAll);
+    AtmosphereOceanState::getHelpRecursive(map, getAll);
     return map;
 }
 

@@ -33,6 +33,8 @@ public:
 
     void configure() override;
 
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
 protected:
     HField hTrueSnow;
     HField hTrueIce;

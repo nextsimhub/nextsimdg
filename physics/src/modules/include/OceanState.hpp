@@ -27,6 +27,8 @@ public:
     std::unordered_set<std::string> hFields() const override;
 
     void configure() override;
+
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
     /*!
      * @brief Updates the ocean state.
      *
