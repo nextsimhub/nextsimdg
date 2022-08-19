@@ -58,25 +58,27 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
 
 ModelState IceGrowth::getState() const
 {
-    return {{
-        { "hice_updated", hice },
-        { "cice_updated", cice },
-        { "hsnow_updated", hsnow },
-        { "hice_initial", hice0 },
-        { "cice_initial", cice0 },
-        { "hsnow_initial", hsnow0 },
-    }, {}};
+    return { {
+                 { "hice_updated", hice },
+                 { "cice_updated", cice },
+                 { "hsnow_updated", hsnow },
+                 { "hice_initial", hice0 },
+                 { "cice_initial", cice0 },
+                 { "hsnow_initial", hsnow0 },
+             },
+        {
+            { keyMap.at(MINC_KEY), minc },
+            { keyMap.at(MINH_KEY), minh },
+        } };
 }
 
 IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
 {
     map["IceGrowth"] = {
-            { keyMap.at(MINC_KEY), ConfigType::NUMERIC, {"0", "1"}, std::to_string(mincDefault), "",
-                    "Minimum allowed ice concentration."
-            },
-            { keyMap.at(MINH_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(minhDefault), "m",
-                    "Minimum allowed ice thickness."
-            },
+        { keyMap.at(MINC_KEY), ConfigType::NUMERIC, { "0", "1" }, std::to_string(mincDefault), "",
+            "Minimum allowed ice concentration." },
+        { keyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(minhDefault), "m",
+            "Minimum allowed ice thickness." },
     };
     return map;
 }

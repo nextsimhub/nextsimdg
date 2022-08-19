@@ -10,21 +10,20 @@
 
 #include "ModelArray.hpp"
 
-#include <boost/program_options.hpp>
+#include "include/ConfigMap.hpp"
+
 #include <map>
 #include <string>
 
 namespace Nextsim {
 
-//typedef std::map<std::string, ModelArray> ModelState;
 struct ModelState {
+private:
 public:
     typedef std::map<std::string, ModelArray> DataMap;
-    typedef boost::program_options::variables_map ConfigMap;
 
     DataMap data;
     ConfigMap config;
-
 };
 
 } /* namespace Nextsim */
