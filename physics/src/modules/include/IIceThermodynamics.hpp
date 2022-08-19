@@ -20,7 +20,7 @@ public:
     ~IIceThermodynamics() = default;
 
     std::string getName() const override { return "IceThermodynamics"; }
-    void setData(const ModelState& ms) override
+    void setData(const ModelState::DataMap& ms) override
     {
         tice.resize();
         deltaHi.resize();

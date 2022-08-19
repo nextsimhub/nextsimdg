@@ -19,8 +19,9 @@ void SimpleOutput::outputState(const ModelState& state, const ModelMetadata& met
     std::stringstream startStream;
     startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
-    Logged::info("Outputting " + std::to_string(state.size()) + " fields to " + timeFileName + "\n");
-//    std::cout << "Outputting " << state.size() << " fields to " << timeFileName << std::endl;
+    Logged::info("Outputting " + std::to_string(state.data.size()) + " fields and "
+        + std::to_string(state.config.size()) + " configurations to " + timeFileName + "\n");
+    //    std::cout << "Outputting " << state.size() << " fields to " << timeFileName << std::endl;
 
     StructureFactory::fileFromState(state, meta, timeFileName);
 }

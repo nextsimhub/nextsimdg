@@ -51,7 +51,7 @@ void FiniteElementFluxes::configure()
     m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
-void FiniteElementFluxes::setData(const ModelState& ms)
+void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
     IIceFluxes::setData(ms);
     IOWFluxes::setData(ms);
@@ -216,7 +216,7 @@ void FiniteElementFluxCalc::configure()
     tryConfigure(iceOceanHeatFluxImpl);
 }
 
-void FiniteElementFluxCalc::setData(const ModelState& ms)
+void FiniteElementFluxCalc::setData(const ModelState::DataMap& ms)
 {
     IFluxCalculation::setData(ms);
 

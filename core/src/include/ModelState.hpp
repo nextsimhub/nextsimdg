@@ -5,17 +5,28 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_MODELSTATE_HPP
-#define CORE_SRC_INCLUDE_MODELSTATE_HPP
+#ifndef MODELSTATE_HPP
+#define MODELSTATE_HPP
 
 #include "ModelArray.hpp"
+
+#include <boost/program_options.hpp>
 #include <map>
 #include <string>
 
 namespace Nextsim {
 
-typedef std::map<std::string, ModelArray> ModelState;
+//typedef std::map<std::string, ModelArray> ModelState;
+struct ModelState {
+public:
+    typedef std::map<std::string, ModelArray> DataMap;
+    typedef boost::program_options::variables_map ConfigMap;
+
+    DataMap data;
+    ConfigMap config;
+
+};
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_MODELSTATE_HPP */
+#endif /* MODELSTATE_HPP */

@@ -27,7 +27,7 @@ PrognosticData::PrognosticData()
 
 void PrognosticData::configure() { tryConfigure(iceGrowth); }
 
-void PrognosticData::setData(const ModelState& ms)
+void PrognosticData::setData(const ModelState::DataMap& ms)
 {
 
     if (ms.count("mask")) {
@@ -71,19 +71,19 @@ void PrognosticData::update(const TimestepTime& tst)
 
 ModelState PrognosticData::getState() const
 {
-    return {
+    return {{
         { "mask", ModelArray(oceanMask()) }, // make a copy
         { "hice", mask(m_thick) },
         { "cice", mask(m_conc) },
         { "hsnow", mask(m_snow) },
         { "tice", mask(m_tice) },
-    };
+    }, {}};
 }
 
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
     ModelState otherState = iceGrowth.getState();
-    otherState.merge(getState());
+    otherState.data.merge(getState().data);
     return os ? otherState : ModelState();
 }
 

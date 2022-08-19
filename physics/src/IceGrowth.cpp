@@ -42,7 +42,7 @@ IceGrowth::IceGrowth()
     ModelComponent::registerSharedArray(SharedArray::NEW_ICE, &newice);
 }
 
-void IceGrowth::setData(const ModelState& ms)
+void IceGrowth::setData(const ModelState::DataMap& ms)
 {
     iVertical->setData(ms);
     iLateral->setData(ms);
@@ -58,14 +58,14 @@ void IceGrowth::setData(const ModelState& ms)
 
 ModelState IceGrowth::getState() const
 {
-    return {
+    return {{
         { "hice_updated", hice },
         { "cice_updated", cice },
         { "hsnow_updated", hsnow },
         { "hice_initial", hice0 },
         { "cice_initial", cice0 },
         { "hsnow_initial", hsnow0 },
-    };
+    }, {}};
 }
 
 IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)

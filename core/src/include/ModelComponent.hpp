@@ -92,7 +92,7 @@ public:
      *
      * @param state The ModelState containing the data to be set.
      */
-    virtual void setData(const ModelState& state) = 0;
+    virtual void setData(const ModelState::DataMap& state) = 0;
     /*!
      * @brief Returns a ModelState from this component.
      *

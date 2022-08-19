@@ -80,7 +80,7 @@ void Model::configure()
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
-    pData.setData(initialState);
+    pData.setData(initialState.data);
 }
 
 Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)

@@ -33,7 +33,7 @@ public:
     }
     virtual ~IFluxCalculation() = default;
 
-    void setData(const ModelState& ms) override
+    void setData(const ModelState::DataMap& ms) override
     {
         aoState.setData(ms);
 

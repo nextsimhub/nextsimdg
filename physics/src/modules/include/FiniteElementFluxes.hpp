@@ -56,7 +56,7 @@ public:
     };
     void configure() override;
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
 
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
@@ -147,7 +147,7 @@ public:
     {
     }
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
 
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;

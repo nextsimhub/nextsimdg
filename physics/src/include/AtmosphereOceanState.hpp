@@ -23,7 +23,7 @@ class AtmosphereOceanState : public ModelComponent, public Configured<Atmosphere
 public:
     AtmosphereOceanState();
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
     std::string getName() const override;

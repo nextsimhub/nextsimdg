@@ -35,17 +35,17 @@ OceanState::OceanState()
     registerProtectedArray(ProtectedArray::ML_BULK_CP, &cpml);
 }
 
-void OceanState::setData(const ModelState&) { }
+void OceanState::setData(const ModelState::DataMap&) { }
 
 ModelState OceanState::getState() const
 {
-    return {
+    return {{
         { fieldNames.at(ProtectedArray::SST), sst },
         { fieldNames.at(ProtectedArray::SSS), sss },
         { fieldNames.at(ProtectedArray::MLD), mld },
         { fieldNames.at(ProtectedArray::TF), tf },
         { fieldNames.at(ProtectedArray::ML_BULK_CP), cpml },
-    };
+    }, {}};
 }
 
 ModelState OceanState::getState(const OutputLevel& lvl) const { return getState(); }

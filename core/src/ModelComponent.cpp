@@ -21,14 +21,14 @@ ModelComponent::ModelComponent() { }
 void ModelComponent::setAllModuleData(const ModelState& stateIn)
 {
     for (auto entry : registeredModules) {
-        entry.second->setData(stateIn);
+        entry.second->setData(stateIn.data);
     }
 }
 ModelState ModelComponent::getAllModuleState()
 {
     ModelState overallState;
     for (auto entry : registeredModules) {
-        overallState.merge(entry.second->getState());
+        overallState.data.merge(entry.second->getState().data);
     }
     return overallState;
 }

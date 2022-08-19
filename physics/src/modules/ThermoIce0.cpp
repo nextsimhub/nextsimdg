@@ -55,7 +55,7 @@ ThermoIce0::HelpMap& ThermoIce0::getHelpRecursive(HelpMap& map, bool getAll)
     return getHelpText(map, getAll);
 }
 
-void ThermoIce0::setData(const ModelState& ms)
+void ThermoIce0::setData(const ModelState::DataMap& ms)
 {
     IIceThermodynamics::setData(ms);
 

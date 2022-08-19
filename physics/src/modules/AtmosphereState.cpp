@@ -34,11 +34,11 @@ AtmosphereState::AtmosphereState()
     registerProtectedArray(ProtectedArray::WIND_SPEED, &windSpeed);
 }
 
-void AtmosphereState::setData(const ModelState&) { }
+void AtmosphereState::setData(const ModelState::DataMap&) { }
 
 ModelState AtmosphereState::getState() const
 {
-    return {
+    return {{
         { fieldNames.at(ProtectedArray::T_AIR), tair },
         { fieldNames.at(ProtectedArray::DEW_2M), tdew },
         { fieldNames.at(ProtectedArray::P_AIR), pair },
@@ -47,7 +47,7 @@ ModelState AtmosphereState::getState() const
         { fieldNames.at(ProtectedArray::LW_IN), lw_in },
         { fieldNames.at(ProtectedArray::SNOW), snowfall },
         { fieldNames.at(ProtectedArray::WIND_SPEED), windSpeed },
-    };
+    }, {}};
 }
 
 ModelState AtmosphereState::getState(const OutputLevel& lvl) const { return getState(); }

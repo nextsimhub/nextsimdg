@@ -25,7 +25,7 @@ public:
     virtual ~IIceOceanHeatFlux() = default;
 
     // This superclass has no state
-    void setData(const ModelState&) override {};
+    void setData(const ModelState::DataMap&) override {};
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     // …but it does have a name

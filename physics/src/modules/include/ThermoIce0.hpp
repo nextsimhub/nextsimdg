@@ -27,7 +27,7 @@ public:
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
 
 private:

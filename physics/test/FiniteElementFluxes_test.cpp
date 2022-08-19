@@ -48,7 +48,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
             : OceanState()
         {
         }
-        void setData(const ModelState& state) override
+        void setData(const ModelState::DataMap& state) override
         {
             sst[0] = -1.;
             sss[0] = 32.;
@@ -64,7 +64,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
             : AtmosphereState()
         {
         }
-        void setData(const ModelState& state) override
+        void setData(const ModelState::DataMap& state) override
         {
             tair[0] = 3;
             tdew[0] = 2;
@@ -90,7 +90,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
         }
         std::string getName() const override { return "ProgData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             noLandMask();
             cice[0] = 0.5;
@@ -106,12 +106,12 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
-    iceState.setData(ModelState());
+    iceState.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     FiniteElementFluxCalc fefc;
     fefc.configure();
-    fefc.setData(ModelState());
+    fefc.setData(ModelState().data);
     fefc.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::Q_OW, RO> qow;
@@ -153,7 +153,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
             : OceanState()
         {
         }
-        void setData(const ModelState& state) override
+        void setData(const ModelState::DataMap& state) override
         {
             sst[0] = -1.75;
             sss[0] = 32.;
@@ -169,7 +169,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
             : AtmosphereState()
         {
         }
-        void setData(const ModelState& state) override
+        void setData(const ModelState::DataMap& state) override
         {
             tair[0] = -12;
             tdew[0] = -12;
@@ -195,7 +195,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
         }
         std::string getName() const override { return "ProgData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             noLandMask();
             cice[0] = 0.5;
@@ -211,12 +211,12 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
-    iceState.setData(ModelState());
+    iceState.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     FiniteElementFluxCalc fefc;
     fefc.configure();
-    fefc.setData(ModelState());
+    fefc.setData(ModelState().data);
     fefc.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::Q_OW, RO> qow;

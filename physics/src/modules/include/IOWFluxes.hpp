@@ -20,7 +20,7 @@ public:
     virtual ~IOWFluxes() = default;
 
     std::string getName() const override { return "IOWFluxes"; }
-    void setData(const ModelState&) override { }
+    void setData(const ModelState::DataMap&) override { }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) { return getState(); }
 

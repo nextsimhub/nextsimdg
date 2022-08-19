@@ -13,7 +13,7 @@ namespace Nextsim {
 
 AtmosphereOceanState::AtmosphereOceanState() { }
 
-void AtmosphereOceanState::setData(const ModelState& ms)
+void AtmosphereOceanState::setData(const ModelState::DataMap& ms)
 {
     registerProtectedArray(ProtectedArray::HTRUE_ICE, &hTrueIce);
     registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hTrueSnow);
@@ -22,10 +22,10 @@ void AtmosphereOceanState::setData(const ModelState& ms)
 }
 ModelState AtmosphereOceanState::getState() const
 {
-    return {
+    return {{
         { "True ice thickness", hTrueIce },
         { "True snow thickness", hTrueSnow },
-    };
+    }, {}};
 }
 ModelState AtmosphereOceanState::getState(const OutputLevel&) const { return getState(); }
 std::string AtmosphereOceanState::getName() const { return "AtmosphereOceanState"; }

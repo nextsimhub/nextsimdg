@@ -19,7 +19,7 @@ public:
     virtual ~ILateralIceSpread() = default;
 
     std::string getName() const override { return "LateralIceSpread"; }
-    void setData(const ModelState& ms) override { }
+    void setData(const ModelState::DataMap& ms) override { }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     /*!
