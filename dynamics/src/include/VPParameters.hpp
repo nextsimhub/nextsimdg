@@ -9,8 +9,8 @@
 
 namespace Nextsim {
 
-  class VPParameters {
-  public:
+class VPParameters {
+public:
     double rho_ice; //!< Sea ice density
     double rho_atm; //!< Air density
     double rho_ocean; //!< Ocean density
@@ -26,24 +26,24 @@ namespace Nextsim {
 
     double DeltaMin; //!< Viscous regime
 
-    VPParameters()  
+    VPParameters()
     {
-      rho_ice = 900.0; //!< Sea ice density
-      rho_atm = 1.3; //!< Air density
-      rho_ocean = 1026.0; //!< Ocean density
+        rho_ice = 900.0; //!< Sea ice density
+        rho_atm = 1.3; //!< Air density
+        rho_ocean = 1026.0; //!< Ocean density
 
-      C_atm = 1.2e-3; //!< Air drag coefficient
-      C_ocean = 5.5e-3; //!< Ocean drag coefficient
+        C_atm = 1.2e-3; //!< Air drag coefficient
+        C_ocean = 5.5e-3; //!< Ocean drag coefficient
 
-      F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
-      F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
+        F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
+        F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 
-      Pstar = 27500.0; //!< Ice strength
-      fc = 1.46e-4; //!< Coriolis
+        Pstar = 27500.0; //!< Ice strength
+        fc = 1.46e-4; //!< Coriolis
 
-      DeltaMin = 2.e-9; //!< Viscous regime
+        DeltaMin = 2.e-9; //!< Viscous regime
     }
-  };
+};
 
 } /* namespace Nextsim */
 

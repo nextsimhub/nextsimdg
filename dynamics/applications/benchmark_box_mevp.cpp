@@ -5,15 +5,15 @@
  */
 
 #include "Tools.hpp"
+#include "VPParameters.hpp"
 #include "cgMomentum.hpp"
 #include "cgVector.hpp"
 #include "dgInitial.hpp"
+#include "dgLimit.hpp"
 #include "dgTransport.hpp"
 #include "dgVisu.hpp"
-#include "dgLimit.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
-#include "VPParameters.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -22,7 +22,7 @@
 #include <vector>
 
 bool WRITE_VTK = true;
- 
+
 #define CG 2
 #define DGadvection 1
 #define DGstress 8
@@ -211,38 +211,38 @@ int main()
         Nextsim::InterpolateCG(mesh, AY, AtmForcingY);
         Nextsim::GlobalTimer.stop("time loop - forcing");
 
-	//////////////////////////////////////////////////
+        //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - advection");
         momentum.ProjectCGToDG(mesh, dgvx, vx);
         momentum.ProjectCGToDG(mesh, dgvy, vy);
         dgtransport.reinitvelocity();
-        dgtransport.step(dt_adv,A);
-        dgtransport.step(dt_adv,H);
+        dgtransport.step(dt_adv, A);
+        dgtransport.step(dt_adv, H);
 
         A.col(0) = A.col(0).cwiseMin(1.0);
         A.col(0) = A.col(0).cwiseMax(0.0);
         H.col(0) = H.col(0).cwiseMax(0.0);
 
-	//! Gauss-point limiting
+        //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
         Nextsim::LimitMin(H, 0.0);
-	
+
         momentum.InterpolateDGToCG(mesh, cg_A, A);
         momentum.InterpolateDGToCG(mesh, cg_H, H);
         cg_A = cg_A.cwiseMin(1.0);
         cg_A = cg_A.cwiseMax(0.0);
         cg_H = cg_H.cwiseMax(1.e-4); //!< Limit H from below
 
-        Nextsim::GlobalTimer.stop("time loop - advection");	
-	//////////////////////////////////////////////////
+        Nextsim::GlobalTimer.stop("time loop - advection");
+        //////////////////////////////////////////////////
 
         Nextsim::GlobalTimer.start("time loop - mevp");
         //! Store last velocity for MEVP
         vx_mevp = vx;
         vy_mevp = vy;
 
-	        Nextsim::GlobalTimer.start("time loop - mevp");
+        Nextsim::GlobalTimer.start("time loop - mevp");
         //! Store last velocity for MEVP
         vx_mevp = vx;
         vy_mevp = vy;
@@ -332,7 +332,6 @@ int main()
         }
         Nextsim::GlobalTimer.stop("time loop - mevp");
 
-
         //         //! Output
         if (WRITE_VTK)
             if ((timestep % NT_vtk == 0)) {
@@ -351,12 +350,11 @@ int main()
                 Nextsim::VTK::write_cg("ResultsBox/vx", printstep, vx, mesh);
                 Nextsim::VTK::write_cg("ResultsBox/vy", printstep, vy, mesh);
 
-
                 Nextsim::VTK::write_dg("ResultsBox/A", printstep, A, mesh);
                 Nextsim::VTK::write_dg("ResultsBox/H", printstep, H, mesh);
 
-		Nextsim::VTK::write_dg("ResultsBox/Shear", printstep, Nextsim::Tools::Shear(mesh, E11, E12, E22), mesh);
-		Nextsim::VTK::write_dg("ResultsBox/Delta", printstep, Nextsim::Tools::Delta(mesh, E11, E12, E22, VP.DeltaMin), mesh);
+                Nextsim::VTK::write_dg("ResultsBox/Shear", printstep, Nextsim::Tools::Shear(mesh, E11, E12, E22), mesh);
+                Nextsim::VTK::write_dg("ResultsBox/Delta", printstep, Nextsim::Tools::Delta(mesh, E11, E12, E22, VP.DeltaMin), mesh);
 
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }

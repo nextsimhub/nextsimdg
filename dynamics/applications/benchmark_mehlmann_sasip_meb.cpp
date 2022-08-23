@@ -4,10 +4,10 @@
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
+#include "Interpolations.hpp"
 #include "ParametricTools.hpp"
 #include "ParametricTransport.hpp"
 #include "SasipMesh.hpp"
-#include "Interpolations.hpp"
 
 #include "Tools.hpp"
 #include "cgParametricMomentum.hpp"
@@ -106,17 +106,24 @@ public:
         return -scale * ReferenceScale::vmax_atm * (-sin(alpha) * (x - cM) + cos(alpha) * (y - cM));
     }
 };
-class InitialH  : public Nextsim::Interpolations::Function{
+class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
         return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
+
 class InitialA : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const { return 1.0; }
 };
+
+class InitialD : public Nextsim::Interpolations::Function {
+public:
+    double operator()(double x, double y) const { return 0.0; }
+};
+
 //////////////////////////////////////////////////
 
 int main()
@@ -124,6 +131,7 @@ int main()
     //! Define the spatial mesh
     Nextsim::SasipMesh smesh;
     smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
+    smesh.readmesh("../SasipMesh/rectangle_128x128.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
@@ -138,7 +146,7 @@ int main()
     constexpr size_t NT_evp = 200;
 
     //! Rheology-Parameters
-    Nextsim::VPParameters VP;
+    Nextsim::MEBParameters VP;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
@@ -162,22 +170,23 @@ int main()
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
 
     ////////////////////////////////////////////////// Variables and Initial Values
-    Nextsim::CellVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
+    Nextsim::CellVector<DGadvection> H(smesh), A(smesh), D(smesh); //!< ice height and concentration
     Nextsim::Interpolations::Function2DG(smesh, H, InitialH());
     Nextsim::Interpolations::Function2DG(smesh, A, InitialA());
+    Nextsim::Interpolations::Function2DG(smesh, D, InitialD());
 
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
-    Nextsim::VTK::write_cg_velocity("ResultsBenchmarkSasipMesh/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/A", 0, A, smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/H", 0, H, smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+    Nextsim::VTK::write_cg_velocity("ResultsBenchmarkSasipMeshMEB/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/A", 0, A, smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/H", 0, H, smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/D", 0, D, smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
     Nextsim::ParametricTransport<DGadvection, EDGEDOFS(DGadvection)> dgtransport(smesh);
     dgtransport.settimesteppingscheme("rk2");
-
 
     ////////////////////////////////////////////////// Main Loop
     Nextsim::GlobalTimer.start("time loop");
@@ -199,29 +208,33 @@ int main()
         Nextsim::GlobalTimer.start("time loop - forcing");
         AtmForcingX.settime(time);
         AtmForcingY.settime(time);
-	Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
-	Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
+        Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
+        Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
         Nextsim::GlobalTimer.stop("time loop - forcing");
 
         //////////////////////////////////////////////////
         //! Advection step
         Nextsim::GlobalTimer.start("time loop - advection");
-	Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVx(), momentum.GetVx());
+        Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVx(), momentum.GetVx());
         Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVy(), momentum.GetVy());
 
         dgtransport.reinitnormalvelocity();
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
+        dgtransport.step(dt_adv, D);
 
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
         Nextsim::LimitMin(H, 0.0);
+        Nextsim::LimitMax(D, 1.0);
+        Nextsim::LimitMin(D, 0.0);
         Nextsim::GlobalTimer.stop("time loop - advection");
 
         //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - mevp");
-        momentum.mEVPIteration(VP, NT_evp, alpha, beta, dt_adv,H, A);
+        // momentum.mEVPIteration(VP, NT_evp, alpha, beta, dt_adv, H, A);
+        momentum.MEBIteration(VP, NT_evp, dt_adv, H, A, D);
         Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //////////////////////////////////////////////////
@@ -231,11 +244,12 @@ int main()
 
                 int printstep = timestep / NT_vtk + 1.e-4;
                 Nextsim::GlobalTimer.start("time loop - i/o");
-                Nextsim::VTK::write_cg_velocity("ResultsBenchmarkSasipMesh/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/A", printstep, A, smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/H", printstep, H, smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+                Nextsim::VTK::write_cg_velocity("ResultsBenchmarkSasipMeshMEB/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/A", printstep, A, smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/H", printstep, H, smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/D", printstep, D, smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }

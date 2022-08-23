@@ -7,12 +7,11 @@
 #ifndef __MEVP_HPP
 #define __MEVP_HPP
 
+#include "VPParameters.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
-#include "VPParameters.hpp"
 
 namespace Nextsim {
-
 
 /*!
  * This namespace collects the routines required for the mEVP solver
@@ -23,8 +22,8 @@ namespace mEVP {
 
     template <int DGstress, int DGtracer>
     void StressUpdate(const Mesh& mesh,
-		      const VPParameters& vpparameters,
-		      CellVector<DGstress>& S11, CellVector<DGstress>& S12,
+        const VPParameters& vpparameters,
+        CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
         const CellVector<DGtracer>& A,
@@ -65,8 +64,8 @@ namespace mEVP {
     }
 
     //! The main EVP stress update using higher order represenatation of A and H
-  void StressUpdateHighOrder(const VPParameters& vpparameters,
-			       const Mesh& mesh, CellVector<6>& S11, CellVector<6>& S12,
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+        const Mesh& mesh, CellVector<6>& S11, CellVector<6>& S12,
         CellVector<6>& S22, const CellVector<6>& E11, const CellVector<6>& E12,
         const CellVector<6>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -137,7 +136,7 @@ namespace mEVP {
 
     //! The main EVP stress update using higher order represenatation of A and H
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-			       const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
+        const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
         CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
         const CellVector<3>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -207,9 +206,9 @@ namespace mEVP {
         }
     }
 
-      //! The main EVP stress update using higher order represenatation of A and H
-  void StressUpdateHighOrder(const VPParameters& vpparameters,
-			     const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
+    //! The main EVP stress update using higher order represenatation of A and H
+    void StressUpdateHighOrder(const VPParameters& vpparameters,
+        const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
         CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
         const CellVector<3>& E22, const CellVector<1>& H,
         const CellVector<1>& A,
@@ -221,7 +220,7 @@ namespace mEVP {
         for (size_t i = 0; i < mesh.n; ++i) {
 
             // Here, one should check if it is enough to use a 2-point Gauss rule.
-            // We're dealing with dG???, less points??? 
+            // We're dealing with dG???, less points???
 
             const LocalEdgeVector<9> h_gauss = (H(i, 0) * BiG13).array().max(0.0).matrix();
             const LocalEdgeVector<9> a_gauss = (A(i, 0) * BiG13).array().max(0.0).min(1.0).matrix();
@@ -281,7 +280,7 @@ namespace mEVP {
 
     //! The main EVP stress update using higher order represenatation of A and H
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-			       const Mesh& mesh, CellVector<1>& S11, CellVector<1>& S12,
+        const Mesh& mesh, CellVector<1>& S11, CellVector<1>& S12,
         CellVector<1>& S22, const CellVector<1>& E11, const CellVector<1>& E12,
         const CellVector<1>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -355,7 +354,7 @@ namespace mEVP {
 
     //! The main EVP stress update using higher order represenatation of A and H
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-			       const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
+        const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
         const CellVector<3>& A,
@@ -429,7 +428,7 @@ namespace mEVP {
 
     //! The main EVP stress update using higher order represenatation of A and H
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-			       const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
+        const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<6>& H,
         const CellVector<6>& A,
@@ -500,7 +499,7 @@ namespace mEVP {
 
     //! The main EVP stress update using higher order represenatation of A and H
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-			       const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
+        const Mesh& mesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<1>& H,
         const CellVector<1>& A,
@@ -572,7 +571,7 @@ namespace mEVP {
     // Stress Update (SasipMesh)
 
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-			       const ParametricTransformation<2, 8>& ptrans,
+        const ParametricTransformation<2, 8>& ptrans,
         const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
@@ -650,7 +649,7 @@ namespace mEVP {
     }
 
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-			       const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
+        const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
         const CellVector<3>& A,

@@ -27,7 +27,6 @@ public:
     template <int CG, int DG>
     void ProjectCGToDG(const Mesh& mesh, CellVector<DG>& dg, const CGVector<CG>& cg);
 
-
     //! Projects the symmetric gradient of the CG2 velocity into the DG1 space
     template <int CG, int DG>
     void ProjectCG2VelocityToDG1Strain(const Mesh& mesh, CellVector<DG>& E11, CellVector<DG>& E12,

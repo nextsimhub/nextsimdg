@@ -19,6 +19,7 @@ Ly =  512000
 nx =  32
 ny =  32
 
+nx = ny = 128
 
 import numpy as np
 
@@ -33,12 +34,12 @@ def disty(x,y):
 sx = 0.05*Lx
 sy = 0.05*Ly
 
-#sx,sy = 0,0
+sx,sy = 0,0
 
-f = open("distortedrectangle.smesh", "w")
+f = open(f"distortedrectangle_{nx}x{ny}.smesh", "w")
 f.write("SasipMesh 1.0\n")
 f.write('{0}\t{1}\n'.format(nx,ny))
-for y in np.linspace(0,Ly,ny+1):    
+for y in np.linspace(0,Ly,ny+1):
     for x in np.linspace(0,Lx,nx+1):
         f.write('{0}\t{1}\n'.format(x+sx*distx(x,y),y+sy*disty(x,y)))
 

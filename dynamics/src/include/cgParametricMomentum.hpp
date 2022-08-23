@@ -7,13 +7,14 @@
 #ifndef __CGPARAMETRICMOMENTUM_HPP
 #define __CGPARAMETRICMOMENTUM_HPP
 
+#include "MEBParameters.hpp"
 #include "ParametricTools.hpp"
+#include "VPParameters.hpp"
 #include "cgVector.hpp"
 #include "codeGenerationCGToDG.hpp"
 #include "codeGenerationCGinGauss.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
-#include "VPParameters.hpp"
 
 namespace Nextsim {
 
@@ -42,9 +43,9 @@ private:
     CGVector<CG> lumpedcgmass;
 
     //! Vector to store the CG-Version of ice concentration and ice height
-    CGVector<CG> cg_A, cg_H;
+    CGVector<CG> cg_A, cg_H, cg_D;
 
-  //! Vectors storing strain and strss
+    //! Vectors storing strain and strss
     CellVector<DGstress> E11, E12, E22;
     CellVector<DGstress> S11, S12, S22;
 
@@ -69,6 +70,7 @@ public:
 
         cg_A.resize_by_mesh(smesh);
         cg_H.resize_by_mesh(smesh);
+        cg_D.resize_by_mesh(smesh);
 
         ax.resize_by_mesh(smesh);
         ay.resize_by_mesh(smesh);
@@ -78,8 +80,12 @@ public:
         tmpx.resize_by_mesh(smesh);
         tmpy.resize_by_mesh(smesh);
 
-	E11.resize_by_mesh(smesh); E12.resize_by_mesh(smesh); E22.resize_by_mesh(smesh);
-	S11.resize_by_mesh(smesh); S12.resize_by_mesh(smesh); S22.resize_by_mesh(smesh);
+        E11.resize_by_mesh(smesh);
+        E12.resize_by_mesh(smesh);
+        E22.resize_by_mesh(smesh);
+        S11.resize_by_mesh(smesh);
+        S12.resize_by_mesh(smesh);
+        S22.resize_by_mesh(smesh);
 
         //! precomputes matrices
         if (precompute_matrices == 1)
@@ -105,18 +111,23 @@ public:
     CGVector<CG>& GetAtmx() { return ax; }
     CGVector<CG>& GetAtmy() { return ay; }
 
-  const CellVector<DGstress> GetE11() const {return E11;}
-  const CellVector<DGstress> GetE12() const {return E12;}
-  const CellVector<DGstress> GetE22() const {return E22;}
+    const CellVector<DGstress> GetE11() const { return E11; }
+    const CellVector<DGstress> GetE12() const { return E12; }
+    const CellVector<DGstress> GetE22() const { return E22; }
 
     // High level Functions
 
     //! performs one complete mEVP cycle with NT_evp subiterations
     template <int DG>
     void mEVPIteration(const VPParameters& vpparameters,
-		       size_t NT_evp, double alpha, double beta,
+        size_t NT_evp, double alpha, double beta,
         double dt_adv,
-		       const CellVector<DG>& H, const CellVector<DG>& A);
+        const CellVector<DG>& H, const CellVector<DG>& A);
+
+    //! performs one complete MEB timestep with NT_meb subiterations
+    template <int DG>
+    void MEBIteration(const MEBParameters& vpparameters, size_t NT_meb,
+        double dt_adv, const CellVector<DG>& H, const CellVector<DG>& A, CellVector<DG>& D);
 
     /*!
      * The following functions take care of the interpolation and projection
@@ -133,7 +144,6 @@ public:
     void AddStressTensorCell(const double scale, const size_t c, const size_t cx,
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty) const;
 
-
     //! Sets the velocity vector to zero along the boundary
     void DirichletZero()
     {
@@ -141,77 +151,74 @@ public:
         DirichletZero(vy);
     }
     void DirichletZero(CGVector<CG>& v);
-
 };
 
-
-  template<>
-  void CGParametricMomentum<2,8>::AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
-        const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy) const
+template <>
+void CGParametricMomentum<2, 8>::AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
+    const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy) const
+{
+    if (precompute_matrices == 0) // all is compute on-the-fly
     {
-        if (precompute_matrices == 0) // all is compute on-the-fly
-        {
-            //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
+        //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
 
-            // (M vx)_i = (vx, phi_i) = - (S11, d_x phi_i) - (S12, d_y phi_i)
+        // (M vx)_i = (vx, phi_i) = - (S11, d_x phi_i) - (S12, d_y phi_i)
 
-            const size_t CGROW = 2 * smesh.nx + 1;
-            const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
+        const size_t CGROW = 2 * smesh.nx + 1;
+        const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
 
-            const Eigen::Matrix<Nextsim::FloatType, 1, 9> S11_g = S11.row(eid) * BiG83; //!< velocity in GP
-            const Eigen::Matrix<Nextsim::FloatType, 1, 9> S22_g = S22.row(eid) * BiG83; //!< velocity in GP
-            const Eigen::Matrix<Nextsim::FloatType, 1, 9> S12_g = S12.row(eid) * BiG83; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S11_g = S11.row(eid) * BiG83; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S22_g = S22.row(eid) * BiG83; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S12_g = S12.row(eid) * BiG83; //!< velocity in GP
 
-            // J T^{-T}
-            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
-            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+        // J T^{-T}
+        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
 
-            const Eigen::Matrix<Nextsim::FloatType, 9, 9> dx_cg2 = CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(1).array() - CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(1).array();
+        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dx_cg2 = CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(1).array() - CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(1).array();
 
-            const Eigen::Matrix<Nextsim::FloatType, 9, 9> dy_cg2 = CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(0).array() - CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(0).array();
+        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dy_cg2 = CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(0).array() - CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(0).array();
 
-            const Eigen::Matrix<Nextsim::FloatType, 1, 9> tx = dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose();
-            const Eigen::Matrix<Nextsim::FloatType, 1, 9> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> tx = dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose();
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();
 
-            tmpx(cg_i + 0) += -tx(0);
-            tmpx(cg_i + 1) += -tx(1);
-            tmpx(cg_i + 2) += -tx(2);
-            tmpx(cg_i + 0 + CGROW) += -tx(3);
-            tmpx(cg_i + 1 + CGROW) += -tx(4);
-            tmpx(cg_i + 2 + CGROW) += -tx(5);
-            tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
-            tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
-            tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
+        tmpx(cg_i + 0) += -tx(0);
+        tmpx(cg_i + 1) += -tx(1);
+        tmpx(cg_i + 2) += -tx(2);
+        tmpx(cg_i + 0 + CGROW) += -tx(3);
+        tmpx(cg_i + 1 + CGROW) += -tx(4);
+        tmpx(cg_i + 2 + CGROW) += -tx(5);
+        tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
+        tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
+        tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
 
-            tmpy(cg_i + 0) += -ty(0);
-            tmpy(cg_i + 1) += -ty(1);
-            tmpy(cg_i + 2) += -ty(2);
-            tmpy(cg_i + 0 + CGROW) += -ty(3);
-            tmpy(cg_i + 1 + CGROW) += -ty(4);
-            tmpy(cg_i + 2 + CGROW) += -ty(5);
-            tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
-            tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
-            tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
-        } else if (precompute_matrices == 1) // use precomputed values
-        {
-            const Eigen::Matrix<Nextsim::FloatType, 9, 1> tx = ptrans.divS1[eid] * S11.row(eid).transpose() + ptrans.divS2[eid] * S12.row(eid).transpose();
-            const Eigen::Matrix<Nextsim::FloatType, 9, 1> ty = ptrans.divS1[eid] * S12.row(eid).transpose() + ptrans.divS2[eid] * S22.row(eid).transpose();
+        tmpy(cg_i + 0) += -ty(0);
+        tmpy(cg_i + 1) += -ty(1);
+        tmpy(cg_i + 2) += -ty(2);
+        tmpy(cg_i + 0 + CGROW) += -ty(3);
+        tmpy(cg_i + 1 + CGROW) += -ty(4);
+        tmpy(cg_i + 2 + CGROW) += -ty(5);
+        tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
+        tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
+        tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+    } else if (precompute_matrices == 1) // use precomputed values
+    {
+        const Eigen::Matrix<Nextsim::FloatType, 9, 1> tx = ptrans.divS1[eid] * S11.row(eid).transpose() + ptrans.divS2[eid] * S12.row(eid).transpose();
+        const Eigen::Matrix<Nextsim::FloatType, 9, 1> ty = ptrans.divS1[eid] * S12.row(eid).transpose() + ptrans.divS2[eid] * S22.row(eid).transpose();
 
-            const size_t CGROW = 2 * smesh.nx + 1;
-            const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
+        const size_t CGROW = 2 * smesh.nx + 1;
+        const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
 
-            tmpx.block<3, 1>(cg_i, 0) -= tx.block<3, 1>(0, 0);
-            tmpx.block<3, 1>(cg_i + CGROW, 0) -= tx.block<3, 1>(3, 0);
-            tmpx.block<3, 1>(cg_i + 2 * CGROW, 0) -= tx.block<3, 1>(6, 0);
+        tmpx.block<3, 1>(cg_i, 0) -= tx.block<3, 1>(0, 0);
+        tmpx.block<3, 1>(cg_i + CGROW, 0) -= tx.block<3, 1>(3, 0);
+        tmpx.block<3, 1>(cg_i + 2 * CGROW, 0) -= tx.block<3, 1>(6, 0);
 
-            tmpy.block<3, 1>(cg_i, 0) -= ty.block<3, 1>(0, 0);
-            tmpy.block<3, 1>(cg_i + CGROW, 0) -= ty.block<3, 1>(3, 0);
-            tmpy.block<3, 1>(cg_i + 2 * CGROW, 0) -= ty.block<3, 1>(6, 0);
-        } else
-            abort();
-    }
+        tmpy.block<3, 1>(cg_i, 0) -= ty.block<3, 1>(0, 0);
+        tmpy.block<3, 1>(cg_i + CGROW, 0) -= ty.block<3, 1>(3, 0);
+        tmpy.block<3, 1>(cg_i + 2 * CGROW, 0) -= ty.block<3, 1>(6, 0);
+    } else
+        abort();
+}
 
-  
 } /* namespace Nextsim */
 
 #endif /* __CGMOMENTUM_HPP */

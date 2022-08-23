@@ -4,13 +4,13 @@
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
+#include "Interpolations.hpp"
 #include "ParametricTools.hpp"
 #include "ParametricTransport.hpp"
 #include "SasipMesh.hpp"
-#include "Interpolations.hpp"
 #include "Tools.hpp"
-#include "cgParametricMomentum.hpp"
 #include "VPParameters.hpp"
+#include "cgParametricMomentum.hpp"
 #include "cgVector.hpp"
 #include "dgInitial.hpp"
 #include "dgLimit.hpp"
@@ -96,7 +96,7 @@ public:
     }
 };
 
-class InitialH : public Nextsim::Interpolations::Function  {
+class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
@@ -127,7 +127,7 @@ int main()
     constexpr double beta = 300.0;
     constexpr size_t NT_evp = 100;
     Nextsim::VPParameters VP;
-    
+
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
               << std::endl;
@@ -192,14 +192,14 @@ int main()
         Nextsim::GlobalTimer.start("time loop - forcing");
         AtmForcingX.settime(time);
         AtmForcingY.settime(time);
-	Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
-	Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
+        Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
+        Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
         Nextsim::GlobalTimer.stop("time loop - forcing");
 
         //////////////////////////////////////////////////
         //! Advection step
         Nextsim::GlobalTimer.start("time loop - advection");
-	Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVx(), momentum.GetVx());
+        Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVx(), momentum.GetVx());
         Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVy(), momentum.GetVy());
 
         dgtransport.reinitnormalvelocity();
@@ -212,13 +212,11 @@ int main()
         Nextsim::LimitMin(H, 0.0);
 
         Nextsim::GlobalTimer.stop("time loop - advection");
-	//////////////////////////////////////////////////
+        //////////////////////////////////////////////////
 
-
-	
         //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - mevp");
-        momentum.mEVPIteration(VP, NT_evp, alpha, beta, dt_adv,H, A);
+        momentum.mEVPIteration(VP, NT_evp, alpha, beta, dt_adv, H, A);
         Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //////////////////////////////////////////////////

@@ -4,11 +4,11 @@
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
-#include "ParametricTools.hpp"
-#include "SasipMesh.hpp"
 #include "Interpolations.hpp"
 #include "Mesh.hpp"
+#include "ParametricTools.hpp"
 #include "ParametricTransport.hpp"
+#include "SasipMesh.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
@@ -166,7 +166,7 @@ public:
             VX.settime(dt * iter);
             VY.settime(dt * iter);
             Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
-	    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
+            Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
             dgtransport.reinitnormalvelocity();
 
             dgtransport.step(dt, phi); // performs one time step with the 2nd Order Heun scheme

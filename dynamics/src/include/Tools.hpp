@@ -36,9 +36,9 @@ namespace Tools {
 
     template <int DGstress>
     CellVector<1> Shear(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-			const CellVector<DGstress>& E22)
+        const CellVector<DGstress>& E22)
     {
-      CellVector<1> SHEAR(mesh);
+        CellVector<1> SHEAR(mesh);
 
 #pragma omp parallel for
         for (size_t i = 0; i < mesh.n; ++i) {
@@ -66,7 +66,7 @@ namespace Tools {
 
     template <int DGstress>
     CellVector<1> Shear(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-			const CellVector<DGstress>& E22)
+        const CellVector<DGstress>& E22)
     {
         CellVector<1> SHEAR(smesh);
 
