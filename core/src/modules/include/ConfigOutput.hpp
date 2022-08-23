@@ -17,6 +17,10 @@
 
 namespace Nextsim {
 
+/*!
+ * An implementation of the diagnostic output that allows some configuration of
+ * the file output period and frequency, as well as the fields the files contain.
+ */
 class ConfigOutput : public IDiagnosticOutput, public Configured<ConfigOutput> {
 public:
     ConfigOutput() = default;

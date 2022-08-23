@@ -9,7 +9,6 @@
 #include "include/ConfigOutput.hpp"
 #include "include/StructureFactory.hpp"
 
-#include <iostream>
 #include <sstream>
 
 namespace Nextsim {
@@ -25,15 +24,12 @@ const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
 
 void ConfigOutput::configure()
 {
-    std::cerr << "Configuring ConfigOutput" << std::endl;
     std::string periodString = Configured::getConfiguration(keyMap.at(PERIOD_KEY), std::string(""));
     if (periodString.empty()) {
         everyTS = true;
     } else {
         outputPeriod.parse(periodString);
     }
-    std::cout << "ConfigOutput: Every TS? " << (everyTS ? "true" : "false") << " or every " << outputPeriod << " s"<< std::endl;
-
     std::string startString = Configured::getConfiguration(keyMap.at(START_KEY), std::string(""));
     if (startString.empty()) {
         // If you start the model before 1st January year 0, tough.
@@ -44,7 +40,6 @@ void ConfigOutput::configure()
             lastOutput -= outputPeriod;
         }
     }
-    std::cout << "ConfigOutput: Output starts at " << lastOutput << std::endl;
 
     std::string outputFields = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
     if (outputFields == all || outputFields.empty()) {  // Output *all* the fields?
@@ -64,15 +59,12 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
     startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
 
-    std::cerr << "ConfigOutput: Full state has " << fullState.size() << " fields." << std::endl;
     ModelState state;
     const ModelState* pState;
     if (outputAllTheFields) {
-        std::cerr << "ConfigOutput: Using full state." << std::endl;
         pState = &fullState;
     } else {
     // Filter only the given fields to the output state
-        std::cerr << "ConfigOutput: Using up to " << fieldsForOutput.size() << " fields." << std::endl;
         for (auto fieldEntry : fullState) {
             if (fieldsForOutput.count(fieldEntry.first) > 0) {
                 state[fieldEntry.first] = fieldEntry.second;
