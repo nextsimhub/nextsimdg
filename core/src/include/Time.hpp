@@ -149,6 +149,11 @@ public:
         m_t += d.m_d;
         return *this;
     }
+    TimePoint& operator-=(const Duration& d)
+    {
+        m_t -= d.m_d;
+        return *this;
+    }
     TimePoint operator+(const Duration& d) const
     {
         TimePoint t2(*this);
