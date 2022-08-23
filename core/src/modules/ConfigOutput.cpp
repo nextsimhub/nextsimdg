@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/Logged.hpp"
 #include "include/ConfigOutput.hpp"
+#include "include/Logged.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <sstream>
@@ -17,9 +17,9 @@ const std::string ConfigOutput::all = "ALL";
 
 template <>
 const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
-        { ConfigOutput::PERIOD_KEY, "ConfigOutput.period" },
-        { ConfigOutput::START_KEY, "ConfigOutput.start" },
-        { ConfigOutput::FIELDNAMES_KEY, "ConfigOutput.field_names" },
+    { ConfigOutput::PERIOD_KEY, "ConfigOutput.period" },
+    { ConfigOutput::START_KEY, "ConfigOutput.start" },
+    { ConfigOutput::FIELDNAMES_KEY, "ConfigOutput.field_names" },
 };
 
 void ConfigOutput::configure()
@@ -41,8 +41,9 @@ void ConfigOutput::configure()
         }
     }
 
-    std::string outputFields = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
-    if (outputFields == all || outputFields.empty()) {  // Output *all* the fields?
+    std::string outputFields
+        = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
+    if (outputFields == all || outputFields.empty()) { // Output *all* the fields?
         outputAllTheFields = true; // Output all the fields!
     } else {
         std::istringstream fieldStream;
@@ -64,7 +65,7 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
     if (outputAllTheFields) {
         pState = &fullState;
     } else {
-    // Filter only the given fields to the output state
+        // Filter only the given fields to the output state
         for (auto fieldEntry : fullState) {
             if (fieldsForOutput.count(fieldEntry.first) > 0) {
                 state[fieldEntry.first] = fieldEntry.second;
@@ -73,9 +74,10 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
         pState = &state;
     }
 
-    Logged::info("ConfigOutput: Outputting " + std::to_string(pState->size()) + " fields to " + timeFileName + "\n");
+    Logged::info("ConfigOutput: Outputting " + std::to_string(pState->size()) + " fields to "
+        + timeFileName + "\n");
 
-    if ( (everyTS && meta.time() >= lastOutput) || (meta.time() >= lastOutput + outputPeriod)) {
+    if ((everyTS && meta.time() >= lastOutput) || (meta.time() >= lastOutput + outputPeriod)) {
         StructureFactory::fileFromState(*pState, meta, timeFileName);
         lastOutput = meta.time();
     }
