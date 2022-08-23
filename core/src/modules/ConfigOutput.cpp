@@ -19,7 +19,7 @@ const std::string ConfigOutput::all = "ALL";
 template <>
 const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
         { ConfigOutput::PERIOD_KEY, "ConfigOutput.period" },
-        { ConfigOutput::START_KEY, "Config.start" },
+        { ConfigOutput::START_KEY, "ConfigOutput.start" },
         { ConfigOutput::FIELDNAMES_KEY, "ConfigOutput.field_names" },
 };
 
@@ -32,6 +32,7 @@ void ConfigOutput::configure()
     } else {
         outputPeriod.parse(periodString);
     }
+    std::cout << "ConfigOutput: Every TS? " << (everyTS ? "true" : "false") << " or every " << outputPeriod << " s"<< std::endl;
 
     std::string startString = Configured::getConfiguration(keyMap.at(START_KEY), std::string(""));
     if (startString.empty()) {
@@ -39,7 +40,11 @@ void ConfigOutput::configure()
         lastOutput.parse("0-01-01T00:00:00Z");
     } else {
         lastOutput.parse(startString);
+        if (!everyTS) {
+            lastOutput -= outputPeriod;
+        }
     }
+    std::cout << "ConfigOutput: Output starts at " << lastOutput << std::endl;
 
     std::string outputFields = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
     if (outputFields == all || outputFields.empty()) {  // Output *all* the fields?
@@ -47,13 +52,13 @@ void ConfigOutput::configure()
     } else {
         std::istringstream fieldStream;
         fieldStream.str(outputFields);
-        for (std::string line; std::getline(fieldStream, line);) {
+        for (std::string line; std::getline(fieldStream, line, ',');) {
             fieldsForOutput.insert(line);
         }
     }
 }
 
-void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata& meta) const
+void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata& meta)
 {
     std::stringstream startStream;
     startStream << meta.time();
@@ -78,6 +83,9 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
 
     Logged::info("ConfigOutput: Outputting " + std::to_string(pState->size()) + " fields to " + timeFileName + "\n");
 
-    StructureFactory::fileFromState(*pState, meta, timeFileName);
+    if ( (everyTS && meta.time() >= lastOutput) || (meta.time() >= lastOutput + outputPeriod)) {
+        StructureFactory::fileFromState(*pState, meta, timeFileName);
+        lastOutput = meta.time();
+    }
 }
 } /* namespace Nextsim */
