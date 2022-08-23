@@ -184,25 +184,25 @@ namespace ParametricTools {
         return Eigen::Matrix<Nextsim::FloatType, 1, 1>(smesh.area(eid));
 
         // mit 1 GP. Reicht das???
-        // return (BiG31.array().rowwise() * (GAUSSWEIGHTS_1.array() * J<1>(smesh,eid).array())).matrix() * BiG31.transpose();
+        // return (PSI31.array().rowwise() * (GAUSSWEIGHTS_1.array() * J<1>(smesh,eid).array())).matrix() * PSI31.transpose();
     }
     template <>
     inline Eigen::Matrix<Nextsim::FloatType, 3, 3> massMatrix(const SasipMesh& smesh, const size_t eid)
     {
-        return (BiG32.array().rowwise() * (GAUSSWEIGHTS_2.array() * J<2>(smesh, eid).array())).matrix() * BiG32.transpose();
+      return (PSI<3,2>.array().rowwise() * (GAUSSWEIGHTS_2.array() * J<2>(smesh, eid).array())).matrix() * PSI<3,2>.transpose();
 
         // mit 1 GP. Reicht das???
-        // return (BiG31.array().rowwise() * (GAUSSWEIGHTS_1.array() * J<1>(smesh,eid).array())).matrix() * BiG31.transpose();
+        // return (PSI31.array().rowwise() * (GAUSSWEIGHTS_1.array() * J<1>(smesh,eid).array())).matrix() * PSI31.transpose();
     }
     template <>
     inline Eigen::Matrix<Nextsim::FloatType, 6, 6> massMatrix(const SasipMesh& smesh, const size_t eid)
     {
-        return (BiG63.array().rowwise() * (GAUSSWEIGHTS_3.array() * J<3>(smesh, eid).array())).matrix() * BiG63.transpose();
+      return (PSI<6,3>.array().rowwise() * (GAUSSWEIGHTS_3.array() * J<3>(smesh, eid).array())).matrix() * PSI<6,3>.transpose();
     }
     template <>
     inline Eigen::Matrix<Nextsim::FloatType, 8, 8> massMatrix(const SasipMesh& smesh, const size_t eid)
     {
-        return (BiG83.array().rowwise() * (GAUSSWEIGHTS_3.array() * J<3>(smesh, eid).array())).matrix() * BiG83.transpose();
+      return (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS_3.array() * J<3>(smesh, eid).array())).matrix() * PSI<8,3>.transpose();
     }
 
     /*!

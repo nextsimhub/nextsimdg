@@ -111,11 +111,11 @@ void edge_term_X(const Mesh& mesh, const double dt, CellVector<3>& phiup, const 
     const LocalEdgeVector<2> bottom(phi(c1, 0) + 0.5 * phi(c1, 2), phi(c1, 1));
     const LocalEdgeVector<2> top(phi(c2, 0) - 0.5 * phi(c2, 2), phi(c2, 1));
 
-    const LocalEdgeVector<2> vel_gauss = evy.block<1, 2>(ie, 0) * BiGe22;
-    const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (bottom * BiGe22).array()
-        + vel_gauss.array().min(0) * (top * BiGe22).array());
-    phiup.block<1, 3>(c1, 0) -= dt / mesh.hy * tmp * BiG32_2;
-    phiup.block<1, 3>(c2, 0) += dt / mesh.hy * tmp * BiG32_0;
+    const LocalEdgeVector<2> vel_gauss = evy.block<1, 2>(ie, 0) * PSIe22;
+    const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (bottom * PSIe22).array()
+        + vel_gauss.array().min(0) * (top * PSIe22).array());
+    phiup.block<1, 3>(c1, 0) -= dt / mesh.hy * tmp * PSI32_2;
+    phiup.block<1, 3>(c2, 0) += dt / mesh.hy * tmp * PSI32_0;
 }
 
 void edge_term_X(const Mesh& mesh, const double dt, CellVector<6>& phiup, const CellVector<6>& phi,
@@ -126,11 +126,11 @@ void edge_term_X(const Mesh& mesh, const double dt, CellVector<6>& phiup, const 
     const LocalEdgeVector<3> top(phi(c2, 0) - 0.5 * phi(c2, 2) + 1. / 6. * phi(c2, 4),
         phi(c2, 1) - 0.5 * phi(c2, 5), phi(c2, 3));
 
-    const LocalEdgeVector<3> vel_gauss = evy.block<1, 3>(ie, 0) * BiGe33;
-    const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (bottom * BiGe33).array()
-        + vel_gauss.array().min(0) * (top * BiGe33).array());
-    phiup.block<1, 6>(c1, 0) -= dt / mesh.hy * tmp * BiG63_2;
-    phiup.block<1, 6>(c2, 0) += dt / mesh.hy * tmp * BiG63_0;
+    const LocalEdgeVector<3> vel_gauss = evy.block<1, 3>(ie, 0) * PSIe33;
+    const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (bottom * PSIe33).array()
+        + vel_gauss.array().min(0) * (top * PSIe33).array());
+    phiup.block<1, 6>(c1, 0) -= dt / mesh.hy * tmp * PSI63_2;
+    phiup.block<1, 6>(c2, 0) += dt / mesh.hy * tmp * PSI63_0;
 }
 
 // compute the edge terms for the vertical edges:  n = (+/- 1, 0)
@@ -154,13 +154,13 @@ void edge_term_Y(const Mesh& mesh, const double dt, CellVector<3>& phiup, const 
 
     const LocalEdgeVector<2> right(phi(c2, 0) - 0.5 * phi(c2, 1), phi(c2, 2));
 
-    const LocalEdgeVector<2> vel_gauss = evx.block<1, 2>(ie, 0) * BiGe22;
-    const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (left * BiGe22).array()
-        + vel_gauss.array().min(0) * (right * BiGe22).array());
+    const LocalEdgeVector<2> vel_gauss = evx.block<1, 2>(ie, 0) * PSIe22;
+    const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (left * PSIe22).array()
+        + vel_gauss.array().min(0) * (right * PSIe22).array());
 
     // - [[psi]] sind we're on the left side
-    phiup.block<1, 3>(c1, 0) -= dt / mesh.hx * tmp * BiG32_1;
-    phiup.block<1, 3>(c2, 0) += dt / mesh.hx * tmp * BiG32_3;
+    phiup.block<1, 3>(c1, 0) -= dt / mesh.hx * tmp * PSI32_1;
+    phiup.block<1, 3>(c2, 0) += dt / mesh.hx * tmp * PSI32_3;
 }
 
 void edge_term_Y(const Mesh& mesh, const double dt, CellVector<6>& phiup, const CellVector<6>& phi,
@@ -173,13 +173,13 @@ void edge_term_Y(const Mesh& mesh, const double dt, CellVector<6>& phiup, const 
     const LocalEdgeVector<3> right(phi(c2, 0) - 0.5 * phi(c2, 1) + 1. / 6. * phi(c2, 3),
         phi(c2, 2) - 0.5 * phi(c2, 5), phi(c2, 4));
 
-    const LocalEdgeVector<3> vel_gauss = evx.block<1, 3>(ie, 0) * BiGe33;
-    const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (left * BiGe33).array()
-        + vel_gauss.array().min(0) * (right * BiGe33).array());
+    const LocalEdgeVector<3> vel_gauss = evx.block<1, 3>(ie, 0) * PSIe33;
+    const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (left * PSIe33).array()
+        + vel_gauss.array().min(0) * (right * PSIe33).array());
 
     // - [[psi]] sind we're on the left side
-    phiup.block<1, 6>(c1, 0) -= dt / mesh.hx * tmp * BiG63_1;
-    phiup.block<1, 6>(c2, 0) += dt / mesh.hx * tmp * BiG63_3;
+    phiup.block<1, 6>(c1, 0) -= dt / mesh.hx * tmp * PSI63_1;
+    phiup.block<1, 6>(c2, 0) += dt / mesh.hx * tmp * PSI63_3;
 }
 
 //////////////////////////////////////////////////
@@ -196,10 +196,10 @@ void boundary_lower(const Mesh& mesh, const double dt, CellVector<3>& phiup,
     const CellVector<3>& phi, const EdgeVector<2>& evy, const size_t c, const size_t e)
 {
     LocalEdgeVector<2> phi_lower
-        = LocalEdgeVector<2>(phi(c, 0) - 0.5 * phi(c, 2), phi(c, 1)) * BiGe22;
-    LocalEdgeVector<2> vel_gauss = evy.block<1, 2>(e, 0) * BiGe22;
+        = LocalEdgeVector<2>(phi(c, 0) - 0.5 * phi(c, 2), phi(c, 1)) * PSIe22;
+    LocalEdgeVector<2> vel_gauss = evy.block<1, 2>(e, 0) * PSIe22;
     LocalEdgeVector<2> tmp = (phi_lower.array() * (-vel_gauss.array()).max(0));
-    phiup.block<1, 3>(c, 0) -= dt / mesh.hy * tmp * BiG32_0;
+    phiup.block<1, 3>(c, 0) -= dt / mesh.hy * tmp * PSI32_0;
 }
 void boundary_lower(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& evy, const size_t c, const size_t e)
@@ -208,11 +208,11 @@ void boundary_lower(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     LocalEdgeVector<3> phi_lower
         = LocalEdgeVector<3>(phi(c, 0) - 0.5 * phi(c, 2) + 1. / 6. * phi(c, 4),
               phi(c, 1) - 0.5 * phi(c, 5), phi(c, 3))
-        * BiGe33;
-    // LocalEdgeVector<2> phi_gauss = phi_lower * BiGe23; // X
-    LocalEdgeVector<3> vel_gauss = evy.block<1, 3>(e, 0) * BiGe33;
+        * PSIe33;
+    // LocalEdgeVector<2> phi_gauss = phi_lower * PSIe23; // X
+    LocalEdgeVector<3> vel_gauss = evy.block<1, 3>(e, 0) * PSIe33;
     LocalEdgeVector<3> tmp = (phi_lower.array() * (-vel_gauss.array()).max(0));
-    phiup.block<1, 6>(c, 0) -= dt / mesh.hy * tmp * BiG63_0;
+    phiup.block<1, 6>(c, 0) -= dt / mesh.hy * tmp * PSI63_0;
 }
 
 void boundary_upper(const Mesh& mesh, const double dt, CellVector<1>& phiup,
@@ -225,12 +225,12 @@ void boundary_upper(const Mesh& mesh, const double dt, CellVector<3>& phiup,
     const CellVector<3>& phi, const EdgeVector<2>& evy, const size_t c, const size_t e)
 {
     LocalEdgeVector<2> phi_upper
-        = LocalEdgeVector<2>(phi(c, 0) + 0.5 * phi(c, 2), phi(c, 1)) * BiGe22;
+        = LocalEdgeVector<2>(phi(c, 0) + 0.5 * phi(c, 2), phi(c, 1)) * PSIe22;
 
-    // LocalEdgeVector<2> phi_gauss = phi_upper * BiGe23; // X
-    LocalEdgeVector<2> vel_gauss = evy.block<1, 2>(e, 0) * BiGe22;
+    // LocalEdgeVector<2> phi_gauss = phi_upper * PSIe23; // X
+    LocalEdgeVector<2> vel_gauss = evy.block<1, 2>(e, 0) * PSIe22;
     LocalEdgeVector<2> tmp = (phi_upper.array() * (vel_gauss.array()).max(0));
-    phiup.block<1, 3>(c, 0) -= dt / mesh.hy * tmp * BiG32_2;
+    phiup.block<1, 3>(c, 0) -= dt / mesh.hy * tmp * PSI32_2;
 }
 void boundary_upper(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& evy, const size_t c, const size_t e)
@@ -238,12 +238,12 @@ void boundary_upper(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     LocalEdgeVector<3> phi_upper
         = LocalEdgeVector<3>(phi(c, 0) + 0.5 * phi(c, 2) + 1. / 6. * phi(c, 4),
               phi(c, 1) + 0.5 * phi(c, 5), phi(c, 3))
-        * BiGe33;
+        * PSIe33;
 
-    // LocalEdgeVector<2> phi_gauss = phi_upper * BiGe23; // X
-    LocalEdgeVector<3> vel_gauss = evy.block<1, 3>(e, 0) * BiGe33;
+    // LocalEdgeVector<2> phi_gauss = phi_upper * PSIe23; // X
+    LocalEdgeVector<3> vel_gauss = evy.block<1, 3>(e, 0) * PSIe33;
     LocalEdgeVector<3> tmp = (phi_upper.array() * (vel_gauss.array()).max(0));
-    phiup.block<1, 6>(c, 0) -= dt / mesh.hy * tmp * BiG63_2;
+    phiup.block<1, 6>(c, 0) -= dt / mesh.hy * tmp * PSI63_2;
 }
 
 void boundary_left(const Mesh& mesh, const double dt, CellVector<1>& phiup,
@@ -256,12 +256,12 @@ void boundary_left(const Mesh& mesh, const double dt, CellVector<3>& phiup,
     const CellVector<3>& phi, const EdgeVector<2>& evx, const size_t c, const size_t e)
 {
     LocalEdgeVector<2> phi_left
-        = LocalEdgeVector<2>(phi(c, 0) - 0.5 * phi(c, 1), phi(c, 2)) * BiGe22;
+        = LocalEdgeVector<2>(phi(c, 0) - 0.5 * phi(c, 1), phi(c, 2)) * PSIe22;
 
-    // LocalEdgeVector<2> phi_gauss = phi_left * BiGe23; // Y
-    LocalEdgeVector<2> vel_gauss = evx.block<1, 2>(e, 0) * BiGe22;
+    // LocalEdgeVector<2> phi_gauss = phi_left * PSIe23; // Y
+    LocalEdgeVector<2> vel_gauss = evx.block<1, 2>(e, 0) * PSIe22;
     LocalEdgeVector<2> tmp = (phi_left.array() * (-vel_gauss.array()).max(0));
-    phiup.block<1, 3>(c, 0) -= dt / mesh.hx * tmp * BiG32_3;
+    phiup.block<1, 3>(c, 0) -= dt / mesh.hx * tmp * PSI32_3;
 }
 void boundary_left(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& evx, const size_t c, const size_t e)
@@ -269,11 +269,11 @@ void boundary_left(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     LocalEdgeVector<3> phi_left
         = LocalEdgeVector<3>(phi(c, 0) - 0.5 * phi(c, 1) + 1. / 6. * phi(c, 3),
               phi(c, 2) - 0.5 * phi(c, 5), phi(c, 4))
-        * BiGe33;
-    // LocalEdgeVector<2> phi_gauss = phi_left * BiGe23; // Y
-    LocalEdgeVector<3> vel_gauss = evx.block<1, 3>(e, 0) * BiGe33;
+        * PSIe33;
+    // LocalEdgeVector<2> phi_gauss = phi_left * PSIe23; // Y
+    LocalEdgeVector<3> vel_gauss = evx.block<1, 3>(e, 0) * PSIe33;
     LocalEdgeVector<3> tmp = (phi_left.array() * (-vel_gauss.array()).max(0));
-    phiup.block<1, 6>(c, 0) -= dt / mesh.hx * tmp * BiG63_3;
+    phiup.block<1, 6>(c, 0) -= dt / mesh.hx * tmp * PSI63_3;
 }
 
 void boundary_right(const Mesh& mesh, const double dt, CellVector<1>& phiup,
@@ -287,13 +287,13 @@ void boundary_right(const Mesh& mesh, const double dt, CellVector<3>& phiup,
 {
     //    return;
     LocalEdgeVector<2> phi_right
-        = LocalEdgeVector<2>(phi(c, 0) + 0.5 * phi(c, 1), phi(c, 2)) * BiGe22;
+        = LocalEdgeVector<2>(phi(c, 0) + 0.5 * phi(c, 1), phi(c, 2)) * PSIe22;
 
-    // LocalEdgeVector<2> phi_gauss = phi_right * BiGe23; // Y
-    LocalEdgeVector<2> vel_gauss = evx.block<1, 2>(e, 0) * BiGe22;
+    // LocalEdgeVector<2> phi_gauss = phi_right * PSIe23; // Y
+    LocalEdgeVector<2> vel_gauss = evx.block<1, 2>(e, 0) * PSIe22;
     LocalEdgeVector<2> tmp = (phi_right.array() * (vel_gauss.array().max(0)));
 
-    phiup.block<1, 3>(c, 0) -= dt / mesh.hx * tmp * BiG32_1;
+    phiup.block<1, 3>(c, 0) -= dt / mesh.hx * tmp * PSI32_1;
 }
 void boundary_right(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& evx, const size_t c, const size_t e)
@@ -302,11 +302,11 @@ void boundary_right(const Mesh& mesh, const double dt, CellVector<6>& phiup,
     LocalEdgeVector<3> phi_right // phi in Gauss points on right element
         = LocalEdgeVector<3>(phi(c, 0) + 0.5 * phi(c, 1) + 1. / 6. * phi(c, 3),
               phi(c, 2) + 0.5 * phi(c, 5), phi(c, 4))
-        * BiGe33;
-    // LocalEdgeVector<2> phi_gauss = phi_right * BiGe23; // Y
-    LocalEdgeVector<3> vel_gauss = evx.block<1, 3>(e, 0) * BiGe33;
+        * PSIe33;
+    // LocalEdgeVector<2> phi_gauss = phi_right * PSIe23; // Y
+    LocalEdgeVector<3> vel_gauss = evx.block<1, 3>(e, 0) * PSIe33;
     LocalEdgeVector<3> tmp = (phi_right.array() * (vel_gauss.array().max(0)));
-    phiup.block<1, 6>(c, 0) -= dt / mesh.hx * tmp * BiG63_1;
+    phiup.block<1, 6>(c, 0) -= dt / mesh.hx * tmp * PSI63_1;
 }
 
 //////////////////////////////////////////////////

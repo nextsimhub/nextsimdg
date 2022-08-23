@@ -48,7 +48,7 @@ inline constexpr double SQR(double x) { return x * x; }
 //! Description of the problem data, wind & ocean fields
 
 namespace ReferenceScale {
-constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
+constexpr double T = .20 * 24 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -123,7 +123,7 @@ int main()
 {
     //! Define the spatial mesh
     Nextsim::SasipMesh smesh;
-    smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
+    smesh.readmesh("../SasipMesh/distortedrectangle_128x128.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);

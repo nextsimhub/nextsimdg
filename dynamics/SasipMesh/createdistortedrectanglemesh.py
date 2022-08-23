@@ -16,8 +16,8 @@ Lx =  512000
 Ly =  512000
 
 # Number of elements
-nx =  32
-ny =  32
+nx =  128
+ny =  128
 
 nx = ny = 128
 

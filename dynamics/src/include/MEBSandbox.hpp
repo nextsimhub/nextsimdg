@@ -365,13 +365,13 @@ namespace MEBSandbox {
         for (size_t i = 0; i < mesh.n; ++i) {
 
             //!  number of gauss points in each direction equalls 3, for 2d 3^2
-            const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * BiG33).array().max(0.0).matrix();
-            const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
-            const Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
+            const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * PSI33).array().max(0.0).matrix();
+            const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * PSI33).array().max(0.0).min(1.0).matrix();
+            const Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * PSI33).array().max(0.0).min(1.0).matrix();
 
-            const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 3>(i, 0) * BiG33;
-            const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 3>(i, 0) * BiG33;
-            const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 3>(i, 0) * BiG33;
+            const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 3>(i, 0) * PSI33;
+            const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 3>(i, 0) * PSI33;
+            const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 3>(i, 0) * PSI33;
 
             auto expC = (-20.0 * (1.0 - a_gauss.array())).exp();
             // Eqn. 24 Additional multiplic0cation by H

@@ -7,7 +7,7 @@ project(NextsimDG CXX)
 
 
 ################################################## C++ Options
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 #
 # Setup compiler flags and compile definitions:

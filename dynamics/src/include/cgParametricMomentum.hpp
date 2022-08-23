@@ -166,9 +166,9 @@ void CGParametricMomentum<2, 8>::AddStressTensorCell(const double scale, const s
         const size_t CGROW = 2 * smesh.nx + 1;
         const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
 
-        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S11_g = S11.row(eid) * BiG83; //!< velocity in GP
-        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S22_g = S22.row(eid) * BiG83; //!< velocity in GP
-        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S12_g = S12.row(eid) * BiG83; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S11_g = S11.row(eid) * PSI<8,3>; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S22_g = S22.row(eid) * PSI<8,3>; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S12_g = S12.row(eid) * PSI<8,3>; //!< velocity in GP
 
         // J T^{-T}
         const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();

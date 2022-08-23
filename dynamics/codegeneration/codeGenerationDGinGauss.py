@@ -7,7 +7,7 @@ import basisfunctions as bf
 import gaussquadrature as gq
 
 #
-# evaluate basis functions in the quadrature points on  BiG
+# evaluate basis functions in the quadrature points on  PSI
 # the edges: left, right, up, down
 #
 # edge: left, right, up, down
@@ -15,7 +15,7 @@ import gaussquadrature as gq
 # g   : number of gauss points (1,2,3)
 def basisfunctions_in_gausspoints_edge(edge, d, g):
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiG{2}{3}_{4} ='.format(g,d,d,g,edge))
+    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSI{2}{3}_{4} ='.format(g,d,d,g,edge))
     print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(g,d))
     print('\t',end=' ')
     for gp in range(g):
@@ -74,6 +74,8 @@ def basisfunctions_in_gausspoints_edge_new(edge, d, g):
 # g   : number of gauss points (1,2,3) in each direction
 def integration_basisfunctions_in_gausspoints_cell(d, g):
 
+    
+    
     # print header
     if d>1:
         print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} ='.format(d,g*g,d,g))
@@ -101,13 +103,17 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
 # g   : Gauss points in each direction (2,3). lower left to upper right, y/x
 def basisfunctions_in_gausspoints_cell(d, g):
 
+
     # print header
+    print('template<> struct PSIImpl< {0}, {1} >{{'.format(d, g))
     if g>1:
-        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiG{2}{3} ='.format(d,g*g,d,g))
-        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
+        print('static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
+#        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSI{2}{3} ='.format(d,g*g,d,g))
+#        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
     else:
-        print('static const Eigen::Matrix<double, {0}, {1}> BiG{2}{3} ='.format(d,g*g,d,g))
-        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
+        print('static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
+#        print('static const Eigen::Matrix<double, {0}, {1}> PSI{2}{3} ='.format(d,g*g,d,g))
+#        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
     print('\t',end=' ')
     for dp in range(d):
         for gy in range(g):
@@ -117,8 +123,17 @@ def basisfunctions_in_gausspoints_cell(d, g):
                 if (gx<g-1 or gy<g-1 or dp<d-1):
                     print(', ',end='')
                 else:
-                    print(').finished();')
+                    print(').finished();};')
 
+
+
+#
+# evaluate basis functions in the quadrature points on
+# the cell
+#
+# d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
+# g   : Gauss points in each direction (2,3). lower left to upper right, y/x
+def basisfunctions_in_gausspoints_cell_gradient(d, g):
 
     # print header
     if g>1:
@@ -155,7 +170,7 @@ def basisfunctions_in_gausspoints_cell(d, g):
                     print(', ',end='')
                 else:
                     print(').finished();')
-
+                    
 #
 # evaluate edge basis functions in the quadrature points
 # d   : number of dG - dofs (1,2,3) for dG0/1/2 and dG2+ (nabla Q2)
@@ -163,7 +178,7 @@ def basisfunctions_in_gausspoints_cell(d, g):
 def edge_basisfunctions_in_gausspoints(d, g):
 
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiGe{2}{3} ='.format(d,g,d,g))
+    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSIe{2}{3} ='.format(d,g,d,g))
     print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g))
     print('\t',end=' ')
     for dp in range(d):
@@ -193,27 +208,27 @@ print('// Generates the vectors gauss_points[gq] and gauss_weights[gq]')
 print('// - stores the points and weights of the gq-point Guass rule')
 print('// - the integration is scaled to [0,1]')
 print('')
-print('// Generates the matrices BiG[dg][gq]_[e]')
+print('// Generates the matrices PSI[dg][gq]_[e]')
 print('// - dg is the degree of the dG space')
 print('// - gq is the number of Gauss quadrature points')
 print('// - e is the edge number (0-lower, 1-right, 2-up, 3-left)')
 print('//')
-print('// - Each matrix BiG_e[i,j] stores the value of the j-th basis function')
+print('// - Each matrix PSI_e[i,j] stores the value of the j-th basis function')
 print('//   in the i-th Gauss quadrature point alongt the edge e, weighted')
 print('//   with corresponding Gauss weight and the inverse of the mass matrix')
 print('//   bf.inversemass(j) * phi_j( gauss_point(i) ) * gauss_weight(i)')
 print('')
-print('// Generates the matrices BiGe[dg][gq]')
+print('// Generates the matrices PSIe[dg][gq]')
 print('// - stores the value of the basis functions on the edge in ')
 print('//   the Guass points along the edge')
 print('// - dg is the dG degree and gq the number of Gauss points')
-print('// - BiGe[i,j] is simply phi_j( gauss_point(i) )')
+print('// - PSIe[i,j] is simply phi_j( gauss_point(i) )')
 print('')
-print('// Generates the matrices BiG[dg][gq]')
+print('// Generates the matrices PSI[dg][gq]')
 print('// - stores the value of the basis functions on the cell in ')
 print('//   the Guass points')
 print('// - dg is the dG degree and gq the number of Gauss points in each direction')
-print('// - BiG[i,j] is phi_j( gauss_point(i) )')
+print('// - PSI[i,j] is phi_j( gauss_point(i) )')
 print('')
 
 
@@ -294,11 +309,26 @@ for dg in [1,3,6,8]:
 
 print('\n\n//------------------------------ Basis Functions in Gauss Points (cell)\n')
 
+print('template<int DG, int GP>')
+print('struct PSIImpl;')
+
 for dg in [1, 3,6,8]:
     basisfunctions_in_gausspoints_cell(dg,1)
     basisfunctions_in_gausspoints_cell(dg,2)
     basisfunctions_in_gausspoints_cell(dg,3)
 
+print('template<int DG, int GP>')
+print('const Eigen::Matrix<double, DG, GP, Eigen::RowMajor> PSI = PSIImpl<DG, GP>::value;')
+
+
+
+    
+    
+for dg in [1, 3,6,8]:
+    basisfunctions_in_gausspoints_cell_gradient(dg,1)
+    basisfunctions_in_gausspoints_cell_gradient(dg,2)
+    basisfunctions_in_gausspoints_cell_gradient(dg,3)
+    
 
 for dg in [1,3,6,8]:
     integration_basisfunctions_in_gausspoints_cell(dg,2)

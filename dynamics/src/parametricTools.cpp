@@ -39,11 +39,11 @@ void ParametricTransformation<2, 8>::BasicInit(const SasipMesh& smesh)
 
         const Eigen::Matrix<Nextsim::FloatType, 9, 9> dy_cg2 = CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(0).array() - CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(0).array();
 
-        // BiG83 is the DG-Basis-function in the guass-point
-        // BiG83_{iq} = PSI_i(q)   [ should be called DG_in_GAUSS ]
+        // PSI83 is the DG-Basis-function in the guass-point
+        // PSI83_{iq} = PSI_i(q)   [ should be called DG_in_GAUSS ]
 
-        divS1[eid] = dx_cg2 * BiG83.transpose();
-        divS2[eid] = dy_cg2 * BiG83.transpose();
+        divS1[eid] = dx_cg2 * PSI<8,3>.transpose();
+        divS2[eid] = dy_cg2 * PSI<8,3>.transpose();
 
         const Eigen::Matrix<Nextsim::FloatType, 8, 8> imass = ParametricTools::massMatrix<8>(smesh, eid).inverse();
 
@@ -51,7 +51,7 @@ void ParametricTransformation<2, 8>::BasicInit(const SasipMesh& smesh)
         iMgradY[eid] = imass * divS2[eid].transpose();
 
         const Eigen::Matrix<Nextsim::FloatType, 1, 9> J = ParametricTools::J<3>(smesh, eid);
-        iMJwPSI[eid] = imass * (BiG83.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
+        iMJwPSI[eid] = imass * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
     }
 }
 

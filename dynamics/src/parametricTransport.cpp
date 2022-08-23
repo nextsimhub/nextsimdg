@@ -204,8 +204,8 @@ void cell_term(const SasipMesh& smesh, double dt,
 
     // REICHT vielleicht 2-Punkt Gauss?
 
-    const Eigen::Matrix<Nextsim::FloatType, 1, 9> vx_gauss = vx.row(eid) * BiG33; //!< velocity in GP
-    const Eigen::Matrix<Nextsim::FloatType, 1, 9> vy_gauss = vy.row(eid) * BiG33;
+    const Eigen::Matrix<Nextsim::FloatType, 1, 9> vx_gauss = vx.row(eid) * PSI<3,3>; //!< velocity in GP
+    const Eigen::Matrix<Nextsim::FloatType, 1, 9> vy_gauss = vy.row(eid) * PSI<3,3>;
 
     // gradient of transformation
     //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]
@@ -219,7 +219,7 @@ void cell_term(const SasipMesh& smesh, double dt,
     // dxT, dyT are 2 x QQ - matrices
 
     // Store wq * phi(q)
-    const Eigen::Matrix<Nextsim::FloatType, 1, 9> phi_gauss = GAUSSWEIGHTS_3.array() * (phi.row(eid) * BiG33).array();
+    const Eigen::Matrix<Nextsim::FloatType, 1, 9> phi_gauss = GAUSSWEIGHTS_3.array() * (phi.row(eid) * PSI<3,3>).array();
 
     const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = ParametricTools::dxT<3>(smesh, eid);
     const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = ParametricTools::dyT<3>(smesh, eid);
@@ -259,8 +259,8 @@ void cell_term(const SasipMesh& smesh, double dt,
 
     // REICHT vielleicht 2-Punkt Gauss?
 
-    const Eigen::Matrix<Nextsim::FloatType, 1, 9> vx_gauss = vx.row(eid) * BiG63; //!< velocity in GP
-    const Eigen::Matrix<Nextsim::FloatType, 1, 9> vy_gauss = vy.row(eid) * BiG63;
+    const Eigen::Matrix<Nextsim::FloatType, 1, 9> vx_gauss = vx.row(eid) * PSI<6,3>; //!< velocity in GP
+    const Eigen::Matrix<Nextsim::FloatType, 1, 9> vy_gauss = vy.row(eid) * PSI<6,3>;
 
     // gradient of transformation
     //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]
@@ -274,7 +274,7 @@ void cell_term(const SasipMesh& smesh, double dt,
     // dxT, dyT are 2 x QQ - matrices
 
     // Store wq * phi(q)
-    const Eigen::Matrix<Nextsim::FloatType, 1, 9> phi_gauss = GAUSSWEIGHTS_3.array() * (phi.row(eid) * BiG63).array();
+    const Eigen::Matrix<Nextsim::FloatType, 1, 9> phi_gauss = GAUSSWEIGHTS_3.array() * (phi.row(eid) * PSI<6,3>).array();
 
     const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = ParametricTools::dxT<3>(smesh, eid);
     const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = ParametricTools::dyT<3>(smesh, eid);
@@ -314,15 +314,15 @@ void boundary_lower(const SasipMesh& smesh, const double dt, CellVector<1>& phiu
 void boundary_lower(const SasipMesh& smesh, const double dt, CellVector<3>& phiup,
     const CellVector<3>& phi, const EdgeVector<2>& normalvel_X, const size_t c, const size_t e)
 {
-    LocalEdgeVector<2> vel_gauss = normalvel_X.block<1, 2>(e, 0) * BiGe22;
-    LocalEdgeVector<2> tmp = ((bottomedgeofcell<3, 2>(phi, c) * BiGe22).array() * (-vel_gauss.array()).max(0));
+    LocalEdgeVector<2> vel_gauss = normalvel_X.block<1, 2>(e, 0) * PSIe22;
+    LocalEdgeVector<2> tmp = ((bottomedgeofcell<3, 2>(phi, c) * PSIe22).array() * (-vel_gauss.array()).max(0));
     phiup.block<1, 3>(c, 0) -= dt * tmp * PSIe_w_3_2_0;
 }
 void boundary_lower(const SasipMesh& smesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& normalvel_X, const size_t c, const size_t e)
 {
-    LocalEdgeVector<3> vel_gauss = normalvel_X.row(e) * BiGe33;
-    LocalEdgeVector<3> tmp = ((bottomedgeofcell<6, 3>(phi, c) * BiGe33).array() * (-vel_gauss.array()).max(0));
+    LocalEdgeVector<3> vel_gauss = normalvel_X.row(e) * PSIe33;
+    LocalEdgeVector<3> tmp = ((bottomedgeofcell<6, 3>(phi, c) * PSIe33).array() * (-vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w_6_3_0;
 }
 
@@ -335,15 +335,15 @@ void boundary_upper(const SasipMesh& smesh, const double dt, CellVector<1>& phiu
 void boundary_upper(const SasipMesh& smesh, const double dt, CellVector<3>& phiup,
     const CellVector<3>& phi, const EdgeVector<2>& normalvel_X, const size_t c, const size_t e)
 {
-    LocalEdgeVector<2> vel_gauss = normalvel_X.row(e) * BiGe22;
-    LocalEdgeVector<2> tmp = ((topedgeofcell<3, 2>(phi, c) * BiGe22).array() * (vel_gauss.array()).max(0));
+    LocalEdgeVector<2> vel_gauss = normalvel_X.row(e) * PSIe22;
+    LocalEdgeVector<2> tmp = ((topedgeofcell<3, 2>(phi, c) * PSIe22).array() * (vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w_3_2_2;
 }
 void boundary_upper(const SasipMesh& smesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& normalvel_X, const size_t c, const size_t e)
 {
-    LocalEdgeVector<3> vel_gauss = normalvel_X.row(e) * BiGe33;
-    LocalEdgeVector<3> tmp = ((topedgeofcell<6, 3>(phi, c) * BiGe33).array() * (vel_gauss.array()).max(0));
+    LocalEdgeVector<3> vel_gauss = normalvel_X.row(e) * PSIe33;
+    LocalEdgeVector<3> tmp = ((topedgeofcell<6, 3>(phi, c) * PSIe33).array() * (vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w_6_3_2;
 }
 
@@ -356,15 +356,15 @@ void boundary_left(const SasipMesh& smesh, const double dt, CellVector<1>& phiup
 void boundary_left(const SasipMesh& smesh, const double dt, CellVector<3>& phiup,
     const CellVector<3>& phi, const EdgeVector<2>& normalvel_Y, const size_t c, const size_t e)
 {
-    LocalEdgeVector<2> vel_gauss = normalvel_Y.row(e) * BiGe22;
-    LocalEdgeVector<2> tmp = ((leftedgeofcell<3, 2>(phi, c) * BiGe22).array() * (-vel_gauss.array()).max(0));
+    LocalEdgeVector<2> vel_gauss = normalvel_Y.row(e) * PSIe22;
+    LocalEdgeVector<2> tmp = ((leftedgeofcell<3, 2>(phi, c) * PSIe22).array() * (-vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w_3_2_3;
 }
 void boundary_left(const SasipMesh& smesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& normalvel_Y, const size_t c, const size_t e)
 {
-    LocalEdgeVector<3> vel_gauss = normalvel_Y.row(e) * BiGe33;
-    LocalEdgeVector<3> tmp = ((leftedgeofcell<6, 3>(phi, c) * BiGe33).array() * (-vel_gauss.array()).max(0));
+    LocalEdgeVector<3> vel_gauss = normalvel_Y.row(e) * PSIe33;
+    LocalEdgeVector<3> tmp = ((leftedgeofcell<6, 3>(phi, c) * PSIe33).array() * (-vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w_6_3_3;
 }
 
@@ -377,15 +377,15 @@ void boundary_right(const SasipMesh& smesh, const double dt, CellVector<1>& phiu
 void boundary_right(const SasipMesh& smesh, const double dt, CellVector<3>& phiup,
     const CellVector<3>& phi, const EdgeVector<2>& normalvel_Y, const size_t c, const size_t e)
 {
-    LocalEdgeVector<2> vel_gauss = normalvel_Y.row(e) * BiGe22;
-    LocalEdgeVector<2> tmp = ((rightedgeofcell<3, 2>(phi, c) * BiGe22).array() * (vel_gauss.array().max(0)));
+    LocalEdgeVector<2> vel_gauss = normalvel_Y.row(e) * PSIe22;
+    LocalEdgeVector<2> tmp = ((rightedgeofcell<3, 2>(phi, c) * PSIe22).array() * (vel_gauss.array().max(0)));
     phiup.row(c) -= dt * tmp * PSIe_w_3_2_1;
 }
 void boundary_right(const SasipMesh& smesh, const double dt, CellVector<6>& phiup,
     const CellVector<6>& phi, const EdgeVector<3>& normalvel_Y, const size_t c, const size_t e)
 {
-    LocalEdgeVector<3> vel_gauss = normalvel_Y.row(e) * BiGe33;
-    LocalEdgeVector<3> tmp = ((rightedgeofcell<6, 3>(phi, c) * BiGe33).array() * (vel_gauss.array().max(0)));
+    LocalEdgeVector<3> vel_gauss = normalvel_Y.row(e) * PSIe33;
+    LocalEdgeVector<3> tmp = ((rightedgeofcell<6, 3>(phi, c) * PSIe33).array() * (vel_gauss.array().max(0)));
     phiup.row(c) -= dt * tmp * PSIe_w_6_3_1;
 }
 
@@ -413,19 +413,19 @@ void edge_term_Y(const SasipMesh& smesh, const double dt, CellVector<1>& phiup, 
 void edge_term_X(const SasipMesh& smesh, const double dt, CellVector<3>& phiup, const CellVector<3>& phi, // DG1 (3)
     const EdgeVector<2>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
-    const LocalEdgeVector<2> vel_gauss = normalvel_X.block<1, 2>(ie, 0) * BiGe22;
+    const LocalEdgeVector<2> vel_gauss = normalvel_X.block<1, 2>(ie, 0) * PSIe22;
 
-    const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (topedgeofcell<3, 2>(phi, c1) * BiGe22).array()
-        + vel_gauss.array().min(0) * (bottomedgeofcell<3, 2>(phi, c2) * BiGe22).array());
+    const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (topedgeofcell<3, 2>(phi, c1) * PSIe22).array()
+        + vel_gauss.array().min(0) * (bottomedgeofcell<3, 2>(phi, c2) * PSIe22).array());
     phiup.row(c1) -= dt * tmp * PSIe_w_3_2_2;
     phiup.row(c2) += dt * tmp * PSIe_w_3_2_0;
 }
 void edge_term_Y(const SasipMesh& smesh, const double dt, CellVector<3>& phiup, const CellVector<3>& phi, // DG1 (3)
     const EdgeVector<2>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
-    const LocalEdgeVector<2> vel_gauss = normalvel_Y.block<1, 2>(ie, 0) * BiGe22;
-    const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (rightedgeofcell<3, 2>(phi, c1) * BiGe22).array()
-        + vel_gauss.array().min(0) * (leftedgeofcell<3, 2>(phi, c2) * BiGe22).array());
+    const LocalEdgeVector<2> vel_gauss = normalvel_Y.block<1, 2>(ie, 0) * PSIe22;
+    const LocalEdgeVector<2> tmp = (vel_gauss.array().max(0) * (rightedgeofcell<3, 2>(phi, c1) * PSIe22).array()
+        + vel_gauss.array().min(0) * (leftedgeofcell<3, 2>(phi, c2) * PSIe22).array());
 
     // - [[psi]] sind we're on the left side
     phiup.row(c1) -= dt * tmp * PSIe_w_3_2_1;
@@ -435,19 +435,19 @@ void edge_term_Y(const SasipMesh& smesh, const double dt, CellVector<3>& phiup, 
 void edge_term_X(const SasipMesh& smesh, const double dt, CellVector<6>& phiup, const CellVector<6>& phi, // DG2 (6)
     const EdgeVector<3>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
-    const LocalEdgeVector<3> vel_gauss = normalvel_X.row(ie) * BiGe33;
+    const LocalEdgeVector<3> vel_gauss = normalvel_X.row(ie) * PSIe33;
 
-    const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (topedgeofcell<6, 3>(phi, c1) * BiGe33).array()
-        + vel_gauss.array().min(0) * (bottomedgeofcell<6, 3>(phi, c2) * BiGe33).array());
+    const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (topedgeofcell<6, 3>(phi, c1) * PSIe33).array()
+        + vel_gauss.array().min(0) * (bottomedgeofcell<6, 3>(phi, c2) * PSIe33).array());
     phiup.row(c1) -= dt * tmp * PSIe_w_6_3_2;
     phiup.row(c2) += dt * tmp * PSIe_w_6_3_0;
 }
 void edge_term_Y(const SasipMesh& smesh, const double dt, CellVector<6>& phiup, const CellVector<6>& phi, // DG1 (3)
     const EdgeVector<3>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
-    const LocalEdgeVector<3> vel_gauss = normalvel_Y.row(ie) * BiGe33;
-    const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (rightedgeofcell<6, 3>(phi, c1) * BiGe33).array()
-        + vel_gauss.array().min(0) * (leftedgeofcell<6, 3>(phi, c2) * BiGe33).array());
+    const LocalEdgeVector<3> vel_gauss = normalvel_Y.row(ie) * PSIe33;
+    const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (rightedgeofcell<6, 3>(phi, c1) * PSIe33).array()
+        + vel_gauss.array().min(0) * (leftedgeofcell<6, 3>(phi, c2) * PSIe33).array());
 
     // - [[psi]] sind we're on the left side
     phiup.row(c1) -= dt * tmp * PSIe_w_6_3_1;
