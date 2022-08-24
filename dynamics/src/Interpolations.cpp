@@ -67,7 +67,7 @@ namespace Interpolations {
 
             // Jq * wq * Psi_i(x_q) * f(x_q)
             // matrix of size 3 x 4
-	               phi.row(eid) = 1. / mass * (((ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS_2.array())).matrix() * initial_in_gp);
+	    phi.row(eid) = 1. / mass * (((ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS_2.array())).matrix() * initial_in_gp);
         }
     }
 
@@ -98,7 +98,7 @@ namespace Interpolations {
 
             // Jq * wq * Psi_i(x_q) * f(x_q)
             // matrix of size 3 x 4
-	    //XXX            phi.row(eid) = mass.inverse() * ((PSI<3,2>.array().rowwise() * (ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS_2.array())).matrix() * initial_in_gp);
+	    phi.row(eid) = mass.inverse() * ((PSI<3,2>.array().rowwise() * (ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS_2.array())).matrix() * initial_in_gp);
         }
     }
 
@@ -134,7 +134,7 @@ namespace Interpolations {
 
             // Jq * wq * Psi_i(x_q) * f(x_q)
             // matrix of size 3 x 9
-	    //XXX	    phi.row(eid) = mass.inverse() * ((PSI<6,3>.array().rowwise() * (ParametricTools::J<3>(smesh, eid).array() * GAUSSWEIGHTS_3.array())).matrix() * initial_in_gp);
+	    phi.row(eid) = mass.inverse() * ((PSI<6,3>.array().rowwise() * (ParametricTools::J<3>(smesh, eid).array() * GAUSSWEIGHTS_3.array())).matrix() * initial_in_gp);
         }
     }
 
@@ -163,7 +163,7 @@ namespace Interpolations {
                     cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift),
                     cg(cgi + 2 + 2 * cgshift);
 		
-                //XXdg.row(dgi) = ParametricTools::massMatrix<3>(smesh, dgi).inverse() * PSI<3,3> * (ParametricTools::J<3>(smesh, dgi).array() * GAUSSWEIGHTS_3.array() * (CG_CG2FUNC_in_GAUSS3 * cg_local).transpose().array()).matrix().transpose();
+                dg.row(dgi) = ParametricTools::massMatrix<3>(smesh, dgi).inverse() * PSI<3,3> * (ParametricTools::J<3>(smesh, dgi).array() * GAUSSWEIGHTS_3.array() * (CG_CG2FUNC_in_GAUSS3 * cg_local).transpose().array()).matrix().transpose();
             }
         }
     }

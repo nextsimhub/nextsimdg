@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Setup compiler flags and compile definitions:
 #
 SET(NEXTSIM_CXX_FLAGS
-  "-std=c++11 -pedantic -Wall -Wno-unknown-pragmas -march=native" CACHE STRING "Configuration flags"
+  "-std=c++17 -pedantic -Wall -Wno-unknown-pragmas -march=native" CACHE STRING "Configuration flags"
   )
 
 ###
