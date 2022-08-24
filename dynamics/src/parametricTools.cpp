@@ -35,9 +35,9 @@ void ParametricTransformation<CG, DG>::BasicInit(const SasipMesh& smesh)
       const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(DG)> dyT = (ParametricTools::dyT<GAUSSPOINTS1D(DG)>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG) >.array()).matrix();
 
         // the transformed gradient of the CG basis function in the gauss points
-      const Eigen::Matrix<Nextsim::FloatType, 9, GAUSSPOINTS(DG)> dx_cg2 = PHIx<CG,GAUSSPOINTS1D(DG) >.array().rowwise() * dyT.row(1).array() - PHIy<CG,GAUSSPOINTS1D(DG) >.array().rowwise() * dxT.row(1).array();
+      const Eigen::Matrix<Nextsim::FloatType, (CG==2?9:4), GAUSSPOINTS(DG)> dx_cg2 = PHIx<CG,GAUSSPOINTS1D(DG) >.array().rowwise() * dyT.row(1).array() - PHIy<CG,GAUSSPOINTS1D(DG) >.array().rowwise() * dxT.row(1).array();
 
-      const Eigen::Matrix<Nextsim::FloatType, 9, GAUSSPOINTS(DG)> dy_cg2 = PHIy<CG,GAUSSPOINTS1D(DG) >.array().rowwise() * dxT.row(0).array() - PHIx<CG,GAUSSPOINTS1D(DG) >.array().rowwise() * dyT.row(0).array();
+      const Eigen::Matrix<Nextsim::FloatType, (CG==2?9:4), GAUSSPOINTS(DG)> dy_cg2 = PHIy<CG,GAUSSPOINTS1D(DG) >.array().rowwise() * dxT.row(0).array() - PHIx<CG,GAUSSPOINTS1D(DG) >.array().rowwise() * dyT.row(0).array();
 
         // PSI83 is the DG-Basis-function in the guass-point
         // PSI83_{iq} = PSI_i(q)   [ should be called DG_in_GAUSS ]
@@ -120,5 +120,6 @@ namespace ParametricTools {
 
 template class ParametricTransformation<2, 3>;
 template class ParametricTransformation<2, 8>;  
-// template class ParametricTransformation<1, 3>;
+template class ParametricTransformation<1, 3>;
+template class ParametricTransformation<1, 8>;
 }

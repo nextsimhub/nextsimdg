@@ -361,28 +361,6 @@ void edge_term_Y(const SasipMesh& smesh, const double dt, CellVector<DG>& phiup,
     phiup.row(c2) += dt * tmp * PSIe_w<DG,DGedge,3>;
 }
 
-// void edge_term_X(const SasipMesh& smesh, const double dt, CellVector<6>& phiup, const CellVector<6>& phi, // DG2 (6)
-//     const EdgeVector<3>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
-// {
-//     const LocalEdgeVector<3> vel_gauss = normalvel_X.row(ie) * PSIe<3,3>;
-
-//     const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (topedgeofcell<6, 3>(phi, c1) * PSIe<3,3>).array()
-//         + vel_gauss.array().min(0) * (bottomedgeofcell<6, 3>(phi, c2) * PSIe<3,3>).array());
-//     phiup.row(c1) -= dt * tmp * PSIe_w<6,3,2>;
-//     phiup.row(c2) += dt * tmp * PSIe_w<6,3,0>;
-// }
-// void edge_term_Y(const SasipMesh& smesh, const double dt, CellVector<6>& phiup, const CellVector<6>& phi, // DG1 (3)
-//     const EdgeVector<3>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
-// {
-//     const LocalEdgeVector<3> vel_gauss = normalvel_Y.row(ie) * PSIe<3,3>;
-//     const LocalEdgeVector<3> tmp = (vel_gauss.array().max(0) * (rightedgeofcell<6, 3>(phi, c1) * PSIe<3,3>).array()
-//         + vel_gauss.array().min(0) * (leftedgeofcell<6, 3>(phi, c2) * PSIe<3,3>).array());
-
-//     // - [[psi]] sind we're on the left side
-//     phiup.row(c1) -= dt * tmp * PSIe_w<6,3,1>;
-//     phiup.row(c2) += dt * tmp * PSIe_w<6,3,3>;
-// }
-
 template <int DGcell, int DGedge>
 void parametricTransportOperator(const SasipMesh& smesh, const double dt,
     const CellVector<DGcell>& vx,

@@ -99,6 +99,28 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
 
                 
 #
+# evaluate basis functions in the trapecoidal / simpson points on
+# the cell
+#
+# d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
+# g   : 2 Trapecoidal, 3 Simpson
+def basisfunctions_in_lagrangepoints_cell(d, g):
+
+    # print header
+    print('template<> struct PSILagrangeImpl< {0}, {1} >{{'.format(d, g))
+    print('static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
+    print('\t',end=' ')
+    for dp in range(d):
+        for gy in range(g):
+            for gx in range(g):
+                print(bf.dgbasis(dp, gq.lagrangepoints[g-2,gx], gq.lagrangepoints[g-2,gy]),end='')
+
+                if (gx<g-1 or gy<g-1 or dp<d-1):
+                    print(', ',end='')
+                else:
+                    print(').finished();};')
+
+#
 # evaluate basis functions in the quadrature points on
 # the cell
 #
@@ -122,7 +144,7 @@ def basisfunctions_in_gausspoints_cell(d, g):
                     print(', ',end='')
                 else:
                     print(').finished();};')
-
+                    
 
 
 #
@@ -324,6 +346,18 @@ print('template<int DG, int GP, int E>')
 print('const Eigen::Matrix<double, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;')
 print('')
  
+
+print('\n\n//------------------------------ Basis Functions in Lagrange Points (cell)\n')
+
+print('template<int DG, int GP>')
+print('struct PSILagrangeImpl;')
+for dg in [1, 3,6,8]:
+    basisfunctions_in_lagrangepoints_cell(dg,2)
+    basisfunctions_in_lagrangepoints_cell(dg,3)
+print('template<int DG, int GP>')
+print('const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSILagrange = PSILagrangeImpl<DG, GP>::value;')
+print('')
+
 
 print('\n\n//------------------------------ Basis Functions in Gauss Points (cell)\n')
 

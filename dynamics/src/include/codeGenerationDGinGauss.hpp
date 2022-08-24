@@ -210,6 +210,39 @@ const Eigen::Matrix<double, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP,
 
 
 
+//------------------------------ Basis Functions in Lagrange Points (cell)
+
+template<int DG, int GP>
+struct PSILagrangeImpl;
+template<> struct PSILagrangeImpl< 1, 2 >{
+static inline const Eigen::Matrix<double, 1, 4, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 4, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, 1.0).finished();};
+template<> struct PSILagrangeImpl< 1, 3 >{
+static inline const Eigen::Matrix<double, 1, 9, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 9, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0).finished();};
+template<> struct PSILagrangeImpl< 3, 2 >{
+static inline const Eigen::Matrix<double, 3, 4, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 4, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, 1.0, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5).finished();};
+template<> struct PSILagrangeImpl< 3, 3 >{
+static inline const Eigen::Matrix<double, 3, 9, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 9, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -0.5, 0.0, 0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.5, -0.5, -0.5, -0.5, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5).finished();};
+template<> struct PSILagrangeImpl< 6, 2 >{
+static inline const Eigen::Matrix<double, 6, 4, Eigen::RowMajor> value = (Eigen::Matrix<double, 6, 4, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, 1.0, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.25, -0.25, -0.25, 0.25).finished();};
+template<> struct PSILagrangeImpl< 6, 3 >{
+static inline const Eigen::Matrix<double, 6, 9, Eigen::RowMajor> value = (Eigen::Matrix<double, 6, 9, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -0.5, 0.0, 0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.5, -0.5, -0.5, -0.5, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.16666666666666669, -0.08333333333333333, 0.16666666666666669, 0.16666666666666669, -0.08333333333333333, 0.16666666666666669, 0.16666666666666669, -0.08333333333333333, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, -0.08333333333333333, -0.08333333333333333, -0.08333333333333333, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.25, -0.0, -0.25, -0.0, 0.0, 0.0, -0.25, 0.0, 0.25).finished();};
+template<> struct PSILagrangeImpl< 8, 2 >{
+static inline const Eigen::Matrix<double, 8, 4, Eigen::RowMajor> value = (Eigen::Matrix<double, 8, 4, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, 1.0, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.25, -0.25, -0.25, 0.25, -0.08333333333333334, -0.08333333333333334, 0.08333333333333334, 0.08333333333333334, -0.08333333333333334, 0.08333333333333334, -0.08333333333333334, 0.08333333333333334).finished();};
+template<> struct PSILagrangeImpl< 8, 3 >{
+static inline const Eigen::Matrix<double, 8, 9, Eigen::RowMajor> value = (Eigen::Matrix<double, 8, 9, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -0.5, 0.0, 0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.5, -0.5, -0.5, -0.5, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.16666666666666669, -0.08333333333333333, 0.16666666666666669, 0.16666666666666669, -0.08333333333333333, 0.16666666666666669, 0.16666666666666669, -0.08333333333333333, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, -0.08333333333333333, -0.08333333333333333, -0.08333333333333333, 0.16666666666666669, 0.16666666666666669, 0.16666666666666669, 0.25, -0.0, -0.25, -0.0, 0.0, 0.0, -0.25, 0.0, 0.25, -0.08333333333333334, 0.041666666666666664, -0.08333333333333334, 0.0, -0.0, 0.0, 0.08333333333333334, -0.041666666666666664, 0.08333333333333334, -0.08333333333333334, 0.0, 0.08333333333333334, 0.041666666666666664, -0.0, -0.041666666666666664, -0.08333333333333334, 0.0, 0.08333333333333334).finished();};
+template<int DG, int GP>
+const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSILagrange = PSILagrangeImpl<DG, GP>::value;
+
+
+
 //------------------------------ Basis Functions in Gauss Points (cell)
 
 template<int DG, int GP>

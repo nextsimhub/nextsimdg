@@ -7,6 +7,9 @@ import basisfunctions as bf
 import gaussquadrature as gq
                 
 
+
+
+
 # evaluate cg basis functions in the quadrature points on
 # the cell
 #
@@ -196,6 +199,7 @@ print('const Eigen::Matrix<double, CGDOFS(CG), GP*GP, Eigen::RowMajor> PHIx = PH
 print('template<int CG, int GP>')
 print('const Eigen::Matrix<double, CGDOFS(CG), GP*GP, Eigen::RowMajor> PHIy = PHIyImpl<CG, GP>::value;')
 print('')
+
 
 
 print('')
