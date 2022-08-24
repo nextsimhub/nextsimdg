@@ -524,7 +524,7 @@ namespace MEB {
             // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
             // with the gauss weights and with J. This is a 8 x 9 matrix
             const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
-                * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
+                * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
             S11.row(i) += imass_psi * (dt_mom * 1. / (1. + vpparameters.nu0) * (elasticity.array() * e11_gauss.array())).matrix().transpose()
                 + imass_psi * (dt_mom * Dunit_factor * vpparameters.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix().transpose();
@@ -590,7 +590,7 @@ namespace MEB {
             // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
 
             const Eigen::Matrix<Nextsim::FloatType, 3, 9> imass_psi2 = ParametricTools::massMatrix<3>(smesh, i).inverse()
-                * (PSI<3,3>.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
+                * (PSI<3,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
             D.row(i) += imass_psi2 * (((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / RefScaleCanada::damage_timescale).matrix().transpose());
 
@@ -614,7 +614,7 @@ namespace MEB {
             // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
             // with the gauss weights and with J. This is a 8 x 9 matrix
             const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
-                * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
+                * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
             S11.row(i) += imass_psi * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix().transpose());
 

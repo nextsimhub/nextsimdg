@@ -44,9 +44,12 @@ def basisfunctions_in_gausspoints_edge(edge, d, g):
 # g   : number of gauss points (1,2,3)
 def basisfunctions_in_gausspoints_edge_new(edge, d, g):
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSIe_w_{2}_{3}_{4} ='.format(g,d,d,g,edge))
-    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(g,d))
+      # print header
+
+    print('template<> struct PSIe_wImpl< {0}, {1}, {2} >{{'.format(d,g,edge) )
+    print('static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(g,d))
     print('\t',end=' ')
+
     for gp in range(g):
         for dp in range(d):
             if (edge==3):
@@ -60,7 +63,7 @@ def basisfunctions_in_gausspoints_edge_new(edge, d, g):
             if (gp<g-1 or dp<d-1):
                 print(', ',end='')
             else:
-                print(').finished();')
+                print(').finished();};')
 
 
 #
@@ -164,6 +167,9 @@ def basisfunctions_in_gausspoints_cell_gradient(d, g):
                 else:
                     print(').finished();};')
                     
+
+
+
 #
 # evaluate edge basis functions in the quadrature points
 # d   : number of dG - dofs (1,2,3) for dG0/1/2 and dG2+ (nabla Q2)
@@ -171,8 +177,11 @@ def basisfunctions_in_gausspoints_cell_gradient(d, g):
 def edge_basisfunctions_in_gausspoints(d, g):
 
     # print header
-    print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSIe{2}{3} ='.format(d,g,d,g))
-    print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g))
+    print('template<> struct PSIeImpl< {0}, {1} >{{'.format(d, g))
+    if g>1:
+        print('static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g))
+    else:
+        print('static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g))
     print('\t',end=' ')
     for dp in range(d):
         for gp in range(g):
@@ -180,7 +189,7 @@ def edge_basisfunctions_in_gausspoints(d, g):
             if (dp<d-1 or gp<g-1):
                 print(', ',end='')
             else:
-                print(').finished();')
+                print(').finished();};')
 
 
 
@@ -242,10 +251,16 @@ for gp in [1,2,3]:
     print('};')
     
 print('\n\n//------------------------------ Gauss Quadrature\n')
+
+print('template<int NGP>')
+print('struct GAUSSWEIGHTSImpl;')
 for g in [1,2,3]:
-    print('static const Eigen::Matrix<double, 1, {0}, Eigen::RowMajor> GAUSSWEIGHTS_{1} ='.format(g*g,g))
-    print('\t(Eigen::Matrix<double, 1, {0}, Eigen::RowMajor>() <<'.format(g*g))
+
+    # print header
+    print('template<> struct GAUSSWEIGHTSImpl< {0} >{{'.format(g))
+    print('static inline const Eigen::Matrix<double, 1, {0}, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, {0}, Eigen::RowMajor>() <<'.format(g*g))
     print('\t',end=' ')
+
     for gy in range(g):
         for gx in range(g):
             print(gq.gaussweights[g-1][gx]*gq.gaussweights[g-1][gy],end='')
@@ -253,8 +268,12 @@ for g in [1,2,3]:
             if (gx<g-1 or gy<g-1):
                 print(', ',end='')
             else:
-                print(').finished();')
+                print(').finished();};')
+print('template<int NGP>')
+print('const Eigen::Matrix<double, 1, NGP*NGP, Eigen::RowMajor> GAUSSWEIGHTS = GAUSSWEIGHTSImpl<NGP>::value;')
+print('')
 
+                
 
 print('\n\n//------------------------------ Gauss Points\n')
 for g in [1,2,3]:
@@ -281,6 +300,9 @@ for g in [1,2,3]:
 
 print('\n\n//------------------------------ Basis Functions in Gauss Points (edge)\n')
 # generate arrays that evaluate basis functions in the gauss points on the edges
+
+print('template<int DG, int GP, int E>')
+print('struct PSIe_wImpl;')
 for dg in [1,3,6,8]:
     for e in [0,1,2,3]:
         if dg==1:
@@ -298,7 +320,10 @@ for dg in [1,3,6,8]:
         else:
             basisfunctions_in_gausspoints_edge_new(e, dg,3)
         print('')
-        
+print('template<int DG, int GP, int E>')
+print('const Eigen::Matrix<double, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;')
+print('')
+ 
 
 print('\n\n//------------------------------ Basis Functions in Gauss Points (cell)\n')
 
@@ -337,9 +362,15 @@ for dg in [1,3,6,8]:
     
 print('\n\n//------------------------------ Edge Basis Functions in Gauss Points\n')
 # generate arrays that evaluate basis functions in the gauss points on the edges
+
+print('template<int DG, int GP>')
+print('struct PSIeImpl;')
 for dg in [1,2,3]:
     edge_basisfunctions_in_gausspoints(dg,dg)
     print('')
+print('template<int DG, int GP>')
+print('const Eigen::Matrix<double, DG, GP, Eigen::RowMajor> PSIe = PSIeImpl<DG, GP>::value;')
+print('')
 
 edge_basisfunctions_in_gausspoints(2,3)
 print('') 

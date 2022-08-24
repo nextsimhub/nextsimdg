@@ -67,7 +67,7 @@ namespace Interpolations {
 
             // Jq * wq * Psi_i(x_q) * f(x_q)
             // matrix of size 3 x 4
-	    phi.row(eid) = 1. / mass * (((ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS_2.array())).matrix() * initial_in_gp);
+	    phi.row(eid) = 1. / mass * (((ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS<2>.array())).matrix() * initial_in_gp);
         }
     }
 
@@ -98,7 +98,7 @@ namespace Interpolations {
 
             // Jq * wq * Psi_i(x_q) * f(x_q)
             // matrix of size 3 x 4
-	    phi.row(eid) = mass.inverse() * ((PSI<3,2>.array().rowwise() * (ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS_2.array())).matrix() * initial_in_gp);
+	    phi.row(eid) = mass.inverse() * ((PSI<3,2>.array().rowwise() * (ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS<2>.array())).matrix() * initial_in_gp);
         }
     }
 
@@ -134,38 +134,40 @@ namespace Interpolations {
 
             // Jq * wq * Psi_i(x_q) * f(x_q)
             // matrix of size 3 x 9
-	    phi.row(eid) = mass.inverse() * ((PSI<6,3>.array().rowwise() * (ParametricTools::J<3>(smesh, eid).array() * GAUSSWEIGHTS_3.array())).matrix() * initial_in_gp);
+	    phi.row(eid) = mass.inverse() * ((PSI<6,3>.array().rowwise() * (ParametricTools::J<3>(smesh, eid).array() * GAUSSWEIGHTS<3>.array())).matrix() * initial_in_gp);
         }
     }
 
     // ******************** CG -> DG  ******************** //
 
-    template <>
-    void CG2DG(const SasipMesh& smesh, CellVector<3>& dg, const CGVector<2>& cg)
+  template <int CG, int DG>
+  void CG2DG(const SasipMesh& smesh, CellVector<DG>& dg, const CGVector<CG>& cg)
     {
         // WHAT GAUSS DEGREE TO TAKE?
+#define NGP 3
 
-        assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == cg.rows());
+        assert(static_cast<long int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)) == cg.rows());
         assert(static_cast<long int>(smesh.nx * smesh.ny) == dg.rows());
 
-        const int cgshift = 2 * smesh.nx + 1; //!< Index shift for each row
+        const int cgshift = CG * smesh.nx + 1; //!< Index shift for each row
 
         // parallelize over the rows
 #pragma omp parallel for
         for (size_t iy = 0; iy < smesh.ny; ++iy) {
             size_t dgi = smesh.nx * iy; //!< Index of dg vector
-            size_t cgi = 2 * cgshift * iy; //!< Lower left index of cg vector
+            size_t cgi = CG * cgshift * iy; //!< Lower left index of cg vector
 
-            for (size_t ix = 0; ix < smesh.nx; ++ix, ++dgi, cgi += 2) {
+            for (size_t ix = 0; ix < smesh.nx; ++ix, ++dgi, cgi += CG) {
 
                 Eigen::Matrix<double, 9, 1> cg_local; //!< the 9 local unknowns in the element
                 cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift), cg(cgi + 1 + cgshift),
                     cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift),
                     cg(cgi + 2 + 2 * cgshift);
 		
-                dg.row(dgi) = ParametricTools::massMatrix<3>(smesh, dgi).inverse() * PSI<3,3> * (ParametricTools::J<3>(smesh, dgi).array() * GAUSSWEIGHTS_3.array() * (CG_CG2FUNC_in_GAUSS3 * cg_local).transpose().array()).matrix().transpose();
+                dg.row(dgi) = ParametricTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG,NGP> * (ParametricTools::J<NGP>(smesh, dgi).array() * GAUSSWEIGHTS<NGP>.array() * (CG_CG2FUNC_in_GAUSS3 * cg_local).transpose().array()).matrix().transpose();
             }
         }
+#undef NGP
     }
 
     // ******************** DG -> CG  ******************** //
@@ -299,7 +301,14 @@ namespace Interpolations {
         DG2CGBoundary(smesh, dest);
     }
 
-    template void DG2CG(const SasipMesh& smesh, CGVector<2>& dest, const CellVector<3>& src);
+  template void DG2CG(const SasipMesh& smesh, CGVector<2>& dest, const CellVector<1>& src);
+  template void DG2CG(const SasipMesh& smesh, CGVector<2>& dest, const CellVector<3>& src);
+  template void DG2CG(const SasipMesh& smesh, CGVector<2>& dest, const CellVector<6>& src);
+  
+  template void CG2DG(const SasipMesh& smesh, CellVector<1>& dg, const CGVector<2>& cg);
+  template void CG2DG(const SasipMesh& smesh, CellVector<3>& dg, const CGVector<2>& cg);
+  template void CG2DG(const SasipMesh& smesh, CellVector<6>& dg, const CGVector<2>& cg);
+  
 
 }
 }

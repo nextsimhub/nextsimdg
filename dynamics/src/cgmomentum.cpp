@@ -523,8 +523,8 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVecto
             const Eigen::Matrix<Nextsim::FloatType, 1, 9> DX_VY_g = CG_CG2FUNC_DX_in_GAUSS3 * vy_local;
             const Eigen::Matrix<Nextsim::FloatType, 1, 9> DY_VY_g = CG_CG2FUNC_DY_in_GAUSS3 * vy_local;
 
-            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
-            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<3>.array()).matrix();
+            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<3>.array()).matrix();
 
             // gradient of transformation
             //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]

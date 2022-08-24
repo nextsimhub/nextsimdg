@@ -291,12 +291,12 @@ public:
         const Eigen::Matrix<Nextsim::FloatType, 1, 9> S12_g = S12.row(eid) * PSI<8,3>; //!< velocity in GP
 
         // J T^{-T}
-        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
-        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<3>.array()).matrix();
+        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<3>.array()).matrix();
 
-        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dx_cg2 = CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(1).array() - CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(1).array();
+        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dx_cg2 = PHIx<2,3>.array().rowwise() * dyT.row(1).array() - PHIy<2,3>.array().rowwise() * dxT.row(1).array();
 
-        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dy_cg2 = CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(0).array() - CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(0).array();
+        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dy_cg2 = PHIy<2,3>.array().rowwise() * dxT.row(0).array() - PHIx<2,3>.array().rowwise() * dyT.row(0).array();
 
         const Eigen::Matrix<Nextsim::FloatType, 1, 9> tx = dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose();
         const Eigen::Matrix<Nextsim::FloatType, 1, 9> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();

@@ -20,7 +20,7 @@ extern Timer GlobalTimer;
 ////////////////////////////////////////////////// Strain (SasipMesh)
 
 template <>
-void CGParametricMomentum<2, 8>::ProjectCG2VelocityToDG1Strain()
+void CGParametricMomentum<2, 8>::ProjectCG2VelocityToDGStrain()
 {
     assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == vx.rows());
     assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == vy.rows());
@@ -56,8 +56,8 @@ void CGParametricMomentum<2, 8>::ProjectCG2VelocityToDG1Strain()
                 const Eigen::Matrix<Nextsim::FloatType, 1, 9> DX_VY_g = CG_CG2FUNC_DX_in_GAUSS3 * vy_local;
                 const Eigen::Matrix<Nextsim::FloatType, 1, 9> DY_VY_g = CG_CG2FUNC_DY_in_GAUSS3 * vy_local;
 
-                const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
-                const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+                const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<3>.array()).matrix();
+                const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<3>.array()).matrix();
 
                 // gradient of transformation
                 //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]
@@ -121,35 +121,36 @@ void CGParametricMomentum<CG, DGstress>::AddStressTensor(const double scale, CGV
         }
 }
 
-//! Sets the vector to zero along the boundary
-template <>
-void CGParametricMomentum<1, 3>::DirichletZero(CGVector<1>& v)
-{
+// //! Sets the vector to zero along the boundary
+// template <>
+// void CGParametricMomentum<1, 3>::DirichletZero(CGVector<1>& v)
+// {
 
-    size_t upperleftindex = (smesh.nx + 1) * smesh.ny;
-    for (size_t i = 0; i < smesh.nx + 1; ++i) {
+//     size_t upperleftindex = (smesh.nx + 1) * smesh.ny;
+//     for (size_t i = 0; i < smesh.nx + 1; ++i) {
+//         v(i, 0) = 0.0;
+//         v(upperleftindex + i, 0) = 0.0;
+//     }
+//     size_t indecesperrow = smesh.nx + 1;
+//     size_t lowerrightindex = smesh.nx;
+//     for (size_t i = 0; i < smesh.ny + 1; ++i) {
+//         v(indecesperrow * i, 0) = 0.0;
+//         v(lowerrightindex + indecesperrow * i, 0) = 0.0;
+//     }
+// }
+template<int CG, int DGstress>
+void CGParametricMomentum<CG, DGstress>::DirichletZero(CGVector<CG>& v)
+{
+    size_t upperleftindex = (CG * smesh.nx + 1) * CG * smesh.ny;
+#pragma omp parallel for
+    for (size_t i = 0; i < CG * smesh.nx + 1; ++i) {
         v(i, 0) = 0.0;
         v(upperleftindex + i, 0) = 0.0;
     }
-    size_t indecesperrow = smesh.nx + 1;
-    size_t lowerrightindex = smesh.nx;
-    for (size_t i = 0; i < smesh.ny + 1; ++i) {
-        v(indecesperrow * i, 0) = 0.0;
-        v(lowerrightindex + indecesperrow * i, 0) = 0.0;
-    }
-}
-template <>
-void CGParametricMomentum<2, 8>::DirichletZero(CGVector<2>& v)
-{
-
-    size_t upperleftindex = (2 * smesh.nx + 1) * 2 * smesh.ny;
-    for (size_t i = 0; i < 2 * smesh.nx + 1; ++i) {
-        v(i, 0) = 0.0;
-        v(upperleftindex + i, 0) = 0.0;
-    }
-    size_t indecesperrow = 2 * smesh.nx + 1;
-    size_t lowerleftindex = 2 * smesh.nx;
-    for (size_t i = 0; i < 2 * smesh.ny + 1; ++i) {
+    size_t indecesperrow = CG * smesh.nx + 1;
+    size_t lowerleftindex = CG * smesh.nx;
+#pragma omp parallel for
+    for (size_t i = 0; i < CG * smesh.ny + 1; ++i) {
         v(indecesperrow * i, 0) = 0.0;
         v(lowerleftindex + indecesperrow * i, 0) = 0.0;
     }
@@ -183,13 +184,12 @@ void CGParametricMomentum<CG, DGstress>::mEVPIteration(const VPParameters& vppar
         Nextsim::GlobalTimer.start("time loop - mevp - strain");
         //! Compute Strain Rate
         // momentum.ProjectCG2VelocityToDG1Strain(ptrans_stress, E11, E12, E22);
-        ProjectCG2VelocityToDG1Strain();
+        ProjectCG2VelocityToDGStrain();
         Nextsim::GlobalTimer.stop("time loop - mevp - strain");
 
         Nextsim::GlobalTimer.start("time loop - mevp - stress");
-        Nextsim::mEVP::StressUpdateHighOrder(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
-        // Nextsim::mEVP::StressUpdateHighOrder(ptrans_stress, smesh, S11, S12, S22, E11, E12, E22, H, A,
-        //     vpparameters.Pstar, vpparameters.DeltaMin, alpha, beta);
+	//        Nextsim::mEVP::StressUpdateHighOrder<CG,DGstress,DG>(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+	Nextsim::mEVP::StressUpdateHighOrder(vpparameters, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
         Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
         Nextsim::GlobalTimer.start("time loop - mevp - update");
@@ -302,7 +302,7 @@ void CGParametricMomentum<CG, DGstress>::MEBIteration(const MEBParameters& vppar
         Nextsim::GlobalTimer.start("time loop - meb - strain");
         //! Compute Strain Rate
         // momentum.ProjectCG2VelocityToDG1Strain(ptrans_stress, E11, E12, E22);
-        ProjectCG2VelocityToDG1Strain();
+        ProjectCG2VelocityToDGStrain();
         Nextsim::GlobalTimer.stop("time loop - meb - strain");
 
         Nextsim::GlobalTimer.start("time loop - meb - stress");
@@ -380,14 +380,38 @@ void CGParametricMomentum<CG, DGstress>::MEBIteration(const MEBParameters& vppar
 // --------------------------------------------------
 
 // template class CGParametricMomentum<1, 3>;
+//template class CGParametricMomentum<2, 3>;
 template class CGParametricMomentum<2, 8>;
 
 // --------------------------------------------------
 
+// template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
+//     size_t NT_evp, double alpha, double beta,
+//     double dt_adv,
+//     const CellVector<1>& H, const CellVector<1>& A);
+// template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
+//     size_t NT_evp, double alpha, double beta,
+//     double dt_adv,
+//     const CellVector<3>& H, const CellVector<3>& A);
+// template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
+//     size_t NT_evp, double alpha, double beta,
+//     double dt_adv,
+//     const CellVector<6>& H, const CellVector<6>& A);
+
+
+
+template void CGParametricMomentum<2, 8>::mEVPIteration(const VPParameters& vpparameters,
+    size_t NT_evp, double alpha, double beta,
+    double dt_adv,
+    const CellVector<1>& H, const CellVector<1>& A);
 template void CGParametricMomentum<2, 8>::mEVPIteration(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
+template void CGParametricMomentum<2, 8>::mEVPIteration(const VPParameters& vpparameters,
+    size_t NT_evp, double alpha, double beta,
+    double dt_adv,
+    const CellVector<6>& H, const CellVector<6>& A);
 
 template void CGParametricMomentum<2, 8>::MEBIteration(const MEBParameters& vpparameters,
     size_t NT_evp, double dt_adv, const CellVector<3>& H, const CellVector<3>& A,

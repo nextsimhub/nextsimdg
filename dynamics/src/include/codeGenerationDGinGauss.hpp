@@ -44,15 +44,20 @@ constexpr double gauss_weights3[3] = {0.2777777777777778,0.4444444444444444,0.27
 
 //------------------------------ Gauss Quadrature
 
-static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> GAUSSWEIGHTS_1 =
-	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
-	 1.0).finished();
-static const Eigen::Matrix<double, 1, 4, Eigen::RowMajor> GAUSSWEIGHTS_2 =
-	(Eigen::Matrix<double, 1, 4, Eigen::RowMajor>() <<
-	 0.25, 0.25, 0.25, 0.25).finished();
-static const Eigen::Matrix<double, 1, 9, Eigen::RowMajor> GAUSSWEIGHTS_3 =
-	(Eigen::Matrix<double, 1, 9, Eigen::RowMajor>() <<
-	 0.0771604938271605, 0.12345679012345678, 0.0771604938271605, 0.12345679012345678, 0.19753086419753085, 0.12345679012345678, 0.0771604938271605, 0.12345679012345678, 0.0771604938271605).finished();
+template<int NGP>
+struct GAUSSWEIGHTSImpl;
+template<> struct GAUSSWEIGHTSImpl< 1 >{
+static inline const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
+	 1.0).finished();};
+template<> struct GAUSSWEIGHTSImpl< 2 >{
+static inline const Eigen::Matrix<double, 1, 4, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 4, Eigen::RowMajor>() <<
+	 0.25, 0.25, 0.25, 0.25).finished();};
+template<> struct GAUSSWEIGHTSImpl< 3 >{
+static inline const Eigen::Matrix<double, 1, 9, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 9, Eigen::RowMajor>() <<
+	 0.0771604938271605, 0.12345679012345678, 0.0771604938271605, 0.12345679012345678, 0.19753086419753085, 0.12345679012345678, 0.0771604938271605, 0.12345679012345678, 0.0771604938271605).finished();};
+template<int NGP>
+const Eigen::Matrix<double, 1, NGP*NGP, Eigen::RowMajor> GAUSSWEIGHTS = GAUSSWEIGHTSImpl<NGP>::value;
+
 
 
 //------------------------------ Gauss Points
@@ -70,133 +75,138 @@ static const Eigen::Matrix<double, 2, 9, Eigen::RowMajor> GAUSSPOINTS_3 =
 
 //------------------------------ Basis Functions in Gauss Points (edge)
 
+template<int DG, int GP, int E>
+struct PSIe_wImpl;
 static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSI11_0 =
 	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
 	 1.0).finished();
 
-static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSIe_w_1_1_0 =
-	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
-	 1.0).finished();
+template<> struct PSIe_wImpl< 1, 1, 0 >{
+static inline const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
+	 1.0).finished();};
 
 static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSI11_1 =
 	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
 	 1.0).finished();
 
-static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSIe_w_1_1_1 =
-	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
-	 1.0).finished();
+template<> struct PSIe_wImpl< 1, 1, 1 >{
+static inline const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
+	 1.0).finished();};
 
 static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSI11_2 =
 	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
 	 1.0).finished();
 
-static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSIe_w_1_1_2 =
-	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
-	 1.0).finished();
+template<> struct PSIe_wImpl< 1, 1, 2 >{
+static inline const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
+	 1.0).finished();};
 
 static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSI11_3 =
 	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
 	 1.0).finished();
 
-static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSIe_w_1_1_3 =
-	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
-	 1.0).finished();
+template<> struct PSIe_wImpl< 1, 1, 3 >{
+static inline const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
+	 1.0).finished();};
 
 static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSI32_0 =
 	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
 	 0.5, -1.7320508075688772, -3.0, 0.5, 1.7320508075688772, -3.0).finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSIe_w_3_2_0 =
-	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
-	 0.5, -0.14433756729740643, -0.25, 0.5, 0.14433756729740643, -0.25).finished();
+template<> struct PSIe_wImpl< 3, 2, 0 >{
+static inline const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> value = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
+	 0.5, -0.14433756729740643, -0.25, 0.5, 0.14433756729740643, -0.25).finished();};
 
 static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSI32_1 =
 	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
 	 0.5, 3.0, -1.7320508075688772, 0.5, 3.0, 1.7320508075688772).finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSIe_w_3_2_1 =
-	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
-	 0.5, 0.25, -0.14433756729740643, 0.5, 0.25, 0.14433756729740643).finished();
+template<> struct PSIe_wImpl< 3, 2, 1 >{
+static inline const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> value = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
+	 0.5, 0.25, -0.14433756729740643, 0.5, 0.25, 0.14433756729740643).finished();};
 
 static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSI32_2 =
 	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
 	 0.5, -1.7320508075688772, 3.0, 0.5, 1.7320508075688772, 3.0).finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSIe_w_3_2_2 =
-	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
-	 0.5, -0.14433756729740643, 0.25, 0.5, 0.14433756729740643, 0.25).finished();
+template<> struct PSIe_wImpl< 3, 2, 2 >{
+static inline const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> value = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
+	 0.5, -0.14433756729740643, 0.25, 0.5, 0.14433756729740643, 0.25).finished();};
 
 static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSI32_3 =
 	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
 	 0.5, -3.0, -1.7320508075688772, 0.5, -3.0, 1.7320508075688772).finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSIe_w_3_2_3 =
-	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
-	 0.5, -0.25, -0.14433756729740643, 0.5, -0.25, 0.14433756729740643).finished();
+template<> struct PSIe_wImpl< 3, 2, 3 >{
+static inline const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> value = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
+	 0.5, -0.25, -0.14433756729740643, 0.5, -0.25, 0.14433756729740643).finished();};
 
 static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSI63_0 =
 	(Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
 	 0.2777777777777778, -1.2909944487358058, -1.6666666666666667, 3.333333333333335, 8.333333333333334, 7.745966692414834, 0.4444444444444444, 0.0, -2.6666666666666665, -6.666666666666666, 13.333333333333336, -0.0, 0.2777777777777778, 1.2909944487358058, -1.6666666666666667, 3.333333333333335, 8.333333333333334, -7.745966692414834).finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSIe_w_6_3_0 =
-	(Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
-	 0.2777777777777778, -0.10758287072798381, -0.1388888888888889, 0.018518518518518528, 0.0462962962962963, 0.053791435363991905, 0.4444444444444444, 0.0, -0.2222222222222222, -0.037037037037037035, 0.07407407407407408, -0.0, 0.2777777777777778, 0.10758287072798381, -0.1388888888888889, 0.018518518518518528, 0.0462962962962963, -0.053791435363991905).finished();
+template<> struct PSIe_wImpl< 6, 3, 0 >{
+static inline const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
+	 0.2777777777777778, -0.10758287072798381, -0.1388888888888889, 0.018518518518518528, 0.0462962962962963, 0.053791435363991905, 0.4444444444444444, 0.0, -0.2222222222222222, -0.037037037037037035, 0.07407407407407408, -0.0, 0.2777777777777778, 0.10758287072798381, -0.1388888888888889, 0.018518518518518528, 0.0462962962962963, -0.053791435363991905).finished();};
 
 static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSI63_1 =
 	(Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
 	 0.2777777777777778, 1.6666666666666667, -1.2909944487358058, 8.333333333333334, 3.333333333333335, -7.745966692414834, 0.4444444444444444, 2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, 0.0, 0.2777777777777778, 1.6666666666666667, 1.2909944487358058, 8.333333333333334, 3.333333333333335, 7.745966692414834).finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSIe_w_6_3_1 =
-	(Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
-	 0.2777777777777778, 0.1388888888888889, -0.10758287072798381, 0.0462962962962963, 0.018518518518518528, -0.053791435363991905, 0.4444444444444444, 0.2222222222222222, 0.0, 0.07407407407407408, -0.037037037037037035, 0.0, 0.2777777777777778, 0.1388888888888889, 0.10758287072798381, 0.0462962962962963, 0.018518518518518528, 0.053791435363991905).finished();
+template<> struct PSIe_wImpl< 6, 3, 1 >{
+static inline const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
+	 0.2777777777777778, 0.1388888888888889, -0.10758287072798381, 0.0462962962962963, 0.018518518518518528, -0.053791435363991905, 0.4444444444444444, 0.2222222222222222, 0.0, 0.07407407407407408, -0.037037037037037035, 0.0, 0.2777777777777778, 0.1388888888888889, 0.10758287072798381, 0.0462962962962963, 0.018518518518518528, 0.053791435363991905).finished();};
 
 static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSI63_2 =
 	(Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
 	 0.2777777777777778, -1.2909944487358058, 1.6666666666666667, 3.333333333333335, 8.333333333333334, -7.745966692414834, 0.4444444444444444, 0.0, 2.6666666666666665, -6.666666666666666, 13.333333333333336, 0.0, 0.2777777777777778, 1.2909944487358058, 1.6666666666666667, 3.333333333333335, 8.333333333333334, 7.745966692414834).finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSIe_w_6_3_2 =
-	(Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
-	 0.2777777777777778, -0.10758287072798381, 0.1388888888888889, 0.018518518518518528, 0.0462962962962963, -0.053791435363991905, 0.4444444444444444, 0.0, 0.2222222222222222, -0.037037037037037035, 0.07407407407407408, 0.0, 0.2777777777777778, 0.10758287072798381, 0.1388888888888889, 0.018518518518518528, 0.0462962962962963, 0.053791435363991905).finished();
+template<> struct PSIe_wImpl< 6, 3, 2 >{
+static inline const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
+	 0.2777777777777778, -0.10758287072798381, 0.1388888888888889, 0.018518518518518528, 0.0462962962962963, -0.053791435363991905, 0.4444444444444444, 0.0, 0.2222222222222222, -0.037037037037037035, 0.07407407407407408, 0.0, 0.2777777777777778, 0.10758287072798381, 0.1388888888888889, 0.018518518518518528, 0.0462962962962963, 0.053791435363991905).finished();};
 
 static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSI63_3 =
 	(Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
 	 0.2777777777777778, -1.6666666666666667, -1.2909944487358058, 8.333333333333334, 3.333333333333335, 7.745966692414834, 0.4444444444444444, -2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, -0.0, 0.2777777777777778, -1.6666666666666667, 1.2909944487358058, 8.333333333333334, 3.333333333333335, -7.745966692414834).finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSIe_w_6_3_3 =
-	(Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
-	 0.2777777777777778, -0.1388888888888889, -0.10758287072798381, 0.0462962962962963, 0.018518518518518528, 0.053791435363991905, 0.4444444444444444, -0.2222222222222222, 0.0, 0.07407407407407408, -0.037037037037037035, -0.0, 0.2777777777777778, -0.1388888888888889, 0.10758287072798381, 0.0462962962962963, 0.018518518518518528, -0.053791435363991905).finished();
+template<> struct PSIe_wImpl< 6, 3, 3 >{
+static inline const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() <<
+	 0.2777777777777778, -0.1388888888888889, -0.10758287072798381, 0.0462962962962963, 0.018518518518518528, 0.053791435363991905, 0.4444444444444444, -0.2222222222222222, 0.0, 0.07407407407407408, -0.037037037037037035, -0.0, 0.2777777777777778, -0.1388888888888889, 0.10758287072798381, 0.0462962962962963, 0.018518518518518528, -0.053791435363991905).finished();};
 
 static const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> PSI83_0 =
 	(Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
 	 0.2777777777777778, -1.2909944487358058, -1.6666666666666667, 3.333333333333335, 8.333333333333334, 7.745966692414834, -20.000000000000007, -38.729833462074176, 0.4444444444444444, 0.0, -2.6666666666666665, -6.666666666666666, 13.333333333333336, -0.0, 40.0, 0.0, 0.2777777777777778, 1.2909944487358058, -1.6666666666666667, 3.333333333333335, 8.333333333333334, -7.745966692414834, -20.000000000000007, 38.729833462074176).finished();
 
-static const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> PSIe_w_8_3_0 =
-	(Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
-	 0.2777777777777778, -0.10758287072798381, -0.1388888888888889, 0.018518518518518528, 0.0462962962962963, 0.053791435363991905, -0.009259259259259264, -0.01793047845466397, 0.4444444444444444, 0.0, -0.2222222222222222, -0.037037037037037035, 0.07407407407407408, -0.0, 0.018518518518518517, 0.0, 0.2777777777777778, 0.10758287072798381, -0.1388888888888889, 0.018518518518518528, 0.0462962962962963, -0.053791435363991905, -0.009259259259259264, 0.01793047845466397).finished();
+template<> struct PSIe_wImpl< 8, 3, 0 >{
+static inline const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
+	 0.2777777777777778, -0.10758287072798381, -0.1388888888888889, 0.018518518518518528, 0.0462962962962963, 0.053791435363991905, -0.009259259259259264, -0.01793047845466397, 0.4444444444444444, 0.0, -0.2222222222222222, -0.037037037037037035, 0.07407407407407408, -0.0, 0.018518518518518517, 0.0, 0.2777777777777778, 0.10758287072798381, -0.1388888888888889, 0.018518518518518528, 0.0462962962962963, -0.053791435363991905, -0.009259259259259264, 0.01793047845466397).finished();};
 
 static const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> PSI83_1 =
 	(Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
 	 0.2777777777777778, 1.6666666666666667, -1.2909944487358058, 8.333333333333334, 3.333333333333335, -7.745966692414834, -38.729833462074176, 20.000000000000007, 0.4444444444444444, 2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, 0.0, 0.0, -40.0, 0.2777777777777778, 1.6666666666666667, 1.2909944487358058, 8.333333333333334, 3.333333333333335, 7.745966692414834, 38.729833462074176, 20.000000000000007).finished();
 
-static const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> PSIe_w_8_3_1 =
-	(Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
-	 0.2777777777777778, 0.1388888888888889, -0.10758287072798381, 0.0462962962962963, 0.018518518518518528, -0.053791435363991905, -0.01793047845466397, 0.009259259259259264, 0.4444444444444444, 0.2222222222222222, 0.0, 0.07407407407407408, -0.037037037037037035, 0.0, 0.0, -0.018518518518518517, 0.2777777777777778, 0.1388888888888889, 0.10758287072798381, 0.0462962962962963, 0.018518518518518528, 0.053791435363991905, 0.01793047845466397, 0.009259259259259264).finished();
+template<> struct PSIe_wImpl< 8, 3, 1 >{
+static inline const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
+	 0.2777777777777778, 0.1388888888888889, -0.10758287072798381, 0.0462962962962963, 0.018518518518518528, -0.053791435363991905, -0.01793047845466397, 0.009259259259259264, 0.4444444444444444, 0.2222222222222222, 0.0, 0.07407407407407408, -0.037037037037037035, 0.0, 0.0, -0.018518518518518517, 0.2777777777777778, 0.1388888888888889, 0.10758287072798381, 0.0462962962962963, 0.018518518518518528, 0.053791435363991905, 0.01793047845466397, 0.009259259259259264).finished();};
 
 static const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> PSI83_2 =
 	(Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
 	 0.2777777777777778, -1.2909944487358058, 1.6666666666666667, 3.333333333333335, 8.333333333333334, -7.745966692414834, 20.000000000000007, -38.729833462074176, 0.4444444444444444, 0.0, 2.6666666666666665, -6.666666666666666, 13.333333333333336, 0.0, -40.0, 0.0, 0.2777777777777778, 1.2909944487358058, 1.6666666666666667, 3.333333333333335, 8.333333333333334, 7.745966692414834, 20.000000000000007, 38.729833462074176).finished();
 
-static const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> PSIe_w_8_3_2 =
-	(Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
-	 0.2777777777777778, -0.10758287072798381, 0.1388888888888889, 0.018518518518518528, 0.0462962962962963, -0.053791435363991905, 0.009259259259259264, -0.01793047845466397, 0.4444444444444444, 0.0, 0.2222222222222222, -0.037037037037037035, 0.07407407407407408, 0.0, -0.018518518518518517, 0.0, 0.2777777777777778, 0.10758287072798381, 0.1388888888888889, 0.018518518518518528, 0.0462962962962963, 0.053791435363991905, 0.009259259259259264, 0.01793047845466397).finished();
+template<> struct PSIe_wImpl< 8, 3, 2 >{
+static inline const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
+	 0.2777777777777778, -0.10758287072798381, 0.1388888888888889, 0.018518518518518528, 0.0462962962962963, -0.053791435363991905, 0.009259259259259264, -0.01793047845466397, 0.4444444444444444, 0.0, 0.2222222222222222, -0.037037037037037035, 0.07407407407407408, 0.0, -0.018518518518518517, 0.0, 0.2777777777777778, 0.10758287072798381, 0.1388888888888889, 0.018518518518518528, 0.0462962962962963, 0.053791435363991905, 0.009259259259259264, 0.01793047845466397).finished();};
 
 static const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> PSI83_3 =
 	(Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
 	 0.2777777777777778, -1.6666666666666667, -1.2909944487358058, 8.333333333333334, 3.333333333333335, 7.745966692414834, -38.729833462074176, -20.000000000000007, 0.4444444444444444, -2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, -0.0, 0.0, 40.0, 0.2777777777777778, -1.6666666666666667, 1.2909944487358058, 8.333333333333334, 3.333333333333335, -7.745966692414834, 38.729833462074176, -20.000000000000007).finished();
 
-static const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> PSIe_w_8_3_3 =
-	(Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
-	 0.2777777777777778, -0.1388888888888889, -0.10758287072798381, 0.0462962962962963, 0.018518518518518528, 0.053791435363991905, -0.01793047845466397, -0.009259259259259264, 0.4444444444444444, -0.2222222222222222, 0.0, 0.07407407407407408, -0.037037037037037035, -0.0, 0.0, 0.018518518518518517, 0.2777777777777778, -0.1388888888888889, 0.10758287072798381, 0.0462962962962963, 0.018518518518518528, -0.053791435363991905, 0.01793047845466397, -0.009259259259259264).finished();
+template<> struct PSIe_wImpl< 8, 3, 3 >{
+static inline const Eigen::Matrix<double, 3, 8, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 8, Eigen::RowMajor>() <<
+	 0.2777777777777778, -0.1388888888888889, -0.10758287072798381, 0.0462962962962963, 0.018518518518518528, 0.053791435363991905, -0.01793047845466397, -0.009259259259259264, 0.4444444444444444, -0.2222222222222222, 0.0, 0.07407407407407408, -0.037037037037037035, -0.0, 0.0, 0.018518518518518517, 0.2777777777777778, -0.1388888888888889, 0.10758287072798381, 0.0462962962962963, 0.018518518518518528, -0.053791435363991905, 0.01793047845466397, -0.009259259259259264).finished();};
+
+template<int DG, int GP, int E>
+const Eigen::Matrix<double, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;
 
 
 
@@ -352,20 +362,25 @@ static const Eigen::Matrix<double, 8, 9, Eigen::RowMajor> IBC83 =
 
 //------------------------------ Edge Basis Functions in Gauss Points
 
-static const Eigen::Matrix<double, 1, 1, Eigen::RowMajor> PSIe11 =
-	(Eigen::Matrix<double, 1, 1, Eigen::RowMajor>() <<
-	 1.0).finished();
+template<int DG, int GP>
+struct PSIeImpl;
+template<> struct PSIeImpl< 1, 1 >{
+static inline const Eigen::Matrix<double, 1, 1> value = (Eigen::Matrix<double, 1, 1>() <<
+	 1.0).finished();};
 
-static const Eigen::Matrix<double, 2, 2, Eigen::RowMajor> PSIe22 =
-	(Eigen::Matrix<double, 2, 2, Eigen::RowMajor>() <<
-	 1.0, 1.0, -0.28867513459481287, 0.28867513459481287).finished();
+template<> struct PSIeImpl< 2, 2 >{
+static inline const Eigen::Matrix<double, 2, 2, Eigen::RowMajor> value = (Eigen::Matrix<double, 2, 2, Eigen::RowMajor>() <<
+	 1.0, 1.0, -0.28867513459481287, 0.28867513459481287).finished();};
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> PSIe33 =
-	(Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() <<
-	 1.0, 1.0, 1.0, -0.3872983346207417, 0.0, 0.3872983346207417, 0.0666666666666667, -0.08333333333333333, 0.0666666666666667).finished();
+template<> struct PSIeImpl< 3, 3 >{
+static inline const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> value = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, -0.3872983346207417, 0.0, 0.3872983346207417, 0.0666666666666667, -0.08333333333333333, 0.0666666666666667).finished();};
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSIe23 =
-	(Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
-	 1.0, 1.0, 1.0, -0.3872983346207417, 0.0, 0.3872983346207417).finished();
+template<int DG, int GP>
+const Eigen::Matrix<double, DG, GP, Eigen::RowMajor> PSIe = PSIeImpl<DG, GP>::value;
+
+template<> struct PSIeImpl< 2, 3 >{
+static inline const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> value = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() <<
+	 1.0, 1.0, 1.0, -0.3872983346207417, 0.0, 0.3872983346207417).finished();};
 
 #endif /* __BASISFUNCTIONSGUASSPOINTS_HPP */

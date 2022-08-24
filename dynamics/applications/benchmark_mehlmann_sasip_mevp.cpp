@@ -34,8 +34,8 @@ bool WRITE_VTK = true;
  * CG space for stability. CG=1 -> DGstress=3, CG=2 -> DGstress -> 8
  */
 #define CG 2
-#define DGadvection 3
-#define DGstress 8
+#define DGadvection 1
+#define DGstress 3
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 namespace Nextsim {
