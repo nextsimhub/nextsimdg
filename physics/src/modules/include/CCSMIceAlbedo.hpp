@@ -26,6 +26,8 @@ public:
 
     void configure() override;
 
+    ConfigMap getConfiguration() const override;
+
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 

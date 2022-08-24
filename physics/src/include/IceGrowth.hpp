@@ -22,7 +22,6 @@ public:
     IceGrowth();
     virtual ~IceGrowth() = default;
 
-    void configure() override;
     enum {
         ICE_THERMODYNAMICS_KEY,
         LATERAL_GROWTH_KEY,
@@ -30,12 +29,15 @@ public:
         MINC_KEY,
         MINH_KEY,
     };
+    void configure() override;
+    ConfigMap getConfiguration() const override;
 
     std::string getName() const override { return "IceGrowth"; }
 
     void setData(const ModelState::DataMap&) override;
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override { return getState(); }
+    ModelState getStateRecursive(const OutputSpec& os) const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);

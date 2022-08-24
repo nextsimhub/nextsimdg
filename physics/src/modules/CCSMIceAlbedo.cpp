@@ -45,6 +45,14 @@ void CCSMIceAlbedo::configure()
     snowAlbedo = Configured::getConfiguration(snowAlbedoKey, SNOW_ALBEDO0);
 }
 
+ConfigMap CCSMIceAlbedo::getConfiguration() const
+{
+    return {
+        { iceAlbedoKey, iceAlbedo },
+        { snowAlbedoKey, snowAlbedo },
+    };
+}
+
 CCSMIceAlbedo::HelpMap& CCSMIceAlbedo::getHelpText(HelpMap& map, bool getAll)
 {
     map[pfx] = {

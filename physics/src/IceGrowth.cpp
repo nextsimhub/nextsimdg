@@ -7,7 +7,6 @@
 
 #include "include/IceGrowth.hpp"
 
-//#include "include/Module.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -66,10 +65,16 @@ ModelState IceGrowth::getState() const
                  { "cice_initial", cice0 },
                  { "hsnow_initial", hsnow0 },
              },
-        {
-            { keyMap.at(MINC_KEY), minc },
-            { keyMap.at(MINH_KEY), minh },
-        } };
+        getConfiguration()
+    };
+}
+
+ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state(getState());
+    // Merge in other states here
+    state.merge(iFluxes->getStateRecursive(os));
+    return os ? state : ModelState();
 }
 
 IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
@@ -106,6 +111,14 @@ void IceGrowth::configure()
     // Configure the flux calculation module
     iFluxes = std::move(Module::getInstance<IFluxCalculation>());
     tryConfigure(*iFluxes);
+}
+
+ConfigMap IceGrowth::getConfiguration() const
+{
+    return {
+        { keyMap.at(MINC_KEY), minc },
+        { keyMap.at(MINH_KEY), minh },
+    };
 }
 
 void IceGrowth::update(const TimestepTime& tsTime)

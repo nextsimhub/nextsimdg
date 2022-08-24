@@ -8,6 +8,7 @@
 #ifndef CONFIGURED_HPP
 #define CONFIGURED_HPP
 
+#include "include/ConfigMap.hpp"
 #include "include/Configurator.hpp"
 #include "include/ConfigurationHelp.hpp"
 
@@ -24,6 +25,8 @@ public:
     virtual ~ConfiguredBase() = default;
     //! The configuration function.
     virtual void configure() = 0;
+    //! Returns the current configuration of the object
+    virtual ConfigMap getConfiguration() const = 0;
 };
 
 /*!
@@ -40,6 +43,10 @@ public:
 
     //! The configuration function.
     virtual void configure() = 0;
+
+    //! Returns the current configuration of the object
+    // FIXME remove default implementation
+    virtual ConfigMap getConfiguration() const {return ConfigMap();}
 
     /*!
      * @brief Template function for conditionally configuring references.
@@ -65,6 +72,35 @@ public:
      * @param ptr A pointer to the class on which to attempt configuration.
      */
     template <typename T> static void tryConfigure(T* ptr);
+
+    /*!
+     * @brief Template function for conditionally retrieving class configuration
+     * via a reference.
+     *
+     * @details Pass any class to this function (or its pointer equivalent).
+     * If it is a derived class of Configured, the overridden
+     * getConfiguration() function will be called. If it is not, the function
+     * will do nothing, gracefully, and return an empty ConfigMap.
+     *
+     * @param ref A reference to the class for which to attempt to retrieve the
+     *      configuration.
+     */
+    template <typename T> static ConfigMap tryGetConfiguration(T& ref);
+
+    /*!
+     * @brief Template function for conditionally retrieving class configuration
+     * via a pointer.
+     *
+     * @details Pass any class pointer to this function (or its reference
+     * equivalent). If it is a derived class of Configured, the overridden
+     * getConfiguration() function will be called. If it is not, the function
+     * will do nothing, gracefully and return an empty ConfigMap.
+     *
+     * @param ptr A pointer to the class for which to attempt to retrieve the
+     *      configuration.
+     */
+    template <typename T> static ConfigMap tryGetConfiguration(T* ptr);
+
 
     /*!
      * @brief Gets the value of the configuration with a given name from the
@@ -183,6 +219,47 @@ template <typename C> template <typename T> void Configured<C>::tryConfigure(T* 
         cfg->configure();
 }
 
+/*!
+ * @brief Template function for conditionally retrieving class configuration
+ * via a reference.
+ *
+ * @details Pass any class to this function (or its pointer equivalent).
+ * If it is a derived class of Configured, the overridden
+ * getConfiguration() function will be called. If it is not, the function
+ * will do nothing, gracefully, and return an empty ConfigMap.
+ *
+ * @param ref A reference to the class for which to attempt to retrieve the
+ *      configuration.
+ */
+template <typename C> template <typename T> ConfigMap Configured<C>::tryGetConfiguration(T& ref)
+{
+    try {
+        return dynamic_cast<ConfiguredBase&>(ref).getConfiguration();
+    } catch (const std::bad_cast& bc) {
+        return ConfigMap();
+    }
+}
+
+/*!
+ * @brief Template function for conditionally retrieving class configuration
+ * via a pointer.
+ *
+ * @details Pass any class pointer to this function (or its reference
+ * equivalent). If it is a derived class of Configured, the overridden
+ * getConfiguration() function will be called. If it is not, the function
+ * will do nothing, gracefully and return an empty ConfigMap.
+ *
+ * @param ptr A pointer to the class for which to attempt to retrieve the
+ *      configuration.
+ */
+template <typename C> template <typename T> ConfigMap Configured<C>::tryGetConfiguration(T* ptr)
+{
+    ConfiguredBase* cfg = dynamic_cast<ConfiguredBase*>(ptr);
+    if (cfg)
+        return cfg->getConfiguration();
+    else
+        return ConfigMap();
+}
 /*!
  * @brief Template function for conditionally configuring references.
  *

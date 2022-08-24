@@ -82,9 +82,9 @@ ModelState PrognosticData::getState() const
 
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
-    ModelState otherState = iceGrowth.getState();
-    otherState.data.merge(getState().data);
-    return os ? otherState : ModelState();
+    ModelState state(getState());
+    state.merge(iceGrowth.getStateRecursive(os));
+    return os ? state : ModelState();
 }
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }

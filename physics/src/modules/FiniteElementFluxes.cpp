@@ -74,8 +74,20 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
     dshice_dT.resize();
 }
 
-ModelState FiniteElementFluxes::getState() const { return ModelState(); }
+ModelState FiniteElementFluxes::getState() const
+{
+    return {
+        {},
+        tryGetConfiguration(iIceAlbedoImpl)
+    };
+}
+
 ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
+
+ModelState FiniteElementFluxes::getStateRecursive(const OutputSpec& os) const {
+    ModelState state(getState());
+    return os ? state : ModelState();
+}
 
 FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, bool getAll)
 {
@@ -228,6 +240,13 @@ void FiniteElementFluxCalc::setData(const ModelState::DataMap& ms)
 
 ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }
 ModelState FiniteElementFluxCalc::getState(const OutputLevel&) const { return getState(); }
+ModelState FiniteElementFluxCalc::getStateRecursive(const OutputSpec& os) const {
+    ModelState state(getState());
+    state.merge(aoState.getStateRecursive(os));
+    state.merge(fef->getStateRecursive(os));
+    state.merge(iceOceanHeatFluxImpl->getStateRecursive(os));
+    return os ? state : ModelState();
+}
 
 void FiniteElementFluxCalc::update(const TimestepTime& tst)
 {

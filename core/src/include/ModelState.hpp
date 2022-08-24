@@ -24,6 +24,16 @@ public:
 
     DataMap data;
     ConfigMap config;
+
+    inline void merge(ModelState& source) {
+        data.merge(source.data);
+        config.merge(source.config);
+    }
+
+    inline void merge(ModelState&& source) {
+        data.merge(source.data);
+        config.merge(source.config);
+    }
 };
 
 } /* namespace Nextsim */
