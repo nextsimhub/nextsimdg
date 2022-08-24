@@ -225,9 +225,9 @@ void cell_term(const SasipMesh& smesh, double dt,
     const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = ParametricTools::dyT<3>(smesh, eid);
 
     // [J dT^{-T} nabla phi]_1
-    phiup.row(eid) += dt * ((PSIx_3_3.array().rowwise() * dyT.row(1).array() - PSIy_3_3.array().rowwise() * dxT.row(1).array()).rowwise() * vx_gauss.array()
+    phiup.row(eid) += dt * ((PSIx<3,3>.array().rowwise() * dyT.row(1).array() - PSIy<3,3>.array().rowwise() * dxT.row(1).array()).rowwise() * vx_gauss.array()
                           // [J dT^{-T} nabla phi]_2
-                          + (PSIy_3_3.array().rowwise() * dxT.row(0).array() - PSIx_3_3.array().rowwise() * dyT.row(0).array()).rowwise() * vy_gauss.array())
+                          + (PSIy<3,3>.array().rowwise() * dxT.row(0).array() - PSIx<3,3>.array().rowwise() * dyT.row(0).array()).rowwise() * vy_gauss.array())
                                .matrix()
         * phi_gauss.transpose();
 
@@ -280,9 +280,9 @@ void cell_term(const SasipMesh& smesh, double dt,
     const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = ParametricTools::dyT<3>(smesh, eid);
 
     // [J dT^{-T} nabla phi]_1
-    phiup.row(eid) += dt * ((PSIx_6_3.array().rowwise() * dyT.row(1).array() - PSIy_6_3.array().rowwise() * dxT.row(1).array()).rowwise() * vx_gauss.array()
+    phiup.row(eid) += dt * ((PSIx<6,3>.array().rowwise() * dyT.row(1).array() - PSIy<6,3>.array().rowwise() * dxT.row(1).array()).rowwise() * vx_gauss.array()
                           // [J dT^{-T} nabla phi]_2
-                          + (PSIy_6_3.array().rowwise() * dxT.row(0).array() - PSIx_6_3.array().rowwise() * dyT.row(0).array()).rowwise() * vy_gauss.array())
+                          + (PSIy<6,3>.array().rowwise() * dxT.row(0).array() - PSIx<6,3>.array().rowwise() * dyT.row(0).array()).rowwise() * vy_gauss.array())
                                .matrix()
         * phi_gauss.transpose();
 

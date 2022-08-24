@@ -103,17 +103,12 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
 # g   : Gauss points in each direction (2,3). lower left to upper right, y/x
 def basisfunctions_in_gausspoints_cell(d, g):
 
-
     # print header
     print('template<> struct PSIImpl< {0}, {1} >{{'.format(d, g))
     if g>1:
         print('static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
-#        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSI{2}{3} ='.format(d,g*g,d,g))
-#        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
     else:
         print('static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
-#        print('static const Eigen::Matrix<double, {0}, {1}> PSI{2}{3} ='.format(d,g*g,d,g))
-#        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
     print('\t',end=' ')
     for dp in range(d):
         for gy in range(g):
@@ -136,12 +131,11 @@ def basisfunctions_in_gausspoints_cell(d, g):
 def basisfunctions_in_gausspoints_cell_gradient(d, g):
 
     # print header
+    print('template<> struct PSIxImpl< {0}, {1} >{{'.format(d, g))
     if g>1:
-        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSIx_{2}_{3} ='.format(d,g*g,d,g))
-        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
+        print('static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
     else:
-        print('static const Eigen::Matrix<double, {0}, {1}> PSIx_{2}_{3} ='.format(d,g*g,d,g))
-        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
+        print('static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
     print('\t',end=' ')
     for dp in range(d):
         for gy in range(g):
@@ -151,15 +145,14 @@ def basisfunctions_in_gausspoints_cell_gradient(d, g):
                 if (gx<g-1 or gy<g-1 or dp<d-1):
                     print(', ',end='')
                 else:
-                    print(').finished();')
+                    print(').finished();};')
 
     # print header
+    print('template<> struct PSIyImpl< {0}, {1} >{{'.format(d, g))
     if g>1:
-        print('static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSIy_{2}_{3} ='.format(d,g*g,d,g))
-        print('\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
+        print('static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<'.format(d,g*g))
     else:
-        print('static const Eigen::Matrix<double, {0}, {1}> PSIy_{2}_{3} ='.format(d,g*g,d,g))
-        print('\t(Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
+        print('static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<'.format(d,g*g))
     print('\t',end=' ')
     for dp in range(d):
         for gy in range(g):
@@ -169,7 +162,7 @@ def basisfunctions_in_gausspoints_cell_gradient(d, g):
                 if (gx<g-1 or gy<g-1 or dp<d-1):
                     print(', ',end='')
                 else:
-                    print(').finished();')
+                    print(').finished();};')
                     
 #
 # evaluate edge basis functions in the quadrature points
@@ -311,23 +304,30 @@ print('\n\n//------------------------------ Basis Functions in Gauss Points (cel
 
 print('template<int DG, int GP>')
 print('struct PSIImpl;')
-
 for dg in [1, 3,6,8]:
     basisfunctions_in_gausspoints_cell(dg,1)
     basisfunctions_in_gausspoints_cell(dg,2)
     basisfunctions_in_gausspoints_cell(dg,3)
-
 print('template<int DG, int GP>')
-print('const Eigen::Matrix<double, DG, GP, Eigen::RowMajor> PSI = PSIImpl<DG, GP>::value;')
-
+print('const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSI = PSIImpl<DG, GP>::value;')
+print('')
 
 
     
-    
+print('template<int DG, int GP>')
+print('struct PSIxImpl;')
+print('template<int DG, int GP>')
+print('struct PSIyImpl;')    
 for dg in [1, 3,6,8]:
     basisfunctions_in_gausspoints_cell_gradient(dg,1)
     basisfunctions_in_gausspoints_cell_gradient(dg,2)
     basisfunctions_in_gausspoints_cell_gradient(dg,3)
+print('template<int DG, int GP>')
+print('const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSIx = PSIxImpl<DG, GP>::value;')
+print('template<int DG, int GP>')
+print('const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSIy = PSIyImpl<DG, GP>::value;')
+print('')
+
     
 
 for dg in [1,3,6,8]:
