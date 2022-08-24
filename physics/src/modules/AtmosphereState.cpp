@@ -51,6 +51,11 @@ ModelState AtmosphereState::getState() const
 }
 
 ModelState AtmosphereState::getState(const OutputLevel& lvl) const { return getState(); }
+ModelState AtmosphereState::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state(getState());
+    return os ? state : ModelState();
+}
 
 std::string AtmosphereState::getName() const { return "AtmosphereState"; }
 

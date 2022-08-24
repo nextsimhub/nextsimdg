@@ -50,6 +50,12 @@ ModelState OceanState::getState() const
 
 ModelState OceanState::getState(const OutputLevel& lvl) const { return getState(); }
 
+ModelState OceanState::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state(getState());
+    return os ? state : ModelState();
+}
+
 std::string OceanState::getName() const { return "OceanState"; }
 
 std::unordered_set<std::string> OceanState::hFields() const

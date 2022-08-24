@@ -28,6 +28,14 @@ ModelState AtmosphereOceanState::getState() const
     }, {}};
 }
 ModelState AtmosphereOceanState::getState(const OutputLevel&) const { return getState(); }
+ModelState AtmosphereOceanState::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state(getState());
+    state.merge(atmosStateImpl->getStateRecursive(os));
+    state.merge(oceanStateImpl->getStateRecursive(os));
+    return state;
+}
+
 std::string AtmosphereOceanState::getName() const { return "AtmosphereOceanState"; }
 std::unordered_set<std::string> AtmosphereOceanState::hFields() const
 {
