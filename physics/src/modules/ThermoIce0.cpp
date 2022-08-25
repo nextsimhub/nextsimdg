@@ -41,6 +41,15 @@ const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
 
 void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault); }
 
+ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state = { {}, {
+            {keyMap.at(KS_KEY), k_s},
+    }
+    };
+    return os ? state : ModelState();
+}
+
 ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
 {
     map["ThermoIce0"] = {

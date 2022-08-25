@@ -20,6 +20,13 @@ void MissingData::configure()
     m_value = Configured::getConfiguration(keyMap.at(MissingData::MISSINGVALUE_KEY), missingDefault);
 }
 
+ConfigMap MissingData::getConfig()
+{
+    return {
+            {keyMap.at(MISSINGVALUE_KEY), m_value},
+    };
+}
+
 MissingData::HelpMap& MissingData::getHelpText(HelpMap& map, bool getAll)
 {
     map["MissingData"] = {

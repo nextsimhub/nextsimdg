@@ -27,6 +27,18 @@ void HiblerSpread::configure()
     phiM = Configured::getConfiguration(keyMap.at(PHIM_KEY), phimDefault);
 }
 
+ModelState HiblerSpread::getStateRecursive(const OutputSpec& os) const
+{
+    return {
+        {},
+        {
+                {keyMap.at(H0_KEY), h0},
+                {keyMap.at(PHIM_KEY), phiM},
+        }
+    };
+}
+
+
 HiblerSpread::HelpMap& HiblerSpread::getHelpText(HelpMap& map, bool getAll)
 {
     map["HiblerSpread"] = {

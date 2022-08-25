@@ -74,6 +74,8 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
     ModelState state(getState());
     // Merge in other states here
     state.merge(iFluxes->getStateRecursive(os));
+    state.merge(iLateral->getStateRecursive(os));
+    state.merge(iVertical->getStateRecursive(os));
     return os ? state : ModelState();
 }
 
