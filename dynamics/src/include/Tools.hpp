@@ -71,28 +71,38 @@ namespace Tools {
                                                               + 1.50 * e11_gauss.array() * e22_gauss.array()
                                                               + e12_gauss.array().square())
                                                               .sqrt()
+                                                              .log10()
                 * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array();
             DELTA.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse() * (PSI<S2A(DGs), NGP> * delta_gauss.transpose());
         }
 
 #undef NGP
+
         return DELTA;
     }
-#undef S2A
-
-    template <int DGstress>
-    CellVector<1> Shear(const ParametricMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22)
+    template <int DGs>
+    CellVector<S2A(DGs)> Shear(const ParametricMesh& smesh, const CellVector<DGs>& E11, const CellVector<DGs>& E12,
+        const CellVector<DGs>& E22)
     {
-        CellVector<1> SHEAR(smesh);
+        CellVector<S2A(DGs)> SHEAR(smesh);
 
+#define NGP 3
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
-            SHEAR(i, 0) = sqrt((SQR(E11(i, 0) - E22(i, 0)) + 4.0 * SQR(E12(i, 0))));
+
+            const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
+            const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
+            const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
+
+            SHEAR.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse() * (PSI<S2A(DGs), NGP> * (((e11_gauss.array() - e22_gauss.array()).square() + 4.0 * e12_gauss.array().square()).sqrt().log10() * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array()).matrix().transpose());
         }
+
+#undef NGP
 
         return SHEAR;
     }
+
+#undef S2A
 
     template <int DGstress, int DGtracer>
     void TensorInvariants(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,

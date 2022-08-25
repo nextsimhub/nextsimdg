@@ -21,6 +21,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -122,28 +123,35 @@ void run_benchmark(const std::string meshfile)
     //! Define the spatial mesh
     Nextsim::ParametricMesh smesh;
     smesh.readmesh(meshfile);
+    size_t NX = smesh.nx;
+
+    //! Compose name of output directory and create it
+    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
+        + "__" + std::to_string(NX);
+    std::filesystem::create_directory(resultsdir);
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
 
     //! define the time mesh
-    constexpr double dt_adv = 60.0; //!< Time step of advection problem
+    constexpr double dt_adv = 120.0; //!< Time step of advection problem
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 800.0;
-    constexpr double beta = 800.0;
-    constexpr size_t NT_evp = 200;
+    constexpr double alpha = 1500.0;
+    constexpr double beta = 1500.0;
+    constexpr size_t NT_evp = 100;
 
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
-              << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
+              << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta << std::endl
+              << "CG/DG/DGstress " << CG << "\t" << DGadvection << "\t" << DGstress
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 1.0 * 60.0 * 60.0; // only at end
+    constexpr double T_vtk = 48. * 60.0 * 60.0; // only at end
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -168,10 +176,10 @@ void run_benchmark(const std::string meshfile)
     Nextsim::GlobalTimer.start("time loop - i/o");
     if (0) // write initial?
         if (WRITE_VTK) {
-            Nextsim::VTK::write_cg_velocity("ResultsBenchmarkParametricMesh/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-            Nextsim::VTK::write_dg("ResultsBenchmarkParametricMesh/A", 0, A, smesh);
-            Nextsim::VTK::write_dg("ResultsBenchmarkParametricMesh/H", 0, H, smesh);
-            Nextsim::VTK::write_dg("ResultsBenchmarkParametricMesh/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+            Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/A", 0, A, smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/H", 0, H, smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
         }
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
@@ -231,11 +239,11 @@ void run_benchmark(const std::string meshfile)
 
                 int printstep = timestep / NT_vtk + 1.e-4;
                 Nextsim::GlobalTimer.start("time loop - i/o");
-                Nextsim::VTK::write_cg_velocity("ResultsBenchmarkParametricMesh/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMesh/A", printstep, A, smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMesh/H", printstep, H, smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMesh/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMesh/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+                Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }
@@ -247,5 +255,20 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    run_benchmark<2, 6, 8>("../ParametricMesh/distortedrectangle_128x128.smesh");
+    std::vector<std::string> meshes;
+    meshes.push_back("../ParametricMesh/distortedrectangle_16x16.smesh");
+    meshes.push_back("../ParametricMesh/distortedrectangle_32x32.smesh");
+    meshes.push_back("../ParametricMesh/distortedrectangle_64x64.smesh");
+    meshes.push_back("../ParametricMesh/distortedrectangle_128x128.smesh");
+    meshes.push_back("../ParametricMesh/distortedrectangle_256x256.smesh");
+    meshes.push_back("../ParametricMesh/distortedrectangle_512x512.smesh");
+
+    for (const auto& it : meshes) {
+        run_benchmark<1, 1, 3>(it);
+        run_benchmark<1, 3, 3>(it);
+        run_benchmark<1, 6, 3>(it);
+        run_benchmark<2, 1, 8>(it);
+        run_benchmark<2, 3, 8>(it);
+        run_benchmark<2, 6, 8>(it);
+    }
 }
