@@ -61,7 +61,6 @@ void CGParametricMomentum<CG, DGstress>::ProjectCGVelocityToDGStrain()
                 const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> DY_VX_g = PHIy<CG, (CG == 2 ? 3 : 2)>.transpose() * vx_local;
                 const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> DX_VY_g = PHIx<CG, (CG == 2 ? 3 : 2)>.transpose() * vy_local;
                 const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> DY_VY_g = PHIy<CG, (CG == 2 ? 3 : 2)>.transpose() * vy_local;
-
                 const Eigen::Matrix<Nextsim::FloatType, 2, (CG == 2 ? 9 : 4)> dxT = (ParametricTools::dxT<(CG == 2 ? 3 : 2)>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<(CG == 2 ? 3 : 2)>.array()).matrix();
                 const Eigen::Matrix<Nextsim::FloatType, 2, (CG == 2 ? 9 : 4)> dyT = (ParametricTools::dyT<(CG == 2 ? 3 : 2)>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<(CG == 2 ? 3 : 2)>.array()).matrix();
 
@@ -134,6 +133,7 @@ void CGParametricMomentum<CG, DGstress>::AddStressTensor(const double scale, CGV
             }
         }
 }
+
 template <int CG, int DGstress>
 void CGParametricMomentum<CG, DGstress>::DirichletZero(CGVector<CG>& v)
 {

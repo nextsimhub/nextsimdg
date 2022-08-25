@@ -115,6 +115,10 @@ public:
     const CellVector<DGstress> GetE12() const { return E12; }
     const CellVector<DGstress> GetE22() const { return E22; }
 
+    const CellVector<DGstress> GetS11() const { return S11; }
+    const CellVector<DGstress> GetS12() const { return S12; }
+    const CellVector<DGstress> GetS22() const { return S22; }
+
     // High level Functions
 
     //! performs one complete mEVP cycle with NT_evp subiterations

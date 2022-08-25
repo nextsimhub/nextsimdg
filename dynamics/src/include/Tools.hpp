@@ -93,17 +93,30 @@ namespace Tools {
     }
 
     template <int DGstress>
-    void TensorInvariants(const Mesh& mesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, CellVector<DGstress>& Inv1, CellVector<DGstress>& Inv2)
+    CellVector<DGstress> TensorInvI(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+        const CellVector<DGstress>& E22)
     {
+        CellVector<DGstress> Invariant(smesh);
 
 #pragma omp parallel for
-        for (size_t i = 0; i < mesh.n; ++i) {
-            // \dot E_I
-            Inv1.row(i) = 0.5 * (E11.row(i) + E22.row(i));
-            // \dot E_II
-            Inv2.row(i) = ((0.5 * (E11.row(i) - E22.row(i))).array().pow(2) + E12.row(i).array().pow(2)).sqrt();
+        for (size_t i = 0; i < smesh.nelements; ++i) {
+            Invariant.row(i) = 0.5 * (E11.row(i) + E22.row(i));
         }
+
+        return Invariant;
+    }
+
+    template <int DGstress>
+    CellVector<DGstress> TensorInvII(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+        const CellVector<DGstress>& E22)
+    {
+        CellVector<DGstress> Invariant(smesh);
+
+#pragma omp parallel for
+        for (size_t i = 0; i < smesh.nelements; ++i) {
+            Invariant.row(i) = ((0.5 * (E11.row(i) - E22.row(i))).array().pow(2) + E12.row(i).array().pow(2)).sqrt();
+        }
+        return Invariant;
     }
 
     template <int DGstress, int DGtracer>

@@ -132,6 +132,7 @@ int main()
     Nextsim::SasipMesh smesh;
     smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
     smesh.readmesh("../SasipMesh/rectangle_128x128.smesh");
+    smesh.readmesh("../SasipMesh/rectangle_64x64.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
@@ -143,17 +144,18 @@ int main()
     //! MEVP parameters
     constexpr double alpha = 800.0;
     constexpr double beta = 800.0;
-    constexpr size_t NT_evp = 200;
+    constexpr size_t NT_evp = 100; // 200
 
     //! Rheology-Parameters
     Nextsim::MEBParameters VP;
+    // Nextsim::VPParameters VP;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 4.0 * 60.0 * 60.0; // every 4 hours
+    constexpr double T_vtk = 1. * 60.0 * 60.0; // every 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -181,7 +183,14 @@ int main()
     Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/A", 0, A, smesh);
     Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/H", 0, H, smesh);
     Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/D", 0, D, smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/S11", 0, momentum.GetS11(), smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/S12", 0, momentum.GetS12(), smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/S22", 0, momentum.GetS22(), smesh);
     Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/sigma_n", 0,
+        Nextsim::Tools::TensorInvI(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
+    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/tau", 0,
+        Nextsim::Tools::TensorInvII(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
@@ -235,7 +244,9 @@ int main()
         Nextsim::GlobalTimer.start("time loop - mevp");
         // momentum.mEVPIteration(VP, NT_evp, alpha, beta, dt_adv, H, A);
         momentum.MEBIteration(VP, NT_evp, dt_adv, H, A, D);
+        // std::cout << momentum.GetS11() << std::endl;
         Nextsim::GlobalTimer.stop("time loop - mevp");
+        // abort();
 
         //////////////////////////////////////////////////
         if (WRITE_VTK) // Output
@@ -248,8 +259,15 @@ int main()
                 Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/A", printstep, A, smesh);
                 Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/H", printstep, H, smesh);
                 Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/D", printstep, D, smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/S11", printstep, momentum.GetS11(), smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/S12", printstep, momentum.GetS12(), smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/S22", printstep, momentum.GetS22(), smesh);
                 Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
                 Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/sigma_n", printstep,
+                    Nextsim::Tools::TensorInvI(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
+                Nextsim::VTK::write_dg("ResultsBenchmarkSasipMeshMEB/tau", printstep,
+                    Nextsim::Tools::TensorInvII(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }
