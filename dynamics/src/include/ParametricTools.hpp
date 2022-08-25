@@ -24,8 +24,10 @@ namespace Nextsim {
 
 #define CGDOFS(Q) ((Q == 1) ? 4 : 9)
 
-#define GAUSSPOINTS(Q) ((Q == 8) ? 9 : (Q == 3) ? 4 :-1)
-#define GAUSSPOINTS1D(Q) ((Q == 8) ? 3 : (Q==3) ?2 : -1)
+#define GAUSSPOINTS(Q) ((Q == 8) ? 9 : (Q == 3) ? 4 \
+                                                : -1)
+#define GAUSSPOINTS1D(Q) ((Q == 8) ? 3 : (Q == 3) ? 2 \
+                                                  : -1)
 
 /*!
  * This class stores precomputed values (matrices in each mesh element)
@@ -190,7 +192,7 @@ namespace ParametricTools {
     template <>
     inline Eigen::Matrix<Nextsim::FloatType, 3, 3> massMatrix(const SasipMesh& smesh, const size_t eid)
     {
-      return (PSI<3,2>.array().rowwise() * (GAUSSWEIGHTS<2>.array() * J<2>(smesh, eid).array())).matrix() * PSI<3,2>.transpose();
+        return (PSI<3, 2>.array().rowwise() * (GAUSSWEIGHTS<2>.array() * J<2>(smesh, eid).array())).matrix() * PSI<3, 2>.transpose();
 
         // mit 1 GP. Reicht das???
         // return (PSI31.array().rowwise() * (GAUSSWEIGHTS_1.array() * J<1>(smesh,eid).array())).matrix() * PSI31.transpose();
@@ -198,12 +200,12 @@ namespace ParametricTools {
     template <>
     inline Eigen::Matrix<Nextsim::FloatType, 6, 6> massMatrix(const SasipMesh& smesh, const size_t eid)
     {
-      return (PSI<6,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array())).matrix() * PSI<6,3>.transpose();
+        return (PSI<6, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array())).matrix() * PSI<6, 3>.transpose();
     }
     template <>
     inline Eigen::Matrix<Nextsim::FloatType, 8, 8> massMatrix(const SasipMesh& smesh, const size_t eid)
     {
-      return (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array())).matrix() * PSI<8,3>.transpose();
+        return (PSI<8, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array())).matrix() * PSI<8, 3>.transpose();
     }
 
     /*!

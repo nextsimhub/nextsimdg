@@ -48,7 +48,7 @@ inline constexpr double SQR(double x) { return x * x; }
 //! Description of the problem data, wind & ocean fields
 
 namespace ReferenceScale {
-constexpr double T = .20 * 24 * 60. * 60.; //!< Time horizon 2 days
+constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -145,7 +145,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 4.0 * 60.0 * 60.0; // every 4 hours
+    constexpr double T_vtk = 48.0 * 60.0 * 60.0; // only at end
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -168,10 +168,13 @@ int main()
 
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
-    Nextsim::VTK::write_cg_velocity("ResultsBenchmarkSasipMesh/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/A", 0, A, smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/H", 0, H, smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+    if (0) // write initial?
+        if (WRITE_VTK) {
+            Nextsim::VTK::write_cg_velocity("ResultsBenchmarkSasipMesh/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
+            Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/A", 0, A, smesh);
+            Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/H", 0, H, smesh);
+            Nextsim::VTK::write_dg("ResultsBenchmarkSasipMesh/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+        }
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport

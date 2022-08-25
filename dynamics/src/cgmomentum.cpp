@@ -539,9 +539,9 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVecto
 
             const Eigen::Matrix<Nextsim::FloatType, 8, 8> imass = ParametricTools::massMatrix<8>(smesh, dgi).inverse();
 
-            E11.row(dgi) = imass * (PSI<8,3> * J_dx_vx_g.transpose());
-            E22.row(dgi) = imass * (PSI<8,3> * J_dy_vy_g.transpose());
-            E12.row(dgi) = 0.5 * imass * (PSI<8,3> * (J_dx_vy_g.transpose() + J_dy_vx_g.transpose()));
+            E11.row(dgi) = imass * (PSI<8, 3> * J_dx_vx_g.transpose());
+            E22.row(dgi) = imass * (PSI<8, 3> * J_dy_vy_g.transpose());
+            E12.row(dgi) = 0.5 * imass * (PSI<8, 3> * (J_dx_vy_g.transpose() + J_dy_vx_g.transpose()));
         }
     }
 }

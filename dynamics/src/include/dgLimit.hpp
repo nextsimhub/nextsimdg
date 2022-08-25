@@ -40,7 +40,7 @@ void LimitMax(CellVector<6>& dg, double max)
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::min(max, dg(i, 0));
 
-        LocalCellVector<9> dgingauss = dg.block<1, 6>(i, 0) * PSI<6,3>;
+        LocalCellVector<9> dgingauss = dg.block<1, 6>(i, 0) * PSI<6, 3>;
         const double l0 = dgingauss.maxCoeff() - dg(i, 0);
         if (l0 > max - dg(i, 0)) {
             dg.block<1, 5>(i, 1) *= (max - dg(i, 0)) / l0;
@@ -90,7 +90,7 @@ void LimitMin(CellVector<6>& dg, double min)
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::max(min, dg(i, 0));
 
-        LocalCellVector<9> dgingauss = dg.block<1, 6>(i, 0) * PSI<6,3>;
+        LocalCellVector<9> dgingauss = dg.block<1, 6>(i, 0) * PSI<6, 3>;
         const double l0 = dgingauss.minCoeff() - dg(i, 0);
         if (l0 < min - dg(i, 0)) {
             dg.block<1, 5>(i, 1) *= (min - dg(i, 0)) / l0;

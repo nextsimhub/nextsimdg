@@ -471,17 +471,17 @@ namespace MEB {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-            const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).matrix();
-            const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
-            const Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
+            const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).matrix();
+            const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).min(1.0).matrix();
+            const Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).min(1.0).matrix();
 
-            const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8,3>;
-            const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8,3>;
-            const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8,3>;
+            const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8, 3>;
+            const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8, 3>;
+            const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8, 3>;
 
-            Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 8>(i, 0) * PSI<8,3>;
-            Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 8>(i, 0) * PSI<8,3>;
-            Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 8>(i, 0) * PSI<8,3>;
+            Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 8>(i, 0) * PSI<8, 3>;
+            Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 8>(i, 0) * PSI<8, 3>;
+            Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 8>(i, 0) * PSI<8, 3>;
 
             const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
@@ -524,7 +524,7 @@ namespace MEB {
             // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
             // with the gauss weights and with J. This is a 8 x 9 matrix
             const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
-                * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
+                * (PSI<8, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
             S11.row(i) += imass_psi * (dt_mom * 1. / (1. + vpparameters.nu0) * (elasticity.array() * e11_gauss.array())).matrix().transpose()
                 + imass_psi * (dt_mom * Dunit_factor * vpparameters.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix().transpose();
@@ -555,9 +555,9 @@ namespace MEB {
             //! - Estimates the level of damage from the updated internal stress and the local
             //! damage criterion
             //======================================================================
-            s11_gauss = S11.block<1, 8>(i, 0) * PSI<8,3>;
-            s12_gauss = S12.block<1, 8>(i, 0) * PSI<8,3>;
-            s22_gauss = S22.block<1, 8>(i, 0) * PSI<8,3>;
+            s11_gauss = S11.block<1, 8>(i, 0) * PSI<8, 3>;
+            s12_gauss = S12.block<1, 8>(i, 0) * PSI<8, 3>;
+            s22_gauss = S22.block<1, 8>(i, 0) * PSI<8, 3>;
 
             sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
             const Eigen::Matrix<double, 1, 9> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
@@ -590,7 +590,7 @@ namespace MEB {
             // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
 
             const Eigen::Matrix<Nextsim::FloatType, 3, 9> imass_psi2 = ParametricTools::massMatrix<3>(smesh, i).inverse()
-                * (PSI<3,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
+                * (PSI<3, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
             D.row(i) += imass_psi2 * (((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / RefScaleCanada::damage_timescale).matrix().transpose());
 

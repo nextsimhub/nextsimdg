@@ -4,6 +4,11 @@
 ################################################## CMAKE options
 cmake_minimum_required(VERSION 3.1.0)
 project(NextsimDG CXX)
+set(DEFAULT_BUILD_CPU_PROFILER ON)
+set(DEFAULT_BUILD_HEAP_PROFILER ON)
+set(DEFAULT_BUILD_HEAP_CHECKER ON)
+set(DEFAULT_BUILD_DEBUGALLOC ON)
+set(DEFAULT_BUILD_MINIMAL OFF)
 
 
 ################################################## C++ Options
@@ -104,3 +109,5 @@ add_subdirectory(tests)
 
 ################################################## Compile larger application examples
 add_subdirectory(applications)
+
+

@@ -79,12 +79,12 @@ namespace mEVP {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-            const LocalEdgeVector<9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).matrix();
-            const LocalEdgeVector<9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
+            const LocalEdgeVector<9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).matrix();
+            const LocalEdgeVector<9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<9> e11_gauss = E11.block<1, 6>(i, 0) * PSI<6,3>;
-            const LocalEdgeVector<9> e12_gauss = E12.block<1, 6>(i, 0) * PSI<6,3>;
-            const LocalEdgeVector<9> e22_gauss = E22.block<1, 6>(i, 0) * PSI<6,3>;
+            const LocalEdgeVector<9> e11_gauss = E11.block<1, 6>(i, 0) * PSI<6, 3>;
+            const LocalEdgeVector<9> e12_gauss = E12.block<1, 6>(i, 0) * PSI<6, 3>;
+            const LocalEdgeVector<9> e22_gauss = E22.block<1, 6>(i, 0) * PSI<6, 3>;
 
             const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
@@ -150,12 +150,12 @@ namespace mEVP {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-            const LocalEdgeVector<9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).matrix();
-            const LocalEdgeVector<9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
+            const LocalEdgeVector<9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).matrix();
+            const LocalEdgeVector<9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<9> e11_gauss = E11.block<1, 3>(i, 0) * PSI<3,3>;
-            const LocalEdgeVector<9> e12_gauss = E12.block<1, 3>(i, 0) * PSI<3,3>;
-            const LocalEdgeVector<9> e22_gauss = E22.block<1, 3>(i, 0) * PSI<3,3>;
+            const LocalEdgeVector<9> e11_gauss = E11.block<1, 3>(i, 0) * PSI<3, 3>;
+            const LocalEdgeVector<9> e12_gauss = E12.block<1, 3>(i, 0) * PSI<3, 3>;
+            const LocalEdgeVector<9> e22_gauss = E22.block<1, 3>(i, 0) * PSI<3, 3>;
 
             const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
@@ -222,12 +222,12 @@ namespace mEVP {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG???, less points???
 
-            const LocalEdgeVector<9> h_gauss = (H(i, 0) * PSI<1,3>).array().max(0.0).matrix();
-            const LocalEdgeVector<9> a_gauss = (A(i, 0) * PSI<1,3>).array().max(0.0).min(1.0).matrix();
+            const LocalEdgeVector<9> h_gauss = (H(i, 0) * PSI<1, 3>).array().max(0.0).matrix();
+            const LocalEdgeVector<9> a_gauss = (A(i, 0) * PSI<1, 3>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<9> e11_gauss = E11.block<1, 3>(i, 0) * PSI<3,3>;
-            const LocalEdgeVector<9> e12_gauss = E12.block<1, 3>(i, 0) * PSI<3,3>;
-            const LocalEdgeVector<9> e22_gauss = E22.block<1, 3>(i, 0) * PSI<3,3>;
+            const LocalEdgeVector<9> e11_gauss = E11.block<1, 3>(i, 0) * PSI<3, 3>;
+            const LocalEdgeVector<9> e12_gauss = E12.block<1, 3>(i, 0) * PSI<3, 3>;
+            const LocalEdgeVector<9> e22_gauss = E22.block<1, 3>(i, 0) * PSI<3, 3>;
 
             const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
@@ -294,8 +294,8 @@ namespace mEVP {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-            const LocalEdgeVector<9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).matrix();
-            const LocalEdgeVector<9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
+            const LocalEdgeVector<9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).matrix();
+            const LocalEdgeVector<9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).min(1.0).matrix();
 
             LocalEdgeVector<9> ones;
             ones << 1., 1., 1., 1., 1., 1., 1., 1., 1.;
@@ -368,12 +368,12 @@ namespace mEVP {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-            const LocalEdgeVector<9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).matrix();
-            const LocalEdgeVector<9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
+            const LocalEdgeVector<9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).matrix();
+            const LocalEdgeVector<9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3, 3>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8,3>;
-            const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8,3>;
-            const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8,3>;
+            const LocalEdgeVector<9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8, 3>;
+            const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8, 3>;
+            const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8, 3>;
 
             const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
@@ -442,12 +442,12 @@ namespace mEVP {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-            const LocalEdgeVector<9> h_gauss = (H.block<1, 6>(i, 0) * PSI<6,3>).array().max(0.0).matrix();
-            const LocalEdgeVector<9> a_gauss = (A.block<1, 6>(i, 0) * PSI<6,3>).array().max(0.0).min(1.0).matrix();
+            const LocalEdgeVector<9> h_gauss = (H.block<1, 6>(i, 0) * PSI<6, 3>).array().max(0.0).matrix();
+            const LocalEdgeVector<9> a_gauss = (A.block<1, 6>(i, 0) * PSI<6, 3>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8,3>;
-            const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8,3>;
-            const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8,3>;
+            const LocalEdgeVector<9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8, 3>;
+            const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8, 3>;
+            const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8, 3>;
 
             const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
@@ -516,9 +516,9 @@ namespace mEVP {
             const double h_gauss = H(i, 0);
             const double a_gauss = A(i, 0);
 
-            const LocalEdgeVector<9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8,3>;
-            const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8,3>;
-            const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8,3>;
+            const LocalEdgeVector<9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8, 3>;
+            const LocalEdgeVector<9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8, 3>;
+            const LocalEdgeVector<9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8, 3>;
 
             const LocalEdgeVector<9> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
@@ -570,17 +570,17 @@ namespace mEVP {
 
     // Stress Update (SasipMesh)
 
-  template<int CG, int DGstress, int DGadvection>
+    template <int CG, int DGstress, int DGadvection>
     void StressUpdateHighOrder(const VPParameters& vpparameters,
         const ParametricTransformation<CG, DGstress>& ptrans,
         const SasipMesh& smesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-			       CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22, const CellVector<DGadvection>& H,
         const CellVector<DGadvection>& A,
         const double alpha, const double beta)
     {
 
-#define NGP (DGstress==8?3:(DGstress==3?2:-1))
+#define NGP (DGstress == 8 ? 3 : (DGstress == 3 ? 2 : -1))
         //! Stress Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
@@ -588,26 +588,26 @@ namespace mEVP {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-	  const LocalEdgeVector<NGP*NGP> h_gauss = (H.row(i)* PSI<DGadvection,NGP>).array().max(0.0).matrix();
-	  const LocalEdgeVector<NGP*NGP> a_gauss = (A.row(i)* PSI<DGadvection,NGP>).array().max(0.0).min(1.0).matrix();
+            const LocalEdgeVector<NGP* NGP> h_gauss = (H.row(i) * PSI<DGadvection, NGP>).array().max(0.0).matrix();
+            const LocalEdgeVector<NGP* NGP> a_gauss = (A.row(i) * PSI<DGadvection, NGP>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<NGP*NGP> e11_gauss = E11.row(i) * PSI<DGstress,NGP>;
-            const LocalEdgeVector<NGP*NGP> e12_gauss = E12.row(i) * PSI<DGstress,NGP>;
-            const LocalEdgeVector<NGP*NGP> e22_gauss = E22.row(i) * PSI<DGstress,NGP>;
+            const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGstress, NGP>;
+            const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGstress, NGP>;
+            const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGstress, NGP>;
 
-            const LocalEdgeVector<NGP*NGP> DELTA = (SQR(vpparameters.DeltaMin)
+            const LocalEdgeVector<NGP* NGP> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
-                                                 .sqrt()
-                                                 .matrix();
+                                                        .sqrt()
+                                                        .matrix();
             // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
             //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<NGP*NGP> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            const LocalEdgeVector<NGP* NGP> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
@@ -637,8 +637,7 @@ namespace mEVP {
             // const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
             //     * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
-            S11.row(i) += ptrans.iMJwPSI[i] *
-	      (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix().transpose());
+            S11.row(i) += ptrans.iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix().transpose());
 
             //   S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
             // 2 eta = 2/4 * P / (2 Delta) = P / (4 Delta)
@@ -653,7 +652,7 @@ namespace mEVP {
 #undef NGP
     }
 
-  template<int CG, int DGs, int DGa>
+    template <int CG, int DGs, int DGa>
     void StressUpdateHighOrder(const VPParameters& vpparameters,
         const SasipMesh& smesh, CellVector<DGs>& S11, CellVector<DGs>& S12,
         CellVector<DGs>& S22, const CellVector<DGs>& E11, const CellVector<DGs>& E12,
@@ -669,26 +668,26 @@ namespace mEVP {
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-            const LocalEdgeVector<NGP*NGP> h_gauss = (H.row(i) * PSI<DGa,NGP>).array().max(0.0).matrix();
-            const LocalEdgeVector<NGP*NGP> a_gauss = (A.row(i) * PSI<DGa,NGP>).array().max(0.0).min(1.0).matrix();
+            const LocalEdgeVector<NGP* NGP> h_gauss = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
+            const LocalEdgeVector<NGP* NGP> a_gauss = (A.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<NGP*NGP> e11_gauss = E11.row(i) * PSI<DGs,NGP>;
-            const LocalEdgeVector<NGP*NGP> e12_gauss = E12.row(i) * PSI<DGs,NGP>;
-            const LocalEdgeVector<NGP*NGP> e22_gauss = E22.row(i) * PSI<DGs,NGP>;
+            const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
+            const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
+            const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
 
-            const LocalEdgeVector<NGP*NGP> DELTA = (SQR(vpparameters.DeltaMin)
+            const LocalEdgeVector<NGP* NGP> DELTA = (SQR(vpparameters.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array()
                 + e12_gauss.array().square())
-                                                 .sqrt()
-                                                 .matrix();
+                                                        .sqrt()
+                                                        .matrix();
             // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
             //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<NGP*NGP> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
+            const LocalEdgeVector<NGP* NGP> P = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp()).matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
@@ -712,11 +711,11 @@ namespace mEVP {
             //       += 1.0 / alpha * (2. * eta * E11.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
             //   S11(i, 0) -= 1.0 / alpha * 0.5 * P;
 
-            const Eigen::Matrix<Nextsim::FloatType, 1, NGP*NGP> J = ParametricTools::J<NGP>(smesh, i);
+            const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J = ParametricTools::J<NGP>(smesh, i);
             // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
             // with the gauss weights and with J. This is a 8 x 9 matrix
-            const Eigen::Matrix<Nextsim::FloatType, DGs, NGP*NGP> imass_psi = ParametricTools::massMatrix<DGs>(smesh, i).inverse()
-                * (PSI<DGs,NGP>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
+            const Eigen::Matrix<Nextsim::FloatType, DGs, NGP* NGP> imass_psi = ParametricTools::massMatrix<DGs>(smesh, i).inverse()
+                * (PSI<DGs, NGP>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
             S11.row(i) += imass_psi * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix().transpose());
 
