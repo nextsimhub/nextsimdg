@@ -5,9 +5,9 @@
  */
 
 #include "Interpolations.hpp"
+#include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
 #include "ParametricTransport.hpp"
-#include "SasipMesh.hpp"
 #include "Tools.hpp"
 #include "VPParameters.hpp"
 #include "cgParametricMomentum.hpp"
@@ -112,8 +112,8 @@ public:
 int main()
 {
     //! Define the spatial mesh
-    Nextsim::SasipMesh smesh;
-    smesh.readmesh("../SasipMesh/distortedbox.smesh");
+    Nextsim::ParametricMesh smesh;
+    smesh.readmesh("../ParametricMesh/distortedbox.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
@@ -155,11 +155,11 @@ int main()
 
     // i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
-    Nextsim::VTK::write_cg_velocity("ResultsBoxSasipMesh/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-    Nextsim::VTK::write_dg("ResultsBoxSasipMesh/A", 0, A, smesh);
-    Nextsim::VTK::write_dg("ResultsBoxSasipMesh/H", 0, H, smesh);
-    Nextsim::VTK::write_dg("ResultsBoxSasipMesh/Delta", 0, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
-    Nextsim::VTK::write_dg("ResultsBoxSasipMesh/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+    Nextsim::VTK::write_cg_velocity("ResultsBoxParametricMesh/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
+    Nextsim::VTK::write_dg("ResultsBoxParametricMesh/A", 0, A, smesh);
+    Nextsim::VTK::write_dg("ResultsBoxParametricMesh/H", 0, H, smesh);
+    Nextsim::VTK::write_dg("ResultsBoxParametricMesh/Delta", 0, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
+    Nextsim::VTK::write_dg("ResultsBoxParametricMesh/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
@@ -226,11 +226,11 @@ int main()
 
                 int printstep = timestep / NT_vtk + 1.e-4;
                 Nextsim::GlobalTimer.start("time loop - i/o");
-                Nextsim::VTK::write_cg_velocity("ResultsBoxSasipMesh/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
-                Nextsim::VTK::write_dg("ResultsBoxSasipMesh/A", printstep, A, smesh);
-                Nextsim::VTK::write_dg("ResultsBoxSasipMesh/H", printstep, H, smesh);
-                Nextsim::VTK::write_dg("ResultsBoxSasipMesh/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
-                Nextsim::VTK::write_dg("ResultsBoxSasipMesh/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+                Nextsim::VTK::write_cg_velocity("ResultsBoxParametricMesh/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
+                Nextsim::VTK::write_dg("ResultsBoxParametricMesh/A", printstep, A, smesh);
+                Nextsim::VTK::write_dg("ResultsBoxParametricMesh/H", printstep, H, smesh);
+                Nextsim::VTK::write_dg("ResultsBoxParametricMesh/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
+                Nextsim::VTK::write_dg("ResultsBoxParametricMesh/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }

@@ -12,14 +12,13 @@ The mesh is slightly distorted
 """
 
 # Size of the domain
-Lx =  512000
-Ly =  512000
+Lx =  1000000
+Ly =  1000000
 
 # Number of elements
-nx =  128
-ny =  128
+nx =  32
+ny =  32
 
-nx = ny = 512
 
 import numpy as np
 
@@ -34,12 +33,12 @@ def disty(x,y):
 sx = 0.05*Lx
 sy = 0.05*Ly
 
-sx,sy = 0,0
+#sx,sy = 0,0
 
-f = open(f"distortedrectangle_{nx}x{ny}.smesh", "w")
-f.write("SasipMesh 1.0\n")
+f = open("distortedbox.smesh", "w")
+f.write("ParametricMesh 1.0\n")
 f.write('{0}\t{1}\n'.format(nx,ny))
-for y in np.linspace(0,Ly,ny+1):
+for y in np.linspace(0,Ly,ny+1):    
     for x in np.linspace(0,Lx,nx+1):
         f.write('{0}\t{1}\n'.format(x+sx*distx(x,y),y+sy*disty(x,y)))
 
