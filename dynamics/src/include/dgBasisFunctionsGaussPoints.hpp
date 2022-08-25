@@ -13,21 +13,21 @@
 // - stores the points and weights of the gq-point Guass rule
 // - the integration is scaled to [0,1]
 
-// Generates the matrices BiG[dg][gq]_[e]
+// Generates the matrices PSI[dg][gq]_[e]
 // - dg is the degree of the dG space
 // - gq is the number of Gauss quadrature points
 // - e is the edge number (0-lower, 1-right, 2-up, 3-left)
 //
-// - Each matrix BiG_e[i,j] stores the value of the j-th basis function
+// - Each matrix PSI_e[i,j] stores the value of the j-th basis function
 //   in the i-th Gauss quadrature point alongt the edge e, weighted
 //   with corresponding Gauss weight and the inverse of the mass matrix
 //   inversemass(j) * phi_j( gauss_point(i) ) * gauss_weight(i)
 
-// Generates the matrices BiGe[dg][gq]
+// Generates the matrices PSIe[dg][gq]
 // - stores the value of the basis functions on the edge in
 //   the Guass points along the edge
 // - dg is the dG degree and gq the number of Gauss points
-// - BiGe[i,j] is simply phi_j( gauss_point(i) )
+// - PSIe[i,j] is simply phi_j( gauss_point(i) )
 
 //------------------------------ Gauss Quadrature
 
@@ -40,27 +40,27 @@ constexpr double gauss_weights3[3] = { 0.2777777777777778, 0.4444444444444444, 0
 
 //------------------------------ Basis Functions in Gauss Points
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_0
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSI12_0
     = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -1.7320508075688772, -3.0, 0.5,
         1.7320508075688772, -3.0)
           .finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_1
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSI12_1
     = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, 3.0, -1.7320508075688772, 0.5, 3.0,
         1.7320508075688772)
           .finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_2
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSI12_2
     = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -1.7320508075688772, 3.0, 0.5,
         1.7320508075688772, 3.0)
           .finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiG12_3
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSI12_3
     = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 0.5, -3.0, -1.7320508075688772, 0.5, -3.0,
         1.7320508075688772)
           .finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_0
+static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSI23_0
     = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058,
         -1.6666666666666667, 3.333333333333335, 8.333333333333334, 7.745966692414834,
         0.4444444444444444, 0.0, -2.6666666666666665, -6.666666666666666, 13.333333333333336, -0.0,
@@ -68,7 +68,7 @@ static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_0
         8.333333333333334, -7.745966692414834)
           .finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_1
+static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSI23_1
     = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, 1.6666666666666667,
         -1.2909944487358058, 8.333333333333334, 3.333333333333335, -7.745966692414834,
         0.4444444444444444, 2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, 0.0,
@@ -76,7 +76,7 @@ static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_1
         3.333333333333335, 7.745966692414834)
           .finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_2
+static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSI23_2
     = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058,
         1.6666666666666667, 3.333333333333335, 8.333333333333334, -7.745966692414834,
         0.4444444444444444, 0.0, 2.6666666666666665, -6.666666666666666, 13.333333333333336, 0.0,
@@ -84,7 +84,7 @@ static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_2
         8.333333333333334, 7.745966692414834)
           .finished();
 
-static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_3
+static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> PSI23_3
     = (Eigen::Matrix<double, 3, 6, Eigen::RowMajor>() << 0.2777777777777778, -1.6666666666666667,
         -1.2909944487358058, 8.333333333333334, 3.333333333333335, 7.745966692414834,
         0.4444444444444444, -2.6666666666666665, 0.0, 13.333333333333336, -6.666666666666666, -0.0,
@@ -92,25 +92,25 @@ static const Eigen::Matrix<double, 3, 6, Eigen::RowMajor> BiG23_3
         3.333333333333335, -7.745966692414834)
           .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_0
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> PSI13_0
     = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058,
         -1.6666666666666667, 0.4444444444444444, 0.0, -2.6666666666666665, 0.2777777777777778,
         1.2909944487358058, -1.6666666666666667)
           .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_1
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> PSI13_1
     = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, 1.6666666666666667,
         -1.2909944487358058, 0.4444444444444444, 2.6666666666666665, 0.0, 0.2777777777777778,
         1.6666666666666667, 1.2909944487358058)
           .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_2
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> PSI13_2
     = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.2909944487358058,
         1.6666666666666667, 0.4444444444444444, 0.0, 2.6666666666666665, 0.2777777777777778,
         1.2909944487358058, 1.6666666666666667)
           .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_3
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> PSI13_3
     = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 0.2777777777777778, -1.6666666666666667,
         -1.2909944487358058, 0.4444444444444444, -2.6666666666666665, 0.0, 0.2777777777777778,
         -1.6666666666666667, 1.2909944487358058)
@@ -118,17 +118,17 @@ static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiG13_3
 
 //------------------------------ Edge Basis Functions in Gauss Points
 
-static const Eigen::Matrix<double, 2, 2, Eigen::RowMajor> BiGe12
+static const Eigen::Matrix<double, 2, 2, Eigen::RowMajor> PSIe12
     = (Eigen::Matrix<double, 2, 2, Eigen::RowMajor>() << 1.0, 1.0, -0.28867513459481287,
         0.28867513459481287)
           .finished();
 
-static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> BiGe23
+static const Eigen::Matrix<double, 3, 3, Eigen::RowMajor> PSIe23
     = (Eigen::Matrix<double, 3, 3, Eigen::RowMajor>() << 1.0, 1.0, 1.0, -0.3872983346207417, 0.0,
         0.3872983346207417, 0.0666666666666667, -0.08333333333333333, 0.0666666666666667)
           .finished();
 
-static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> BiGe13
+static const Eigen::Matrix<double, 2, 3, Eigen::RowMajor> PSIe13
     = (Eigen::Matrix<double, 2, 3, Eigen::RowMajor>() << 1.0, 1.0, 1.0, -0.3872983346207417, 0.0,
         0.3872983346207417)
           .finished();

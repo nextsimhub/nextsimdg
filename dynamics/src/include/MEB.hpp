@@ -345,17 +345,17 @@ namespace MEB {
         for (size_t i = 0; i < mesh.n; ++i) {
 
             //!  number of gauss points in each direction equalls 3, for 2d 3^2
-            const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * BiG33).array().max(0.0).matrix();
-            // const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
-            const Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
+            const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).matrix();
+            // const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
+            const Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
 
-            const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 3>(i, 0) * BiG33;
-            const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 3>(i, 0) * BiG33;
-            const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 3>(i, 0) * BiG33;
+            const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 3>(i, 0) * PSI<3,3>;
+            const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 3>(i, 0) * PSI<3,3>;
+            const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 3>(i, 0) * PSI<3,3>;
 
-            Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 3>(i, 0) * BiG33;
-            Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 3>(i, 0) * BiG33;
-            Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 3>(i, 0) * BiG33;
+            Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 3>(i, 0) * PSI<3,3>;
+            Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 3>(i, 0) * PSI<3,3>;
+            Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 3>(i, 0) * PSI<3,3>;
 
             auto expC = 1.; //(-20.0 * (1.0 - a_gauss.array())).exp();
             // Eqn. 24 Additional multiplic0cation by H
@@ -402,9 +402,9 @@ namespace MEB {
             //! damage criterion
             //======================================================================
 
-            s11_gauss = S11.block<1, 3>(i, 0) * BiG33;
-            s12_gauss = S12.block<1, 3>(i, 0) * BiG33;
-            s22_gauss = S22.block<1, 3>(i, 0) * BiG33;
+            s11_gauss = S11.block<1, 3>(i, 0) * PSI<3,3>;
+            s12_gauss = S12.block<1, 3>(i, 0) * PSI<3,3>;
+            s22_gauss = S22.block<1, 3>(i, 0) * PSI<3,3>;
 
             // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
             // double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
@@ -486,17 +486,17 @@ namespace MEB {
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * BiG33).array().max(0.0).matrix();
-            const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
-            Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
+            const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).matrix();
+            const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
+            Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
 
-            const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 8>(i, 0) * BiG83;
-            const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 8>(i, 0) * BiG83;
-            const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 8>(i, 0) * BiG83;
+            const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 8>(i, 0) * PSI<8,3>;
+            const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 8>(i, 0) * PSI<8,3>;
+            const Eigen::Matrix<double, 1, 9> e22_gauss = E22.block<1, 8>(i, 0) * PSI<8,3>;
 
-            Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 8>(i, 0) * BiG83;
-            Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 8>(i, 0) * BiG83;
-            Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 8>(i, 0) * BiG83;
+            Eigen::Matrix<double, 1, 9> s11_gauss = S11.block<1, 8>(i, 0) * PSI<8,3>;
+            Eigen::Matrix<double, 1, 9> s12_gauss = S12.block<1, 8>(i, 0) * PSI<8,3>;
+            Eigen::Matrix<double, 1, 9> s22_gauss = S22.block<1, 8>(i, 0) * PSI<8,3>;
 
             //! Current normal stress for the evaluation of tildeP (Eqn. 1)
             Eigen::Matrix<double, 1, 9> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
@@ -517,11 +517,12 @@ namespace MEB {
             // 1. / (1. + dt / lambda) Eqn. 33-34
             Eigen::Matrix<double, 1, 9> multiplicator = (1. / (1. + dt_mom / time_viscous.array())).matrix();
 
-            s11_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e11_gauss.array())).matrix()
-                + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
-            s12_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e12_gauss.array())).matrix();
-            s22_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e22_gauss.array())).matrix()
-                + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
+            // Elasit prediction Eqn. (32)
+            const Eigen::Matrix<Nextsim::FloatType, 1, 9> J = ParametricTools::J<3>(smesh, i);
+            // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
+            // with the gauss weights and with J. This is a 8 x 9 matrix
+            const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
+                * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)

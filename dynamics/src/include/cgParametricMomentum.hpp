@@ -137,8 +137,8 @@ public:
      * The following functions take care of the interpolation and projection
      * between CG and DG functions
      */
-    //! Projects the symmetric gradient of the CG2 velocity into the DG1 space
-    void ProjectCG2VelocityToDG1Strain();
+    //! Projects the symmetric gradient of the CG2 velocity into the DG space
+    void ProjectCG2VelocityToDGStrain();
 
     /*!
      * Evaluates (S, nabla phi) and adds it to tx/ty - Vector
@@ -157,70 +157,124 @@ public:
     void DirichletZero(CGVector<CG>& v);
 };
 
-template <>
-void CGParametricMomentum<2, 8>::AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
-    const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy) const
+  template <int CG, int DG>
+void CGParametricMomentum<CG, DG>::AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
+    const size_t cy, CGVector<CG>& tmpx, CGVector<CG>& tmpy) const
 {
+#define NGP (DG==8?3:(DG==3?2:1))
     if (precompute_matrices == 0) // all is compute on-the-fly
     {
         //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
 
         // (M vx)_i = (vx, phi_i) = - (S11, d_x phi_i) - (S12, d_y phi_i)
 
-        const size_t CGROW = 2 * smesh.nx + 1;
-        const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
+        const size_t CGROW = CG * smesh.nx + 1;
+        const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
 
-        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S11_g = S11.row(eid) * BiG83; //!< velocity in GP
-        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S22_g = S22.row(eid) * BiG83; //!< velocity in GP
-        const Eigen::Matrix<Nextsim::FloatType, 1, 9> S12_g = S12.row(eid) * BiG83; //!< velocity in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, NGP*NGP> S11_g = S11.row(eid) * PSI<DG,NGP>; //!< stress in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, NGP*NGP> S22_g = S22.row(eid) * PSI<DG,NGP>; 
+        const Eigen::Matrix<Nextsim::FloatType, 1, NGP*NGP> S12_g = S12.row(eid) * PSI<DG,NGP>; 
 
         // J T^{-T}
-        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
-        const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, eid).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+        const Eigen::Matrix<Nextsim::FloatType, 2, NGP*NGP> dxT = (ParametricTools::dxT<NGP>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<NGP>.array()).matrix();
+        const Eigen::Matrix<Nextsim::FloatType, 2, NGP*NGP> dyT = (ParametricTools::dyT<NGP>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<NGP>.array()).matrix();
 
-        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dx_cg2 = CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(1).array() - CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(1).array();
+        const Eigen::Matrix<Nextsim::FloatType, (CG==2?9:4), NGP*NGP> dx_cg2 = PHIx<CG,NGP>.array().rowwise() * dyT.row(1).array() - PHIy<CG,NGP>.array().rowwise() * dxT.row(1).array();
 
-        const Eigen::Matrix<Nextsim::FloatType, 9, 9> dy_cg2 = CG_CG2_dy_in_GAUSS3.array().rowwise() * dxT.row(0).array() - CG_CG2_dx_in_GAUSS3.array().rowwise() * dyT.row(0).array();
+        const Eigen::Matrix<Nextsim::FloatType, (CG==2?9:4), NGP*NGP> dy_cg2 = PHIy<CG,NGP>.array().rowwise() * dxT.row(0).array() - PHIx<CG,NGP>.array().rowwise() * dyT.row(0).array();
 
-        const Eigen::Matrix<Nextsim::FloatType, 1, 9> tx = dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose();
-        const Eigen::Matrix<Nextsim::FloatType, 1, 9> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();
+        const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> tx = dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose();
+        const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();
 
-        tmpx(cg_i + 0) += -tx(0);
-        tmpx(cg_i + 1) += -tx(1);
-        tmpx(cg_i + 2) += -tx(2);
-        tmpx(cg_i + 0 + CGROW) += -tx(3);
-        tmpx(cg_i + 1 + CGROW) += -tx(4);
-        tmpx(cg_i + 2 + CGROW) += -tx(5);
-        tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
-        tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
-        tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
-
-        tmpy(cg_i + 0) += -ty(0);
-        tmpy(cg_i + 1) += -ty(1);
-        tmpy(cg_i + 2) += -ty(2);
-        tmpy(cg_i + 0 + CGROW) += -ty(3);
-        tmpy(cg_i + 1 + CGROW) += -ty(4);
-        tmpy(cg_i + 2 + CGROW) += -ty(5);
-        tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
-        tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
-        tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+	if (CG==1)
+	  {
+	    tmpx(cg_i + 0) += -tx(0);
+	    tmpx(cg_i + 1) += -tx(1);
+	    tmpx(cg_i + 0 + CGROW) += -tx(2);
+	    tmpx(cg_i + 1 + CGROW) += -tx(3);
+	    
+	    tmpy(cg_i + 0) += -ty(0);
+	    tmpy(cg_i + 1) += -ty(1);
+	    tmpy(cg_i + 0 + CGROW) += -ty(2);
+	    tmpy(cg_i + 1 + CGROW) += -ty(3);
+	  }
+	else if (CG==2)
+	  {
+	    tmpx(cg_i + 0) += -tx(0);
+	    tmpx(cg_i + 1) += -tx(1);
+	    tmpx(cg_i + 2) += -tx(2);
+	    tmpx(cg_i + 0 + CGROW) += -tx(3);
+	    tmpx(cg_i + 1 + CGROW) += -tx(4);
+	    tmpx(cg_i + 2 + CGROW) += -tx(5);
+	    tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
+	    tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
+	    tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
+	    
+	    tmpy(cg_i + 0) += -ty(0);
+	    tmpy(cg_i + 1) += -ty(1);
+	    tmpy(cg_i + 2) += -ty(2);
+	    tmpy(cg_i + 0 + CGROW) += -ty(3);
+	    tmpy(cg_i + 1 + CGROW) += -ty(4);
+	    tmpy(cg_i + 2 + CGROW) += -ty(5);
+	    tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
+	    tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
+	    tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+	  }
     } else if (precompute_matrices == 1) // use precomputed values
     {
-        const Eigen::Matrix<Nextsim::FloatType, 9, 1> tx = ptrans.divS1[eid] * S11.row(eid).transpose() + ptrans.divS2[eid] * S12.row(eid).transpose();
-        const Eigen::Matrix<Nextsim::FloatType, 9, 1> ty = ptrans.divS1[eid] * S12.row(eid).transpose() + ptrans.divS2[eid] * S22.row(eid).transpose();
+      const Eigen::Matrix<Nextsim::FloatType, (CG==2?9:4), 1> tx = ptrans.divS1[eid] * S11.row(eid).transpose() + ptrans.divS2[eid] * S12.row(eid).transpose();
+      const Eigen::Matrix<Nextsim::FloatType, (CG==2?9:4), 1> ty = ptrans.divS1[eid] * S12.row(eid).transpose() + ptrans.divS2[eid] * S22.row(eid).transpose();
 
-        const size_t CGROW = 2 * smesh.nx + 1;
-        const size_t cg_i = 2 * CGROW * cy + 2 * cx; //!< lower left CG-index in element (cx,cy)
+        const size_t CGROW = CG * smesh.nx + 1;
+        const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
 
-        tmpx.block<3, 1>(cg_i, 0) -= tx.block<3, 1>(0, 0);
-        tmpx.block<3, 1>(cg_i + CGROW, 0) -= tx.block<3, 1>(3, 0);
-        tmpx.block<3, 1>(cg_i + 2 * CGROW, 0) -= tx.block<3, 1>(6, 0);
-
-        tmpy.block<3, 1>(cg_i, 0) -= ty.block<3, 1>(0, 0);
-        tmpy.block<3, 1>(cg_i + CGROW, 0) -= ty.block<3, 1>(3, 0);
-        tmpy.block<3, 1>(cg_i + 2 * CGROW, 0) -= ty.block<3, 1>(6, 0);
+	if (CG==1)
+	  {
+	    tmpx(cg_i + 0) += -tx(0);
+	    tmpx(cg_i + 1) += -tx(1);
+	    tmpx(cg_i + 0 + CGROW) += -tx(2);
+	    tmpx(cg_i + 1 + CGROW) += -tx(3);
+	    
+	    tmpy(cg_i + 0) += -ty(0);
+	    tmpy(cg_i + 1) += -ty(1);
+	    tmpy(cg_i + 0 + CGROW) += -ty(2);
+	    tmpy(cg_i + 1 + CGROW) += -ty(3);
+	 }
+	else if (CG==2)
+	  {
+	    tmpx(cg_i + 0) += -tx(0);
+	    tmpx(cg_i + 1) += -tx(1);
+	    tmpx(cg_i + 2) += -tx(2);
+	    tmpx(cg_i + 0 + CGROW) += -tx(3);
+	    tmpx(cg_i + 1 + CGROW) += -tx(4);
+	    tmpx(cg_i + 2 + CGROW) += -tx(5);
+	    tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
+	    tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
+	    tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
+	    
+	    tmpy(cg_i + 0) += -ty(0);
+	    tmpy(cg_i + 1) += -ty(1);
+	    tmpy(cg_i + 2) += -ty(2);
+	    tmpy(cg_i + 0 + CGROW) += -ty(3);
+	    tmpy(cg_i + 1 + CGROW) += -ty(4);
+	    tmpy(cg_i + 2 + CGROW) += -ty(5);
+	    tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
+	    tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
+	    tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+ 
+	    
+	    // tmpx.block<CG+1, 1>(cg_i, 0) -= tx.block<CG+1, 1>(0, 0);
+	    // tmpx.block<CG+1, 1>(cg_i + CGROW, 0) -= tx.block<CG+1, 1>(CG+1, 0);
+	    // tmpx.block<CG+1, 1>(cg_i + 2 * CGROW, 0) -= tx.block<CG+1, 1>(2*CG+2, 0);
+	    
+	    // tmpy.block<CG+1, 1>(cg_i, 0) -= ty.block<CG+1, 1>(0, 0);
+	    // tmpy.block<CG+1, 1>(cg_i + CGROW, 0) -= ty.block<CG+1, 1>(CG+1, 0);
+	    // tmpy.block<CG+1, 1>(cg_i + 2 * CGROW, 0) -= ty.block<CG+1, 1>(2*CG+2, 0);
+	  }
     } else
         abort();
+
+#undef NGP
 }
 
 } /* namespace Nextsim */

@@ -22,6 +22,14 @@ gaussweights = np.array([
      (18.+np.sqrt(30.0))/72.,
      (18.-np.sqrt(30.0))/72.]])
 
+### LagrangeQuadrature (Trapez / Simpson)
+lagrangepoints = np.array([
+    [0.0,1.0,0,0],
+    [0.0,0.5,1,0]])
+
+lagrangeweights = np.array([
+    [0.5,0.5,0.0],
+    [1./6.,2./3.,1./5.]])
 
 def sanitycheck_gauss():
     for p in range(10):    # integrate x^p for p=0,1,2,...,9

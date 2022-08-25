@@ -523,8 +523,8 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVecto
             const Eigen::Matrix<Nextsim::FloatType, 1, 9> DX_VY_g = CG_CG2FUNC_DX_in_GAUSS3 * vy_local;
             const Eigen::Matrix<Nextsim::FloatType, 1, 9> DY_VY_g = CG_CG2FUNC_DY_in_GAUSS3 * vy_local;
 
-            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
-            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS_3.array()).matrix();
+            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = (ParametricTools::dxT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<3>.array()).matrix();
+            const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = (ParametricTools::dyT<3>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<3>.array()).matrix();
 
             // gradient of transformation
             //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]
@@ -539,9 +539,9 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVecto
 
             const Eigen::Matrix<Nextsim::FloatType, 8, 8> imass = ParametricTools::massMatrix<8>(smesh, dgi).inverse();
 
-            E11.row(dgi) = imass * (BiG83 * J_dx_vx_g.transpose());
-            E22.row(dgi) = imass * (BiG83 * J_dy_vy_g.transpose());
-            E12.row(dgi) = 0.5 * imass * (BiG83 * (J_dx_vy_g.transpose() + J_dy_vx_g.transpose()));
+            E11.row(dgi) = imass * (PSI<8,3> * J_dx_vx_g.transpose());
+            E22.row(dgi) = imass * (PSI<8,3> * J_dy_vy_g.transpose());
+            E12.row(dgi) = 0.5 * imass * (PSI<8,3> * (J_dx_vy_g.transpose() + J_dy_vx_g.transpose()));
         }
     }
 }
