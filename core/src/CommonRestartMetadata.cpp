@@ -30,11 +30,12 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
 {
     // Structure type
     metaGroup.putAtt(IStructure::typeNodeName(), metadata.structureName());
+
     // Current time
     netCDF::NcGroup timeGroup = metaGroup.addGroup(timeNodeName());
     // As a formatted string
     netCDF::NcVar formVar = timeGroup.addVar(formattedName(), netCDF::ncString);
-    const std::string fTime = metadata.time().format();
+    const std::string fTime = metadata.m_time.format();
     char* timeCopy = new char[fTime.length() + 1];
     std::strcpy(timeCopy, fTime.c_str());
     formVar.putVar(&timeCopy);
@@ -45,6 +46,34 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
     std::uint64_t secondsSinceEpoch = sinceEpoch.seconds();
     unixVar.putVar(&secondsSinceEpoch);
     unixVar.putAtt(std::string("units"), "seconds since 1970-01-01T00:00:00Z");
+
+    // All other configuration data
+    netCDF::NcGroup configGroup = metaGroup.addGroup(configurationNode());
+    for (auto entry : metadata.m_config) {
+        switch (entry.second.index()) {
+        case (CONFIGMAP_DOUBLE): {
+            netCDF::NcVar dblVar = configGroup.addVar(entry.first, netCDF::ncDouble);
+            dblVar.putVar(std::get_if<double>(&entry.second));
+            break;
+        }
+        case (CONFIGMAP_UNSIGNED): {
+            netCDF::NcVar uintVar = configGroup.addVar(entry.first, netCDF::ncUint);
+            uintVar.putVar(std::get_if<unsigned>(&entry.second));
+            break;
+        }
+        case (CONFIGMAP_INT): {
+            netCDF::NcVar intVar = configGroup.addVar(entry.first, netCDF::ncInt);
+            intVar.putVar(std::get_if<int>(&entry.second));
+            break;
+        }
+        case (CONFIGMAP_STRING): {
+            netCDF::NcVar strVar = configGroup.addVar(entry.first, netCDF::ncString);
+            strVar.putVar(std::get<std::string>(entry.second).c_str());
+            break;
+        }
+        }
+    }
+
     return metaGroup;
 }
 

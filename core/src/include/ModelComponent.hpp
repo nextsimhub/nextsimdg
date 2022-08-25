@@ -11,6 +11,7 @@
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelState.hpp"
+#include "include/OutputSpec.hpp"
 #include "include/Time.hpp"
 
 #include <functional>
@@ -30,9 +31,6 @@ class ModelComponent;
 class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
-
-    // TODO: Replace this with a more fine grained output specification class
-    typedef bool OutputSpec;
 
     enum class ProtectedArray {
         // Prognostic model fields

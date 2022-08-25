@@ -12,7 +12,7 @@
 #include "include/DevStep.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
-#include "include/ModelState.hpp"
+//#include "include/ModelState.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>
@@ -58,11 +58,10 @@ void Model::configure()
     // Configure logging
     Logged::configure();
 
-    std::string startTimeStr
-        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
-    std::string stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
-    std::string durationStr = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
-    std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+    startTimeStr = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
+    stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
+    durationStr = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
+    stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
     TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
     m_etadata.setTime(timeNow);
@@ -82,6 +81,21 @@ void Model::configure()
     modelStep.setMetadata(m_etadata);
     pData.setData(initialState.data);
 }
+
+ConfigMap Model::getConfig() const
+{
+    ConfigMap cMap = {
+            {keyMap.at(STARTTIME_KEY), startTimeStr},
+            {keyMap.at(STOPTIME_KEY), stopTimeStr},
+            {keyMap.at(RUNLENGTH_KEY), durationStr},
+            {keyMap.at(TIMESTEP_KEY), stepStr},
+    };
+    // MissingData has a static getState
+    cMap.merge(MissingData::getConfig());
+
+    return cMap;
+}
+
 
 Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
 {
@@ -126,6 +140,10 @@ void Model::writeRestartFile()
 {
     // TODO Replace with real logging
     Logged::notice(std::string("  Writing state-based restart file: ") + finalFileName + '\n');
+    // Copy the configuration from the ModelState to the ModelMetadata
+    ConfigMap modelConfig = getConfig();
+    modelConfig.merge(pData.getState().config);
+    m_etadata.setConfig(modelConfig);
     StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
 }
 

@@ -20,6 +20,7 @@ public:
         MISSINGVALUE_KEY,
     };
 
+    static ConfigMap getConfig();
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll) { return getHelpText(map, getAll); }
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
 private:

@@ -23,11 +23,10 @@ void SimpleOutput::outputState(const ModelState& state, const ModelMetadata& met
         + std::to_string(state.config.size()) + " configurations to " + timeFileName + "\n");
     //    std::cout << "Outputting " << state.size() << " fields to " << timeFileName << std::endl;
 
-    // FIXME remove me
-    std::cout << "Model state contains " << state.config.size() << " configuration values:" << std::endl;
-    for (auto entry : state.config) {
-        std::cout << entry.first << std::endl;
-    }
-    StructureFactory::fileFromState(state, meta, timeFileName);
+    // Copy the configuration from the ModelState to the ModelMetadata
+    ModelMetadata metaPlusConfig(meta);
+    metaPlusConfig.setConfig(state.config);
+    // Create the output
+    StructureFactory::fileFromState(state, metaPlusConfig, timeFileName);
 }
 } /* namespace Nextsim */

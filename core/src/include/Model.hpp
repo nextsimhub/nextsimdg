@@ -12,6 +12,7 @@
 #include "include/Configured.hpp"
 #include "include/Iterator.hpp"
 #include "include/ModelMetadata.hpp"
+#include "include/ModelState.hpp"
 #include "include/PrognosticData.hpp"
 
 #include "DevStep.hpp"
@@ -35,6 +36,8 @@ public:
         TIMESTEP_KEY,
     };
 
+    ConfigMap getConfig() const;
+
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
@@ -57,6 +60,13 @@ private:
 
     std::string initialFileName;
     std::string finalFileName;
+
+    // Cached values of the start-step-stop/duration times
+    std::string startTimeStr;
+    std::string stopTimeStr;
+    std::string durationStr;
+    std::string stepStr;
+
 };
 
 } /* namespace Nextsim */
