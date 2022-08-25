@@ -511,12 +511,18 @@ namespace MEB {
             const Eigen::Matrix<double, 1, 9> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array()).matrix();
 
             // Eqn. 12: first factor on RHS
-            double const Dunit_factor = 1. / (1. - (params.nu0 * params.nu0));
+            const double Dunit_factor = 1. / (1. - (params.nu0 * params.nu0));
 
             //! MEB
             // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 34
             // 1. / (1. + dt / lambda) Eqn. 33-34
             Eigen::Matrix<double, 1, 9> multiplicator = (1. / (1. + dt_mom / time_viscous.array())).matrix();
+
+            s11_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e11_gauss.array())).matrix()
+                + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
+            s12_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e12_gauss.array())).matrix();
+            s22_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e22_gauss.array())).matrix()
+                + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
