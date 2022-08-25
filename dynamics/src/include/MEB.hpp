@@ -476,7 +476,7 @@ namespace MEB {
      */
     template <int CG, int DGs, int DGa>
     void StressUpdateHighOrder(const MEBParameters& params,
-        const SasipMesh& smesh, CellVector<DGs>& S11, CellVector<DGs>& S12,
+        const ParametricMesh& smesh, CellVector<DGs>& S11, CellVector<DGs>& S12,
         CellVector<DGs>& S22, const CellVector<DGs>& E11, const CellVector<DGs>& E12,
         const CellVector<DGs>& E22, const CellVector<DGa>& H,
         const CellVector<DGa>& A, CellVector<DGa>& D,
@@ -586,7 +586,7 @@ namespace MEB {
     template <int CG, int DGs, int DGa>
     void StressUpdateHighOrder(const MEBParameters& params,
         const ParametricTransformation<CG, DGs>& ptrans,
-        const SasipMesh& smesh, CellVector<DGs>& S11, CellVector<DGs>& S12,
+        const ParametricMesh& smesh, CellVector<DGs>& S11, CellVector<DGs>& S12,
         CellVector<DGs>& S22, const CellVector<DGs>& E11, const CellVector<DGs>& E12,
         const CellVector<DGs>& E22, const CellVector<DGa>& H,
         const CellVector<DGa>& A, CellVector<DGa>& D,
