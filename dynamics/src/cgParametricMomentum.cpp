@@ -271,9 +271,6 @@ void CGParametricMomentum<CG, DGstress>::MEBIteration(const MEBParameters& vppar
     CellVector<DG>& D)
 {
 
-    double alpha = 800;
-    double beta = 800;
-
     double dt_mom = dt_adv / NT_evp;
 
     // copy old velocity
@@ -302,7 +299,7 @@ void CGParametricMomentum<CG, DGstress>::MEBIteration(const MEBParameters& vppar
         Nextsim::GlobalTimer.stop("time loop - meb - strain");
 
         Nextsim::GlobalTimer.start("time loop - meb - stress");
-        Nextsim::MEB::StressUpdateHighOrder(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+        Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
         // Nextsim::mEVP::StressUpdateHighOrder(ptrans_stress, smesh, S11, S12, S22, E11, E12, E22, H, A,
         //     vpparameters.Pstar, vpparameters.DeltaMin, alpha, beta);
         Nextsim::GlobalTimer.stop("time loop - meb - stress");
@@ -434,8 +431,46 @@ template void CGParametricMomentum<2, 8>::mEVPIteration(const VPParameters& vppa
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
+// --------------------------------------------------
+
+template void CGParametricMomentum<1, 3>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<1>& H, const CellVector<1>& A, CellVector<1>& D);
+template void CGParametricMomentum<1, 3>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<3>& H, const CellVector<3>& A, CellVector<3>& D);
+template void CGParametricMomentum<1, 3>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<6>& H, const CellVector<6>& A, CellVector<6>& D);
+
+template void CGParametricMomentum<1, 8>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<1>& H, const CellVector<1>& A, CellVector<1>& D);
+template void CGParametricMomentum<1, 8>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<3>& H, const CellVector<3>& A, CellVector<3>& D);
+template void CGParametricMomentum<1, 8>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<6>& H, const CellVector<6>& A, CellVector<6>& D);
+
+template void CGParametricMomentum<2, 3>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<1>& H, const CellVector<1>& A, CellVector<1>& D);
+template void CGParametricMomentum<2, 3>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<3>& H, const CellVector<3>& A, CellVector<3>& D);
+template void CGParametricMomentum<2, 3>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<6>& H, const CellVector<6>& A, CellVector<6>& D);
+
 template void CGParametricMomentum<2, 8>::MEBIteration(const MEBParameters& vpparameters,
-    size_t NT_evp, double dt_adv, const CellVector<3>& H, const CellVector<3>& A,
-    CellVector<3>& D);
+    size_t NT_evp, double dt_adv,
+    const CellVector<1>& H, const CellVector<1>& A, CellVector<1>& D);
+template void CGParametricMomentum<2, 8>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<3>& H, const CellVector<3>& A, CellVector<3>& D);
+template void CGParametricMomentum<2, 8>::MEBIteration(const MEBParameters& vpparameters,
+    size_t NT_evp, double dt_adv,
+    const CellVector<6>& H, const CellVector<6>& A, CellVector<6>& D);
 
 } /* namespace Nextsim */
