@@ -481,17 +481,14 @@ namespace MEB {
         const double dt_mom)
     {
 
-        double alpha = 800;
-        double beta = 800;
-
-        //! Stress Update
+        //! Stress and Damage Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
             const Eigen::Matrix<double, 1, 9> h_gauss = (H.block<1, 3>(i, 0) * BiG33).array().max(0.0).matrix();
             const Eigen::Matrix<double, 1, 9> a_gauss = (A.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
-            const Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
+            Eigen::Matrix<double, 1, 9> d_gauss = (D.block<1, 3>(i, 0) * BiG33).array().max(0.0).min(1.0).matrix();
 
             const Eigen::Matrix<double, 1, 9> e11_gauss = E11.block<1, 8>(i, 0) * BiG83;
             const Eigen::Matrix<double, 1, 9> e12_gauss = E12.block<1, 8>(i, 0) * BiG83;
@@ -513,17 +510,12 @@ namespace MEB {
             // Eqn. 25
             const Eigen::Matrix<double, 1, 9> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array()).matrix();
 
+            // Eqn. 12: first factor on RHS
             double const Dunit_factor = 1. / (1. - (params.nu0 * params.nu0));
 
-            // 1. / (1. + dt / lambda) Eqn. 18
+            // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 34
+            // 1. / (1. + dt / lambda) Eqn. 33-34
             Eigen::Matrix<double, 1, 9> multiplicator = (1. / (1. + dt_mom / time_viscous.array())).matrix();
-
-            // Elasit prediction (Eqn. 32)
-            const Eigen::Matrix<Nextsim::FloatType, 1, 9> J = ParametricTools::J<3>(smesh, i);
-            // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
-            // with the gauss weights and with J. This is a 8 x 9 matrix
-            const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
-                * (BiG83.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
 
             s11_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e11_gauss.array())).matrix()
                 + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
@@ -531,77 +523,59 @@ namespace MEB {
             s22_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e22_gauss.array())).matrix()
                 + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
 
-            //! Integration of elastic prediction
-            // S11.row(i) = imass_psi * s11_gauss.matrix().transpose();
-            // S12.row(i) = imass_psi * s12_gauss.matrix().transpose();
-            // S22.row(i) = imass_psi * s22_gauss.matrix().transpose();
-
+            //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
             const Eigen::Matrix<double, 1, 9> Pmax = params.P0 * h_gauss.array().pow(1.5);
 
-            // TODO: Check this out
-            // (Eqn. 7b) Strange Discountinious function
+            // (Eqn. 7b) Prepare tildeP
             const Eigen::Matrix<double, 1, 9> tildeP = (-Pmax.array() / sigma_n.array()).min(1.0).matrix();
-
-            // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
+            // (Eqn. 7b) Select case based on sigma_n
             // multiplicator = (sigma_n.array() < 0.).select((1. / (1. + (1. - tildeP.array()) * dt_mom / time_viscous.array())).matrix(), multiplicator);
 
-            // std::cout << "multiplicator " << multiplicator << std::endl;
-
-            // REMOVE
-            // std::cout << "s               " << s11_gauss.array() << std::endl;
-            // std::cout << "s*multiplicator " << s11_gauss.array() * multiplicator.array() << std::endl;
-
-            // S11.row(i) = imass_psi * (s11_gauss.array() * multiplicator.array()).matrix().transpose();
-            // S12.row(i) = imass_psi * (s12_gauss.array() * multiplicator.array()).matrix().transpose();
-            // S22.row(i) = imass_psi * (s22_gauss.array() * multiplicator.array()).matrix().transpose();
-
-            //! Coefficient-wise multiplication
+            //! Implicit part of RHS (Eqn. 33)
             s11_gauss.array() *= multiplicator.array();
             s12_gauss.array() *= multiplicator.array();
             s22_gauss.array() *= multiplicator.array();
-
-            // S11.row(i) = imass_psi * s11_gauss.matrix().transpose();
-            // S12.row(i) = imass_psi * s12_gauss.matrix().transpose();
-            // S22.row(i) = imass_psi * s22_gauss.matrix().transpose();
-
-            // std::cout << "A 2 = " << S11.row(i) << std::endl;
-
-            //======================================================================
-            //! - Estimates the level of damage from the updated internal stress and the local
-            //! damage criterion
-            //======================================================================
-            // s11_gauss = S11.block<1, 8>(i, 0) * BiG83;
-            // s12_gauss = S12.block<1, 8>(i, 0) * BiG83;
-            // s22_gauss = S22.block<1, 8>(i, 0) * BiG83;
 
             sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
             const Eigen::Matrix<double, 1, 9> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
 
             const Eigen::Matrix<double, 1, 9> c = params.c0 * h_gauss.array() * expC;
 
-            Eigen::Matrix<double, 1, 9> dcrit;
-            dcrit << 1., 1., 1., 1., 1., 1., 1., 1., 1.;
+            Eigen::Matrix<double, 1, 9> dcrit = { 1., 1., 1., 1., 1., 1., 1., 1., 1. };
 
             // Mohr-Coulomb Criterion
             dcrit = (tau.array() + params.sin_phi * sigma_n.array() - c.array() > 0).select(c.array() / (tau.array() + params.sin_phi * sigma_n.array()), dcrit);
             // Compression cutoff
             // dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
 
-            dcrit = dcrit.array().min(1.0).matrix();
+            dcrit = dcrit.array().min(1.0);
 
             // Relax stress in Gassus points
-            S11.row(i) = imass_psi * (s11_gauss.array() * dcrit.array()).matrix().transpose();
-            S12.row(i) = imass_psi * (s12_gauss.array() * dcrit.array()).matrix().transpose();
-            S22.row(i) = imass_psi * (s22_gauss.array() * dcrit.array()).matrix().transpose();
+            s11_gauss.array() *= dcrit.array();
+            s12_gauss.array() *= dcrit.array();
+            s22_gauss.array() *= dcrit.array();
 
             // Update damage
             // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
+            d_gauss = ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / params.damage_timescale);
+
+            // INTEGRATION OF STRESS AND DAMAGE
+
+            const Eigen::Matrix<Nextsim::FloatType, 1, 9> J = ParametricTools::J<3>(smesh, i);
+            // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
+            // with the gauss weights and with J. This is a 8 x 9 matrix
+            const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
+                * (BiG83.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
+
+            S11.row(i) = imass_psi * s11_gauss.matrix().transpose();
+            S12.row(i) = imass_psi * s12_gauss.matrix().transpose();
+            S22.row(i) = imass_psi * s22_gauss.matrix().transpose();
 
             const Eigen::Matrix<Nextsim::FloatType, 3, 9> imass_psi2 = ParametricTools::massMatrix<3>(smesh, i).inverse()
                 * (BiG33.array().rowwise() * (GAUSSWEIGHTS_3.array() * J.array())).matrix();
 
-            D.row(i) += imass_psi2 * (((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / params.damage_timescale).matrix().transpose());
+            D.row(i) += imass_psi2 * d_gauss.matrix().transpose();
         }
     }
 

@@ -190,6 +190,9 @@ void CGParametricMomentum<CG, DGstress>::mEVPIteration(const VPParameters& vppar
         Nextsim::mEVP::StressUpdateHighOrder(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
         // Nextsim::mEVP::StressUpdateHighOrder(ptrans_stress, smesh, S11, S12, S22, E11, E12, E22, H, A,
         //     vpparameters.Pstar, vpparameters.DeltaMin, alpha, beta);
+        // std::cout << S11 << std::endl;
+        // abort();
+
         Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
         Nextsim::GlobalTimer.start("time loop - mevp - update");
@@ -305,10 +308,16 @@ void CGParametricMomentum<CG, DGstress>::MEBIteration(const MEBParameters& vppar
         ProjectCG2VelocityToDG1Strain();
         Nextsim::GlobalTimer.stop("time loop - meb - strain");
 
+        // std::cout << S11 << std::endl;
+        // std::cout << E11 << std::endl;
+
         Nextsim::GlobalTimer.start("time loop - meb - stress");
         Nextsim::MEB::StressUpdateHighOrder(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
         // Nextsim::mEVP::StressUpdateHighOrder(ptrans_stress, smesh, S11, S12, S22, E11, E12, E22, H, A,
         //     vpparameters.Pstar, vpparameters.DeltaMin, alpha, beta);
+        // std::cout << S11 << std::endl;
+        // abort();
+
         Nextsim::GlobalTimer.stop("time loop - meb - stress");
 
         Nextsim::GlobalTimer.start("time loop - meb - update");

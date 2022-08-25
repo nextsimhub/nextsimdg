@@ -132,7 +132,7 @@ int main()
     Nextsim::SasipMesh smesh;
     smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
     smesh.readmesh("../SasipMesh/rectangle_128x128.smesh");
-    // smesh.readmesh("../SasipMesh/rectangle_64x64.smesh");
+    smesh.readmesh("../SasipMesh/rectangle_64x64.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);

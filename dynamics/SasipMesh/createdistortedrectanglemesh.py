@@ -19,7 +19,7 @@ Ly =  512000
 nx =  32
 ny =  32
 
-nx = ny = 128
+nx = ny = 512
 
 import numpy as np
 
