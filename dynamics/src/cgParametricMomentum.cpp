@@ -19,7 +19,7 @@ extern Timer GlobalTimer;
 
 ////////////////////////////////////////////////// Strain (SasipMesh)
 
-  template <int CG, int DGstress>
+template <int CG, int DGstress>
 void CGParametricMomentum<CG, DGstress>::ProjectCG2VelocityToDGStrain()
 {
     assert(static_cast<long int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)) == vx.rows());
@@ -40,37 +40,34 @@ void CGParametricMomentum<CG, DGstress>::ProjectCG2VelocityToDGStrain()
             for (size_t col = 0; col < smesh.nx; ++col, ++dgi, cgi += CG) {
 
                 // get the 4/9 local x/y - velocity coefficients on the element
-	      Eigen::Matrix<double, CGDOFS(CG), 1> vx_local, vy_local;
-	      if (CG==1)
-		{
-		  vx_local << vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift);
-		  vy_local << vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift);
-		}
-	      else if (CG==2)
-		{
-		  vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2), vx(cgi + cgshift), vx(cgi + 1 + cgshift),
-		    vx(cgi + 2 + cgshift), vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift),
-		    vx(cgi + 2 + 2 * cgshift);
-		  
-		  vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2), vy(cgi + cgshift), vy(cgi + 1 + cgshift),
-		    vy(cgi + 2 + cgshift), vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift),
-		    vy(cgi + 2 + 2 * cgshift);
-		}
-	      else abort();
-	      
+                Eigen::Matrix<double, CGDOFS(CG), 1> vx_local, vy_local;
+                if (CG == 1) {
+                    vx_local << vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift);
+                    vy_local << vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift);
+                } else if (CG == 2) {
+                    vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2), vx(cgi + cgshift), vx(cgi + 1 + cgshift),
+                        vx(cgi + 2 + cgshift), vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift),
+                        vx(cgi + 2 + 2 * cgshift);
+
+                    vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2), vy(cgi + cgshift), vy(cgi + 1 + cgshift),
+                        vy(cgi + 2 + cgshift), vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift),
+                        vy(cgi + 2 + 2 * cgshift);
+                } else
+                    abort();
+
                 // get the reference-Gradient of the velocity in the GP
                 // (vx_i * d_x/y phi_i(q))
-	      const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DX_VX_g = PHIx<CG,(CG==2?3:2)>.transpose() * vx_local;
-	      const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DY_VX_g = PHIy<CG,(CG==2?3:2)>.transpose() * vx_local;
-	      const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DX_VY_g = PHIx<CG,(CG==2?3:2)>.transpose() * vy_local;
-	      const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DY_VY_g = PHIy<CG,(CG==2?3:2)>.transpose() * vy_local;
-	      // const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DX_VX_g = CG_CG2FUNC_DX_in_GAUSS3 * vx_local;
-	      // const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DY_VX_g = CG_CG2FUNC_DY_in_GAUSS3 * vx_local;
-	      // const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DX_VY_g = CG_CG2FUNC_DX_in_GAUSS3 * vy_local;
-	      // const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DY_VY_g = CG_CG2FUNC_DY_in_GAUSS3 * vy_local;
+                const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> DX_VX_g = PHIx<CG, (CG == 2 ? 3 : 2)>.transpose() * vx_local;
+                const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> DY_VX_g = PHIy<CG, (CG == 2 ? 3 : 2)>.transpose() * vx_local;
+                const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> DX_VY_g = PHIx<CG, (CG == 2 ? 3 : 2)>.transpose() * vy_local;
+                const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> DY_VY_g = PHIy<CG, (CG == 2 ? 3 : 2)>.transpose() * vy_local;
+                // const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DX_VX_g = CG_CG2FUNC_DX_in_GAUSS3 * vx_local;
+                // const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DY_VX_g = CG_CG2FUNC_DY_in_GAUSS3 * vx_local;
+                // const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DX_VY_g = CG_CG2FUNC_DX_in_GAUSS3 * vy_local;
+                // const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> DY_VY_g = CG_CG2FUNC_DY_in_GAUSS3 * vy_local;
 
-	      const Eigen::Matrix<Nextsim::FloatType, 2, (CG==2?9:4)> dxT = (ParametricTools::dxT<(CG==2?3:2)>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<(CG==2?3:2)>.array()).matrix();
-	      const Eigen::Matrix<Nextsim::FloatType, 2, (CG==2?9:4)> dyT = (ParametricTools::dyT<(CG==2?3:2)>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<(CG==2?3:2)>.array()).matrix();
+                const Eigen::Matrix<Nextsim::FloatType, 2, (CG == 2 ? 9 : 4)> dxT = (ParametricTools::dxT<(CG == 2 ? 3 : 2)>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<(CG == 2 ? 3 : 2)>.array()).matrix();
+                const Eigen::Matrix<Nextsim::FloatType, 2, (CG == 2 ? 9 : 4)> dyT = (ParametricTools::dyT<(CG == 2 ? 3 : 2)>(smesh, dgi).array().rowwise() * GAUSSWEIGHTS<(CG == 2 ? 3 : 2)>.array()).matrix();
 
                 // gradient of transformation
                 //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]
@@ -78,16 +75,16 @@ void CGParametricMomentum<CG, DGstress>::ProjectCG2VelocityToDGStrain()
                 //      [ dxT2, dyT2 ]     //            [ -dyT1, dxT1 ]
                 //
 
-                const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> J_dx_vx_g = dyT.row(1).array() * DX_VX_g.array() - dxT.row(1).array() * DY_VX_g.array();
-                const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> J_dy_vx_g = dxT.row(0).array() * DY_VX_g.array() - dyT.row(0).array() * DX_VX_g.array();
-                const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> J_dx_vy_g = dyT.row(1).array() * DX_VY_g.array() - dxT.row(1).array() * DY_VY_g.array();
-                const Eigen::Matrix<Nextsim::FloatType, 1, (CG==2?9:4)> J_dy_vy_g = dxT.row(0).array() * DY_VY_g.array() - dyT.row(0).array() * DX_VY_g.array();
+                const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> J_dx_vx_g = dyT.row(1).array() * DX_VX_g.array() - dxT.row(1).array() * DY_VX_g.array();
+                const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> J_dy_vx_g = dxT.row(0).array() * DY_VX_g.array() - dyT.row(0).array() * DX_VX_g.array();
+                const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> J_dx_vy_g = dyT.row(1).array() * DX_VY_g.array() - dxT.row(1).array() * DY_VY_g.array();
+                const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> J_dy_vy_g = dxT.row(0).array() * DY_VY_g.array() - dyT.row(0).array() * DX_VY_g.array();
 
                 const Eigen::Matrix<Nextsim::FloatType, DGstress, DGstress> imass = ParametricTools::massMatrix<DGstress>(smesh, dgi).inverse();
 
-                E11.row(dgi) = imass * (PSI<DGstress,(CG==2?3:2)> * J_dx_vx_g.transpose());
-                E22.row(dgi) = imass * (PSI<DGstress,(CG==2?3:2)> * J_dy_vy_g.transpose());
-                E12.row(dgi) = 0.5 * imass * (PSI<DGstress,(CG==2?3:2)> * (J_dx_vy_g.transpose() + J_dy_vx_g.transpose()));
+                E11.row(dgi) = imass * (PSI<DGstress, (CG == 2 ? 3 : 2)> * J_dx_vx_g.transpose());
+                E22.row(dgi) = imass * (PSI<DGstress, (CG == 2 ? 3 : 2)> * J_dy_vy_g.transpose());
+                E12.row(dgi) = 0.5 * imass * (PSI<DGstress, (CG == 2 ? 3 : 2)> * (J_dx_vy_g.transpose() + J_dy_vx_g.transpose()));
             }
         }
     } else if (precompute_matrices == 1) {
@@ -99,24 +96,21 @@ void CGParametricMomentum<CG, DGstress>::ProjectCG2VelocityToDGStrain()
 
             for (size_t col = 0; col < smesh.nx; ++col, ++dgi, cgi += CG) {
 
-	                      // get the 4/9 local x/y - velocity coefficients on the element
-	      Eigen::Matrix<double, CGDOFS(CG), 1> vx_local, vy_local;
-	      if (CG==1)
-		{
-		  vx_local << vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift);
-		  vy_local << vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift);
-		}
-	      else if (CG==2)
-		{
-		  vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2), vx(cgi + cgshift), vx(cgi + 1 + cgshift),
-		    vx(cgi + 2 + cgshift), vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift),
-		    vx(cgi + 2 + 2 * cgshift);
-		  
-		  vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2), vy(cgi + cgshift), vy(cgi + 1 + cgshift),
-		    vy(cgi + 2 + cgshift), vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift),
-		    vy(cgi + 2 + 2 * cgshift);
-		}
-	      else abort();
+                // get the 4/9 local x/y - velocity coefficients on the element
+                Eigen::Matrix<double, CGDOFS(CG), 1> vx_local, vy_local;
+                if (CG == 1) {
+                    vx_local << vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift);
+                    vy_local << vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift);
+                } else if (CG == 2) {
+                    vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2), vx(cgi + cgshift), vx(cgi + 1 + cgshift),
+                        vx(cgi + 2 + cgshift), vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift),
+                        vx(cgi + 2 + 2 * cgshift);
+
+                    vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2), vy(cgi + cgshift), vy(cgi + 1 + cgshift),
+                        vy(cgi + 2 + cgshift), vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift),
+                        vy(cgi + 2 + 2 * cgshift);
+                } else
+                    abort();
 
                 E11.row(dgi) = ptrans.iMgradX[dgi] * vx_local;
                 E22.row(dgi) = ptrans.iMgradY[dgi] * vy_local;
@@ -162,7 +156,7 @@ void CGParametricMomentum<CG, DGstress>::AddStressTensor(const double scale, CGV
 //         v(lowerrightindex + indecesperrow * i, 0) = 0.0;
 //     }
 // }
-template<int CG, int DGstress>
+template <int CG, int DGstress>
 void CGParametricMomentum<CG, DGstress>::DirichletZero(CGVector<CG>& v)
 {
     size_t upperleftindex = (CG * smesh.nx + 1) * CG * smesh.ny;
@@ -212,8 +206,8 @@ void CGParametricMomentum<CG, DGstress>::mEVPIteration(const VPParameters& vppar
         Nextsim::GlobalTimer.stop("time loop - mevp - strain");
 
         Nextsim::GlobalTimer.start("time loop - mevp - stress");
-	//        Nextsim::mEVP::StressUpdateHighOrder<CG,DGstress,DG>(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
-	Nextsim::mEVP::StressUpdateHighOrder(vpparameters, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+        //        Nextsim::mEVP::StressUpdateHighOrder<CG,DGstress,DG>(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+        Nextsim::mEVP::StressUpdateHighOrder(vpparameters, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
         Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
         Nextsim::GlobalTimer.start("time loop - mevp - update");
@@ -410,47 +404,44 @@ template class CGParametricMomentum<2, 8>;
 
 // --------------------------------------------------
 
-
-
- template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
- template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
- template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
- template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
- template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
- template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
 template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
-							size_t NT_evp, double alpha, double beta,
-							double dt_adv,
-							const CellVector<1>& H, const CellVector<1>& A);
+    size_t NT_evp, double alpha, double beta,
+    double dt_adv,
+    const CellVector<1>& H, const CellVector<1>& A);
 template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
-							size_t NT_evp, double alpha, double beta,
-							double dt_adv,
-							const CellVector<3>& H, const CellVector<3>& A);
+    size_t NT_evp, double alpha, double beta,
+    double dt_adv,
+    const CellVector<3>& H, const CellVector<3>& A);
 template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
-							size_t NT_evp, double alpha, double beta,
-							double dt_adv,
-							const CellVector<6>& H, const CellVector<6>& A);
-
+    size_t NT_evp, double alpha, double beta,
+    double dt_adv,
+    const CellVector<6>& H, const CellVector<6>& A);
 
 template void CGParametricMomentum<2, 8>::mEVPIteration(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
