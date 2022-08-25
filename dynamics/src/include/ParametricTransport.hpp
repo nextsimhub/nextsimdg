@@ -12,12 +12,12 @@
 namespace Nextsim {
 
 template <int DGcell, int DGedge>
-void parametricTransportOperator(const SasipMesh& smesh, const double dt, const CellVector<DGcell>& vx,
+void parametricTransportOperator(const ParametricMesh& smesh, const double dt, const CellVector<DGcell>& vx,
     const CellVector<DGcell>& vy, const EdgeVector<DGedge>& evx,
     const EdgeVector<DGedge>& evy, const CellVector<DGcell>& phi, CellVector<DGcell>& phiup);
 
 /*!
- * Main class to manage the transport scheme on the parametric SasipMesh
+ * Main class to manage the transport scheme on the parametric ParametricMesh
  *
  * template parameter DGcell, DGedge are number of local unknowns, that is
  * (1,2,3,6) on the cell and (1,2,3) on the edge
@@ -26,7 +26,7 @@ template <int DGcell, int DGedge>
 class ParametricTransport {
 protected:
     //! spatial mesh.
-    const SasipMesh& smesh;
+    const ParametricMesh& smesh;
 
     //! reference to the current velocity
     CellVector<DGcell> velx, vely;
@@ -41,7 +41,7 @@ protected:
     CellVector<DGcell> tmp1, tmp2, tmp3;
 
 public:
-    ParametricTransport(const SasipMesh& mesh)
+    ParametricTransport(const ParametricMesh& mesh)
         : smesh(mesh)
         , timesteppingscheme("rk2")
     {

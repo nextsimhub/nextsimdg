@@ -568,12 +568,12 @@ namespace mEVP {
         }
     }
 
-    // Stress Update (SasipMesh)
+    // Stress Update (ParametricMesh)
 
     template <int CG, int DGstress, int DGadvection>
     void StressUpdateHighOrder(const VPParameters& vpparameters,
         const ParametricTransformation<CG, DGstress>& ptrans,
-        const SasipMesh& smesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
+        const ParametricMesh& smesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
         CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22, const CellVector<DGadvection>& H,
         const CellVector<DGadvection>& A,
@@ -654,7 +654,7 @@ namespace mEVP {
 
     template <int CG, int DGs, int DGa>
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-        const SasipMesh& smesh, CellVector<DGs>& S11, CellVector<DGs>& S12,
+        const ParametricMesh& smesh, CellVector<DGs>& S11, CellVector<DGs>& S12,
         CellVector<DGs>& S22, const CellVector<DGs>& E11, const CellVector<DGs>& E12,
         const CellVector<DGs>& E22, const CellVector<DGa>& H,
         const CellVector<DGa>& A,

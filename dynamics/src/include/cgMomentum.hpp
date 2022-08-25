@@ -34,11 +34,11 @@ public:
 
     //! Projects the symmetric gradient of the CG2 velocity into the DG1 space
     template <int CG, int DG>
-    void ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
+    void ProjectCG2VelocityToDG1Strain(const ParametricMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
         CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
     template <int CG, int DG>
     void ProjectCG2VelocityToDG1Strain(const ParametricTransformation<CG, DG>& ptrans,
-        const SasipMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
+        const ParametricMesh& smesh, CellVector<DG>& E11, CellVector<DG>& E12,
         CellVector<DG>& E22, const CGVector<CG>& vx, const CGVector<CG>& vy);
 
     /*!
@@ -49,12 +49,12 @@ public:
         const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
     template <int CG, int DG>
-    void AddStressTensor(const SasipMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
+    void AddStressTensor(const ParametricMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
         const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
     template <int CG, int DG>
     void AddStressTensor(const ParametricTransformation<CG, DG>& ptrans,
-        const SasipMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
+        const ParametricMesh& smesh, const double scale, CGVector<CG>& tx, CGVector<CG>& ty,
         const CellVector<DG>& S11, const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
     template <int CG, int DG>
@@ -62,13 +62,13 @@ public:
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
         const CellVector<DG>& S12, const CellVector<DG>& S22) const;
     template <int CG, int DG>
-    void AddStressTensorCell(const SasipMesh& smesh, const double scale, const size_t c, const size_t cx,
+    void AddStressTensorCell(const ParametricMesh& smesh, const double scale, const size_t c, const size_t cx,
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
         const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
     template <int CG, int DG>
     void AddStressTensorCell(const ParametricTransformation<CG, DG>& ptrans,
-        const SasipMesh& smesh, const double scale, const size_t c, const size_t cx,
+        const ParametricMesh& smesh, const double scale, const size_t c, const size_t cx,
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty, const CellVector<DG>& S11,
         const CellVector<DG>& S12, const CellVector<DG>& S22) const;
 
@@ -275,7 +275,7 @@ public:
         ty(cg_i + 2 + CGROW * 2) += lup2(8);
     }
 
-    void AddStressTensorCell(const SasipMesh& smesh, const double scale, const size_t eid, const size_t cx,
+    void AddStressTensorCell(const ParametricMesh& smesh, const double scale, const size_t eid, const size_t cx,
         const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy, const CellVector<8>& S11,
         const CellVector<8>& S12, const CellVector<8>& S22) const
     {
@@ -323,7 +323,7 @@ public:
     }
 
     void AddStressTensorCell(const ParametricTransformation<2, 8>& ptrans,
-        const SasipMesh& smesh, const double scale, const size_t eid, const size_t cx,
+        const ParametricMesh& smesh, const double scale, const size_t eid, const size_t cx,
         const size_t cy, CGVector<2>& tmpx, CGVector<2>& tmpy, const CellVector<8>& S11,
         const CellVector<8>& S12, const CellVector<8>& S22) const
     {
@@ -347,7 +347,7 @@ public:
     void DirichletZero(const Mesh& mesh, CGVector<CG>& v) const;
     //! Sets the velocity vector to zero along the boundary
     template <int CG>
-    void DirichletZero(const SasipMesh& smesh, CGVector<CG>& v) const;
+    void DirichletZero(const ParametricMesh& smesh, CGVector<CG>& v) const;
 
     //! Sets the velocity vector for compresion testcase along the boundary
     template <int CG>
@@ -489,13 +489,13 @@ public:
     //! Interpolates a DG-Vector to a CG-Vector (Sasip-Mesh)
     // IS THIS ALL OK and does not depend on the mesh degeneration?
     template <int CG, int DG>
-    void InterpolateDGToCG(const SasipMesh& smesh, CGVector<CG>& cg_A, const CellVector<DG>& A) const;
+    void InterpolateDGToCG(const ParametricMesh& smesh, CGVector<CG>& cg_A, const CellVector<DG>& A) const;
 
     template <int CG, int DG>
-    void InterpolateDGToCGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    void InterpolateDGToCGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<CG>& cg_A, const CellVector<DG>& A) const;
 
-    void InterpolateDGToCGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    void InterpolateDGToCGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<1>& cg_A, const CellVector<1>& A) const
     {
         const size_t CGDofsPerRow = smesh.nx + 1;
@@ -506,7 +506,7 @@ public:
         cg_A(cgi + CGDofsPerRow) += 0.25 * A(c);
         cg_A(cgi + CGDofsPerRow + 1) += 0.25 * A(c);
     }
-    void InterpolateDGToCGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    void InterpolateDGToCGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<1>& cg_A, const CellVector<3>& A) const
     {
         const size_t CGDofsPerRow = smesh.nx + 1;
@@ -517,7 +517,7 @@ public:
         cg_A(cgi + CGDofsPerRow) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
         cg_A(cgi + CGDofsPerRow + 1) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
     }
-    void InterpolateDGToCGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    void InterpolateDGToCGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<2>& cg_A, const CellVector<1>& A) const
     {
         const size_t CGDofsPerRow = 2 * smesh.nx + 1;
@@ -533,7 +533,7 @@ public:
         cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * A(c);
         cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * A(c);
     }
-    void InterpolateDGToCGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    void InterpolateDGToCGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<2>& cg_A, const CellVector<3>& A) const
     {
         const size_t CGDofsPerRow = 2 * smesh.nx + 1;
@@ -549,7 +549,7 @@ public:
         cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * (A(c, 0) + 0.5 * A(c, 2));
         cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
     }
-    void InterpolateDGToCGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    void InterpolateDGToCGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<2>& cg_A, const CellVector<6>& A) const
     {
         const size_t CGDofsPerRow = 2 * smesh.nx + 1;
@@ -568,8 +568,8 @@ public:
 
     //! Adjusts the interpolation on the boundary
     template <int CG>
-    void InterpolateDGToCGBoundary(const SasipMesh& smesh, CGVector<CG>& cg_A) const;
-    void InterpolateDGToCGBoundary(const SasipMesh& smesh, CGVector<1>& cg_A) const
+    void InterpolateDGToCGBoundary(const ParametricMesh& smesh, CGVector<CG>& cg_A) const;
+    void InterpolateDGToCGBoundary(const ParametricMesh& smesh, CGVector<1>& cg_A) const
     {
         const size_t CGDofsPerRow = smesh.nx + 1;
         const size_t UpperLeftIndex = CGDofsPerRow * smesh.ny;
@@ -585,7 +585,7 @@ public:
             cg_A(i * CGDofsPerRow + smesh.nx) *= 2.0;
         }
     }
-    void InterpolateDGToCGBoundary(const SasipMesh& smesh, CGVector<2>& cg_A) const
+    void InterpolateDGToCGBoundary(const ParametricMesh& smesh, CGVector<2>& cg_A) const
     {
         const size_t CGDofsPerRow = 2 * smesh.nx + 1;
         const size_t UpperLeftIndex = 2 * CGDofsPerRow * smesh.ny;

@@ -157,7 +157,7 @@ namespace MEB {
                 * std::pow((1. - D(i, 0)) * expC, RefScale::exponent_relaxation_sigma - 1.);
 
             //! Plastic failure tildeP
-            double tildeP;
+            double tildeP = 0;
             if (sigma_n < 0.) {
                 double const Pmax = RefScale::compression_factor
                     * pow(H(i, 0), RefScale::exponent_compression_factor)
@@ -474,7 +474,7 @@ namespace MEB {
      * @param dt_mom timestep for momentum subcycle
      */
     void StressUpdateHighOrder(const MEBParameters& params,
-        const SasipMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
+        const ParametricMesh& smesh, CellVector<8>& S11, CellVector<8>& S12,
         CellVector<8>& S22, const CellVector<8>& E11, const CellVector<8>& E12,
         const CellVector<8>& E22, const CellVector<3>& H,
         const CellVector<3>& A, CellVector<3>& D,

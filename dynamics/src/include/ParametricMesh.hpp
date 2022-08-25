@@ -1,11 +1,11 @@
 /*!
- * @file SasipMesh.hpp
+ * @file ParametricMesh.hpp
  * @date 9 Juli 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
-#ifndef __SASIPMESH_HPP
-#define __SASIPMESH_HPP
+#ifndef __PARAMETRICMESH_HPP
+#define __PARAMETRICMESH_HPP
 
 #include <Eigen/Dense>
 #include <array>
@@ -38,7 +38,7 @@ inline constexpr double SQR(double x) { return x * x; }
 
 typedef std::array<double, 2> Vertex;
 
-class SasipMesh {
+class ParametricMesh {
 public:
     int statuslog; //!< -1 no output, 1 full status output
 
@@ -48,7 +48,7 @@ public:
 
     Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
-    SasipMesh(int loglevel = 1)
+    ParametricMesh(int loglevel = 1)
         : statuslog(loglevel)
         , nx(-1)
         , ny(-1)
@@ -62,7 +62,7 @@ public:
      *
      * File format:
      *
-     * SasipMesh 1.0 % Identifier & Version
+     * ParametricMesh 1.0 % Identifier & Version
      *
      * nx ny          % number of elements in x- and y- direction  << Version: 1.0
      * x1       y1    % x- and y- coordinates of vertices. first vertex lower left

@@ -81,7 +81,6 @@ public:
         exponent_compression_factor = 1.5; //! \param Power of ice thickness in the pressure coefficient
         tan_phi = 0.7; //!< \param tan_phi (double) Internal friction coefficient (mu)
         sin_phi = 0.7; //!< \param sin_phi (double) Internal friction coefficient (mu)
-
     }
 };
 

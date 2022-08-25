@@ -17,7 +17,7 @@ namespace Nextsim {
 
 extern Timer GlobalTimer;
 
-////////////////////////////////////////////////// Strain (SasipMesh)
+////////////////////////////////////////////////// Strain (ParametricMesh)
 
 template <int CG, int DGstress>
 void CGParametricMomentum<CG, DGstress>::ProjectCGVelocityToDGStrain()

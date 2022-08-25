@@ -484,10 +484,10 @@ void CGMomentum::ProjectCG2VelocityToDG1Strain(const Mesh& mesh, CellVector<8>& 
     }
 }
 
-////////////////////////////////////////////////// Strain (SasipMesh)
+////////////////////////////////////////////////// Strain (ParametricMesh)
 
 template <>
-void CGMomentum::ProjectCG2VelocityToDG1Strain(const SasipMesh& smesh, CellVector<8>& E11,
+void CGMomentum::ProjectCG2VelocityToDG1Strain(const ParametricMesh& smesh, CellVector<8>& E11,
     CellVector<8>& E12, CellVector<8>& E22, const CGVector<2>& vx, const CGVector<2>& vy)
 {
     assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == vx.rows());
@@ -567,7 +567,7 @@ void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, CGVector<
 
 // Sasip-Mesh Interface
 template <int CG, int DG>
-void CGMomentum::AddStressTensor(const SasipMesh& smesh, const double scale, CGVector<CG>& tx,
+void CGMomentum::AddStressTensor(const ParametricMesh& smesh, const double scale, CGVector<CG>& tx,
     CGVector<CG>& ty, const CellVector<DG>& S11, const CellVector<DG>& S12,
     const CellVector<DG>& S22) const
 {
@@ -620,7 +620,7 @@ void CGMomentum::DirichletZero(const Mesh& mesh, CGVector<2>& v) const
 
 //! Sets the vector to zero along the boundary
 template <>
-void CGMomentum::DirichletZero(const SasipMesh& smesh, CGVector<1>& v) const
+void CGMomentum::DirichletZero(const ParametricMesh& smesh, CGVector<1>& v) const
 {
 
     size_t upperleftindex = (smesh.nx + 1) * smesh.ny;
@@ -636,7 +636,7 @@ void CGMomentum::DirichletZero(const SasipMesh& smesh, CGVector<1>& v) const
     }
 }
 template <>
-void CGMomentum::DirichletZero(const SasipMesh& smesh, CGVector<2>& v) const
+void CGMomentum::DirichletZero(const ParametricMesh& smesh, CGVector<2>& v) const
 {
 
     size_t upperleftindex = (2 * smesh.nx + 1) * 2 * smesh.ny;
@@ -769,7 +769,7 @@ void CGMomentum::InterpolateDGToCG(
 
 template <int CG, int DG>
 void CGMomentum::InterpolateDGToCG(
-    const SasipMesh& smesh, CGVector<CG>& cg_A, const CellVector<DG>& A) const
+    const ParametricMesh& smesh, CGVector<CG>& cg_A, const CellVector<DG>& A) const
 {
     cg_A.zero();
 
@@ -818,7 +818,7 @@ template void CGMomentum::AddStressTensor(const Mesh& mesh, const double scale, 
     CGVector<2>& ty, const CellVector<8>& S11, const CellVector<8>& S12,
     const CellVector<8>& S22) const;
 
-template void CGMomentum::AddStressTensor(const SasipMesh& smesh, const double scale, CGVector<2>& tx,
+template void CGMomentum::AddStressTensor(const ParametricMesh& smesh, const double scale, CGVector<2>& tx,
     CGVector<2>& ty, const CellVector<8>& S11, const CellVector<8>& S12,
     const CellVector<8>& S22) const;
 
@@ -836,14 +836,14 @@ template void CGMomentum::InterpolateDGToCG(
     const Mesh& mesh, CGVector<2>& cg_A, const CellVector<6>& A) const;
 
 template void CGMomentum::InterpolateDGToCG(
-    const SasipMesh& smesh, CGVector<1>& cg_A, const CellVector<1>& A) const;
+    const ParametricMesh& smesh, CGVector<1>& cg_A, const CellVector<1>& A) const;
 template void CGMomentum::InterpolateDGToCG(
-    const SasipMesh& smesh, CGVector<1>& cg_A, const CellVector<3>& A) const;
+    const ParametricMesh& smesh, CGVector<1>& cg_A, const CellVector<3>& A) const;
 template void CGMomentum::InterpolateDGToCG(
-    const SasipMesh& smesh, CGVector<2>& cg_A, const CellVector<1>& A) const;
+    const ParametricMesh& smesh, CGVector<2>& cg_A, const CellVector<1>& A) const;
 template void CGMomentum::InterpolateDGToCG(
-    const SasipMesh& smesh, CGVector<2>& cg_A, const CellVector<3>& A) const;
+    const ParametricMesh& smesh, CGVector<2>& cg_A, const CellVector<3>& A) const;
 template void CGMomentum::InterpolateDGToCG(
-    const SasipMesh& smesh, CGVector<2>& cg_A, const CellVector<6>& A) const;
+    const ParametricMesh& smesh, CGVector<2>& cg_A, const CellVector<6>& A) const;
 
 } /* namespace Nextsim */

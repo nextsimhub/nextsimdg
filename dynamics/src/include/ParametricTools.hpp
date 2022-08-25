@@ -7,7 +7,7 @@
 #ifndef __PARAMETRICTOOLS_HPP
 #define __PARAMETRICTOOLS_HPP
 
-#include "SasipMesh.hpp"
+#include "ParametricMesh.hpp"
 #include "cgVector.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include <Eigen/StdVector>
@@ -73,7 +73,7 @@ public:
         Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(DG)>>>
         iMJwPSI;
 
-    void BasicInit(const SasipMesh& smesh);
+    void BasicInit(const ParametricMesh& smesh);
 };
 
 namespace ParametricTools {
@@ -82,46 +82,46 @@ namespace ParametricTools {
      * computes and returns the gradient of the parametric map in the Gausspoints
      */
     template <int Q>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dxT(const SasipMesh& smesh, const size_t eid);
+    inline Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dxT(const ParametricMesh& smesh, const size_t eid);
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 1> dxT<1>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 1> dxT<1>(const ParametricMesh& smesh, const size_t eid)
     {
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
             = smesh.coordinatesOfElement(eid);
         return coordinates.transpose() * CG_Q1x_1;
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 4> dxT<2>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 4> dxT<2>(const ParametricMesh& smesh, const size_t eid)
     {
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
             = smesh.coordinatesOfElement(eid);
         return coordinates.transpose() * CG_Q1x_2;
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT<3>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT<3>(const ParametricMesh& smesh, const size_t eid)
     {
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
             = smesh.coordinatesOfElement(eid);
         return coordinates.transpose() * CG_Q1x_3;
     }
     template <int Q>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dyT(const SasipMesh& smesh, const size_t eid);
+    inline Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dyT(const ParametricMesh& smesh, const size_t eid);
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 1> dyT<1>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 1> dyT<1>(const ParametricMesh& smesh, const size_t eid)
     {
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
             = smesh.coordinatesOfElement(eid);
         return coordinates.transpose() * CG_Q1y_1;
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 4> dyT<2>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 4> dyT<2>(const ParametricMesh& smesh, const size_t eid)
     {
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
             = smesh.coordinatesOfElement(eid);
         return coordinates.transpose() * CG_Q1y_2;
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT<3>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT<3>(const ParametricMesh& smesh, const size_t eid)
     {
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
             = smesh.coordinatesOfElement(eid);
@@ -133,10 +133,10 @@ namespace ParametricTools {
      * depends on the number of gauss points Q
      */
     template <int Q>
-    inline Eigen::Matrix<Nextsim::FloatType, 1, Q * Q> J(const SasipMesh& smesh, const size_t eid);
+    inline Eigen::Matrix<Nextsim::FloatType, 1, Q * Q> J(const ParametricMesh& smesh, const size_t eid);
 
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 1, 1> J<1>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 1, 1> J<1>(const ParametricMesh& smesh, const size_t eid)
     {
         // get the coordinates of the element as 4x2 - matrix
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
@@ -149,7 +149,7 @@ namespace ParametricTools {
         return dxT.array().row(0) * dyT.array().row(1) - dxT.array().row(1) * dyT.array().row(0);
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 1, 4> J<2>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 1, 4> J<2>(const ParametricMesh& smesh, const size_t eid)
     {
         // get the coordinates of the element as 4x2 - matrix
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
@@ -162,7 +162,7 @@ namespace ParametricTools {
         return dxT.array().row(0) * dyT.array().row(1) - dxT.array().row(1) * dyT.array().row(0);
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 1, 9> J<3>(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 1, 9> J<3>(const ParametricMesh& smesh, const size_t eid)
     {
         // get the coordinates of the element as 4x2 - matrix
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
@@ -179,10 +179,10 @@ namespace ParametricTools {
      * computes and returns the element mass matrix
      */
     template <int DG>
-    inline Eigen::Matrix<Nextsim::FloatType, DG, DG> massMatrix(const SasipMesh& smesh, const size_t eid);
+    inline Eigen::Matrix<Nextsim::FloatType, DG, DG> massMatrix(const ParametricMesh& smesh, const size_t eid);
 
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 1, 1> massMatrix(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 1, 1> massMatrix(const ParametricMesh& smesh, const size_t eid)
     {
         return Eigen::Matrix<Nextsim::FloatType, 1, 1>(smesh.area(eid));
 
@@ -190,7 +190,7 @@ namespace ParametricTools {
         // return (PSI31.array().rowwise() * (GAUSSWEIGHTS_1.array() * J<1>(smesh,eid).array())).matrix() * PSI31.transpose();
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 3, 3> massMatrix(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 3, 3> massMatrix(const ParametricMesh& smesh, const size_t eid)
     {
         return (PSI<3, 2>.array().rowwise() * (GAUSSWEIGHTS<2>.array() * J<2>(smesh, eid).array())).matrix() * PSI<3, 2>.transpose();
 
@@ -198,12 +198,12 @@ namespace ParametricTools {
         // return (PSI31.array().rowwise() * (GAUSSWEIGHTS_1.array() * J<1>(smesh,eid).array())).matrix() * PSI31.transpose();
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 6, 6> massMatrix(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 6, 6> massMatrix(const ParametricMesh& smesh, const size_t eid)
     {
         return (PSI<6, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array())).matrix() * PSI<6, 3>.transpose();
     }
     template <>
-    inline Eigen::Matrix<Nextsim::FloatType, 8, 8> massMatrix(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 8, 8> massMatrix(const ParametricMesh& smesh, const size_t eid)
     {
         return (PSI<8, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array())).matrix() * PSI<8, 3>.transpose();
     }
@@ -212,15 +212,15 @@ namespace ParametricTools {
      * computes and retunrs the coordinates of the Q^2 gauss points
      * in the physical element with index eid
      */
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 1> getGaussPointsInElement1(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 1> getGaussPointsInElement1(const ParametricMesh& smesh, const size_t eid)
     {
         return smesh.coordinatesOfElement(eid).transpose() * CG_Q1_1;
     }
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 4> getGaussPointsInElement2(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 4> getGaussPointsInElement2(const ParametricMesh& smesh, const size_t eid)
     {
         return smesh.coordinatesOfElement(eid).transpose() * CG_Q1_2;
     }
-    inline Eigen::Matrix<Nextsim::FloatType, 2, 9> getGaussPointsInElement3(const SasipMesh& smesh, const size_t eid)
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 9> getGaussPointsInElement3(const ParametricMesh& smesh, const size_t eid)
     {
         return smesh.coordinatesOfElement(eid).transpose() * CG_Q1_3;
     }
@@ -229,7 +229,7 @@ namespace ParametricTools {
      * computes and fills the Q1/Q2 lumped mass matrix
      */
     template <int CG>
-    void lumpedCGMassMatrix(const SasipMesh& smesh,
+    void lumpedCGMassMatrix(const ParametricMesh& smesh,
         CGVector<CG>& lumpedcgmass);
 
 }

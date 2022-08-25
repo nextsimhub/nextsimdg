@@ -49,7 +49,7 @@ namespace Tools {
     }
 
     template <int DGstress>
-    CellVector<1> Delta(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+    CellVector<1> Delta(const ParametricMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22, const double DeltaMin)
     {
         CellVector<1> DELTA(smesh);
@@ -65,7 +65,7 @@ namespace Tools {
     }
 
     template <int DGstress>
-    CellVector<1> Shear(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+    CellVector<1> Shear(const ParametricMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22)
     {
         CellVector<1> SHEAR(smesh);
@@ -93,7 +93,7 @@ namespace Tools {
     }
 
     template <int DGstress>
-    CellVector<DGstress> TensorInvI(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+    CellVector<DGstress> TensorInvI(const ParametricMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22)
     {
         CellVector<DGstress> Invariant(smesh);
@@ -107,7 +107,7 @@ namespace Tools {
     }
 
     template <int DGstress>
-    CellVector<DGstress> TensorInvII(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+    CellVector<DGstress> TensorInvII(const ParametricMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22)
     {
         CellVector<DGstress> Invariant(smesh);
