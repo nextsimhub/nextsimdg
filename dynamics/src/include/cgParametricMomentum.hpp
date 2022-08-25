@@ -21,7 +21,7 @@ namespace Nextsim {
 template <int CG, int DGstress>
 class CGParametricMomentum {
 private:
-    const SasipMesh& smesh; //!< const-reference to the mesh
+    const ParametricMesh& smesh; //!< const-reference to the mesh
 
     /*!
      * Stores precomputed values for efficient numerics on transformed mesh
@@ -50,7 +50,7 @@ private:
     CellVector<DGstress> S11, S12, S22;
 
 public:
-    CGParametricMomentum(const SasipMesh& sm)
+    CGParametricMomentum(const ParametricMesh& sm)
         : smesh(sm)
     {
         if (!(smesh.nelements > 0)) {

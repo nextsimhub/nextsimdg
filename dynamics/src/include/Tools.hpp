@@ -7,6 +7,8 @@
 #ifndef __TOOLS_HPP
 #define __TOOLS_HPP
 
+#include "ParametricTools.hpp"
+#include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
 
 namespace Nextsim {
@@ -48,24 +50,38 @@ namespace Tools {
         return SHEAR;
     }
 
-    template <int DGstress>
-    CellVector<1> Delta(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const double DeltaMin)
+#define S2A(Q) (Q == 1 ? 1 : (Q == 3 ? 3 : (Q == 6 ? 6 : (Q == 8 ? 6 : -1))))
+    template <int DGs>
+    CellVector<S2A(DGs)> Delta(const ParametricMesh& smesh, const CellVector<DGs>& E11, const CellVector<DGs>& E12,
+        const CellVector<DGs>& E22, const double DeltaMin)
     {
-        CellVector<1> DELTA(smesh);
+        CellVector<S2A(DGs)> DELTA(smesh);
+
+#define NGP 3
 
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
-            DELTA(i, 0) = sqrt(SQR(DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i, 0)))
-                + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
+            const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
+            const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
+            const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
+
+            const LocalEdgeVector<NGP* NGP> delta_gauss = (DeltaMin * DeltaMin
+                                                              + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
+                                                              + 1.50 * e11_gauss.array() * e22_gauss.array()
+                                                              + e12_gauss.array().square())
+                                                              .sqrt()
+                * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array();
+            DELTA.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse() * (PSI<S2A(DGs), NGP> * delta_gauss.transpose());
         }
 
+#undef NGP
         return DELTA;
     }
+#undef S2A
 
     template <int DGstress>
-    CellVector<1> Shear(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+    CellVector<1> Shear(const ParametricMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22)
     {
         CellVector<1> SHEAR(smesh);
@@ -93,7 +109,7 @@ namespace Tools {
     }
 
     template <int DGstress>
-    CellVector<DGstress> TensorInvI(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+    CellVector<DGstress> TensorInvI(const ParametricMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22)
     {
         CellVector<DGstress> Invariant(smesh);
@@ -107,7 +123,7 @@ namespace Tools {
     }
 
     template <int DGstress>
-    CellVector<DGstress> TensorInvII(const SasipMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
+    CellVector<DGstress> TensorInvII(const ParametricMesh& smesh, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
         const CellVector<DGstress>& E22)
     {
         CellVector<DGstress> Invariant(smesh);

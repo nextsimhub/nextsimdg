@@ -14,7 +14,7 @@ namespace Nextsim {
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // HOW MANY QUADRATURE POINTS???  I use 3^2 = 9
 template <int CG, int DG>
-void ParametricTransformation<CG, DG>::BasicInit(const SasipMesh& smesh)
+void ParametricTransformation<CG, DG>::BasicInit(const ParametricMesh& smesh)
 {
     // resize vectors
     divS1.resize(smesh.nelements);
@@ -60,7 +60,7 @@ namespace ParametricTools {
      * computes and fills the Q1/Q2 lumped mass matrix
      */
     template <>
-    void lumpedCGMassMatrix(const SasipMesh& smesh,
+    void lumpedCGMassMatrix(const ParametricMesh& smesh,
         CGVector<1>& lumpedcgmass)
     {
         lumpedcgmass.resize_by_mesh(smesh);
@@ -86,7 +86,7 @@ namespace ParametricTools {
     }
 
     template <>
-    void lumpedCGMassMatrix(const SasipMesh& smesh,
+    void lumpedCGMassMatrix(const ParametricMesh& smesh,
         CGVector<2>& lumpedcgmass)
     {
         lumpedcgmass.resize_by_mesh(smesh);

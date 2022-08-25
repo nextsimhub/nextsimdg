@@ -8,7 +8,7 @@
 #define __DGVECTOR_HPP
 
 #include "Mesh.hpp"
-#include "SasipMesh.hpp"
+#include "ParametricMesh.hpp"
 
 #include <Eigen/Dense>
 #include <iostream>
@@ -107,14 +107,14 @@ public:
         : EigenCellVector(mesh.n, dofs_in_cell())
     {
     }
-    CellVector(const SasipMesh& smesh)
+    CellVector(const ParametricMesh& smesh)
         : EigenCellVector(smesh.nelements, dofs_in_cell())
     {
     }
 
     //! resizes the vector and sets it to the mesh size
     void resize_by_mesh(const Mesh& mesh) { EigenCellVector::resize(mesh.n, dofs_in_cell()); }
-    void resize_by_mesh(const SasipMesh& smesh) { EigenCellVector::resize(smesh.nelements, dofs_in_cell()); }
+    void resize_by_mesh(const ParametricMesh& smesh) { EigenCellVector::resize(smesh.nelements, dofs_in_cell()); }
 
     // operations
     void zero() { EigenCellVector::setZero(); }
@@ -195,7 +195,7 @@ public:
         }
     }
     //! constructor setting size by mesh
-    EdgeVector(const SasipMesh& smesh, EdgeType et)
+    EdgeVector(const ParametricMesh& smesh, EdgeType et)
         : edgetype(et)
     {
         if (edgetype == X)
@@ -228,7 +228,7 @@ public:
     }
 
     //! resize vector
-    void resize_by_mesh(const SasipMesh& smesh, EdgeType et)
+    void resize_by_mesh(const ParametricMesh& smesh, EdgeType et)
     {
         edgetype = et;
 

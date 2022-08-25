@@ -37,13 +37,13 @@ namespace Interpolations {
     };
 
     template <int CG>
-    void Function2CG(const SasipMesh& smesh, CGVector<CG>& dest, const Function& src);
+    void Function2CG(const ParametricMesh& smesh, CGVector<CG>& dest, const Function& src);
     template <int DG>
-    void Function2DG(const SasipMesh& smesh, CellVector<DG>& dest, const Function& src);
+    void Function2DG(const ParametricMesh& smesh, CellVector<DG>& dest, const Function& src);
     template <int CG, int DG>
-    void CG2DG(const SasipMesh& smesh, CellVector<DG>& dest, const CGVector<CG>& src);
+    void CG2DG(const ParametricMesh& smesh, CellVector<DG>& dest, const CGVector<CG>& src);
     template <int CG, int DG>
-    void DG2CG(const SasipMesh& smesh, CGVector<CG>& dest, const CellVector<DG>& src);
+    void DG2CG(const ParametricMesh& smesh, CGVector<CG>& dest, const CellVector<DG>& src);
 
 } /* namespace Interpolation */
 

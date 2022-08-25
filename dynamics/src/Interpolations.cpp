@@ -8,7 +8,7 @@ namespace Interpolations {
 
     // ******************** Function -> CG ******************** //
     template <>
-    void Function2CG(const SasipMesh& smesh, CGVector<1>& dest, const Function& src)
+    void Function2CG(const ParametricMesh& smesh, CGVector<1>& dest, const Function& src)
     {
         assert(static_cast<long int>((smesh.nx + 1) * (smesh.ny + 1)) == dest.rows());
 
@@ -24,7 +24,7 @@ namespace Interpolations {
     }
 
     template <>
-    void Function2CG(const SasipMesh& smesh, CGVector<2>& dest, const Function& src)
+    void Function2CG(const ParametricMesh& smesh, CGVector<2>& dest, const Function& src)
     {
         assert(static_cast<long int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == dest.rows());
 
@@ -42,7 +42,7 @@ namespace Interpolations {
     // ******************** Function -> DG ******************** //
 
     template <>
-    void Function2DG(const SasipMesh& smesh, CellVector<1>& phi, const Function& initial)
+    void Function2DG(const ParametricMesh& smesh, CellVector<1>& phi, const Function& initial)
     { // 2point-gauss rule
         phi.setZero();
 
@@ -72,7 +72,7 @@ namespace Interpolations {
     }
 
     template <>
-    void Function2DG(const SasipMesh& smesh, CellVector<3>& phi, const Function& initial)
+    void Function2DG(const ParametricMesh& smesh, CellVector<3>& phi, const Function& initial)
     { // 2point-gauss rule
         phi.setZero();
 
@@ -103,7 +103,7 @@ namespace Interpolations {
     }
 
     template <>
-    void Function2DG(const SasipMesh& smesh, CellVector<6>& phi, const Function& initial)
+    void Function2DG(const ParametricMesh& smesh, CellVector<6>& phi, const Function& initial)
     { // 3point-gauss rule
         phi.setZero();
 
@@ -141,7 +141,7 @@ namespace Interpolations {
     // ******************** CG -> DG  ******************** //
 
     template <int CG, int DG>
-    void CG2DG(const SasipMesh& smesh, CellVector<DG>& dg, const CGVector<CG>& cg)
+    void CG2DG(const ParametricMesh& smesh, CellVector<DG>& dg, const CGVector<CG>& cg)
     {
         // WHAT GAUSS DEGREE TO TAKE?
 #define NGP 3
@@ -177,7 +177,7 @@ namespace Interpolations {
     // ******************** DG -> CG  ******************** //
 
     template <int DG>
-    void DG2CGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<1>& cg_A, const CellVector<DG>& A)
     {
         const size_t CGDofsPerRow = smesh.nx + 1;
@@ -190,7 +190,7 @@ namespace Interpolations {
         cg_A(cgi + CGDofsPerRow) += 0.25 * At(2);
         cg_A(cgi + CGDofsPerRow + 1) += 0.25 * At(3);
     }
-    // void DG2CGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    // void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
     //     CGVector<1>& cg_A, const CellVector<3>& A)
     // {
     //     const size_t CGDofsPerRow = smesh.nx + 1;
@@ -201,7 +201,7 @@ namespace Interpolations {
     //     cg_A(cgi + CGDofsPerRow) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
     //     cg_A(cgi + CGDofsPerRow + 1) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
     // }
-    // void DG2CGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    // void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
     //     CGVector<1>& cg_A, const CellVector<6>& A)
     // {
     //     const size_t CGDofsPerRow = smesh.nx + 1;
@@ -213,7 +213,7 @@ namespace Interpolations {
     //     cg_A(cgi + CGDofsPerRow + 1) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
     // }
     template <int DG>
-    void DG2CGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<2>& cg_A, const CellVector<DG>& A)
     {
         const size_t CGDofsPerRow = 2 * smesh.nx + 1;
@@ -232,7 +232,7 @@ namespace Interpolations {
         cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * At(7);
         cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * At(8);
     }
-    // void DG2CGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    // void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
     //     CGVector<2>& cg_A, const CellVector<3>& A)
     // {
     //     const size_t CGDofsPerRow = 2 * smesh.nx + 1;
@@ -248,7 +248,7 @@ namespace Interpolations {
     //     cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * (A(c, 0) + 0.5 * A(c, 2));
     //     cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
     // }
-    // void DG2CGCell(const SasipMesh& smesh, const size_t c, const size_t cx, const size_t cy,
+    // void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
     //     CGVector<2>& cg_A, const CellVector<6>& A)
     // {
     //     const size_t CGDofsPerRow = 2 * smesh.nx + 1;
@@ -265,7 +265,7 @@ namespace Interpolations {
     //     cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
     // }
 
-    void DG2CGBoundary(const SasipMesh& smesh, CGVector<1>& cg_A)
+    void DG2CGBoundary(const ParametricMesh& smesh, CGVector<1>& cg_A)
     {
         const size_t CGDofsPerRow = smesh.nx + 1;
         const size_t UpperLeftIndex = CGDofsPerRow * smesh.ny;
@@ -282,7 +282,7 @@ namespace Interpolations {
         }
     }
 
-    void DG2CGBoundary(const SasipMesh& smesh, CGVector<2>& cg_A)
+    void DG2CGBoundary(const ParametricMesh& smesh, CGVector<2>& cg_A)
     {
         const size_t CGDofsPerRow = 2 * smesh.nx + 1;
         const size_t UpperLeftIndex = 2 * CGDofsPerRow * smesh.ny;
@@ -300,7 +300,7 @@ namespace Interpolations {
     }
 
     template <int CG, int DG>
-    void DG2CG(const SasipMesh& smesh, CGVector<CG>& dest, const CellVector<DG>& src)
+    void DG2CG(const ParametricMesh& smesh, CGVector<CG>& dest, const CellVector<DG>& src)
     {
         assert(src.rows() == static_cast<int>(smesh.nx * smesh.ny));
         assert(dest.rows() == static_cast<int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)));
@@ -323,19 +323,19 @@ namespace Interpolations {
         DG2CGBoundary(smesh, dest);
     }
 
-    template void DG2CG(const SasipMesh& smesh, CGVector<2>& dest, const CellVector<1>& src);
-    template void DG2CG(const SasipMesh& smesh, CGVector<2>& dest, const CellVector<3>& src);
-    template void DG2CG(const SasipMesh& smesh, CGVector<2>& dest, const CellVector<6>& src);
-    template void DG2CG(const SasipMesh& smesh, CGVector<1>& dest, const CellVector<1>& src);
-    template void DG2CG(const SasipMesh& smesh, CGVector<1>& dest, const CellVector<3>& src);
-    template void DG2CG(const SasipMesh& smesh, CGVector<1>& dest, const CellVector<6>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const CellVector<1>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const CellVector<3>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const CellVector<6>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const CellVector<1>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const CellVector<3>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const CellVector<6>& src);
 
-    template void CG2DG(const SasipMesh& smesh, CellVector<1>& dg, const CGVector<1>& cg);
-    template void CG2DG(const SasipMesh& smesh, CellVector<3>& dg, const CGVector<1>& cg);
-    template void CG2DG(const SasipMesh& smesh, CellVector<6>& dg, const CGVector<1>& cg);
-    template void CG2DG(const SasipMesh& smesh, CellVector<1>& dg, const CGVector<2>& cg);
-    template void CG2DG(const SasipMesh& smesh, CellVector<3>& dg, const CGVector<2>& cg);
-    template void CG2DG(const SasipMesh& smesh, CellVector<6>& dg, const CGVector<2>& cg);
+    template void CG2DG(const ParametricMesh& smesh, CellVector<1>& dg, const CGVector<1>& cg);
+    template void CG2DG(const ParametricMesh& smesh, CellVector<3>& dg, const CGVector<1>& cg);
+    template void CG2DG(const ParametricMesh& smesh, CellVector<6>& dg, const CGVector<1>& cg);
+    template void CG2DG(const ParametricMesh& smesh, CellVector<1>& dg, const CGVector<2>& cg);
+    template void CG2DG(const ParametricMesh& smesh, CellVector<3>& dg, const CGVector<2>& cg);
+    template void CG2DG(const ParametricMesh& smesh, CellVector<6>& dg, const CGVector<2>& cg);
 
 }
 }

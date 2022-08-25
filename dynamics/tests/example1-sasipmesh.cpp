@@ -6,9 +6,9 @@
 
 #include "Interpolations.hpp"
 #include "Mesh.hpp"
+#include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
 #include "ParametricTransport.hpp"
-#include "SasipMesh.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
@@ -79,7 +79,7 @@ public:
 template <int DG>
 class Test {
 
-    const Nextsim::SasipMesh& smesh; //!< Stores a reference to the spacial mesh.
+    const Nextsim::ParametricMesh& smesh; //!< Stores a reference to the spacial mesh.
 
     size_t N; //!< size of mesh N x N
 
@@ -104,7 +104,7 @@ class Test {
     size_t writestep; //! write out n step in total (for debugging only)
 
 public:
-    Test(const Nextsim::SasipMesh& mesh)
+    Test(const Nextsim::ParametricMesh& mesh)
         : smesh(mesh)
         , dgtransport(smesh)
         , writestep(40)
@@ -125,7 +125,7 @@ public:
 
         double hmin = smesh.hmin();
         double area = smesh.area();
-        std::cout << "SasipMesh: hmin = " << hmin << "\tarea = " << area << std::endl;
+        std::cout << "ParametricMesh: hmin = " << hmin << "\tarea = " << area << std::endl;
 
         dt = cfl * hmin / 1.0; // max-velocity is 1
         double tmax = 256000.0;
@@ -262,8 +262,8 @@ public:
 
 int main()
 {
-    Nextsim::SasipMesh smesh;
-    smesh.readmesh("../SasipMesh/distortedrectangle.smesh");
+    Nextsim::ParametricMesh smesh;
+    smesh.readmesh("../ParametricMesh/distortedrectangle.smesh");
 
     Test<3> test(smesh);
 
