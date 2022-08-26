@@ -38,16 +38,17 @@ void AtmosphereState::setData(const ModelState::DataMap&) { }
 
 ModelState AtmosphereState::getState() const
 {
-    return {{
-        { fieldNames.at(ProtectedArray::T_AIR), tair },
-        { fieldNames.at(ProtectedArray::DEW_2M), tdew },
-        { fieldNames.at(ProtectedArray::P_AIR), pair },
-        { fieldNames.at(ProtectedArray::MIXRAT), rmix },
-        { fieldNames.at(ProtectedArray::SW_IN), sw_in },
-        { fieldNames.at(ProtectedArray::LW_IN), lw_in },
-        { fieldNames.at(ProtectedArray::SNOW), snowfall },
-        { fieldNames.at(ProtectedArray::WIND_SPEED), windSpeed },
-    }, {}};
+    return { {
+                 { fieldNames.at(ProtectedArray::T_AIR), tair },
+                 { fieldNames.at(ProtectedArray::DEW_2M), tdew },
+                 { fieldNames.at(ProtectedArray::P_AIR), pair },
+                 { fieldNames.at(ProtectedArray::MIXRAT), rmix },
+                 { fieldNames.at(ProtectedArray::SW_IN), sw_in },
+                 { fieldNames.at(ProtectedArray::LW_IN), lw_in },
+                 { fieldNames.at(ProtectedArray::SNOW), snowfall },
+                 { fieldNames.at(ProtectedArray::WIND_SPEED), windSpeed },
+             },
+        {} };
 }
 
 ModelState AtmosphereState::getState(const OutputLevel& lvl) const { return getState(); }

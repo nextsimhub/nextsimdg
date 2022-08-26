@@ -12,9 +12,9 @@
 
 #include <functional>
 #include <list>
-#include <utility>
 #include <map>
 #include <string>
+#include <utility>
 
 namespace Nextsim {
 

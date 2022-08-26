@@ -57,7 +57,7 @@ void ConfiguredModule::setConfiguredModules(const map& ls)
 
 void ConfiguredModule::configureModule(const std::string& mod, const fn& setter, const ofn& getter)
 {
-    configuredModules[mod] = {setter, getter};
+    configuredModules[mod] = { setter, getter };
 }
 
 std::string ConfiguredModule::getModuleConfiguration(const std::string& module)

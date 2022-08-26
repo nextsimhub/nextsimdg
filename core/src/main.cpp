@@ -27,7 +27,8 @@ int main(int argc, char* argv[])
     if (!cmdLine.configHelp().empty()) {
         Nextsim::Model::HelpMap map;
         Nextsim::Model::getHelpRecursive(map, true);
-        Nextsim::ConfigurationHelpPrinter::setOutput(Nextsim::ConfigurationHelpPrinter::Output::ANSI);
+        Nextsim::ConfigurationHelpPrinter::setOutput(
+            Nextsim::ConfigurationHelpPrinter::Output::ANSI);
         Nextsim::ConfigurationHelpPrinter::print(std::cout, map, cmdLine.configHelp());
     } else {
         // Construct the Model

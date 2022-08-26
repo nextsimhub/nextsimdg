@@ -95,7 +95,6 @@ private:
     static fn spf;
     static std::unique_ptr<I> staticInstance;
     static map functionMap;
-
 };
 
 template <typename I, typename M> void addToConfiguredModules()
@@ -104,10 +103,7 @@ template <typename I, typename M> void addToConfiguredModules()
         Module<I>::moduleName(), M::setImplementation, M::implementation);
 }
 
-template <typename I> std::string implementation()
-{
-    return Module<I>::implementation();
-}
+template <typename I> std::string implementation() { return Module<I>::implementation(); }
 
 }
 #endif /* MODULE_HPP */

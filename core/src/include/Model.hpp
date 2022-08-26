@@ -66,7 +66,6 @@ private:
     std::string stopTimeStr;
     std::string durationStr;
     std::string stepStr;
-
 };
 
 } /* namespace Nextsim */

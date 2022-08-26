@@ -22,10 +22,11 @@ void AtmosphereOceanState::setData(const ModelState::DataMap& ms)
 }
 ModelState AtmosphereOceanState::getState() const
 {
-    return {{
-        { "True ice thickness", hTrueIce },
-        { "True snow thickness", hTrueSnow },
-    }, {}};
+    return { {
+                 { "True ice thickness", hTrueIce },
+                 { "True snow thickness", hTrueSnow },
+             },
+        {} };
 }
 ModelState AtmosphereOceanState::getState(const OutputLevel&) const { return getState(); }
 ModelState AtmosphereOceanState::getStateRecursive(const OutputSpec& os) const

@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_COMMANDLINEPARSER_HPP
-#define SRC_INCLUDE_COMMANDLINEPARSER_HPP
+#ifndef COMMANDLINEPARSER_HPP
+#define COMMANDLINEPARSER_HPP
 
 #include <boost/program_options.hpp>
 #include <string>
@@ -59,4 +59,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_COMMANDLINEPARSER_HPP */
+#endif /* COMMANDLINEPARSER_HPP */

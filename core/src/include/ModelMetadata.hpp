@@ -8,8 +8,8 @@
 #ifndef MODELMETADATA_HPP
 #define MODELMETADATA_HPP
 
-#include "include/Time.hpp"
 #include "include/ConfigMap.hpp"
+#include "include/Time.hpp"
 
 #include <string>
 

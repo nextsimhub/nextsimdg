@@ -43,19 +43,18 @@ void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_K
 
 ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 {
-    ModelState state = { {}, {
-            {keyMap.at(KS_KEY), k_s},
-    }
-    };
+    ModelState state = { {},
+        {
+            { keyMap.at(KS_KEY), k_s },
+        } };
     return os ? state : ModelState();
 }
 
 ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
 {
     map["ThermoIce0"] = {
-            { keyMap.at(KS_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(k_sDefault), "W K⁻¹ m⁻¹",
-                    "Thermal conductivity of snow."
-            },
+        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
+            "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
     };
     return map;
 }

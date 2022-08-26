@@ -48,8 +48,10 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override
     {
-        std::cout << "IFluxCalculation::getStateRecursive: data.size=" << 0 << ", config.size=" << 0 << std::endl;
-return os ? getState() : ModelState(); }
+        std::cout << "IFluxCalculation::getStateRecursive: data.size=" << 0 << ", config.size=" << 0
+                  << std::endl;
+        return os ? getState() : ModelState();
+    }
 
     std::string getName() const override { return "IFluxCalculation"; }
 

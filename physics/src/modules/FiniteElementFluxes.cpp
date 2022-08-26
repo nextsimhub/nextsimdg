@@ -76,15 +76,13 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 
 ModelState FiniteElementFluxes::getState() const
 {
-    return {
-        {},
-        tryGetConfiguration(iIceAlbedoImpl)
-    };
+    return { {}, tryGetConfiguration(iIceAlbedoImpl) };
 }
 
 ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
 
-ModelState FiniteElementFluxes::getStateRecursive(const OutputSpec& os) const {
+ModelState FiniteElementFluxes::getStateRecursive(const OutputSpec& os) const
+{
     ModelState state(getState());
     return os ? state : ModelState();
 }
@@ -92,21 +90,18 @@ ModelState FiniteElementFluxes::getStateRecursive(const OutputSpec& os) const {
 FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, bool getAll)
 {
     map["FiniteElementFluxes"] = {
-            { keyMap.at(DRAGOCEANQ_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(dragOcean_q_default), "??",
-                    "Coefficient for evaporative mass flux calculation."
-            },
-            { keyMap.at(DRAGOCEANT_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(dragOcean_t_default), "??",
-                    "Coefficient for sensible heat flux calculation."
-            },
-            { keyMap.at(DRAGICET_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(dragIce_t_default), "??",
-                    "Ice drag coefficient for heat fluxes."
-            },
-            { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(oceanAlbedo_default), "",
-                    "Shortwave albedo of open ocean water."
-            },
-            { keyMap.at(I0_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(i0_default), "",
-                    "Transmissivity of ice."
-            },
+        { keyMap.at(DRAGOCEANQ_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(dragOcean_q_default), "??",
+            "Coefficient for evaporative mass flux calculation." },
+        { keyMap.at(DRAGOCEANT_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(dragOcean_t_default), "??",
+            "Coefficient for sensible heat flux calculation." },
+        { keyMap.at(DRAGICET_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(dragIce_t_default), "??", "Ice drag coefficient for heat fluxes." },
+        { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(oceanAlbedo_default), "", "Shortwave albedo of open ocean water." },
+        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
+            "Transmissivity of ice." },
     };
     return map;
 }
@@ -118,7 +113,6 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map
     Module::getHelpRecursive<IIceOceanHeatFlux>(map, getAll);
     return map;
 }
-
 
 void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 {
@@ -240,7 +234,8 @@ void FiniteElementFluxCalc::setData(const ModelState::DataMap& ms)
 
 ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }
 ModelState FiniteElementFluxCalc::getState(const OutputLevel&) const { return getState(); }
-ModelState FiniteElementFluxCalc::getStateRecursive(const OutputSpec& os) const {
+ModelState FiniteElementFluxCalc::getStateRecursive(const OutputSpec& os) const
+{
     ModelState state(getState());
     state.merge(aoState.getStateRecursive(os));
     state.merge(fef->getStateRecursive(os));

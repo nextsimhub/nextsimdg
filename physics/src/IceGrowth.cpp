@@ -65,8 +65,7 @@ ModelState IceGrowth::getState() const
                  { "cice_initial", cice0 },
                  { "hsnow_initial", hsnow0 },
              },
-        getConfiguration()
-    };
+        getConfiguration() };
 }
 
 ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const

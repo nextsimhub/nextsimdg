@@ -25,24 +25,28 @@ public:
     DataMap data;
     ConfigMap config;
 
-    inline ModelState& merge(ModelState& source) {
+    inline ModelState& merge(ModelState& source)
+    {
         data.merge(source.data);
         config.merge(source.config);
         return *this;
     }
 
-    inline ModelState& merge(ModelState&& source) {
+    inline ModelState& merge(ModelState&& source)
+    {
         data.merge(source.data);
         config.merge(source.config);
         return *this;
     }
 
-    inline ModelState& merge(ConfigMap& configSrc) {
+    inline ModelState& merge(ConfigMap& configSrc)
+    {
         config.merge(configSrc);
         return *this;
     }
 
-    inline ModelState& merge(ConfigMap&& configSrc) {
+    inline ModelState& merge(ConfigMap&& configSrc)
+    {
         config.merge(configSrc);
         return *this;
     }

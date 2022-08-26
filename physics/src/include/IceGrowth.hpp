@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
-#define PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP
+#ifndef ICEGROWTH_HPP
+#define ICEGROWTH_HPP
 
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
@@ -100,4 +100,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* PHYSICS_SRC_INCLUDE_ICEGROWTH_HPP */
+#endif /* ICEGROWTH_HPP */

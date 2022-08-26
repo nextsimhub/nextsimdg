@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_PROGNOSTICDATA_HPP
-#define CORE_SRC_INCLUDE_PROGNOSTICDATA_HPP
+#ifndef PROGNOSTICDATA_HPP
+#define PROGNOSTICDATA_HPP
 
 #include "ModelComponent.hpp"
 #include "include/Configured.hpp"
@@ -84,4 +84,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_PROGNOSTICDATA_HPP */
+#endif /* PROGNOSTICDATA_HPP */

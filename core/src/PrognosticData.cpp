@@ -71,13 +71,14 @@ void PrognosticData::update(const TimestepTime& tst)
 
 ModelState PrognosticData::getState() const
 {
-    return {{
-        { "mask", ModelArray(oceanMask()) }, // make a copy
-        { "hice", mask(m_thick) },
-        { "cice", mask(m_conc) },
-        { "hsnow", mask(m_snow) },
-        { "tice", mask(m_tice) },
-    }, {}};
+    return { {
+                 { "mask", ModelArray(oceanMask()) }, // make a copy
+                 { "hice", mask(m_thick) },
+                 { "cice", mask(m_conc) },
+                 { "hsnow", mask(m_snow) },
+                 { "tice", mask(m_tice) },
+             },
+        {} };
 }
 
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const

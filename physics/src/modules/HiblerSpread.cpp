@@ -29,25 +29,20 @@ void HiblerSpread::configure()
 
 ModelState HiblerSpread::getStateRecursive(const OutputSpec& os) const
 {
-    return {
-        {},
+    return { {},
         {
-                {keyMap.at(H0_KEY), h0},
-                {keyMap.at(PHIM_KEY), phiM},
-        }
-    };
+            { keyMap.at(H0_KEY), h0 },
+            { keyMap.at(PHIM_KEY), phiM },
+        } };
 }
-
 
 HiblerSpread::HelpMap& HiblerSpread::getHelpText(HelpMap& map, bool getAll)
 {
     map["HiblerSpread"] = {
-            { keyMap.at(H0_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(h0Default), "m",
-                    "The thickness of newly frozen ice."
-            },
-            { keyMap.at(PHIM_KEY), ConfigType::NUMERIC, {"0", "∞"}, std::to_string(phimDefault), "",
-                    "Power-law exponent for melting ice."
-            },
+        { keyMap.at(H0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(h0Default), "m",
+            "The thickness of newly frozen ice." },
+        { keyMap.at(PHIM_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(phimDefault), "",
+            "Power-law exponent for melting ice." },
     };
     return map;
 }

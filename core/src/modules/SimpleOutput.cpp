@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/Logged.hpp"
 #include "include/SimpleOutput.hpp"
+#include "include/Logged.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <iostream>

@@ -7,8 +7,8 @@
 
 #include "include/DevStep.hpp"
 
-#include "include/DiagnosticOutputModule.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/DiagnosticOutputModule.hpp"
 
 namespace Nextsim {
 

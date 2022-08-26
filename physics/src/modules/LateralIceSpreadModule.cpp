@@ -34,10 +34,9 @@ template <> std::string Module<Nextsim::ILateralIceSpread>::moduleName()
 template <> HelpMap& getHelpRecursive<Nextsim::ILateralIceSpread>(HelpMap& map, bool getAll)
 {
     const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
-    map[pfx].push_back({
-        pfx + "." + Module<Nextsim::ILateralIceSpread>::moduleName(), ConfigType::MODULE, {HIBLERSPREAD}, HIBLERSPREAD, "",
-        "The module for calculating the freezing and thawing of ice on the ocean surface."
-    });
+    map[pfx].push_back({ pfx + "." + Module<Nextsim::ILateralIceSpread>::moduleName(),
+        ConfigType::MODULE, { HIBLERSPREAD }, HIBLERSPREAD, "",
+        "The module for calculating the freezing and thawing of ice on the ocean surface." });
     Nextsim::HiblerSpread::getHelpRecursive(map, getAll);
     return map;
 }
