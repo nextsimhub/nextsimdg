@@ -13,8 +13,6 @@
 #include <ncString.h>
 #include <ncVar.h>
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 netCDF::NcGroup& CommonRestartMetadata::writeStructureType(
@@ -36,8 +34,7 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
     // As a formatted string
     netCDF::NcVar formVar = timeGroup.addVar(formattedName(), netCDF::ncString);
     const std::string fTime = metadata.m_time.format();
-    char* timeCopy = new char[fTime.length() + 1];
-    std::strcpy(timeCopy, fTime.c_str());
+    const char* timeCopy = fTime.c_str();
     formVar.putVar(&timeCopy);
     formVar.putAtt(std::string("format"), TimePoint::ymdhmsFormat);
     // As Unix time
@@ -49,6 +46,7 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
 
     // All other configuration data
     netCDF::NcGroup configGroup = metaGroup.addGroup(configurationNode());
+
     for (auto entry : metadata.m_config) {
         switch (entry.second.index()) {
         case (CONFIGMAP_DOUBLE): {
@@ -68,7 +66,9 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
         }
         case (CONFIGMAP_STRING): {
             netCDF::NcVar strVar = configGroup.addVar(entry.first, netCDF::ncString);
-            strVar.putVar(std::get<std::string>(entry.second).c_str());
+            std::string extring = std::get<std::string>(entry.second);
+            const char* ctring = extring.c_str();
+            strVar.putVar(&ctring);
             break;
         }
         }
