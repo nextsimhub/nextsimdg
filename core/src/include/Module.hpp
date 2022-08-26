@@ -75,6 +75,18 @@ public:
         return keys;
     }
 
+    static std::string implementation()
+    {
+        // The name is not cached, so find the value in the map which
+        // corresponds to the static instance
+        for (auto entry : functionMap) {
+            if (typeid(*entry.second()) == typeid(*staticInstance)) {
+                return entry.first;
+            }
+        }
+        return ""; // spf should always be an entry in functionMap
+    }
+
     static std::string moduleName();
 
 private:
@@ -85,7 +97,13 @@ private:
 
 template <typename I, typename M> void addToConfiguredModules()
 {
-    Nextsim::ConfiguredModule::configureModule(Module<I>::moduleName(), M::setImplementation);
+    Nextsim::ConfiguredModule::configureModule(
+        Module<I>::moduleName(), M::setImplementation, M::implementation);
+}
+
+template <typename I> std::string implementation()
+{
+    return Module<I>::implementation();
 }
 
 }

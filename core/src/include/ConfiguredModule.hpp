@@ -5,11 +5,14 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_CONFIGUREDMODULE_HPP
-#define SRC_INCLUDE_CONFIGUREDMODULE_HPP
+#ifndef CONFIGUREDMODULE_HPP
+#define CONFIGUREDMODULE_HPP
+
+#include "include/ConfigMap.hpp"
 
 #include <functional>
 #include <list>
+#include <utility>
 #include <map>
 #include <string>
 
@@ -22,7 +25,8 @@ namespace Nextsim {
 class ConfiguredModule {
 public:
     typedef std::function<void(const std::string&)> fn;
-    typedef std::map<const std::string, fn> map;
+    typedef std::function<std::string()> ofn;
+    typedef std::map<const std::string, std::pair<fn, ofn>> map;
     ConfiguredModule() = default;
     virtual ~ConfiguredModule() = default;
 
@@ -31,17 +35,33 @@ public:
 
     /*!
      * Sets the names of all the modules to be configured
-     * @param nameList a std::list of std::strings with the names of the
-     *                  interfaces to be configured.
+     * @param ls a map of Module names and the locations of implementation
+     *           setter and getter functions.
      */
     static void setConfiguredModules(const map& ls);
 
     /*!
      * Adds the name of a module to the list to be configured
-     * @param name the name of the class to be configured.
+     * @param mod the name of the class to be configured.
+     * @param setter the void(std::string) function to set the implementation.
+     * @param getter the std::string() function to get the implementation.
      */
-    static void configureModule(const std::string& mod, const fn&);
+    static void configureModule(const std::string& mod, const fn& setter, const ofn& getter);
 
+    /*!
+     * Gets the implementation name for a named module.
+     * Returns an empty string if there is no such module.
+     *
+     * @param interface the name of the module to be checked.
+     */
+    static std::string getModuleConfiguration(const std::string& interface);
+
+    /*!
+     * Returns a map from interface name to implementation name for all modules
+     * configured in this class.
+     *
+     */
+    static ConfigMap getAllModuleConfigurations();
     /*!
      * @brief Transforms a module name into a configuration option name.
      *
@@ -58,4 +78,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_CONFIGUREDMODULE_HPP */
+#endif /* CONFIGUREDMODULE_HPP */

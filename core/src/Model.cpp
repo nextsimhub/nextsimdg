@@ -8,11 +8,11 @@
 
 #include "include/AtmosphereOceanState.hpp"
 #include "include/Configurator.hpp"
+#include "include/ConfiguredModule.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
-//#include "include/ModelState.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>
@@ -143,6 +143,7 @@ void Model::writeRestartFile()
     // Copy the configuration from the ModelState to the ModelMetadata
     ConfigMap modelConfig = getConfig();
     modelConfig.merge(pData.getStateRecursive(true).config);
+    modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     m_etadata.setConfig(modelConfig);
     StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
 }

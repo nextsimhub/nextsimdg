@@ -13,6 +13,8 @@
 #include <boost/program_options.hpp>
 #include <stdexcept>
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 const std::string ConfiguredModule::MODULE_PREFIX = "Modules";
@@ -39,7 +41,7 @@ void ConfiguredModule::parseConfigurator()
         std::string implString = vm[addPrefix(entry.first)].as<std::string>();
         // Only do anything if the retrieved option is not the default value
         if (implString != defaultStr) {
-            entry.second(implString);
+            entry.second.first(implString);
         }
     }
 }
@@ -51,13 +53,29 @@ std::string ConfiguredModule::addPrefix(const std::string& moduleName)
 
 void ConfiguredModule::setConfiguredModules(const map& ls)
 {
-    for (auto entry : ls) {
-        configureModule(entry.first, entry.second);
-    }
+    map newMap(ls);
+    configuredModules.merge(newMap);
 }
 
-void ConfiguredModule::configureModule(const std::string& mod, const fn& function)
+void ConfiguredModule::configureModule(const std::string& mod, const fn& setter, const ofn& getter)
 {
-    configuredModules[mod] = function;
+    configuredModules[mod] = {setter, getter};
+}
+
+std::string ConfiguredModule::getModuleConfiguration(const std::string& module)
+{
+    return configuredModules[module].second();
+}
+
+ConfigMap ConfiguredModule::getAllModuleConfigurations()
+{
+    std::cerr << configuredModules.size() << " configured modules" << std::endl;
+    ConfigMap iiMap;
+    for (auto entry : configuredModules) {
+        std::cerr << addPrefix(entry.first) << " = " << entry.second.second() << std::endl;
+        iiMap[addPrefix(entry.first)] = entry.second.second();
+    }
+    std::cerr << iiMap.size() << " configured modules" << std::endl;
+    return iiMap;
 }
 } /* namespace Nextsim */
