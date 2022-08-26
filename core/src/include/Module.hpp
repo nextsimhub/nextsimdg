@@ -77,10 +77,12 @@ public:
 
     static std::string implementation()
     {
-        // The name is not cached, so find the value in the map which
-        // corresponds to the static instance
+        typedef std::unique_ptr<I>(fnType)();
+        // The name is not cached, so find the function in the map which
+        // corresponds to spf. The hairy code is derived from
+        // https://stackoverflow.com/a/35920804
         for (auto entry : functionMap) {
-            if (typeid(*entry.second()) == typeid(*staticInstance)) {
+            if (*entry.second.template target<fnType*>() == *spf.template target<fnType*>()) {
                 return entry.first;
             }
         }
@@ -93,6 +95,7 @@ private:
     static fn spf;
     static std::unique_ptr<I> staticInstance;
     static map functionMap;
+
 };
 
 template <typename I, typename M> void addToConfiguredModules()

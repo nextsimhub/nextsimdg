@@ -13,8 +13,6 @@
 #include <boost/program_options.hpp>
 #include <stdexcept>
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 const std::string ConfiguredModule::MODULE_PREFIX = "Modules";
@@ -69,13 +67,10 @@ std::string ConfiguredModule::getModuleConfiguration(const std::string& module)
 
 ConfigMap ConfiguredModule::getAllModuleConfigurations()
 {
-    std::cerr << configuredModules.size() << " configured modules" << std::endl;
     ConfigMap iiMap;
     for (auto entry : configuredModules) {
-        std::cerr << addPrefix(entry.first) << " = " << entry.second.second() << std::endl;
         iiMap[addPrefix(entry.first)] = entry.second.second();
     }
-    std::cerr << iiMap.size() << " configured modules" << std::endl;
     return iiMap;
 }
 } /* namespace Nextsim */
