@@ -9,8 +9,8 @@
 #define CONFIGURED_HPP
 
 #include "include/ConfigMap.hpp"
-#include "include/Configurator.hpp"
 #include "include/ConfigurationHelp.hpp"
+#include "include/Configurator.hpp"
 
 #include <boost/program_options.hpp>
 #include <map>
@@ -46,7 +46,7 @@ public:
 
     //! Returns the current configuration of the object
     // FIXME remove default implementation
-    virtual ConfigMap getConfiguration() const {return ConfigMap();}
+    virtual ConfigMap getConfiguration() const { return ConfigMap(); }
 
     /*!
      * @brief Template function for conditionally configuring references.
@@ -100,7 +100,6 @@ public:
      *      configuration.
      */
     template <typename T> static ConfigMap tryGetConfiguration(T* ptr);
-
 
     /*!
      * @brief Gets the value of the configuration with a given name from the
