@@ -300,8 +300,7 @@ void CGParametricMomentum<CG, DGstress>::MEBIteration(const MEBParameters& vppar
 
         Nextsim::GlobalTimer.start("time loop - meb - stress");
         Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-        // Nextsim::mEVP::StressUpdateHighOrder(ptrans_stress, smesh, S11, S12, S22, E11, E12, E22, H, A,
-        //     vpparameters.Pstar, vpparameters.DeltaMin, alpha, beta);
+        // Nextsim::MEB::StressUpdateHighOrder(vpparameters, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
         Nextsim::GlobalTimer.stop("time loop - meb - stress");
 
         Nextsim::GlobalTimer.start("time loop - meb - update");

@@ -21,6 +21,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -33,9 +34,10 @@ bool WRITE_VTK = true;
  * of the stress & strain. This should give the gradient space of the
  * CG space for stability. CG=1 -> DGstress=3, CG=2 -> DGstress -> 8
  */
-#define CG 2
-#define DGadvection 3
-#define DGstress 8
+//#define CG 2
+//#define DGadvection 3
+//#define DGstress 8
+
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 namespace Nextsim {
@@ -126,13 +128,18 @@ public:
 
 //////////////////////////////////////////////////
 
-int main()
+template <int CG, int DGadvection, int DGstress>
+void run_benchmark(const std::string meshfile)
 {
     //! Define the spatial mesh
     Nextsim::ParametricMesh smesh;
-    smesh.readmesh("../ParametricMesh/distortedrectangle.smesh");
-    smesh.readmesh("../ParametricMesh/rectangle_128x128.smesh");
-    smesh.readmesh("../ParametricMesh/rectangle_64x64.smesh");
+    smesh.readmesh(meshfile);
+    size_t NX = smesh.nx;
+
+    //! Compose name of output directory and create it
+    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
+        + "__" + std::to_string(NX);
+    std::filesystem::create_directory(resultsdir);
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
@@ -155,7 +162,7 @@ int main()
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 1. * 60.0 * 60.0; // every 4 hours
+    constexpr double T_vtk = 4. * 60.0 * 60.0; // every 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -179,17 +186,17 @@ int main()
 
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
-    Nextsim::VTK::write_cg_velocity("ResultsBenchmarkParametricMeshMEB/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/A", 0, A, smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/H", 0, H, smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/D", 0, D, smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/S11", 0, momentum.GetS11(), smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/S12", 0, momentum.GetS12(), smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/S22", 0, momentum.GetS22(), smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/sigma_n", 0,
+    Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/A", 0, A, smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/H", 0, H, smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/D", 0, D, smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/S11", 0, momentum.GetS11(), smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/S12", 0, momentum.GetS12(), smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/S22", 0, momentum.GetS22(), smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/sigma_n", 0,
         Nextsim::Tools::TensorInvI(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
-    Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/tau", 0,
+    Nextsim::VTK::write_dg(resultsdir + "/tau", 0,
         Nextsim::Tools::TensorInvII(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
@@ -255,18 +262,18 @@ int main()
 
                 int printstep = timestep / NT_vtk + 1.e-4;
                 Nextsim::GlobalTimer.start("time loop - i/o");
-                Nextsim::VTK::write_cg_velocity("ResultsBenchmarkParametricMeshMEB/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/A", printstep, A, smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/H", printstep, H, smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/D", printstep, D, smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/S11", printstep, momentum.GetS11(), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/S12", printstep, momentum.GetS12(), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/S22", printstep, momentum.GetS22(), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/sigma_n", printstep,
+                Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/D", printstep, D, smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/S11", printstep, momentum.GetS11(), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/S12", printstep, momentum.GetS12(), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/S22", printstep, momentum.GetS22(), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/sigma_n", printstep,
                     Nextsim::Tools::TensorInvI(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
-                Nextsim::VTK::write_dg("ResultsBenchmarkParametricMeshMEB/tau", printstep,
+                Nextsim::VTK::write_dg(resultsdir + "/tau", printstep,
                     Nextsim::Tools::TensorInvII(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
@@ -275,4 +282,24 @@ int main()
 
     std::cout << std::endl;
     Nextsim::GlobalTimer.print();
+}
+
+int main()
+{
+    std::vector<std::string> meshes;
+    // meshes.push_back("../ParametricMesh/rectangle_16x16.smesh");
+    meshes.push_back("../ParametricMesh/rectangle_32x32.smesh");
+    meshes.push_back("../ParametricMesh/rectangle_64x64.smesh");
+    meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
+    meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
+    // meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
+
+    for (const auto& it : meshes) {
+        run_benchmark<1, 1, 3>(it);
+        run_benchmark<1, 3, 3>(it);
+        run_benchmark<1, 6, 3>(it);
+        run_benchmark<2, 1, 8>(it);
+        run_benchmark<2, 3, 8>(it);
+        run_benchmark<2, 6, 8>(it);
+    }
 }
