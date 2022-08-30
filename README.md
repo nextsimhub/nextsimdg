@@ -147,15 +147,13 @@ The comments providing automatic documentation should be supplemented with ordin
 
 ### Version numbering
 
-We use [semantic versioning](https://semver.org/). In brief this means the main branch has a version number assigned (tagged) to each commit. The numbers are of the form major.minor.patch, where:
+We use a derived version of [semantic versioning](https://semver.org/). In brief this means the main branch has a version number assigned (tagged) to each commit. The numbers are of the form x.y.z, where we:
 
-1. MAJOR version when you make incompatible API changes
-2. MINOR version when you add functionality in a backwards-compatible manner, and
-3. PATCH version when you make backwards-compatible bug fixes.
+1. increment z when there's a hotfix (bugfix) pushed to main
+2. increment y when develop is merged into main
+3. increment x when we've been working on something extraordinary, when there's a major change in interface (configs or outputs) ... or when y is becoming too big (26 is industry standard I believe).
 
-This is not directly applicable to our workflow, but changes in major numbers should be related to major user facing changes (different input or output format, for instance), while minor numbers should (mostly) relate to changes in functionality (new physics, for instance). The patch number is incremented for each hotfix (see below).
-
-### Git branching and merging
+ ### Git branching and merging
 
 For the code we adopt the following system for branching and merging:
 
