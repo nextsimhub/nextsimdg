@@ -52,6 +52,9 @@ public:
     //! Gets the model metadata instance
     ModelMetadata& metadata();
 
+    // Configuration option that holds the restart file name
+    const static std::string restartOptionName;
+
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here

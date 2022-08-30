@@ -19,6 +19,7 @@ set(BaseSources
     "ModelArray.cpp"
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
+    "NetcdfMetadataConfiguration.cpp"
     "PrognosticData.cpp"
     "Time.cpp"
     )

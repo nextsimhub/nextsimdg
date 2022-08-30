@@ -22,9 +22,11 @@
 
 namespace Nextsim {
 
+const std::string Model::restartOptionName = "model.init_file";
+
 template <>
 const std::map<int, std::string> Configured<Model>::keyMap = {
-    { Model::RESTARTFILE_KEY, "model.init_file" },
+    { Model::RESTARTFILE_KEY, Model::restartOptionName },
     { Model::STARTTIME_KEY, "model.start" },
     { Model::STOPTIME_KEY, "model.stop" },
     { Model::RUNLENGTH_KEY, "model.run_length" },
