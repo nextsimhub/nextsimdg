@@ -10,7 +10,7 @@
 namespace Nextsim {
 void DummyOceanState::setData(const ModelState::DataMap& ms)
 {
-    sst = -1; // Liquid ocean, solid ice
+    sst = -1.5; // Liquid ocean, solid ice
     sss = 32; // Very rough average for the Arctic Ocean
     mld = 10;
 }
