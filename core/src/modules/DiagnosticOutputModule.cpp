@@ -8,15 +8,18 @@
 #include "include/DiagnosticOutputModule.hpp"
 
 #include "include/SimpleOutput.hpp"
+#include "include/ConfigOutput.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string SIMPLEOUTPUT = "Nextsim::SimpleOutput";
+const std::string CONFIGOUTPUT = "Nextsim::ConfigOutput";
 
 template <>
 Module<Nextsim::IDiagnosticOutput>::map Module<Nextsim::IDiagnosticOutput>::functionMap = {
     {SIMPLEOUTPUT, newImpl<Nextsim::IDiagnosticOutput, Nextsim::SimpleOutput>},
+    {CONFIGOUTPUT, newImpl<Nextsim::IDiagnosticOutput, Nextsim::ConfigOutput>},
 };
 
 template <>
