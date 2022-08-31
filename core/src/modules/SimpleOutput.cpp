@@ -14,7 +14,7 @@
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelState& state, const ModelMetadata& meta) const
+void SimpleOutput::outputState(const ModelState& state, const ModelMetadata& meta)
 {
     std::stringstream startStream;
     startStream << meta.time();
