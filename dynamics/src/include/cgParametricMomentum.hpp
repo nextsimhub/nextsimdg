@@ -36,9 +36,15 @@ private:
     //! vectors storing ocean and atm velocity (node-wise)
     CGVector<CG> ox, oy, ax, ay;
 
+
+  ////// Internal variables
+  
     //! temporary vectors. Maybe we can remove them?
     CGVector<CG> tmpx, tmpy;
 
+    //! old velocities. They are required during temporary vectors. Maybe we can remove them?
+  CGVector<CG> vx_mevp, vy_mevp;
+  
     //! Vector to store the lumpes mass matrix. Is directly initialized when the mesh is known
     CGVector<CG> lumpedcgmass;
 
@@ -121,9 +127,17 @@ public:
 
     // High level Functions
 
+  /*!
+   *  prepare the subcucling iteration:
+   *  - store old velocity
+   *  - interpoalte ice height & concentration ( & damage?) to cg
+   */
+  template<int DG>
+  void prepareIteration(const CellVector<DG>& H, const CellVector<DG>& A);
+
     //! performs one complete mEVP cycle with NT_evp subiterations
     template <int DG>
-    void mEVPIteration(const VPParameters& vpparameters,
+    void mEVPStep(const VPParameters& vpparameters,
         size_t NT_evp, double alpha, double beta,
         double dt_adv,
         const CellVector<DG>& H, const CellVector<DG>& A);

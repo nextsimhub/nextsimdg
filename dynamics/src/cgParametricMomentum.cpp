@@ -156,27 +156,28 @@ void CGParametricMomentum<CG, DGstress>::DirichletZero(CGVector<CG>& v)
 
 template <int CG, int DGstress>
 template <int DG>
-void CGParametricMomentum<CG, DGstress>::mEVPIteration(const VPParameters& vpparameters,
+void CGParametricMomentum<CG, DGstress>::prepareIteration(const CellVector<DG>& H, const CellVector<DG>& A)
+{
+  // copy old velocity
+  vx_mevp = vx;
+  vy_mevp = vy;
+  
+    // interpolate ice height and concentration to local cg Variables
+  Interpolations::DG2CG(smesh, cg_A, A);
+  Interpolations::DG2CG(smesh, cg_H, H);
+  // limit A to [0,1] and H to [0, ...)
+  cg_A = cg_A.cwiseMin(1.0);
+  cg_A = cg_A.cwiseMax(0.0);
+  cg_H = cg_H.cwiseMax(1.e-4);
+}
+
+template <int CG, int DGstress>
+template <int DG>
+void CGParametricMomentum<CG, DGstress>::mEVPStep(const VPParameters& vpparameters,
     const size_t NT_evp, const double alpha, const double beta,
     double dt_adv,
     const CellVector<DG>& H, const CellVector<DG>& A)
 {
-
-    // copy old velocity
-    CGVector<CG> vx_mevp = vx;
-    CGVector<CG> vy_mevp = vy;
-
-    // interpolate ice height and concentration to local cg Variables
-    Interpolations::DG2CG(smesh, cg_A, A);
-    Interpolations::DG2CG(smesh, cg_H, H);
-    // limit A to [0,1] and H to [0, ...)
-    cg_A = cg_A.cwiseMin(1.0);
-    cg_A = cg_A.cwiseMax(0.0);
-    cg_H = cg_H.cwiseMax(1.e-4);
-
-    // MEVP subcycling
-    for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
-
         Nextsim::GlobalTimer.start("time loop - mevp - strain");
         //! Compute Strain Rate
         // momentum.ProjectCGVelocityToDG1Strain(ptrans_stress, E11, E12, E22);
@@ -260,7 +261,6 @@ void CGParametricMomentum<CG, DGstress>::mEVPIteration(const VPParameters& vppar
         Nextsim::GlobalTimer.start("time loop - mevp - bound.");
         DirichletZero();
         Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
-    }
 }
 // --------------------------------------------------
 
@@ -376,56 +376,64 @@ template class CGParametricMomentum<1, 8>;
 template class CGParametricMomentum<2, 3>;
 template class CGParametricMomentum<2, 8>;
 
+template void CGParametricMomentum<1, 3>::prepareIteration(const CellVector<1>& H, const CellVector<1>& A);
+template void CGParametricMomentum<1, 3>::prepareIteration(const CellVector<3>& H, const CellVector<3>& A);
+template void CGParametricMomentum<1, 3>::prepareIteration(const CellVector<6>& H, const CellVector<6>& A);
+template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<1>& H, const CellVector<1>& A);
+template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<3>& H, const CellVector<3>& A);
+template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<6>& H, const CellVector<6>& A);
+
+
 // --------------------------------------------------
 
-template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
-template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
-template void CGParametricMomentum<1, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
-template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
-template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
-template void CGParametricMomentum<1, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
-template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
-template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
-template void CGParametricMomentum<2, 3>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
-template void CGParametricMomentum<2, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
-template void CGParametricMomentum<2, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
-template void CGParametricMomentum<2, 8>::mEVPIteration(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& vpparameters,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);

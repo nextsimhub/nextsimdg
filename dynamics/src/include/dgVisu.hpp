@@ -207,7 +207,7 @@ public:
             << "0" << std::endl;
         OUT << "POINTS " << vx.rows() << " DOUBLE" << std::endl;
         if (CG == 1) {
-            assert(smesh.nnodes == vx.rows());
+	  assert(static_cast<int>(smesh.nnodes) == vx.rows());
             assert(static_cast<int>((smesh.nx + 1) * (smesh.ny + 1)) == vx.rows());
             for (size_t i = 0; i < smesh.nnodes; ++i)
                 OUT << smesh.vertices(i, 0) << " " << smesh.vertices(i, 1) << " 0" << std::endl;

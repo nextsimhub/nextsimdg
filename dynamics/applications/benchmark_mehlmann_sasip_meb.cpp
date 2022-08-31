@@ -229,10 +229,8 @@ void run_benchmark(const std::string meshfile)
         //////////////////////////////////////////////////
         //! Advection step
         Nextsim::GlobalTimer.start("time loop - advection");
-        Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVx(), momentum.GetVx());
-        Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVy(), momentum.GetVy());
+        dgtransport.prepareAdvection(momentum.GetVx(),momentum.GetVy());
 
-        dgtransport.reinitnormalvelocity();
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
         dgtransport.step(dt_adv, D);

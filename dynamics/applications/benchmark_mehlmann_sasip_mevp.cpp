@@ -214,10 +214,11 @@ void run_benchmark(const std::string meshfile)
         //////////////////////////////////////////////////
         //! Advection step
         Nextsim::GlobalTimer.start("time loop - advection");
-        Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVx(), momentum.GetVx());
-        Nextsim::Interpolations::CG2DG(smesh, dgtransport.GetVy(), momentum.GetVy());
 
-        dgtransport.reinitnormalvelocity();
+	// interpolates CG velocity to DG and reinits normal velocity
+	dgtransport.prepareAdvection(momentum.GetVx(),momentum.GetVy());
+
+	// performs the transport steps
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
 
@@ -229,7 +230,12 @@ void run_benchmark(const std::string meshfile)
 
         //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - mevp");
-        momentum.mEVPIteration(VP, NT_evp, alpha, beta, dt_adv, H, A);
+	momentum.prepareIteration(H,A);
+	// MEVP subcycling
+	for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
+	  momentum.mEVPStep(VP, NT_evp, alpha, beta, dt_adv, H, A);
+	  // <- MPI
+	}
         Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //////////////////////////////////////////////////
@@ -255,20 +261,23 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    std::vector<std::string> meshes;
-    meshes.push_back("../ParametricMesh/distortedrectangle_16x16.smesh");
-    meshes.push_back("../ParametricMesh/distortedrectangle_32x32.smesh");
-    meshes.push_back("../ParametricMesh/distortedrectangle_64x64.smesh");
-    meshes.push_back("../ParametricMesh/distortedrectangle_128x128.smesh");
-    meshes.push_back("../ParametricMesh/distortedrectangle_256x256.smesh");
-    meshes.push_back("../ParametricMesh/distortedrectangle_512x512.smesh");
+  run_benchmark<1, 1, 3>("../ParametricMesh/distortedrectangle_128x128.smesh");
 
-    for (const auto& it : meshes) {
-        run_benchmark<1, 1, 3>(it);
-        run_benchmark<1, 3, 3>(it);
-        run_benchmark<1, 6, 3>(it);
-        run_benchmark<2, 1, 8>(it);
-        run_benchmark<2, 3, 8>(it);
-        run_benchmark<2, 6, 8>(it);
-    }
+  
+    // std::vector<std::string> meshes;
+    // meshes.push_back("../ParametricMesh/distortedrectangle_16x16.smesh");
+    // meshes.push_back("../ParametricMesh/distortedrectangle_32x32.smesh");
+    // meshes.push_back("../ParametricMesh/distortedrectangle_64x64.smesh");
+    // meshes.push_back("../ParametricMesh/distortedrectangle_128x128.smesh");
+    // meshes.push_back("../ParametricMesh/distortedrectangle_256x256.smesh");
+    // meshes.push_back("../ParametricMesh/distortedrectangle_512x512.smesh");
+
+    // for (const auto& it : meshes) {
+    //     run_benchmark<1, 1, 3>(it);
+    //     run_benchmark<1, 3, 3>(it);
+    //     run_benchmark<1, 6, 3>(it);
+    //     run_benchmark<2, 1, 8>(it);
+    //     run_benchmark<2, 3, 8>(it);
+    //     run_benchmark<2, 6, 8>(it);
+    // }
 }
