@@ -8,12 +8,14 @@
 #ifndef MODELMETADATA_HPP
 #define MODELMETADATA_HPP
 
+#include "include/ConfigMap.hpp"
 #include "include/Time.hpp"
 
 #include <string>
 
 namespace Nextsim {
 
+class CommonRestartMetadata;
 /*!
  * A class to hold the metadata pertaining to the model as a whole, both
  * constant and time varying values. Especially values required for data file
@@ -39,8 +41,19 @@ public:
     //! Returns the string description of the model grid structure.
     const std::string& structureName() const;
 
+    /*!
+     * @brief Sets the configuration metadata.
+     *
+     * @param config The configuration metadata
+     */
+    inline void setConfig(const ConfigMap& config) { m_config = config; }
+
+    // The metadata writer should be a friend
+    friend CommonRestartMetadata;
+
 private:
     TimePoint m_time;
+    ConfigMap m_config;
 };
 
 } /* namespace Nextsim */

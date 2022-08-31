@@ -15,6 +15,7 @@
 namespace Nextsim {
 
 double ThermoIce0::k_s;
+static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 
 ThermoIce0::ThermoIce0()
@@ -38,9 +39,31 @@ const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
     { ThermoIce0::KS_KEY, "thermoice0.ks" },
 };
 
-void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096); }
+void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault); }
 
-void ThermoIce0::setData(const ModelState& ms)
+ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state = { {},
+        {
+            { keyMap.at(KS_KEY), k_s },
+        } };
+    return os ? state : ModelState();
+}
+
+ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
+{
+    map["ThermoIce0"] = {
+        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
+            "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
+    };
+    return map;
+}
+ThermoIce0::HelpMap& ThermoIce0::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    return getHelpText(map, getAll);
+}
+
+void ThermoIce0::setData(const ModelState::DataMap& ms)
 {
     IIceThermodynamics::setData(ms);
 

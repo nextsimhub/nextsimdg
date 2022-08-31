@@ -24,7 +24,7 @@ class Module1 : public ModelComponent {
 public:
     Module1() { registerModule(); }
     std::string getName() const override { return "Module1"; }
-    void setData(const ModelState& st) override
+    void setData(const ModelState::DataMap& st) override
     {
         throw(HappyExcept(std::string("setData for ") + getName()));
     }
@@ -61,13 +61,13 @@ public:
         registerModule();
         registerProtectedArray(ProtectedArray::H_ICE, &hice);
     }
-    void setData(const ModelState& ms) override { hice[0] = hiceData; }
+    void setData(const ModelState::DataMap& ms) override { hice[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
-        return {
+        return {{
             { "hice", hice },
-        };
+        }, {}};
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -89,13 +89,13 @@ public:
         registerModule();
         registerProtectedArray(ProtectedArray::C_ICE, &cice);
     }
-    void setData(const ModelState& ms) override { cice[0] = ciceData; }
+    void setData(const ModelState::DataMap& ms) override { cice[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
-        return {
+        return {{
             { "cice", cice },
-        };
+        }, {}};
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -127,13 +127,13 @@ public:
         registerModule();
         registerSharedArray(SharedArray::Q_IC, &qic);
     }
-    void setData(const ModelState& ms) override { qic[0] = qicData; }
+    void setData(const ModelState::DataMap& ms) override { qic[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
     ModelState getState() const override
     {
-        return {
+        return {{
             { "qic", qic },
-        };
+        }, {}};
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -155,13 +155,13 @@ public:
         registerModule();
         registerSharedArray(SharedArray::Q_IO, &qio);
     }
-    void setData(const ModelState& ms) override { qio[0]; }
+    void setData(const ModelState::DataMap& ms) override { qio[0]; }
     std::string getName() const override { return "Shared"; }
     ModelState getState() const override
     {
-        return {
+        return {{
             { "qio", qio },
-        };
+        }, {}};
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 

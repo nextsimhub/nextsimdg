@@ -20,13 +20,17 @@ public:
     OceanState();
     virtual ~OceanState() = default;
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
+
     std::string getName() const override;
     std::unordered_set<std::string> hFields() const override;
 
     void configure() override;
+
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
     /*!
      * @brief Updates the ocean state.
      *

@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_COMMANDLINEPARSER_HPP
-#define SRC_INCLUDE_COMMANDLINEPARSER_HPP
+#ifndef COMMANDLINEPARSER_HPP
+#define COMMANDLINEPARSER_HPP
 
 #include <boost/program_options.hpp>
 #include <string>
@@ -34,13 +34,29 @@ public:
      */
     std::vector<std::string> getConfigFileNames();
 
+    /*!
+     * Returns the name of any module for which help was requested.
+     */
+    std::string configHelp() { return m_configHelp; }
+
+    /*!
+     * The special string denoting help for all available modules.
+     */
+    const static std::string allModuleString;
+
+    /*!
+     * The special string denoting a request for listing available modules.
+     */
+    const static std::string availableModuleString;
+
 private:
     CommandLineParser() = default;
 
     boost::program_options::variables_map m_arguments;
     std::vector<std::string> m_configFilenames;
+    std::string m_configHelp;
 };
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_COMMANDLINEPARSER_HPP */
+#endif /* COMMANDLINEPARSER_HPP */

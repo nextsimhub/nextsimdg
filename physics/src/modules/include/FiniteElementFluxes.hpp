@@ -56,10 +56,14 @@ public:
     };
     void configure() override;
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
 
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     std::string getName() const override { return "FiniteElementFluxes"; }
 
@@ -136,10 +140,11 @@ public:
     {
     }
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
 
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
 
     std::string getName() const override { return "FiniteElementFluxCalc"; }
 

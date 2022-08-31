@@ -33,6 +33,15 @@ std::unique_ptr<Nextsim::IIceAlbedo> Module<Nextsim::IIceAlbedo>::staticInstance
 
 template <> std::string Module<Nextsim::IIceAlbedo>::moduleName() { return "Nextsim::IIceAlbedo"; }
 
+template <> HelpMap& getHelpRecursive<Nextsim::IIceAlbedo>(HelpMap& map, bool getAll)
+{
+    const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
+    map[pfx].push_back({ pfx + "." + Module<Nextsim::IIceAlbedo>::moduleName(), ConfigType::MODULE,
+        { SMUICEALBEDO, SMU2ICEALBEDO, CCSMICEALBEDO }, SMUICEALBEDO, "",
+        "The module for calculating the albedo of the ice surface." });
+    Nextsim::CCSMIceAlbedo::getHelpRecursive(map, getAll);
+    return map;
+}
 template <> Nextsim::IIceAlbedo& getImplementation<Nextsim::IIceAlbedo>()
 {
     return getImplTemplate<Nextsim::IIceAlbedo, IIceAlbedoModule>();

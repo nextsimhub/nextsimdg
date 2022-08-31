@@ -31,6 +31,14 @@ template <> std::string Module<Nextsim::AtmosphereState>::moduleName()
     return "Nextsim::AtmosphereState";
 }
 
+template <> HelpMap& getHelpRecursive<Nextsim::AtmosphereState>(HelpMap& map, bool getAll)
+{
+    const std::string pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
+    map[pfx].push_back({ pfx + "." + Module<Nextsim::AtmosphereState>::moduleName(),
+        ConfigType::MODULE, { DUMMYATMOSPHERESTATE }, DUMMYATMOSPHERESTATE, "",
+        "The module selecting how the state of the atmosphere is obtained." });
+    return map;
+}
 template <> Nextsim::AtmosphereState& getImplementation<Nextsim::AtmosphereState>()
 {
     return getImplTemplate<Nextsim::AtmosphereState, AtmosphereStateModule>();

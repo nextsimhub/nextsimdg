@@ -52,7 +52,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
     ZField tice = ModelArray::ZField();
     tice.setData(ticeValue);
 
-    ModelState state = {
+    ModelState state = {{
         { "mask", mask },
         { "hice", hice },
         { "cice", cice },
@@ -60,7 +60,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
         { "sss", sss },
         { "hsnow", hsnow },
         { "tice", tice },
-    };
+    }, {}};
 
     ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
@@ -78,12 +78,12 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
 
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
-    REQUIRE(ms.at("hice")(targetX, targetY) != 0);
-    REQUIRE(ms.at("hice")(targetX, targetY) > 1);
-    REQUIRE(ms.at("hice")(targetX, targetY) < 2);
-    REQUIRE(ms.at("hice")(targetX, targetY) == 1.0703);
+    REQUIRE(ms.data.at("hice")(targetX, targetY) != 0);
+    REQUIRE(ms.data.at("hice")(targetX, targetY) > 1);
+    REQUIRE(ms.data.at("hice")(targetX, targetY) < 2);
+    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0703);
 
-    ZField ticeIn = ms.at("tice");
+    ZField ticeIn = ms.data.at("tice");
 
     REQUIRE(ticeIn.dimensions()[2] == 1);
     REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0703);

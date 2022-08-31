@@ -27,7 +27,7 @@ PrognosticData::PrognosticData()
 
 void PrognosticData::configure() { tryConfigure(iceGrowth); }
 
-void PrognosticData::setData(const ModelState& ms)
+void PrognosticData::setData(const ModelState::DataMap& ms)
 {
 
     if (ms.count("mask")) {
@@ -71,20 +71,28 @@ void PrognosticData::update(const TimestepTime& tst)
 
 ModelState PrognosticData::getState() const
 {
-    return {
-        { "mask", ModelArray(oceanMask()) }, // make a copy
-        { "hice", mask(m_thick) },
-        { "cice", mask(m_conc) },
-        { "hsnow", mask(m_snow) },
-        { "tice", mask(m_tice) },
-    };
+    return { {
+                 { "mask", ModelArray(oceanMask()) }, // make a copy
+                 { "hice", mask(m_thick) },
+                 { "cice", mask(m_conc) },
+                 { "hsnow", mask(m_snow) },
+                 { "tice", mask(m_tice) },
+             },
+        {} };
 }
 
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
-    ModelState otherState = iceGrowth.getState();
-    otherState.merge(getState());
-    return os ? otherState : ModelState();
+    ModelState state(getState());
+    state.merge(iceGrowth.getStateRecursive(os));
+    return os ? state : ModelState();
+}
+
+PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }
+PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    IceGrowth::getHelpRecursive(map, getAll);
+    return map;
 }
 
 } /* namespace Nextsim */

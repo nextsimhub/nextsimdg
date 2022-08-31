@@ -20,7 +20,7 @@ public:
     ~IIceThermodynamics() = default;
 
     std::string getName() const override { return "IceThermodynamics"; }
-    void setData(const ModelState& ms) override
+    void setData(const ModelState::DataMap& ms) override
     {
         tice.resize();
         deltaHi.resize();
@@ -28,6 +28,10 @@ public:
     }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
+    ModelState getStateRecursive(const OutputSpec& os) const override
+    {
+        return os ? getState() : ModelState();
+    }
     /*!
      * Updates the ice thermodynamic and thickness growth calculation for the timestep.
      *

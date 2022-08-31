@@ -10,7 +10,7 @@
 #include <string>
 
 namespace Module {
-const std::string BASICICEOCEANHEATFLUX = "BasicIceOceanHeatFlux";
+const std::string BASICICEOCEANHEATFLUX = "Nextsim::BasicIceOceanHeatFlux";
 
 template <>
 Module<Nextsim::IIceOceanHeatFlux>::map Module<Nextsim::IIceOceanHeatFlux>::functionMap = {
@@ -26,9 +26,17 @@ std::unique_ptr<Nextsim::IIceOceanHeatFlux> Module<Nextsim::IIceOceanHeatFlux>::
 
 template <> std::string Module<Nextsim::IIceOceanHeatFlux>::moduleName()
 {
-    return "IIceOceanHeatFlux";
+    return "Nextsim::IIceOceanHeatFlux";
 }
 
+template <> HelpMap& getHelpRecursive<Nextsim::IIceOceanHeatFlux>(HelpMap& map, bool getAll)
+{
+    const std::string pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
+    map[pfx].push_back({ pfx + "." + Module<Nextsim::IIceOceanHeatFlux>::moduleName(),
+        ConfigType::MODULE, { BASICICEOCEANHEATFLUX }, BASICICEOCEANHEATFLUX, "",
+        "The module for calculating the ice-ocean heat fluxes." });
+    return map;
+}
 template <> Nextsim::IIceOceanHeatFlux& getImplementation<Nextsim::IIceOceanHeatFlux>()
 {
     return getImplTemplate<Nextsim::IIceOceanHeatFlux, IceOceanHeatFluxModule>();

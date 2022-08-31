@@ -76,20 +76,20 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z);
 
-    state[maskName] = ModelArray::HField();
-    dataGroup.getVar(maskName).getVar(&state[maskName][0]);
-    state[hiceName] = ModelArray::HField();
-    dataGroup.getVar(hiceName).getVar(&state[hiceName][0]);
-    state[ciceName] = ModelArray::HField();
-    dataGroup.getVar(ciceName).getVar(&state[ciceName][0]);
-    state[hsnowName] = ModelArray::HField();
-    dataGroup.getVar(hsnowName).getVar(&state[hsnowName][0]);
-    state[sstName] = ModelArray::HField();
-    dataGroup.getVar(sstName).getVar(&state[sstName][0]);
-    state[sssName] = ModelArray::HField();
-    dataGroup.getVar(sssName).getVar(&state[sssName][0]);
-    state[ticeName] = ModelArray::ZField();
-    dataGroup.getVar(ticeName).getVar(&state[ticeName][0]);
+    state.data[maskName] = ModelArray::HField();
+    dataGroup.getVar(maskName).getVar(&state.data[maskName][0]);
+    state.data[hiceName] = ModelArray::HField();
+    dataGroup.getVar(hiceName).getVar(&state.data[hiceName][0]);
+    state.data[ciceName] = ModelArray::HField();
+    dataGroup.getVar(ciceName).getVar(&state.data[ciceName][0]);
+    state.data[hsnowName] = ModelArray::HField();
+    dataGroup.getVar(hsnowName).getVar(&state.data[hsnowName][0]);
+    state.data[sstName] = ModelArray::HField();
+    dataGroup.getVar(sstName).getVar(&state.data[sstName][0]);
+    state.data[sssName] = ModelArray::HField();
+    dataGroup.getVar(sssName).getVar(&state.data[sssName][0]);
+    state.data[ticeName] = ModelArray::ZField();
+    dataGroup.getVar(ticeName).getVar(&state.data[ticeName][0]);
 
     ncFile.close();
     return state;
@@ -121,7 +121,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     netCDF::NcDim zDim = dataGroup.addDim(dimensionNames[2], nz);
     std::vector<netCDF::NcDim> dims3 = { xDim, yDim, zDim };
 
-    for (const auto entry : state) {
+    for (const auto entry : state.data) {
         const std::string& name = entry.first;
         if (entry.second.getType() == ModelArray::Type::H) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));

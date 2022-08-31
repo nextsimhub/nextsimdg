@@ -8,7 +8,7 @@
 #include "include/DummyAtmosphereState.hpp"
 
 namespace Nextsim {
-void DummyAtmosphereState::setData(const ModelState&)
+void DummyAtmosphereState::setData(const ModelState::DataMap&)
 {
     tair = -1;
     tdew = -4;
