@@ -41,6 +41,7 @@ set(FreezingPointModuleSources
 set(DiagnosticOutputModuleSources
     "DiagnosticOutputModule.cpp"
     "SimpleOutput.cpp"
+    "ConfigOutput.cpp"
     )
 
 set(ModuleSources

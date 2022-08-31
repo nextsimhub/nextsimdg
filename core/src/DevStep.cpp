@@ -14,8 +14,9 @@ namespace Nextsim {
 
 void DevStep::init()
 {
-    Module::setImplementation<IDiagnosticOutput>("Nextsim::SimpleOutput");
-    Module::getImplementation<IDiagnosticOutput>().setFilenamePrefix("diagnostic");
+    IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
+    ido.setFilenamePrefix("diagnostic");
+    tryConfigure(ido);
 }
 
 void DevStep::iterate(const TimestepTime& tst)

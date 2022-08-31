@@ -1,5 +1,5 @@
 import netCDF4
-root = netCDF4.Dataset("dev1.res.nc", "w", format="NETCDF4")
+root = netCDF4.Dataset("init_rect10x10.nc", "w", format="NETCDF4")
 metagrp = root.createGroup("structure")
 metagrp.type = "devgrid"
 datagrp = root.createGroup("data")
