@@ -198,6 +198,8 @@ public:
     // FIXME Remove me
     Basis& getTime() { return m_t; }
 
+    std::tm* gmtime() const;
+
     static const std::string ymdFormat;
     static const std::string doyFormat;
     static const std::string ymdhmsFormat;
