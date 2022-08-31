@@ -23,7 +23,13 @@ std::stringstream NetcdfMetadataConfiguration::read(const std::string& source)
     std::string fileName = Configurator::parse(opt)[source].as<std::string>();
 
     netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
-    netCDF::NcGroup configurationGroup(ncFile.getGroup("metadata").getGroup("configuration"));
+    // Get the configuration group, allowing for it to not exist. In which
+    // case, do nothing
+    netCDF::NcGroup metadataGroup(ncFile.getGroup("metadata"));
+    if (metadataGroup.isNull()) {
+        return std::stringstream();
+    }
+    netCDF::NcGroup configurationGroup(metadataGroup.getGroup("configuration"));
 
     std::stringstream config;
 
