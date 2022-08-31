@@ -63,21 +63,13 @@ public:
 
     std::string getName() const override { return "FiniteElementFluxes"; }
 
-    void updateOW(const TimestepTime& tst) override
-    {
-        overElements(std::bind(&FiniteElementFluxes::calculateOW, this, std::placeholders::_1,
-                         std::placeholders::_2),
-            tst);
-    }
+    //! Updates the fluxes over open water.
+    void updateOW(const TimestepTime& tst) override;
 
-    void updateIce(const TimestepTime& tst) override
-    {
-        overElements(std::bind(&FiniteElementFluxes::calculateIce, this, std::placeholders::_1,
-                         std::placeholders::_2),
-            tst);
-    }
+    //! Updates the fluxes over ice.
+    void updateIce(const TimestepTime& tst) override;
 
-    //! Performs atmosphere updates.
+    //! Updates the atmospheric fluxes.
     void updateAtmosphere(const TimestepTime& tst);
 
 private:
