@@ -158,216 +158,214 @@ template <int CG, int DGstress>
 template <int DG>
 void CGParametricMomentum<CG, DGstress>::prepareIteration(const CellVector<DG>& H, const CellVector<DG>& A)
 {
-  // copy old velocity
-  vx_mevp = vx;
-  vy_mevp = vy;
-  
+    // copy old velocity
+    vx_mevp = vx;
+    vy_mevp = vy;
+
     // interpolate ice height and concentration to local cg Variables
-  Interpolations::DG2CG(smesh, cg_A, A);
-  Interpolations::DG2CG(smesh, cg_H, H);
-  // limit A to [0,1] and H to [0, ...)
-  cg_A = cg_A.cwiseMin(1.0);
-  cg_A = cg_A.cwiseMax(0.0);
-  cg_H = cg_H.cwiseMax(1.e-4);
+    Interpolations::DG2CG(smesh, cg_A, A);
+    Interpolations::DG2CG(smesh, cg_H, H);
+    // limit A to [0,1] and H to [0, ...)
+    cg_A = cg_A.cwiseMin(1.0);
+    cg_A = cg_A.cwiseMax(0.0);
+    cg_H = cg_H.cwiseMax(1.e-4);
 }
 
 template <int CG, int DGstress>
 template <int DG>
-void CGParametricMomentum<CG, DGstress>::mEVPStep(const VPParameters& vpparameters,
+void CGParametricMomentum<CG, DGstress>::mEVPStep(const VPParameters& params,
     const size_t NT_evp, const double alpha, const double beta,
     double dt_adv,
     const CellVector<DG>& H, const CellVector<DG>& A)
 {
-        Nextsim::GlobalTimer.start("time loop - mevp - strain");
-        //! Compute Strain Rate
-        // momentum.ProjectCGVelocityToDG1Strain(ptrans_stress, E11, E12, E22);
-        ProjectCGVelocityToDGStrain();
-        Nextsim::GlobalTimer.stop("time loop - mevp - strain");
+    Nextsim::GlobalTimer.start("time loop - mevp - strain");
+    //! Compute Strain Rate
+    // momentum.ProjectCGVelocityToDG1Strain(ptrans_stress, E11, E12, E22);
+    ProjectCGVelocityToDGStrain();
+    Nextsim::GlobalTimer.stop("time loop - mevp - strain");
 
-        Nextsim::GlobalTimer.start("time loop - mevp - stress");
-        if (precompute_matrices == 0) // computations on the fly
-            Nextsim::mEVP::StressUpdateHighOrder<CG, DGstress, DG>(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
-        else // --------------------- // use precomputed
-            Nextsim::mEVP::StressUpdateHighOrder(vpparameters, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
-        Nextsim::GlobalTimer.stop("time loop - mevp - stress");
+    Nextsim::GlobalTimer.start("time loop - mevp - stress");
+    if (precompute_matrices == 0) // computations on the fly
+        Nextsim::mEVP::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+    else // --------------------- // use precomputed
+        Nextsim::mEVP::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+    Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
-        Nextsim::GlobalTimer.start("time loop - mevp - update");
-        //! Update
-        Nextsim::GlobalTimer.start("time loop - mevp - update1");
+    Nextsim::GlobalTimer.start("time loop - mevp - update");
+    //! Update
+    Nextsim::GlobalTimer.start("time loop - mevp - update1");
 
-        //	    update by a loop.. implicit parts and h-dependent
+    //	    update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
-        for (int i = 0; i < vx.rows(); ++i) {
-            vx(i) = (1.0
-                / (vpparameters.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                    + cg_A(i) * vpparameters.F_ocean
-                        * fabs(ox(i) - vx(i))) // implicit parts
-                * (vpparameters.rho_ice * cg_H(i) / dt_adv
-                        * (beta * vx(i) + vx_mevp(i))
-                    + // pseudo-timestepping
-                    cg_A(i)
-                        * (vpparameters.F_atm * fabs(ax(i)) * ax(i) + // atm forcing
-                            vpparameters.F_ocean * fabs(ox(i) - vx(i))
-                                * ox(i)) // ocean forcing
-                    + vpparameters.rho_ice * cg_H(i) * vpparameters.fc
-                        * (vy(i) - oy(i)) // cor + surface
-                    ));
-            vy(i) = (1.0
-                / (vpparameters.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                    + cg_A(i) * vpparameters.F_ocean
-                        * fabs(oy(i) - vy(i))) // implicit parts
-                * (vpparameters.rho_ice * cg_H(i) / dt_adv
-                        * (beta * vy(i) + vy_mevp(i))
-                    + // pseudo-timestepping
-                    cg_A(i)
-                        * (vpparameters.F_atm * fabs(ay(i)) * ay(i) + // atm forcing
-                            vpparameters.F_ocean * fabs(oy(i) - vy(i))
-                                * oy(i)) // ocean forcing
-                    + vpparameters.rho_ice * cg_H(i) * vpparameters.fc
-                        * (ox(i) - vx(i))));
-        }
-        Nextsim::GlobalTimer.stop("time loop - mevp - update1");
+    for (int i = 0; i < vx.rows(); ++i) {
+        vx(i) = (1.0
+            / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                + cg_A(i) * params.F_ocean
+                    * fabs(ox(i) - vx(i))) // implicit parts
+            * (params.rho_ice * cg_H(i) / dt_adv
+                    * (beta * vx(i) + vx_mevp(i))
+                + // pseudo-timestepping
+                cg_A(i)
+                    * (params.F_atm * fabs(ax(i)) * ax(i) + // atm forcing
+                        params.F_ocean * fabs(ox(i) - vx(i))
+                            * ox(i)) // ocean forcing
+                + params.rho_ice * cg_H(i) * params.fc
+                    * (vy(i) - oy(i)) // cor + surface
+                ));
+        vy(i) = (1.0
+            / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                + cg_A(i) * params.F_ocean
+                    * fabs(oy(i) - vy(i))) // implicit parts
+            * (params.rho_ice * cg_H(i) / dt_adv
+                    * (beta * vy(i) + vy_mevp(i))
+                + // pseudo-timestepping
+                cg_A(i)
+                    * (params.F_atm * fabs(ay(i)) * ay(i) + // atm forcing
+                        params.F_ocean * fabs(oy(i) - vy(i))
+                            * oy(i)) // ocean forcing
+                + params.rho_ice * cg_H(i) * params.fc
+                    * (ox(i) - vx(i))));
+    }
+    Nextsim::GlobalTimer.stop("time loop - mevp - update1");
 
-        Nextsim::GlobalTimer.start("time loop - mevp - update2");
-        // Implicit etwas ineffizient
+    Nextsim::GlobalTimer.start("time loop - mevp - update2");
+    // Implicit etwas ineffizient
 #pragma omp parallel for
-        for (int i = 0; i < tmpx.rows(); ++i)
-            tmpx(i) = tmpy(i) = 0;
+    for (int i = 0; i < tmpx.rows(); ++i)
+        tmpx(i) = tmpy(i) = 0;
 
-        Nextsim::GlobalTimer.start("time loop - mevp - update2 -stress");
-        // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
-        AddStressTensor(-1.0, tmpx, tmpy);
-        Nextsim::GlobalTimer.stop("time loop - mevp - update2 -stress");
+    Nextsim::GlobalTimer.start("time loop - mevp - update2 -stress");
+    // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
+    AddStressTensor(-1.0, tmpx, tmpy);
+    Nextsim::GlobalTimer.stop("time loop - mevp - update2 -stress");
 
 #pragma omp parallel for
-        for (int i = 0; i < vx.rows(); ++i) {
-            vx(i) += (1.0
-                         / (vpparameters.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                             + cg_A(i) * vpparameters.F_ocean
-                                 * fabs(ox(i) - vx(i))) // implicit parts
-                         * tmpx(i))
-                / lumpedcgmass(i);
+    for (int i = 0; i < vx.rows(); ++i) {
+        vx(i) += (1.0
+                     / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                         + cg_A(i) * params.F_ocean
+                             * fabs(ox(i) - vx(i))) // implicit parts
+                     * tmpx(i))
+            / lumpedcgmass(i);
 
-            vy(i) += (1.0
-                         / (vpparameters.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                             + cg_A(i) * vpparameters.F_ocean
-                                 * fabs(oy(i) - vy(i))) // implicit parts
-                         * tmpy(i))
-                / lumpedcgmass(i);
-        }
-        Nextsim::GlobalTimer.stop("time loop - mevp - update2");
-        Nextsim::GlobalTimer.stop("time loop - mevp - update");
+        vy(i) += (1.0
+                     / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+                         + cg_A(i) * params.F_ocean
+                             * fabs(oy(i) - vy(i))) // implicit parts
+                     * tmpy(i))
+            / lumpedcgmass(i);
+    }
+    Nextsim::GlobalTimer.stop("time loop - mevp - update2");
+    Nextsim::GlobalTimer.stop("time loop - mevp - update");
 
-        Nextsim::GlobalTimer.start("time loop - mevp - bound.");
-        DirichletZero();
-        Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
+    Nextsim::GlobalTimer.start("time loop - mevp - bound.");
+    DirichletZero();
+    Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
 }
 // --------------------------------------------------
-
 template <int CG, int DGstress>
 template <int DG>
-void CGParametricMomentum<CG, DGstress>::MEBIteration(const MEBParameters& vpparameters,
-    const size_t NT_evp, double dt_adv, const CellVector<DG>& H, const CellVector<DG>& A,
-    CellVector<DG>& D)
+void CGParametricMomentum<CG, DGstress>::prepareIteration(const CellVector<DG>& H,
+    const CellVector<DG>& A, const CellVector<DG>& D)
 {
-
-    double dt_mom = dt_adv / NT_evp;
-
-    // copy old velocity
-    CGVector<CG> vx_mevp = vx;
-    CGVector<CG> vy_mevp = vy;
 
     // interpolate ice height and concentration to local cg Variables
     Interpolations::DG2CG(smesh, cg_A, A);
     Interpolations::DG2CG(smesh, cg_H, H);
     Interpolations::DG2CG(smesh, cg_D, D);
 
-    // limit A to [0,1] and H to [0, ...)
+    // limit A and D to [0,1] and H to [0, ...)
     cg_A = cg_A.cwiseMin(1.0);
     cg_A = cg_A.cwiseMax(0.0);
     cg_H = cg_H.cwiseMax(1.e-4);
     cg_D = cg_D.cwiseMin(1.0);
     cg_D = cg_D.cwiseMax(0.0);
+}
 
-    // MEVP subcycling
-    for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
+template <int CG, int DGstress>
+template <int DG>
+void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
+    const size_t NT_evp, double dt_adv, const CellVector<DG>& H, const CellVector<DG>& A,
+    CellVector<DG>& D)
+{
 
-        Nextsim::GlobalTimer.start("time loop - meb - strain");
-        //! Compute Strain Rate
-        // momentum.ProjectCGVelocityToDG1Strain(ptrans_stress, E11, E12, E22);
-        ProjectCGVelocityToDGStrain();
-        Nextsim::GlobalTimer.stop("time loop - meb - strain");
+    double dt_mom = dt_adv / NT_evp;
 
-        Nextsim::GlobalTimer.start("time loop - meb - stress");
-        Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(vpparameters, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-        // Nextsim::MEB::StressUpdateHighOrder(vpparameters, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-        Nextsim::GlobalTimer.stop("time loop - meb - stress");
+    Nextsim::GlobalTimer.start("time loop - meb - strain");
+    //! Compute Strain Rate
+    ProjectCGVelocityToDGStrain();
+    Nextsim::GlobalTimer.stop("time loop - meb - strain");
 
-        Nextsim::GlobalTimer.start("time loop - meb - update");
-        //! Update
-        Nextsim::GlobalTimer.start("time loop - meb - update1");
+    Nextsim::GlobalTimer.start("time loop - meb - stress");
+    // TODO compute stress update with precomputed transformations
+    Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    Nextsim::GlobalTimer.stop("time loop - meb - stress");
 
-        //	    update by a loop.. implicit parts and h-dependent
+    Nextsim::GlobalTimer.start("time loop - meb - update");
+    //! Update
+    Nextsim::GlobalTimer.start("time loop - meb - update1");
+
+    //	    update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
-        for (int i = 0; i < vx.rows(); ++i) {
-            vx(i) = (1.0
-                / (vpparameters.rho_ice * cg_H(i) / dt_mom // implicit parts
-                    + cg_A(i) * vpparameters.F_ocean
-                        * fabs(ox(i) - vx(i))) // implicit parts
-                * (vpparameters.rho_ice * cg_H(i) / dt_mom * vx(i)
-                    + cg_A(i) * (vpparameters.F_atm * fabs(ax(i)) * ax(i) + // atm forcing
-                          vpparameters.F_ocean * fabs(ox(i) - vx(i)) * ox(i)) // ocean forcing
-                    + vpparameters.rho_ice * cg_H(i) * vpparameters.fc
-                        * (vy(i) - oy(i)) // cor + surface
-                    ));
-            vy(i) = (1.0
-                / (vpparameters.rho_ice * cg_H(i) / dt_mom // implicit parts
-                    + cg_A(i) * vpparameters.F_ocean
-                        * fabs(oy(i) - vy(i))) // implicit parts
-                * (vpparameters.rho_ice * cg_H(i) / dt_mom * vy(i)
-                    + cg_A(i) * (vpparameters.F_atm * fabs(ay(i)) * ay(i) + // atm forcing
-                          vpparameters.F_ocean * fabs(oy(i) - vy(i)) * oy(i)) // ocean forcing
-                    + vpparameters.rho_ice * cg_H(i) * vpparameters.fc
-                        * (ox(i) - vx(i))));
-        }
-        Nextsim::GlobalTimer.stop("time loop - meb - update1");
-
-        Nextsim::GlobalTimer.start("time loop - meb - update2");
-        // Implicit etwas ineffizient
-#pragma omp parallel for
-        for (int i = 0; i < tmpx.rows(); ++i)
-            tmpx(i) = tmpy(i) = 0;
-
-        Nextsim::GlobalTimer.start("time loop - meb - update2 -stress");
-        // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
-        AddStressTensor(-1.0, tmpx, tmpy);
-        Nextsim::GlobalTimer.stop("time loop - meb - update2 -stress");
-
-#pragma omp parallel for
-        for (int i = 0; i < vx.rows(); ++i) {
-            vx(i) += (1.0
-                         / (vpparameters.rho_ice * cg_H(i) / dt_mom // implicit parts
-                             + cg_A(i) * vpparameters.F_ocean
-                                 * fabs(ox(i) - vx(i))) // implicit parts
-                         * tmpx(i))
-                / lumpedcgmass(i);
-            ;
-
-            vy(i) += (1.0
-                         / (vpparameters.rho_ice * cg_H(i) / dt_mom // implicit parts
-                             + cg_A(i) * vpparameters.F_ocean
-                                 * fabs(oy(i) - vy(i))) // implicit parts
-                         * tmpy(i))
-                / lumpedcgmass(i);
-            ;
-        }
-        Nextsim::GlobalTimer.stop("time loop - meb - update2");
-        Nextsim::GlobalTimer.stop("time loop - meb - update");
-
-        Nextsim::GlobalTimer.start("time loop - meb - bound.");
-        DirichletZero();
-        Nextsim::GlobalTimer.stop("time loop - meb - bound.");
+    for (int i = 0; i < vx.rows(); ++i) {
+        vx(i) = (1.0
+            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+                + cg_A(i) * params.F_ocean
+                    * fabs(ox(i) - vx(i))) // implicit parts
+            * (params.rho_ice * cg_H(i) / dt_mom * vx(i)
+                + cg_A(i) * (params.F_atm * fabs(ax(i)) * ax(i) + // atm forcing
+                      params.F_ocean * fabs(ox(i) - vx(i)) * ox(i)) // ocean forcing
+                + params.rho_ice * cg_H(i) * params.fc
+                    * (vy(i) - oy(i)) // cor + surface
+                ));
+        vy(i) = (1.0
+            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+                + cg_A(i) * params.F_ocean
+                    * fabs(oy(i) - vy(i))) // implicit parts
+            * (params.rho_ice * cg_H(i) / dt_mom * vy(i)
+                + cg_A(i) * (params.F_atm * fabs(ay(i)) * ay(i) + // atm forcing
+                      params.F_ocean * fabs(oy(i) - vy(i)) * oy(i)) // ocean forcing
+                + params.rho_ice * cg_H(i) * params.fc
+                    * (ox(i) - vx(i))));
     }
+    Nextsim::GlobalTimer.stop("time loop - meb - update1");
+
+    Nextsim::GlobalTimer.start("time loop - meb - update2");
+    // Implicit etwas ineffizient
+#pragma omp parallel for
+    for (int i = 0; i < tmpx.rows(); ++i)
+        tmpx(i) = tmpy(i) = 0;
+
+    Nextsim::GlobalTimer.start("time loop - meb - update2 -stress");
+    // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
+    AddStressTensor(-1.0, tmpx, tmpy);
+    Nextsim::GlobalTimer.stop("time loop - meb - update2 -stress");
+
+#pragma omp parallel for
+    for (int i = 0; i < vx.rows(); ++i) {
+        vx(i) += (1.0
+                     / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+                         + cg_A(i) * params.F_ocean
+                             * fabs(ox(i) - vx(i))) // implicit parts
+                     * tmpx(i))
+            / lumpedcgmass(i);
+        ;
+
+        vy(i) += (1.0
+                     / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+                         + cg_A(i) * params.F_ocean
+                             * fabs(oy(i) - vy(i))) // implicit parts
+                     * tmpy(i))
+            / lumpedcgmass(i);
+        ;
+    }
+    Nextsim::GlobalTimer.stop("time loop - meb - update2");
+    Nextsim::GlobalTimer.stop("time loop - meb - update");
+
+    Nextsim::GlobalTimer.start("time loop - meb - bound.");
+    DirichletZero();
+    Nextsim::GlobalTimer.stop("time loop - meb - bound.");
 }
 // --------------------------------------------------
 
@@ -383,100 +381,106 @@ template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<1>& 
 template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<3>& H, const CellVector<3>& A);
 template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<6>& H, const CellVector<6>& A);
 
+template void CGParametricMomentum<1, 3>::prepareIteration(const CellVector<1>& H, const CellVector<1>& A, const CellVector<1>& D);
+template void CGParametricMomentum<1, 3>::prepareIteration(const CellVector<3>& H, const CellVector<3>& A, const CellVector<3>& D);
+template void CGParametricMomentum<1, 3>::prepareIteration(const CellVector<6>& H, const CellVector<6>& A, const CellVector<6>& D);
+template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<1>& H, const CellVector<1>& A, const CellVector<1>& D);
+template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<3>& H, const CellVector<3>& A, const CellVector<3>& D);
+template void CGParametricMomentum<2, 8>::prepareIteration(const CellVector<6>& H, const CellVector<6>& A, const CellVector<6>& D);
 
 // --------------------------------------------------
 
-template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
-template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
-template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
-template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
-template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
-template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
-template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
-template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
-template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
-template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A);
-template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A);
-template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& params,
     size_t NT_evp, double alpha, double beta,
     double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A);
 
 // --------------------------------------------------
 
-template void CGParametricMomentum<1, 3>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A, CellVector<1>& D);
-template void CGParametricMomentum<1, 3>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A, CellVector<3>& D);
-template void CGParametricMomentum<1, 3>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<1, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A, CellVector<6>& D);
 
-template void CGParametricMomentum<1, 8>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A, CellVector<1>& D);
-template void CGParametricMomentum<1, 8>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A, CellVector<3>& D);
-template void CGParametricMomentum<1, 8>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<1, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A, CellVector<6>& D);
 
-template void CGParametricMomentum<2, 3>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A, CellVector<1>& D);
-template void CGParametricMomentum<2, 3>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A, CellVector<3>& D);
-template void CGParametricMomentum<2, 3>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<2, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A, CellVector<6>& D);
 
-template void CGParametricMomentum<2, 8>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<1>& H, const CellVector<1>& A, CellVector<1>& D);
-template void CGParametricMomentum<2, 8>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<3>& H, const CellVector<3>& A, CellVector<3>& D);
-template void CGParametricMomentum<2, 8>::MEBIteration(const MEBParameters& vpparameters,
+template void CGParametricMomentum<2, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const CellVector<6>& H, const CellVector<6>& A, CellVector<6>& D);
 

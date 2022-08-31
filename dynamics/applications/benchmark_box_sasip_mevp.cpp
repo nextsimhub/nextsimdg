@@ -216,12 +216,12 @@ int main()
 
         //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - mevp");
-	momentum.prepareIteration(H,A);
-	// MEVP subcycling
-	for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
-	  momentum.mEVPStep(VP, NT_evp, alpha, beta, dt_adv, H, A);
-	  // <- MPI
-	}
+        momentum.prepareIteration(H, A);
+        // MEVP subcycling
+        for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
+            momentum.mEVPStep(VP, NT_evp, alpha, beta, dt_adv, H, A);
+            // <- MPI
+        }
         Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //////////////////////////////////////////////////

@@ -7,8 +7,8 @@
 #include "ParametricTransport.hpp"
 #include "ParametricTools.hpp"
 //#include "dgTimeStepping.hpp"
-#include "stopwatch.hpp"
 #include "Interpolations.hpp"
+#include "stopwatch.hpp"
 
 namespace Nextsim {
 
@@ -178,24 +178,21 @@ void ParametricTransport<DGcell, DGedge>::reinitnormalvelocity()
     }
 }
 
-
 ////////////////////////////////////////////////// PREPARE
 
-  /*!
-   * Prepares the advection step:
-   * - interpolates CG velocity to DG
-   * - initializes normal velocity on the edges
-   */
+/*!
+ * Prepares the advection step:
+ * - interpolates CG velocity to DG
+ * - initializes normal velocity on the edges
+ */
 template <int DGcell, int DGedge>
-template<int CG>
-void ParametricTransport<DGcell, DGedge>::prepareAdvection(const CGVector<CG>& cg_vx,const CGVector<CG>& cg_vy)
+template <int CG>
+void ParametricTransport<DGcell, DGedge>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector<CG>& cg_vy)
 {
-  Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
-  Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
-  reinitnormalvelocity();
+    Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
+    Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
+    reinitnormalvelocity();
 }
-  
-
 
 ////////////////////////////////////////////////// CELL TERM
 
@@ -516,12 +513,11 @@ template class ParametricTransport<1, 1>;
 template class ParametricTransport<3, 2>;
 template class ParametricTransport<6, 3>;
 
-template void ParametricTransport<1, 1>::prepareAdvection(const CGVector<1>& cg_vx,const CGVector<1>& cg_vy);
-template void ParametricTransport<1, 1>::prepareAdvection(const CGVector<2>& cg_vx,const CGVector<2>& cg_vy);
-template void ParametricTransport<3, 2>::prepareAdvection(const CGVector<1>& cg_vx,const CGVector<1>& cg_vy);
-template void ParametricTransport<3, 2>::prepareAdvection(const CGVector<2>& cg_vx,const CGVector<2>& cg_vy);
-template void ParametricTransport<6, 3>::prepareAdvection(const CGVector<1>& cg_vx,const CGVector<1>& cg_vy);
-template void ParametricTransport<6, 3>::prepareAdvection(const CGVector<2>& cg_vx,const CGVector<2>& cg_vy);
-
+template void ParametricTransport<1, 1>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
+template void ParametricTransport<1, 1>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
+template void ParametricTransport<3, 2>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
+template void ParametricTransport<3, 2>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
+template void ParametricTransport<6, 3>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
+template void ParametricTransport<6, 3>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 
 } /* namespace Nextsim */

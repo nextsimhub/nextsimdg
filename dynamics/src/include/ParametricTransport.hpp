@@ -7,8 +7,8 @@
 #ifndef __PARAMETRICTRANSPORT_HPP
 #define __PARAMETRICTRANSPORT_HPP
 
-#include "dgVector.hpp"
 #include "cgVector.hpp"
+#include "dgVector.hpp"
 
 namespace Nextsim {
 
@@ -41,17 +41,14 @@ protected:
     //! temporary vectors for time stepping
     CellVector<DGcell> tmp1, tmp2, tmp3;
 
+    //! Internal functions
 
-  
-  //! Internal functions
-  
-
-  /*!
-   * Performs one time step transporting phi with the Fwd-Euler Scheme
-   *
-   * @params phi is the vector of values to be transported
-   */
-  void step_rk1(const double dt, CellVector<DGcell>& phi);
+    /*!
+     * Performs one time step transporting phi with the Fwd-Euler Scheme
+     *
+     * @params phi is the vector of values to be transported
+     */
+    void step_rk1(const double dt, CellVector<DGcell>& phi);
 
     /*!
      * Performs one time step transporting phi with the 2nd Order Heun Scheme
@@ -66,7 +63,6 @@ protected:
      * @params phi is the vector of values to be transported
      */
     void step_rk3(const double dt, CellVector<DGcell>& phi);
-
 
 public:
     ParametricTransport(const ParametricMesh& mesh)
@@ -117,23 +113,20 @@ public:
         assert((tss == "rk1") || (tss == "rk2") || (tss == "rk3"));
     }
 
-
-      /*!
+    /*!
      * Sets the normal-velocity vector on the edges
      * The normal velocity is scaled with the length of the edge,
      * this already serves as the integraiton weight
      */
     void reinitnormalvelocity();
 
-  
-  /*!
-   * Prepares the advection step:
-   * - interpolates CG velocity to DG
-   * - initializes normal velocity on the edges
-   */
-  template<int CG>
-  void prepareAdvection(const CGVector<CG>& cg_vx,const CGVector<CG>& cg_vy);
-  
+    /*!
+     * Prepares the advection step:
+     * - interpolates CG velocity to DG
+     * - initializes normal velocity on the edges
+     */
+    template <int CG>
+    void prepareAdvection(const CGVector<CG>& cg_vx, const CGVector<CG>& cg_vy);
 
     /*!
      * Performs one time step transporting phi

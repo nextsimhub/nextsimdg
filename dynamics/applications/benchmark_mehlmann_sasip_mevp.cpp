@@ -215,10 +215,10 @@ void run_benchmark(const std::string meshfile)
         //! Advection step
         Nextsim::GlobalTimer.start("time loop - advection");
 
-	// interpolates CG velocity to DG and reinits normal velocity
-	dgtransport.prepareAdvection(momentum.GetVx(),momentum.GetVy());
+        // interpolates CG velocity to DG and reinits normal velocity
+        dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
-	// performs the transport steps
+        // performs the transport steps
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
 
@@ -230,12 +230,12 @@ void run_benchmark(const std::string meshfile)
 
         //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - mevp");
-	momentum.prepareIteration(H,A);
-	// MEVP subcycling
-	for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
-	  momentum.mEVPStep(VP, NT_evp, alpha, beta, dt_adv, H, A);
-	  // <- MPI
-	}
+        momentum.prepareIteration(H, A);
+        // MEVP subcycling
+        for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
+            momentum.mEVPStep(VP, NT_evp, alpha, beta, dt_adv, H, A);
+            // <- MPI
+        }
         Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //////////////////////////////////////////////////
@@ -261,9 +261,8 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-  run_benchmark<1, 1, 3>("../ParametricMesh/distortedrectangle_128x128.smesh");
+    run_benchmark<1, 1, 3>("../ParametricMesh/distortedrectangle_128x128.smesh");
 
-  
     // std::vector<std::string> meshes;
     // meshes.push_back("../ParametricMesh/distortedrectangle_16x16.smesh");
     // meshes.push_back("../ParametricMesh/distortedrectangle_32x32.smesh");

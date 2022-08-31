@@ -34,10 +34,6 @@ bool WRITE_VTK = true;
  * of the stress & strain. This should give the gradient space of the
  * CG space for stability. CG=1 -> DGstress=3, CG=2 -> DGstress -> 8
  */
-//#define CG 2
-//#define DGadvection 3
-//#define DGstress 8
-
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 namespace Nextsim {
@@ -229,7 +225,9 @@ void run_benchmark(const std::string meshfile)
         //////////////////////////////////////////////////
         //! Advection step
         Nextsim::GlobalTimer.start("time loop - advection");
-        dgtransport.prepareAdvection(momentum.GetVx(),momentum.GetVy());
+
+        // interpolates CG velocity to DG and reinits normal velocity
+        dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
@@ -245,7 +243,13 @@ void run_benchmark(const std::string meshfile)
 
         //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - meb");
-        momentum.MEBIteration(Params, NT_meb, dt_adv, H, A, D);
+        momentum.prepareIteration(H, A);
+        // MEB momentum subcycling
+        for (size_t mebstep = 0; mebstep < NT_meb; ++mebstep) {
+            momentum.MEBStep(Params, NT_meb, dt_adv, H, A, D);
+            // <- MPI
+        }
+
         Nextsim::GlobalTimer.stop("time loop - meb");
 
         //////////////////////////////////////////////////
