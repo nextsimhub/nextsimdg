@@ -237,222 +237,6 @@ namespace MEB {
         }
     }
 
-    /*ELO /
-
-        //! DG0 for Stress and Strain
-        template <int DGstress, int DGtracer>
-        void StressUpdateMEB(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-            CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-            const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
-            const CellVector<DGtracer>& A, CellVector<DGtracer>& D, const double dt_momentum)
-    {
-#pragma omp parallel for
-        for (size_t i = 0; i < mesh.n; ++i) {
-
-            //======================================================================
-            //! Visco-Elasatic Prediction
-            //======================================================================
-            double const expC = std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
-            double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-
-            // Eqn. 25
-            // double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
-            //    * std::pow((1. - D(i, 0)), RefScaleCanada::exponent_relaxation_sigma - 1.) / (H(i, 0) * expC);
-            // Eqn 9.
-            double time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma
-                * std::pow((1. - D(i, 0)), RefScaleCanada::exponent_relaxation_sigma - 1.);
-
-            // Eqn. 24 Additional multiplic0cation by H
-            double elasticity = RefScaleCanada::young * H(i, 0) * (1. - D(i, 0)) * expC;
-
-            // 1. / (1. + dt / lambda) Eqn. 18
-            double multiplicator = 1. / (1. + dt_momentum / time_viscous);
-
-            time_viscous = RefScaleCanada::undamaged_time_relaxation_sigma;
-            // elasticity = RefScaleCanada::young;
-
-            double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
-
-            // Elasit prediction Eqn. (32)
-            S11.row(i) += dt_momentum * elasticity
-                * (1. / (1. + RefScaleCanada::nu0) * E11.row(i)
-                    + Dunit_factor * RefScaleCanada::nu0 * (E11.row(i) + E22.row(i)));
-            S12.row(i) += dt_momentum * elasticity * 1. / (1. + RefScaleCanada::nu0) * E12.row(i);
-            S22.row(i) += dt_momentum * elasticity
-                * (1. / (1. + RefScaleCanada::nu0) * E22.row(i)
-                    + Dunit_factor * RefScaleCanada::nu0 * (E11.row(i) + E22.row(i)));
-
-            // BBM
-            double const Pmax = RefScale::compression_factor * pow(H(i, 0), 1.5); // * exp(-20.0 * (1.0 - A(i, 0)));
-            // Strange Discountinious function
-            if (sigma_n < 0.) {
-                double tildeP = std::min(1., -Pmax / sigma_n);
-                // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-                multiplicator = 1. / (1. + (1. - tildeP) * dt_momentum / time_viscous);
-            }
-
-            S12.row(i) *= multiplicator;
-            S11.row(i) *= multiplicator;
-            S22.row(i) *= multiplicator;
-
-            //======================================================================
-            //! - Estimates the level of damage from the updated internal stress and the local
-            //! damage criterion
-            //======================================================================
-
-            // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
-            sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-            // shear stress
-            double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
-            assert(tau >= 0);
-
-            //
-            const double c = RefScaleCanada::c0 * H(i, 0) * expC;
-            const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * expC;
-
-            double dcrit(1.0);
-            // Regime(i, 0) = 0;
-            //// Mohr-Coulomb condition
-            // if (tau + RefScaleCanada::sin_phi * sigma_n - c < 0) {
-            //     Regime(i, 0) = 1;
-            // }
-            // if (sigma_n - tau > sigma_c) {
-            //     Regime(i, 0) = 2;
-            // }
-
-            if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
-                dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
-
-            // Relax stress
-            S11.row(i) *= dcrit;
-            S12.row(i) *= dcrit;
-            S22.row(i) *= dcrit;
-
-            // Update damage
-            D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
-        }
-    }
-
-    //! CG1-DG1
-    void StressUpdateMEB(const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
-        CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
-        const CellVector<3>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, CellVector<3>& D, const double dt_momentum, CellVector<3>& Dcrit)
-    {
-
-        //! Stress Update
-#pragma omp parallel for
-        for (size_t i = 0; i < mesh.n; ++i) {
-
-            //!  number of gauss points in each direction equalls 3, for 2d 3^2
-            const Eigen::Matrix<double, 1, NGP* NGP> h_gauss = (H.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).matrix();
-            // const Eigen::Matrix<double, 1, NGP* NGP> a_gauss = (A.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
-            const Eigen::Matrix<double, 1, NGP* NGP> d_gauss = (D.block<1, 3>(i, 0) * PSI<3,3>).array().max(0.0).min(1.0).matrix();
-
-            const Eigen::Matrix<double, 1, NGP* NGP> e11_gauss = E11.block<1, 3>(i, 0) * PSI<3,3>;
-            const Eigen::Matrix<double, 1, NGP* NGP> e12_gauss = E12.block<1, 3>(i, 0) * PSI<3,3>;
-            const Eigen::Matrix<double, 1, NGP* NGP> e22_gauss = E22.block<1, 3>(i, 0) * PSI<3,3>;
-
-            Eigen::Matrix<double, 1, NGP* NGP> s11_gauss = S11.block<1, 3>(i, 0) * PSI<3,3>;
-            Eigen::Matrix<double, 1, NGP* NGP> s12_gauss = S12.block<1, 3>(i, 0) * PSI<3,3>;
-            Eigen::Matrix<double, 1, NGP* NGP> s22_gauss = S22.block<1, 3>(i, 0) * PSI<3,3>;
-
-            auto expC = 1.; //(-20.0 * (1.0 - a_gauss.array())).exp();
-            // Eqn. 24 Additional multiplic0cation by H
-            // const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array()) * expC.array()).matrix();
-            const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (RefScaleCanada::young * h_gauss.array() * (1. - d_gauss.array())).matrix();
-
-            auto powalpha = (1. - d_gauss.array()).pow(RefScaleCanada::exponent_relaxation_sigma - 1.);
-            // Eqn. 25
-            const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (RefScaleCanada::undamaged_time_relaxation_sigma * powalpha.array()).matrix();
-
-            double const Dunit_factor = 1. / (1. - (RefScale::nu0 * RefScale::nu0));
-
-            // 1. / (1. + dt / lambda) Eqn. 18
-            Eigen::Matrix<double, 1, NGP* NGP> multiplicator = (1. / (1. + dt_momentum / time_viscous.array())).matrix();
-
-            // Elasit prediction Eqn. (32)
-            S11.row(i) += dt_momentum * 1. / (1. + RefScaleCanada::nu0) * (elasticity.array() * e11_gauss.array()).matrix() * IBC33
-                + dt_momentum * Dunit_factor * RefScaleCanada::nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array())).matrix() * IBC33;
-
-            S12.row(i) += dt_momentum * 1. / (1. + RefScaleCanada::nu0) * (elasticity.array() * e12_gauss.array()).matrix() * IBC33;
-
-            S22.row(i) += dt_momentum * 1. / (1. + RefScaleCanada::nu0) * (elasticity.array() * e22_gauss.array()).matrix() * IBC33
-                + dt_momentum * Dunit_factor * RefScaleCanada::nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array())).matrix() * IBC33;
-
-            // BBM
-            Eigen::Matrix<double, 1, NGP* NGP> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
-
-            const Eigen::Matrix<double, 1, NGP* NGP> Pmax = RefScale::compression_factor * h_gauss.array().pow(1.5);
-            // Strange Discountinious function
-            const Eigen::Matrix<double, 1, NGP* NGP> tildeP = (-Pmax.array() / sigma_n.array()).min(1.0).matrix();
-
-            // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 32
-            multiplicator = (sigma_n.array() < 0.).select((1. / (1. + (1. - tildeP.array()) * dt_momentum / time_viscous.array())).matrix(), multiplicator);
-
-            // multiplicator = multiplicator_gp * IBC33;
-            //  Eqn. (34)
-            //! Coefficient-wise multiplication
-            S11.row(i) = (s11_gauss.array() * multiplicator.array()).matrix() * IBC33;
-            S12.row(i) = (s12_gauss.array() * multiplicator.array()).matrix() * IBC33;
-            S22.row(i) = (s22_gauss.array() * multiplicator.array()).matrix() * IBC33;
-
-            //======================================================================
-            //! - Estimates the level of damage from the updated internal stress and the local
-            //! damage criterion
-            //======================================================================
-
-            s11_gauss = S11.block<1, 3>(i, 0) * PSI<3,3>;
-            s12_gauss = S12.block<1, 3>(i, 0) * PSI<3,3>;
-            s22_gauss = S22.block<1, 3>(i, 0) * PSI<3,3>;
-
-            // Compute Pmax Eqn.(8) the way like in nextsim finiteelement.cpp
-            // double sigma_n = 0.5 * (S11(i, 0) + S22(i, 0));
-            sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
-
-            // shear stress
-            // double tau = std::sqrt(0.25 * (S11(i, 0) - S22(i, 0)) * (S11(i, 0) - S22(i, 0)) + S12(i, 0) * S12(i, 0));
-
-            const Eigen::Matrix<double, 1, NGP* NGP> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
-            // assert(tau >= 0);
-
-            // const double c = RefScaleCanada::c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
-            // const double sigma_c = RefScaleCanada::sigma_c0 * H(i, 0) * std::exp(RefScaleCanada::compaction_param * (1. - A(i, 0)));
-            const Eigen::Matrix<double, 1, NGP* NGP> c = RefScaleCanada::c0 * h_gauss.array() * expC;
-            // const Eigen::Matrix<double, 1, NGP* NGP> sigma_c = RefScaleCanada::sigma_c0 * h_gauss.array() * expC;
-
-            // double dcrit(1.0);
-            Eigen::Matrix<double, 1, NGP* NGP> dcrit;
-            dcrit << 1., 1., 1., 1., 1., 1., 1., 1., 1.;
-            // if (tau + RefScaleCanada::sin_phi * sigma_n - c > 0)
-            //     dcrit = std::min(1., c / (tau + RefScaleCanada::sin_phi * sigma_n));
-
-            // Mohr-Coulomb Criterion
-            dcrit = (tau.array() + RefScaleCanada::sin_phi * sigma_n.array() - c.array() > 0).select(c.array() / (tau.array() + RefScaleCanada::sin_phi * sigma_n.array()), dcrit);
-            // Compression cutoff
-            // dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
-
-            dcrit = dcrit.array().min(1.0).matrix();
-
-            auto dcrit_int = dcrit * IBC33;
-            Dcrit.row(i) = dcrit_int;
-
-            // S11.row(i).array() *= dcrit_int.array();
-            // S12.row(i).array() *= dcrit_int.array();
-            // S22.row(i).array() *= dcrit_int.array();
-
-            // Relax stress in Gassus points
-            S11.row(i) = (s11_gauss.array() * dcrit.array()).matrix() * IBC33;
-            S12.row(i) = (s12_gauss.array() * dcrit.array()).matrix() * IBC33;
-            S22.row(i) = (s22_gauss.array() * dcrit.array()).matrix() * IBC33;
-
-            // Update damage
-            // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
-            D.row(i) += ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_momentum / RefScaleCanada::damage_timescale).matrix() * IBC33;
-        }
-    }
-    ELO */
-
     /*!
      * @brief Calculate Stresses for the current time step and update damage.
      *
@@ -503,13 +287,14 @@ namespace MEB {
             //! Current normal stress for the evaluation of tildeP (Eqn. 1)
             Eigen::Matrix<double, 1, NGP* NGP> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
 
+            //! exp(-C(1-A))
             auto expC = (-20.0 * (1.0 - a_gauss.array())).exp();
 
+            //! Eqn. 9
             const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * h_gauss.array() * (1. - d_gauss.array())).matrix();
 
-            auto powalpha = (1. - d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
-
             // Eqn. 25
+            auto powalpha = (1. - d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
             const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array()).matrix();
 
             // Eqn. 12: first factor on RHS
@@ -527,6 +312,7 @@ namespace MEB {
                 + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
+            // TODO: PRovide working imprementation of BBM
             // (Eqn. 8)
             // const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5);
 
@@ -544,10 +330,11 @@ namespace MEB {
             const Eigen::Matrix<double, 1, NGP* NGP> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
 
             const Eigen::Matrix<double, 1, NGP* NGP> c = params.c0 * h_gauss.array() * expC;
-
             Eigen::Matrix<double, 1, NGP* NGP> dcrit = { 1., 1., 1., 1., 1., 1., 1., 1., 1. };
+            // const Eigen::Matrix<double, 1, NGP* NGP> c = params.C_lab * std::sqrt(0.1 / (RefScale::L / smesh.nx)) * dcrit.array();
 
             // Mohr-Coulomb Criterion
+            // Eqn. 31
             dcrit = (tau.array() + params.sin_phi * sigma_n.array() - c.array() > 0).select(c.array() / (tau.array() + params.sin_phi * sigma_n.array()), dcrit);
             // Compression cutoff
             // dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);

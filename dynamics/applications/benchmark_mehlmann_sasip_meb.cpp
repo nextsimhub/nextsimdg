@@ -148,21 +148,18 @@ void run_benchmark(const std::string meshfile)
     constexpr double dt_adv = 60.0; //!< Time step of advection problem
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
-    //! MEVP parameters
-    constexpr double alpha = 800.0;
-    constexpr double beta = 800.0;
-    constexpr size_t NT_evp = 100; // 200
+    constexpr size_t NT_meb = 100; //!< Momentum substeps
+    constexpr double dt_mom = dt_adv / NT_meb; //!< Time step of momentum problem
 
     //! Rheology-Parameters
-    Nextsim::MEBParameters VP;
-    // Nextsim::VPParameters VP;
+    Nextsim::MEBParameters Params;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
-              << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta
+              << "Momentum subcycling " << NT_meb << "\t dt_momentum " << dt_mom
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 4. * 60.0 * 60.0; // every 4 hours
+    constexpr double T_vtk = 1. * 60.0 * 60.0; // every 4 hours
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -193,6 +190,7 @@ void run_benchmark(const std::string meshfile)
     Nextsim::VTK::write_dg(resultsdir + "/S11", 0, momentum.GetS11(), smesh);
     Nextsim::VTK::write_dg(resultsdir + "/S12", 0, momentum.GetS12(), smesh);
     Nextsim::VTK::write_dg(resultsdir + "/S22", 0, momentum.GetS22(), smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/Delta", 0, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), Params.DeltaMin), smesh);
     Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
     Nextsim::VTK::write_dg(resultsdir + "/sigma_n", 0,
         Nextsim::Tools::TensorInvI(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
@@ -248,12 +246,9 @@ void run_benchmark(const std::string meshfile)
         Nextsim::GlobalTimer.stop("time loop - advection");
 
         //////////////////////////////////////////////////
-        Nextsim::GlobalTimer.start("time loop - mevp");
-        // momentum.mEVPIteration(VP, NT_evp, alpha, beta, dt_adv, H, A);
-        momentum.MEBIteration(VP, NT_evp, dt_adv, H, A, D);
-        // std::cout << momentum.GetS11() << std::endl;
-        Nextsim::GlobalTimer.stop("time loop - mevp");
-        // abort();
+        Nextsim::GlobalTimer.start("time loop - meb");
+        momentum.MEBIteration(Params, NT_meb, dt_adv, H, A, D);
+        Nextsim::GlobalTimer.stop("time loop - meb");
 
         //////////////////////////////////////////////////
         if (WRITE_VTK) // Output
@@ -269,7 +264,7 @@ void run_benchmark(const std::string meshfile)
                 Nextsim::VTK::write_dg(resultsdir + "/S11", printstep, momentum.GetS11(), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/S12", printstep, momentum.GetS12(), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/S22", printstep, momentum.GetS22(), smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), Params.DeltaMin), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/sigma_n", printstep,
                     Nextsim::Tools::TensorInvI(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
@@ -288,18 +283,18 @@ int main()
 {
     std::vector<std::string> meshes;
     // meshes.push_back("../ParametricMesh/rectangle_16x16.smesh");
-    meshes.push_back("../ParametricMesh/rectangle_32x32.smesh");
-    meshes.push_back("../ParametricMesh/rectangle_64x64.smesh");
+    // meshes.push_back("../ParametricMesh/rectangle_32x32.smesh");
+    // meshes.push_back("../ParametricMesh/rectangle_64x64.smesh");
     meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
-    meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
-    // meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
+    // meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
+    //  meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
 
     for (const auto& it : meshes) {
-        run_benchmark<1, 1, 3>(it);
-        run_benchmark<1, 3, 3>(it);
-        run_benchmark<1, 6, 3>(it);
-        run_benchmark<2, 1, 8>(it);
+        // run_benchmark<1, 1, 3>(it);
+        // run_benchmark<1, 3, 3>(it);
+        // run_benchmark<1, 6, 3>(it);
+        // run_benchmark<2, 1, 8>(it);
         run_benchmark<2, 3, 8>(it);
-        run_benchmark<2, 6, 8>(it);
+        // run_benchmark<2, 6, 8>(it);
     }
 }

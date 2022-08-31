@@ -32,8 +32,8 @@ public:
     double young; //!< \param Young's modulus
     double P0; //! < \param Constant to parametrize Pmax
     double damage_timescale = 1.; //<! Damage timescale
-    double undamaged_time_relaxation_sigma = 1e5; //!< Test more viscous
-    double exponent_relaxation_sigma = 3;
+    double undamaged_time_relaxation_sigma = 1e5; //!< \param lambda
+    double exponent_relaxation_sigma;
     double c0; //! \param
     double sigma_c0; //! \param
 
@@ -44,6 +44,8 @@ public:
     // TODO missing 45\deg it goes to Compresssion
     double tan_phi; //!< \param tan_phi (double) Internal friction coefficient (mu)
     double sin_phi; //!< \param sin_phi (double) Internal friction coefficient (mu)
+
+    double C_lab; //! \param C_lab (double) Test [Pa]
 
     MEBParameters()
     {
@@ -69,9 +71,9 @@ public:
         young = 5.96e8; //!< \param Young's modulus
         P0 = 10.e3; //! < \param Constant to parametrize Pmax
 
-        undamaged_time_relaxation_sigma = 1e5; //!< Test more viscous
-        exponent_relaxation_sigma = 5;
-
+        undamaged_time_relaxation_sigma = 1e5; //!< \param lambda
+        undamaged_time_relaxation_sigma = 1e7; //!< \param lambda
+        exponent_relaxation_sigma = 3;
         c0 = 10.e3; //! \param
         sigma_c0 = 50.e3; //! \param
 
@@ -81,6 +83,8 @@ public:
         exponent_compression_factor = 1.5; //! \param Power of ice thickness in the pressure coefficient
         tan_phi = 0.7; //!< \param tan_phi (double) Internal friction coefficient (mu)
         sin_phi = 0.7; //!< \param sin_phi (double) Internal friction coefficient (mu)
+
+        C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
     }
 };
 
