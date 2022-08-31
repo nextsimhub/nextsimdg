@@ -44,7 +44,6 @@ set(ModuleSources
     "${IceOceanHeatFluxModuleSources}"
     "${ColumnPhysicsModuleSources}"
     "${ThermodynamicsModuleSources}"
-    "${ConcentrationModelModuleSources}"
     "${IceThermodynamicsModuleSources}"
     "${LateralIceSpreadModuleSources}"
     "${FluxCalculationModuleSources}"
