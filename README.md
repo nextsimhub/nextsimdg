@@ -153,7 +153,7 @@ We use a derived version of [semantic versioning](https://semver.org/). In brief
 
 1. increment z when there's a hotfix (bugfix) pushed to main
 2. increment y when develop is merged into main
-3. increment x when we've been working on something extraordinary, when there's a major change in interface (configs or outputs) ... or when y is becoming too big (bigger than 26, the industry standart).
+3. increment x when we've been working on something extraordinary, when there's a significant change in an interface (configs or outputs) ... or when y is becoming too big.
 
 ### Git branching and merging
 
