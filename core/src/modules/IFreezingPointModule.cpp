@@ -29,8 +29,19 @@ template <>
 std::unique_ptr<Nextsim::IFreezingPoint> Module<Nextsim::IFreezingPoint>::staticInstance
     = std::move(newImpl<Nextsim::IFreezingPoint, Nextsim::LinearFreezing>());
 
-template <> std::string Module<Nextsim::IFreezingPoint>::moduleName() { return "Nextsim::IFreezingPoint"; }
+template <> std::string Module<Nextsim::IFreezingPoint>::moduleName()
+{
+    return "Nextsim::IFreezingPoint";
+}
 
+template <> HelpMap& getHelpRecursive<Nextsim::IFreezingPoint>(HelpMap& map, bool getAll)
+{
+    const std::string pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
+    map[pfx].push_back({ pfx + "." + Module<Nextsim::IFreezingPoint>::moduleName(),
+        ConfigType::MODULE, { LINEARFREEZING, UNESCOFREEZING }, LINEARFREEZING, "",
+        "The module selecting the model for the freezing point of sea water." });
+    return map;
+}
 template <> Nextsim::IFreezingPoint& getImplementation<Nextsim::IFreezingPoint>()
 {
     return getImplTemplate<Nextsim::IFreezingPoint, IFreezingPointModule>();
@@ -47,7 +58,7 @@ template <> std::unique_ptr<Nextsim::IFreezingPoint> getInstance()
 IFreezingPointModule::Constructor IFreezingPointModule::ctor;
 IFreezingPointModule::Constructor::Constructor()
 {
-   addToConfiguredModules<Nextsim::IFreezingPoint, IFreezingPointModule>();
+    addToConfiguredModules<Nextsim::IFreezingPoint, IFreezingPointModule>();
 }
 
 } /* namespace Module */

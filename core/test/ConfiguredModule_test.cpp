@@ -54,7 +54,7 @@ TEST_CASE("Configure a module", "[Configurator]")
     Configurator::setCommandLine(argvee.argc(), argvee());
 
     ConfiguredModule::setConfiguredModules({
-        {Module::Module<ITest>::moduleName(), Module::setImplementation<ITest>},
+        {Module::Module<ITest>::moduleName(), {Module::setImplementation<ITest>, Module::implementation<ITest>}},
     });
     ConfiguredModule::parseConfigurator();
 
@@ -74,7 +74,7 @@ TEST_CASE("Configure a module from a stream", "[Configurator]")
     Configurator::addStream(std::move(pcstream));
 
     ConfiguredModule::setConfiguredModules({
-        {Module::Module<ITest>::moduleName(), Module::setImplementation<ITest>},
+        {Module::Module<ITest>::moduleName(), {Module::setImplementation<ITest>, Module::implementation<ITest>}},
     });
     ConfiguredModule::parseConfigurator();
 
@@ -95,7 +95,7 @@ TEST_CASE("Don't configure a module from a stream", "[Configurator]")
     Configurator::addStream(std::move(pcstream));
 
     ConfiguredModule::setConfiguredModules({
-        {Module::Module<ITest>::moduleName(), Module::setImplementation<ITest>},
+        {Module::Module<ITest>::moduleName(), {Module::setImplementation<ITest>, Module::implementation<ITest>}},
     });
     // Parse the available modules. This should not change the implementation
     // to the default.
@@ -116,7 +116,7 @@ TEST_CASE("Configure a module with an incorrect name", "[Configurator]")
     Configurator::addStream(std::move(pcstream));
 
     ConfiguredModule::setConfiguredModules({
-        {Module::Module<ITest>::moduleName(), Module::setImplementation<ITest>},
+        {Module::Module<ITest>::moduleName(), {Module::setImplementation<ITest>, Module::implementation<ITest>}},
     });
     // Should throw a domain_error as "Optometry" is not a valid implementation.
     REQUIRE_THROWS(ConfiguredModule::parseConfigurator());

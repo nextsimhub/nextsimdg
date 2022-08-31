@@ -7,13 +7,15 @@
 
 #include "include/IceGrowth.hpp"
 
-#include "include/IceThermodynamicsModule.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
 double IceGrowth::minc;
 double IceGrowth::minh;
+
+static const double mincDefault = 1e-12;
+static const double minhDefault = 0.01;
 
 template <>
 const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
@@ -39,7 +41,7 @@ IceGrowth::IceGrowth()
     ModelComponent::registerSharedArray(SharedArray::NEW_ICE, &newice);
 }
 
-void IceGrowth::setData(const ModelState& ms)
+void IceGrowth::setData(const ModelState::DataMap& ms)
 {
     iVertical->setData(ms);
     iLateral->setData(ms);
@@ -55,21 +57,51 @@ void IceGrowth::setData(const ModelState& ms)
 
 ModelState IceGrowth::getState() const
 {
-    return {
-        { "hice_updated", hice },
-        { "cice_updated", cice },
-        { "hsnow_updated", hsnow },
-        { "hice_initial", hice0 },
-        { "cice_initial", cice0 },
-        { "hsnow_initial", hsnow0 },
+    return { {
+                 { "hice_updated", hice },
+                 { "cice_updated", cice },
+                 { "hsnow_updated", hsnow },
+                 { "hice_initial", hice0 },
+                 { "cice_initial", cice0 },
+                 { "hsnow_initial", hsnow0 },
+             },
+        getConfiguration() };
+}
+
+ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state(getState());
+    // Merge in other states here
+    state.merge(iFluxes->getStateRecursive(os));
+    state.merge(iLateral->getStateRecursive(os));
+    state.merge(iVertical->getStateRecursive(os));
+    return os ? state : ModelState();
+}
+
+IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
+{
+    map["IceGrowth"] = {
+        { keyMap.at(MINC_KEY), ConfigType::NUMERIC, { "0", "1" }, std::to_string(mincDefault), "",
+            "Minimum allowed ice concentration." },
+        { keyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(minhDefault), "m",
+            "Minimum allowed ice thickness." },
     };
+    return map;
+}
+IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+    Module::getHelpRecursive<IIceThermodynamics>(map, getAll);
+    Module::getHelpRecursive<ILateralIceSpread>(map, getAll);
+    Module::getHelpRecursive<IFluxCalculation>(map, getAll);
+    return map;
 }
 
 void IceGrowth::configure()
 {
     // Configure constants
-    minc = Configured::getConfiguration(keyMap.at(MINC_KEY), 1e-12);
-    minh = Configured::getConfiguration(keyMap.at(MINH_KEY), 0.01);
+    minc = Configured::getConfiguration(keyMap.at(MINC_KEY), mincDefault);
+    minh = Configured::getConfiguration(keyMap.at(MINH_KEY), minhDefault);
 
     // Configure the vertical and lateral growth modules
     iVertical = std::move(Module::getInstance<IIceThermodynamics>());
@@ -80,6 +112,14 @@ void IceGrowth::configure()
     // Configure the flux calculation module
     iFluxes = std::move(Module::getInstance<IFluxCalculation>());
     tryConfigure(*iFluxes);
+}
+
+ConfigMap IceGrowth::getConfiguration() const
+{
+    return {
+        { keyMap.at(MINC_KEY), minc },
+        { keyMap.at(MINH_KEY), minh },
+    };
 }
 
 void IceGrowth::update(const TimestepTime& tsTime)

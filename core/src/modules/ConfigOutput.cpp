@@ -66,15 +66,15 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
         pState = &fullState;
     } else {
         // Filter only the given fields to the output state
-        for (auto fieldEntry : fullState) {
+        for (auto fieldEntry : fullState.data) {
             if (fieldsForOutput.count(fieldEntry.first) > 0) {
-                state[fieldEntry.first] = fieldEntry.second;
+                state.data[fieldEntry.first] = fieldEntry.second;
             }
         }
         pState = &state;
     }
 
-    Logged::info("ConfigOutput: Outputting " + std::to_string(pState->size()) + " fields to "
+    Logged::info("ConfigOutput: Outputting " + std::to_string(pState->data.size()) + " fields to "
         + timeFileName + "\n");
 
     if ((everyTS && meta.time() >= lastOutput) || (meta.time() >= lastOutput + outputPeriod)) {

@@ -12,6 +12,7 @@
 #include "include/Configured.hpp"
 #include "include/Iterator.hpp"
 #include "include/ModelMetadata.hpp"
+#include "include/ModelState.hpp"
 #include "include/PrognosticData.hpp"
 
 #include "DevStep.hpp"
@@ -35,6 +36,11 @@ public:
         TIMESTEP_KEY,
     };
 
+    ConfigMap getConfig() const;
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     //! Run the model
     void run();
 
@@ -46,6 +52,9 @@ public:
     //! Gets the model metadata instance
     ModelMetadata& metadata();
 
+    // Configuration option that holds the restart file name
+    const static std::string restartOptionName;
+
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
@@ -54,6 +63,12 @@ private:
 
     std::string initialFileName;
     std::string finalFileName;
+
+    // Cached values of the start-step-stop/duration times
+    std::string startTimeStr;
+    std::string stopTimeStr;
+    std::string durationStr;
+    std::string stepStr;
 };
 
 } /* namespace Nextsim */

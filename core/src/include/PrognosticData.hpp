@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CORE_SRC_INCLUDE_PROGNOSTICDATA_HPP
-#define CORE_SRC_INCLUDE_PROGNOSTICDATA_HPP
+#ifndef PROGNOSTICDATA_HPP
+#define PROGNOSTICDATA_HPP
 
 #include "ModelComponent.hpp"
 #include "include/Configured.hpp"
@@ -29,10 +29,13 @@ public:
 
     std::string getName() const override { return "PrognosticData"; };
 
-    void setData(const ModelState& ms) override;
+    void setData(const ModelState::DataMap& ms) override;
     ModelState getState() const override;
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override;
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     std::unordered_set<std::string> hFields() const override
     {
@@ -81,4 +84,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* CORE_SRC_INCLUDE_PROGNOSTICDATA_HPP */
+#endif /* PROGNOSTICDATA_HPP */

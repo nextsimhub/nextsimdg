@@ -13,7 +13,7 @@
 #include "include/ModelArrayRef.hpp"
 namespace Nextsim {
 
-//! A class implementing IICeThermodynamics as the ThermoIce0 model.
+//! A class implementing IIceThermodynamics as the ThermoIce0 model.
 class ThermoIce0 : public IIceThermodynamics, public Configured<ThermoIce0> {
 public:
     ThermoIce0();
@@ -24,7 +24,12 @@ public:
     };
     void configure() override;
 
-    void setData(const ModelState&) override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
+    void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
 
 private:

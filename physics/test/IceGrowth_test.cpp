@@ -52,7 +52,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
         }
         std::string getName() const override { return "AtmosphericData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             noLandMask();
             cice[0] = 0.5;
@@ -79,7 +79,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmData;
-    atmData.setData(ModelState());
+    atmData.setData(ModelState().data);
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:
@@ -89,7 +89,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
         }
         std::string getName() const override { return "FluxData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             qow[0] = 307.546;
             qio[0] = 124.689;
@@ -102,7 +102,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
         ModelState getState(const OutputLevel&) const override { return getState(); }
 
         void update(const TimestepTime&) override { }
-        void configure() override { setData(ModelState()); }
+        void configure() override { setData(ModelState().data); }
     };
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);
@@ -153,7 +153,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         }
         std::string getName() const override { return "AtmosphericData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             noLandMask();
             cice[0] = 0.5;
@@ -180,7 +180,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmData;
-    atmData.setData(ModelState());
+    atmData.setData(ModelState().data);
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:
@@ -190,7 +190,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         }
         std::string getName() const override { return "FluxData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             qow[0] = -109.923;
             qio[0]
@@ -204,7 +204,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         ModelState getState(const OutputLevel&) const override { return getState(); }
 
         void update(const TimestepTime&) override { }
-        void configure() override { setData(ModelState()); }
+        void configure() override { setData(ModelState().data); }
     };
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);
@@ -264,7 +264,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         }
         std::string getName() const override { return "AtmosphericData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             noLandMask();
             cice[0] = 0.5;
@@ -291,7 +291,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmData;
-    atmData.setData(ModelState());
+    atmData.setData(ModelState().data);
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:
@@ -301,7 +301,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         }
         std::string getName() const override { return "FluxData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             qow[0] = 143.266;
             qio[0] = 73.9465;
@@ -314,7 +314,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         ModelState getState(const OutputLevel&) const override { return getState(); }
 
         void update(const TimestepTime&) override { }
-        void configure() override { setData(ModelState()); }
+        void configure() override { setData(ModelState().data); }
     };
     Module::Module<IFluxCalculation>::setExternalImplementation(
         Module::newImpl<IFluxCalculation, FluxData>);

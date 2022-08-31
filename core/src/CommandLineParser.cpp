@@ -7,12 +7,17 @@
 
 #include "include/CommandLineParser.hpp"
 
+#include "include/ConfigurationHelpPrinter.hpp"
+
 #include <boost/program_options.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
 namespace Nextsim {
+
+const std::string CommandLineParser::allModuleString = ConfigurationHelpPrinter::allStr;
+const std::string CommandLineParser::availableModuleString = ConfigurationHelpPrinter::availStr;
 
 /*!
  * Parse the command line for command line options.
@@ -24,11 +29,18 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
 {
     char oneConfigFile[] = "config-file";
     char manyConfigFiles[] = "config-files";
+    char helpConfigStr[] = "help-config";
 
     boost::program_options::options_description opt("neXtSIM_DG command line options:");
     // clang-format off
+    std::string helpConfigHelp = std::string("arg = [") + availableModuleString + " | moduleName | " + allModuleString + "]\n"
+            "print help associated with one or more modules.\n"
+            "avail    list all available module names.\n"
+            "moduleName    print the help message associated with the given module.\n"
+            "all    print all help messages associated with all available modules.";
     opt.add_options()
             ("help,h", "print help message")
+            (helpConfigStr, boost::program_options::value<std::string>(), helpConfigHelp.c_str())
             (oneConfigFile, boost::program_options::value<std::string>(),
                     "specify a configuration file")
             (manyConfigFiles,
@@ -50,12 +62,16 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
         std::exit(EXIT_SUCCESS);
     }
 
+    m_configHelp.clear();
+
     // Store the config file names in order. The variables_map does not.
     for (auto& lionOption : parsed.options) {
         if (lionOption.string_key == oneConfigFile || lionOption.string_key == manyConfigFiles) {
             for (auto& stringValue : lionOption.value) {
                 m_configFilenames.push_back(stringValue);
             }
+        } else if (lionOption.string_key == helpConfigStr) {
+            m_configHelp = lionOption.value.front();
         }
     }
 }

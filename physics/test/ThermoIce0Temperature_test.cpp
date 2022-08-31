@@ -58,7 +58,7 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             cice[0] = 0.5;
             hice[0] = 0.1 / cice[0]; // Here we are using the true thicknesses
@@ -94,7 +94,7 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
         }
         std::string getName() const override { return "FluxData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             qow[0] = -109.923;
             qio[0]
@@ -160,7 +160,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             cice[0] = 0.5;
             hice[0] = 0.1 / cice[0]; // Here we are using the true thicknesses
@@ -196,7 +196,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
         }
         std::string getName() const override { return "FluxData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             qow[0] = 143.266;
             qio[0] = 73.9465;
