@@ -7,6 +7,8 @@
 
 #include "include/ConfiguredOcean.hpp"
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 double ConfiguredOcean::sst0 = -1.5;
@@ -22,12 +24,23 @@ const std::map<int, std::string> Configured<ConfiguredOcean>::keyMap = {
 
 void ConfiguredOcean::configure()
 {
-    sst = Configured<ConfiguredOcean>::getConfiguration(
+    OceanState::configure();
+    sst0 = Configured<ConfiguredOcean>::getConfiguration(
         Configured<ConfiguredOcean>::keyMap.at(SST_KEY), sst0);
-    sss = Configured<ConfiguredOcean>::getConfiguration(
+    sss0 = Configured<ConfiguredOcean>::getConfiguration(
         Configured<ConfiguredOcean>::keyMap.at(SSS_KEY), sss0);
-    mld = Configured<ConfiguredOcean>::getConfiguration(
+    mld0 = Configured<ConfiguredOcean>::getConfiguration(
         Configured<ConfiguredOcean>::keyMap.at(MLD_KEY), mld0);
+    std::cerr << "ConfiguredOcean::configure() end" << std::endl;
+}
+
+void ConfiguredOcean::setData(const ModelState::DataMap&)
+{
+
+    sst = sst0;
+    sss = sss0;
+    mld = mld0;
+    std::cerr << "ConfiguredOcean::setData() end" << std::endl;
 }
 
 } /* namespace Nextsim */

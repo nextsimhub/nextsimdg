@@ -25,7 +25,7 @@ public:
         MLD_KEY,
     };
 
-    void setData(const ModelState::DataMap&) override { }
+    void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "ConfiguredOcean"; }
 
     void configure() override;
