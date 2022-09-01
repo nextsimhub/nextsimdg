@@ -29,8 +29,6 @@ int WRITE_EVERY = 5;
 
 double TOL = 1.e-10; //!< tolerance for checking test results
 
-#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
-
 //! Packman-initial at 256000, 256000 with radius 128000
 //! plus a smooth initial at 768000, 256000 with smaller radius
 class PackmanPlus : public Nextsim::Interpolations::Function {
@@ -92,7 +90,7 @@ class Test {
     Nextsim::CellVector<DG> phi, finalphi;
 
     //! Transport main class
-    Nextsim::ParametricTransport<DG, EDGEDOFS(DG)> dgtransport;
+    Nextsim::ParametricTransport<DG> dgtransport;
 
     //! Velocity Field
     InitialVX VX;

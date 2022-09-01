@@ -12,34 +12,36 @@
 
 namespace Nextsim {
 
-template <int DGcell, int DGedge>
-void parametricTransportOperator(const ParametricMesh& smesh, const double dt, const CellVector<DGcell>& vx,
-    const CellVector<DGcell>& vy, const EdgeVector<DGedge>& evx,
-    const EdgeVector<DGedge>& evy, const CellVector<DGcell>& phi, CellVector<DGcell>& phiup);
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
+
+template <int DG>
+void parametricTransportOperator(const ParametricMesh& smesh, const double dt, const CellVector<DG>& vx,
+    const CellVector<DG>& vy, const EdgeVector<EDGEDOFS(DG)>& evx,
+    const EdgeVector<EDGEDOFS(DG)>& evy, const CellVector<DG>& phi, CellVector<DG>& phiup);
 
 /*!
  * Main class to manage the transport scheme on the parametric ParametricMesh
  *
- * template parameter DGcell, DGedge are number of local unknowns, that is
+ * template parameter DG, EDGEDOFS(DG) are number of local unknowns, that is
  * (1,2,3,6) on the cell and (1,2,3) on the edge
  */
-template <int DGcell, int DGedge>
+template <int DG>
 class ParametricTransport {
 protected:
     //! spatial mesh.
     const ParametricMesh& smesh;
 
     //! reference to the current velocity
-    CellVector<DGcell> velx, vely;
+    CellVector<DG> velx, vely;
 
     //! Specifies the time stepping scheme [rk1, rk2, rk3]
     std::string timesteppingscheme;
 
     //! normal velocity in edges parallel to X- and Y-axis
-    EdgeVector<DGedge> normalvel_X, normalvel_Y;
+    EdgeVector<EDGEDOFS(DG)> normalvel_X, normalvel_Y;
 
     //! temporary vectors for time stepping
-    CellVector<DGcell> tmp1, tmp2, tmp3;
+    CellVector<DG> tmp1, tmp2, tmp3;
 
     //! Internal functions
 
@@ -48,21 +50,21 @@ protected:
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk1(const double dt, CellVector<DGcell>& phi);
+    void step_rk1(const double dt, CellVector<DG>& phi);
 
     /*!
      * Performs one time step transporting phi with the 2nd Order Heun Scheme
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk2(const double dt, CellVector<DGcell>& phi);
+    void step_rk2(const double dt, CellVector<DG>& phi);
 
     /*!
      * Performs one time step transporting phi with the 2nd Order Heun Scheme
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk3(const double dt, CellVector<DGcell>& phi);
+    void step_rk3(const double dt, CellVector<DG>& phi);
 
 public:
     ParametricTransport(const ParametricMesh& mesh)
@@ -89,19 +91,19 @@ public:
 
     // Access members
 
-    const CellVector<DGcell>& GetVx() const
+    const CellVector<DG>& GetVx() const
     {
         return velx;
     }
-    const CellVector<DGcell>& GetVy() const
+    const CellVector<DG>& GetVy() const
     {
         return vely;
     }
-    CellVector<DGcell>& GetVx()
+    CellVector<DG>& GetVx()
     {
         return velx;
     }
-    CellVector<DGcell>& GetVy()
+    CellVector<DG>& GetVy()
     {
         return vely;
     }
@@ -133,9 +135,11 @@ public:
      *
      * @params phi is the vector of values to be transported
      */
-    void step(const double dt, CellVector<DGcell>& phi);
+    void step(const double dt, CellVector<DG>& phi);
 };
 
 } /* namespace Nextsim */
+
+#undef EDGEDOFS
 
 #endif /* __PARAMETRICTRANSPORT_HPP */

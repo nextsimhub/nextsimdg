@@ -36,7 +36,6 @@ bool WRITE_VTK = true;
 #define CG 2
 #define DGadvection 3
 #define DGstress 8
-#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -163,7 +162,7 @@ int main()
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::ParametricTransport<DGadvection, EDGEDOFS(DGadvection)> dgtransport(smesh);
+    Nextsim::ParametricTransport<DGadvection> dgtransport(smesh);
     dgtransport.settimesteppingscheme("rk2");
 
     //! Initial Forcing

@@ -28,14 +28,6 @@
 
 bool WRITE_VTK = true;
 
-/*!
- *
- * Sets the order of the velocity (CG) of advection (DGadvection) and
- * of the stress & strain. This should give the gradient space of the
- * CG space for stability. CG=1 -> DGstress=3, CG=2 -> DGstress -> 8
- */
-#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
-
 namespace Nextsim {
 extern Timer GlobalTimer;
 }
@@ -195,7 +187,7 @@ void run_benchmark(const std::string meshfile)
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::ParametricTransport<DGadvection, EDGEDOFS(DGadvection)> dgtransport(smesh);
+    Nextsim::ParametricTransport<DGadvection> dgtransport(smesh);
     dgtransport.settimesteppingscheme("rk2");
 
     ////////////////////////////////////////////////// Main Loop
