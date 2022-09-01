@@ -24,6 +24,18 @@ namespace Nextsim {
 extern Timer GlobalTimer;
 }
 
+//! exact error values. [it][dg]. No 3rd order convergence for dG6? 01/09/2022
+double exact_values[3][3] = 
+  {{0.0383790094807928,
+     0.009362460480565696,
+     0.001454659564222387},
+   {0.03428737429532303,
+    0.002483110089821781,
+    0.0003713208656337662},
+   {0.02846316874280121,
+    0.0007772766699551917,
+    9.849935641282365e-05}};
+
 bool WRITE_VTK = true; //!< set to true for vtk output
 int WRITE_EVERY = 5;
 
@@ -42,12 +54,15 @@ double TOL = 1.e-10; //!< tolerance for checking test results
  * Ny = 32, 64, 128
  * (elements are not square to test this is working correctly)
  *
+ * Time mesh
+ * NT = 1000
  */
 namespace ProblemConfig {
-double Lx = 409600.0;
-double Ly = 512000.0;
-size_t Nx = 26;
-size_t Ny = 32;
+  double Lx = 409600.0;
+  double Ly = 512000.0;
+  size_t Nx = 24;
+  size_t Ny = 26;
+  size_t NT = 800;
 }
 
 //! Packman-initial at 256000, 256000 with radius 128000
@@ -82,22 +97,14 @@ public:
 // Velocity
 class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 
-    double _time;
-
 public:
-    void settime(double t) { _time = t; }
-
     double operator()(double x, double y) const
     {
         return (y - 0.5 * ProblemConfig::Lx) * 2.0 * M_PI;
     }
 };
 class InitialVY : public Nextsim::Interpolations::Function {
-
-    double _time;
-
 public:
-    void settime(double t) { _time = t; }
 
     double operator()(double x, double y) const
     {
@@ -114,7 +121,6 @@ class Test {
 
     size_t N; //!< size of mesh N x N
 
-    size_t NT; //!< number of time steps
     double dt; //!< time step size
 
     Nextsim::Mesh mesh; //!< space mesh
@@ -148,21 +154,13 @@ public:
 
     void init()
     {
-        //! Init Time Mesh
-        double cfl = 0.01;
-
-        double hmin = smesh.hmin();
-
-        dt = cfl * hmin / (0.5 * ProblemConfig::Lx);
-        double tmax = 1.0;
-        NT = (static_cast<int>((tmax / dt + 1) / 100 + 1) * 100); // No time steps dividable by 100
-        dt = tmax / NT;
+        dt = 1.0 / ProblemConfig::NT;
         //! Init Vectors
         phi.resize_by_mesh(smesh);
     }
 
-    void run()
-    {
+  double run()
+  {
 
         //! Compose name of output directory and create it
         std::string resultsdir = "Example1_" + std::to_string(DG) + "_" + std::to_string(mesh.nx);
@@ -176,26 +174,28 @@ public:
         // initial density
         Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump());
 
+	// velocity field
+	Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
+	Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
+
         if (WRITE_VTK) {
             Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", 0, phi, smesh);
         }
+	std::cout << DG << "\t" << ProblemConfig::NT << "\t" << smesh.nx << "\t" << std::flush;
+	
 
         //! time loop
-        for (size_t iter = 1; iter <= NT; ++iter) {
-            VX.settime(dt * iter);
-            VY.settime(dt * iter);
-            Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
-            Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
-            dgtransport.reinitnormalvelocity();
+        for (size_t iter = 1; iter <= ProblemConfig::NT; ++iter) {
 
+            dgtransport.reinitnormalvelocity();
             dgtransport.step(dt, phi); // performs one time step with the 2nd or 3rd Order Heun scheme
             if (WRITE_VTK)
-                if (iter % (NT / writestep) == 0)
-                    Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", iter / (NT / writestep), phi, smesh);
+                if (iter % (ProblemConfig::NT / writestep) == 0)
+                    Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", iter / (ProblemConfig::NT / writestep), phi, smesh);
         }
 
         // integrate the error
-        std::cout << Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump()) << std::endl;
+        return  sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump()))/ProblemConfig::Lx;
     }
 };
 
@@ -216,18 +216,37 @@ int main()
 {
     Nextsim::ParametricMesh smesh(0); // 0 means no output
 
+    double error;
     for (int it = 0; it < 3; ++it) {
         create_rectanglemesh(ProblemConfig::Lx, ProblemConfig::Ly, ProblemConfig::Nx, ProblemConfig::Ny, "tmp.smesh");
         smesh.readmesh("tmp.smesh");
 
         Test<1> test1(smesh);
-        test1.run();
-        Test<3> test3(smesh);
-        test3.run();
-        Test<6> test6(smesh);
-        test6.run();
+        error = test1.run();
+	std::cout << "\t" << error;
+	if (fabs(error-exact_values[it][0])/exact_values[it][0] < 1.e-12)
+	  std::cout  << "\ttest passed" << std::endl;
+	else
+	  std::cout << "\ttest failed" << std::endl;
+	Test<3> test3(smesh);
+	error = test3.run();
+	std::cout << "\t" << error;
+	if (fabs(error-exact_values[it][1])/exact_values[it][1] < 1.e-12)
+	  std::cout << "\ttest passed" << std::endl;
+	else
+	  std::cout << "\ttest failed" << std::endl;
 
+	Test<6> test6(smesh);
+	error = test6.run();
+	std::cout << "\t" << error;
+	if (fabs(error-exact_values[it][2])/exact_values[it][2] < 1.e-12)
+	  std::cout << "\ttest passed" << std::endl;
+	else
+	  std::cout << "\ttest failed" << std::endl;
+
+	
         ProblemConfig::Nx *= 2;
         ProblemConfig::Ny *= 2;
+	ProblemConfig::NT *= 2;
     }
 }

@@ -104,6 +104,13 @@ namespace ParametricTools {
             = smesh.coordinatesOfElement(eid);
         return coordinates.transpose() * CG_Q1x_3;
     }
+    template <>
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 16> dxT<4>(const ParametricMesh& smesh, const size_t eid)
+    {
+        const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
+            = smesh.coordinatesOfElement(eid);
+        return coordinates.transpose() * CG_Q1x_4;
+    }
     template <int Q>
     inline Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dyT(const ParametricMesh& smesh, const size_t eid);
     template <>
@@ -126,6 +133,13 @@ namespace ParametricTools {
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
             = smesh.coordinatesOfElement(eid);
         return coordinates.transpose() * CG_Q1y_3;
+    }
+    template <>
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 16> dyT<4>(const ParametricMesh& smesh, const size_t eid)
+    {
+        const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
+            = smesh.coordinatesOfElement(eid);
+        return coordinates.transpose() * CG_Q1y_4;
     }
 
     /*!
@@ -170,6 +184,19 @@ namespace ParametricTools {
 
         const Eigen::Matrix<Nextsim::FloatType, 2, 9> dxT = coordinates.transpose() * CG_Q1x_3;
         const Eigen::Matrix<Nextsim::FloatType, 2, 9> dyT = coordinates.transpose() * CG_Q1y_3;
+
+        // (dxT, dyT) is (dx T1, dx T2, dy T1, dy T2)
+        return dxT.array().row(0) * dyT.array().row(1) - dxT.array().row(1) * dyT.array().row(0);
+    }
+    template <>
+    inline Eigen::Matrix<Nextsim::FloatType, 1, 16> J<4>(const ParametricMesh& smesh, const size_t eid)
+    {
+        // get the coordinates of the element as 4x2 - matrix
+        const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
+            = smesh.coordinatesOfElement(eid);
+
+        const Eigen::Matrix<Nextsim::FloatType, 2, 16> dxT = coordinates.transpose() * CG_Q1x_4;
+        const Eigen::Matrix<Nextsim::FloatType, 2, 16> dyT = coordinates.transpose() * CG_Q1y_4;
 
         // (dxT, dyT) is (dx T1, dx T2, dy T1, dy T2)
         return dxT.array().row(0) * dyT.array().row(1) - dxT.array().row(1) * dyT.array().row(0);
@@ -223,6 +250,10 @@ namespace ParametricTools {
     inline Eigen::Matrix<Nextsim::FloatType, 2, 9> getGaussPointsInElement3(const ParametricMesh& smesh, const size_t eid)
     {
         return smesh.coordinatesOfElement(eid).transpose() * CG_Q1_3;
+    }
+    inline Eigen::Matrix<Nextsim::FloatType, 2, 16> getGaussPointsInElement4(const ParametricMesh& smesh, const size_t eid)
+    {
+        return smesh.coordinatesOfElement(eid).transpose() * CG_Q1_4;
     }
 
     /*!

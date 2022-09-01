@@ -478,36 +478,56 @@ void ParametricTransport<DG>::step_rk2(const double dt, CellVector<DG>& phi)
 template <int DG>
 void ParametricTransport<DG>::step_rk3(const double dt, CellVector<DG>& phi)
 {
-    parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
-        tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
+  parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
+				  tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
+  tmp1 += phi; // phi + h f(phi)
 
-    phi += 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
-    parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
-        tmp2); // k * F(k1) // K2 in Heun(3)
-    phi -= 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
+  parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, tmp1,
+				  tmp2); // tmp2 = f( u + h f(u) )
+  tmp2 += tmp1;  
+  tmp2 *= 0.25;
+  tmp2 += 0.75 * phi;
+  
+  parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, tmp2,
+				  tmp3); // k * F(k1) // K2 in Heun(3)
+  tmp3 += tmp2;
 
-    phi += 2. / 3. * tmp2;
-    parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
-        tmp3); // k * F(k2) // K3 in Heun(3)
-    phi -= 2. / 3. * tmp2;
+  phi *= 1.0/3.0;
+  phi += 2.0/3.0 * tmp3;
+  
 
-    phi += 0.25 * tmp1 + 0.75 * tmp3;
+
+  
+    // parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
+    //     tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
+
+    // phi += 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
+    // parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
+    //     tmp2); // k * F(k1) // K2 in Heun(3)
+    // phi -= 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
+
+    // phi += 2. / 3. * tmp2;
+    // parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
+    //     tmp3); // k * F(k2) // K3 in Heun(3)
+    // phi -= 2. / 3. * tmp2;
+
+    // phi += 0.25 * tmp1 + 0.75 * tmp3;
 }
 
 template <int DG>
 void ParametricTransport<DG>::step(const double dt, CellVector<DG>& phi)
 {
     GlobalTimer.start("-- --> step");
-    if (timesteppingscheme == "rk1")
-        step_rk1(dt, phi);
-    else if (timesteppingscheme == "rk2")
+    // if (timesteppingscheme == "rk1")
+    //     step_rk1(dt, phi);
+    // else if (timesteppingscheme == "rk2")
         step_rk2(dt, phi);
-    else if (timesteppingscheme == "rk3")
-        step_rk3(dt, phi);
-    else {
-        std::cerr << "Time stepping scheme '" << timesteppingscheme << "' not known!" << std::endl;
-        abort();
-    }
+    // else if (timesteppingscheme == "rk3")
+    //     step_rk3(dt, phi);
+    // else {
+    //     std::cerr << "Time stepping scheme '" << timesteppingscheme << "' not known!" << std::endl;
+    //     abort();
+	//    }
     GlobalTimer.stop("-- --> step");
 }
 

@@ -140,13 +140,13 @@ print('//')
 print('//CG_Q1_[i]_GRAD_[Q] stores the gradient of the Q1 basis fucntions in the Gauss points on the unit element')
 print('//                  These values are e.g. required to compute the Jacobian of the mapping')
 
-for q in [1,2,3]:
+for q in [1,2,3,4]:
     cg_q1grad(q)
 
 ## CG_Q1_[1-3]  
 # Gradient of the Q1 test functions for mapping in the Gauss points
 print('//CG_Q1_[Q] stores the 4 Q1 basis fucntions in the Gauss points on the unit element')
-for q in [1,2,3]:
+for q in [1,2,3,4]:
     cg_q1(q)
 
 
