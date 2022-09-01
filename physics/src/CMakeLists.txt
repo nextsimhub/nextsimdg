@@ -5,6 +5,7 @@ set(IceAlbedoModuleSources
     "CCSMIceAlbedo.cpp"
     "SMUIceAlbedo.cpp"
     "SMU2IceAlbedo.cpp"
+    "MonthlyIceAlbedo.cpp"
     )
 
 set(IceOceanHeatFluxModuleSources
