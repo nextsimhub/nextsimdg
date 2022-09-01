@@ -15,19 +15,10 @@ AtmosphereOceanState::AtmosphereOceanState() { }
 
 void AtmosphereOceanState::setData(const ModelState::DataMap& ms)
 {
-//    registerProtectedArray(ProtectedArray::HTRUE_ICE, &hTrueIce);
-//    registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hTrueSnow);
     atmosStateImpl->setData(ms);
     oceanStateImpl->setData(ms);
 }
-ModelState AtmosphereOceanState::getState() const
-{
-    return { {
-//                 { "True ice thickness", hTrueIce },
-//                 { "True snow thickness", hTrueSnow },
-             },
-        {} };
-}
+ModelState AtmosphereOceanState::getState() const { return { {}, {} }; }
 ModelState AtmosphereOceanState::getState(const OutputLevel&) const { return getState(); }
 ModelState AtmosphereOceanState::getStateRecursive(const OutputSpec& os) const
 {
@@ -63,9 +54,6 @@ void AtmosphereOceanState::update(const TimestepTime& tst)
 {
     atmosStateImpl->update(tst);
     oceanStateImpl->update(tst);
-//
-//    hTrueSnow = hSnowCell / cIce;
-//    hTrueIce = hIceCell / cIce;
 }
 
 } /* namespace Nextsim */
