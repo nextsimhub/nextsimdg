@@ -35,10 +35,14 @@ IceGrowth::IceGrowth()
     , deltaCMelt(ModelArray::Type::H)
 {
     registerModule();
-    ModelComponent::registerSharedArray(SharedArray::H_ICE, &hice);
-    ModelComponent::registerSharedArray(SharedArray::C_ICE, &cice);
-    ModelComponent::registerSharedArray(SharedArray::H_SNOW, &hsnow);
-    ModelComponent::registerSharedArray(SharedArray::NEW_ICE, &newice);
+    registerSharedArray(SharedArray::H_ICE, &hice);
+    registerSharedArray(SharedArray::C_ICE, &cice);
+    registerSharedArray(SharedArray::H_SNOW, &hsnow);
+    registerSharedArray(SharedArray::NEW_ICE, &newice);
+
+    registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
+    registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)
@@ -124,12 +128,14 @@ ConfigMap IceGrowth::getConfiguration() const
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
-    iFluxes->update(tsTime);
+
     // Copy the ice data from the prognostic fields to the modifiable fields.
     // Also divide by c_ice to go from cell-averaged to ice-averaged values.
     cice = cice0;
-    hice = hice0;
-    hsnow = hsnow0;
+    hice = hice0 = hSnowCell / cice0;
+    hsnow = hsnow0 = hIceCell / cice0;
+
+    iFluxes->update(tsTime);
 
     iVertical->update(tsTime);
     // new ice formation
