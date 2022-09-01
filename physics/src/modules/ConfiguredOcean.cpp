@@ -31,7 +31,6 @@ void ConfiguredOcean::configure()
         Configured<ConfiguredOcean>::keyMap.at(SSS_KEY), sss0);
     mld0 = Configured<ConfiguredOcean>::getConfiguration(
         Configured<ConfiguredOcean>::keyMap.at(MLD_KEY), mld0);
-    std::cerr << "ConfiguredOcean::configure() end" << std::endl;
 }
 
 void ConfiguredOcean::setData(const ModelState::DataMap&)
@@ -40,7 +39,6 @@ void ConfiguredOcean::setData(const ModelState::DataMap&)
     sst = sst0;
     sss = sss0;
     mld = mld0;
-    std::cerr << "ConfiguredOcean::setData() end" << std::endl;
 }
 
 } /* namespace Nextsim */
