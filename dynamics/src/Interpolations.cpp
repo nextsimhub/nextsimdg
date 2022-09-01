@@ -323,6 +323,36 @@ namespace Interpolations {
         DG2CGBoundary(smesh, dest);
     }
 
+    template <int DG>
+    double L2ErrorFunctionDG(const ParametricMesh& smesh, const CellVector<DG>& src, const Function& fct)
+    {
+        double error = 0;
+
+#pragma omp parallel for reduction(+ \
+                                   : error)
+        for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+            const Eigen::Matrix<Nextsim::FloatType, 2, 9> gp = ParametricTools::getGaussPointsInElement3(smesh, eid);
+            const Eigen::Matrix<Nextsim::FloatType, 1, 9> src_in_gauss = src.row(eid) * PSI<DG, 3>;
+
+            const Eigen::Matrix<Nextsim::FloatType, 1, 9>
+                fct_gp(fct(gp(0, 0), gp(1, 0)),
+                    fct(gp(0, 1), gp(1, 1)),
+                    fct(gp(0, 2), gp(1, 2)),
+                    fct(gp(0, 3), gp(1, 3)),
+                    fct(gp(0, 4), gp(1, 4)),
+                    fct(gp(0, 5), gp(1, 5)),
+                    fct(gp(0, 6), gp(1, 6)),
+                    fct(gp(0, 7), gp(1, 7)),
+                    fct(gp(0, 8), gp(1, 8)));
+
+            // Jq * wq * Psi_i(x_q) * f(x_q)
+            // matrix of size 3 x 4
+
+            error += (ParametricTools::J<3>(smesh, eid).array() * GAUSSWEIGHTS<3>.array() * (fct_gp.array() - src_in_gauss.array()).square()).sum();
+        }
+        return error;
+    }
+
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const CellVector<1>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const CellVector<3>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const CellVector<6>& src);
@@ -336,6 +366,10 @@ namespace Interpolations {
     template void CG2DG(const ParametricMesh& smesh, CellVector<1>& dg, const CGVector<2>& cg);
     template void CG2DG(const ParametricMesh& smesh, CellVector<3>& dg, const CGVector<2>& cg);
     template void CG2DG(const ParametricMesh& smesh, CellVector<6>& dg, const CGVector<2>& cg);
+
+    template double L2ErrorFunctionDG(const ParametricMesh& smesh, const CellVector<1>& src, const Function& fct);
+    template double L2ErrorFunctionDG(const ParametricMesh& smesh, const CellVector<3>& src, const Function& fct);
+    template double L2ErrorFunctionDG(const ParametricMesh& smesh, const CellVector<6>& src, const Function& fct);
 
 }
 }
