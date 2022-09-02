@@ -76,8 +76,10 @@ private:
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
-    ModelArrayRef<ProtectedArray::H_ICE> hIceCell; // Timestep initial cell averaged ice thickness, m
-    ModelArrayRef<ProtectedArray::H_SNOW> hSnowCell; // Timestep initial cell averaged snow thickness, m
+    ModelArrayRef<ProtectedArray::H_ICE>
+        hIceCell; // Timestep initial cell averaged ice thickness, m
+    ModelArrayRef<ProtectedArray::H_SNOW>
+        hSnowCell; // Timestep initial cell averaged snow thickness, m
     ModelArrayRef<ProtectedArray::C_ICE> cice0; // Timestep initial ice concentration
     ModelArrayRef<SharedArray::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
     ModelArrayRef<ProtectedArray::ML_BULK_CP>

@@ -42,7 +42,6 @@ IceGrowth::IceGrowth()
 
     registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
     registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
-
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)
@@ -132,8 +131,8 @@ void IceGrowth::update(const TimestepTime& tsTime)
     // Copy the ice data from the prognostic fields to the modifiable fields.
     // Also divide by c_ice to go from cell-averaged to ice-averaged values.
     cice = cice0;
-    hice = hice0 = hSnowCell / cice0;
-    hsnow = hsnow0 = hIceCell / cice0;
+    hice = hice0 = hIceCell / cice0;
+    hsnow = hsnow0 = hSnowCell / cice0;
 
     iFluxes->update(tsTime);
 
