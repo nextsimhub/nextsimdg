@@ -5,7 +5,6 @@
  */
 
 #include "Interpolations.hpp"
-#include "Mesh.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
 #include "ParametricTransport.hpp"
@@ -123,10 +122,8 @@ class Test {
 
     double dt; //!< time step size
 
-    Nextsim::Mesh mesh; //!< space mesh
-
     //! Velocity vectors and density
-    Nextsim::CellVector<DG> phi;
+    Nextsim::DGVector<DG> phi;
 
     //! Transport main class
     Nextsim::ParametricTransport<DG> dgtransport;
@@ -163,7 +160,7 @@ public:
   {
 
         //! Compose name of output directory and create it
-        std::string resultsdir = "Example1_" + std::to_string(DG) + "_" + std::to_string(mesh.nx);
+        std::string resultsdir = "Example1_" + std::to_string(DG) + "_" + std::to_string(smesh.nx);
         std::filesystem::create_directory(resultsdir);
 
         Nextsim::GlobalTimer.reset();
@@ -184,7 +181,7 @@ public:
 	std::cout << DG << "\t" << ProblemConfig::NT << "\t" << smesh.nx << "\t" << std::flush;
 	
 
-	Nextsim::CellVector<DG> ps = phi;
+	Nextsim::DGVector<DG> ps = phi;
         //! time loop
         for (size_t iter = 1; iter <= ProblemConfig::NT; ++iter) {
 

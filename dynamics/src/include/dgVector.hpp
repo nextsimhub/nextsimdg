@@ -6,8 +6,6 @@
 
 #ifndef __DGVECTOR_HPP
 #define __DGVECTOR_HPP
-
-#include "Mesh.hpp"
 #include "ParametricMesh.hpp"
 
 #include <Eigen/Dense>
@@ -17,23 +15,23 @@ namespace Nextsim {
 //#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
 
 template <int DG>
-class LocalCellVector : public Eigen::Matrix<double, 1, DG> {
+class LocalDGVector : public Eigen::Matrix<double, 1, DG> {
 public:
     // required by Eigen
-    LocalCellVector()
+    LocalDGVector()
         : Eigen::Matrix<double, 1, DG>()
     {
     }
 
     template <typename OtherDerived>
-    LocalCellVector(const Eigen::MatrixBase<OtherDerived>& other)
+    LocalDGVector(const Eigen::MatrixBase<OtherDerived>& other)
         : Eigen::Matrix<double, 1, DG>(other)
     {
     }
 
     // This method allows you to assign Eigen expressions to MyVectorType
     template <typename OtherDerived>
-    LocalCellVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
+    LocalDGVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
     {
         this->Eigen::Matrix<double, 1, DG>::operator=(other);
         return *this;
@@ -91,50 +89,40 @@ public:
  *
  **/
 template <int DG>
-class CellVector : public Eigen::Matrix<double, Eigen::Dynamic, DG,
+class DGVector : public Eigen::Matrix<double, Eigen::Dynamic, DG,
                        (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor> {
 public:
     typedef Eigen::Matrix<double, Eigen::Dynamic, DG,
         (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>
-        EigenCellVector;
+        EigenDGVector;
 
     inline int dofs_in_cell() const { return DG; }
 
     //! empty constructor
-    CellVector() { }
+    DGVector() { }
     //! constructor setting size by mesh
-    CellVector(const Mesh& mesh)
-        : EigenCellVector(mesh.n, dofs_in_cell())
-    {
-    }
-    CellVector(const ParametricMesh& smesh)
-        : EigenCellVector(smesh.nelements, dofs_in_cell())
+    DGVector(const ParametricMesh& smesh)
+        : EigenDGVector(smesh.nelements, dofs_in_cell())
     {
     }
 
     //! resizes the vector and sets it to the mesh size
-    void resize_by_mesh(const Mesh& mesh) { EigenCellVector::resize(mesh.n, dofs_in_cell()); }
-    void resize_by_mesh(const ParametricMesh& smesh) { EigenCellVector::resize(smesh.nelements, dofs_in_cell()); }
+    void resize_by_mesh(const ParametricMesh& smesh) { EigenDGVector::resize(smesh.nelements, dofs_in_cell()); }
 
     // operations
-    void zero() { EigenCellVector::setZero(); }
+    void zero() { EigenDGVector::setZero(); }
 
-    //! return the 'mass' = the integral over the vector
-    double mass(const Mesh& mesh) const
-    {
-        return EigenCellVector::col(0).sum() * mesh.hx * mesh.hy;
-    }
 
     // This method allows you to assign Eigen expressions to MyVectorType
     template <typename OtherDerived>
-    CellVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
+    DGVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
     {
         this->Eigen::Matrix<double, Eigen::Dynamic, DG,
             (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>::operator=(other);
         return *this;
     }
     template <typename OtherDerived>
-    CellVector& operator+=(const Eigen::MatrixBase<OtherDerived>& other)
+    DGVector& operator+=(const Eigen::MatrixBase<OtherDerived>& other)
     {
         this->Eigen::Matrix<double, Eigen::Dynamic, DG,
             (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
@@ -180,21 +168,6 @@ public:
     {
     }
     //! constructor setting size by mesh
-    EdgeVector(const Mesh& mesh, EdgeType et)
-        : edgetype(et)
-    {
-        if (edgetype == X)
-            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
-                mesh.nx * (mesh.ny + 1), dofs_in_edge());
-        else if (edgetype == Y)
-            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
-                (mesh.nx + 1) * mesh.ny, dofs_in_edge());
-        else {
-            std::cerr << "EdgeType must be set to X or Y" << std::endl;
-            abort();
-        }
-    }
-    //! constructor setting size by mesh
     EdgeVector(const ParametricMesh& smesh, EdgeType et)
         : edgetype(et)
     {
@@ -210,22 +183,6 @@ public:
         }
     }
 
-    //! resize vector
-    void resize_by_mesh(const Mesh& mesh, EdgeType et)
-    {
-        edgetype = et;
-
-        if (edgetype == X)
-            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
-                mesh.nx * (mesh.ny + 1), dofs_in_edge());
-        else if (edgetype == Y)
-            Eigen::Matrix<double, Eigen::Dynamic, DG>::resize(
-                (mesh.nx + 1) * mesh.ny, dofs_in_edge());
-        else {
-            std::cerr << "EdgeType must be set to X or Y" << std::endl;
-            abort();
-        }
-    }
 
     //! resize vector
     void resize_by_mesh(const ParametricMesh& smesh, EdgeType et)

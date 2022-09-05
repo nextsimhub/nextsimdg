@@ -9,13 +9,18 @@
 
 #include "dgVector.hpp"
 
+
+/*
+  
+  MUST BE NEWLY REWRITTEN FOR THE NEW MESH IF NEEDED
+
 namespace Nextsim {
 
 template <int DGdegree>
 class Limiter {
 
     const Mesh& mesh;
-    Nextsim::CellVector<2> alpha;
+    Nextsim::DGVector<2> alpha;
 
 public:
     Limiter(const Mesh& m)
@@ -24,7 +29,7 @@ public:
         alpha.resize_by_mesh(mesh);
     }
 
-    void apply_vertex_based_limiter(CellVector<DGdegree>& v)
+    void apply_vertex_based_limiter(DGVector<DGdegree>& v)
     {
         // apply limiter
         //#pragma omp parallel for
@@ -41,10 +46,10 @@ public:
             }
     }
 
-    void compute_vertex_based_limiter(const CellVector<1>& v)
+    void compute_vertex_based_limiter(const DGVector<1>& v)
     {
     }
-    void compute_vertex_based_limiter(const CellVector<3>& v)
+    void compute_vertex_based_limiter(const DGVector<3>& v)
     {
 
         //#pragma omp parallel for
@@ -104,7 +109,7 @@ public:
             }
     }
 
-    void compute_vertex_based_limiter(const CellVector<6>& v)
+    void compute_vertex_based_limiter(const DGVector<6>& v)
     {
 
         size_t ii = 0;
@@ -222,5 +227,7 @@ public:
     }
 };
 }
+
+*/
 
 #endif /* __LIMITERS_HPP */

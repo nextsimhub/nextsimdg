@@ -14,7 +14,6 @@
 #include "cgVector.hpp"
 #include "dgInitial.hpp"
 #include "dgLimit.hpp"
-#include "dgTransport.hpp"
 #include "dgVisu.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
@@ -160,7 +159,7 @@ void run_benchmark(const std::string meshfile)
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
 
     ////////////////////////////////////////////////// Variables and Initial Values
-    Nextsim::CellVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
+    Nextsim::DGVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
     Nextsim::Interpolations::Function2DG(smesh, H, InitialH());
     Nextsim::Interpolations::Function2DG(smesh, A, InitialA());
 

@@ -22,8 +22,8 @@ namespace mMEB {
 
     //! WIP new discretization scheme
     template <int DGstress, int DGtracer>
-    void mMEBStressRelaxation(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-        CellVector<DGstress>& S22, CellVector<DGtracer>& D, CellVector<DGtracer>& A, const double dt_momentum)
+    void mMEBStressRelaxation(const Mesh& mesh, DGVector<DGstress>& S11, DGVector<DGstress>& S12,
+        DGVector<DGstress>& S22, DGVector<DGtracer>& D, DGVector<DGtracer>& A, const double dt_momentum)
     {
 
         //! Stress Update
@@ -64,8 +64,8 @@ namespace mMEB {
 
     //! WIP new discretization scheme
     template <int DGstress, int DGtracer>
-    void mMEBDamageUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-        CellVector<DGstress>& S22, CellVector<DGtracer>& D, CellVector<DGtracer>& A, const double dt_momentum)
+    void mMEBDamageUpdate(const Mesh& mesh, DGVector<DGstress>& S11, DGVector<DGstress>& S12,
+        DGVector<DGstress>& S22, DGVector<DGtracer>& D, DGVector<DGtracer>& A, const double dt_momentum)
     {
 
         //! Stress Update
@@ -105,12 +105,12 @@ namespace mMEB {
 
     //! WIP new discretization scheme
     template <int DGstress, int DGtracer>
-    void mMEBStressUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
-        const CellVector<DGtracer>& A, CellVector<DGtracer>& D, const double dt_adv,
-        const double alpha, CellVector<DGstress>& S11_mmeb, CellVector<DGstress>& S12_mmeb,
-        CellVector<DGstress>& S22_mmeb)
+    void mMEBStressUpdate(const Mesh& mesh, DGVector<DGstress>& S11, DGVector<DGstress>& S12,
+        DGVector<DGstress>& S22, const DGVector<DGstress>& E11, const DGVector<DGstress>& E12,
+        const DGVector<DGstress>& E22, const DGVector<DGtracer>& H,
+        const DGVector<DGtracer>& A, DGVector<DGtracer>& D, const double dt_adv,
+        const double alpha, DGVector<DGstress>& S11_mmeb, DGVector<DGstress>& S12_mmeb,
+        DGVector<DGstress>& S22_mmeb)
     {
 
         //! Stress Update

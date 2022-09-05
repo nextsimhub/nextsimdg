@@ -41,17 +41,17 @@ namespace Interpolations {
     void Function2CG(const ParametricMesh& smesh, CGVector<CG>& dest, const Function& src);
     //! L2-Projection of an analytic function to a DG-Vector
     template <int DG>
-    void Function2DG(const ParametricMesh& smesh, CellVector<DG>& dest, const Function& src);
+    void Function2DG(const ParametricMesh& smesh, DGVector<DG>& dest, const Function& src);
     //! L2-Projection of CG-vector to a DG vector
     template <int CG, int DG>
-    void CG2DG(const ParametricMesh& smesh, CellVector<DG>& dest, const CGVector<CG>& src);
+    void CG2DG(const ParametricMesh& smesh, DGVector<DG>& dest, const CGVector<CG>& src);
     //! Interpolation of DG-vector to a CG vector. Just averaging on edges / nodes
     template <int CG, int DG>
-    void DG2CG(const ParametricMesh& smesh, CGVector<CG>& dest, const CellVector<DG>& src);
+    void DG2CG(const ParametricMesh& smesh, CGVector<CG>& dest, const DGVector<DG>& src);
 
     //! Computes the L2 (integral) error between the DG-Vector and an analytic function
     template <int DG>
-    double L2ErrorFunctionDG(const ParametricMesh& smesh, const CellVector<DG>& src, const Function& fct);
+    double L2ErrorFunctionDG(const ParametricMesh& smesh, const DGVector<DG>& src, const Function& fct);
 
 } /* namespace Interpolation */
 

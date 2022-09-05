@@ -50,15 +50,15 @@ namespace MEBSandbox {
      * @param dt_momentum timestep for momentum subcycle
      */
     template <int DGstress, int DGtracer>
-    void StressUpdateSandbox(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
-        const CellVector<DGtracer>& A, CellVector<DGtracer>& D, CellVector<DGtracer>& DELTA,
-        CellVector<DGtracer>& SHEAR, CellVector<DGtracer>& S1, CellVector<DGtracer>& S2,
-        CellVector<DGtracer>& eta1, CellVector<DGtracer>& eta2, CellVector<DGtracer>& stressrelax,
-        CellVector<DGtracer>& sigma_outside, CellVector<DGtracer>& tP, CellVector<DGtracer>& Pm,
-        CellVector<DGtracer>& Td, CellVector<DGtracer>& d_crit, CellVector<DGtracer>& Regime,
-        CellVector<DGtracer>& Multip, CellVector<DGtracer>& Lambda,
+    void StressUpdateSandbox(const Mesh& mesh, DGVector<DGstress>& S11, DGVector<DGstress>& S12,
+        DGVector<DGstress>& S22, const DGVector<DGstress>& E11, const DGVector<DGstress>& E12,
+        const DGVector<DGstress>& E22, const DGVector<DGtracer>& H,
+        const DGVector<DGtracer>& A, DGVector<DGtracer>& D, DGVector<DGtracer>& DELTA,
+        DGVector<DGtracer>& SHEAR, DGVector<DGtracer>& S1, DGVector<DGtracer>& S2,
+        DGVector<DGtracer>& eta1, DGVector<DGtracer>& eta2, DGVector<DGtracer>& stressrelax,
+        DGVector<DGtracer>& sigma_outside, DGVector<DGtracer>& tP, DGVector<DGtracer>& Pm,
+        DGVector<DGtracer>& Td, DGVector<DGtracer>& d_crit, DGVector<DGtracer>& Regime,
+        DGVector<DGtracer>& Multip, DGVector<DGtracer>& Lambda,
 
         const double dt_momentum)
     {
@@ -249,10 +249,10 @@ namespace MEBSandbox {
      * @param dt_momentum timestep for momentum subcycle
      */
     template <int DGstress, int DGtracer>
-    void StressUpdateVP(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
-        const CellVector<DGtracer>& A, const double Pstar, const double DeltaMin,
+    void StressUpdateVP(const Mesh& mesh, DGVector<DGstress>& S11, DGVector<DGstress>& S12,
+        DGVector<DGstress>& S22, const DGVector<DGstress>& E11, const DGVector<DGstress>& E12,
+        const DGVector<DGstress>& E22, const DGVector<DGtracer>& H,
+        const DGVector<DGtracer>& A, const double Pstar, const double DeltaMin,
         const double dt_momentum)
     {
 
@@ -282,10 +282,10 @@ namespace MEBSandbox {
     }
 
     template <int DGstress, int DGtracer>
-    void ElasticUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
-        const CellVector<DGtracer>& A, CellVector<DGtracer>& D, const double dt_momentum)
+    void ElasticUpdate(const Mesh& mesh, DGVector<DGstress>& S11, DGVector<DGstress>& S12,
+        DGVector<DGstress>& S22, const DGVector<DGstress>& E11, const DGVector<DGstress>& E12,
+        const DGVector<DGstress>& E22, const DGVector<DGtracer>& H,
+        const DGVector<DGtracer>& A, DGVector<DGtracer>& D, const double dt_momentum)
     {
 
         //! Stress Update
@@ -310,10 +310,10 @@ namespace MEBSandbox {
     }
 
     template <int DGstress, int DGtracer>
-    void ViscoElasticUpdate(const Mesh& mesh, CellVector<DGstress>& S11, CellVector<DGstress>& S12,
-        CellVector<DGstress>& S22, const CellVector<DGstress>& E11, const CellVector<DGstress>& E12,
-        const CellVector<DGstress>& E22, const CellVector<DGtracer>& H,
-        const CellVector<DGtracer>& A, CellVector<DGtracer>& D, const double dt_momentum)
+    void ViscoElasticUpdate(const Mesh& mesh, DGVector<DGstress>& S11, DGVector<DGstress>& S12,
+        DGVector<DGstress>& S22, const DGVector<DGstress>& E11, const DGVector<DGstress>& E12,
+        const DGVector<DGstress>& E22, const DGVector<DGtracer>& H,
+        const DGVector<DGtracer>& A, DGVector<DGtracer>& D, const double dt_momentum)
     {
 
         //! Stress Update
@@ -354,10 +354,10 @@ namespace MEBSandbox {
     }
 
     //! CG1-DG1
-    void ViscoElasticUpdate(const Mesh& mesh, CellVector<3>& S11, CellVector<3>& S12,
-        CellVector<3>& S22, const CellVector<3>& E11, const CellVector<3>& E12,
-        const CellVector<3>& E22, const CellVector<3>& H,
-        const CellVector<3>& A, CellVector<3>& D, const double dt_momentum)
+    void ViscoElasticUpdate(const Mesh& mesh, DGVector<3>& S11, DGVector<3>& S12,
+        DGVector<3>& S22, const DGVector<3>& E11, const DGVector<3>& E12,
+        const DGVector<3>& E22, const DGVector<3>& H,
+        const DGVector<3>& A, DGVector<3>& D, const double dt_momentum)
     {
 
         //! Stress Update

@@ -14,7 +14,6 @@
 #include "cgVector.hpp"
 #include "dgInitial.hpp"
 #include "dgLimit.hpp"
-#include "dgTransport.hpp"
 #include "dgVisu.hpp"
 
 #include "stopwatch.hpp"
@@ -148,7 +147,7 @@ int main()
     AtmForcingY.settime(0.0);
 
     ////////////////////////////////////////////////// Variables and Initial Values
-    Nextsim::CellVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
+    Nextsim::DGVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
     Nextsim::Interpolations::Function2DG(smesh, H, InitialH());
     Nextsim::Interpolations::Function2DG(smesh, A, InitialA());
 

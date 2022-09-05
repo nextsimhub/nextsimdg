@@ -13,11 +13,11 @@
 namespace Nextsim {
 
 //! Limit a dg vector from above
-void LimitMax(CellVector<1>& dg, double max)
+void LimitMax(DGVector<1>& dg, double max)
 {
     dg.col(0) = dg.col(0).cwiseMin(max);
 }
-void LimitMax(CellVector<3>& dg, double max)
+void LimitMax(DGVector<3>& dg, double max)
 {
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
@@ -34,13 +34,13 @@ void LimitMax(CellVector<3>& dg, double max)
 }
 
 // limits in the gauss nodes
-void LimitMax(CellVector<6>& dg, double max)
+void LimitMax(DGVector<6>& dg, double max)
 {
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::min(max, dg(i, 0));
 
-        LocalCellVector<9> dgingauss = dg.block<1, 6>(i, 0) * PSI<6, 3>;
+        LocalDGVector<9> dgingauss = dg.block<1, 6>(i, 0) * PSI<6, 3>;
         const double l0 = dgingauss.maxCoeff() - dg(i, 0);
         if (l0 > max - dg(i, 0)) {
             dg.block<1, 5>(i, 1) *= (max - dg(i, 0)) / l0;
@@ -49,7 +49,7 @@ void LimitMax(CellVector<6>& dg, double max)
 }
 
 //   //! Limit a dg vector from above
-//   void LimitMin(CellVector<1>& dg, double min)
+//   void LimitMin(DGVector<1>& dg, double min)
 //   {
 //     for (long int i = 0; i < dg.rows(); ++i) {
 //         dg(i, 0) = std::min(max, dg(i, 0));
@@ -65,11 +65,11 @@ void LimitMax(CellVector<6>& dg, double max)
 // }
 
 //! Limit a dg vector from above
-void LimitMin(CellVector<1>& dg, double min)
+void LimitMin(DGVector<1>& dg, double min)
 {
     dg.col(0) = dg.col(0).cwiseMax(min);
 }
-void LimitMin(CellVector<3>& dg, double min)
+void LimitMin(DGVector<3>& dg, double min)
 {
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
@@ -84,13 +84,13 @@ void LimitMin(CellVector<3>& dg, double min)
         }
     }
 }
-void LimitMin(CellVector<6>& dg, double min)
+void LimitMin(DGVector<6>& dg, double min)
 {
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::max(min, dg(i, 0));
 
-        LocalCellVector<9> dgingauss = dg.block<1, 6>(i, 0) * PSI<6, 3>;
+        LocalDGVector<9> dgingauss = dg.block<1, 6>(i, 0) * PSI<6, 3>;
         const double l0 = dgingauss.minCoeff() - dg(i, 0);
         if (l0 < min - dg(i, 0)) {
             dg.block<1, 5>(i, 1) *= (min - dg(i, 0)) / l0;

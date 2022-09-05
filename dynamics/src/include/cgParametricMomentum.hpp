@@ -51,8 +51,8 @@ private:
     CGVector<CG> cg_A, cg_H, cg_D;
 
     //! Vectors storing strain and strss
-    CellVector<DGstress> E11, E12, E22;
-    CellVector<DGstress> S11, S12, S22;
+    DGVector<DGstress> E11, E12, E22;
+    DGVector<DGstress> S11, S12, S22;
 
 public:
     CGParametricMomentum(const ParametricMesh& sm)
@@ -116,13 +116,13 @@ public:
     CGVector<CG>& GetAtmx() { return ax; }
     CGVector<CG>& GetAtmy() { return ay; }
 
-    const CellVector<DGstress> GetE11() const { return E11; }
-    const CellVector<DGstress> GetE12() const { return E12; }
-    const CellVector<DGstress> GetE22() const { return E22; }
+    const DGVector<DGstress> GetE11() const { return E11; }
+    const DGVector<DGstress> GetE12() const { return E12; }
+    const DGVector<DGstress> GetE22() const { return E22; }
 
-    const CellVector<DGstress> GetS11() const { return S11; }
-    const CellVector<DGstress> GetS12() const { return S12; }
-    const CellVector<DGstress> GetS22() const { return S22; }
+    const DGVector<DGstress> GetS11() const { return S11; }
+    const DGVector<DGstress> GetS12() const { return S12; }
+    const DGVector<DGstress> GetS22() const { return S22; }
 
     // High level Functions
 
@@ -132,27 +132,27 @@ public:
      *  - interpoalte ice height & concentration ( & damage) to cg
      */
     template <int DG>
-    void prepareIteration(const CellVector<DG>& H, const CellVector<DG>& A);
+    void prepareIteration(const DGVector<DG>& H, const DGVector<DG>& A);
     template <int DG>
-    void prepareIteration(const CellVector<DG>& H, const CellVector<DG>& A,
-        const CellVector<DG>& D);
+    void prepareIteration(const DGVector<DG>& H, const DGVector<DG>& A,
+        const DGVector<DG>& D);
 
     //! performs one complete mEVP cycle with NT_evp subiterations
     template <int DG>
     void mEVPStep(const VPParameters& vpparameters,
         size_t NT_evp, double alpha, double beta,
         double dt_adv,
-        const CellVector<DG>& H, const CellVector<DG>& A);
+        const DGVector<DG>& H, const DGVector<DG>& A);
 
     //! performs one complete MEB timestep with NT_meb subiterations
     template <int DG>
     void MEBStep(const MEBParameters& vpparameters, size_t NT_meb,
-        double dt_adv, const CellVector<DG>& H, const CellVector<DG>& A, CellVector<DG>& D);
+        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     //! performs one complete MEB timestep with NT_meb subiterations
     template <int DG>
     void MEBIteration(const MEBParameters& vpparameters, size_t NT_meb,
-        double dt_adv, const CellVector<DG>& H, const CellVector<DG>& A, CellVector<DG>& D);
+        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     /*!
      * The following functions take care of the interpolation and projection

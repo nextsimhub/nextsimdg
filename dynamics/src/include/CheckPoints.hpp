@@ -40,7 +40,7 @@ namespace CheckPoints {
     }
 
     template <int DG>
-    void loadData(const std::string& path, Nextsim::CellVector<DG>& matrix)
+    void loadData(const std::string& path, Nextsim::DGVector<DG>& matrix)
     {
 
         std::ifstream indata;

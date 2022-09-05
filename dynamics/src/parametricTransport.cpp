@@ -19,39 +19,39 @@ extern Timer GlobalTimer;
 //! returns the localization of the cell vector to the edges
 template <int DG>
 Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)>
-leftedgeofcell(const CellVector<DG>& cv, size_t eid);
+leftedgeofcell(const DGVector<DG>& cv, size_t eid);
 template <int DG>
 Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)>
-rightedgeofcell(const CellVector<DG>& cv, size_t eid);
+rightedgeofcell(const DGVector<DG>& cv, size_t eid);
 template <int DG>
 Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)>
-bottomedgeofcell(const CellVector<DG>& cv, size_t eid);
+bottomedgeofcell(const DGVector<DG>& cv, size_t eid);
 template <int DG>
 Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)>
-topedgeofcell(const CellVector<DG>& cv, size_t eid);
+topedgeofcell(const DGVector<DG>& cv, size_t eid);
 
 // dG0 (1 in cell, 1 on edge)
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 1>
-leftedgeofcell(const CellVector<1>& cv, size_t eid)
+leftedgeofcell(const DGVector<1>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 1>(cv(eid, 0));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 1>
-rightedgeofcell(const CellVector<1>& cv, size_t eid)
+rightedgeofcell(const DGVector<1>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 1>(cv(eid, 0));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 1>
-bottomedgeofcell(const CellVector<1>& cv, size_t eid)
+bottomedgeofcell(const DGVector<1>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 1>(cv(eid, 0));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 1>
-topedgeofcell(const CellVector<1>& cv, size_t eid)
+topedgeofcell(const DGVector<1>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 1>(cv(eid, 0));
 }
@@ -59,25 +59,25 @@ topedgeofcell(const CellVector<1>& cv, size_t eid)
 // dG1 (3 in cell, 2 on edge)
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 2>
-leftedgeofcell(const CellVector<3>& cv, size_t eid)
+leftedgeofcell(const DGVector<3>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 1), cv(eid, 2));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 2>
-rightedgeofcell(const CellVector<3>& cv, size_t eid)
+rightedgeofcell(const DGVector<3>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 1), cv(eid, 2));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 2>
-bottomedgeofcell(const CellVector<3>& cv, size_t eid)
+bottomedgeofcell(const DGVector<3>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 2), cv(eid, 1));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 2>
-topedgeofcell(const CellVector<3>& cv, size_t eid)
+topedgeofcell(const DGVector<3>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 2), cv(eid, 1));
 }
@@ -85,28 +85,28 @@ topedgeofcell(const CellVector<3>& cv, size_t eid)
 // dG2 (6 in cell, 3 on edge)
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 3>
-leftedgeofcell(const CellVector<6>& cv, size_t eid)
+leftedgeofcell(const DGVector<6>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
         cv(eid, 2) - 0.5 * cv(eid, 5), cv(eid, 4));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 3>
-rightedgeofcell(const CellVector<6>& cv, size_t eid)
+rightedgeofcell(const DGVector<6>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
         cv(eid, 2) + 0.5 * cv(eid, 5), cv(eid, 4));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 3>
-bottomedgeofcell(const CellVector<6>& cv, size_t eid)
+bottomedgeofcell(const DGVector<6>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
         cv(eid, 1) - 0.5 * cv(eid, 5), cv(eid, 3));
 }
 template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 3>
-topedgeofcell(const CellVector<6>& cv, size_t eid)
+topedgeofcell(const DGVector<6>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
         cv(eid, 1) + 0.5 * cv(eid, 5), cv(eid, 3));
@@ -200,14 +200,14 @@ void ParametricTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const 
 
 template <int DG>
 void cell_term(const ParametricMesh& smesh, double dt,
-    CellVector<DG>& phiup, const CellVector<DG>& phi,
-    const CellVector<DG>& vx,
-    const CellVector<DG>& vy, const size_t ic);
+    DGVector<DG>& phiup, const DGVector<DG>& phi,
+    const DGVector<DG>& vx,
+    const DGVector<DG>& vy, const size_t ic);
 template <>
 void cell_term(const ParametricMesh& smesh, double dt,
-    CellVector<1>& phiup, const CellVector<1>& phi,
-    const CellVector<1>& vx,
-    const CellVector<1>& vy, const size_t ic) { }
+    DGVector<1>& phiup, const DGVector<1>& phi,
+    const DGVector<1>& vx,
+    const DGVector<1>& vy, const size_t ic) { }
 
 // higher order terms with gauss quadrature
 //
@@ -216,10 +216,10 @@ void cell_term(const ParametricMesh& smesh, double dt,
 
 template <int DG>
 void cell_term(const ParametricMesh& smesh, double dt,
-    CellVector<DG>& phiup,
-    const CellVector<DG>& phi,
-    const CellVector<DG>& vx,
-    const CellVector<DG>& vy, const size_t eid)
+    DGVector<DG>& phiup,
+    const DGVector<DG>& phi,
+    const DGVector<DG>& vx,
+    const DGVector<DG>& vy, const size_t eid)
 {
 #define NGP 3
     // - w_q Psi(q) * ( vx(q) dx_phi_i(q) + vy(q) dy_phi_i(q) )
@@ -273,15 +273,15 @@ void cell_term(const ParametricMesh& smesh, double dt,
 }
 ////////////////////////////////////////////////// BOUNDARY HANDLING
 
-void boundary_lower(const ParametricMesh& smesh, const double dt, CellVector<1>& phiup,
-    const CellVector<1>& phi, const EdgeVector<1>& normalvel_X, const size_t c,
+void boundary_lower(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup,
+    const DGVector<1>& phi, const EdgeVector<1>& normalvel_X, const size_t c,
     const size_t e)
 {
     phiup(c, 0) -= dt * std::max(0., -normalvel_X(e, 0)) * phi(c, 0);
 }
 template <int DG>
-void boundary_lower(const ParametricMesh& smesh, const double dt, CellVector<DG>& phiup,
-    const CellVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c, const size_t e)
+void boundary_lower(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+    const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c, const size_t e)
 {
     // GP = DGEDGE
     LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_X.row(e) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
@@ -290,51 +290,51 @@ void boundary_lower(const ParametricMesh& smesh, const double dt, CellVector<DG>
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 0>;
 }
 
-void boundary_upper(const ParametricMesh& smesh, const double dt, CellVector<1>& phiup,
-    const CellVector<1>& phi, const EdgeVector<1>& normalvel_X, const size_t c,
+void boundary_upper(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup,
+    const DGVector<1>& phi, const EdgeVector<1>& normalvel_X, const size_t c,
     const size_t e)
 {
     phiup(c, 0) -= dt * std::max(0., normalvel_X(e, 0)) * phi(c, 0);
 }
 template <int DG>
-void boundary_upper(const ParametricMesh& smesh, const double dt, CellVector<DG>& phiup,
-    const CellVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c, const size_t e)
+void boundary_upper(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+    const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c, const size_t e)
 {
     LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_X.row(e) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
     LocalEdgeVector<EDGEDOFS(DG)> tmp = ((topedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() * (vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 2>;
 }
 
-void boundary_left(const ParametricMesh& smesh, const double dt, CellVector<1>& phiup,
-    const CellVector<1>& phi, const EdgeVector<1>& normalvel_Y, const size_t c,
+void boundary_left(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup,
+    const DGVector<1>& phi, const EdgeVector<1>& normalvel_Y, const size_t c,
     const size_t e)
 {
     phiup(c, 0) -= dt * std::max(0., -normalvel_Y(e, 0)) * phi(c, 0);
 }
 template <int DG>
-void boundary_left(const ParametricMesh& smesh, const double dt, CellVector<DG>& phiup,
-    const CellVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c, const size_t e)
+void boundary_left(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+    const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c, const size_t e)
 {
     LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_Y.row(e) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
     LocalEdgeVector<EDGEDOFS(DG)> tmp = ((leftedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() * (-vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 3>;
 }
-void boundary_right(const ParametricMesh& smesh, const double dt, CellVector<1>& phiup,
-    const CellVector<1>& phi, const EdgeVector<1>& normalvel_Y, const size_t c,
+void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup,
+    const DGVector<1>& phi, const EdgeVector<1>& normalvel_Y, const size_t c,
     const size_t e)
 {
     phiup(c, 0) -= dt * std::max(0., normalvel_Y(e, 0)) * phi(c, 0);
 }
 template <int DG>
-void boundary_right(const ParametricMesh& smesh, const double dt, CellVector<DG>& phiup,
-    const CellVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c, const size_t e)
+void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+    const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c, const size_t e)
 {
     LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_Y.row(e) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
     LocalEdgeVector<EDGEDOFS(DG)> tmp = ((rightedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() * (vel_gauss.array().max(0)));
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 1>;
 }
 
-void edge_term_X(const ParametricMesh& smesh, const double dt, CellVector<1>& phiup, const CellVector<1>& phi, // DG0 (1)
+void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
     const EdgeVector<1>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
     double bottom = phi(c1, 0);
@@ -344,7 +344,7 @@ void edge_term_X(const ParametricMesh& smesh, const double dt, CellVector<1>& ph
     phiup(c1, 0) -= dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
     phiup(c2, 0) += dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
 }
-void edge_term_Y(const ParametricMesh& smesh, const double dt, CellVector<1>& phiup, const CellVector<1>& phi, // DG0 (1)
+void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
     const EdgeVector<1>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
     double left = phi(c1, 0);
@@ -356,7 +356,7 @@ void edge_term_Y(const ParametricMesh& smesh, const double dt, CellVector<1>& ph
 }
 
 template <int DG>
-void edge_term_X(const ParametricMesh& smesh, const double dt, CellVector<DG>& phiup, const CellVector<DG>& phi, // DG1 (3)
+void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
     const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
     const LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_X.row(ie) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
@@ -367,7 +367,7 @@ void edge_term_X(const ParametricMesh& smesh, const double dt, CellVector<DG>& p
     phiup.row(c2) += dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 0>;
 }
 template <int DG>
-void edge_term_Y(const ParametricMesh& smesh, const double dt, CellVector<DG>& phiup, const CellVector<DG>& phi, // DG1 (3)
+void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
     const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
     const LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_Y.row(ie) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
@@ -381,11 +381,11 @@ void edge_term_Y(const ParametricMesh& smesh, const double dt, CellVector<DG>& p
 
 template <int DG>
 void parametricTransportOperator(const ParametricMesh& smesh, const double dt,
-    const CellVector<DG>& vx,
-    const CellVector<DG>& vy,
+    const DGVector<DG>& vx,
+    const DGVector<DG>& vy,
     const EdgeVector<EDGEDOFS(DG)>& normalvel_X,
     const EdgeVector<EDGEDOFS(DG)>& normalvel_Y,
-    const CellVector<DG>& phi, CellVector<DG>& phiup)
+    const DGVector<DG>& phi, DGVector<DG>& phiup)
 {
     phiup.zero();
 
@@ -456,7 +456,7 @@ void parametricTransportOperator(const ParametricMesh& smesh, const double dt,
 }
 
 template <int DG>
-void ParametricTransport<DG>::step_rk1(const double dt, CellVector<DG>& phi)
+void ParametricTransport<DG>::step_rk1(const double dt, DGVector<DG>& phi)
 {
     parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp1);
 
@@ -464,7 +464,7 @@ void ParametricTransport<DG>::step_rk1(const double dt, CellVector<DG>& phi)
 }
 
 template <int DG>
-void ParametricTransport<DG>::step_rk2(const double dt, CellVector<DG>& phi)
+void ParametricTransport<DG>::step_rk2(const double dt, DGVector<DG>& phi)
 {
     parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp1); // tmp1 = k * F(u)
 
@@ -476,7 +476,7 @@ void ParametricTransport<DG>::step_rk2(const double dt, CellVector<DG>& phi)
 }
 
 template <int DG>
-void ParametricTransport<DG>::step_rk3(const double dt, CellVector<DG>& phi)
+void ParametricTransport<DG>::step_rk3(const double dt, DGVector<DG>& phi)
 {
   parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
 				  tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
@@ -515,7 +515,7 @@ void ParametricTransport<DG>::step_rk3(const double dt, CellVector<DG>& phi)
 }
 
 template <int DG>
-void ParametricTransport<DG>::step(const double dt, CellVector<DG>& phi)
+void ParametricTransport<DG>::step(const double dt, DGVector<DG>& phi)
 {
     GlobalTimer.start("-- --> step");
     // if (timesteppingscheme == "rk1")
