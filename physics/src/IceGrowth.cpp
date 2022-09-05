@@ -130,8 +130,8 @@ void IceGrowth::update(const TimestepTime& tsTime)
 
     // Copy the ice data from the prognostic fields to the modifiable fields.
     cice = cice0;
-    overElements(
-        std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1, std::placeholders::_2),
+    overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
+                     std::placeholders::_2),
         tsTime);
 
     iFluxes->update(tsTime);
