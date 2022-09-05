@@ -129,10 +129,10 @@ void IceGrowth::update(const TimestepTime& tsTime)
 {
 
     // Copy the ice data from the prognostic fields to the modifiable fields.
-    // Also divide by c_ice to go from cell-averaged to ice-averaged values.
     cice = cice0;
-    hice = hice0 = hIceCell / cice0;
-    hsnow = hsnow0 = hSnowCell / cice0;
+    overElements(
+        std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1, std::placeholders::_2),
+        tsTime);
 
     iFluxes->update(tsTime);
 
@@ -141,6 +141,19 @@ void IceGrowth::update(const TimestepTime& tsTime)
     overElements(
         std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),
         tsTime);
+}
+
+// Divide by ice concentration to go from cell-averaged to ice-averaged values,
+// but only if ice concentration is non-zero.
+void IceGrowth::initializeThicknesses(size_t i, const TimestepTime&)
+{
+    if (cice0[i] > 0) {
+        hice[i] = hice0[i] = hIceCell[i] / cice0[i];
+        hsnow[i] = hsnow0[i] = hSnowCell[i] / cice0[i];
+    } else {
+        hice[i] = hice0[i] = 0.;
+        hsnow[i] = hsnow0[i] = 0.;
+    }
 }
 
 void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
