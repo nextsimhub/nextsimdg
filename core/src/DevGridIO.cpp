@@ -39,6 +39,8 @@ static std::string hiceName = "hice";
 static std::string ciceName = "cice";
 static std::string hsnowName = "hsnow";
 static std::string ticeName = "tice";
+static std::string sstName = "sst";
+static std::string sssName = "sss";
 
 typedef std::map<StringName, std::string> NameMap;
 
