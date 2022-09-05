@@ -87,6 +87,9 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
+            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -97,12 +100,17 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
             tice0[0] = -1.;
+
+            hice0[0] = hice[0] / cice[0];
+            hsnow0[0] = hsnow[0] / cice[0];
         }
 
         HField hice;
         HField cice;
         HField hsnow;
         HField tice0;
+        HField hice0;  // ice averaged ice thickness
+        HField hsnow0; // ice averaged snoew thickness
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
