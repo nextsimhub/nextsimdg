@@ -184,6 +184,7 @@ public:
 	std::cout << DG << "\t" << ProblemConfig::NT << "\t" << smesh.nx << "\t" << std::flush;
 	
 
+	Nextsim::CellVector<DG> ps = phi;
         //! time loop
         for (size_t iter = 1; iter <= ProblemConfig::NT; ++iter) {
 
@@ -193,6 +194,8 @@ public:
                 if (iter % (ProblemConfig::NT / writestep) == 0)
                     Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", iter / (ProblemConfig::NT / writestep), phi, smesh);
         }
+	ps += -phi;
+	std::cout << sqrt(ps.array().square().sum()/phi.rows()) << "\t";
 
         // integrate the error
         return  sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump()))/ProblemConfig::Lx;
