@@ -20,7 +20,6 @@ namespace mEVP {
 
     inline constexpr double SQR(double x) { return x * x; }
 
-
     // Stress Update (ParametricMesh)
 
     template <int CG, int DGstress, int DGadvection>

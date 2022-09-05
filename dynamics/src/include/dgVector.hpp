@@ -90,7 +90,7 @@ public:
  **/
 template <int DG>
 class DGVector : public Eigen::Matrix<double, Eigen::Dynamic, DG,
-                       (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor> {
+                     (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor> {
 public:
     typedef Eigen::Matrix<double, Eigen::Dynamic, DG,
         (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>
@@ -111,7 +111,6 @@ public:
 
     // operations
     void zero() { EigenDGVector::setZero(); }
-
 
     // This method allows you to assign Eigen expressions to MyVectorType
     template <typename OtherDerived>
@@ -182,7 +181,6 @@ public:
             abort();
         }
     }
-
 
     //! resize vector
     void resize_by_mesh(const ParametricMesh& smesh, EdgeType et)

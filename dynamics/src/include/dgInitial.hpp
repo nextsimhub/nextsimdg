@@ -57,7 +57,6 @@ public:
 
 ////////////////////////////////////////////////// OLD Interfvace
 
-
 } /* namespace Nextsim */
 
 #endif /* __DGINITIAL_H */

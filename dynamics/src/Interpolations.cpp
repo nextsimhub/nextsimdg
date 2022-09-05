@@ -109,8 +109,8 @@ namespace Interpolations {
 
 #pragma omp parallel for
         for (size_t eid = 0; eid < smesh.nelements; ++eid) {
-	  const Eigen::Matrix<Nextsim::FloatType, 6, 6> mass
-	    = Nextsim::ParametricTools::massMatrix<6>(smesh, eid);
+            const Eigen::Matrix<Nextsim::FloatType, 6, 6> mass
+                = Nextsim::ParametricTools::massMatrix<6>(smesh, eid);
             // transform gauss points to real element
 
             // GAUSSPOINTS_3 is the 2 x 9 - Matrix with the reference coordinates
@@ -119,38 +119,37 @@ namespace Interpolations {
             // coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
 
             // the Gauss points in the element 2 x 9 - Matrix
-	    const Eigen::Matrix<Nextsim::FloatType, 2, 9> gp = ParametricTools::getGaussPointsInElement3(smesh, eid);
+            const Eigen::Matrix<Nextsim::FloatType, 2, 9> gp = ParametricTools::getGaussPointsInElement3(smesh, eid);
 
             const Eigen::Matrix<Nextsim::FloatType, 9, 1>
-                initial_in_gp({ {
-		      initial(gp(0, 0), gp(1, 0)),
-		      initial(gp(0, 1), gp(1, 1)),
-		      initial(gp(0, 2), gp(1, 2)),
-		      initial(gp(0, 3), gp(1, 3)),
-		      initial(gp(0, 4), gp(1, 4)),
-		      initial(gp(0, 5), gp(1, 5)),
-		      initial(gp(0, 6), gp(1, 6)),
-		      initial(gp(0, 7), gp(1, 7)),
-		      initial(gp(0, 8), gp(1, 8)) } });
+                initial_in_gp({ { initial(gp(0, 0), gp(1, 0)),
+                    initial(gp(0, 1), gp(1, 1)),
+                    initial(gp(0, 2), gp(1, 2)),
+                    initial(gp(0, 3), gp(1, 3)),
+                    initial(gp(0, 4), gp(1, 4)),
+                    initial(gp(0, 5), gp(1, 5)),
+                    initial(gp(0, 6), gp(1, 6)),
+                    initial(gp(0, 7), gp(1, 7)),
+                    initial(gp(0, 8), gp(1, 8)) } });
             // const Eigen::Matrix<Nextsim::FloatType, 16, 1>
             //     initial_in_gp({ {
-	    // 	      initial(gp(0, 0), gp(1, 0)),
-	    // 	      initial(gp(0, 1), gp(1, 1)),
-	    // 	      initial(gp(0, 2), gp(1, 2)),
-	    // 	      initial(gp(0, 3), gp(1, 3)),
-	    // 	      initial(gp(0, 4), gp(1, 4)),
-	    // 	      initial(gp(0, 5), gp(1, 5)),
-	    // 	      initial(gp(0, 6), gp(1, 6)),
-	    // 	      initial(gp(0, 7), gp(1, 7)),
-	    // 	      initial(gp(0, 8), gp(1, 8)),
-	    // 	      initial(gp(0, 9), gp(1, 9)),
-	    // 	      initial(gp(0, 10), gp(1, 10)),
-	    // 	      initial(gp(0, 11), gp(1, 11)),
-	    // 	      initial(gp(0, 12), gp(1, 12)),
-	    // 	      initial(gp(0, 13), gp(1, 13)),
-	    // 	      initial(gp(0, 14), gp(1, 14)),
-	    // 	      initial(gp(0, 15), gp(1, 15)),
-	    //} });
+            // 	      initial(gp(0, 0), gp(1, 0)),
+            // 	      initial(gp(0, 1), gp(1, 1)),
+            // 	      initial(gp(0, 2), gp(1, 2)),
+            // 	      initial(gp(0, 3), gp(1, 3)),
+            // 	      initial(gp(0, 4), gp(1, 4)),
+            // 	      initial(gp(0, 5), gp(1, 5)),
+            // 	      initial(gp(0, 6), gp(1, 6)),
+            // 	      initial(gp(0, 7), gp(1, 7)),
+            // 	      initial(gp(0, 8), gp(1, 8)),
+            // 	      initial(gp(0, 9), gp(1, 9)),
+            // 	      initial(gp(0, 10), gp(1, 10)),
+            // 	      initial(gp(0, 11), gp(1, 11)),
+            // 	      initial(gp(0, 12), gp(1, 12)),
+            // 	      initial(gp(0, 13), gp(1, 13)),
+            // 	      initial(gp(0, 14), gp(1, 14)),
+            // 	      initial(gp(0, 15), gp(1, 15)),
+            //} });
 
             // Jq * wq * Psi_i(x_q) * f(x_q)
             // matrix of size 3 x 9
@@ -353,40 +352,40 @@ namespace Interpolations {
 #pragma omp parallel for reduction(+ \
                                    : error)
         for (size_t eid = 0; eid < smesh.nelements; ++eid) {
-            const Eigen::Matrix<Nextsim::FloatType, 2, NGP*NGP> gp = ParametricTools::getGaussPointsInElement4(smesh, eid);
-            const Eigen::Matrix<Nextsim::FloatType, 1, NGP*NGP> src_in_gauss = src.row(eid) * PSI<DG, NGP>;
+            const Eigen::Matrix<Nextsim::FloatType, 2, NGP* NGP> gp = ParametricTools::getGaussPointsInElement4(smesh, eid);
+            const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> src_in_gauss = src.row(eid) * PSI<DG, NGP>;
 
-	                // const Eigen::Matrix<Nextsim::FloatType, 9, 1>
+            // const Eigen::Matrix<Nextsim::FloatType, 9, 1>
             //     initial_in_gp({ {
-	    // 	      initial(gp(0, 0), gp(1, 0)),
-	    // 	      initial(gp(0, 1), gp(1, 1)),
-	    // 	      initial(gp(0, 2), gp(1, 2)),
-	    // 	      initial(gp(0, 3), gp(1, 3)),
-	    // 	      initial(gp(0, 4), gp(1, 4)),
-	    // 	      initial(gp(0, 5), gp(1, 5)),
-	    // 	      initial(gp(0, 6), gp(1, 6)),
-	    // 	      initial(gp(0, 7), gp(1, 7)),
-	    // 	      initial(gp(0, 8), gp(1, 8)) } });
-            const Eigen::Matrix<Nextsim::FloatType,1, NGP*NGP>
+            // 	      initial(gp(0, 0), gp(1, 0)),
+            // 	      initial(gp(0, 1), gp(1, 1)),
+            // 	      initial(gp(0, 2), gp(1, 2)),
+            // 	      initial(gp(0, 3), gp(1, 3)),
+            // 	      initial(gp(0, 4), gp(1, 4)),
+            // 	      initial(gp(0, 5), gp(1, 5)),
+            // 	      initial(gp(0, 6), gp(1, 6)),
+            // 	      initial(gp(0, 7), gp(1, 7)),
+            // 	      initial(gp(0, 8), gp(1, 8)) } });
+            const Eigen::Matrix<Nextsim::FloatType, 1, NGP * NGP>
                 initial_in_gp({ {
-		      initial(gp(0, 0), gp(1, 0)),
-		      initial(gp(0, 1), gp(1, 1)),
-		      initial(gp(0, 2), gp(1, 2)),
-		      initial(gp(0, 3), gp(1, 3)),
-		      initial(gp(0, 4), gp(1, 4)),
-		      initial(gp(0, 5), gp(1, 5)),
-		      initial(gp(0, 6), gp(1, 6)),
-		      initial(gp(0, 7), gp(1, 7)),
-		      initial(gp(0, 8), gp(1, 8)),
-		      initial(gp(0, 9), gp(1, 9)),
-		      initial(gp(0, 10), gp(1, 10)),
-		      initial(gp(0, 11), gp(1, 11)),
-		      initial(gp(0, 12), gp(1, 12)),
-		      initial(gp(0, 13), gp(1, 13)),
-		      initial(gp(0, 14), gp(1, 14)),
-		      initial(gp(0, 15), gp(1, 15)),
-		      
-		} });
+                    initial(gp(0, 0), gp(1, 0)),
+                    initial(gp(0, 1), gp(1, 1)),
+                    initial(gp(0, 2), gp(1, 2)),
+                    initial(gp(0, 3), gp(1, 3)),
+                    initial(gp(0, 4), gp(1, 4)),
+                    initial(gp(0, 5), gp(1, 5)),
+                    initial(gp(0, 6), gp(1, 6)),
+                    initial(gp(0, 7), gp(1, 7)),
+                    initial(gp(0, 8), gp(1, 8)),
+                    initial(gp(0, 9), gp(1, 9)),
+                    initial(gp(0, 10), gp(1, 10)),
+                    initial(gp(0, 11), gp(1, 11)),
+                    initial(gp(0, 12), gp(1, 12)),
+                    initial(gp(0, 13), gp(1, 13)),
+                    initial(gp(0, 14), gp(1, 14)),
+                    initial(gp(0, 15), gp(1, 15)),
+
+                } });
 
             // Jq * wq * Psi_i(x_q) * f(x_q)
             // matrix of size 3 x 4

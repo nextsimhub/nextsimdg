@@ -9,9 +9,8 @@
 
 #include "dgVector.hpp"
 
-
 /*
-  
+
   MUST BE NEWLY REWRITTEN FOR THE NEW MESH IF NEEDED
 
 namespace Nextsim {

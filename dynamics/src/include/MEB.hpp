@@ -13,91 +13,21 @@
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
 
-namespace RefScaleMain {
-
-constexpr double rho_ice = 900.0; //!< Sea ice density
-constexpr double rho_atm = 1.3; //!< Air density
-constexpr double rho_ocean = 1026.0; //!< Ocean density
-
-constexpr double C_atm = 1.2e-3; //!< Air drag coefficient
-constexpr double C_ocean = 5.5e-3; //!< Ocean drag coefficient
-
-constexpr double F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
-constexpr double F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
-
-// parameters form nextsim options.cpp line 302
-constexpr double compaction_param = -20.; //!< Compation parameter
-
-constexpr double nu0 = 1. / 3.; //!< \param Poisson's ratio
+namespace RefScale {
+constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
+constexpr double L = 512000.0; //!< Size of domain !!!
+constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
+double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 }
 
 // Benchmark testcase from [Plante Tremblay, 2021]
-namespace RefScaleCanada {
-using namespace RefScaleMain;
+namespace RefScaleCompression {
+using namespace RefScale;
 
 constexpr double T = 4 * 60. * 60.; //!< Time horizon 2 hours
 constexpr double L = 60000.0; //!< Size of domain
 constexpr double vmax_ocean = 0.0; //!< Maximum velocity of ocean
 constexpr double vmax_atm = 20; //!< Max. vel. of wind
-
-// Parameters from Table 1. [Plante Tremblay, 2021]
-constexpr double damage_timescale = 1.; //<! Damage timescale
-constexpr double undamaged_time_relaxation_sigma = 1e5; //!< Test more viscous
-constexpr double exponent_relaxation_sigma = 3;
-constexpr double young = 1e9;
-constexpr double compr_strength
-    = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
-
-// TODO missing 45\deg it goes to Compresssion
-constexpr double tan_phi = 0.7; //! \param tan_phi (double) Internal friction coefficient (mu)
-constexpr double sin_phi = 0.7; //! \param sin_phi (double) Internal friction coefficient (mu)
-
-constexpr double c0 = 10.e3; //! \param
-constexpr double sigma_c0 = 50.e3; //! \param
-
-// constexpr double C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
-// constexpr double time_relaxation_damage = 2160000.; //!< 25 days in seconds
-//
-// constexpr double compression_factor = 10e3; //! \param Max pressure for damaged converging ice
-// constexpr double exponent_compression_factor
-//     = 1.5; //! \param Power of ice thickness in the pressure coefficient
-
-constexpr double fc = 0.0; //!< Coriolis
-
-}
-
-// Benchmark testcase from [Mehlmann / Richter, ...]
-namespace RefScale {
-using namespace RefScaleMain;
-
-constexpr double T = 2 * 24. * 60. * 60.; //!< Time horizon 2 days
-constexpr double L = 512000.0; //!< Size of domain
-constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
-constexpr double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
-
-constexpr double Pstar = 27500.0; //!< Ice strength
-constexpr double fc = 1.46e-4; //!< Coriolis
-constexpr double DeltaMin = 2.e-9; //!< Viscous regime
-
-// parameters form nextsim options.cpp line 302
-constexpr double compaction_param = -20.; //!< Compation parameter
-
-// constexpr double undamaged_time_relaxation_sigma = 1e7; //!< seconds
-constexpr double undamaged_time_relaxation_sigma = 1e5; //!< Test more viscous
-
-constexpr double time_relaxation_damage = 2160000.; //!< 25 days in seconds
-constexpr double compression_factor = 10e3; //! \param Max pressure for damaged converging ice
-constexpr double exponent_compression_factor
-    = 1.5; //! \param Power of ice thickness in the pressure coefficient
-
-constexpr double exponent_relaxation_sigma = 5;
-constexpr double young = 5.9605e+08;
-constexpr double nu0 = 1. / 3.; //!< \param Poisson's ratio
-constexpr double compr_strength
-    = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
-constexpr double tan_phi = 0.7; //! \param tan_phi (double) Internal friction coefficient (mu)
-// constexpr double C_lab = 2.0e6; //! \param C_lab (double) Cohesion at the lab scale (10 cm) [Pa]
-constexpr double C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
 
 }
 
@@ -109,7 +39,6 @@ namespace Nextsim {
 namespace MEB {
 
     inline constexpr double SQR(double x) { return x * x; }
-
 
     /*!
      * @brief Calculate Stresses for the current time step and update damage.
@@ -186,7 +115,7 @@ namespace MEB {
                 + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
-            // TODO: PRovide working imprementation of BBM
+            // TODO: Provide working imprementation of BBM
             // (Eqn. 8)
             // const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5);
 
@@ -221,7 +150,7 @@ namespace MEB {
             s22_gauss.array() *= dcrit.array();
 
             // Update damage
-            // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
+            // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / params.damage_timescale;
             d_gauss = ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / params.damage_timescale);
 
             // INTEGRATION OF STRESS AND DAMAGE
@@ -331,7 +260,7 @@ namespace MEB {
             s22_gauss.array() *= dcrit.array();
 
             // Update damage
-            // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / RefScaleCanada::damage_timescale;
+            // D(i, 0) += (1.0 - D(i, 0)) * (1.0 - dcrit) * dt_momentum / params.damage_timescale;
             d_gauss = ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / params.damage_timescale);
 
             // INTEGRATION OF STRESS AND DAMAGE

@@ -42,8 +42,7 @@ public:
         return v;
     }
 
-
-  ////////////////////////////////////////////////// Output of CG - Vector (ParametricMesh)
+    ////////////////////////////////////////////////// Output of CG - Vector (ParametricMesh)
     template <int CG>
     static void write_cgvector(const std::string& fname, const CGVector<CG>& v, const ParametricMesh& smesh)
     {
@@ -295,7 +294,6 @@ public:
         OUT.close();
     }
 
-
     ////////////////////////////////////////////////// dG(1) output
 
     template <int DG>
@@ -458,13 +456,13 @@ public:
         OUT.close();
     }
 
-  template <int DG>
+    template <int DG>
     static void write_dg(
         const std::string& fname, int n, const DGVector<DG>& v, const ParametricMesh& smesh)
     {
         write_dg(compose_vtkname(fname, DG, n), v, smesh);
     }
-  template <int CGdegree>
+    template <int CGdegree>
     static void write_cg(
         const std::string& fname, int n, const CGVector<CGdegree>& v, const ParametricMesh& smesh)
     {

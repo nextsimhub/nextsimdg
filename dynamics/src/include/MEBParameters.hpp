@@ -21,10 +21,10 @@ public:
     double F_atm; //!< effective factor for atm-forcing
     double F_ocean; //!< effective factor for ocean-forcing
 
-    double Pstar; //!< Ice strength
-    double fc; //!< Coriolis
-
+    // double Pstar; //!< Ice strength
     double DeltaMin; //!< Viscous regime
+
+    double fc; //!< Coriolis
 
     // MEB
     double compaction_param; //!< Compation parameter
@@ -45,6 +45,7 @@ public:
     double tan_phi; //!< \param tan_phi (double) Internal friction coefficient (mu)
     double sin_phi; //!< \param sin_phi (double) Internal friction coefficient (mu)
 
+    double compr_strength; //! \param compr_strength (double) Maximum compressive strength [N/m2]
     double C_lab; //! \param C_lab (double) Test [Pa]
 
     MEBParameters()
@@ -59,15 +60,13 @@ public:
         F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
         F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 
-        Pstar = 27500.0; //!< Ice strength
-        fc = 1.46e-4; //!< Coriolis
-
+        // Pstar = 27500.0; //!< Ice strength
         DeltaMin = 2.e-9; //!< Viscous regime
 
         // MEB
         compaction_param = -20.; //!< Compation parameter
         nu0 = 1. / 3.; //!< \param Poisson's ratio
-        // young = 1e9; //!< \param Young's modulus
+        // young = 1e9; //!< \param Young's modulus Canada
         young = 5.96e8; //!< \param Young's modulus
         P0 = 10.e3; //! < \param Constant to parametrize Pmax
 
@@ -84,7 +83,11 @@ public:
         tan_phi = 0.7; //!< \param tan_phi (double) Internal friction coefficient (mu)
         sin_phi = 0.7; //!< \param sin_phi (double) Internal friction coefficient (mu)
 
+        compr_strength = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
         C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
+
+        fc = 1.46e-4; //!< Coriolis
+        // fc = 0.0; //!< Coriolis Compression
     }
 };
 

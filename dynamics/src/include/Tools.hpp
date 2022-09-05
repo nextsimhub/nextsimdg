@@ -20,7 +20,6 @@ namespace Tools {
 
     inline constexpr double SQR(double x) { return x * x; }
 
-
 #define S2A(Q) (Q == 1 ? 1 : (Q == 3 ? 3 : (Q == 6 ? 6 : (Q == 8 ? 6 : -1))))
     template <int DGs>
     DGVector<S2A(DGs)> Delta(const ParametricMesh& smesh, const DGVector<DGs>& E11, const DGVector<DGs>& E12,
@@ -75,7 +74,6 @@ namespace Tools {
 
 #undef S2A
 
-
     template <int DGstress>
     DGVector<DGstress> TensorInvI(const ParametricMesh& smesh, const DGVector<DGstress>& E11, const DGVector<DGstress>& E12,
         const DGVector<DGstress>& E22)
@@ -102,7 +100,6 @@ namespace Tools {
         }
         return Invariant;
     }
-
 
 } /* namespace Tools */
 
