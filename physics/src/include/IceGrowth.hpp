@@ -69,14 +69,18 @@ private:
     HField cice; // Updated ice concentration
     HField hsnow; // Updated true snow thickness, m
     HField newice; // New ice over open water this timestep, m
+    HField hice0; // Timestep initial true ice thickness, m
+    HField hsnow0; // Timestep initial true snow thickness, m
 
     // Owned data fields, not shared
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
-    ModelArrayRef<ProtectedArray::HTRUE_ICE> hice0; // initial ice thickness (ice averaged)
-    ModelArrayRef<ProtectedArray::C_ICE> cice0; // initial ice concentration
-    ModelArrayRef<ProtectedArray::HTRUE_SNOW> hsnow0; // initial snow thickness (ice averaged)
+    ModelArrayRef<ProtectedArray::H_ICE>
+        hIceCell; // Timestep initial cell averaged ice thickness, m
+    ModelArrayRef<ProtectedArray::H_SNOW>
+        hSnowCell; // Timestep initial cell averaged snow thickness, m
+    ModelArrayRef<ProtectedArray::C_ICE> cice0; // Timestep initial ice concentration
     ModelArrayRef<SharedArray::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
     ModelArrayRef<ProtectedArray::ML_BULK_CP>
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
@@ -96,6 +100,7 @@ private:
         lateralIceSpread(i, tst);
         applyLimits(i, tst);
     }
+    void initializeThicknesses(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */
