@@ -13,6 +13,7 @@
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/OceanState.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
@@ -62,6 +63,8 @@ private:
     std::unique_ptr<ILateralIceSpread> iLateral;
     // Flux calculation Module Component
     std::unique_ptr<IFluxCalculation> iFluxes;
+    // Ocean state, required for freezing point calculation
+    std::unique_ptr<OceanState> oceanStateImpl;
 
     // Data fields
     // Owned, shared data fields

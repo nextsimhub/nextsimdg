@@ -13,7 +13,6 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/OceanState.hpp"
 
 #include <memory>
 
@@ -39,7 +38,6 @@ public:
 
 protected:
     std::unique_ptr<AtmosphereState> atmosStateImpl;
-    std::unique_ptr<OceanState> oceanStateImpl;
 };
 
 } /* namespace Nextsim */
