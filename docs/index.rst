@@ -41,7 +41,13 @@ limitations under the License.
 
 
 .. toctree::
-   :caption: API REFERENCE
+   :caption: API Documentation
    :maxdepth: 2
 
-   html/index.html
+   api/library_root
+   api/index
+
+
+All `Doxygen documentation`_
+
+.. _Doxygen documentation : https://nextsimdg.github.io/nextsimdg/index.html

@@ -6,6 +6,8 @@
 
 Here you will find the sources for neXtSIM_DG sea-ice model.
 
+**Installation instructions** can be found [here](https://nextsim-dg.readthedocs.io/en/latest/installation.html).
+
 Below are some conventions that every contributors to this model must apply in order to have the most efficient and consistent workflow for the model developments. These conventions deal with :
   - [coding](#coding-conventions)
   - [commenting](#commenting-conventions-for-a-nice-automatic-documentation)
@@ -14,7 +16,7 @@ Below are some conventions that every contributors to this model must apply in o
 ## Coding conventions
 
 For neXtSIM_DG we use clang-format and the [Webkit style](https://webkit.org/code-style-guidelines/), with a 100 character line length limit.
-  -  neXtSIM is written using ISO C++11
+  -  neXtSIM is written using ISO C++17
   -  All array operations should be done using std::vectors - not C-style arrays
   -  The use of C-style pointers, new, and delete is strongly discouraged
   -  Names and values of physical constants reside in src/include/constants.hpp
@@ -147,13 +149,11 @@ The comments providing automatic documentation should be supplemented with ordin
 
 ### Version numbering
 
-We use [semantic versioning](https://semver.org/). In brief this means the main branch has a version number assigned (tagged) to each commit. The numbers are of the form major.minor.patch, where:
+We use a derived version of [semantic versioning](https://semver.org/). In brief this means the main branch has a version number assigned (tagged) to each commit. The numbers are of the form x.y.z, where we:
 
-1. MAJOR version when you make incompatible API changes
-2. MINOR version when you add functionality in a backwards-compatible manner, and
-3. PATCH version when you make backwards-compatible bug fixes.
-
-This is not directly applicable to our workflow, but changes in major numbers should be related to major user facing changes (different input or output format, for instance), while minor numbers should (mostly) relate to changes in functionality (new physics, for instance). The patch number is incremented for each hotfix (see below).
+1. increment z when there's a hotfix (bugfix) pushed to main
+2. increment y when develop is merged into main
+3. increment x when we've been working on something extraordinary, when there's a significant change in an interface (configs or outputs) ... or when y is becoming too big.
 
 ### Git branching and merging
 
