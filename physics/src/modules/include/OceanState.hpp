@@ -41,6 +41,9 @@ public:
      */
     void update(const TimestepTime&);
 
+    //! Returns whether the implementation uses the slab ocean (defaults to true)
+    virtual bool usesSlabOcean() { return b_usesSlabOcean; }
+
 protected:
     HField sst;
     HField sss;
@@ -51,6 +54,7 @@ protected:
 
     IFreezingPoint* tfImpl;
 
+    bool b_usesSlabOcean;
     virtual void updateSpecial(const TimestepTime&) = 0;
 
 private:

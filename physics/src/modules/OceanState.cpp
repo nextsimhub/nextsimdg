@@ -26,6 +26,7 @@ OceanState::OceanState()
     , mld(ModelArray::Type::H)
     , tf(ModelArray::Type::H)
     , cpml(ModelArray::Type::H)
+    , b_usesSlabOcean(true)
 {
     registerProtectedArray(ProtectedArray::SST, &sst);
     registerProtectedArray(ProtectedArray::SSS, &sss);
