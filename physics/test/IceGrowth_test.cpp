@@ -40,9 +40,9 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     public:
         AtmosphericData()
         {
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
+            registerProtectedArray(ProtectedArray::H_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
@@ -56,8 +56,8 @@ TEST_CASE("New ice formation", "[IceGrowth]")
         {
             noLandMask();
             cice[0] = 0.5;
-            hice[0] = 0.2;
-            hsnow[0] = 0;
+            hice[0] = 0.1; // Cell averaged
+            hsnow[0] = 0; // Cell averaged
             tice0[0] = -2;
             sst[0] = -1.5;
             sss[0] = 32.;
@@ -141,9 +141,9 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     public:
         AtmosphericData()
         {
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
+            registerProtectedArray(ProtectedArray::H_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
@@ -157,8 +157,8 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         {
             noLandMask();
             cice[0] = 0.5;
-            hice[0] = 0.1 / cice[0];
-            hsnow[0] = 0.01 / cice[0];
+            hice[0] = 0.1; // Cell averaged
+            hsnow[0] = 0.01; // Cell averaged
             tice0[0] = -1;
             sst[0] = -1;
             sss[0] = 32.;
@@ -222,9 +222,9 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     double prec = 1e-5;
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
+    REQUIRE(cice[0] == Approx(0.368269).epsilon(prec));
     REQUIRE((hice[0] * cice[0]) == Approx(0.0473078).epsilon(prec));
     REQUIRE((hsnow[0] * cice[0]) == Approx(0.00720977).epsilon(prec));
-    REQUIRE(cice[0] == Approx(0.368269).epsilon(prec));
 
     REQUIRE(newice[0] == 0.0);
 }
@@ -268,8 +268,8 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         {
             noLandMask();
             cice[0] = 0.5;
-            hice[0] = 0.1 / cice[0];
-            hsnow[0] = 0.01 / cice[0];
+            hice[0] = 0.1; // Cell averaged
+            hsnow[0] = 0.01; // Cell averaged
             tice0[0] = -9;
             sst[0] = -1.75;
             sss[0] = 32.;
@@ -333,9 +333,9 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
+    REQUIRE(cice[0] == Approx(0.5002).epsilon(prec));
     REQUIRE((hice[0] * cice[0]) == Approx(0.100039).epsilon(prec));
     REQUIRE((hsnow[0] * cice[0]) == Approx(0.0109012).epsilon(prec));
-    REQUIRE(cice[0] == Approx(0.5002).epsilon(prec));
 
     REQUIRE(newice[0] == Approx(6.79906e-5).epsilon(prec));
 }
