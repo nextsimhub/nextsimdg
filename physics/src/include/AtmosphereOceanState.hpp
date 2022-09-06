@@ -38,13 +38,6 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 protected:
-    HField hTrueSnow;
-    HField hTrueIce;
-
-    ModelArrayRef<ProtectedArray::H_SNOW> hSnowCell;
-    ModelArrayRef<ProtectedArray::H_ICE> hIceCell;
-    ModelArrayRef<ProtectedArray::C_ICE> cIce;
-
     std::unique_ptr<AtmosphereState> atmosStateImpl;
     std::unique_ptr<OceanState> oceanStateImpl;
 };
