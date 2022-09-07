@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
         Nextsim::NetcdfMetadataConfiguration ncdfMC;
         Nextsim::Configurator::setAdditionalConfiguration(&ncdfMC);
         Nextsim::Configurator::getAdditionalConfiguration(Nextsim::Model::restartOptionName);
-    } catch (const std::exception& e){
+    } catch (const std::exception& e) {
         // Do nothing. If there is no additional configuration to be parse, ignore it.
     }
     // Parse the configuration to load those that are explicitly configured
