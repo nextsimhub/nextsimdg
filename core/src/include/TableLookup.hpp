@@ -28,8 +28,8 @@ public:
         const double xx, const bool cyclic = false)
     {
         // The standard case for lower and upper bound
-        unsigned long i = std::lower_bound(x.begin(), x.end(), xx) - x.begin();
-        unsigned long im1 = i - 1;
+        size_t i = std::lower_bound(x.begin(), x.end(), xx) - x.begin();
+        size_t im1 = i - 1;
 
         // The cyclic cases
         if (cyclic) {

@@ -28,8 +28,10 @@ const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
 
 IceGrowth::IceGrowth()
     : hice(ModelArray::Type::H)
+    , hice0(ModelArray::Type::H)
     , cice(ModelArray::Type::H)
     , hsnow(ModelArray::Type::H)
+    , hsnow0(ModelArray::Type::H)
     , newice(ModelArray::Type::H)
     , deltaCFreeze(ModelArray::Type::H)
     , deltaCMelt(ModelArray::Type::H)
@@ -51,8 +53,10 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
     iFluxes->setData(ms);
 
     hice.resize();
+    hice0.resize();
     cice.resize();
     hsnow.resize();
+    hsnow0.resize();
     newice.resize();
     deltaCFreeze.resize();
     deltaCMelt.resize();

@@ -8,15 +8,18 @@
 #include "include/FluxCalculationModule.hpp"
 
 #include "include/FiniteElementFluxes.hpp"
+#include "include/MonthlyFluxes.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string FINITEELEMENTFLUXES = "Nextsim::FiniteElementFluxCalc";
+const std::string MONTHLYFLUXES = "Nextsim::MonthlyFluxes";
 
 template <>
 Module<Nextsim::IFluxCalculation>::map Module<Nextsim::IFluxCalculation>::functionMap = {
     { FINITEELEMENTFLUXES, newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxCalc> },
+    { MONTHLYFLUXES, newImpl<Nextsim::IFluxCalculation, Nextsim::MonthlyFluxes> },
 };
 
 template <>

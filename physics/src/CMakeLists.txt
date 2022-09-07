@@ -28,6 +28,7 @@ set(FluxCalculationModuleSources
     "FluxCalculationModule.cpp"
     "FiniteElementFluxes.cpp"
     "FiniteElementSpecHum.cpp"
+    "MonthlyFluxes.cpp"
     )
     
 set(StateModuleSources
