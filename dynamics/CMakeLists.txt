@@ -4,7 +4,7 @@ add_subdirectory(src)
 #endif()
 
 add_subdirectory(applications)
-#add_subdirectory(tests)
+add_subdirectory(tests)
 
 
 set(NextsimSources
