@@ -31,34 +31,44 @@ public:
     void configure() override;
 
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
-    /*!
-     * @brief Updates the ocean state.
-     *
-     * @details Performs any common calculations, then any implementation
-     * specific updates.
-     *
-     * @param tStep The object containing the timestep start and duration times.
-     */
-    void update(const TimestepTime&);
 
-    //! Returns whether the implementation uses the slab ocean (defaults to true)
-    virtual bool usesSlabOcean() { return b_usesSlabOcean; }
+    /*!
+     * @brief Updates the ocean state at the start of the timestep.
+     *
+     * @details Sets the coupled-in SST/S (if applicable) and updates Tf for
+     * all implementations.
+     *
+     * @param tst The object containing the timestep start and duration times.
+     */
+    virtual void updateBefore(const TimestepTime& tst);
+
+    /*!
+     * @brief Updates the ocean state at the end of the timestep.
+     *
+     * @details Calculates the nudging fluxes and updates the slab ocean.
+     *
+     * @param tst The object containing the timestep start and duration times.
+     */
+    virtual void updateAfter(const TimestepTime& tst);
 
 protected:
-    HField sst;
-    HField sss;
-    HField mld;
+    HField sst; // Slab ocean temperature, ˚C
+    HField sss; // Slab ocean salinity, PSU
+    HField mld; // Mixed layer (also slab ocean) depth, m
 
-    HField tf;
-    HField cpml;
+    HField tf; // Freezing point, ˚C
+    HField cpml; // bulk heat capacity of the mixed layer, J m⁻² K⁻¹
+
+    HField qdw; // Slab ocean heat flux, W m⁻²
+    HField fdw; // Slab ocean water flux kg s ⁻¹ m⁻²
 
     IFreezingPoint* tfImpl;
 
-    bool b_usesSlabOcean;
     virtual void updateSpecial(const TimestepTime&) = 0;
 
+    void updateFreezingPoint(const TimestepTime&);
 private:
-    void updateFreezingPoint(size_t i, const TimestepTime&);
+    void updateFreezingPointI(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */

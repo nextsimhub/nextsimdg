@@ -8,6 +8,7 @@
 #include "include/OceanState.hpp"
 
 #include "include/constants.hpp"
+#include "include/ModelArrayRef.hpp"
 
 namespace Nextsim {
 
@@ -26,7 +27,6 @@ OceanState::OceanState()
     , mld(ModelArray::Type::H)
     , tf(ModelArray::Type::H)
     , cpml(ModelArray::Type::H)
-    , b_usesSlabOcean(true)
 {
     registerProtectedArray(ProtectedArray::SST, &sst);
     registerProtectedArray(ProtectedArray::SSS, &sss);
@@ -80,19 +80,37 @@ OceanState::HelpMap& OceanState::getHelpRecursive(HelpMap& map, bool getAll)
     return Module::getHelpRecursive<IFreezingPoint>(map, getAll);
 }
 
-void OceanState::update(const TimestepTime& tst)
+void OceanState::updateBefore(const TimestepTime& tst)
 {
     // Mixed layer heat capacity per unit area
     cpml = mld * Water::rho * Water::cp;
-    // Sea surface freezing point
-    tf.resize();
-    overElements(std::bind(&OceanState::updateFreezingPoint, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
     // Derived class updates
-    updateSpecial(tst);
+    updateFreezingPoint(tst);
+
+// Zero the nudging fluxes for implementations to update in updateAfter
+    }
+
+void OceanState::updateAfter(const TimestepTime& tst)
+{
+    // Heat flux
+    ModelArrayRef<ModelComponent::SharedArray::Q_IO> qio;
+    ModelArrayRef<ModelComponent::SharedArray::Q_OW> qow;
+    HField heatingRate = qio + qow - qdw;
+    sst += tst.step * heatingRate / cpml;
+
+    // Water fluxes
+    // Final slab ocean areal mass
+    HField arealFinal = mld * Water::rho -
+
 }
 
-void OceanState::updateFreezingPoint(size_t i, const TimestepTime&) { tf[i] = (*tfImpl)(sss[i]); }
+void OceanState::updateFreezingPoint(const TimestepTime& tst)
+{
+    overElements(std::bind(&OceanState::updateFreezingPointI, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tst);
+}
+
+void OceanState::updateFreezingPointI(size_t i, const TimestepTime&) { tf[i] = (*tfImpl)(sss[i]); }
 
 } /* namespace Nextsim */
