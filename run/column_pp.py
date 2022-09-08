@@ -23,10 +23,9 @@ for file in sorted(glob.glob('diagnostic.*.nc')):
         hsnow = np.append(hsnow, root.groups["data"].variables["hsnow"][0].data)
         tice = np.vstack((tice, root.groups["data"].variables["tice"][0].data))
 
-print(hice)
-
 plt.plot(time, tice[:, 0])
 plt.plot(time, tice[:, 1])
+plt.plot(time, tice[:, 2])
 plt.show()
 
 plt.plot(time, hice)

@@ -7,7 +7,7 @@ datagrp = root.createGroup("data")
 
 xDim = datagrp.createDimension("x", 1)
 yDim = datagrp.createDimension("y", 1)
-nLay = datagrp.createDimension("nLayers", 2)
+nLay = datagrp.createDimension("nLayers", 3)
 
 ice_salinity = 5  # sould match Ice::s in constants.hpp
 ocean_salinity = 32.
@@ -16,9 +16,9 @@ mu = -0.055  # should match Water::mu in constants.hpp
 mask = datagrp.createVariable("mask", "f8", ("x", "y"))
 mask[:, :] = [[1]]
 cice = datagrp.createVariable("cice", "f8", ("x", "y",))
-cice[:, :] = 1
+cice[:, :] = 1.
 hice = datagrp.createVariable("hice", "f8", ("x", "y",))
-hice[:, :] = 2
+hice[:, :] = 2.
 hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y",))
 hsnow[:, :] = 0.3
 sss = datagrp.createVariable("sss", "f8", ("x", "y",))

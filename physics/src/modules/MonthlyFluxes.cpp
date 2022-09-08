@@ -30,23 +30,29 @@ void Nextsim::MonthlyFluxes::update(const Nextsim::TimestepTime& tst)
         = ((tst.start.gmtime()->tm_year % 4 == 0) && (tst.start.gmtime()->tm_year % 100 != 0))
         || (tst.start.gmtime()->tm_year % 400 == 0);
 
+    const int i = 0;
+    // Just tabulated values
     const double q_sw = -convFactor * TableLookup::monthlyLinearLUT(swTable, dayOfYear, isLeap);
-    const double q_lw = -convFactor * TableLookup::monthlyLinearLUT(lwTable, dayOfYear, isLeap);
     const double q_sh = convFactor * TableLookup::monthlyLinearLUT(shTable, dayOfYear, isLeap);
     const double q_lh = convFactor * TableLookup::monthlyLinearLUT(lhTable, dayOfYear, isLeap);
 
+    // LW is tabulated + black body radiation
+    const double Tsurf_K = tice.zIndexAndLayer(i, 0) + PhysicalConstants::Tt;
+    const double q_lw = -convFactor * TableLookup::monthlyLinearLUT(lwTable, dayOfYear, isLeap)
+        + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4);
+
     IIceAlbedo* iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
-    const int i = 0;
     double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i]);
 
     // We can set ModelArray to double, which sets all the values.
-    qia = (1.-albedoValue)*q_sw + q_lw + q_sh + q_lh;
-    qio = 1.5 * convFactor;
+    qia = (1. - albedoValue) * q_sw + q_lw + q_sh + q_lh;
+    qio = 1.5 * convFactor / 12.; // Division by 12 as it's a early average
     qow = 0.;
     subl = 0.;
-    dqia_dt = 0.;
+    // Just the derivative of the black body radiation
+    dqia_dt = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
 
-    //std::cout << albedoValue*q_sw << " " << q_lw << " " << q_sh << " " << q_lh << std::endl;
+    // std::cout << albedoValue*q_sw << " " << q_lw << " " << q_sh << " " << q_lh << std::endl;
 }
 
 }

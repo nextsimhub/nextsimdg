@@ -7,6 +7,7 @@
 
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 

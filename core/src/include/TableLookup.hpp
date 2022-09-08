@@ -53,7 +53,7 @@ public:
     double static monthlyLinearLUT(
         const std::vector<double>& y, double dayOfYear, bool isLeap = false)
     {
-        //                                1   2   3   4   5   6   7   8   9  10  11  12
+        // Month number                   1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12
         std::vector<int> monthLength = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
         if (isLeap)
             ++monthLength[1];
@@ -66,7 +66,8 @@ public:
             monthEnd += monthLength[i];
         }
 
-        return linearLUT(midMonth, y, dayOfYear, true);
+        // Use dayOfYear + 1 because tm_yday starts on 0(!)
+        return linearLUT(midMonth, y, dayOfYear + 1, true);
     }
 };
 
