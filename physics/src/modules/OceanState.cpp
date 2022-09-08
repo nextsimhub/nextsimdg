@@ -96,15 +96,15 @@ void OceanState::updateAfter(const TimestepTime& tst)
     ModelArrayRef<SharedArray::Q_IO> qio;
     ModelArrayRef<SharedArray::Q_OW> qow;
     HField heatingRate = qio + qow - qdw;
-    sst += tst.step * heatingRate / cpml;
+    sst += tst.step.seconds() * heatingRate / cpml;
 
     // Water fluxes
     // Final slab ocean areal mass
     ModelArrayRef<SharedArray::NEW_ICE> newice;
-    HField iceWater = newice * Ice::rho;
+    HField iceWater = newice.data() * Ice::rho;
     HField snowWater;
     HField epWater;
-    HField nudgeWater = fdw * tst.step;
+    HField nudgeWater = fdw * tst.step.seconds();
     const double minMass = 1; // Minimum depth of the slab ocean
     HField slabMass = mld * Water::rho - iceWater -snowWater - epWater;
     // slabMass.clampBelow(minMass*Water::rho)
