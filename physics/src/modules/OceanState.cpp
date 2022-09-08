@@ -93,15 +93,21 @@ void OceanState::updateBefore(const TimestepTime& tst)
 void OceanState::updateAfter(const TimestepTime& tst)
 {
     // Heat flux
-    ModelArrayRef<ModelComponent::SharedArray::Q_IO> qio;
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW> qow;
+    ModelArrayRef<SharedArray::Q_IO> qio;
+    ModelArrayRef<SharedArray::Q_OW> qow;
     HField heatingRate = qio + qow - qdw;
     sst += tst.step * heatingRate / cpml;
 
     // Water fluxes
     // Final slab ocean areal mass
-    HField arealFinal = mld * Water::rho -
-
+    ModelArrayRef<SharedArray::NEW_ICE> newice;
+    HField iceWater = newice * Ice::rho;
+    HField snowWater;
+    HField epWater;
+    HField nudgeWater = fdw * tst.step;
+    const double minMass = 1; // Minimum depth of the slab ocean
+    HField slabMass = mld * Water::rho - iceWater -snowWater - epWater;
+    // slabMass.clampBelow(minMass*Water::rho)
 }
 
 void OceanState::updateFreezingPoint(const TimestepTime& tst)
