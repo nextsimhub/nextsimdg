@@ -7,7 +7,14 @@
 
 namespace Nextsim {
 
-void Nextsim::MonthlyFluxes::update(const Nextsim::TimestepTime& tst)
+void MonthlyFluxes::update(const Nextsim::TimestepTime& tst)
+{
+    overElements(std::bind(&MonthlyFluxes::calculateElement, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tst);
+}
+
+void MonthlyFluxes::calculateElement(size_t i, const TimestepTime& tst)
 {
     aoState.update(tst);
 
@@ -30,7 +37,6 @@ void Nextsim::MonthlyFluxes::update(const Nextsim::TimestepTime& tst)
         = ((tst.start.gmtime()->tm_year % 4 == 0) && (tst.start.gmtime()->tm_year % 100 != 0))
         || (tst.start.gmtime()->tm_year % 400 == 0);
 
-    const int i = 0;
     // Just tabulated values
     const double q_sw = -convFactor * TableLookup::monthlyLinearLUT(swTable, dayOfYear, isLeap);
     const double q_sh = convFactor * TableLookup::monthlyLinearLUT(shTable, dayOfYear, isLeap);
@@ -51,8 +57,6 @@ void Nextsim::MonthlyFluxes::update(const Nextsim::TimestepTime& tst)
     subl = 0.;
     // Just the derivative of the black body radiation
     dqia_dt = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
-
-    // std::cout << albedoValue*q_sw << " " << q_lw << " " << q_sh << " " << q_lh << std::endl;
 }
 
 }
