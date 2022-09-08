@@ -53,7 +53,7 @@ set(ModularComponents
 # Set the components which provide source or object code to the main model
 set(CodeComponents
 "physics"
-#"dynamics"
+"dynamics"
 )
 
 # Set an empty list of sources
@@ -64,6 +64,7 @@ set(NextsimIncludeDirs "")
 
 # Build the core model. Defines the 'parse_modules' target
 add_subdirectory(core)
+
 
 # Build all components
 foreach(compo ${CodeComponents})

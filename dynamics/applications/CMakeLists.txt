@@ -1,11 +1,16 @@
-# Build the main neXtSIM model
+# Include dynamics headers
+set(DynamicsSrc "../src")
+set(SRC_DIR "${DynamicsSrc}")
+set(INCLUDE_DIR "${DynamicsSrc}/include")
 
-INCLUDE_DIRECTORIES(${Nextsim_INCLUDE_DIRS})
-LINK_LIBRARIES(Eigen3::Eigen ${NextsimDGLib})
+include_directories(${INCLUDE_DIR})
+
 
 add_executable(benchmark_mehlmann_sasip_mevp benchmark_mehlmann_sasip_mevp.cpp)
 add_executable(benchmark_mehlmann_sasip_meb benchmark_mehlmann_sasip_meb.cpp)
 add_executable(benchmark_box_sasip_mevp benchmark_box_sasip_mevp.cpp)
 
-
-
+#LINK_LIBRARIES(Eigen3::Eigen ${NextsimDGLib})
+target_link_libraries(benchmark_mehlmann_sasip_mevp LINK_PUBLIC Eigen3::Eigen)
+target_link_libraries(benchmark_mehlmann_sasip_meb LINK_PUBLIC Eigen3::Eigen)
+target_link_libraries(benchmark_box_sasip_mevp LINK_PUBLIC Eigen3::Eigen)
