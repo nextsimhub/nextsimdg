@@ -15,6 +15,10 @@
 
 ## [v0.2.0](https://github.com/nextsimdg/nextsimdg/tree/v0.2.0) (2022-09-05)
 
+**Description:**
+Last version including both meshes before merge
+
+
 [Full Changelog](https://github.com/nextsimdg/nextsimdg/compare/v0.1.0...v0.2.0)
 
 **Implemented enhancements:**
@@ -47,6 +51,11 @@
 - Github workflow for CI [\#15](https://github.com/nextsimdg/nextsimdg/issues/15)
 
 ## [v0.1.0](https://github.com/nextsimdg/nextsimdg/tree/v0.1.0) (2022-02-11)
+
+**Description:**
+Merge pull request #74 from nextsimdg/develop
+
+Minimum Viable Model from develop.
 
 [Full Changelog](https://github.com/nextsimdg/nextsimdg/compare/cb4f6ad730c95330c552fe27498e6d0a9fba40f5...v0.1.0)
 
