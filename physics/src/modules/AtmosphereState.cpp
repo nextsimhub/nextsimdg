@@ -18,6 +18,7 @@ static const std::map<ModelComponent::ProtectedArray, std::string> fieldNames = 
     { ModelComponent::ProtectedArray::SW_IN, "Incident shortwave flux" },
     { ModelComponent::ProtectedArray::LW_IN, "Incident longwave flux" },
     { ModelComponent::ProtectedArray::SNOW, "Snowfall rate" },
+    { ModelComponent::ProtectedArray::EVAP_MINUS_PRECIP, "Evaporation minus liquid precipitation" },
     { ModelComponent::ProtectedArray::WIND_SPEED, "Wind speed at 10 m" },
 };
 
@@ -30,6 +31,7 @@ AtmosphereState::AtmosphereState()
     registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
     registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
     registerProtectedArray(ProtectedArray::SNOW, &snowfall);
+    registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &evap_minus_precip);
 
     registerProtectedArray(ProtectedArray::WIND_SPEED, &windSpeed);
 }
@@ -46,6 +48,7 @@ ModelState AtmosphereState::getState() const
                  { fieldNames.at(ProtectedArray::SW_IN), sw_in },
                  { fieldNames.at(ProtectedArray::LW_IN), lw_in },
                  { fieldNames.at(ProtectedArray::SNOW), snowfall },
+                 { fieldNames.at(ProtectedArray::EVAP_MINUS_PRECIP), evap_minus_precip },
                  { fieldNames.at(ProtectedArray::WIND_SPEED), windSpeed },
              },
         {} };
