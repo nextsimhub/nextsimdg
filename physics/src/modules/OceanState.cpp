@@ -117,7 +117,7 @@ void OceanState::updateAfter(const TimestepTime& tst)
     HField effectiveSalinity = sss.min(Ice::s); // retained for diagnostic output
     HField salinityDifference = sss - effectiveSalinity;
     HField deltaSSS = salinityDifference * Ice::rho * deltaIce + sss * Ice::rhoSnow * snowMelt
-        + sss * (emp - fdw) * tst.step;
+        + sss * (emp - fdw) * tst.step.seconds();
     sss += deltaSSS / slabMass;
 }
 
