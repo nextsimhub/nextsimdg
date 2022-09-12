@@ -157,25 +157,25 @@ ModelArray ModelArray::min(const ModelArray& minArr) const
 
 ModelArray& ModelArray::clampAbove(double max)
 {
-    m_data = max(max);
+    m_data = this->max(max).m_data;
     return *this;
 }
 
 ModelArray& ModelArray::clampBelow(double min)
 {
-    m_data = min(min);
+    m_data = this->min(min).m_data;
     return *this;
 }
 
 ModelArray& ModelArray::clampAbove(const ModelArray& maxArr)
 {
-    m_data = max(maxArr);
+    m_data = this->max(maxArr).m_data;
     return *this;
 }
 
 ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
 {
-    m_data = min(minArr);
+    m_data = this->min(minArr).m_data;
     return *this;
 }
 
