@@ -7,8 +7,8 @@
 
 #include "include/OceanState.hpp"
 
-#include "include/constants.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
@@ -87,8 +87,8 @@ void OceanState::updateBefore(const TimestepTime& tst)
     // Derived class updates
     updateFreezingPoint(tst);
 
-// Zero the nudging fluxes for implementations to update in updateAfter
-    }
+    // Zero the nudging fluxes for implementations to update in updateAfter
+}
 
 void OceanState::updateAfter(const TimestepTime& tst)
 {
@@ -100,14 +100,25 @@ void OceanState::updateAfter(const TimestepTime& tst)
 
     // Water fluxes
     // Final slab ocean areal mass
-    ModelArrayRef<SharedArray::NEW_ICE> newice;
-    HField iceWater = newice.data() * Ice::rho;
-    HField snowWater;
-    HField epWater;
+    ModelArrayRef<SharedArray::DELTA_HICE> deltaIce;
+    ModelArrayRef<SharedArray::HSNOW_MELT> snowMelt;
+    ModelArrayRef<ProtectedArray::EVAP_MINUS_PRECIP> emp;
+    HField iceWater = deltaIce.data() * Ice::rho; // pure water density
+    HField snowWater = snowMelt.data() * Ice::rhoSnow;
+    HField epWater = emp.data() * tst.step.seconds();
     HField nudgeWater = fdw * tst.step.seconds();
+    // The resultant amount of water
+    HField slabMass = mld * Water::rho - iceWater - snowWater - epWater;
+    // Clamp to the minimum amount of water in the mixed layer slab
     const double minMass = 1; // Minimum depth of the slab ocean
-    HField slabMass = mld * Water::rho - iceWater -snowWater - epWater;
-    // slabMass.clampBelow(minMass*Water::rho)
+    slabMass.clampBelow(minMass * Water::rho);
+    // Effective ice salinity: melting ice should never make the salinity increase, even in fresh
+    // water.
+    HField effectiveSalinity = sss.min(Ice::s); // retained for diagnostic output
+    HField salinityDifference = sss - effectiveSalinity;
+    HField deltaSSS = salinityDifference * Ice::rho * deltaIce + sss * Ice::rhoSnow * snowMelt
+        + sss * (emp - fdw) * tst.step;
+    sss += deltaSSS / slabMass;
 }
 
 void OceanState::updateFreezingPoint(const TimestepTime& tst)

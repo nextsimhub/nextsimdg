@@ -41,6 +41,7 @@ IceGrowth::IceGrowth()
     registerSharedArray(SharedArray::C_ICE, &cice);
     registerSharedArray(SharedArray::H_SNOW, &hsnow);
     registerSharedArray(SharedArray::NEW_ICE, &newice);
+    registerSharedArray(SharedArray::HSNOW_MELT, &snowMelt);
 
     registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
     registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
