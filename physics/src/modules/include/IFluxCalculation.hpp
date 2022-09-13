@@ -8,7 +8,6 @@
 #ifndef IFLUXCALCULATION_HPP
 #define IFLUXCALCULATION_HPP
 
-#include "include/AtmosphereOceanState.hpp"
 #include "include/Configured.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelState.hpp"
@@ -35,8 +34,6 @@ public:
 
     void setData(const ModelState::DataMap& ms) override
     {
-        aoState.setData(ms);
-
         qow.resize();
         subl.resize();
         qia.resize();
@@ -48,8 +45,6 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override
     {
-        std::cout << "IFluxCalculation::getStateRecursive: data.size=" << 0 << ", config.size=" << 0
-                  << std::endl;
         return os ? getState() : ModelState();
     }
 
@@ -60,7 +55,7 @@ public:
         return { "qow", "subl", "qia", "dqia_dt", "qio" };
     }
 
-    void configure() override { aoState.configure(); }
+    void configure() override { }
     /*!
      * Updates the flux calculation for the timestep.
      *
@@ -76,9 +71,6 @@ protected:
     HField qia; // Ice-atmosphere heat flux [W m⁻²]
     HField dqia_dt; // Derivative of qia w.r.t. ice surface temperature
     HField qio; // Ice-ocean heat flux [W m⁻²]
-
-    // The interface to the rest of the world
-    AtmosphereOceanState aoState;
 };
 }
 #endif /* IFLUXCALCULATION_HPP */
