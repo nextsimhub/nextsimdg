@@ -49,6 +49,7 @@ public:
         SNOW, // snow fall, kg m⁻² s⁻¹
         SSS, // sea surface salinity, PSU
         SST, // sea surface temperature ˚C
+        EVAP_MINUS_PRECIP, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
         // Derived fields, calculated once per timestep
         ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
         TF, // Ocean freezing temperature, ˚C
@@ -69,6 +70,8 @@ public:
         Q_IO, // Ice to ocean heat flux W m⁻²
         Q_OW, // Open water heat flux W m⁻²
         DQIA_DT, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
+        // Mass fluxes
+        HSNOW_MELT, // Thickness of snow that melted, m
         // Atmospheric conditions
         SUBLIM, // Upward sublimation rate kg m⁻² s⁻¹
         DELTA_HICE, // Change in sea ice thickness, m

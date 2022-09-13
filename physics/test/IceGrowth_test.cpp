@@ -45,6 +45,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
+            registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
         }
         std::string getName() const override { return "AtmosphericData"; }
 
@@ -56,6 +57,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
             hsnow[0] = 0; // Cell averaged
             tice0[0] = -2;
             snow[0] = 0;
+            emp[0] = 0;
         }
 
         HField hice;
@@ -63,6 +65,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
         HField hsnow;
         ZField tice0;
         HField snow;
+        HField emp;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -153,6 +156,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
+            registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
         }
         std::string getName() const override { return "AtmosphericData"; }
 
@@ -164,6 +168,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
             hsnow[0] = 0.01; // Cell averaged
             tice0[0] = -1;
             snow[0] = 0.00;
+            emp[0] = 0;
         }
 
         HField hice;
@@ -171,6 +176,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
         HField hsnow;
         ZField tice0;
         HField snow;
+        HField emp;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -271,6 +277,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
+            registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
         }
         std::string getName() const override { return "AtmosphericData"; }
 
@@ -282,6 +289,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
             hsnow[0] = 0.01; // Cell averaged
             tice0[0] = -9;
             snow[0] = 1e-3;
+            emp[0] = 0;
         }
 
         HField hice;
@@ -289,7 +297,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
         HField hsnow;
         ZField tice0;
         HField snow;
-
+        HField emp;
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmData;

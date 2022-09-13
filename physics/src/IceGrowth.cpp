@@ -41,6 +41,7 @@ IceGrowth::IceGrowth()
     registerSharedArray(SharedArray::C_ICE, &cice);
     registerSharedArray(SharedArray::H_SNOW, &hsnow);
     registerSharedArray(SharedArray::NEW_ICE, &newice);
+    registerSharedArray(SharedArray::HSNOW_MELT, &snowMelt);
 
     registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
     registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
@@ -146,8 +147,8 @@ void IceGrowth::update(const TimestepTime& tsTime)
                      std::placeholders::_2),
         tsTime);
 
-    // Update the ocean state
-    oceanStateImpl->update(tsTime);
+    // Update the ocean state (Tf)
+    oceanStateImpl->updateBefore(tsTime);
 
     iFluxes->update(tsTime);
 
@@ -156,6 +157,9 @@ void IceGrowth::update(const TimestepTime& tsTime)
     overElements(
         std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),
         tsTime);
+
+    // Update the ocean state (nudging, SST, SSS)
+    oceanStateImpl->updateAfter(tsTime);
 }
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,

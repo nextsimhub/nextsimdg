@@ -45,6 +45,7 @@ protected:
     HField sw_in;
     HField lw_in;
     HField snowfall;
+    HField evap_minus_precip;
 
     HField windSpeed;
 
