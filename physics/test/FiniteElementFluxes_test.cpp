@@ -122,7 +122,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     // OceanState is independently updated
     Module::getImplementation<OceanState>().configure();
     Module::getImplementation<OceanState>().setData(ModelState().data);
-    Module::getImplementation<OceanState>().update(tst);
+    Module::getImplementation<OceanState>().updateBefore(tst);
     FiniteElementFluxCalc fefc;
     fefc.configure();
     fefc.setData(ModelState().data);
@@ -231,7 +231,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
     // OceanState is independently updated
     Module::getImplementation<OceanState>().configure();
     Module::getImplementation<OceanState>().setData(ModelState().data);
-    Module::getImplementation<OceanState>().update(tst);
+    Module::getImplementation<OceanState>().updateBefore(tst);
     FiniteElementFluxCalc fefc;
     fefc.configure();
     fefc.setData(ModelState().data);

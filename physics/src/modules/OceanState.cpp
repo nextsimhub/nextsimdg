@@ -7,6 +7,7 @@
 
 #include "include/OceanState.hpp"
 
+#include "include/ModelArrayRef.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -79,19 +80,54 @@ OceanState::HelpMap& OceanState::getHelpRecursive(HelpMap& map, bool getAll)
     return Module::getHelpRecursive<IFreezingPoint>(map, getAll);
 }
 
-void OceanState::update(const TimestepTime& tst)
+void OceanState::updateBefore(const TimestepTime& tst)
 {
     // Mixed layer heat capacity per unit area
     cpml = mld * Water::rho * Water::cp;
-    // Sea surface freezing point
-    tf.resize();
-    overElements(std::bind(&OceanState::updateFreezingPoint, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
     // Derived class updates
-    updateSpecial(tst);
+    updateFreezingPoint(tst);
+
+    // Zero the nudging fluxes for implementations to update in updateAfter
 }
 
-void OceanState::updateFreezingPoint(size_t i, const TimestepTime&) { tf[i] = (*tfImpl)(sss[i]); }
+void OceanState::updateAfter(const TimestepTime& tst)
+{
+    // Heat flux
+    ModelArrayRef<SharedArray::Q_IO> qio;
+    ModelArrayRef<SharedArray::Q_OW> qow;
+    HField heatingRate = qio + qow - qdw;
+    sst += tst.step.seconds() * heatingRate / cpml;
+
+    // Water fluxes
+    // Final slab ocean areal mass
+    ModelArrayRef<SharedArray::DELTA_HICE> deltaIce;
+    ModelArrayRef<SharedArray::HSNOW_MELT> snowMelt;
+    ModelArrayRef<ProtectedArray::EVAP_MINUS_PRECIP> emp;
+    HField iceWater = deltaIce.data() * Ice::rho; // pure water density
+    HField snowWater = snowMelt.data() * Ice::rhoSnow;
+    HField epWater = emp.data() * tst.step.seconds();
+    HField nudgeWater = fdw * tst.step.seconds();
+    // The resultant amount of water
+    HField slabMass = mld * Water::rho - iceWater - snowWater - epWater;
+    // Clamp to the minimum amount of water in the mixed layer slab
+    const double minMass = 1; // Minimum depth of the slab ocean
+    slabMass.clampBelow(minMass * Water::rho);
+    // Effective ice salinity: melting ice should never make the salinity increase, even in fresh
+    // water.
+    HField effectiveSalinity = sss.min(Ice::s); // retained for diagnostic output
+    HField salinityDifference = sss - effectiveSalinity;
+    HField deltaSSS = salinityDifference * Ice::rho * deltaIce + sss * Ice::rhoSnow * snowMelt
+        + sss * (emp - fdw) * tst.step.seconds();
+    sss += deltaSSS / slabMass;
+}
+
+void OceanState::updateFreezingPoint(const TimestepTime& tst)
+{
+    overElements(std::bind(&OceanState::updateFreezingPointI, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tst);
+}
+
+void OceanState::updateFreezingPointI(size_t i, const TimestepTime&) { tf[i] = (*tfImpl)(sss[i]); }
 
 } /* namespace Nextsim */

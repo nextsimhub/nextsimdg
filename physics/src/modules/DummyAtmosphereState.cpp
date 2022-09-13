@@ -17,6 +17,7 @@ void DummyAtmosphereState::setData(const ModelState::DataMap&)
     sw_in = 0; // night
     lw_in = 311;
     snowfall = 0;
+    evap_minus_precip = 0;
 
     windSpeed = 0;
 }
