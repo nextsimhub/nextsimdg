@@ -56,7 +56,6 @@ list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
 set(Sources
     "IceGrowth.cpp"
-    "AtmosphereOceanState.cpp"
     )
 
 list(TRANSFORM Sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")

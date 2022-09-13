@@ -111,6 +111,7 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map
     Module::getHelpRecursive<IIceAlbedo>(map, getAll);
     // Skip having to write a gHR() function for FEFC by accessing IceOceanHeatFlux here.
     Module::getHelpRecursive<IIceOceanHeatFlux>(map, getAll);
+    Module::getHelpRecursive<AtmosphereState>(map, getAll);
     return map;
 }
 
@@ -233,6 +234,9 @@ void FiniteElementFluxCalc::configure()
     // iOWFluxesImpl = std::move(Module::getInstance<IOWFluxes>());
     fef->configure();
 
+    atmStateImpl = &Module::getImplementation<AtmosphereState>();
+    tryConfigure(atmStateImpl);
+
     iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFlux>();
     tryConfigure(iceOceanHeatFluxImpl);
 }
@@ -244,6 +248,7 @@ void FiniteElementFluxCalc::setData(const ModelState::DataMap& ms)
     iOWFluxesImpl->setData(ms);
     iIceFluxesImpl->setData(ms);
     fef->setData(ms);
+    atmStateImpl->setData(ms);
     iceOceanHeatFluxImpl->setData(ms);
 }
 
@@ -252,7 +257,7 @@ ModelState FiniteElementFluxCalc::getState(const OutputLevel&) const { return ge
 ModelState FiniteElementFluxCalc::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state(getState());
-    state.merge(aoState.getStateRecursive(os));
+    state.merge(atmStateImpl->getStateRecursive(os));
     state.merge(fef->getStateRecursive(os));
     state.merge(iceOceanHeatFluxImpl->getStateRecursive(os));
     return os ? state : ModelState();
@@ -260,7 +265,7 @@ ModelState FiniteElementFluxCalc::getStateRecursive(const OutputSpec& os) const
 
 void FiniteElementFluxCalc::update(const TimestepTime& tst)
 {
-    aoState.update(tst);
+    atmStateImpl->update(tst);
     // Update the atmospheric state
     fef->updateAtmosphere(tst);
     // Call the modular open water flux calculation

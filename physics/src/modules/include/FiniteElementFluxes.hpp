@@ -8,6 +8,7 @@
 #ifndef FINITEELEMENTFLUXES_HPP
 #define FINITEELEMENTFLUXES_HPP
 
+#include "include/AtmosphereState.hpp"
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
@@ -133,6 +134,7 @@ class FiniteElementFluxCalc
 public:
     FiniteElementFluxCalc()
         : IFluxCalculation()
+        , atmStateImpl(nullptr)
         , fef(nullptr)
         , iIceFluxesImpl(nullptr)
         , iOWFluxesImpl(nullptr)
@@ -155,6 +157,7 @@ public:
     void configure() override;
 
 private:
+    AtmosphereState* atmStateImpl;
     std::unique_ptr<IOWFluxes> iOWFluxesImpl;
     IIceFluxes* iIceFluxesImpl;
     FiniteElementFluxes* fef;
