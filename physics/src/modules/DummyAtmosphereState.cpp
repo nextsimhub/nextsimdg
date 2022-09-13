@@ -11,7 +11,7 @@ namespace Nextsim {
 void DummyAtmosphereState::setData(const ModelState::DataMap&)
 {
     tair = -1;
-    tdew = -4;
+    tdew = -0.5;
     pair = 1e5;
     rmix = -1; // Use the dew point, rather than the mixing ratio
     sw_in = 0; // night
