@@ -7,16 +7,19 @@
 
 #include "include/OceanStateModule.hpp"
 
+#include "include/ConfiguredOcean.hpp"
 #include "include/DummyOceanState.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string DUMMYOCEANSTATE = "Nextsim::DummyOceanState";
+const std::string CONFIGUREDOCEAN = "Nextsim::ConfiguredOcean";
 
 template <>
 Module<Nextsim::OceanState>::map Module<Nextsim::OceanState>::functionMap = {
     { DUMMYOCEANSTATE, newImpl<Nextsim::OceanState, Nextsim::DummyOceanState> },
+    { CONFIGUREDOCEAN, newImpl<Nextsim::OceanState, Nextsim::ConfiguredOcean> },
 };
 
 template <>

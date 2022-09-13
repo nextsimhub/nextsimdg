@@ -8,7 +8,7 @@ nx = 30
 ny = 30
 nLayers = 1
 
-root = netCDF4.Dataset(f"init_rect{nx}{ny}.res.nc", "w", format="NETCDF4")
+root = netCDF4.Dataset(f"init_rect{nx}x{ny}.nc", "w", format="NETCDF4")
 
 metagrp = root.createGroup("structure")
 metagrp.type = "simple_rectangular"
