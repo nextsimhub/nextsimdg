@@ -13,6 +13,15 @@
 namespace Nextsim {
 
 class IAtmosphereBoundary : public ModelComponent {
+    IAtmosphereBoundary()
+    {
+        registerSharedArray(SharedArray::Q_IA, &qia);
+        registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
+        registerProtectedArray(ProtectedArray::SW_IN, &qsw);
+        registerProtectedArray(ProtectedArray::LW_IN, &qlw);
+        registerSharedArray(SharedArray::SUBLIM, &subl);
+
+    }
     virtual ~IAtmosphereBoundary() = default;
 
     void setData(const ModelState::DataMap&) override;
