@@ -13,6 +13,7 @@
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/OceanState.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
@@ -62,6 +63,8 @@ private:
     std::unique_ptr<ILateralIceSpread> iLateral;
     // Flux calculation Module Component
     std::unique_ptr<IFluxCalculation> iFluxes;
+    // Ocean state, required for freezing point calculation
+    std::unique_ptr<OceanState> oceanStateImpl;
 
     // Data fields
     // Owned, shared data fields
@@ -72,6 +75,7 @@ private:
     HField hice0; // Timestep initial true ice thickness, m
     HField hsnow0; // Timestep initial true snow thickness, m
 
+    HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
     // Owned data fields, not shared
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)

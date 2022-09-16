@@ -41,6 +41,7 @@ IceGrowth::IceGrowth()
     registerSharedArray(SharedArray::C_ICE, &cice);
     registerSharedArray(SharedArray::H_SNOW, &hsnow);
     registerSharedArray(SharedArray::NEW_ICE, &newice);
+    registerSharedArray(SharedArray::HSNOW_MELT, &snowMelt);
 
     registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
     registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
@@ -51,6 +52,7 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
     iVertical->setData(ms);
     iLateral->setData(ms);
     iFluxes->setData(ms);
+    oceanStateImpl->setData(ms);
 
     hice.resize();
     cice.resize();
@@ -82,6 +84,8 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
     state.merge(iFluxes->getStateRecursive(os));
     state.merge(iLateral->getStateRecursive(os));
     state.merge(iVertical->getStateRecursive(os));
+    state.merge(oceanStateImpl->getStateRecursive(os));
+
     return os ? state : ModelState();
 }
 
@@ -101,6 +105,7 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
     Module::getHelpRecursive<IIceThermodynamics>(map, getAll);
     Module::getHelpRecursive<ILateralIceSpread>(map, getAll);
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
+    Module::getHelpRecursive<OceanState>(map, getAll);
     return map;
 }
 
@@ -119,6 +124,10 @@ void IceGrowth::configure()
     // Configure the flux calculation module
     iFluxes = std::move(Module::getInstance<IFluxCalculation>());
     tryConfigure(*iFluxes);
+
+    // Configure the ocean state module
+    oceanStateImpl = std::move(Module::getInstance<OceanState>());
+    tryConfigure(*oceanStateImpl);
 }
 
 ConfigMap IceGrowth::getConfiguration() const
@@ -138,6 +147,9 @@ void IceGrowth::update(const TimestepTime& tsTime)
                      std::placeholders::_2),
         tsTime);
 
+    // Update the ocean state (Tf)
+    oceanStateImpl->updateBefore(tsTime);
+
     iFluxes->update(tsTime);
 
     iVertical->update(tsTime);
@@ -145,6 +157,9 @@ void IceGrowth::update(const TimestepTime& tsTime)
     overElements(
         std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),
         tsTime);
+
+    // Update the ocean state (nudging, SST, SSS)
+    oceanStateImpl->updateAfter(tsTime);
 }
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,

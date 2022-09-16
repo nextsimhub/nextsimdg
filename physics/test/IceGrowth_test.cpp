@@ -44,11 +44,8 @@ TEST_CASE("New ice formation", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::SST, &sst);
-            registerProtectedArray(ProtectedArray::SSS, &sss);
-            registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
-            registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
+            registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
         }
         std::string getName() const override { return "AtmosphericData"; }
 
@@ -59,27 +56,39 @@ TEST_CASE("New ice formation", "[IceGrowth]")
             hice[0] = 0.1; // Cell averaged
             hsnow[0] = 0; // Cell averaged
             tice0[0] = -2;
-            sst[0] = -1.5;
-            sss[0] = 32.;
             snow[0] = 0;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            mlbhc[0] = 4.29151e7;
+            emp[0] = 0;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
         ZField tice0;
-        HField sst;
-        HField sss;
-        HField tf;
         HField snow;
-        HField mlbhc; // Mixed layer bulk heat capacity
+        HField emp;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmData;
     atmData.setData(ModelState().data);
+
+    class OceanData : public OceanState {
+    public:
+        OceanData()
+            : OceanState()
+        {
+        }
+        void setData(const ModelState::DataMap& state) override
+        {
+            sst[0] = -1.5;
+            sss[0] = 32.;
+            mld[0] = 10.25;
+            tf.resize();
+            cpml.resize();
+        }
+        void updateSpecial(const TimestepTime& tst) override { cpml[0] = 4.29151e7; }
+    };
+    Module::Module<OceanState>::setExternalImplementation(Module::newImpl<OceanState, OceanData>);
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:
@@ -110,6 +119,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     IceGrowth ig;
     ig.configure();
+    ig.setData(ModelState().data);
     ig.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, RO> newice;
@@ -145,11 +155,8 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::SST, &sst);
-            registerProtectedArray(ProtectedArray::SSS, &sss);
-            registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
-            registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
+            registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
         }
         std::string getName() const override { return "AtmosphericData"; }
 
@@ -160,27 +167,39 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
             hice[0] = 0.1; // Cell averaged
             hsnow[0] = 0.01; // Cell averaged
             tice0[0] = -1;
-            sst[0] = -1;
-            sss[0] = 32.;
             snow[0] = 0.00;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            mlbhc[0] = 4.29151e7;
+            emp[0] = 0;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
         ZField tice0;
-        HField sst;
-        HField sss;
-        HField tf;
         HField snow;
-        HField mlbhc; // Mixed layer bulk heat capacity
+        HField emp;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmData;
     atmData.setData(ModelState().data);
+
+    class OceanData : public OceanState {
+    public:
+        OceanData()
+            : OceanState()
+        {
+        }
+        void setData(const ModelState::DataMap& state) override
+        {
+            sst[0] = -1;
+            sss[0] = 32.;
+            mld[0] = 10.25;
+            tf.resize();
+            cpml.resize();
+        }
+        void updateSpecial(const TimestepTime& tst) override { cpml[0] = 4.29151e7; }
+    };
+    Module::Module<OceanState>::setExternalImplementation(Module::newImpl<OceanState, OceanData>);
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:
@@ -212,6 +231,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
+    ig.setData(ModelState().data);
     ig.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, RO> newice;
@@ -256,11 +276,8 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::SST, &sst);
-            registerProtectedArray(ProtectedArray::SSS, &sss);
-            registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
-            registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
+            registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
         }
         std::string getName() const override { return "AtmosphericData"; }
 
@@ -271,27 +288,38 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
             hice[0] = 0.1; // Cell averaged
             hsnow[0] = 0.01; // Cell averaged
             tice0[0] = -9;
-            sst[0] = -1.75;
-            sss[0] = 32.;
             snow[0] = 1e-3;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            mlbhc[0] = 4.29151e7;
+            emp[0] = 0;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
         ZField tice0;
-        HField sst;
-        HField sss;
-        HField tf;
         HField snow;
-        HField mlbhc; // Mixed layer bulk heat capacity
-
+        HField emp;
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmData;
     atmData.setData(ModelState().data);
+
+    class OceanData : public OceanState {
+    public:
+        OceanData()
+            : OceanState()
+        {
+        }
+        void setData(const ModelState::DataMap& state) override
+        {
+            sst[0] = -1.75;
+            sss[0] = 32.;
+            mld[0] = 10.25;
+            tf.resize();
+            cpml.resize();
+        }
+        void updateSpecial(const TimestepTime& tst) override { cpml[0] = 4.29151e7; }
+    };
+    Module::Module<OceanState>::setExternalImplementation(Module::newImpl<OceanState, OceanData>);
 
     class FluxData : public IFluxCalculation, public Configured<FluxData> {
     public:
@@ -322,6 +350,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
+    ig.setData(ModelState().data);
     ig.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, RO> newice;

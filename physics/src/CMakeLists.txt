@@ -35,9 +35,11 @@ set(StateModuleSources
     "AtmosphereStateModule.cpp"
     "AtmosphereState.cpp"
     "DummyAtmosphereState.cpp"
+    "ConfiguredAtmosphere.cpp"
     "OceanStateModule.cpp"
     "OceanState.cpp"
     "DummyOceanState.cpp"
+    "ConfiguredOcean.cpp"
     )
 
 set(ModuleSources
@@ -56,7 +58,6 @@ list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
 set(Sources
     "IceGrowth.cpp"
-    "AtmosphereOceanState.cpp"
     )
 
 list(TRANSFORM Sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")

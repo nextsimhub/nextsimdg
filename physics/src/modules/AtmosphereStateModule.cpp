@@ -7,16 +7,19 @@
 
 #include "include/AtmosphereStateModule.hpp"
 
+#include "include/ConfiguredAtmosphere.hpp"
 #include "include/DummyAtmosphereState.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string DUMMYATMOSPHERESTATE = "Nextsim::DummyAtmosphereState";
+const std::string CONFIGUREDATMOSPHERE = "Nextsim::ConfiguredAtmosphere";
 
 template <>
 Module<Nextsim::AtmosphereState>::map Module<Nextsim::AtmosphereState>::functionMap = {
     { DUMMYATMOSPHERESTATE, newImpl<Nextsim::AtmosphereState, Nextsim::DummyAtmosphereState> },
+    { CONFIGUREDATMOSPHERE, newImpl<Nextsim::AtmosphereState, Nextsim::ConfiguredAtmosphere> },
 };
 
 template <>

@@ -53,6 +53,8 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
             sst[0] = -1.;
             sss[0] = 32.;
             mld[0] = 10.25;
+            tf.resize();
+            cpml.resize();
         }
         void updateSpecial(const TimestepTime& tst) override { }
     };
@@ -110,13 +112,17 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
         HField hsnow;
         HField tice0;
         HField hice0;  // ice averaged ice thickness
-        HField hsnow0; // ice averaged snoew thickness
+        HField hsnow0; // ice averaged snow thickness
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
+    // OceanState is independently updated
+    Module::getImplementation<OceanState>().configure();
+    Module::getImplementation<OceanState>().setData(ModelState().data);
+    Module::getImplementation<OceanState>().updateBefore(tst);
     FiniteElementFluxCalc fefc;
     fefc.configure();
     fefc.setData(ModelState().data);
@@ -222,6 +228,10 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
     iceState.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
+    // OceanState is independently updated
+    Module::getImplementation<OceanState>().configure();
+    Module::getImplementation<OceanState>().setData(ModelState().data);
+    Module::getImplementation<OceanState>().updateBefore(tst);
     FiniteElementFluxCalc fefc;
     fefc.configure();
     fefc.setData(ModelState().data);
