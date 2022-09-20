@@ -19,6 +19,18 @@ else()
     endif()
 endif()
 
+OPTION(WITH_THREADS      "Build with support for openmp" OFF)
+
+find_package(OpenMP)
+if (OPENMP_FOUND)
+   IF(WITH_THREADS)
+	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    	set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+   endif()
+endif()
+
+
 # Regarding Boost.Log, if our application consists of more
 # than one modules that use it, we must link to the shared
 # version. If we have a single executable or a single module
