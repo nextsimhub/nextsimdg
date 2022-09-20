@@ -33,6 +33,7 @@ To compile neXtSIM, you need to install first some libraries :
   - `Boost`_
   - `Catch2`_
   - `CMake`_
+  - `Eigen`_
 
 Compilation on MAC OS
 ---------------------
@@ -45,6 +46,7 @@ If your package manager is `Homebrew`_ :
         brew install boost
         brew install catch2
         brew install cmake
+        brew install eigen
         
         cd nextsimdg
         mkdir -p build
@@ -60,7 +62,7 @@ You must have root priviledge :
 .. code::
 
         sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake libeigen3-dev
         git clone -b v2.x https://github.com/catchorg/Catch2.git
         cd Catch2
         cmake -Bbuild -H. -DBUILD_TESTING=OFF
@@ -86,6 +88,7 @@ Install conda via `anaconda`_ or `miniconda`_ (no root priviledges required)
         conda install libgcc
         conda install netCDF4
         conda install -c conda-forge boost
+        conda install -c conda-forge eigen
         conda install -c anaconda cmake
         conda install -c conda-forge catch2
         conda install -c conda-forge netcdf-cxx4
@@ -113,6 +116,7 @@ Otherwise, install them via `anaconda`_ or `miniconda`_ (no root priviledges req
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
 .. _Catch2: https://github.com/catchorg/Catch2
+.. _Eigen: https://eigen.tuxfamily.org/
 .. _CMake: https://cmake.org/
 .. _Homebrew: https://brew.sh/
 .. _here: https://nextsim-dg.readthedocs.io/en/latest/getting_started.html
