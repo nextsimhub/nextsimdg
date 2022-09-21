@@ -33,7 +33,8 @@ public:
     {
         protectedArrays[static_cast<size_t>(type)] = p;
     }
-    static MARConstBackingStore& getProtectedArrays() { return protectedArrays; }
+    static const MARConstBackingStore& getProtectedArrays() { return protectedArrays; }
+    static const MARBackingStore& getSharedArrays() { return sharedArrays; }
 protected:
     static MARBackingStore sharedArrays;
     static MARConstBackingStore protectedArrays;
@@ -68,7 +69,7 @@ private:
 class IceThermo : public MiniModelComponent {
 public:
     IceThermo()
-    : hice(MiniModelComponent::sharedArrays)
+    : hice(MiniModelComponent::getSharedArrays())
     {
     }
 
@@ -83,7 +84,7 @@ private:
 class IceCalc : public MiniModelComponent {
 public:
     IceCalc()
-    : hice0(MiniModelComponent::protectedArrays)
+    : hice0(MiniModelComponent::getProtectedArrays())
     {
         registerSharedArray(SharedArray::H_ICE, &hice);
     }
@@ -174,7 +175,7 @@ public:
     {
         coupler.update();
     }
-    MARBackingStore& bs() { return coupledFields; }
+    const MARBackingStore& bs() { return coupledFields; }
 private:
     HField hice;
     HField swin;

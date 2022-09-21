@@ -35,7 +35,7 @@ typedef std::vector<ModelArrayConstReference> MARConstBackingStore;
  */
 template <auto arrayName, typename S, bool access = RO> class ModelArrayRef {
 public:
-    ModelArrayRef(S& backingStoreIn)
+    ModelArrayRef(const S& backingStoreIn)
         : backingStore(backingStoreIn)
     {
     }
@@ -159,7 +159,7 @@ public:
     ModelArray operator/(const ModelArray& divisor) const { return data() / divisor; }
 
 private:
-    S& backingStore;
+    const S& backingStore;
 };
 
 /*!
@@ -174,7 +174,7 @@ private:
  */
 template <auto arrayName> class ModelArrayRef<arrayName, MARBackingStore, RW> {
 public:
-    ModelArrayRef(MARBackingStore& backingStoreIn)
+    ModelArrayRef(const MARBackingStore& backingStoreIn)
         : backingStore(backingStoreIn)
     {
     }
@@ -284,7 +284,7 @@ public:
     operator ModelArray&() const { return data(); }
 
 private:
-    MARBackingStore& backingStore;
+    const MARBackingStore& backingStore;
 };
 }
 #endif /* MODELARRAYREF2_HPP */
