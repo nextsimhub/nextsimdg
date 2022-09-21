@@ -32,10 +32,13 @@ public:
     virtual void updateOW(const TimestepTime&) = 0;
 
 protected:
-    IOWFluxes() = default;
+    IOWFluxes()
+        : qow(getSharedArray())
+    {
+    }
     // No owned arrays
     // Shared arrays, output
-    ModelArrayRef<SharedArray::Q_OW, RW> qow;
+    ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW> qow;
 };
 }
 

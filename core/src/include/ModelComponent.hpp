@@ -10,6 +10,7 @@
 
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
 #include "include/Time.hpp"
@@ -161,31 +162,14 @@ public:
     }
 
     /*!
-     * @brief Returns a (raw) const pointer to a ModelArray with registered to
-     * a SharedArray slot.
+     * @brief Returns a const reference to the store for SharedArray fields
      */
-    template <SharedArray arrayName> static const ModelArray* getConstArray()
-    {
-        return sharedArrays[static_cast<size_t>(arrayName)];
-    }
+    static const MARBackingStore& getSharedArray() { return sharedArrays; }
 
     /*!
-     * @brief Returns a (raw) const pointer to a ModelArray with registered to
-     * a ProtectedArray slot.
+     * @brief Returns a const reference to the store for ProtectedArray fields
      */
-    template <ProtectedArray arrayName> static const ModelArray* getConstArray()
-    {
-        return protectedArrays[static_cast<size_t>(arrayName)];
-    }
-
-    /*!
-     * @brief Returns a (raw) pointer to a ModelArray with registered to
-     * a SharedArray slot.
-     */
-    template <SharedArray arrayName> static ModelArray* getArray()
-    {
-        return sharedArrays[static_cast<size_t>(arrayName)];
-    }
+    static const MARConstBackingStore& getProtectedArray() { return protectedArrays; }
 
 protected:
     void registerModule();
@@ -241,8 +225,8 @@ protected:
     static ModelArray* p_oceanMaskH;
 
 private:
-    static ModelArray* sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
-    static const ModelArray* protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
+    static MARBackingStore sharedArrays;
+    static MARConstBackingStore protectedArrays;
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
 
     static size_t nOcean;

@@ -56,7 +56,7 @@ class ModuleSupplyAndWait : public ModelComponent {
 public:
     ModuleSupplyAndWait()
         : hice(ModelArray::HField())
-        , cice_ref()
+        , cice_ref(getProtectedArray())
     {
         registerModule();
         registerProtectedArray(ProtectedArray::H_ICE, &hice);
@@ -77,14 +77,14 @@ public:
 
 private:
     HField hice;
-    ModelArrayRef<ProtectedArray::C_ICE> cice_ref;
+    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice_ref;
 };
 
 class ModuleRequestAndSupply : public ModelComponent {
 public:
     ModuleRequestAndSupply()
         : cice(ModelArray::HField())
-        , hice_ref()
+        , hice_ref(getProtectedArray())
     {
         registerModule();
         registerProtectedArray(ProtectedArray::C_ICE, &cice);
@@ -105,7 +105,7 @@ public:
 
 private:
     HField cice;
-    ModelArrayRef<ProtectedArray::H_ICE> hice_ref;
+    ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore> hice_ref;
 };
 
 TEST_CASE("Test array registration", "[ModelComponent]")
@@ -122,7 +122,7 @@ class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()
         : qic(ModelArray::HField())
-        , qio_ref()
+        , qio_ref(getSharedArray())
     {
         registerModule();
         registerSharedArray(SharedArray::Q_IC, &qic);
@@ -143,14 +143,14 @@ public:
 
 private:
     HField qic;
-    ModelArrayRef<SharedArray::Q_IO, RO> qio_ref;
+    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RO> qio_ref;
 };
 
 class ModuleShared : public ModelComponent {
 public:
     ModuleShared()
         : qio(ModelArray::HField())
-        , qic_ref()
+        , qic_ref(getSharedArray())
     {
         registerModule();
         registerSharedArray(SharedArray::Q_IO, &qio);
@@ -173,7 +173,7 @@ public:
 
 private:
     HField qio;
-    ModelArrayRef<SharedArray::Q_IC, RW> qic_ref;
+    ModelArrayRef<SharedArray::Q_IC, MARBackingStore, RW> qic_ref;
 };
 
 TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")

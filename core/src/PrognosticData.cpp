@@ -54,10 +54,10 @@ void PrognosticData::update(const TimestepTime& tst)
 {
     iceGrowth.update(tst);
 
-    ModelArrayRef<SharedArray::H_ICE, RO> hiceTrueUpd;
-    ModelArrayRef<SharedArray::C_ICE, RO> ciceUpd;
-    ModelArrayRef<SharedArray::H_SNOW, RO> hsnowTrueUpd;
-    ModelArrayRef<SharedArray::T_ICE, RO> ticeUpd;
+    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
+    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
+    ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnowTrueUpd(getSharedArray());
+    ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RO> ticeUpd(getSharedArray());
 
     // Calculate the cell average thicknesses
     HField hiceUpd = hiceTrueUpd * ciceUpd;

@@ -44,6 +44,18 @@ protected:
         : tice(ModelArray::Type::Z)
         , deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
+        , hice(getSharedArray())
+        , cice(getSharedArray())
+        , hsnow(getSharedArray())
+        , qic(getSharedArray())
+        , qio(getSharedArray())
+        , qia(getSharedArray())
+        , dQia_dt(getSharedArray())
+        , sublim(getSharedArray())
+        , tice0(getProtectedArray())
+        , tf(getProtectedArray())
+        , snowfall(getProtectedArray())
+        , sss(getProtectedArray())
     {
         registerModule();
 
@@ -51,19 +63,21 @@ protected:
         ModelComponent::registerSharedArray(SharedArray::T_ICE, &tice);
     }
 
-    ModelArrayRef<SharedArray::H_ICE, RW> hice; // From IceGrowth
-    ModelArrayRef<SharedArray::C_ICE, RW> cice; // From IceGrowth
-    ModelArrayRef<SharedArray::H_SNOW, RW> hsnow; // From Ice Growth
-    ModelArrayRef<SharedArray::Q_IC, RW>
+    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RW> hice; // From IceGrowth
+    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RW> cice; // From IceGrowth
+    ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RW> hsnow; // From Ice Growth
+    ModelArrayRef<SharedArray::Q_IC, MARBackingStore, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
-    ModelArrayRef<SharedArray::Q_IO, RW> qio; // From FluxCalculation
-    ModelArrayRef<SharedArray::Q_IA, RO> qia; // From FluxCalculation
-    ModelArrayRef<SharedArray::DQIA_DT, RO> dQia_dt; // From FluxCalculation
-    ModelArrayRef<SharedArray::SUBLIM, RO> sublim; // From AtmosphereState
-    ModelArrayRef<ProtectedArray::T_ICE> tice0; // Timestep initial ice temperature
-    ModelArrayRef<ProtectedArray::TF> tf; // Sea water freezing temperature
-    ModelArrayRef<ProtectedArray::SNOW> snowfall; // From ExternalData
-    ModelArrayRef<ProtectedArray::SSS> sss; // From ExternalData (possibly PrognosticData)
+    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio; // From FluxCalculation
+    ModelArrayRef<SharedArray::Q_IA, MARBackingStore, RO> qia; // From FluxCalculation
+    ModelArrayRef<SharedArray::DQIA_DT, MARBackingStore, RO> dQia_dt; // From FluxCalculation
+    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> sublim; // From AtmosphereState
+    ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore>
+        tice0; // Timestep initial ice temperature
+    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf; // Sea water freezing temperature
+    ModelArrayRef<ProtectedArray::SNOW, MARConstBackingStore> snowfall; // From ExternalData
+    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore>
+        sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
     HField tice;
     HField deltaHi;

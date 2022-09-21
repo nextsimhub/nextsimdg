@@ -8,7 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "include/ModelArrayRef2.hpp"
+#include "../src/include/ModelArrayRef.hpp"
 
 #include <iostream>
 

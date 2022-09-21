@@ -80,17 +80,20 @@ private:
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
-    ModelArrayRef<ProtectedArray::H_ICE>
+    ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore>
         hIceCell; // Timestep initial cell averaged ice thickness, m
-    ModelArrayRef<ProtectedArray::H_SNOW>
+    ModelArrayRef<ProtectedArray::H_SNOW, MARConstBackingStore>
         hSnowCell; // Timestep initial cell averaged snow thickness, m
-    ModelArrayRef<ProtectedArray::C_ICE> cice0; // Timestep initial ice concentration
-    ModelArrayRef<SharedArray::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
-    ModelArrayRef<ProtectedArray::ML_BULK_CP>
+    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore>
+        cice0; // Timestep initial ice concentration
+    ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW>
+        qow; // open water heat flux, from FluxCalculation
+    ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore>
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
-    ModelArrayRef<ProtectedArray::SST> sst; // sea surface temperature, ˚C
-    ModelArrayRef<ProtectedArray::TF> tf; // ocean freezing point, ˚C
-    ModelArrayRef<SharedArray::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
+    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst; // sea surface temperature, ˚C
+    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf; // ocean freezing point, ˚C
+    ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore>
+        deltaHi; // New ice thickness this timestep, m
 
     static double minc; // Minimum sea ice concentration
     static double minh; // Minimum sea ice thickness
