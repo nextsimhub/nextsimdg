@@ -129,6 +129,69 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
     REQUIRE(hicef == Approx(target).epsilon(1e-8));
 }
 
+enum class couplFields {
+    SWIN,
+    COUNT
+};
+
+static const double targetFlux = 320;
+
+class CouplEr
+{
+public:
+    CouplEr(MARBackingStore& bs)
+    : swFlux(bs)
+    {
+    }
+    void update() { swFlux[0] = targetFlux; }
+private:
+    ModelArrayRef<couplFields::SWIN, MARBackingStore, RW> swFlux;
+};
+
+class CouplIn : public MiniModelComponent
+{
+public:
+    CouplIn()
+    : coupledFields(static_cast<size_t>(couplFields::COUNT))
+    , coupler(coupledFields)
+    {
+        registerProtectedArray(ProtectedArray::H_ICE, &hice);
+        registerProtectedArray(ProtectedArray::SW_IN, &swin);
+        // Set the address of the swin array in the local reference backing store
+        coupledFields[static_cast<size_t>(couplFields::SWIN)] = &swin;
+    }
+    void configure()
+    {
+        hice.resize();
+        swin.resize();
+    }
+    void setData()
+    {
+        hice[0] = 0.5;
+        swin[0] = 350;
+    }
+    void update()
+    {
+        coupler.update();
+    }
+    MARBackingStore& bs() { return coupledFields; }
+private:
+    HField hice;
+    HField swin;
+    MARBackingStore coupledFields;
+    CouplEr coupler;
+    };
+
+TEST_CASE("Accessing the data two ways", "[ModelArrayRef]")
+{
+    CouplIn couplIn;
+    ModelArray::setDimensions(ModelArray::Type::H, {1});
+    couplIn.configure();
+    ModelArrayRef<couplFields::SWIN, MARBackingStore> swin(couplIn.bs());
+    couplIn.setData();
+
+    REQUIRE(swin[0] != targetFlux);
+    couplIn.update();
+    REQUIRE(swin[0] == targetFlux);
 }
-
-
+};
