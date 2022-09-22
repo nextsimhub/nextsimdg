@@ -82,6 +82,15 @@ OceanState::HelpMap& OceanState::getHelpRecursive(HelpMap& map, bool getAll)
 
 void OceanState::updateBefore(const TimestepTime& tst)
 {
+    // resize all the arrays
+    sst.resize();
+    sss.resize();
+    mld.resize();
+    tf.resize();
+    cpml.resize();
+    qdw.resize();
+    fdw.resize();
+
     // Mixed layer heat capacity per unit area
     cpml = mld * Water::rho * Water::cp;
     // Derived class updates
