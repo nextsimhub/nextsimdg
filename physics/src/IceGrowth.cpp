@@ -68,6 +68,7 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
     hice0.resize();
     hsnow0.resize();
     newice.resize();
+    snowMelt.resize();
     deltaCFreeze.resize();
     deltaCMelt.resize();
 }
