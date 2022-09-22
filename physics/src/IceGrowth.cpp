@@ -35,6 +35,14 @@ IceGrowth::IceGrowth()
     , newice(ModelArray::Type::H)
     , deltaCFreeze(ModelArray::Type::H)
     , deltaCMelt(ModelArray::Type::H)
+    , hIceCell(getProtectedArray())
+    , hSnowCell(getProtectedArray())
+    , cice0(getProtectedArray())
+    , qow(getSharedArray())
+    , mixedLayerBulkHeatCapacity(getProtectedArray())
+    , sst(getProtectedArray())
+    , tf(getProtectedArray())
+    , deltaHi(getSharedArray())
 {
     registerModule();
     registerSharedArray(SharedArray::H_ICE, &hice);
@@ -60,6 +68,7 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
     hice0.resize();
     hsnow0.resize();
     newice.resize();
+    snowMelt.resize();
     deltaCFreeze.resize();
     deltaCMelt.resize();
 }

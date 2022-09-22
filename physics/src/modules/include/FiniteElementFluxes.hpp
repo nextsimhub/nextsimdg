@@ -15,7 +15,6 @@
 #include "include/IIceFluxes.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/IOWFluxes.hpp"
-
 #include "include/ModelArrayRef.hpp"
 
 namespace Nextsim {
@@ -44,6 +43,18 @@ public:
         , sh_water(ModelArray::Type::H)
         , sh_ice(ModelArray::Type::H)
         , dshice_dT(ModelArray::Type::H)
+        , sst(getProtectedArray())
+        , sss(getProtectedArray())
+        , t_air(getProtectedArray())
+        , t_dew2(getProtectedArray())
+        , p_air(getProtectedArray())
+        , v_air(getProtectedArray())
+        , h_snow(getProtectedArray())
+        , h_snow_true(getProtectedArray())
+        , cice(getProtectedArray())
+        , tice(getProtectedArray())
+        , sw_in(getProtectedArray())
+        , lw_in(getProtectedArray())
     {
     }
     ~FiniteElementFluxes() = default;
@@ -97,18 +108,19 @@ private:
     HField sh_ice;
     HField dshice_dT;
     // Input fields
-    ModelArrayRef<ProtectedArray::SST> sst;
-    ModelArrayRef<ProtectedArray::SSS> sss;
-    ModelArrayRef<ProtectedArray::T_AIR> t_air;
-    ModelArrayRef<ProtectedArray::DEW_2M> t_dew2;
-    ModelArrayRef<ProtectedArray::P_AIR> p_air;
-    ModelArrayRef<ProtectedArray::WIND_SPEED> v_air;
-    ModelArrayRef<ProtectedArray::H_SNOW> h_snow; // cell-averaged value
-    ModelArrayRef<ProtectedArray::HTRUE_SNOW> h_snow_true; // cell-averaged value
-    ModelArrayRef<ProtectedArray::C_ICE> cice;
-    ModelArrayRef<ProtectedArray::T_ICE> tice;
-    ModelArrayRef<ProtectedArray::SW_IN> sw_in;
-    ModelArrayRef<ProtectedArray::LW_IN> lw_in;
+    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
+    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore> sss;
+    ModelArrayRef<ProtectedArray::T_AIR, MARConstBackingStore> t_air;
+    ModelArrayRef<ProtectedArray::DEW_2M, MARConstBackingStore> t_dew2;
+    ModelArrayRef<ProtectedArray::P_AIR, MARConstBackingStore> p_air;
+    ModelArrayRef<ProtectedArray::WIND_SPEED, MARConstBackingStore> v_air;
+    ModelArrayRef<ProtectedArray::H_SNOW, MARConstBackingStore> h_snow; // cell-averaged value
+    ModelArrayRef<ProtectedArray::HTRUE_SNOW, MARConstBackingStore>
+        h_snow_true; // cell-averaged value
+    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice;
+    ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore> tice;
+    ModelArrayRef<ProtectedArray::SW_IN, MARConstBackingStore> sw_in;
+    ModelArrayRef<ProtectedArray::LW_IN, MARConstBackingStore> lw_in;
 
     void calculateOW(size_t i, const TimestepTime& tst);
     void calculateIce(size_t i, const TimestepTime& tst);

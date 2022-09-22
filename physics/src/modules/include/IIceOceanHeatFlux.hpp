@@ -8,8 +8,8 @@
 #ifndef IICEOCEANHEATFLUX_HPP
 #define IICEOCEANHEATFLUX_HPP
 
-#include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -22,6 +22,12 @@ class NextsimPhysics;
 //! The interface class for the ice-ocean heat flux calculation.
 class IIceOceanHeatFlux : public ModelComponent {
 public:
+    IIceOceanHeatFlux()
+        : sst(getProtectedArray())
+        , tf(getProtectedArray())
+        , qio(getSharedArray())
+    {
+    }
     virtual ~IIceOceanHeatFlux() = default;
 
     // This superclass has no state
@@ -43,10 +49,10 @@ public:
     virtual void update(const TimestepTime&) = 0;
 
 protected:
-    ModelArrayRef<ProtectedArray::SST> sst;
-    ModelArrayRef<ProtectedArray::TF> tf;
+    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
+    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf;
 
-    ModelArrayRef<SharedArray::Q_IO, RW> qio;
+    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio;
 };
 }
 #endif /* SRC_INCLUDE_IICEOCEANHEATFLUX_HPP_ */

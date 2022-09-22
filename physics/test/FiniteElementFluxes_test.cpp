@@ -128,11 +128,11 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     fefc.setData(ModelState().data);
     fefc.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW, RO> qow;
-    ModelArrayRef<ModelComponent::SharedArray::Q_IO, RO> qio;
-    ModelArrayRef<ModelComponent::SharedArray::Q_IA, RO> qia;
-    ModelArrayRef<ModelComponent::SharedArray::DQIA_DT, RO> dqia_dt;
-    ModelArrayRef<ModelComponent::SharedArray::SUBLIM, RO> subl;
+    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore, RO> qow(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_IO, MARBackingStore, RO> qio(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_IA, MARBackingStore, RO> qia(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::DQIA_DT, MARBackingStore, RO> dqia_dt(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::SUBLIM, MARBackingStore, RO> subl(ModelComponent::getSharedArray());
 
     double prec = 1e-5;
     REQUIRE(qow[0] == Approx(-109.923).epsilon(prec));
@@ -237,11 +237,11 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
     fefc.setData(ModelState().data);
     fefc.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW, RO> qow;
-    ModelArrayRef<ModelComponent::SharedArray::Q_IO, RO> qio;
-    ModelArrayRef<ModelComponent::SharedArray::Q_IA, RO> qia;
-    ModelArrayRef<ModelComponent::SharedArray::DQIA_DT, RO> dqia_dt;
-    ModelArrayRef<ModelComponent::SharedArray::SUBLIM, RO> subl;
+    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore, RO> qow(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_IO, MARBackingStore, RO> qio(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_IA, MARBackingStore, RO> qia(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::DQIA_DT, MARBackingStore, RO> dqia_dt(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::SUBLIM, MARBackingStore, RO> subl(ModelComponent::getSharedArray());
 
     double prec = 1e-5;
     REQUIRE(qow[0] == Approx(143.266).epsilon(prec));

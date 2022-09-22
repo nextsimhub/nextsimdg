@@ -32,13 +32,19 @@ public:
     virtual void updateIce(const TimestepTime&) = 0;
 
 protected:
-    IIceFluxes() = default;
+    IIceFluxes()
+    : qio(getSharedArray())
+    , qia(getSharedArray())
+    , dqia_dt(getSharedArray())
+    , subl(getSharedArray())
+    {
+    }
     // No owned arrays
     // Shared arrays, output
-    ModelArrayRef<SharedArray::Q_IO, RW> qio;
-    ModelArrayRef<SharedArray::Q_IA, RW> qia;
-    ModelArrayRef<SharedArray::DQIA_DT, RW> dqia_dt;
-    ModelArrayRef<SharedArray::SUBLIM, RW> subl;
+    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio;
+    ModelArrayRef<SharedArray::Q_IA, MARBackingStore, RW> qia;
+    ModelArrayRef<SharedArray::DQIA_DT, MARBackingStore, RW> dqia_dt;
+    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RW> subl;
     // Shared arrays, input
 };
 }

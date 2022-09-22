@@ -122,7 +122,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     ig.setData(ModelState().data);
     ig.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, RO> newice;
+    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
 
     double prec = 1e-5;
     REQUIRE(newice[0] == Approx(0.0258264).epsilon(prec));
@@ -234,10 +234,10 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     ig.setData(ModelState().data);
     ig.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, RO> newice;
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, RO> hice;
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, RO> cice;
-    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, RO> hsnow;
+    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RO> hice(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RO> cice(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RO> hsnow(ModelComponent::getSharedArray());
 
     double prec = 1e-5;
     // The thickness values from old NextSIM are cell-averaged. Perform that
@@ -353,10 +353,10 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
     ig.setData(ModelState().data);
     ig.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, RO> newice;
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, RO> hice;
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, RO> cice;
-    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, RO> hsnow;
+    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RO> hice(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RO> cice(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RO> hsnow(ModelComponent::getSharedArray());
 
     double prec = 1e-5;
 

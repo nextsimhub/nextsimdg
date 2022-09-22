@@ -82,6 +82,15 @@ OceanState::HelpMap& OceanState::getHelpRecursive(HelpMap& map, bool getAll)
 
 void OceanState::updateBefore(const TimestepTime& tst)
 {
+    // resize all the arrays
+    sst.resize();
+    sss.resize();
+    mld.resize();
+    tf.resize();
+    cpml.resize();
+    qdw.resize();
+    fdw.resize();
+
     // Mixed layer heat capacity per unit area
     cpml = mld * Water::rho * Water::cp;
     // Derived class updates
@@ -93,16 +102,16 @@ void OceanState::updateBefore(const TimestepTime& tst)
 void OceanState::updateAfter(const TimestepTime& tst)
 {
     // Heat flux
-    ModelArrayRef<SharedArray::Q_IO> qio;
-    ModelArrayRef<SharedArray::Q_OW> qow;
+    ModelArrayRef<SharedArray::Q_IO, MARBackingStore> qio(getSharedArray());
+    ModelArrayRef<SharedArray::Q_OW, MARBackingStore> qow(getSharedArray());
     HField heatingRate = qio + qow - qdw;
     sst += tst.step.seconds() * heatingRate / cpml;
 
     // Water fluxes
     // Final slab ocean areal mass
-    ModelArrayRef<SharedArray::DELTA_HICE> deltaIce;
-    ModelArrayRef<SharedArray::HSNOW_MELT> snowMelt;
-    ModelArrayRef<ProtectedArray::EVAP_MINUS_PRECIP> emp;
+    ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore> deltaIce(getSharedArray());
+    ModelArrayRef<SharedArray::HSNOW_MELT, MARBackingStore> snowMelt(getSharedArray());
+    ModelArrayRef<ProtectedArray::EVAP_MINUS_PRECIP, MARConstBackingStore> emp(getProtectedArray());
     HField iceWater = deltaIce.data() * Ice::rho; // pure water density
     HField snowWater = snowMelt.data() * Ice::rhoSnow;
     HField epWater = emp.data() * tst.step.seconds();
