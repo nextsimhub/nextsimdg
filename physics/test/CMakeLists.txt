@@ -39,9 +39,11 @@ add_executable(testIceGrowth
     "${ModulesDir}/AtmosphereStateModule.cpp"
     "${ModulesDir}/AtmosphereState.cpp"
     "${ModulesDir}/DummyAtmosphereState.cpp"
+    "${ModulesDir}/ConfiguredAtmosphere.cpp"
     "${ModulesDir}/OceanStateModule.cpp"
     "${ModulesDir}/OceanState.cpp"
     "${ModulesDir}/DummyOceanState.cpp"
+    "${ModulesDir}/ConfiguredOcean.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testIceGrowth PRIVATE
@@ -71,9 +73,11 @@ add_executable(testFEFluxes
     "${ModulesDir}/AtmosphereStateModule.cpp"
     "${ModulesDir}/AtmosphereState.cpp"
     "${ModulesDir}/DummyAtmosphereState.cpp"
+    "${ModulesDir}/ConfiguredAtmosphere.cpp"
     "${ModulesDir}/OceanStateModule.cpp"
     "${ModulesDir}/OceanState.cpp"
     "${ModulesDir}/DummyOceanState.cpp"
+    "${ModulesDir}/ConfiguredOcean.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testFEFluxes PRIVATE

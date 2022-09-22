@@ -33,9 +33,11 @@ set(StateModuleSources
     "AtmosphereStateModule.cpp"
     "AtmosphereState.cpp"
     "DummyAtmosphereState.cpp"
+    "ConfiguredAtmosphere.cpp"
     "OceanStateModule.cpp"
     "OceanState.cpp"
     "DummyOceanState.cpp"
+    "ConfiguredOcean.cpp"
     )
 
 set(ModuleSources
