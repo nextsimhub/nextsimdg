@@ -17,6 +17,7 @@ PrognosticData::PrognosticData()
     , m_conc(ModelArray::Type::H)
     , m_snow(ModelArray::Type::H)
     , m_tice(ModelArray::Type::Z)
+    , pAtmBdy(0)
 
 {
     registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
@@ -25,7 +26,13 @@ PrognosticData::PrognosticData()
     registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
 }
 
-void PrognosticData::configure() { tryConfigure(iceGrowth); }
+void PrognosticData::configure()
+{
+    tryConfigure(iceGrowth);
+
+    pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
+    tryConfigure(pAtmBdy);
+}
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
@@ -52,6 +59,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
+    pAtmBdy->update(tst);
     iceGrowth.update(tst);
 
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
@@ -85,6 +93,7 @@ ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state(getState());
     state.merge(iceGrowth.getStateRecursive(os));
+    state.merge(pAtmBdy->getStateRecursive(os));
     return os ? state : ModelState();
 }
 

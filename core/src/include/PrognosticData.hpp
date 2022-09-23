@@ -10,6 +10,7 @@
 
 #include "ModelComponent.hpp"
 #include "include/Configured.hpp"
+#include "include/IAtmosphereBoundary.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/Time.hpp"
 
@@ -80,6 +81,7 @@ private:
     double m_dt;
 
     IceGrowth iceGrowth;
+    IAtmosphereBoundary *pAtmBdy;
 };
 
 } /* namespace Nextsim */
