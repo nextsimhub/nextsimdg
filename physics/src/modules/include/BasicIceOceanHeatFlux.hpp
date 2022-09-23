@@ -15,14 +15,18 @@ namespace Nextsim {
 //! The implementation class for the basic ice-ocean heat flux.
 class BasicIceOceanHeatFlux : public IIceOceanHeatFlux {
 public:
-    BasicIceOceanHeatFlux() = default;
+    BasicIceOceanHeatFlux()
+        : IIceOceanHeatFlux()
+        , mlBulkCp(getProtectedArray())
+    {
+    }
     virtual ~BasicIceOceanHeatFlux() = default;
 
     void update(const TimestepTime&) override;
     void updateElement(size_t i, const TimestepTime&);
 
 protected:
-    ModelArrayRef<ProtectedArray::ML_BULK_CP> mlBulkCp;
+    ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> mlBulkCp;
 };
 
 } /* namespace Nextsim */
