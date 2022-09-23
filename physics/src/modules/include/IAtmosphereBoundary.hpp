@@ -1,48 +1,77 @@
 /*!
  * @file IAtmosphereBoundary.hpp
  *
- * @date Sep 12, 2022
+ * @date Sep 22, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
+
+#include "include/ModelArrayRef.hpp"
+#include "include/ModelComponent.hpp"
+#include "include/Time.hpp"
 
 #ifndef IATMOSPHEREBOUNDARY_HPP
 #define IATMOSPHEREBOUNDARY_HPP
 
-#include "include/ModelComponent.hpp"
-
 namespace Nextsim {
-
-class IAtmosphereBoundary : public ModelComponent {
+class IAtmosphereBoundary : public ModelComponent
+{
+public:
     IAtmosphereBoundary()
     {
-        registerSharedArray(SharedArray::Q_IA, &qia);
-        registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-        registerProtectedArray(ProtectedArray::SW_IN, &qsw);
-        registerProtectedArray(ProtectedArray::LW_IN, &qlw);
-        registerSharedArray(SharedArray::SUBLIM, &subl);
-
+        m_couplingArrays[static_cast<size_t>(CouplingFields::SUBL)] = &subl;
+        m_couplingArrays[static_cast<size_t>(CouplingFields::PRECIP)] = &precip;
+        m_couplingArrays[static_cast<size_t>(CouplingFields::EVAP)] = &evap;
+        m_couplingArrays[static_cast<size_t>(CouplingFields::SW_IN)] = &sw_in;
+        m_couplingArrays[static_cast<size_t>(CouplingFields::LW_IN)] = &lw_in;
+        m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_U)] = &uwind;
+        m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_V)] = &vwind;
     }
     virtual ~IAtmosphereBoundary() = default;
 
-    void setData(const ModelState::DataMap&) override;
-    ModelState getState() const override;
-    ModelState getState(const OutputLevel&) const override;
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ModelState getState() const override { return ModelState(); }
+    ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IAtmosphereBoundary"; }
-    std::unordered_set<std::string> hFields() const override;
-
+    virtual void update(const TimestepTime& tst)
+    {
+        qia.resize();
+        dqia_dt.resize();
+        subl.resize();
+        precip.resize();
+        evap.resize();
+        sw_in.resize();
+        lw_in.resize();
+        uwind.resize();
+        vwind.resize();
+    }
 protected:
-    HField qia; // Ice-atmosphere heat flux, W m⁻²
-    HField dqia_dt; // Derivative of qia w.r.t. ice surface temperature
-    HField qsw; // Solar shortwave radiation, W m⁻²
-    HField qlw; // Non-Solar radiative heat flux, W m⁻²
-    HField subl; // Ice sublimative mass flux, kg m⁻²
-    HField precip; // total precipitation flux, kg m⁻²
-    UField u; // x(east)-ward wind, m s⁻¹
-    VField v; // y(north)-ward wind, m s⁻¹
+
+    enum class CouplingFields {
+        SUBL, // sublimation mass flux kg s⁻¹ m⁻²
+        PRECIP, // precipitation mass flux kg s⁻¹ m⁻²
+        EVAP, // evaporation mass flux kg s⁻¹ m⁻²
+        SW_IN, // solar radiation W m⁻²
+        LW_IN, // All non-solar radiation W m⁻²
+        WIND_U, // x-aligned wind component m s⁻¹
+        WIND_V, // y-aligned wind component m s⁻¹
+        COUNT
+    };
+
+    const MARBackingStore& couplingArrays() { return m_couplingArrays; }
+
+    HField qia;
+    HField dqia_dt;
+    HField subl;
+    HField precip;
+    HField sw_in;
+    HField lw_in;
+    HField evap;
+    UField uwind;
+    VField vwind;
+
+    MARBackingStore m_couplingArrays;
 };
 
-} /* namespace Nextsim */
+} // namespace Nextsim
 
 #endif /* IATMOSPHEREBOUNDARY_HPP */
