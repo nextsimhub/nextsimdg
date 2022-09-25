@@ -15,6 +15,10 @@
 
 int main(int argc, char* argv[])
 {
+#ifdef USE_MPI
+    MPI_Init(&argc, &argv);
+#endif // USE_MPI
+
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
     // Extract any config files defined on the command line
@@ -40,12 +44,20 @@ int main(int argc, char* argv[])
         Nextsim::ConfigurationHelpPrinter::print(std::cout, map, cmdLine.configHelp());
     } else {
         // Construct the Model
-        Nextsim::Model model;
+#ifdef USE_MPI
+        Nextsim::Model model(MPI_COMM_WORLD);
+#else
+	Nextsim::Model model;
+#endif // USE_MPI
         // Apply the model configuration
         model.configure();
         // Run the Model
         model.run();
     }
+
+#ifdef USE_MPI
+    MPI_Finalize();
+#endif // USE_MPI
 
     return 0;
 }

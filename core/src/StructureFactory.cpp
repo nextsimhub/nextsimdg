@@ -3,6 +3,7 @@
  *
  * @date Jan 18, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Athena Elafrou <ae488@cam.ac.uk>
  */
 
 #include "include/StructureFactory.hpp"
@@ -38,6 +39,30 @@ std::string structureNameFromFile(const std::string& filePath)
     return structureName;
 }
 
+#ifdef USE_MPI
+ModelState StructureFactory::stateFromFile(
+    const std::string& modelFilePath, const std::string& partitionFilePath, MPI_Comm mpiComm)
+{
+    std::string structureName = structureNameFromFile(modelFilePath);
+    if (DevGrid::structureName == structureName) {
+        Module::setImplementation<IStructure>("DevGrid");
+        DevGrid gridIn(mpiComm);
+        gridIn.setIO(new DevGridIO(gridIn));
+        return gridIn.getModelState(modelFilePath, partitionFilePath);
+    } else if (RectangularGrid::structureName == structureName) {
+        Module::setImplementation<IStructure>("RectangularGrid");
+        RectangularGrid gridIn(mpiComm);
+        gridIn.setIO(new RectGridIO(gridIn));
+        return gridIn.getModelState(modelFilePath, partitionFilePath);
+    } else {
+        throw std::invalid_argument(
+            std::string("fileFromName: structure not implemented: ") + structureName);
+    }
+    throw std::invalid_argument(std::string("fileFromName: structure not implemented: ")
+        + structureName + "\nAlso, how did you get here?");
+    return ModelState();
+}
+#else // non-MPI
 ModelState StructureFactory::stateFromFile(const std::string& filePath)
 {
     std::string structureName = structureNameFromFile(filePath);
@@ -60,6 +85,7 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
         + structureName + "\nAlso, how did you get here?");
     return ModelState();
 }
+#endif // USE_MPI
 
 void StructureFactory::fileFromState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)

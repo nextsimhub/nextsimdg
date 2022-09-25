@@ -3,6 +3,7 @@
  *
  * @date Jan 14, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Athena Elafrou <ae488@cam.ac.uk>
  */
 
 #include "include/DevGridIO.hpp"
@@ -45,10 +46,81 @@ typedef std::map<StringName, std::string> NameMap;
 static const std::string metaName = "meta";
 static const std::string dataName = "data";
 static const std::string mdiName = "missing_value";
+#ifdef USE_MPI
+static const std::string bboxName = "bounding_boxes";
+#endif // USE_MPI
 
 // Metadata initialization
 static void initModelMetaData(const netCDF::NcGroup& metaGroup) { }
 
+#ifdef USE_MPI
+static ModelState initModelData(
+    const netCDF::NcGroup& dataGroup, const netCDF::NcGroup& bboxGroup, MPI_Comm mpiComm)
+{
+    // Get the global array sizes from the dimension data of the ice temperature array
+    size_t nDims = 3;
+    std::vector<size_t> globalDim(nDims);
+    for (int iDim = 0; iDim < nDims; ++iDim) {
+        globalDim[iDim] = dataGroup.getVar(ticeName).getDim(iDim).getSize();
+    }
+
+    // Get the local array sizes for this process
+    int nProcs = bboxGroup.getDim("P").getSize();
+    int mpiSize, mpiRank;
+    MPI_Comm_size(mpiComm, &mpiSize);
+    MPI_Comm_rank(mpiComm, &mpiRank);
+    assert(mpiSize == nProcs);
+    std::vector<size_t> index(1, mpiRank);
+    int topX, topY, cntX, cntY;
+    bboxGroup.getVar("global_x").getVar(index, &topX);
+    bboxGroup.getVar("global_y").getVar(index, &topY);
+    bboxGroup.getVar("local_extent_x").getVar(index, &cntX);
+    bboxGroup.getVar("local_extent_y").getVar(index, &cntY);
+
+    std::vector<size_t> localDim3(nDims);
+    std::vector<size_t> localDim2(nDims - 1);
+    localDim3[0] = localDim2[0] = cntX;
+    localDim3[1] = localDim2[1] = cntY;
+    localDim3[2] = globalDim[2];
+    // assert dimensions match
+
+    ModelArray::setDimensions(ModelArray::Type::H, localDim2);
+    ModelArray::setDimensions(ModelArray::Type::U, localDim2);
+    ModelArray::setDimensions(ModelArray::Type::V, localDim2);
+    ModelArray::setDimensions(ModelArray::Type::Z, localDim3);
+
+    // Setup information to load my part of the model data
+    std::vector<size_t> start(2);
+    std::vector<size_t> count(2);
+    // Coordinate of first element
+    start[0] = topX;
+    start[1] = topY;
+    // Number of elements in every dimension
+    count[0] = cntX;
+    count[1] = cntY;
+
+    // Loop over all data fields, add their name and contents to the ModelState
+    std::multimap<std::string, netCDF::NcVar> varMap = dataGroup.getVars();
+    ModelState state;
+    for (const auto var : varMap) {
+        std::string varName = var.first;
+        std::vector<double> buffer(cntX * cntY);
+        var.second.getVar(start, count, buffer.data());
+        int nDims = var.second.getDimCount();
+        if (nDims == 2) {
+            HField data = ModelArray::HField();
+            data.setData(buffer.data());
+            auto [i, y] = state.data.insert({ varName, data });
+        } else if (nDims == 3) {
+            ZField data = ModelArray::ZField();
+            data.setData(buffer.data());
+            state.data[varName] = data;
+        }
+    }
+
+    return state;
+}
+#else
 static ModelState initModelData(const netCDF::NcGroup& dataGroup)
 {
     // Get the number of array sizes from the dimension data of the ice temperature array
@@ -95,10 +167,29 @@ static ModelState initModelData(const netCDF::NcGroup& dataGroup)
 
     return state;
 }
+#endif // USE_MPI
 
+#ifdef USE_MPI
+ModelState DevGridIO::getModelState(
+    const std::string& modelFilePath, const std::string& partitionFilePath) const
+{
+    netCDF::NcFile modelNcFile(modelFilePath, netCDF::NcFile::read);
+    netCDF::NcGroup metaGroup(modelNcFile.getGroup(metaName));
+    initModelMetaData(metaGroup);
+
+    netCDF::NcGroup dataGroup(modelNcFile.getGroup(dataName));
+    netCDF::NcFile partitionNcFile(partitionFilePath, netCDF::NcFile::read);
+    netCDF::NcGroup bboxGroup(partitionNcFile.getGroup(bboxName));
+    ModelState ms = initModelData(dataGroup, bboxGroup, grid->getComm());
+
+    modelNcFile.close();
+    partitionNcFile.close();
+
+    return ms;
+}
+#else
 ModelState DevGridIO::getModelState(const std::string& filePath) const
 {
-
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 
     netCDF::NcGroup metaGroup(ncFile.getGroup(metaName));
@@ -107,8 +198,10 @@ ModelState DevGridIO::getModelState(const std::string& filePath) const
     ModelState ms = initModelData(dataGroup);
 
     ncFile.close();
+
     return ms;
 }
+#endif // USE_MPI
 
 void dumpModelMeta(const ModelMetadata& metadata, netCDF::NcGroup& metaGroup)
 {

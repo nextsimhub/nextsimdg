@@ -11,6 +11,10 @@
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 
+#ifdef USE_MPI
+#include "include/MpiUtils.hpp"
+#endif // USE_MPI
+
 namespace Nextsim {
 
 class DevGrid;
@@ -31,12 +35,26 @@ public:
     }
     virtual ~IDevGridIO() = default;
 
+#ifdef USE_MPI
+    /*!
+     * @brief Generates the ModelState based on the data in the given file for an MPI process.
+     *
+     * @param modelFilePath the name of the model file to be read.
+     * @param partitionFilePath the name of the partitioining file to be read.
+     * @param rank the MPI rank of the process.
+     * @param comm the MPI communicator.
+     */
+    virtual ModelState getModelState(
+        const std::string& modelFilePath, const std::string& partitionFilePath) const
+        = 0;
+#else
     /*!
      * @brief Generates the ModelState based on the data in the given file.
      *
      * @param filePath The location of the NetCDF restart file to be read.
      */
     virtual ModelState getModelState(const std::string& filePath) const = 0;
+#endif // USE_MPI
 
     /*!
      * @brief Dumps the given ModelState to the given file path.

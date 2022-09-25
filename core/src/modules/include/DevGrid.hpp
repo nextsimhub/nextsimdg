@@ -27,6 +27,14 @@ public:
     {
     }
 
+#ifdef USE_MPI
+    DevGrid(MPI_Comm comm)
+        : IStructure(comm)
+        , pio(nullptr)
+    {
+    }
+#endif // USE_MPI
+
     //! Destructor. The lifetime of pio should be the lifetime of the instance.
     virtual ~DevGrid()
     {
@@ -36,16 +44,30 @@ public:
     }
 
     const static int nx;
+#ifdef USE_MPI
+    static int idx_x; // Global coordinate in "x" dimension of upper left corner
+    static int idx_y; // Global coordinate in "y" dimension of upper left corner
+    static int local_nx; // Local extent in "x" dimension
+    static int local_ny; // Local extent in "y" dimension
+#endif // USE_MPI
     const static std::string structureName;
 
     // Read/write override functions
+#ifdef USE_MPI
+    ModelState getModelState(
+        const std::string& restartFilePath, const std::string& partitionFilePath) override
+    {
+        return pio ? pio->getModelState(restartFilePath, partitionFilePath) : ModelState();
+    }
+#else
     ModelState getModelState(const std::string& filePath) override
     {
         return pio ? pio->getModelState(filePath) : ModelState();
     }
+#endif // USE_MPI
 
-    void dumpModelState(
-        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart = false) const override
+    void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+        const std::string& filePath, bool isRestart = false) const override
     {
         if (pio)
             pio->dumpModelState(state, metadata, filePath, isRestart);

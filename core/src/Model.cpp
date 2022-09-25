@@ -2,6 +2,7 @@
  * @file Model.cpp
  * @date 12 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Athena Elafrou <ae488@cam.ac.uk>
  */
 
 #include "include/Model.hpp"
@@ -26,18 +27,30 @@ const std::string Model::restartOptionName = "model.init_file";
 template <>
 const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
+    { Model::PARTITIONFILE_KEY, "model.part_file" },
     { Model::STARTTIME_KEY, "model.start" },
     { Model::STOPTIME_KEY, "model.stop" },
     { Model::RUNLENGTH_KEY, "model.run_length" },
     { Model::TIMESTEP_KEY, "model.time_step" },
 };
 
+#ifdef USE_MPI
+Model::Model(MPI_Comm comm)
+{
+    mpiComm = comm;
+    CHECK_MPI(MPI_Comm_size(comm, &mpiSize));
+    CHECK_MPI(MPI_Comm_rank(comm, &mpiRank));
+    iterator.setIterant(&modelStep);
+    finalFileName = "restart_" + std::to_string(mpiRank) + ".nc";
+}
+#else
 Model::Model()
 {
     iterator.setIterant(&modelStep);
 
     finalFileName = "restart.nc";
 }
+#endif // USE_MPI
 
 Model::~Model()
 {
@@ -71,13 +84,20 @@ void Model::configure()
     mdi.configure();
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
-
     pData.configure();
 
     modelStep.init();
     modelStep.setInitFile(initialFileName);
 
+#ifdef USE_MPI
+    // Read partitioning data from file and load the correct initial state for this process
+    std::string partitionFileName
+        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string());
+    ModelState initialState(
+        StructureFactory::stateFromFile(initialFileName, partitionFileName, mpiComm));
+#else
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
+#endif // USE_MPI
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
     pData.setData(initialState.data);
@@ -138,6 +158,7 @@ void Model::writeRestartFile()
     modelConfig.merge(pData.getStateRecursive(true).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     m_etadata.setConfig(modelConfig);
+
     StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
 }
 

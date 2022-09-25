@@ -15,6 +15,7 @@ namespace Nextsim {
 void DevStep::init()
 {
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
+    // FIXMEL MPI
     ido.setFilenamePrefix("diagnostic");
     tryConfigure(ido);
 }

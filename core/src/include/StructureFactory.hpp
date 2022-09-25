@@ -3,6 +3,7 @@
  *
  * @date Jan 18, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Athena Elafrou <ae488@cam.ac.uk>
  */
 
 #ifndef STRUCTUREFACTORY_HPP
@@ -19,12 +20,24 @@ namespace Nextsim {
 
 class StructureFactory {
 public:
+#ifdef USE_MPI
+    /*!
+     * @brief Returns the ModelState of the named restart file for an MPI process.
+     *
+     * @param modelFilePath the name of the model file to be read.
+     * @param partitionFilePath the name of the partitioining file to be read.
+     * @param comm the MPI communicator.
+     */
+    static ModelState stateFromFile(
+        const std::string& modelFilePath, const std::string& partitionFilePath, MPI_Comm mpiComm);
+#else
     /*!
      * @brief Returns the ModelState of the named restart file.
      *
      * @param filePath the name of the file to be read.
      */
     static ModelState stateFromFile(const std::string& filePath);
+#endif // USE_MPI
 
     /*!
      * @brief Takes a ModelState and a template file name to write the state

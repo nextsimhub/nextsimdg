@@ -43,6 +43,9 @@ static std::string ticeName = "tice";
 static std::string maskName = "mask";
 
 static const std::string mdiName = "missing_value";
+#ifdef USE_MPI
+static const std::string bboxName = "bounding_boxes";
+#endif // USE_MPI
 
 typedef std::map<StringName, std::string> NameMap;
 
@@ -58,6 +61,88 @@ void dimensionSetter(
     ModelArray::setDimensions(type, dims);
 }
 
+#ifdef USE_MPI
+ModelState RectGridIO::getModelState(
+    const std::string& modelFilePath, const std::string& partitionFilePath) const
+{
+    ModelState state;
+    netCDF::NcFile modelNcFile(modelFilePath, netCDF::NcFile::read);
+    netCDF::NcGroup modelGroup(modelNcFile.getGroup(IStructure::dataNodeName()));
+
+    // Get the global array sizes from the dimension data of the ice temperature array
+    // We are assuming that H,U,V type arrays share the same dimensions and Z type arrays share the
+    // first 2 dimesions, but have an extra dimension for the number of layers
+    size_t nDims = modelGroup.getVar(ticeName).getDimCount();
+    ModelArray::Dimensions globalDim;
+    globalDim.resize(nDims);
+    for (size_t d = 0; d < nDims; ++d) {
+        globalDim[d] = modelGroup.getVar(ticeName).getDim(d).getSize();
+    }
+
+    // Get the local sizes of the four types of field
+    netCDF::NcFile partitionNcFile(partitionFilePath, netCDF::NcFile::read);
+    netCDF::NcGroup bboxGroup(partitionNcFile.getGroup(bboxName));
+    int nProcs = bboxGroup.getDim("P").getSize();
+    MPI_Comm mpiComm = grid->getComm();
+    int mpiSize, mpiRank;
+    MPI_Comm_size(mpiComm, &mpiSize);
+    MPI_Comm_rank(mpiComm, &mpiRank);
+    assert(mpiSize == nProcs);
+    std::vector<size_t> index(1, mpiRank);
+    int topX, topY, cntX, cntY;
+    bboxGroup.getVar("global_x").getVar(index, &topX);
+    bboxGroup.getVar("global_y").getVar(index, &topY);
+    bboxGroup.getVar("local_extent_x").getVar(index, &cntX);
+    bboxGroup.getVar("local_extent_y").getVar(index, &cntY);
+    partitionNcFile.close();
+
+    std::vector<size_t> localDim3(nDims);
+    std::vector<size_t> localDim2(nDims - 1);
+    localDim3[0] = localDim2[0] = cntX;
+    localDim3[1] = localDim2[1] = cntY;
+    localDim3[2] = globalDim[2];
+    // assert dimensions match
+
+    // HField from hice
+    ModelArray::setDimensions(ModelArray::Type::H, localDim2);
+    // UField from hice        TODO replace with u velocity once it is present
+    ModelArray::setDimensions(ModelArray::Type::U, localDim2);
+    // VField from hice        TODO replace with v velocity once it is present
+    ModelArray::setDimensions(ModelArray::Type::V, localDim2);
+    // ZField from tice
+    ModelArray::setDimensions(ModelArray::Type::Z, localDim3);
+
+    // Setup information to load my part of the model data
+    std::vector<size_t> start(2);
+    std::vector<size_t> count(2);
+    // Coordinate of first element
+    start[0] = topX;
+    start[1] = topY;
+    // Number of elements in every dimension
+    count[0] = cntX;
+    count[1] = cntY;
+
+    state.data[maskName] = ModelArray::HField();
+    modelGroup.getVar(maskName).getVar(start, count, &state.data[maskName][0]);
+    state.data[hiceName] = ModelArray::HField();
+    modelGroup.getVar(hiceName).getVar(start, count, &state.data[hiceName][0]);
+    state.data[ciceName] = ModelArray::HField();
+    modelGroup.getVar(ciceName).getVar(start, count, &state.data[ciceName][0]);
+    state.data[hsnowName] = ModelArray::HField();
+    modelGroup.getVar(hsnowName).getVar(start, count, &state.data[hsnowName][0]);
+    state.data[ticeName] = ModelArray::ZField();
+    // Set third dimension for Z type array
+    start.push_back(0);
+    count.push_back(localDim3[2]);
+    modelGroup.getVar(ticeName).getVar(start, count, &state.data[ticeName][0]);
+
+    modelNcFile.close();
+
+    // FIXME: Also update RectagularGrid's private data members
+
+    return state;
+}
+#else
 ModelState RectGridIO::getModelState(const std::string& filePath)
 {
     ModelState state;
@@ -86,8 +171,10 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dataGroup.getVar(ticeName).getVar(&state.data[ticeName][0]);
 
     ncFile.close();
+
     return state;
 }
+#endif // USE_MPI
 
 void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
     const std::string& filePath, bool isRestart) const

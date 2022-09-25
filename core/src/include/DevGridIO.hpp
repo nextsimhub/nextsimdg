@@ -3,6 +3,7 @@
  *
  * @date Jan 14, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Athena Elafrou <ae488@cam.ac.uk>
  */
 
 #ifndef DEVGRIDIO_HPP
@@ -26,7 +27,14 @@ public:
     }
     virtual ~DevGridIO() = default;
 
+#ifdef USE_MPI
+    ModelState getModelState(
+        const std::string& modelFilePath, const std::string& partitionFilePath) const override;
+#else
     ModelState getModelState(const std::string& filePath) const override;
+#endif // USE_MPI
+
+    // FIXME: add MPI support
     void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
         const std::string& filePath, bool isRestart) const override;
 

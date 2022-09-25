@@ -14,6 +14,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <string>
 
+#ifdef USE_MPI
+#include "include/MpiUtils.hpp"
+#endif // USE_MPI
+
 namespace Nextsim {
 
 /*!
@@ -30,7 +34,35 @@ namespace Nextsim {
 class IStructure {
 public:
     IStructure() { }
+
+#ifdef USE_MPI
+    // FIXME: This ctor cannot be used with Module infrastructure
+    IStructure(MPI_Comm comm)
+    {
+        mpiComm = comm;
+        CHECK_MPI(MPI_Comm_size(comm, &mpiSize));
+        CHECK_MPI(MPI_Comm_rank(comm, &mpiRank));
+    }
+#endif // USE_MPI
+
     virtual ~IStructure() = default;
+
+#ifdef USE_MPI
+    /*!
+     * @brief Sets the MPI Communicator for this distributed structure.
+     */
+    void setComm(MPI_Comm comm)
+    {
+        mpiComm = comm;
+        CHECK_MPI(MPI_Comm_size(comm, &mpiSize));
+        CHECK_MPI(MPI_Comm_rank(comm, &mpiRank));
+    }
+
+    /*!
+     * @brief Returns MPI Communicator associated with this structure.
+     */
+    MPI_Comm getComm() const { return mpiComm; }
+#endif // USE_MPI
 
     /*!
      * @brief Dumps the data to a file path.
@@ -42,7 +74,13 @@ public:
     /*!
      * @brief Returns the ModelState stored in the file
      */
+#ifdef USE_MPI
+    virtual ModelState getModelState(
+        const std::string& restartFilePath, const std::string& partitionFilePath)
+        = 0;
+#else
     virtual ModelState getModelState(const std::string& filePath) = 0;
+#endif // USE_MPI
 
     //! Returns the structure name that this class will process
     virtual const std::string& structureType() const { return processedStructureName; }
@@ -73,8 +111,9 @@ public:
      * @param state The ModelState data
      * @param filePath The path to attempt to write the data to.
      */
-    virtual void dumpModelState(
-        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
+    virtual void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+        const std::string& filePath, bool isRestart) const
+        = 0;
 
     // Node names in the default structure
 
@@ -91,6 +130,11 @@ public:
 private:
     //! Name of the structure type processed by this class.
     const std::string processedStructureName = "none";
+#ifdef USE_MPI
+    MPI_Comm mpiComm; // MPI communicator
+    int mpiSize = 0; // Number of MPI processes in communicator
+    int mpiRank = -1; // MPI rank
+#endif // USE_MPI
 };
 
 }
