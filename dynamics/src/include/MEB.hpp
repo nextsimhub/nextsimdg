@@ -75,7 +75,7 @@ namespace MEB {
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            const Eigen::Matrix<double, 1, NGP* NGP> h_gauss = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
+            // const Eigen::Matrix<double, 1, NGP* NGP> h_gauss = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
             const Eigen::Matrix<double, 1, NGP* NGP> a_gauss = (A.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
             Eigen::Matrix<double, 1, NGP* NGP> d_gauss = (D.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
 
@@ -94,7 +94,8 @@ namespace MEB {
             auto expC = (-20.0 * (1.0 - a_gauss.array())).exp();
 
             //! Eqn. 9
-            const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * h_gauss.array() * (1. - d_gauss.array())).matrix();
+            // const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * h_gauss.array() * (1. - d_gauss.array())).matrix();
+            const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * (1. - d_gauss.array()) * expC).matrix();
 
             // Eqn. 25
             auto powalpha = (1. - d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
@@ -132,9 +133,11 @@ namespace MEB {
             sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
             const Eigen::Matrix<double, 1, NGP* NGP> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
 
-            const Eigen::Matrix<double, 1, NGP* NGP> c = params.c0 * h_gauss.array() * expC;
+            // const Eigen::Matrix<double, 1, NGP* NGP> c = params.c0 * h_gauss.array() * expC;
+
             Eigen::Matrix<double, 1, NGP* NGP> dcrit = { 1., 1., 1., 1., 1., 1., 1., 1., 1. };
             // const Eigen::Matrix<double, 1, NGP* NGP> c = params.C_lab * std::sqrt(0.1 / (RefScale::L / smesh.nx)) * dcrit.array();
+            const Eigen::Matrix<double, 1, NGP* NGP> c = 2000 * dcrit.array();
 
             // Mohr-Coulomb Criterion
             // Eqn. 31
