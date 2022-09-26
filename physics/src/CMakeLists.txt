@@ -45,6 +45,11 @@ set(AtmosphereBoundaryModuleSources
     "ConstantAtmosphereBoundary.cpp"
     )
 
+set(OceanBoundaryModuleSources
+    "OceanBoundaryModule.cpp"
+    "ConstantOceanBoundary.cpp"
+    )
+
 set(ModuleSources
     "${IceAlbedoModuleSources}"
     "${IceOceanHeatFluxEDModuleSources}"
@@ -56,6 +61,7 @@ set(ModuleSources
     "${FluxCalculationModuleSources}"
     "${StateModuleSources}"
     "${AtmosphereBoundaryModuleSources}"
+    "${OceanBoundaryModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

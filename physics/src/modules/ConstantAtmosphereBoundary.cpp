@@ -15,12 +15,7 @@ ConstantAtmosphereBoundary::ConstantAtmosphereBoundary()
 }
 
 void ConstantAtmosphereBoundary::setData(const ModelState::DataMap& ms)
-{ /* nope! */
-}
-
-void ConstantAtmosphereBoundary::update(const TimestepTime& tst)
 {
-    IAtmosphereBoundary::update(tst);
     // Directly set the array values
     qia = 305.288; // Pulled from IceGrowth_test.cpp: New Ice Formation
     dqia_dt = 4.5036;
@@ -30,6 +25,11 @@ void ConstantAtmosphereBoundary::update(const TimestepTime& tst)
     evap = 0; // somehow...
     uwind = 0;
     vwind = 0;
+}
+
+void ConstantAtmosphereBoundary::update(const TimestepTime& tst)
+{
+    IAtmosphereBoundary::update(tst);
 }
 
 } /* namespace Nextsim */

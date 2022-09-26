@@ -12,6 +12,7 @@
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IceGrowth.hpp"
+#include "include/IOceanBoundary.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
@@ -82,6 +83,7 @@ private:
 
     IceGrowth iceGrowth;
     IAtmosphereBoundary *pAtmBdy;
+    IOceanBoundary *pOcnBdy;
 };
 
 } /* namespace Nextsim */

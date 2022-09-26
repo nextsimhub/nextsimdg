@@ -32,6 +32,9 @@ void PrognosticData::configure()
 
     pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
     tryConfigure(pAtmBdy);
+
+    pOcnBdy = &Module::getImplementation<IOceanBoundary>();
+    tryConfigure(pOcnBdy);
 }
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
@@ -55,12 +58,16 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     }
 
     iceGrowth.setData(ms);
+    pAtmBdy->setData(ms);
+    pOcnBdy->setData(ms);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
 {
     pAtmBdy->update(tst);
+    pOcnBdy->updateBefore(tst);
     iceGrowth.update(tst);
+    pOcnBdy->updateAfter(tst);
 
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
     ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
