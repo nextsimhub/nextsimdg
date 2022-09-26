@@ -19,6 +19,18 @@ else()
     endif()
 endif()
 
+OPTION(WITH_THREADS      "Build with support for openmp" OFF)
+
+find_package(OpenMP)
+if (OPENMP_FOUND)
+   IF(WITH_THREADS)
+	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    	set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+   endif()
+endif()
+
+
 # Regarding Boost.Log, if our application consists of more
 # than one modules that use it, we must link to the shared
 # version. If we have a single executable or a single module
@@ -31,7 +43,7 @@ add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost COMPONENTS program_options log REQUIRED)
 
 find_package(Catch2 REQUIRED)
-find_package(Eigen3 3.3 REQUIRED)
+find_package(Eigen3 3.4 REQUIRED)
 
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
@@ -53,7 +65,7 @@ set(ModularComponents
 # Set the components which provide source or object code to the main model
 set(CodeComponents
 "physics"
-#"dynamics"
+"dynamics"
 )
 
 # Set an empty list of sources
@@ -64,6 +76,7 @@ set(NextsimIncludeDirs "")
 
 # Build the core model. Defines the 'parse_modules' target
 add_subdirectory(core)
+
 
 # Build all components
 foreach(compo ${CodeComponents})
