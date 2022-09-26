@@ -59,8 +59,6 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
 {
     iVertical->setData(ms);
     iLateral->setData(ms);
-    iFluxes->setData(ms);
-    oceanStateImpl->setData(ms);
 
     hice.resize();
     cice.resize();
@@ -90,10 +88,8 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state(getState());
     // Merge in other states here
-    state.merge(iFluxes->getStateRecursive(os));
     state.merge(iLateral->getStateRecursive(os));
     state.merge(iVertical->getStateRecursive(os));
-    state.merge(oceanStateImpl->getStateRecursive(os));
 
     return os ? state : ModelState();
 }
@@ -113,8 +109,6 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
     getHelpText(map, getAll);
     Module::getHelpRecursive<IIceThermodynamics>(map, getAll);
     Module::getHelpRecursive<ILateralIceSpread>(map, getAll);
-    Module::getHelpRecursive<IFluxCalculation>(map, getAll);
-    Module::getHelpRecursive<OceanState>(map, getAll);
     return map;
 }
 
@@ -129,14 +123,6 @@ void IceGrowth::configure()
     iLateral = std::move(Module::getInstance<ILateralIceSpread>());
     tryConfigure(*iVertical);
     tryConfigure(*iLateral);
-
-    // Configure the flux calculation module
-    iFluxes = std::move(Module::getInstance<IFluxCalculation>());
-    tryConfigure(*iFluxes);
-
-    // Configure the ocean state module
-    oceanStateImpl = std::move(Module::getInstance<OceanState>());
-    tryConfigure(*oceanStateImpl);
 }
 
 ConfigMap IceGrowth::getConfiguration() const
@@ -156,19 +142,11 @@ void IceGrowth::update(const TimestepTime& tsTime)
                      std::placeholders::_2),
         tsTime);
 
-    // Update the ocean state (Tf)
-    oceanStateImpl->updateBefore(tsTime);
-
-    iFluxes->update(tsTime);
-
     iVertical->update(tsTime);
     // new ice formation
     overElements(
         std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),
         tsTime);
-
-    // Update the ocean state (nudging, SST, SSS)
-    oceanStateImpl->updateAfter(tsTime);
 }
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,
