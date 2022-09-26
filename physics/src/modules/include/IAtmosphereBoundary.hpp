@@ -18,6 +18,7 @@ class IAtmosphereBoundary : public ModelComponent
 public:
     IAtmosphereBoundary()
     {
+        m_couplingArrays.resize(static_cast<size_t>(CouplingFields::COUNT));
         m_couplingArrays[static_cast<size_t>(CouplingFields::SUBL)] = &subl;
         m_couplingArrays[static_cast<size_t>(CouplingFields::PRECIP)] = &precip;
         m_couplingArrays[static_cast<size_t>(CouplingFields::EVAP)] = &evap;
