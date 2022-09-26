@@ -25,6 +25,12 @@ public:
         m_couplingArrays[static_cast<size_t>(CouplingFields::LW_IN)] = &lw_in;
         m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_U)] = &uwind;
         m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_V)] = &vwind;
+
+        registerSharedArray(SharedArray::Q_IA, &qia);
+        registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
+        registerSharedArray(SharedArray::SUBLIM, &subl);
+        registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
+        registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
     }
     virtual ~IAtmosphereBoundary() = default;
 
