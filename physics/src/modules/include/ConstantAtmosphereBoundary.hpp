@@ -17,6 +17,7 @@ public:
     ConstantAtmosphereBoundary();
 
     std::string getName() const override { return "ConstantAtmosphereBoundary"; }
+    void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tst) override;
 
 };

@@ -14,6 +14,8 @@ ConstantAtmosphereBoundary::ConstantAtmosphereBoundary()
           {
           }
 
+void ConstantAtmosphereBoundary::setData(const ModelState::DataMap& ms) { /* nope! */ }
+
 void ConstantAtmosphereBoundary::update(const TimestepTime& tst)
 {
     IAtmosphereBoundary::update(tst);
