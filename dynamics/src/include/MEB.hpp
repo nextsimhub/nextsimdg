@@ -116,13 +116,6 @@ namespace MEB {
                 (1. / (1. + (1. - tildeP.array()) * dt_mom / time_viscous.array())).matrix(),
                 multiplicator );
 
-            if (multiplicator.hasNaN()) {
-                std::cout << "sigma_n " << sigma_n.hasNaN()
-                          << " tildeP " << tildeP.hasNaN()
-                          << " time_viscous " << time_viscous.hasNaN() << std::endl;
-                throw std::runtime_error("multiplicator has nan @ 120\n");
-            }
-
             //! Eqn. 9
             // const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * h_gauss.array() * (1. - d_gauss.array())).matrix();
             const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * (1. - d_gauss.array()) * expC).matrix();
