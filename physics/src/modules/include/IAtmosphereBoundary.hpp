@@ -13,8 +13,7 @@
 #define IATMOSPHEREBOUNDARY_HPP
 
 namespace Nextsim {
-class IAtmosphereBoundary : public ModelComponent
-{
+class IAtmosphereBoundary : public ModelComponent {
 public:
     IAtmosphereBoundary()
     {
@@ -45,8 +44,8 @@ public:
         uwind.resize();
         vwind.resize();
     }
-protected:
 
+protected:
     enum class CouplingFields {
         SUBL, // sublimation mass flux kg s⁻¹ m⁻²
         PRECIP, // precipitation mass flux kg s⁻¹ m⁻²

@@ -10,11 +10,13 @@
 namespace Nextsim {
 
 ConstantAtmosphereBoundary::ConstantAtmosphereBoundary()
-        : IAtmosphereBoundary()
-          {
-          }
+    : IAtmosphereBoundary()
+{
+}
 
-void ConstantAtmosphereBoundary::setData(const ModelState::DataMap& ms) { /* nope! */ }
+void ConstantAtmosphereBoundary::setData(const ModelState::DataMap& ms)
+{ /* nope! */
+}
 
 void ConstantAtmosphereBoundary::update(const TimestepTime& tst)
 {
