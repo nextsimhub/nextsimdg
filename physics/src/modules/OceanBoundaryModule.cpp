@@ -20,34 +20,34 @@ Module<Nextsim::IOceanBoundary>::map Module<Nextsim::IOceanBoundary>::functionMa
 };
 
 template <>
-Module<Nextsim::IOceanBoundary>::fn Module<Nextsim::IOceanBoundary>::spf = functionMap.at(CONSTANTOCEANBOUNDARY);
+Module<Nextsim::IOceanBoundary>::fn Module<Nextsim::IOceanBoundary>::spf
+    = functionMap.at(CONSTANTOCEANBOUNDARY);
 template <>
 std::unique_ptr<Nextsim::IOceanBoundary> Module<Nextsim::IOceanBoundary>::staticInstance
-= std::move(newImpl<Nextsim::IOceanBoundary, Nextsim::ConstantOceanBoundary>());
+    = std::move(newImpl<Nextsim::IOceanBoundary, Nextsim::ConstantOceanBoundary>());
 
-template <>
-std::string Module<Nextsim::IOceanBoundary>::moduleName(){ return "Nextsim::IOceanBoundary"; }
+template <> std::string Module<Nextsim::IOceanBoundary>::moduleName()
+{
+    return "Nextsim::IOceanBoundary";
+}
 
-template<> HelpMap& getHelpRecursive<Nextsim::IOceanBoundary>(HelpMap& map, bool getAll)
+template <> HelpMap& getHelpRecursive<Nextsim::IOceanBoundary>(HelpMap& map, bool getAll)
 {
     const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
-    map[pfx].push_back({ pfx + "." + Module<Nextsim::IOceanBoundary>::moduleName(), ConfigType::MODULE,
-        { CONSTANTOCEANBOUNDARY }, CONSTANTOCEANBOUNDARY, "",
-        "MODULE DESCRIPTION HERE" });
+    map[pfx].push_back(
+        { pfx + "." + Module<Nextsim::IOceanBoundary>::moduleName(), ConfigType::MODULE,
+            { CONSTANTOCEANBOUNDARY }, CONSTANTOCEANBOUNDARY, "", "MODULE DESCRIPTION HERE" });
     return map;
 }
-template <>
-Nextsim::IOceanBoundary& getImplementation<Nextsim::IOceanBoundary>()
+template <> Nextsim::IOceanBoundary& getImplementation<Nextsim::IOceanBoundary>()
 {
     return getImplTemplate<Nextsim::IOceanBoundary, OceanBoundaryModule>();
 }
-template <>
-void setImplementation<Nextsim::IOceanBoundary>(const std::string& implName)
+template <> void setImplementation<Nextsim::IOceanBoundary>(const std::string& implName)
 {
     setImplTemplate<OceanBoundaryModule>(implName);
 }
-template <>
-std::unique_ptr<Nextsim::IOceanBoundary> getInstance()
+template <> std::unique_ptr<Nextsim::IOceanBoundary> getInstance()
 {
     return getInstTemplate<Nextsim::IOceanBoundary, OceanBoundaryModule>();
 }

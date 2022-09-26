@@ -18,6 +18,7 @@ PrognosticData::PrognosticData()
     , m_snow(ModelArray::Type::H)
     , m_tice(ModelArray::Type::Z)
     , pAtmBdy(0)
+    , pOcnBdy(0)
 
 {
     registerProtectedArray(ProtectedArray::H_ICE, &m_thick);

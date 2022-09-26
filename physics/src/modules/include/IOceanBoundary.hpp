@@ -64,7 +64,7 @@ protected:
     HField qio; // Ice-ocean heat flux, W m⁻²
     HField sst; // Coupled or slab ocean sea surface temperature, ˚C
     HField sss; // Coupled or slab ocean sea surface salinity, PSU
-    HField mld; //Mixed layer or slab ocean depth m
+    HField mld; // Mixed layer or slab ocean depth m
     HField tf; // Freezing point of the mixed layer, ˚C
     HField cpml; // Heat capacity of the mixed layer, J K⁻¹ m²
     UField u; // x(east)-ward ocean current, m s⁻¹

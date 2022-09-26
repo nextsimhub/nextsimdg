@@ -14,10 +14,11 @@
 
 namespace Module {
 
-template <> Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::functionMap;
+template <>
+Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::functionMap;
 class AtmosphereBoundaryModule : public Module<Nextsim::IAtmosphereBoundary> {
     struct Constructor {
-    Constructor();
+        Constructor();
     };
     static Constructor ctor;
 };
