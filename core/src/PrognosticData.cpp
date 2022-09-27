@@ -8,6 +8,7 @@
 #include "include/PrognosticData.hpp"
 
 #include "include/ModelArrayRef.hpp"
+#include "include/Module.hpp"
 
 namespace Nextsim {
 
