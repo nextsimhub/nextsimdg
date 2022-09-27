@@ -37,6 +37,17 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IOceanBoundary"; }
+    virtual void setData(const ModelState::DataMap& ms)
+    {
+        qio.resize();
+        sst.resize();
+        sss.resize();
+        mld.resize();
+        cpml.resize();
+        tf.resize();
+        u.resize();
+        v.resize();
+    }
 
     /*!
      * Performs the implementation specific updates before the physics calculations.

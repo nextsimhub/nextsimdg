@@ -38,7 +38,7 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IAtmosphereBoundary"; }
-    virtual void update(const TimestepTime& tst)
+    virtual void setData(const ModelState::DataMap& ms)
     {
         qia.resize();
         dqia_dt.resize();
@@ -50,32 +50,32 @@ public:
         uwind.resize();
         vwind.resize();
     }
+    virtual void update(const TimestepTime& tst) { }
+    protected:
+        enum class CouplingFields {
+            SUBL, // sublimation mass flux kg s⁻¹ m⁻²
+            PRECIP, // precipitation mass flux kg s⁻¹ m⁻²
+            EVAP, // evaporation mass flux kg s⁻¹ m⁻²
+            SW_IN, // solar radiation W m⁻²
+            LW_IN, // All non-solar radiation W m⁻²
+            WIND_U, // x-aligned wind component m s⁻¹
+            WIND_V, // y-aligned wind component m s⁻¹
+            COUNT
+        };
 
-protected:
-    enum class CouplingFields {
-        SUBL, // sublimation mass flux kg s⁻¹ m⁻²
-        PRECIP, // precipitation mass flux kg s⁻¹ m⁻²
-        EVAP, // evaporation mass flux kg s⁻¹ m⁻²
-        SW_IN, // solar radiation W m⁻²
-        LW_IN, // All non-solar radiation W m⁻²
-        WIND_U, // x-aligned wind component m s⁻¹
-        WIND_V, // y-aligned wind component m s⁻¹
-        COUNT
-    };
+        const MARBackingStore& couplingArrays() { return m_couplingArrays; }
 
-    const MARBackingStore& couplingArrays() { return m_couplingArrays; }
+        HField qia;
+        HField dqia_dt;
+        HField subl;
+        HField precip;
+        HField sw_in;
+        HField lw_in;
+        HField evap;
+        UField uwind;
+        VField vwind;
 
-    HField qia;
-    HField dqia_dt;
-    HField subl;
-    HField precip;
-    HField sw_in;
-    HField lw_in;
-    HField evap;
-    UField uwind;
-    VField vwind;
-
-    MARBackingStore m_couplingArrays;
+        MARBackingStore m_couplingArrays;
 };
 
 } // namespace Nextsim
