@@ -13,12 +13,16 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IFreezingPointModule.hpp"
+#include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
+#include "include/UnescoFreezing.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
@@ -36,85 +40,82 @@ TEST_CASE("New ice formation", "[IceGrowth]")
 
     ConfiguredModule::parseConfigurator();
 
-    class AtmosphericData : public ModelComponent {
+    class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
-        AtmosphericData()
+        AtmosphereBoundary()
+        : IAtmosphereBoundary()
+        {
+        }
+        void setData(const ModelState::DataMap& ms)
+        {
+            IAtmosphereBoundary::setData(ms);
+            qia = 305.288;
+            dqia_dt = 4.5036;
+            qow = 307.546;
+            subl = 0.; // Seems unlikely…
+            snow = 0.;
+            rain = 0.;
+            evap = 0.; // Seems unlikely…
+            uwind = 0;
+            vwind = 0.;
+        }
+    } atmData;
+    atmData.setData(ModelState().data);
+
+    class PrognosticData : public ModelComponent {
+    public:
+        PrognosticData()
         {
             registerProtectedArray(ProtectedArray::H_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::SNOW, &snow);
-            registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
         }
-        std::string getName() const override { return "AtmosphericData"; }
+        std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice[0] = 0.5;
-            hice[0] = 0.1; // Cell averaged
-            hsnow[0] = 0; // Cell averaged
-            tice0[0] = -2;
-            snow[0] = 0;
-            emp[0] = 0;
+            cice = 0.5;
+            hice = 0.1; // Cell averaged
+            hsnow = 0; // Cell averaged
+            tice0 = -2;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
         ZField tice0;
-        HField snow;
-        HField emp;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
-    } atmData;
-    atmData.setData(ModelState().data);
+    } proData;
+    proData.setData(ModelState().data);
 
-    class OceanData : public OceanState {
+    class OceanBoundary : public IOceanBoundary {
     public:
-        OceanData()
-            : OceanState()
+        OceanBoundary()
+            : IOceanBoundary()
         {
         }
         void setData(const ModelState::DataMap& state) override
         {
-            sst[0] = -1.5;
-            sss[0] = 32.;
-            mld[0] = 10.25;
-            tf.resize();
-            cpml.resize();
+            IOceanBoundary::setData(state);
+            qio = 124.689;
+            sst = -1.5;
+            sss = 32.;
+            mld = 10.25;
+            u = 0.;
+            v = 0.;
         }
-        void updateSpecial(const TimestepTime& tst) override { cpml[0] = 4.29151e7; }
-    };
-    Module::Module<OceanState>::setExternalImplementation(Module::newImpl<OceanState, OceanData>);
-
-    class FluxData : public IFluxCalculation, public Configured<FluxData> {
-    public:
-        FluxData()
-            : IFluxCalculation()
+        void updateBefore(const TimestepTime& tst) override
         {
+            UnescoFreezing uf;
+            cpml = Water::cp * Water::rho * mld;
+            tf = uf(sss[0]);
         }
-        std::string getName() const override { return "FluxData"; }
-
-        void setData(const ModelState::DataMap&) override
-        {
-            qow[0] = 307.546;
-            qio[0] = 124.689;
-            qia[0] = 305.288;
-            dqia_dt[0] = 4.5036;
-            subl[0] = 0;
-       }
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
-
-        void update(const TimestepTime&) override { }
-        void configure() override { setData(ModelState().data); }
-    };
-    Module::Module<IFluxCalculation>::setExternalImplementation(
-        Module::newImpl<IFluxCalculation, FluxData>);
+    } ocnData;
+    ocnData.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     IceGrowth ig;
