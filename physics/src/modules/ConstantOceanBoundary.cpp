@@ -17,6 +17,7 @@ ConstantOceanBoundary::ConstantOceanBoundary()
 
 void ConstantOceanBoundary::setData(const ModelState::DataMap& ms)
 {
+    IOceanBoundary::setData(ms);
     // Directly set the array values
     sst = -1.5;
     sss = 32.;
