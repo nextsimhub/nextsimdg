@@ -38,7 +38,7 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IAtmosphereBoundary"; }
-    virtual void setData(const ModelState::DataMap& ms)
+    void setData(const ModelState::DataMap& ms) override
     {
         qia.resize();
         dqia_dt.resize();
