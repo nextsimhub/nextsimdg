@@ -115,7 +115,7 @@ namespace MEB {
             const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5)*expC;
 
             // (Eqn. 7b) Prepare tildeP
-            Eigen::Matrix<double, 1, NGP* NGP> tildeP = { 0., 0., 0., 0., 0., 0., 0., 0., 0. }; 
+            Eigen::Matrix<double, 1, NGP* NGP> tildeP = Eigen::Matrix<double, 1, NGP* NGP>::Zero(); 
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
             tildeP = (sigma_n.array() < 0.0).select(   (-Pmax.array() / sigma_n.array()).min(1.0).matrix() , tildeP);
@@ -140,7 +140,8 @@ namespace MEB {
             sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
             const Eigen::Matrix<double, 1, NGP* NGP> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
 
-            Eigen::Matrix<double, 1, NGP* NGP> dcrit = { 1., 1., 1., 1., 1., 1., 1., 1., 1. };
+            Eigen::Matrix<double, 1, NGP* NGP> dcrit = Eigen::Matrix<double, 1, NGP* NGP>::Ones();
+
             // Plante 2020 Cohesion
             // const Eigen::Matrix<double, 1, NGP* NGP> c = params.c0 * h_gauss.array() * expC;
             // Olason 2022 Cohesion
