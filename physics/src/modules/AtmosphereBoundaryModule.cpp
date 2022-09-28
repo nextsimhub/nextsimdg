@@ -8,16 +8,19 @@
 #include "include/AtmosphereBoundaryModule.hpp"
 
 #include "include/ConstantAtmosphereBoundary.hpp"
+#include "include/ConfiguredAtmosphere.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string CONSTANTATMOSPHEREBOUNDARY = "Nextsim::ConstantAtmosphereBoundary";
+const std::string CONFIGUREDATMOSPHERE = "Nextsim::ConfiguredAtmosphere";
 
 template <>
 Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::functionMap = {
     { CONSTANTATMOSPHEREBOUNDARY,
         newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ConstantAtmosphereBoundary> },
+    { CONFIGUREDATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ConfiguredAtmosphere> },
 };
 
 template <>
