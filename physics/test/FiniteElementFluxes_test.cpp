@@ -166,7 +166,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     REQUIRE(subl[0] == Approx(-7.3858e-06).epsilon(prec));
 }
 
-TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
+TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
