@@ -7,6 +7,10 @@
 
 #include "include/ConfiguredOcean.hpp"
 
+#include "include/IFreezingPoint.hpp"
+#include "include/Module.hpp"
+#include "include/constants.hpp"
+
 namespace Nextsim {
 
 double ConfiguredOcean::sst0 = -1.5;
@@ -46,6 +50,8 @@ void ConfiguredOcean::setData(const ModelState::DataMap& ms)
     mld = mld0;
     u = u0;
     v = v0;
+    tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
+    cpml = Water::rho * Water::cp * mld[0];
 }
 
 } /* namespace Nextsim */

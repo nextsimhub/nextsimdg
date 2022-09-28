@@ -33,6 +33,9 @@ public:
 
     void configure() override;
 
+    void updateBefore(const TimestepTime& tst) override { }
+    void updateAfter(const TimestepTime& tst) override { }
+
 private:
     static double qio;
     static double sst0;
