@@ -13,6 +13,8 @@
 #define IATMOSPHEREBOUNDARY_HPP
 
 namespace Nextsim {
+
+//! An interface class for the atmospheric inputs into the ice physics.
 class IAtmosphereBoundary : public ModelComponent {
 public:
     IAtmosphereBoundary()

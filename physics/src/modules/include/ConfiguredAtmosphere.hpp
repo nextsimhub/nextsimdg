@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+//! A class to provide constant atmospheric forcings that can be configured at run time.
 class ConfiguredAtmosphere : public IAtmosphereBoundary, public Configured<ConfiguredAtmosphere> {
 public:
     ConfiguredAtmosphere() = default;

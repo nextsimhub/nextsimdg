@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+//* A set of atmospheric inputs that are fixed at compile time.
 class ConstantAtmosphereBoundary : public IAtmosphereBoundary {
 public:
     ConstantAtmosphereBoundary();

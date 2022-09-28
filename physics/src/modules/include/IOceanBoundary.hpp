@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+//! An interface class for the oceanic inputs into the ice physics.
 class IOceanBoundary : public ModelComponent {
 public:
     IOceanBoundary()

@@ -14,6 +14,7 @@
 
 namespace Nextsim {
 
+//! A class to provide constant oceanic forcings that can be configured at run time.
 class ConfiguredOcean : public IOceanBoundary, public Configured<ConfiguredOcean> {
 public:
     ConfiguredOcean() = default;
