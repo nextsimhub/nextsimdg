@@ -8,13 +8,13 @@
 #ifndef CONFIGUREDOCEAN_HPP
 #define CONFIGUREDOCEAN_HPP
 
-#include "OceanState.hpp"
+#include "IOceanBoundary.hpp"
 
 #include "include/Configured.hpp"
 
 namespace Nextsim {
 
-class ConfiguredOcean : public OceanState, public Configured<ConfiguredOcean> {
+class ConfiguredOcean : public IOceanBoundary, public Configured<ConfiguredOcean> {
 public:
     ConfiguredOcean() = default;
     ~ConfiguredOcean() = default;
@@ -23,6 +23,8 @@ public:
         SST_KEY,
         SSS_KEY,
         MLD_KEY,
+        CURRENTU_KEY,
+        CURRENTV_KEY,
     };
 
     void setData(const ModelState::DataMap&) override;
@@ -30,14 +32,13 @@ public:
 
     void configure() override;
 
-protected:
-    //! Performs the implementation specific updates. Does nothing.
-    void updateSpecial(const TimestepTime&) override { }
-
 private:
+    static double qio;
     static double sst0;
     static double sss0;
     static double mld0;
+    static double u0;
+    static double v0;
 };
 
 } /* namespace Nextsim */

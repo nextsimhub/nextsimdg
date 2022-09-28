@@ -28,26 +28,17 @@ set(FluxCalculationModuleSources
     "FiniteElementFluxes.cpp"
     "FiniteElementSpecHum.cpp"
     )
-    
-set(StateModuleSources
-    "AtmosphereStateModule.cpp"
-    "AtmosphereState.cpp"
-    "DummyAtmosphereState.cpp"
-    "ConfiguredAtmosphere.cpp"
-    "OceanStateModule.cpp"
-    "OceanState.cpp"
-    "DummyOceanState.cpp"
-    "ConfiguredOcean.cpp"
-    )
-    
+
 set(AtmosphereBoundaryModuleSources
     "AtmosphereBoundaryModule.cpp"
     "ConstantAtmosphereBoundary.cpp"
+    "ConfiguredAtmosphere.cpp"
     )
 
 set(OceanBoundaryModuleSources
     "OceanBoundaryModule.cpp"
     "ConstantOceanBoundary.cpp"
+    "ConfiguredOcean.cpp"
     )
 
 set(ModuleSources

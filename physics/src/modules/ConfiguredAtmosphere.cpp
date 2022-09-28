@@ -9,50 +9,53 @@
 
 namespace Nextsim {
 
-double ConfiguredAtmosphere::tair0 = -1;
-double ConfiguredAtmosphere::tdew0 = -0.5;
-double ConfiguredAtmosphere::pair0 = 1e5;
-double ConfiguredAtmosphere::rmix0 = -1;
-double ConfiguredAtmosphere::sw_in0 = 0;
-double ConfiguredAtmosphere::lw_in0 = 311;
+double ConfiguredAtmosphere::qia0 = 305.288;
+double ConfiguredAtmosphere::dqia_dt0 = 4.5036;
+double ConfiguredAtmosphere::qow0 = 307.546;
+double ConfiguredAtmosphere::subl0 = 0;
 double ConfiguredAtmosphere::snowfall0 = 0;
-double ConfiguredAtmosphere::windspeed0 = 0;
+double ConfiguredAtmosphere::rain0 = 0;
+double ConfiguredAtmosphere::evap0 = 0;
+double ConfiguredAtmosphere::u0 = 0;
+double ConfiguredAtmosphere::v0 = 0;
 
 template <>
 const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
-    { ConfiguredAtmosphere::TAIR_KEY, "ConfiguredAtmosphere.T_air" },
-    { ConfiguredAtmosphere::TDEW_KEY, "ConfiguredAtmosphere.T_dew" },
-    { ConfiguredAtmosphere::PAIR_KEY, "ConfiguredAtmosphere.p_air" },
-    { ConfiguredAtmosphere::RMIX_KEY, "ConfiguredAtmosphere.r_mix" },
-    { ConfiguredAtmosphere::SWIN_KEY, "ConfiguredAtmosphere.sw_in" },
-    { ConfiguredAtmosphere::LWIN_KEY, "ConfiguredAtmosphere.lw_in" },
+    { ConfiguredAtmosphere::QIA_KEY, "ConfiguredAtmosphere.Q_ia" },
+    { ConfiguredAtmosphere::DQIA_DT_KEY, "ConfiguredAtmosphere.dQia_dT" },
+    { ConfiguredAtmosphere::QOW_KEY, "ConfiguredAtmosphere.Q_ow" },
+    { ConfiguredAtmosphere::SUBL_KEY, "ConfiguredAtmosphere.sublim" },
     { ConfiguredAtmosphere::SNOW_KEY, "ConfiguredAtmosphere.snowfall" },
-    { ConfiguredAtmosphere::WIND_KEY, "ConfiguredAtmosphere.wind_speed" },
+    { ConfiguredAtmosphere::RAIN_KEY, "ConfiguredAtmosphere.rainfall" },
+    { ConfiguredAtmosphere::WINDU_KEY, "ConfiguredAtmosphere.wind_u" },
+    { ConfiguredAtmosphere::WINDV_KEY, "ConfiguredAtmosphere.wind_v" },
 };
 
 void ConfiguredAtmosphere::configure()
 {
-    tair0 = Configured::getConfiguration(keyMap.at(TAIR_KEY), tair0);
-    tdew0 = Configured::getConfiguration(keyMap.at(TDEW_KEY), tdew0);
-    pair0 = Configured::getConfiguration(keyMap.at(PAIR_KEY), pair0);
-    rmix0 = Configured::getConfiguration(keyMap.at(RMIX_KEY), rmix0);
-    sw_in0 = Configured::getConfiguration(keyMap.at(SWIN_KEY), sw_in0);
-    lw_in0 = Configured::getConfiguration(keyMap.at(LWIN_KEY), lw_in0);
+    qia0 = Configured::getConfiguration(keyMap.at(QIA_KEY), qia0);
+    dqia_dt0 = Configured::getConfiguration(keyMap.at(DQIA_DT_KEY), dqia_dt0);
+    qow0 = Configured::getConfiguration(keyMap.at(QOW_KEY), qow0);
+    subl0 = Configured::getConfiguration(keyMap.at(SUBL_KEY), subl0);
     snowfall0 = Configured::getConfiguration(keyMap.at(SNOW_KEY), snowfall0);
-    windspeed0 = Configured::getConfiguration(keyMap.at(WIND_KEY), windspeed0);
-// TODO: revisit dew point/rmix logic
+    rain0 = Configured::getConfiguration(keyMap.at(RAIN_KEY), rain0);
+    evap0 = Configured::getConfiguration(keyMap.at(EVAP_KEY), evap0);
+    u0 = Configured::getConfiguration(keyMap.at(WINDU_KEY), u0);
+    v0 = Configured::getConfiguration(keyMap.at(WINDV_KEY), v0);
 }
 
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
-    tair = tair0;
-    tdew = tdew0;
-    pair = pair0;
-    rmix = rmix0;
-    sw_in = sw_in0;
-    lw_in = lw_in0;
-    snowfall = snowfall0;
-    windSpeed = windspeed0;
+    IAtmosphereBoundary::setData(dm);
+    qia = qia0;
+    dqia_dt = dqia_dt0;
+    qow = qow0;
+    subl = subl0;
+    snow = snowfall0;
+    rain = rain0;
+    evap = evap0;
+    uwind = u0;
+    vwind = v0;
 }
 
 } /* namespace Nextsim */

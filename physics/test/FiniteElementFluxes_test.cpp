@@ -19,8 +19,6 @@
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
-#include "include/OceanStateModule.hpp"
-
 namespace Nextsim {
 
 TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
