@@ -30,7 +30,6 @@ public:
         registerSharedArray(SharedArray::Q_OW, &qow);
         registerSharedArray(SharedArray::SUBLIM, &subl);
         registerProtectedArray(ProtectedArray::SNOW, &snow);
-
     }
     virtual ~IAtmosphereBoundary() = default;
 
@@ -51,30 +50,31 @@ public:
         vwind.resize();
     }
     virtual void update(const TimestepTime& tst) { }
-    protected:
-        enum class CouplingFields {
-            SUBL, // sublimation mass flux kg s⁻¹ m⁻²
-            SNOW, // snowfall mass flux kg s⁻¹ m⁻²
-            RAIN, // rainfall mass flux kg s⁻¹ m⁻²
-            EVAP, // evaporation mass flux kg s⁻¹ m⁻²
-            WIND_U, // x-aligned wind component m s⁻¹
-            WIND_V, // y-aligned wind component m s⁻¹
-            COUNT
-        };
 
-        const MARBackingStore& couplingArrays() { return m_couplingArrays; }
+protected:
+    enum class CouplingFields {
+        SUBL, // sublimation mass flux kg s⁻¹ m⁻²
+        SNOW, // snowfall mass flux kg s⁻¹ m⁻²
+        RAIN, // rainfall mass flux kg s⁻¹ m⁻²
+        EVAP, // evaporation mass flux kg s⁻¹ m⁻²
+        WIND_U, // x-aligned wind component m s⁻¹
+        WIND_V, // y-aligned wind component m s⁻¹
+        COUNT
+    };
 
-        HField qia;
-        HField dqia_dt;
-        HField qow;
-        HField subl;
-        HField snow;
-        HField rain;
-        HField evap;
-        UField uwind;
-        VField vwind;
+    const MARBackingStore& couplingArrays() { return m_couplingArrays; }
 
-        MARBackingStore m_couplingArrays;
+    HField qia;
+    HField dqia_dt;
+    HField qow;
+    HField subl;
+    HField snow;
+    HField rain;
+    HField evap;
+    UField uwind;
+    VField vwind;
+
+    MARBackingStore m_couplingArrays;
 };
 
 } // namespace Nextsim
