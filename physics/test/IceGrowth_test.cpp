@@ -122,6 +122,7 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     IceGrowth ig;
     ig.configure();
     ig.setData(ModelState().data);
+    ocnBdy.updateBefore(tst);
     ig.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
@@ -232,6 +233,7 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     IceGrowth ig;
     ig.configure();
     ig.setData(ModelState().data);
+    ocnBdy.updateBefore(tst);
     ig.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
@@ -349,6 +351,7 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
     IceGrowth ig;
     ig.configure();
     ig.setData(ModelState().data);
+    ocnBdy.updateBefore(tst);
     ig.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
