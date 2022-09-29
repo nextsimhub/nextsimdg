@@ -51,8 +51,6 @@ add_executable(testFEFluxes
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
-    "${ModulesDir}/IceOceanHeatFluxModule.cpp"
-    "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testFEFluxes PRIVATE
