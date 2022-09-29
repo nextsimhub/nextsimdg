@@ -7,8 +7,8 @@
 
 #include "include/IceGrowth.hpp"
 
-#include "include/constants.hpp"
 #include "include/Module.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
