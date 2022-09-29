@@ -146,11 +146,11 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
-    FiniteElementFluxCalc fefc;
-    fefc.configure();
-    fefc.setData(ModelState().data);
+    FiniteElementFluxes fef;
+    fef.configure();
+    fef.setData(ModelState().data);
     ocnBdy.updateBefore(tst);
-    fefc.update(tst);
+    fef.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore, RO> qow(ModelComponent::getSharedArray());
     ModelArrayRef<ModelComponent::SharedArray::Q_IO, MARBackingStore, RO> qio(ModelComponent::getSharedArray());
@@ -288,11 +288,11 @@ TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
-    FiniteElementFluxCalc fefc;
-    fefc.configure();
+    FiniteElementFluxes fef;
+    fef.configure();
     ocnBdy.updateBefore(tst);
-    fefc.setData(ModelState().data);
-    fefc.update(tst);
+    fef.setData(ModelState().data);
+    fef.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore, RO> qow(ModelComponent::getSharedArray());
     ModelArrayRef<ModelComponent::SharedArray::Q_IO, MARBackingStore, RO> qio(ModelComponent::getSharedArray());
