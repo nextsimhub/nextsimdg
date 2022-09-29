@@ -33,12 +33,14 @@ set(AtmosphereBoundaryModuleSources
     "AtmosphereBoundaryModule.cpp"
     "ConstantAtmosphereBoundary.cpp"
     "ConfiguredAtmosphere.cpp"
+    "FluxConfiguredAtmosphere.cpp"
     )
 
 set(OceanBoundaryModuleSources
     "OceanBoundaryModule.cpp"
     "ConstantOceanBoundary.cpp"
     "ConfiguredOcean.cpp"
+    "FluxConfiguredOcean.cpp"
     )
 
 set(ModuleSources

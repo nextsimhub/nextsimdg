@@ -7,20 +7,24 @@
 
 #include "include/AtmosphereBoundaryModule.hpp"
 
-#include "include/ConstantAtmosphereBoundary.hpp"
 #include "include/ConfiguredAtmosphere.hpp"
+#include "include/ConstantAtmosphereBoundary.hpp"
+#include "include/FluxConfiguredAtmosphere.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string CONSTANTATMOSPHEREBOUNDARY = "Nextsim::ConstantAtmosphereBoundary";
 const std::string CONFIGUREDATMOSPHERE = "Nextsim::ConfiguredAtmosphere";
+const std::string FLUXCONFIGUREDATMOSPHERE = "Nextsim::FluxConfiguredAtmosphere";
 
 template <>
 Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::functionMap = {
     { CONSTANTATMOSPHEREBOUNDARY,
         newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ConstantAtmosphereBoundary> },
     { CONFIGUREDATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ConfiguredAtmosphere> },
+    { FLUXCONFIGUREDATMOSPHERE,
+        newImpl<Nextsim::IAtmosphereBoundary, Nextsim::FluxConfiguredAtmosphere> },
 };
 
 template <>
@@ -42,6 +46,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IAtmosphereBoundary>(HelpMap& map
         ConfigType::MODULE, { CONSTANTATMOSPHEREBOUNDARY }, CONSTANTATMOSPHEREBOUNDARY, "",
         "A Module to provide atmospheric inputs to the model." });
     Nextsim::ConfiguredAtmosphere::getHelpRecursive(map, getAll);
+    Nextsim::FluxConfiguredAtmosphere::getHelpRecursive(map, getAll);
     return map;
 }
 template <> Nextsim::IAtmosphereBoundary& getImplementation<Nextsim::IAtmosphereBoundary>()
