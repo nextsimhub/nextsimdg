@@ -110,6 +110,8 @@ PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) 
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
 {
     IceGrowth::getHelpRecursive(map, getAll);
+    Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
+    Module::getHelpRecursive<IOceanBoundary>(map, getAll);
     return map;
 }
 

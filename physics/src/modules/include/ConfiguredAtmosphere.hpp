@@ -33,6 +33,8 @@ public:
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "ConfiguredAtmosphere"; }
 
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     void configure() override;
 
 protected:

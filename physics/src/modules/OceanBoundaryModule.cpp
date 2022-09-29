@@ -40,6 +40,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IOceanBoundary>(HelpMap& map, boo
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IOceanBoundary>::moduleName(),
         ConfigType::MODULE, { CONSTANTOCEANBOUNDARY, CONFIGUREDOCEAN }, CONSTANTOCEANBOUNDARY, "",
         "Classes providing the oceanic inputs into the ice physics." });
+    Nextsim::ConfiguredOcean::getHelpRecursive(map, getAll);
     return map;
 }
 template <> Nextsim::IOceanBoundary& getImplementation<Nextsim::IOceanBoundary>()

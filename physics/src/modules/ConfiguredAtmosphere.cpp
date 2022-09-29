@@ -19,18 +19,42 @@ double ConfiguredAtmosphere::evap0 = 0;
 double ConfiguredAtmosphere::u0 = 0;
 double ConfiguredAtmosphere::v0 = 0;
 
+static const std::string pfx = "ConfiguredAtmosphere";
+static const std::string qiaKey = pfx + ".Q_ia";
+static const std::string dqiaKey = pfx + ".dQia_dT";
+static const std::string qowKey = pfx + ".Q_ow";
+static const std::string sublKey = pfx + ".sublim";
+static const std::string snowKey = pfx + ".snowfall";
+static const std::string rainKey = pfx + ".rainfall";
+static const std::string uKey = pfx + ".wind_u";
+static const std::string vKey = pfx + ".wind_v";
+
 template <>
 const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
-    { ConfiguredAtmosphere::QIA_KEY, "ConfiguredAtmosphere.Q_ia" },
-    { ConfiguredAtmosphere::DQIA_DT_KEY, "ConfiguredAtmosphere.dQia_dT" },
-    { ConfiguredAtmosphere::QOW_KEY, "ConfiguredAtmosphere.Q_ow" },
-    { ConfiguredAtmosphere::SUBL_KEY, "ConfiguredAtmosphere.sublim" },
-    { ConfiguredAtmosphere::SNOW_KEY, "ConfiguredAtmosphere.snowfall" },
-    { ConfiguredAtmosphere::RAIN_KEY, "ConfiguredAtmosphere.rainfall" },
-    { ConfiguredAtmosphere::WINDU_KEY, "ConfiguredAtmosphere.wind_u" },
-    { ConfiguredAtmosphere::WINDV_KEY, "ConfiguredAtmosphere.wind_v" },
+    { ConfiguredAtmosphere::QIA_KEY, qiaKey },
+    { ConfiguredAtmosphere::DQIA_DT_KEY, dqiaKey },
+    { ConfiguredAtmosphere::QOW_KEY, qowKey },
+    { ConfiguredAtmosphere::SUBL_KEY, sublKey },
+    { ConfiguredAtmosphere::SNOW_KEY, snowKey },
+    { ConfiguredAtmosphere::RAIN_KEY, rainKey },
+    { ConfiguredAtmosphere::WINDU_KEY, uKey },
+    { ConfiguredAtmosphere::WINDV_KEY, vKey },
 };
 
+ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    map[pfx] = {
+            { qiaKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(qia0), "", "Total ice to atmosphere heat flux." },
+            { dqiaKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(dqia_dt0), "", "Derivative of the ice atmosphere heat flux with respect to temperature." },
+            { qowKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(qow0), "", "Total open water to atmosphere heat flux." },
+            { sublKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(subl0), "", "Sublimation mass flux from snow to vapour." },
+            { snowKey, ConfigType::NUMERIC, {"0", "∞"}, std::to_string(snowfall0), "", "Snowfall mass flux." },
+            { rainKey, ConfigType::NUMERIC, {"0", "∞"}, std::to_string(rain0), "", "Rainfall mass flux." },
+            { uKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(u0), "", "Component of wind in the x (eastward) direction." },
+            { vKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(v0), "", "Component of wind in the y (northward) direction." },
+    };
+    return map;
+}
 void ConfiguredAtmosphere::configure()
 {
     qia0 = Configured::getConfiguration(keyMap.at(QIA_KEY), qia0);

@@ -41,6 +41,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IAtmosphereBoundary>(HelpMap& map
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IAtmosphereBoundary>::moduleName(),
         ConfigType::MODULE, { CONSTANTATMOSPHEREBOUNDARY }, CONSTANTATMOSPHEREBOUNDARY, "",
         "A Module to provide atmospheric inputs to the model." });
+    Nextsim::ConfiguredAtmosphere::getHelpRecursive(map, getAll);
     return map;
 }
 template <> Nextsim::IAtmosphereBoundary& getImplementation<Nextsim::IAtmosphereBoundary>()

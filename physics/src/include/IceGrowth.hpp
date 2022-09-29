@@ -24,7 +24,6 @@ public:
     enum {
         ICE_THERMODYNAMICS_KEY,
         LATERAL_GROWTH_KEY,
-        FLUX_CALCULATOR_KEY,
         MINC_KEY,
         MINH_KEY,
     };

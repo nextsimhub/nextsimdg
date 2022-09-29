@@ -31,6 +31,8 @@ public:
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "ConfiguredOcean"; }
 
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     void configure() override;
 
     void updateBefore(const TimestepTime& tst) override { }
