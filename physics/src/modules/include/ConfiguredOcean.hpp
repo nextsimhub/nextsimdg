@@ -21,6 +21,7 @@ public:
     ~ConfiguredOcean() = default;
 
     enum {
+        QIO_KEY,
         SST_KEY,
         SSS_KEY,
         MLD_KEY,
@@ -39,7 +40,7 @@ public:
     void updateAfter(const TimestepTime& tst) override { }
 
 private:
-    static double qio;
+    static double qio0;
     static double sst0;
     static double sss0;
     static double mld0;

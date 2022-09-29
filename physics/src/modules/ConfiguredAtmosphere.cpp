@@ -44,14 +44,22 @@ const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-            { qiaKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(qia0), "", "Total ice to atmosphere heat flux." },
-            { dqiaKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(dqia_dt0), "", "Derivative of the ice atmosphere heat flux with respect to temperature." },
-            { qowKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(qow0), "", "Total open water to atmosphere heat flux." },
-            { sublKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(subl0), "", "Sublimation mass flux from snow to vapour." },
-            { snowKey, ConfigType::NUMERIC, {"0", "∞"}, std::to_string(snowfall0), "", "Snowfall mass flux." },
-            { rainKey, ConfigType::NUMERIC, {"0", "∞"}, std::to_string(rain0), "", "Rainfall mass flux." },
-            { uKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(u0), "", "Component of wind in the x (eastward) direction." },
-            { vKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(v0), "", "Component of wind in the y (northward) direction." },
+        { qiaKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(qia0), "",
+            "Total ice to atmosphere heat flux (W m⁻²)." },
+        { dqiaKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(dqia_dt0), "",
+            "Derivative of the ice atmosphere heat flux with respect to temperature (W m⁻² K⁻¹)." },
+        { qowKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(qow0), "",
+            "Total open water to atmosphere heat flux (W m⁻²)." },
+        { sublKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(subl0), "",
+            "Sublimation mass flux from snow to vapour (W m⁻²)." },
+        { snowKey, ConfigType::NUMERIC, { "0", "∞" }, std::to_string(snowfall0), "",
+            "Snowfall mass flux (kg s⁻¹ m⁻²)." },
+        { rainKey, ConfigType::NUMERIC, { "0", "∞" }, std::to_string(rain0), "",
+            "Rainfall mass flux (kg s⁻¹ m⁻²)." },
+        { uKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(u0), "",
+            "Component of wind in the x (eastward) direction (m s⁻¹)." },
+        { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(v0), "",
+            "Component of wind in the y (northward) direction (m s⁻¹)." },
     };
     return map;
 }

@@ -13,6 +13,7 @@
 
 namespace Nextsim {
 
+double ConfiguredOcean::qio0 = 0;
 double ConfiguredOcean::sst0 = -1.5;
 double ConfiguredOcean::sss0 = 32;
 double ConfiguredOcean::mld0 = 10;
@@ -20,6 +21,7 @@ double ConfiguredOcean::u0 = 0;
 double ConfiguredOcean::v0 = 0;
 
 static const std::string pfx = "ConfiguredOcean";
+static const std::string qioKey = pfx + ".qio";
 static const std::string sstKey = pfx + ".sst";
 static const std::string sssKey = pfx + ".sss";
 static const std::string mldKey = pfx + ".mld";
@@ -28,6 +30,7 @@ static const std::string vKey = pfx + "current_v";
 
 template <>
 const std::map<int, std::string> Configured<ConfiguredOcean>::keyMap = {
+    { ConfiguredOcean::QIO_KEY, qioKey },
     { ConfiguredOcean::SST_KEY, sstKey },
     { ConfiguredOcean::SSS_KEY, sssKey },
     { ConfiguredOcean::MLD_KEY, mldKey },
@@ -38,11 +41,18 @@ const std::map<int, std::string> Configured<ConfiguredOcean>::keyMap = {
 ConfigurationHelp::HelpMap& ConfiguredOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-            { sstKey, ConfigType::NUMERIC, {"-273", "374"}, std::to_string(sst0), "", "Sea surface temperature (˚C)." },
-            { sssKey, ConfigType::NUMERIC, {"0", "1000"}, std::to_string(sss0), "", "Sea surface salinity (PSU)." },
-            { mldKey, ConfigType::NUMERIC, {"0", "10984"}, std::to_string(mld0), "", "Mixed layer depth (m)." },
-            { uKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(u0), "", "Ocean current in the x (eastward) direction (m s⁻¹)." },
-            { vKey, ConfigType::NUMERIC, {"-∞", "∞"}, std::to_string(v0), "", "Ocean current in the y (northward) direction (m s⁻¹)." },
+        { qioKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(qio0), "",
+            "Ocean to ice heat flux (W m⁻²)." },
+        { sstKey, ConfigType::NUMERIC, { "-273", "374" }, std::to_string(sst0), "",
+            "Sea surface temperature (˚C)." },
+        { sssKey, ConfigType::NUMERIC, { "0", "1000" }, std::to_string(sss0), "",
+            "Sea surface salinity (PSU)." },
+        { mldKey, ConfigType::NUMERIC, { "0", "10984" }, std::to_string(mld0), "",
+            "Mixed layer depth (m)." },
+        { uKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(u0), "",
+            "Ocean current in the x (eastward) direction (m s⁻¹)." },
+        { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(v0), "",
+            "Ocean current in the y (northward) direction (m s⁻¹)." },
 
     };
     return map;

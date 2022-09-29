@@ -51,7 +51,6 @@ private:
     static double evap0;
     static double u0;
     static double v0;
-
 };
 
 } /* namespace Nextsim */
