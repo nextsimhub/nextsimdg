@@ -14,12 +14,13 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/IFreezingPointModule.hpp"
+#include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
-
-#include "include/OceanStateModule.hpp"
+#include "include/UnescoFreezing.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
@@ -42,44 +43,69 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 
     ConfiguredModule::parseConfigurator();
 
-    class OceanData : public OceanState {
+    class OceanData : public IOceanBoundary{
     public:
         OceanData()
-            : OceanState()
+            : IOceanBoundary()
         {
         }
         void setData(const ModelState::DataMap& state) override
         {
-            sst[0] = -1.;
-            sss[0] = 32.;
-            mld[0] = 10.25;
-            tf.resize();
-            cpml.resize();
+            IOceanBoundary::setData(state);
+            UnescoFreezing uf;
+            sst = -1.;
+            sss = 32.;
+            mld = 10.25;
+            tf = uf(sss[0]);
+            cpml = Water::cp * Water::rho * mld[0];
+            u = 0;
+            v = 0;
         }
-        void updateSpecial(const TimestepTime& tst) override { }
-    };
-    Module::Module<OceanState>::setExternalImplementation(Module::newImpl<OceanState, OceanData>);
+        void updateBefore(const TimestepTime& tst) override { }
+        void updateAfter(const TimestepTime& tst) override { }
+    } ocnBdy;
+    ocnBdy.setData(ModelState().data);
 
-    class AtmosphereData : public AtmosphereState {
+    class AtmosphereData : public ModelComponent {
     public:
-        AtmosphereData()
-            : AtmosphereState()
-        {
+        AtmosphereData() {
+            registerProtectedArray(ProtectedArray::T_AIR, &tair);
+            registerProtectedArray(ProtectedArray::DEW_2M, &tdew);
+            registerProtectedArray(ProtectedArray::P_AIR, &pair);
+            registerProtectedArray(ProtectedArray::WIND_SPEED, &windSpeed);
+            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
+            registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
         }
         void setData(const ModelState::DataMap& state) override
         {
-            tair[0] = 3;
-            tdew[0] = 2;
-            pair[0] = 100000.;
-            windSpeed[0] = 5;
-            sw_in[0] = 50;
-            lw_in[0] = 330;
-            snowfall[0] = 0;
+            tair.resize();
+            tdew.resize();
+            pair.resize();
+            windSpeed.resize();
+            sw_in.resize();
+            lw_in.resize();
+
+            tair = 3;
+            tdew = 2;
+            pair = 100000.;
+            windSpeed = 5;
+            sw_in = 50;
+            lw_in = 330;
         }
-        void updateSpecial(const TimestepTime& tst) override { }
-    };
-    Module::Module<AtmosphereState>::setExternalImplementation(
-        Module::newImpl<AtmosphereState, AtmosphereData>);
+        std::string getName() const override { return "AtmData"; }
+        ModelState getState() const override { return ModelState(); }
+        ModelState getState(const OutputLevel&) const override { return getState(); }
+
+    private:
+        HField tair;
+        HField tdew;
+        HField pair;
+        HField windSpeed;
+        HField sw_in;
+        HField lw_in;
+        HField snowfall;
+    } atmState;
+    atmState.setData(ModelState().data);
 
     class ProgData : public ModelComponent {
     public:
@@ -120,12 +146,10 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
-    Module::getImplementation<OceanState>().configure();
-    Module::getImplementation<OceanState>().setData(ModelState().data);
-    Module::getImplementation<OceanState>().updateBefore(tst);
     FiniteElementFluxCalc fefc;
     fefc.configure();
     fefc.setData(ModelState().data);
+    ocnBdy.updateBefore(tst);
     fefc.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore, RO> qow(ModelComponent::getSharedArray());
@@ -142,7 +166,7 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     REQUIRE(subl[0] == Approx(-7.3858e-06).epsilon(prec));
 }
 
-TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
+TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
@@ -161,42 +185,69 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
 
     ConfiguredModule::parseConfigurator();
 
-    class OceanData : public OceanState {
+    class OceanData : public IOceanBoundary {
     public:
         OceanData()
-            : OceanState()
+            : IOceanBoundary()
         {
         }
         void setData(const ModelState::DataMap& state) override
         {
-            sst[0] = -1.75;
-            sss[0] = 32.;
-            mld[0] = 10.25;
+            IOceanBoundary::setData(state);
+            UnescoFreezing uf;
+            sst = -1.75;
+            sss = 32.;
+            mld = 10.25;
+            tf = uf(sss[0]);
+            cpml = Water::cp * Water::rho * mld[0];
+            u = 0;
+            v = 0;
         }
-        void updateSpecial(const TimestepTime& tst) override { }
-    };
-    Module::Module<OceanState>::setExternalImplementation(Module::newImpl<OceanState, OceanData>);
+        void updateBefore(const TimestepTime& tst) override { }
+        void updateAfter(const TimestepTime& tst) override { }
+    } ocnBdy;
+    ocnBdy.setData(ModelState().data);
 
-    class AtmosphereData : public AtmosphereState {
+    class AtmosphereData : public ModelComponent {
     public:
         AtmosphereData()
-            : AtmosphereState()
         {
+            registerProtectedArray(ProtectedArray::T_AIR, &tair);
+            registerProtectedArray(ProtectedArray::DEW_2M, &tdew);
+            registerProtectedArray(ProtectedArray::P_AIR, &pair);
+            registerProtectedArray(ProtectedArray::WIND_SPEED, &windSpeed);
+            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
+            registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
         }
         void setData(const ModelState::DataMap& state) override
         {
-            tair[0] = -12;
-            tdew[0] = -12;
-            pair[0] = 100000.;
-            windSpeed[0] = 5;
-            sw_in[0] = 0;
-            lw_in[0] = 265;
-            snowfall[0] = 1e-3;
+            tair.resize();
+            tdew.resize();
+            pair.resize();
+            windSpeed.resize();
+            sw_in.resize();
+            lw_in.resize();
+            tair = -12;
+            tdew = -12;
+            pair = 100000.;
+            windSpeed = 5;
+            sw_in = 0;
+            lw_in = 265;
         }
-        void updateSpecial(const TimestepTime& tst) override { }
-    };
-    Module::Module<AtmosphereState>::setExternalImplementation(
-        Module::newImpl<AtmosphereState, AtmosphereData>);
+        std::string getName() const override { return "AtmData"; }
+        ModelState getState() const override { return ModelState(); }
+        ModelState getState(const OutputLevel&) const override { return getState(); }
+
+    private:
+        HField tair;
+        HField tdew;
+        HField pair;
+        HField windSpeed;
+        HField sw_in;
+        HField lw_in;
+        HField snowfall;
+    } atmState;
+    atmState.setData(ModelState().data);
 
     class ProgData : public ModelComponent {
     public:
@@ -206,6 +257,8 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
+            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -216,12 +269,18 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
             tice0[0] = -9.;
+
+            hice0[0] = hice[0] / cice[0];
+            hsnow0[0] = hsnow[0] / cice[0];
         }
 
         HField hice;
         HField cice;
         HField hsnow;
         HField tice0;
+        HField hice0;  // ice averaged ice thickness
+        HField hsnow0; // ice averaged snow thickness
+
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
@@ -229,11 +288,9 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
-    Module::getImplementation<OceanState>().configure();
-    Module::getImplementation<OceanState>().setData(ModelState().data);
-    Module::getImplementation<OceanState>().updateBefore(tst);
     FiniteElementFluxCalc fefc;
     fefc.configure();
+    ocnBdy.updateBefore(tst);
     fefc.setData(ModelState().data);
     fefc.update(tst);
 

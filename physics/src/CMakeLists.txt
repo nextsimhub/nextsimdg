@@ -28,15 +28,16 @@ set(FluxCalculationModuleSources
     "FiniteElementFluxes.cpp"
     "FiniteElementSpecHum.cpp"
     )
-    
-set(StateModuleSources
-    "AtmosphereStateModule.cpp"
-    "AtmosphereState.cpp"
-    "DummyAtmosphereState.cpp"
+
+set(AtmosphereBoundaryModuleSources
+    "AtmosphereBoundaryModule.cpp"
+    "ConstantAtmosphereBoundary.cpp"
     "ConfiguredAtmosphere.cpp"
-    "OceanStateModule.cpp"
-    "OceanState.cpp"
-    "DummyOceanState.cpp"
+    )
+
+set(OceanBoundaryModuleSources
+    "OceanBoundaryModule.cpp"
+    "ConstantOceanBoundary.cpp"
     "ConfiguredOcean.cpp"
     )
 
@@ -50,6 +51,8 @@ set(ModuleSources
     "${LateralIceSpreadModuleSources}"
     "${FluxCalculationModuleSources}"
     "${StateModuleSources}"
+    "${AtmosphereBoundaryModuleSources}"
+    "${OceanBoundaryModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

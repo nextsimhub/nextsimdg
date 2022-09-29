@@ -57,6 +57,8 @@ public:
         WIND_SPEED, // Wind speed, m s⁻¹
         HTRUE_ICE, // Ice thickness, ice average, m
         HTRUE_SNOW, // Snow thickness, ice average, m
+        OCEAN_U, // x(east)-ward ocean current, m s⁻¹
+        OCEAN_V, // y(north)-ward ocean current, m s⁻¹
         COUNT // Count of enum values
     };
     enum class SharedArray {
