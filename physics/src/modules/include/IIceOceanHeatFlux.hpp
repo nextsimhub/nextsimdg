@@ -14,10 +14,6 @@
 #include "include/Time.hpp"
 
 namespace Nextsim {
-class PrognosticElementData;
-class ExternalData;
-class PhysicsData;
-class NextsimPhysics;
 
 //! The interface class for the ice-ocean heat flux calculation.
 class IIceOceanHeatFlux : public ModelComponent {
@@ -55,4 +51,4 @@ protected:
     ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio;
 };
 }
-#endif /* SRC_INCLUDE_IICEOCEANHEATFLUX_HPP_ */
+#endif /* IICEOCEANHEATFLUX_HPP_ */

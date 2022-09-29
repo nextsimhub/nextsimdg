@@ -61,6 +61,25 @@ target_include_directories(testFEFluxes PRIVATE
     )
 target_link_libraries(testFEFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
 
+add_executable(testBIOHFluxes
+    "BasicIceOceanFlux_test.cpp"
+    "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testBIOHFluxes PRIVATE
+    "${CoreSourceDir}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testBIOHFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+
 add_executable(testSpecHum
     "SpecificHumidity_test.cpp"
     "${ModulesDir}/FiniteElementSpecHum.cpp"
