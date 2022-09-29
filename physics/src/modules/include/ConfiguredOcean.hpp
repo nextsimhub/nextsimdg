@@ -14,14 +14,14 @@
 
 namespace Nextsim {
 
-//! A class to provide constant oceanic forcings that can be configured at run time.
+//! A class to provide constant oceanic forcings that can be configured at run
+//! time as physical variables.
 class ConfiguredOcean : public IOceanBoundary, public Configured<ConfiguredOcean> {
 public:
     ConfiguredOcean() = default;
     ~ConfiguredOcean() = default;
 
     enum {
-        QIO_KEY,
         SST_KEY,
         SSS_KEY,
         MLD_KEY,
@@ -36,11 +36,10 @@ public:
 
     void configure() override;
 
-    void updateBefore(const TimestepTime& tst) override { }
+    void updateBefore(const TimestepTime& tst) override;
     void updateAfter(const TimestepTime& tst) override { }
 
 private:
-    static double qio0;
     static double sst0;
     static double sss0;
     static double mld0;

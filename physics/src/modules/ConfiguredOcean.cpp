@@ -8,12 +8,12 @@
 #include "include/ConfiguredOcean.hpp"
 
 #include "include/IFreezingPoint.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
 #include "include/Module.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
-double ConfiguredOcean::qio0 = 0;
 double ConfiguredOcean::sst0 = -1.5;
 double ConfiguredOcean::sss0 = 32;
 double ConfiguredOcean::mld0 = 10;
@@ -21,7 +21,6 @@ double ConfiguredOcean::u0 = 0;
 double ConfiguredOcean::v0 = 0;
 
 static const std::string pfx = "ConfiguredOcean";
-static const std::string qioKey = pfx + ".qio";
 static const std::string sstKey = pfx + ".sst";
 static const std::string sssKey = pfx + ".sss";
 static const std::string mldKey = pfx + ".mld";
@@ -30,7 +29,6 @@ static const std::string vKey = pfx + "current_v";
 
 template <>
 const std::map<int, std::string> Configured<ConfiguredOcean>::keyMap = {
-    { ConfiguredOcean::QIO_KEY, qioKey },
     { ConfiguredOcean::SST_KEY, sstKey },
     { ConfiguredOcean::SSS_KEY, sssKey },
     { ConfiguredOcean::MLD_KEY, mldKey },
@@ -41,8 +39,6 @@ const std::map<int, std::string> Configured<ConfiguredOcean>::keyMap = {
 ConfigurationHelp::HelpMap& ConfiguredOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { qioKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(qio0), "",
-            "Ocean to ice heat flux (W m⁻²)." },
         { sstKey, ConfigType::NUMERIC, { "-273", "374" }, std::to_string(sst0), "",
             "Sea surface temperature (˚C)." },
         { sssKey, ConfigType::NUMERIC, { "0", "1000" }, std::to_string(sss0), "",
@@ -82,6 +78,11 @@ void ConfiguredOcean::setData(const ModelState::DataMap& ms)
     v = v0;
     tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
     cpml = Water::rho * Water::cp * mld[0];
+}
+
+void ConfiguredOcean::updateBefore(const TimestepTime& tst)
+{
+    Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
 
 } /* namespace Nextsim */
