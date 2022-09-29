@@ -60,6 +60,7 @@ ConfigurationHelp::HelpMap& FluxConfiguredOcean::getHelpRecursive(HelpMap& map, 
 
 void FluxConfiguredOcean::configure()
 {
+    qio0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(QIO_KEY), qio0);
     sst0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(SST_KEY), sst0);
     sss0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(SSS_KEY), sss0);
     mld0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(MLD_KEY), mld0);
@@ -70,6 +71,7 @@ void FluxConfiguredOcean::configure()
 void FluxConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
+    qio = qio0;
     sst = sst0;
     sss = sss0;
     mld = mld0;
