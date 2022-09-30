@@ -8,6 +8,7 @@
 #include "include/PrognosticData.hpp"
 
 #include "include/ModelArrayRef.hpp"
+#include "include/Module.hpp"
 
 namespace Nextsim {
 
@@ -17,6 +18,8 @@ PrognosticData::PrognosticData()
     , m_conc(ModelArray::Type::H)
     , m_snow(ModelArray::Type::H)
     , m_tice(ModelArray::Type::Z)
+    , pAtmBdy(0)
+    , pOcnBdy(0)
 
 {
     registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
@@ -25,7 +28,16 @@ PrognosticData::PrognosticData()
     registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
 }
 
-void PrognosticData::configure() { tryConfigure(iceGrowth); }
+void PrognosticData::configure()
+{
+    tryConfigure(iceGrowth);
+
+    pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
+    tryConfigure(pAtmBdy);
+
+    pOcnBdy = &Module::getImplementation<IOceanBoundary>();
+    tryConfigure(pOcnBdy);
+}
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
@@ -48,11 +60,16 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     }
 
     iceGrowth.setData(ms);
+    pAtmBdy->setData(ms);
+    pOcnBdy->setData(ms);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
 {
+    pAtmBdy->update(tst);
+    pOcnBdy->updateBefore(tst);
     iceGrowth.update(tst);
+    pOcnBdy->updateAfter(tst);
 
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
     ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
@@ -85,6 +102,7 @@ ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state(getState());
     state.merge(iceGrowth.getStateRecursive(os));
+    state.merge(pAtmBdy->getStateRecursive(os));
     return os ? state : ModelState();
 }
 
@@ -92,6 +110,8 @@ PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) 
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
 {
     IceGrowth::getHelpRecursive(map, getAll);
+    Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
+    Module::getHelpRecursive<IOceanBoundary>(map, getAll);
     return map;
 }
 

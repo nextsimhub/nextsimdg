@@ -12,6 +12,7 @@
 #include "include/DevStep.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
+#include "include/Module.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>

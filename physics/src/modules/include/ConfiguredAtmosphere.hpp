@@ -8,44 +8,49 @@
 #ifndef CONFIGUREDATMOSPHERE_HPP
 #define CONFIGUREDATMOSPHERE_HPP
 
-#include "AtmosphereState.hpp"
+#include "IAtmosphereBoundary.hpp"
 
 namespace Nextsim {
 
-class ConfiguredAtmosphere : public AtmosphereState, public Configured<ConfiguredAtmosphere> {
+//! A class to provide constant atmospheric forcings that can be configured at run time.
+class ConfiguredAtmosphere : public IAtmosphereBoundary, public Configured<ConfiguredAtmosphere> {
 public:
     ConfiguredAtmosphere() = default;
     ~ConfiguredAtmosphere() = default;
 
     enum {
-        TAIR_KEY,
-        TDEW_KEY,
-        PAIR_KEY,
-        RMIX_KEY,
-        SWIN_KEY,
-        LWIN_KEY,
+        QIA_KEY,
+        DQIA_DT_KEY,
+        QOW_KEY,
+        SUBL_KEY,
         SNOW_KEY,
-        WIND_KEY,
+        RAIN_KEY,
+        EVAP_KEY,
+        WINDU_KEY,
+        WINDV_KEY,
     };
 
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "ConfiguredAtmosphere"; }
 
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     void configure() override;
 
 protected:
     //! Performs the implementation specific updates. Does nothing.
-    void updateSpecial(const TimestepTime&) override { }
+    void update(const TimestepTime&) override { }
 
 private:
-    static double tair0;
-    static double tdew0;
-    static double pair0;
-    static double rmix0;
-    static double sw_in0;
-    static double lw_in0;
+    static double qia0;
+    static double dqia_dt0;
+    static double qow0;
+    static double subl0;
     static double snowfall0;
-    static double windspeed0;
+    static double rain0;
+    static double evap0;
+    static double u0;
+    static double v0;
 };
 
 } /* namespace Nextsim */
