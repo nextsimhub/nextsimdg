@@ -45,7 +45,9 @@ private:
     };
     typedef std::array<double, COUNT> CoeffArray;
 
-    void calculateCoeffs(CoeffArray& c, size_t i);
+    static double kappa_s;
+
+    void calculateCoeffs(CoeffArray& c, size_t i, double dt);
 
 };
 

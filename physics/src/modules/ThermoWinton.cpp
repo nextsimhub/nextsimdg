@@ -7,9 +7,12 @@
 
 #include "include/ThermoWinton.hpp"
 
+#include "include/constants.hpp"
+
 namespace Nextsim {
 
 const size_t ThermoWinton::nLevels = 3;
+double ThermoWinton::kappa_s;
 
 ThermoWinton::ThermoWinton() { }
 
@@ -35,7 +38,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {
     // Calculate conductivities and other coefficients
     CoeffArray c;
-    calculateCoeffs(c, i);
+    calculateCoeffs(c, i, tst.step.seconds());
 
     // Is the surface melting?
 
@@ -62,11 +65,14 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     // Remove very small ice thickness
 }
 
-void ThermoWinton::calculateCoeffs(CoeffArray& c, size_t i)
+void ThermoWinton::calculateCoeffs(CoeffArray& c, size_t i, double dt)
 {
-    c[K12] = 0; // &c.
-    c[A] = qia[i] - tice0.zIndexAndLayer(i, 0) * qQia_dt[i];
+    c[K12] = 4 * Ice::kappa * kappa_s / (kappa_s * hice[i] + 4 * Ice::kappa * hsnow[i]); // Winton & al. (5)
+    c[A] = qia[i] - tice0.zIndexAndLayer(i, 0) * dQia_dt[i];
     c[B] = dQia_dt[i];
+    c[K32] = 2 * Ice::kappa / hice[i];
+
+    c[C1] = hice[i] * Ice::Lf * Ice::rho * Ice::Tm / (2 * dt);
 }
 
 } /* namespace Nextsim */
