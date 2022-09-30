@@ -17,10 +17,7 @@ namespace Nextsim {
 //! A class to provide constant atmospheric forcings that can be configured at run time.
 class ConfiguredAtmosphere : public IAtmosphereBoundary, public Configured<ConfiguredAtmosphere> {
 public:
-    ConfiguredAtmosphere()
-        : fluxImpl(0)
-    {
-    }
+    ConfiguredAtmosphere();
     ~ConfiguredAtmosphere() = default;
 
     enum {
@@ -53,6 +50,13 @@ private:
     static double snowfall0;
     static double rain0;
     static double windspeed0;
+
+    HField tair;
+    HField tdew;
+    HField pair;
+    HField sw_in;
+    HField lw_in;
+    HField wind;
 
     IFluxCalculation* fluxImpl;
 };

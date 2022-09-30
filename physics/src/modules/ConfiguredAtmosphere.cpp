@@ -26,7 +26,7 @@ static const std::string tdewKey = pfx + ".t_dew";
 static const std::string pKey = pfx + ".pmsl";
 static const std::string swKey = pfx + ".sw_in";
 static const std::string lwKey = pfx + ".lw_in";
-static const std::string snowKey = pfx + ".snowfall";
+static const std::string snowKey = pfx + ".snow";
 static const std::string rainKey = pfx + ".rainfall";
 static const std::string windKey = pfx + ".wind_speed";
 
@@ -41,6 +41,18 @@ const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
     { ConfiguredAtmosphere::RAIN_KEY, rainKey },
     { ConfiguredAtmosphere::WIND_KEY, windKey },
 };
+
+ConfiguredAtmosphere::ConfiguredAtmosphere()
+: fluxImpl(0)
+{
+    registerProtectedArray(ProtectedArray::T_AIR, &tair);
+    registerProtectedArray(ProtectedArray::DEW_2M, &tdew);
+    registerProtectedArray(ProtectedArray::P_AIR, &pair);
+    registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
+    registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
+    registerProtectedArray(ProtectedArray::WIND_SPEED, &wind);
+}
+
 
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
@@ -69,8 +81,14 @@ ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map,
 
 void ConfiguredAtmosphere::configure()
 {
+    tair0 = Configured::getConfiguration(keyMap.at(TAIR_KEY), tair0);
+    tdew0 = Configured::getConfiguration(keyMap.at(TDEW_KEY), tdew0);
+    pair0 = Configured::getConfiguration(keyMap.at(PAIR_KEY), pair0);
+    sw0 = Configured::getConfiguration(keyMap.at(SW_KEY), sw0);
+    lw0 = Configured::getConfiguration(keyMap.at(LW_KEY), lw0);
     snowfall0 = Configured::getConfiguration(keyMap.at(SNOW_KEY), snowfall0);
     rain0 = Configured::getConfiguration(keyMap.at(RAIN_KEY), rain0);
+    windspeed0 = Configured::getConfiguration(keyMap.at(WIND_KEY), windspeed0);
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
@@ -79,8 +97,21 @@ void ConfiguredAtmosphere::configure()
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
     IAtmosphereBoundary::setData(dm);
+    tair.resize();
+    tdew.resize();
+    pair.resize();
+    sw_in.resize();
+    lw_in.resize();
+    wind.resize();
+
+    tair = tair0;
+    tdew = tdew0;
+    pair = pair0;
+    sw_in = sw0;
+    lw_in = lw0;
     snow = snowfall0;
     rain = rain0;
+    wind = windspeed0;
 }
 
 void ConfiguredAtmosphere::update(const TimestepTime& tst)
