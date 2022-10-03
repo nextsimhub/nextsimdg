@@ -155,6 +155,12 @@ We use a derived version of [semantic versioning](https://semver.org/). In brief
 2. increment y when develop is merged into main
 3. increment x when we've been working on something extraordinary, when there's a significant change in an interface (configs or outputs) ... or when y is becoming too big.
 
+### Tag and releases
+
+To implement the version numbering two steps are required : first you have to tag a version of the code whis the appropriate name (v1.0.0 for instance the rules described above) and then a release can be generated from the tag (same name).
+
+Both operations need to be commented, with ```git tag -a v1.0.0 -m 'description of the tagged version of the code'``` when generating a tag and in the Release title and description fields on github when generating the release so that changelog files are informative for users.
+
 ### Git branching and merging
 
 For the code we adopt the following system for branching and merging:
