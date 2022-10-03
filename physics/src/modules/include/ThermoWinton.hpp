@@ -14,7 +14,7 @@
 namespace Nextsim {
 
 //! A class implementing IIceThermodynamics as the Winton thermodynamics model.
-class ThermoWinton : public IIceThermodynamics {
+class ThermoWinton : public IIceThermodynamics, public Configured<ThermoWinton> {
 public:
     static const size_t nLevels;
 
@@ -23,10 +23,14 @@ public:
 
     enum {
         KS_KEY,
+        I0_KEY
     };
     void configure() override;
 
     ModelState getStateRecursive(const OutputSpec& os) const override;
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
@@ -39,15 +43,13 @@ private:
     HField botMelt;
     HField qic;
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
-
-    enum {
-        K12, A, B, K32, A1, B1, C1, T1, TSURF, COUNT
-    };
-    typedef std::array<double, COUNT> CoeffArray;
+    ModelArrayRef<ProtectedArray::SW_IN, MARConstBackingStore> sw_in;
 
     static double kappa_s;
+    static double i0;
+    static const double cVol;
 
-    void calculateCoeffs(CoeffArray& c, size_t i, double dt);
+    void calculateTemps(double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
 
 };
 
