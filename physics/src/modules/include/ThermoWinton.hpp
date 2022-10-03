@@ -45,7 +45,6 @@ private:
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
     ModelArrayRef<ProtectedArray::SW_IN, MARConstBackingStore> sw_in;
 
-    static double kappa_s;
     static double i0;
     static const double cVol;
 

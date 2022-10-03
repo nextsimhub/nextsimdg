@@ -41,7 +41,6 @@ private:
     HField qic;
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
 
-    static double k_s;
     static const double freezingPointIce;
 
     bool doFlooding = true; // TODO: read from configuration

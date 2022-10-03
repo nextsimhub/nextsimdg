@@ -14,7 +14,7 @@
 namespace Nextsim {
 
 const size_t ThermoWinton::nLevels = 3;
-double ThermoWinton::kappa_s;
+double ThermoWinton::IIceThermodynamics::kappa_s;
 double ThermoWinton::i0;
 static const double k_sDefault = 0.3096;
 static const double i0_default = 0.17;
@@ -25,7 +25,7 @@ ThermoWinton::ThermoWinton() { }
 
 template <>
 const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
-    { ThermoWinton::KS_KEY, "thermo.ks" },
+    { ThermoWinton::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
     { ThermoWinton::I0_KEY, "nextsim_thermo.I_0" },
 };
 

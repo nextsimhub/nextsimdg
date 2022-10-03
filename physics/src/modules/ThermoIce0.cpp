@@ -14,7 +14,7 @@
 
 namespace Nextsim {
 
-double ThermoIce0::k_s;
+double ThermoIce0::IIceThermodynamics::kappa_s;
 static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 
@@ -37,16 +37,16 @@ void ThermoIce0::update(const TimestepTime& tsTime)
 
 template <>
 const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
-    { ThermoIce0::KS_KEY, "thermoice0.ks" },
+    { ThermoIce0::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
 };
 
-void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault); }
+void ThermoIce0::configure() { kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault); }
 
 ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state = { {},
         {
-            { keyMap.at(KS_KEY), k_s },
+            { keyMap.at(KS_KEY), kappa_s },
         } };
     return os ? state : ModelState();
 }
@@ -82,7 +82,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
     double& tice_i = tice.zIndexAndLayer(i, 0);
-    double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
+    double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]);
     qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
     double remainingFlux = qic[i] - qia[i];
     tice_i = tice0.zIndexAndLayer(i, 0) + remainingFlux / (k_lSlab + dQia_dt[i]);

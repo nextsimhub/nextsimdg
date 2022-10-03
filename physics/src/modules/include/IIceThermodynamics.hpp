@@ -8,6 +8,7 @@
 #ifndef IICETHERMODYNAMICS_HPP
 #define IICETHERMODYNAMICS_HPP
 
+#include "include/ConfigurationHelp.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
@@ -38,6 +39,8 @@ public:
      * @param tStep The object containing the timestep start and duration times.
      */
     virtual void update(const TimestepTime& tsTime) = 0;
+
+    inline static std::string getKappaSConfigKey() { return "thermo.ks"; }
 
 protected:
     IIceThermodynamics()
@@ -83,6 +86,8 @@ protected:
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
+
+    static double kappa_s;
 };
 
 } /* namespace Nextsim */
