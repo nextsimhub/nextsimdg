@@ -7,9 +7,6 @@
 Changelog
 =========
 
-Page under construction
+Have a look at neXtSIM_DG's [releases list](https://github.com/nextsimdg/nextsimdg/releases).
 
-Version 0.1.0
--------------
-
-In this version, ...
+For more details, check neXtSIM_DG's [changelog]()
