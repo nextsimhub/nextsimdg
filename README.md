@@ -157,7 +157,7 @@ We use a derived version of [semantic versioning](https://semver.org/). In brief
 
 ### Tag and releases
 
-To implement the version numbering two steps are required : first you have to tag a version of the code whis the appropriate name (v1.0.0 for instance the rules described above) and then a release can be generated from the tag (same name).
+To implement the version numbering two steps are required: first, you have to tag a version of the code with the appropriate name (v1.0.0 for instance the rules described above) and then a release can be generated from the tag (same name).
 
 Both operations need to be commented, with ```git tag -a v1.0.0 -m 'description of the tagged version of the code'``` when generating a tag and in the Release title and description fields on github when generating the release so that changelog files are informative for users.
 
