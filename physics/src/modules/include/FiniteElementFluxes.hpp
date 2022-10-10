@@ -11,22 +11,17 @@
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
-#include "include/IIceFluxes.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/IOWFluxes.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/ModelComponent.hpp"
 
 namespace Nextsim {
 
 //! A class that implements ice fluxes and open water fluxes according finiteelement.cpp.
-class FiniteElementFluxes : public IIceFluxes,
-                            public IOWFluxes,
-                            public Configured<FiniteElementFluxes> {
+class FiniteElementFluxes : public IFluxCalculation, public Configured<FiniteElementFluxes> {
 public:
     FiniteElementFluxes()
-        : IIceFluxes()
-        , IOWFluxes()
-        , iIceAlbedoImpl(nullptr)
+        : iIceAlbedoImpl(nullptr)
         , evap(ModelArray::Type::H)
         , Q_lh_ow(ModelArray::Type::H)
         , Q_sh_ow(ModelArray::Type::H)
@@ -78,11 +73,13 @@ public:
 
     std::string getName() const override { return "FiniteElementFluxes"; }
 
+    void update(const TimestepTime& tst) override;
+
     //! Updates the fluxes over open water.
-    void updateOW(const TimestepTime& tst) override;
+    void updateOW(const TimestepTime& tst);
 
     //! Updates the fluxes over ice.
-    void updateIce(const TimestepTime& tst) override;
+    void updateIce(const TimestepTime& tst);
 
     //! Updates the atmospheric fluxes.
     void updateAtmosphere(const TimestepTime& tst);
@@ -138,39 +135,6 @@ private:
     static double latentHeatIce(double temperature);
 
     IIceAlbedo* iIceAlbedoImpl;
-};
-
-class FiniteElementFluxCalc
-    : public IFluxCalculation /*, public Configured<FiniteElementFluxCalc>*/ {
-public:
-    FiniteElementFluxCalc()
-        : IFluxCalculation()
-        , fef(nullptr)
-        , iIceFluxesImpl(nullptr)
-        , iOWFluxesImpl(nullptr)
-        , iceOceanHeatFluxImpl(nullptr)
-    {
-    }
-
-    void setData(const ModelState::DataMap&) override;
-
-    ModelState getState() const override;
-    ModelState getState(const OutputLevel&) const override;
-    ModelState getStateRecursive(const OutputSpec& os) const override;
-
-    std::string getName() const override { return "FiniteElementFluxCalc"; }
-
-    void update(const TimestepTime&) override;
-    enum {
-        OW_FLUX_KEY,
-    };
-    void configure() override;
-
-private:
-    std::unique_ptr<IOWFluxes> iOWFluxesImpl;
-    IIceFluxes* iIceFluxesImpl;
-    FiniteElementFluxes* fef;
-    IIceOceanHeatFlux* iceOceanHeatFluxImpl;
 };
 
 } /* namespace Nextsim */

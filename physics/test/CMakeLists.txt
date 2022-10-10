@@ -51,8 +51,6 @@ add_executable(testFEFluxes
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
-    "${ModulesDir}/IceOceanHeatFluxModule.cpp"
-    "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testFEFluxes PRIVATE
@@ -62,6 +60,51 @@ target_include_directories(testFEFluxes PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testFEFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testConfiguredAtm
+    "ConfiguredAtmosphere_test.cpp"
+    "${ModulesDir}/ConfiguredAtmosphere.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${ModulesDir}/FiniteElementFluxes.cpp"
+    "${ModulesDir}/FiniteElementSpecHum.cpp"
+    "${ModulesDir}/FluxCalculationModule.cpp"
+    "${ModulesDir}/IIceAlbedoModule.cpp"
+    "${ModulesDir}/SMUIceAlbedo.cpp"
+    "${ModulesDir}/CCSMIceAlbedo.cpp"
+    "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testConfiguredAtm PRIVATE
+    "${CoreSourceDir}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testConfiguredAtm PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testBIOHFluxes
+    "BasicIceOceanFlux_test.cpp"
+    "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testBIOHFluxes PRIVATE
+    "${CoreSourceDir}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testBIOHFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testSpecHum
     "SpecificHumidity_test.cpp"

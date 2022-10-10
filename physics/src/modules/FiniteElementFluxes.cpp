@@ -9,7 +9,6 @@
 
 #include "include/FiniteElementSpecHum.hpp"
 #include "include/IIceAlbedoModule.hpp"
-#include "include/IceOceanHeatFluxModule.hpp"
 #include "include/constants.hpp"
 
 #include <memory>
@@ -53,9 +52,6 @@ void FiniteElementFluxes::configure()
 
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
-    IIceFluxes::setData(ms);
-    IOWFluxes::setData(ms);
-
     // Data arrays can now be set to the correct size
     evap.resize();
     Q_lh_ow.resize();
@@ -109,8 +105,6 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map
 {
     getHelpText(map, getAll);
     Module::getHelpRecursive<IIceAlbedo>(map, getAll);
-    // Skip having to write a gHR() function for FEFC by accessing IceOceanHeatFlux here.
-    Module::getHelpRecursive<IIceOceanHeatFlux>(map, getAll);
     return map;
 }
 
@@ -164,6 +158,14 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
 }
 
+void FiniteElementFluxes::update(const TimestepTime& tst)
+{
+    updateAtmosphere(tst); // common atmospheric values
+    updateOW(tst); // qow
+    updateIce(tst); // qia & dqia/dT
+}
+
+
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {
     overElements(std::bind(&FiniteElementFluxes::calculateAtmos, this, std::placeholders::_1,
@@ -215,57 +217,6 @@ double FiniteElementFluxes::latentHeatWater(double temperature)
 double FiniteElementFluxes::latentHeatIce(double temperature)
 {
     return Water::Lv0 + Water::Lf - 240. + temperature * (-290. + temperature * (-4.));
-}
-
-template <>
-const std::map<int, std::string> Configured<FiniteElementFluxCalc>::keyMap = {
-    { FiniteElementFluxCalc::OW_FLUX_KEY, "OceanFluxModel" },
-};
-
-void FiniteElementFluxCalc::configure()
-{
-    IFluxCalculation::configure();
-
-    // FIXME: Here we assume that no other implementation of IOWFluxes is requested
-    fef = new FiniteElementFluxes;
-    iOWFluxesImpl = std::unique_ptr<IOWFluxes>(fef);
-    iIceFluxesImpl = fef;
-    // iOWFluxesImpl = std::move(Module::getInstance<IOWFluxes>());
-    fef->configure();
-
-    iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFlux>();
-    tryConfigure(iceOceanHeatFluxImpl);
-}
-
-void FiniteElementFluxCalc::setData(const ModelState::DataMap& ms)
-{
-    IFluxCalculation::setData(ms);
-
-    iOWFluxesImpl->setData(ms);
-    iIceFluxesImpl->setData(ms);
-    fef->setData(ms);
-    iceOceanHeatFluxImpl->setData(ms);
-}
-
-ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }
-ModelState FiniteElementFluxCalc::getState(const OutputLevel&) const { return getState(); }
-ModelState FiniteElementFluxCalc::getStateRecursive(const OutputSpec& os) const
-{
-    ModelState state(getState());
-    state.merge(fef->getStateRecursive(os));
-    state.merge(iceOceanHeatFluxImpl->getStateRecursive(os));
-    return os ? state : ModelState();
-}
-
-void FiniteElementFluxCalc::update(const TimestepTime& tst)
-{
-    // Update the atmospheric state
-    fef->updateAtmosphere(tst);
-    // Call the modular open water flux calculation
-    iOWFluxesImpl->updateOW(tst);
-    // Call the fixed ice flux calculation
-    iIceFluxesImpl->updateIce(tst);
-    iceOceanHeatFluxImpl->update(tst);
 }
 
 double stefanBoltzmannLaw(double temperatureC)
