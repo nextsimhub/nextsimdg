@@ -169,6 +169,48 @@ public:
     //! Returns a ModelArray with every element of the object divided by a constant.
     ModelArray operator/(const double&) const;
 
+    /*!
+     * @brief Calculates element-wise maximum of the data and the given scalar value.
+     * @param max the maximum value of the resultant array.
+     */
+    ModelArray max(double max) const;
+    /*!
+     * @brief Calculates element-wise minimum of the data and the given scalar value.
+     * @param min the minimum value of the resultant array.
+     */
+    ModelArray min(double min) const;
+    /*!
+     * @brief Calculates element-wise maximum of the data and the given second array.
+     * @param maxArr the array containing the maximum values.
+     */
+    ModelArray max(const ModelArray& maxArr) const;
+    /*!
+     * @brief Calculates element-wise minimum of the data and the given second array.
+     * @param minArr the array containing the minimum values.
+     */
+    ModelArray min(const ModelArray& minArr) const;
+
+    /*!
+     * @brief Clamps the values in the array to the given maximum.
+     * @param max the maximum value of the final array.
+     */
+    ModelArray& clampAbove(double max);
+    /*!
+     * @brief Clamps the values in the array to the given minimum.
+     * @param min the minimum value of the final array.
+     */
+    ModelArray& clampBelow(double min);
+    /*!
+     * @brief Clamps the values in the array to maximum values in the given array.
+     * @param maxArr the array of clamp maximum target values.
+     */
+    ModelArray& clampAbove(const ModelArray& maxArr);
+    /*!
+     * @brief Clamps the values in the array to minimum values in the given array.
+     * @param minArr the array of clamp minimum target values.
+     */
+    ModelArray& clampBelow(const ModelArray& minArr);
+
     typedef std::vector<size_t> Dimensions;
 
     //! Returns the number of dimensions of this type of ModelArray.

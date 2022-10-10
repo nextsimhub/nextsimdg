@@ -8,26 +8,32 @@
 #ifndef IICEOCEANHEATFLUX_HPP
 #define IICEOCEANHEATFLUX_HPP
 
-#include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
-class PrognosticElementData;
-class ExternalData;
-class PhysicsData;
-class NextsimPhysics;
 
 //! The interface class for the ice-ocean heat flux calculation.
 class IIceOceanHeatFlux : public ModelComponent {
 public:
+    IIceOceanHeatFlux()
+        : sst(getProtectedArray())
+        , tf(getProtectedArray())
+        , qio(getSharedArray())
+    {
+    }
     virtual ~IIceOceanHeatFlux() = default;
 
     // This superclass has no state
-    void setData(const ModelState&) override {};
+    void setData(const ModelState::DataMap&) override {};
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
+    ModelState getStateRecursive(const OutputSpec& os) const override
+    {
+        return os ? getState() : ModelState();
+    }
     // …but it does have a name
     std::string getName() const override { return "IIceOceanHeatFlux"; }
 
@@ -39,10 +45,10 @@ public:
     virtual void update(const TimestepTime&) = 0;
 
 protected:
-    ModelArrayRef<ProtectedArray::SST> sst;
-    ModelArrayRef<ProtectedArray::TF> tf;
+    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
+    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf;
 
-    ModelArrayRef<SharedArray::Q_IO, RW> qio;
+    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio;
 };
 }
-#endif /* SRC_INCLUDE_IICEOCEANHEATFLUX_HPP_ */
+#endif /* IICEOCEANHEATFLUX_HPP_ */

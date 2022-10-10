@@ -18,7 +18,7 @@ public:
     DummyOceanState() = default;
     ~DummyOceanState() = default;
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "DummyOceanState"; }
 
 protected:

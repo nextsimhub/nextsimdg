@@ -46,8 +46,8 @@ public:
      * @param isRestart Should this file be written as a restart file or a
      *          diagnostic dump?
      */
-    virtual void dumpModelState(
-        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
+    virtual void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+        const std::string& filePath, bool isRestart) const = 0;
 
 protected:
     DevGrid* grid;

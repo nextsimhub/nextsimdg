@@ -7,6 +7,7 @@ set(BaseSources
     "Model.cpp"
     "Iterator.cpp"
     "Configurator.cpp"
+    "ConfigurationHelpPrinter.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
@@ -18,6 +19,7 @@ set(BaseSources
     "ModelArray.cpp"
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
+    "NetcdfMetadataConfiguration.cpp"
     "PrognosticData.cpp"
     "Time.cpp"
     )
@@ -39,6 +41,7 @@ set(FreezingPointModuleSources
 set(DiagnosticOutputModuleSources
     "DiagnosticOutputModule.cpp"
     "SimpleOutput.cpp"
+    "ConfigOutput.cpp"
     )
 
 set(ModuleSources

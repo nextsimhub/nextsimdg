@@ -24,7 +24,7 @@ class Module1 : public ModelComponent {
 public:
     Module1() { registerModule(); }
     std::string getName() const override { return "Module1"; }
-    void setData(const ModelState& st) override
+    void setData(const ModelState::DataMap& st) override
     {
         throw(HappyExcept(std::string("setData for ") + getName()));
     }
@@ -56,18 +56,18 @@ class ModuleSupplyAndWait : public ModelComponent {
 public:
     ModuleSupplyAndWait()
         : hice(ModelArray::HField())
-        , cice_ref()
+        , cice_ref(getProtectedArray())
     {
         registerModule();
         registerProtectedArray(ProtectedArray::H_ICE, &hice);
     }
-    void setData(const ModelState& ms) override { hice[0] = hiceData; }
+    void setData(const ModelState::DataMap& ms) override { hice[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
-        return {
+        return {{
             { "hice", hice },
-        };
+        }, {}};
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -77,25 +77,25 @@ public:
 
 private:
     HField hice;
-    ModelArrayRef<ProtectedArray::C_ICE> cice_ref;
+    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice_ref;
 };
 
 class ModuleRequestAndSupply : public ModelComponent {
 public:
     ModuleRequestAndSupply()
         : cice(ModelArray::HField())
-        , hice_ref()
+        , hice_ref(getProtectedArray())
     {
         registerModule();
         registerProtectedArray(ProtectedArray::C_ICE, &cice);
     }
-    void setData(const ModelState& ms) override { cice[0] = ciceData; }
+    void setData(const ModelState::DataMap& ms) override { cice[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
-        return {
+        return {{
             { "cice", cice },
-        };
+        }, {}};
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -105,7 +105,7 @@ public:
 
 private:
     HField cice;
-    ModelArrayRef<ProtectedArray::H_ICE> hice_ref;
+    ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore> hice_ref;
 };
 
 TEST_CASE("Test array registration", "[ModelComponent]")
@@ -122,18 +122,18 @@ class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()
         : qic(ModelArray::HField())
-        , qio_ref()
+        , qio_ref(getSharedArray())
     {
         registerModule();
         registerSharedArray(SharedArray::Q_IC, &qic);
     }
-    void setData(const ModelState& ms) override { qic[0] = qicData; }
+    void setData(const ModelState::DataMap& ms) override { qic[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
     ModelState getState() const override
     {
-        return {
+        return {{
             { "qic", qic },
-        };
+        }, {}};
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -143,25 +143,25 @@ public:
 
 private:
     HField qic;
-    ModelArrayRef<SharedArray::Q_IO, RO> qio_ref;
+    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RO> qio_ref;
 };
 
 class ModuleShared : public ModelComponent {
 public:
     ModuleShared()
         : qio(ModelArray::HField())
-        , qic_ref()
+        , qic_ref(getSharedArray())
     {
         registerModule();
         registerSharedArray(SharedArray::Q_IO, &qio);
     }
-    void setData(const ModelState& ms) override { qio[0]; }
+    void setData(const ModelState::DataMap& ms) override { qio[0]; }
     std::string getName() const override { return "Shared"; }
     ModelState getState() const override
     {
-        return {
+        return {{
             { "qio", qio },
-        };
+        }, {}};
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -173,7 +173,7 @@ public:
 
 private:
     HField qio;
-    ModelArrayRef<SharedArray::Q_IC, RW> qic_ref;
+    ModelArrayRef<SharedArray::Q_IC, MARBackingStore, RW> qic_ref;
 };
 
 TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")

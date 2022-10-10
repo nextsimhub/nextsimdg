@@ -32,7 +32,9 @@ add_executable(testCommandLineParser
     "CommandLineParser_test.cpp"
     "ArgV.cpp"
     "${SRC_DIR}/CommandLineParser.cpp"
+    "${SRC_DIR}/ConfigurationHelpPrinter.cpp"
     )
+target_include_directories(testCommandLineParser PUBLIC "${SRC_DIR}")
 target_link_libraries(testCommandLineParser LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
 add_executable(testConfigurator
@@ -40,6 +42,7 @@ add_executable(testConfigurator
     "ArgV.cpp"
     "${SRC_DIR}/Configurator.cpp"
     )
+target_include_directories(testConfigurator PUBLIC "${SRC_DIR}")
 target_link_libraries(testConfigurator LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
 add_executable(testEnumWrapper
@@ -137,3 +140,11 @@ add_executable(testTimeClasses
 )
 target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
 target_link_libraries(testTimeClasses PRIVATE Catch2::Catch2)
+
+add_executable(testNewModelArrayRef
+    "NewModelArrayRef_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+)
+
+target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}")
+target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)

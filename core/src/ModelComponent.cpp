@@ -10,8 +10,8 @@
 namespace Nextsim {
 
 std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
-ModelArray* ModelComponent::sharedArrays[static_cast<size_t>(SharedArray::COUNT)];
-const ModelArray* ModelComponent::protectedArrays[static_cast<size_t>(ProtectedArray::COUNT)];
+MARBackingStore ModelComponent::sharedArrays(static_cast<size_t>(SharedArray::COUNT));
+MARConstBackingStore ModelComponent::protectedArrays(static_cast<size_t>(ProtectedArray::COUNT));
 ModelArray* ModelComponent::p_oceanMaskH = nullptr;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
@@ -21,14 +21,14 @@ ModelComponent::ModelComponent() { }
 void ModelComponent::setAllModuleData(const ModelState& stateIn)
 {
     for (auto entry : registeredModules) {
-        entry.second->setData(stateIn);
+        entry.second->setData(stateIn.data);
     }
 }
 ModelState ModelComponent::getAllModuleState()
 {
     ModelState overallState;
     for (auto entry : registeredModules) {
-        overallState.merge(entry.second->getState());
+        overallState.data.merge(entry.second->getState().data);
     }
     return overallState;
 }

@@ -58,7 +58,7 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             cice[0] = 0.5;
             hice[0] = 0.1 / cice[0]; // Here we are using the true thicknesses
@@ -94,7 +94,7 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
         }
         std::string getName() const override { return "FluxData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             qow[0] = -109.923;
             qio[0]
@@ -116,8 +116,8 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
     ti0t.configure();
     ti0t.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::T_ICE, RO> tice;
-    ModelArrayRef<ModelComponent::SharedArray::Q_IC, RO> qic;
+    ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(ModelComponent::getSharedArray());
 
 
     double prec = 1e-5;
@@ -160,7 +160,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             cice[0] = 0.5;
             hice[0] = 0.1 / cice[0]; // Here we are using the true thicknesses
@@ -196,7 +196,7 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
         }
         std::string getName() const override { return "FluxData"; }
 
-        void setData(const ModelState&) override
+        void setData(const ModelState::DataMap&) override
         {
             qow[0] = 143.266;
             qio[0] = 73.9465;
@@ -218,8 +218,8 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
     ti0t.configure();
     ti0t.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::T_ICE, RO> tice;
-    ModelArrayRef<ModelComponent::SharedArray::Q_IC, RO> qic;
+    ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(ModelComponent::getSharedArray());
 
     double prec = 1e-5;
     REQUIRE(tice[0] == Approx(-8.90443).epsilon(prec));

@@ -1,4 +1,6 @@
-/build/
+/build*
+*/build
+Results
 /.cproject
 /.project
 /.pydevproject
@@ -8,3 +10,4 @@
 /run/*.nc
 /run/nextsim
 /run/.DS_Store
+/run/*.log

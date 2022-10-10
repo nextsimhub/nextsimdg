@@ -9,7 +9,6 @@
 
 #include "include/FiniteElementSpecHum.hpp"
 #include "include/IIceAlbedoModule.hpp"
-#include "include/IceOceanHeatFluxModule.hpp"
 #include "include/constants.hpp"
 
 #include <memory>
@@ -23,6 +22,12 @@ double FiniteElementFluxes::dragOcean_t;
 double FiniteElementFluxes::dragIce_t;
 double FiniteElementFluxes::m_oceanAlbedo;
 double FiniteElementFluxes::m_I0;
+
+static const double dragOcean_q_default = 1.5e-3;
+static const double dragOcean_t_default = 0.83e-3;
+static const double dragIce_t_default = 1.3e-3;
+static const double oceanAlbedo_default = 0.07;
+static const double i0_default = 0.17;
 
 template <>
 const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
@@ -38,18 +43,15 @@ void FiniteElementFluxes::configure()
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 
-    dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), 1.5e-3);
-    dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), 0.83e-3);
-    dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), 1.3e-3);
-    m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), 0.07);
-    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), 0.17);
+    dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), dragOcean_q_default);
+    dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), dragOcean_t_default);
+    dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), dragIce_t_default);
+    m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), oceanAlbedo_default);
+    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
-void FiniteElementFluxes::setData(const ModelState& ms)
+void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
-    IIceFluxes::setData(ms);
-    IOWFluxes::setData(ms);
-
     // Data arrays can now be set to the correct size
     evap.resize();
     Q_lh_ow.resize();
@@ -68,8 +70,43 @@ void FiniteElementFluxes::setData(const ModelState& ms)
     dshice_dT.resize();
 }
 
-ModelState FiniteElementFluxes::getState() const { return ModelState(); }
+ModelState FiniteElementFluxes::getState() const
+{
+    return { {}, {} };
+}
+
 ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
+
+ModelState FiniteElementFluxes::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state(getState());
+    return os ? state : ModelState();
+}
+
+FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, bool getAll)
+{
+    map["FiniteElementFluxes"] = {
+        { keyMap.at(DRAGOCEANQ_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(dragOcean_q_default), "??",
+            "Coefficient for evaporative mass flux calculation." },
+        { keyMap.at(DRAGOCEANT_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(dragOcean_t_default), "??",
+            "Coefficient for sensible heat flux calculation." },
+        { keyMap.at(DRAGICET_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(dragIce_t_default), "??", "Ice drag coefficient for heat fluxes." },
+        { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(oceanAlbedo_default), "", "Shortwave albedo of open ocean water." },
+        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
+            "Transmissivity of ice." },
+    };
+    return map;
+}
+FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+    Module::getHelpRecursive<IIceAlbedo>(map, getAll);
+    return map;
+}
 
 void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 {
@@ -121,9 +158,32 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
 }
 
+void FiniteElementFluxes::update(const TimestepTime& tst)
+{
+    updateAtmosphere(tst); // common atmospheric values
+    updateOW(tst); // qow
+    updateIce(tst); // qia & dqia/dT
+}
+
+
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {
     overElements(std::bind(&FiniteElementFluxes::calculateAtmos, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tst);
+}
+
+void FiniteElementFluxes::updateOW(const TimestepTime& tst)
+{
+    overElements(std::bind(&FiniteElementFluxes::calculateOW, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tst);
+}
+
+void FiniteElementFluxes::updateIce(const TimestepTime& tst)
+{
+    iIceAlbedoImpl->setTime(tst.start);
+    overElements(std::bind(&FiniteElementFluxes::calculateIce, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);
 }
@@ -157,51 +217,6 @@ double FiniteElementFluxes::latentHeatWater(double temperature)
 double FiniteElementFluxes::latentHeatIce(double temperature)
 {
     return Water::Lv0 + Water::Lf - 240. + temperature * (-290. + temperature * (-4.));
-}
-
-template <>
-const std::map<int, std::string> Configured<FiniteElementFluxCalc>::keyMap = {
-    { FiniteElementFluxCalc::OW_FLUX_KEY, "OceanFluxModel" },
-};
-
-void FiniteElementFluxCalc::configure()
-{
-    IFluxCalculation::configure();
-
-    // FIXME: Here we assume that no other implementation of IOWFluxes is requested
-    fef = new FiniteElementFluxes;
-    iOWFluxesImpl = std::unique_ptr<IOWFluxes>(fef);
-    iIceFluxesImpl = fef;
-    // iOWFluxesImpl = std::move(Module::getInstance<IOWFluxes>());
-    fef->configure();
-
-    iceOceanHeatFluxImpl = &Module::getImplementation<IIceOceanHeatFlux>();
-    tryConfigure(iceOceanHeatFluxImpl);
-}
-
-void FiniteElementFluxCalc::setData(const ModelState& ms)
-{
-    IFluxCalculation::setData(ms);
-
-    iOWFluxesImpl->setData(ms);
-    iIceFluxesImpl->setData(ms);
-    fef->setData(ms);
-    iceOceanHeatFluxImpl->setData(ms);
-}
-
-ModelState FiniteElementFluxCalc::getState() const { return ModelState(); }
-ModelState FiniteElementFluxCalc::getState(const OutputLevel&) const { return getState(); }
-
-void FiniteElementFluxCalc::update(const TimestepTime& tst)
-{
-    aoState.update(tst);
-    // Update the atmospheric state
-    fef->updateAtmosphere(tst);
-    // Call the modular open water flux calculation
-    iOWFluxesImpl->updateOW(tst);
-    // Call the fixed ice flux calculation
-    iIceFluxesImpl->updateIce(tst);
-    iceOceanHeatFluxImpl->update(tst);
 }
 
 double stefanBoltzmannLaw(double temperatureC)

@@ -7,7 +7,6 @@
 
 #include "include/ThermoIce0.hpp"
 
-#include "include/IFreezingPointModule.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
@@ -15,6 +14,7 @@
 namespace Nextsim {
 
 double ThermoIce0::k_s;
+static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 
 ThermoIce0::ThermoIce0()
@@ -23,6 +23,7 @@ ThermoIce0::ThermoIce0()
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
     , qic(ModelArray::Type::H)
+    , oldHi(getProtectedArray())
 {
 }
 
@@ -38,9 +39,31 @@ const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
     { ThermoIce0::KS_KEY, "thermoice0.ks" },
 };
 
-void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), 0.3096); }
+void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault); }
 
-void ThermoIce0::setData(const ModelState& ms)
+ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
+{
+    ModelState state = { {},
+        {
+            { keyMap.at(KS_KEY), k_s },
+        } };
+    return os ? state : ModelState();
+}
+
+ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
+{
+    map["ThermoIce0"] = {
+        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
+            "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
+    };
+    return map;
+}
+ThermoIce0::HelpMap& ThermoIce0::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    return getHelpText(map, getAll);
+}
+
+void ThermoIce0::setData(const ModelState::DataMap& ms)
 {
     IIceThermodynamics::setData(ms);
 
@@ -55,6 +78,8 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
+    // Create a reference to the local updated Tice value here to avoid having
+    // to write the array access expression out in full every time
     double& tice_i = tice.zIndexAndLayer(i, 0);
     double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
     qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
@@ -119,7 +144,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         // No ice, no snow and the surface temperature is the melting point of ice
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = Module::getImplementation<IFreezingPoint>()(sss[i]);
+        tice.zIndexAndLayer(i, 0) = Ice::Tm;
     }
 }
 } /* namespace Nextsim */

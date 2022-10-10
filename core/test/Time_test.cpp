@@ -203,4 +203,16 @@ TEST_CASE("Durations", "[Duration]")
     Duration maybeADay = tt_day - tt;
     REQUIRE(maybeADay.seconds() == 1 * days);
 }
+
+TEST_CASE("gmtime and doy", "[TimePoint]") {
+    TimePoint janfirst("2010-01-01T00:00:00Z");
+    std::tm* timeStruct = janfirst.gmtime();
+    REQUIRE(timeStruct->tm_yday == 0);
+
+    // Test that leap years work
+    TimePoint marchfirst("2010-03-01T00:00:00Z");
+    REQUIRE(marchfirst.gmtime()->tm_yday == 59);
+    TimePoint bissextile("2020-03-01T00:00:00Z");
+    REQUIRE(bissextile.gmtime()->tm_yday == 60);
+}
 }

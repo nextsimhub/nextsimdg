@@ -39,8 +39,6 @@ static std::string hiceName = "hice";
 static std::string ciceName = "cice";
 static std::string hsnowName = "hsnow";
 static std::string ticeName = "tice";
-static std::string sstName = "sst";
-static std::string sssName = "sss";
 
 typedef std::map<StringName, std::string> NameMap;
 
@@ -87,11 +85,11 @@ static ModelState initModelData(const netCDF::NcGroup& dataGroup)
         if (nDims == 2) {
             HField data = ModelArray::HField();
             data.setData(buffer.data());
-            auto [i, y] = state.insert({ varName, data });
+            auto [i, y] = state.data.insert({ varName, data });
         } else if (nDims == 3) {
             ZField data = ModelArray::ZField();
             data.setData(buffer.data());
-            state[varName] = data;
+            state.data[varName] = data;
         }
     }
 
@@ -129,7 +127,7 @@ void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
     netCDF::NcDim zDim = dataGroup.addDim(DevGrid::nIceLayersName, nLayers);
     std::vector<netCDF::NcDim> dims3 = { xDim, yDim, zDim };
 
-    for (const auto entry : state) {
+    for (const auto entry : state.data) {
         const std::string& name = entry.first;
         if (entry.second.getType() == ModelArray::Type::H) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));

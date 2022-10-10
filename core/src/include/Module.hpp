@@ -5,9 +5,10 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_MODULE_HPP
-#define SRC_MODULE_HPP
+#ifndef MODULE_HPP
+#define MODULE_HPP
 
+#include "include/ConfigurationHelp.hpp"
 #include "include/ConfiguredModule.hpp"
 
 #include <functional>
@@ -37,6 +38,12 @@ template <typename M> void setImplTemplate(const std::string& implName)
 }
 
 template <typename I, typename M> std::unique_ptr<I> getInstTemplate() { return M::getInstance(); }
+
+typedef std::list<Nextsim::ConfigurationHelp> OptionMap;
+typedef std::map<std::string, OptionMap> HelpMap;
+using ConfigType = Nextsim::ConfigurationHelp::ConfigType;
+
+template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 template <typename I> class Module {
 public:
@@ -68,6 +75,20 @@ public:
         return keys;
     }
 
+    static std::string implementation()
+    {
+        typedef std::unique_ptr<I>(fnType)();
+        // The name is not cached, so find the function in the map which
+        // corresponds to spf. The hairy code is derived from
+        // https://stackoverflow.com/a/35920804
+        for (auto entry : functionMap) {
+            if (*entry.second.template target<fnType*>() == *spf.template target<fnType*>()) {
+                return entry.first;
+            }
+        }
+        return ""; // spf should always be an entry in functionMap
+    }
+
     static std::string moduleName();
 
 private:
@@ -78,8 +99,11 @@ private:
 
 template <typename I, typename M> void addToConfiguredModules()
 {
-    Nextsim::ConfiguredModule::configureModule(Module<I>::moduleName(), M::setImplementation);
+    Nextsim::ConfiguredModule::configureModule(
+        Module<I>::moduleName(), M::setImplementation, M::implementation);
 }
 
+template <typename I> std::string implementation() { return Module<I>::implementation(); }
+
 }
-#endif /* SRC_MODULE_HPP */
+#endif /* MODULE_HPP */

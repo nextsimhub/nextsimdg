@@ -18,7 +18,7 @@ public:
     DummyAtmosphereState() = default;
     ~DummyAtmosphereState() = default;
 
-    void setData(const ModelState&) override;
+    void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "DummyAtmosphereState"; }
 
 protected:
