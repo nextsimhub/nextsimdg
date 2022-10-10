@@ -161,6 +161,8 @@ To implement the version numbering two steps are required: first, you have to ta
 
 Both operations need to be commented, with ```git tag -a v1.0.0 -m 'description of the tagged version of the code'``` when generating a tag and in the Release title and description fields on github when generating the release so that changelog files are informative for users.
 
+After each release, the changelog file must be generated as described [here](docs/changelog/README.md) and deployed in the docs branch. This changelog file can also be modified anytime to take into account the recent developments.
+
 ### Git branching and merging
 
 For the code we adopt the following system for branching and merging:
