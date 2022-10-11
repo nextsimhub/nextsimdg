@@ -174,11 +174,13 @@ void run_benchmark(const std::string meshfile)
     Nextsim::VTK::write_dg(resultsdir + "/A", 0, A, smesh);
     Nextsim::VTK::write_dg(resultsdir + "/H", 0, H, smesh);
     Nextsim::VTK::write_dg(resultsdir + "/D", 0, D, smesh);
-    Nextsim::VTK::write_dg(resultsdir + "/S11", 0, momentum.GetS11(), smesh);
-    Nextsim::VTK::write_dg(resultsdir + "/S12", 0, momentum.GetS12(), smesh);
-    Nextsim::VTK::write_dg(resultsdir + "/S22", 0, momentum.GetS22(), smesh);
-    Nextsim::VTK::write_dg(resultsdir + "/Delta", 0, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), Params.DeltaMin), smesh);
-    Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+    //Nextsim::VTK::write_dg(resultsdir + "/S11", 0, momentum.GetS11(), smesh);
+    //Nextsim::VTK::write_dg(resultsdir + "/S12", 0, momentum.GetS12(), smesh);
+    //Nextsim::VTK::write_dg(resultsdir + "/S22", 0, momentum.GetS22(), smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/Div", 0,
+        Nextsim::Tools::TensorInvI(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+    Nextsim::VTK::write_dg(resultsdir + "/Shear", 0,
+        Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
     Nextsim::VTK::write_dg(resultsdir + "/sigma_n", 0,
         Nextsim::Tools::TensorInvI(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
     Nextsim::VTK::write_dg(resultsdir + "/tau", 0,
@@ -228,7 +230,7 @@ void run_benchmark(const std::string meshfile)
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
         Nextsim::LimitMin(H, 0.0);
-        Nextsim::LimitMax(D, 1.0);
+        Nextsim::LimitMax(D, 1.0-1.e-12);
         Nextsim::LimitMin(D, 0.0);
         Nextsim::GlobalTimer.stop("time loop - advection");
 
@@ -254,10 +256,10 @@ void run_benchmark(const std::string meshfile)
                 Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/D", printstep, D, smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/S11", printstep, momentum.GetS11(), smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/S12", printstep, momentum.GetS12(), smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/S22", printstep, momentum.GetS22(), smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), Params.DeltaMin), smesh);
+                //Nextsim::VTK::write_dg(resultsdir + "/S11", printstep, momentum.GetS11(), smesh);
+                //Nextsim::VTK::write_dg(resultsdir + "/S12", printstep, momentum.GetS12(), smesh);
+                //Nextsim::VTK::write_dg(resultsdir + "/S22", printstep, momentum.GetS22(), smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/Div", printstep, Nextsim::Tools::TensorInvI(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/sigma_n", printstep,
                     Nextsim::Tools::TensorInvI(smesh, momentum.GetS11(), momentum.GetS12(), momentum.GetS22()), smesh);
@@ -274,20 +276,24 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    std::vector<std::string> meshes;
+
+    //run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_256x256.smesh");
+    run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_128x128.smesh");
+
+    // std::vector<std::string> meshes;
     // meshes.push_back("../ParametricMesh/rectangle_16x16.smesh");
     // meshes.push_back("../ParametricMesh/rectangle_32x32.smesh");
     // meshes.push_back("../ParametricMesh/rectangle_64x64.smesh");
-    meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
+    // meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
     // meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
-    //  meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
+    // meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
 
-    for (const auto& it : meshes) {
-        // run_benchmark<1, 1, 3>(it);
-        // run_benchmark<1, 3, 3>(it);
-        // run_benchmark<1, 6, 3>(it);
-        // run_benchmark<2, 1, 8>(it);
-        run_benchmark<2, 3, 8>(it);
-        // run_benchmark<2, 6, 8>(it);
-    }
+    // for (const auto& it : meshes) {
+    //     run_benchmark<1, 1, 3>(it);
+    //     run_benchmark<1, 3, 3>(it);
+    //     run_benchmark<1, 6, 3>(it);
+    //     run_benchmark<2, 1, 8>(it);
+    //     run_benchmark<2, 3, 8>(it);
+    //     run_benchmark<2, 6, 8>(it);
+    // }
 }

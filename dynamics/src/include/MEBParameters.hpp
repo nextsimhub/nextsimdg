@@ -61,16 +61,15 @@ public:
         F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 
         // Pstar = 27500.0; //!< Ice strength
-        DeltaMin = 2.e-9; //!< Viscous regime
+        // DeltaMin = 2.e-9; //!< Viscous regime
 
         // MEB
         compaction_param = -20.; //!< Compation parameter
         nu0 = 1. / 3.; //!< \param Poisson's ratio
-        // young = 1e9; //!< \param Young's modulus Canada
+        // young = 1e9; //!< \param Young's modulus Compression
         young = 5.96e8; //!< \param Young's modulus
         P0 = 10.e3; //! < \param Constant to parametrize Pmax
 
-        undamaged_time_relaxation_sigma = 1e5; //!< \param lambda
         undamaged_time_relaxation_sigma = 1e7; //!< \param lambda
         exponent_relaxation_sigma = 3;
         c0 = 10.e3; //! \param
