@@ -81,30 +81,31 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
     double& tice_i = tice.zIndexAndLayer(i, 0);
-    double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
-    qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
-    double remainingFlux = qic[i] - qia[i];
-    tice_i = tice0.zIndexAndLayer(i, 0) + remainingFlux / (k_lSlab + dQia_dt[i]);
+
+    const double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
+    qic[i] = k_lSlab * (tf[i] - tice_i);
+    const double remainingFlux = qic[i] - qia[i];
+    tice_i += remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point
     // of ice or snow
-    double meltingLimit = (hsnow[i] > 0) ? 0 : freezingPointIce;
+    const double meltingLimit = (hsnow[i] > 0) ? 0 : freezingPointIce;
     tice_i = std::min(meltingLimit, tice_i);
 
     // Top melt. Melting rate is non-positive.
-    double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow;
+    const double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow;
     snowMelt[i] = snowMeltRate * tst.step;
-    double snowSublRate = sublim[i] / Ice::rhoSnow;
-    double nowSnow = hsnow[i] + (snowMeltRate - snowSublRate) * tst.step;
+    const double snowSublRate = sublim[i] / Ice::rhoSnow;
+    const double nowSnow = hsnow[i] + (snowMeltRate - snowSublRate) * tst.step;
     // Use excess flux to melt ice. Non-positive value
-    double excessIceMelt = std::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
+    const double excessIceMelt = std::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
     // With the excess flux noted, clamp the snow thickness to a minimum of zero.
     hsnow[i] = std::max(nowSnow, 0.);
     // Then add snowfall back on top
     hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Bottom melt or growth
-    double iceBottomChange = (qic[i] - qio[i]) * tst.step / bulkLHFusionIce;
+    const double iceBottomChange = (qic[i] - qio[i]) * tst.step / bulkLHFusionIce;
     // Total thickness change
     deltaHi[i] = excessIceMelt + iceBottomChange;
     hice[i] += deltaHi[i];
@@ -113,7 +114,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     topMelt[i] = std::min(excessIceMelt, 0.);
     botMelt[i] = std::min(iceBottomChange, 0.);
     // Snow to ice conversion
-    double iceDraught = (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / Water::rhoOcean;
+    const double iceDraught = (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / Water::rhoOcean;
 
     if (doFlooding && iceDraught > hice[i]) {
         double snowDraught = iceDraught - hice[i];
@@ -127,7 +128,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     // Melt all ice if it is below minimum threshold
     if (hice[i] < IceGrowth::minimumIceThickness()) {
         if (deltaHi[i] < 0) {
-            double scaling = oldHi[i] / deltaHi[i];
+            const double scaling = oldHi[i] / deltaHi[i];
             topMelt[i] *= scaling;
             botMelt[i] *= scaling;
         }
@@ -144,7 +145,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         // No ice, no snow and the surface temperature is the melting point of ice
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = Ice::Tm;
+        tice_i = 0.;
     }
 }
 } /* namespace Nextsim */
