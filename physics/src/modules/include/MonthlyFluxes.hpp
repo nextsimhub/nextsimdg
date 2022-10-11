@@ -5,26 +5,28 @@
 #ifndef NEXTSIM_DG_MONTHLYFLUXES_HPP
 #define NEXTSIM_DG_MONTHLYFLUXES_HPP
 
-#include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/constants.hpp"
+#include "include/IAtmosphereBoundary.hpp"
 
 namespace Nextsim {
 
-class MonthlyFluxes : public IFluxCalculation {
+class MonthlyFluxes : public IAtmosphereBoundary, public Configured<MonthlyFluxes> {
 
 public:
     MonthlyFluxes()
-        : IFluxCalculation()
-    {
-    }
+        : tice(getProtectedArray()),
+        h_snow_true(getProtectedArray())
+    {};
 
     /*!
      * The required update call for an IFluxCalculation implementation. Here we just call
      * calculateElement inside an overElements loop.
      * @param tst The TimestepTime object for the current time step
      */
-    void update(const TimestepTime& tst);
+    void update(const TimestepTime& tst) override;
+
+    void configure() override;
 
 private:
     /*!
@@ -36,9 +38,11 @@ private:
      */
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    // We need acces to tice and h_snow_true
-    ModelArrayRef<ProtectedArray::T_ICE> tice;
-    ModelArrayRef<ProtectedArray::HTRUE_SNOW> h_snow_true; // cell-averaged value
+    ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore> tice;
+    ModelArrayRef<ProtectedArray::HTRUE_SNOW, MARConstBackingStore>
+        h_snow_true; // cell-averaged value
+
+    IIceAlbedo* iIceAlbedoImpl;
 };
 
 }

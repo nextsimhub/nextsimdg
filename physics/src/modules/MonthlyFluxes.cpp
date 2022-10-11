@@ -3,12 +3,20 @@
 //
 
 #include "include/MonthlyFluxes.hpp"
+#include "include/IIceAlbedoModule.hpp"
 #include "include/TableLookup.hpp"
 
 namespace Nextsim {
 
+void MonthlyFluxes::configure()
+{
+    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
+    tryConfigure(iIceAlbedoImpl);
+}
+
 void MonthlyFluxes::update(const Nextsim::TimestepTime& tst)
 {
+    iIceAlbedoImpl->setTime(tst.start);
     overElements(std::bind(&MonthlyFluxes::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);
@@ -16,8 +24,6 @@ void MonthlyFluxes::update(const Nextsim::TimestepTime& tst)
 
 void MonthlyFluxes::calculateElement(size_t i, const TimestepTime& tst)
 {
-    aoState.update(tst);
-
     // Monthly fluxes from Maykut and Untersteiner (1971)
     const std::vector<double> swTable
         = { 0.00, 0.00, 1.90, 9.99, 17.7, 19.2, 13.6, 9.00, 3.70, 0.40, 0.00, 0.00 };
@@ -47,16 +53,19 @@ void MonthlyFluxes::calculateElement(size_t i, const TimestepTime& tst)
     const double q_lw = -convFactor * TableLookup::monthlyLinearLUT(lwTable, dayOfYear, isLeap)
         + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4);
 
-    IIceAlbedo* iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i]);
 
     // We can set ModelArray to double, which sets all the values.
     qia = (1. - albedoValue) * q_sw + q_lw + q_sh + q_lh;
-    qio = 1.5 * convFactor / 12.; // Division by 12 as it's a early average
     qow = 0.;
     subl = 0.;
     // Just the derivative of the black body radiation
     dqia_dt = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
+    snow = 0.;
+    rain = 0.;
+    evap = 0.;
+    uwind = 0.;
+    vwind = 0.;
 }
 
 }

@@ -10,6 +10,7 @@
 #include "include/ConfiguredAtmosphere.hpp"
 #include "include/ConstantAtmosphereBoundary.hpp"
 #include "include/FluxConfiguredAtmosphere.hpp"
+#include "include/MonthlyFluxes.hpp"
 
 #include <string>
 
@@ -17,6 +18,7 @@ namespace Module {
 const std::string CONSTANTATMOSPHEREBOUNDARY = "Nextsim::ConstantAtmosphereBoundary";
 const std::string CONFIGUREDATMOSPHERE = "Nextsim::ConfiguredAtmosphere";
 const std::string FLUXCONFIGUREDATMOSPHERE = "Nextsim::FluxConfiguredAtmosphere";
+const std::string MONTHLYFLUXESATMOSPHERE = "Nextsim::MonthlyFluxes";
 
 template <>
 Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::functionMap = {
@@ -25,6 +27,7 @@ Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::
     { CONFIGUREDATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ConfiguredAtmosphere> },
     { FLUXCONFIGUREDATMOSPHERE,
         newImpl<Nextsim::IAtmosphereBoundary, Nextsim::FluxConfiguredAtmosphere> },
+    { MONTHLYFLUXESATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::MonthlyFluxes> },
 };
 
 template <>
