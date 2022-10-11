@@ -26,6 +26,7 @@ void ConstantOceanBoundary::setData(const ModelState::DataMap& ms)
     mld = 10.;
     tf = -1.751; // Hand calculates from S = 32 using UNESCO
     cpml = Water::cp * Water::rho * mld;
+    qio = 0.;
 }
 
 void ConstantOceanBoundary::updateBefore(const TimestepTime& tst) { }
