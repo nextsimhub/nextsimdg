@@ -1,14 +1,14 @@
 /*!
- * @file MonthlyIceAlbedo.cpp
+ * @file MU71Albedo.cpp
  *
  * @date Wed 24 Aug 2022 08:05:49 CEST
  * @author Einar Örn Ólason <einar.olason@nersc.no>
  */
 
-#include "include/MonthlyIceAlbedo.hpp"
+#include "include/MU71Albedo.hpp"
 
 namespace Nextsim {
-double MonthlyIceAlbedo::albedo(double temperature, double snowThickness)
+double MU71Albedo::albedo(double temperature, double snowThickness)
 {
     // Monthly albedos from Maykut and Untersteiner (1971)
     const std::vector<double> albedoTable

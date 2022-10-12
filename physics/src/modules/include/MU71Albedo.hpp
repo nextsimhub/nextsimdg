@@ -1,5 +1,5 @@
 /*!
- * @file MonthlyIceAlbedo.hpp
+ * @file MU71Albedo.hpp
  *
  * @date Wed 24 Aug 2022 08:00:31 CEST
  * @author Einar Örn Ólason <einar.olason@nersc.no>
@@ -16,7 +16,7 @@ namespace Nextsim {
 
 //! The implementation class for the a seasonal albedo following Maykut and Untersteiener's (1971)
 //! table 1. Only useful for comparison with that paper and derived setups.
-class MonthlyIceAlbedo : public IIceAlbedo {
+class MU71Albedo : public IIceAlbedo {
 
 public:
     /*!

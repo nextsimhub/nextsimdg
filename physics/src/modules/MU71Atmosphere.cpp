@@ -2,27 +2,27 @@
 // Created by Einar Ólason on 01/09/2022.
 //
 
-#include "include/MonthlyFluxes.hpp"
+#include "include/MU71Atmosphere.hpp"
 #include "include/IIceAlbedoModule.hpp"
 #include "include/TableLookup.hpp"
 
 namespace Nextsim {
 
-void MonthlyFluxes::configure()
+void MU71Atmosphere::configure()
 {
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 }
 
-void MonthlyFluxes::update(const Nextsim::TimestepTime& tst)
+void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
 {
     iIceAlbedoImpl->setTime(tst.start);
-    overElements(std::bind(&MonthlyFluxes::calculateElement, this, std::placeholders::_1,
+    overElements(std::bind(&MU71Atmosphere::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);
 }
 
-void MonthlyFluxes::calculateElement(size_t i, const TimestepTime& tst)
+void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
 {
     // Monthly fluxes from Maykut and Untersteiner (1971)
     const std::vector<double> swTable
@@ -76,7 +76,7 @@ void MonthlyFluxes::calculateElement(size_t i, const TimestepTime& tst)
 }
 
 // Snowfall according to M&U '71 (in m/s water equivalent)
-double MonthlyFluxes::snowfall(const double dayOfYear, bool isLeap = false)
+double MU71Atmosphere::snowfall(const double dayOfYear, bool isLeap = false)
 {
     double const conversionFactor = Ice::rhoSnow / (24. * 3600.);
 

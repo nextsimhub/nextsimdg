@@ -2,8 +2,8 @@
 // Created by Einar Ólason on 01/09/2022.
 //
 
-#ifndef NEXTSIM_DG_MONTHLYFLUXES_HPP
-#define NEXTSIM_DG_MONTHLYFLUXES_HPP
+#ifndef NEXTSIM_DG_MU71ATMOSPHERE_HPP
+#define NEXTSIM_DG_MU71ATMOSPHERE_HPP
 
 #include "include/IIceAlbedo.hpp"
 #include "include/constants.hpp"
@@ -11,10 +11,10 @@
 
 namespace Nextsim {
 
-class MonthlyFluxes : public IAtmosphereBoundary, public Configured<MonthlyFluxes> {
+class MU71Atmosphere : public IAtmosphereBoundary, public Configured<MU71Atmosphere> {
 
 public:
-    MonthlyFluxes()
+    MU71Atmosphere()
         : tice(getProtectedArray()),
         h_snow_true(getProtectedArray())
     {};
@@ -48,4 +48,4 @@ private:
 
 }
 
-#endif // NEXTSIM_DG_MONTHLYFLUXES_HPP
+#endif // NEXTSIM_DG_MU71ATMOSPHERE_HPP

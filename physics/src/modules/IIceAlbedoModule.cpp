@@ -10,7 +10,7 @@
 #include "include/CCSMIceAlbedo.hpp"
 #include "include/SMU2IceAlbedo.hpp"
 #include "include/SMUIceAlbedo.hpp"
-#include "include/MonthlyIceAlbedo.hpp"
+#include "include/MU71Albedo.hpp"
 
 #include <string>
 
@@ -18,14 +18,14 @@ namespace Module {
 const std::string SMUICEALBEDO = "Nextsim::SMUIceAlbedo";
 const std::string SMU2ICEALBEDO = "Nextsim::SMU2IceAlbedo";
 const std::string CCSMICEALBEDO = "Nextsim::CCSMIceAlbedo";
-const std::string MONTHLYICEALBEDO = "Nextsim::MonthlyIceAlbedo";
+const std::string MU71ALBEDO = "Nextsim::MU71Albedo";
 
 template <>
 Module<Nextsim::IIceAlbedo>::map Module<Nextsim::IIceAlbedo>::functionMap = {
     { SMUICEALBEDO, newImpl<Nextsim::IIceAlbedo, Nextsim::SMUIceAlbedo> },
     { SMU2ICEALBEDO, newImpl<Nextsim::IIceAlbedo, Nextsim::SMU2IceAlbedo> },
     { CCSMICEALBEDO, newImpl<Nextsim::IIceAlbedo, Nextsim::CCSMIceAlbedo> },
-    { MONTHLYICEALBEDO, newImpl<Nextsim::IIceAlbedo, Nextsim::MonthlyIceAlbedo> },
+    { MU71ALBEDO, newImpl<Nextsim::IIceAlbedo, Nextsim::MU71Albedo> },
 };
 
 template <>
