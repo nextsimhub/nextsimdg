@@ -19,7 +19,7 @@ namespace Nextsim {
 const static int DGdegree = 0; // TODO: Replace with the same source as the dynamics
 const static int CellDoF = 1;
 // TODO: (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)));
-const static Eigen::StorageOptions majority = DGdegree == 0 ? Eigen::ColMajor : Eigen::RowMajor;
+const static Eigen::StorageOptions majority = /*DGdegree == 0 ? Eigen::ColMajor :*/ Eigen::RowMajor;
 
 /*!
  * @brief A class that holds the array data for the model.
@@ -46,6 +46,8 @@ public:
         V,
         Z,
         DG,
+        CG,
+        DGSTRESS,
     };
 
     static const std::map<Type, std::string> typeNames;
@@ -53,17 +55,19 @@ public:
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
     //    typedef std::vector<double> DataType;
 
-    class Component : Eigen::Array<double, 1, Eigen::Dynamic> {
-    public:
-        Component()
-            : Eigen::Array<double, 1, Eigen::Dynamic>()
-        {
-        }
-        Component(const Eigen::Array<double, 1, Eigen::Dynamic>& other)
-            : Eigen::Array<double, 1, Eigen::Dynamic>(other)
-        {
-        }
-    };
+    typedef DataType::RowXpr Component;
+    typedef DataType::ConstRowXpr ConstComponent;
+    //    class Component : Eigen::Array<double, 1, Eigen::Dynamic> {
+    //    public:
+    //        Component()
+    //            : Eigen::Array<double, 1, Eigen::Dynamic>()
+    //        {
+    //        }
+    //        Component(const Eigen::Array<double, 1, Eigen::Dynamic>& other)
+    //            : Eigen::Array<double, 1, Eigen::Dynamic>(other)
+    //        {
+    //        }
+    //    };
 
     static ModelArray HField() { return ModelArray(Type::H); }
     static ModelArray UField() { return ModelArray(Type::U); }
@@ -188,7 +192,10 @@ public:
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
-    //! Retuns the (enum of) the ModelArray::Type of this.
+
+    //! Returns a const reference to the Eigen data
+    const DataType& data() const { return m_data; }
+    //! Returns the (enum of) the ModelArray::Type of this.
     const Type getType() const { return type; }
 
     /*!
@@ -218,8 +225,13 @@ public:
     //! class specification.
     void resize()
     {
-        if (size() != trueSize())
-            m_data.resize(m_sz.at(type), Eigen::NoChange);
+        if (size() != trueSize()) {
+            if (hasDoF(type)) {
+                m_data.resize(m_sz.at(type), m_comp.at(type));
+            } else {
+                m_data.resize(m_sz.at(type), Eigen::NoChange);
+            }
+        }
     }
 
     /*!
@@ -363,12 +375,36 @@ public:
     }
 
     /*!
+     * @brief Sets the number of components for DG & CG array types.
+     *
+     * @param cMap a map from ModelArray::Type to the number of components.
+     */
+    static void setNComponents(std::map<Type, size_t> cMap);
+
+    /*!
+     * @brief Sets the number of components for a single D/CG array type.
+     *
+     * @param type the DG or CG array type to set the number of components for.
+     * @param nComp the number of components to be set.
+     */
+    static void setNComponents(Type type, size_t nComp);
+
+    /*!
+     * @brief Sets the number of components for this array's type.
+     *
+     * @param nComp the number of components to be set.
+     */
+    void setNComponents(size_t nComp);
+
+    /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at
      * the indexed location.
      *
      * @param i one-dimensional index of the target point.
      */
-    Component components(size_t i) { return Component(m_data.col(i)); }
+    Component components(size_t i) { return m_data.row(i); }
+
+    const ConstComponent components(size_t i) const { return m_data.row(i); }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at the specified location.
@@ -376,6 +412,7 @@ public:
      * @param dims indexing argument of the target point.
      */
     Component components(const Dimensions& loc);
+    const ConstComponent components(const Dimensions& loc) const;
 
     /*!
      * @brief Special access function for ZFields.
@@ -404,6 +441,36 @@ public:
         return this->operator[](zLayerIndex(hIndex, layer));
     }
 
+    /*!
+     * @brief Returns the index for a given set of multi-dimensional location for this array's type.
+     *
+     * @param loc The multi-dimensional location to return the index for.
+     */
+    size_t indexFromLocation(const Dimensions& loc) const { return indexFromLocation(type, loc); }
+
+    /*!
+     * @brief Returns the index for a given set of multi-dimensional location for the given Type.
+     *
+     * @param type The type to act on.
+     * @param loc The multi-dimensional location to return the index for.
+     */
+    static size_t indexFromLocation(Type type, const Dimensions& loc);
+
+    /*!
+     * @brief Returns the multi-dimensional location for a given index for this array's type.
+     *
+     * @param index The index to return the multi-dimensional location for.
+     */
+    Dimensions LocationFromIndex(size_t index) const { return locationFromIndex(type, index); }
+
+    /*!
+     * @brief Returns the multi-dimensional location for a given index for the given Type.
+     *
+     * @param type The type to act on.
+     * @param index The index to return the multi-dimensional location for.
+     */
+    static Dimensions locationFromIndex(Type type, size_t index);
+
 protected:
     Type type;
 
@@ -426,19 +493,26 @@ protected:
     inline size_t nComponents() const { return nComponents(type); }
     //! Returns the number of discontinuous Galerkin components held in the
     //! specified type of ModelArray.
-    inline static size_t nComponents(const Type type) { return (hasDoF(type)) ? CellDoF : 1; }
+    inline static size_t nComponents(const Type type)
+    {
+        return (hasDoF(type)) ? m_comp.at(type) : 1;
+    }
     //! Returns whether this type of ModelArray has additional discontinuous
     //! Galerkin components.
     inline bool hasDoF() const { return hasDoF(type); }
     //! Returns whether the specified type of ModelArray has additional
     //! discontinuous Galerkin components.
-    inline static bool hasDoF(const Type type) { return type == Type::DG; }
+    inline static bool hasDoF(const Type type)
+    {
+        return (type == Type::DG) || (type == Type::CG) || (type == Type::DGSTRESS);
+    }
 
 private:
     class SizeMap {
     public:
         SizeMap()
-            : m_sizes({ { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 } })
+            : m_sizes({ { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 },
+                { Type::DG, 0 }, { Type::CG, 0 }, { Type::DGSTRESS, 0 } })
         {
         }
         size_t& at(const Type& type) { return m_sizes.at(type); }
@@ -449,16 +523,23 @@ private:
 
         size_t size() const noexcept { return m_sizes.size(); }
 
-    private:
+//    protected:
         std::map<Type, size_t> m_sizes;
     };
     static SizeMap m_sz;
 
+    class ComponentMap : public SizeMap {
+    public:
+        ComponentMap() { m_sizes = { { Type::DG, 1 }, { Type::CG, 1 }, { Type::DGSTRESS, 1 } }; }
+    };
+    static ComponentMap m_comp;
+
     class DimensionMap {
     public:
         DimensionMap()
-            : m_dimensions({ { Type::H, { 0 } }, { Type::U, { 0 } }, { Type::V, { 0 } },
-                { Type::Z, { 0, 1 } } })
+            : m_dimensions(
+                { { Type::H, { 0 } }, { Type::U, { 0 } }, { Type::V, { 0 } }, { Type::Z, { 0, 1 } },
+                    { Type::DG, { 0 } }, { Type::DGSTRESS, { 0 } }, { Type::CG, { 0 } } })
         {
         }
         Dimensions& at(const Type& type) { return m_dimensions.at(type); }
@@ -469,7 +550,7 @@ private:
 
         size_t size() const noexcept { return m_dimensions.size(); }
 
-    private:
+//    private:
         std::map<Type, Dimensions> m_dimensions;
     };
     static DimensionMap m_dims;

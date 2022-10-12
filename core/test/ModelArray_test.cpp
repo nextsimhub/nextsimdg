@@ -10,6 +10,8 @@
 
 #include "../src/include/ModelArray.hpp"
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 TEST_CASE("Two dimensional data access test", "[ModelArray]")
@@ -234,5 +236,25 @@ TEST_CASE("Arithmetic tests", "[ModelArray]")
 
     REQUIRE(fill[0] == filldub);
     REQUIRE(fill[1] == filldub);
+}
+
+// Location from index. Index from location is assumed to work as it is a
+// wrapper around indexr()
+TEST_CASE("Location from index", "[ModelArray]")
+{
+    const size_t nx = 31;
+    const size_t ny = 37;
+    const size_t nz = 41;
+
+    ModelArray::setDimensions(ModelArray::Type::H, {nx, ny, nz});
+    size_t x = 13;
+    size_t y = 17;
+    size_t z = 19;
+
+    size_t index = ModelArray::indexFromLocation(ModelArray::Type::H, {x, y, z});
+    ModelArray::Dimensions loc = ModelArray::locationFromIndex(ModelArray::Type::H, index);
+    REQUIRE(loc[0] == x);
+    REQUIRE(loc[1] == y);
+    REQUIRE(loc[2] == z);
 }
 } /* namespace Nextsim */

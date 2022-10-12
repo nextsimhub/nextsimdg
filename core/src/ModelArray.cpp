@@ -17,6 +17,7 @@
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;
+ModelArray::ComponentMap ModelArray::m_comp;
 ModelArray::DimensionMap ModelArray::m_dims;
 
 const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
@@ -136,10 +137,10 @@ void ModelArray::setData(double value)
 void ModelArray::setData(const double* pData)
 {
     resize();
-    auto out = std::copy(pData, pData + m_sz.at(type), m_data.data());
+    auto out = std::copy(pData, pData + m_sz.at(type) * nComponents(), m_data.data());
 }
 
-void ModelArray::setData(const DataType& from) { setData(from.data()); }
+void ModelArray::setData(const DataType& from) { m_data = from; }//setData(from.data()); }
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
@@ -153,6 +154,17 @@ void ModelArray::setDimensions(Type type, const Dimensions& newDims)
     std::copy(newDims.begin(), newDims.end(), std::back_inserter(m_dims.at(type)));
     m_sz.at(type) = newSize;
 }
+
+void ModelArray::setNComponents(std::map<Type, size_t> cMap)
+{
+    for (auto entry : cMap) {
+        setNComponents(entry.first, entry.second);
+    }
+}
+
+void ModelArray::setNComponents(Type type, size_t nComp) { m_comp[type] = nComp; }
+
+void ModelArray::setNComponents(size_t nComp) { setNComponents(type, nComp); }
 
 const double& ModelArray::operator[](const Dimensions& loc) const
 {
@@ -168,4 +180,41 @@ ModelArray::Component ModelArray::components(const Dimensions& loc)
 {
     return components(indexr(dimensions().data(), loc));
 }
+
+const ModelArray::ConstComponent ModelArray::components(const Dimensions& loc) const
+{
+    return components(indexr(dimensions().data(), loc));
+}
+
+/*!
+ * @brief Returns the index for a given set of multi-dimensional location for the given Type.
+ *
+ * @param type The type to act on.
+ * @param loc The multi-dimensional location to return the index for.
+ */
+size_t ModelArray::indexFromLocation(Type type, const Dimensions& loc)
+{
+    return indexr(m_dims.at(type).data(), loc);
+}
+
+/*!
+ * @brief Returns the multi-dimensional location for a given index for the given Type.
+ *
+ * @param type The type to act on.
+ * @param index The index to return the multi-dimensional location for.
+ */
+ModelArray::Dimensions ModelArray::locationFromIndex(Type type, size_t index)
+{
+    Dimensions& dims = m_dims.at(type);
+    Dimensions loc(dims.size()); // Size to the known number of dimensions
+    for (size_t i = loc.size(); i > 0; --i) {
+        size_t idim = i - 1;
+        size_t theDim = dims[idim];
+        size_t pos = index % theDim;
+        loc[idim] = pos;
+        index /= theDim;
+    }
+    return loc;
+}
+
 } /* namespace Nextsim */
