@@ -43,6 +43,7 @@ private:
         h_snow_true; // cell-averaged value
 
     IIceAlbedo* iIceAlbedoImpl;
+    double snowfall(const double dayOfYear, bool isLeap);
 };
 
 }
