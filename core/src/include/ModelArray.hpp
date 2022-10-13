@@ -16,10 +16,15 @@
 
 namespace Nextsim {
 
-const static int DGdegree = 0; // TODO: Replace with the same source as the dynamics
-const static int CellDoF = 1;
-// TODO: (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)));
-const static Eigen::StorageOptions majority = /*DGdegree == 0 ? Eigen::ColMajor :*/ Eigen::RowMajor;
+/*
+ * Set the storage order to row major. This matches with DGVector when there is
+ * more than one DG component. If there is only one DG component (the finite
+ * element component), then the order of the data in the buffer is the same,
+ * and data can be safely transferred between the buffers underlying the two
+ * types. The physics code will never directly touch the spatially varying
+ * components, so the choice of storage order should not matter.
+ */
+const static Eigen::StorageOptions majority = Eigen::RowMajor;
 
 /*!
  * @brief A class that holds the array data for the model.
