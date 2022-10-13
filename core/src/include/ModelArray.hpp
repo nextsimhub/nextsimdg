@@ -58,21 +58,9 @@ public:
     static const std::map<Type, std::string> typeNames;
 
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
-    //    typedef std::vector<double> DataType;
 
     typedef DataType::RowXpr Component;
     typedef DataType::ConstRowXpr ConstComponent;
-    //    class Component : Eigen::Array<double, 1, Eigen::Dynamic> {
-    //    public:
-    //        Component()
-    //            : Eigen::Array<double, 1, Eigen::Dynamic>()
-    //        {
-    //        }
-    //        Component(const Eigen::Array<double, 1, Eigen::Dynamic>& other)
-    //            : Eigen::Array<double, 1, Eigen::Dynamic>(other)
-    //        {
-    //        }
-    //    };
 
     static ModelArray HField() { return ModelArray(Type::H); }
     static ModelArray UField() { return ModelArray(Type::U); }
