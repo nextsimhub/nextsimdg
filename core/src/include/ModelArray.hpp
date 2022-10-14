@@ -497,7 +497,7 @@ protected:
     //! discontinuous Galerkin components.
     inline static bool hasDoF(const Type type)
     {
-        return (type == Type::DG) || (type == Type::CG) || (type == Type::DGSTRESS);
+        return (type == Type::DG) || (type == Type::DGSTRESS);
     }
 
 private:
@@ -523,7 +523,7 @@ private:
 
     class ComponentMap : public SizeMap {
     public:
-        ComponentMap() { m_sizes = { { Type::DG, 1 }, { Type::CG, 1 }, { Type::DGSTRESS, 1 } }; }
+        ComponentMap() { m_sizes = { { Type::DG, 1 }, { Type::DGSTRESS, 1 } }; }
     };
     static ComponentMap m_comp;
 
