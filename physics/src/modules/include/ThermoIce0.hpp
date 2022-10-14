@@ -11,6 +11,8 @@
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/IIceAlbedo.hpp"
+#include "include/IIceAlbedoModule.hpp"
 namespace Nextsim {
 
 //! A class implementing IIceThermodynamics as the ThermoIce0 model.
@@ -21,6 +23,7 @@ public:
 
     enum {
         KS_KEY,
+        I0_KEY,
     };
     void configure() override;
 
@@ -42,9 +45,12 @@ private:
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
 
     static double k_s;
+    static double m_I0;
     static const double freezingPointIce;
 
     bool doFlooding = true; // TODO: read from configuration
+
+    IIceAlbedo* iIceAlbedoImpl;
 };
 
 } /* namespace Nextsim */

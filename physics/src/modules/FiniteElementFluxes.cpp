@@ -8,7 +8,6 @@
 #include "include/FiniteElementFluxes.hpp"
 
 #include "include/FiniteElementSpecHum.hpp"
-#include "include/IIceAlbedoModule.hpp"
 #include "include/constants.hpp"
 
 #include <memory>
@@ -21,13 +20,11 @@ double FiniteElementFluxes::dragOcean_q;
 double FiniteElementFluxes::dragOcean_t;
 double FiniteElementFluxes::dragIce_t;
 double FiniteElementFluxes::m_oceanAlbedo;
-double FiniteElementFluxes::m_I0;
 
 static const double dragOcean_q_default = 1.5e-3;
 static const double dragOcean_t_default = 0.83e-3;
 static const double dragIce_t_default = 1.3e-3;
 static const double oceanAlbedo_default = 0.07;
-static const double i0_default = 0.17;
 
 template <>
 const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
@@ -35,19 +32,14 @@ const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
     { FiniteElementFluxes::DRAGOCEANT_KEY, "nextsim_thermo.drag_ocean_t" },
     { FiniteElementFluxes::DRAGICET_KEY, "nextsim_thermo.drag_ice_t" },
     { FiniteElementFluxes::OCEANALBEDO_KEY, "nextsim_thermo.albedoW" },
-    { FiniteElementFluxes::I0_KEY, "nextsim_thermo.I_0" },
 };
 
 void FiniteElementFluxes::configure()
 {
-    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
-    tryConfigure(iIceAlbedoImpl);
-
     dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), dragOcean_q_default);
     dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), dragOcean_t_default);
     dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), dragIce_t_default);
     m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), oceanAlbedo_default);
-    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
@@ -96,15 +88,12 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, boo
             std::to_string(dragIce_t_default), "??", "Ice drag coefficient for heat fluxes." },
         { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(oceanAlbedo_default), "", "Shortwave albedo of open ocean water." },
-        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
-            "Transmissivity of ice." },
     };
     return map;
 }
 FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
-    Module::getHelpRecursive<IIceAlbedo>(map, getAll);
     return map;
 }
 
@@ -146,8 +135,7 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
         = dragIce_t * rho_air[i] * cp_air[i] * v_air[i] * (tice.zIndexAndLayer(i, 0) - t_air[i]);
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
     // Shortwave flux
-    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i]);
-    Q_sw_ia[i] = -sw_in[i] * (1. - m_I0) * (1 - albedoValue);
+    Q_sw_ia[i] = -sw_in[i];
     // Longwave flux
     Q_lw_ia[i] = stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0)) - lw_in[i];
     double dQlw_dT
@@ -182,7 +170,6 @@ void FiniteElementFluxes::updateOW(const TimestepTime& tst)
 
 void FiniteElementFluxes::updateIce(const TimestepTime& tst)
 {
-    iIceAlbedoImpl->setTime(tst.start);
     overElements(std::bind(&FiniteElementFluxes::calculateIce, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);

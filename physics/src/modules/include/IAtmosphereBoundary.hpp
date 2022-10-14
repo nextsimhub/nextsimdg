@@ -27,6 +27,7 @@ public:
         m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_U)] = &uwind;
         m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_V)] = &vwind;
 
+        registerSharedArray(SharedArray::Q_SW, &qsw);
         registerSharedArray(SharedArray::Q_IA, &qia);
         registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
         registerSharedArray(SharedArray::Q_OW, &qow);
@@ -41,6 +42,7 @@ public:
     std::string getName() const override { return "IAtmosphereBoundary"; }
     void setData(const ModelState::DataMap& ms) override
     {
+        qsw.resize();
         qia.resize();
         dqia_dt.resize();
         qow.resize();
@@ -66,6 +68,7 @@ protected:
 
     const MARBackingStore& couplingArrays() { return m_couplingArrays; }
 
+    HField qsw;
     HField qia;
     HField dqia_dt;
     HField qow;

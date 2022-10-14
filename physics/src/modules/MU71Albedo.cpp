@@ -10,7 +10,11 @@
 namespace Nextsim {
 double MU71Albedo::albedo(double temperature, double snowThickness)
 {
-    // Monthly albedos from Maykut and Untersteiner (1971)
+    // Fixed ice albedo
+    if ( snowThickness == 0. )
+        return 0.64;
+
+    // Monthly snow albedo from Maykut and Untersteiner (1971)
     const std::vector<double> albedoTable
         = { 0.85, 0.85, 0.83, 0.81, 0.82, 0.78, 0.64, 0.69, 0.84, 0.85, 0.85, 0.85 };
     //      Jan,  Feb,  Mar,  Apr,  Mai,  Jun,  Jul,  Aug,  Sept, Oct,  Nov,  Dec

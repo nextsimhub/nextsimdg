@@ -10,7 +10,6 @@
 
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
-#include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
@@ -21,8 +20,7 @@ namespace Nextsim {
 class FiniteElementFluxes : public IFluxCalculation, public Configured<FiniteElementFluxes> {
 public:
     FiniteElementFluxes()
-        : iIceAlbedoImpl(nullptr)
-        , evap(ModelArray::Type::H)
+        : evap(ModelArray::Type::H)
         , Q_lh_ow(ModelArray::Type::H)
         , Q_sh_ow(ModelArray::Type::H)
         , Q_sw_ow(ModelArray::Type::H)
@@ -58,7 +56,6 @@ public:
         DRAGOCEANT_KEY,
         DRAGICET_KEY,
         OCEANALBEDO_KEY,
-        I0_KEY,
     };
     void configure() override;
 
@@ -133,8 +130,6 @@ private:
 
     static double latentHeatWater(double temperature);
     static double latentHeatIce(double temperature);
-
-    IIceAlbedo* iIceAlbedoImpl;
 };
 
 } /* namespace Nextsim */

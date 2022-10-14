@@ -14,11 +14,16 @@
 namespace Nextsim {
 
 double ThermoIce0::k_s;
+double ThermoIce0::m_I0;
+
 static const double k_sDefault = 0.3096;
+static const double i0_default = 0.17;
+
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 
 ThermoIce0::ThermoIce0()
-    : IIceThermodynamics()
+    : iIceAlbedoImpl(nullptr)
+    , IIceThermodynamics()
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
@@ -29,6 +34,7 @@ ThermoIce0::ThermoIce0()
 
 void ThermoIce0::update(const TimestepTime& tsTime)
 {
+    iIceAlbedoImpl->setTime(tsTime.start);
     overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tsTime);
@@ -37,9 +43,17 @@ void ThermoIce0::update(const TimestepTime& tsTime)
 template <>
 const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
     { ThermoIce0::KS_KEY, "thermoice0.ks" },
+    { ThermoIce0::I0_KEY, "thermoice0.I_0" },
 };
 
-void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault); }
+void ThermoIce0::configure()
+{
+    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
+    tryConfigure(iIceAlbedoImpl);
+
+    k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
+    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
+}
 
 ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 {
@@ -55,7 +69,12 @@ ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
     map["ThermoIce0"] = {
         { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
             "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
+        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
+            "Transmissivity of ice." },
     };
+
+    Module::getHelpRecursive<IIceAlbedo>(map, getAll);
+
     return map;
 }
 ThermoIce0::HelpMap& ThermoIce0::getHelpRecursive(HelpMap& map, bool getAll)
@@ -75,6 +94,9 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 
 void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
+    static const double beta = 0.4;
+    static const double gamma = 1.065;
+
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
@@ -83,8 +105,12 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     double& tice_i = tice.zIndexAndLayer(i, 0);
 
     const double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
-    qic[i] = k_lSlab * (tf[i] - tice_i);
-    const double remainingFlux = qic[i] - qia[i];
+    qic[i] = k_lSlab * (tf[i] - tice_i) * gamma;
+    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), hsnow[i]);
+    if ( hsnow[i] == 0. )
+        albedoValue += beta*(1.-albedoValue)*m_I0;
+
+    const double remainingFlux = qic[i] - (qia[i] + (1.-albedoValue) * qsw[i]);
     tice_i += remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point
