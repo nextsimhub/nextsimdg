@@ -26,6 +26,16 @@ public:
         ma.setData(cg.data());
         return ma;
     }
+
+    template <int CG> static ModelArray::Dimensions cgDimensions(const ModelArray::Dimensions& hDims)
+    {
+        ModelArray::Dimensions cgDims(hDims);
+        for (size_t i = 0; i < cgDims.size(); ++i) {
+            cgDims[i] *= CG;
+            ++cgDims[i];
+        }
+        return cgDims;
+    }
 };
 }
 
