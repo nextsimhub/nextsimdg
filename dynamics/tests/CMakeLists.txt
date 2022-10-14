@@ -19,8 +19,14 @@ target_link_libraries( example1-parametricmesh LINK_PUBLIC Eigen3::Eigen)
 
 add_executable(dgma_test
     "DGModelArray_test.cpp"
-    "${SRC_DIR}/DGModelArray.cpp"
     "${CoreDir}/ModelArray.cpp"
     )
 target_include_directories(dgma_test PRIVATE "${CoreDir}" "${SRC_DIR}")
 target_link_libraries(dgma_test LINK_PUBLIC Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(cgma_test
+    "CGModelArray_test.cpp"
+    "${CoreDir}/ModelArray.cpp"
+    )
+target_include_directories(cgma_test PRIVATE "${CoreDir}" "${SRC_DIR}")
+target_link_libraries(cgma_test LINK_PUBLIC Catch2::Catch2 Eigen3::Eigen)
