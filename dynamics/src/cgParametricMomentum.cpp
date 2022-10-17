@@ -269,6 +269,10 @@ void CGParametricMomentum<CG, DGstress>::prepareIteration(const DGVector<DG>& H,
     const DGVector<DG>& A, const DGVector<DG>& D)
 {
 
+    // set the average sub-iteration velocity to zero
+    avg_vx.setZero();
+    avg_vy.setZero();   
+
     // interpolate ice height and concentration to local cg Variables
     Interpolations::DG2CG(smesh, cg_A, A);
     Interpolations::DG2CG(smesh, cg_H, H);
@@ -285,11 +289,11 @@ void CGParametricMomentum<CG, DGstress>::prepareIteration(const DGVector<DG>& H,
 template <int CG, int DGstress>
 template <int DG>
 void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
-    const size_t NT_evp, double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A,
+    const size_t NT_meb, double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A,
     DGVector<DG>& D)
 {
 
-    double dt_mom = dt_adv / NT_evp;
+    double dt_mom = dt_adv / NT_meb;
 
     Nextsim::GlobalTimer.start("time loop - meb - strain");
     //! Compute Strain Rate
@@ -366,6 +370,9 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
     Nextsim::GlobalTimer.start("time loop - meb - bound.");
     DirichletZero();
     Nextsim::GlobalTimer.stop("time loop - meb - bound.");
+
+    avg_vx += vx/NT_meb;
+    avg_vy += vy/NT_meb;   
 }
 // --------------------------------------------------
 

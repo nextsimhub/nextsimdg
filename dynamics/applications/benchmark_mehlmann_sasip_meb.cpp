@@ -220,7 +220,8 @@ void run_benchmark(const std::string meshfile)
         Nextsim::GlobalTimer.start("time loop - advection");
 
         // interpolates CG velocity to DG and reinits normal velocity
-        dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
+        ///dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
+        dgtransport.prepareAdvection(momentum.GetAvgSubiterVx(), momentum.GetAvgSubiterVy());
 
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
