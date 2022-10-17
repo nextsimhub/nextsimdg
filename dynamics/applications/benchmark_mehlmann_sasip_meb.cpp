@@ -237,7 +237,7 @@ void run_benchmark(const std::string meshfile)
 
         //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - meb");
-        momentum.prepareIteration(H, A);
+        momentum.prepareIteration(H, A, D);
         // MEB momentum subcycling
         for (size_t mebstep = 0; mebstep < NT_meb; ++mebstep) {
             momentum.MEBStep(Params, NT_meb, dt_adv, H, A, D);
