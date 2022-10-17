@@ -8,22 +8,23 @@
 #include "include/MU71Albedo.hpp"
 
 namespace Nextsim {
+
+MU71Albedo::MU71Albedo()
+    : snowAlbedo(albedoTable)
+{
+}
+
 double MU71Albedo::albedo(double temperature, double snowThickness)
 {
     // Fixed ice albedo
-    if ( snowThickness == 0. )
-        return 0.64;
-
-    // Monthly snow albedo from Maykut and Untersteiner (1971)
-    const std::vector<double> albedoTable
-        = { 0.85, 0.85, 0.83, 0.81, 0.82, 0.78, 0.64, 0.69, 0.84, 0.85, 0.85, 0.85 };
-    //      Jan,  Feb,  Mar,  Apr,  Mai,  Jun,  Jul,  Aug,  Sept, Oct,  Nov,  Dec
+    if (snowThickness == 0.)
+        return iceAlbedo;
 
     const double dayOfYear = M_tp.gmtime()->tm_yday;
     const bool isLeap = ((M_tp.gmtime()->tm_year % 4 == 0) && (M_tp.gmtime()->tm_year % 100 != 0))
         || (M_tp.gmtime()->tm_year % 400 == 0);
 
-    return TableLookup::monthlyLinearLUT(albedoTable, dayOfYear, isLeap);
+    return snowAlbedo(dayOfYear, isLeap);
 }
 
 }

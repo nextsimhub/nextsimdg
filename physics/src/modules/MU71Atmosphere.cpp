@@ -3,9 +3,19 @@
 //
 
 #include "include/MU71Atmosphere.hpp"
-#include "include/TableLookup.hpp"
 
 namespace Nextsim {
+
+MU71Atmosphere::MU71Atmosphere()
+    : tice(getProtectedArray())
+    ,
+    // Just tabulated values
+    q_sw(monthlyCubicBSpline(swTable))
+    , q_lw(monthlyCubicBSpline(lwTable))
+    , q_sh(monthlyCubicBSpline(shTable))
+    , q_lh(monthlyCubicBSpline(lhTable))
+{
+}
 
 void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
 {
@@ -20,19 +30,15 @@ void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
 
 void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
 {
-    // Just tabulated values
-    const double q_sw = -convFactor * TableLookup::monthlyLinearLUT(swTable, dayOfYear, isLeap);
-    const double q_sh = -convFactor * TableLookup::monthlyLinearLUT(shTable, dayOfYear, isLeap);
-    const double q_lh = -convFactor * TableLookup::monthlyLinearLUT(lhTable, dayOfYear, isLeap);
-
-    // LW is tabulated + black body radiation
     const double Tsurf_K = tice.zIndexAndLayer(i, 0) + PhysicalConstants::Tt;
-    const double q_lw = -convFactor * TableLookup::monthlyLinearLUT(lwTable, dayOfYear, isLeap)
-        + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4);
 
     // We can set ModelArray to double, which sets all the values.
-    qsw = q_sw;
-    qia = q_lw + q_sh + q_lh;
+    qsw = -convFactor * q_sw(dayOfYear, isLeap);
+    qia = -convFactor
+            * (q_sh(dayOfYear, isLeap) + q_lh(dayOfYear, isLeap) + q_lw(dayOfYear, isLeap))
+        // LW is tabulated + black body radiation
+        + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4);
+
     // Just the derivative of the black body radiation
     dqia_dt = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
 

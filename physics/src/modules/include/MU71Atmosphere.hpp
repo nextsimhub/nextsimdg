@@ -2,20 +2,19 @@
 // Created by Einar Ólason on 01/09/2022.
 //
 
-#ifndef NEXTSIM_DG_MU71ATMOSPHERE_HPP
-#define NEXTSIM_DG_MU71ATMOSPHERE_HPP
+#ifndef MU71ATMOSPHERE_HPP
+#define MU71ATMOSPHERE_HPP
 
-#include "include/constants.hpp"
 #include "include/IAtmosphereBoundary.hpp"
+#include "include/MonthlyCubicBSpline.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
 class MU71Atmosphere : public IAtmosphereBoundary {
 
 public:
-    MU71Atmosphere()
-        : tice(getProtectedArray())
-        , h_snow_true(getProtectedArray()) {};
+    MU71Atmosphere();
 
     /*!
      * The required update call for an IFluxCalculation implementation. Here we just call
@@ -35,8 +34,6 @@ private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
     ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore> tice;
-    ModelArrayRef<ProtectedArray::HTRUE_SNOW, MARConstBackingStore>
-        h_snow_true; // cell-averaged value
 
     double snowfall();
 
@@ -56,6 +53,11 @@ private:
 
     double dayOfYear;
     bool isLeap;
+
+    monthlyCubicBSpline q_sw;
+    monthlyCubicBSpline q_lw;
+    monthlyCubicBSpline q_sh;
+    monthlyCubicBSpline q_lh;
 };
 
 }

@@ -5,11 +5,11 @@
  * @author Einar Örn Ólason <einar.olason@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_SEASONALICEALBEDO_HPP
-#define SRC_INCLUDE_SEASONALICEALBEDO_HPP
+#ifndef SEASONALICEALBEDO_HPP
+#define SEASONALICEALBEDO_HPP
 
-#include "include/TableLookup.hpp"
 #include "IIceAlbedo.hpp"
+#include "include/MonthlyCubicBSpline.hpp"
 #include <vector>
 
 namespace Nextsim {
@@ -19,17 +19,27 @@ namespace Nextsim {
 class MU71Albedo : public IIceAlbedo {
 
 public:
+    MU71Albedo();
+
     /*!
      * @brief Returns the tabulated ice surface short wave albedo from Maykut and Untersteiner
      * (1971)
      */
-    double albedo(double temperature, double snowThickness);
+    double albedo(double temperature, double snowThickness) override;
 
 private:
     TimePoint M_tp;
-    void setTime(const TimePoint& tp) { M_tp = tp;}
+    void setTime(const TimePoint& tp) override { M_tp = tp; }
+
+    // Monthly snow albedo from Maykut and Untersteiner (1971)
+    const std::vector<double> albedoTable
+        = { 0.85, 0.85, 0.83, 0.81, 0.82, 0.78, 0.64, 0.69, 0.84, 0.85, 0.85, 0.85 };
+    //      Jan,  Feb,  Mar,  Apr,  Mai,  Jun,  Jul,  Aug,  Sept, Oct,  Nov,  Dec
+
+    monthlyCubicBSpline snowAlbedo;
+    const double iceAlbedo = 0.64;
 };
 
 }
 
-#endif /* SRC_INCLUDE_SEASONALICEALBEDO_HPP */
+#endif /* SEASONALICEALBEDO_HPP */
