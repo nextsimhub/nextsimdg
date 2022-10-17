@@ -14,7 +14,7 @@ namespace Nextsim {
 
 TEST_CASE("Two dimensional data access test", "[ModelArray]")
 {
-    ModelArray::Dimensions dims2 = {15, 25};
+    ModelArray::MultiDim dims2 = {15, 25};
 
     ModelArray::setDimensions(ModelArray::Type::H, dims2);
 
@@ -42,7 +42,7 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
 {
     size_t dimLen = 10;
     size_t arrayLen = dimLen * dimLen * dimLen * dimLen;
-    ModelArray::Dimensions dims4 = {dimLen, dimLen, dimLen, dimLen};
+    ModelArray::MultiDim dims4 = {dimLen, dimLen, dimLen, dimLen};
     ModelArray::setDimensions(ModelArray::Type::H, dims4);
 
     ModelArray check4d = ModelArray::HField();
@@ -93,7 +93,7 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
 
 TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
 {
-    ModelArray::Dimensions dims4 = {3, 5, 7, 11};
+    ModelArray::MultiDim dims4 = {3, 5, 7, 11};
     size_t totalSize = dims4[0] * dims4[1] * dims4[2] * dims4[3];
     ModelArray::setDimensions(ModelArray::Type::H, dims4);
 
@@ -140,7 +140,7 @@ TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
 {
     ModelArray uu = ModelArray::UField();
     REQUIRE(uu.size() == 0);
-    ModelArray::Dimensions udim = {5, 5};
+    ModelArray::MultiDim udim = {5, 5};
     uu.setDimensions(udim);
     REQUIRE(uu.size() == udim[0] * udim[1]);
     REQUIRE(uu.nDimensions() == 2);

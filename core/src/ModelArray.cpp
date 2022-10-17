@@ -195,7 +195,7 @@ void ModelArray::setData(const DataType& from) { setData(from.data()); }
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
-void ModelArray::setDimensions(Type type, const Dimensions& newDims)
+void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
     size_t newSize = 1;
     for (size_t dimLen : newDims) {
@@ -206,17 +206,17 @@ void ModelArray::setDimensions(Type type, const Dimensions& newDims)
     m_sz.at(type) = newSize;
 }
 
-const double& ModelArray::operator[](const Dimensions& loc) const
+const double& ModelArray::operator[](const MultiDim& loc) const
 {
     return (*this)[indexr(this->dimensions().data(), loc)];
 }
 
-double& ModelArray::operator[](const Dimensions& dims)
+double& ModelArray::operator[](const MultiDim& dims)
 {
     return const_cast<double&>(std::as_const(*this)[dims]);
 }
 
-ModelArray::Component ModelArray::components(const Dimensions& loc)
+ModelArray::Component ModelArray::components(const MultiDim& loc)
 {
     return components(indexr(dimensions().data(), loc));
 }
