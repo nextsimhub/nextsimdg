@@ -48,6 +48,14 @@ public:
         DG,
     };
 
+    struct Dimension {
+        std::string name;
+        size_t length;
+    };
+    typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
+
+    static const int N_DEFINED_DIMENSIONS = 4;
+    static const std::array<Dimension, N_DEFINED_DIMENSIONS> definedDimensions;
     static const std::map<Type, std::string> typeNames;
 
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
