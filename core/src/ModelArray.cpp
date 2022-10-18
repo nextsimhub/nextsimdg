@@ -127,6 +127,58 @@ ModelArray operator/(const double& x, const ModelArray& y)
     return xArray /= y;
 }
 
+ModelArray ModelArray::max(double max) const
+{
+    ModelArray maxed = ModelArray(type);
+    maxed.m_data.array() = m_data.array().max(max);
+    return maxed;
+}
+
+ModelArray ModelArray::min(double min) const
+{
+    ModelArray mined = ModelArray(type);
+    mined.m_data.array() = m_data.array().min(min);
+    return mined;
+}
+
+ModelArray ModelArray::max(const ModelArray& maxArr) const
+{
+    ModelArray maxed = ModelArray(type);
+    maxed.m_data.array() = m_data.array().max(maxArr.m_data);
+    return maxed;
+}
+
+ModelArray ModelArray::min(const ModelArray& minArr) const
+{
+    ModelArray mined = ModelArray(type);
+    mined.m_data.array() = m_data.array().min(minArr.m_data);
+    return mined;
+}
+
+ModelArray& ModelArray::clampAbove(double max)
+{
+    m_data = this->max(max).m_data;
+    return *this;
+}
+
+ModelArray& ModelArray::clampBelow(double min)
+{
+    m_data = this->min(min).m_data;
+    return *this;
+}
+
+ModelArray& ModelArray::clampAbove(const ModelArray& maxArr)
+{
+    m_data = this->max(maxArr).m_data;
+    return *this;
+}
+
+ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
+{
+    m_data = this->min(minArr).m_data;
+    return *this;
+}
+
 void ModelArray::setData(double value)
 {
     resize();

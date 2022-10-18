@@ -11,23 +11,17 @@
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
-#include "include/IIceFluxes.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/IOWFluxes.hpp"
-
 #include "include/ModelArrayRef.hpp"
+#include "include/ModelComponent.hpp"
 
 namespace Nextsim {
 
 //! A class that implements ice fluxes and open water fluxes according finiteelement.cpp.
-class FiniteElementFluxes : public IIceFluxes,
-                            public IOWFluxes,
-                            public Configured<FiniteElementFluxes> {
+class FiniteElementFluxes : public IFluxCalculation, public Configured<FiniteElementFluxes> {
 public:
     FiniteElementFluxes()
-        : IIceFluxes()
-        , IOWFluxes()
-        , iIceAlbedoImpl(nullptr)
+        : iIceAlbedoImpl(nullptr)
         , evap(ModelArray::Type::H)
         , Q_lh_ow(ModelArray::Type::H)
         , Q_sh_ow(ModelArray::Type::H)
@@ -43,6 +37,18 @@ public:
         , sh_water(ModelArray::Type::H)
         , sh_ice(ModelArray::Type::H)
         , dshice_dT(ModelArray::Type::H)
+        , sst(getProtectedArray())
+        , sss(getProtectedArray())
+        , t_air(getProtectedArray())
+        , t_dew2(getProtectedArray())
+        , p_air(getProtectedArray())
+        , v_air(getProtectedArray())
+        , h_snow(getProtectedArray())
+        , h_snow_true(getProtectedArray())
+        , cice(getProtectedArray())
+        , tice(getProtectedArray())
+        , sw_in(getProtectedArray())
+        , lw_in(getProtectedArray())
     {
     }
     ~FiniteElementFluxes() = default;
@@ -67,11 +73,13 @@ public:
 
     std::string getName() const override { return "FiniteElementFluxes"; }
 
+    void update(const TimestepTime& tst) override;
+
     //! Updates the fluxes over open water.
-    void updateOW(const TimestepTime& tst) override;
+    void updateOW(const TimestepTime& tst);
 
     //! Updates the fluxes over ice.
-    void updateIce(const TimestepTime& tst) override;
+    void updateIce(const TimestepTime& tst);
 
     //! Updates the atmospheric fluxes.
     void updateAtmosphere(const TimestepTime& tst);
@@ -96,18 +104,19 @@ private:
     HField sh_ice;
     HField dshice_dT;
     // Input fields
-    ModelArrayRef<ProtectedArray::SST> sst;
-    ModelArrayRef<ProtectedArray::SSS> sss;
-    ModelArrayRef<ProtectedArray::T_AIR> t_air;
-    ModelArrayRef<ProtectedArray::DEW_2M> t_dew2;
-    ModelArrayRef<ProtectedArray::P_AIR> p_air;
-    ModelArrayRef<ProtectedArray::WIND_SPEED> v_air;
-    ModelArrayRef<ProtectedArray::H_SNOW> h_snow; // cell-averaged value
-    ModelArrayRef<ProtectedArray::HTRUE_SNOW> h_snow_true; // cell-averaged value
-    ModelArrayRef<ProtectedArray::C_ICE> cice;
-    ModelArrayRef<ProtectedArray::T_ICE> tice;
-    ModelArrayRef<ProtectedArray::SW_IN> sw_in;
-    ModelArrayRef<ProtectedArray::LW_IN> lw_in;
+    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
+    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore> sss;
+    ModelArrayRef<ProtectedArray::T_AIR, MARConstBackingStore> t_air;
+    ModelArrayRef<ProtectedArray::DEW_2M, MARConstBackingStore> t_dew2;
+    ModelArrayRef<ProtectedArray::P_AIR, MARConstBackingStore> p_air;
+    ModelArrayRef<ProtectedArray::WIND_SPEED, MARConstBackingStore> v_air;
+    ModelArrayRef<ProtectedArray::H_SNOW, MARConstBackingStore> h_snow; // cell-averaged value
+    ModelArrayRef<ProtectedArray::HTRUE_SNOW, MARConstBackingStore>
+        h_snow_true; // cell-averaged value
+    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice;
+    ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore> tice;
+    ModelArrayRef<ProtectedArray::SW_IN, MARConstBackingStore> sw_in;
+    ModelArrayRef<ProtectedArray::LW_IN, MARConstBackingStore> lw_in;
 
     void calculateOW(size_t i, const TimestepTime& tst);
     void calculateIce(size_t i, const TimestepTime& tst);
@@ -126,39 +135,6 @@ private:
     static double latentHeatIce(double temperature);
 
     IIceAlbedo* iIceAlbedoImpl;
-};
-
-class FiniteElementFluxCalc
-    : public IFluxCalculation /*, public Configured<FiniteElementFluxCalc>*/ {
-public:
-    FiniteElementFluxCalc()
-        : IFluxCalculation()
-        , fef(nullptr)
-        , iIceFluxesImpl(nullptr)
-        , iOWFluxesImpl(nullptr)
-        , iceOceanHeatFluxImpl(nullptr)
-    {
-    }
-
-    void setData(const ModelState::DataMap&) override;
-
-    ModelState getState() const override;
-    ModelState getState(const OutputLevel&) const override;
-    ModelState getStateRecursive(const OutputSpec& os) const override;
-
-    std::string getName() const override { return "FiniteElementFluxCalc"; }
-
-    void update(const TimestepTime&) override;
-    enum {
-        OW_FLUX_KEY,
-    };
-    void configure() override;
-
-private:
-    std::unique_ptr<IOWFluxes> iOWFluxesImpl;
-    IIceFluxes* iIceFluxesImpl;
-    FiniteElementFluxes* fef;
-    IIceOceanHeatFlux* iceOceanHeatFluxImpl;
 };
 
 } /* namespace Nextsim */

@@ -12,11 +12,11 @@
 #include <string>
 
 namespace Module {
-const std::string FINITEELEMENTFLUXES = "Nextsim::FiniteElementFluxCalc";
+const std::string FINITEELEMENTFLUXES = "Nextsim::FiniteElementFluxes";
 
 template <>
 Module<Nextsim::IFluxCalculation>::map Module<Nextsim::IFluxCalculation>::functionMap = {
-    { FINITEELEMENTFLUXES, newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxCalc> },
+    { FINITEELEMENTFLUXES, newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxes> },
 };
 
 template <>
@@ -24,7 +24,7 @@ Module<Nextsim::IFluxCalculation>::fn Module<Nextsim::IFluxCalculation>::spf
     = functionMap.at(FINITEELEMENTFLUXES);
 template <>
 std::unique_ptr<Nextsim::IFluxCalculation> Module<Nextsim::IFluxCalculation>::staticInstance
-    = std::move(newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxCalc>());
+    = std::move(newImpl<Nextsim::IFluxCalculation, Nextsim::FiniteElementFluxes>());
 
 template <> std::string Module<Nextsim::IFluxCalculation>::moduleName()
 {

@@ -7,6 +7,7 @@
 
 #include "include/IceGrowth.hpp"
 
+#include "include/Module.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -30,15 +31,26 @@ IceGrowth::IceGrowth()
     : hice(ModelArray::Type::H)
     , cice(ModelArray::Type::H)
     , hsnow(ModelArray::Type::H)
+    , hice0(ModelArray::Type::H)
+    , hsnow0(ModelArray::Type::H)
     , newice(ModelArray::Type::H)
     , deltaCFreeze(ModelArray::Type::H)
     , deltaCMelt(ModelArray::Type::H)
+    , hIceCell(getProtectedArray())
+    , hSnowCell(getProtectedArray())
+    , cice0(getProtectedArray())
+    , qow(getSharedArray())
+    , mixedLayerBulkHeatCapacity(getProtectedArray())
+    , sst(getProtectedArray())
+    , tf(getProtectedArray())
+    , deltaHi(getSharedArray())
 {
     registerModule();
     registerSharedArray(SharedArray::H_ICE, &hice);
     registerSharedArray(SharedArray::C_ICE, &cice);
     registerSharedArray(SharedArray::H_SNOW, &hsnow);
     registerSharedArray(SharedArray::NEW_ICE, &newice);
+    registerSharedArray(SharedArray::HSNOW_MELT, &snowMelt);
 
     registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
     registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
@@ -48,12 +60,14 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
 {
     iVertical->setData(ms);
     iLateral->setData(ms);
-    iFluxes->setData(ms);
 
     hice.resize();
     cice.resize();
     hsnow.resize();
+    hice0.resize();
+    hsnow0.resize();
     newice.resize();
+    snowMelt.resize();
     deltaCFreeze.resize();
     deltaCMelt.resize();
 }
@@ -75,9 +89,9 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state(getState());
     // Merge in other states here
-    state.merge(iFluxes->getStateRecursive(os));
     state.merge(iLateral->getStateRecursive(os));
     state.merge(iVertical->getStateRecursive(os));
+
     return os ? state : ModelState();
 }
 
@@ -96,7 +110,6 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
     getHelpText(map, getAll);
     Module::getHelpRecursive<IIceThermodynamics>(map, getAll);
     Module::getHelpRecursive<ILateralIceSpread>(map, getAll);
-    Module::getHelpRecursive<IFluxCalculation>(map, getAll);
     return map;
 }
 
@@ -111,10 +124,6 @@ void IceGrowth::configure()
     iLateral = std::move(Module::getInstance<ILateralIceSpread>());
     tryConfigure(*iVertical);
     tryConfigure(*iLateral);
-
-    // Configure the flux calculation module
-    iFluxes = std::move(Module::getInstance<IFluxCalculation>());
-    tryConfigure(*iFluxes);
 }
 
 ConfigMap IceGrowth::getConfiguration() const
@@ -133,8 +142,6 @@ void IceGrowth::update(const TimestepTime& tsTime)
     overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
                      std::placeholders::_2),
         tsTime);
-
-    iFluxes->update(tsTime);
 
     iVertical->update(tsTime);
     // new ice formation

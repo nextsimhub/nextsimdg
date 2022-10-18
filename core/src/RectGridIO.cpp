@@ -40,8 +40,6 @@ static std::string hiceName = "hice";
 static std::string ciceName = "cice";
 static std::string hsnowName = "hsnow";
 static std::string ticeName = "tice";
-static std::string sstName = "sst";
-static std::string sssName = "sss";
 static std::string maskName = "mask";
 
 static const std::string mdiName = "missing_value";
@@ -84,10 +82,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dataGroup.getVar(ciceName).getVar(&state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(&state.data[hsnowName][0]);
-    state.data[sstName] = ModelArray::HField();
-    dataGroup.getVar(sstName).getVar(&state.data[sstName][0]);
-    state.data[sssName] = ModelArray::HField();
-    dataGroup.getVar(sssName).getVar(&state.data[sssName][0]);
     state.data[ticeName] = ModelArray::ZField();
     dataGroup.getVar(ticeName).getVar(&state.data[ticeName][0]);
 

@@ -70,7 +70,6 @@ public:
         young = 5.96e8; //!< \param Young's modulus
         P0 = 10.e3; //! < \param Constant to parametrize Pmax
 
-        // undamaged_time_relaxation_sigma = 1e5; //!< \param lambda
         undamaged_time_relaxation_sigma = 1e7; //!< \param lambda
         exponent_relaxation_sigma = 3;
         c0 = 10.e3; //! \param
