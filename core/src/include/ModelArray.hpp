@@ -40,6 +40,13 @@ const static Eigen::StorageOptions majority = DGdegree == 0 ? Eigen::ColMajor : 
  */
 class ModelArray {
 public:
+    enum class Dimension {
+        X,
+        Y,
+        Z,
+        DG,
+    };
+
     enum class Type {
         H,
         U,
@@ -48,14 +55,15 @@ public:
         DG,
     };
 
-    struct Dimension {
+    struct DimensionSpec {
         std::string name;
         size_t length;
     };
-    typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
+    typedef std::map<Type, std::vector<DimensionSpec>> TypeDimensions;
 
+    static TypeDimensions typeDimensions;
     static const int N_DEFINED_DIMENSIONS = 4;
-    static const std::array<Dimension, N_DEFINED_DIMENSIONS> definedDimensions;
+    static std::map<Dimension, DimensionSpec> definedDimensions;
     static const std::map<Type, std::string> typeNames;
 
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
@@ -263,6 +271,15 @@ public:
         setDimensions(type, dims);
         resize();
     }
+
+    /*!
+     * @brief Sets the length of an individual dimension before propagating it
+     * to the defined array types.
+     *
+     * @param dim The dimension to be altered.
+     * @param length The new length of the dimension.
+     */
+    void setDimension(Dimension dim, size_t length);
 
     //! Conditionally updates the size of the object data buffer to match the
     //! class specification.
@@ -485,10 +502,13 @@ protected:
     inline static bool hasDoF(const Type type) { return type == Type::DG; }
 
 private:
+    static bool areMapsInvalid;
+    static void validateMaps();
     class SizeMap {
     public:
         SizeMap()
-            : m_sizes({ { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 } })
+            : m_sizes(
+                { { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 }, { Type::DG, 0 } })
         {
         }
         size_t& at(const Type& type) { return m_sizes.at(type); }
@@ -499,6 +519,8 @@ private:
 
         size_t size() const noexcept { return m_sizes.size(); }
 
+        void validate();
+
     private:
         std::map<Type, size_t> m_sizes;
     };
@@ -508,7 +530,7 @@ private:
     public:
         DimensionMap()
             : m_dimensions({ { Type::H, { 0 } }, { Type::U, { 0 } }, { Type::V, { 0 } },
-                { Type::Z, { 0, 1 } } })
+                { Type::Z, { 0, 1 } }, { Type::DG, { 0, 1 } } })
         {
         }
         MultiDim& at(const Type& type) { return m_dimensions.at(type); }
@@ -518,6 +540,8 @@ private:
         MultiDim& operator[](Type&& type) { return m_dimensions[type]; }
 
         size_t size() const noexcept { return m_dimensions.size(); }
+
+        void validate();
 
     private:
         std::map<Type, MultiDim> m_dimensions;
