@@ -75,7 +75,7 @@ namespace MEB {
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            // const Eigen::Matrix<double, 1, NGP* NGP> h_gauss = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
+            const Eigen::Matrix<double, 1, NGP* NGP> h_gauss = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
             const Eigen::Matrix<double, 1, NGP* NGP> a_gauss = (A.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
             Eigen::Matrix<double, 1, NGP* NGP> d_gauss = (D.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
 
@@ -118,12 +118,12 @@ namespace MEB {
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // TODO: Provide working imprementation of BBM
             // (Eqn. 8)
-            // const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5);
+            const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5);
 
             // (Eqn. 7b) Prepare tildeP
-            // const Eigen::Matrix<double, 1, NGP* NGP> tildeP = (-Pmax.array() / sigma_n.array()).min(1.0).matrix();
+            const Eigen::Matrix<double, 1, NGP* NGP> tildeP = (-Pmax.array() / sigma_n.array()).min(1.0).matrix();
             // (Eqn. 7b) Select case based on sigma_n
-            // multiplicator = (sigma_n.array() < 0.).select((1. / (1. + (1. - tildeP.array()) * dt_mom / time_viscous.array())).matrix(), multiplicator);
+            multiplicator = (sigma_n.array() < 0.).select((1. / (1. + (1. - tildeP.array()) * dt_mom / time_viscous.array())).matrix(), multiplicator);
 
             //! Implicit part of RHS (Eqn. 33)
             s11_gauss.array() *= multiplicator.array();
