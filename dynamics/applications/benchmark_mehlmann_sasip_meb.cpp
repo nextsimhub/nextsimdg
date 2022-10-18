@@ -277,7 +277,6 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-ssssssssssssssssssssssssssssssssssssssssssss
     //run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_256x256.smesh");
     run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_128x128.smesh");
 
