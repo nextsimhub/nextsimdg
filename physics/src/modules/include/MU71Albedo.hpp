@@ -14,8 +14,10 @@
 
 namespace Nextsim {
 
-//! The implementation class for the a seasonal albedo following Maykut and Untersteiener's (1971)
-//! table 1. Only useful for comparison with that paper and derived setups.
+/*!
+ * @brief The implementation class for the a seasonal albedo following Maykut and Untersteiener's
+ * (1971) table 1. Only useful for comparison with that paper and derived setups.
+ */
 class MU71Albedo : public IIceAlbedo {
 
 public:
@@ -24,6 +26,9 @@ public:
     /*!
      * @brief Returns the tabulated ice surface short wave albedo from Maykut and Untersteiner
      * (1971)
+     * @param temperature The surface (ice or snow) temperature
+     * @param snowThickness  Show thickness
+     * @return
      */
     double albedo(double temperature, double snowThickness) override;
 

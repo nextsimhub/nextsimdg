@@ -11,13 +11,17 @@
 
 namespace Nextsim {
 
+/*!
+ * @brief The implementation class for the a seasonal atmospheric fluxes following Maykut and
+ * Untersteiener's (1971) table 1. Only useful for comparison with that paper and derived setups.
+ */
 class MU71Atmosphere : public IAtmosphereBoundary {
 
 public:
     MU71Atmosphere();
 
     /*!
-     * The required update call for an IFluxCalculation implementation. Here we just call
+     * @brief The required update call for an IFluxCalculation implementation. Here we just call
      * calculateElement inside an overElements loop.
      * @param tst The TimestepTime object for the current time step
      */
@@ -25,7 +29,7 @@ public:
 
 private:
     /*!
-     * A function to calculate the fluxes qia, qio, and qow (=0), and subl (=0), as well as dqia_dt.
+     * @brief A function to calculate the fluxes qia, qio, and qow (=0), and subl (=0), as well as dqia_dt.
      * All incoming fluxes are tabulated from Maykut and Untersteiner (1971). Outgoing long wave and
      * the derivative (dqio_dt) are black body radiation.
      * @param i The index of the current grid cell
@@ -35,6 +39,10 @@ private:
 
     ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore> tice;
 
+    /*!
+     * @brief A function to calculate the snow fall according tu Maykut and Untersteiner (1971)
+     * @return Snow fall in m/s
+     */
     double snowfall();
 
     // Monthly fluxes from Maykut and Untersteiner (1971)

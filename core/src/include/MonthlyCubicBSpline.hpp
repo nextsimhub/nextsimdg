@@ -1,6 +1,9 @@
-//
-// Created by Einar Ólason on 14/10/2022.
-//
+/*!
+ * @file MonthlyCubicBSpline.hpp
+ *
+ * @date Oct 14, 2022
+ * @author Einar Örn Ólason <einar.olason@nersc.no>
+ */
 
 #ifndef MONTHLYCUBICBSPLINE_HPP
 #define MONTHLYCUBICBSPLINE_HPP
@@ -8,14 +11,25 @@
 #include <boost/math/interpolators/cardinal_cubic_b_spline.hpp>
 
 namespace Nextsim {
+/*!
+ * @brief A class for constructing cubib b-splines for equally spaced monthly data. The functions
+ * ensure that the result is fully cyclic and takes leap years into account. The heavy lifting is
+ * done by boost's cardinal_cubic_b_spline.
+ */
 class monthlyCubicBSpline {
 
 public:
+    /*!
+     * @brief The constructor for a monthlyCubicBSpline object.
+     * @param f A vector of length 12 containing the monthly values for the spline
+     */
     explicit monthlyCubicBSpline(const std::vector<double>& f)
     {
         // Create a cyclic B-spline using a fold with a "ghost border"
+        /* We need k+1 ghost points, plus derivatives at the end, where k is the order of the spline
+         * (here k=3). So, with STL's vector.insert() we need ghostWidth = k + 1 + 1 = 5 */
         const int ghostWidth = 5;
-        auto y = f;
+        std::vector<double> y = f;
         y.insert(y.begin(), f.end() - ghostWidth, f.end());
         y.insert(y.end(), f.begin(), f.begin() + ghostWidth);
 
@@ -32,7 +46,13 @@ public:
             y.begin(), y.end(), t0, h, start_deriv, end_deriv);
     };
 
-    double operator()(double dayOfYear, bool isLeap = false)
+    /*!
+     * @brief The operator for returning spline value at a given day of year
+     * @param dayOfYear The day of year and fraction
+     * @param isLeap Boolean to indicate if its a leap year
+     * @return
+     */
+    double operator()(double dayOfYear, bool isLeap)
     {
         // Convert from day-of-year to normalised [0, 1]
         double fracYear;
@@ -50,4 +70,4 @@ private:
 };
 }
 
-#endif // NEXTSIM_DG_MONTHLYCUBICBSPLINE_HPP
+#endif // MONTHLYCUBICBSPLINE_HPP
