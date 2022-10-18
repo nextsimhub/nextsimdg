@@ -37,7 +37,7 @@ TEST_CASE("Two dimensional data access test", "[ModelArray]")
 
     REQUIRE(check1d(dims2[0]-1, dims2[1]-1) == dims2[0] * dims2[1] - 1);
 }
-
+/*
 TEST_CASE("Higher dimensional indexing", "[ModelArray]")
 {
     size_t dimLen = 10;
@@ -117,7 +117,7 @@ TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
     REQUIRE(primorial(i, j, k, l) == target);
 
 }
-
+*/
 TEST_CASE("Moving data", "[ModelArray]")
 {
     size_t n = 10;
