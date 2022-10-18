@@ -25,16 +25,23 @@ for file in sorted(glob.glob('diagnostic.*.nc')):
 
 end = len(time) - 1
 
+rho = 917
+rhoSnow = 330
+rhoOcean = 1025
+iceDraught = (hice * rho + hsnow * rhoSnow) / rhoOcean
+
 plt.figure(1)
-plt.plot([time[0], time[end]], [0, 0])
-plt.plot(time, tice[:, 0])
+plt.plot([time[0], time[end]], [0, 0], 'k--')
+plt.plot(time, tice[:, 0], 'k')
 # plt.plot(time, tice[:, 1])
 # plt.plot(time, tice[:, 2])
 plt.show(block=False)
 
 plt.figure(2)
-plt.plot(time, hice)
-plt.plot(time, hice+hsnow)
+plt.plot([time[0], time[end]], [0, 0], 'k--')
+plt.plot(time, hice - iceDraught, 'b')
+plt.plot(time, hice+hsnow - iceDraught, 'k')
+plt.plot(time, -iceDraught, 'b')
 ax = plt.gca()
-ax.set_ylim([0, None])
+#ax.set_ylim([0, None])
 plt.show()
