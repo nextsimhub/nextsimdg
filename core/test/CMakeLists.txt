@@ -4,6 +4,7 @@ set(CoreSrc "../src")
 set(SRC_DIR "${CoreSrc}")
 set(INCLUDE_DIR "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
+set(ModelArrayDetails "testmodelarray")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
@@ -120,10 +121,10 @@ target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Ca
 add_executable(testModelArray
     "ModelArray_test.cpp"
     "${CoreSrc}/ModelArray.cpp"
-    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${ModelArrayDetails}/ModelArrayDetails.cpp"
     )
 
-target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
 target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testModelComponent

@@ -12,6 +12,7 @@
         X,
         Y,
         Z,
+        COUNT
     };
 
     enum class Type {
@@ -20,8 +21,6 @@
         V,
         Z,
     };
-
-    static const int N_DEFINED_DIMENSIONS = 3;
 
     static ModelArray HField() { return ModelArray(Type::H); }
     static ModelArray UField() { return ModelArray(Type::U); }

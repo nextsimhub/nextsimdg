@@ -47,6 +47,8 @@ public:
 
 #include "include/ModelArrayDetails.hpp"
 
+    static const int N_DEFINED_DIMENSIONS = static_cast<int>(Dimension::COUNT);
+
     struct DimensionSpec {
         std::string name;
         size_t length;
