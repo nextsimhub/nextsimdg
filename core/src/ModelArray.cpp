@@ -18,63 +18,15 @@
 
 namespace Nextsim {
 
-std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
-    { ModelArray::Dimension::X, { "x", 0 } },
-    { ModelArray::Dimension::Y, { "y", 0 } },
-    { ModelArray::Dimension::Z, { "z", 1 } },
-    { ModelArray::Dimension::DG, { "dg", 1 } },
-};
-
-ModelArray::TypeDimensions ModelArray::typeDimensions = {
-    { ModelArray::Type::H,
-        {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
-        } },
-    { ModelArray::Type::U,
-        {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
-        } },
-    { ModelArray::Type::V,
-        {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
-        } },
-    { ModelArray::Type::Z,
-        {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Z),
-        } },
-    { ModelArray::Type::DG,
-        {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
-        } },
-};
 ModelArray::SizeMap ModelArray::m_sz;
 ModelArray::DimensionMap ModelArray::m_dims;
 bool ModelArray::areMapsInvalid = true;
-
-const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
-    { ModelArray::Type::H, "HField" },
-    { ModelArray::Type::U, "UField" },
-    { ModelArray::Type::V, "VField" },
-    { ModelArray::Type::Z, "ZField" },
-    { ModelArray::Type::DG, "DGHField--DO-NOT-USE--" },
-};
 
 ModelArray::ModelArray(const Type type)
     : type(type)
 {
     m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
     validateMaps();
-}
-
-ModelArray::ModelArray()
-    : ModelArray(Type::H)
-{
 }
 
 ModelArray::ModelArray(const ModelArray& orig)

@@ -40,20 +40,12 @@ const static Eigen::StorageOptions majority = DGdegree == 0 ? Eigen::ColMajor : 
  */
 class ModelArray {
 public:
-    enum class Dimension {
-        X,
-        Y,
-        Z,
-        DG,
-    };
 
-    enum class Type {
-        H,
-        U,
-        V,
-        Z,
-        DG,
-    };
+    // Forward defines make Eclipse less red and squiggly
+    enum class Type;
+    enum class Dimension;
+
+#include "include/ModelArrayDetails.hpp"
 
     struct DimensionSpec {
         std::string name;
@@ -62,7 +54,6 @@ public:
     typedef std::map<Type, std::vector<DimensionSpec>> TypeDimensions;
 
     static TypeDimensions typeDimensions;
-    static const int N_DEFINED_DIMENSIONS = 4;
     static std::map<Dimension, DimensionSpec> definedDimensions;
     static const std::map<Type, std::string> typeNames;
 
@@ -80,11 +71,6 @@ public:
         {
         }
     };
-
-    static ModelArray HField() { return ModelArray(Type::H); }
-    static ModelArray UField() { return ModelArray(Type::U); }
-    static ModelArray VField() { return ModelArray(Type::V); }
-    static ModelArray ZField() { return ModelArray(Type::Z); }
 
     /*!
      * Construct an unnamed ModelArray of Type::H
@@ -499,18 +485,14 @@ protected:
     inline bool hasDoF() const { return hasDoF(type); }
     //! Returns whether the specified type of ModelArray has additional
     //! discontinuous Galerkin components.
-    inline static bool hasDoF(const Type type) { return type == Type::DG; }
+    static bool hasDoF(const Type type);
 
 private:
     static bool areMapsInvalid;
     static void validateMaps();
     class SizeMap {
     public:
-        SizeMap()
-            : m_sizes(
-                { { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 }, { Type::DG, 0 } })
-        {
-        }
+        SizeMap();
         size_t& at(const Type& type) { return m_sizes.at(type); }
         const size_t& at(const Type& type) const { return m_sizes.at(type); }
 
@@ -528,11 +510,7 @@ private:
 
     class DimensionMap {
     public:
-        DimensionMap()
-            : m_dimensions({ { Type::H, { 0 } }, { Type::U, { 0 } }, { Type::V, { 0 } },
-                { Type::Z, { 0, 1 } }, { Type::DG, { 0, 1 } } })
-        {
-        }
+        DimensionMap();
         MultiDim& at(const Type& type) { return m_dimensions.at(type); }
         const MultiDim& at(const Type& type) const { return m_dimensions.at(type); }
 
@@ -550,10 +528,7 @@ private:
     DataType m_data;
 };
 
-typedef ModelArray HField;
-typedef ModelArray UField;
-typedef ModelArray VField;
-typedef ModelArray ZField;
+#include "include/ModelArrayTypedefs.hpp"
 
 // ModelArray arithmetic with doubles
 ModelArray operator+(const double&, const ModelArray&);

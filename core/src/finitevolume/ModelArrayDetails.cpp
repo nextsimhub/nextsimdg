@@ -50,8 +50,16 @@ ModelArray::ModelArray()
 {
 }
 
+bool ModelArray::hasDoF(const Type type) { return false; }
+
 ModelArray::SizeMap::SizeMap()
     : m_sizes( { { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 } })
+{
+}
+
+ModelArray::DimensionMap::DimensionMap()
+    : m_dimensions({ { Type::H, { 0 } }, { Type::U, { 0 } }, { Type::V, { 0 } },
+                { Type::Z, { 0, 1 } },})
 {
 }
 
