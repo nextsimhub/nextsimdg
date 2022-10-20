@@ -70,6 +70,7 @@ jobs:
     - name: installs
       run: |
         brew install netcdf
+        brew install netcdf-cxx
         brew install boost
         brew install eigen
         brew install cmake
