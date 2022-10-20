@@ -51,7 +51,7 @@ jobs:
     - name: run tests
       run: |
         cd core/test
-        find test* -type f
+        find test* -maxdepth 1 -type f
         for file in $(ls test*); do ./$file; done
         cd -
         for component in physics
@@ -71,6 +71,7 @@ jobs:
     - name: installs
       run: |
         brew install netcdf
+        brew install netcdf-cxx
         brew install boost
         brew install eigen
         brew install cmake
