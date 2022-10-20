@@ -51,9 +51,6 @@ add_executable(testEnumWrapper
     )
 target_link_libraries(testEnumWrapper LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
-# Set the location of the test module loader classes
-set(TEST_IPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoaderTestModules")
-
 add_executable(testConfiguredModule
     "ConfiguredModule_test.cpp"
     "ArgV.cpp"
@@ -114,7 +111,7 @@ add_executable(testRectGrid
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
-target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
+target_include_directories(testRectGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 

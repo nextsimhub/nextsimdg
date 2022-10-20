@@ -88,7 +88,6 @@ add_executable(nextsim "${NextsimSources}")
 
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${ModuleLoaderIppTargetDirectory}"
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
     )
