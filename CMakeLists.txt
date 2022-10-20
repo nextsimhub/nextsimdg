@@ -19,11 +19,6 @@ else()
     endif()
 endif()
 
-
-file(GLOB ncHeaders "${netCDF_INCLUDE_DIR}/netcdf*.h" "${netCDF_INCLUDE_DIR}/nc*.h")
-message("Listing NSDG_NetCDF_Library at ${netCDF_INCLUDE_DIR}:")
-message("${ncHeaders}")
-
 OPTION(WITH_THREADS      "Build with support for openmp" OFF)
 
 find_package(OpenMP)
