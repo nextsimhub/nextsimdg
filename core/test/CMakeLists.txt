@@ -4,7 +4,7 @@ set(CoreSrc "../src")
 set(SRC_DIR "${CoreSrc}")
 set(INCLUDE_DIR "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
-set(ModelArrayDetails "testmodelarray")
+set(ModelArrayDetails "testmodelarraydetails")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
