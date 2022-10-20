@@ -16,11 +16,11 @@ namespace Nextsim {
 
 TEST_CASE("Two dimensional data access test", "[ModelArray]")
 {
-    ModelArray::Dimensions dims2 = {15, 25};
+    ModelArray::MultiDim dims2 = {15, 25};
 
-    ModelArray::setDimensions(ModelArray::Type::H, dims2);
+    ModelArray::setDimensions(ModelArray::Type::TWOD, dims2);
 
-    ModelArray check1d = ModelArray::HField();
+    ModelArray check1d = ModelArray::TwoDField();
 
     REQUIRE(check1d.nDimensions() == 2);
 
@@ -44,10 +44,10 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
 {
     size_t dimLen = 10;
     size_t arrayLen = dimLen * dimLen * dimLen * dimLen;
-    ModelArray::Dimensions dims4 = {dimLen, dimLen, dimLen, dimLen};
-    ModelArray::setDimensions(ModelArray::Type::H, dims4);
+    ModelArray::MultiDim dims4 = {dimLen, dimLen, dimLen, dimLen};
+    ModelArray::setDimensions(ModelArray::Type::FOURD, dims4);
 
-    ModelArray check4d = ModelArray::HField();
+    ModelArray check4d = ModelArray::FourDField();
 
     REQUIRE(check4d.nDimensions() == 4);
     REQUIRE(check4d.size() == dimLen * dimLen * dimLen * dimLen);
@@ -95,11 +95,11 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
 
 TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
 {
-    ModelArray::Dimensions dims4 = {3, 5, 7, 11};
+    ModelArray::MultiDim dims4 = {3, 5, 7, 11};
     size_t totalSize = dims4[0] * dims4[1] * dims4[2] * dims4[3];
-    ModelArray::setDimensions(ModelArray::Type::H, dims4);
+    ModelArray::setDimensions(ModelArray::Type::FOURD, dims4);
 
-    HField primorial = ModelArray::HField();
+    FourDField primorial = ModelArray::FourDField();
 
     REQUIRE(primorial.nDimensions() == 4);
     REQUIRE(primorial.size() == totalSize);
@@ -123,9 +123,9 @@ TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
 TEST_CASE("Moving data", "[ModelArray]")
 {
     size_t n = 10;
-    ModelArray::setDimensions(ModelArray::Type::H, {n, n});
+    ModelArray::setDimensions(ModelArray::Type::TWOD, {n, n});
 
-    ModelArray src = ModelArray::HField();
+    ModelArray src = ModelArray::TwoDField();
     for (int i = 0; i < n * n; ++i) {
         src[i] = i;
     }
@@ -133,16 +133,16 @@ TEST_CASE("Moving data", "[ModelArray]")
     ModelArray cpyCtor(src);
     REQUIRE(cpyCtor(2, 3) == src(2, 3));
 
-    ModelArray cpyAss = ModelArray::HField();
+    ModelArray cpyAss = ModelArray::TwoDField();
     cpyAss = src;
     REQUIRE(cpyAss(2, 3) == 23);
 }
 
 TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
 {
-    ModelArray uu = ModelArray::UField();
-    REQUIRE(uu.size() == 0);
-    ModelArray::Dimensions udim = {5, 5};
+    DosDField uu = ModelArray::DosDField();
+    REQUIRE(uu.size() == 1);
+    ModelArray::MultiDim udim = {5, 5};
     uu.setDimensions(udim);
     REQUIRE(uu.size() == udim[0] * udim[1]);
     REQUIRE(uu.nDimensions() == 2);
@@ -152,27 +152,27 @@ TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
 TEST_CASE("Arithmetic tests", "[ModelArray]")
 {
     // Only test HField for now
-    ModelArray::setDimensions(ModelArray::Type::H, {1, 2});
-    HField lhs;
-    HField rhs;
+    ModelArray::setDimensions(ModelArray::Type::ONED, {2});
+    OneDField lhs;
+    OneDField rhs;
     lhs[0] = 9.;
     lhs[1] = 10.;
     rhs[0] = 3.;
     rhs[1] = -5.;
 
-    HField sum = lhs + rhs;
+    OneDField sum = lhs + rhs;
     REQUIRE(sum[0] == 12.);
     REQUIRE(sum[1] == 5.);
-    HField difference = lhs - rhs;
+    OneDField difference = lhs - rhs;
     REQUIRE(difference[0] == 6.);
     REQUIRE(difference[1] == 15.);
-    HField product = lhs * rhs;
+    OneDField product = lhs * rhs;
     REQUIRE(product[0] == 27.);
     REQUIRE(product[1] == -50.);
-    HField quotient = lhs / rhs;
+    OneDField quotient = lhs / rhs;
     REQUIRE(quotient[0] == 3.);
     REQUIRE(quotient[1] == -2.);
-    HField negative = -rhs;
+    OneDField negative = -rhs;
     REQUIRE(negative[0] == -3);
     REQUIRE(negative[1] == 5);
 
@@ -230,7 +230,7 @@ TEST_CASE("Arithmetic tests", "[ModelArray]")
     REQUIRE(lhs[0] == 6);
     REQUIRE(lhs[1] == 6.75);
 
-    HField fill = ModelArray::HField();
+    OneDField fill = ModelArray::OneDField();
     double filldub = 5.2354;
     fill = filldub;
 
@@ -246,13 +246,13 @@ TEST_CASE("Location from index", "[ModelArray]")
     const size_t ny = 37;
     const size_t nz = 41;
 
-    ModelArray::setDimensions(ModelArray::Type::H, {nx, ny, nz});
+    ModelArray::setDimensions(ModelArray::Type::FOURD, {nx, ny, nz});
     size_t x = 13;
     size_t y = 17;
     size_t z = 19;
 
-    size_t index = ModelArray::indexFromLocation(ModelArray::Type::H, {x, y, z});
-    ModelArray::Dimensions loc = ModelArray::locationFromIndex(ModelArray::Type::H, index);
+    size_t index = ModelArray::indexFromLocation(ModelArray::Type::FOURD, {x, y, z, 1});
+    ModelArray::MultiDim loc = ModelArray::locationFromIndex(ModelArray::Type::FOURD, index);
     REQUIRE(loc[0] == x);
     REQUIRE(loc[1] == y);
     REQUIRE(loc[2] == z);

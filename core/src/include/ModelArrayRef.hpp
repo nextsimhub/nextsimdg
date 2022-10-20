@@ -5,14 +5,20 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef MODELARRAYREF_HPP
-#define MODELARRAYREF_HPP
+#ifndef MODELARRAYREF2_HPP
+#define MODELARRAYREF2_HPP
 
 #include "ModelArray.hpp"
-#include "ModelComponent.hpp"
+#include <vector>
+
 namespace Nextsim {
 const bool RW = true;
 const bool RO = false;
+
+typedef ModelArray* ModelArrayReference;
+typedef const ModelArray* ModelArrayConstReference;
+typedef std::vector<ModelArrayReference> MARBackingStore;
+typedef std::vector<ModelArrayConstReference> MARConstBackingStore;
 
 /*!
  * @brief A class which provides indirect access to ModelArray.
@@ -27,8 +33,13 @@ const bool RO = false;
  * @tparam access Whether access to the data is read only (RO = false) or
  *           read-write (RW = true)
  */
-template <auto autoType, bool access = RO> class ModelArrayRef {
+template <auto arrayName, typename S, bool access = RO> class ModelArrayRef {
 public:
+    ModelArrayRef(const S& backingStoreIn)
+        : backingStore(backingStoreIn)
+    {
+    }
+
     /*!
      * @brief Returns the data at the indices.
      *
@@ -39,9 +50,9 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    const double& operator[](const ModelArray::Dimensions& dims)
+    const double& operator[](const ModelArray::MultiDim& dims)
     {
-        return ModelComponent::getConstArray<autoType>()->operator[](dims);
+        return backingStore[static_cast<size_t>(arrayName)]->operator[](dims);
     }
     /*!
      * @brief Returns the data at the specified one dimensional index.
@@ -54,49 +65,49 @@ public:
      */
     const double& operator[](size_t index) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator[](index);
+        return backingStore[static_cast<size_t>(arrayName)]->operator[](index);
     }
     //! Returns the specified point from a 1 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     const double& operator()(size_t i) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator()(i);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i);
     }
     //! Returns the specified point from a 2 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     const double& operator()(size_t i, size_t j) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator()(i, j);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j);
     }
     //! Returns the specified point from a 3 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator()(i, j, k);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k);
     }
     //! Returns the specified point from a 4 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k, size_t l) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator()(i, j, k, l);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l);
     }
     //! Returns the specified point from a 5 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator()(i, j, k, l, m);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m);
     }
     //! Returns the specified point from a 6 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator()(i, j, k, l, m, n);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n);
     }
     //! Returns the specified point from a 7 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
@@ -104,7 +115,7 @@ public:
     const double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator()(i, j, k, l, m, n, p);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n, p);
     }
     //! Returns the specified point from a 8 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
@@ -112,7 +123,7 @@ public:
     const double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
     {
-        return ModelComponent::getConstArray<autoType>()->operator()(i, j, k, l, m, n, p, q);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n, p, q);
     }
 
     /*!
@@ -126,11 +137,11 @@ public:
      */
     const double& zIndexAndLayer(size_t hIndex, size_t layer)
     {
-        return ModelComponent::getConstArray<autoType>()->zIndexAndLayer(hIndex, layer);
+        return backingStore[static_cast<size_t>(arrayName)]->zIndexAndLayer(hIndex, layer);
     }
 
     //! Direct access top the underlying data array.
-    const ModelArray& data() const { return *ModelComponent::getConstArray<autoType>(); }
+    const ModelArray& data() const { return *backingStore[static_cast<size_t>(arrayName)]; }
     //! Cast the reference class to a real reference to the referenced ModelArray.
     operator const ModelArray&() const { return data(); }
 
@@ -146,6 +157,9 @@ public:
     //! Returns a ModelArray containing the per-element ratio between the
     //! object and the provided ModelArray.
     ModelArray operator/(const ModelArray& divisor) const { return data() / divisor; }
+
+private:
+    const S& backingStore;
 };
 
 /*!
@@ -158,8 +172,13 @@ public:
  *
  * @tparam sh The ModelComponent::SharedArray to be referenced.
  */
-template <ModelComponent::SharedArray sh> class ModelArrayRef<sh, RW> {
+template <auto arrayName> class ModelArrayRef<arrayName, MARBackingStore, RW> {
 public:
+    ModelArrayRef(const MARBackingStore& backingStoreIn)
+        : backingStore(backingStoreIn)
+    {
+    }
+
     /*!
      * @brief Returns the data at the indices.
      *
@@ -170,9 +189,9 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    double& operator[](const ModelArray::Dimensions& dims)
+    double& operator[](const ModelArray::MultiDim& dims)
     {
-        return ModelComponent::getArray<sh>()->operator[](dims);
+        return backingStore[static_cast<size_t>(arrayName)]->operator[](dims);
     }
     /*!
      * @brief Returns the data at the specified one dimensional index.
@@ -185,53 +204,56 @@ public:
      */
     double& operator[](size_t index) const
     {
-        return ModelComponent::getArray<sh>()->operator[](index);
+        return backingStore[static_cast<size_t>(arrayName)]->operator[](index);
     }
     //! Returns the specified point from a 1 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    double& operator()(size_t i) const { return ModelComponent::getArray<sh>()->operator()(i); }
+    double& operator()(size_t i) const
+    {
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i);
+    }
     //! Returns the specified point from a 2 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     double& operator()(size_t i, size_t j) const
     {
-        return ModelComponent::getArray<sh>()->operator()(i, j);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j);
     }
     //! Returns the specified point from a 3 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k) const
     {
-        return ModelComponent::getArray<sh>()->operator()(i, j, k);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k);
     }
     //! Returns the specified point from a 4 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k, size_t l) const
     {
-        return ModelComponent::getArray<sh>()->operator()(i, j, k, l);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l);
     }
     //! Returns the specified point from a 5 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
     {
-        return ModelComponent::getArray<sh>()->operator()(i, j, k, l, m);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m);
     }
     //! Returns the specified point from a 6 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
     {
-        return ModelComponent::getArray<sh>()->operator()(i, j, k, l, m, n);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n);
     }
     //! Returns the specified point from a 7 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
     {
-        return ModelComponent::getArray<sh>()->operator()(i, j, k, l, m, n, p);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n, p);
     }
     //! Returns the specified point from a 8 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
@@ -239,7 +261,7 @@ public:
     double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
     {
-        return ModelComponent::getArray<sh>()->operator()(i, j, k, l, m, n, p, q);
+        return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n, p, q);
     }
 
     /*!
@@ -253,13 +275,16 @@ public:
      */
     double& zIndexAndLayer(size_t hIndex, size_t layer)
     {
-        return ModelComponent::getArray<sh>()->zIndexAndLayer(hIndex, layer);
+        return backingStore[static_cast<size_t>(arrayName)]->zIndexAndLayer(hIndex, layer);
     }
 
     //! Direct access top the underlying data array.
-    ModelArray& data() const { return *ModelComponent::getArray<sh>(); }
+    ModelArray& data() const { return *backingStore[static_cast<size_t>(arrayName)]; }
     //! Cast the reference class to a real reference to the referenced ModelArray.
     operator ModelArray&() const { return data(); }
+
+private:
+    const MARBackingStore& backingStore;
 };
 }
-#endif /* MODELARRAYREF_HPP */
+#endif /* MODELARRAYREF2_HPP */

@@ -19,6 +19,18 @@ else()
     endif()
 endif()
 
+OPTION(WITH_THREADS      "Build with support for openmp" OFF)
+
+find_package(OpenMP)
+if (OPENMP_FOUND)
+   IF(WITH_THREADS)
+	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    	set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+   endif()
+endif()
+
+
 # Regarding Boost.Log, if our application consists of more
 # than one modules that use it, we must link to the shared
 # version. If we have a single executable or a single module
@@ -38,11 +50,6 @@ find_package(Eigen3 3.4 REQUIRED)
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
 # target_link_libraries(target LINK_PUBLIC "${NSDG_NetCDF_Library}")
 
-# Set the location of the ipp files used by ModuleLoader for the main build
-set(ModuleLoaderIppTargetDirectory
-"${CMAKE_CURRENT_SOURCE_DIR}/core/src/modules/generated/")
-
-file(MAKE_DIRECTORY "${ModuleLoaderIppTargetDirectory}")
 # Set the list of components that define modules. Component subdirectories are
 # contained in this directory level and contain src/modules/ and 
 # src/modules/include/ subdirectories 
@@ -55,6 +62,11 @@ set(CodeComponents
 "physics"
 "dynamics"
 )
+
+# The exact selection of dimensions and Types available to ModelArray
+if(True)
+    set(ModelArrayStructure "finitevolume")
+endif()
 
 # Set an empty list of sources
 set(NextsimSources "")
@@ -76,7 +88,6 @@ add_executable(nextsim "${NextsimSources}")
 
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${ModuleLoaderIppTargetDirectory}"
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
     )

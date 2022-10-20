@@ -7,7 +7,6 @@
 
 #include "include/ThermoIce0.hpp"
 
-#include "include/IFreezingPointModule.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
@@ -24,6 +23,7 @@ ThermoIce0::ThermoIce0()
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
     , qic(ModelArray::Type::H)
+    , oldHi(getProtectedArray())
 {
 }
 
@@ -78,6 +78,8 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
+    // Create a reference to the local updated Tice value here to avoid having
+    // to write the array access expression out in full every time
     double& tice_i = tice.zIndexAndLayer(i, 0);
     double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
     qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
@@ -142,7 +144,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         // No ice, no snow and the surface temperature is the melting point of ice
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = Module::getImplementation<IFreezingPoint>()(sss[i]);
+        tice.zIndexAndLayer(i, 0) = Ice::Tm;
     }
 }
 } /* namespace Nextsim */

@@ -45,27 +45,28 @@ const static Eigen::StorageOptions majority = Eigen::RowMajor;
  */
 class ModelArray {
 public:
-    enum class Type {
-        H,
-        U,
-        V,
-        Z,
-        DG,
-        CG,
-        DGSTRESS,
-    };
+    // Forward defines make Eclipse less red and squiggly
+    enum class Type;
+    enum class Dimension;
 
+#include "include/ModelArrayDetails.hpp"
+
+    static const int N_DEFINED_DIMENSIONS = static_cast<int>(Dimension::COUNT);
+
+    struct DimensionSpec {
+        std::string name;
+        size_t length;
+    };
+    typedef std::map<Type, std::vector<DimensionSpec>> TypeDimensions;
+
+    static TypeDimensions typeDimensions;
+    static std::map<Dimension, DimensionSpec> definedDimensions;
     static const std::map<Type, std::string> typeNames;
 
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
 
     typedef DataType::RowXpr Component;
     typedef DataType::ConstRowXpr ConstComponent;
-
-    static ModelArray HField() { return ModelArray(Type::H); }
-    static ModelArray UField() { return ModelArray(Type::U); }
-    static ModelArray VField() { return ModelArray(Type::V); }
-    static ModelArray ZField() { return ModelArray(Type::Z); }
 
     /*!
      * Construct an unnamed ModelArray of Type::H
@@ -166,16 +167,58 @@ public:
     //! Returns a ModelArray with every element of the object divided by a constant.
     ModelArray operator/(const double&) const;
 
-    typedef std::vector<size_t> Dimensions;
+    /*!
+     * @brief Calculates element-wise maximum of the data and the given scalar value.
+     * @param max the maximum value of the resultant array.
+     */
+    ModelArray max(double max) const;
+    /*!
+     * @brief Calculates element-wise minimum of the data and the given scalar value.
+     * @param min the minimum value of the resultant array.
+     */
+    ModelArray min(double min) const;
+    /*!
+     * @brief Calculates element-wise maximum of the data and the given second array.
+     * @param maxArr the array containing the maximum values.
+     */
+    ModelArray max(const ModelArray& maxArr) const;
+    /*!
+     * @brief Calculates element-wise minimum of the data and the given second array.
+     * @param minArr the array containing the minimum values.
+     */
+    ModelArray min(const ModelArray& minArr) const;
+
+    /*!
+     * @brief Clamps the values in the array to the given maximum.
+     * @param max the maximum value of the final array.
+     */
+    ModelArray& clampAbove(double max);
+    /*!
+     * @brief Clamps the values in the array to the given minimum.
+     * @param min the minimum value of the final array.
+     */
+    ModelArray& clampBelow(double min);
+    /*!
+     * @brief Clamps the values in the array to maximum values in the given array.
+     * @param maxArr the array of clamp maximum target values.
+     */
+    ModelArray& clampAbove(const ModelArray& maxArr);
+    /*!
+     * @brief Clamps the values in the array to minimum values in the given array.
+     * @param minArr the array of clamp minimum target values.
+     */
+    ModelArray& clampBelow(const ModelArray& minArr);
+
+    typedef std::vector<size_t> MultiDim;
 
     //! Returns the number of dimensions of this type of ModelArray.
     size_t nDimensions() const { return nDimensions(type); }
     //! Returns the number of dimensions of the specified type of ModelArray.
     static size_t nDimensions(Type type) { return m_dims.at(type).size(); }
     //! Returns a vector<size_t> of the size of each dimension of this type of ModelArray.
-    const Dimensions& dimensions() const { return dimensions(type); }
+    const MultiDim& dimensions() const { return dimensions(type); }
     //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
-    static const Dimensions& dimensions(Type type) { return m_dims.at(type); }
+    static const MultiDim& dimensions(Type type) { return m_dims.at(type); }
     //! Returns the total number of elements of this type of ModelArray.
     size_t size() const { return size(type); }
     //! Returns the total number of elements of the specified type of ModelArray.
@@ -198,7 +241,7 @@ public:
      * @param type The type of array the dimensions are to be specified for.
      * @param dim The per-dimension size to be set.
      */
-    static void setDimensions(Type, const Dimensions&);
+    static void setDimensions(Type, const MultiDim&);
     /*!
      * @brief Sets the number and size of the dimensions of this type of ModelArray.
      *
@@ -208,11 +251,20 @@ public:
      *
      * @param dim The per-dimension size to be set.
      */
-    void setDimensions(const Dimensions& dims)
+    void setDimensions(const MultiDim& dims)
     {
         setDimensions(type, dims);
         resize();
     }
+
+    /*!
+     * @brief Sets the length of an individual dimension before propagating it
+     * to the defined array types.
+     *
+     * @param dim The dimension to be altered.
+     * @param length The new length of the dimension.
+     */
+    void setDimension(Dimension dim, size_t length);
 
     //! Conditionally updates the size of the object data buffer to match the
     //! class specification.
@@ -285,7 +337,7 @@ private:
     }
 
     // Indices as a Dimensions object
-    template <typename T> static T indexr(const T* dims, const ModelArray::Dimensions& loc)
+    template <typename T> static T indexr(const T* dims, const ModelArray::MultiDim& loc)
     {
         return indexrHelper(dims, loc);
     }
@@ -326,7 +378,7 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    const double& operator[](const Dimensions& dims) const;
+    const double& operator[](const MultiDim& dims) const;
 
     /*!
      * @brief Returns the data at the given set of indices
@@ -358,7 +410,7 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    double& operator[](const Dimensions&);
+    double& operator[](const MultiDim&);
     //! Returns the specified point from a ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned. Non-const version.
@@ -404,8 +456,8 @@ public:
      *
      * @param dims indexing argument of the target point.
      */
-    Component components(const Dimensions& loc);
-    const ConstComponent components(const Dimensions& loc) const;
+    Component components(const MultiDim& loc);
+    const ConstComponent components(const MultiDim& loc) const;
 
     /*!
      * @brief Special access function for ZFields.
@@ -439,7 +491,7 @@ public:
      *
      * @param loc The multi-dimensional location to return the index for.
      */
-    size_t indexFromLocation(const Dimensions& loc) const { return indexFromLocation(type, loc); }
+    size_t indexFromLocation(const MultiDim& loc) const { return indexFromLocation(type, loc); }
 
     /*!
      * @brief Returns the index for a given set of multi-dimensional location for the given Type.
@@ -447,14 +499,14 @@ public:
      * @param type The type to act on.
      * @param loc The multi-dimensional location to return the index for.
      */
-    static size_t indexFromLocation(Type type, const Dimensions& loc);
+    static size_t indexFromLocation(Type type, const MultiDim& loc);
 
     /*!
      * @brief Returns the multi-dimensional location for a given index for this array's type.
      *
      * @param index The index to return the multi-dimensional location for.
      */
-    Dimensions LocationFromIndex(size_t index) const { return locationFromIndex(type, index); }
+    MultiDim locationFromIndex(size_t index) const { return locationFromIndex(type, index); }
 
     /*!
      * @brief Returns the multi-dimensional location for a given index for the given Type.
@@ -462,7 +514,7 @@ public:
      * @param type The type to act on.
      * @param index The index to return the multi-dimensional location for.
      */
-    static Dimensions locationFromIndex(Type type, size_t index);
+    static MultiDim locationFromIndex(Type type, size_t index);
 
 protected:
     Type type;
@@ -495,19 +547,14 @@ protected:
     inline bool hasDoF() const { return hasDoF(type); }
     //! Returns whether the specified type of ModelArray has additional
     //! discontinuous Galerkin components.
-    inline static bool hasDoF(const Type type)
-    {
-        return (type == Type::DG) || (type == Type::DGSTRESS);
-    }
+    static bool hasDoF(const Type type);
 
 private:
+    static bool areMapsInvalid;
+    static void validateMaps();
     class SizeMap {
     public:
-        SizeMap()
-            : m_sizes({ { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 },
-                { Type::DG, 0 }, { Type::CG, 0 }, { Type::DGSTRESS, 0 } })
-        {
-        }
+        SizeMap();
         size_t& at(const Type& type) { return m_sizes.at(type); }
         const size_t& at(const Type& type) const { return m_sizes.at(type); }
 
@@ -516,44 +563,40 @@ private:
 
         size_t size() const noexcept { return m_sizes.size(); }
 
-//    protected:
+        void validate();
+
+    protected:
         std::map<Type, size_t> m_sizes;
     };
     static SizeMap m_sz;
 
     class ComponentMap : public SizeMap {
     public:
-        ComponentMap() { m_sizes = { { Type::DG, 1 }, { Type::DGSTRESS, 1 } }; }
+        ComponentMap() { m_sizes = { }; };// { Type::DG, 1 }, { Type::DGSTRESS, 1 } }; }
     };
     static ComponentMap m_comp;
 
     class DimensionMap {
     public:
-        DimensionMap()
-            : m_dimensions(
-                { { Type::H, { 0 } }, { Type::U, { 0 } }, { Type::V, { 0 } }, { Type::Z, { 0, 1 } },
-                    { Type::DG, { 0 } }, { Type::DGSTRESS, { 0 } }, { Type::CG, { 0 } } })
-        {
-        }
-        Dimensions& at(const Type& type) { return m_dimensions.at(type); }
-        const Dimensions& at(const Type& type) const { return m_dimensions.at(type); }
+        DimensionMap();
+        MultiDim& at(const Type& type) { return m_dimensions.at(type); }
+        const MultiDim& at(const Type& type) const { return m_dimensions.at(type); }
 
-        Dimensions& operator[](const Type& type) { return m_dimensions[type]; }
-        Dimensions& operator[](Type&& type) { return m_dimensions[type]; }
+        MultiDim& operator[](const Type& type) { return m_dimensions[type]; }
+        MultiDim& operator[](Type&& type) { return m_dimensions[type]; }
 
         size_t size() const noexcept { return m_dimensions.size(); }
 
-//    private:
-        std::map<Type, Dimensions> m_dimensions;
+        void validate();
+
+    private:
+        std::map<Type, MultiDim> m_dimensions;
     };
     static DimensionMap m_dims;
     DataType m_data;
 };
 
-typedef ModelArray HField;
-typedef ModelArray UField;
-typedef ModelArray VField;
-typedef ModelArray ZField;
+#include "include/ModelArrayTypedefs.hpp"
 
 // ModelArray arithmetic with doubles
 ModelArray operator+(const double&, const ModelArray&);

@@ -6,13 +6,13 @@
 
 #include "include/Model.hpp"
 
-#include "include/AtmosphereOceanState.hpp"
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
+#include "include/Module.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>
@@ -125,7 +125,6 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     MissingData::getHelpRecursive(map, getAll);
     PrognosticData::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IDiagnosticOutput>(map, getAll);
-    AtmosphereOceanState::getHelpRecursive(map, getAll);
     return map;
 }
 

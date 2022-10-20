@@ -40,8 +40,6 @@ static std::string hiceName = "hice";
 static std::string ciceName = "cice";
 static std::string hsnowName = "hsnow";
 static std::string ticeName = "tice";
-static std::string sstName = "sst";
-static std::string sssName = "sss";
 static std::string maskName = "mask";
 
 static const std::string mdiName = "missing_value";
@@ -52,7 +50,7 @@ void dimensionSetter(
     const netCDF::NcGroup& dataGroup, const std::string& fieldName, ModelArray::Type type)
 {
     size_t nDims = dataGroup.getVar(fieldName).getDimCount();
-    ModelArray::Dimensions dims;
+    ModelArray::MultiDim dims;
     dims.resize(nDims);
     for (size_t d = 0; d < nDims; ++d) {
         dims[d] = dataGroup.getVar(fieldName).getDim(d).getSize();
@@ -84,10 +82,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dataGroup.getVar(ciceName).getVar(&state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(&state.data[hsnowName][0]);
-    state.data[sstName] = ModelArray::HField();
-    dataGroup.getVar(sstName).getVar(&state.data[sstName][0]);
-    state.data[sssName] = ModelArray::HField();
-    dataGroup.getVar(sssName).getVar(&state.data[sssName][0]);
     state.data[ticeName] = ModelArray::ZField();
     dataGroup.getVar(ticeName).getVar(&state.data[ticeName][0]);
 

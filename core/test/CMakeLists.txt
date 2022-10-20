@@ -4,6 +4,7 @@ set(CoreSrc "../src")
 set(SRC_DIR "${CoreSrc}")
 set(INCLUDE_DIR "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
+set(ModelArrayDetails "testmodelarraydetails")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
@@ -50,9 +51,6 @@ add_executable(testEnumWrapper
     )
 target_link_libraries(testEnumWrapper LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
 
-# Set the location of the test module loader classes
-set(TEST_IPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ModuleLoaderTestModules")
-
 add_executable(testConfiguredModule
     "ConfiguredModule_test.cpp"
     "ArgV.cpp"
@@ -90,9 +88,10 @@ add_executable(testDevGrid
     "${SRC_DIR}/ModelArray.cpp"
     "${SRC_DIR}/ModelMetadata.cpp"
     "${SRC_DIR}/Time.cpp"
+    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
-target_include_directories(testDevGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
+target_include_directories(testDevGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
@@ -109,18 +108,20 @@ add_executable(testRectGrid
     "${SRC_DIR}/ModelArray.cpp"
     "${SRC_DIR}/ModelMetadata.cpp"
     "${SRC_DIR}/Time.cpp"
+    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
-target_include_directories(testRectGrid PUBLIC "${ModuleLoaderIppTargetDirectory}" "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}")
+target_include_directories(testRectGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testModelArray
     "ModelArray_test.cpp"
     "${CoreSrc}/ModelArray.cpp"
+    "${ModelArrayDetails}/ModelArrayDetails.cpp"
     )
 
-target_include_directories(testModelArray PRIVATE "${CoreSrc}")
+target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
 target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testModelComponent
@@ -129,9 +130,10 @@ add_executable(testModelComponent
     "${CoreSrc}/MissingData.cpp"
     "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ModelArray.cpp"
+    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
 )
 
-target_include_directories(testModelComponent PRIVATE "${CoreSrc}")
+target_include_directories(testModelComponent PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testModelComponent PRIVATE Boost::program_options Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testTimeClasses
@@ -140,3 +142,12 @@ add_executable(testTimeClasses
 )
 target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
 target_link_libraries(testTimeClasses PRIVATE Catch2::Catch2)
+
+add_executable(testNewModelArrayRef
+    "NewModelArrayRef_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+)
+
+target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)

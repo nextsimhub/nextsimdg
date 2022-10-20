@@ -14,29 +14,20 @@
 #include <string>
 #include <utility>
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;
 ModelArray::ComponentMap ModelArray::m_comp;
 ModelArray::DimensionMap ModelArray::m_dims;
-
-const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
-    { ModelArray::Type::H, "HField" },
-    { ModelArray::Type::U, "UField" },
-    { ModelArray::Type::V, "VField" },
-    { ModelArray::Type::Z, "ZField" },
-    { ModelArray::Type::DG, "DGHField--DO-NOT-USE--" },
-};
+bool ModelArray::areMapsInvalid = true;
 
 ModelArray::ModelArray(const Type type)
     : type(type)
 {
     m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
-}
-
-ModelArray::ModelArray()
-    : ModelArray(Type::H)
-{
+    validateMaps();
 }
 
 ModelArray::ModelArray(const ModelArray& orig)
@@ -128,6 +119,58 @@ ModelArray operator/(const double& x, const ModelArray& y)
     return xArray /= y;
 }
 
+ModelArray ModelArray::max(double max) const
+{
+    ModelArray maxed = ModelArray(type);
+    maxed.m_data.array() = m_data.array().max(max);
+    return maxed;
+}
+
+ModelArray ModelArray::min(double min) const
+{
+    ModelArray mined = ModelArray(type);
+    mined.m_data.array() = m_data.array().min(min);
+    return mined;
+}
+
+ModelArray ModelArray::max(const ModelArray& maxArr) const
+{
+    ModelArray maxed = ModelArray(type);
+    maxed.m_data.array() = m_data.array().max(maxArr.m_data);
+    return maxed;
+}
+
+ModelArray ModelArray::min(const ModelArray& minArr) const
+{
+    ModelArray mined = ModelArray(type);
+    mined.m_data.array() = m_data.array().min(minArr.m_data);
+    return mined;
+}
+
+ModelArray& ModelArray::clampAbove(double max)
+{
+    m_data = this->max(max).m_data;
+    return *this;
+}
+
+ModelArray& ModelArray::clampBelow(double min)
+{
+    m_data = this->min(min).m_data;
+    return *this;
+}
+
+ModelArray& ModelArray::clampAbove(const ModelArray& maxArr)
+{
+    m_data = this->max(maxArr).m_data;
+    return *this;
+}
+
+ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
+{
+    m_data = this->min(minArr).m_data;
+    return *this;
+}
+
 void ModelArray::setData(double value)
 {
     resize();
@@ -144,15 +187,13 @@ void ModelArray::setData(const DataType& from) { m_data = from; }//setData(from.
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
-void ModelArray::setDimensions(Type type, const Dimensions& newDims)
+void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
-    size_t newSize = 1;
-    for (size_t dimLen : newDims) {
-        newSize *= dimLen;
+    std::vector<DimensionSpec>& dimSpecs = typeDimensions.at(type);
+    for (size_t i = 0; i < dimSpecs.size(); ++i) {
+        dimSpecs[i].length = newDims[i];
     }
-    m_dims.at(type).clear();
-    std::copy(newDims.begin(), newDims.end(), std::back_inserter(m_dims.at(type)));
-    m_sz.at(type) = newSize;
+    validateMaps();
 }
 
 void ModelArray::setNComponents(std::map<Type, size_t> cMap)
@@ -166,22 +207,28 @@ void ModelArray::setNComponents(Type type, size_t nComp) { m_comp[type] = nComp;
 
 void ModelArray::setNComponents(size_t nComp) { setNComponents(type, nComp); }
 
-const double& ModelArray::operator[](const Dimensions& loc) const
+void ModelArray::setDimension(Dimension dim, size_t length)
+{
+    definedDimensions.at(dim).length = length;
+    validateMaps();
+}
+
+const double& ModelArray::operator[](const MultiDim& loc) const
 {
     return (*this)[indexr(this->dimensions().data(), loc)];
 }
 
-double& ModelArray::operator[](const Dimensions& dims)
+double& ModelArray::operator[](const MultiDim& dims)
 {
     return const_cast<double&>(std::as_const(*this)[dims]);
 }
 
-ModelArray::Component ModelArray::components(const Dimensions& loc)
+ModelArray::Component ModelArray::components(const MultiDim& loc)
 {
     return components(indexr(dimensions().data(), loc));
 }
 
-const ModelArray::ConstComponent ModelArray::components(const Dimensions& loc) const
+const ModelArray::ConstComponent ModelArray::components(const MultiDim& loc) const
 {
     return components(indexr(dimensions().data(), loc));
 }
@@ -192,7 +239,7 @@ const ModelArray::ConstComponent ModelArray::components(const Dimensions& loc) c
  * @param type The type to act on.
  * @param loc The multi-dimensional location to return the index for.
  */
-size_t ModelArray::indexFromLocation(Type type, const Dimensions& loc)
+size_t ModelArray::indexFromLocation(Type type, const MultiDim& loc)
 {
     return indexr(m_dims.at(type).data(), loc);
 }
@@ -203,10 +250,10 @@ size_t ModelArray::indexFromLocation(Type type, const Dimensions& loc)
  * @param type The type to act on.
  * @param index The index to return the multi-dimensional location for.
  */
-ModelArray::Dimensions ModelArray::locationFromIndex(Type type, size_t index)
+ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
 {
-    Dimensions& dims = m_dims.at(type);
-    Dimensions loc(dims.size()); // Size to the known number of dimensions
+    MultiDim& dims = m_dims.at(type);
+    MultiDim loc(dims.size()); // Size to the known number of dimensions
     for (size_t i = loc.size(); i > 0; --i) {
         size_t idim = i - 1;
         size_t theDim = dims[idim];
@@ -215,6 +262,38 @@ ModelArray::Dimensions ModelArray::locationFromIndex(Type type, size_t index)
         index /= theDim;
     }
     return loc;
+}
+
+void ModelArray::validateMaps()
+{
+    m_dims.validate();
+    m_sz.validate();
+    areMapsInvalid = false;
+}
+
+void ModelArray::DimensionMap::validate()
+{
+    for (auto entry : typeDimensions) {
+        Type type = entry.first;
+        std::vector<size_t>& dims = m_dimensions[type];
+        std::vector<DimensionSpec>& dimSpec = entry.second;
+        dims.resize(dimSpec.size());
+        for (size_t i = 0; i < dimSpec.size(); ++i) {
+            dims[i] = dimSpec[i].length;
+        }
+    }
+}
+
+void ModelArray::SizeMap::validate()
+{
+    for (auto entry : typeDimensions) {
+        size_t size = 1;
+        std::vector<DimensionSpec>& dimSpec = entry.second;
+        for (size_t i = 0; i < dimSpec.size(); ++i) {
+            size *= dimSpec[i].length;
+        }
+        m_sizes.at(entry.first) = size;
+    }
 }
 
 } /* namespace Nextsim */

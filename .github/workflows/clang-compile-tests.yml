@@ -51,12 +51,12 @@ jobs:
     - name: run tests
       run: |
         cd core/test
-        for file in $(ls test*); do ./$file; done
+        for file in $(find test* -maxdepth 0 -type f); do ./$file; done
         cd -
         for component in physics
         do
             cd $component/test
-            for file in $(ls test*); do ./$file; done
+            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
             cd -
         done
 
@@ -70,6 +70,7 @@ jobs:
     - name: installs
       run: |
         brew install netcdf
+        brew install netcdf-cxx
         brew install boost
         brew install eigen
         brew install cmake
@@ -82,11 +83,11 @@ jobs:
     - name: run tests
       run: |
         cd core/test
-        for file in $(ls test*); do ./$file; done
+        for file in $(find test* -maxdepth 0 -type f); do ./$file; done
         cd -
         for component in physics
         do
             cd $component/test
-            for file in $(ls test*); do ./$file; done
+            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
             cd -
         done
