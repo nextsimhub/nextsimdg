@@ -246,12 +246,12 @@ TEST_CASE("Location from index", "[ModelArray]")
     const size_t ny = 37;
     const size_t nz = 41;
 
-    ModelArray::setDimensions(ModelArray::Type::FOURD, {nx, ny, nz});
+    ModelArray::setDimensions(ModelArray::Type::FOURD, {nx, ny, nz, 1});
     size_t x = 13;
     size_t y = 17;
     size_t z = 19;
 
-    size_t index = ModelArray::indexFromLocation(ModelArray::Type::FOURD, {x, y, z, 1});
+    size_t index = ModelArray::indexFromLocation(ModelArray::Type::FOURD, {x, y, z, 0});
     ModelArray::MultiDim loc = ModelArray::locationFromIndex(ModelArray::Type::FOURD, index);
     REQUIRE(loc[0] == x);
     REQUIRE(loc[1] == y);
