@@ -40,7 +40,6 @@ const static Eigen::StorageOptions majority = DGdegree == 0 ? Eigen::ColMajor : 
  */
 class ModelArray {
 public:
-
     // Forward defines make Eclipse less red and squiggly
     enum class Type;
     enum class Dimension;
