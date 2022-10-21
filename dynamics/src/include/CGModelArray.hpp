@@ -27,9 +27,9 @@ public:
         return ma;
     }
 
-    template <int CG> static ModelArray::Dimensions cgDimensions(const ModelArray::Dimensions& hDims)
+    template <int CG> static ModelArray::MultiDim cgDimensions(const ModelArray::MultiDim& hDims)
     {
-        ModelArray::Dimensions cgDims(hDims);
+        ModelArray::MultiDim cgDims(hDims);
         for (size_t i = 0; i < cgDims.size(); ++i) {
             cgDims[i] *= CG;
             ++cgDims[i];

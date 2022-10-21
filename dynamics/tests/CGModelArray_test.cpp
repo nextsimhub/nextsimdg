@@ -17,9 +17,9 @@ namespace Nextsim {
 TEST_CASE("cgDims test", "[CGModelArray]")
 {
     static const int CG = 2;
-    ModelArray::Dimensions hDims = { 23, 29 };
+    ModelArray::MultiDim hDims = { 23, 29 };
     ModelArray::setDimensions(ModelArray::Type::H, hDims);
-    ModelArray::Dimensions cgDims = CGModelArray::cgDimensions<CG>(hDims);
+    ModelArray::MultiDim cgDims = CGModelArray::cgDimensions<CG>(hDims);
     REQUIRE(cgDims[0] == CG * hDims[0] + 1);
     REQUIRE(cgDims[1] == CG * hDims[1] + 1);
 }

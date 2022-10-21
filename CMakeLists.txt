@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
+set(VERBOSE) # FIXME remove me
+
 set(CMAKE_CXX_STANDARD 17)
 
 project(nextsim_dg)
@@ -65,7 +67,7 @@ set(CodeComponents
 
 # The exact selection of dimensions and Types available to ModelArray
 if(True)
-    set(ModelArrayStructure "finitevolume")
+    set(ModelArrayStructure "discontinuousgalerkin")
 endif()
 
 # Set an empty list of sources

@@ -14,10 +14,11 @@ add_executable(nextsimMEVP NextsimMevp.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/parametricTools.cpp" 
     "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${CoreDir}/ModelArray.cpp" 
+    "${CoreDir}/ModelArray.cpp"
+    "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 target_link_libraries(nextsimMEVP LINK_PUBLIC Eigen3::Eigen)
-target_include_directories(nextsimMEVP PRIVATE "${CoreDir}")
+target_include_directories(nextsimMEVP PRIVATE "${CoreDir}" "${CoreDir}/${ModelArrayStructure}")
 
 add_executable(benchmark_mehlmann_sasip_mevp benchmark_mehlmann_sasip_mevp.cpp
     "${SRC_DIR}/stopwatch.cpp"
