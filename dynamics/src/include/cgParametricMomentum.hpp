@@ -33,6 +33,9 @@ private:
     //! vectors storing the velocity (node-wise)
     CGVector<CG> vx, vy;
 
+    //! vectors storing the average velocity in sub-iterations (node-wise)
+    CGVector<CG> avg_vx, avg_vy;
+
     //! vectors storing ocean and atm velocity (node-wise)
     CGVector<CG> ox, oy, ax, ay;
 
@@ -73,6 +76,11 @@ public:
         vx.setZero();
         vy.setZero();
 
+        avg_vx.resize_by_mesh(smesh);
+        avg_vy.resize_by_mesh(smesh);
+        avg_vx.setZero();
+        avg_vy.setZero();
+
         cg_A.resize_by_mesh(smesh);
         cg_H.resize_by_mesh(smesh);
         cg_D.resize_by_mesh(smesh);
@@ -106,6 +114,11 @@ public:
     const CGVector<CG>& GetVy() const { return vy; }
     CGVector<CG>& GetVx() { return vx; }
     CGVector<CG>& GetVy() { return vy; }
+
+    const CGVector<CG>& GetAvgSubiterVx() const { return avg_vx; }
+    const CGVector<CG>& GetAvgSubiterVy() const { return avg_vy; }
+    CGVector<CG>& GetAvgSubiterVx() { return avg_vx; }
+    CGVector<CG>& GetAvgSubiterVy() { return avg_vy; }
 
     const CGVector<CG>& GetOceanx() const { return ox; }
     const CGVector<CG>& GetOceany() const { return oy; }

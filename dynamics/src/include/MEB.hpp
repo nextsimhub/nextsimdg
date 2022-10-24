@@ -112,6 +112,7 @@ namespace MEB {
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
+
             const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5)*expC;
 
             // (Eqn. 7b) Prepare tildeP
@@ -122,7 +123,6 @@ namespace MEB {
 
             //multiplicator
             Eigen::Matrix<double, 1, NGP* NGP> multiplicator = (time_viscous.array() / (time_viscous.array() + (1. - tildeP.array()) * dt_mom )).array().min(1.0- 1.e-12).matrix();
-
 
             s11_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e11_gauss.array())).matrix()
                 + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
