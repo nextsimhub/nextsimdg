@@ -21,8 +21,8 @@ namespace Nextsim {
 
 TEST_CASE("ConfiguredAtmosphere melting test", "[ConfiguredAtmosphere")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
