@@ -17,6 +17,7 @@ namespace Nextsim {
 //! The implementation class of the UNESCO model of the freezing point of
 // seawater.
 class UnescoFreezing : public IFreezingPoint {
+public:
     /*!
      * @brief Calculates the freezing point of seawater.
      *

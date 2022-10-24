@@ -9,37 +9,24 @@
 #define IFLUXCALCULATION_HPP
 
 #include "include/Configured.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
-//! An interface class for calculating ocean-ice-atmosphere fluxes
-class IFluxCalculation : public ModelComponent, public Configured<IFluxCalculation> {
+//! An interface class for calculating ocean/ice-atmosphere fluxes
+class IFluxCalculation : public ModelComponent {
 public:
     IFluxCalculation()
-        : qow(ModelArray::Type::H)
-        , subl(ModelArray::Type::H)
-        , qia(ModelArray::Type::H)
-        , dqia_dt(ModelArray::Type::H)
-        , qio(ModelArray::Type::H)
+        : qow(getSharedArray())
+        , subl(getSharedArray())
+        , qia(getSharedArray())
+        , dqia_dt(getSharedArray())
     {
-        // register shared arrays
-        registerSharedArray(SharedArray::Q_OW, &qow);
-        registerSharedArray(SharedArray::SUBLIM, &subl);
-        registerSharedArray(SharedArray::Q_IA, &qia);
-        registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-        registerSharedArray(SharedArray::Q_IO, &qio);
     }
     virtual ~IFluxCalculation() = default;
 
-    void setData(const ModelState::DataMap& ms) override
-    {
-        qow.resize();
-        subl.resize();
-        qia.resize();
-        dqia_dt.resize();
-        qio.resize();
-    }
+    void setData(const ModelState::DataMap& ms) override { }
 
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -50,12 +37,6 @@ public:
 
     std::string getName() const override { return "IFluxCalculation"; }
 
-    std::unordered_set<std::string> hFields() const override
-    {
-        return { "qow", "subl", "qia", "dqia_dt", "qio" };
-    }
-
-    void configure() override { }
     /*!
      * Updates the flux calculation for the timestep.
      *
@@ -65,12 +46,11 @@ public:
 
 protected:
     // All fluxes are positive upwards, including incident radiation fluxes
-    // Owned, shared fields
-    HField qow; // Open water heat flux [W m⁻²]
-    HField subl; // Ice sublimative mass flux [kg m⁻²]
-    HField qia; // Ice-atmosphere heat flux [W m⁻²]
-    HField dqia_dt; // Derivative of qia w.r.t. ice surface temperature
-    HField qio; // Ice-ocean heat flux [W m⁻²]
+    // The flux fields are owned by IAtmosphereBoundary
+    ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW> qow;
+    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RW> subl;
+    ModelArrayRef<SharedArray::Q_IA, MARBackingStore, RW> qia;
+    ModelArrayRef<SharedArray::DQIA_DT, MARBackingStore, RW> dqia_dt;
 };
 }
 #endif /* IFLUXCALCULATION_HPP */

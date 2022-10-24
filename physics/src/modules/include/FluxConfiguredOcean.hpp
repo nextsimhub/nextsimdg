@@ -1,12 +1,12 @@
 /*!
- * @file ConfiguredOcean.hpp
+ * @file FluxConfiguredOcean.hpp
  *
- * @date Aug 31, 2022
+ * @date Sep 29, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CONFIGUREDOCEAN_HPP
-#define CONFIGUREDOCEAN_HPP
+#ifndef FLUXCONFIGUREDOCEAN_HPP
+#define FLUXCONFIGUREDOCEAN_HPP
 
 #include "IOceanBoundary.hpp"
 
@@ -14,14 +14,14 @@
 
 namespace Nextsim {
 
-//! A class to provide constant oceanic forcings that can be configured at run
-//! time as physical variables.
-class ConfiguredOcean : public IOceanBoundary, public Configured<ConfiguredOcean> {
+//! A class to provide constant oceanic forcings that can be configured at run time.
+class FluxConfiguredOcean : public IOceanBoundary, public Configured<FluxConfiguredOcean> {
 public:
-    ConfiguredOcean() = default;
-    ~ConfiguredOcean() = default;
+    FluxConfiguredOcean() = default;
+    ~FluxConfiguredOcean() = default;
 
     enum {
+        QIO_KEY,
         SST_KEY,
         SSS_KEY,
         MLD_KEY,
@@ -30,16 +30,17 @@ public:
     };
 
     void setData(const ModelState::DataMap&) override;
-    std::string getName() const override { return "ConfiguredOcean"; }
+    std::string getName() const override { return "FluxConfiguredOcean"; }
 
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void configure() override;
 
-    void updateBefore(const TimestepTime& tst) override;
+    void updateBefore(const TimestepTime& tst) override { }
     void updateAfter(const TimestepTime& tst) override { }
 
 private:
+    static double qio0;
     static double sst0;
     static double sss0;
     static double mld0;
@@ -49,4 +50,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* CONFIGUREDOCEAN_HPP */
+#endif /* FLUXCONFIGUREDOCEAN_HPP */
