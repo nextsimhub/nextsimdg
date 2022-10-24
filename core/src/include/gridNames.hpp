@@ -1,0 +1,25 @@
+/*!
+ * @file gridNames.hpp
+ *
+ * @date Oct 24, 2022
+ * @author Tim Spain <timothy.spain@nersc.no>
+ */
+
+#ifndef GRIDNAMES_HPP
+#define GRIDNAMES_HPP
+
+#include <string>
+
+namespace Nextsim {
+
+static const std::string hiceName = "hice";
+static const std::string ciceName = "cice";
+static const std::string hsnowName = "hsnow";
+static const std::string ticeName = "tice";
+static const std::string maskName = "mask";
+
+static const std::string mdiName = "missing_value";
+
+}
+
+#endif /* GRIDNAMES_HPP */

@@ -13,6 +13,7 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/RectangularGrid.hpp"
+#include "include/gridNames.hpp"
 
 #include <ncDim.h>
 #include <ncDouble.h>
@@ -25,26 +26,6 @@
 #include <vector>
 
 namespace Nextsim {
-
-// Forward declarations
-enum class StringName {
-    METADATA_NODE,
-    DATA_NODE,
-    STRUCTURE,
-    X_DIM,
-    Y_DIM,
-    Z_DIM,
-};
-
-static std::string hiceName = "hice";
-static std::string ciceName = "cice";
-static std::string hsnowName = "hsnow";
-static std::string ticeName = "tice";
-static std::string maskName = "mask";
-
-static const std::string mdiName = "missing_value";
-
-typedef std::map<StringName, std::string> NameMap;
 
 void dimensionSetter(
     const netCDF::NcGroup& dataGroup, const std::string& fieldName, ModelArray::Type type)
