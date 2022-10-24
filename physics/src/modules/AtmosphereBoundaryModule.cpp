@@ -18,7 +18,7 @@ namespace Module {
 const std::string CONSTANTATMOSPHEREBOUNDARY = "Nextsim::ConstantAtmosphereBoundary";
 const std::string CONFIGUREDATMOSPHERE = "Nextsim::ConfiguredAtmosphere";
 const std::string FLUXCONFIGUREDATMOSPHERE = "Nextsim::FluxConfiguredAtmosphere";
-const std::string MONTHLYFLUXESATMOSPHERE = "Nextsim::MU71Atmosphere";
+const std::string MU71ATMOSPHERE = "Nextsim::MU71Atmosphere";
 
 template <>
 Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::functionMap = {
@@ -27,7 +27,7 @@ Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::
     { CONFIGUREDATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ConfiguredAtmosphere> },
     { FLUXCONFIGUREDATMOSPHERE,
         newImpl<Nextsim::IAtmosphereBoundary, Nextsim::FluxConfiguredAtmosphere> },
-    { MONTHLYFLUXESATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::MU71Atmosphere> },
+    { MU71ATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::MU71Atmosphere> },
 };
 
 template <>
@@ -48,6 +48,18 @@ template <> HelpMap& getHelpRecursive<Nextsim::IAtmosphereBoundary>(HelpMap& map
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IAtmosphereBoundary>::moduleName(),
         ConfigType::MODULE, { CONSTANTATMOSPHEREBOUNDARY }, CONSTANTATMOSPHEREBOUNDARY, "",
         "A Module to provide atmospheric inputs to the model." });
+    map[pfx].push_back({ pfx + "." + Module<Nextsim::IAtmosphereBoundary>::moduleName(),
+        ConfigType::MODULE, { CONFIGUREDATMOSPHERE }, CONFIGUREDATMOSPHERE, "",
+        "A configurable Module to provide atmospheric inputs to the model based on prescribed "
+        "atmospheric state." });
+    map[pfx].push_back({ pfx + "." + Module<Nextsim::IAtmosphereBoundary>::moduleName(),
+        ConfigType::MODULE, { FLUXCONFIGUREDATMOSPHERE }, FLUXCONFIGUREDATMOSPHERE, "",
+        "A configurable Module to provide atmospheric inputs to the model based on prescribed "
+        "atmospheric fluxes." });
+    map[pfx].push_back({ pfx + "." + Module<Nextsim::IAtmosphereBoundary>::moduleName(),
+        ConfigType::MODULE, { MU71ATMOSPHERE }, MU71ATMOSPHERE, "",
+        "A Module to provide atmospheric inputs to the model based on prescribed atmospheric "
+        "fluxes according to Maykut and Untersteiner (1971)." });
     Nextsim::ConfiguredAtmosphere::getHelpRecursive(map, getAll);
     Nextsim::FluxConfiguredAtmosphere::getHelpRecursive(map, getAll);
     return map;
