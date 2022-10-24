@@ -14,8 +14,6 @@
 #include <string>
 #include <utility>
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;

@@ -10,8 +10,6 @@
 
 #include "../src/include/ModelArray.hpp"
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 TEST_CASE("Two dimensional data access test", "[ModelArray]")
