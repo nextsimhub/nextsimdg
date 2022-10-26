@@ -42,6 +42,7 @@ If your package manager is `Homebrew`_ :
 
 .. code::
 
+        brew install netcdf
         brew install netcdf-cxx
         brew install boost
         brew install catch2
