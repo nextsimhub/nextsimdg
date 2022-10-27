@@ -27,6 +27,11 @@ public:
 
 private:
     ParaGridIO() = default;
+
+    static const std::map<std::string, ModelArray::Dimension> dimensionKeys;
+
+    static const std::map<ModelArray::Dimension, bool> isDG;
+    static const std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
 };
 
 } /* namespace Nextsim */
