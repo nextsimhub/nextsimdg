@@ -30,6 +30,22 @@ public:
         }
     }
 
+    // Read/write override functions
+    ModelState getModelState(const std::string& filePath) override
+    {
+        return pio ? pio->getModelState(filePath) : ModelState();
+    }
+
+    void dumpModelState(
+        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart = false) const override
+    {
+        if (pio)
+            pio->dumpModelState(state, metadata, filePath, isRestart);
+    }
+    const std::string& structureType() const override { return structureName; };
+
+    int nIceLayers() const override { return ModelArray::definedDimensions.at(ModelArray::Dimension::Z).length; };
+
     class IParaGridIO {
     public:
         IParaGridIO(ParametricGrid& grid)
