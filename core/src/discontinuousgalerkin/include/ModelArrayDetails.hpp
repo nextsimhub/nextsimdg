@@ -8,7 +8,7 @@
 #ifndef MODELARRAYDETAILS_HPP
 #define MODELARRAYDETAILS_HPP
 
-enum class Dimension { X, Y, Z, XCG, YCG, COUNT };
+enum class Dimension { X, Y, Z, XCG, YCG, DG, DGSTRESS, COUNT };
 
 enum class Type {
     H,
