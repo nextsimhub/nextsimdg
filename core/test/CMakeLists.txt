@@ -127,6 +127,8 @@ target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Ca
 add_executable(testParaGrid
     "ParaGrid_test.cpp"
     "${CoreModulesDir}/ParametricGrid.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
     "${SRC_DIR}/CommonRestartMetadata.cpp"
     "${SRC_DIR}/Configurator.cpp"
