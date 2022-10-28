@@ -75,6 +75,15 @@ add_executable(testScopedTimer
 target_link_libraries(testScopedTimer PRIVATE Catch2::Catch2)
 target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 
+add_executable(testModelArray
+    "ModelArray_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${ModelArrayDetails}/ModelArrayDetails.cpp"
+    )
+
+target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
+target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
+
 add_executable(testDevGrid
     "DevGrid_test.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
@@ -115,14 +124,24 @@ target_include_directories(testRectGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" 
 target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
-add_executable(testModelArray
-    "ModelArray_test.cpp"
-    "${CoreSrc}/ModelArray.cpp"
-    "${ModelArrayDetails}/ModelArrayDetails.cpp"
+add_executable(testParaGrid
+    "ParaGrid_test.cpp"
+    "${CoreModulesDir}/ParametricGrid.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${SRC_DIR}/CommonRestartMetadata.cpp"
+    "${SRC_DIR}/Configurator.cpp"
+    "${SRC_DIR}/ConfiguredModule.cpp"
+    "${SRC_DIR}/ParaGridIO.cpp"
+    "${SRC_DIR}/MissingData.cpp"
+    "${SRC_DIR}/ModelArray.cpp"
+    "${SRC_DIR}/ModelMetadata.cpp"
+    "${SRC_DIR}/Time.cpp"
+    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
-target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
-target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_include_directories(testParaGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_directories(testParaGrid PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testParaGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
