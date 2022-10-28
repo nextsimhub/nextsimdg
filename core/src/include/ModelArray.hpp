@@ -57,7 +57,7 @@ public:
         std::string name;
         size_t length;
     };
-    typedef std::map<Type, std::vector<DimensionSpec>> TypeDimensions;
+    typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
 
     static TypeDimensions typeDimensions;
     static std::map<Dimension, DimensionSpec> definedDimensions;
@@ -264,7 +264,7 @@ public:
      * @param dim The dimension to be altered.
      * @param length The new length of the dimension.
      */
-    void setDimension(Dimension dim, size_t length);
+    static void setDimension(Dimension dim, size_t length);
 
     //! Conditionally updates the size of the object data buffer to match the
     //! class specification.
@@ -516,6 +516,22 @@ public:
      */
     static MultiDim locationFromIndex(Type type, size_t index);
 
+    //! Returns the number of discontinuous Galerkin components held in this
+    //! type of ModelArray.
+    inline size_t nComponents() const { return nComponents(type); }
+    //! Returns the number of discontinuous Galerkin components held in the
+    //! specified type of ModelArray.
+    inline static size_t nComponents(const Type type)
+    {
+        return (hasDoF(type)) ? m_comp.at(type) : 1;
+    }
+    //! Returns whether this type of ModelArray has additional discontinuous
+    //! Galerkin components.
+    inline bool hasDoF() const { return hasDoF(type); }
+    //! Returns whether the specified type of ModelArray has additional
+    //! discontinuous Galerkin components.
+    static bool hasDoF(const Type type);
+
 protected:
     Type type;
 
@@ -533,21 +549,6 @@ protected:
         return hIndex * dimensions()[nDimensions() - 1] + layer;
     }
 
-    //! Returns the number of discontinuous Galerkin components held in this
-    //! type of ModelArray.
-    inline size_t nComponents() const { return nComponents(type); }
-    //! Returns the number of discontinuous Galerkin components held in the
-    //! specified type of ModelArray.
-    inline static size_t nComponents(const Type type)
-    {
-        return (hasDoF(type)) ? m_comp.at(type) : 1;
-    }
-    //! Returns whether this type of ModelArray has additional discontinuous
-    //! Galerkin components.
-    inline bool hasDoF() const { return hasDoF(type); }
-    //! Returns whether the specified type of ModelArray has additional
-    //! discontinuous Galerkin components.
-    static bool hasDoF(const Type type);
 
 private:
     static bool areMapsInvalid;

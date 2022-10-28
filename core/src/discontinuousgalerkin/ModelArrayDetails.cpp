@@ -23,39 +23,39 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
 ModelArray::TypeDimensions ModelArray::typeDimensions = {
     { ModelArray::Type::H,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::U,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::V,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::Z,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Z),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
+            ModelArray::Dimension::Z,
         } },
     { ModelArray::Type::DG,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::DGSTRESS,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::CG,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::XCG),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::YCG),
+            ModelArray::Dimension::XCG,
+            ModelArray::Dimension::YCG,
         } },
 };
 

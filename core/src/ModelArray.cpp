@@ -187,9 +187,9 @@ void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); 
 
 void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
-    std::vector<DimensionSpec>& dimSpecs = typeDimensions.at(type);
+    std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
     for (size_t i = 0; i < dimSpecs.size(); ++i) {
-        dimSpecs[i].length = newDims[i];
+        definedDimensions.at(dimSpecs[i]).length = newDims[i];
     }
     validateMaps();
 }
@@ -274,10 +274,10 @@ void ModelArray::DimensionMap::validate()
     for (auto entry : typeDimensions) {
         Type type = entry.first;
         std::vector<size_t>& dims = m_dimensions[type];
-        std::vector<DimensionSpec>& dimSpec = entry.second;
-        dims.resize(dimSpec.size());
-        for (size_t i = 0; i < dimSpec.size(); ++i) {
-            dims[i] = dimSpec[i].length;
+        std::vector<Dimension>& typeDims = entry.second;
+        dims.resize(typeDims.size());
+        for (size_t i = 0; i < typeDims.size(); ++i) {
+            dims[i] = definedDimensions.at(typeDims[i]).length;
         }
     }
 }
@@ -286,9 +286,9 @@ void ModelArray::SizeMap::validate()
 {
     for (auto entry : typeDimensions) {
         size_t size = 1;
-        std::vector<DimensionSpec>& dimSpec = entry.second;
-        for (size_t i = 0; i < dimSpec.size(); ++i) {
-            size *= dimSpec[i].length;
+        std::vector<Dimension>& typeDims = entry.second;
+        for (size_t i = 0; i < typeDims.size(); ++i) {
+            size *= definedDimensions.at(typeDims[i]).length;
         }
         m_sizes.at(entry.first) = size;
     }
