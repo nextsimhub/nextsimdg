@@ -19,6 +19,8 @@
 #include <map>
 #include <string>
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
@@ -125,21 +127,28 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
         }
         dimMap[type] = ncDims;
     }
+    // Everything that has components needs that dimension, too
+    for (auto entry : dimCompMap) {
+        dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
+    }
 
+    std::cerr << "ready to write data" << std::endl;
     std::set<std::string> restartFields
         = { hiceName, ciceName, hsnowName, ticeName }; // TODO and others
     // Loop through either the above list (isRestart) or all provided fields(!isRestart)
     for (auto entry : state.data) {
         if (!isRestart || restartFields.count(entry.first)) {
+            std::cerr << "writing " << entry.first << std::endl;
             // Get the type, then relevant vector of NetCDF dimensions
             ModelArray::Type type = entry.second.getType();
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
+            std::cerr << "dims has " << ncDims.size() << " elements" << std::endl;
             netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
             var.putVar(entry.second.getData());
         }
     }
-
+    std::cerr << "closing file" << std::endl;
     ncFile.close();
 }
 } /* namespace Nextsim */

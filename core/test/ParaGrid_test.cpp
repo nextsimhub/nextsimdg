@@ -11,10 +11,11 @@
 #include "include/CommonRestartMetadata.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/ParaGridIO.hpp"
+#include "include/gridNames.hpp"
 
 #include <fstream>
 
-const std::string filename = "ParaGrid_test.nc";
+const std::string filename = "paraGrid_test.nc";
 
 static const int DG = 3;
 static const int DGSTRESS = 6;
@@ -26,6 +27,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
 {
     ParametricGrid grid;
     ParaGridIO pio(grid);
+    grid.setIO(&pio);
 
     // Set the dimension lengths
     size_t nx = 25;
@@ -49,6 +51,8 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     HField fractional(ModelArray::Type::H);
     DGField fractionalDG(ModelArray::Type::DG);
     HField mask(ModelArray::Type::H);
+    fractional.resize();
+    fractionalDG.resize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             fractional(i, j) = j * yFactor + i * xFactor;
@@ -58,6 +62,29 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
             }
         }
     }
-}
 
+    DGField hice = fractionalDG + 10;
+    DGField cice = fractionalDG + 20;
+    DGField hsnow = fractionalDG + 30;
+    ZField tice(ModelArray::Type::Z);
+    tice.resize();
+    for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
+        for (size_t k = 0; k < nz; ++k) {
+            tice.zIndexAndLayer(i, k) = fractional[i] + 40 + k;
+        }
+    }
+
+    ModelState state = {{
+            { maskName, mask },
+            { hiceName, hice },
+            { ciceName, cice },
+            { hsnowName, hsnow },
+            { ticeName, tice },
+    }, {}};
+
+    ModelMetadata metadata;
+    metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
+
+    grid.dumpModelState(state, metadata, filename, true);
+}
 }
