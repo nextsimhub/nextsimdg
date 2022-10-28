@@ -11,6 +11,7 @@
 #include "include/MissingData.hpp"
 #include "include/gridNames.hpp"
 
+#include <ncDim.h>
 #include <ncFile.h>
 #include <ncGroup.h>
 #include <ncVar.h>
@@ -71,7 +72,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     ModelState state;
 
     for (auto entry : dataGroup.getVars()) {
-        std::string& varName = entry.first;
+        const std::string& varName = entry.first;
         netCDF::NcVar& var = entry.second;
         // Determine the type from the dimensions
         std::vector<netCDF::NcDim> varDims = var.getDims();

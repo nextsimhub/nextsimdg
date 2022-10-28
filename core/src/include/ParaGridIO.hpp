@@ -26,9 +26,9 @@ public:
         const std::string& filePath, bool isRestart) const override;
 
 private:
-    ParaGridIO() = default;
+    ParaGridIO() = delete;
 
-    static const std::map<std::string, ModelArray::Dimension> dimensionKeys;
+    static const std::map<std::string, ModelArray::Type> dimensionKeys;
 
     static const std::map<ModelArray::Dimension, bool> isDG;
     static const std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
