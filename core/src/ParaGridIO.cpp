@@ -47,6 +47,7 @@ const std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap =
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+    netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
     netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
     // Dimensions and DG components
@@ -67,8 +68,13 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         }
     }
 
-    // Get all vars in the data group, and load them into a new ModelState
     ModelState state;
+    // Get the vertex coordinates from the array named coords
+    state.data[coordsName] = ModelArray(ModelArray::Type::VERTEX);
+    netCDF::NcVar coordsVar = dataGroup.getVar(coordsName);
+    coordsVar.getVar(&state.data[coordsName][0]);
+
+    // Get all vars in the data group, and load them into a new ModelState
 
     for (auto entry : dataGroup.getVars()) {
         const std::string& varName = entry.first;

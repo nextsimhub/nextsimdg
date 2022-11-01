@@ -18,6 +18,8 @@ static const std::string hsnowName = "hsnow";
 static const std::string ticeName = "tice";
 static const std::string maskName = "mask";
 
+static const std::string coordsName = "coords";
+
 static const std::string mdiName = "missing_value";
 
 }

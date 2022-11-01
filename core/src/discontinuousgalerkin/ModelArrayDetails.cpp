@@ -12,6 +12,8 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
     { ModelArray::Dimension::X, { "x", 0 } },
     { ModelArray::Dimension::Y, { "y", 0 } },
     { ModelArray::Dimension::Z, { "z", 1 } },
+    { ModelArray::Dimension::XVERTEX, { "xvertex", 1 } }, // defined as x + 1
+    { ModelArray::Dimension::YVERTEX, { "yvertex", 1 } }, // defined as y + 1
     { ModelArray::Dimension::XCG, { "x_cg", 1 } },
     { ModelArray::Dimension::YCG, { "y_cg", 1 } },
     // The DG components are also included here to store the names
@@ -25,6 +27,12 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
         {
             ModelArray::Dimension::X,
             ModelArray::Dimension::Y,
+        } },
+    { ModelArray::Type::VERTEX,
+        {
+            ModelArray::Dimension::XVERTEX,
+            ModelArray::Dimension::YVERTEX,
+            ModelArray::Dimension::NCOORDS,
         } },
     { ModelArray::Type::U,
         {
@@ -61,6 +69,7 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
 
 const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::H, "HField" },
+    { ModelArray::Type::VERTEX, "VertexField" },
     { ModelArray::Type::U, "UField" },
     { ModelArray::Type::V, "VField" },
     { ModelArray::Type::Z, "ZField" },
@@ -77,7 +86,7 @@ ModelArray::ModelArray()
 bool ModelArray::hasDoF(const Type type) { return type == Type::DG || type == Type::DGSTRESS; }
 
 ModelArray::SizeMap::SizeMap()
-    : m_sizes({ { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 }, { Type::DG, 0 },
+    : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 }, { Type::DG, 0 },
         { Type::DGSTRESS, 0 }, { Type::CG, 1 } })
 {
 }
@@ -85,6 +94,7 @@ ModelArray::SizeMap::SizeMap()
 ModelArray::DimensionMap::DimensionMap()
     : m_dimensions({
         { Type::H, { 0, 0 } },
+        { Type::VERTEX, { 1, 1} },
         { Type::U, { 0, 0 } },
         { Type::V, { 0, 0 } },
         { Type::Z, { 0, 0, 1 } },

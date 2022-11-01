@@ -6,6 +6,7 @@
  */
 
 typedef ModelArray HField;
+typedef ModelArray VertexField;
 typedef ModelArray UField;
 typedef ModelArray VField;
 typedef ModelArray ZField;
