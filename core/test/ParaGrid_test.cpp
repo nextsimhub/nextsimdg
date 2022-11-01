@@ -13,6 +13,7 @@
 #include "include/ParaGridIO.hpp"
 #include "include/gridNames.hpp"
 
+#include <cstdio>
 #include <fstream>
 
 const std::string filename = "paraGrid_test.nc";
@@ -25,9 +26,15 @@ namespace Nextsim {
 
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[ParametricGrid]")
 {
+    std::FILE* lun = std::fopen(filename.c_str(), "r");
+    if (lun != NULL) {
+        std::remove(filename.c_str());
+    }
+    std::fclose(lun);
+
     ParametricGrid grid;
-    ParaGridIO pio(grid);
-    grid.setIO(&pio);
+    ParaGridIO writeIO(grid);
+    grid.setIO(&writeIO);
 
     // Set the dimension lengths
     size_t nx = 25;
@@ -86,5 +93,49 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
 
     grid.dumpModelState(state, metadata, filename, true);
+
+    lun = std::fopen(filename.c_str(), "r");
+    REQUIRE(lun != NULL);
+    REQUIRE(std::fclose(lun) == 0);
+
+    // Reset the array dimensions to make sure that the read function gets them correct
+    ModelArray::setDimension(ModelArray::Dimension::X, 1);
+    ModelArray::setDimension(ModelArray::Dimension::Y, 1);
+    ModelArray::setDimension(ModelArray::Dimension::Z, 1);
+    ModelArray::setDimension(ModelArray::Dimension::XCG, 1);
+    ModelArray::setDimension(ModelArray::Dimension::YCG, 1);
+    // In the full model numbers of DG components are set at compile time, so they are not reset
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    
+    ParametricGrid gridIn;
+    ParaGridIO readIO(gridIn);
+    gridIn.setIO(&readIO);
+
+    ModelState ms = gridIn.getModelState(filename);
+
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == nz);
+
+    REQUIRE( ms.data.size() == state.data.size() );
+
+    ModelArray& ticeRef = ms.data.at(ticeName);
+    REQUIRE(ModelArray::nDimensions(ModelArray::Type::Z) == 3);
+    REQUIRE(ticeRef.getType() == ModelArray::Type::Z);
+    REQUIRE(ticeRef.nDimensions() == 3);
+    REQUIRE(ticeRef.dimensions()[0] == nx);
+    REQUIRE(ticeRef.dimensions()[1] == ny);
+    REQUIRE(ticeRef.dimensions()[2] == nz);
+
+    ModelArray& hiceRef = ms.data.at(hiceName);
+    REQUIRE(hiceRef.nDimensions() == 2);
+    REQUIRE(hiceRef.dimensions()[0] == nx);
+    REQUIRE(hiceRef.dimensions()[1] == ny);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(hiceRef.nComponents() == DG);
+
+    REQUIRE(ticeRef(12, 14, 1) == tice(12, 14, 1));
+
+    std::remove(filename.c_str());
 }
 }

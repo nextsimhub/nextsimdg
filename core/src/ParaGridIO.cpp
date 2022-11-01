@@ -19,14 +19,14 @@
 #include <map>
 #include <string>
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
     { "xy", ModelArray::Type::H },
     { "xyz", ModelArray::Type::Z },
-
+    { "xydg_comp", ModelArray::Type::DG },
+    { "xydgstress_comp", ModelArray::Type::DGSTRESS },
+    { "xcgycg", ModelArray::Type::CG },
 };
 
 // Which dimensions are DG dimension, which could be legitimately missing
@@ -51,22 +51,19 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 
     // Dimensions and DG components
     std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
-
     for (auto entry : ModelArray::definedDimensions) {
+        if (dimCompMap.count(entry.first) > 0) continue;
+
         ModelArray::DimensionSpec& dimensionSpec = entry.second;
         netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
-        if (dim.isNull()) {
-            // Only throw if a finite volume dimension (X, Y, Z) is missing
-            if (!isDG.at(entry.first)) {
-                throw std::out_of_range(std::string("No dimension named ") + entry.second.name
-                    + " found in " + filePath);
-            }
+        if (dimCompMap.count(entry.first)) {
+            // TODO Assertions that DG in the file equals the compile time DG in the model.
+            // std::cerr << "setting components " <<
+            // ModelArray::definedDimensions.at(entry.first).name
+            //          << " to " << dim.getSize() << std::endl;
+            // ModelArray::setNComponents(dimCompMap.at(entry.first), dim.getSize());
         } else {
-            if (dimCompMap.count(entry.first)) {
-                ModelArray::setNComponents(dimCompMap.at(entry.first), dim.getSize());
-            } else {
-                dimensionSpec.length = dim.getSize();
-            }
+            ModelArray::setDimension(entry.first, dim.getSize());
         }
     }
 
@@ -86,12 +83,13 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             throw std::out_of_range(
                 std::string("No ModelArray::Type corresponds to the dimensional key ") + dimKey);
         }
-        state.data[varName](dimensionKeys.at(dimKey));
+        ModelArray::Type newType = dimensionKeys.at(dimKey);
+        state.data[varName] = ModelArray(newType);
         ModelArray& data = state.data.at(varName);
+        data.resize();
 
         var.getVar(&data[0]);
     }
-
     ncFile.close();
     return state;
 }
@@ -132,23 +130,19 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
 
-    std::cerr << "ready to write data" << std::endl;
     std::set<std::string> restartFields
-        = { hiceName, ciceName, hsnowName, ticeName }; // TODO and others
+        = { hiceName, ciceName, hsnowName, ticeName, maskName }; // TODO and others
     // Loop through either the above list (isRestart) or all provided fields(!isRestart)
     for (auto entry : state.data) {
         if (!isRestart || restartFields.count(entry.first)) {
-            std::cerr << "writing " << entry.first << std::endl;
             // Get the type, then relevant vector of NetCDF dimensions
             ModelArray::Type type = entry.second.getType();
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-            std::cerr << "dims has " << ncDims.size() << " elements" << std::endl;
             netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
             var.putVar(entry.second.getData());
         }
     }
-    std::cerr << "closing file" << std::endl;
     ncFile.close();
 }
 } /* namespace Nextsim */
