@@ -92,6 +92,11 @@ namespace MEB {
             //! exp(-C(1-A))
             auto expC = (-20.0 * (1.0 - a_gauss.array())).exp();
 
+            //! Eqn. 9
+            // const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * h_gauss.array()
+            // * (1. - d_gauss.array())).matrix();
+            const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * (1. - d_gauss.array()) * expC).matrix();
+
             // Eqn. 25
             auto powalpha = (1. - d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
             //const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array() ).matrix();
@@ -154,13 +159,21 @@ namespace MEB {
             dcrit = dcrit.array().min(1.0);
 
             // Relax stress in Gassus points
-            s11_gauss.array() *= dcrit.array();
-            s12_gauss.array() *= dcrit.array();
-            s22_gauss.array() *= dcrit.array();
+            const Eigen::Matrix<double, 1, NGP* NGP> damage_timescale = 0.5 * smesh.h(i)
+                * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
+            // const Eigen::Matrix<double, 1, NGP* NGP> damage_timescale =
+            // dt_mom*Eigen::Matrix<double, 1, NGP* NGP>::Ones();
+
+            s11_gauss.array()
+                -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / damage_timescale.array();
+            s12_gauss.array()
+                -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / damage_timescale.array();
+            s22_gauss.array()
+                -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / damage_timescale.array();
 
             // Update damage
-            d_gauss = ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / params.damage_timescale);
-
+            d_gauss = ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom
+                / damage_timescale.array());
 
             // INTEGRATION OF STRESS AND DAMAGE
             const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J = ParametricTools::J<3>(smesh, i);
