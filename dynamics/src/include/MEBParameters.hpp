@@ -71,7 +71,7 @@ public:
         P0 = 10.e3; //! < \param Constant to parametrize Pmax
 
         undamaged_time_relaxation_sigma = 1e7; //!< \param lambda
-        exponent_relaxation_sigma = 3;
+        exponent_relaxation_sigma = 5;
         c0 = 10.e3; //! \param
         sigma_c0 = 50.e3; //! \param
 
