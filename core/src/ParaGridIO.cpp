@@ -19,6 +19,8 @@
 #include <map>
 #include <string>
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
@@ -27,6 +29,7 @@ const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
     { "xydg_comp", ModelArray::Type::DG },
     { "xydgstress_comp", ModelArray::Type::DGSTRESS },
     { "xcgycg", ModelArray::Type::CG },
+    { "xvertexyvertexncoords", ModelArray::Type::VERTEX },
 };
 
 // Which dimensions are DG dimension, which could be legitimately missing
@@ -47,7 +50,7 @@ const std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap =
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-    netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
+    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
     netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
     // Dimensions and DG components
@@ -69,10 +72,6 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     }
 
     ModelState state;
-    // Get the vertex coordinates from the array named coords
-    state.data[coordsName] = ModelArray(ModelArray::Type::VERTEX);
-    netCDF::NcVar coordsVar = dataGroup.getVar(coordsName);
-    coordsVar.getVar(&state.data[coordsName][0]);
 
     // Get all vars in the data group, and load them into a new ModelState
 
@@ -137,7 +136,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     }
 
     std::set<std::string> restartFields
-        = { hiceName, ciceName, hsnowName, ticeName, maskName }; // TODO and others
+        = { hiceName, ciceName, hsnowName, ticeName, maskName, coordsName }; // TODO and others
     // Loop through either the above list (isRestart) or all provided fields(!isRestart)
     for (auto entry : state.data) {
         if (!isRestart || restartFields.count(entry.first)) {

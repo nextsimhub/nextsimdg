@@ -14,6 +14,7 @@
 #include "include/gridNames.hpp"
 
 #include <cstdio>
+#include <cmath>
 #include <fstream>
 
 const std::string filename = "paraGrid_test.nc";
@@ -49,6 +50,9 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::Z, nz);
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1);
+    REQUIRE(ModelArray::definedDimensions.at(ModelArray::Dimension::NCOORDS).length == 2); // Two dimensional model
     ModelArray::setDimension(ModelArray::Dimension::XCG, nxcg);
     ModelArray::setDimension(ModelArray::Dimension::YCG, nycg);
 
@@ -81,12 +85,30 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
         }
     }
 
+    VertexField coordinates(ModelArray::Type::VERTEX);
+    coordinates.resize();
+    // Planar coordinates
+    double scale = 1e5;
+
+    for (size_t i = 0; i < ModelArray::definedDimensions.at(ModelArray::Dimension::XVERTEX).length; ++i) {
+        for (size_t j = 0; j < ModelArray::definedDimensions.at(ModelArray::Dimension::YVERTEX).length; ++j) {
+            double x = i - 0.5 - nx / 2;
+            double y = j - 0.5 - ny / 2;
+            coordinates(i, j, 0UL) = x * scale;
+            coordinates(i, j, 1UL) = y * scale;
+        }
+    }
+
+    REQUIRE(coordinates(12, 13, 0) - coordinates(11, 13, 0) == scale);
+    REQUIRE(coordinates(12, 13, 1) - coordinates(12, 12, 1) == scale);
+
     ModelState state = {{
             { maskName, mask },
             { hiceName, hice },
             { ciceName, cice },
             { hsnowName, hsnow },
             { ticeName, tice },
+            { coordsName, coordinates },
     }, {}};
 
     ModelMetadata metadata;
@@ -102,6 +124,8 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     ModelArray::setDimension(ModelArray::Dimension::X, 1);
     ModelArray::setDimension(ModelArray::Dimension::Y, 1);
     ModelArray::setDimension(ModelArray::Dimension::Z, 1);
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 1);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 1);
     ModelArray::setDimension(ModelArray::Dimension::XCG, 1);
     ModelArray::setDimension(ModelArray::Dimension::YCG, 1);
     // In the full model numbers of DG components are set at compile time, so they are not reset
@@ -135,6 +159,11 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     REQUIRE(hiceRef.nComponents() == DG);
 
     REQUIRE(ticeRef(12, 14, 1) == tice(12, 14, 1));
+
+    ModelArray& coordRef = ms.data.at(coordsName);
+    REQUIRE(coordRef.nDimensions() == 3);
+    REQUIRE(coordRef(12, 13, 0) - coordRef(11, 13, 0) == scale);
+    REQUIRE(coordRef(12, 13, 1) - coordRef(12, 12, 1) == scale);
 
     std::remove(filename.c_str());
 }
