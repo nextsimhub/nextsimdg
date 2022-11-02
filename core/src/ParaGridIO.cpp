@@ -19,8 +19,6 @@
 #include <map>
 #include <string>
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
