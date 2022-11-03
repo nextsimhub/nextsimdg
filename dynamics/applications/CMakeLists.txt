@@ -32,11 +32,22 @@ add_executable(nextsimMEVP NextsimMevp.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/parametricTools.cpp" 
     "${SRC_DIR}/cgParametricMomentum.cpp"
+    "${CoreDir}/modules/ParametricGrid.cpp"
+    "${CoreDir}/modules/RectangularGrid.cpp"
+    "${CoreDir}/modules/DevGrid.cpp"
+    "${CoreDir}/modules/IStructureModule.cpp"
+    "${CoreDir}/CommonRestartMetadata.cpp"
+    "${CoreDir}/Configurator.cpp"
+    "${CoreDir}/MissingData.cpp"
     "${CoreDir}/ModelArray.cpp"
+    "${CoreDir}/ModelMetadata.cpp"
+    "${CoreDir}/ParaGridIO.cpp"
+    "${CoreDir}/Time.cpp"
     "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
-target_link_libraries(nextsimMEVP LINK_PUBLIC Eigen3::Eigen)
-target_include_directories(nextsimMEVP PRIVATE "${CoreDir}" "${CoreDir}/${ModelArrayStructure}")
+target_link_libraries(nextsimMEVP LINK_PUBLIC Eigen3::Eigen Boost::program_options "${NSDG_NetCDF_Library}")
+target_link_directories(nextsimMEVP PUBLIC "${netCDF_LIB_DIR}")
+target_include_directories(nextsimMEVP PRIVATE "${CoreDir}" "${CoreDir}/modules" "${CoreDir}/${ModelArrayStructure}" "${netCDF_INCLUDE_DIR}")
 
 add_executable(benchmark_mehlmann_sasip_mevp benchmark_mehlmann_sasip_mevp.cpp
     "${SRC_DIR}/stopwatch.cpp"

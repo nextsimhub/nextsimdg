@@ -20,6 +20,9 @@
 #include "DGNetcdf.hpp"
 
 #include "include/ModelArray.hpp"
+#include "include/ModelState.hpp"
+#include "include/ParametricGrid.hpp"
+#include "include/ParaGridIO.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -114,22 +117,20 @@ public:
 template <int CG, int DGadvection, int DGstress>
 void run_benchmark(const std::string meshfile)
 {
+    // Set the numbers of components from the template parameters
+    Nextsim::ModelArray::setNComponents(Nextsim::ModelArray::Type::DG, DGadvection);
+    Nextsim::ModelArray::setNComponents(Nextsim::ModelArray::Type::DGSTRESS, DGstress);
+
+    Nextsim::ParametricGrid gridIn;
+    Nextsim::ParaGridIO* readIO = new Nextsim::ParaGridIO(gridIn);
+    gridIn.setIO(readIO);
+
+    Nextsim::ModelState state = gridIn.getModelState("nextsimMEVPstart.nc");
+
     //! Define the spatial mesh
     Nextsim::ParametricMesh smesh;
     smesh.readmesh(meshfile);
     size_t NX = smesh.nx;
-
-    // Set the size of the finite element arrays (implicitly A grid with 1 z level)
-    Nextsim::ModelArray::setDimensions(Nextsim::ModelArray::Type::H, {NX * NX});
-    Nextsim::ModelArray::setDimensions(Nextsim::ModelArray::Type::Z, {NX * NX, 1});
-    Nextsim::ModelArray::setDimensions(Nextsim::ModelArray::Type::U, {NX * NX});
-    Nextsim::ModelArray::setDimensions(Nextsim::ModelArray::Type::V, {NX * NX});
-    Nextsim::ModelArray::setDimensions(Nextsim::ModelArray::Type::DG, {NX * NX});
-    // Set the numbers of components from the template parameters
-    Nextsim::ModelArray::setNComponents(
-        { { Nextsim::ModelArray::Type::DG, static_cast<size_t>(DGadvection) },
-            { Nextsim::ModelArray::Type::DGSTRESS, static_cast<size_t>(DGstress) },
-            { Nextsim::ModelArray::Type::CG, static_cast<size_t>(CG) } });
 
     //! Compose name of output directory and create it
     std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
