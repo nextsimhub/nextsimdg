@@ -8,7 +8,6 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "include/CommonRestartMetadata.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/gridNames.hpp"
