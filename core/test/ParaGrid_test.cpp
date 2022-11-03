@@ -33,8 +33,8 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     std::fclose(lun);
 
     ParametricGrid grid;
-    ParaGridIO writeIO(grid);
-    grid.setIO(&writeIO);
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
 
     // Set the dimension lengths
     size_t nx = 25;
@@ -131,8 +131,8 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     
     ParametricGrid gridIn;
-    ParaGridIO readIO(gridIn);
-    gridIn.setIO(&readIO);
+    ParaGridIO* readIO = new ParaGridIO(gridIn);
+    gridIn.setIO(readIO);
 
     ModelState ms = gridIn.getModelState(filename);
 
