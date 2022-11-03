@@ -7,6 +7,24 @@ set(CoreDir "../../core/src/")
 
 include_directories(${INCLUDE_DIR})
 
+add_executable(createNextsimMeshData createNextsimMeshData.cpp
+    "${CoreDir}/modules/ParametricGrid.cpp"
+    "${CoreDir}/modules/RectangularGrid.cpp"
+    "${CoreDir}/modules/DevGrid.cpp"
+    "${CoreDir}/modules/IStructureModule.cpp"
+    "${CoreDir}/CommonRestartMetadata.cpp"
+    "${CoreDir}/Configurator.cpp"
+    "${CoreDir}/ParaGridIO.cpp"
+    "${CoreDir}/MissingData.cpp"
+    "${CoreDir}/ModelArray.cpp"
+    "${CoreDir}/ModelMetadata.cpp"
+    "${CoreDir}/Time.cpp"
+    "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    )
+target_link_libraries(createNextsimMeshData LINK_PUBLIC Eigen3::Eigen Boost::program_options "${NSDG_NetCDF_Library}")
+target_link_directories(createNextsimMeshData PUBLIC "${netCDF_LIB_DIR}")
+target_include_directories(createNextsimMeshData PRIVATE "${CoreDir}" "${CoreDir}/modules" "${CoreDir}/${ModelArrayStructure}" "${netCDF_INCLUDE_DIR}")
+
 add_executable(nextsimMEVP NextsimMevp.cpp
     "${SRC_DIR}/stopwatch.cpp"
     "${SRC_DIR}/parametricTransport.cpp"
