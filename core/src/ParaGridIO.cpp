@@ -39,11 +39,13 @@ const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
     { ModelArray::Dimension::YCG, true },
     { ModelArray::Dimension::DG, true },
     { ModelArray::Dimension::DGSTRESS, true },
+    { ModelArray::Dimension::NCOORDS, false }, // It's a number of components, but it can't legitimately be missing.
 };
 
 const std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap = {
     { ModelArray::Dimension::DG, ModelArray::Type::DG },
     { ModelArray::Dimension::DGSTRESS, ModelArray::Type::DGSTRESS },
+    { ModelArray::Dimension::NCOORDS, ModelArray::Type::VERTEX },
 };
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {

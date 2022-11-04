@@ -8,7 +8,7 @@
 #ifndef MODELARRAYDETAILS_HPP
 #define MODELARRAYDETAILS_HPP
 
-enum class Dimension { X, Y, Z, XVERTEX, YVERTEX, NCOORDS, XCG, YCG, DG, DGSTRESS, COUNT };
+enum class Dimension { X, Y, Z, XVERTEX, YVERTEX, XCG, YCG, DG, DGSTRESS, NCOORDS, COUNT };
 
 enum class Type {
     H,
@@ -29,5 +29,7 @@ static ModelArray ZField() { return ModelArray(Type::Z); }
 static ModelArray DGField() { return ModelArray(Type::DG); }
 static ModelArray DGSField() { return ModelArray(Type::DGSTRESS); }
 static ModelArray CGField() { return ModelArray(Type::CG); }
+
+const static size_t nCoords;
 
 #endif /* MODELARRAYDETAILS_HPP */

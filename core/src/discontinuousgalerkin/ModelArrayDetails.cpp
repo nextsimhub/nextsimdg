@@ -14,12 +14,12 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
     { ModelArray::Dimension::Z, { "z", 1 } },
     { ModelArray::Dimension::XVERTEX, { "xvertex", 1 } }, // defined as x + 1
     { ModelArray::Dimension::YVERTEX, { "yvertex", 1 } }, // defined as y + 1
-    { ModelArray::Dimension::NCOORDS, { "ncoords", 2 } }, // It's a two dimensional model
     { ModelArray::Dimension::XCG, { "x_cg", 1 } },
     { ModelArray::Dimension::YCG, { "y_cg", 1 } },
     // The DG components are also included here to store the names
     { ModelArray::Dimension::DG, { "dg_comp", 1 } },
     { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", 1 } },
+    { ModelArray::Dimension::NCOORDS, { "ncoords", 2 } }, // It's a two dimensional model
 
 };
 
@@ -33,7 +33,6 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
         {
             ModelArray::Dimension::XVERTEX,
             ModelArray::Dimension::YVERTEX,
-            ModelArray::Dimension::NCOORDS,
         } },
     { ModelArray::Type::U,
         {
@@ -84,7 +83,7 @@ ModelArray::ModelArray()
 {
 }
 
-bool ModelArray::hasDoF(const Type type) { return type == Type::DG || type == Type::DGSTRESS; }
+bool ModelArray::hasDoF(const Type type) { return type == Type::DG || type == Type::DGSTRESS || type == Type::VERTEX; }
 
 ModelArray::SizeMap::SizeMap()
     : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 }, { Type::DG, 0 },
@@ -95,7 +94,7 @@ ModelArray::SizeMap::SizeMap()
 ModelArray::DimensionMap::DimensionMap()
     : m_dimensions({
         { Type::H, { 0, 0 } },
-        { Type::VERTEX, { 1, 1} },
+        { Type::VERTEX, { 1, 1 } },
         { Type::U, { 0, 0 } },
         { Type::V, { 0, 0 } },
         { Type::Z, { 0, 0, 1 } },
@@ -105,5 +104,6 @@ ModelArray::DimensionMap::DimensionMap()
     })
 {
 }
+const size_t ModelArray::nCoords = 2;
 
 }
