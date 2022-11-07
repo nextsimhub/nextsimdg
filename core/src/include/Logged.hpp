@@ -16,7 +16,6 @@ namespace Nextsim {
 class Logged {
 public:
     //! Static function that configures the logger.
-    static void configure();
     enum class level {
         ALL,
         TRACE,
@@ -37,6 +36,12 @@ public:
         CONSOLE_LOG_LEVEL_KEY,
     };
     static const std::map<std::string, level> levelNames;
+    /*!
+     * @brief Initialize the logger by configuring boost::log
+     *
+     * @param outputDir (Optional) The output directory for storing log files
+     */
+    static void configure(const std::string& outputDir);
 
     /*!
      * @brief Logs a message at the given log level, or default to level::NOTICE.

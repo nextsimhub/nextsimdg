@@ -31,13 +31,12 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::STOPTIME_KEY, "model.stop" },
     { Model::RUNLENGTH_KEY, "model.run_length" },
     { Model::TIMESTEP_KEY, "model.time_step" },
+    { Model::OUTPUTDIR_KEY, "model.output_dir"},
 };
 
 Model::Model()
 {
     iterator.setIterant(&modelStep);
-
-    finalFileName = "restart.nc";
 }
 
 Model::~Model()
@@ -57,13 +56,12 @@ Model::~Model()
 
 void Model::configure()
 {
-    // Configure logging
-    Logged::configure();
 
     startTimeStr = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
     stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
     durationStr = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
     stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+    outputDir = Configured::getConfiguration(keyMap.at(OUTPUTDIR_KEY), std::string());
 
     TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
     m_etadata.setTime(timeNow);
@@ -71,13 +69,19 @@ void Model::configure()
     MissingData mdi;
     mdi.configure();
 
+    // Configure logging
+    Logged::configure(outputDir);
+
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+
+    modelStep.setOutputDir(outputDir);
+    finalFileName = outputDir + "restart.nc";
 
     pData.configure();
 
     modelStep.init();
     modelStep.setInitFile(initialFileName);
-
+    
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
@@ -91,6 +95,7 @@ ConfigMap Model::getConfig() const
         { keyMap.at(STOPTIME_KEY), stopTimeStr },
         { keyMap.at(RUNLENGTH_KEY), durationStr },
         { keyMap.at(TIMESTEP_KEY), stepStr },
+        { keyMap.at(OUTPUTDIR_KEY), stepStr },
     };
     // MissingData has a static getState
     cMap.merge(MissingData::getConfig());
@@ -114,6 +119,9 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model physics timestep, formatted a ISO8601 duration (P prefix). " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
+        { keyMap.at(OUTPUTDIR_KEY), ConfigType::STRING, {}, "", "",
+            "Specified directory for generating output files. "
+            "Either the absolute path or a relative path from working directory at runtime. " },
     };
 
     return map;

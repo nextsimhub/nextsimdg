@@ -58,7 +58,7 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
 {
     std::stringstream startStream;
     startStream << meta.time();
-    std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
+    std::string timeFileName = m_outputDirectory + m_filePrefix + "." + startStream.str() + ".nc";
 
     ModelState state;
     const ModelState* pState;

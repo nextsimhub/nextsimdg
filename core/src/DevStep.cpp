@@ -16,6 +16,7 @@ void DevStep::init()
 {
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     ido.setFilenamePrefix("diagnostic");
+    ido.setOutputDirectory(outputDirectory);
     tryConfigure(ido);
 }
 

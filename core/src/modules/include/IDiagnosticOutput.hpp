@@ -27,6 +27,13 @@ public:
     virtual void setFilenamePrefix(const std::string& filePrefix) = 0;
 
     /*!
+     * @brief Sets the output directory.
+     *
+     * @param outputDirectory The output path to be set.
+     */
+    virtual void setOutputDirectory(const std::string& outputDirectory) = 0;
+
+    /*!
      * @brief Outputs the passed ModelState.
      *
      * @param state The model state to be written out.

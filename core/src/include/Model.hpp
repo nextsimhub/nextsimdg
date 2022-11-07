@@ -34,6 +34,7 @@ public:
         STOPTIME_KEY,
         RUNLENGTH_KEY,
         TIMESTEP_KEY,
+        OUTPUTDIR_KEY,
     };
 
     ConfigMap getConfig() const;
@@ -69,6 +70,7 @@ private:
     std::string stopTimeStr;
     std::string durationStr;
     std::string stepStr;
+    std::string outputDir;
 };
 
 } /* namespace Nextsim */

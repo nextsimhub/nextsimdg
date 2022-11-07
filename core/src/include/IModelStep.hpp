@@ -28,6 +28,15 @@ public:
     void setInitFile(const std::string& filePath) { initialRestartFilePath = filePath; };
 
     /*!
+     * @brief Sets the path to the output directory for later reference.
+     *
+     * @param filePath The path to the location in which diagnostic files and model outputs
+     *        should be stored.
+     */
+    //TODO: See if we can do without this member variable before submission
+    void setOutputDir(const std::string& outputDir) { outputDirectory = outputDir; };
+
+    /*!
      * @brief Writes a restart file containing the current model state to the
      * given file location
      *
@@ -62,6 +71,7 @@ public:
 
 protected:
     std::string initialRestartFilePath;
+    std::string outputDirectory;
 };
 
 } /* namespace Nextsim */

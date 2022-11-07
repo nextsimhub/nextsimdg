@@ -34,12 +34,17 @@ public:
 
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
 
+    void setOutputDirectory(const std::string& outputDirectory) override {
+        m_outputDirectory = outputDirectory;
+    }
+
     void outputState(const ModelState& state, const ModelMetadata& meta) override;
 
     void configure() override;
 
 private:
     std::string m_filePrefix;
+    std::string m_outputDirectory;
     Duration outputPeriod;
     bool firstOutput = true;
     bool everyTS = false;
