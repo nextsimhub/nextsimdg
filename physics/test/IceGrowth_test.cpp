@@ -28,8 +28,8 @@ namespace Nextsim {
 
 TEST_CASE("New ice formation", "[IceGrowth]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -134,8 +134,8 @@ TEST_CASE("New ice formation", "[IceGrowth]")
 
 TEST_CASE("Melting conditions", "[IceGrowth]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -250,8 +250,8 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
 
 TEST_CASE("Freezing conditions", "[IceGrowth]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;

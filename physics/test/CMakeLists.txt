@@ -22,6 +22,7 @@ add_executable(testIceGrowth
     "${CoreSourceDir}/ModelArray.cpp"
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${ModulesDir}/IceThermodynamicsModule.cpp"
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
@@ -31,6 +32,7 @@ add_executable(testIceGrowth
     )
 target_include_directories(testIceGrowth PRIVATE
     "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
@@ -45,6 +47,7 @@ add_executable(testFEFluxes
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${ModulesDir}/FiniteElementFluxes.cpp"
     "${ModulesDir}/FiniteElementSpecHum.cpp"
     "${ModulesDir}/IIceAlbedoModule.cpp"
@@ -55,6 +58,7 @@ add_executable(testFEFluxes
     )
 target_include_directories(testFEFluxes PRIVATE
     "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
@@ -70,6 +74,7 @@ add_executable(testConfiguredAtm
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${ModulesDir}/FiniteElementFluxes.cpp"
     "${ModulesDir}/FiniteElementSpecHum.cpp"
     "${ModulesDir}/FluxCalculationModule.cpp"
@@ -81,6 +86,7 @@ add_executable(testConfiguredAtm
     )
 target_include_directories(testConfiguredAtm PRIVATE
     "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
@@ -97,9 +103,11 @@ add_executable(testBIOHFluxes
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/Time.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 target_include_directories(testBIOHFluxes PRIVATE
     "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
