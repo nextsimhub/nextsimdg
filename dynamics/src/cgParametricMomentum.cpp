@@ -280,8 +280,8 @@ void CGParametricMomentum<CG, DGstress>::prepareIteration(const DGVector<DG>& H,
 
     // limit A and D to [0,1] and H to [0, ...)
     cg_A = cg_A.cwiseMin(1.0);
-    cg_A = cg_A.cwiseMax(0.0);
-    cg_H = cg_H.cwiseMax(1.e-4);
+    cg_A = cg_A.cwiseMax(0.1);
+    cg_H = cg_H.cwiseMax(0.1);
     cg_D = cg_D.cwiseMin(1.0);
     cg_D = cg_D.cwiseMax(0.0);
 }

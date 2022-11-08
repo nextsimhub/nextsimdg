@@ -226,6 +226,9 @@ void run_benchmark(const std::string meshfile)
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
         dgtransport.step(dt_adv, D);
+        dgtransport.step(dt_adv, momentum.S11);
+        dgtransport.step(dt_adv, momentum.S22);
+        dgtransport.step(dt_adv, momentum.S12);
 
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
@@ -277,8 +280,9 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    //run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_256x256.smesh");
-    run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_128x128.smesh");
+    // run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_256x256.smesh");
+    run_benchmark<1, 3, 3>(
+        "/Users/einola/CLionProjects/nextsimdg/dynamics/ParametricMesh/rectangle_128x128.smesh");
 
     // std::vector<std::string> meshes;
     // meshes.push_back("../ParametricMesh/rectangle_16x16.smesh");
