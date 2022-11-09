@@ -22,6 +22,8 @@ static const std::string coordsName = "coords";
 
 static const std::string mdiName = "missing_value";
 
+static const std::string timeName = " time";
+
 }
 
 #endif /* GRIDNAMES_HPP */

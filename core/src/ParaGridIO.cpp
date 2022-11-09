@@ -47,6 +47,14 @@ const std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap =
     { ModelArray::Dimension::DGSTRESS, ModelArray::Type::DGSTRESS },
     { ModelArray::Dimension::NCOORDS, ModelArray::Type::VERTEX },
 };
+
+ParaGridIO::~ParaGridIO()
+{
+    for (auto& entry : openFiles) {
+        entry.second.close();
+    }
+}
+
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
@@ -100,54 +108,151 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 }
 
 void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
-    const std::string& filePath, bool isRestart) const
+    const std::string& filePath, bool isRestart)
 {
 
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
+    if (isRestart) {
+        netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
 
-    CommonRestartMetadata::writeStructureType(ncFile, metadata);
-    netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
-    netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
+        CommonRestartMetadata::writeStructureType(ncFile, metadata);
+        netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
+        netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
 
-    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
+        CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
 
-    // TODO dump grid data
-    // Dump the dimensions and number of components
-    std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
-    for (auto entry : ModelArray::definedDimensions) {
-        ModelArray::Dimension dim = entry.first;
-        size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim)) : dimSz = entry.second.length;
-        ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
-        // TODO Do I need to add data, even if it is just integers 0...n-1?
-    }
-    // Also create the sets of dimensions to be connected to the data fields
-    std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
-    for (auto entry : ModelArray::typeDimensions) {
-        ModelArray::Type type = entry.first;
-        std::vector<netCDF::NcDim> ncDims;
-        for (ModelArray::Dimension& maDim : entry.second) {
-            ncDims.push_back(ncFromMAMap.at(maDim));
+        // Dump the dimensions and number of components
+        std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
+        for (auto entry : ModelArray::definedDimensions) {
+            ModelArray::Dimension dim = entry.first;
+            size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim)) : dimSz = entry.second.length;
+            ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
+            // TODO Do I need to add data, even if it is just integers 0...n-1?
         }
-        dimMap[type] = ncDims;
-    }
-    // Everything that has components needs that dimension, too
-    for (auto entry : dimCompMap) {
-        dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
-    }
+        // Also create the sets of dimensions to be connected to the data fields
+        std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
+        for (auto entry : ModelArray::typeDimensions) {
+            ModelArray::Type type = entry.first;
+            std::vector<netCDF::NcDim> ncDims;
+            for (ModelArray::Dimension& maDim : entry.second) {
+                ncDims.push_back(ncFromMAMap.at(maDim));
+            }
+            dimMap[type] = ncDims;
+        }
+        // Everything that has components needs that dimension, too
+        for (auto entry : dimCompMap) {
+            dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
+        }
 
-    std::set<std::string> restartFields
+        std::set<std::string> restartFields
         = { hiceName, ciceName, hsnowName, ticeName, maskName, coordsName }; // TODO and others
-    // Loop through either the above list (isRestart) or all provided fields(!isRestart)
-    for (auto entry : state.data) {
-        if (!isRestart || restartFields.count(entry.first)) {
-            // Get the type, then relevant vector of NetCDF dimensions
-            ModelArray::Type type = entry.second.getType();
-            std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-            netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-            var.putVar(entry.second.getData());
+        // Loop through either the above list (isRestart) or all provided fields(!isRestart)
+        for (auto entry : state.data) {
+            if (!isRestart || restartFields.count(entry.first)) {
+                // Get the type, then relevant vector of NetCDF dimensions
+                ModelArray::Type type = entry.second.getType();
+                std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
+                netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
+                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+                var.putVar(entry.second.getData());
+            }
+        }
+        ncFile.close();
+    } else {
+        if (openFiles.count(filePath)) {
+            // Append to an existing diagnostic output
+        } else {
+            // Open a new diagnostic output file
+            auto [it, success] = openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace);
+            std::cerr << (success ? "emplaced" : "not emplaced") << std::endl;
+            netCDF::NcFile& ncFile = openFiles.at(filePath);
+            timeIndexByFile[filePath] = 0;
+
+            CommonRestartMetadata::writeStructureType(ncFile, metadata);
+            netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
+            netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
+
+            CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
+
+            // Add the unlimited time dimension
+            netCDF::NcDim timeDim = dataGroup.addDim(timeName);
+            // All of the dimensions defined by the data at a particular timestep.
+            std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
+            for (auto entry : ModelArray::definedDimensions) {
+                ModelArray::Dimension dim = entry.first;
+                size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim)) : dimSz = entry.second.length;
+                ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
+                // TODO Do I need to add data, even if it is just integers 0...n-1?
+            }
+            // Also create the sets of dimensions to be connected to the data fields
+            std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
+            // Create the index and size arrays
+            // The index arrays always start from zero, except in the first/time axis
+            std::map<ModelArray::Type, std::vector<size_t>> indexArrays;
+            std::map<ModelArray::Type, std::vector<size_t>> extentArrays;
+            for (auto entry : ModelArray::typeDimensions) {
+                ModelArray::Type type = entry.first;
+                std::vector<netCDF::NcDim> ncDims;
+                ncDims.push_back(timeDim);
+                std::vector<size_t> indexArray;
+                indexArray.push_back(timeIndexByFile.at(filePath));
+                std::vector<size_t> extentArray;
+                extentArray.push_back(1UL);
+                for (ModelArray::Dimension& maDim : entry.second) {
+                    ncDims.push_back(ncFromMAMap.at(maDim));
+                    indexArray.push_back(0);
+                    extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);
+                }
+                dimMap[type] = ncDims;
+                indexArrays[type] = indexArray;
+                extentArrays[type] = extentArray;
+            }
+            // Everything that has components needs that dimension, too
+            for (auto entry : dimCompMap) {
+                dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
+                indexArrays.at(entry.second).push_back(0);
+                extentArrays.at(entry.second).push_back(ModelArray::definedDimensions.at(entry.first).length);
+            }
+            // Create a special timeless set of dimensions for the landmask
+            std::vector<netCDF::NcDim> maskDims;
+            for (ModelArray::Dimension& maDim :
+                ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+                maskDims.push_back(ncFromMAMap.at(maDim));
+            }
+            std::vector<size_t> maskIndexes = { 0, 0 };
+            std::vector<size_t> maskExtents
+                = { ModelArray::definedDimensions
+                          .at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
+                          .length,
+                      ModelArray::definedDimensions
+                          .at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
+                          .length };
+
+            for (auto entry : state.data) {
+                if (entry.first != maskName) {
+                    // Get the type, then relevant vector of NetCDF dimensions
+                    ModelArray::Type type = entry.second.getType();
+                    std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
+                    netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
+                    var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+                    var.putVar(entry.second.getData());
+                } else {
+                    // Write the mask data
+                    netCDF::NcVar var(dataGroup.addVar(maskName, netCDF::ncDouble, maskDims));
+                    // No missing data
+                    var.putVar(entry.second.getData());
+                }
+            }
         }
     }
-    ncFile.close();
 }
+
+void ParaGridIO::close(const std::string& filePath)
+{
+    if (openFiles.count(filePath) > 0) {
+        openFiles.at(filePath).close();
+        openFiles.erase(openFiles.find(filePath));
+        timeIndexByFile.erase(timeIndexByFile.find(filePath));
+    }
+}
+
 } /* namespace Nextsim */

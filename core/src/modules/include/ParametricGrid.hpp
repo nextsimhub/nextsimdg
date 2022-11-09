@@ -56,7 +56,7 @@ public:
 
         virtual ModelState getModelState(const std::string& filePath) = 0;
         virtual void dumpModelState(const ModelState& state,
-            const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
+            const ModelMetadata& metadata, const std::string& filePath, bool isRestart) = 0;
 
     protected:
         IParaGridIO() = delete;
