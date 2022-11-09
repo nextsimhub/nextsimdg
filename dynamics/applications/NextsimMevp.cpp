@@ -23,6 +23,7 @@
 #include "include/ModelState.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/ParaGridIO.hpp"
+#include "include/gridNames.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -120,20 +121,31 @@ void run_benchmark(const std::string meshfile)
     // Set the numbers of components from the template parameters
     Nextsim::ModelArray::setNComponents(Nextsim::ModelArray::Type::DG, DGadvection);
     Nextsim::ModelArray::setNComponents(Nextsim::ModelArray::Type::DGSTRESS, DGstress);
+    Nextsim::ModelArray::setNComponents(Nextsim::ModelArray::Type::VERTEX, Nextsim::ModelArray::nCoords);
 
     Nextsim::ParametricGrid gridIn;
     Nextsim::ParaGridIO* readIO = new Nextsim::ParaGridIO(gridIn);
     gridIn.setIO(readIO);
 
     Nextsim::ModelState state = gridIn.getModelState("nextsimMEVPstart.nc");
-
+    size_t NX = Nextsim::ModelArray::definedDimensions.at(Nextsim::ModelArray::Dimension::X).length;
+    // Let's ASSUME it's square
     //! Define the spatial mesh
-    Nextsim::ParametricMesh smesh;
-    smesh.readmesh(meshfile);
-    size_t NX = smesh.nx;
+    Nextsim::ModelArray& c = state.data.at(Nextsim::coordsName);
+    Nextsim::ParametricMesh smesh(NX, NX, state.data.at(Nextsim::coordsName).data().matrix());
+
+    // Assert some facts about the vertex positions
+    assert(smesh.nx == NX);
+    assert(smesh.ny == NX);
+    assert(smesh.nelements == NX * NX);
+    assert(smesh.nnodes == (NX + 1) * (NX + 1));
+    assert(smesh.vertices(0, 0) == smesh.vertices(1, 0));
+    assert(smesh.vertices(0, 1) != smesh.vertices(1, 1));
+    assert(smesh.vertices(0, 0) != smesh.vertices(NX+1, 0));
+    assert(smesh.vertices(0, 1) == smesh.vertices(NX+1, 1));
 
     //! Compose name of output directory and create it
-    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
+    std::string resultsdir = "BenchmarkNS_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
         + "__" + std::to_string(NX);
     std::filesystem::create_directory(resultsdir);
 
