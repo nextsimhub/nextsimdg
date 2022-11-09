@@ -57,6 +57,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
 
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
     ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESS);
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
 
     HField fractional(ModelArray::Type::H);
     DGField fractionalDG(ModelArray::Type::DG);
@@ -93,13 +94,13 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
         for (size_t j = 0; j < ModelArray::definedDimensions.at(ModelArray::Dimension::YVERTEX).length; ++j) {
             double x = i - 0.5 - nx / 2;
             double y = j - 0.5 - ny / 2;
-            coordinates(i, j, 0UL) = x * scale;
-            coordinates(i, j, 1UL) = y * scale;
+            coordinates.components({i, j})[0] = x * scale;
+            coordinates.components({i, j})[1] = y * scale;
         }
     }
 
-    REQUIRE(coordinates(12, 13, 0) - coordinates(11, 13, 0) == scale);
-    REQUIRE(coordinates(12, 13, 1) - coordinates(12, 12, 1) == scale);
+    REQUIRE(coordinates.components({12, 13})[0] - coordinates.components({11, 13})[0] == scale);
+    REQUIRE(coordinates.components({12, 13})[1] - coordinates.components({12, 12})[1] == scale);
 
     ModelState state = {{
             { maskName, mask },
@@ -112,6 +113,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
 
     ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
+
 
     grid.dumpModelState(state, metadata, filename, true);
 
@@ -129,6 +131,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     ModelArray::setDimension(ModelArray::Dimension::YCG, 1);
     // In the full model numbers of DG components are set at compile time, so they are not reset
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
     
     ParametricGrid gridIn;
     ParaGridIO* readIO = new ParaGridIO(gridIn);
@@ -160,10 +163,11 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     REQUIRE(ticeRef(12, 14, 1) == tice(12, 14, 1));
 
     ModelArray& coordRef = ms.data.at(coordsName);
-    REQUIRE(coordRef.nDimensions() == 3);
-    REQUIRE(coordRef(12, 13, 0) - coordRef(11, 13, 0) == scale);
-    REQUIRE(coordRef(12, 13, 1) - coordRef(12, 12, 1) == scale);
+    REQUIRE(coordRef.nDimensions() == 2);
+    REQUIRE(coordRef.nComponents() == 2);
+    REQUIRE(coordRef.components({12, 13})[0] - coordRef.components({11, 13})[0] == scale);
+    REQUIRE(coordRef.components({12, 13})[1] - coordRef.components({12, 12})[1] == scale);
 
-    std::remove(filename.c_str());
+//    std::remove(filename.c_str());
 }
 }
