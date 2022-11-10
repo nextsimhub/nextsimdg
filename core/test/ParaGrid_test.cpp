@@ -8,6 +8,8 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
+#include "include/Configurator.hpp"
+#include "include/ConfiguredModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/gridNames.hpp"
@@ -15,6 +17,12 @@
 #include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <sstream>
+
+#include <ncAtt.h>
+#include <ncFile.h>
+#include <ncGroup.h>
+#include <ncVar.h>
 
 const std::string filename = "paraGrid_test.nc";
 const std::string diagFile = "paraGrid_diag.nc";
@@ -27,6 +35,14 @@ namespace Nextsim {
 
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[ParametricGrid]")
 {
+    Configurator::clear();
+    std::stringstream config;
+    config << "[Modules]" << std::endl
+            << "IStructure = ParametricGrid" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+    ConfiguredModule::parseConfigurator();
+
     std::FILE* lun = std::fopen(filename.c_str(), "r");
     if (lun != NULL) {
         std::remove(filename.c_str());
@@ -176,6 +192,14 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
 
 TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
 {
+    Configurator::clear();
+    std::stringstream config;
+    config << "[Modules]" << std::endl
+            << "IStructure = ParametricGrid" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+    ConfiguredModule::parseConfigurator();
+
     std::FILE* lun = std::fopen(diagFile.c_str(), "r");
     if (lun != NULL) {
         std::remove(diagFile.c_str());
@@ -278,6 +302,35 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
         grid.dumpModelState(state, metadata, diagFile, false);
     }
     pio->close(diagFile);
+
+    // What do we have in the file?
+    netCDF::NcFile ncFile(diagFile, netCDF::NcFile::read);
+
+    REQUIRE(ncFile.getGroups().size() == 3);
+    netCDF::NcGroup structGrp(ncFile.getGroup(IStructure::structureNodeName()));
+    netCDF::NcGroup metaGrp(ncFile.getGroup(IStructure::metadataNodeName()));
+    netCDF::NcGroup dataGrp(ncFile.getGroup(IStructure::dataNodeName()));
+
+    std::string structureType;
+    structGrp.getAtt(grid.typeNodeName()).getValues(structureType);
+    // TODO implement ParametricGrid in the IStructureModule
+    //REQUIRE(structureType == grid.structureType());
+
+    // TODO test metadata
+
+    // test data
+    REQUIRE(dataGrp.getVarCount() == 4);
+    netCDF::NcVar hiceVar = dataGrp.getVar(hiceName);
+    netCDF::NcVar ciceVar = dataGrp.getVar(ciceName);
+    netCDF::NcVar coordVar = dataGrp.getVar(coordsName);
+    netCDF::NcVar maskVar = dataGrp.getVar(maskName);
+
+    // hice
+    REQUIRE(hiceVar.getDimCount() == 4);
+
+
+    ncFile.close();
+
 }
 
 }
