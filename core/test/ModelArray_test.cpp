@@ -139,7 +139,6 @@ TEST_CASE("Moving data", "[ModelArray]")
 TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
 {
     DosDField uu = ModelArray::DosDField();
-    REQUIRE(uu.size() == 1);
     ModelArray::MultiDim udim = {5, 5};
     uu.setDimensions(udim);
     REQUIRE(uu.size() == udim[0] * udim[1]);
