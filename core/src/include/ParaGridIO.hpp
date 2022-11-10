@@ -21,6 +21,8 @@ public:
     ParaGridIO(ParametricGrid& grid)
         : IParaGridIO(grid)
     {
+        if (dimCompMap.size() == 0)
+            makeDimCompMap();
     }
     virtual ~ParaGridIO();
 
@@ -39,7 +41,9 @@ private:
     static const std::map<std::string, ModelArray::Type> dimensionKeys;
 
     static const std::map<ModelArray::Dimension, bool> isDG;
-    static const std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
+    static std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
+
+    static void makeDimCompMap();
 
     std::map<std::string, netCDF::NcFile> openFiles;
     std::map<std::string, size_t> timeIndexByFile;

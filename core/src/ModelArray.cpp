@@ -17,7 +17,7 @@
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;
-ModelArray::ComponentMap ModelArray::m_comp;
+//ModelArray::ComponentMap ModelArray::m_comp;
 ModelArray::DimensionMap ModelArray::m_dims;
 bool ModelArray::areMapsInvalid = true;
 
@@ -200,10 +200,6 @@ void ModelArray::setNComponents(std::map<Type, size_t> cMap)
         setNComponents(entry.first, entry.second);
     }
 }
-
-void ModelArray::setNComponents(Type type, size_t nComp) { m_comp[type] = nComp; }
-
-void ModelArray::setNComponents(size_t nComp) { setNComponents(type, nComp); }
 
 void ModelArray::setDimension(Dimension dim, size_t length)
 {

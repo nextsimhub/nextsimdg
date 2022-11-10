@@ -9,13 +9,11 @@
 
 namespace Nextsim {
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
-    { ModelArray::Dimension::X, { "x", 0 } },
-    { ModelArray::Dimension::Y, { "y", 0 } },
+    { ModelArray::Dimension::X, { "x", 0 } }, { ModelArray::Dimension::Y, { "y", 0 } },
     { ModelArray::Dimension::Z, { "z", 1 } },
     { ModelArray::Dimension::XVERTEX, { "xvertex", 1 } }, // defined as x + 1
     { ModelArray::Dimension::YVERTEX, { "yvertex", 1 } }, // defined as y + 1
-    { ModelArray::Dimension::XCG, { "x_cg", 1 } },
-    { ModelArray::Dimension::YCG, { "y_cg", 1 } },
+    { ModelArray::Dimension::XCG, { "x_cg", 1 } }, { ModelArray::Dimension::YCG, { "y_cg", 1 } },
     // The DG components are also included here to store the names
     { ModelArray::Dimension::DG, { "dg_comp", 1 } },
     { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", 1 } },
@@ -83,11 +81,14 @@ ModelArray::ModelArray()
 {
 }
 
-bool ModelArray::hasDoF(const Type type) { return type == Type::DG || type == Type::DGSTRESS || type == Type::VERTEX; }
+bool ModelArray::hasDoF(const Type type)
+{
+    return type == Type::DG || type == Type::DGSTRESS || type == Type::VERTEX;
+}
 
 ModelArray::SizeMap::SizeMap()
-    : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 }, { Type::DG, 0 },
-        { Type::DGSTRESS, 0 }, { Type::CG, 1 } })
+    : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 },
+        { Type::DG, 0 }, { Type::DGSTRESS, 0 }, { Type::CG, 1 } })
 {
 }
 
@@ -105,5 +106,11 @@ ModelArray::DimensionMap::DimensionMap()
 {
 }
 const size_t ModelArray::nCoords = 2;
+
+const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {
+    { Type::DG, Dimension::DG },
+    { Type::DGSTRESS, Dimension::DGSTRESS },
+    { Type::VERTEX, Dimension::NCOORDS },
+};
 
 }

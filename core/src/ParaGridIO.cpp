@@ -42,11 +42,16 @@ const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
     { ModelArray::Dimension::NCOORDS, false }, // It's a number of components, but it can't legitimately be missing.
 };
 
-const std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap = {
-    { ModelArray::Dimension::DG, ModelArray::Type::DG },
-    { ModelArray::Dimension::DGSTRESS, ModelArray::Type::DGSTRESS },
-    { ModelArray::Dimension::NCOORDS, ModelArray::Type::VERTEX },
-};
+std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap;
+
+void ParaGridIO::makeDimCompMap()
+{
+    dimCompMap = {
+        { ModelArray::componentMap.at(ModelArray::Type::DG), ModelArray::Type::DG },
+        { ModelArray::componentMap.at(ModelArray::Type::DGSTRESS), ModelArray::Type::DGSTRESS },
+        { ModelArray::componentMap.at(ModelArray::Type::VERTEX), ModelArray::Type::VERTEX },
+    };
+}
 
 ParaGridIO::~ParaGridIO()
 {
@@ -266,7 +271,6 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
             for (auto entry : dimCompMap) {
                 dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
                 indexArrays.at(entry.second).push_back(0);
-//                std::cerr << "nComponents could be " << ModelArray::definedDimensions.at(entry.first).length << " or " << ModelArray::nComponents(entry.second) << std::endl;
                 extentArrays.at(entry.second).push_back(ModelArray::nComponents(entry.second));
             }
 

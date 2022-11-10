@@ -62,6 +62,7 @@ public:
     static TypeDimensions typeDimensions;
     static std::map<Dimension, DimensionSpec> definedDimensions;
     static const std::map<Type, std::string> typeNames;
+    static const std::map<Type, Dimension> componentMap;
 
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
 
@@ -272,7 +273,7 @@ public:
     {
         if (size() != trueSize()) {
             if (hasDoF(type)) {
-                m_data.resize(m_sz.at(type), m_comp.at(type));
+                m_data.resize(m_sz.at(type), definedDimensions.at(componentMap.at(type)).length);
             } else {
                 m_data.resize(m_sz.at(type), Eigen::NoChange);
             }
@@ -432,14 +433,19 @@ public:
      * @param type the DG or CG array type to set the number of components for.
      * @param nComp the number of components to be set.
      */
-    static void setNComponents(Type type, size_t nComp);
+    static void setNComponents(Type type, size_t nComp) {
+        if (hasDoF(type)) {
+            definedDimensions.at(componentMap.at(type)).length = nComp;
+        }
+
+    }
 
     /*!
      * @brief Sets the number of components for this array's type.
      *
      * @param nComp the number of components to be set.
      */
-    void setNComponents(size_t nComp);
+    inline void setNComponents(size_t nComp) { setNComponents(type, nComp); }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at
@@ -523,7 +529,7 @@ public:
     //! specified type of ModelArray.
     inline static size_t nComponents(const Type type)
     {
-        return (hasDoF(type)) ? m_comp.at(type) : 1;
+        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).length : 1;
     }
     //! Returns whether this type of ModelArray has additional discontinuous
     //! Galerkin components.
@@ -570,12 +576,6 @@ private:
         std::map<Type, size_t> m_sizes;
     };
     static SizeMap m_sz;
-
-    class ComponentMap : public SizeMap {
-    public:
-        ComponentMap() { m_sizes = { }; };// { Type::DG, 1 }, { Type::DGSTRESS, 1 } }; }
-    };
-    static ComponentMap m_comp;
 
     class DimensionMap {
     public:
