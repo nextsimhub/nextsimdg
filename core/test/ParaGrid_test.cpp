@@ -331,6 +331,8 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
 
     ncFile.close();
 
+    std::remove(diagFile.c_str());
+
 }
 
 }
