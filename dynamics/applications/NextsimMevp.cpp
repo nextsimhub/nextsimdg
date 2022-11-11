@@ -18,6 +18,7 @@
 #include "mevp.hpp"
 #include "stopwatch.hpp"
 #include "DGNetcdf.hpp"
+#include "DGModelArray.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
@@ -131,8 +132,24 @@ void run_benchmark(const std::string meshfile)
     size_t NX = Nextsim::ModelArray::definedDimensions.at(Nextsim::ModelArray::Dimension::X).length;
     // Let's ASSUME it's square
     //! Define the spatial mesh
-    Nextsim::ModelArray& c = state.data.at(Nextsim::coordsName);
+    Nextsim::ModelArray& coords = state.data.at(Nextsim::coordsName);
     Nextsim::ParametricMesh smesh(NX, NX, state.data.at(Nextsim::coordsName).data().matrix());
+
+    //! Define the spatial mesh
+    Nextsim::ParametricMesh smeshOG;
+    smeshOG.readmesh(meshfile);
+
+    std::cerr << "netCDF        smesh file" << std::endl;
+    std::cerr << "nx: " << smesh.nx << " " << smeshOG.nx << std::endl;
+    std::cerr << "nelements:" << smesh.nelements << " " << smeshOG.nelements << std::endl;
+    std::cerr << "nnodes: " << smesh.nnodes << " " << smeshOG.nnodes << std::endl;
+    size_t i;
+    i = 0;
+    std::cerr << i << ": (" << smesh.vertices(i, 0) << ", " << smesh.vertices(i, 1) << ") (" << smeshOG.vertices(i, 0) << ", " << smeshOG.vertices(i, 1) << ")" << std::endl;
+    i = 4809;
+    std::cerr << i << ": (" << smesh.vertices(i, 0) << ", " << smesh.vertices(i, 1) << ") (" << smeshOG.vertices(i, 0) << ", " << smeshOG.vertices(i, 1) << ")" << std::endl;
+    i = 7397;
+    std::cerr << i << ": (" << smesh.vertices(i, 0) << ", " << smesh.vertices(i, 1) << ") (" << smeshOG.vertices(i, 0) << ", " << smeshOG.vertices(i, 1) << ")" << std::endl;
 
     // Assert some facts about the vertex positions
     assert(smesh.nx == NX);
@@ -143,6 +160,8 @@ void run_benchmark(const std::string meshfile)
     assert(smesh.vertices(0, 1) != smesh.vertices(1, 1));
     assert(smesh.vertices(0, 0) != smesh.vertices(NX+1, 0));
     assert(smesh.vertices(0, 1) == smesh.vertices(NX+1, 1));
+
+
 
     //! Compose name of output directory and create it
     std::string resultsdir = "BenchmarkNS_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
@@ -176,6 +195,10 @@ void run_benchmark(const std::string meshfile)
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
     constexpr size_t NT_log = T_log / dt_adv + 1.e-4;
 
+    // netCDF output
+    std::string diagFile = "mevp.nc";
+    size_t ncOutputPeriod = 30; // Every hour
+
     ////////////////////////////////////////////////// Forcing
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceanx(), OceanX());
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceany(), OceanY());
@@ -191,6 +214,36 @@ void run_benchmark(const std::string meshfile)
     Nextsim::Interpolations::Function2DG(smesh, H, InitialH());
     Nextsim::Interpolations::Function2DG(smesh, A, InitialA());
 
+    Nextsim::DGField ncH(Nextsim::ModelArray::Type::DG);
+    Nextsim::DGField ncA(Nextsim::ModelArray::Type::DG);
+
+    Nextsim::DGModelArray::dg2ma<DGadvection>(H, ncH);
+    Nextsim::DGModelArray::dg2ma<DGadvection>(A, ncA);
+    Nextsim::HField mask(Nextsim::ModelArray::Type::H);
+    mask = 1.;
+
+    std::cerr << "H(0,0)=" << H(0,0) << ", " << ncH[0] << std::endl;
+    std::cerr << "A(0,0)=" << A(0,0) << ", " << ncA[0] << std::endl;
+    /*size_t*/ i = ncH.indexFromLocation({73, 29});
+    std::cerr << "H((73, 29),0)=" << H(i,0) << ", " << ncH[i] << std::endl;
+    std::cerr << "A(73, 29)=" << A(i, 0) << ", " << ncA[i] << std::endl;
+    i = ncH.indexFromLocation({31, 101});
+    std::cerr << "H((31, 101),0)=" << H(i,0) << ", " << ncH[i] << std::endl;
+    std::cerr << "A(31, 101)=" << A(i,0) << ", " << ncA[i] << std::endl;
+
+    state = {{
+            { Nextsim::hiceName, ncH },
+            { Nextsim::ciceName, ncA },
+            { Nextsim::coordsName, coords },
+            { Nextsim::maskName, mask },
+    }, {}
+    };
+
+    Nextsim::ModelMetadata metadata;
+    metadata.setTime(Nextsim::TimePoint("2000-01-01T00:00:00Z"));
+
+    readIO->dumpModelState(state, metadata, diagFile, false);
+
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
     if (0) // write initial?
@@ -201,6 +254,8 @@ void run_benchmark(const std::string meshfile)
             Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
         }
     Nextsim::GlobalTimer.stop("time loop - i/o");
+
+
 
     ////////////////////////////////////////////////// Initialize transport
     Nextsim::ParametricTransport<DGadvection> dgtransport(smesh);
@@ -271,8 +326,32 @@ void run_benchmark(const std::string meshfile)
                 Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
+        if (!(timestep % ncOutputPeriod)) {
+            Nextsim::DGModelArray::dg2ma<DGadvection>(H, ncH);
+            Nextsim::DGModelArray::dg2ma<DGadvection>(A, ncA);
+
+            std::cerr << "H(0,0)=" << H(0,0) << ", " << ncH[0] << std::endl;
+            std::cerr << "A(0,0)=" << A(0,0) << ", " << ncA[0] << std::endl;
+            size_t i = ncH.indexFromLocation({73, 29});
+            std::cerr << "H((73, 29),0)=" << H(i,0) << ", " << ncH[i] << std::endl;
+            std::cerr << "A(73, 29)=" << A(i, 0) << ", " << ncA[i] << std::endl;
+            i = ncH.indexFromLocation({31, 101});
+            std::cerr << "H((31, 101),0)=" << H(i,0) << ", " << ncH[i] << std::endl;
+            std::cerr << "A(31, 101)=" << A(i,0) << ", " << ncA[i] << std::endl;
+
+            Nextsim::ModelState state = {{
+                    { Nextsim::hiceName, ncH },
+                    { Nextsim::ciceName, ncA },
+            }, {}
+            };
+
+            readIO->dumpModelState(state, metadata, diagFile, false);
+
+        }
     }
     Nextsim::GlobalTimer.stop("time loop");
+
+    readIO->close(diagFile);
 
     std::cout << std::endl;
     Nextsim::GlobalTimer.print();
@@ -280,7 +359,7 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    run_benchmark<1, 1, 3>("../ParametricMesh/distortedrectangle_128x128.smesh");
+    run_benchmark<1, 1, 3>("./distortedrectangle_128x128.smesh");
 
     // std::vector<std::string> meshes;
     // meshes.push_back("../ParametricMesh/distortedrectangle_16x16.smesh");

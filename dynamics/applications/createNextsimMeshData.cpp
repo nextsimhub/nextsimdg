@@ -35,12 +35,12 @@ int makeMEVPFile(std::string filename)
     ModelArray::setDimension(ModelArray::Dimension::Z, nz);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1);
-    assert(ModelArray::definedDimensions.at(ModelArray::Dimension::NCOORDS).length == 2); // Two dimensional model
     ModelArray::setDimension(ModelArray::Dimension::XCG, nxcg);
     ModelArray::setDimension(ModelArray::Dimension::YCG, nycg);
 
     ModelArray::setNComponents(ModelArray::Type::DG, DGadvect);
     ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGstress);
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
 
     // Create the rectangle mesh, taken from createdistortedrectanglemesh.py
     VertexField coordinates(ModelArray::Type::VERTEX);
@@ -49,8 +49,9 @@ int makeMEVPFile(std::string filename)
     double ly = 512000.;
     for (size_t i = 0; i < ModelArray::definedDimensions.at(ModelArray::Dimension::XVERTEX).length; ++i) {
         for (size_t j = 0; j < ModelArray::definedDimensions.at(ModelArray::Dimension::YVERTEX).length; ++j) {
-            coordinates(i, j, 0UL) = i * lx / nx;
-            coordinates(i, j, 1UL) = j * ly / ny;
+            // Swapped to match the results of the mesh file.
+            coordinates.components({i, j})[1] = i * lx / nx;
+            coordinates.components({i, j})[0] = j * ly / ny;
         }
     }
 
@@ -78,7 +79,7 @@ int makeMEVPFile(std::string filename)
     ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
 
-    grid.dumpModelState(state, metadata, filename, false);
+    grid.dumpModelState(state, metadata, filename, true);
 
     return 0;
 }
