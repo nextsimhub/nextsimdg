@@ -13,6 +13,7 @@
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/gridNames.hpp"
+#include "include/IStructureModule.hpp"
 
 #include <cmath>
 #include <cstdio>
@@ -35,13 +36,7 @@ namespace Nextsim {
 
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[ParametricGrid]")
 {
-    Configurator::clear();
-    std::stringstream config;
-    config << "[Modules]" << std::endl
-            << "IStructure = ParametricGrid" << std::endl;
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-    ConfiguredModule::parseConfigurator();
+    Module::setImplementation<IStructure>("ParametricGrid");
 
     std::FILE* lun = std::fopen(filename.c_str(), "r");
     if (lun != NULL) {
@@ -192,13 +187,9 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
 
 TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
 {
-    Configurator::clear();
-    std::stringstream config;
-    config << "[Modules]" << std::endl
-            << "IStructure = ParametricGrid" << std::endl;
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-    ConfiguredModule::parseConfigurator();
+    Module::setImplementation<IStructure>("ParametricGrid");
+
+    REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
 
     std::FILE* lun = std::fopen(diagFile.c_str(), "r");
     if (lun != NULL) {
@@ -314,7 +305,7 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
     std::string structureType;
     structGrp.getAtt(grid.typeNodeName()).getValues(structureType);
     // TODO implement ParametricGrid in the IStructureModule
-    //REQUIRE(structureType == grid.structureType());
+    REQUIRE(structureType == grid.structureType());
 
     // TODO test metadata
 
