@@ -16,6 +16,8 @@
 #define DGstress 3
 #define CG 1
 
+// Recreates the grid and initial data of benchmark_mehlmann_sasip_mevp.cpp as
+// a NextsimDG netCDF restart file.
 
 namespace Nextsim {
 int makeMEVPFile(std::string filename)

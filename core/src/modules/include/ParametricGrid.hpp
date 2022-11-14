@@ -16,6 +16,7 @@ namespace Nextsim {
 
 class ParaGridIO;
 
+//! A class to hold the grid data for parameterised rectangular grids.
 class ParametricGrid : public IStructure {
 public:
     typedef ModelArray::MultiDim GridDimensions;
@@ -65,6 +66,10 @@ public:
         ParametricGrid& grid;
     };
 
+    /*!
+     * Sets the IParaGridIO instance to use to drive the input and output.
+     * @param p Pointer to the instance to use.
+     */
     void setIO(IParaGridIO* p) { pio = p; }
 
     const static std::string structureName;

@@ -7,6 +7,12 @@
 
 #include "include/ModelArray.hpp"
 
+// A source file to detail the ModelArray dimensions and types for
+// finite volume models, as well as the relationships between them.
+
+// Should be grouped with a consistent ModelArrayDetails.cpp and
+// ModelArrayTypedefs.hpp
+
 namespace Nextsim {
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
     { ModelArray::Dimension::X, { "x", 0 } },

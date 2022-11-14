@@ -2,6 +2,9 @@
  * @file benchmark_mehlmann_mevp.cpp
  * @date 24 July 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @date 14 Nov 2022
+ * @author Timothy Spain <timothy.spain@nersc.no>
+
  */
 
 #include "Interpolations.hpp"
@@ -43,6 +46,8 @@ inline constexpr double SQR(double x) { return x * x; }
 
 //////////////////////////////////////////////////// Benchmark testcase from [Mehlmann / Richter, ...]
 //! Description of the problem data, wind & ocean fields
+
+// Adapted to test the reading and writing of DG data using the NextsimDG infrastructure.
 
 namespace ReferenceScale {
 constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days

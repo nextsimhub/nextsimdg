@@ -8,6 +8,12 @@
 #ifndef MODELARRAYDETAILS_HPP
 #define MODELARRAYDETAILS_HPP
 
+// An inclusion file to detail the ModelArray dimensions and types for
+// Discontinuous Galerkin models.
+
+// Should be grouped with a consistent ModelArrayTypedefs.hpp and
+// ModelArrayDetails.cpp
+
 enum class Dimension { X, Y, Z, XVERTEX, YVERTEX, XCG, YCG, DG, DGSTRESS, NCOORDS, COUNT };
 
 enum class Type {

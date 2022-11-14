@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+// A set of canonical names for fields used in file reading and writing.
 static const std::string hiceName = "hice";
 static const std::string ciceName = "cice";
 static const std::string hsnowName = "hsnow";

@@ -59,9 +59,13 @@ public:
     };
     typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
 
+    //! The dimensions that make up each defined type. Defined in ModelArrayDetails.cpp
     static TypeDimensions typeDimensions;
+    //! The name and length of each dimension that is defined
     static std::map<Dimension, DimensionSpec> definedDimensions;
+    //! The name of each type of ModelArray
     static const std::map<Type, std::string> typeNames;
+    // The dimension that defines the components of each ModelArray type, if any
     static const std::map<Type, Dimension> componentMap;
 
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
