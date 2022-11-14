@@ -180,7 +180,7 @@ void ModelArray::setData(const double* pData)
     auto out = std::copy(pData, pData + m_sz.at(type) * nComponents(), m_data.data());
 }
 
-void ModelArray::setData(const DataType& from) { m_data = from; }//setData(from.data()); }
+void ModelArray::setData(const DataType& from) { m_data = from; } // setData(from.data()); }
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 

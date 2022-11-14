@@ -32,14 +32,12 @@ const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
 
 // Which dimensions are DG dimension, which could be legitimately missing
 const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
-    { ModelArray::Dimension::X, false },
-    { ModelArray::Dimension::Y, false },
-    { ModelArray::Dimension::Z, false },
-    { ModelArray::Dimension::XCG, true },
-    { ModelArray::Dimension::YCG, true },
-    { ModelArray::Dimension::DG, true },
+    { ModelArray::Dimension::X, false }, { ModelArray::Dimension::Y, false },
+    { ModelArray::Dimension::Z, false }, { ModelArray::Dimension::XCG, true },
+    { ModelArray::Dimension::YCG, true }, { ModelArray::Dimension::DG, true },
     { ModelArray::Dimension::DGSTRESS, true },
-    { ModelArray::Dimension::NCOORDS, false }, // It's a number of components, but it can't legitimately be missing.
+    { ModelArray::Dimension::NCOORDS,
+        false }, // It's a number of components, but it can't legitimately be missing.
 };
 
 std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap;
@@ -69,7 +67,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     // Dimensions and DG components
     std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
     for (auto entry : ModelArray::definedDimensions) {
-        if (dimCompMap.count(entry.first) > 0) continue;
+        if (dimCompMap.count(entry.first) > 0)
+            continue;
 
         ModelArray::DimensionSpec& dimensionSpec = entry.second;
         netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
@@ -125,7 +124,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
         std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
         for (auto entry : ModelArray::definedDimensions) {
             ModelArray::Dimension dim = entry.first;
-            size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim)) : dimSz = entry.second.length;
+            size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
+                                                   : dimSz = entry.second.length;
             ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
             // TODO Do I need to add data, even if it is just integers 0...n-1?
         }
@@ -145,7 +145,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
         }
 
         std::set<std::string> restartFields
-        = { hiceName, ciceName, hsnowName, ticeName, maskName, coordsName }; // TODO and others
+            = { hiceName, ciceName, hsnowName, ticeName, maskName, coordsName }; // TODO and others
         // Loop through either the above list (isRestart) or all provided fields(!isRestart)
         for (auto entry : state.data) {
             if (!isRestart || restartFields.count(entry.first)) {
@@ -174,7 +174,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
             std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
             for (auto entry : ModelArray::definedDimensions) {
                 ModelArray::Dimension dim = entry.first;
-                size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim)) : dimSz = entry.second.length;
+                size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
+                                                       : dimSz = entry.second.length;
                 ncFromMAMap[dim] = dataGroup.getDim(entry.second.name);
             }
 
@@ -187,7 +188,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
             for (auto entry : ModelArray::typeDimensions) {
                 ModelArray::Type type = entry.first;
                 // No need to treat VERTEX arrays, they are assumed to be time constant
-                if (type == ModelArray::Type::VERTEX) continue;
+                if (type == ModelArray::Type::VERTEX)
+                    continue;
                 std::vector<netCDF::NcDim> ncDims;
                 std::vector<size_t> indexArray;
                 std::vector<size_t> extentArray;
@@ -206,7 +208,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
             }
             // Everything that has components needs that dimension, too
             for (auto entry : dimCompMap) {
-                if (entry.second == ModelArray::Type::VERTEX) continue;
+                if (entry.second == ModelArray::Type::VERTEX)
+                    continue;
                 dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
                 indexArrays.at(entry.second).push_back(0);
                 extentArrays.at(entry.second).push_back(ModelArray::nComponents(entry.second));
@@ -214,7 +217,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
 
             for (auto entry : state.data) {
                 ModelArray::Type type = entry.second.getType();
-                if (entry.first == maskName || type == ModelArray::Type::VERTEX) continue;
+                if (entry.first == maskName || type == ModelArray::Type::VERTEX)
+                    continue;
                 // Get the type, then relevant vector of NetCDF dimensions
                 netCDF::NcVar var(dataGroup.getVar(entry.first));
                 var.putVar(indexArrays.at(type), extentArrays.at(type), entry.second.getData());
@@ -237,7 +241,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
             std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
             for (auto entry : ModelArray::definedDimensions) {
                 ModelArray::Dimension dim = entry.first;
-                size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim)) : dimSz = entry.second.length;
+                size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
+                                                       : dimSz = entry.second.length;
                 ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
             }
 
