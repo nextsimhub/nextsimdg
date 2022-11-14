@@ -20,7 +20,6 @@
 #include "dgVisu.hpp"
 #include "mevp.hpp"
 #include "stopwatch.hpp"
-#include "DGNetcdf.hpp"
 #include "DGModelArray.hpp"
 
 #include "include/ModelArray.hpp"
