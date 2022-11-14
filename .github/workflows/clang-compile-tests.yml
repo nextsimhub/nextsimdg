@@ -51,12 +51,20 @@ jobs:
     - name: run tests
       run: |
         cd core/test
-        for file in $(find test* -maxdepth 0 -type f); do ./$file; done
+        for file in $(find test* -maxdepth 0 -type f)
+        do
+            echo $file
+            ./$file
+        done
         cd -
         for component in physics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
+            for file in $(find test* -maxdepth 0 -type f)
+            do
+                echo $file
+                ./$file
+            done
             cd -
         done
 
@@ -83,11 +91,19 @@ jobs:
     - name: run tests
       run: |
         cd core/test
-        for file in $(find test* -maxdepth 0 -type f); do ./$file; done
+        for file in $(find test* -maxdepth 0 -type f) 
+        do
+            echo $file
+            ./$file
+        done
         cd -
         for component in physics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
+            for file in $(find test* -maxdepth 0 -type f)
+            do 
+                echo $file
+                ./$file
+            done
             cd -
         done
