@@ -17,7 +17,6 @@
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;
-//ModelArray::ComponentMap ModelArray::m_comp;
 ModelArray::DimensionMap ModelArray::m_dims;
 bool ModelArray::areMapsInvalid = true;
 
