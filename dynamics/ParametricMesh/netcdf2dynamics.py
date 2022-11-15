@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Convert mesh from netcdf (neXtSIM exchange grid files) file 
+Convert mesh from netcdf (neXtSIM exchange grid files) file
 into nexstim dynamics format
 
 Meshfiles can be found under the link
 https://ige-meom-opendap.univ-grenoble-alpes.fr/thredds/catalog/meomopendap/extract/SASIP/grids/NH_PS/catalog.html
 
 
-Given file has following numbering of the corners: 
-0 bottom-left, 1 top-left, 2 top-right, 3 bottom-right 
+Given file has following numbering of the corners:
+0 bottom-left, 1 top-left, 2 top-right, 3 bottom-right
 
-We assume that in the 
+We assume that in the
 
 with Nx x Ny elements
 
@@ -30,23 +30,20 @@ def check_corner_points(lon_corners,lat_corners, nx, ny):
   for iy in range(ny-2):
     for ix in range(nx-2):
       for px in pairs_x:
-        if not ( (lon_corners[ix  ,iy+1][px[0]] == lon_corners[ix+1,iy+1][px[1]]) 
-             and (lat_corners[ix  ,iy+1][px[0]] == lat_corners[ix+1,iy+1][px[1]])  
-             and (lon_corners[ix+1,iy+1][px[0]] == lon_corners[ix+2,iy+1][px[1]]) 
+        if not ( (lon_corners[ix  ,iy+1][px[0]] == lon_corners[ix+1,iy+1][px[1]])
+             and (lat_corners[ix  ,iy+1][px[0]] == lat_corners[ix+1,iy+1][px[1]])
+             and (lon_corners[ix+1,iy+1][px[0]] == lon_corners[ix+2,iy+1][px[1]])
              and (lat_corners[ix+1,iy+1][px[0]] == lat_corners[ix+2,iy+1][px[1]])):
           print("Error with maching points")
           return False
       for py in pairs_y:
-        if not ( (lon_corners[ix+1,iy+2][py[0]] == lon_corners[ix+1,iy+1][py[1]]) 
-             and (lat_corners[ix+1,iy+2][py[0]] == lat_corners[ix+1,iy+1][py[1]])  
-             and (lon_corners[ix+1,iy+1][py[0]] == lon_corners[ix+1,iy  ][py[1]]) 
+        if not ( (lon_corners[ix+1,iy+2][py[0]] == lon_corners[ix+1,iy+1][py[1]])
+             and (lat_corners[ix+1,iy+2][py[0]] == lat_corners[ix+1,iy+1][py[1]])
+             and (lon_corners[ix+1,iy+1][py[0]] == lon_corners[ix+1,iy  ][py[1]])
              and (lat_corners[ix+1,iy+1][py[0]] == lat_corners[ix+1,iy  ][py[1]])):
           print("Error with maching points")
           return False
   return True
-
-
-
 
 if __name__ == '__main__':
 
@@ -62,7 +59,7 @@ if __name__ == '__main__':
 
   #prepare file for save
   f = open(f"{output_file}", "w")
-  
+
 
   #centers of elemenents
   lat_center = np.array(nc['plat'])
@@ -80,7 +77,7 @@ if __name__ == '__main__':
   assert( check_corner_points(lon_corners,lat_corners, nx, ny) )
 
   #Start of the mesh file
-  f.write("ParametricMesh 1.0\n")
+  f.write("ParametricMesh 2.0\n")
   #number of elements in x and y directions
   f.write('{0}\t{1}\n'.format(nx,ny))
   #Saving points
@@ -99,23 +96,35 @@ if __name__ == '__main__':
   f.flush()
 
   #Dirichlet boundaries for land mask
+  dirichlet_list = [] #first collecting all dirichlet boundaries
   mask = np.array(nc['mask'])
   for iy in range(ny):
     for ix in range(nx):
-      if mask[ix,iy] == 0: # check if we are on Ice 
+      if mask[ix,iy] == 1: # check if we are on Ice
         #get number of element
-        no_element = ix + (nx+1)*iy
-        #save corresponding edge 
+        no_element = ix + nx*iy
+        #save corresponding edge
         for shift in [[1,0,1],[-1,0,3],[0,1,2],[0,-1,0]]:
           #try to save boundary based on neighbour
           try:
             assert(ix+shift[0]>=0)
             assert(iy+shift[1]>=0)
-            if mask[ix+shift[0],iy+shift[1]] != 0:
-              f.write('{}\t{}\n'.format(no_element, shift[2]) )
-          
+            if mask[ix+shift[0],iy+shift[1]] != 1:
+              dirichlet_list.append([no_element, shift[2]])
           #except: we are on the boundary of the domain
           except:
-            f.write('{}\t{}\n'.format(no_element, shift[2]) )
-  
+            dirichlet_list.append([no_element, shift[2]])
+  ## write landmask
+  f.write("landmask\t{}\n".format(nx*ny));
+  for iy in range(ny):
+    for ix in range(nx):
+      f.write("{}\n".format(mask[ix,iy]))
+
+
+  #write dirichlet boundaries into file
+  f.write("dirichlet\t{}\n".format(len(dirichlet_list)))
+  for dirichlet in dirichlet_list:
+    f.write('{}\t{}\n'.format(dirichlet[0], dirichlet[1]))
+
+  f.write("periodic 0")
   f.close()
