@@ -39,11 +39,6 @@ public:
         return dg;
     }
 
-    template <>
-    inline DGVector<1>& hField2dg(const HField& h, DGVector<1>& dg)
-    {
-        return ma2dg(h, dg);
-    }
 
     template <int N>
     static HField& dg2hField(const DGVector<N>& dg, HField& h)
@@ -52,14 +47,19 @@ public:
         return h;
     }
 
+};
+
     template <>
-    inline HField& dg2hField(const DGVector<1>& dg, HField& h)
+    inline DGVector<1>& DGModelArray::hField2dg(const HField& h, DGVector<1>& dg)
+    {
+        return ma2dg(h, dg);
+    }
+
+    template <>
+    inline HField& DGModelArray::dg2hField(const DGVector<1>& dg, HField& h)
     {
         return dg2ma(dg, h);
     }
-
-};
-
 } /* namespace Nextsim */
 
 #endif /* DGMODELARRAY_HPP */
