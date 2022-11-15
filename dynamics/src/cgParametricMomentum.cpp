@@ -165,9 +165,10 @@ void CGParametricMomentum<CG, DGstress>::prepareIteration(const DGVector<DG>& H,
     // interpolate ice height and concentration to local cg Variables
     Interpolations::DG2CG(smesh, cg_A, A);
     Interpolations::DG2CG(smesh, cg_H, H);
-    // limit A to [0,1] and H to [0, ...)
+    // limit A to (0,1] and H to (0, ...)
+    // NB! We don't let A and H be zero
     cg_A = cg_A.cwiseMin(1.0);
-    cg_A = cg_A.cwiseMax(0.0);
+    cg_A = cg_A.cwiseMax(1.e-4);
     cg_H = cg_H.cwiseMax(1.e-4);
 }
 
@@ -278,10 +279,11 @@ void CGParametricMomentum<CG, DGstress>::prepareIteration(const DGVector<DG>& H,
     Interpolations::DG2CG(smesh, cg_H, H);
     Interpolations::DG2CG(smesh, cg_D, D);
 
-    // limit A and D to [0,1] and H to [0, ...)
+    // limit D to [0,1], A to (0,1] and H to (0, ...)
+    // NB! We don't let A and H be zero
     cg_A = cg_A.cwiseMin(1.0);
-    cg_A = cg_A.cwiseMax(0.1);
-    cg_H = cg_H.cwiseMax(0.1);
+    cg_A = cg_A.cwiseMax(1.e-4);
+    cg_H = cg_H.cwiseMax(1.e-4);
     cg_D = cg_D.cwiseMin(1.0);
     cg_D = cg_D.cwiseMax(0.0);
 }
