@@ -80,24 +80,72 @@ void ThermoWinton::update(const TimestepTime& tst)
 
 void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {
-    double tSurf = tice0.zIndexAndLayer(i, 0);
-    double tMidt = tice0.zIndexAndLayer(i, 1);
-    double tBotn = tice0.zIndexAndLayer(i, 2);
+    double tSurf = tice0.zIndexAndLayer(i, 0); // Tsurf
+    double tMidt = tice0.zIndexAndLayer(i, 1); // T1
+    double tBotn = tice0.zIndexAndLayer(i, 2); // T2
 
+    double tBott; // FIXME What is tBott?
+
+    double dt = tst.step.seconds();
+
+    const double tfIce = -Water::mu * Ice::s; // Freezing point of brackish ice
     double mSurf = 0; // surface melting mass loss
     // Calculate temperatures by solving the heat conduction equation
-    calculateTemps(tSurf, tMidt, tBotn, mSurf, i, tst.step.seconds());
+    calculateTemps(tSurf, tMidt, tBotn, mSurf, i, dt);
 
     // Thickness changes
     // ice
+    double h1 = hice[i] / 2;
+    double h2 = hice[i] / 2;
+    double e1 = cVol * (tMidt - tfIce) - qic[i] * (1 - tfIce / tMidt);
+    double e2 = cVol * (tBotn - tfIce) - qic[i];
 
     // snow
+    hsnow[i] += snowfall[i] / Ice::rhoSnow * dt;
 
     // sublimation
     // 4 cases
+    double& subli = subl[i];
+    double deltaSnow = subli * dt / Ice::rhoSnow;
+    double deltaIce1 = (subli * dt - hsnow[i] * Ice::rhoSnow) / Ice::rho;
+    double deltaIce2 = deltaIce1 - h1;
+    if ( deltaSnow <= hsnow[i]) {
+        // sublimation is less than or equal to the mass of snow
+        hsnow[i] -= deltaSnow;
+    } else if (deltaIce1 <= h1) {
+        // sublimation minus sublimed snow is less than or equal to half the
+        // ice thickness
+        h1 -= deltaIce1;
+        hsnow[i] = 0;
+    } else if (deltaIce2 <= h2) {
+        // sublimation minus sublimed snow is greater than half the ice
+        // thickness, but not all of it
+        h2 -= deltaIce2;
+        h1 = 0;
+        hsnow[i] = 0;
+    } else {
+        // the snow and ice sublimates
+        double oceanEvapError = (deltaIce2 - h2) * Ice::rho / Water::rhoOcean;
+        // TODO: log the error
+        h2 = 0;
+        h1 = 0;
+        hsnow[i] = 0;
+    }
+    // Sublimated ice counts as top melt
+    topMelt[i] = std::max(0., h1 + h2 - hice[i]);
 
     // Bottom melt/freezing
-
+    double meltBottom = qio[i] - 4 * Ice::kappa * (tBott - tBotn) / hice[i];
+    snowMelt[i] = 0;
+    if (meltBottom <= 0.) {
+        // Freezing
+        double eBot = cVol * (tBott - tfIce) - qic[i];
+        deltaIce2 = meltBottom * dt / eBot;
+        tBotn = (deltaIce2 * tBott + h2 * tBotn) / (deltaIce2 + h2);
+        h2 += deltaIce2;
+    } else {
+        // Melting
+    }
     // Melting at the surface
 
     // Snow to ice conversion

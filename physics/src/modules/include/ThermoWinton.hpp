@@ -44,6 +44,7 @@ private:
     HField qic;
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
     ModelArrayRef<ProtectedArray::SW_IN, MARConstBackingStore> sw_in;
+    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> subl;
 
     static double i0;
     static const double cVol;
