@@ -23,7 +23,8 @@ public:
 
     enum {
         KS_KEY,
-        I0_KEY
+        I0_KEY,
+        FLOODING_KEY,
     };
     void configure() override;
 
@@ -41,15 +42,17 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    HField qic;
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
     ModelArrayRef<ProtectedArray::SW_IN, MARConstBackingStore> sw_in;
     ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> subl;
 
     static double i0;
     static const double cVol;
+    static bool doFlooding;
 
     void calculateTemps(double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
+
+    static const double freezingPointIce;
 
 };
 
