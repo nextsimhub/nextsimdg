@@ -264,7 +264,7 @@ void CGParametricMomentum<CG, DGstress>::mEVPStep(const VPParameters& params,
     Nextsim::GlobalTimer.stop("time loop - mevp - update");
 
     Nextsim::GlobalTimer.start("time loop - mevp - bound.");
-    assert(smesh.periodic.size() == 0);
+    //assert(smesh.periodic.size() == 0);
     //    PeriodicBoundary();
     DirichletZero();
     Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
