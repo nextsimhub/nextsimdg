@@ -95,7 +95,7 @@ ConfigMap Model::getConfig() const
         { keyMap.at(STOPTIME_KEY), stopTimeStr },
         { keyMap.at(RUNLENGTH_KEY), durationStr },
         { keyMap.at(TIMESTEP_KEY), stepStr },
-        { keyMap.at(OUTPUTDIR_KEY), stepStr },
+        { keyMap.at(OUTPUTDIR_KEY), outputDir },
     };
     // MissingData has a static getState
     cMap.merge(MissingData::getConfig());
