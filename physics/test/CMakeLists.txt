@@ -37,6 +37,28 @@ target_include_directories(testIceGrowth PRIVATE
     )
 target_link_libraries(testIceGrowth PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
 
+add_executable(testThermoWinton
+    "ThermoWintonTemperature_test.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${SourceDir}/MinimumIce.cpp"
+    "${ModulesDir}/LateralIceSpreadModule.cpp"
+    "${ModulesDir}/HiblerSpread.cpp"
+    "${ModulesDir}/ThermoWinton.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testThermoWinton PRIVATE
+    "${CoreSourceDir}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testThermoWinton PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+
 add_executable(testFEFluxes
     "FiniteElementFluxes_test.cpp"
     "${CoreSourceDir}/Configurator.cpp"

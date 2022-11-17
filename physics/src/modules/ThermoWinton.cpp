@@ -6,7 +6,7 @@
  */
 
 #include "include/ThermoWinton.hpp"
-#include "include/IceGrowth.hpp"
+#include "include/MinimumIce.hpp"
 
 #include "include/constants.hpp"
 
@@ -236,7 +236,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     }
     deltaHi[i] = hi - oldHi[i];
     // Remove very small ice thickness
-    if (hi < IceGrowth::minimumIceThickness()) {
+    if (hi < MinimumIce::thickness()) {
         qio[i] -= ( -bulkLHFusionSnow * hs + (e1 + e2) * hi / 2) / dt;
 
         if (deltaHi[i] < 0) {

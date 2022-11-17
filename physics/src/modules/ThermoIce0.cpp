@@ -8,7 +8,7 @@
 #include "include/ThermoIce0.hpp"
 
 #include "include/IFreezingPointModule.hpp"
-#include "include/IceGrowth.hpp"
+#include "include/MinimumIce.hpp"
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
 
@@ -126,7 +126,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     }
 
     // Melt all ice if it is below minimum threshold
-    if (hice[i] < IceGrowth::minimumIceThickness()) {
+    if (hice[i] < MinimumIce::thickness()) {
         if (deltaHi[i] < 0) {
             double scaling = oldHi[i] / deltaHi[i];
             topMelt[i] *= scaling;
