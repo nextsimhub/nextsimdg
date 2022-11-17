@@ -42,6 +42,7 @@ private:
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
 
     static const double freezingPointIce;
+    static double kappa_s;
 
     bool doFlooding = true; // TODO: read from configuration
 };

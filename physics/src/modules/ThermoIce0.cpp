@@ -14,7 +14,7 @@
 
 namespace Nextsim {
 
-double ThermoIce0::IIceThermodynamics::kappa_s;
+double ThermoIce0::kappa_s;
 static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 

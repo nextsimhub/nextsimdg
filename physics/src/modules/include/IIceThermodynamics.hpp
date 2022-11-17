@@ -86,8 +86,6 @@ protected:
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
-
-    static double kappa_s;
 };
 
 } /* namespace Nextsim */

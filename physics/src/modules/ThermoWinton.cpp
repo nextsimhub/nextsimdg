@@ -15,7 +15,7 @@
 namespace Nextsim {
 
 const size_t ThermoWinton::nLevels = 3;
-double ThermoWinton::IIceThermodynamics::kappa_s;
+double ThermoWinton::kappa_s;
 double ThermoWinton::i0;
 static const double k_sDefault = 0.3096;
 static const double i0_default = 0.17;
@@ -25,6 +25,12 @@ const double ThermoWinton::freezingPointIce = -Water::mu * Ice::s;
 bool ThermoWinton::doFlooding = true;
 
 ThermoWinton::ThermoWinton()
+    : snowMelt(ModelArray::Type::H)
+    , topMelt(ModelArray::Type::H)
+    , botMelt(ModelArray::Type::H)
+    , oldHi(getProtectedArray())
+    , sw_in(getProtectedArray())
+    , subl(getSharedArray())
 {
     snowMelt.resize();
     topMelt.resize();
@@ -121,7 +127,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 
     // sublimation
     // 4 cases
-    double& subli = subl[i];
+    const double& subli = subl[i];
     double deltaSnow = subli * dt / Ice::rhoSnow;
     double deltaIce1 = (subli * dt - hs * Ice::rhoSnow) / Ice::rho;
     double deltaIce2 = deltaIce1 - h1;

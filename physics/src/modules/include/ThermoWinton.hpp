@@ -49,10 +49,11 @@ private:
     static double i0;
     static const double cVol;
     static bool doFlooding;
+    static const double freezingPointIce;
+    static double kappa_s;
 
     void calculateTemps(double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
 
-    static const double freezingPointIce;
 
 };
 
