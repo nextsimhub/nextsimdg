@@ -308,65 +308,68 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
     // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
     Nextsim::GlobalTimer.stop("time loop - meb - stress");
 
-    Nextsim::GlobalTimer.start("time loop - meb - update");
-    //! Update
-    Nextsim::GlobalTimer.start("time loop - meb - update1");
+    Nextsim::GlobalTimer.start("time loop - meb - stress tensor");
 
-    //	    update by a loop.. implicit parts and h-dependent
-#pragma omp parallel for
-    for (int i = 0; i < vx.rows(); ++i) {
-        vx(i) = (1.0
-            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                + cg_A(i) * params.F_ocean
-                    * fabs(ox(i) - vx(i))) // implicit parts
-            * (params.rho_ice * cg_H(i) / dt_mom * vx(i)
-                + cg_A(i) * (params.F_atm * fabs(ax(i)) * ax(i) + // atm forcing
-                      params.F_ocean * fabs(ox(i) - vx(i)) * ox(i)) // ocean forcing
-                + params.rho_ice * cg_H(i) * params.fc
-                    * (vy(i) - oy(i)) // cor + surface
-                ));
-        vy(i) = (1.0
-            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                + cg_A(i) * params.F_ocean
-                    * fabs(oy(i) - vy(i))) // implicit parts
-            * (params.rho_ice * cg_H(i) / dt_mom * vy(i)
-                + cg_A(i) * (params.F_atm * fabs(ay(i)) * ay(i) + // atm forcing
-                      params.F_ocean * fabs(oy(i) - vy(i)) * oy(i)) // ocean forcing
-                + params.rho_ice * cg_H(i) * params.fc
-                    * (ox(i) - vx(i))));
-    }
-    Nextsim::GlobalTimer.stop("time loop - meb - update1");
-
-    Nextsim::GlobalTimer.start("time loop - meb - update2");
-    // Implicit etwas ineffizient
+    // Divergence of the stress tensor
 #pragma omp parallel for
     for (int i = 0; i < tmpx.rows(); ++i)
         tmpx(i) = tmpy(i) = 0;
 
-    Nextsim::GlobalTimer.start("time loop - meb - update2 -stress");
     // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
     AddStressTensor(-1.0, tmpx, tmpy);
-    Nextsim::GlobalTimer.stop("time loop - meb - update2 -stress");
 
+    // FIXME: We're missing the gradient of the sea-surface slope (\nabla \eta)
+
+    Nextsim::GlobalTimer.stop("time loop - meb - stress tensor");
+
+    Nextsim::GlobalTimer.start("time loop - meb - update");
+
+    /* This is Hunke and Dukowicz's solution to (22), multiplied
+     * with (\Delta t/m)^2 to ensure stability for c' = 0 */
+    double const cos_ocean_turning_angle = std::cos(params.ocean_turning_angle * M_PI / 180.);
+    double const sin_ocean_turning_angle = std::sin(params.ocean_turning_angle * M_PI / 180.);
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
-        vx(i) += (1.0
-                     / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                         + cg_A(i) * params.F_ocean
-                             * fabs(ox(i) - vx(i))) // implicit parts
-                     * tmpx(i))
-            / lumpedcgmass(i);
-        ;
+        // FIXME: dte_over_mass should include snow (total mass)
+        double const dte_over_mass = dt_mom / (params.rho_ice * cg_H(i));
+        double const uice = vx(i);
+        double const vice = vy(i);
 
-        vy(i) += (1.0
-                     / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                         + cg_A(i) * params.F_ocean
-                             * fabs(oy(i) - vy(i))) // implicit parts
-                     * tmpy(i))
-            / lumpedcgmass(i);
-        ;
+        double const c_prime = params.F_ocean * std::hypot(ox(i) - uice, oy(i) - vice);
+
+        // FIXME: Need the grounding term: tau_b = C_bu[i]/(std::hypot(uice,vice)+u0);
+        double const tau_b = 0.;
+        double const alpha = 1. + dte_over_mass * (c_prime * cos_ocean_turning_angle + tau_b);
+        /* FIXME: We need latitude here. Then this becomes:
+         * double const beta   = dt_mom*params.fc +
+         * dte_over_mass*c_prime*std::copysign(sin_ocean_turning_angle, lat[i]); */
+        double const beta = dt_mom * params.fc + dte_over_mass * c_prime * sin_ocean_turning_angle;
+        double const rdenom = 1. / (alpha * alpha + beta * beta);
+
+        double const tau_x = params.F_atm * ax(i)
+            + c_prime * (ox(i) * cos_ocean_turning_angle - oy(i) * sin_ocean_turning_angle);
+        /* FIXME: Need latitude here. Then This becomes:
+         * + c_prime*( ox(i)*cos_ocean_turning_angle - oy(i)*std::copysign(sin_ocean_turning_angle,
+         * lat[i]) ); */
+        double const tau_y = params.F_atm * ay(i)
+            + c_prime * (oy(i) * cos_ocean_turning_angle + ox(i) * sin_ocean_turning_angle);
+        /* FIXME: Need latitude here. Then This becomes:
+         * + c_prime*( oy(i)*cos_ocean_turning_angle + ox(i)*std::copysign(sin_ocean_turning_angle,
+         * lat[i]) ); */
+
+        // We need to divide the gradient terms with the lumped mass matrix term
+        double const grad_x = tmpx(i) / lumpedcgmass(i);
+        double const grad_y = tmpy(i) / lumpedcgmass(i);
+
+        vx(i) = alpha * uice + beta * vice
+            + dte_over_mass * (alpha * (grad_x + tau_x) + beta * (grad_y + tau_y));
+        vx(i) *= rdenom;
+
+        vy(i) = alpha * vice - beta * uice
+            + dte_over_mass * (alpha * (grad_y + tau_y) + beta * (grad_x + tau_x));
+        vy(i) *= rdenom;
     }
-    Nextsim::GlobalTimer.stop("time loop - meb - update2");
+
     Nextsim::GlobalTimer.stop("time loop - meb - update");
 
     Nextsim::GlobalTimer.start("time loop - meb - bound.");
