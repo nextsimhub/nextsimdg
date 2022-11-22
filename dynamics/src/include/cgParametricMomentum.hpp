@@ -18,7 +18,9 @@
 
 namespace Nextsim {
 
-template <int CG, int DGstress>
+#define DGSTRESS(CG) ( (CG==1?3:(CG==2?8:-1) ) )
+  
+template <int CG>
 class CGParametricMomentum {
 private:
     const ParametricMesh& smesh; //!< const-reference to the mesh
@@ -28,7 +30,7 @@ private:
      * accelerates numerics but substantial memory effort!
      */
     static constexpr int precompute_matrices = 1;
-    ParametricTransformation<CG, DGstress> ptrans;
+    ParametricTransformation<CG, DGSTRESS(CG)> ptrans;
 
     //! vectors storing the velocity (node-wise)
     CGVector<CG> vx, vy;
@@ -54,8 +56,8 @@ private:
     CGVector<CG> cg_A, cg_H, cg_D;
 
     //! Vectors storing strain and strss
-    DGVector<DGstress> E11, E12, E22;
-    DGVector<DGstress> S11, S12, S22;
+    DGVector<DGSTRESS(CG)> E11, E12, E22;
+    DGVector<DGSTRESS(CG)> S11, S12, S22;
 
 public:
     CGParametricMomentum(const ParametricMesh& sm)
@@ -129,13 +131,13 @@ public:
     CGVector<CG>& GetAtmx() { return ax; }
     CGVector<CG>& GetAtmy() { return ay; }
 
-    const DGVector<DGstress> GetE11() const { return E11; }
-    const DGVector<DGstress> GetE12() const { return E12; }
-    const DGVector<DGstress> GetE22() const { return E22; }
+    const DGVector<DGSTRESS(CG)> GetE11() const { return E11; }
+    const DGVector<DGSTRESS(CG)> GetE12() const { return E12; }
+    const DGVector<DGSTRESS(CG)> GetE22() const { return E22; }
 
-    const DGVector<DGstress> GetS11() const { return S11; }
-    const DGVector<DGstress> GetS12() const { return S12; }
-    const DGVector<DGstress> GetS22() const { return S22; }
+    const DGVector<DGSTRESS(CG)> GetS11() const { return S11; }
+    const DGVector<DGSTRESS(CG)> GetS12() const { return S12; }
+    const DGVector<DGSTRESS(CG)> GetS22() const { return S22; }
 
     // High level Functions
 
@@ -191,11 +193,13 @@ public:
     void DirichletZero(CGVector<CG>& v);
 };
 
-template <int CG, int DG>
-void CGParametricMomentum<CG, DG>::AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
+template <int CG>
+void CGParametricMomentum<CG>::AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
     const size_t cy, CGVector<CG>& tmpx, CGVector<CG>& tmpy) const
 {
-#define NGP (DG == 8 ? 3 : (DG == 3 ? 2 : 1))
+  // pick the number of Gauss points according to the degree
+  
+#define NGP (CG == 1 ? 2 : 3) 
     if (precompute_matrices == 0) // all is compute on-the-fly
     {
         //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
@@ -205,9 +209,9 @@ void CGParametricMomentum<CG, DG>::AddStressTensorCell(const double scale, const
         const size_t CGROW = CG * smesh.nx + 1;
         const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
 
-        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S11_g = S11.row(eid) * PSI<DG, NGP>; //!< stress in GP
-        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S22_g = S22.row(eid) * PSI<DG, NGP>;
-        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S12_g = S12.row(eid) * PSI<DG, NGP>;
+        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S11_g = S11.row(eid) * PSI<DGSTRESS(CG), NGP>; //!< stress in GP
+        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S22_g = S22.row(eid) * PSI<DGSTRESS(CG), NGP>;
+        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S12_g = S12.row(eid) * PSI<DGSTRESS(CG), NGP>;
 
         // J T^{-T}
         const Eigen::Matrix<Nextsim::FloatType, 2, NGP* NGP> dxT = (ParametricTools::dxT<NGP>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<NGP>.array()).matrix();

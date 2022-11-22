@@ -221,6 +221,9 @@ void cell_term(const ParametricMesh& smesh, double dt,
     const DGVector<DG>& vx,
     const DGVector<DG>& vy, const size_t eid)
 {
+  if (smesh.landmask[eid]==0)
+    return;
+  
 #define NGP 3
     // - w_q Psi(q) * ( vx(q) dx_phi_i(q) + vy(q) dy_phi_i(q) )
 
@@ -273,12 +276,7 @@ void cell_term(const ParametricMesh& smesh, double dt,
 }
 ////////////////////////////////////////////////// BOUNDARY HANDLING
 
-void boundary_lower(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup,
-    const DGVector<1>& phi, const EdgeVector<1>& normalvel_X, const size_t c,
-    const size_t e)
-{
-    phiup(c, 0) -= dt * std::max(0., -normalvel_X(e, 0)) * phi(c, 0);
-}
+
 template <int DG>
 void boundary_lower(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
     const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c, const size_t e)
@@ -289,13 +287,6 @@ void boundary_lower(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
     LocalEdgeVector<EDGEDOFS(DG)> tmp = ((bottomedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() * (-vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 0>;
 }
-
-void boundary_upper(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup,
-    const DGVector<1>& phi, const EdgeVector<1>& normalvel_X, const size_t c,
-    const size_t e)
-{
-    phiup(c, 0) -= dt * std::max(0., normalvel_X(e, 0)) * phi(c, 0);
-}
 template <int DG>
 void boundary_upper(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
     const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c, const size_t e)
@@ -304,13 +295,6 @@ void boundary_upper(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
     LocalEdgeVector<EDGEDOFS(DG)> tmp = ((topedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() * (vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 2>;
 }
-
-void boundary_left(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup,
-    const DGVector<1>& phi, const EdgeVector<1>& normalvel_Y, const size_t c,
-    const size_t e)
-{
-    phiup(c, 0) -= dt * std::max(0., -normalvel_Y(e, 0)) * phi(c, 0);
-}
 template <int DG>
 void boundary_left(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
     const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c, const size_t e)
@@ -318,12 +302,6 @@ void boundary_left(const ParametricMesh& smesh, const double dt, DGVector<DG>& p
     LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_Y.row(e) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
     LocalEdgeVector<EDGEDOFS(DG)> tmp = ((leftedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() * (-vel_gauss.array()).max(0));
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 3>;
-}
-void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup,
-    const DGVector<1>& phi, const EdgeVector<1>& normalvel_Y, const size_t c,
-    const size_t e)
-{
-    phiup(c, 0) -= dt * std::max(0., normalvel_Y(e, 0)) * phi(c, 0);
 }
 template <int DG>
 void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
@@ -334,9 +312,15 @@ void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 1>;
 }
 
-void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
+
+
+////////////////////////////////////////////////// EDGE TERMS
+
+inline void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
     const EdgeVector<1>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
+  if (smesh.landmask[c1]==0) return;
+  if (smesh.landmask[c2]==0) return;
     double bottom = phi(c1, 0);
     double top = phi(c2, 0);
     double vel = normalvel_X(ie, 0);
@@ -344,9 +328,12 @@ void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<1>& phiu
     phiup(c1, 0) -= dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
     phiup(c2, 0) += dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
 }
-void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
+inline void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
     const EdgeVector<1>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
+  if (smesh.landmask[c1]==0) return;
+  if (smesh.landmask[c2]==0) return;
+  
     double left = phi(c1, 0);
     double right = phi(c2, 0);
     double vel = normalvel_Y(ie, 0);
@@ -356,9 +343,12 @@ void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<1>& phiu
 }
 
 template <int DG>
-void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
+inline void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
     const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
+  if (smesh.landmask[c1]==0) return;
+  if (smesh.landmask[c2]==0) return;
+  
     const LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_X.row(ie) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
 
     const LocalEdgeVector<EDGEDOFS(DG)> tmp = (vel_gauss.array().max(0) * (topedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array()
@@ -367,9 +357,12 @@ void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phi
     phiup.row(c2) += dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 0>;
 }
 template <int DG>
-void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
+inline void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
     const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
+  if (smesh.landmask[c1]==0) return;
+  if (smesh.landmask[c2]==0) return;
+  
     const LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_Y.row(ie) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
     const LocalEdgeVector<EDGEDOFS(DG)> tmp = (vel_gauss.array().max(0) * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array()
         + vel_gauss.array().min(0) * (leftedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array());
@@ -419,33 +412,56 @@ void parametricTransportOperator(const ParametricMesh& smesh, const double dt,
 
     // boundaries
     GlobalTimer.start("-- -- --> boundaries");
-    // lower & upper
-    //#pragma omp parallel for
-    const size_t eupper0 = smesh.nx * smesh.ny;
-    for (size_t ix = 0; ix < smesh.nx; ++ix) {
-        const size_t clower = ix;
-        const size_t elower = ix;
-        const size_t cupper = smesh.nelements - smesh.nx + ix;
-        const size_t eupper = eupper0 + ix;
 
-        boundary_lower(smesh, dt, phiup, phi, normalvel_X, clower, elower);
-        boundary_upper(smesh, dt, phiup, phi, normalvel_X, cupper, eupper);
-    }
-    // left & right
-    //#pragma omp parallel for
-    size_t eright0 = smesh.nx;
 
-    for (size_t iy = 0; iy < smesh.ny; ++iy) {
-        const size_t cleft = iy * smesh.nx;
-        const size_t eleft = iy * (smesh.nx + 1);
-        const size_t cright = eright0 - 1 + iy * smesh.nx;
-        const size_t eright = eright0 + iy * (smesh.nx + 1);
-
-        boundary_left(smesh, dt, phiup, phi, normalvel_Y, cleft, eleft);
-        boundary_right(smesh, dt, phiup, phi, normalvel_Y, cright, eright);
-    }
+    // Periodic
+    for (size_t pc = 0 ; pc<smesh.periodic.size(); ++pc)
+      {
+#pragma omp parallel for
+	for (size_t i = 0; i<smesh.periodic[pc].size();++i)
+	  {
+	    if (smesh.periodic[pc][i][0]==0) // X-edge (bottom / top)
+	      edge_term_X(smesh, dt, phiup, phi, normalvel_X, smesh.periodic[pc][i][1], smesh.periodic[pc][i][2], smesh.periodic[pc][i][3]);
+	    else if (smesh.periodic[pc][i][0]==1) // Y-edge (left / right)
+	      edge_term_Y(smesh, dt, phiup, phi, normalvel_Y, smesh.periodic[pc][i][1], smesh.periodic[pc][i][2], smesh.periodic[pc][i][3]);
+	    else
+	      {
+		std::cerr << "Wrong periodic boundary information in the mesh. Boundary side " << smesh.periodic[pc][i][0] << " not valid" << std::endl;
+		abort();
+	      }
+	  }
+      }
+    
+    // Dirichlet
+    for (size_t seg = 0 ; seg<4; ++seg) // run over the 4 segments (bot, right, top, left)
+      {
+#pragma omp parallel for
+	for (size_t i = 0; i<smesh.dirichlet[seg].size();++i)
+	  {
+	    const size_t eid = smesh.dirichlet[seg][i];
+	    const size_t ix = eid % smesh.nx; // compute 'coordinate' of element
+	    const size_t iy = eid / smesh.nx;
+    
+	    if (seg==0) // bottom
+	      boundary_lower(smesh, dt, phiup, phi, normalvel_X, eid, smesh.nx*iy+ix);
+	    else if (seg==1) // right
+	      boundary_right(smesh, dt, phiup, phi, normalvel_Y, eid, (smesh.nx+1)*iy+ix+1);
+	    else if (seg==2) // top
+	      boundary_upper(smesh, dt, phiup, phi, normalvel_X, eid, smesh.nx*(iy+1)+ix);
+	    else if (seg==3) // left
+	      boundary_left (smesh, dt, phiup, phi, normalvel_Y, eid, (smesh.nx+1)*iy+ix);
+	    else
+	      {
+		std::cerr << "Wrong Dirichlet boundary information in the mesh. Boundary side " << smesh.dirichlet[seg][i] << " not valid" << std::endl;
+		abort();
+	      }
+	  }
+      }
+    
     GlobalTimer.stop("-- -- --> boundaries");
 
+    ////// APPLY INVERSE MASS MATRIX !!! Switch to precomputed!
+    
     GlobalTimer.start("-- -- --> inverse mass");
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid) {

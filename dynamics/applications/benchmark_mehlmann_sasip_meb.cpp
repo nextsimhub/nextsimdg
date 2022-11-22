@@ -115,7 +115,7 @@ public:
 
 //////////////////////////////////////////////////
 
-template <int CG, int DGadvection, int DGstress>
+template <int CG, int DGadvection>
 void run_benchmark(const std::string meshfile)
 {
     //! Define the spatial mesh
@@ -124,12 +124,12 @@ void run_benchmark(const std::string meshfile)
     size_t NX = smesh.nx;
 
     //! Compose name of output directory and create it
-    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
+    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) 
         + "__" + std::to_string(NX);
     std::filesystem::create_directory(resultsdir);
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh);
 
     //! define the time mesh
     constexpr double dt_adv = 60.0; //!< Time step of advection problem
@@ -278,7 +278,7 @@ void run_benchmark(const std::string meshfile)
 int main()
 {
     //run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_256x256.smesh");
-    run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_128x128.smesh");
+    run_benchmark<2, 3>("../ParametricMesh/rectangle_128x128.smesh");
 
     // std::vector<std::string> meshes;
     // meshes.push_back("../ParametricMesh/rectangle_16x16.smesh");

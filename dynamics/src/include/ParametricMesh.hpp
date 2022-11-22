@@ -48,6 +48,34 @@ public:
 
     Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
+    /*!
+     * Stores the Dirichlet boundary information
+     *
+     * Dirichlet-Information is stored in 4 vectors
+     * dirichlet[0]: List of elements that have a Dirichlet-Boundary on the bottom
+     * dirichlet[1]: List of elements that have a Dirichlet-Boundary on the right
+     * dirichlet[2]: List of elements that have a Dirichlet-Boundary on the top
+     * dirichlet[3]: List of elements that have a Dirichlet-Boundary on the left
+     *
+     * Each of the vectors is processed in parallel
+     */
+  std::array<std::vector<size_t>, 4> dirichlet;
+  
+  /*! 
+     * Periodic:
+     *   [0]=0 for X-edge (bottom/top) and [0]=1 for Y-edge (left/right)
+     *   [1] the element on the left / bottom
+     *   [2] the element on the right / top
+     *   [3] the edge id
+     */
+  std::vector<std::vector<std::array<size_t, 4>>> periodic;
+
+  /*!
+   * Landmask for the elements. true for land, false ice
+   * if no landmask is given, all  elements are ice
+   */
+  std::vector<bool> landmask;
+
     ParametricMesh(int loglevel = 1)
         : statuslog(loglevel)
         , nx(-1)
@@ -57,6 +85,21 @@ public:
     {
     }
 
+  /*! 
+   * resets mesh to initial state
+   */
+  void reset()
+  {
+    nx = -1;
+    ny = -1;
+    nnodes = -1;
+    nelements = -1;
+    for (size_t i=0;i<4;++i)
+      dirichlet[i].clear();
+    periodic.clear();
+    landmask.clear();
+  }
+  
     /*!
      * Reads mesh from a .smesh - file
      *

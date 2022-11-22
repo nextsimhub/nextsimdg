@@ -45,9 +45,6 @@ def check_corner_points(lon_corners,lat_corners, nx, ny):
           return False
   return True
 
-
-
-
 if __name__ == '__main__':
 
 
@@ -99,6 +96,7 @@ if __name__ == '__main__':
   f.flush()
 
   #Dirichlet boundaries for land mask
+  dirichlet_list = [] #first collecting all dirichlet boundaries
   mask = np.array(nc['mask'])
   for iy in range(ny):
     for ix in range(nx):
@@ -112,10 +110,15 @@ if __name__ == '__main__':
             assert(ix+shift[0]>=0)
             assert(iy+shift[1]>=0)
             if mask[ix+shift[0],iy+shift[1]] != 0:
-              f.write('{}\t{}\n'.format(no_element, shift[2]) )
-          
+              dirichlet_list.append([no_element, shift[2]])
           #except: we are on the boundary of the domain
           except:
-            f.write('{}\t{}\n'.format(no_element, shift[2]) )
-  
+            dirichlet_list.append([no_element, shift[2]])
+
+  #write dirichlet boundaries into file
+  f.write("dirichlet\t{}\n".format(len(dirichlet_list)))
+  for dirichlet in dirichlet_list:
+    f.write('{}\t{}\n'.format(dirichlet[0], dirichlet[1]))
+
+  f.write("periodic 0")
   f.close()

@@ -34,7 +34,6 @@ bool WRITE_VTK = true;
  */
 #define CG 2
 #define DGadvection 3
-#define DGstress 8
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -114,7 +113,7 @@ int main()
     smesh.readmesh("../ParametricMesh/distortedbox.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh);
 
     //! define the time mesh
     constexpr double dt_adv = 120.0; //!< Time step of advection problem

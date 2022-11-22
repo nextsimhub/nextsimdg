@@ -38,6 +38,9 @@ inline constexpr double SQR(double x) { return x * x; }
 
 namespace ReferenceScale {
 constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
+  //constexpr double T = 60. * 60.; //!< 1 hour only... !!! 
+
+  
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -73,6 +76,7 @@ public:
         double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
 
         double alpha = 72.0 / 180.0 * M_PI;
+	
         return -scale * ReferenceScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
     }
 };
@@ -99,7 +103,7 @@ class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-        return 0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+      return 0.3;// + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
 class InitialA : public Nextsim::Interpolations::Function {
@@ -108,24 +112,64 @@ public:
 };
 //////////////////////////////////////////////////
 
-template <int CG, int DGadvection, int DGstress>
-void run_benchmark(const std::string meshfile)
+void create_mesh(const std::string& meshname, const size_t Nx, const double distort)
+{
+    std::ofstream OUT(meshname.c_str());
+    OUT << "ParametricMesh 2.0" << std::endl
+        << Nx << "\t" << Nx << std::endl;
+    for (size_t iy = 0; iy <= Nx; ++iy)
+        for (size_t ix = 0; ix <= Nx; ++ix)
+            OUT << ReferenceScale::L * ix / Nx + ReferenceScale::L * distort * sin(M_PI * ix / Nx * 3.0) * sin(M_PI * iy / Nx) << "\t"
+                << ReferenceScale::L * iy / Nx + ReferenceScale::L * distort * sin(M_PI * iy / Nx * 2.0) * sin(M_PI * ix / Nx * 2.0) << std::endl;
+
+
+    OUT << "landmask 0" << std::endl;
+    
+    if (1) // std-setup, dirichlet everywhere
+    {
+        // dirichlet info
+      OUT << "dirichlet " << 2*Nx+2*Nx << std::endl;
+      for (size_t i = 0; i < Nx; ++i)
+	OUT << i << "\t" << 0 << std::endl; // lower
+      for (size_t i = 0; i < Nx; ++i)
+	OUT << Nx * (Nx - 1) + i << "\t" << 2 << std::endl; // upper
+      
+      for (size_t i = 0; i < Nx; ++i)
+	OUT << i * Nx << "\t" << 3 << std::endl; // left
+      for (size_t i = 0; i < Nx; ++i)
+	OUT << i * Nx + Nx - 1 << "\t" << 1 << std::endl; // right
+      
+        OUT << "periodic 0" << std::endl;
+    } else {
+        OUT << "dirichlet 0" << std::endl;
+        OUT << "periodic 2" << std::endl;
+
+        OUT << 2 * Nx << std::endl; // horizontal (x-)
+        for (size_t i = 0; i < Nx; ++i)
+            OUT << Nx * (Nx - 1) + i << "\t" << i << "\t0" << std::endl; // left
+        for (size_t i = 0; i < Nx; ++i)
+            OUT << Nx - 1 + i * Nx << "\t" << i * Nx << "\t1" << std::endl;
+    }
+    OUT.close();
+}
+template <int CG, int DGadvection>
+void run_benchmark(const size_t NX, double distort)
 {
     //! Define the spatial mesh
-    Nextsim::ParametricMesh smesh;
-    smesh.readmesh(meshfile);
-    size_t NX = smesh.nx;
+    create_mesh("tmp-benchmark.smesh", NX, distort);
+    Nextsim::ParametricMesh smesh(0);
+    smesh.readmesh("tmp-benchmark.smesh");
 
     //! Compose name of output directory and create it
-    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
-        + "__" + std::to_string(NX);
+    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(NX);
     std::filesystem::create_directory(resultsdir);
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh);
 
     //! define the time mesh
-    constexpr double dt_adv = 120.0; //!< Time step of advection problem
+    constexpr double dt_adv = 60; //!< Time step of advection problem
+    
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
@@ -138,11 +182,10 @@ void run_benchmark(const std::string meshfile)
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta << std::endl
-              << "CG/DG/DGstress " << CG << "\t" << DGadvection << "\t" << DGstress
-              << std::endl;
+              << "CG/DG " << CG << "\t" << DGadvection  << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 48. * 60.0 * 60.0; // only at end
+    constexpr double T_vtk = ReferenceScale::T; // 48.0 * 60.0 * 60.0; // once
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -157,6 +200,7 @@ void run_benchmark(const std::string meshfile)
     AtmForcingY.settime(0.0);
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
+
 
     ////////////////////////////////////////////////// Variables and Initial Values
     Nextsim::DGVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
@@ -210,8 +254,8 @@ void run_benchmark(const std::string meshfile)
         dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
         // performs the transport steps
-        dgtransport.step(dt_adv, A);
-        dgtransport.step(dt_adv, H);
+	//        dgtransport.step(dt_adv, A);
+	//        dgtransport.step(dt_adv, H);
 
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
@@ -224,7 +268,8 @@ void run_benchmark(const std::string meshfile)
         momentum.prepareIteration(H, A);
         // MEVP subcycling
         for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
-            momentum.mEVPStep(VP, NT_evp, alpha, beta, dt_adv, H, A);
+	  momentum.mEVPStep(VP, NT_evp, alpha, beta, dt_adv, H, A);
+	  //	  momentum.VPStep(VP, dt_adv, H, A);
             // <- MPI
         }
         Nextsim::GlobalTimer.stop("time loop - mevp");
@@ -252,22 +297,15 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    run_benchmark<1, 1, 3>("../ParametricMesh/distortedrectangle_128x128.smesh");
-
-    // std::vector<std::string> meshes;
-    // meshes.push_back("../ParametricMesh/distortedrectangle_16x16.smesh");
-    // meshes.push_back("../ParametricMesh/distortedrectangle_32x32.smesh");
-    // meshes.push_back("../ParametricMesh/distortedrectangle_64x64.smesh");
-    // meshes.push_back("../ParametricMesh/distortedrectangle_128x128.smesh");
-    // meshes.push_back("../ParametricMesh/distortedrectangle_256x256.smesh");
-    // meshes.push_back("../ParametricMesh/distortedrectangle_512x512.smesh");
-
-    // for (const auto& it : meshes) {
-    //     run_benchmark<1, 1, 3>(it);
-    //     run_benchmark<1, 3, 3>(it);
-    //     run_benchmark<1, 6, 3>(it);
-    //     run_benchmark<2, 1, 8>(it);
-    //     run_benchmark<2, 3, 8>(it);
-    //     run_benchmark<2, 6, 8>(it);
-    // }
+  run_benchmark<2, 6>(128, 0.0);
+  // int NN[5] = {32,64,128,256,512};
+  // for (int n=0;n<5;++n)
+  //   {
+  //     run_benchmark<1, 1, 3>(NN[n], 0.0);
+  //     run_benchmark<1, 3, 3>(NN[n], 0.0);
+  //     run_benchmark<1, 6, 3>(NN[n], 0.0);
+  //     run_benchmark<2, 1, 8>(NN[n], 0.0);
+  //     run_benchmark<2, 3, 8>(NN[n], 0.0);
+  //     run_benchmark<2, 6, 8>(NN[n], 0.0);
+  //   }
 }

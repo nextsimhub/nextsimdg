@@ -31,20 +31,25 @@ namespace Tools {
 
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
-
-            const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
-            const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
-            const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
-
+	  if (smesh.landmask[i]==0)
+	    DELTA.row(i).setZero();
+	  else
+	    {
+	      
+	      const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
+	      const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
+	      const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
+	      
             const LocalEdgeVector<NGP* NGP> delta_gauss = (DeltaMin * DeltaMin
-                                                              + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
-                                                              + 1.50 * e11_gauss.array() * e22_gauss.array()
-                                                              + e12_gauss.array().square())
+							   + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
+							   + 1.50 * e11_gauss.array() * e22_gauss.array()
+							   + e12_gauss.array().square())
                                                               .sqrt()
-                                                              .log10()
-                * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array();
+	      .log10()
+	      * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array();
             DELTA.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse() * (PSI<S2A(DGs), NGP> * delta_gauss.transpose());
         }
+	}
 
 #undef NGP
 
@@ -59,12 +64,17 @@ namespace Tools {
 #define NGP 3
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
-
-            const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
-            const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
-            const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
-
-            SHEAR.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse() * (PSI<S2A(DGs), NGP> * (((e11_gauss.array() - e22_gauss.array()).square() + 4.0 * e12_gauss.array().square()).sqrt().log10() * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array()).matrix().transpose());
+	  if (smesh.landmask[i]==0)
+	    SHEAR.row(i).setZero();
+	  else
+	    {
+	      
+	      const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
+	      const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
+	      const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
+	      
+	      SHEAR.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse() * (PSI<S2A(DGs), NGP> * (((e11_gauss.array() - e22_gauss.array()).square() + 4.0 * e12_gauss.array().square()).sqrt().log10() * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array()).matrix().transpose());
+	    }
         }
 
 #undef NGP

@@ -24,10 +24,10 @@ namespace Nextsim {
 
 #define CGDOFS(Q) ((Q == 1) ? 4 : 9)
 
-#define GAUSSPOINTS(Q) ((Q == 8) ? 9 : (Q == 3) ? 4 \
+#define GAUSSPOINTS(Q) (( (Q == 8) || (Q==6) ) ? 9 : (Q == 3) ? 4	\
                                                 : -1)
-#define GAUSSPOINTS1D(Q) ((Q == 8) ? 3 : (Q == 3) ? 2 \
-                                                  : -1)
+#define GAUSSPOINTS1D(Q) (( (Q == 8) || (Q==6) ) ? 3 : (Q == 3) ? 2	\
+			  : -1)
 
 /*!
  * This class stores precomputed values (matrices in each mesh element)

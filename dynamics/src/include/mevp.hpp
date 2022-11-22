@@ -32,7 +32,7 @@ namespace mEVP {
         const double alpha, const double beta)
     {
 
-#define NGP (DGstress == 8 ? 3 : (DGstress == 3 ? 2 : -1))
+#define NGP ( ((DGstress == 8) || (DGstress == 6) ) ? 3 : (DGstress == 3 ? 2 : -1))
         //! Stress Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
@@ -112,6 +112,9 @@ namespace mEVP {
         const DGVector<DGa>& A,
         const double alpha, const double beta)
     {
+      std::cerr << "This version of StressUpdateHigherOrder should not be used. It is based on recomputing all values required for the numerical quadrature on the fly. It might serve as basis for a GPU version, it is, however, not efficient on CPUs" << std::endl;
+      abort();
+      
 #define NGP 3
         //! Stress Update
 #pragma omp parallel for
