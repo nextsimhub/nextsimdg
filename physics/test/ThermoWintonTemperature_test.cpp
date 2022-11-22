@@ -56,44 +56,60 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
             : tice0(ModelArray::Type::Z)
             , tice(getSharedArray())
         {
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
+            registerProtectedArray(ProtectedArray::C_ICE, &cice0);
+            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            registerProtectedArray(ProtectedArray::SNOW, &snow);
+            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
             registerProtectedArray(ProtectedArray::TF, &tf);
-            registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+
+            registerSharedArray(SharedArray::H_ICE, &hice);
+            registerSharedArray(SharedArray::C_ICE, &cice);
+            registerSharedArray(SharedArray::H_SNOW, &hsnow);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState::DataMap&) override
         {
-            cice[0] = 0.5;
-            hice[0] = 0.1 / cice[0]; // Here we are using the true thicknesses
-            hsnow[0] = 0.01 / cice[0];
+            cice0[0] = 0.5;
+            hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
+            hsnow0[0] = 0.01 / cice0[0];
+            snow[0] = 0.00;
+            sw_in[0] = -50;
             sst[0] = -1;
             sss[0] = 32.;
-            snow[0] = 0.00;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
             tice0[0] = -1;
             tice0[1] = -1;
             tice0[2] = -1;
             tice.data().setData(tice0);
+
+            hice = hice0;
+            cice = cice0;
+            hsnow = hsnow0;
+
         }
+
+        HField hice0;
+        HField cice0;
+        HField hsnow0;
+        HField snow;
+        HField sw_in;
+        HField sst;
+        HField sss;
+        HField tf;
+        HField mlbhc; // Mixed layer bulk heat capacity
+        ZField tice0;
+        ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
         HField hsnow;
-        HField sst;
-        HField sss;
-        HField tf;
-        HField snow;
-        HField mlbhc; // Mixed layer bulk heat capacity
-        ZField tice0;
-        ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> tice; // From IIceThermodynamics
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -128,6 +144,7 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
 
     std::cerr << "flux data defined" << std::endl;
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
+
     twin.configure();
     twin.update(tst);
     std::cerr << "thermo winton updated" << std::endl;
@@ -169,44 +186,61 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
             : tice0(ModelArray::Type::Z)
         , tice(getSharedArray())
         {
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
+            registerProtectedArray(ProtectedArray::C_ICE, &cice0);
+            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            registerProtectedArray(ProtectedArray::SNOW, &snow);
+            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
             registerProtectedArray(ProtectedArray::TF, &tf);
-            registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+
+            registerSharedArray(SharedArray::H_ICE, &hice);
+            registerSharedArray(SharedArray::C_ICE, &cice);
+            registerSharedArray(SharedArray::H_SNOW, &hsnow);
+
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState::DataMap&) override
         {
-            cice[0] = 0.5;
-            hice[0] = 0.1 / cice[0]; // Here we are using the true thicknesses
-            hsnow[0] = 0.01 / cice[0];
+            cice0[0] = 0.5;
+            hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
+            hsnow0[0] = 0.01 / cice0[0];
+            snow[0] = 1e-3;
+            sw_in[0] = -50;
             sst[0] = -1.75;
             sss[0] = 32.;
-            snow[0] = 1e-3;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
             tice0[0] = -9.;
             tice0[1] = -9.;
             tice0[2] = -9.;
             tice.data().setData(tice0);
+
+            hice = hice0;
+            cice = cice0;
+            hsnow = hsnow0;
+
         }
+
+        HField hice0;
+        HField cice0;
+        HField hsnow0;
+        HField snow;
+        HField sw_in;
+        HField sst;
+        HField sss;
+        HField tf;
+        HField mlbhc; // Mixed layer bulk heat capacity
+        ZField tice0;
+        ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
         HField hsnow;
-        HField sst;
-        HField sss;
-        HField tf;
-        HField snow;
-        HField mlbhc; // Mixed layer bulk heat capacity
-        ZField tice0;
-        ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> tice; // From IIceThermodynamics
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -223,12 +257,17 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
 
         void setData(const ModelState::DataMap&) override
         {
+
             qow[0] = 143.266;
             qio[0] = 73.9465;
             qia[0] = 42.2955;
             dqia_dt[0] = 16.7615;
             subl[0] = 2.15132e-6;
-        }
+
+            std::cerr << "FluxData::setData &subl=" << &subl;
+            ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> sublRef(getSharedArray());
+            std::cerr << " &SharedArray::SUBLIM.data()=" << &sublRef.data() << std::endl;
+}
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -241,6 +280,9 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
     twin.configure();
+    ModelArrayRef<ModelComponent::SharedArray::SUBLIM, MARBackingStore, RO> sublRef(ModelComponent::getSharedArray());
+    std::cerr << " &SharedArray::SUBLIM.data()=" << &sublRef.data() << std::endl;
+
     twin.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(

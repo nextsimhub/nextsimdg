@@ -27,7 +27,8 @@ const double ThermoWinton::freezingPointIce = -Water::mu * Ice::s;
 bool ThermoWinton::doFlooding = true;
 
 ThermoWinton::ThermoWinton()
-    : snowMelt(ModelArray::Type::H)
+    : IIceThermodynamics()
+           , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
     , oldHi(getProtectedArray())
@@ -93,6 +94,9 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 void ThermoWinton::update(const TimestepTime& tst)
 {
     std::cerr << "updating ThermoWinton" << std::endl;
+    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> sublRef(getSharedArray());
+    std::cerr << " &SharedArray::SUBLIM.data()=" << &sublRef.data() << std::endl;
+
     overElements(std::bind(&ThermoWinton::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);
@@ -100,7 +104,9 @@ void ThermoWinton::update(const TimestepTime& tst)
 
 void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {
-    std::cerr << "element i" << std::endl;
+    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> sublRef(getSharedArray());
+    std::cerr << " &SharedArray::SUBLIM.data()=" << &sublRef.data() << std::endl;
+
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
@@ -109,13 +115,15 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     double tLowr = tice0.zIndexAndLayer(i, 2); // lower layer temperature
     double tBott = tf[i]; // freezing point of (local) seawater
 
-    std::cerr << "element i: Ts = " << tSurf << ", T^ = " << tUppr << ", Tv = " << tLowr << std::endl;
+    std::cerr << "element " << i << ": Ts = " << tSurf << ", T^ = " << tUppr << ", Tv = " << tLowr << std::endl;
     double dt = tst.step.seconds();
 
     double surfMelt = 0; // surface melting mass loss
     // Calculate temperatures by solving the heat conduction equation
+    std::cerr << "calculating temperatures…" << std::endl;
     calculateTemps(tSurf, tUppr, tLowr, surfMelt, i, dt);
 
+    std::cerr << "temperatures calculated" << std::endl;
     // The ratio of ΔΗ_f T_f / c_p,ice is used a lot. Units are K²
     const static double dHfTf_cp = Water::Lf * freezingPointIce / Ice::cp;
 
@@ -126,12 +134,15 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     double e1 = cVol * (tUppr - freezingPointIce) - bulkLHFusionIce * (1 - freezingPointIce / tUppr);
     double e2 = cVol * (tLowr - freezingPointIce) - bulkLHFusionIce;
 
-    double& hs = hsnow[i];
+    double hs = hsnow[i];
     // snow
     hs += snowfall[i] / Ice::rhoSnow * dt;
+//    double accumulatedSnowThickness = snowfall[i] / Ice::rhoSnow * dt;
 
+    std::cerr << "thickness changes calculated" << std::endl;
     // sublimation
     // 4 cases
+    std::cerr << "&subl = " << &subl << ", &subl.data() = " << &subl.data() << ", &subl[0] = " << &subl[0] << std::endl;
     const double& subli = subl[i];
     double deltaSnow = subli * dt / Ice::rhoSnow;
     double deltaIce1 = (subli * dt - hs * Ice::rhoSnow) / Ice::rho;
@@ -159,7 +170,10 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         hs = 0;
     }
     // Sublimated ice counts as top melt
+    std::cerr << "&topMelt" << &topMelt << std::endl;
     topMelt[i] = std::max(0., h1 + h2 - hice[i]);
+    std::cerr << "sublimation calculated" << std::endl;
+
 
     // Bottom melt/freezing
     double meltBottom = (qio[i] - 4 * Ice::kappa * (tBott - tLowr) / hice[i]) * dt;
@@ -186,6 +200,8 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         h2 += deltaIce2;
         botMelt[i] += deltaIce1 + deltaIce2;
     }
+    std::cerr << "bottom melt calculated" << std::endl;
+
     // Melting at the surface
     // Do we really need an assertion here?
     snowMelt[i] -= std::min(surfMelt * dt / bulkLHFusionSnow, hs);
@@ -196,11 +212,13 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.) {
         qio[i] -= std::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
     }
+    std::cerr << "top melt calculated" << std::endl;
 
     hs += snowMelt[i];
     h1 += deltaIce1;
     h2 += deltaIce2;
     topMelt[i] += deltaIce1 + deltaIce2;
+    std::cerr << "overall ice changes calculated" << std::endl;
 
     // Snow to ice conversion
     double freeboard = (hice[i] * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
@@ -214,9 +232,10 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         h1 += deltaIce1;
         snowToIce[i] += deltaIce1;
     }
+    std::cerr << "snow 2 ice calculated" << std::endl;
 
     // Add up the half-layer thicknesses
-    double& hi = hice[i];
+    double hi = hice[i];
     hi = h1 + h2;
     // Adjust the temperatures to evenly divide the ice
     if (h2 > h1) {
@@ -240,6 +259,9 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         }
     }
     deltaHi[i] = hi - oldHi[i];
+
+    std::cerr << "half-layer thicknesses calculated" << std::endl;
+
     // Remove very small ice thickness
     if (hi < MinimumIce::thickness()) {
         qio[i] -= ( -bulkLHFusionSnow * hs + (e1 + e2) * hi / 2) / dt;
@@ -257,23 +279,28 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         tUppr = freezingPointIce;
         tLowr = freezingPointIce;
     }
+    std::cerr << "thin ice removed" << std::endl;
+
+    hsnow[i] = hs;
+    hice[i] = hi;
 
     tice.zIndexAndLayer(i, 0) = tSurf;
     tice.zIndexAndLayer(i, 1) = tUppr;
     tice.zIndexAndLayer(i, 2) = tLowr;
+    std::cerr << "principle arrays updated" << std::endl;
 
 }
 
 void ThermoWinton::calculateTemps(double& tSurf, double& tUppr, double& tLowr, double& mSurf, size_t i, double dt)
 {
-
     double& hi = hice[i];
-
+    std::cerr << "hice…";
     double tMelt = (hsnow[i] > 0) ? 0 : Ice::Tm; // Melting point at the surface
-
+    std::cerr << "hsnow…";
     double k12
         = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hsnow[i]); // Winton & al. (5)
     double a = qia[i] - tSurf * dQia_dt[i];
+    std::cerr << "qia…dqia_dt…";
     double b = dQia_dt[i];
     double k32 = 2 * Ice::kappa / hi;
 
@@ -286,6 +313,7 @@ void ThermoWinton::calculateTemps(double& tSurf, double& tUppr, double& tLowr, d
             i0 * sw_in[i] -
             k32 * (4 * dt * k32 * tf[i] + hi * cVol * tLowr) / (6 * dt * k32 + hi * cVol) +
             a * k12 / (k12 +b);
+    std::cerr << "sw_in…tf…";
     double c1 = hi * Ice::Lf * Ice::rho * Ice::Tm / (2 * dt);
 
     // Updated surface and mid-ice temperatures
@@ -306,6 +334,7 @@ void ThermoWinton::calculateTemps(double& tSurf, double& tUppr, double& tLowr, d
 
     // update T_botn based on the new value of tMidt
     tLowr = (2 * dt * k32 * (tUppr + 2 * tf[i]) + hi * cVol * tLowr) / (6 * dt * k32 + hi * cVol);
+    std::cerr << std::endl;
 }
 
 } /* namespace Nextsim */
