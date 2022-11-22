@@ -20,6 +20,19 @@ namespace Tools {
 
     inline constexpr double SQR(double x) { return x * x; }
 
+  //! Integrates over a DG Vector
+  template <int DG>
+  double MeanValue(const ParametricMesh& smesh, const DGVector<DG>& phi)
+  {
+#define NGP 3
+    double mass = 0;
+    for (int i=0;i<smesh.nelements;++i)
+      mass += ((phi.row(i)*PSI<DG, NGP>).array()*(ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array())).sum();
+#undef NGP
+    return mass;
+  }
+
+  
 #define S2A(Q) (Q == 1 ? 1 : (Q == 3 ? 3 : (Q == 6 ? 6 : (Q == 8 ? 6 : -1))))
     template <int DGs>
     DGVector<S2A(DGs)> Delta(const ParametricMesh& smesh, const DGVector<DGs>& E11, const DGVector<DGs>& E12,

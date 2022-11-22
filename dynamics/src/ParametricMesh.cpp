@@ -65,20 +65,26 @@ void ParametricMesh::readmesh(std::string fname)
     {
       for (size_t i = 0; i < nx; ++i) // lower
 	dirichlet[0].push_back(i);
+      
       for (size_t i = 0; i < ny; ++i) // right
 	dirichlet[1].push_back(i * nx + nx - 1);
+      
       for (size_t i = 0; i < nx; ++i) // upper
 	dirichlet[2].push_back(i + nx * (ny - 1));
+      
       for (size_t i = 0; i < ny; ++i) // left
 	dirichlet[3].push_back(i * nx);
-      
+
+      landmask.resize(nx*ny,true); // set landmask
     } else if (version == "2.0") // landmask, dirichlet and periodic boundary as additional lists
     {
         IN >> status;
         if (status != "landmask") {
-	  std::cerr << "V2.0 Expecting landmask information" << std::endl
+	  std::cerr << "V2.0 Expecting landmask information after nodes." << std::endl
                       << "\tlandmask ne" << std::endl
-		    << "where ne is the number of elements. Should match nx * ny" << std::endl;
+		    << "where ne is the number of elements. Should match nx * ny" << std::endl
+		    << "If all is land, just provide " << std::endl
+		    << "   landmask 0" <<  std::endl;
             abort();
 	}
 	size_t ne;
