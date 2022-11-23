@@ -21,8 +21,6 @@
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 TEST_CASE("Melting conditions", "[ThermoWinton]")
@@ -46,8 +44,6 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
     Configurator::addStream(std::move(pcstream));
 
     ConfiguredModule::parseConfigurator();
-
-    std::cerr << "configuration done" << std::endl;
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {
@@ -79,7 +75,7 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
             hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
             hsnow0[0] = 0.01 / cice0[0];
             snow[0] = 0.00;
-            sw_in[0] = -50;
+            sw_in[0] = -10.1675; // Net shortwave flux from incident 50 W/m^2
             sst[0] = -1;
             sss[0] = 32.;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
@@ -116,7 +112,6 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
     } atmoState;
     atmoState.setData(ModelState().data);
 
-    std::cerr << "atmos data defined" << std::endl;
     class FluxData : public IFluxCalculation {
     public:
         FluxData()
@@ -142,21 +137,20 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
     } fluxData;
     fluxData.setData(ModelState().data);
 
-    std::cerr << "flux data defined" << std::endl;
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
     twin.configure();
     twin.update(tst);
-    std::cerr << "thermo winton updated" << std::endl;
     ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(
         ModelComponent::getSharedArray());
     ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(
         ModelComponent::getSharedArray());
 
     double prec = 1e-5;
+
     REQUIRE(tice[0] == Approx(0.0).margin(prec));
-    REQUIRE(tice[1] == Approx(0.0).margin(prec));
-    REQUIRE(tice[2] == Approx(-0.999453).epsilon(prec));
+    REQUIRE(tice[1] == Approx(-0.999453).margin(prec));
+    REQUIRE(tice[2] == Approx(-0.275).epsilon(prec));
     //    REQUIRE(qic[0] == Approx(-4.60879).epsilon(prec));
 }
 
@@ -210,7 +204,7 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
             hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
             hsnow0[0] = 0.01 / cice0[0];
             snow[0] = 1e-3;
-            sw_in[0] = -50;
+            sw_in[0] = 0;
             sst[0] = -1.75;
             sss[0] = 32.;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
@@ -263,11 +257,7 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
             qia[0] = 42.2955;
             dqia_dt[0] = 16.7615;
             subl[0] = 2.15132e-6;
-
-            std::cerr << "FluxData::setData &subl=" << &subl;
-            ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> sublRef(getSharedArray());
-            std::cerr << " &SharedArray::SUBLIM.data()=" << &sublRef.data() << std::endl;
-}
+        }
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -280,9 +270,6 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
     twin.configure();
-    ModelArrayRef<ModelComponent::SharedArray::SUBLIM, MARBackingStore, RO> sublRef(ModelComponent::getSharedArray());
-    std::cerr << " &SharedArray::SUBLIM.data()=" << &sublRef.data() << std::endl;
-
     twin.update(tst);
 
     ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(
@@ -291,7 +278,10 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
         ModelComponent::getSharedArray());
 
     double prec = 1e-5;
-    REQUIRE(tice[0] == Approx(-8.90443).epsilon(prec));
-    REQUIRE(qic[0] == Approx(44.4839).epsilon(prec));
+
+    REQUIRE(tice[0] == Approx(-10.5129).epsilon(prec));
+    REQUIRE(tice[1] == Approx(-9.00726).epsilon(prec));
+    REQUIRE(tice[2] == Approx(-8.20454).epsilon(prec));
+//    REQUIRE(qic[0] == Approx(44.4839).epsilon(prec));
 }
 }
