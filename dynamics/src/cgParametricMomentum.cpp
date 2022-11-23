@@ -287,7 +287,7 @@ void CGParametricMomentum<CG, DGstress>::prepareIteration(const DGVector<DG>& H,
     cg_D = cg_D.cwiseMin(1.0);
     cg_D = cg_D.cwiseMax(0.0);
 }
-
+/*
 template <int CG, int DGstress>
 template <int DG>
 void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
@@ -324,8 +324,8 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
 
     Nextsim::GlobalTimer.start("time loop - meb - update");
 
-    /* This is Hunke and Dukowicz's solution to (22), multiplied
-     * with (\Delta t/m)^2 to ensure stability for c' = 0 */
+    // This is Hunke and Dukowicz's solution to (22), multiplied
+    // with (\Delta t/m)^2 to ensure stability for c' = 0 
     double const cos_ocean_turning_angle = std::cos(params.ocean_turning_angle * M_PI / 180.);
     double const sin_ocean_turning_angle = std::sin(params.ocean_turning_angle * M_PI / 180.);
 #pragma omp parallel for
@@ -340,22 +340,22 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
         // FIXME: Need the grounding term: tau_b = C_bu[i]/(std::hypot(uice,vice)+u0);
         double const tau_b = 0.;
         double const alpha = 1. + dte_over_mass * (c_prime * cos_ocean_turning_angle + tau_b);
-        /* FIXME: We need latitude here. Then this becomes:
-         * double const beta   = dt_mom*params.fc +
-         * dte_over_mass*c_prime*std::copysign(sin_ocean_turning_angle, lat[i]); */
+         // FIXME: We need latitude here. Then this becomes:
+         // double const beta   = dt_mom*params.fc +
+         // dte_over_mass*c_prime*std::copysign(sin_ocean_turning_angle, lat[i]); 
         double const beta = dt_mom * params.fc + dte_over_mass * c_prime * sin_ocean_turning_angle;
         double const rdenom = 1. / (alpha * alpha + beta * beta);
 
         double const tau_x = params.F_atm * ax(i)
             + c_prime * (ox(i) * cos_ocean_turning_angle - oy(i) * sin_ocean_turning_angle);
-        /* FIXME: Need latitude here. Then This becomes:
-         * + c_prime*( ox(i)*cos_ocean_turning_angle - oy(i)*std::copysign(sin_ocean_turning_angle,
-         * lat[i]) ); */
+        // FIXME: Need latitude here. Then This becomes:
+         // + c_prime*( ox(i)*cos_ocean_turning_angle - oy(i)*std::copysign(sin_ocean_turning_angle,
+         // lat[i]) ); 
         double const tau_y = params.F_atm * ay(i)
             + c_prime * (oy(i) * cos_ocean_turning_angle + ox(i) * sin_ocean_turning_angle);
-        /* FIXME: Need latitude here. Then This becomes:
-         * + c_prime*( oy(i)*cos_ocean_turning_angle + ox(i)*std::copysign(sin_ocean_turning_angle,
-         * lat[i]) ); */
+        // FIXME: Need latitude here. Then This becomes:
+        // + c_prime*( oy(i)*cos_ocean_turning_angle + ox(i)*std::copysign(sin_ocean_turning_angle,
+        // lat[i]) ); 
 
         // We need to divide the gradient terms with the lumped mass matrix term
         double const grad_x = tmpx(i) / lumpedcgmass(i);
@@ -379,6 +379,108 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;   
 }
+*/
+template <int CG, int DGstress>
+template <int DG>
+void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
+    const size_t NT_meb, double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A,
+    DGVector<DG>& D)
+{
+
+    double dt_mom = dt_adv / NT_meb;
+
+    Nextsim::GlobalTimer.start("time loop - meb - strain");
+    //! Compute Strain Rate
+    ProjectCGVelocityToDGStrain();
+    Nextsim::GlobalTimer.stop("time loop - meb - strain");
+
+    Nextsim::GlobalTimer.start("time loop - meb - stress");
+    // TODO compute stress update with precomputed transformations
+    Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    Nextsim::GlobalTimer.stop("time loop - meb - stress");
+
+    Nextsim::GlobalTimer.start("time loop - meb - update");
+    //! Update
+    Nextsim::GlobalTimer.start("time loop - meb - update1");
+
+    //	    update by a loop.. implicit parts and h-dependent
+#pragma omp parallel for
+    for (int i = 0; i < vx.rows(); ++i) {
+
+        double absatm = sqrt(ax(i)*ax(i)+ay(i)*ay(i));
+        
+        double absocn = sqrt(SQR(vx(i)-ox(i)) + SQR(vy(i)-oy(i)));
+        
+        double corsurf_x = vx(i) - ox(i);
+        double corsurf_y = vy(i) - oy(i);
+
+        vx(i) = (1.0
+            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+                + cg_A(i) * params.F_ocean
+                    * absocn ) // implicit parts
+            * (params.rho_ice * cg_H(i) / dt_mom * vx(i)
+                + cg_A(i) * (params.F_atm * absatm * ax(i) + // atm forcing
+                      params.F_ocean * absocn * ox(i)) // ocean forcing
+                + params.rho_ice * cg_H(i) * params.fc
+                    * ( corsurf_y ) // cor + surface
+                ));
+        vy(i) = (1.0
+            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+                + cg_A(i) * params.F_ocean
+                    * absocn ) // implicit parts
+            * (params.rho_ice * cg_H(i) / dt_mom * vy(i)
+                + cg_A(i) * (params.F_atm * absatm * ay(i) + // atm forcing
+                      params.F_ocean * absocn * oy(i)) // ocean forcing
+                + params.rho_ice * cg_H(i) * params.fc
+                    * (  corsurf_x )));
+    }
+    Nextsim::GlobalTimer.stop("time loop - meb - update1");
+
+    Nextsim::GlobalTimer.start("time loop - meb - update2");
+    // Implicit etwas ineffizient
+#pragma omp parallel for
+    for (int i = 0; i < tmpx.rows(); ++i)
+        tmpx(i) = tmpy(i) = 0;
+
+    Nextsim::GlobalTimer.start("time loop - meb - update2 -stress");
+    // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
+    AddStressTensor(-1.0, tmpx, tmpy);
+    Nextsim::GlobalTimer.stop("time loop - meb - update2 -stress");
+
+#pragma omp parallel for
+    for (int i = 0; i < vx.rows(); ++i) {
+        
+        double absocn = sqrt(SQR(vx(i)-ox(i)) + SQR(vy(i)-oy(i)));
+
+        vx(i) += (1.0
+                     / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+                         + cg_A(i) * params.F_ocean
+                             * absocn ) // implicit parts
+                     * tmpx(i))
+            / lumpedcgmass(i);
+        ;
+
+        vy(i) += (1.0
+                     / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+                         + cg_A(i) * params.F_ocean
+                             * absocn ) // implicit parts
+                     * tmpy(i))
+            / lumpedcgmass(i);
+        ;
+    }
+    Nextsim::GlobalTimer.stop("time loop - meb - update2");
+    Nextsim::GlobalTimer.stop("time loop - meb - update");
+
+    Nextsim::GlobalTimer.start("time loop - meb - bound.");
+    DirichletZero();
+    Nextsim::GlobalTimer.stop("time loop - meb - bound.");
+
+    avg_vx += vx/NT_meb;
+    avg_vy += vy/NT_meb;
+}
+
+
 // --------------------------------------------------
 
 template class CGParametricMomentum<1, 3>;

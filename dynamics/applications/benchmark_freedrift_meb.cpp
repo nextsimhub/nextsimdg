@@ -112,7 +112,8 @@ template <int CG, int DGadvection, int DGstress> void run_benchmark(const std::s
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
 
     //! define the time mesh
-    constexpr double dt_adv = 120.0; //!< Time step of advection problem
+    //constexpr double dt_adv = 120.0; //!< Time step of advection problem
+    constexpr double dt_adv = 6; //!< Time step of advection problem
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t NT_meb = 100; //!< Momentum substeps
