@@ -16,6 +16,8 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IFreezingPointModule.hpp"
+#include "include/IAtmosphereBoundary.hpp"
+#include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
@@ -55,12 +57,7 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
             registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
             registerProtectedArray(ProtectedArray::C_ICE, &cice0);
             registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
-            registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-            registerProtectedArray(ProtectedArray::SST, &sst);
-            registerProtectedArray(ProtectedArray::SSS, &sss);
-            registerProtectedArray(ProtectedArray::TF, &tf);
-            registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
 
             registerSharedArray(SharedArray::H_ICE, &hice);
@@ -74,12 +71,7 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
             cice0[0] = 0.5;
             hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
             hsnow0[0] = 0.01 / cice0[0];
-            snow[0] = 0.00;
             sw_in[0] = -10.1675; // Net shortwave flux from incident 50 W/m^2
-            sst[0] = -1;
-            sss[0] = 32.;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            mlbhc[0] = 4.29151e7;
             tice0[0] = -1;
             tice0[1] = -1;
             tice0[2] = -1;
@@ -94,12 +86,7 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
         HField hice0;
         HField cice0;
         HField hsnow0;
-        HField snow;
         HField sw_in;
-        HField sst;
-        HField sss;
-        HField tf;
-        HField mlbhc; // Mixed layer bulk heat capacity
         ZField tice0;
         ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> tice; // From IIceThermodynamics
 
@@ -109,33 +96,39 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
-    } atmoState;
-    atmoState.setData(ModelState().data);
+    } initCond;
+    initCond.setData(ModelState().data);
 
-    class FluxData : public IFluxCalculation {
+    class OceanState : public IOceanBoundary {
     public:
-        FluxData()
-            : IFluxCalculation()
+        void setData(const ModelState::DataMap& ms) override
         {
-        }
-        std::string getName() const override { return "FluxData"; }
-
-        void setData(const ModelState::DataMap&) override
-        {
-            qow[0] = -109.923;
+            IOceanBoundary::setData(ms);
+            sst[0] = -1;
+            sss[0] = 32.;
+            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
+            cpml[0] = 4.29151e7;
             qio[0]
                 = 53717.8; // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
+        }
+        void updateBefore(const TimestepTime& tst) override { }
+        void updateAfter(const TimestepTime& tst) override { }
+    } oceanData;
+    oceanData.setData(ModelState().data);
+
+    class AtmosphereState : public IAtmosphereBoundary {
+    public:
+        void setData(const ModelState::DataMap& ms) override
+        {
+            IAtmosphereBoundary::setData(ms);
+            snow[0] = 0.00;
+            qow[0] = -109.923;
             qia[0] = -84.5952;
             dqia_dt[0] = 19.7016;
             subl[0] = -7.3858e-06;
         }
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
-
-        void update(const TimestepTime&) override { }
-    } fluxData;
-    fluxData.setData(ModelState().data);
+    } atmosState;
+    atmosState.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
@@ -185,10 +178,6 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
             registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-            registerProtectedArray(ProtectedArray::SST, &sst);
-            registerProtectedArray(ProtectedArray::SSS, &sss);
-            registerProtectedArray(ProtectedArray::TF, &tf);
-            registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
 
             registerSharedArray(SharedArray::H_ICE, &hice);
@@ -205,10 +194,6 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
             hsnow0[0] = 0.01 / cice0[0];
             snow[0] = 1e-3;
             sw_in[0] = 0;
-            sst[0] = -1.75;
-            sss[0] = 32.;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            mlbhc[0] = 4.29151e7;
             tice0[0] = -9.;
             tice0[1] = -9.;
             tice0[2] = -9.;
@@ -225,10 +210,6 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
         HField hsnow0;
         HField snow;
         HField sw_in;
-        HField sst;
-        HField sss;
-        HField tf;
-        HField mlbhc; // Mixed layer bulk heat capacity
         ZField tice0;
         ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> tice; // From IIceThermodynamics
 
@@ -240,6 +221,22 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmoState;
     atmoState.setData(ModelState().data);
+
+    class OceanState : public IOceanBoundary {
+    public:
+        void setData(const ModelState::DataMap& ms) override
+        {
+            IOceanBoundary::setData(ms);
+            sst[0] = -1.75;
+            sss[0] = 32.;
+            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
+            cpml[0] = 4.29151e7;
+            qio[0] = 73.9465;
+        }
+        void updateBefore(const TimestepTime& tst) override { }
+        void updateAfter(const TimestepTime& tst) override { }
+    } oceanData;
+    oceanData.setData(ModelState().data);
 
     class FluxData : public IFluxCalculation {
     public:
@@ -253,7 +250,6 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
         {
 
             qow[0] = 143.266;
-            qio[0] = 73.9465;
             qia[0] = 42.2955;
             dqia_dt[0] = 16.7615;
             subl[0] = 2.15132e-6;

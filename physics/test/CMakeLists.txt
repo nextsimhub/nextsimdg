@@ -44,6 +44,7 @@ add_executable(testThermoWinton
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
     "${SourceDir}/MinimumIce.cpp"
@@ -55,6 +56,7 @@ add_executable(testThermoWinton
     )
 target_include_directories(testThermoWinton PRIVATE
     "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
