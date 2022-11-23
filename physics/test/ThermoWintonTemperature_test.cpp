@@ -27,11 +27,8 @@ namespace Nextsim {
 
 TEST_CASE("Melting conditions", "[ThermoWinton]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H,
-        {
-            1,
-        });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 3 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -238,30 +235,19 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
     } oceanData;
     oceanData.setData(ModelState().data);
 
-    class FluxData : public IFluxCalculation {
+    class AtmosphereState : public IAtmosphereBoundary {
     public:
-        FluxData()
-            : IFluxCalculation()
+        void setData(const ModelState::DataMap& ms) override
         {
-        }
-        std::string getName() const override { return "FluxData"; }
-
-        void setData(const ModelState::DataMap&) override
-        {
-
+            IAtmosphereBoundary::setData(ms);
+            snow[0] = 0.00;
             qow[0] = 143.266;
             qia[0] = 42.2955;
             dqia_dt[0] = 16.7615;
             subl[0] = 2.15132e-6;
         }
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
-
-        void update(const TimestepTime&) override { }
-    } fluxData;
-
-    fluxData.setData(ModelState().data);
+    } atmosState;
+    atmosState.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
