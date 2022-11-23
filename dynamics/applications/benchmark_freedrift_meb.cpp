@@ -68,7 +68,7 @@ public:
     double operator()(double x, double y) const
     {
         if (x > 100.e3 && x < 200.e3 && y > 100.e3 && y < 200.e3) {
-            return (1.0 - exp(-0.2e-7 * (x - 150000.0) * (x - 150000.0)))
+            return 0.01*(1.0 - exp(-0.2e-7 * (x - 150000.0) * (x - 150000.0)))
                 * (1.0 - exp(-0.2e-7 * (y - 150000.0) * (y - 150000.0)));
         } else {
             return 0.;
