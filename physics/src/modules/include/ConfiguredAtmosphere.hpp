@@ -10,24 +10,25 @@
 
 #include "IAtmosphereBoundary.hpp"
 
+#include "include/IFluxCalculation.hpp"
+
 namespace Nextsim {
 
 //! A class to provide constant atmospheric forcings that can be configured at run time.
 class ConfiguredAtmosphere : public IAtmosphereBoundary, public Configured<ConfiguredAtmosphere> {
 public:
-    ConfiguredAtmosphere() = default;
+    ConfiguredAtmosphere();
     ~ConfiguredAtmosphere() = default;
 
     enum {
-        QIA_KEY,
-        DQIA_DT_KEY,
-        QOW_KEY,
-        SUBL_KEY,
+        TAIR_KEY,
+        TDEW_KEY,
+        PAIR_KEY,
+        SW_KEY,
+        LW_KEY,
         SNOW_KEY,
         RAIN_KEY,
-        EVAP_KEY,
-        WINDU_KEY,
-        WINDV_KEY,
+        WIND_KEY,
     };
 
     void setData(const ModelState::DataMap&) override;
@@ -37,20 +38,27 @@ public:
 
     void configure() override;
 
-protected:
-    //! Performs the implementation specific updates. Does nothing.
-    void update(const TimestepTime&) override { }
+    //! Calculates the fluxes from the given values
+    void update(const TimestepTime&) override;
 
 private:
-    static double qia0;
-    static double dqia_dt0;
-    static double qow0;
-    static double subl0;
+    static double tair0;
+    static double tdew0;
+    static double pair0;
+    static double sw0;
+    static double lw0;
     static double snowfall0;
     static double rain0;
-    static double evap0;
-    static double u0;
-    static double v0;
+    static double windspeed0;
+
+    HField tair;
+    HField tdew;
+    HField pair;
+    HField sw_in;
+    HField lw_in;
+    HField wind;
+
+    IFluxCalculation* fluxImpl;
 };
 
 } /* namespace Nextsim */

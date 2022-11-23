@@ -26,8 +26,8 @@ namespace Nextsim {
 
 TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -144,23 +144,32 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     } iceState;
     iceState.setData(ModelState().data);
 
+    HField qow;
+    qow.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+
+    HField qia;
+    qia.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+
+    HField dqia_dt;
+    dqia_dt.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+
+    HField subl;
+    subl.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
-    FiniteElementFluxCalc fefc;
-    fefc.configure();
-    fefc.setData(ModelState().data);
+    FiniteElementFluxes fef;
+    fef.configure();
+    fef.setData(ModelState().data);
     ocnBdy.updateBefore(tst);
-    fefc.update(tst);
-
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore, RO> qow(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::Q_IO, MARBackingStore, RO> qio(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::Q_IA, MARBackingStore, RO> qia(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::DQIA_DT, MARBackingStore, RO> dqia_dt(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::SUBLIM, MARBackingStore, RO> subl(ModelComponent::getSharedArray());
+    fef.update(tst);
 
     double prec = 1e-5;
     REQUIRE(qow[0] == Approx(-109.923).epsilon(prec));
-    REQUIRE(qio[0] == Approx(53717.8).epsilon(prec));
     REQUIRE(qia[0] == Approx(-84.5952).epsilon(prec));
     REQUIRE(dqia_dt[0] == Approx(19.7016).epsilon(prec));
     REQUIRE(subl[0] == Approx(-7.3858e-06).epsilon(prec));
@@ -168,8 +177,8 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 
 TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -286,23 +295,32 @@ TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
     } iceState;
     iceState.setData(ModelState().data);
 
+    HField qow;
+    qow.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+
+    HField qia;
+    qia.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+
+    HField dqia_dt;
+    dqia_dt.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+
+    HField subl;
+    subl.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
-    FiniteElementFluxCalc fefc;
-    fefc.configure();
+    FiniteElementFluxes fef;
+    fef.configure();
     ocnBdy.updateBefore(tst);
-    fefc.setData(ModelState().data);
-    fefc.update(tst);
-
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore, RO> qow(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::Q_IO, MARBackingStore, RO> qio(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::Q_IA, MARBackingStore, RO> qia(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::DQIA_DT, MARBackingStore, RO> dqia_dt(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::SUBLIM, MARBackingStore, RO> subl(ModelComponent::getSharedArray());
+    fef.setData(ModelState().data);
+    fef.update(tst);
 
     double prec = 1e-5;
     REQUIRE(qow[0] == Approx(143.266).epsilon(prec));
-    REQUIRE(qio[0] == Approx(73.9465).epsilon(prec));
     REQUIRE(qia[0] == Approx(42.2955).epsilon(prec));
     REQUIRE(dqia_dt[0] == Approx(16.7615).epsilon(prec));
     REQUIRE(subl[0] == Approx(2.15132e-6).epsilon(prec));

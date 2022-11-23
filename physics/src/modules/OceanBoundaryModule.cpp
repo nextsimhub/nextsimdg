@@ -9,17 +9,20 @@
 
 #include "include/ConstantOceanBoundary.hpp"
 #include "include/ConfiguredOcean.hpp"
+#include "include/FluxConfiguredOcean.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string CONSTANTOCEANBOUNDARY = "Nextsim::ConstantOceanBoundary";
 const std::string CONFIGUREDOCEAN = "Nextsim::ConfiguredOcean";
+const std::string FLUXCONFIGUREDOCEAN = "Nextsim::FluxConfiguredOcean";
 
 template <>
 Module<Nextsim::IOceanBoundary>::map Module<Nextsim::IOceanBoundary>::functionMap = {
     { CONSTANTOCEANBOUNDARY, newImpl<Nextsim::IOceanBoundary, Nextsim::ConstantOceanBoundary> },
     { CONFIGUREDOCEAN, newImpl<Nextsim::IOceanBoundary, Nextsim::ConfiguredOcean> },
+    { FLUXCONFIGUREDOCEAN, newImpl<Nextsim::IOceanBoundary, Nextsim::FluxConfiguredOcean> },
 };
 
 template <>
@@ -41,6 +44,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IOceanBoundary>(HelpMap& map, boo
         ConfigType::MODULE, { CONSTANTOCEANBOUNDARY, CONFIGUREDOCEAN }, CONSTANTOCEANBOUNDARY, "",
         "Classes providing the oceanic inputs into the ice physics." });
     Nextsim::ConfiguredOcean::getHelpRecursive(map, getAll);
+    Nextsim::FluxConfiguredOcean::getHelpRecursive(map, getAll);
     return map;
 }
 template <> Nextsim::IOceanBoundary& getImplementation<Nextsim::IOceanBoundary>()

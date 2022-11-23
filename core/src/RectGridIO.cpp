@@ -50,7 +50,7 @@ void dimensionSetter(
     const netCDF::NcGroup& dataGroup, const std::string& fieldName, ModelArray::Type type)
 {
     size_t nDims = dataGroup.getVar(fieldName).getDimCount();
-    ModelArray::Dimensions dims;
+    ModelArray::MultiDim dims;
     dims.resize(nDims);
     for (size_t d = 0; d < nDims; ++d) {
         dims[d] = dataGroup.getVar(fieldName).getDim(d).getSize();

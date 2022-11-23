@@ -22,6 +22,7 @@ set(BaseSources
     "NetcdfMetadataConfiguration.cpp"
     "PrognosticData.cpp"
     "Time.cpp"
+    "${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
@@ -62,4 +63,5 @@ set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"
     "${ModuleDir}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${ModelArrayStructure}"
     PARENT_SCOPE)
