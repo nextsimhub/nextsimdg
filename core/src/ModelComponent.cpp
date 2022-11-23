@@ -16,10 +16,7 @@ ModelArray* ModelComponent::p_oceanMaskH = nullptr;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
 
-ModelComponent::ModelComponent()
-{
-    noLandMask();
-}
+ModelComponent::ModelComponent() { noLandMask(); }
 
 void ModelComponent::setAllModuleData(const ModelState& stateIn)
 {
