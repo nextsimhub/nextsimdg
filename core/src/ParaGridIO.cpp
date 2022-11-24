@@ -110,6 +110,38 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::readForcingTime(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
+    netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
+    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
+
+    ModelState state;
+
+    // Read the time axis
+
+    // Calculate the index of the largest time value on the axis below our target
+    size_t targetTIndex;
+
+    // ASSUME all forcings are HFields: finite volume fields on the same
+    // grid as ice thickness
+    std::vector<size_t> indexArray = {targetTIndex};
+    std::vector<size_t> extentArray = {1};
+
+    // Loop over the dimensions of H. These
+    for (auto dimension : ModelArray::typeDimensions.at(ModelArray::Type::H))
+    {
+        indexArray.push_back(0);
+        extentArray.push_back(ModelArray::definedDimensions.at(dimension).length);
+    }
+
+
+    for (const std::string& varName : forcings) {
+        netCDF::NcVar& var = dataGroup.getVar(varName);
+        state.data[varName] = ModelArray(ModelArray::Type::H);
+        ModelArray& data = state.data.at(varName);
+        data.resize();
+
+        var.getVar(indexArray, extentArray, &data[0]);
+    }
     return ModelState();
 }
 
