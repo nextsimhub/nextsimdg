@@ -9,16 +9,19 @@
 
 #include "include/DevGrid.hpp"
 #include "include/RectangularGrid.hpp"
+#include "include/ParametricGrid.hpp"
 
 namespace Module {
 
 const std::string DEV_GRID = "DevGrid";
 const std::string RECT_GRID = "RectangularGrid";
+const std::string PARAMETRICGRID = "ParametricGrid";
 
 template <>
 Module<Nextsim::IStructure>::map Module<Nextsim::IStructure>::functionMap = {
     { DEV_GRID, newImpl<Nextsim::IStructure, Nextsim::DevGrid> },
     { RECT_GRID, newImpl<Nextsim::IStructure, Nextsim::RectangularGrid> },
+    { PARAMETRICGRID, newImpl<Nextsim::IStructure, Nextsim::ParametricGrid> },
 };
 template <>
 Module<Nextsim::IStructure>::fn Module<Nextsim::IStructure>::spf = functionMap.at(DEV_GRID);

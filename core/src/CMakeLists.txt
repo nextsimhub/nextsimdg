@@ -13,6 +13,7 @@ set(BaseSources
     "CommonRestartMetadata.cpp"
     "DevGridIO.cpp"
     "RectGridIO.cpp"
+    "ParaGridIO.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
     "MissingData.cpp"
@@ -32,6 +33,7 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 set(StructureModuleSources
     "DevGrid.cpp"
     "RectangularGrid.cpp"
+    "ParametricGrid.cpp"
     "IStructureModule.cpp"
     )
 

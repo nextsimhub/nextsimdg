@@ -22,7 +22,7 @@ namespace Nextsim {
 inline constexpr double SQR(double x) { return x * x; }
 
 /*!
- * Stores the spacial mesh of the domain.
+ * Stores the spatial mesh of the domain.
  *
  * The mesh has a structured topology with nelements = nx * ny elements
  * and nnodes = (nx+1) * (ny+1) nodes.
@@ -37,6 +37,8 @@ inline constexpr double SQR(double x) { return x * x; }
  */
 
 typedef std::array<double, 2> Vertex;
+
+class ModelArray;
 
 class ParametricMesh {
 public:
@@ -57,6 +59,17 @@ public:
     {
     }
 
+    ParametricMesh(size_t nx, size_t ny, Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> verticesIn, int loglevel = 1)
+        : statuslog(loglevel)
+        , nx(nx)
+        , ny(ny)
+        , nelements(nx * ny)
+        , nnodes((nx + 1) * (ny + 1))
+    {
+        std::cerr << "verticesIn is " << verticesIn.rows() << "x" << verticesIn.cols() << std::endl;
+        vertices.resize(nnodes, 2);
+        vertices = verticesIn;
+    }
     /*!
      * Reads mesh from a .smesh - file
      *
