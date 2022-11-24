@@ -38,24 +38,36 @@ public:
     ModelState getModelState(const std::string& filePath) override;
 
     /*!
-     * @brief Writes the ModelState to a given file location.
-     *
-     * @details Writes restart (isRestart true) or diagnostic (isRestart false)
-     * output files from the provided model data and metadata. Restart files
-     * contain a fixed set of fields without a time axis. Diagnostic files
-     * output all provided fields and have a time axis to output data
-     * throughout the model run.
+     * @brief Writes the ModelState to a given file location from the provided
+     * model data and metadata.
      *
      * @params state The model state and configuration object.
      * @params metadata The model metadata (principally the initial file
      * creation model time).
-     * @params filePath The path to output the data to. Identifies the output
-     * stream for adding later time samples of the data fields.
-     * @params isRestart Whether the file is a restart file or a diagnostic
-     * output file.
+     * @params filePath The path for the restart file.
      */
-    void dumpModelState(const ModelState& state, const ModelMetadata& meta,
-        const std::string& filePath, bool isRestart) override;
+    void dumpModelState(
+        const ModelState& state, const ModelMetadata& meta, const std::string& filePath) override;
+
+    /*!
+     * @brief Reads forcings from a ParameticGrid flavoured file.
+     *
+     * @param forcings The names of the forcings required.
+     * @param time The time for which to get the forcings.
+     * @param filePath Path to the file to read.
+     */
+    ModelState readForcingTime(
+        const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath) override;
+
+    /*!
+     * @brief Writes diagnostic data to a file.
+     *
+     * @param state The state to write to the file.
+     * @param time The time of the passed data.
+     * @param filePath Path of the file to write to.
+     */
+    void writeDiagnosticTime(
+        const ModelState& state, const ModelMetadata& meta, const std::string& filePath) override;
 
     /*!
      * Closes an open diagnostic file. Does nothing when provided with a

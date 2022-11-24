@@ -12,6 +12,8 @@
 
 #include "include/ModelState.hpp"
 
+#include <set>
+
 namespace Nextsim {
 
 class ParaGridIO;
@@ -37,15 +39,23 @@ public:
         return pio ? pio->getModelState(filePath) : ModelState();
     }
 
-    void dumpModelState(
-        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart = false) const override
+    void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+        const std::string& filePath, bool isRestart = false) const override
     {
-        if (pio)
-            pio->dumpModelState(state, metadata, filePath, isRestart);
+        if (pio) {
+            if (isRestart) {
+                pio->dumpModelState(state, metadata, filePath);
+            } else {
+                pio->writeDiagnosticTime(state, metadata, filePath);
+            }
+        }
     }
     const std::string& structureType() const override { return structureName; };
 
-    int nIceLayers() const override { return ModelArray::definedDimensions.at(ModelArray::Dimension::Z).length; };
+    int nIceLayers() const override
+    {
+        return ModelArray::definedDimensions.at(ModelArray::Dimension::Z).length;
+    };
 
     class IParaGridIO {
     public:
@@ -56,8 +66,15 @@ public:
         virtual ~IParaGridIO() = default;
 
         virtual ModelState getModelState(const std::string& filePath) = 0;
-        virtual void dumpModelState(const ModelState& state,
-            const ModelMetadata& metadata, const std::string& filePath, bool isRestart) = 0;
+        virtual void dumpModelState(
+            const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
+            = 0;
+        virtual ModelState readForcingTime(const std::set<std::string>& forcings,
+            const TimePoint& time, const std::string& filePath)
+            = 0;
+        virtual void writeDiagnosticTime(
+            const ModelState& state, const ModelMetadata& meta,const std::string& filePath)
+            = 0;
 
     protected:
         IParaGridIO() = delete;

@@ -222,7 +222,7 @@ void run_benchmark(const std::string meshfile)
     Nextsim::ModelMetadata metadata;
     metadata.setTime(Nextsim::TimePoint("2000-01-01T00:00:00Z"));
 
-    readIO->dumpModelState(state, metadata, diagFile, false);
+    readIO->writeDiagnosticTime(state, metadata, diagFile);
 
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
@@ -319,7 +319,7 @@ void run_benchmark(const std::string meshfile)
             }, {}
             };
 
-            readIO->dumpModelState(state, metadata, diagFile, false);
+            readIO->writeDiagnosticTime(state, metadata, diagFile);
 
         }
     }
