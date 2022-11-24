@@ -58,7 +58,8 @@ public:
         C_atm = 1.2e-3; //!< Air drag coefficient
         C_ocean = 5.5e-3; //!< Ocean drag coefficient
         ocean_turning_angle = 25.; //!< Ocean turning angle
-
+        ocean_turning_angle = 0.0;
+    
         F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
         F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 

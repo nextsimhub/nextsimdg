@@ -68,7 +68,7 @@ public:
     double operator()(double x, double y) const
     {
         if (x > 100.e3 && x < 200.e3 && y > 100.e3 && y < 200.e3) {
-            return (1.0 - exp(-0.2e-7 * (x - 150000.0) * (x - 150000.0)))
+            return 0.01*(1.0 - exp(-0.2e-7 * (x - 150000.0) * (x - 150000.0)))
                 * (1.0 - exp(-0.2e-7 * (y - 150000.0) * (y - 150000.0)));
         } else {
             return 0.;
@@ -112,8 +112,7 @@ template <int CG, int DGadvection, int DGstress> void run_benchmark(const std::s
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
 
     //! define the time mesh
-    //constexpr double dt_adv = 120.0; //!< Time step of advection problem
-    constexpr double dt_adv = 6; //!< Time step of advection problem
+    constexpr double dt_adv = 120.0; //!< Time step of advection problem
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t NT_meb = 100; //!< Momentum substeps
