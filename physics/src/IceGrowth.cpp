@@ -90,10 +90,7 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
     return os ? state : ModelState();
 }
 
-IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
-{
-    return map;
-}
+IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll) { return map; }
 IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
