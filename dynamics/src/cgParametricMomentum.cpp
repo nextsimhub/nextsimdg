@@ -381,7 +381,7 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
     avg_vy += vy/NT_meb;   
 }
 
-/*
+#if 0
 template <int CG, int DGstress>
 template <int DG>
 void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
@@ -471,7 +471,7 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;
 }
-//*/
+#endif
 
 // --------------------------------------------------
 
