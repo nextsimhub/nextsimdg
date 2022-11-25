@@ -206,6 +206,14 @@ std::istream& Duration::parse(std::istream& is)
     return is;
 }
 
+Duration::Duration(double seconds)
+{
+    // TODO assign directly without going through a textual representation.
+    std::stringstream ss;
+    ss << "P0-0T0:0:" << seconds;
+    parse(ss);
+}
+
 TimePoint Duration::operator+(const TimePoint& t) const { return t + *this; }
 
 std::tm* TimePoint::gmtime() const
