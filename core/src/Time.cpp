@@ -208,10 +208,8 @@ std::istream& Duration::parse(std::istream& is)
 
 Duration::Duration(double seconds)
 {
-    // TODO assign directly without going through a textual representation.
-    std::stringstream ss;
-    ss << "P0-0T0:0:" << seconds;
-    parse(ss);
+    std::chrono::duration<double> sec(seconds);
+    m_d = std::chrono::duration_cast<Basis>(sec);
 }
 
 TimePoint Duration::operator+(const TimePoint& t) const { return t + *this; }

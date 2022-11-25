@@ -205,6 +205,24 @@ TEST_CASE("Durations", "[Duration]")
 
     Duration tenSeconds(10.);
     REQUIRE(tenSeconds.seconds() == 10);
+
+    Duration hundredSeconds(100.);
+    REQUIRE(hundredSeconds.seconds() == 100);
+
+    Duration thousandSeconds(1000.);
+    REQUIRE(thousandSeconds.seconds() == 1000);
+
+    Duration anHour(3600.);
+    REQUIRE(anHour.seconds() == 3600);
+
+    Duration myriadSeconds(1e4);
+    REQUIRE(myriadSeconds.seconds() == 10000);
+
+    Duration aDay(daySeconds);
+    REQUIRE(aDay.seconds() == daySeconds);
+
+
+
 }
 
 TEST_CASE("gmtime and doy", "[TimePoint]") {
