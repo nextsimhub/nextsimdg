@@ -118,22 +118,30 @@ ModelState ParaGridIO::readForcingTime(
 
     // Read the time axis
     netCDF::NcDim timeDim = dataGroup.getDim(timeName);
-
+    // Read the time variable
+    netCDF::NcVar timeVar = dataGroup.getVar(timeName);
     // Calculate the index of the largest time value on the axis below our target
     size_t targetTIndex;
-
+    // Get the time axis as a vector
+    std::vector<double> timeVec(timeDim.getSize());
+    timeVar.getVar(timeVec.data());
+    // Get the index of the largest TimePoint less than the target.
+    targetTIndex = std::find(begin(timeVec), end(timeVec), [](double t) { return t > time; })
+        - timeVec.begin();
+    // Rather than the first that is greater than, get the last that is less
+    // than or equal to. But don't go out of bounds.
+    if (targetTIndex > 0)
+        --targetTIndex;
     // ASSUME all forcings are HFields: finite volume fields on the same
     // grid as ice thickness
-    std::vector<size_t> indexArray = {targetTIndex};
-    std::vector<size_t> extentArray = {1};
+    std::vector<size_t> indexArray = { targetTIndex };
+    std::vector<size_t> extentArray = { 1 };
 
     // Loop over the dimensions of H. These
-    for (auto dimension : ModelArray::typeDimensions.at(ModelArray::Type::H))
-    {
+    for (auto dimension : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
         indexArray.push_back(0);
         extentArray.push_back(ModelArray::definedDimensions.at(dimension).length);
     }
-
 
     for (const std::string& varName : forcings) {
         netCDF::NcVar var = dataGroup.getVar(varName);
@@ -260,7 +268,7 @@ void ParaGridIO::writeDiagnosticTime(
         // Put the time axis
         netCDF::NcVar timeVar(dataGroup.getVar(timeName));
         double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
-        timeVar.putVar({nt}, {1}, &secondsSinceEpoch);
+        timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
 
         for (auto entry : state.data) {
             ModelArray::Type type = entry.second.getType();
@@ -343,7 +351,7 @@ void ParaGridIO::writeDiagnosticTime(
         std::vector<netCDF::NcDim> timeDimVec = { timeDim };
         netCDF::NcVar timeVar(dataGroup.addVar(timeName, netCDF::ncDouble, timeDimVec));
         double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
-        timeVar.putVar({0ULL}, {1ULL}, &secondsSinceEpoch);
+        timeVar.putVar({ 0ULL }, { 1ULL }, &secondsSinceEpoch);
 
         for (auto entry : state.data) {
             if (entry.first != maskName) {
