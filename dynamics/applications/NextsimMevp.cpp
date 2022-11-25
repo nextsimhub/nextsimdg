@@ -220,7 +220,8 @@ void run_benchmark(const std::string meshfile)
     };
 
     Nextsim::ModelMetadata metadata;
-    metadata.setTime(Nextsim::TimePoint("2000-01-01T00:00:00Z"));
+    Nextsim::TimePoint startTime("2000-01-01T00:00:00Z");
+    metadata.setTime(startTime);
 
     readIO->writeDiagnosticTime(state, metadata, diagFile);
 
@@ -319,6 +320,8 @@ void run_benchmark(const std::string meshfile)
             }, {}
             };
 
+            Nextsim::TimePoint nowTime(startTime + Nextsim::Duration(time));
+            metadata.setTime(nowTime);
             readIO->writeDiagnosticTime(state, metadata, diagFile);
 
         }

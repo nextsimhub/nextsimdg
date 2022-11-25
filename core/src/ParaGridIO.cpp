@@ -117,6 +117,7 @@ ModelState ParaGridIO::readForcingTime(
     ModelState state;
 
     // Read the time axis
+    netCDF::NcDim timeDim = dataGroup.getDim(timeName);
 
     // Calculate the index of the largest time value on the axis below our target
     size_t targetTIndex;
@@ -135,13 +136,14 @@ ModelState ParaGridIO::readForcingTime(
 
 
     for (const std::string& varName : forcings) {
-        netCDF::NcVar& var = dataGroup.getVar(varName);
+        netCDF::NcVar var = dataGroup.getVar(varName);
         state.data[varName] = ModelArray(ModelArray::Type::H);
         ModelArray& data = state.data.at(varName);
         data.resize();
 
         var.getVar(indexArray, extentArray, &data[0]);
     }
+    ncFile.close();
     return ModelState();
 }
 
@@ -255,6 +257,11 @@ void ParaGridIO::writeDiagnosticTime(
             extentArrays.at(entry.second).push_back(ModelArray::nComponents(entry.second));
         }
 
+        // Put the time axis
+        netCDF::NcVar timeVar(dataGroup.getVar(timeName));
+        double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
+        timeVar.putVar({nt}, {1}, &secondsSinceEpoch);
+
         for (auto entry : state.data) {
             ModelArray::Type type = entry.second.getType();
             if (entry.first == maskName || type == ModelArray::Type::VERTEX)
@@ -331,6 +338,12 @@ void ParaGridIO::writeDiagnosticTime(
             ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
                 .length
         };
+
+        // Put the time axis variable
+        std::vector<netCDF::NcDim> timeDimVec = { timeDim };
+        netCDF::NcVar timeVar(dataGroup.addVar(timeName, netCDF::ncDouble, timeDimVec));
+        double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
+        timeVar.putVar({0ULL}, {1ULL}, &secondsSinceEpoch);
 
         for (auto entry : state.data) {
             if (entry.first != maskName) {
