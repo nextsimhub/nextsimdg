@@ -57,7 +57,10 @@ public:
      * @param filePath Path to the file to read.
      */
     ModelState readForcingTime(
-        const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath) override;
+        const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath) override
+    {
+        return readForcingTimeStatic(forcings, time, filePath);
+    }
 
     /*!
      * @brief Writes diagnostic data to a file.
@@ -77,6 +80,8 @@ public:
      */
     void close(const std::string& filePath);
 
+    static ModelState readForcingTimeStatic(const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
+
 private:
     ParaGridIO() = delete;
     ParaGridIO(const ParaGridIO& other) = delete;
@@ -89,6 +94,7 @@ private:
 
     // Ensures that static variables are created in the correct order.
     static void makeDimCompMap();
+
 
     std::map<std::string, netCDF::NcFile> openFiles;
     std::map<std::string, size_t> timeIndexByFile;

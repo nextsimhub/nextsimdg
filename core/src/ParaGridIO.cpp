@@ -107,7 +107,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     return state;
 }
 
-ModelState ParaGridIO::readForcingTime(
+ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
@@ -126,7 +126,7 @@ ModelState ParaGridIO::readForcingTime(
     std::vector<double> timeVec(timeDim.getSize());
     timeVar.getVar(timeVec.data());
     // Get the index of the largest TimePoint less than the target.
-    targetTIndex = std::find(begin(timeVec), end(timeVec), [](double t) { return t > time; })
+    targetTIndex = std::find_if(begin(timeVec), end(timeVec), [time](double t) { return (TimePoint() + Duration(t)) > time; })
         - timeVec.begin();
     // Rather than the first that is greater than, get the last that is less
     // than or equal to. But don't go out of bounds.
