@@ -41,6 +41,8 @@ public:
     }
     Duration(const std::string& str) { this->parse(str); }
 
+    Duration(double seconds);
+
     TimePoint operator+(const TimePoint& t) const;
 
     Duration& operator+=(const Duration& a)

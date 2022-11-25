@@ -202,6 +202,9 @@ TEST_CASE("Durations", "[Duration]")
 
     Duration maybeADay = tt_day - tt;
     REQUIRE(maybeADay.seconds() == 1 * days);
+
+    Duration tenSeconds(10.);
+    REQUIRE(tenSeconds.seconds() == 10);
 }
 
 TEST_CASE("gmtime and doy", "[TimePoint]") {
