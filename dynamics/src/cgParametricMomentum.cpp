@@ -335,7 +335,7 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
         double const uice = vx(i);
         double const vice = vy(i);
 
-        double const c_prime = params.F_ocean * std::hypot(ox(i) - uice, oy(i) - vice);
+        double const c_prime = cg_A(i) * params.F_ocean * std::hypot(ox(i) - uice, oy(i) - vice);
 
         // FIXME: Need the grounding term: tau_b = C_bu[i]/(std::hypot(uice,vice)+u0);
         double const tau_b = 0.;
@@ -346,7 +346,7 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
         double const beta = dt_mom * params.fc + dte_over_mass * c_prime * sin_ocean_turning_angle;
         double const rdenom = 1. / (alpha * alpha + beta * beta);
 
-        double const drag_atm = params.F_atm * std::hypot(ax(i), ay(i));
+        double const drag_atm = cg_A(i) * params.F_atm * std::hypot(ax(i), ay(i));
         double const tau_x = drag_atm * ax(i)
             + c_prime * (ox(i) * cos_ocean_turning_angle - oy(i) * sin_ocean_turning_angle);
         /* FIXME: Need latitude here. Then This becomes:
