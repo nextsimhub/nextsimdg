@@ -65,16 +65,24 @@ target_include_directories(testFEFluxes PRIVATE
     )
 target_link_libraries(testFEFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
 
-add_executable(testConfiguredAtm
-    "ConfiguredAtmosphere_test.cpp"
-    "${ModulesDir}/ConfiguredAtmosphere.cpp"
+
+add_executable(testERA5Atm
+    "ERA5Atm_test.cpp"
+    "${ModulesDir}/ERA5Atmosphere.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/CommonRestartMetadata.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
-    "${CoreSourceDir}/ModelComponent.cpp"
-    "${CoreSourceDir}/MissingData.cpp"
-    "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/ModelMetadata.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/ParaGridIO.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/ParametricGrid.cpp"
     "${ModulesDir}/FiniteElementFluxes.cpp"
     "${ModulesDir}/FiniteElementSpecHum.cpp"
     "${ModulesDir}/FluxCalculationModule.cpp"
@@ -84,14 +92,16 @@ add_executable(testConfiguredAtm
     "${ModulesDir}/SMU2IceAlbedo.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
-target_include_directories(testConfiguredAtm PRIVATE
+target_include_directories(testERA5Atm PRIVATE
     "${CoreSourceDir}"
     "${CoreSourceDir}/${ModelArrayStructure}"
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testConfiguredAtm PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_directories(testERA5Atm PUBLIC "${netCDF_LIB_DIR}")
+    
+target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen "${NSDG_NetCDF_Library}")
 
 add_executable(testBIOHFluxes
     "BasicIceOceanFlux_test.cpp"
