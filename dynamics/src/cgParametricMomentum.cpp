@@ -288,6 +288,7 @@ void CGParametricMomentum<CG, DGstress>::prepareIteration(const DGVector<DG>& H,
     cg_D = cg_D.cwiseMax(0.0);
 }
 
+#if 0
 template <int CG, int DGstress>
 template <int DG>
 void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
@@ -381,7 +382,8 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
     avg_vy += vy/NT_meb;   
 }
 
-#if 0
+#else
+
 template <int CG, int DGstress>
 template <int DG>
 void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
