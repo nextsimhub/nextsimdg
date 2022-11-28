@@ -10,6 +10,8 @@
 
 #include "include/ERA5Atmosphere.hpp"
 
+#include "include/Time.hpp"
+
 namespace Nextsim {
 
 TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
@@ -18,6 +20,11 @@ TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
 
     ERA5Atmosphere e5;
     e5.setFilePath(filePath);
+
+    TimePoint t1("2000-01-01T00:00:00Z");
+    TimestepTime tst = {t1, Duration(600)};
+
+    e5.update(tst);
 }
 
 }
