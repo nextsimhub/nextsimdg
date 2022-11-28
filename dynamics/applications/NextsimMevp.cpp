@@ -24,6 +24,7 @@
 
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
+#include "include/Module.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/gridNames.hpp"
@@ -131,6 +132,8 @@ void run_benchmark(const std::string meshfile)
     Nextsim::ParametricGrid gridIn;
     Nextsim::ParaGridIO* readIO = new Nextsim::ParaGridIO(gridIn);
     gridIn.setIO(readIO);
+
+    Module::Module<Nextsim::IStructure>::setImplementation("ParametricGrid");
 
     Nextsim::ModelState state = gridIn.getModelState("nextsimMEVPstart.nc");
     size_t NX = Nextsim::ModelArray::definedDimensions.at(Nextsim::ModelArray::Dimension::X).length;
