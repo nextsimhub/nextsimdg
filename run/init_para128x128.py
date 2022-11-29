@@ -83,11 +83,30 @@ mask129 = np.zeros((nx+1, ny+1))
 for i in range(nx+1):
     mask129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), mask129x33[i, :])
 
-
 mask = datagrp.createVariable("mask", "f8", ("x", "y"))
 mask[:,:] = np.rint(mask129[:-1, :-1])
 
 antimask = 1 - mask[:,:]
+
+# Some coordinates that don't match the land mask exactly (azimuthal equidistant)
+array_size1d = 20.
+spacing1d = 2 * array_size1d / nx
+limit1d = array_size1d # even number of points + 1
+coord1d = np.linspace(-limit1d, limit1d, num=129)
+
+x_coords = np.zeros((nx + 1, ny + 1))
+y_coords = np.zeros((nx + 1, ny + 1))
+for i in range(nx + 1):
+    x_coords[:, i] = coord1d
+    y_coords[i, :] = coord1d
+    
+lat = 90 - (x_coords**2 + y_coords**2)**0.5
+lon = np.rad2deg(np.arctan2(y_coords, x_coords))
+
+coords = datagrp.createVariable("coords", "f8", ("xvertex", "yvertex", "ncoords"))
+coords[:,:,0] = lon
+coords[:,:,1] = lat
+
 cice33 = np.array(
     [[0.,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
