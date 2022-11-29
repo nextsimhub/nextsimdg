@@ -10,7 +10,7 @@ nLayers = 3
 root = netCDF4.Dataset(f"init_para{nx}x{ny}.nc", "w", format="NETCDF4")
 
 metagrp = root.createGroup("structure")
-metagrp.type = "simple_rectangular"
+metagrp.type = "parametric_rectangular"
 
 
 datagrp = root.createGroup("data")
