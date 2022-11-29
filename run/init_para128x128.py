@@ -6,18 +6,39 @@ import numpy as np
 nx = 128
 ny = 128
 nLayers = 3
+ncg = 1
+n_dg = 1
+n_dgstress = 3
+n_coords = 2
 
 root = netCDF4.Dataset(f"init_para{nx}x{ny}.nc", "w", format="NETCDF4")
 
-metagrp = root.createGroup("structure")
-metagrp.type = "parametric_rectangular"
+structure_name = "parametric_rectangular"
+structgrp = root.createGroup("structure")
+structgrp.type = structure_name
 
-
+metagrp = root.createGroup("metadata")
+metagrp.type = structure_name
+confgrp = metagrp.createGroup("configuration") # But add nothing to it
+timegrp = metagrp.createGroup("time")
+time = timegrp.createVariable("time", "i8")
+time[:] = 946684800
+time.units = "seconds since 1970-01-01T00:00:00Z"
+formatted = timegrp.createVariable("formatted", "str")
+formatted = "2000-01-01T00:00:00Z"
+formatted.format = "%Y-%m-%dT%H:%M:%SZ"
 datagrp = root.createGroup("data")
 
 xDim = datagrp.createDimension("x", nx)
 yDim = datagrp.createDimension("y", ny)
 nLay = datagrp.createDimension("nLayers", nLayers)
+xVertexDim = datagrp.createDimension("xvertex", nx + 1)
+yVertexDim = datagrp.createDimension("yvertex", ny + 1)
+xcg_dim = datagrp.createDimension("x_cg", nx * ncg + 1)
+ycg_dim = datagrp.createDimension("y_cg", ny * ncg + 1)
+dg_comp = datagrp.createDimension("dg_comp", n_dg)
+dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
+n_coords_comp = datagrp.createDimension("ncoords", n_coords)
 
 mask33 = np.array(
     [[0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -68,7 +89,7 @@ mask[:,:] = np.rint(mask129[:-1, :-1])
 
 antimask = 1 - mask[:,:]
 cice33 = np.array(
-    [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [[0.,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -120,6 +141,8 @@ hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y",))
 hsnow[:,:] = cice[:,:] / 2
 tice = datagrp.createVariable("tice", "f8", ("x", "y", "nLayers"))
 tice[:,:,0] = -0.5 - cice[:,:]
+tice[:,:,1] = -1.5 - cice[:,:]
+tice[:,:,2] = -2.5 - cice[:,:]
 
 mdi = -2.**300
 # mask data
