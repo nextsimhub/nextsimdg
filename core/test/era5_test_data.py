@@ -1,0 +1,139 @@
+import netCDF4
+import numpy as np
+
+# Creates a 128 x 128 ParaGrid-based ERA5 forcings file, but with fake data
+
+nx = 128
+ny = 128
+nLayers = 3
+ncg = 1
+n_dg = 1
+n_dgstress = 3
+n_coords = 2
+
+root = netCDF4.Dataset(f"era5_test{nx}x{ny}.nc", "w", format="NETCDF4")
+
+structure_name = "parametric_rectangular"
+structgrp = root.createGroup("structure")
+structgrp.type = structure_name
+
+metagrp = root.createGroup("metadata")
+metagrp.type = structure_name
+confgrp = metagrp.createGroup("configuration") # But add nothing to it
+timegrp = metagrp.createGroup("time")
+time = timegrp.createVariable("time", "i8")
+time[:] = 946684800
+time.units = "seconds since 1970-01-01T00:00:00Z"
+formatted = timegrp.createVariable("formatted", str)
+formatted.format = "%Y-%m-%dT%H:%M:%SZ"
+formatted[0] = "2000-01-01T00:00:00Z"
+datagrp = root.createGroup("data")
+
+xDim = datagrp.createDimension("x", nx)
+yDim = datagrp.createDimension("y", ny)
+xVertexDim = datagrp.createDimension("xvertex", nx + 1)
+yVertexDim = datagrp.createDimension("yvertex", ny + 1)
+n_coords_comp = datagrp.createDimension("ncoords", n_coords)
+
+mask33 = np.array(
+    [[0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+     [0,0,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+     [0,0,1,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+     [0,0,1,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+     [0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+     [0,0,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,1,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,0,0,0,0,0,0,0,0],
+     [0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+     [1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+     [1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+     [1,0,1,0,0,1,1,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+     [0,0,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+     [0,0,0,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0,0],
+     [1,1,0,1,1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,1,0,1,1,1,0,0,0,0,0,0],
+     [1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+     [1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+     [1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+     [1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+     [1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0],
+     [1,1,0,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0],
+     [1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
+     [1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
+     [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0]])
+# scipy isn't working? fine, I'll fake it
+mask129x33 = np.zeros((nx+1, 33))
+for i in range(33):
+    mask129x33[:, i] = np.interp(np.arange(129) / 4, np.arange(33), mask33[:, i])
+
+mask129 = np.zeros((nx+1, ny+1))
+for i in range(nx+1):
+    mask129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), mask129x33[i, :])
+
+mask = datagrp.createVariable("mask", "f8", ("x", "y"))
+mask[:,:] = np.rint(mask129[:-1, :-1])
+
+antimask = 1 - mask[:,:]
+
+# Some coordinates that don't match the land mask exactly (azimuthal equidistant)
+array_size1d = 20.
+spacing1d = 2 * array_size1d / nx
+limit1d = array_size1d # even number of points + 1
+coord1d = np.linspace(-limit1d, limit1d, num=129)
+
+x_coords = np.zeros((nx + 1, ny + 1))
+y_coords = np.zeros((nx + 1, ny + 1))
+for i in range(nx + 1):
+    x_coords[:, i] = coord1d
+    y_coords[i, :] = coord1d
+    
+lat = 90 - (x_coords**2 + y_coords**2)**0.5
+lon = np.rad2deg(np.arctan2(y_coords, x_coords))
+
+coords = datagrp.createVariable("coords", "f8", ("xvertex", "yvertex", "ncoords"))
+coords[:,:,0] = lon
+coords[:,:,1] = lat
+
+test_data1d = np.linspace(0, nx - 1, num = nx)
+units = np.zeros((nx, ny))
+thousandths = np.zeros((nx, ny))
+for i in range(nx):
+    thousandths[:, i] = test_data1d / 1000.
+    units[i, :] = test_data1d
+
+test_data = units + thousandths
+mdi = -2.**300
+
+q_swin = datagrp.createVariable("sw_in", "f8", ("x", "y"))
+q_swin[:, :] = -test_data
+q_swin.missing_value = mdi
+
+q_lwin = datagrp.createVariable("lw_in", "f8", ("x", "y"))
+q_lwin[:, :] = -200 - test_data
+q_lwin.missing_value = mdi
+
+wind = datagrp.createVariable("wind_speed", "f8", ("x", "y"))
+wind[:, :] = test_data
+wind.missing_value = mdi
+
+pmsl = datagrp.createVariable("pair", "f8", ("x", "y"))
+pmsl[:, :] = test_data + 1.01e5
+pmsl.missing_value = mdi
+
+tair = datagrp.createVariable("tair", "f8", ("x", "y"))
+tair[:, :] = 200 + test_data
+tair.missing_value = mdi
+
+tdew = datagrp.createVariable("dew2m", "f8", ("x", "y"))
+tdew[:, :] = 100 + test_data
+tdew.missing_value = mdi
+
+root.close()
