@@ -54,6 +54,32 @@ TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
     REQUIRE(wind(12, 12) == 12.012);
     REQUIRE(wind(30, 20) == 30.020);
     REQUIRE(pair(30, 20) == (1.01e5 + 30.020));
+
+    TimePoint t2("2000-02-01T00:00:00Z");
+    e5.update({t2, Duration(600)});
+
+    REQUIRE(wind(0, 0) == 0. + 100.);
+    REQUIRE(wind(12, 12) == 12.012 + 100);
+    REQUIRE(wind(30, 20) == 30.020 + 100);
+    REQUIRE(pair(30, 20) == (1.01e5 + 30.020) + 1000);
+
+    TimePoint t12("2000-12-01T00:00:00Z");
+    e5.update({t12, Duration(600)});
+
+    REQUIRE(wind(0, 0) == 0. + 100. * 11);
+    REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
+    REQUIRE(wind(30, 20) == 30.020 + 100 * 11);
+    REQUIRE(pair(30, 20) == (1.01e5 + 30.020) + 1000 * 11);
+
+    // All times after the last time sample should use the last sample's data
+    TimePoint t120("2010-01-01T00:00:00Z");
+    e5.update({t120, Duration(600)});
+
+    REQUIRE(wind(0, 0) == 0. + 100. * 11);
+    REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
+    REQUIRE(wind(30, 20) == 30.020 + 100 * 11);
+    REQUIRE(pair(30, 20) == (1.01e5 + 30.020) + 1000 * 11);
+
 }
 
 }
