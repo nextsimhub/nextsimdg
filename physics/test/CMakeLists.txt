@@ -92,6 +92,7 @@ add_executable(testERA5Atm
     "${ModulesDir}/SMU2IceAlbedo.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
+target_compile_definitions(testERA5Atm PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(testERA5Atm PRIVATE
     "${CoreSourceDir}"
     "${CoreSourceDir}/${ModelArrayStructure}"
@@ -123,6 +124,7 @@ add_executable(testTOPAZOcn
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
+target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(testTOPAZOcn PRIVATE
     "${CoreSourceDir}"
     "${CoreSourceDir}/${ModelArrayStructure}"

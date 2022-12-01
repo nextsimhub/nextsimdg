@@ -14,11 +14,22 @@
 #include "include/ModelArrayRef.hpp"
 #include "include/Time.hpp"
 
+#include <filesystem>
+
+#define TO_STR(s) TO_STRI(s)
+#define TO_STRI(s) #s
+#ifndef TEST_FILE_SOURCE
+#define TEST_FILE_SOURCE .
+#endif
+
 namespace Nextsim {
 
 TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
 {
     std::string filePath = "topaz_test128x128.nc";
+    std::string sourceDir = TO_STR(TEST_FILE_SOURCE);
+    // Copy the test file from the test source directory to the working directory
+    std::filesystem::copy(sourceDir + "/" + filePath, ".");
 
     // In the real model, the array sizes will have been set by the restart file by this point
     size_t nx = 128;
@@ -82,6 +93,8 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
     REQUIRE(sst(32, 32) == -0.032032 - 11);
     REQUIRE(sst(45, 35) == -0.045035 - 11);
     REQUIRE(mld(45, 35) == 10.045035 + 11);
+
+    std::filesystem::remove(filePath);
 }
 
 }
