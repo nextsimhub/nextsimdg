@@ -12,7 +12,10 @@
 
 #include "include/IFluxCalculation.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/Module.hpp"
 #include "include/Time.hpp"
+
+#include <memory>
 
 namespace Nextsim {
 
@@ -32,19 +35,39 @@ TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex);
 
     ERA5Atmosphere e5;
-    e5.setFilePath(filePath);
-
-    ModelArrayRef<ModelComponent::ProtectedArray::T_AIR, MARConstBackingStore> tair(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::DEW_2M, MARConstBackingStore> tdew(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::P_AIR, MARConstBackingStore> pair(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::SW_IN, MARConstBackingStore> qswin(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::LW_IN, MARConstBackingStore> qlwin(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::WIND_SPEED, MARConstBackingStore> wind(ModelComponent::getProtectedArray());
-
-    TimePoint t1("2000-01-01T00:00:00Z");
-    TimestepTime tst = {t1, Duration(600)};
 
     // Null flux calculation
+    class NullFlux : public IFluxCalculation {
+    public:
+        NullFlux()
+            : IFluxCalculation()
+        {
+        }
+        void update(const TimestepTime&) override { }
+
+    } nullFlux;
+
+    Module::Module<IFluxCalculation>::setExternalImplementation(
+        []() { return std::make_unique<NullFlux>(); });
+
+    e5.configure();
+    e5.setFilePath(filePath);
+
+    ModelArrayRef<ModelComponent::ProtectedArray::T_AIR, MARConstBackingStore> tair(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::DEW_2M, MARConstBackingStore> tdew(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::P_AIR, MARConstBackingStore> pair(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::SW_IN, MARConstBackingStore> qswin(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::LW_IN, MARConstBackingStore> qlwin(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::WIND_SPEED, MARConstBackingStore> wind(
+        ModelComponent::getProtectedArray());
+
+    TimePoint t1("2000-01-01T00:00:00Z");
+    TimestepTime tst = { t1, Duration(600) };
 
 
     // Get the forcing fields at time 0
@@ -56,7 +79,7 @@ TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
     REQUIRE(pair(30, 20) == (1.01e5 + 30.020));
 
     TimePoint t2("2000-02-01T00:00:00Z");
-    e5.update({t2, Duration(600)});
+    e5.update({ t2, Duration(600) });
 
     REQUIRE(wind(0, 0) == 0. + 100.);
     REQUIRE(wind(12, 12) == 12.012 + 100);
@@ -64,7 +87,7 @@ TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
     REQUIRE(pair(30, 20) == (1.01e5 + 30.020) + 1000);
 
     TimePoint t12("2000-12-01T00:00:00Z");
-    e5.update({t12, Duration(600)});
+    e5.update({ t12, Duration(600) });
 
     REQUIRE(wind(0, 0) == 0. + 100. * 11);
     REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
@@ -73,13 +96,12 @@ TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
 
     // All times after the last time sample should use the last sample's data
     TimePoint t120("2010-01-01T00:00:00Z");
-    e5.update({t120, Duration(600)});
+    e5.update({ t120, Duration(600) });
 
     REQUIRE(wind(0, 0) == 0. + 100. * 11);
     REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
     REQUIRE(wind(30, 20) == 30.020 + 100 * 11);
     REQUIRE(pair(30, 20) == (1.01e5 + 30.020) + 1000 * 11);
-
 }
 
 }

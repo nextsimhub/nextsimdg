@@ -65,7 +65,8 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     sw_in = state.data.at("sw_in");
     lw_in = state.data.at("lw_in");
     wind = state.data.at("wind_speed");
-    //fluxImpl->update(tst);
+
+    fluxImpl->update(tst);
 }
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
