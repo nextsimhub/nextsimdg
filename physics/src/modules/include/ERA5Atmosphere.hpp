@@ -57,4 +57,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* PHYSICS_SRC_MODULES_INCLUDE_ERA5ATMOSPHERE_HPP_ */
+#endif /* ERA5ATMOSPHERE_HPP_ */
