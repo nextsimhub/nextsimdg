@@ -104,6 +104,37 @@ target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log Catc
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
+add_executable(testTOPAZOcn
+    "TOPAZOcn_test.cpp"
+    "${ModulesDir}/TOPAZOcean.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/CommonRestartMetadata.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/ModelMetadata.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/ParaGridIO.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/ParametricGrid.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testTOPAZOcn PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_directories(testTOPAZOcn PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testTOPAZOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen "${NSDG_NetCDF_Library}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test128x128.nc"
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
 add_executable(testBIOHFluxes
     "BasicIceOceanFlux_test.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"

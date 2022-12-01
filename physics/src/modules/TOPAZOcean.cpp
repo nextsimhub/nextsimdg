@@ -53,11 +53,11 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    sst = state.data.at("tair");
-    sss = state.data.at("dew2m");
-    mld = state.data.at("pair");
-    u = state.data.at("sw_in");
-    v = state.data.at("lw_in");
+    sst = state.data.at("sst");
+    sss = state.data.at("sss");
+    mld = state.data.at("mld");
+    u = state.data.at("u");
+    v = state.data.at("v");
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
