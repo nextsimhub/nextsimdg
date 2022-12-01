@@ -126,8 +126,9 @@ ModelState ParaGridIO::readForcingTimeStatic(
     std::vector<double> timeVec(timeDim.getSize());
     timeVar.getVar(timeVec.data());
     // Get the index of the largest TimePoint less than the target.
-    targetTIndex = std::find_if(begin(timeVec), end(timeVec), [time](double t) { return (TimePoint() + Duration(t)) > time; })
-        - timeVec.begin();
+    targetTIndex = std::find_if(begin(timeVec), end(timeVec), [time](double t) {
+        return (TimePoint() + Duration(t)) > time;
+    }) - timeVec.begin();
     // Rather than the first that is greater than, get the last that is less
     // than or equal to. But don't go out of bounds.
     if (targetTIndex > 0)

@@ -56,8 +56,8 @@ public:
      * @param time The time for which to get the forcings.
      * @param filePath Path to the file to read.
      */
-    ModelState readForcingTime(
-        const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath) override
+    ModelState readForcingTime(const std::set<std::string>& forcings, const TimePoint& time,
+        const std::string& filePath) override
     {
         return readForcingTimeStatic(forcings, time, filePath);
     }
@@ -80,7 +80,8 @@ public:
      */
     void close(const std::string& filePath);
 
-    static ModelState readForcingTimeStatic(const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
+    static ModelState readForcingTimeStatic(
+        const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
 private:
     ParaGridIO() = delete;
@@ -94,7 +95,6 @@ private:
 
     // Ensures that static variables are created in the correct order.
     static void makeDimCompMap();
-
 
     std::map<std::string, netCDF::NcFile> openFiles;
     std::map<std::string, size_t> timeIndexByFile;
