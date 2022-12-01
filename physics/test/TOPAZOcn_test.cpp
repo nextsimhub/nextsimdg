@@ -34,14 +34,19 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
     TOPAZOcean topaz;
     topaz.setFilePath(filePath);
 
-    ModelArrayRef<ModelComponent::ProtectedArray::SST, MARConstBackingStore> sst(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::SSS, MARConstBackingStore> sss(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::MLD, MARConstBackingStore> mld(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_U, MARConstBackingStore> u(ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_V, MARConstBackingStore> v(ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::SST, MARConstBackingStore> sst(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::SSS, MARConstBackingStore> sss(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::MLD, MARConstBackingStore> mld(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_U, MARConstBackingStore> u(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_V, MARConstBackingStore> v(
+        ModelComponent::getProtectedArray());
 
     TimePoint t1("2000-01-01T00:00:00Z");
-    TimestepTime tst = {t1, Duration(600)};
+    TimestepTime tst = { t1, Duration(600) };
 
     // Get the forcing fields at time 0
     topaz.updateBefore(tst);
@@ -54,7 +59,7 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
     REQUIRE(mld(45, 35) == 10.045035);
 
     TimePoint t2("2000-02-01T00:00:00Z");
-    topaz.updateBefore({t2, Duration(600)});
+    topaz.updateBefore({ t2, Duration(600) });
 
     REQUIRE(sst(0, 0) == mdi);
     REQUIRE(sst(32, 32) == -0.032032 - 1);
@@ -62,7 +67,7 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
     REQUIRE(mld(45, 35) == 10.045035 + 1);
 
     TimePoint t12("2000-12-01T00:00:00Z");
-    topaz.updateBefore({t12, Duration(600)});
+    topaz.updateBefore({ t12, Duration(600) });
 
     REQUIRE(sst(0, 0) == mdi);
     REQUIRE(sst(32, 32) == -0.032032 - 11);
@@ -71,13 +76,12 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
 
     // All times after the last time sample should use the last sample's data
     TimePoint t120("2010-01-01T00:00:00Z");
-    topaz.updateBefore({t120, Duration(600)});
+    topaz.updateBefore({ t120, Duration(600) });
 
     REQUIRE(sst(0, 0) == mdi);
     REQUIRE(sst(32, 32) == -0.032032 - 11);
     REQUIRE(sst(45, 35) == -0.045035 - 11);
     REQUIRE(mld(45, 35) == 10.045035 + 11);
-
 }
 
 }
