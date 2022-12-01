@@ -100,8 +100,9 @@ target_include_directories(testERA5Atm PRIVATE
     "${ModulesDir}"
     )
 target_link_directories(testERA5Atm PUBLIC "${netCDF_LIB_DIR}")
-    
 target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen "${NSDG_NetCDF_Library}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(testBIOHFluxes
     "BasicIceOceanFlux_test.cpp"

@@ -34,6 +34,7 @@ yDim = datagrp.createDimension("y", ny)
 xVertexDim = datagrp.createDimension("xvertex", nx + 1)
 yVertexDim = datagrp.createDimension("yvertex", ny + 1)
 n_coords_comp = datagrp.createDimension("ncoords", n_coords)
+time_dim = datagrp.createDimension("time", None)
 
 mask33 = np.array(
     [[0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -106,34 +107,40 @@ test_data1d = np.linspace(0, nx - 1, num = nx)
 units = np.zeros((nx, ny))
 thousandths = np.zeros((nx, ny))
 for i in range(nx):
-    thousandths[:, i] = test_data1d / 1000.
-    units[i, :] = test_data1d
+    thousandths[i, :] = test_data1d / 1000.
+    units[:, i] = test_data1d
 
 test_data = units + thousandths
 mdi = -2.**300
 
-q_swin = datagrp.createVariable("sw_in", "f8", ("x", "y"))
-q_swin[:, :] = -test_data
-q_swin.missing_value = mdi
+time_var = datagrp.createVariable("time", "f8", "time")
+q_swin = datagrp.createVariable("sw_in", "f8", ("time", "x", "y"))
+q_lwin = datagrp.createVariable("lw_in", "f8", ("time", "x", "y"))
+wind = datagrp.createVariable("wind_speed", "f8", ("time", "x", "y"))
+pmsl = datagrp.createVariable("pair", "f8", ("time", "x", "y"))
+tair = datagrp.createVariable("tair", "f8", ("time", "x", "y"))
+tdew = datagrp.createVariable("dew2m", "f8", ("time", "x", "y"))
 
-q_lwin = datagrp.createVariable("lw_in", "f8", ("x", "y"))
-q_lwin[:, :] = -200 - test_data
-q_lwin.missing_value = mdi
-
-wind = datagrp.createVariable("wind_speed", "f8", ("x", "y"))
-wind[:, :] = test_data
-wind.missing_value = mdi
-
-pmsl = datagrp.createVariable("pair", "f8", ("x", "y"))
-pmsl[:, :] = test_data + 1.01e5
-pmsl.missing_value = mdi
-
-tair = datagrp.createVariable("tair", "f8", ("x", "y"))
-tair[:, :] = 200 + test_data
-tair.missing_value = mdi
-
-tdew = datagrp.createVariable("dew2m", "f8", ("x", "y"))
-tdew[:, :] = 100 + test_data
-tdew.missing_value = mdi
+# 12 monthly values
+for t in range(12):
+    time_var[t] = 946684800 + 2592000 * t # 30 day months
+    
+    q_swin[t, :, :] = -test_data - 100*t
+    q_swin.missing_value = mdi
+    
+    q_lwin[t, :, :] = -200 - test_data - 100*t
+    q_lwin.missing_value = mdi
+    
+    wind[t, :, :] = test_data + 100*t
+    wind.missing_value = mdi
+    
+    pmsl[t, :, :] = test_data + 1.01e5 + 1000*t
+    pmsl.missing_value = mdi
+    
+    tair[t, :, :] = 200 + test_data + 100*t
+    tair.missing_value = mdi
+    
+    tdew[t, :, :] = 100 + test_data + 100*t
+    tdew.missing_value = mdi
 
 root.close()

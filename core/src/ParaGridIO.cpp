@@ -152,7 +152,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
         var.getVar(indexArray, extentArray, &data[0]);
     }
     ncFile.close();
-    return ModelState();
+    return state;
 }
 
 void ParaGridIO::dumpModelState(

@@ -10,6 +10,7 @@
 #include "include/Module.hpp"
 #include "include/ParaGridIO.hpp"
 
+#include <iostream> // FIXME remove me
 namespace Nextsim {
 
 std::string ERA5Atmosphere::filePath;
@@ -57,9 +58,14 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     // TODO: Get more authoritative names for the forcings
     std::set<std::string> forcings = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed" };
 
-    ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-
-    fluxImpl->update(tst);
+    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
+    tair = state.data.at("tair");
+    tdew = state.data.at("dew2m");
+    pair = state.data.at("pair");
+    sw_in = state.data.at("sw_in");
+    lw_in = state.data.at("lw_in");
+    wind = state.data.at("wind_speed");
+    //fluxImpl->update(tst);
 }
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
