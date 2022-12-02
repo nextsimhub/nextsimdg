@@ -77,11 +77,15 @@ set(NextsimIncludeDirs "")
 # Build the core model. Defines the 'parse_modules' target
 add_subdirectory(core)
 
-
 # Build all components
 foreach(compo ${CodeComponents})
     add_subdirectory("${compo}")
 endforeach()
+
+# Build the integration tests
+if (NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
+    add_subdirectory(test)
+endif()
 
 # Link the model
 add_executable(nextsim "${NextsimSources}")

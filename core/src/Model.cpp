@@ -91,6 +91,7 @@ void Model::configure()
 ConfigMap Model::getConfig() const
 {
     ConfigMap cMap = {
+        { keyMap.at(RESTARTFILE_KEY), initialFileName },
         { keyMap.at(STARTTIME_KEY), startTimeStr },
         { keyMap.at(STOPTIME_KEY), stopTimeStr },
         { keyMap.at(RUNLENGTH_KEY), durationStr },
