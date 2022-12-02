@@ -29,7 +29,9 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
     std::string filePath = "topaz_test128x128.nc";
     std::string sourceDir = TO_STR(TEST_FILE_SOURCE);
     // Copy the test file from the test source directory to the working directory
-    std::filesystem::copy(sourceDir + "/" + filePath, ".");
+    if (!std::filesystem::exists(filePath)) {
+        std::filesystem::copy(sourceDir + "/" + filePath, ".");
+    }
 
     // In the real model, the array sizes will have been set by the restart file by this point
     size_t nx = 128;
