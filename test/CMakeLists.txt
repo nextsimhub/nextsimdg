@@ -3,8 +3,6 @@ set(CoreTest "../core/test")
 set(CoreInclude "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
 set(ModelArrayDetails "testmodelarraydetails")
-
-#TODO: Remove before commit
 set(PhysicsSrc "../physics/src")
 set(PhysicsModulesDir "${PhysicsSrc}/modules")
 
@@ -12,12 +10,9 @@ set(NextsimSources
     "${NextsimSources}"
     PARENT_SCOPE)
 
-include(CMakePrintHelpers)
-
-string(REPLACE CMAKE_CURRENT_SOURCE_DIR "test" "" CMAKE_SOURCE_DIR)
+#Remove main.cpp from nextsim sources to create a generic list of sources for integration testing
 set(mainSrc "${CMAKE_SOURCE_DIR}/core/src/main.cpp;")
 string(REPLACE "${mainSrc}" "" TestSources "${NextsimSources}")
-set(TestSources "${TestSources}" ";")
 
 set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"
