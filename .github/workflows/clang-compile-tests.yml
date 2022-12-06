@@ -57,6 +57,7 @@ jobs:
             ./$file
         done
         cd -
+
         for component in physics
         do
             cd $component/test
@@ -67,6 +68,14 @@ jobs:
             done
             cd -
         done
+
+        cd test/
+        for file in $(find test* -maxdepth 0 -type f)
+        do
+            echo $file
+            ./$file
+        done
+        cd -
 
 
   build-and-tests-on-mac:
@@ -97,6 +106,7 @@ jobs:
             ./$file
         done
         cd -
+
         for component in physics
         do
             cd $component/test
@@ -107,3 +117,11 @@ jobs:
             done
             cd -
         done
+
+        cd test/
+        for file in $(find test* -maxdepth 0 -type f)
+        do
+            echo $file
+            ./$file
+        done
+        cd -
