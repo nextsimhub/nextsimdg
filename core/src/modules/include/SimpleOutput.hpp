@@ -17,7 +17,7 @@ public:
     SimpleOutput() = default;
 
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
-    void setOutputDirectory(const std::string& outputDirectory) override {
+    void setOutputDirectory(const std::filesystem::path outputDirectory) override {
         m_outputDirectory = outputDirectory;
     }
 
@@ -25,7 +25,7 @@ public:
 
 private:
     std::string m_filePrefix;
-    std::string m_outputDirectory;
+    std::filesystem::path m_outputDirectory;
 };
 
 } /* namespace Nextsim */

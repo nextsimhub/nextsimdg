@@ -17,6 +17,7 @@
 
 #include "DevStep.hpp"
 #include <string>
+#include <filesystem>
 
 namespace Nextsim {
 
@@ -70,7 +71,7 @@ private:
     std::string stopTimeStr;
     std::string durationStr;
     std::string stepStr;
-    std::string outputDir;
+    std::filesystem::path outputDir;
 };
 
 } /* namespace Nextsim */

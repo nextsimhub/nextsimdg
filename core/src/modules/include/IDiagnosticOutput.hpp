@@ -12,6 +12,7 @@
 #include "include/ModelState.hpp"
 
 #include <string>
+#include <filesystem>
 
 namespace Nextsim {
 class IDiagnosticOutput {
@@ -31,7 +32,7 @@ public:
      *
      * @param outputDirectory The output path to be set.
      */
-    virtual void setOutputDirectory(const std::string& outputDirectory) = 0;
+    virtual void setOutputDirectory(const std::filesystem::path outputDirectory) = 0;
 
     /*!
      * @brief Outputs the passed ModelState.

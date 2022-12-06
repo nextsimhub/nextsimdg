@@ -16,6 +16,7 @@
 #include "include/StructureFactory.hpp"
 
 #include <string>
+#include <filesystem>
 
 // TODO Replace with real logging
 #include <iostream>
@@ -70,12 +71,13 @@ void Model::configure()
     mdi.configure();
 
     // Configure logging
-    Logged::configure(outputDir);
+    std::filesystem::path outputPath = outputDir;
+    Logged::configure(outputPath);
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
-    modelStep.setOutputDir(outputDir);
-    finalFileName = outputDir + "restart.nc";
+    modelStep.setOutputDir(outputPath);
+    finalFileName = (outputPath / "restart.nc").string();
 
     pData.configure();
 

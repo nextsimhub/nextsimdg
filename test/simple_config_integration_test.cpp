@@ -30,8 +30,10 @@ TEST_CASE("Read configuration file integration test",
 
     const std::string restartFile = "restart.nc";
                 
-    const std::string config_files[2] 
-        = {"config_simple_example.cfg", "config_simple_example_with_outdir.cfg"};
+    const std::string config_files[3] 
+        = {"config_simple_example.cfg", 
+           "config_simple_example_with_outdir.cfg",
+           "config_simple_example_with_outdir_no_slash.cfg"};
 
     const std::string initWorkingDir = std::filesystem::current_path();
 
@@ -60,6 +62,8 @@ TEST_CASE("Read configuration file integration test",
             const std::string stopString = values[2];
             const std::string timestepString = values[3];
 
+            // Load outdir string. For case where not included in file we assign an empty string.
+            // This is simply to make the test code below re-useable across the three config files
             std::string outdirString;
             if (values.size() == 5) {
                 outdirString = values[4];
@@ -120,9 +124,18 @@ TEST_CASE("Read configuration file integration test",
                 REQUIRE_THAT(modelCfgTimestepString, Catch::Matchers::Equals(timestepString));
 
                 // For 'output_dir'
-                std::string modelCfgOutdirString =  std::get<3>(cfgMap.find(model.keyMap.find( 
+                std::filesystem::path modelCfgOutdirString =  std::get<3>(cfgMap.find(model.keyMap.find( 
                                                         model.OUTPUTDIR_KEY)->second)->second);
-                REQUIRE_THAT(modelCfgOutdirString, Catch::Matchers::Equals(outdirString));
+                // If no output supplied in config file we check model reflects that. For case
+                // Where the output directory is supplied, we check for path match. For special
+                // case where no output directory is supplied in config file we check model also
+                // reflects that (empty string). We do this as we cannot supply empty path to 
+                // std:filesystem::equivalent.
+                if (modelCfgOutdirString.empty())
+                    REQUIRE_THAT(modelCfgOutdirString, Catch::Matchers::Equals(std::filesystem::path(outdirString)));   
+                else
+                   REQUIRE(std::filesystem::equivalent(modelCfgOutdirString, outdirString));
+                 
             }
 
 
@@ -156,28 +169,28 @@ TEST_CASE("Read configuration file integration test",
             }
         
 
-            //Teardown for dynamic section
+            // Teardown for dynamic section
 
-            //If write location has been created/exists
+            // If write location has been created/exists
             if (std::filesystem::is_directory(targetDir)) {
 
-                //If the location, when resolved, is within the initial working directory
+                // If the location, when resolved, is within the initial working directory
                 if (std::filesystem::canonical(targetDir).string().find(initWorkingDir) == 0) {
                 
                     for(auto &filename:std::filesystem::directory_iterator(targetDir)) {
-                        //Remove log file    
+                        // Remove log file    
                         if (filename.path().string().find(logFilePrefix) != std::string::npos &&
                               filename.path().string().find(logFileSuffix) != std::string::npos) {
                               std::filesystem::remove(filename.path());
                         }
                         
-                        //Remove diagnostic file
+                        // Remove diagnostic file
                         if (filename.path().string().find(diagnosticPrefix) != std::string::npos &&
                               filename.path().string().find(ncSuffix) != std::string::npos) {
                                std::filesystem::remove(filename.path());  
                         }
 
-                        //Remove restart file
+                        // Remove restart file
                         if (filename.path().string().find(restartFile) != std::string::npos && 
                                filename.path().string().find(ncSuffix) != std::string::npos)  {
                                std::filesystem::remove(filename.path());
@@ -185,6 +198,7 @@ TEST_CASE("Read configuration file integration test",
                     }
                 }
             }
-        } //end dynamic section
+        } // end dynamic section
     }
-}//end test case    
+}// end test case
+ 

@@ -34,7 +34,7 @@ public:
      *        should be stored.
      */
     //TODO: See if we can do without this member variable before submission
-    void setOutputDir(const std::string& outputDir) { outputDirectory = outputDir; };
+    void setOutputDir(const std::filesystem::path outputDir) { outputDirectory = outputDir; };
 
     /*!
      * @brief Writes a restart file containing the current model state to the
@@ -71,7 +71,7 @@ public:
 
 protected:
     std::string initialRestartFilePath;
-    std::string outputDirectory;
+    std::filesystem::path outputDirectory;
 };
 
 } /* namespace Nextsim */

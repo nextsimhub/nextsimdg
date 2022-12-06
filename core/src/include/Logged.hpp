@@ -9,6 +9,7 @@
 
 #include <map>
 #include <string>
+#include <filesystem>
 
 namespace Nextsim {
 
@@ -41,7 +42,7 @@ public:
      *
      * @param outputDir (Optional) The output directory for storing log files
      */
-    static void configure(const std::string& outputDir);
+    static void configure(const std::filesystem::path& outputDir);
 
     /*!
      * @brief Logs a message at the given log level, or default to level::NOTICE.

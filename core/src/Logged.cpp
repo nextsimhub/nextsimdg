@@ -12,6 +12,7 @@
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <iostream>
+#include <filesystem>
 
 namespace Nextsim {
 
@@ -52,14 +53,14 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(Severity, "Severity", Logged::level)
 boost::log::sources::severity_logger<Logged::level> sl;
 
 // Initialize the logger, that is set up boost::log how we want it
-//TODO: Before submission, consider a blank default here
-void Logged::configure(const std::string& outputDir)
+void Logged::configure(const std::filesystem::path& outputDir)
 {
     level minimumLogLevel = levelNames.at(Configured<Logged>::getConfiguration(
         keyMap.at(MINIMUM_LOG_LEVEL_KEY), std::string("info")));
     std::string fileNamePattern = Configured<Logged>::getConfiguration(
         keyMap.at(FILE_NAME_PATTERN_KEY), std::string("nextsim.%T.log"));
-    boost::log::add_file_log(boost::log::keywords::file_name = outputDir + fileNamePattern,
+    std::filesystem::path logFilePath = outputDir / fileNamePattern;
+    boost::log::add_file_log(boost::log::keywords::file_name = logFilePath,
         // All logs go to file above the minimum level
         boost::log::keywords::filter = (Severity >= minimumLogLevel));
 
