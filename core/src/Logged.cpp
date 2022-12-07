@@ -11,8 +11,8 @@
 #include <boost/log/common.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/file.hpp>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 
 namespace Nextsim {
 

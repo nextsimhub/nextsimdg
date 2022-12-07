@@ -7,9 +7,9 @@
 #ifndef SRC_INCLUDE_LOGGED_HPP
 #define SRC_INCLUDE_LOGGED_HPP
 
+#include <filesystem>
 #include <map>
 #include <string>
-#include <filesystem>
 
 namespace Nextsim {
 

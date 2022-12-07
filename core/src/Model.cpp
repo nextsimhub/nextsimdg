@@ -15,11 +15,10 @@
 #include "include/Module.hpp"
 #include "include/StructureFactory.hpp"
 
-#include <string>
 #include <filesystem>
-
 // TODO Replace with real logging
 #include <iostream>
+#include <string>
 
 namespace Nextsim {
 
@@ -32,13 +31,10 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::STOPTIME_KEY, "model.stop" },
     { Model::RUNLENGTH_KEY, "model.run_length" },
     { Model::TIMESTEP_KEY, "model.time_step" },
-    { Model::OUTPUTDIR_KEY, "model.output_dir"},
+    { Model::OUTPUTDIR_KEY, "model.output_dir" },
 };
 
-Model::Model()
-{
-    iterator.setIterant(&modelStep);
-}
+Model::Model() { iterator.setIterant(&modelStep); }
 
 Model::~Model()
 {
@@ -84,7 +80,7 @@ void Model::configure()
 
     modelStep.init();
     modelStep.setInitFile(initialFileName);
-    
+
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
@@ -140,10 +136,7 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     return map;
 }
 
-void Model::run() 
-{ 
-    iterator.run();
-}
+void Model::run() { iterator.run(); }
 
 void Model::writeRestartFile()
 {

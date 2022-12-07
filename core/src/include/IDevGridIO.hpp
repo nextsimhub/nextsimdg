@@ -47,7 +47,8 @@ public:
      *          diagnostic dump?
      */
     virtual void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
-        const std::string& filePath, bool isRestart) const = 0;
+        const std::string& filePath, bool isRestart) const
+        = 0;
 
 protected:
     DevGrid* grid;

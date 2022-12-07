@@ -16,8 +16,8 @@
 #include "include/PrognosticData.hpp"
 
 #include "DevStep.hpp"
-#include <string>
 #include <filesystem>
+#include <string>
 
 namespace Nextsim {
 

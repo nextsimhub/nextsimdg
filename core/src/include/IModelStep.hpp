@@ -33,7 +33,6 @@ public:
      * @param filePath The path to the location in which diagnostic files and model outputs
      *        should be stored.
      */
-    //TODO: See if we can do without this member variable before submission
     void setOutputDir(const std::filesystem::path outputDir) { outputDirectory = outputDir; };
 
     /*!
