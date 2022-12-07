@@ -42,6 +42,7 @@ Model::Model()
 
 Model::~Model()
 {
+    // FIXME: Stop writing out in destructor and consider doing so during run()
     /*
      * Try writing out a valid restart file. If the model and computer are in a
      * state where this can be completed, great! If they are not then the
@@ -139,7 +140,10 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     return map;
 }
 
-void Model::run() { iterator.run(); }
+void Model::run() 
+{ 
+    iterator.run();
+}
 
 void Model::writeRestartFile()
 {

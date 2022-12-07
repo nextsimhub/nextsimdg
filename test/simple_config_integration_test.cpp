@@ -91,15 +91,14 @@ TEST_CASE("Read configuration file integration test",
             Nextsim::Configurator::addFiles(cmdLine.getConfigFileNames());
             Nextsim::ConfiguredModule::parseConfigurator();
 
-            // Setup the nextsim model
-            Nextsim::Model model;
-            model.configure();
-            
             // Test that the config map stored in the model matches expected values as stored in the
-            // config file
-            
+            // config file 
             SECTION( "Validate mapping of config map stored on model" )
             {
+                // Setup the nextsim model
+                Nextsim::Model model;
+                model.configure();
+                
                 Nextsim::ConfigMap cfgMap = model.getConfig();
 
                 // Test strings stored in model config map match input config file
@@ -141,7 +140,18 @@ TEST_CASE("Read configuration file integration test",
 
             SECTION("Run model with simple config")
             {
-                model.run();
+
+                // Create scope to run the model so that model destructor is called
+                // before checking on state of files. We do this so that the restart
+                // file is written now and not after teardown. In the future it would
+                // be worth exploring a better way of writing to restart file in event
+                // of either a failure (the intent) or succesful exit.
+                {
+                    // Setup the nextsim model
+                    Nextsim::Model model;
+                    model.configure();
+                    model.run();
+                }
 
                 // Check the target output dir exists (if specified in cfg, ensure dir was created)
                 REQUIRE(std::filesystem::is_directory(targetDir));
@@ -166,10 +176,7 @@ TEST_CASE("Read configuration file integration test",
                    }
                 }
                 REQUIRE(logCounter > 0);
-            }
-        
-
-            // Teardown for dynamic section
+            } 
 
             // If write location has been created/exists
             if (std::filesystem::is_directory(targetDir)) {
