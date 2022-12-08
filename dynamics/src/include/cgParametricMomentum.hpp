@@ -53,7 +53,6 @@ private:
     //! Vector to store the CG-Version of ice concentration and ice height
     CGVector<CG> cg_A, cg_H, cg_D;
 
-public:
     //! Vectors storing strain and strss
     DGVector<DGstress> E11, E12, E22;
     DGVector<DGstress> S11, S12, S22;
