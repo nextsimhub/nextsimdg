@@ -77,7 +77,7 @@ namespace MEB {
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
             const Eigen::Matrix<double, 1, NGP* NGP> h_gauss = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
             const Eigen::Matrix<double, 1, NGP* NGP> a_gauss = (A.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
-            Eigen::Matrix<double, 1, NGP* NGP> d_gauss = (D.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0-1e-12).matrix();
+            Eigen::Matrix<double, 1, NGP* NGP> d_gauss = (D.row(i) * PSI<DGa, NGP>).array().max(1e-12).min(1.0).matrix();
 
             const Eigen::Matrix<double, 1, NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
             const Eigen::Matrix<double, 1, NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
@@ -96,7 +96,7 @@ namespace MEB {
 
             // Eqn. 25
             const auto powalphaexpC
-                = ((1. - d_gauss.array()) * expC.array()).pow(params.exponent_relaxation_sigma - 1);
+                = (d_gauss.array() * expC.array()).pow(params.exponent_relaxation_sigma - 1);
             const Eigen::Matrix<double, 1, NGP* NGP> time_viscous
                 = params.undamaged_time_relaxation_sigma * powalphaexpC;
 
@@ -118,7 +118,7 @@ namespace MEB {
 
             //! Eqn. 9
             const Eigen::Matrix<double, 1, NGP* NGP> elasticity
-                = (params.young * (1. - d_gauss.array()) * expC).matrix();
+                = (params.young * d_gauss.array() * expC).matrix();
 
             // Eqn. 12: first factor on RHS
             /* Stiffness matrix
@@ -168,7 +168,7 @@ namespace MEB {
                 * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
 
             // Update damage
-            d_gauss.array() += (1. - d_gauss.array()) * (1. - dcrit.array()) * dt_mom / td.array();
+            d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
 
             // Relax stress in Gassus points
             s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
