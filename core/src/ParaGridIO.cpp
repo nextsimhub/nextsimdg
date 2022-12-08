@@ -32,12 +32,17 @@ const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
 
 // Which dimensions are DG dimension, which could be legitimately missing
 const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
-    { ModelArray::Dimension::X, false }, { ModelArray::Dimension::Y, false },
-    { ModelArray::Dimension::Z, false }, { ModelArray::Dimension::XCG, true },
-    { ModelArray::Dimension::YCG, true }, { ModelArray::Dimension::DG, true },
+    // clang-format off
+    { ModelArray::Dimension::X, false },
+    { ModelArray::Dimension::Y, false },
+    { ModelArray::Dimension::Z, false },
+    { ModelArray::Dimension::XCG, true },
+    { ModelArray::Dimension::YCG, true },
+    { ModelArray::Dimension::DG, true },
     { ModelArray::Dimension::DGSTRESS, true },
-    { ModelArray::Dimension::NCOORDS,
-        false }, // It's a number of components, but it can't legitimately be missing.
+    // NCOORDS is a number of components, but not in the same way as the DG components.
+    { ModelArray::Dimension::NCOORDS, false },
+    // clang-format on
 };
 
 std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap;
@@ -68,15 +73,12 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
     for (auto entry : ModelArray::definedDimensions) {
         if (dimCompMap.count(entry.first) > 0)
+            // TODO Assertions that DG in the file equals the compile time DG in the model. See #205
             continue;
 
         ModelArray::DimensionSpec& dimensionSpec = entry.second;
         netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
-        if (dimCompMap.count(entry.first)) {
-            // TODO Assertions that DG in the file equals the compile time DG in the model.
-        } else {
-            ModelArray::setDimension(entry.first, dim.getSize());
-        }
+        ModelArray::setDimension(entry.first, dim.getSize());
     }
 
     ModelState state;
