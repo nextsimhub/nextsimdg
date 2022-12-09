@@ -210,6 +210,8 @@ void ParaGridIO::dumpModelState(
 void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
+    writeDiagnosticTime2(state, meta, filePath);
+    return;
     if (openFiles.count(filePath)) {
         // Append to an existing diagnostic output
         size_t nt = ++timeIndexByFile.at(filePath);
@@ -371,6 +373,130 @@ void ParaGridIO::writeDiagnosticTime(
         }
     }
 }
+
+void ParaGridIO::writeDiagnosticTime2(const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+{
+    bool isNew = openFiles.count(filePath) > 0;
+    size_t nt = (isNew) ? 0 : ++timeIndexByFile.at(filePath);
+    if (isNew) {
+        // Open a new file and emplace it in the map of open files.
+        openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace);
+        // Set the initial time to be zero (assigned above)
+        timeIndexByFile[filePath] = nt;
+    }
+    // Get the file handle
+    netCDF::NcFile& ncFile = openFiles.at(filePath);
+    // Get the netCDF groups, creating them if necessary
+    netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName()) : ncFile.getGroup(IStructure::metadataNodeName());
+    netCDF::NcGroup dataGroup = (isNew) ? ncFile.addGroup(IStructure::dataNodeName()) : ncFile.getGroup(IStructure::dataNodeName());
+
+    if (isNew) {
+        // Write the common structure and time metadata
+        CommonRestartMetadata::writeStructureType(ncFile, meta);
+        CommonRestartMetadata::writeRestartMetadata(metaGroup, meta);
+    }
+    // Get the unlimited time dimension, creating it if necessary
+    netCDF::NcDim timeDim = (isNew) ? dataGroup.addDim(timeName) : dataGroup.getDim(timeName);
+
+    // All of the dimensions defined by the data at a particular timestep.
+    std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
+    for (auto entry : ModelArray::definedDimensions) {
+        ModelArray::Dimension dim = entry.first;
+        size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
+                                               : dimSz = entry.second.length;
+        ncFromMAMap[dim] = (isNew) ? dataGroup.addDim(entry.second.name, dimSz) : dataGroup.getDim(entry.second.name);
+    }
+
+    // Also create the sets of dimensions to be connected to the data fields
+    std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
+    // Create the index and size arrays
+    // The index arrays always start from zero, except in the first/time axis
+    std::map<ModelArray::Type, std::vector<size_t>> indexArrays;
+    std::map<ModelArray::Type, std::vector<size_t>> extentArrays;
+    for (auto entry : ModelArray::typeDimensions) {
+        ModelArray::Type type = entry.first;
+        std::vector<netCDF::NcDim> ncDims;
+        std::vector<size_t> indexArray;
+        std::vector<size_t> extentArray;
+
+        // Deal with VERTEX in each case
+        // Add the time dimension for all types that are not VERTEX
+        if (type != ModelArray::Type::VERTEX) {
+            ncDims.push_back(timeDim);
+            indexArray.push_back(nt);
+            extentArray.push_back(1UL);
+        } else if (!isNew) {
+            // For VERTEX in an existing file, there is nothing more to be done
+            continue;
+        }
+        for (ModelArray::Dimension& maDim : entry.second) {
+            ncDims.push_back(ncFromMAMap.at(maDim));
+            indexArray.push_back(0);
+            extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);
+        }
+        dimMap[type] = ncDims;
+        indexArrays[type] = indexArray;
+        extentArrays[type] = extentArray;
+    }
+    // Everything that has components needs that dimension, too
+    for (auto entry : dimCompMap) {
+        // Skip VERTEX fields on existing files
+        if (entry.second == ModelArray::Type::VERTEX && !isNew)
+            continue;
+        dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
+        indexArrays.at(entry.second).push_back(0);
+        extentArrays.at(entry.second).push_back(ModelArray::nComponents(entry.second));
+    }
+
+    // Create a special timeless set of dimensions for the landmask
+    std::vector<netCDF::NcDim> maskDims;
+    std::vector<size_t> maskIndexes;
+    std::vector<size_t> maskExtents;
+    if (isNew) {
+        for (ModelArray::Dimension& maDim : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+            maskDims.push_back(ncFromMAMap.at(maDim));
+        }
+        maskIndexes = { 0, 0 };
+        maskExtents = {
+                ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
+                .length,
+                ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
+                .length
+        };
+    }
+
+    // Put the time axis variable
+    std::vector<netCDF::NcDim> timeDimVec = { timeDim };
+    netCDF::NcVar timeVar((isNew) ? dataGroup.addVar(timeName, netCDF::ncDouble, timeDimVec)
+                                  : dataGroup.getVar(timeName));
+    double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
+    timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
+
+    // Write the data
+    for (auto entry : state.data) {
+        ModelArray::Type type = entry.second.getType();
+        // Skip timeless fields (mask, coordinates) on existing files
+        if (!isNew && (entry.first == maskName || type == ModelArray::Type::VERTEX))
+            continue;
+        if (entry.first == maskName) {
+            // Land mask in a new file (since it was skipped above in existing files)
+            netCDF::NcVar var(dataGroup.addVar(maskName, netCDF::ncDouble, maskDims));
+            // No missing data
+            var.putVar(maskIndexes, maskExtents, entry.second.getData());
+
+        } else {
+            std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
+            // Get the variable object, either creating a new one or getting the existing one
+            netCDF::NcVar var((isNew) ? dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims)
+                                      : dataGroup.getVar(entry.first));
+            if (isNew)
+                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+
+            var.putVar(indexArrays.at(type), extentArrays.at(type), entry.second.getData());
+        }
+    }
+}
+
 
 void ParaGridIO::close(const std::string& filePath)
 {

@@ -71,6 +71,8 @@ public:
      */
     void writeDiagnosticTime(
         const ModelState& state, const ModelMetadata& meta, const std::string& filePath) override;
+    void writeDiagnosticTime2(
+        const ModelState& state, const ModelMetadata& meta, const std::string& filePath);
 
     /*!
      * Closes an open diagnostic file. Does nothing when provided with a
