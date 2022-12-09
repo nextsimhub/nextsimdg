@@ -376,7 +376,7 @@ void ParaGridIO::writeDiagnosticTime(
 
 void ParaGridIO::writeDiagnosticTime2(const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    bool isNew = openFiles.count(filePath) > 0;
+    bool isNew = openFiles.count(filePath) <= 0;
     size_t nt = (isNew) ? 0 : ++timeIndexByFile.at(filePath);
     if (isNew) {
         // Open a new file and emplace it in the map of open files.
