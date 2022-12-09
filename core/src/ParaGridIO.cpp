@@ -210,172 +210,6 @@ void ParaGridIO::dumpModelState(
 void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    writeDiagnosticTime2(state, meta, filePath);
-    return;
-    if (openFiles.count(filePath)) {
-        // Append to an existing diagnostic output
-        size_t nt = ++timeIndexByFile.at(filePath);
-        netCDF::NcFile& ncFile = openFiles.at(filePath);
-
-        netCDF::NcGroup metaGroup = ncFile.getGroup(IStructure::metadataNodeName());
-        netCDF::NcGroup dataGroup = ncFile.getGroup(IStructure::dataNodeName());
-
-        // Create references to the (existing) dimensions
-        // Add the unlimited time dimension
-        netCDF::NcDim timeDim = dataGroup.getDim(timeName);
-        // All of the dimensions defined by the data at a particular timestep.
-        std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
-        for (auto entry : ModelArray::definedDimensions) {
-            ModelArray::Dimension dim = entry.first;
-            size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                                   : dimSz = entry.second.length;
-            ncFromMAMap[dim] = dataGroup.getDim(entry.second.name);
-        }
-
-        // Also create the sets of dimensions to be connected to the data fields
-        std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
-        // Create the index and size arrays
-        // The index arrays always start from zero, except in the first/time axis
-        std::map<ModelArray::Type, std::vector<size_t>> indexArrays;
-        std::map<ModelArray::Type, std::vector<size_t>> extentArrays;
-        for (auto entry : ModelArray::typeDimensions) {
-            ModelArray::Type type = entry.first;
-            // No need to treat VERTEX arrays, they are assumed to be time constant
-            if (type == ModelArray::Type::VERTEX)
-                continue;
-            std::vector<netCDF::NcDim> ncDims;
-            std::vector<size_t> indexArray;
-            std::vector<size_t> extentArray;
-            // Time dimension
-            indexArray.push_back(nt);
-            extentArray.push_back(1);
-            // Other dimensions
-            for (ModelArray::Dimension& maDim : entry.second) {
-                ncDims.push_back(ncFromMAMap.at(maDim));
-                indexArray.push_back(0);
-                extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);
-            }
-            dimMap[type] = ncDims;
-            indexArrays[type] = indexArray;
-            extentArrays[type] = extentArray;
-        }
-        // Everything that has components needs that dimension, too
-        for (auto entry : dimCompMap) {
-            if (entry.second == ModelArray::Type::VERTEX)
-                continue;
-            dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
-            indexArrays.at(entry.second).push_back(0);
-            extentArrays.at(entry.second).push_back(ModelArray::nComponents(entry.second));
-        }
-
-        // Put the time axis
-        netCDF::NcVar timeVar(dataGroup.getVar(timeName));
-        double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
-        timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
-
-        for (auto entry : state.data) {
-            ModelArray::Type type = entry.second.getType();
-            if (entry.first == maskName || type == ModelArray::Type::VERTEX)
-                continue;
-            // Get the type, then relevant vector of NetCDF dimensions
-            netCDF::NcVar var(dataGroup.getVar(entry.first));
-            var.putVar(indexArrays.at(type), extentArrays.at(type), entry.second.getData());
-        }
-    } else {
-        // Open a new diagnostic output file
-        auto [it, success] = openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace);
-        netCDF::NcFile& ncFile = openFiles.at(filePath);
-        timeIndexByFile[filePath] = 0;
-
-        CommonRestartMetadata::writeStructureType(ncFile, meta);
-        netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
-        netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
-
-        CommonRestartMetadata::writeRestartMetadata(metaGroup, meta);
-
-        // Add the unlimited time dimension
-        netCDF::NcDim timeDim = dataGroup.addDim(timeName);
-        // All of the dimensions defined by the data at a particular timestep.
-        std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
-        for (auto entry : ModelArray::definedDimensions) {
-            ModelArray::Dimension dim = entry.first;
-            size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                                   : dimSz = entry.second.length;
-            ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
-        }
-
-        // Also create the sets of dimensions to be connected to the data fields
-        std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
-        // Create the index and size arrays
-        // The index arrays always start from zero, except in the first/time axis
-        std::map<ModelArray::Type, std::vector<size_t>> indexArrays;
-        std::map<ModelArray::Type, std::vector<size_t>> extentArrays;
-        for (auto entry : ModelArray::typeDimensions) {
-            ModelArray::Type type = entry.first;
-            std::vector<netCDF::NcDim> ncDims;
-            // VERTEX arrays do not need time axes.
-            std::vector<size_t> indexArray;
-            std::vector<size_t> extentArray;
-            if (type != ModelArray::Type::VERTEX) {
-                ncDims.push_back(timeDim);
-                indexArray.push_back(0);
-                extentArray.push_back(1UL);
-            }
-            for (ModelArray::Dimension& maDim : entry.second) {
-                ncDims.push_back(ncFromMAMap.at(maDim));
-                indexArray.push_back(0);
-                extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);
-            }
-            dimMap[type] = ncDims;
-            indexArrays[type] = indexArray;
-            extentArrays[type] = extentArray;
-        }
-        // Everything that has components needs that dimension, too
-        for (auto entry : dimCompMap) {
-            dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
-            indexArrays.at(entry.second).push_back(0);
-            extentArrays.at(entry.second).push_back(ModelArray::nComponents(entry.second));
-        }
-
-        // Create a special timeless set of dimensions for the landmask
-        std::vector<netCDF::NcDim> maskDims;
-        for (ModelArray::Dimension& maDim : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
-            maskDims.push_back(ncFromMAMap.at(maDim));
-        }
-        std::vector<size_t> maskIndexes = { 0, 0 };
-        std::vector<size_t> maskExtents = {
-            ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
-                .length,
-            ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
-                .length
-        };
-
-        // Put the time axis variable
-        std::vector<netCDF::NcDim> timeDimVec = { timeDim };
-        netCDF::NcVar timeVar(dataGroup.addVar(timeName, netCDF::ncDouble, timeDimVec));
-        double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
-        timeVar.putVar({ 0ULL }, { 1ULL }, &secondsSinceEpoch);
-
-        for (auto entry : state.data) {
-            if (entry.first != maskName) {
-                // Get the type, then relevant vector of NetCDF dimensions
-                ModelArray::Type type = entry.second.getType();
-                std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-                netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-                var.putVar(indexArrays.at(type), extentArrays.at(type), entry.second.getData());
-            } else {
-                // Write the mask data
-                netCDF::NcVar var(dataGroup.addVar(maskName, netCDF::ncDouble, maskDims));
-                // No missing data
-                var.putVar(maskIndexes, maskExtents, entry.second.getData());
-            }
-        }
-    }
-}
-
-void ParaGridIO::writeDiagnosticTime2(const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
-{
     bool isNew = openFiles.count(filePath) <= 0;
     size_t nt = (isNew) ? 0 : ++timeIndexByFile.at(filePath);
     if (isNew) {
@@ -387,8 +221,10 @@ void ParaGridIO::writeDiagnosticTime2(const ModelState& state, const ModelMetada
     // Get the file handle
     netCDF::NcFile& ncFile = openFiles.at(filePath);
     // Get the netCDF groups, creating them if necessary
-    netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName()) : ncFile.getGroup(IStructure::metadataNodeName());
-    netCDF::NcGroup dataGroup = (isNew) ? ncFile.addGroup(IStructure::dataNodeName()) : ncFile.getGroup(IStructure::dataNodeName());
+    netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName())
+                                        : ncFile.getGroup(IStructure::metadataNodeName());
+    netCDF::NcGroup dataGroup = (isNew) ? ncFile.addGroup(IStructure::dataNodeName())
+                                        : ncFile.getGroup(IStructure::dataNodeName());
 
     if (isNew) {
         // Write the common structure and time metadata
@@ -404,7 +240,8 @@ void ParaGridIO::writeDiagnosticTime2(const ModelState& state, const ModelMetada
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
                                                : dimSz = entry.second.length;
-        ncFromMAMap[dim] = (isNew) ? dataGroup.addDim(entry.second.name, dimSz) : dataGroup.getDim(entry.second.name);
+        ncFromMAMap[dim] = (isNew) ? dataGroup.addDim(entry.second.name, dimSz)
+                                   : dataGroup.getDim(entry.second.name);
     }
 
     // Also create the sets of dimensions to be connected to the data fields
@@ -457,12 +294,11 @@ void ParaGridIO::writeDiagnosticTime2(const ModelState& state, const ModelMetada
             maskDims.push_back(ncFromMAMap.at(maDim));
         }
         maskIndexes = { 0, 0 };
-        maskExtents = {
-                ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
-                .length,
-                ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
-                .length
-        };
+        maskExtents = { ModelArray::definedDimensions
+                            .at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
+                            .length,
+            ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
+                .length };
     }
 
     // Put the time axis variable
@@ -496,7 +332,6 @@ void ParaGridIO::writeDiagnosticTime2(const ModelState& state, const ModelMetada
         }
     }
 }
-
 
 void ParaGridIO::close(const std::string& filePath)
 {
