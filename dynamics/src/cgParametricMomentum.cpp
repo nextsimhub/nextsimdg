@@ -8,7 +8,7 @@
 #include "Interpolations.hpp"
 #include "MEB.hpp"
 #include "ParametricTools.hpp"
-#include "codeGenerationCGinGauss.hpp"
+
 #include "mevp.hpp"
 
 #include "stopwatch.hpp"
@@ -44,7 +44,7 @@ void CGParametricMomentum<CG>::ProjectCGVelocityToDGStrain()
 		continue;
 
                 // get the 4/9 local x/y - velocity coefficients on the element
-                Eigen::Matrix<double, CGDOFS(CG), 1> vx_local, vy_local;
+	      Eigen::Matrix<double, CGDOFS(CG), 1> vx_local, vy_local;
                 if (CG == 1) {
                     vx_local << vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift);
                     vy_local << vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift);

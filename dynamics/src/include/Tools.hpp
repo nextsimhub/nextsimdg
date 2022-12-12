@@ -32,6 +32,18 @@ namespace Tools {
     return mass;
   }
 
+
+  DGVector<1> Landmask(const ParametricMesh& smesh)
+    {
+      DGVector<1> lm(smesh);
+#pragma omp parallel for
+      for (size_t i=0;i<smesh.nelements;++i)
+	lm(i) = smesh.landmask[i]?1:0;
+      
+      return lm;
+    }
+
+  
   
 #define S2A(Q) (Q == 1 ? 1 : (Q == 3 ? 3 : (Q == 6 ? 6 : (Q == 8 ? 6 : -1))))
     template <int DGs>

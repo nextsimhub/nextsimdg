@@ -12,7 +12,6 @@
 #include <cassert>
 #include <cstddef>
 
-#include "codeGenerationParametricMesh.hpp"
 #include "nextsimFloatType.hpp"
 #include <iostream>
 #include <string>
@@ -42,12 +41,17 @@ class ParametricMesh {
 public:
     int statuslog; //!< -1 no output, 1 full status output
 
+  bool spherical; //! true if the mesh is in spherical coordinates
+  
     size_t nx, ny; //!< no of elements in x- and y-direction
     size_t nnodes; //!< total number of nodes
     size_t nelements; //!< total number of nodes
 
+  
     Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
+  static constexpr double R = 6371000.0;  
+  
     /*!
      * Stores the Dirichlet boundary information
      *
@@ -76,8 +80,9 @@ public:
    */
   std::vector<bool> landmask;
 
-    ParametricMesh(int loglevel = 1)
-        : statuslog(loglevel)
+  ParametricMesh(bool sp = false, int loglevel = 1)
+    : spherical (sp)
+    , statuslog(loglevel)
         , nx(-1)
         , ny(-1)
         , nnodes(-1)
@@ -115,6 +120,60 @@ public:
      */
     void readmesh(std::string fname);
 
+  /*!
+   * Rotates the mesh such that the singularities are in Greenland / Antarctica at
+   * 75N / 40W and 75S / 140E
+   */
+  void RotatePoleToGreenland()
+  {
+    for (size_t i=0;i<nnodes;++i)
+      {
+	const double x = cos(M_PI/180.0*vertices(i,1))*cos(M_PI/180.0*vertices(i,0));
+	const double y = cos(M_PI/180.0*vertices(i,1))*sin(M_PI/180.0*vertices(i,0));
+	const double z = sin(M_PI/180.0*vertices(i,1));
+
+	double aw =  40.0*M_PI/180.0;
+	const double x1 = cos(aw)*x - sin(aw)*y;
+	const double y1 = sin(aw)*x + cos(aw)*y;
+	const double z1 = z;
+
+	double bw =  15*M_PI/180.0;
+	const double x2 = cos(bw)*x1 - sin(bw)*z1;
+	const double y2 = y1;
+	const double z2 = sin(bw)*x1 + cos(bw)*z1;
+	
+	vertices(i,1) = asin(z2)*180/M_PI;
+	vertices(i,0) = atan2(y2,x2)*180/M_PI;
+      }
+  }
+  //! Rotation back to normal
+  void RotatePoleFromGreenland()
+  {
+    for (size_t i=0;i<nnodes;++i)
+      {
+	const double x = cos(M_PI/180.0*vertices(i,1))*cos(M_PI/180.0*vertices(i,0));
+	const double y = cos(M_PI/180.0*vertices(i,1))*sin(M_PI/180.0*vertices(i,0));
+	const double z = sin(M_PI/180.0*vertices(i,1));
+	
+	double aw = -40.0*M_PI/180.0;
+	double bw = -15*M_PI/180.0;
+
+	const double x1 = cos(bw)*x - sin(bw)*z;
+	const double y1 = y;
+	const double z1 = sin(bw)*x + cos(bw)*z;
+
+	const double x2 = cos(aw)*x1 - sin(aw)*y1;
+	const double y2 = sin(aw)*x1 + cos(aw)*y1;
+	const double z2 = z1;
+
+	
+	vertices(i,1) = asin(z2)*180/M_PI;
+	vertices(i,0) = atan2(y2,x2)*180/M_PI;
+      }
+  }
+
+
+  
     /*!
      * Returns index of lower left node in element with index eid
      */
@@ -123,18 +182,97 @@ public:
         return (eid / nx) * (nx + 1) + (eid % nx);
     }
 
-    /*!
+
+  /*!
+   * makes sure that the longitudes in the coordinate vector coords
+   * do not jump form 180 to -180 degrees. If a jump is detected, 
+   * all cordinates are shifted to the range 0,540 by correcting
+   * negative ones
+   */
+  template<int N>
+  void correctlongitude(Eigen::Matrix<Nextsim::FloatType, N, 2>& coords) const
+  {
+    bool problem = false;
+    for (size_t i=1;i<N;++i)
+      if (coords(0,0)-coords(i,0)>120.0)
+	{
+	  problem = true;
+	  break;
+	}
+    if (problem)
+      {
+	for (size_t i=0;i<N;++i)
+	  if (coords(i,0)<0)
+	    coords(i,0) += 360.0;
+      }
+  }
+
+  /*!
      * returns the coordinates of one element with index eid as 4 x 2 matrix
+     *
+     * If correctlongitude is set to true, the congitude coordinates will
+     * be such that there is no jump (from 180 to -180) within the element
      */
-    const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinatesOfElement(const size_t eid) const
+  const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinatesOfElement(const size_t eid) const
     {
         const size_t nid = eid2nid(eid);
-        return Eigen::Matrix<Nextsim::FloatType, 4, 2>({ { vertices(nid, 0), vertices(nid, 1) },
-            { vertices(nid + 1, 0), vertices(nid + 1, 1) },
-            { vertices(nid + nx + 1, 0), vertices(nid + nx + 1, 1) },
-            { vertices(nid + nx + 2, 0), vertices(nid + nx + 2, 1) } });
+
+	Eigen::Matrix<Nextsim::FloatType, 4, 2> coords = 
+	  Eigen::Matrix<Nextsim::FloatType, 4, 2>
+	  ({ { vertices(nid, 0),          vertices(nid, 1) },
+	     { vertices(nid + 1, 0),      vertices(nid + 1, 1) },
+	     { vertices(nid + nx + 1, 0), vertices(nid + nx + 1, 1) },
+	     { vertices(nid + nx + 2, 0), vertices(nid + nx + 2, 1) } }
+	    );
+	if (spherical)
+	  correctlongitude(coords);
+
+	return coords;
     }
 
+
+    /*!
+     * returns the coordinates of one edge with index eid as 2 x 2 matrix 
+     * (first index is the index of the coordinate, second the x/y - value)
+     *
+     * If correctlongitude is set to true, the congitude coordinates will
+     * be such that there is no jump (from 180 to -180) within the element
+     */
+  const Eigen::Matrix<Nextsim::FloatType, 2, 2> coordinatesOfEdgeX(const size_t eid) const
+    {
+      const size_t ex = eid%nx;        //! x-index of the corresponding element
+      const size_t ey = eid/nx;        //! y-index of the corresponding element 
+      const size_t nid = ey*(nx+1)+ex; //! index of the node 
+
+      Eigen::Matrix<Nextsim::FloatType, 2, 2> ecoords =
+	Eigen::Matrix<Nextsim::FloatType, 2, 2> 
+	({ { vertices(nid, 0),          vertices(nid, 1) },
+	   { vertices(nid + 1, 0),      vertices(nid + 1, 1) } });
+
+      if (spherical)
+	correctlongitude(ecoords);
+      
+      return ecoords;
+    }
+  const Eigen::Matrix<Nextsim::FloatType, 2, 2> coordinatesOfEdgeY(const size_t eid) const
+    {
+      const size_t ex = eid%(nx+1); //! x-index of the corresponding element (possibly nx+1)
+      const size_t ey = eid/(nx+1); //! y-index of the corresponding element
+      assert(ey<ny);
+      const size_t nid = ey*(nx+1) + ex;
+
+      Eigen::Matrix<Nextsim::FloatType, 2, 2> ecoords =
+	Eigen::Matrix<Nextsim::FloatType, 2, 2> 
+	({ { vertices(nid, 0),         vertices(nid, 1) },
+	   { vertices(nid + nx+1, 0),  vertices(nid + nx+1, 1) } });
+
+      if (spherical)
+	correctlongitude(ecoords);
+      
+      return ecoords;
+
+    }
+  
     /*!
      * return the area of the mesh element with index eid
      */
