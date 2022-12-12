@@ -22,18 +22,17 @@ TEST_CASE(
     "Read configuration file integration test", "[Integration, CommandLineParser, Configurator]")
 {
 
+    // Test constants
     const std::string logFilePrefix = "nextsim.";
     const std::string logFileSuffix = ".log";
-
     const std::string diagnosticPrefix = "diagnostic.";
     const std::string ncSuffix = ".nc";
-
     const std::string restartFile = "restart.nc";
+    const std::string initWorkingDir = std::filesystem::current_path();
 
+    // Test parameters
     const std::string config_files[3] = { "config_simple_example.cfg",
         "config_simple_example_with_outdir.cfg", "config_simple_example_with_outdir_no_slash.cfg" };
-
-    const std::string initWorkingDir = std::filesystem::current_path();
 
     for (std::string targetConfigFilename : config_files) {
 
