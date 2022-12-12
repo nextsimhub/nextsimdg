@@ -34,7 +34,7 @@ public:
     double P0; //! < \param Constant to parametrize Pmax
     double damage_timescale = 1.; //<! Damage timescale
     double undamaged_time_relaxation_sigma = 1e5; //!< \param lambda
-    double exponent_relaxation_sigma;
+    int exponent_relaxation_sigma;
     double c0; //! \param
     double sigma_c0; //! \param
 
@@ -74,7 +74,7 @@ public:
         P0 = 10.e3; //! < \param Constant to parametrize Pmax
 
         undamaged_time_relaxation_sigma = 1e7; //!< \param lambda
-        exponent_relaxation_sigma = 3;
+        exponent_relaxation_sigma = 5;
         c0 = 10.e3; //! \param
         sigma_c0 = 50.e3; //! \param
 

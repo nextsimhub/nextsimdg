@@ -8,8 +8,10 @@
 #define __MEB_HPP
 
 #include "MEBParameters.hpp"
+#include "ParametricTools.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
+
 
 
 namespace Nextsim {
@@ -96,6 +98,12 @@ namespace MEB {
             const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * (1. - d_gauss.array()) * expC).matrix();
             // Eigen::Matrix<double, 1, NGP* NGP> multiplicator = (time_viscous.array() / (time_viscous.array() + dt_mom )).matrix();
 
+            // Eqn. 12: first factor on RHS
+            /* Stiffness matrix
+             * / (K:e)11 \       1     /  1  nu    0  \ / e11 \
+             * | (K:e)22 |  =  ------- | nu   1    0  | | e22 |
+             * \ (K:e)12 /    1 - nu^2 \  0   0  1-nu / \ e12 /
+             */
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
@@ -121,7 +129,7 @@ namespace MEB {
             s12_gauss.array() *= multiplicator.array();
             s22_gauss.array() *= multiplicator.array();
 
-            
+
             sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
             const Eigen::Matrix<double, 1, NGP* NGP> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
 
@@ -140,16 +148,17 @@ namespace MEB {
             // Compression cutoff
             // dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
 
+            // Only damage when we're outside
             dcrit = dcrit.array().min(1.0);
 
-            // Relax stress in Gassus points
-            s11_gauss.array() *= dcrit.array();
-            s12_gauss.array() *= dcrit.array();
-            s22_gauss.array() *= dcrit.array();
 
             // Update damage
             d_gauss = ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / params.damage_timescale);
 
+            // Relax stress in Gassus points
+            s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
 
             // INTEGRATION OF STRESS AND DAMAGE
             const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J = ParametricTools::J<3>(smesh, i);

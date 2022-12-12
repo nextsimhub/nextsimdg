@@ -129,7 +129,7 @@ public:
 
 class InitialD : public Nextsim::Interpolations::Function {
 public:
-    double operator()(double x, double y) const { return 0.0; }
+    double operator()(double x, double y) const { return 1.0; }
 };
 
 //////////////////////////////////////////////////
@@ -250,8 +250,8 @@ void run_benchmark(const std::string meshfile)
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
         Nextsim::LimitMin(H, 0.0);
-        Nextsim::LimitMax(D, 1.0-1.e-12);
-        Nextsim::LimitMin(D, 0.0);
+        Nextsim::LimitMax(D, 1.0);
+        Nextsim::LimitMin(D, 1e-12);
         Nextsim::GlobalTimer.stop("time loop - advection");
 
         //////////////////////////////////////////////////
