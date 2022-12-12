@@ -110,7 +110,7 @@ private:
 
 TEST_CASE("Test array registration", "[ModelComponent]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModuleSupplyAndWait saw;
     ModuleRequestAndSupply ras;
 
@@ -178,7 +178,7 @@ private:
 
 TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
     ModuleSemiShared semi;
     ModuleShared share;

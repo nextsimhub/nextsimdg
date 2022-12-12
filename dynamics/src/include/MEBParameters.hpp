@@ -17,6 +17,7 @@ public:
 
     double C_atm; //!< Air drag coefficient
     double C_ocean; //!< Ocean drag coefficient
+    double ocean_turning_angle; //!< Ocean turning angle
 
     double F_atm; //!< effective factor for atm-forcing
     double F_ocean; //!< effective factor for ocean-forcing
@@ -56,7 +57,9 @@ public:
 
         C_atm = 1.2e-3; //!< Air drag coefficient
         C_ocean = 5.5e-3; //!< Ocean drag coefficient
-
+        ocean_turning_angle = 25.; //!< Ocean turning angle
+        ocean_turning_angle = 0.0;
+    
         F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
         F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 
@@ -70,7 +73,6 @@ public:
         young = 5.96e8; //!< \param Young's modulus
         P0 = 10.e3; //! < \param Constant to parametrize Pmax
 
-        // undamaged_time_relaxation_sigma = 1e5; //!< \param lambda
         undamaged_time_relaxation_sigma = 1e7; //!< \param lambda
         exponent_relaxation_sigma = 3;
         c0 = 10.e3; //! \param
