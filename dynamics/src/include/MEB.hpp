@@ -156,9 +156,9 @@ namespace MEB {
             d_gauss = ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / params.damage_timescale);
 
             // Relax stress in Gassus points
-            s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
-            s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
-            s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            s11_gauss.array() *= (1. - (1. - dcrit.array()) * dt_mom / params.damage_timescale ) ;
+            s12_gauss.array() *= (1. - (1. - dcrit.array()) * dt_mom / params.damage_timescale ) ;
+            s22_gauss.array() *= (1. - (1. - dcrit.array()) * dt_mom / params.damage_timescale ) ;
 
             // INTEGRATION OF STRESS AND DAMAGE
             const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J = ParametricTools::J<3>(smesh, i);
