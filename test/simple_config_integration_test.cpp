@@ -71,6 +71,8 @@ TEST_CASE(
             std::filesystem::path targetDir = std::filesystem::current_path();
             targetDir /= outdirString;
 
+            bool isPreExistingOutputDir = std::filesystem::is_directory(targetDir);
+
             // Require setup completed --- that the config_file for this test could be read
             // correctly before evaluating test sections
             REQUIRE(initFileString.size() > 0);
@@ -94,6 +96,7 @@ TEST_CASE(
                 // Setup the nextsim model
                 Nextsim::Model model;
                 model.configure();
+                model.run();
 
                 Nextsim::ConfigMap cfgMap = model.getConfig();
 
@@ -200,6 +203,10 @@ TEST_CASE(
                     }
                 }
             }
+
+            if (!isPreExistingOutputDir)
+                std::filesystem::remove(targetDir);
+
         } // end dynamic section
     }
 } // end test case
