@@ -162,6 +162,11 @@ public:
     void MEBStep(const MEBParameters& vpparameters, size_t NT_meb,
         double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
+    template <int DG>
+    void MEBStepHD(const MEBParameters& vpparameters, size_t NT_meb,
+        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
+
+
     //! performs one complete MEB timestep with NT_meb subiterations
     template <int DG>
     void MEBIteration(const MEBParameters& vpparameters, size_t NT_meb,
