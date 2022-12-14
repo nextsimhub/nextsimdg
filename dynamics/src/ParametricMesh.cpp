@@ -28,7 +28,7 @@ void ParametricMesh::readmesh(std::string fname)
     std::string version;
     IN >> version;
     
-    if (statuslog)
+    if (statuslog>0)
       std::cout << "ParametricMesh :: Reading " << fname << " V" << version  << std::endl;
 
     
@@ -39,7 +39,7 @@ void ParametricMesh::readmesh(std::string fname)
 
     IN >> nx >> ny;
 
-    if (statuslog)
+    if (statuslog>0)
       std::cout << "ParametricMesh :: Reading mesh with " << nx << " * " << ny << " elements" << std::endl;
 
     if ((nx < 1) || (ny < 1)) {

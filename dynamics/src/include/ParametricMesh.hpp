@@ -12,7 +12,7 @@
 #include <cassert>
 #include <cstddef>
 
-#include "nextsimFloatType.hpp"
+#include "NextsimDynamics.hpp"
 #include <iostream>
 #include <string>
 
@@ -41,7 +41,7 @@ class ParametricMesh {
 public:
     int statuslog; //!< -1 no output, 1 full status output
 
-  bool spherical; //! true if the mesh is in spherical coordinates
+  COORDINATES CoordinateSystem; //! CARTESIAN or SPHERICAL
   
     size_t nx, ny; //!< no of elements in x- and y-direction
     size_t nnodes; //!< total number of nodes
@@ -80,8 +80,8 @@ public:
    */
   std::vector<bool> landmask;
 
-  ParametricMesh(bool sp = false, int loglevel = 1)
-    : spherical (sp)
+  ParametricMesh(const COORDINATES coords = CARTESIAN, int loglevel = -1)
+    : CoordinateSystem (coords)
     , statuslog(loglevel)
         , nx(-1)
         , ny(-1)
@@ -224,7 +224,7 @@ public:
 	     { vertices(nid + nx + 1, 0), vertices(nid + nx + 1, 1) },
 	     { vertices(nid + nx + 2, 0), vertices(nid + nx + 2, 1) } }
 	    );
-	if (spherical)
+	if (CoordinateSystem == SPHERICAL)
 	  correctlongitude(coords);
 
 	return coords;
@@ -249,7 +249,7 @@ public:
 	({ { vertices(nid, 0),          vertices(nid, 1) },
 	   { vertices(nid + 1, 0),      vertices(nid + 1, 1) } });
 
-      if (spherical)
+	if (CoordinateSystem == SPHERICAL)
 	correctlongitude(ecoords);
       
       return ecoords;
@@ -266,7 +266,7 @@ public:
 	({ { vertices(nid, 0),         vertices(nid, 1) },
 	   { vertices(nid + nx+1, 0),  vertices(nid + nx+1, 1) } });
 
-      if (spherical)
+	if (CoordinateSystem == SPHERICAL)
 	correctlongitude(ecoords);
       
       return ecoords;

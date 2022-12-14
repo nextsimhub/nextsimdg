@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "ParametricTransport.hpp"
+#include "SphericalTransport.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 #include "Tools.hpp"
@@ -117,7 +117,7 @@ class Test {
   Nextsim::DGVector<DG> phi;
 
   //! Transport main class
-  Nextsim::ParametricTransport<DG> dgtransport;
+  Nextsim::SphericalTransport<DG> dgtransport;
 
   //! Velocity Field
   InitialVX VX;
@@ -128,7 +128,7 @@ class Test {
 public:
   Test(const Nextsim::ParametricMesh& mesh)
     : smesh(mesh)
-    , dgtransport(smesh)
+    , dgtransport(smesh, Nextsim::CARTESIAN)
     , writestep(40)
   {
     //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2
@@ -225,7 +225,7 @@ void create_rectanglemesh(const double Lx, const double Ly, const size_t Nx, con
 template <int DG>
 void run(double distort, const std::array<std::array<double, 4>, 3>& exact)
 {
-  Nextsim::ParametricMesh smesh(0); // 0 means no output
+  Nextsim::ParametricMesh smesh; // 0 means no output
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2	\
 				   : -1))
@@ -248,46 +248,60 @@ void run(double distort, const std::array<std::array<double, 4>, 3>& exact)
   }
 }
 
+
+
+
+
 int main()
 {
   std::cout << std::setprecision(3) << std::scientific;
       
-  std::array<std::array<double, 4>, 3> exact= // Exact values taken 22.11.2022
+  std::array<std::array<double, 4>, 3> exact= // Exact values taken 14.12.2022 (with rk1/rk2/rk3)
     {
-      std::array<double,4>({4.8211028295934211e-02,
-	  4.3147199226169546e-02,
-	  3.5825194395857622e-02,
-	  2.6956405683140998e-02}),
-      std::array<double,4>({1.3481730993850794e-02,
-	  5.8735440861781884e-03,
-	  2.2799830701589270e-03,
-	  7.3700491141607107e-04}),
-      std::array<double,4>({4.0528267848463527e-03,
-	  1.2447014978456033e-03,
-	  2.8685099968644285e-04,
-	  4.6251430272181472e-05})
+      std::array<double,4>({
+	  4.8211028295934204e-02,
+	  4.3147199226169552e-02,
+	  3.5825194395857747e-02,
+	  2.6956405683141109e-02}),
+      std::array<double,4>({
+	  1.3469076224946228e-02,
+	  5.8684338697161317e-03,
+	  2.2778998006559789e-03,
+	  7.3625764726383837e-04}),
+      std::array<double,4>({
+	  4.0419818925870685e-03,
+	  1.2394804214472853e-03,
+	  2.8473714699424552e-04,
+	  4.5484079480627463e-05})
     };
+
   std::cout << std::endl
 	    << "DG\tNT\tNX\tmass loss\terror\t\texact\t\tpassed" << std::endl; 
   run<1>(0.0,exact);
   run<3>(0.0,exact);
   run<6>(0.0,exact);
 
+  
   exact=
     {
-      std::array<double,4>({4.8651365310526981e-02,
+      std::array<double,4>({
+	  4.8651365310526981e-02,
 	  4.3965656991140793e-02,
 	  3.7061326881950421e-02,
 	  2.8347869256577524e-02}),
-      std::array<double,4>({1.5635369399614820e-02,
-	  6.8007905926828907e-03,
-	  2.7410303230593382e-03,
-	  9.2226386699324205e-04}),
-      std::array<double,4>({4.9312692087509335e-03,
-	  1.5906653966419170e-03,
-	  3.9067830682206969e-04,
-	  6.7828244224356804e-05})
+      std::array<double,4>({
+	  1.5618850741989440e-02,
+	  6.7948174536363922e-03,
+	  2.7387757081918577e-03,
+	  9.2152265548481316e-04}),
+      std::array<double,4>({
+	  4.9194576782567610e-03,
+	  1.5855619683891836e-03,
+	  3.8872699850545491e-04,
+	  6.7179605760583785e-05})
     };
+  
+  std::cout << std::endl << "Distorted mesh" << std::endl;
   std::cout << "DG\tNT\tNX\tmass loss\terror\t\texact\t\tpassed" << std::endl;
   run<1>(0.05,exact);
   run<3>(0.05,exact);

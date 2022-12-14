@@ -5,10 +5,9 @@
  */
 
 #include "SphericalTransport.hpp"
-#include "ParametricTools.hpp"
-//#include "dgTimeStepping.hpp"
 #include "Interpolations.hpp"
 #include "stopwatch.hpp"
+#include "codeGenerationDGinGauss.hpp"
 
 namespace Nextsim {
 
@@ -117,6 +116,15 @@ topedgeofcell(const DGVector<6>& cv, size_t eid)
   // Computes the normal velocity on each edge
   // The velocity is scaled with the length of the edge, therefore
   // the length-element J is already included!
+  //
+  // The way to compute the normal vector does not differ between
+  // the Cartesian and the Sperical version. This is, since the normal
+  // is not the actual normal but a scaled version of it. The weight
+  // that is missing is corrected in the two fucntions
+  // edge_term_X and edge_term_Y. Here, we omit the scaling with
+  // cos(theta) and simple use ds = |J| as length scale
+  // (instead of ds = (d_theta^2 + cos(theta)^2 d_phi^2)^1/2
+  //
 template <int DG>
 void SphericalTransport<DG>::reinitnormalvelocity()
 {
@@ -200,25 +208,14 @@ void SphericalTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const C
 
 ////////////////////////////////////////////////// CELL TERM
 
-template <int DG>
-void cell_term(const ParametricMesh& smesh, double dt,
-    DGVector<DG>& phiup, const DGVector<DG>& phi,
-    const DGVector<DG>& vx,
-    const DGVector<DG>& vy, const size_t ic);
 template <>
-void cell_term(const ParametricMesh& smesh, double dt,
+void SphericalTransport<1>::cell_term(const ParametricMesh& smesh, double dt,
     DGVector<1>& phiup, const DGVector<1>& phi,
     const DGVector<1>& vx,
     const DGVector<1>& vy, const size_t ic) { }
 
-// higher order terms with gauss quadrature
-//
-//     // - (A v, \nabla PSI)
-//   = - R  ( A  v_lon d_lon psi + v_lat cos(lat) d_lat phi) 
-// -  wq *  phi[q] * v[q] * ( Jq * JT^{-T} ) [BIGx, BIGy]
-
 template <int DG>
-void cell_term(const ParametricMesh& smesh, double dt,
+void SphericalTransport<DG>::cell_term(const ParametricMesh& smesh, double dt,
     DGVector<DG>& phiup,
     const DGVector<DG>& phi,
     const DGVector<DG>& vx,
@@ -226,39 +223,12 @@ void cell_term(const ParametricMesh& smesh, double dt,
 {
   if (smesh.landmask[eid]==0)
     return;
+
+  const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)* GP(DG)> vx_gauss = vx.row(eid) * PSI<DG, GP(DG)>; //!< velocity in GP
+  const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)* GP(DG)> vy_gauss = vy.row(eid) * PSI<DG, GP(DG)>;
+  const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)* GP(DG)> phi_gauss = (phi.row(eid) * PSI<DG, GP(DG)>).array();
   
-#define NGP ( (DG <=3 ? 2 : 3 ) )
-
-    const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> vx_gauss = vx.row(eid) * PSI<DG, NGP>; //!< velocity in GP
-    const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> vy_gauss = vy.row(eid) * PSI<DG, NGP>;
-
-    // gradient of transformation
-    //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]
-    // dT = 		     // J dT^{-T}=
-    //      [ dxT2, dyT2 ]     //            [ -dyT1, dxT1 ]
-    //
-    // given as [dxT1, dxT2, dyT1, dyT2] ->  [dyT2, -dxT2, -dyT1, dxT1 ]
-
-    // J dT^{-T} nabla Phi  = [dyT2 * PSIx - dxT2 * PSIy, -dyT1 * PSIx + dxT1 * PSIy]
-    // PSIx, PSIy are DG x QQ - matrices
-    // dxT, dyT are 2 x QQ - matrices
-
-    // Store wq * phi(q)
-    const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> phi_gauss = GAUSSWEIGHTS<NGP>.array() * (phi.row(eid) * PSI<DG, NGP>).array();
-    const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> cos_lat = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid).row(1).array()*M_PI/180.).cos();
-
-
-    const Eigen::Matrix<Nextsim::FloatType, 2, NGP* NGP> dxT = ParametricTools::dxT<NGP>(smesh, eid);
-    const Eigen::Matrix<Nextsim::FloatType, 2, NGP* NGP> dyT = ParametricTools::dyT<NGP>(smesh, eid);
-
-    // [J dT^{-T} nabla phi]_1
-    phiup.row(eid) += dt * ((PSIx<DG, NGP>.array().rowwise() * dyT.row(1).array() - PSIy<DG, NGP>.array().rowwise() * dxT.row(1).array()).rowwise() * vx_gauss.array() +
-			    // [J dT^{-T} nabla phi]_2
-			    (PSIy<DG, NGP>.array().rowwise() * dxT.row(0).array() - PSIx<DG, NGP>.array().rowwise() * dyT.row(0).array()).rowwise() * (vy_gauss.array() * cos_lat.array()))
-                               .matrix()
-        * phi_gauss.transpose();
-
-#undef NGP
+  phiup.row(eid) += dt * (parammap.AdvectionCellTermX[eid].array().rowwise() * vx_gauss.array() + parammap.AdvectionCellTermY[eid].array().rowwise() * vy_gauss.array()).matrix() * phi_gauss.transpose();
 }
 ////////////////////////////////////////////////// BOUNDARY HANDLING
 
@@ -302,8 +272,9 @@ void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
 
 ////////////////////////////////////////////////// EDGE TERMS
 
-inline void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
-    const EdgeVector<1>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
+template<>
+inline void SphericalTransport<1>::edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
+					       const EdgeVector<1>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
   if (smesh.landmask[c1]==0) return;
   if (smesh.landmask[c2]==0) return;
@@ -312,19 +283,11 @@ inline void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<1
     double top = phi(c2, 0);
     double vel = normalvel_X(ie, 0);
 
-    const Eigen::Matrix<Nextsim::FloatType, 2, 2> coords = smesh.coordinatesOfEdgeX(ie);
-    const double lat = 0.5*(coords(0,1) + coords(0,1))/180.0*M_PI;
-    double Jlon = SQR(coords(0,0)-coords(1,0));
-    double Jlat = SQR(coords(0,1)-coords(1,1));
-    double JJ   = Jlon + Jlat;
-    Jlon /= JJ;
-    Jlat /= JJ;
-    double ds = sqrt(Jlon * cos(lat)*cos(lat) + Jlat);
-    
-    phiup(c1, 0) -= dt * ds * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
-    phiup(c2, 0) += dt * ds * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
+    phiup(c1, 0) -= dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
+    phiup(c2, 0) += dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
 }
-inline void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
+template<>
+inline void SphericalTransport<1>::edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
     const EdgeVector<1>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
   if (smesh.landmask[c1]==0) return;
@@ -334,69 +297,38 @@ inline void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<1
     double right = phi(c2, 0);
     double vel = normalvel_Y(ie, 0);
 
-    
-    const Eigen::Matrix<Nextsim::FloatType, 2, 2> coords = smesh.coordinatesOfEdgeY(ie);
-    const double lat = 0.5*(coords(0,1) + coords(0,1))/180.0*M_PI;
-    double Jlon = SQR(coords(0,0)-coords(1,0));
-    double Jlat = SQR(coords(0,1)-coords(1,1));
-    double JJ   = Jlon + Jlat;
-    Jlon /= JJ;
-    Jlat /= JJ;
-    double ds = sqrt(Jlon * cos(lat)*cos(lat) + Jlat);
- 
-    phiup(c1, 0) -= dt * ds * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
-    phiup(c2, 0) += dt * ds * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
+    phiup(c1, 0) -= dt * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
+    phiup(c2, 0) += dt * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
 }
 
 template <int DG>
-inline void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
+inline void SphericalTransport<DG>::edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
     const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
   if (smesh.landmask[c1]==0) return;
   if (smesh.landmask[c2]==0) return;
   
-  const LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_X.row(ie) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
+  const LocalEdgeVector<GP(DG)> vel_gauss = normalvel_X.row(ie) * PSIe<EDGEDOFS(DG), GP(DG)>;
 
-  // for integration get the rel. length of the edge in lon/lat directions (squared)
-  const Eigen::Matrix<Nextsim::FloatType, 2, 2> coords = smesh.coordinatesOfEdgeX(ie);
-  double Jlon = SQR(coords(0,0)-coords(1,0));
-  double Jlat = SQR(coords(0,1)-coords(1,1));
-  double JJ   = Jlon + Jlat;
-  Jlon /= JJ;
-  Jlat /= JJ;
- 
-  const Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)> cos_lat = (ParametricTools::getGaussPointsOnEdgeX<EDGEDOFS(DG)>(smesh,ie).row(1).array()/180.*M_PI).cos();
-  const Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)> ds_gauss = (Jlat + Jlon * cos_lat.array().square()).sqrt();
-
-  const LocalEdgeVector<EDGEDOFS(DG)> tmp =//ds_gauss.array() *
-    (vel_gauss.array().max(0) * (topedgeofcell<DG>   (phi, c1) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() + 
-     vel_gauss.array().min(0) * (bottomedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() );
+  const LocalEdgeVector<GP(DG)> tmp =
+    (vel_gauss.array().max(0) * (topedgeofcell<DG>   (phi, c1) * PSIe<EDGEDOFS(DG), GP(DG)>).array() + 
+     vel_gauss.array().min(0) * (bottomedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), GP(DG)>).array() );
     
-    phiup.row(c1) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 2>;
-    phiup.row(c2) += dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 0>;
+    phiup.row(c1) -= dt * tmp * PSIe_w<DG, GP(DG), 2>;
+    phiup.row(c2) += dt * tmp * PSIe_w<DG, GP(DG), 0>;
 }
+
+
 template <int DG>
-inline void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
+inline void SphericalTransport<DG>::edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
     const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
   if (smesh.landmask[c1]==0) return;
   if (smesh.landmask[c2]==0) return;
   
-    const LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_Y.row(ie) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
+    const LocalEdgeVector<GP(DG)> vel_gauss = normalvel_Y.row(ie) * PSIe<EDGEDOFS(DG), GP(DG)>;
 
-    // for integration get the rel. length of the edge in lon/lat directions (squared)
-    const Eigen::Matrix<Nextsim::FloatType, 2, 2> coords = smesh.coordinatesOfEdgeY(ie);
-    double Jlon = SQR(coords(0,0)-coords(1,0));
-    double Jlat = SQR(coords(0,1)-coords(1,1));
-    double JJ   = Jlon + Jlat;
-    Jlon /= JJ;
-    Jlat /= JJ;
-
-    const Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)> cos_lat = (ParametricTools::getGaussPointsOnEdgeX<EDGEDOFS(DG)>(smesh,ie).row(1).array()/180*M_PI).cos();
-    const Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)> ds_gauss = (Jlat + Jlon * cos_lat.array().square()).sqrt();
-	
-    
-    const LocalEdgeVector<EDGEDOFS(DG)> tmp =// ds_gauss.array() *
+    const LocalEdgeVector<EDGEDOFS(DG)> tmp =
       (vel_gauss.array().max(0) * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() +
        vel_gauss.array().min(0) * (leftedgeofcell <DG>(phi, c2) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array());
 
@@ -406,7 +338,7 @@ inline void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<D
 }
 
 template <int DG>
-void SphericalTransportOperator(const ParametricMesh& smesh, const double dt,
+void SphericalTransport<DG>::SphericalTransportOperator(const ParametricMesh& smesh, const double dt,
     const DGVector<DG>& vx,
     const DGVector<DG>& vy,
     const EdgeVector<EDGEDOFS(DG)>& normalvel_X,
@@ -419,7 +351,7 @@ void SphericalTransportOperator(const ParametricMesh& smesh, const double dt,
     // Cell terms
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid)
-        cell_term<DG>(smesh, dt, phiup, phi, vx, vy, eid);
+        cell_term(smesh, dt, phiup, phi, vx, vy, eid);
     GlobalTimer.stop("-- -- --> cell term");
 
     GlobalTimer.start("-- -- --> edge terms");
@@ -489,24 +421,19 @@ void SphericalTransportOperator(const ParametricMesh& smesh, const double dt,
 	      }
 	  }
       }
-    
     GlobalTimer.stop("-- -- --> boundaries");
 
-    ////// APPLY INVERSE MASS MATRIX !!! Switch to precomputed!
-    
     GlobalTimer.start("-- -- --> inverse mass");
 #pragma omp parallel for
-    for (size_t eid = 0; eid < smesh.nelements; ++eid) {
-        phiup.row(eid) =  (SphericalTools::massMatrix<DG>(smesh, eid).inverse() * phiup.row(eid).transpose());
-    }
-
+    for (size_t eid = 0; eid < smesh.nelements; ++eid)
+      phiup.row(eid) =  parammap.InverseDGMassMatrix[eid] * phiup.row(eid).transpose();
     GlobalTimer.stop("-- -- --> inverse mass");
 }
 
 template <int DG>
 void SphericalTransport<DG>::step_rk1(const double dt, DGVector<DG>& phi)
 {
-    SphericalTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp1);
+    SphericalTransportOperator(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp1);
 
     phi += tmp1;
 }
@@ -514,11 +441,11 @@ void SphericalTransport<DG>::step_rk1(const double dt, DGVector<DG>& phi)
 template <int DG>
 void SphericalTransport<DG>::step_rk2(const double dt, DGVector<DG>& phi)
 {
-    SphericalTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp1); // tmp1 = k * F(u)
+    SphericalTransportOperator(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp1); // tmp1 = k * F(u)
 
     phi += tmp1; // phi = phi + k * F(u)     (i.e.: implicit Euler)
 
-    SphericalTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp2); // tmp1 = k * F( u + k * F(u) )
+    SphericalTransportOperator(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp2); // tmp1 = k * F( u + k * F(u) )
 
     phi += 0.5 * (tmp2 - tmp1);
 }
@@ -526,17 +453,17 @@ void SphericalTransport<DG>::step_rk2(const double dt, DGVector<DG>& phi)
 template <int DG>
 void SphericalTransport<DG>::step_rk3(const double dt, DGVector<DG>& phi)
 {
-    SphericalTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
+    SphericalTransportOperator(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
         tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
     tmp1 += phi; // phi + h f(phi)
 
-    SphericalTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, tmp1,
+    SphericalTransportOperator(smesh, dt, velx, vely, normalvel_X, normalvel_Y, tmp1,
         tmp2); // tmp2 = f( u + h f(u) )
     tmp2 += tmp1;
     tmp2 *= 0.25;
     tmp2 += 0.75 * phi;
 
-    SphericalTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, tmp2,
+    SphericalTransportOperator(smesh, dt, velx, vely, normalvel_X, normalvel_Y, tmp2,
         tmp3); // k * F(k1) // K2 in Heun(3)
     tmp3 += tmp2;
 

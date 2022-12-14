@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "ParametricTransport.hpp"
+#include "SphericalTransport.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
@@ -34,11 +34,12 @@ double TOL = 1.e-10; //!< tolerance for checking test results
  */
 
 namespace ProblemConfig {
-  double Lx = 0.5e6;
-  double Ly = 1.0e6;
+  const double Lx = 0.5e6;
+  const double Ly = 1.0e6;
   size_t Nx = -1;
   size_t Ny = -1;
-  size_t NT = 1000;
+  const double T  = 2.0 * M_PI;
+  size_t NT = -1;
 }
 
 
@@ -73,14 +74,14 @@ class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 public:
     double operator()(double x, double y) const
     {
-      return -0.2;
+      return -(y-400000.0);
     }
 };
 class InitialVY : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      return 0.7;
+      return (x-100000.0);
     }
 };
 
@@ -99,7 +100,7 @@ class Test {
     Nextsim::DGVector<DG> phi;
 
     //! Transport main class
-    Nextsim::ParametricTransport<DG> dgtransport;
+    Nextsim::SphericalTransport<DG> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -110,7 +111,7 @@ class Test {
 public:
     Test(const Nextsim::ParametricMesh& mesh)
         : smesh(mesh)
-        , dgtransport(smesh)
+        , dgtransport(smesh, Nextsim::CARTESIAN)
         , writestep(40)
     {
         //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2
@@ -124,7 +125,7 @@ public:
 
     void init()
     {
-      dt = 1000;// 1000 sek.
+      dt = ProblemConfig::T/ProblemConfig::NT;// 1000 sek.
       //! Init Vectors
       phi.resize_by_mesh(smesh);
     }
@@ -164,14 +165,14 @@ public:
 		  }
         }
         // integral over the solution
-        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, ZeroFunction());
+        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump());
     }
 };
 
 template <int DG>
 void run(double distort = 0.0)
 {
-    Nextsim::ParametricMesh smesh(0); // 0 means no output
+    Nextsim::ParametricMesh smesh; // 0 means no output
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 \
                                                          : -1))
@@ -180,7 +181,7 @@ void run(double distort = 0.0)
     smesh.readmesh("example3-25km_NH.smesh");
     ProblemConfig::Nx = smesh.nx;
     ProblemConfig::Ny = smesh.ny;
-
+    ProblemConfig::NT = 500*(2*DG2DEG(DG)+1);
     // Transform mesh coordinates to Cartesian coordinates, then project to 2d
     double R = 6371000.0;  
     for (size_t i = 0; i<smesh.nnodes;++i)
@@ -194,7 +195,12 @@ void run(double distort = 0.0)
     Test<DG> test(smesh);
     double integral = test.run();
 
-    double exact[3]={7.8672346577102885e+07,6.0145990678872436e+07,6.1715443285786733e+07};
+    /*!
+     * Exact values taken on 14.12.2022
+     * We cannot expect convergence as the initial pattern
+     * will cross some coastlines while rotating.
+     */
+    double exact[3]={4.9883497471693456e+08,1.3485733529785068e+06,1.4092194337517798e+06};
 
     std::cout << std::setprecision(4) << std::scientific;
     double error = exact[DG2DEG(DG)]-integral;

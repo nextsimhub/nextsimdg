@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "ParametricTransport.hpp"
+#include "SphericalTransport.hpp"
 #include "dgLimit.hpp"
 #include "dgVisu.hpp"
 #include "Tools.hpp"
@@ -57,7 +57,7 @@ double exact_values[6][4] = {
     { 0.00410855, 0.00127682, 0.000304336, 5.55225e-05 }
 };
 
-bool WRITE_VTK = true; //!< set to true for vtk output
+bool WRITE_VTK = false; //!< set to true for vtk output
 
 double TOL = 1.e-10; //!< tolerance for checking test results
 
@@ -148,7 +148,7 @@ class Test {
     Nextsim::DGVector<DG> phi;
 
     //! Transport main class
-    Nextsim::ParametricTransport<DG> dgtransport;
+    Nextsim::SphericalTransport<DG> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -159,7 +159,7 @@ class Test {
 public:
     Test(const Nextsim::ParametricMesh& mesh)
         : smesh(mesh)
-        , dgtransport(smesh)
+        , dgtransport(smesh, Nextsim::CARTESIAN)
         , writestep(1)
     {
         //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2
@@ -259,7 +259,7 @@ void create_rectanglemesh(const std::string meshname)
 template <int DG>
 void run(const std::array<std::array<double, 4>, 3>& exact)
 {
-    Nextsim::ParametricMesh smesh(0); // 0 means no output
+    Nextsim::ParametricMesh smesh; 
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 \
                                                          : -1))
@@ -290,27 +290,27 @@ void run(const std::array<std::array<double, 4>, 3>& exact)
 int main()
 {
   std::cout << "DG\tNT\tNX\tmass\t\terror\t\texact\t\tpassed" << std::endl;
-  std::cout << std::setprecision(3) << std::scientific;
+  std::cout << std::setprecision(4) << std::scientific;
 
   std::array<std::array<double, 4>, 3> exact= // Exact values taken 22.11.2022
     {
       std::array<double,4>({
 	  1.1694670693410663e+00,
-	  1.1285759937350421e+00,
-	  1.0659725870386019e+00,
-	  9.5109023920919178e-01
+	  1.1285759937350424e+00,
+	  1.0659725870386016e+00,
+	  9.5109023920919167e-01
 	}),
       std::array<double,4>({
-	  1.0487792662515705e+00,
-	  7.5461434366333835e-01,
-	  5.1209045086865479e-01,
-	  3.5864223166698406e-01
+	  1.0566915186500225e+00,
+	  7.6902733263023504e-01,
+	  5.1638380542567819e-01,
+	  3.6015749087091753e-01
 	}),
       std::array<double,4>({
-	  6.6391125125432049e-01,
-	  4.2012019950995644e-01,
-	  3.0712660915649159e-01,
-	  2.2580866881540707e-01
+	  6.5986370457896470e-01,
+	  4.1595435088567217e-01,
+	  3.0395405738986181e-01,
+	  2.2232746207904747e-01
 	})
     };
   

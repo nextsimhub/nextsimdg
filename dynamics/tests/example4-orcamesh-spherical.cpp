@@ -113,7 +113,7 @@ class Test {
 public:
     Test(const Nextsim::ParametricMesh& mesh)
         : smesh(mesh)
-        , sphericaltransport(smesh)
+        , sphericaltransport(smesh, Nextsim::SPHERICAL)
         , writestep(40)
     {
         //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2
@@ -215,8 +215,7 @@ void create_rectanglemesh(const std::string meshname, size_t Nx, size_t Ny, doub
 template <int DG>
 void run(size_t N)
 {
-  bool sphericalmesh = true;
-  Nextsim::ParametricMesh smesh(sphericalmesh, 0); // true = spherical 0 means no output
+  Nextsim::ParametricMesh smesh(Nextsim::SPHERICAL); // true = spherical 0 means no output
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 \
                                                          : -1))

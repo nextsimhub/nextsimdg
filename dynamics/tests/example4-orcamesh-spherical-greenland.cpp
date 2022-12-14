@@ -101,7 +101,7 @@ class Test {
     Nextsim::DGVector<DG> phi;
 
     //! Transport main class
-    Nextsim::SphericalTransport<DG> sphericaltransport;
+  Nextsim::SphericalTransport<DG> sphericaltransport;
   Nextsim::SphericalTransformation<1,DG> transformation;
 
     //! Velocity Field
@@ -113,7 +113,7 @@ class Test {
 public:
     Test(const Nextsim::ParametricMesh& mesh)
         : smesh(mesh)
-        , sphericaltransport(smesh)
+        , sphericaltransport(smesh, Nextsim::SPHERICAL)
         , writestep(40)
     {
         //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2
@@ -216,7 +216,7 @@ template <int DG>
 void run(size_t N)
 {
   bool sphericalmesh = true;
-  Nextsim::ParametricMesh smesh(sphericalmesh, 0); // true = spherical 0 means no output
+  Nextsim::ParametricMesh smesh(Nextsim::SPHERICAL); // true = spherical 0 means no output
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 \
                                                          : -1))
@@ -239,30 +239,31 @@ void run(size_t N)
 	      << passed << std::endl;
 }
 
+
 int main()
 {
  
-  // meshes without rotation to Greenland. Values taken 11.12.2022
+  // meshes WITH rotation to Greenland. Values taken 13.12.2022
   // Results show proper order of convergence for dG(0), dG(1) and dG(2)
   // But, dG(2) requires small time steps (such as here) for correct convergence
-  ProblemConfig::exact[{1,32} ] = 4.3989309054997790e+02;
-  ProblemConfig::exact[{3,32} ] = 2.0690743975760977e+01;
-  ProblemConfig::exact[{6,32} ] = 2.8148666768620938e+00;
-  ProblemConfig::exact[{1,64} ] = 2.9715266810137950e+02;
-  ProblemConfig::exact[{3,64} ] = 6.2539426171533457e+00;
-  ProblemConfig::exact[{6,64} ] = 5.7454041157431368e-01;
-  ProblemConfig::exact[{1,128}] = 1.7317440232333647e+02;
-  ProblemConfig::exact[{3,128}] = 1.5865707888748881e+00;
-  ProblemConfig::exact[{6,128}] = 7.4034854003818235e-02;
+  ProblemConfig::exact[{1,32} ] = 4.7779926519526043e+02;
+  ProblemConfig::exact[{3,32} ] = 2.3163978602498162e+01;
+  ProblemConfig::exact[{6,32} ] = 3.7414667144272720e+00;
+  ProblemConfig::exact[{1,64} ] = 3.2128253299415837e+02;
+  ProblemConfig::exact[{3,64} ] = 6.9192185243522086e+00;
+  ProblemConfig::exact[{6,64} ] = 6.7556701201018732e-01;
+  ProblemConfig::exact[{1,128}] = 1.8600474870183845e+02;
+  ProblemConfig::exact[{3,128}] = 1.7205701131698075e+00;
+  ProblemConfig::exact[{6,128}] = 8.6735681400713568e-02;
   
   std::cout << "DG\tNT\tNX\tError\t\tReference\tPassed (1)" << std::endl;
   
   //  for (size_t n : {32,64}) // Reference values for N=128 are given. But computations are lengthy.
     for (size_t n : {32,64,128}) 
     {
-      //  run<1>(n);
-      run<3>(n);
-      run<6>(n);
+      run<1>(n);
+      //      run<3>(n);
+      //      run<6>(n);
     }
   
     return 0;
