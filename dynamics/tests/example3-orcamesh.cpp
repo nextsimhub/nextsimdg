@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "SphericalTransport.hpp"
+#include "DGTransport.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
@@ -100,7 +100,7 @@ class Test {
     Nextsim::DGVector<DG> phi;
 
     //! Transport main class
-    Nextsim::SphericalTransport<DG> dgtransport;
+    Nextsim::DGTransport<DG> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -142,11 +142,11 @@ public:
 
 
         // initial density
-        Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump());
+        Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump(), Nextsim::CARTESIAN);
 
         // velocity field
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
+        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX, Nextsim::CARTESIAN);
+        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY, Nextsim::CARTESIAN);
 
         if (WRITE_VTK) {
             Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", 0, phi, smesh);
@@ -165,7 +165,7 @@ public:
 		  }
         }
         // integral over the solution
-        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump());
+        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump(), Nextsim::CARTESIAN);
     }
 };
 
@@ -200,7 +200,7 @@ void run(double distort = 0.0)
      * We cannot expect convergence as the initial pattern
      * will cross some coastlines while rotating.
      */
-    double exact[3]={4.9883497471693456e+08,1.3485733529785068e+06,1.4092194337517798e+06};
+    double exact[3]={4.9779942167207122e+08,1.3467162055206916e+06,1.4092155385515299e+06};
 
     std::cout << std::setprecision(4) << std::scientific;
     double error = exact[DG2DEG(DG)]-integral;

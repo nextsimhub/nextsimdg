@@ -8,7 +8,7 @@
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
 #include "Tools.hpp"
-#include "SphericalTransport.hpp"
+#include "DGTransport.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
@@ -101,7 +101,7 @@ class Test {
     Nextsim::DGVector<DG> phi;
 
     //! Transport main class
-  Nextsim::SphericalTransport<DG> sphericaltransport;
+  Nextsim::DGTransport<DG> sphericaltransport;
   Nextsim::SphericalTransformation<1,DG> transformation;
 
     //! Velocity Field
@@ -144,11 +144,11 @@ public:
 
 
         // initial density
-        Nextsim::Interpolations::Function2DGSpherical(smesh, phi, SmoothBump());
+        Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump(), Nextsim::SPHERICAL);
 	
         // velocity field
-        Nextsim::Interpolations::Function2DGSpherical(smesh, sphericaltransport.GetVx(), VX);
-        Nextsim::Interpolations::Function2DGSpherical(smesh, sphericaltransport.GetVy(), VY);
+        Nextsim::Interpolations::Function2DG(smesh, sphericaltransport.GetVx(), VX, Nextsim::SPHERICAL);
+        Nextsim::Interpolations::Function2DG(smesh, sphericaltransport.GetVy(), VY, Nextsim::SPHERICAL);
 
 	
         std::cout << DG << "\t" << ProblemConfig::NT << "\t" << smesh.nx << "\t" << std::flush;
@@ -172,7 +172,7 @@ public:
 		  Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", iter / (ProblemConfig::NT / writestep), phi, smesh, true);
         }
         // integral over the solution
-        return Nextsim::Interpolations::L2ErrorFunctionDGSpherical(smesh, phi, SmoothBump());
+        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump(), Nextsim::SPHERICAL);
     }
 };
 
@@ -225,7 +225,7 @@ void run(size_t N)
   create_rectanglemesh("example4.smesh", 2*N, N, 0.2);
   smesh.readmesh("example4.smesh");
   // time step size
-  ProblemConfig::NT = N*5*(DG2DEG(DG)+1)*(DG2DEG(DG)+1);
+  ProblemConfig::NT = N*5*(2*DG2DEG(DG)+1);
   smesh.RotatePoleToGreenland();
     //    smesh.RotatePoleFromGreenland();
 
@@ -246,24 +246,25 @@ int main()
   // meshes WITH rotation to Greenland. Values taken 13.12.2022
   // Results show proper order of convergence for dG(0), dG(1) and dG(2)
   // But, dG(2) requires small time steps (such as here) for correct convergence
-  ProblemConfig::exact[{1,32} ] = 4.7779926519526043e+02;
-  ProblemConfig::exact[{3,32} ] = 2.3163978602498162e+01;
-  ProblemConfig::exact[{6,32} ] = 3.7414667144272720e+00;
-  ProblemConfig::exact[{1,64} ] = 3.2128253299415837e+02;
-  ProblemConfig::exact[{3,64} ] = 6.9192185243522086e+00;
-  ProblemConfig::exact[{6,64} ] = 6.7556701201018732e-01;
-  ProblemConfig::exact[{1,128}] = 1.8600474870183845e+02;
-  ProblemConfig::exact[{3,128}] = 1.7205701131698075e+00;
-  ProblemConfig::exact[{6,128}] = 8.6735681400713568e-02;
-  
+  ProblemConfig::exact[{1,32} ] = 4.7642540126122276e+02;
+  ProblemConfig::exact[{3,32} ] = 2.3258082729291797e+01;
+  ProblemConfig::exact[{6,32} ] = 3.7695223374051112e+00;
+  ProblemConfig::exact[{1,64} ] = 3.2078255488595022e+02;
+  ProblemConfig::exact[{3,64} ] = 6.9256662418894788e+00;
+  ProblemConfig::exact[{6,64} ] = 6.8746231227782217e-01;
+  ProblemConfig::exact[{1,128}] = 1.8578599112112357e+02;
+  ProblemConfig::exact[{3,128}] = 1.7240401859853065e+00;
+  ProblemConfig::exact[{6,128}] = 8.9275936988403290e-02;
+
+
   std::cout << "DG\tNT\tNX\tError\t\tReference\tPassed (1)" << std::endl;
   
   //  for (size_t n : {32,64}) // Reference values for N=128 are given. But computations are lengthy.
     for (size_t n : {32,64,128}) 
     {
       run<1>(n);
-      //      run<3>(n);
-      //      run<6>(n);
+      run<3>(n);
+      run<6>(n);
     }
   
     return 0;

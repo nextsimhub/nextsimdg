@@ -8,7 +8,7 @@
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
 #include "Tools.hpp"
-#include "SphericalTransport.hpp"
+#include "DGTransport.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
@@ -101,7 +101,7 @@ class Test {
     Nextsim::DGVector<DG> phi;
 
     //! Transport main class
-    Nextsim::SphericalTransport<DG> sphericaltransport;
+    Nextsim::DGTransport<DG> sphericaltransport;
   Nextsim::SphericalTransformation<1,DG> transformation;
 
     //! Velocity Field
@@ -144,11 +144,11 @@ public:
 
 
         // initial density
-        Nextsim::Interpolations::Function2DGSpherical(smesh, phi, SmoothBump());
+        Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump(), Nextsim::SPHERICAL);
 	
         // velocity field
-        Nextsim::Interpolations::Function2DGSpherical(smesh, sphericaltransport.GetVx(), VX);
-        Nextsim::Interpolations::Function2DGSpherical(smesh, sphericaltransport.GetVy(), VY);
+        Nextsim::Interpolations::Function2DG(smesh, sphericaltransport.GetVx(), VX, Nextsim::SPHERICAL);
+        Nextsim::Interpolations::Function2DG(smesh, sphericaltransport.GetVy(), VY, Nextsim::SPHERICAL);
 
 	
         std::cout << DG << "\t" << ProblemConfig::NT << "\t" << smesh.nx << "\t" << std::flush;
@@ -172,7 +172,7 @@ public:
 		  Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", iter / (ProblemConfig::NT / writestep), phi, smesh, true);
         }
         // integral over the solution
-        return Nextsim::Interpolations::L2ErrorFunctionDGSpherical(smesh, phi, SmoothBump());
+        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump(), Nextsim::SPHERICAL);
     }
 };
 
@@ -224,7 +224,7 @@ void run(size_t N)
   create_rectanglemesh("example4.smesh", 2*N, N, 0.2);
   smesh.readmesh("example4.smesh");
   // time step size
-  ProblemConfig::NT = N*5*(DG2DEG(DG)+1)*(DG2DEG(DG)+1);
+  ProblemConfig::NT = N*5*(2*DG2DEG(DG)+1);
   //  smesh.RotatePoleToGreenland();
     //    smesh.RotatePoleFromGreenland();
     //    smesh.vertices *= M_PI/180.0;
@@ -241,17 +241,17 @@ void run(size_t N)
 
 int main()
 {
-  // meshes without rotation to Greenland. Values taken 11.12.2022 
-  ProblemConfig::exact[{1,32} ] = 4.3989309054997790e+02;
-  ProblemConfig::exact[{3,32} ] = 2.0690743975760977e+01;
-  ProblemConfig::exact[{6,32} ] = 2.8148666768620938e+00;
-  ProblemConfig::exact[{1,64} ] = 2.9715266810137950e+02;
-  ProblemConfig::exact[{3,64} ] = 6.2539426171533457e+00;
-  ProblemConfig::exact[{6,64} ] = 5.7454041157431368e-01;
-  ProblemConfig::exact[{1,128}] = 1.7317440232333647e+02;
-  ProblemConfig::exact[{3,128}] = 1.5865707888748881e+00;
-  ProblemConfig::exact[{6,128}] = 7.4034854003818235e-02;
-  
+  // meshes WITHOUT rotation to Greenland. Values taken 11.12.2022 
+  ProblemConfig::exact[{1,32} ] = 4.3746591350081906e+02;
+  ProblemConfig::exact[{3,32} ] = 2.1321175648937860e+01;
+  ProblemConfig::exact[{6,32} ] = 3.4265184076084010e+00;
+  ProblemConfig::exact[{1,64} ] = 2.9531027041111111e+02;
+  ProblemConfig::exact[{3,64} ] = 6.3372101389234405e+00;
+  ProblemConfig::exact[{6,64} ] = 5.7488789884782665e-01;
+  ProblemConfig::exact[{1,128}] = 1.7282509560145877e+02;
+  ProblemConfig::exact[{3,128}] = 1.5906304660343766e+00;
+  ProblemConfig::exact[{6,128}] = 7.7060152547973701e-02;
+
   std::cout << "DG\tNT\tNX\tError\t\tReference\tPassed (1)" << std::endl;
   
   // for (size_t n : {32,64})

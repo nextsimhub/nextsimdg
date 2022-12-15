@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "SphericalTransport.hpp"
+#include "DGTransport.hpp"
 #include "dgLimit.hpp"
 #include "dgVisu.hpp"
 #include "Tools.hpp"
@@ -47,15 +47,6 @@ namespace ProblemConfig {
 }
 
 
-//! exact error values. [dg][it]. right order of convergence (1/2), (2) and (3) need at least 4 meshes
-double exact_values[6][4] = {
-    { 0.0482094, 0.0431458, 0.0358241, 0.0269558 },
-    { 0.0134817, 0.00587354, 0.00227998, 0.000737005 },
-    { 0.00410855, 0.00127682, 0.000304336, 5.55225e-05 },
-    { 0.0482094, 0.0431458, 0.0358241, 0.0269558 },
-    { 0.0134817, 0.00587354, 0.00227998, 0.000737005 },
-    { 0.00410855, 0.00127682, 0.000304336, 5.55225e-05 }
-};
 
 bool WRITE_VTK = false; //!< set to true for vtk output
 
@@ -148,7 +139,7 @@ class Test {
     Nextsim::DGVector<DG> phi;
 
     //! Transport main class
-    Nextsim::SphericalTransport<DG> dgtransport;
+    Nextsim::DGTransport<DG> dgtransport;
 
     //! Velocity Field
     InitialVX VX;
@@ -189,14 +180,14 @@ public:
         init();
 
         // initial density
-        Nextsim::Interpolations::Function2DG(smesh, phi, Packman());
+        Nextsim::Interpolations::Function2DG(smesh, phi, Packman(), Nextsim::CARTESIAN);
 	Nextsim::LimitMax(phi,1.0);
 	Nextsim::LimitMin(phi,0.0);
 
 	double initialmass = Nextsim::Tools::MeanValue(smesh,phi);
         // velocity field
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
+        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX, Nextsim::CARTESIAN);
+        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY, Nextsim::CARTESIAN);
 
 	
         if (WRITE_VTK) {
@@ -221,7 +212,7 @@ public:
 	
 	std::cout << initialmass << "\t";
 	// compute error
-	return sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, Packman())) / ProblemConfig::R0;
+	return sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, Packman(), Nextsim::CARTESIAN)) / ProblemConfig::R0;
     }
 };
 
@@ -292,27 +283,28 @@ int main()
   std::cout << "DG\tNT\tNX\tmass\t\terror\t\texact\t\tpassed" << std::endl;
   std::cout << std::setprecision(4) << std::scientific;
 
-  std::array<std::array<double, 4>, 3> exact= // Exact values taken 22.11.2022
+  std::array<std::array<double, 4>, 3> exact= // Exact values taken 12.12.2022
     {
       std::array<double,4>({
-	  1.1694670693410663e+00,
-	  1.1285759937350424e+00,
-	  1.0659725870386016e+00,
-	  9.5109023920919167e-01
+	  1.0391624414762417e+00,
+	  1.1501064166196422e+00,
+	  1.0716061327988471e+00,
+	  9.5401958993610814e-01
 	}),
       std::array<double,4>({
-	  1.0566915186500225e+00,
-	  7.6902733263023504e-01,
-	  5.1638380542567819e-01,
-	  3.6015749087091753e-01
+	  1.0612603302304859e+00,
+	  7.7495581371153321e-01,
+	  5.2118230019043099e-01,
+	  3.5890562267355358e-01
 	}),
       std::array<double,4>({
-	  6.5986370457896470e-01,
-	  4.1595435088567217e-01,
-	  3.0395405738986181e-01,
-	  2.2232746207904747e-01
+	  6.0748693509577401e-01,
+	  4.1527390403823250e-01,
+	  3.0257967665165653e-01,
+	  2.2100034857331666e-01
 	})
     };
+
   
   run<1>(exact);
   run<3>(exact);

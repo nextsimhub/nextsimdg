@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "ParametricTransport.hpp"
+#include "DGTransport.hpp"
 
 #include "Tools.hpp"
 #include "cgParametricMomentum.hpp"
@@ -103,12 +103,17 @@ class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      return 0.3;// + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
+      double pos = (pow(sin(M_PI*4.0*x/ReferenceScale::L),2.)*pow(sin(M_PI*4.0*y/ReferenceScale::L),2.))>0.2?1:0.01;
+      return pos*(0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y)));
     }
 };
 class InitialA : public Nextsim::Interpolations::Function {
 public:
-    double operator()(double x, double y) const { return 1.0; }
+    double operator()(double x, double y) const
+  {
+    double pos = (pow(sin(M_PI*4.0*x/ReferenceScale::L),2.)*pow(sin(M_PI*4.0*y/ReferenceScale::L),2.))>0.2?1:0.01;
+    return pos;
+  }
 };
 //////////////////////////////////////////////////
 
@@ -157,7 +162,7 @@ void run_benchmark(const size_t NX, double distort)
 {
     //! Define the spatial mesh
     create_mesh("tmp-benchmark.smesh", NX, distort);
-    Nextsim::ParametricMesh smesh(0);
+    Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
     smesh.readmesh("tmp-benchmark.smesh");
 
     //! Compose name of output directory and create it
@@ -175,7 +180,7 @@ void run_benchmark(const size_t NX, double distort)
     //! MEVP parameters
     constexpr double alpha = 1500.0;
     constexpr double beta = 1500.0;
-    constexpr size_t NT_evp = 100;
+    constexpr size_t NT_evp = 2000;
 
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
@@ -185,7 +190,7 @@ void run_benchmark(const size_t NX, double distort)
               << "CG/DG " << CG << "\t" << DGadvection  << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = ReferenceScale::T; // 48.0 * 60.0 * 60.0; // once
+    constexpr double T_vtk = ReferenceScale::T/48.; // 48.0 * 60.0 * 60.0; // every our
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -204,12 +209,12 @@ void run_benchmark(const size_t NX, double distort)
 
     ////////////////////////////////////////////////// Variables and Initial Values
     Nextsim::DGVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
-    Nextsim::Interpolations::Function2DG(smesh, H, InitialH());
-    Nextsim::Interpolations::Function2DG(smesh, A, InitialA());
+    Nextsim::Interpolations::Function2DG(smesh, H, InitialH(), Nextsim::CARTESIAN);
+    Nextsim::Interpolations::Function2DG(smesh, A, InitialA(), Nextsim::CARTESIAN);
 
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
-    if (0) // write initial?
+    if (1) // write initial?
         if (WRITE_VTK) {
             Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
             Nextsim::VTK::write_dg(resultsdir + "/A", 0, A, smesh);
@@ -219,7 +224,7 @@ void run_benchmark(const size_t NX, double distort)
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::ParametricTransport<DGadvection> dgtransport(smesh);
+    Nextsim::DGTransport<DGadvection> dgtransport(smesh, Nextsim::CARTESIAN);
     dgtransport.settimesteppingscheme("rk2");
 
     ////////////////////////////////////////////////// Main Loop
@@ -297,7 +302,7 @@ void run_benchmark(const size_t NX, double distort)
 
 int main()
 {
-  run_benchmark<2, 6>(128, 0.0);
+  run_benchmark<2, 6>(256, 0.0);
   // int NN[5] = {32,64,128,256,512};
   // for (int n=0;n<5;++n)
   //   {

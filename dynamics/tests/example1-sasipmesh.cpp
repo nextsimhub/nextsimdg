@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "SphericalTransport.hpp"
+#include "DGTransport.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 #include "Tools.hpp"
@@ -117,7 +117,7 @@ class Test {
   Nextsim::DGVector<DG> phi;
 
   //! Transport main class
-  Nextsim::SphericalTransport<DG> dgtransport;
+  Nextsim::DGTransport<DG> dgtransport;
 
   //! Velocity Field
   InitialVX VX;
@@ -158,16 +158,18 @@ public:
     init();
 
     // initial density
-    Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump());
+    Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump(), Nextsim::CARTESIAN);
 
     double initialaverage = Nextsim::Tools::MeanValue(smesh,phi);
 
     // velocity field
-    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
-    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
+    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX, Nextsim::CARTESIAN);
+    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY, Nextsim::CARTESIAN);
 
     if (WRITE_VTK) {
       Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", 0, phi, smesh);
+      Nextsim::VTK::write_dg<DG>(resultsdir + "/vx", 0, dgtransport.GetVx(), smesh);
+      Nextsim::VTK::write_dg<DG>(resultsdir + "/vy", 0, dgtransport.GetVy(), smesh);
     }
     std::cout << DG << "\t" << ProblemConfig::NT << "\t" << smesh.nx << "\t" << std::flush;
 
@@ -185,7 +187,7 @@ public:
     std::cout << initialaverage << "\t";
 
     // integrate the error
-    return sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump())) / ProblemConfig::Lx;
+    return sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump(), Nextsim::CARTESIAN)) / ProblemConfig::Lx;
   }
 };
 
@@ -254,25 +256,25 @@ void run(double distort, const std::array<std::array<double, 4>, 3>& exact)
 
 int main()
 {
-  std::cout << std::setprecision(3) << std::scientific;
+  std::cout << std::setprecision(4) << std::scientific;
       
   std::array<std::array<double, 4>, 3> exact= // Exact values taken 14.12.2022 (with rk1/rk2/rk3)
     {
       std::array<double,4>({
-	  4.8211028295934204e-02,
-	  4.3147199226169552e-02,
-	  3.5825194395857747e-02,
-	  2.6956405683141109e-02}),
+	  4.8314783396276907e-02,
+	  4.3121845060990968e-02,
+	  3.5805596896499432e-02,
+	  2.6943655410656617e-02}),
       std::array<double,4>({
-	  1.3469076224946228e-02,
-	  5.8684338697161317e-03,
-	  2.2778998006559789e-03,
-	  7.3625764726383837e-04}),
+	  1.3427300428974142e-02,
+	  5.8574917975990539e-03,
+	  2.2756828198281097e-03,
+	  7.3564123952743888e-04}),
       std::array<double,4>({
-	  4.0419818925870685e-03,
-	  1.2394804214472853e-03,
-	  2.8473714699424552e-04,
-	  4.5484079480627463e-05})
+	  4.0274885631835103e-03,
+	  1.2400192553115746e-03,
+	  2.8460172952094940e-04,
+	  4.5459584746490405e-05})
     };
 
   std::cout << std::endl
@@ -280,26 +282,26 @@ int main()
   run<1>(0.0,exact);
   run<3>(0.0,exact);
   run<6>(0.0,exact);
-
   
   exact=
     {
       std::array<double,4>({
-	  4.8651365310526981e-02,
-	  4.3965656991140793e-02,
-	  3.7061326881950421e-02,
-	  2.8347869256577524e-02}),
+	  4.8471012332113990e-02,
+	  4.3923292993805568e-02,
+	  3.7043103484653367e-02,
+	  2.8337995655005246e-02}),
       std::array<double,4>({
-	  1.5618850741989440e-02,
-	  6.7948174536363922e-03,
-	  2.7387757081918577e-03,
-	  9.2152265548481316e-04}),
+	  1.5639053380182857e-02,
+	  6.7927021150567882e-03,
+	  2.7369920558767478e-03,
+	  9.2109978015705776e-04}),
       std::array<double,4>({
-	  4.9194576782567610e-03,
-	  1.5855619683891836e-03,
-	  3.8872699850545491e-04,
-	  6.7179605760583785e-05})
+	  4.9207622570231089e-03,
+	  1.5831521586435636e-03,
+	  3.8869573083901034e-04,
+	  6.7162994609144087e-05})
     };
+
   
   std::cout << std::endl << "Distorted mesh" << std::endl;
   std::cout << "DG\tNT\tNX\tmass loss\terror\t\texact\t\tpassed" << std::endl;
