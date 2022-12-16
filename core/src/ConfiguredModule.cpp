@@ -1,6 +1,8 @@
 /*!
  * @file ConfiguredModule.cpp
  *
+ * @brief The source file for the ConfiguredModule class.
+ *
  * @date Oct 29, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */

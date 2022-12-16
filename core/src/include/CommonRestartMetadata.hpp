@@ -1,6 +1,8 @@
 /*!
  * @file CommonRestartMetadata.hpp
  *
+ * @brief The header file for the CommonRestartMetadata class.
+ *
  * @date Jun 30, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */

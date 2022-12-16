@@ -1,6 +1,8 @@
 /*!
  * @file ConfigurationHelp.hpp
  *
+ * @brief The header file defining the ConfigurationHelp class.
+ *
  * @date Aug 12, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
@@ -15,6 +17,9 @@
 
 namespace Nextsim {
 
+/*!
+ * A class to hold help information regarding a configuration option for the model.
+ */
 class ConfigurationHelp {
 public:
     typedef std::list<ConfigurationHelp> OptionList;

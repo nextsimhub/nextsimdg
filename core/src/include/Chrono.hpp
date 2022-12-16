@@ -1,12 +1,17 @@
 /*!
  * @file Chrono.hpp
  *
+ * @brief Provides chronometer functionality.
+ *
+ * @details Builds on top of the C++ time classes to provide CPU time, wall
+ * time and number of call functionality in order to instrument the model.
+
  * @date Oct 28, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_CHRONO_HPP_
-#define SRC_INCLUDE_CHRONO_HPP_
+#ifndef CHRONO_HPP
+#define CHRONO_HPP
 
 #include <chrono>
 #include <ctime>
@@ -140,4 +145,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_CHRONO_HPP_ */
+#endif /* CHRONO_HPP */

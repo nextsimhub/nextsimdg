@@ -1,6 +1,8 @@
 /*!
  * @file Configurator.cpp
  *
+ * @brief The source file for the Configurator class.
+ *
  * @date Oct 8, 2021
  * @author Tim Spain
  */
@@ -17,6 +19,8 @@ char** Configurator::m_argv;
 static NoAdditionalConfiguration noAddConf;
 Configurator::AdditionalConfiguration* Configurator::p_addConf = &noAddConf;
 
+// Parses the command line and named configuration file streams and returns the
+// boost::program_options::variables_map.
 boost::program_options::variables_map Configurator::parse(
     const boost::program_options::options_description& opt)
 {
@@ -61,13 +65,17 @@ boost::program_options::variables_map Configurator::parse(
     return vm;
 }
 
+// Adds a string stream to the configuration sources. Useful for configuring
+// classes in tests.
 void Configurator::addSStream(const std::stringstream& sstream)
 {
     addStream(std::move(std::unique_ptr<std::istream>(new std::stringstream(sstream.str()))));
 }
 
+// Sets the object providing additional configuration.
 void Configurator::setAdditionalConfiguration(AdditionalConfiguration* pAC) { p_addConf = pAC; }
 
+// Gets additional configuration from any object that exists.
 void Configurator::getAdditionalConfiguration(const std::string& source)
 {
     if (p_addConf) {

@@ -1,6 +1,8 @@
 /*!
  * @file ConfigurationHelpPrinter.cpp
  *
+ * @brief The header file for the ConfigurationHelpPrinter class.
+ *
  * @date Aug 18, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
@@ -25,14 +27,19 @@ static std::string bEnd = "";
 static std::string uEnd = "";
 static std::string iEnd = "";
 
+// Applies the section header formatting to the passed title.
 static std::string section(const std::string& title) { return h1 + title + h1End; }
 
+// Applies the option formatting to the passed option name.
 static std::string option(const std::string& name) { return h2 + name + h2End; }
 
+// Applies the default value formatting to the passed default value.
 static std::string defaultVal(const std::string& name) { return b + name + bEnd; }
 
+// Applies the type description formatting to the passed type description.
 static std::string type(const std::string& desc) { return i + desc + iEnd; }
 
+// Prints one or more help items to the passed output stream.
 std::ostream& ConfigurationHelpPrinter::print(
     std::ostream& os, const ConfigurationHelp::HelpMap& map, const std::string& target)
 {
@@ -88,6 +95,7 @@ std::ostream& ConfigurationHelpPrinter::print(
                 count += optionCount;
             }
         }
+        // If nothing was found, then print an error message to the stream.
         if (!count) {
             os << "No configuration options matching \"" << target << "\" were found." << std::endl;
         }

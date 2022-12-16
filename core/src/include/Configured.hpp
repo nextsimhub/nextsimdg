@@ -1,6 +1,9 @@
 /*!
  * @file Configured.hpp
  *
+ * @brief The header file defining the Configured template class for configured
+ * classes.
+ *
  * @date Oct 8, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */

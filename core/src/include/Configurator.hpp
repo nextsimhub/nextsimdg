@@ -1,6 +1,8 @@
 /*!
  * @file Configurator.hpp
  *
+ * @brief The header file for the Configurator class.
+ *
  * @date Oct 8, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */

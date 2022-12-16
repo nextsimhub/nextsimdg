@@ -1,6 +1,8 @@
 /*!
  * @file CommandLineParser.hpp
  *
+ * @brief The header file for the CommandLineParser class.
+ *
  * @date Oct 8, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */
@@ -20,7 +22,7 @@ namespace Nextsim {
 class CommandLineParser {
 public:
     /*!
-     * Parse the command line for command line options.
+     * Parses the command line for command line options.
      *
      * @param argc the count of passed arguments.
      * @param argv The array of C strings passed as arguments.
@@ -29,7 +31,7 @@ public:
     virtual ~CommandLineParser() = default;
 
     /*!
-     * Return a std::vector of the file names declared as config files on the
+     * Returns a std::vector of the file names declared as config files on the
      * command line, in order.
      */
     std::vector<std::string> getConfigFileNames();

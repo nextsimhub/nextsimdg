@@ -1,6 +1,8 @@
 /*!
  * @file CommandLineParser.cpp
  *
+ * @brief The source file for the CommandLineParser class.
+ *
  * @date Oct 8, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */
@@ -56,7 +58,7 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
                       .run();
     boost::program_options::store(parsed, m_arguments);
 
-    // Print help and exit
+    // Print help and exit if help was requested.
     if (m_arguments.count("help") || m_arguments.empty()) {
         std::cerr << opt << std::endl;
         std::exit(EXIT_SUCCESS);
@@ -77,7 +79,7 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
 }
 
 /*!
- * Return a std::vector of the file names declared as config files on the command line
+ * Returns a std::vector of the file names declared as config files on the command line
  */
 std::vector<std::string> CommandLineParser::getConfigFileNames() { return m_configFilenames; }
 
