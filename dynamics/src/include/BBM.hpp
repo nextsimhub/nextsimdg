@@ -78,10 +78,10 @@ namespace BBM {
                 = 0.5 * (s11_gauss.array() + s22_gauss.array());
 
             //! exp(-C(1-A))
-            const auto expC = (params.compaction_param * (1.0 - a_gauss.array())).exp();
+            const Eigen::Matrix<double, 1, NGP* NGP> expC = (params.compaction_param * (1.0 - a_gauss.array())).exp().array();
 
             // Eqn. 25
-            const auto powalphaexpC
+            const Eigen::Matrix<double, 1, NGP* NGP> powalphaexpC
                 = (d_gauss.array() * expC.array()).pow(params.exponent_relaxation_sigma - 1);
             const Eigen::Matrix<double, 1, NGP* NGP> time_viscous
                 = params.undamaged_time_relaxation_sigma * powalphaexpC;
@@ -89,7 +89,7 @@ namespace BBM {
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
             const Eigen::Matrix<double, 1, NGP* NGP> Pmax
-                = params.P0 * h_gauss.array().pow(params.exponent_compression_factor) * expC;
+                = params.P0 * h_gauss.array().pow(params.exponent_compression_factor) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
@@ -104,7 +104,7 @@ namespace BBM {
 
             //! Eqn. 9
             const Eigen::Matrix<double, 1, NGP* NGP> elasticity
-                = (params.young * d_gauss.array() * expC).matrix();
+                = params.young * d_gauss.array() * expC.array();
 
             // Eqn. 12: first factor on RHS
             /* Stiffness matrix
@@ -134,7 +134,10 @@ namespace BBM {
                       .sqrt();
 
             const double scale_coef = std::sqrt(0.1 / smesh.h(i));
-            const double cohesion = params.C_lab * scale_coef;
+    
+            //const double cohesion = params.C_lab * scale_coef;
+            const double cohesion = 10000 ;//params.C_lab * scale_coef;
+            
             const double compr_strength = params.compr_strength * scale_coef;
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
@@ -154,7 +157,7 @@ namespace BBM {
                 * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
 
             // Update damage
-            d_gauss.array() = d_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
 
             // Relax stress in Gassus points
             s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();

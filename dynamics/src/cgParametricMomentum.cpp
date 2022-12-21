@@ -462,6 +462,8 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
     Nextsim::GlobalTimer.start("time loop - meb - stress");
     // TODO compute stress update with precomputed transformations
     Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    //Nextsim::BBM::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+
     // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
     Nextsim::GlobalTimer.stop("time loop - meb - stress");
 

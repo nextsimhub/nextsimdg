@@ -63,7 +63,7 @@ namespace MEB {
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
             const Eigen::Matrix<double, 1, NGP* NGP> h_gauss = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
             const Eigen::Matrix<double, 1, NGP* NGP> a_gauss = (A.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
-            Eigen::Matrix<double, 1, NGP* NGP> d_gauss = (D.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.-1e-12).matrix();
+            Eigen::Matrix<double, 1, NGP* NGP> d_gauss = (D.row(i) * PSI<DGa, NGP>).array().max(1e-12).min(1.0).matrix();
 
             const Eigen::Matrix<double, 1, NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
             const Eigen::Matrix<double, 1, NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
@@ -77,26 +77,24 @@ namespace MEB {
             Eigen::Matrix<double, 1, NGP* NGP> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
 
             //! exp(-C(1-A))
-            auto expC = (-20.0 * (1.0 - a_gauss.array())).exp();
+            const Eigen::Matrix<double, 1, NGP* NGP> expC = (params.compaction_param * (1.0 - a_gauss.array())).exp().array();
 
             // Eqn. 25
-            auto powalpha = (1. - d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
-            //const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array() ).matrix();
-            const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array() * expC.pow(params.exponent_relaxation_sigma - 1.)  ).matrix();
+            Eigen::Matrix<double, 1, NGP* NGP> powalpha = (d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
+            const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array() ).matrix();
+            //const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array() * expC.array().pow(params.exponent_relaxation_sigma - 1.)  ).matrix();
 
             // Eqn. 12: first factor on RHS
             const double Dunit_factor = 1. / (1. - (params.nu0 * params.nu0));
 
             //! MEB
-            // \lambda / (\lambda + dt*(1.+tildeP)) Eqn. 34
+            // \lambda / (\lambda + dt)) Eqn. 34
             // 1. / (1. + dt / lambda) Eqn. 33-34
             Eigen::Matrix<double, 1, NGP* NGP> multiplicator = (1. / (1. + dt_mom / time_viscous.array())).matrix();
 
             
             //! Eqn. 9
-            // const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * h_gauss.array() * (1. - d_gauss.array())).matrix();
-            const Eigen::Matrix<double, 1, NGP* NGP> elasticity = (params.young * (1. - d_gauss.array()) * expC).matrix();
-            // Eigen::Matrix<double, 1, NGP* NGP> multiplicator = (time_viscous.array() / (time_viscous.array() + dt_mom )).matrix();
+            const Eigen::Matrix<double, 1, NGP* NGP> elasticity = params.young * d_gauss.array() * expC.array();
 
             // Eqn. 12: first factor on RHS
             /* Stiffness matrix
@@ -105,16 +103,11 @@ namespace MEB {
              * \ (K:e)12 /    1 - nu^2 \  0   0  1-nu / \ e12 /
              */
 
-            //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
-            // (Eqn. 8)
 
-            const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5)*expC;
-
-            // (Eqn. 7b) Prepare tildeP
-            Eigen::Matrix<double, 1, NGP* NGP> tildeP = Eigen::Matrix<double, 1, NGP* NGP>::Zero(); 
+            const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5)*expC.array();
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
-            tildeP = (sigma_n.array() < 0.0).select(   (-Pmax.array() / sigma_n.array()).min(1.0).matrix() , tildeP);
+            // tildeP = (sigma_n.array() < 0.0).select(   (-Pmax.array() / sigma_n.array()).min(1.0).matrix() , tildeP);
 
             
             s11_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e11_gauss.array())).matrix()
@@ -140,25 +133,38 @@ namespace MEB {
             // Olason 2022 Cohesion
             // const Eigen::Matrix<double, 1, NGP* NGP> c = params.C_lab * std::sqrt(0.1 / (RefScale::L / smesh.nx)) * dcrit.array();
             // Fixed Cohesion
-            const Eigen::Matrix<double, 1, NGP* NGP> c = 2000 * dcrit.array();
+            const Eigen::Matrix<double, 1, NGP* NGP> cohesion = 10000 * dcrit.array();
+            
+            const double scale_coef = std::sqrt(0.1 / smesh.h(i));
+            const double compr_strength = params.compr_strength * scale_coef;
 
-            // Mohr-Coulomb Criterion
-            // Eqn. 31
-            dcrit = (tau.array() + params.sin_phi * sigma_n.array() - c.array() > 0.0).select(c.array() / (tau.array() + params.sin_phi * sigma_n.array()), dcrit);
-            // Compression cutoff
-            // dcrit = (sigma_c.array() / (sigma_n.array() - tau.array()) < dcrit.array()).select(sigma_c.array() / (sigma_n.array() - tau.array()), dcrit);
+            // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
+            // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+            dcrit
+                = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
+                      .select(cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
+
+            // Compressive failure using Mssrs. Plante & Tremblay's formulation
+            dcrit = (sigma_n.array() < -compr_strength)
+                        .select(-compr_strength / sigma_n.array(), dcrit);
+
 
             // Only damage when we're outside
             dcrit = dcrit.array().min(1.0);
 
+            const Eigen::Matrix<double, 1, NGP* NGP> td = smesh.h(i)
+                * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
+
+            //const double td = smesh.h(i)/500.0 ;
 
             // Update damage
-            d_gauss = ((1.0 - d_gauss.array()) * (1.0 - dcrit.array()) * dt_mom / params.damage_timescale);
+            d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
 
             // Relax stress in Gassus points
-            s11_gauss.array() *= (1. - (1. - dcrit.array()) * dt_mom / params.damage_timescale ) ;
-            s12_gauss.array() *= (1. - (1. - dcrit.array()) * dt_mom / params.damage_timescale ) ;
-            s22_gauss.array() *= (1. - (1. - dcrit.array()) * dt_mom / params.damage_timescale ) ;
+            s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+
 
             // INTEGRATION OF STRESS AND DAMAGE
             const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J = ParametricTools::J<3>(smesh, i);
@@ -174,7 +180,7 @@ namespace MEB {
             const Eigen::Matrix<Nextsim::FloatType, DGa, NGP* NGP> imass_psi2 = ParametricTools::massMatrix<DGa>(smesh, i).inverse()
                 * (PSI<DGa, NGP>.array().rowwise() * (GAUSSWEIGHTS<NGP>.array() * J.array())).matrix();
 
-            D.row(i) += imass_psi2 * d_gauss.matrix().transpose();
+            D.row(i) = imass_psi2 * d_gauss.matrix().transpose();
         }
     }
 
