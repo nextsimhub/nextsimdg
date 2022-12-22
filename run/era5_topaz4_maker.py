@@ -4,6 +4,8 @@ import time
 import calendar
 import math
 
+sec_per_hr = 3600
+
 def create_times(start_tm, stop_tm):
     from collections import namedtuple
     # Define the tm named tuple structure locally
@@ -12,7 +14,6 @@ def create_times(start_tm, stop_tm):
     start_unix = calendar.timegm(start_tm)
     stop_unix = calendar.timegm(stop_tm)
     # Convert to integer hours since epoch
-    sec_per_hr = 3600
     start_hours = start_unix / sec_per_hr
     stop_hours = stop_unix / sec_per_hr
     hour_times = np.arange(start_hours, stop_hours, 1)
@@ -28,6 +29,12 @@ def create_times(start_tm, stop_tm):
 
     return (unix_times, hour_times - era5_hours, hour_times - topaz4_hours)
 
+def era5_time(unix_time):
+    era5_epoch = Tm(1900, 1, 1, 0, 0, 0, 0, 1, False)
+    era5_unix = calendar.timegm(era5_epoch)
+    era5_sec = unix_time - era5_unix
+    return era5_sec / sec_per_hr
+    
 def era5_source_file_name(field, unix_time):
     file_year = time.gmtime(unix_time).tm_year
     return f"ERA5_{field}_y{file_year}.nc"
@@ -78,6 +85,7 @@ if __name__ == "__main__":
     element_lon = np.degrees(np.arctan2(element_y, element_x))
     element_lat = np.degrees(np.arctan2(element_z, np.hypot(element_x, element_y)))
 
+    atmos_fields = ("dew2m", "lw_in", "sw_in", "pair", "tair", "windspeed")
     era5_fields = ("d2m", "msdwlwrf", "msdwswrf", "msl", "msr", "mtpr", "t2m", "u10", "v10")
     era5_translation = {"dew2m" : "d2m", "lw_in" : "msdwlwrf", "sw_in" : "msdwswrf",
                         "pair" : "msl", "tair" : "t2m"} # windspeed is special
@@ -111,7 +119,41 @@ if __name__ == "__main__":
     tDim = datagrp.createDimension("time", None)
     
     # For each field and time, get the corresponding file name for each dataset
-    print(era5_source_file_name("d2m", unix_times[0]))
-    print(topaz4_source_file_name("mlp", unix_times[0]))
+    for field_name in atmos_fields:
+        data = datagrp.createVariable(field_name, "f8", ("time", "x", "y"))
+        if (field_name != "windspeed"):
+            era5_field = era5_translation[field_name]
+            for target_t_index in range(len(unix_times)):
+                # get the source data
+                source_file = netCDF4.Dataset(era5_source_file_name(era5_field, unix_times[target_t_index]), "r")
+                target_time = era5_times[target_t_index]
+                source_times = source_file["time"]
+                time_index = target_time - source_times[0]
+                source_data = source_file[era5_field][time_index, :, :]
+                # Now interpolate the source data to the target grid
+                time_data = np.zeros((nx, ny))
+                for i in range(nx):
+                    for j in range(ny):
+                        time_data[i, j] = 0.
+                data[target_t_index, :, :] = time_data
+        else:
+            for target_t_index in range(len(unix_times)):
+                # get the source data
+                u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times[target_t_index]), "r")
+                v_file = netCDF4.Dataset(era5_source_file_name("v10", unix_times[target_t_index]), "r")
+                target_time = era5_times[target_t_index]
+                source_times = u_file["time"]
+                time_index = target_time - source_times[0]
+                u_data = u_file["u10"][time_index, :, :]
+                v_data = v_file["v10"][time_index, :, :]
+                # Now interpolate the source data to the target grid
+                time_data = np.zeros((nx, ny))
+                for i in range(nx):
+                    for j in range(ny):
+                        time_data[i, j] = math.hypot(0., 0.)
+                data[target_t_index, :, :] = time_data
+
+#    print(era5_source_file_name("d2m", unix_times[0]))
+#    print(topaz4_source_file_name("mlp", unix_times[0]))
 
     era_root.close()
