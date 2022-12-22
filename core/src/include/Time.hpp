@@ -39,8 +39,7 @@ public:
         : m_d()
     {
     }
-    Duration(const std::string& str) { this->parse(str); }
-
+    Duration(const std::string& str);
     Duration(double seconds);
 
     TimePoint operator+(const TimePoint& t) const;

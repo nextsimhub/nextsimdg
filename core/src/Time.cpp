@@ -206,6 +206,8 @@ std::istream& Duration::parse(std::istream& is)
     return is;
 }
 
+Duration::Duration(const std::string& str) { this->parse(str); }
+
 Duration::Duration(double seconds)
 {
     std::chrono::duration<double> sec(seconds);
