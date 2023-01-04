@@ -160,7 +160,7 @@ if __name__ == "__main__":
                         "pair" : "msl", "tair" : "t2m"} # windspeed is special
 
     ###################################################################
-    
+
     # ERA5 data
     
     era5_out_file = f"ERA5_{args.start}_{args.stop}.nc"
@@ -231,7 +231,7 @@ if __name__ == "__main__":
                 # Also use the windspeed loop to fill the time axis
                 nc_times[time_index] = unix_times[target_t_index]
     era_root.close()
-    
+
     ocean_fields = ("mld", "sss", "sst", "u", "v")
     skip_ocean_fields = ("u", "v")
     topaz_fields = ("mlp", "salinity", "temperature")
@@ -265,15 +265,8 @@ if __name__ == "__main__":
     
     source_file = netCDF4.Dataset(topaz4_source_file_name("mlp", unix_times[0]), "r")
     source_lats = source_file["latitude"][:, :]
-    source_lons = source_file["longitude"][:, :]
     lat_array = source_lats[550:, 380]
-    tp_lon = topaz4_interpolate(element_lon, element_lat, source_lons, lat_array)
-    tp_lat = topaz4_interpolate(element_lon, element_lat, source_lats, lat_array)
     source_file.close()
-
-    lat_diff = element_lat - tp_lat
-    lat_rms_error = math.sqrt(np.sum(lat_diff**2)) / len(lat_diff)
-    print("RMS error in interpolated latitude = ", lat_rms_error)
 
     # Position and time variables
     nc_lons = datagrp.createVariable("longitude", "f8", ("x", "y"))
@@ -296,17 +289,16 @@ if __name__ == "__main__":
                 target_hour_index = topaz_time_ratio * target_day_index
                 # get the source data
                 source_file = netCDF4.Dataset(topaz4_source_file_name(topaz_field, unix_times[target_hour_index]), "r")
-                target_time = topaz4_times[target_day_index]
+                target_time = topaz4_times[target_hour_index]
                 source_times = source_file["time"]
-                time_index = target_time - source_times[0]
+                time_index = (target_time - source_times[0]) // topaz_time_ratio
+                if field_name == ocean_fields[0]:
+                    nc_times[target_day_index] = unix_times[target_hour_index]
                 source_data = source_file[topaz_field][time_index, :, :].squeeze() # Need to squeeze. Why?
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 time_data = topaz4_interpolate(element_lon, element_lat, source_data, lat_array)
                 data[target_day_index, :, :] = time_data
-                if field_name == ocean_fields[0]:
-                    nc_times[time_index] = unix_times[target_day_index]
-
         else:
             for target_day_index in range(len(unix_times) // topaz_time_ratio):
                 # get the source data
@@ -314,5 +306,5 @@ if __name__ == "__main__":
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 data[target_day_index, :, :] = time_data
-            
+        
     topaz_root.close()
