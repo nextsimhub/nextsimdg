@@ -27,6 +27,7 @@ def create_era5_times(start_tm, stop_tm):
 
     return (unix_times, hour_times - era5_hours)
 
+# Returns arrays of times for the TOPAZ file, in Unix and TOPAZ format
 def create_topaz_times(start_tm, stop_tm):
     from collections import namedtuple
     # Define the tm named tuple structure locally
@@ -47,14 +48,17 @@ def create_topaz_times(start_tm, stop_tm):
 
     return (unix_times, hour_times - topaz4_hours)
 
+# Returns the file name that holds the ERA5 data for a given field at a given time
 def era5_source_file_name(field, unix_time):
     file_year = time.gmtime(unix_time).tm_year
     return f"ERA5_{field}_y{file_year}.nc"
 
+# Returns the file name that holds the TOPAZ data for a given field at a given time
 def topaz4_source_file_name(field, unix_time):
     unix_tm = time.gmtime(unix_time)
     return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
 
+# Returns bilinearly interpolated data given array of fractional indices
 def bilinear(eyes, jays, data):
     i = np.floor(eyes).astype(int)
     j = np.floor(jays).astype(int)
@@ -67,6 +71,7 @@ def bilinear(eyes, jays, data):
         (fj) * (1 - fi) * data[j + 1, i] +
         (fj) * (fi) * data[j + 1, i + 1])
     
+# Returns bilinearly interpolated data given array of fractional indices, when some of the data missing
 def bilinear_missing(eyes, jays, data, missing):
     i = np.floor(eyes).astype(int)
     j = np.floor(jays).astype(int)
@@ -91,6 +96,7 @@ def bilinear_missing(eyes, jays, data, missing):
     
     return weighted_sum / sum_of_weights
 
+# Returns ERA5 data interpolated from the data grid and coordinates to the target grid and coordinates
 def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     target_i = (target_lons - data_lons[0]) / (data_lons[1] - data_lons[0])
     # Make sure that the index is in the range of the size of the longitude array
@@ -101,6 +107,7 @@ def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     
     return bilinear(target_i, target_j, data)
 
+# Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates
 def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     # The TOPAZ grid is assumed and hard coded
     ic = 380
@@ -124,6 +131,8 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     
     return bilinear_missing(target_i, target_j, data, -32767)
     
+# The main script. Calculates ERA5 and TOPAZ forcing files, given a grid to
+# interpolate on to and start and stop dates
 if __name__ == "__main__":
     # Set up the argument parsing
     import argparse
