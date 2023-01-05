@@ -5,8 +5,10 @@ import calendar
 import math
 
 sec_per_hr = 3600
+hr_per_day = 24
 
-def create_times(start_tm, stop_tm):
+# Returns arrays of times for the ERA5 file, in Unix and ERA5 format
+def create_era5_times(start_tm, stop_tm):
     from collections import namedtuple
     # Define the tm named tuple structure locally
     Tm = namedtuple("Tm", "tm_year tm_mon tm_mday tm_hour tm_min tm_sec tm_wday tm_yday tm_isdst")
@@ -22,19 +24,29 @@ def create_times(start_tm, stop_tm):
     era5_epoch = Tm(1900, 1, 1, 0, 0, 0, 0, 1, False)
     era5_unix = calendar.timegm(era5_epoch)
     era5_hours = era5_unix / sec_per_hr
-    # and TOPAZ4 (hours since 1950-01-01T00:00:00Z Sunday)
+
+    return (unix_times, hour_times - era5_hours)
+
+def create_topaz_times(start_tm, stop_tm):
+    from collections import namedtuple
+    # Define the tm named tuple structure locally
+    Tm = namedtuple("Tm", "tm_year tm_mon tm_mday tm_hour tm_min tm_sec tm_wday tm_yday tm_isdst")
+    # From tm structures to seconds since Unix epoch
+    start_unix = calendar.timegm(start_tm)
+    stop_unix = calendar.timegm(stop_tm)
+    # Convert to integer hours since epoch
+    start_hours = start_unix / sec_per_hr
+    stop_hours = stop_unix / sec_per_hr
+    # Topaz only needs one sample every 24 hours
+    hour_times = np.arange(start_hours, stop_hours, hr_per_day)
+    unix_times = hour_times * sec_per_hr # Yes?
+    # Add offsets for TOPAZ (hours since 1950-01-01T00:00:00Z Sunday)
     topaz4_epoch = Tm(1950, 1, 1, 0, 0, 0, 6, 1, False)
     topaz4_unix = calendar.timegm(topaz4_epoch)
     topaz4_hours = topaz4_unix / sec_per_hr
 
-    return (unix_times, hour_times - era5_hours, hour_times - topaz4_hours)
+    return (unix_times, hour_times - topaz4_hours)
 
-def era5_time(unix_time):
-    era5_epoch = Tm(1900, 1, 1, 0, 0, 0, 0, 1, False)
-    era5_unix = calendar.timegm(era5_epoch)
-    era5_sec = unix_time - era5_unix
-    return era5_sec / sec_per_hr
-    
 def era5_source_file_name(field, unix_time):
     file_year = time.gmtime(unix_time).tm_year
     return f"ERA5_{field}_y{file_year}.nc"
@@ -123,7 +135,7 @@ if __name__ == "__main__":
     # read the date range
     start_time = time.strptime(args.start, "%Y-%m-%d")
     stop_time = time.strptime(args.stop, "%Y-%m-%d")
-    (unix_times, era5_times, topaz4_times) = create_times(start_time, stop_time)
+    #(unix_times, era5_times, topaz4_times) = create_times(start_time, stop_time)
 
     # read a grid spec (from a restart file)
     root = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
@@ -193,14 +205,15 @@ if __name__ == "__main__":
     
     nc_times = datagrp.createVariable("time", "f8", ("time"))
     
+    (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
     # For each field and time, get the corresponding file name for each dataset
     for field_name in atmos_fields:
         data = datagrp.createVariable(field_name, "f8", ("time", "x", "y"))
         if (field_name != "windspeed"):
             era5_field = era5_translation[field_name]
-            for target_t_index in range(len(unix_times)):
+            for target_t_index in range(len(unix_times_e)):
                 # get the source data
-                source_file = netCDF4.Dataset(era5_source_file_name(era5_field, unix_times[target_t_index]), "r")
+                source_file = netCDF4.Dataset(era5_source_file_name(era5_field, unix_times_e[target_t_index]), "r")
                 source_lons = source_file["longitude"]
                 source_lats = source_file["latitude"]
                 target_time = era5_times[target_t_index]
@@ -212,10 +225,10 @@ if __name__ == "__main__":
                 time_data = era5_interpolate(element_lon, element_lat, source_data, source_lons, source_lats)
                 data[target_t_index, :, :] = time_data
         else:
-            for target_t_index in range(len(unix_times)):
+            for target_t_index in range(len(unix_times_e)):
                 # get the source data
-                u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times[target_t_index]), "r")
-                v_file = netCDF4.Dataset(era5_source_file_name("v10", unix_times[target_t_index]), "r")
+                u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index]), "r")
+                v_file = netCDF4.Dataset(era5_source_file_name("v10", unix_times_e[target_t_index]), "r")
                 source_lons = u_file["longitude"]
                 source_lats = u_file["latitude"]
                 target_time = era5_times[target_t_index]
@@ -229,13 +242,14 @@ if __name__ == "__main__":
                                      era5_interpolate(element_lon, element_lat, v_data, source_lons, source_lats))
                 data[target_t_index, :, :] = time_data
                 # Also use the windspeed loop to fill the time axis
-                nc_times[time_index] = unix_times[target_t_index]
+                nc_times[time_index] = unix_times_e[target_t_index]
     era_root.close()
 
     ocean_fields = ("mld", "sss", "sst", "u", "v")
     skip_ocean_fields = ("u", "v")
     topaz_fields = ("mlp", "salinity", "temperature")
     topaz_translation = {"mld" : "mlp", "sss" : "salinity", "sst" : "temperature"}
+
 
     ###################################################################
     
@@ -263,7 +277,9 @@ if __name__ == "__main__":
     yDim = datagrp.createDimension("y", ny)
     tDim = datagrp.createDimension("time", None)
     
-    source_file = netCDF4.Dataset(topaz4_source_file_name("mlp", unix_times[0]), "r")
+    (unix_times_t, topaz4_times) = create_topaz_times(start_time, stop_time)
+
+    source_file = netCDF4.Dataset(topaz4_source_file_name("mlp", unix_times_t[0]), "r")
     source_lats = source_file["latitude"][:, :]
     lat_array = source_lats[550:, 380]
     source_file.close()
@@ -277,34 +293,32 @@ if __name__ == "__main__":
     nc_times = datagrp.createVariable("time", "f8", ("time"))
 
     # TOPAZ data is daily, not hourly
-    topaz_time_ratio = 24
+    topaz_time_ratio = hr_per_day
 
-    #tp_lon = topaz4_interpolate(element_lon, element_lat, source_lons)
     # For each field and time, get the corresponding file name for each dataset
     for field_name in ocean_fields:
         data = datagrp.createVariable(field_name, "f8", ("time", "x", "y"))
         if not field_name in skip_ocean_fields:
             topaz_field = topaz_translation[field_name]
-            for target_day_index in range(len(unix_times) // topaz_time_ratio):
-                target_hour_index = topaz_time_ratio * target_day_index
-                # get the source data
-                source_file = netCDF4.Dataset(topaz4_source_file_name(topaz_field, unix_times[target_hour_index]), "r")
-                target_time = topaz4_times[target_hour_index]
-                source_times = source_file["time"]
-                time_index = (target_time - source_times[0]) // topaz_time_ratio
+            for target_t_index in range(len(unix_times_t)):
                 if field_name == ocean_fields[0]:
-                    nc_times[target_day_index] = unix_times[target_hour_index]
+                    nc_times[target_t_index] = unix_times_t[target_t_index]
+                # get the source data
+                source_file = netCDF4.Dataset(topaz4_source_file_name(topaz_field, unix_times_t[target_t_index]), "r")
+                target_time = topaz4_times[target_t_index]
+                source_times = source_file["time"]
+                time_index = (target_time - source_times[0]) // hr_per_day
                 source_data = source_file[topaz_field][time_index, :, :].squeeze() # Need to squeeze. Why?
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 time_data = topaz4_interpolate(element_lon, element_lat, source_data, lat_array)
-                data[target_day_index, :, :] = time_data
+                data[target_t_index, :, :] = time_data
         else:
-            for target_day_index in range(len(unix_times) // topaz_time_ratio):
+            for target_t_index in range(len(unix_times_t)):
                 # get the source data
-                target_time = topaz4_times[target_day_index]
+                target_time = topaz4_times[target_t_index]
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
-                data[target_day_index, :, :] = time_data
+                data[target_t_index, :, :] = time_data
         
     topaz_root.close()
