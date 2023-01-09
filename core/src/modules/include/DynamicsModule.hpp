@@ -14,7 +14,12 @@
 namespace Module {
 
 template <> Module<Nextsim::IDynamics>::map Module<Nextsim::IDynamics>::functionMap;
-class DynamicsModule : public Module<Nextsim::IDynamics> { };
+class DynamicsModule : public Module<Nextsim::IDynamics> {
+    struct Constructor {
+        Constructor();
+    };
+    static Constructor ctor;
+};
 
 } /* namespace Module */
 

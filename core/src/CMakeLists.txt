@@ -47,10 +47,15 @@ set(DiagnosticOutputModuleSources
     "ConfigOutput.cpp"
     )
 
+set(DynamicsModuleSources
+    "DynamicsModule.cpp"
+    )
+
 set(ModuleSources
     "${StructureModuleSources}"
     "${FreezingPointModuleSources}"
     "${DiagnosticOutputModuleSources}"
+    "${DynamicsModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

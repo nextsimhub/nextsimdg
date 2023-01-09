@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 class IDynamics {
+public:
     IDynamics() = default;
     virtual ~IDynamics() = default;
 

@@ -11,6 +11,7 @@
 #include "ModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
+#include "include/IDynamics.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/Time.hpp"
@@ -81,9 +82,10 @@ private:
     VField m_v;
     double m_dt;
 
-    IceGrowth iceGrowth;
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;
+    IDynamics* pDynamics;
+    IceGrowth iceGrowth;
 };
 
 } /* namespace Nextsim */

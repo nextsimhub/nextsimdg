@@ -20,6 +20,7 @@ PrognosticData::PrognosticData()
     , m_tice(ModelArray::Type::Z)
     , pAtmBdy(0)
     , pOcnBdy(0)
+    , pDynamics(0)
 
 {
     registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
@@ -30,13 +31,16 @@ PrognosticData::PrognosticData()
 
 void PrognosticData::configure()
 {
-    tryConfigure(iceGrowth);
-
     pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
     tryConfigure(pAtmBdy);
 
     pOcnBdy = &Module::getImplementation<IOceanBoundary>();
     tryConfigure(pOcnBdy);
+
+    pDynamics = &Module::getImplementation<IDynamics>();
+    tryConfigure(pDynamics);
+
+    tryConfigure(iceGrowth);
 }
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
@@ -59,16 +63,21 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
         m_v = ms.at("v");
     }
 
-    iceGrowth.setData(ms);
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
+    // IDynamics does not set data
+    iceGrowth.setData(ms);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
 {
+
     pAtmBdy->update(tst);
     pOcnBdy->updateBefore(tst);
+
+    pDynamics->update(tst);
     iceGrowth.update(tst);
+
     pOcnBdy->updateAfter(tst);
 
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
@@ -101,17 +110,19 @@ ModelState PrognosticData::getState() const
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state(getState());
-    state.merge(iceGrowth.getStateRecursive(os));
     state.merge(pAtmBdy->getStateRecursive(os));
+    state.merge(iceGrowth.getStateRecursive(os));
+    // Neither OceanBdoudary nor Dynamics contribute to the output model state
     return os ? state : ModelState();
 }
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    IceGrowth::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
     Module::getHelpRecursive<IOceanBoundary>(map, getAll);
+    Module::getHelpRecursive<IDynamics>(map, getAll);
+    IceGrowth::getHelpRecursive(map, getAll);
     return map;
 }
 
