@@ -15,6 +15,9 @@
 #include "include/RectGridIO.hpp"
 #include "include/RectangularGrid.hpp"
 
+#include "include/ParaGridIO.hpp"
+#include "include/ParametricGrid.hpp"
+
 #include <ncFile.h>
 #include <ncGroup.h>
 #include <ncGroupAtt.h>
@@ -52,6 +55,11 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
         return gridIn.getModelState(filePath);
+    } else if (ParametricGrid::structureName == structureName) {
+        Module::setImplementation<IStructure>("ParametricGrid");
+        ParametricGrid gridIn;
+        gridIn.setIO(new ParaGridIO(gridIn));
+        return gridIn.getModelState(filePath);
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);
@@ -73,6 +81,10 @@ void StructureFactory::fileFromState(
     } else if (RectangularGrid::structureName == structureName) {
         RectangularGrid gridOut;
         gridOut.setIO(new RectGridIO(gridOut));
+        gridOut.dumpModelState(state, meta, filePath);
+    } else if (ParametricGrid::structureName == structureName) {
+        ParametricGrid gridOut;
+        gridOut.setIO(new ParaGridIO(gridOut));
         gridOut.dumpModelState(state, meta, filePath);
     } else {
         throw std::invalid_argument(
