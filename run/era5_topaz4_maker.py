@@ -175,7 +175,8 @@ if __name__ == "__main__":
     element_lon = np.degrees(np.arctan2(element_y, element_x))
     element_lat = np.degrees(np.arctan2(element_z, np.hypot(element_x, element_y)))
 
-    atmos_fields = ("dew2m", "lw_in", "sw_in", "pair", "tair", "windspeed")
+    wind_speed = "wind_speed"
+    atmos_fields = ("dew2m", "lw_in", "sw_in", "pair", "tair", wind_speed)
     era5_fields = ("d2m", "msdwlwrf", "msdwswrf", "msl", "msr", "mtpr", "t2m", "u10", "v10")
     era5_translation = {"dew2m" : "d2m", "lw_in" : "msdwlwrf", "sw_in" : "msdwswrf",
                         "pair" : "msl", "tair" : "t2m"} # windspeed is special
@@ -218,7 +219,7 @@ if __name__ == "__main__":
     # For each field and time, get the corresponding file name for each dataset
     for field_name in atmos_fields:
         data = datagrp.createVariable(field_name, "f8", ("time", "x", "y"))
-        if (field_name != "windspeed"):
+        if (field_name != wind_speed):
             era5_field = era5_translation[field_name]
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
