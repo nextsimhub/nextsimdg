@@ -43,12 +43,6 @@ private:
     // Since the configuration is global, it makes sense for the file path to
     // be static.
     static std::string filePath;
-
-    HField sst;
-    HField sss;
-    HField mld;
-    HField u;
-    HField v;
 };
 
 } /* namespace Nextsim */

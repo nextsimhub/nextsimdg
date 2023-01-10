@@ -10,7 +10,6 @@
 #include "include/Module.hpp"
 #include "include/ParaGridIO.hpp"
 
-#include <iostream> // FIXME remove me
 namespace Nextsim {
 
 std::string TOPAZOcean::filePath;
@@ -23,14 +22,7 @@ const std::map<int, std::string> Configured<TOPAZOcean>::keyMap = {
     { TOPAZOcean::FILEPATH_KEY, fileKey },
 };
 
-TOPAZOcean::TOPAZOcean()
-{
-    registerProtectedArray(ProtectedArray::SST, &sst);
-    registerProtectedArray(ProtectedArray::SSS, &sss);
-    registerProtectedArray(ProtectedArray::MLD, &mld);
-    registerProtectedArray(ProtectedArray::OCEAN_U, &u);
-    registerProtectedArray(ProtectedArray::OCEAN_V, &v);
-}
+TOPAZOcean::TOPAZOcean() { }
 
 ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
@@ -62,6 +54,9 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 
-void TOPAZOcean::setData(const ModelState::DataMap&) { }
+void TOPAZOcean::setData(const ModelState::DataMap& ms)
+{
+    IOceanBoundary::setData(ms);
+}
 
 } /* namespace Nextsim */
