@@ -93,7 +93,7 @@ if __name__ == "__main__":
     
     xDim = datagrp.createDimension("x", nx)
     yDim = datagrp.createDimension("y", ny)
-    nLay = datagrp.createDimension("nLayers", nLayers)
+    nLay = datagrp.createDimension("z", nLayers)
     xVertexDim = datagrp.createDimension("xvertex", nx + 1)
     yVertexDim = datagrp.createDimension("yvertex", ny + 1)
     xcg_dim = datagrp.createDimension("x_cg", nx * ncg + 1)
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     hsnow[:, :] = hsnow_data
     
     # Ice temperature
-    tice = datagrp.createVariable("tice", "f8", ("x", "y", "nLayers"))
+    tice = datagrp.createVariable("tice", "f8", ("x", "y", "z"))
     ice_melt = -0.055 * 5 # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
     ice_temp2d = np.fmin(sst_data, ice_melt) * isice
