@@ -78,7 +78,7 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
         + timeFileName + "\n");
 
     if ((everyTS && meta.time() >= lastOutput) || (meta.time() >= lastOutput + outputPeriod)) {
-        StructureFactory::fileFromState(*pState, meta, timeFileName);
+        StructureFactory::fileFromState(*pState, meta, timeFileName, false);
         lastOutput = meta.time();
     }
 }

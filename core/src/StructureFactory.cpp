@@ -70,22 +70,22 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
 }
 
 void StructureFactory::fileFromState(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+    const ModelState& state, const ModelMetadata& meta, const std::string& filePath, bool isRestart)
 {
     std::string structureName = Module::getImplementation<IStructure>().structureType();
 
     if (DevGrid::structureName == structureName) {
         DevGrid gridOut;
         gridOut.setIO(new DevGridIO(gridOut));
-        gridOut.dumpModelState(state, meta, filePath);
+        gridOut.dumpModelState(state, meta, filePath, isRestart);
     } else if (RectangularGrid::structureName == structureName) {
         RectangularGrid gridOut;
         gridOut.setIO(new RectGridIO(gridOut));
-        gridOut.dumpModelState(state, meta, filePath);
+        gridOut.dumpModelState(state, meta, filePath, isRestart);
     } else if (ParametricGrid::structureName == structureName) {
         ParametricGrid gridOut;
         gridOut.setIO(new ParaGridIO(gridOut));
-        gridOut.dumpModelState(state, meta, filePath);
+        gridOut.dumpModelState(state, meta, filePath, isRestart);
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);

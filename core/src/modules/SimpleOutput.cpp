@@ -27,6 +27,6 @@ void SimpleOutput::outputState(const ModelState& state, const ModelMetadata& met
     ModelMetadata metaPlusConfig(meta);
     metaPlusConfig.setConfig(state.config);
     // Create the output
-    StructureFactory::fileFromState(state, metaPlusConfig, timeFileName);
+    StructureFactory::fileFromState(state, metaPlusConfig, timeFileName, false);
 }
 } /* namespace Nextsim */
