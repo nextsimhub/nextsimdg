@@ -184,7 +184,11 @@ if __name__ == "__main__":
     hsnow[:, :] = hsnow_data
     
     # Ice temperature
-    tice = datagrp.createVariable("tice", "f8", ("x", "y"))
+    tice = datagrp.createVariable("tice", "f8", ("x", "y", "nLayers"))
     ice_melt = -0.055 * 5 # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
-    tice[:, :] = np.fmin(sst_data, ice_melt) * isice
+    ice_temp2d = np.fmin(sst_data, ice_melt) * isice
+    tice[:, :, 0] = ice_temp2d
+    tice[:, :, 1] = ice_temp2d
+    tice[:, :, 2] = ice_temp2d
+    
