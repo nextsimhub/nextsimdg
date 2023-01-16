@@ -54,9 +54,6 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 
-void TOPAZOcean::setData(const ModelState::DataMap& ms)
-{
-    IOceanBoundary::setData(ms);
-}
+void TOPAZOcean::setData(const ModelState::DataMap& ms) { IOceanBoundary::setData(ms); }
 
 } /* namespace Nextsim */

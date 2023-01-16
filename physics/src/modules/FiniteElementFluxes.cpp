@@ -70,10 +70,7 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
     dshice_dT.resize();
 }
 
-ModelState FiniteElementFluxes::getState() const
-{
-    return { {}, {} };
-}
+ModelState FiniteElementFluxes::getState() const { return { {}, {} }; }
 
 ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
 
@@ -165,7 +162,6 @@ void FiniteElementFluxes::update(const TimestepTime& tst)
     updateIce(tst); // qia & dqia/dT
 }
 
-
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {
     overElements(std::bind(&FiniteElementFluxes::calculateAtmos, this, std::placeholders::_1,
@@ -205,7 +201,6 @@ void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
     rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
     // Heat capacity of the wet air
     cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
-
 }
 
 double FiniteElementFluxes::latentHeatWater(double temperature)

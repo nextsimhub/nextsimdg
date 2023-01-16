@@ -33,8 +33,8 @@ public:
      * @param state the ModelState to be written.
      * @param filePath the path for the file to be written to.
      */
-    static void fileFromState(
-        const ModelState& state, const ModelMetadata& meta, const std::string& filePath, bool isRestart = false);
+    static void fileFromState(const ModelState& state, const ModelMetadata& meta,
+        const std::string& filePath, bool isRestart = false);
 
 private:
     StructureFactory() = default;

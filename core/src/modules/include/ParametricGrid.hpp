@@ -73,7 +73,7 @@ public:
             const TimePoint& time, const std::string& filePath)
             = 0;
         virtual void writeDiagnosticTime(
-            const ModelState& state, const ModelMetadata& meta,const std::string& filePath)
+            const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
             = 0;
 
     protected:
