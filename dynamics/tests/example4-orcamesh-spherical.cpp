@@ -27,7 +27,6 @@ double TOL = 1.e-10; //!< tolerance for checking test results
 /*!
  *  Description of the test case
  *
- * NH 25km mesh lat = [61,90], long = [-180,180]
  * Comp. in spherical
  *
  */
@@ -35,8 +34,7 @@ double TOL = 1.e-10; //!< tolerance for checking test results
 
 
 namespace ProblemConfig {
-  double R  = 6371000.0;  
-  double T  = 360.0;           // time horizon
+  double T  = 2.0 * M_PI * Nextsim::EarthRadius;       // time horizon
   size_t NT = -1;         // no. time steps
 
   std::map<std::pair<size_t,size_t>, double> exact;
@@ -50,8 +48,8 @@ class SmoothBump : public Nextsim::Interpolations::Function {
 public:
     double operator()(double lon, double lat) const
   {
-    double rx = fabs(lon+120)/30.0;
-    double ry = fabs(lat)/40.0;
+    double rx = fabs(lon+2.0/3.0 * M_PI)/ (M_PI/6.0);
+    double ry = fabs(lat) / (M_PI / 5.0);
 
     if (rx < 1 && ry < 1)
       return exp(-0.25 / (1.0 - rx*rx)) * exp(-0.25 / (1.0 - ry*ry))*exp(0.25*0.25);
@@ -75,7 +73,7 @@ class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 public:
     double operator()(double x, double y) const
     {
-      return cos(y*M_PI/180.0); // 1 degree per second
+      return cos(y); // 1 degree per second
     }
 };
 class InitialVY : public Nextsim::Interpolations::Function {
@@ -102,7 +100,7 @@ class Test {
 
     //! Transport main class
     Nextsim::DGTransport<DG> sphericaltransport;
-  Nextsim::SphericalTransformation<1,DG> transformation;
+
 
     //! Velocity Field
     InitialVX VX;
@@ -185,7 +183,7 @@ void create_rectanglemesh(const std::string meshname, size_t Nx, size_t Ny, doub
         << Nx << "\t" << Ny << std::endl;
     for (size_t iy = 0; iy <= Ny; ++iy) // lat 
       for (size_t ix = 0; ix <= Nx; ++ix) // lon
-	OUT << -180.0+360.0*ix/Nx << "\t" << -90.0+180.0*iy/Ny << std::endl;
+	OUT << -M_PI+2.0 * M_PI*ix/Nx << "\t" << -M_PI/2.0+M_PI*iy/Ny << std::endl;
 
     OUT << "landmask " << Nx * Ny << std::endl; // no ice on poles :-)
     size_t y0 = poles*Ny;       // first element that is ice
@@ -227,7 +225,6 @@ void run(size_t N)
   ProblemConfig::NT = N*5*(2*DG2DEG(DG)+1);
   //  smesh.RotatePoleToGreenland();
     //    smesh.RotatePoleFromGreenland();
-    //    smesh.vertices *= M_PI/180.0;
 
     Test<DG> test(smesh);
     double integral = test.run();
@@ -241,16 +238,18 @@ void run(size_t N)
 
 int main()
 {
-  // meshes WITHOUT rotation to Greenland. Values taken 11.12.2022 
-  ProblemConfig::exact[{1,32} ] = 4.3746591350081906e+02;
-  ProblemConfig::exact[{3,32} ] = 2.1321175648937860e+01;
-  ProblemConfig::exact[{6,32} ] = 3.4265184076084010e+00;
-  ProblemConfig::exact[{1,64} ] = 2.9531027041111111e+02;
-  ProblemConfig::exact[{3,64} ] = 6.3372101389234405e+00;
-  ProblemConfig::exact[{6,64} ] = 5.7488789884782665e-01;
-  ProblemConfig::exact[{1,128}] = 1.7282509560145877e+02;
-  ProblemConfig::exact[{3,128}] = 1.5906304660343766e+00;
-  ProblemConfig::exact[{6,128}] = 7.7060152547973701e-02;
+  // meshes WITHOUT rotation to Greenland. Values taken 15.01.2023 (radians & m/s) 
+  ProblemConfig::exact[{1,32} ] = 1.2164748581905749e-01;
+  ProblemConfig::exact[{3,32} ] = 5.6513958051583706e-03;
+  ProblemConfig::exact[{6,32} ] = 9.5899046465648826e-04;
+  ProblemConfig::exact[{1,64} ] = 8.1798148796320413e-02;
+  ProblemConfig::exact[{3,64} ] = 1.7539002988624004e-03;
+  ProblemConfig::exact[{6,64} ] = 1.6410486621918751e-04;
+  ProblemConfig::exact[{1,128}] = 4.7832176725503828e-02;
+  ProblemConfig::exact[{3,128}] = 4.4521911163719342e-04;
+  ProblemConfig::exact[{6,128}] = 2.1342844522123369e-05;
+
+  
 
   std::cout << "DG\tNT\tNX\tError\t\tReference\tPassed (1)" << std::endl;
   

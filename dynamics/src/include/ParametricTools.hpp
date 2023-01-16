@@ -280,7 +280,7 @@ namespace SphericalTools {
       return (PSI<DG, GAUSSPOINTS1D(DG) >.array().rowwise() *
 	      (GAUSSWEIGHTS<GAUSSPOINTS1D(DG) >.array() *
 	       J<GAUSSPOINTS1D(DG)>(smesh, eid).array() *
-	       (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid).row(1).array()*M_PI/180.).cos()
+	       (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid).row(1).array()).cos()
 	       )).matrix() * PSI<DG, GAUSSPOINTS1D(DG)>.transpose();
     }
 

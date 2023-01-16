@@ -50,8 +50,6 @@ public:
   
     Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
-  static constexpr double R = 6371000.0;  
-  
     /*!
      * Stores the Dirichlet boundary information
      *
@@ -128,22 +126,22 @@ public:
   {
     for (size_t i=0;i<nnodes;++i)
       {
-	const double x = cos(M_PI/180.0*vertices(i,1))*cos(M_PI/180.0*vertices(i,0));
-	const double y = cos(M_PI/180.0*vertices(i,1))*sin(M_PI/180.0*vertices(i,0));
-	const double z = sin(M_PI/180.0*vertices(i,1));
+	const double x = cos(vertices(i,1))*cos(vertices(i,0));
+	const double y = cos(vertices(i,1))*sin(vertices(i,0));
+	const double z = sin(vertices(i,1));
 
 	double aw =  40.0*M_PI/180.0;
 	const double x1 = cos(aw)*x - sin(aw)*y;
 	const double y1 = sin(aw)*x + cos(aw)*y;
 	const double z1 = z;
 
-	double bw =  15*M_PI/180.0;
+	double bw =  15.0*M_PI/180.0;
 	const double x2 = cos(bw)*x1 - sin(bw)*z1;
 	const double y2 = y1;
 	const double z2 = sin(bw)*x1 + cos(bw)*z1;
 	
-	vertices(i,1) = asin(z2)*180/M_PI;
-	vertices(i,0) = atan2(y2,x2)*180/M_PI;
+	vertices(i,1) = asin(z2);
+	vertices(i,0) = atan2(y2,x2);
       }
   }
   //! Rotation back to normal
@@ -151,9 +149,9 @@ public:
   {
     for (size_t i=0;i<nnodes;++i)
       {
-	const double x = cos(M_PI/180.0*vertices(i,1))*cos(M_PI/180.0*vertices(i,0));
-	const double y = cos(M_PI/180.0*vertices(i,1))*sin(M_PI/180.0*vertices(i,0));
-	const double z = sin(M_PI/180.0*vertices(i,1));
+	const double x = cos(vertices(i,1))*cos(vertices(i,0));
+	const double y = cos(vertices(i,1))*sin(vertices(i,0));
+	const double z = sin(vertices(i,1));
 	
 	double aw = -40.0*M_PI/180.0;
 	double bw = -15*M_PI/180.0;
@@ -167,8 +165,8 @@ public:
 	const double z2 = z1;
 
 	
-	vertices(i,1) = asin(z2)*180/M_PI;
-	vertices(i,0) = atan2(y2,x2)*180/M_PI;
+	vertices(i,1) = asin(z2);
+	vertices(i,0) = atan2(y2,x2);
       }
   }
 
@@ -185,8 +183,8 @@ public:
 
   /*!
    * makes sure that the longitudes in the coordinate vector coords
-   * do not jump form 180 to -180 degrees. If a jump is detected, 
-   * all cordinates are shifted to the range 0,540 by correcting
+   * do not jump form Pi to -Pi degrees. If a jump is detected, 
+   * all cordinates are shifted to the range 0,3 Pi by correcting
    * negative ones
    */
   template<int N>
@@ -194,7 +192,7 @@ public:
   {
     bool problem = false;
     for (size_t i=1;i<N;++i)
-      if (coords(0,0)-coords(i,0)>120.0)
+      if (coords(0,0)-coords(i,0)>2.0/3.0 * M_PI)
 	{
 	  problem = true;
 	  break;
@@ -203,7 +201,7 @@ public:
       {
 	for (size_t i=0;i<N;++i)
 	  if (coords(i,0)<0)
-	    coords(i,0) += 360.0;
+	    coords(i,0) += 2.0 * M_PI;
       }
   }
 
@@ -211,7 +209,7 @@ public:
      * returns the coordinates of one element with index eid as 4 x 2 matrix
      *
      * If correctlongitude is set to true, the congitude coordinates will
-     * be such that there is no jump (from 180 to -180) within the element
+     * be such that there is no jump (from Pi to -Pi) within the element
      */
   const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinatesOfElement(const size_t eid) const
     {
@@ -236,7 +234,7 @@ public:
      * (first index is the index of the coordinate, second the x/y - value)
      *
      * If correctlongitude is set to true, the congitude coordinates will
-     * be such that there is no jump (from 180 to -180) within the element
+     * be such that there is no jump (from Pi/2 to -Pi/2) within the element
      */
   const Eigen::Matrix<Nextsim::FloatType, 2, 2> coordinatesOfEdgeX(const size_t eid) const
     {

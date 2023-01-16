@@ -13,7 +13,7 @@ namespace Nextsim
     AdvectionCellTermX.resize(smesh.nelements);
     AdvectionCellTermY.resize(smesh.nelements);
 
-        //    phiup.row(eid) += dt * (parammap.AdvectionCellTermX[eid].array().rowwise() * vx_gauss.array() + parammap.AdvectionCellTermY[eid].array().rowwise() * vy_gauss.array()).matrix() * phi_gauss.transpose();
+    //    phiup.row(eid) += dt * (parammap.AdvectionCellTermX[eid].array().rowwise() * vx_gauss.array() + parammap.AdvectionCellTermY[eid].array().rowwise() * vy_gauss.array()).matrix() * phi_gauss.transpose();
     
     // gradient of transformation
     //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]
@@ -42,7 +42,7 @@ namespace Nextsim
 	//! the lat-direction must be scaled with the metric term if in the spherical system
 	if (type == SPHERICAL)
 	  {
-	    const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)*GP(DG)> cos_lat = (ParametricTools::getGaussPointsInElement<GP(DG)>(smesh, eid).row(1).array()*M_PI/180.).cos();
+	    const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)*GP(DG)> cos_lat = (ParametricTools::getGaussPointsInElement<GP(DG)>(smesh, eid).row(1).array()).cos();
 	    AdvectionCellTermY[eid] = PSIy<DG, GP(DG)>.array().rowwise() * (dxT.row(0).array() * cos_lat.array()) - PSIx<DG, GP(DG)>.array().rowwise() * (dyT.row(0).array() * cos_lat.array());
 	  }
 	else if (type == CARTESIAN)
@@ -60,12 +60,12 @@ namespace Nextsim
       InverseDGMassMatrix.clear();
       InverseDGMassMatrix.resize(smesh.nelements);
 
-      
+
       if (type == SPHERICAL)
 	{
 #pragma omp parallel for
 	  for (size_t eid = 0; eid<smesh.nelements;++eid)
-	    InverseDGMassMatrix[eid] = SphericalTools::massMatrix<DG>(smesh, eid).inverse();
+	    InverseDGMassMatrix[eid] = SphericalTools::massMatrix<DG>(smesh, eid).inverse() / Nextsim::EarthRadius;
 	}
       else if (type == CARTESIAN)
 	{

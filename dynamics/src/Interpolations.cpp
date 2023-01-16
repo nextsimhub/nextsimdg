@@ -74,7 +74,7 @@ namespace Interpolations {
 	    
 	    if (CoordinateSystem == SPHERICAL)
 	      {
-		const Eigen::Matrix<Nextsim::FloatType, 1, 4> coslat = (gp.row(1).array()*M_PI/180.).cos();
+		const Eigen::Matrix<Nextsim::FloatType, 1, 4> coslat = (gp.row(1).array()).cos();
 		const double masscosJ =  (J.array() * GAUSSWEIGHTS<2>.array() * coslat.array()).sum();
 		phi.row(eid) = 1. / masscosJ * (((coslat.array() * ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS<2>.array())).matrix() * initial_in_gp);
 	      }
@@ -112,7 +112,7 @@ namespace Interpolations {
 	  
 	  if (CoordinateSystem == SPHERICAL)
 	    {
-	      const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG) * GP(DG)> coslat = (gp.row(1).array()*M_PI/180.).cos();
+	      const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG) * GP(DG)> coslat = (gp.row(1).array()).cos();
 	      phi.row(eid) = SphericalTools::massMatrix<DG>(smesh,eid).inverse() * ((PSI<DG, GP(DG)>.array().rowwise() * (ParametricTools::J<GP(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GP(DG)>.array() * coslat.array())).matrix() * initial_in_gp);
 	    }
 	  else if (CoordinateSystem == CARTESIAN)
@@ -186,7 +186,7 @@ namespace Interpolations {
 		SphericalTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GP(DG)>
 		* (ParametricTools::J<GP(DG)>(smesh, dgi).array() *
 		   GAUSSWEIGHTS<GP(DG)>.array() *
-		   (ParametricTools::getGaussPointsInElement<GP(DG)>(smesh, dgi).row(1).array()*M_PI/180.).cos() * //! metric term
+		   (ParametricTools::getGaussPointsInElement<GP(DG)>(smesh, dgi).row(1).array()).cos() * //! metric term
 		   (PHI<CG, GP(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
 	    else if (CoordinateSystem == CARTESIAN)
 	      dg.row(dgi) =
@@ -215,28 +215,6 @@ namespace Interpolations {
         cg_A(cgi + CGDofsPerRow) += 0.25 * At(2);
         cg_A(cgi + CGDofsPerRow + 1) += 0.25 * At(3);
     }
-    // void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
-    //     CGVector<1>& cg_A, const DGVector<3>& A)
-    // {
-    //     const size_t CGDofsPerRow = smesh.nx + 1;
-    //     const size_t cgi
-    //         = CGDofsPerRow * cy + cx; //!< lower left index of CG-vector in element c = (cx,cy)
-    //     cg_A(cgi) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) - 0.5 * A(c, 2));
-    //     cg_A(cgi + 1) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) - 0.5 * A(c, 2));
-    //     cg_A(cgi + CGDofsPerRow) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    //     cg_A(cgi + CGDofsPerRow + 1) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    // }
-    // void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
-    //     CGVector<1>& cg_A, const DGVector<6>& A)
-    // {
-    //     const size_t CGDofsPerRow = smesh.nx + 1;
-    //     const size_t cgi          = CGDofsPerRow * cy + cx; //!< lower left index of CG-vector in element c = (cx,cy)
-
-    //     cg_A(cgi) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) - 0.5 * A(c, 2));
-    //     cg_A(cgi + 1) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) - 0.5 * A(c, 2));
-    //     cg_A(cgi + CGDofsPerRow) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    //     cg_A(cgi + CGDofsPerRow + 1) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    // }
     template <int DG>
     void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
         CGVector<2>& cg_A, const DGVector<DG>& A)
@@ -257,39 +235,6 @@ namespace Interpolations {
         cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * At(7);
         cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * At(8);
     }
-    // void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
-    //     CGVector<2>& cg_A, const DGVector<3>& A)
-    // {
-    //     const size_t CGDofsPerRow = 2 * smesh.nx + 1;
-    //     const size_t cgi = 2 * CGDofsPerRow * cy
-    //         + 2 * cx; //!< lower left index of CG-vector in element c = (cx,cy)
-    //     cg_A(cgi) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) - 0.5 * A(c, 2));
-    //     cg_A(cgi + 1) += 0.5 * (A(c, 0) - 0.5 * A(c, 2));
-    //     cg_A(cgi + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) - 0.5 * A(c, 2));
-    //     cg_A(cgi + CGDofsPerRow) += 0.5 * (A(c, 0) - 0.5 * A(c, 1));
-    //     cg_A(cgi + CGDofsPerRow + 1) += A(c, 0);
-    //     cg_A(cgi + CGDofsPerRow + 2) += 0.5 * (A(c, 0) + 0.5 * A(c, 1));
-    //     cg_A(cgi + 2 * CGDofsPerRow) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    //     cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * (A(c, 0) + 0.5 * A(c, 2));
-    //     cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    // }
-    // void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
-    //     CGVector<2>& cg_A, const DGVector<6>& A)
-    // {
-    //     const size_t CGDofsPerRow = 2 * smesh.nx + 1;
-    //     const size_t cgi = 2 * CGDofsPerRow * cy
-    //         + 2 * cx; //!< lower left index of CG-vector in element c = (cx,cy)
-    //     cg_A(cgi) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) - 0.5 * A(c, 2));
-    //     cg_A(cgi + 1) += 0.5 * (A(c, 0) - 0.5 * A(c, 2));
-    //     cg_A(cgi + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) - 0.5 * A(c, 2));
-    //     cg_A(cgi + CGDofsPerRow) += 0.5 * (A(c, 0) - 0.5 * A(c, 1));
-    //     cg_A(cgi + CGDofsPerRow + 1) += A(c, 0);
-    //     cg_A(cgi + CGDofsPerRow + 2) += 0.5 * (A(c, 0) + 0.5 * A(c, 1));
-    //     cg_A(cgi + 2 * CGDofsPerRow) += 0.25 * (A(c, 0) - 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    //     cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * (A(c, 0) + 0.5 * A(c, 2));
-    //     cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * (A(c, 0) + 0.5 * A(c, 1) + 0.5 * A(c, 2));
-    // }
-
     void DG2CGBoundary(const ParametricMesh& smesh, CGVector<1>& cg_A)
     {
         const size_t CGDofsPerRow = smesh.nx + 1;
@@ -370,7 +315,7 @@ namespace Interpolations {
       if (CoordinateSystem == SPHERICAL)
 	{
 	  const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)*GP(DG)> cos_lat = 
-	    (gp.row(1).array()*M_PI/180.).cos();
+	    (gp.row(1).array()).cos();
 	  error += (cos_lat.array() * ParametricTools::J<GP(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GP(DG)>.array() * (src_in_gauss.array() - initial_in_gp.array()).square()).sum();
 	}
       else if (CoordinateSystem == CARTESIAN)

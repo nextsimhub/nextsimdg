@@ -39,7 +39,17 @@ namespace Nextsim
 
     //! For cell_term in Advection. Fills AdvectionCellTermX/Y
     void InitializeAdvectionCellTerms();
-    //! For cell_term in Advection. Fills AdvectionCellTermX/Y
+
+    
+    /*!
+     *
+     *  For cell_term in Advection. Fills AdvectionCellTermX/Y
+     *
+     * In Spherical coordinates the inverse mass is scaled by 1/Radius to account for
+     * the proper scaling. 
+     *
+     * R^2 (v',phi) - R (vA, nabla phi) + R <va * N, phi> = 0
+     */
     void InitializeInverseDGMassMatrix();
      
   };

@@ -44,7 +44,7 @@ public:
 
     ////////////////////////////////////////////////// Output of CG - Vector (ParametricMesh)
     template <int CG>
-    static void write_cgvector(const std::string& fname, const CGVector<CG>& v, const ParametricMesh& smesh)
+    static void write_cgvector(const std::string& fname, const CGVector<CG>& v, const ParametricMesh& smesh, bool spherical = false)
     {
         // extract variable name
         std::string variableName
@@ -69,7 +69,7 @@ public:
             assert(smesh.nnodes == v.rows());
             assert((smesh.nx + 1) * (smesh.ny + 1) == v.rows());
             for (size_t i = 0; i < smesh.nnodes; ++i)
-                OUT << smesh.vertices(i, 0) << " " << smesh.vertices(i, 1) << " 0" << std::endl;
+	      write_coords(OUT,smesh.vertices(i, 0), smesh.vertices(i, 1), spherical);
 
             OUT << "CELLS " << smesh.nelements << " " << smesh.nelements * 5 << std::endl;
             for (size_t iy = 0; iy < smesh.ny; ++iy)
@@ -126,7 +126,7 @@ public:
     }
 
     template <int CG>
-    static void write_cg_velocity(const std::string& fname, const CGVector<CG>& vx, const CGVector<CG>& vy, const ParametricMesh& smesh)
+    static void write_cg_velocity(const std::string& fname, const CGVector<CG>& vx, const CGVector<CG>& vy, const ParametricMesh& smesh, bool spherical = false)
     {
         assert(vx.rows() == vy.rows());
         // extract variable name
@@ -301,10 +301,9 @@ public:
   {
     if (spherical)
       {
-	constexpr double R = 6371000.0;  
-	OUT << R * cos(y*M_PI/180.0) * cos(x*M_PI/180.0) << "\t"
-	    << R * cos(y*M_PI/180.0) * sin(x*M_PI/180.0) << "\t"
-	    << R * sin(y*M_PI/180.0)  << std::endl;
+	OUT << Nextsim::EarthRadius * cos(y) * cos(x) << "\t"
+	    << Nextsim::EarthRadius * cos(y) * sin(x) << "\t"
+	    << Nextsim::EarthRadius * sin(y)  << std::endl;
       }
     else
       OUT << x << "\t" << y <<"\t0" << std::endl;
@@ -480,15 +479,15 @@ public:
     }
     template <int CGdegree>
     static void write_cg(
-        const std::string& fname, int n, const CGVector<CGdegree>& v, const ParametricMesh& smesh)
+			 const std::string& fname, int n, const CGVector<CGdegree>& v, const ParametricMesh& smesh, bool spherical = false)
     {
-        write_cgvector(compose_vtkname(fname, CGdegree, n), v, smesh);
+      write_cgvector(compose_vtkname(fname, CGdegree, n), v, smesh, spherical);
     }
     template <int CGdegree>
     static void write_cg_velocity(
-        const std::string& fname, int n, const CGVector<CGdegree>& vx, const CGVector<CGdegree>& vy, const ParametricMesh& smesh)
+				  const std::string& fname, int n, const CGVector<CGdegree>& vx, const CGVector<CGdegree>& vy, const ParametricMesh& smesh, bool spherical = false)
     {
-        write_cg_velocity(compose_vtkname(fname, CGdegree, n), vx, vy, smesh);
+      write_cg_velocity(compose_vtkname(fname, CGdegree, n), vx, vy, smesh, spherical);
     }
 };
 

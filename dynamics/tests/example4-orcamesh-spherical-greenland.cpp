@@ -27,7 +27,6 @@ double TOL = 1.e-10; //!< tolerance for checking test results
 /*!
  *  Description of the test case
  *
- * NH 25km mesh lat = [61,90], long = [-180,180]
  * Comp. in spherical
  *
  */
@@ -35,9 +34,9 @@ double TOL = 1.e-10; //!< tolerance for checking test results
 
 
 namespace ProblemConfig {
-  double R  = 6371000.0;  
-  double T  = 360.0;           // time horizon
-  size_t NT = -1;         // no. time steps
+  double vmax_ocean = 100.0;             // 100 m/s at the eq.
+  double T  = 2.0 * M_PI * Nextsim::EarthRadius / vmax_ocean;   // time horizon
+  size_t NT = -1;                        // no. time steps
 
   std::map<std::pair<size_t,size_t>, double> exact;
   
@@ -50,8 +49,8 @@ class SmoothBump : public Nextsim::Interpolations::Function {
 public:
     double operator()(double lon, double lat) const
   {
-    double rx = fabs(lon+120)/30.0;
-    double ry = fabs(lat)/40.0;
+    double rx = fabs(lon+2.0/3.0 * M_PI) / (M_PI / 6.0);
+    double ry = fabs(lat) / (M_PI / 5.0);
 
     if (rx < 1 && ry < 1)
       return exp(-0.25 / (1.0 - rx*rx)) * exp(-0.25 / (1.0 - ry*ry))*exp(0.25*0.25);
@@ -75,7 +74,7 @@ class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 public:
     double operator()(double x, double y) const
     {
-      return cos(y*M_PI/180.0); // 1 degree per second
+      return cos(y) * ProblemConfig::vmax_ocean;
     }
 };
 class InitialVY : public Nextsim::Interpolations::Function {
@@ -102,7 +101,6 @@ class Test {
 
     //! Transport main class
   Nextsim::DGTransport<DG> sphericaltransport;
-  Nextsim::SphericalTransformation<1,DG> transformation;
 
     //! Velocity Field
     InitialVX VX;
@@ -185,7 +183,7 @@ void create_rectanglemesh(const std::string meshname, size_t Nx, size_t Ny, doub
         << Nx << "\t" << Ny << std::endl;
     for (size_t iy = 0; iy <= Ny; ++iy) // lat 
       for (size_t ix = 0; ix <= Nx; ++ix) // lon
-	OUT << -180.0+360.0*ix/Nx << "\t" << -90.0+180.0*iy/Ny << std::endl;
+	OUT << -M_PI+2.0 * M_PI*ix/Nx << "\t" << -M_PI/2.0+M_PI*iy/Ny << std::endl;
 
     OUT << "landmask " << Nx * Ny << std::endl; // no ice on poles :-)
     size_t y0 = poles*Ny;       // first element that is ice
@@ -243,20 +241,18 @@ void run(size_t N)
 int main()
 {
  
-  // meshes WITH rotation to Greenland. Values taken 13.12.2022
+  // meshes WITH rotation to Greenland. Values taken 12.01.2023 (after change to m/s and radians)
   // Results show proper order of convergence for dG(0), dG(1) and dG(2)
   // But, dG(2) requires small time steps (such as here) for correct convergence
-  ProblemConfig::exact[{1,32} ] = 4.7642540126122276e+02;
-  ProblemConfig::exact[{3,32} ] = 2.3258082729291797e+01;
-  ProblemConfig::exact[{6,32} ] = 3.7695223374051112e+00;
-  ProblemConfig::exact[{1,64} ] = 3.2078255488595022e+02;
-  ProblemConfig::exact[{3,64} ] = 6.9256662418894788e+00;
-  ProblemConfig::exact[{6,64} ] = 6.8746231227782217e-01;
-  ProblemConfig::exact[{1,128}] = 1.8578599112112357e+02;
-  ProblemConfig::exact[{3,128}] = 1.7240401859853065e+00;
-  ProblemConfig::exact[{6,128}] = 8.9275936988403290e-02;
-
-
+  ProblemConfig::exact[{1,32} ] = 1.3553159450562968e-01;
+  ProblemConfig::exact[{3,32} ] = 6.9043585250745335e-03;
+  ProblemConfig::exact[{6,32} ] = 1.1119210144894210e-03;
+  ProblemConfig::exact[{1,64} ] = 9.1591373465184839e-02;
+  ProblemConfig::exact[{3,64} ] = 2.0225129145162407e-03;
+  ProblemConfig::exact[{6,64} ] = 2.0171356011427401e-04;
+  ProblemConfig::exact[{1,128}] = 5.3412212491845773e-02;
+  ProblemConfig::exact[{3,128}] = 5.0119032320546802e-04;
+  ProblemConfig::exact[{6,128}] = 2.5860832496974643e-05;
   std::cout << "DG\tNT\tNX\tError\t\tReference\tPassed (1)" << std::endl;
   
   //  for (size_t n : {32,64}) // Reference values for N=128 are given. But computations are lengthy.

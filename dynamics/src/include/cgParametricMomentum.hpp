@@ -106,9 +106,13 @@ public:
         if (precompute_matrices == 1)
             ptrans.BasicInit(smesh);
 
-        // initialize the lumped mass
+        /*!
+	 * initialize the lumped mass
+	 * At periodic boundaries, the values must be added from both sides
+	 */
         lumpedcgmass.resize_by_mesh(smesh);
         ParametricTools::lumpedCGMassMatrix(smesh, lumpedcgmass);
+	AddPeriodic(lumpedcgmass);
     }
 
     // Access to members
@@ -191,6 +195,18 @@ public:
         DirichletZero(vy);
     }
     void DirichletZero(CGVector<CG>& v);
+
+  /*!
+   * AddPeriodic is to be called, after (sigma, Nabla Phi) is computed
+   * On periodic boundaries, the contributions from both sides must be added
+   */
+  void AddPeriodic(CGVector<CG>& v);
+  /*!
+   * AveragePeriodic replaces the values on both sides by
+   * the average of them
+   */
+  void AveragePeriodic(CGVector<CG>& v);
+  void CheckPeriodicity(CGVector<CG>& v);
 };
 
 template <int CG>

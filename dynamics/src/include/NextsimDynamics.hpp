@@ -16,6 +16,7 @@
 namespace Nextsim
 {
 
+  
   /*! 
    *
    * The different mappings used
@@ -25,6 +26,12 @@ namespace Nextsim
    *            ( R cos(lat)cos(lon), R cos(lat)sin(lon), R sin(lat) )
    */
   enum COORDINATES { SPHERICAL, CARTESIAN };
+
+  /*!
+   * Radius of the earth in [m]
+   */
+  constexpr double EarthRadius  = 6371000.0;  
+
   
   /*!
    * number of Gauss points depending on DG unknowns
