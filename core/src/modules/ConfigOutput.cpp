@@ -74,10 +74,10 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
         pState = &state;
     }
 
-    Logged::info("ConfigOutput: Outputting " + std::to_string(pState->data.size()) + " fields to "
-        + timeFileName + "\n");
 
     if ((everyTS && meta.time() >= lastOutput) || (meta.time() >= lastOutput + outputPeriod)) {
+        Logged::info("ConfigOutput: Outputting " + std::to_string(pState->data.size()) + " fields to "
+                + timeFileName + "\n");
         StructureFactory::fileFromState(*pState, meta, timeFileName, false);
         lastOutput = meta.time();
     }
