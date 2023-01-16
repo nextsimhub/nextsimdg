@@ -2,4 +2,4 @@
 if [ ! -f nextsim ]; then
     echo "Copy or link the nextsim executable here from the build directory"
 fi
-./nextsim --config-file config_topaz128x128.cfg
+./nextsim --config-file config_topaz128x128.cfg "$@"
