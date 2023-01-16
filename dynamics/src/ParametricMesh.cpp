@@ -1,5 +1,6 @@
 #include "ParametricMesh.hpp"
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 
@@ -17,8 +18,7 @@ void ParametricMesh::readmesh(std::string fname)
     IN >> status;
 
     if (status != "ParametricMesh") {
-        std::cerr << "ParametricMesh :: Wrong file format" << fname << "\t" << status
-                  << std::endl
+        std::cerr << "ParametricMesh :: Wrong file format" << fname << "\t" << status << std::endl
                   << "'ParametricMesh' expected" << std::endl;
         abort();
     }
@@ -33,7 +33,8 @@ void ParametricMesh::readmesh(std::string fname)
     IN >> nx >> ny;
 
     if ((nx < 1) || (ny < 1)) {
-        std::cerr << "ParametricMesh :: Wrong mesh dimensions (nx,ny) << " << nx << " " << ny << std::endl;
+        std::cerr << "ParametricMesh :: Wrong mesh dimensions (nx,ny) << " << nx << " " << ny
+                  << std::endl;
         abort();
     }
 
@@ -55,7 +56,8 @@ void ParametricMesh::readmesh(std::string fname)
     if (statuslog > 0) {
         std::cout << "ParametricMesh :: read mesh file " << fname << std::endl
                   << "             nx,ny = " << nx << " , " << ny << std::endl
-                  << "             " << nelements << " elements,  " << nnodes << " nodes" << std::endl;
+                  << "             " << nelements << " elements,  " << nnodes << " nodes"
+                  << std::endl;
     }
 }
 

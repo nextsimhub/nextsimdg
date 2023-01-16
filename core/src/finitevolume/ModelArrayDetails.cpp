@@ -7,6 +7,12 @@
 
 #include "include/ModelArray.hpp"
 
+// A source file to detail the ModelArray dimensions and types for
+// finite volume models, as well as the relationships between them.
+
+// Should be grouped with a consistent ModelArrayDetails.cpp and
+// ModelArrayTypedefs.hpp
+
 namespace Nextsim {
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
     { ModelArray::Dimension::X, { "x", 0 } },
@@ -17,24 +23,24 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
 ModelArray::TypeDimensions ModelArray::typeDimensions = {
     { ModelArray::Type::H,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::U,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::V,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::Z,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Z),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
+            ModelArray::Dimension::Z,
         } },
 };
 
@@ -66,5 +72,7 @@ ModelArray::DimensionMap::DimensionMap()
     })
 {
 }
+
+const std::vector<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {};
 
 }
