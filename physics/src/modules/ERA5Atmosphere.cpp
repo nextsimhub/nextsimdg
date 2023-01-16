@@ -10,7 +10,6 @@
 #include "include/Module.hpp"
 #include "include/ParaGridIO.hpp"
 
-#include <iostream> // FIXME remove me
 namespace Nextsim {
 
 std::string ERA5Atmosphere::filePath;
@@ -71,6 +70,10 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 
-void ERA5Atmosphere::setData(const ModelState::DataMap&) { }
+void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
+{
+    IAtmosphereBoundary::setData(ms);
+    fluxImpl->setData(ms);
+}
 
 } /* namespace Nextsim */

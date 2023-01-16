@@ -205,6 +205,7 @@ void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
     rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
     // Heat capacity of the wet air
     cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
+
 }
 
 double FiniteElementFluxes::latentHeatWater(double temperature)
