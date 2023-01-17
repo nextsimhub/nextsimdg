@@ -62,6 +62,10 @@ You must have root priviledge :
         cmake -Bbuild -H. -DBUILD_TESTING=OFF
         sudo cmake --build build/ --target install
         cd ..
+        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
+        cd xios
+        ./make_xios --arch <your_architecture>
+        cd ..
 
         cd nextsimdg
         mkdir -p build
