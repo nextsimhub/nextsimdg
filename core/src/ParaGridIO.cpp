@@ -16,6 +16,7 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
+#include <cstdlib>
 #include <map>
 #include <string>
 
@@ -41,6 +42,8 @@ const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
 };
 
 std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap;
+std::map<std::string, netCDF::NcFile> ParaGridIO::openFiles;
+std::map<std::string, size_t> ParaGridIO::timeIndexByFile;
 
 void ParaGridIO::makeDimCompMap()
 {
@@ -49,14 +52,13 @@ void ParaGridIO::makeDimCompMap()
         { ModelArray::componentMap.at(ModelArray::Type::DGSTRESS), ModelArray::Type::DGSTRESS },
         { ModelArray::componentMap.at(ModelArray::Type::VERTEX), ModelArray::Type::VERTEX },
     };
+    // Also initialize the static map of tables and register the atexit
+    // function here, since it should only ever run once
+//    openFiles.clear();
+    std::atexit(closeAllFiles);
 }
 
-ParaGridIO::~ParaGridIO()
-{
-    for (auto& entry : openFiles) {
-        entry.second.close();
-    }
-}
+ParaGridIO::~ParaGridIO() = default;
 
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
@@ -164,7 +166,6 @@ void ParaGridIO::dumpModelState(
     CommonRestartMetadata::writeStructureType(ncFile, metadata);
     netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
     netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
-
     CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
 
     // Dump the dimensions and number of components
@@ -176,6 +177,7 @@ void ParaGridIO::dumpModelState(
         ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
         // TODO Do I need to add data, even if it is just integers 0...n-1?
     }
+
     // Also create the sets of dimensions to be connected to the data fields
     std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
     for (auto entry : ModelArray::typeDimensions) {
@@ -204,6 +206,7 @@ void ParaGridIO::dumpModelState(
             var.putVar(entry.second.getData());
         }
     }
+
     ncFile.close();
 }
 
@@ -220,6 +223,7 @@ void ParaGridIO::writeDiagnosticTime(
     }
     // Get the file handle
     netCDF::NcFile& ncFile = openFiles.at(filePath);
+
     // Get the netCDF groups, creating them if necessary
     netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName())
                                         : ncFile.getGroup(IStructure::metadataNodeName());
@@ -339,6 +343,20 @@ void ParaGridIO::close(const std::string& filePath)
         openFiles.at(filePath).close();
         openFiles.erase(openFiles.find(filePath));
         timeIndexByFile.erase(timeIndexByFile.find(filePath));
+    }
+}
+
+void ParaGridIO::closeAllFiles() {
+    size_t closedFiles = 0;
+    for (const auto& [name, handle] : openFiles) {
+        if (!handle.isNull()) {
+            close(name);
+            closedFiles++;
+        }
+        /* If the following break is not checked for and performed, for some
+         * reason the iteration will continue to iterate over invalid
+         * string/NcFile pairs. */
+        if (closedFiles >= openFiles.size()) break;
     }
 }
 
