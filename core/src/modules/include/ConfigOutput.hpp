@@ -23,7 +23,7 @@ namespace Nextsim {
  */
 class ConfigOutput : public IDiagnosticOutput, public Configured<ConfigOutput> {
 public:
-    ConfigOutput() = default;
+    ConfigOutput();
     virtual ~ConfigOutput() = default;
 
     enum {
@@ -46,8 +46,10 @@ private:
     bool outputAllTheFields = false;
     TimePoint lastOutput;
     std::set<std::string> fieldsForOutput;
+    std::string currentFileName;
 
     static const std::string all;
+    static const std::string defaultLastOutput;
 };
 
 } /* namespace Nextsim */

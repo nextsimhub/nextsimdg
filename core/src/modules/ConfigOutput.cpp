@@ -9,11 +9,13 @@
 #include "include/Logged.hpp"
 #include "include/StructureFactory.hpp"
 
+#include <cmath>
 #include <sstream>
 
 namespace Nextsim {
 
 const std::string ConfigOutput::all = "ALL";
+const std::string ConfigOutput::defaultLastOutput = "0-01-01T00:00:00Z";
 
 template <>
 const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
@@ -21,6 +23,18 @@ const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
     { ConfigOutput::START_KEY, "ConfigOutput.start" },
     { ConfigOutput::FIELDNAMES_KEY, "ConfigOutput.field_names" },
 };
+
+ConfigOutput::ConfigOutput()
+    : m_filePrefix()
+    , outputPeriod()
+    , firstOutput(true)
+    , everyTS(false)
+    , outputAllTheFields(false)
+    , lastOutput(defaultLastOutput)
+    , fieldsForOutput()
+    , currentFileName()
+    {
+    }
 
 void ConfigOutput::configure()
 {
@@ -33,7 +47,7 @@ void ConfigOutput::configure()
     std::string startString = Configured::getConfiguration(keyMap.at(START_KEY), std::string(""));
     if (startString.empty()) {
         // If you start the model before 1st January year 0, tough.
-        lastOutput.parse("0-01-01T00:00:00Z");
+        lastOutput.parse(defaultLastOutput);
     } else {
         lastOutput.parse(startString);
         if (!everyTS) {
@@ -56,9 +70,11 @@ void ConfigOutput::configure()
 
 void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata& meta)
 {
-    std::stringstream startStream;
-    startStream << meta.time();
-    std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
+    if (currentFileName == "") {
+        std::stringstream startStream;
+        startStream << meta.time();
+        currentFileName = m_filePrefix + ".nc";
+    }
 
     ModelState state;
     const ModelState* pState;
@@ -74,11 +90,16 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
         pState = &state;
     }
 
-
-    if ((everyTS && meta.time() >= lastOutput) || (meta.time() >= lastOutput + outputPeriod)) {
+    /*
+     * Produce output either:
+     *    • on every timestep after the start time initially stored in lastOutput
+     *    • whenever the current time is an integer number of time periods from the
+     *      last output time.
+     */
+    if ((everyTS && meta.time() >= lastOutput) || (std::fmod((meta.time() - lastOutput).seconds(), outputPeriod.seconds()) == 0.)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(pState->data.size()) + " fields to "
-                + timeFileName + "\n");
-        StructureFactory::fileFromState(*pState, meta, timeFileName, false);
+                + currentFileName + " at " + meta.time().format() + "\n");
+        StructureFactory::fileFromState(*pState, meta, currentFileName, false);
         lastOutput = meta.time();
     }
 }
