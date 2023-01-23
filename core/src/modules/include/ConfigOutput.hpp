@@ -37,6 +37,14 @@ public:
     void outputState(const ModelState& state, const ModelMetadata& meta) override;
 
     void configure() override;
+    ModelState getStateRecursive(const OutputSpec& os) const;
+
+    // ModelComponent functions
+    std::string getName() const override { return "ConfigOutput"; }
+    // No configuration in getState
+    ModelState getState() const override { return ModelState(); }
+    ModelState getState(const OutputLevel&) const override { return getState(); }
+
 
 private:
     std::string m_filePrefix;

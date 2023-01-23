@@ -82,4 +82,15 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
         lastOutput = meta.time();
     }
 }
+
+ModelState ConfigOutput::getStateRecursive(const OutputSpec& os) const
+{
+    return { {},
+        {
+            { keyMap.at(PERIOD_KEY), outputPeriod.format() },
+            { keyMap.at(START_KEY), lastOutput.format() }, // FIXME Not necessarily the start date!
+            { keyMap.at(FIELDNAMES_KEY), fieldsForOutput[0] }, // FIXME not all the fields
+        } };
+}
+
 } /* namespace Nextsim */
