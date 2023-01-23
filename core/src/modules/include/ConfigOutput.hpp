@@ -22,7 +22,7 @@ namespace Nextsim {
  * An implementation of the diagnostic output that allows some configuration of
  * the file output period and frequency, as well as the fields the files contain.
  */
-class ConfigOutput : public IDiagnosticOutput, public Configured<ConfigOutput>, public ModelComponent {
+class ConfigOutput : public IDiagnosticOutput, public Configured<ConfigOutput> {
 public:
     ConfigOutput();
     virtual ~ConfigOutput() = default;
@@ -36,16 +36,17 @@ public:
     // IDiagnosticOutput overrides
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
 
-    void outputState(const ModelState& state, const ModelMetadata& meta) override;
+    void outputState(const ModelMetadata& meta) override;
 
     // ModelComponent overrides
     inline std::string getName() const override { return "ConfigOutput"; };
-    inline void setData(const ModelState::DataMap&) override { };
+    inline void setData(const ModelState::DataMap&) override {};
     inline ModelState getState() const override { return ModelState(); };
     inline ModelState getState(const OutputLevel&) const override { return ModelState(); };
 
     // Configured overrides
     void configure() override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
 
 private:
     std::string m_filePrefix;

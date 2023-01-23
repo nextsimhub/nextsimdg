@@ -78,7 +78,7 @@ void ConfigOutput::configure()
     }
 }
 
-void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata& meta)
+void ConfigOutput::outputState(const ModelMetadata& meta)
 {
     if (currentFileName == "") {
         std::stringstream startStream;
@@ -87,17 +87,26 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
     }
 
     ModelState state;
-    const ModelState* pState;
     if (outputAllTheFields) {
-        pState = &fullState;
+        for (const auto& entry : protectedArrayNames) {
+            state.data[entry.first] = *getProtectedArray().at(static_cast<size_t>(entry.second));
+        }
+        for (const auto& entry : sharedArrayNames) {
+            state.data[entry.first] = *getSharedArray().at(static_cast<size_t>(entry.second));
+        }
     } else {
         // Filter only the given fields to the output state
-        for (auto fieldEntry : fullState.data) {
-            if (fieldsForOutput.count(fieldEntry.first) > 0) {
-                state.data[fieldEntry.first] = fieldEntry.second;
-            }
+        for (const auto& fieldExtName : fieldsForOutput) {
+            if (protectedExternalNames.count(fieldExtName)) {
+                ModelArrayConstReference macr = getProtectedArray().at(static_cast<size_t>(
+                    protectedArrayNames.at(protectedExternalNames.at(fieldExtName))));
+                if (macr) state.data[fieldExtName] = *macr;
+            } else if (sharedExternalNames.count(fieldExtName)) {
+                ModelArrayReference mar = getSharedArray().at(
+                    static_cast<size_t>(sharedArrayNames.at(sharedExternalNames.at(fieldExtName))));
+                if (mar) state.data[fieldExtName] = *mar;
+            } // else do not add any data to the state under that name
         }
-        pState = &state;
     }
 
     /*
@@ -108,9 +117,9 @@ void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata&
      */
     if ((everyTS && meta.time() >= lastOutput)
         || (std::fmod((meta.time() - lastOutput).seconds(), outputPeriod.seconds()) == 0.)) {
-        Logged::info("ConfigOutput: Outputting " + std::to_string(pState->data.size())
+        Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size())
             + " fields to " + currentFileName + " at " + meta.time().format() + "\n");
-        StructureFactory::fileFromState(*pState, meta, currentFileName, false);
+        StructureFactory::fileFromState(state, meta, currentFileName, false);
         lastOutput = meta.time();
     }
 }
@@ -178,5 +187,24 @@ const std::map<std::string, std::string> ConfigOutput::protectedExternalNames = 
 const std::map<std::string, std::string> ConfigOutput::sharedExternalNames = {
 #include "include/SharedArrayNames.ipp"
 };
+
+std::string concatenateFields(const std::set<std::string>& strSet)
+{
+    std::string outStr = "";
+    for (auto& str : strSet) {
+        outStr += str + ",";
+    }
+    return outStr;
+}
+
+ModelState ConfigOutput::getStateRecursive(const OutputSpec& os) const
+{
+    return { {},
+        {
+            { keyMap.at(PERIOD_KEY), outputPeriod.format() },
+            { keyMap.at(START_KEY), lastOutput.format() }, // FIXME Not necessarily the start date!
+            { keyMap.at(FIELDNAMES_KEY), concatenateFields(fieldsForOutput) },
+        } };
+}
 
 } /* namespace Nextsim */

@@ -13,7 +13,7 @@
 { "tair", "T_AIR" }, // Air temperature, ˚C
 { "dew2m", "DEW_2M" }, // Dew point at 2 m, ˚C
 { "pair", "P_AIR" }, // sea level air pressure, Pa
-{ "", "MIXRAT" }, // water vapour mass mixing ratio
+{ "mixrat", "MIXRAT" }, // water vapour mass mixing ratio
 { "sw_in", "SW_IN" }, // incoming shortwave flux, W m⁻²
 { "lw_in", "LW_IN" }, // incoming longwave flux, W m⁻²
 { "mld", "MLD" }, // mixed layer depth, m

@@ -1,6 +1,9 @@
 /*!
  * @file DGModelArray_test.cpp
  *
+ * @brief Test that the functions to convert from the dynamics code CGVector
+ * to and from ModelArray function correctly.
+ *
  * @date Oct 6, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
@@ -24,7 +27,7 @@ TEST_CASE("cgDims test", "[CGModelArray]")
     REQUIRE(cgDims[1] == CG * hDims[1] + 1);
 }
 
-TEST_CASE("CGVector from ModelArray", "[DGModelArray]")
+TEST_CASE("CGVector from ModelArray", "[CGModelArray]")
 {
     static const int CG = 2;
     // Base grid size
@@ -105,7 +108,7 @@ TEST_CASE("ModelArray from CGVector", "[CGModelArray]")
     REQUIRE(maDest(14, 12) == cgSource(targetPoint));
 }
 
-TEST_CASE("Test with CG = 1", "[DGModelArray]") // (It would be a silly case to get wrong!)
+TEST_CASE("Test with CG = 1", "[CGModelArray]") // (It would be a silly case to get wrong!)
 {
     static const int CG = 1;
     const size_t nx = 23;
