@@ -10,8 +10,6 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/DiagnosticOutputModule.hpp"
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 void DevStep::init()
@@ -27,9 +25,8 @@ void DevStep::iterate(const TimestepTime& tst)
     // The state of the model has now advanced by one timestep, so update the
     // model metadata timestamp.
     mData->incrementTime(tst.step);
-    std::cerr << "about to output…" << std::endl;
+    // Output the model state
     Module::getImplementation<IDiagnosticOutput>().outputState(*mData);
-    std::cerr << "output done" << std::endl;
 }
 
 } /* namespace Nextsim */

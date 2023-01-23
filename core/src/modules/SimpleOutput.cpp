@@ -11,7 +11,6 @@
 #include "include/ModelArrayRef.hpp"
 #include "include/StructureFactory.hpp"
 
-#include <iostream>
 #include <sstream>
 
 namespace Nextsim {
@@ -28,12 +27,10 @@ void SimpleOutput::outputState(const ModelMetadata& meta)
     // Create the output by iterating over all fields referenced in ModelState
     ModelState state;
     for (const auto& entry : protectedArrayNames) {
-        std::cerr << "copying protected " << entry.first << " data" << std::endl;
         ModelArrayConstReference macr = getProtectedArray().at(static_cast<size_t>(entry.second));
         if (macr) state.data[entry.first] = *macr;
     }
     for (const auto& entry : sharedArrayNames) {
-        std::cerr << "copying shared " << entry.first << " data" << std::endl;
         ModelArrayReference mar = getSharedArray().at(static_cast<size_t>(entry.second));
         if (mar) state.data[entry.first] = *mar;
     }
