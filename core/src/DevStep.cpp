@@ -10,6 +10,8 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/DiagnosticOutputModule.hpp"
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 void DevStep::init()
@@ -25,10 +27,9 @@ void DevStep::iterate(const TimestepTime& tst)
     // The state of the model has now advanced by one timestep, so update the
     // model metadata timestamp.
     mData->incrementTime(tst.step);
-    // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    ModelState overallState = pData->getStateRecursive(true);
-    overallState.merge(ConfiguredModule::getAllModuleConfigurations());
-    Module::getImplementation<IDiagnosticOutput>().outputState(overallState, *mData);
+    std::cerr << "about to output…" << std::endl;
+    Module::getImplementation<IDiagnosticOutput>().outputState(*mData);
+    std::cerr << "output done" << std::endl;
 }
 
 } /* namespace Nextsim */

@@ -54,31 +54,40 @@ void ConfigOutput::configure()
     }
 }
 
-void ConfigOutput::outputState(const ModelState& fullState, const ModelMetadata& meta)
+void ConfigOutput::outputState(const ModelMetadata& meta)
 {
     std::stringstream startStream;
     startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
 
     ModelState state;
-    const ModelState* pState;
     if (outputAllTheFields) {
-        pState = &fullState;
+        for (const auto& entry : protectedArrayNames) {
+            state.data[entry.first] = *getProtectedArray().at(static_cast<size_t>(entry.second));
+        }
+        for (const auto& entry : sharedArrayNames) {
+            state.data[entry.first] = *getSharedArray().at(static_cast<size_t>(entry.second));
+        }
     } else {
         // Filter only the given fields to the output state
-        for (auto fieldEntry : fullState.data) {
-            if (fieldsForOutput.count(fieldEntry.first) > 0) {
-                state.data[fieldEntry.first] = fieldEntry.second;
-            }
+        for (const auto& fieldExtName : fieldsForOutput) {
+            if (protectedExternalNames.count(fieldExtName)) {
+                ModelArrayConstReference macr = getProtectedArray().at(static_cast<size_t>(
+                    protectedArrayNames.at(protectedExternalNames.at(fieldExtName))));
+                if (macr) state.data[fieldExtName] = *macr;
+            } else if (sharedExternalNames.count(fieldExtName)) {
+                ModelArrayReference mar = getSharedArray().at(
+                    static_cast<size_t>(sharedArrayNames.at(sharedExternalNames.at(fieldExtName))));
+                if (mar) state.data[fieldExtName] = *mar;
+            } // else do not add any data to the state under that name
         }
-        pState = &state;
     }
 
-    Logged::info("ConfigOutput: Outputting " + std::to_string(pState->data.size()) + " fields to "
+    Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
         + timeFileName + "\n");
 
     if ((everyTS && meta.time() >= lastOutput) || (meta.time() >= lastOutput + outputPeriod)) {
-        StructureFactory::fileFromState(*pState, meta, timeFileName);
+        StructureFactory::fileFromState(state, meta, timeFileName);
         lastOutput = meta.time();
     }
 }

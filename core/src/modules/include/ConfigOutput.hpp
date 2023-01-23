@@ -34,7 +34,7 @@ public:
 
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
 
-    void outputState(const ModelState& state, const ModelMetadata& meta) override;
+    void outputState(const ModelMetadata& meta) override;
 
     void configure() override;
     ModelState getStateRecursive(const OutputSpec& os) const override;
