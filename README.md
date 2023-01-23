@@ -22,7 +22,9 @@ For neXtSIM_DG we use clang-format and the [Webkit style](https://webkit.org/cod
   -  Names and values of physical constants reside in src/include/constants.hpp
   -  Runtime modifiable model parameters are set in src/options.cpp and can be set using option files.
 
-A [dedicated clang format file](https://github.com/nextsimdg/nextsimdg/blob/issue9_clang_format/src/.clang-format) has been designed for the code. You may run it loccaly and manually with the command ```clang-format -i $yourfile``` or have a plugin with your favorite code editor or implement a git pre-commit hook locally by putting this pre-commit file in your .git/hooks/. This clang formatting will also be run each time a pull request is done as part of the continuous integration. 
+A [dedicated clang format file](https://github.com/nextsimdg/nextsimdg/blob/issue9_clang_format/src/.clang-format) has been designed for the code. You may run it locally and manually with the command ```clang-format -i $yourfile``` or have a plug-in with your favourite code editor or implement a git pre-commit hook locally by putting this pre-commit file in your .git/hooks/. This clang formatting will also be run each time a pull request is done as part of the continuous integration (see [continuous integration script](https://github.com/nextsimdg/nextsimdg/blob/develop/.github/workflows/clang-compile-tests.yml). 
+
+For each file file.cpp in src/, an associated test file file_test.cpp shall be created in test/ and contain all the associated tests. The executable produced by these files must start with the sub-string ```test```. As an example the [test file](https://github.com/nextsimdg/nextsimdg/blob/develop/test/Iterator_test.cpp) for the [Iterator file](https://github.com/nextsimdg/nextsimdg/blob/develop/src/Iterator.cpp) produce [testIterator executable](https://github.com/nextsimdg/nextsimdg/blob/develop/test/CMakeLists.txt)
 
 
 ## Commenting conventions for a nice automatic documentation

@@ -86,6 +86,7 @@ endforeach()
 # Link the model
 add_executable(nextsim "${NextsimSources}")
 
+target_compile_options(nextsim PUBLIC "$<$<CONFIG:DEBUG>:-DDEBUG>")
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"

@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Nextsim {
@@ -437,11 +438,11 @@ public:
      * @param type the DG or CG array type to set the number of components for.
      * @param nComp the number of components to be set.
      */
-    static void setNComponents(Type type, size_t nComp) {
+    static void setNComponents(Type type, size_t nComp)
+    {
         if (hasDoF(type)) {
             definedDimensions.at(componentMap.at(type)).length = nComp;
         }
-
     }
 
     /*!
@@ -558,7 +559,6 @@ protected:
     {
         return hIndex * dimensions()[nDimensions() - 1] + layer;
     }
-
 
 private:
     static bool areMapsInvalid;

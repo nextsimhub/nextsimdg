@@ -16,7 +16,7 @@
 #include "include/IStructureModule.hpp"
 
 #include <cmath>
-#include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
@@ -34,15 +34,13 @@ static const int CG = 2;
 
 namespace Nextsim {
 
+size_t c = 0;
+
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[ParametricGrid]")
 {
     Module::setImplementation<IStructure>("ParametricGrid");
 
-    std::FILE* lun = std::fopen(filename.c_str(), "r");
-    if (lun != NULL) {
-        std::remove(filename.c_str());
-    }
-    std::fclose(lun);
+    std::filesystem::remove(filename);
 
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
@@ -131,9 +129,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
 
     grid.dumpModelState(state, metadata, filename, true);
 
-    lun = std::fopen(filename.c_str(), "r");
-    REQUIRE(lun != NULL);
-    REQUIRE(std::fclose(lun) == 0);
+    REQUIRE(std::filesystem::exists(std::filesystem::path(filename)));
 
     // Reset the array dimensions to make sure that the read function gets them correct
     ModelArray::setDimension(ModelArray::Dimension::X, 1);
@@ -182,7 +178,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     REQUIRE(coordRef.components({ 12, 13 })[0] - coordRef.components({ 11, 13 })[0] == scale);
     REQUIRE(coordRef.components({ 12, 13 })[1] - coordRef.components({ 12, 12 })[1] == scale);
 
-    std::remove(filename.c_str());
+    std::filesystem::remove(filename);
 }
 
 TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
@@ -191,11 +187,7 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
 
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
 
-    std::FILE* lun = std::fopen(diagFile.c_str(), "r");
-    if (lun != NULL) {
-        std::remove(diagFile.c_str());
-    }
-    std::fclose(lun);
+    std::filesystem::remove(diagFile);
 
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
@@ -322,7 +314,7 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
 
     ncFile.close();
 
-    std::remove(diagFile.c_str());
+    std::filesystem::remove(diagFile);
 
 }
 

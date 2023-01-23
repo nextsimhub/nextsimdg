@@ -15,7 +15,6 @@
 #include "dgInitial.hpp"
 #include "dgLimit.hpp"
 #include "dgVisu.hpp"
-#include "mevp.hpp"
 #include "stopwatch.hpp"
 
 #include <cassert>
@@ -36,12 +35,25 @@ inline constexpr double SQR(double x) { return x * x; }
 //////////////////////////////////////////////////// Benchmark testcase from [Mehlmann / Richter, ...]
 //! Description of the problem data, wind & ocean fields
 
+// Benchmark LKF testcase from [Mehlmann et al., 2022]
 namespace ReferenceScale {
 constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 }
+
+// Benchmark compression testcase from [Plante Tremblay, 2021]
+namespace RefScaleCompression {
+using namespace ReferenceScale;
+
+constexpr double T = 4 * 60. * 60.; //!< Time horizon 2 hours
+constexpr double L = 60000.0; //!< Size of domain
+constexpr double vmax_ocean = 0.0; //!< Maximum velocity of ocean
+constexpr double vmax_atm = 20; //!< Max. vel. of wind
+
+}
+
 
 class OceanX : public Nextsim::Interpolations::Function {
 public:
@@ -110,7 +122,7 @@ public:
 
 class InitialD : public Nextsim::Interpolations::Function {
 public:
-    double operator()(double x, double y) const { return 0.0; }
+    double operator()(double x, double y) const { return 1.0; }
 };
 
 //////////////////////////////////////////////////
@@ -132,11 +144,12 @@ void run_benchmark(const std::string meshfile)
     Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
 
     //! define the time mesh
-    constexpr double dt_adv = 60.0; //!< Time step of advection problem
-    constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
+    // constexpr double dt_adv = 60.0; //!< Time step of advection problem
+    double dt_adv = ReferenceScale::L / smesh.nx / 1000. * 15.0;  //!< Stable time step 
+    size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t NT_meb = 100; //!< Momentum substeps
-    constexpr double dt_mom = dt_adv / NT_meb; //!< Time step of momentum problem
+    double dt_mom = dt_adv / NT_meb; //!< Time step of momentum problem
 
     //! Rheology-Parameters
     Nextsim::MEBParameters Params;
@@ -146,11 +159,11 @@ void run_benchmark(const std::string meshfile)
               << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = 1. * 60.0 * 60.0; // every 4 hours
-    constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
+    double T_vtk = 1. * 60.0 * 60.0; // every 4 hours
+    size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
-    constexpr double T_log = 10.0 * 60.0; // every 30 minute
-    constexpr size_t NT_log = T_log / dt_adv + 1.e-4;
+    double T_log = 10.0 * 60.0; // every 30 minute
+    size_t NT_log = T_log / dt_adv + 1.e-4;
 
     ////////////////////////////////////////////////// Forcing
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceanx(), OceanX());
@@ -221,6 +234,7 @@ void run_benchmark(const std::string meshfile)
 
         // interpolates CG velocity to DG and reinits normal velocity
         dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
+        //dgtransport.prepareAdvection(momentum.GetAvgSubiterVx(), momentum.GetAvgSubiterVy());
 
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
@@ -230,13 +244,13 @@ void run_benchmark(const std::string meshfile)
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
         Nextsim::LimitMin(H, 0.0);
-        Nextsim::LimitMax(D, 1.0-1.e-12);
-        Nextsim::LimitMin(D, 0.0);
+        Nextsim::LimitMax(D, 1.0);
+        Nextsim::LimitMin(D, 1e-12);
         Nextsim::GlobalTimer.stop("time loop - advection");
 
         //////////////////////////////////////////////////
         Nextsim::GlobalTimer.start("time loop - meb");
-        momentum.prepareIteration(H, A);
+        momentum.prepareIteration(H, A, D);
         // MEB momentum subcycling
         for (size_t mebstep = 0; mebstep < NT_meb; ++mebstep) {
             momentum.MEBStep(Params, NT_meb, dt_adv, H, A, D);
@@ -276,24 +290,16 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
+    //run_benchmark<2, 6, 8>("../ParametricMesh/rectangle_256x256.smesh");
+    //run_benchmark<2, 6, 8>("../ParametricMesh/rectangle_128x128.smesh");
 
-    //run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_256x256.smesh");
-    run_benchmark<2, 3, 8>("../ParametricMesh/rectangle_128x128.smesh");
+    std::vector<std::string> meshes;
+    meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
+    meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
+    meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
 
-    // std::vector<std::string> meshes;
-    // meshes.push_back("../ParametricMesh/rectangle_16x16.smesh");
-    // meshes.push_back("../ParametricMesh/rectangle_32x32.smesh");
-    // meshes.push_back("../ParametricMesh/rectangle_64x64.smesh");
-    // meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
-    // meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
-    // meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
-
-    // for (const auto& it : meshes) {
-    //     run_benchmark<1, 1, 3>(it);
-    //     run_benchmark<1, 3, 3>(it);
-    //     run_benchmark<1, 6, 3>(it);
-    //     run_benchmark<2, 1, 8>(it);
-    //     run_benchmark<2, 3, 8>(it);
-    //     run_benchmark<2, 6, 8>(it);
-    // }
+     for (const auto& it : meshes) {
+         //run_benchmark<1, 3, 3>(it);
+         run_benchmark<2, 6, 8>(it);
+     }
 }
