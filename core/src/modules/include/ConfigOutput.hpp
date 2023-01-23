@@ -11,6 +11,7 @@
 #include "include/IDiagnosticOutput.hpp"
 
 #include "include/Configured.hpp"
+#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 #include <set>
@@ -23,7 +24,7 @@ namespace Nextsim {
  */
 class ConfigOutput : public IDiagnosticOutput, public Configured<ConfigOutput> {
 public:
-    ConfigOutput() = default;
+    ConfigOutput();
     virtual ~ConfigOutput() = default;
 
     enum {
@@ -32,11 +33,20 @@ public:
         FIELDNAMES_KEY,
     };
 
+    // IDiagnosticOutput overrides
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
 
-    void outputState(const ModelState& state, const ModelMetadata& meta) override;
+    void outputState(const ModelMetadata& meta) override;
 
+    // ModelComponent overrides
+    inline std::string getName() const override { return "ConfigOutput"; };
+    inline void setData(const ModelState::DataMap&) override {};
+    inline ModelState getState() const override { return ModelState(); };
+    inline ModelState getState(const OutputLevel&) const override { return ModelState(); };
+
+    // Configured overrides
     void configure() override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
 
 private:
     std::string m_filePrefix;
@@ -46,8 +56,16 @@ private:
     bool outputAllTheFields = false;
     TimePoint lastOutput;
     std::set<std::string> fieldsForOutput;
+    std::string currentFileName;
+    std::set<ModelComponent::SharedArray> sharedArraysForOutput;
+    std::set<ModelComponent::ProtectedArray> protectedArraysForOutput;
 
     static const std::string all;
+    static const std::string defaultLastOutput;
+    static const std::map<std::string, ProtectedArray> protectedArrayNames;
+    static const std::map<std::string, SharedArray> sharedArrayNames;
+    static const std::map<std::string, std::string> protectedExternalNames;
+    static const std::map<std::string, std::string> sharedExternalNames;
 };
 
 } /* namespace Nextsim */

@@ -78,7 +78,7 @@ public:
      *
      * @param filePath The path to the file to be closed.
      */
-    void close(const std::string& filePath);
+    static void close(const std::string& filePath);
 
     static ModelState readForcingTimeStatic(
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
@@ -96,8 +96,13 @@ private:
     // Ensures that static variables are created in the correct order.
     static void makeDimCompMap();
 
-    std::map<std::string, netCDF::NcFile> openFiles;
-    std::map<std::string, size_t> timeIndexByFile;
+    // Closes all still-open NetCDF files
+    static void closeAllFiles();
+
+    // Existing or open files are a property of the computer outside the individual
+    // class instance, so they are static.
+    static std::map<std::string, netCDF::NcFile> openFiles;
+    static std::map<std::string, size_t> timeIndexByFile;
 };
 
 } /* namespace Nextsim */

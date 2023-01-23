@@ -6,27 +6,34 @@
  */
 
 #include "include/SimpleOutput.hpp"
+
 #include "include/Logged.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/StructureFactory.hpp"
 
-#include <iostream>
 #include <sstream>
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelState& state, const ModelMetadata& meta)
+void SimpleOutput::outputState(const ModelMetadata& meta)
 {
     std::stringstream startStream;
     startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
-    Logged::info("Outputting " + std::to_string(state.data.size()) + " fields and "
-        + std::to_string(state.config.size()) + " configurations to " + timeFileName + "\n");
-    //    std::cout << "Outputting " << state.size() << " fields to " << timeFileName << std::endl;
+    Logged::info("Outputting "
+        + std::to_string(protectedArrayNames.size() + sharedArrayNames.size()) + " fields to "
+        + timeFileName + "\n");
 
-    // Copy the configuration from the ModelState to the ModelMetadata
-    ModelMetadata metaPlusConfig(meta);
-    metaPlusConfig.setConfig(state.config);
-    // Create the output
-    StructureFactory::fileFromState(state, metaPlusConfig, timeFileName, false);
+    // Create the output by iterating over all fields referenced in ModelState
+    ModelState state;
+    for (const auto& entry : protectedArrayNames) {
+        ModelArrayConstReference macr = getProtectedArray().at(static_cast<size_t>(entry.second));
+        if (macr) state.data[entry.first] = *macr;
+    }
+    for (const auto& entry : sharedArrayNames) {
+        ModelArrayReference mar = getSharedArray().at(static_cast<size_t>(entry.second));
+        if (mar) state.data[entry.first] = *mar;
+    }
+    StructureFactory::fileFromState(state, meta, timeFileName);
 }
 } /* namespace Nextsim */

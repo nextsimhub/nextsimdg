@@ -24,6 +24,7 @@
 
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
+#include "include/Module.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/gridNames.hpp"
@@ -132,9 +133,10 @@ void run_benchmark(const std::string meshfile)
     Nextsim::ParaGridIO* readIO = new Nextsim::ParaGridIO(gridIn);
     gridIn.setIO(readIO);
 
+    Module::Module<Nextsim::IStructure>::setImplementation("ParametricGrid");
+
     Nextsim::ModelState state = gridIn.getModelState("nextsimMEVPstart.nc");
     size_t NX = Nextsim::ModelArray::definedDimensions.at(Nextsim::ModelArray::Dimension::X).length;
-    // Let's ASSUME it's square
     //! Define the spatial mesh
     Nextsim::ModelArray& coords = state.data.at(Nextsim::coordsName);
     Nextsim::ParametricMesh smesh(NX, NX, state.data.at(Nextsim::coordsName).data().matrix());
@@ -144,10 +146,13 @@ void run_benchmark(const std::string meshfile)
     smeshOG.readmesh(meshfile);
 
     // Assert some facts about the vertex positions
+    // It's an NX by NX square.
     assert(smesh.nx == NX);
     assert(smesh.ny == NX);
     assert(smesh.nelements == NX * NX);
+    // The nodes are also a square, one longer along each edge.
     assert(smesh.nnodes == (NX + 1) * (NX + 1));
+    // Check that coordinates behave as they should.
     assert(smesh.vertices(0, 0) == smesh.vertices(1, 0));
     assert(smesh.vertices(0, 1) != smesh.vertices(1, 1));
     assert(smesh.vertices(0, 0) != smesh.vertices(NX+1, 0));

@@ -36,6 +36,8 @@ public:
     static void fileFromState(const ModelState& state, const ModelMetadata& meta,
         const std::string& filePath, bool isRestart = false);
 
+    static void finaliseAllFiles();
+
 private:
     StructureFactory() = default;
 };
