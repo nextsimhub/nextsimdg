@@ -37,7 +37,7 @@ public:
     void outputState(const ModelState& state, const ModelMetadata& meta) override;
 
     void configure() override;
-    ModelState getStateRecursive(const OutputSpec& os) const;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
 
     // ModelComponent functions
     std::string getName() const override { return "ConfigOutput"; }

@@ -55,13 +55,13 @@ private:
      * names of the fields to defined outside of an actual source file, even if the
      * definition file has a slightly odd format.
      */
-    static inline std::map<std::string, std::string> generateProtectedExternal() const
+    static inline std::map<std::string, std::string> generateProtectedExternal()
     {
         return {
 #include "include/ProtectedArrayNames.ipp"
         };
     }
-    static inline std::map<std::string, std::string> generateSharedExternal() const
+    static inline std::map<std::string, std::string> generateSharedExternal()
     {
         return {
 #include "include/SharedArrayNames.ipp"
@@ -72,7 +72,7 @@ private:
     // Using a macro protects against typos
     #define SHAREDEL(NAME) { #NAME, SharedArray::NAME }
     // Mapping from canonical SharedArray name to the SharedArray enum value
-    static inline std::map<std::string, ModelComponent::SharedArray> generateSharedNames() const
+    static inline std::map<std::string, ModelComponent::SharedArray> generateSharedNames()
     {
         return {
             SHAREDEL(H_ICE), // Updated ice thickness, ice average, m
@@ -96,7 +96,7 @@ private:
     // Using a macro protects against typos
     #define PROTEL(NAME) { #NAME, ProtectedArray::NAME }
     // Mapping from canonical ProtectedArray name to the ProtectedArray enum value
-    static inline std::map<std::string, ModelComponent::ProtectedArray> generateProtectedNames() const
+    static inline std::map<std::string, ModelComponent::ProtectedArray> generateProtectedNames()
     {
         return {
             PROTEL(H_ICE), // Ice thickness, cell average, m
