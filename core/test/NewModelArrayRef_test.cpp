@@ -115,7 +115,7 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
     AtmIn atmIn;
     double hice0 = 0.56;
     double swin = 311;
-    ModelArray::setDimensions(ModelArray::Type::H, {1});
+    ModelArray::setDimensions(ModelArray::Type::H, {1,1});
     atmIn.configure();
     atmIn.setData({hice0, swin});
 
@@ -186,7 +186,7 @@ private:
 TEST_CASE("Accessing the data two ways", "[ModelArrayRef]")
 {
     CouplIn couplIn;
-    ModelArray::setDimensions(ModelArray::Type::H, {1});
+    ModelArray::setDimensions(ModelArray::Type::H, {1,1});
     couplIn.configure();
     ModelArrayRef<couplFields::SWIN, MARBackingStore> swin(couplIn.bs());
     couplIn.setData();

@@ -24,8 +24,8 @@ namespace Nextsim {
 
 TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     class OceanData : public IOceanBoundary {
     public:
@@ -100,8 +100,8 @@ TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
 
 TEST_CASE("Freezing conditions", "[BasicIceOceanHeatFlux]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     class OceanData : public IOceanBoundary {
     public:

@@ -11,3 +11,7 @@ Results
 /run/nextsim
 /run/.DS_Store
 /run/*.log
+/run/applications/*
+*.vtk
+*.smesh
+*.DS_Store

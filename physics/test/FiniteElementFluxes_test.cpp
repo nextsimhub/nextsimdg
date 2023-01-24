@@ -26,8 +26,8 @@ namespace Nextsim {
 
 TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -177,8 +177,8 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 
 TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;

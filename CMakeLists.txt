@@ -50,11 +50,6 @@ find_package(Eigen3 3.4 REQUIRED)
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
 # target_link_libraries(target LINK_PUBLIC "${NSDG_NetCDF_Library}")
 
-# Set the location of the ipp files used by ModuleLoader for the main build
-set(ModuleLoaderIppTargetDirectory
-"${CMAKE_CURRENT_SOURCE_DIR}/core/src/modules/generated/")
-
-file(MAKE_DIRECTORY "${ModuleLoaderIppTargetDirectory}")
 # Set the list of components that define modules. Component subdirectories are
 # contained in this directory level and contain src/modules/ and 
 # src/modules/include/ subdirectories 
@@ -67,6 +62,11 @@ set(CodeComponents
 "physics"
 "dynamics"
 )
+
+# The exact selection of dimensions and Types available to ModelArray
+if(True)
+    set(ModelArrayStructure "discontinuousgalerkin")
+endif()
 
 # Set an empty list of sources
 set(NextsimSources "")
@@ -86,9 +86,9 @@ endforeach()
 # Link the model
 add_executable(nextsim "${NextsimSources}")
 
+target_compile_options(nextsim PUBLIC "$<$<CONFIG:DEBUG>:-DDEBUG>")
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${ModuleLoaderIppTargetDirectory}"
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
     )

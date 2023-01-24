@@ -13,6 +13,7 @@ set(BaseSources
     "CommonRestartMetadata.cpp"
     "DevGridIO.cpp"
     "RectGridIO.cpp"
+    "ParaGridIO.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
     "MissingData.cpp"
@@ -22,6 +23,7 @@ set(BaseSources
     "NetcdfMetadataConfiguration.cpp"
     "PrognosticData.cpp"
     "Time.cpp"
+    "${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
@@ -31,6 +33,7 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 set(StructureModuleSources
     "DevGrid.cpp"
     "RectangularGrid.cpp"
+    "ParametricGrid.cpp"
     "IStructureModule.cpp"
     )
 
@@ -62,4 +65,5 @@ set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"
     "${ModuleDir}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${ModelArrayStructure}"
     PARENT_SCOPE)

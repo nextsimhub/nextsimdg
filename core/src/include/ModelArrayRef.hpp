@@ -50,7 +50,7 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    const double& operator[](const ModelArray::Dimensions& dims)
+    const double& operator[](const ModelArray::MultiDim& dims)
     {
         return backingStore[static_cast<size_t>(arrayName)]->operator[](dims);
     }
@@ -189,7 +189,7 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    double& operator[](const ModelArray::Dimensions& dims)
+    double& operator[](const ModelArray::MultiDim& dims)
     {
         return backingStore[static_cast<size_t>(arrayName)]->operator[](dims);
     }
