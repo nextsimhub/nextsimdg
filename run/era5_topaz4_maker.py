@@ -58,7 +58,11 @@ def era5_source_file_name(field, unix_time):
 # Returns the file name that holds the TOPAZ data for a given field at a given time
 def topaz4_source_file_name(field, unix_time):
     unix_tm = time.gmtime(unix_time)
-    return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
+    if field in ("u", "v"):
+        # Ocean currents come from the 30 m files
+        return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_30m.nc"
+    else:
+        return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
 
 # Returns bilinearly interpolated data given array of fractional indices
 def bilinear(eyes, jays, data):
@@ -261,9 +265,9 @@ if __name__ == "__main__":
     era_root.close()
 
     ocean_fields = ("mld", "sss", "sst", "u", "v")
-    skip_ocean_fields = ("u", "v")
-    topaz_fields = ("mlp", "salinity", "temperature")
-    topaz_translation = {"mld" : "mlp", "sss" : "salinity", "sst" : "temperature"}
+    skip_ocean_fields = ()
+    topaz_fields = ("mlp", "salinity", "temperature", "u", "v")
+    topaz_translation = {"mld" : "mlp", "sss" : "salinity", "sst" : "temperature", "u" : "u", "v" : "v"}
 
 
     ###################################################################
