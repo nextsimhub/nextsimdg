@@ -59,7 +59,7 @@ void ParaGridIO::makeDimCompMap()
     };
     // Also initialize the static map of tables and register the atexit
     // function here, since it should only ever run once
-//    openFiles.clear();
+    //    openFiles.clear();
     std::atexit(closeAllFiles);
 }
 
@@ -348,7 +348,8 @@ void ParaGridIO::close(const std::string& filePath)
     }
 }
 
-void ParaGridIO::closeAllFiles() {
+void ParaGridIO::closeAllFiles()
+{
     size_t closedFiles = 0;
     for (const auto& [name, handle] : openFiles) {
         if (!handle.isNull()) {
@@ -358,7 +359,8 @@ void ParaGridIO::closeAllFiles() {
         /* If the following break is not checked for and performed, for some
          * reason the iteration will continue to iterate over invalid
          * string/NcFile pairs. */
-        if (closedFiles >= openFiles.size()) break;
+        if (closedFiles >= openFiles.size())
+            break;
     }
 }
 
