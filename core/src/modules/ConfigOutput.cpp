@@ -65,14 +65,18 @@ void ConfigOutput::configure()
         for (std::string line; std::getline(fieldStream, line, ',');) {
             fieldsForOutput.insert(line);
         }
-        // Sort through the list of fields and create lists of Shared- or ProtectedArrays that correspond to the fields.
+        // Sort through the list of fields and create lists of Shared- or ProtectedArrays that
+        // correspond to the fields.
         for (const std::string& fieldName : fieldsForOutput) {
             if (sharedExternalNames.count(fieldName)) {
-                sharedArraysForOutput.insert(sharedArrayNames.at(sharedExternalNames.at(fieldName)));
+                sharedArraysForOutput.insert(
+                    sharedArrayNames.at(sharedExternalNames.at(fieldName)));
             } else if (protectedExternalNames.count(fieldName)) {
-                protectedArraysForOutput.insert(protectedArrayNames.at(protectedExternalNames.at(fieldName)));
+                protectedArraysForOutput.insert(
+                    protectedArrayNames.at(protectedExternalNames.at(fieldName)));
             } else {
-                Logged::warning("ConfigOutput: No field with the name \"" + fieldName + "\" was found.");
+                Logged::warning(
+                    "ConfigOutput: No field with the name \"" + fieldName + "\" was found.");
             }
         }
     }
@@ -89,10 +93,15 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
     ModelState state;
     if (outputAllTheFields) {
         for (const auto& entry : protectedArrayNames) {
-            state.data[entry.first] = *getProtectedArray().at(static_cast<size_t>(entry.second));
+            ModelArrayConstReference macr
+                = getProtectedArray().at(static_cast<size_t>(entry.second));
+            if (macr && macr->trueSize() > 0)
+                state.data[entry.first] = *macr;
         }
         for (const auto& entry : sharedArrayNames) {
-            state.data[entry.first] = *getSharedArray().at(static_cast<size_t>(entry.second));
+            ModelArrayReference mar = getSharedArray().at(static_cast<size_t>(entry.second));
+            if (mar && mar->trueSize() > 0)
+                state.data[entry.first] = *mar;
         }
     } else {
         // Filter only the given fields to the output state
@@ -100,11 +109,13 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
             if (protectedExternalNames.count(fieldExtName)) {
                 ModelArrayConstReference macr = getProtectedArray().at(static_cast<size_t>(
                     protectedArrayNames.at(protectedExternalNames.at(fieldExtName))));
-                if (macr) state.data[fieldExtName] = *macr;
+                if (macr)
+                    state.data[fieldExtName] = *macr;
             } else if (sharedExternalNames.count(fieldExtName)) {
                 ModelArrayReference mar = getSharedArray().at(
                     static_cast<size_t>(sharedArrayNames.at(sharedExternalNames.at(fieldExtName))));
-                if (mar) state.data[fieldExtName] = *mar;
+                if (mar)
+                    state.data[fieldExtName] = *mar;
             } // else do not add any data to the state under that name
         }
     }
@@ -117,8 +128,8 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
      */
     if ((everyTS && meta.time() >= lastOutput)
         || (std::fmod((meta.time() - lastOutput).seconds(), outputPeriod.seconds()) == 0.)) {
-        Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size())
-            + " fields to " + currentFileName + " at " + meta.time().format() + "\n");
+        Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
+            + currentFileName + " at " + meta.time().format() + "\n");
         StructureFactory::fileFromState(state, meta, currentFileName, false);
         lastOutput = meta.time();
     }
