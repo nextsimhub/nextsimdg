@@ -7,6 +7,8 @@ import math
 sec_per_hr = 3600
 hr_per_day = 24
 
+zero_C_in_kelvin = 273.15
+
 # Returns arrays of times for the ERA5 file, in Unix and ERA5 format
 def create_era5_times(start_tm, stop_tm):
     from collections import namedtuple
@@ -180,6 +182,7 @@ if __name__ == "__main__":
     era5_fields = ("d2m", "msdwlwrf", "msdwswrf", "msl", "msr", "mtpr", "t2m", "u10", "v10")
     era5_translation = {"dew2m" : "d2m", "lw_in" : "msdwlwrf", "sw_in" : "msdwswrf",
                         "pair" : "msl", "tair" : "t2m"} # windspeed is special
+    kelvin_fields = ("d2m", "t2m")
 
     ###################################################################
 
@@ -233,6 +236,8 @@ if __name__ == "__main__":
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 time_data = era5_interpolate(element_lon, element_lat, source_data, source_lons, source_lats)
+                if era5_field in kelvin_fields:
+                    time_data -= zero_C_in_kelvin
                 data[target_t_index, :, :] = time_data
         else:
             for target_t_index in range(len(unix_times_e)):
