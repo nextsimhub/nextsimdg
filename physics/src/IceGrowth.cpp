@@ -34,6 +34,7 @@ IceGrowth::IceGrowth()
     , hice0(ModelArray::Type::H)
     , hsnow0(ModelArray::Type::H)
     , newice(ModelArray::Type::H)
+    , deltaCIce(ModelArray::Type::H)
     , deltaCFreeze(ModelArray::Type::H)
     , deltaCMelt(ModelArray::Type::H)
     , hIceCell(getProtectedArray())
@@ -51,6 +52,7 @@ IceGrowth::IceGrowth()
     registerSharedArray(SharedArray::H_SNOW, &hsnow);
     registerSharedArray(SharedArray::NEW_ICE, &newice);
     registerSharedArray(SharedArray::HSNOW_MELT, &snowMelt);
+    registerSharedArray(SharedArray::DELTA_CICE, &deltaCIce);
 
     registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
     registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
@@ -70,6 +72,7 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
     snowMelt.resize();
     deltaCFreeze.resize();
     deltaCMelt.resize();
+    deltaCIce.resize();
 }
 
 ModelState IceGrowth::getState() const
@@ -205,17 +208,17 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
         // Note that the cell-averaged hice0 is converted to a ice averaged value
         iLateral->melt(tstep, hice0[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
-    double deltaC = deltaCFreeze[i] + deltaCMelt[i];
-    cice[i] += deltaC;
+    deltaCIce[i] = deltaCFreeze[i] + deltaCMelt[i];
+    cice[i] += deltaCIce[i];
     if (cice[i] >= minc) {
         // The updated ice thickness must conserve volume
-        updateThickness(hice[i], cice[i], deltaC, newice[i]);
-        if (deltaC < 0) {
+        updateThickness(hice[i], cice[i], deltaCIce[i], newice[i]);
+        if (deltaCIce[i] < 0) {
             // Snow is lost if the concentration decreases, and energy is returned to the ocean
-            qow[i] -= deltaC * hsnow[i] * Water::Lf * Ice::rhoSnow / tstep.step;
+            qow[i] -= deltaCIce[i] * hsnow[i] * Water::Lf * Ice::rhoSnow / tstep.step;
         } else {
             // Update snow thickness. Currently no new snow is implemented
-            updateThickness(hsnow[i], cice[i], deltaC, 0);
+            updateThickness(hsnow[i], cice[i], deltaCIce[i], 0);
         }
     }
 }

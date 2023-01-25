@@ -69,6 +69,8 @@ private:
     HField hsnow0; // Timestep initial true snow thickness, m
 
     HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
+    // Since ILateralSpread is purely per-element, hold Δcice here
+    HField deltaCIce; // Change in ice concentration
     // Owned data fields, not shared
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)

@@ -64,8 +64,6 @@ protected:
         , hsnow(getSharedArray())
         , deltaHi(getSharedArray())
     {
-        registerModule();
-        ModelComponent::registerSharedArray(SharedArray::DELTA_CICE, &deltaCi);
     }
 
     ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RW> cice; // From IceGrowth
@@ -74,9 +72,6 @@ protected:
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hice; // From IceGrowth
     ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnow; // From Ice Growth?
     ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore, RO> deltaHi; // From Vertical Ice Growth
-
-    // Owned, shared arrays
-    HField deltaCi;
 };
 
 } /* namespace Nextsim */
