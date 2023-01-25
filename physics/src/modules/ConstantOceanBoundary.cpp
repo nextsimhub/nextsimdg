@@ -6,7 +6,8 @@
  */
 
 #include "include/ConstantOceanBoundary.hpp"
-
+#include "include/IIceOceanHeatFlux.hpp"
+#include "include/Module.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -28,6 +29,10 @@ void ConstantOceanBoundary::setData(const ModelState::DataMap& ms)
     cpml = Water::cp * Water::rho * mld;
 }
 
-void ConstantOceanBoundary::updateBefore(const TimestepTime& tst) { }
+void ConstantOceanBoundary::updateBefore(const TimestepTime& tst)
+{
+    Module::getImplementation<IIceOceanHeatFlux>().update(tst);
+}
+
 void ConstantOceanBoundary::updateAfter(const TimestepTime& tst) { }
 } /* namespace Nextsim */
