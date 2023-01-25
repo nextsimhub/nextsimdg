@@ -7,6 +7,7 @@
 
 #include "include/TOPAZOcean.hpp"
 
+#include "include/IIceOceanHeatFlux.hpp"
 #include "include/Module.hpp"
 #include "include/ParaGridIO.hpp"
 
@@ -50,6 +51,9 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     mld = state.data.at("mld");
     u = state.data.at("u");
     v = state.data.at("v");
+
+    Module::getImplementation<IIceOceanHeatFlux>().update(tst);
+
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

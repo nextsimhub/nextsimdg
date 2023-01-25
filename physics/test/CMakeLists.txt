@@ -119,10 +119,12 @@ add_executable(testTOPAZOcn
     "${CoreSourceDir}/ParaGridIO.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
-    "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreSourceDir}/Time.cpp"
+    "${ModulesDir}/IceOceanHeatFluxModule.cpp"
+    "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
     )
 target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(testTOPAZOcn PRIVATE
