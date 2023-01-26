@@ -8,8 +8,10 @@
 #include "include/TOPAZOcean.hpp"
 
 #include "include/IIceOceanHeatFlux.hpp"
+#include "include/IFreezingPoint.hpp"
 #include "include/Module.hpp"
 #include "include/ParaGridIO.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
@@ -52,6 +54,11 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     u = state.data.at("u");
     v = state.data.at("v");
 
+    cpml = Water::rho * Water::cp * mld;
+    overElements(std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        TimestepTime());
+
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 
 }
@@ -59,5 +66,10 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 
 void TOPAZOcean::setData(const ModelState::DataMap& ms) { IOceanBoundary::setData(ms); }
+
+void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst)
+{
+    tf[i] = Module::getImplementation<IFreezingPoint>()(sss[i]);
+}
 
 } /* namespace Nextsim */

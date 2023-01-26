@@ -40,6 +40,8 @@ public:
     void setFilePath(const std::string& filePathIn);
 
 private:
+    // Updates the freezing point of an element
+    void updateTf(size_t i, const TimestepTime& tst);
     // Since the configuration is global, it makes sense for the file path to
     // be static.
     static std::string filePath;
