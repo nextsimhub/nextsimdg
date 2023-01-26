@@ -141,6 +141,7 @@ add_executable(testParaGrid
     "${SRC_DIR}/MissingData.cpp"
     "${SRC_DIR}/ModelArray.cpp"
     "${SRC_DIR}/ModelMetadata.cpp"
+    "${SRC_DIR}/NZLevels.cpp"
     "${SRC_DIR}/Time.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
