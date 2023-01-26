@@ -16,6 +16,7 @@ namespace Nextsim {
 double ThermoIce0::k_s;
 static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
+const size_t ThermoIce0::nZLevels = 1;
 
 ThermoIce0::ThermoIce0()
     : IIceThermodynamics()
@@ -146,5 +147,10 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         hsnow[i] = 0.;
         tice.zIndexAndLayer(i, 0) = Ice::Tm;
     }
+}
+
+size_t ThermoIce0::getNZLevels() const
+{
+    return nZLevels;
 }
 } /* namespace Nextsim */

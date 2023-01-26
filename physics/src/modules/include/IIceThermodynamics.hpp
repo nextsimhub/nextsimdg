@@ -39,6 +39,8 @@ public:
      */
     virtual void update(const TimestepTime& tsTime) = 0;
 
+    virtual size_t getNZLevels() const = 0;
+
 protected:
     IIceThermodynamics()
         : tice(ModelArray::Type::Z)
