@@ -12,6 +12,7 @@
 #include "include/IStructure.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
+#include "include/NZLevels.hpp"
 
 #include <cstddef>
 #include <ncDim.h>
@@ -61,6 +62,8 @@ static ModelState initModelData(const netCDF::NcGroup& dataGroup)
     }
     dim2[0] = dim3[0];
     dim2[1] = dim3[1];
+    size_t fileZLevels = dim3[2];
+    dim3[2] = NZLevels::get();
 
     ModelArray::setDimensions(ModelArray::Type::H, dim2);
     ModelArray::setDimensions(ModelArray::Type::U, dim2);
