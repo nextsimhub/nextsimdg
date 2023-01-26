@@ -18,6 +18,7 @@ add_executable(createNextsimMeshData createNextsimMeshData.cpp
     "${CoreDir}/MissingData.cpp"
     "${CoreDir}/ModelArray.cpp"
     "${CoreDir}/ModelMetadata.cpp"
+    "${CoreDir}/NZLevels.cpp"
     "${CoreDir}/Time.cpp"
     "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
@@ -41,6 +42,7 @@ add_executable(nextsimMEVP NextsimMevp.cpp
     "${CoreDir}/MissingData.cpp"
     "${CoreDir}/ModelArray.cpp"
     "${CoreDir}/ModelMetadata.cpp"
+    "${CoreDir}/NZLevels.cpp"
     "${CoreDir}/ParaGridIO.cpp"
     "${CoreDir}/Time.cpp"
     "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"

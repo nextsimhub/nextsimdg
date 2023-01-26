@@ -10,6 +10,7 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/NZLevels.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/gridNames.hpp"
@@ -50,6 +51,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     size_t nx = 25;
     size_t ny = 15;
     size_t nz = 3;
+    NZLevels::set(nz);
     size_t nxcg = CG * nx + 1;
     size_t nycg = CG * ny + 1;
 
@@ -58,7 +60,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
 
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
-    ModelArray::setDimension(ModelArray::Dimension::Z, nz);
+    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1);
     ModelArray::setDimension(ModelArray::Dimension::XCG, nxcg);
@@ -151,7 +153,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
 
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == nz);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
 
     REQUIRE(ms.data.size() == state.data.size());
 
@@ -161,7 +163,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     REQUIRE(ticeRef.nDimensions() == 3);
     REQUIRE(ticeRef.dimensions()[0] == nx);
     REQUIRE(ticeRef.dimensions()[1] == ny);
-    REQUIRE(ticeRef.dimensions()[2] == nz);
+    REQUIRE(ticeRef.dimensions()[2] == NZLevels::get());
 
     ModelArray& hiceRef = ms.data.at(hiceName);
     REQUIRE(hiceRef.nDimensions() == 2);
@@ -197,6 +199,7 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
     size_t nx = 30;
     size_t ny = 20;
     size_t nz = 3;
+    NZLevels::set(nz);
     size_t nxcg = CG * nx + 1;
     size_t nycg = CG * ny + 1;
 
@@ -205,7 +208,7 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
 
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
-    ModelArray::setDimension(ModelArray::Dimension::Z, nz);
+    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1);
     ModelArray::setDimension(ModelArray::Dimension::XCG, nxcg);

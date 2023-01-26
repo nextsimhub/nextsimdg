@@ -9,6 +9,7 @@
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/MissingData.hpp"
+#include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -80,7 +81,13 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 
         ModelArray::DimensionSpec& dimensionSpec = entry.second;
         netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
-        ModelArray::setDimension(entry.first, dim.getSize());
+        if (entry.first == ModelArray::Dimension::Z) {
+            // A special case, as the number of leves in the file might not be
+            // the number that the selected ice thermodynamics requires.
+            ModelArray::setDimension(entry.first, NZLevels::get());
+        } else {
+            ModelArray::setDimension(entry.first, dim.getSize());
+        }
     }
 
     ModelState state;
@@ -105,7 +112,13 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         ModelArray& data = state.data.at(varName);
         data.resize();
 
-        var.getVar(&data[0]);
+        if (newType == ModelArray::Type::Z) {
+            std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
+            std::vector<size_t> extentVector = ModelArray::dimensions(newType);
+            var.getVar(startVector, extentVector, &data[0]);
+        } else {
+            var.getVar(&data[0]);
+        }
     }
     ncFile.close();
     return state;

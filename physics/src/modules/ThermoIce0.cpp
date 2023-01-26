@@ -9,6 +9,7 @@
 
 #include "include/IceGrowth.hpp"
 #include "include/ModelArray.hpp"
+#include "include/NZLevels.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -16,6 +17,7 @@ namespace Nextsim {
 double ThermoIce0::k_s;
 static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
+const size_t ThermoIce0::nZLevels = 1;
 
 ThermoIce0::ThermoIce0()
     : IIceThermodynamics()
@@ -39,7 +41,11 @@ const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
     { ThermoIce0::KS_KEY, "thermoice0.ks" },
 };
 
-void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault); }
+void ThermoIce0::configure()
+{
+    k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
+    NZLevels::set(nZLevels);
+}
 
 ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 {
@@ -147,4 +153,6 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         tice.zIndexAndLayer(i, 0) = Ice::Tm;
     }
 }
+
+size_t ThermoIce0::getNZLevels() const { return nZLevels; }
 } /* namespace Nextsim */
