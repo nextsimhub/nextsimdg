@@ -91,6 +91,13 @@ static ModelState initModelData(const netCDF::NcGroup& dataGroup)
             auto [i, y] = state.data.insert({ varName, data });
         } else if (nDims == 3) {
             ZField data = ModelArray::ZField();
+            // Transform from the number of z levels in the data file to the
+            // number required by the ice thermodynamics.
+            // Reset the size of the buffer (and we know we have three dimensions)
+            totalSz = dim3[0] * dim3[1] * dim3[2];
+            buffer.resize(totalSz);
+            std::vector<size_t> startVector = {0, 0, 0};
+            var.second.getVar(startVector, dim3, buffer.data());
             data.setData(buffer.data());
             state.data[varName] = data;
         }
