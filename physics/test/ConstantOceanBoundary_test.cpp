@@ -24,7 +24,7 @@ TEST_CASE("ConstantOcean Qio calculation", "[ConstantOceanBoundary]")
     ConstantOceanBoundary cob;
 
     cob.setData(ModelState::DataMap());
-
+    cob.updateBefore(TimestepTime());
     ModelArrayRef<ModelComponent::SharedArray::Q_IO, MARBackingStore> qio(ModelComponent::getSharedArray());
 
     REQUIRE(qio[0] != 0.);
