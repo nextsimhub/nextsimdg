@@ -174,3 +174,50 @@ add_executable(testNewModelArrayRef
 
 target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)
+
+# PrognosticData (and hopefully that alone) requires code from the physics tree
+set(PhysSourceDir "${CoreSrc}/../../physics/src/")
+set(PhysModulesDir "${CoreSrc}/../../physics/src/modules")
+
+add_executable(testPrognosticData
+    "PrognosticData_test.cpp"
+    "${CoreSrc}/PrognosticData.cpp"
+    "${CoreSrc}/Configurator.cpp"
+    "${CoreSrc}/ConfiguredModule.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${CoreSrc}/ModelComponent.cpp"
+    "${CoreSrc}/MissingData.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${PhysSourceDir}/IceGrowth.cpp"
+    "${PhysModulesDir}/FiniteElementFluxes.cpp"
+    "${PhysModulesDir}/FiniteElementSpecHum.cpp"
+    "${PhysModulesDir}/FluxCalculationModule.cpp"
+    "${PhysModulesDir}/OceanBoundaryModule.cpp"
+    "${PhysModulesDir}/ConstantOceanBoundary.cpp"
+    "${PhysModulesDir}/ConfiguredOcean.cpp"
+    "${PhysModulesDir}/FluxConfiguredOcean.cpp"
+    "${PhysModulesDir}/AtmosphereBoundaryModule.cpp"
+    "${PhysModulesDir}/ConstantAtmosphereBoundary.cpp"
+    "${PhysModulesDir}/ConfiguredAtmosphere.cpp"
+    "${PhysModulesDir}/FluxConfiguredAtmosphere.cpp"
+    "${PhysModulesDir}/LateralIceSpreadModule.cpp"
+    "${PhysModulesDir}/HiblerSpread.cpp"
+    "${PhysModulesDir}/IceThermodynamicsModule.cpp"
+    "${PhysModulesDir}/ThermoIce0.cpp"
+    "${PhysModulesDir}/IceOceanHeatFluxModule.cpp"
+    "${PhysModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysModulesDir}/IIceAlbedoModule.cpp"
+    "${PhysModulesDir}/SMUIceAlbedo.cpp"
+    "${PhysModulesDir}/CCSMIceAlbedo.cpp"
+    "${PhysModulesDir}/SMU2IceAlbedo.cpp"
+    "${CoreSrc}/Time.cpp"
+    )
+target_include_directories(testPrognosticData PRIVATE
+    "${CoreSrc}"
+    "${CoreSrc}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${PhysSourceDir}"
+    "${PhysModulesDir}"
+    )
+target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
