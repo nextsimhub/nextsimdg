@@ -27,6 +27,9 @@ public:
 
 protected:
     ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> mlBulkCp;
+
+private:
+    static double timeT; // The relaxation timescale of the sea surface temperature, s.
 };
 
 } /* namespace Nextsim */
