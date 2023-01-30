@@ -24,6 +24,12 @@ public:
 
     void update(const TimestepTime&) override;
     void updateElement(size_t i, const TimestepTime&);
+    /*!
+     * Sets the relaxation time of this class.
+     *
+     * @param timeTIn the relaxation time in seconds to be used.
+     */
+    void setTimeT(double timeTIn) { timeT = timeTIn; }
 
 protected:
     ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> mlBulkCp;
