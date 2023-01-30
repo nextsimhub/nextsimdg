@@ -9,4 +9,23 @@
 
 namespace Nextsim {
 
+const std::string SlabOcean::sstSlabName = "sst_slab";
+const std::string SlabOcean::sssSlabName = "sss_slab";
+
+void SlabOcean::setData(const ModelState::DataMap& ms) { }
+
+ModelState SlabOcean::getState() const
+{
+    return { {
+                 { sstSlabName, sstSlab },
+                 { sssSlabName, sssSlab },
+             },
+        {} };
+}
+ModelState SlabOcean::getState(const OutputLevel&) const { return getState(); }
+
+std::unordered_set<std::string> SlabOcean::hFields() const { return { sstSlabName, sssSlabName }; }
+
+void SlabOcean::update(const TimestepTime&) { }
+
 } /* namespace Nextsim */

@@ -19,11 +19,15 @@ public:
     ModelState getState(const OutputLevel&) const override;
     std::string getName() const override { return "SlabOcean"; }
 
+    std::unordered_set<std::string> hFields() const override;
     void update(const TimestepTime&);
 
 private:
-    HField sst;
-    HField sss;
+    HField sstSlab;
+    HField sssSlab;
+
+    static const std::string sstSlabName;
+    static const std::string sssSlabName;
 };
 
 } /* namespace Nextsim */

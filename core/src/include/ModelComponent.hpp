@@ -59,6 +59,9 @@ public:
         HTRUE_SNOW, // Snow thickness, ice average, m
         OCEAN_U, // x(east)-ward ocean current, m s⁻¹
         OCEAN_V, // y(north)-ward ocean current, m s⁻¹
+        // Slab ocean fields
+        SLAB_SST, // Slab ocean sea surface temperature ˚C
+        SLAB_SSS, // Slab ocean sea surface salinity ˚C
         COUNT // Count of enum values
     };
     enum class SharedArray {
