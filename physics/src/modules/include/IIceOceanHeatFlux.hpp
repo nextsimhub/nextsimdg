@@ -45,7 +45,7 @@ public:
     virtual void update(const TimestepTime&) = 0;
 
 protected:
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
+    ModelArrayRef<ProtectedArray::EXT_SST, MARConstBackingStore> sst;
     ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf;
 
     ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio;

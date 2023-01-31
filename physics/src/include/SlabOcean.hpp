@@ -28,7 +28,6 @@ public:
         , qow(getSharedArray())
         , deltaHice(getSharedArray())
         , deltaSmelt(getSharedArray())
-
     {
     }
 
@@ -48,8 +47,8 @@ private:
     HField fdw;
 
     // Input fields
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sstExt;
-    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore> sssExt;
+    ModelArrayRef<ProtectedArray::EXT_SST, MARConstBackingStore> sstExt;
+    ModelArrayRef<ProtectedArray::EXT_SSS, MARConstBackingStore> sssExt;
     ModelArrayRef<ProtectedArray::MLD, MARConstBackingStore> mld;
     ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> cpml;
     ModelArrayRef<ProtectedArray::EVAP_MINUS_PRECIP, MARConstBackingStore> emp;

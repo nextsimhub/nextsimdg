@@ -104,8 +104,8 @@ private:
     HField sh_ice;
     HField dshice_dT;
     // Input fields
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
-    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore> sss;
+    ModelArrayRef<ProtectedArray::EXT_SST, MARConstBackingStore> sst;
+    ModelArrayRef<ProtectedArray::EXT_SSS, MARConstBackingStore> sss;
     ModelArrayRef<ProtectedArray::T_AIR, MARConstBackingStore> t_air;
     ModelArrayRef<ProtectedArray::DEW_2M, MARConstBackingStore> t_dew2;
     ModelArrayRef<ProtectedArray::P_AIR, MARConstBackingStore> p_air;

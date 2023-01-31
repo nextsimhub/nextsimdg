@@ -34,6 +34,9 @@ std::unordered_set<std::string> SlabOcean::hFields() const { return { sstSlabNam
 
 void SlabOcean::update(const TimestepTime&)
 {
+    // Slab SST update
+
+    // Slab SSS update
 
 }
 

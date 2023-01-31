@@ -48,8 +48,8 @@ public:
         LW_IN, // incoming longwave flux, W m⁻²
         MLD, // mixed layer depth, m
         SNOW, // snow fall, kg m⁻² s⁻¹
-        SSS, // sea surface salinity, PSU
-        SST, // sea surface temperature ˚C
+        EXT_SSS, // sea surface salinity from coupling or forcing, PSU
+        EXT_SST, // sea surface temperature from coupling or forcing, ˚C
         EVAP_MINUS_PRECIP, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
         // Derived fields, calculated once per timestep
         ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
