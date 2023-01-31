@@ -83,7 +83,7 @@ private:
         qow; // open water heat flux, from FluxCalculation
     ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore>
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
-    ModelArrayRef<ProtectedArray::EXT_SST, MARConstBackingStore> sst; // sea surface temperature, ˚C
+    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst; // sea surface temperature, ˚C
     ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf; // ocean freezing point, ˚C
     ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore>
         deltaHi; // New ice thickness this timestep, m

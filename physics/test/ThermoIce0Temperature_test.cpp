@@ -49,8 +49,8 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
             registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::EXT_SST, &sst);
-            registerProtectedArray(ProtectedArray::EXT_SSS, &sss);
+            registerProtectedArray(ProtectedArray::SST, &sst);
+            registerProtectedArray(ProtectedArray::SSS, &sss);
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
@@ -151,8 +151,8 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
             registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::EXT_SST, &sst);
-            registerProtectedArray(ProtectedArray::EXT_SSS, &sss);
+            registerProtectedArray(ProtectedArray::SST, &sst);
+            registerProtectedArray(ProtectedArray::SSS, &sss);
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);

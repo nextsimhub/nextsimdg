@@ -24,8 +24,8 @@ public:
         m_couplingArrays[static_cast<size_t>(CouplingFields::OCEAN_V)] = &v;
 
         registerSharedArray(SharedArray::Q_IO, &qio);
-        registerProtectedArray(ProtectedArray::EXT_SST, &sst);
-        registerProtectedArray(ProtectedArray::EXT_SSS, &sss);
+        registerProtectedArray(ProtectedArray::SST, &sst);
+        registerProtectedArray(ProtectedArray::SSS, &sss);
         registerProtectedArray(ProtectedArray::MLD, &mld);
         registerProtectedArray(ProtectedArray::ML_BULK_CP, &cpml);
         registerProtectedArray(ProtectedArray::TF, &tf);

@@ -76,7 +76,7 @@ protected:
         tice0; // Timestep initial ice temperature
     ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf; // Sea water freezing temperature
     ModelArrayRef<ProtectedArray::SNOW, MARConstBackingStore> snowfall; // From ExternalData
-    ModelArrayRef<ProtectedArray::EXT_SSS, MARConstBackingStore>
+    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore>
         sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
     HField tice;
