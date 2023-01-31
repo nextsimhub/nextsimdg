@@ -35,6 +35,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IIceOceanHeatFlux>(HelpMap& map, 
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IIceOceanHeatFlux>::moduleName(),
         ConfigType::MODULE, { BASICICEOCEANHEATFLUX }, BASICICEOCEANHEATFLUX, "",
         "The module for calculating the ice-ocean heat fluxes." });
+    Nextsim::BasicIceOceanHeatFlux::getHelpRecursive(map, getAll);
     return map;
 }
 template <> Nextsim::IIceOceanHeatFlux& getImplementation<Nextsim::IIceOceanHeatFlux>()
