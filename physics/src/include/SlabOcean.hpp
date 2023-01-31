@@ -16,10 +16,10 @@ namespace Nextsim {
 class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
     SlabOcean()
-        : sstSlab(ModelArray::Type::H)
-        , sssSlab(ModelArray::Type::H)
-        , qdw(ModelArray::Type::H)
+        : qdw(ModelArray::Type::H)
         , fdw(ModelArray::Type::H)
+        , sstSlab(getProtectedArray())
+        , sssSlab(getProtectedArray())
         , sstExt(getProtectedArray())
         , sssExt(getProtectedArray())
         , mld(getProtectedArray())
@@ -27,6 +27,7 @@ public:
         , emp(getProtectedArray())
         , qio(getSharedArray())
         , qow(getSharedArray())
+        , newIce(getSharedArray())
         , deltaHice(getSharedArray())
         , deltaSmelt(getSharedArray())
     {
@@ -53,10 +54,12 @@ public:
 
 private:
     // Owned shared fields
-    HField sstSlab;
-    HField sssSlab;
     HField qdw;
     HField fdw;
+
+    // Slab SS* fields are the model SS* fields if SlabOcean is configured
+    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sstSlab;
+    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore> sssSlab;
 
     // Input fields
     ModelArrayRef<ProtectedArray::EXT_SST, MARConstBackingStore> sstExt;
@@ -64,9 +67,11 @@ private:
     ModelArrayRef<ProtectedArray::MLD, MARConstBackingStore> mld;
     ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> cpml;
     ModelArrayRef<ProtectedArray::EVAP_MINUS_PRECIP, MARConstBackingStore> emp;
+    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice;
     ModelArrayRef<SharedArray::Q_IO, MARBackingStore> qio;
     ModelArrayRef<SharedArray::Q_OW, MARBackingStore> qow;
     // TODO ModelArrayRef to assimilation flux
+    ModelArrayRef<SharedArray::NEW_ICE, MARBackingStore> newIce;
     ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore> deltaHice;
     ModelArrayRef<SharedArray::HSNOW_MELT, MARBackingStore> deltaSmelt;
 
