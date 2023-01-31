@@ -74,8 +74,8 @@ void ConfiguredOcean::configure()
         Configured<ConfiguredOcean>::keyMap.at(CURRENTV_KEY), v0);
 
     // set the external SS* arrays as part of configuration, as opposed to at construction as normal
-    registerProtectedArray<ProtectedArray::EXT_SST>(&sstExt);
-    registerProtectedArray<ProtectedArray::EXT_SSS>(&sssExt);
+    registerProtectedArray(ProtectedArray::EXT_SST, &sstExt);
+    registerProtectedArray(ProtectedArray::EXT_SSS, &sssExt);
 
 }
 

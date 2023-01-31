@@ -8,11 +8,12 @@
 #ifndef SLABOCEAN_HPP
 #define SLABOCEAN_HPP
 
+#include "include/Configured.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
 
-class SlabOcean : public ModelComponent {
+class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
     SlabOcean()
         : sstSlab(ModelArray::Type::H)
@@ -31,6 +32,15 @@ public:
     {
     }
 
+    enum {
+        TIMET_KEY,
+        TIMES_KEY,
+    };
+
+    void configure() override;
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     void setData(const ModelState::DataMap& ms) override;
     ModelState getState() const override;
     ModelState getState(const OutputLevel&) const override;
@@ -38,6 +48,8 @@ public:
 
     std::unordered_set<std::string> hFields() const override;
     void update(const TimestepTime&);
+
+    static const double defaultRelaxationTime; // A default value for the relaxation time in s.
 
 private:
     // Owned shared fields
@@ -60,6 +72,9 @@ private:
 
     static const std::string sstSlabName;
     static const std::string sssSlabName;
+
+    double timeT = defaultRelaxationTime;
+    double timeS = defaultRelaxationTime;
 };
 
 } /* namespace Nextsim */
