@@ -60,8 +60,10 @@ public:
         OCEAN_U, // x(east)-ward ocean current, m s⁻¹
         OCEAN_V, // y(north)-ward ocean current, m s⁻¹
         // Slab ocean fields
-        SLAB_SST, // Slab ocean sea surface temperature ˚C
-        SLAB_SSS, // Slab ocean sea surface salinity ˚C
+        SLAB_SST, // Slab ocean sea surface temperature, ˚C
+        SLAB_SSS, // Slab ocean sea surface salinity, ˚C
+        SLAB_QDW, // Slab ocean temperature nudging heat flux, W m⁻²
+        SLAB_FDW, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
         COUNT // Count of enum values
     };
     enum class SharedArray {
