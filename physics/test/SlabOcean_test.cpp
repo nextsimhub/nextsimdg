@@ -16,18 +16,19 @@
 #include "include/LinearFreezing.hpp"
 #include "include/constants.hpp"
 
-namespace Nextsim {
+#include <iostream> //FIXME remove me
 
-// 1000 s timestep
-TimestepTime tst = {TimePoint(0), Duration("P0-0T0:16:40")};
+namespace Nextsim {
 
 TEST_CASE("Test Qdw", "[SlabOcean]")
 {
+    // 1000 s timestep
+    TimestepTime tst = {TimePoint(), Duration("P0-0T0:16:40")};
+
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     double tOffset = 0.001;
-
     // Supply the data to the slab ocean
     HField sss(ModelArray::Type::H);
     sss = 32.;
@@ -51,7 +52,9 @@ TEST_CASE("Test Qdw", "[SlabOcean]")
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &data0);
     ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &data0);
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DELTA_HICE, &data0);
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::NEW_ICE, &data0);
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::HSNOW_MELT, &data0);
+    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::EVAP_MINUS_PRECIP, &data0);
 
     // External SS* data
     HField sssExt(ModelArray::Type::H);
@@ -68,6 +71,9 @@ TEST_CASE("Test Qdw", "[SlabOcean]")
 
     ModelArrayRef<ModelComponent::ProtectedArray::SLAB_QDW, MARConstBackingStore> qdw(ModelComponent::getProtectedArray());
     REQUIRE(tst.step.seconds() == 1000);
-    REQUIRE(qdw[0] == tOffset * cpml[0] * SlabOcean::defaultRelaxationTime);
+    double prec =1e-6;
+    REQUIRE(qdw[0] == Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
+/*
+ */
 }
 } /* namespace Nextsim */
