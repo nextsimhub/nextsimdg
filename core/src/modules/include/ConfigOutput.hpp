@@ -62,10 +62,6 @@ private:
 
     static const std::string all;
     static const std::string defaultLastOutput;
-    static const std::map<std::string, ProtectedArray> protectedArrayNames;
-    static const std::map<std::string, SharedArray> sharedArrayNames;
-    static const std::map<std::string, std::string> protectedExternalNames;
-    static const std::map<std::string, std::string> sharedExternalNames;
 };
 
 } /* namespace Nextsim */

@@ -113,6 +113,8 @@ private:
             PROTEL(SNOW), // snow fall, kg m⁻² s⁻¹
             PROTEL(SSS), // sea surface salinity, PSU
             PROTEL(SST), // sea surface temperature ˚C
+            PROTEL(EXT_SSS), // exterior sea surface salinity, PSU
+            PROTEL(EXT_SST), // exterior sea surface temperature ˚C
             PROTEL(EVAP_MINUS_PRECIP), // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
             PROTEL(ML_BULK_CP), // Mixed layer bulk heat capacity J K⁻¹ m⁻²
             PROTEL(TF), // Ocean freezing temperature, ˚C
@@ -121,6 +123,10 @@ private:
             PROTEL(HTRUE_SNOW), // Snow thickness, ice average, m
             PROTEL(OCEAN_U), // x(east)-ward ocean current, m s⁻¹
             PROTEL(OCEAN_V), // y(north)-ward ocean current, m s⁻¹
+            PROTEL(SLAB_SSS), // slab ocean surface salinity, PSU
+            PROTEL(SLAB_SST), // slab ocean surface temperature ˚C
+            PROTEL(SLAB_QDW), // Slab ocean temperature nudging heat flux, W m⁻²
+            PROTEL(SLAB_FDW), // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
         };
     }
     #undef PROTEL
