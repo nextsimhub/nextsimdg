@@ -25,7 +25,11 @@ const std::map<int, std::string> Configured<TOPAZOcean>::keyMap = {
     { TOPAZOcean::FILEPATH_KEY, fileKey },
 };
 
-TOPAZOcean::TOPAZOcean() { }
+TOPAZOcean::TOPAZOcean()
+    : sstExt(ModelArray::Type::H)
+    , sssExt(ModelArray::Type::H)
+{
+}
 
 ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
@@ -42,6 +46,10 @@ void TOPAZOcean::configure()
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     slabOcean.configure();
+
+    registerProtectedArray(ProtectedArray::EXT_SST, &sstExt);
+    registerProtectedArray(ProtectedArray::EXT_SSS, &sssExt);
+
 }
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
@@ -50,8 +58,8 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    sst = state.data.at("sst");
-    sss = state.data.at("sss");
+    sstExt = state.data.at("sst");
+    sssExt = state.data.at("sss");
     mld = state.data.at("mld");
     u = state.data.at("u");
     v = state.data.at("v");
@@ -78,6 +86,9 @@ void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePat
 void TOPAZOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
+
+    sstExt.resize();
+    sssExt.resize();
     slabOcean.setData(ms);
 }
 

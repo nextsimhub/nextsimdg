@@ -47,6 +47,9 @@ private:
     // be static.
     static std::string filePath;
 
+    HField sstExt;
+    HField sssExt;
+
     SlabOcean slabOcean;
 };
 
