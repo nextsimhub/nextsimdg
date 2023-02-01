@@ -102,5 +102,7 @@ void ConfiguredOcean::updateBefore(const TimestepTime& tst)
 void ConfiguredOcean::updateAfter(const TimestepTime& tst)
 {
     slabOcean.update(tst);
+    sst = *getProtectedArray()[static_cast<size_t>(ProtectedArray::SLAB_SST)];
+    sss = *getProtectedArray()[static_cast<size_t>(ProtectedArray::SLAB_SSS)];
 }
 } /* namespace Nextsim */
