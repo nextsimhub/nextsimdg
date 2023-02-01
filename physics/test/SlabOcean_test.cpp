@@ -76,6 +76,7 @@ TEST_CASE("Test Qdw", "[SlabOcean]")
     REQUIRE(qdw[0] == Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
     ModelArrayRef<ModelComponent::ProtectedArray::SLAB_SST, MARConstBackingStore> sstSlab(ModelComponent::getProtectedArray());
+    REQUIRE(sstSlab[0] != Approx(sst[0]).epsilon(prec / dt));
     REQUIRE(sstSlab[0] == Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
 
     HField qow(ModelArray::Type::H);
@@ -93,6 +94,8 @@ TEST_CASE("Test Fdw", "[SlabOcean]")
 {
     // 1000 s timestep
     TimestepTime tst = {TimePoint(), Duration("P0-0T0:16:40")};
+    double dt = tst.step.seconds();
+    REQUIRE(dt == 1000);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -147,6 +150,17 @@ TEST_CASE("Test Fdw", "[SlabOcean]")
     double ddt = tst.step.seconds();
     double oldFdw = delS * mld[0] * Water::rho / (timeS * sss[0] - ddt * delS);
     REQUIRE(fdw[0] != Approx(oldFdw).epsilon(prec));
+
+    ModelArrayRef<ModelComponent::ProtectedArray::SLAB_SSS, MARConstBackingStore> sssSlab(ModelComponent::getProtectedArray());
+    REQUIRE(sssSlab[0] != Approx(sss[0]).epsilon(prec / dt));
+    REQUIRE(sssSlab[0] == Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt)).epsilon(prec));
+
+    HField snowMelt(ModelArray::Type::H);
+    snowMelt = -1e-4;
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::HSNOW_MELT, &snowMelt);
+    slabOcean.update(tst);
+    double snowMeltVol = snowMelt[0] * Ice::rhoSnow;
+    REQUIRE(sssSlab[0] == Approx(sss[0] + (snowMeltVol - fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt)).epsilon(prec));
 }
 
 } /* namespace Nextsim */
