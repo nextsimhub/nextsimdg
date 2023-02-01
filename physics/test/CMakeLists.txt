@@ -110,6 +110,7 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
 add_executable(testTOPAZOcn
     "TOPAZOcn_test.cpp"
     "${ModulesDir}/TOPAZOcean.cpp"
+    "${SourceDir}/SlabOcean.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/CommonRestartMetadata.cpp"

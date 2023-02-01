@@ -65,10 +65,6 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 
 }
 
-void TOPAZOcean::updateBefore(const TimestepTime& tst)
-{
-}
-
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
 {
     slabOcean.update(tst);
