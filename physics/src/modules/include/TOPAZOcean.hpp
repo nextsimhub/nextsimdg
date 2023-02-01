@@ -11,6 +11,7 @@
 #include "IOceanBoundary.hpp"
 
 #include "include/Configured.hpp"
+#include "include/SlabOcean.hpp"
 
 namespace Nextsim {
 
@@ -35,7 +36,7 @@ public:
     void configure() override;
 
     void updateBefore(const TimestepTime&) override;
-    void updateAfter(const TimestepTime&) override { }
+    void updateAfter(const TimestepTime&) override;
 
     void setFilePath(const std::string& filePathIn);
 
@@ -45,6 +46,8 @@ private:
     // Since the configuration is global, it makes sense for the file path to
     // be static.
     static std::string filePath;
+
+    SlabOcean slabOcean;
 };
 
 } /* namespace Nextsim */

@@ -40,6 +40,8 @@ ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getA
 void TOPAZOcean::configure()
 {
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
+
+    slabOcean.configure();
 }
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
@@ -63,9 +65,25 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 
 }
 
+void TOPAZOcean::updateBefore(const TimestepTime& tst)
+{
+}
+
+void TOPAZOcean::updateAfter(const TimestepTime& tst)
+{
+    slabOcean.update(tst);
+    sst = *getProtectedArray()[static_cast<size_t>(ProtectedArray::SLAB_SST)];
+    sss = *getProtectedArray()[static_cast<size_t>(ProtectedArray::SLAB_SSS)];
+}
+
+
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 
-void TOPAZOcean::setData(const ModelState::DataMap& ms) { IOceanBoundary::setData(ms); }
+void TOPAZOcean::setData(const ModelState::DataMap& ms)
+{
+    IOceanBoundary::setData(ms);
+    slabOcean.setData(ms);
+}
 
 void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst)
 {
