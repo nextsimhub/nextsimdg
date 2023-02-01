@@ -113,6 +113,19 @@ public:
     //! object and the provided ModelArray.
     ModelArray operator/(const ModelArray& divisor) const { return data() / divisor; }
 
+    //! Returns a ModelArray containing the per-element sum of the
+    //! object and the provided ModelArray.
+    ModelArray operator+(double addend) const { return data() + addend; }
+    //! Returns a ModelArray containing the per-element difference between the
+    //! object and the provided ModelArray.
+    ModelArray operator-(double subtrahend) const { return data() - subtrahend; }
+    //! Returns a ModelArray containing the per-element product of the
+    //! object and the provided ModelArray.
+    ModelArray operator*(double multiplier) const { return data() * multiplier; }
+    //! Returns a ModelArray containing the per-element ratio between the
+    //! object and the provided ModelArray.
+    ModelArray operator/(double divisor) const { return data() / divisor; }
+
 private:
     ModelArrayConstReference dataReference;
     ModelArrayReferenceStore& store;
