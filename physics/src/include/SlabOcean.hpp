@@ -18,13 +18,16 @@ public:
     SlabOcean()
         : qdw(ModelArray::Type::H)
         , fdw(ModelArray::Type::H)
-        , sstSlab(getProtectedArray())
-        , sssSlab(getProtectedArray())
+        , sstSlab(ModelArray::Type::H)
+        , sssSlab(ModelArray::Type::H)
         , sstExt(getProtectedArray())
         , sssExt(getProtectedArray())
+        , sst(getProtectedArray())
+        , sss(getProtectedArray())
         , mld(getProtectedArray())
         , cpml(getProtectedArray())
         , emp(getProtectedArray())
+        , cice(getProtectedArray())
         , qio(getSharedArray())
         , qow(getSharedArray())
         , newIce(getSharedArray())
@@ -56,14 +59,14 @@ private:
     // Owned shared fields
     HField qdw;
     HField fdw;
-
-    // Slab SS* fields are the model SS* fields if SlabOcean is configured
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sstSlab;
-    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore> sssSlab;
+    HField sstSlab;
+    HField sssSlab;
 
     // Input fields
     ModelArrayRef<ProtectedArray::EXT_SST, MARConstBackingStore> sstExt;
     ModelArrayRef<ProtectedArray::EXT_SSS, MARConstBackingStore> sssExt;
+    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
+    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore> sss;
     ModelArrayRef<ProtectedArray::MLD, MARConstBackingStore> mld;
     ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> cpml;
     ModelArrayRef<ProtectedArray::EVAP_MINUS_PRECIP, MARConstBackingStore> emp;

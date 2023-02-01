@@ -30,12 +30,11 @@ void SlabOcean::configure()
     timeT = Configured::getConfiguration(keyMap.at(TIMET_KEY), defaultRelaxationTime);
     timeS = Configured::getConfiguration(keyMap.at(TIMES_KEY), defaultRelaxationTime);
 
-    // Mirror the model SS* data into the slab SS* data
-    registerProtectedArray(ProtectedArray::SLAB_SST, &sstSlab.data());
-    registerProtectedArray(ProtectedArray::SLAB_SST, &sstSlab.data());
-
     registerProtectedArray(ProtectedArray::SLAB_QDW, &qdw);
     registerProtectedArray(ProtectedArray::SLAB_FDW, &fdw);
+    registerProtectedArray(ProtectedArray::SLAB_SST, &sstSlab);
+    registerProtectedArray(ProtectedArray::SLAB_SSS, &sssSlab);
+
 }
 
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
@@ -55,6 +54,8 @@ void SlabOcean::setData(const ModelState::DataMap& ms)
 {
     qdw.resize();
     fdw.resize();
+    sstSlab.resize();
+    sssSlab.resize();
 }
 
 ModelState SlabOcean::getState() const
@@ -73,13 +74,13 @@ void SlabOcean::update(const TimestepTime& tst)
 {
     double dt = tst.step.seconds();
     // Slab SST update
-    qdw = (sstExt - sstSlab) * cpml / timeT;
-    sstSlab -= dt * (qio + qow -qdw) / cpml;
+    qdw = (sstExt - sst) * cpml / timeT;
+    sstSlab = sst - dt * (qio + qow -qdw) / cpml;
     // Slab SSS update
     HField arealDensity = cpml / Water::cp; // density times depth, or cpml divided by cp
     // This is simplified compared to the finiteelement.cpp calculation
     // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab - sssExt
-    fdw = ( 1- sssExt / sssSlab) * arealDensity / timeS;
+    fdw = ( 1- sssExt / sss) * arealDensity / timeS;
     // ice volume change, both laterally and vertically
     HField deltaIceVol = newIce + deltaHice * cice;
     // change in snow volume due to melting (should be < 0)
@@ -89,10 +90,10 @@ void SlabOcean::update(const TimestepTime& tst)
     // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
     denominator.clampAbove(Water::rho);
     // Effective ice salinity is always less than or equal to the SSS
-    HField effectiveIceSal = sssSlab;
+    HField effectiveIceSal = sss;
     effectiveIceSal.clampBelow(Ice::s);
-    sssSlab += ( (sssSlab - effectiveIceSal) * Ice::rho * deltaIceVol // Change due to ice changes
-            + sssSlab * meltSnowVol + (emp - fdw) * dt) // snow melt, precipitation and nudging fluxes.
+    sssSlab = sss + ( (sss - effectiveIceSal) * Ice::rho * deltaIceVol // Change due to ice changes
+            + sss * meltSnowVol + (emp - fdw) * dt) // snow melt, precipitation and nudging fluxes.
                     / denominator;
 }
 
