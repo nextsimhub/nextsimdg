@@ -77,6 +77,7 @@ void ConfiguredOcean::configure()
     registerProtectedArray(ProtectedArray::EXT_SST, &sstExt);
     registerProtectedArray(ProtectedArray::EXT_SSS, &sssExt);
 
+    slabOcean.configure();
 }
 
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)
@@ -92,6 +93,8 @@ void ConfiguredOcean::setData(const ModelState::DataMap& ms)
     v = v0;
     tf = Module::getImplementation<IFreezingPoint>()(sssExt[0]);
     cpml = Water::rho * Water::cp * mld[0];
+
+    slabOcean.setData(ms);
 }
 
 void ConfiguredOcean::updateBefore(const TimestepTime& tst)
