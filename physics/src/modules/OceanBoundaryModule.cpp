@@ -10,6 +10,7 @@
 #include "include/ConfiguredOcean.hpp"
 #include "include/ConstantOceanBoundary.hpp"
 #include "include/FluxConfiguredOcean.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
 #include "include/TOPAZOcean.hpp"
 
 #include <string>
@@ -49,7 +50,10 @@ template <> HelpMap& getHelpRecursive<Nextsim::IOceanBoundary>(HelpMap& map, boo
         CONSTANTOCEANBOUNDARY, "", "Classes providing the oceanic inputs into the ice physics." });
     Nextsim::ConfiguredOcean::getHelpRecursive(map, getAll);
     Nextsim::FluxConfiguredOcean::getHelpRecursive(map, getAll);
+    getHelpRecursive<Nextsim::IIceOceanHeatFlux>(map, getAll);
+
     Nextsim::TOPAZOcean::getHelpRecursive(map, getAll);
+
     return map;
 }
 template <> Nextsim::IOceanBoundary& getImplementation<Nextsim::IOceanBoundary>()

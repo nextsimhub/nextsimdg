@@ -36,6 +36,12 @@ const std::map<int, std::string> Configured<ConfiguredOcean>::keyMap = {
     { ConfiguredOcean::CURRENTV_KEY, vKey },
 };
 
+ConfiguredOcean::ConfiguredOcean()
+    : sstExt(ModelArray::Type::H)
+    , sssExt(ModelArray::Type::H)
+{
+}
+
 ConfigurationHelp::HelpMap& ConfiguredOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
@@ -66,17 +72,25 @@ void ConfiguredOcean::configure()
         Configured<ConfiguredOcean>::keyMap.at(CURRENTU_KEY), u0);
     v0 = Configured<ConfiguredOcean>::getConfiguration(
         Configured<ConfiguredOcean>::keyMap.at(CURRENTV_KEY), v0);
+
+    // set the external SS* arrays as part of configuration, as opposed to at construction as normal
+    registerProtectedArray(ProtectedArray::EXT_SST, &sstExt);
+    registerProtectedArray(ProtectedArray::EXT_SSS, &sssExt);
+
 }
 
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
-    sst = sst0;
-    sss = sss0;
+    sstExt.resize();
+    sssExt.resize();
+
+    sstExt = sst0;
+    sssExt = sss0;
     mld = mld0;
     u = u0;
     v = v0;
-    tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
+    tf = Module::getImplementation<IFreezingPoint>()(sssExt[0]);
     cpml = Water::rho * Water::cp * mld[0];
 }
 
@@ -85,4 +99,8 @@ void ConfiguredOcean::updateBefore(const TimestepTime& tst)
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
 
+void ConfiguredOcean::updateAfter(const TimestepTime& tst)
+{
+    slabOcean.update(tst);
+}
 } /* namespace Nextsim */
