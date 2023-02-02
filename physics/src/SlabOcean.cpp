@@ -9,6 +9,9 @@
 
 #include "include/constants.hpp"
 
+#include <map>
+#include <string>
+
 namespace Nextsim {
 
 const std::string SlabOcean::sstSlabName = "sst_slab";
