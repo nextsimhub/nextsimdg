@@ -183,21 +183,23 @@ if __name__ == "__main__":
     hsnow_data *= cice_data
     hsnow[:, :] = hsnow_data
     
+    mu = -0.055
+    
     # Ice temperature
     tice = datagrp.createVariable("tice", "f8", ("x", "y", "z"))
-    ice_melt = -0.055 * 5 # Melting point of sea ice (salinity = 5) in ˚C
+    ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
     ice_temp2d = np.fmin(sst_data, ice_melt) * isice
     tice[:, :, 0] = ice_temp2d
     tice[:, :, 1] = ice_temp2d
     tice[:, :, 2] = ice_temp2d
     
-    # SST
-    sst = datagrp.createVariable("sst", "f8", ("x", "y"))
-    sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
-    sst[:, :] = sst_data
-    
     # SSS
     sss = datagrp.createVariable("sss", "f8", ("x", "y"))
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
     sss[:, :] = sss_data
+
+    # SST
+    sst = datagrp.createVariable("sst", "f8", ("x", "y"))
+    sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
+    sst[:, :] = sst_data * noice + mu * sss_data * isice
