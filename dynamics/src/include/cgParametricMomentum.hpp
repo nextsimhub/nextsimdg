@@ -15,22 +15,26 @@
 #include "codeGenerationCGinGauss.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
+#include "ParametricMap.hpp"
 
 namespace Nextsim {
 
-#define DGSTRESS(CG) ( (CG==1?3:(CG==2?8:-1) ) )
   
 template <int CG>
 class CGParametricMomentum {
 private:
     const ParametricMesh& smesh; //!< const-reference to the mesh
 
+  const COORDINATES coordinatesystem; //! const-ref to the coordinate system (2d Cartesian / SPHERICAL / ...)
+  
     /*!
      * Stores precomputed values for efficient numerics on transformed mesh
      * accelerates numerics but substantial memory effort!
      */
     static constexpr int precompute_matrices = 1;
-    ParametricTransformation<CG, DGSTRESS(CG)> ptrans;
+    ParametricTransformation<CG, CG2DGSTRESS(CG)> ptrans;
+
+  ParametricMomentumMap<CG> pmap;
 
     //! vectors storing the velocity (node-wise)
     CGVector<CG> vx, vy;
@@ -49,19 +53,17 @@ private:
     //! old velocities. They are required during temporary vectors. Maybe we can remove them?
     CGVector<CG> vx_mevp, vy_mevp;
 
-    //! Vector to store the lumpes mass matrix. Is directly initialized when the mesh is known
-    CGVector<CG> lumpedcgmass;
 
     //! Vector to store the CG-Version of ice concentration and ice height
     CGVector<CG> cg_A, cg_H, cg_D;
 
     //! Vectors storing strain and strss
-    DGVector<DGSTRESS(CG)> E11, E12, E22;
-    DGVector<DGSTRESS(CG)> S11, S12, S22;
+    DGVector<CG2DGSTRESS(CG)> E11, E12, E22;
+    DGVector<CG2DGSTRESS(CG)> S11, S12, S22;
 
 public:
-    CGParametricMomentum(const ParametricMesh& sm)
-        : smesh(sm)
+  CGParametricMomentum(const ParametricMesh& sm, const COORDINATES coords)
+    : smesh(sm), coordinatesystem(coords), pmap(sm,coords)
     {
         if (!(smesh.nelements > 0)) {
             std::cerr << "CGParametricMomentum: The mesh has to be initialized first!" << std::endl;
@@ -110,9 +112,12 @@ public:
 	 * initialize the lumped mass
 	 * At periodic boundaries, the values must be added from both sides
 	 */
-        lumpedcgmass.resize_by_mesh(smesh);
-        ParametricTools::lumpedCGMassMatrix(smesh, lumpedcgmass);
-	AddPeriodic(lumpedcgmass);
+	pmap.InitializeLumpedCGMassMatrix();
+
+	/*!
+	 * Compute matrices for performing mEVP / BBM / MEB etc. stress updates
+	 */
+	pmap.InitializeDivSMatrices();
     }
 
     // Access to members
@@ -135,14 +140,18 @@ public:
     CGVector<CG>& GetAtmx() { return ax; }
     CGVector<CG>& GetAtmy() { return ay; }
 
-    const DGVector<DGSTRESS(CG)> GetE11() const { return E11; }
-    const DGVector<DGSTRESS(CG)> GetE12() const { return E12; }
-    const DGVector<DGSTRESS(CG)> GetE22() const { return E22; }
+    const DGVector<CG2DGSTRESS(CG)> GetE11() const { return E11; }
+    const DGVector<CG2DGSTRESS(CG)> GetE12() const { return E12; }
+    const DGVector<CG2DGSTRESS(CG)> GetE22() const { return E22; }
 
-    const DGVector<DGSTRESS(CG)> GetS11() const { return S11; }
-    const DGVector<DGSTRESS(CG)> GetS12() const { return S12; }
-    const DGVector<DGSTRESS(CG)> GetS22() const { return S22; }
-
+    const DGVector<CG2DGSTRESS(CG)> GetS11() const { return S11; }
+    const DGVector<CG2DGSTRESS(CG)> GetS12() const { return S12; }
+    const DGVector<CG2DGSTRESS(CG)> GetS22() const { return S22; }
+  
+  const CGVector<CG>& GetcgH() const { return cg_H; }
+  const CGVector<CG>& GetcgA() const { return cg_A; }
+  const CGVector<CG>& GetcgD() const { return cg_D; }
+  
     // High level Functions
 
     /*!
@@ -216,110 +225,109 @@ void CGParametricMomentum<CG>::AddStressTensorCell(const double scale, const siz
   // pick the number of Gauss points according to the degree
   
 #define NGP (CG == 1 ? 2 : 3) 
-    if (precompute_matrices == 0) // all is compute on-the-fly
-    {
-        //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
+    // if (precompute_matrices == 0) // all is compute on-the-fly
+    // {
+    //     //      (Mv)_i = (v, phi_i) = - (S, nabla Phi_i)
 
-        // (M vx)_i = (vx, phi_i) = - (S11, d_x phi_i) - (S12, d_y phi_i)
+    //     // (M vx)_i = (vx, phi_i) = - (S11, d_x phi_i) - (S12, d_y phi_i)
 
-        const size_t CGROW = CG * smesh.nx + 1;
-        const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
+    //     const size_t CGROW = CG * smesh.nx + 1;
+    //     const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
 
-        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S11_g = S11.row(eid) * PSI<DGSTRESS(CG), NGP>; //!< stress in GP
-        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S22_g = S22.row(eid) * PSI<DGSTRESS(CG), NGP>;
-        const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S12_g = S12.row(eid) * PSI<DGSTRESS(CG), NGP>;
+    //     const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S11_g = S11.row(eid) * PSI<CG2DGSTRESS(CG), NGP>; //!< stress in GP
+    //     const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S22_g = S22.row(eid) * PSI<CG2DGSTRESS(CG), NGP>;
+    //     const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> S12_g = S12.row(eid) * PSI<CG2DGSTRESS(CG), NGP>;
 
-        // J T^{-T}
-        const Eigen::Matrix<Nextsim::FloatType, 2, NGP* NGP> dxT = (ParametricTools::dxT<NGP>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<NGP>.array()).matrix();
-        const Eigen::Matrix<Nextsim::FloatType, 2, NGP* NGP> dyT = (ParametricTools::dyT<NGP>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<NGP>.array()).matrix();
+    //     // J T^{-T}
+    //     const Eigen::Matrix<Nextsim::FloatType, 2, NGP* NGP> dxT = (ParametricTools::dxT<NGP>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<NGP>.array()).matrix();
+    //     const Eigen::Matrix<Nextsim::FloatType, 2, NGP* NGP> dyT = (ParametricTools::dyT<NGP>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<NGP>.array()).matrix();
 
-        const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), NGP* NGP> dx_cg2 = PHIx<CG, NGP>.array().rowwise() * dyT.row(1).array() - PHIy<CG, NGP>.array().rowwise() * dxT.row(1).array();
+    //     const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), NGP* NGP> dx_cg2 = PHIx<CG, NGP>.array().rowwise() * dyT.row(1).array() - PHIy<CG, NGP>.array().rowwise() * dxT.row(1).array();
 
-        const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), NGP* NGP> dy_cg2 = PHIy<CG, NGP>.array().rowwise() * dxT.row(0).array() - PHIx<CG, NGP>.array().rowwise() * dyT.row(0).array();
+    //     const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), NGP* NGP> dy_cg2 = PHIy<CG, NGP>.array().rowwise() * dxT.row(0).array() - PHIx<CG, NGP>.array().rowwise() * dyT.row(0).array();
 
-        const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> tx = dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose();
-        const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> ty = dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose();
+    //     const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> tx = scale * (dx_cg2 * S11_g.transpose() + dy_cg2 * S12_g.transpose());
+    //     const Eigen::Matrix<Nextsim::FloatType, 1, (CG == 2 ? 9 : 4)> ty = scale * (dx_cg2 * S12_g.transpose() + dy_cg2 * S22_g.transpose());
 
-        if (CG == 1) {
-            tmpx(cg_i + 0) += -tx(0);
-            tmpx(cg_i + 1) += -tx(1);
-            tmpx(cg_i + 0 + CGROW) += -tx(2);
-            tmpx(cg_i + 1 + CGROW) += -tx(3);
+    //     if (CG == 1) {
+    //         tmpx(cg_i + 0) += -tx(0);
+    //         tmpx(cg_i + 1) += -tx(1);
+    //         tmpx(cg_i + 0 + CGROW) += -tx(2);
+    //         tmpx(cg_i + 1 + CGROW) += -tx(3);
 
-            tmpy(cg_i + 0) += -ty(0);
-            tmpy(cg_i + 1) += -ty(1);
-            tmpy(cg_i + 0 + CGROW) += -ty(2);
-            tmpy(cg_i + 1 + CGROW) += -ty(3);
-        } else if (CG == 2) {
-            tmpx(cg_i + 0) += -tx(0);
-            tmpx(cg_i + 1) += -tx(1);
-            tmpx(cg_i + 2) += -tx(2);
-            tmpx(cg_i + 0 + CGROW) += -tx(3);
-            tmpx(cg_i + 1 + CGROW) += -tx(4);
-            tmpx(cg_i + 2 + CGROW) += -tx(5);
-            tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
-            tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
-            tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
+    //         tmpy(cg_i + 0) += -ty(0);
+    //         tmpy(cg_i + 1) += -ty(1);
+    //         tmpy(cg_i + 0 + CGROW) += -ty(2);
+    //         tmpy(cg_i + 1 + CGROW) += -ty(3);
+    //     } else if (CG == 2) {
+    //         tmpx(cg_i + 0) += -tx(0);
+    //         tmpx(cg_i + 1) += -tx(1);
+    //         tmpx(cg_i + 2) += -tx(2);
+    //         tmpx(cg_i + 0 + CGROW) += -tx(3);
+    //         tmpx(cg_i + 1 + CGROW) += -tx(4);
+    //         tmpx(cg_i + 2 + CGROW) += -tx(5);
+    //         tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
+    //         tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
+    //         tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
 
-            tmpy(cg_i + 0) += -ty(0);
-            tmpy(cg_i + 1) += -ty(1);
-            tmpy(cg_i + 2) += -ty(2);
-            tmpy(cg_i + 0 + CGROW) += -ty(3);
-            tmpy(cg_i + 1 + CGROW) += -ty(4);
-            tmpy(cg_i + 2 + CGROW) += -ty(5);
-            tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
-            tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
-            tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
-        }
-    } else if (precompute_matrices == 1) // use precomputed values
-    {
-        const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), 1> tx = ptrans.divS1[eid] * S11.row(eid).transpose() + ptrans.divS2[eid] * S12.row(eid).transpose();
-        const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), 1> ty = ptrans.divS1[eid] * S12.row(eid).transpose() + ptrans.divS2[eid] * S22.row(eid).transpose();
+    //         tmpy(cg_i + 0) += -ty(0);
+    //         tmpy(cg_i + 1) += -ty(1);
+    //         tmpy(cg_i + 2) += -ty(2);
+    //         tmpy(cg_i + 0 + CGROW) += -ty(3);
+    //         tmpy(cg_i + 1 + CGROW) += -ty(4);
+    //         tmpy(cg_i + 2 + CGROW) += -ty(5);
+    //         tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
+    //         tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
+    //         tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+    //     }
+    // } else if (precompute_matrices == 1) // use precomputed values
+    // {
 
-        const size_t CGROW = CG * smesh.nx + 1;
-        const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
 
-        if (CG == 1) {
-            tmpx(cg_i + 0) += -tx(0);
-            tmpx(cg_i + 1) += -tx(1);
-            tmpx(cg_i + 0 + CGROW) += -tx(2);
-            tmpx(cg_i + 1 + CGROW) += -tx(3);
+  std::cout << pmap.divS1[eid] << std::endl;
+  std::cout << S11.row(eid) << std::endl;
+  abort();
 
-            tmpy(cg_i + 0) += -ty(0);
-            tmpy(cg_i + 1) += -ty(1);
-            tmpy(cg_i + 0 + CGROW) += -ty(2);
-            tmpy(cg_i + 1 + CGROW) += -ty(3);
-        } else if (CG == 2) {
-            tmpx(cg_i + 0) += -tx(0);
-            tmpx(cg_i + 1) += -tx(1);
-            tmpx(cg_i + 2) += -tx(2);
-            tmpx(cg_i + 0 + CGROW) += -tx(3);
-            tmpx(cg_i + 1 + CGROW) += -tx(4);
-            tmpx(cg_i + 2 + CGROW) += -tx(5);
-            tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
-            tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
-            tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
-
-            tmpy(cg_i + 0) += -ty(0);
-            tmpy(cg_i + 1) += -ty(1);
-            tmpy(cg_i + 2) += -ty(2);
-            tmpy(cg_i + 0 + CGROW) += -ty(3);
-            tmpy(cg_i + 1 + CGROW) += -ty(4);
-            tmpy(cg_i + 2 + CGROW) += -ty(5);
-            tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
-            tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
-            tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
-
-            // tmpx.block<CG+1, 1>(cg_i, 0) -= tx.block<CG+1, 1>(0, 0);
-            // tmpx.block<CG+1, 1>(cg_i + CGROW, 0) -= tx.block<CG+1, 1>(CG+1, 0);
-            // tmpx.block<CG+1, 1>(cg_i + 2 * CGROW, 0) -= tx.block<CG+1, 1>(2*CG+2, 0);
-
-            // tmpy.block<CG+1, 1>(cg_i, 0) -= ty.block<CG+1, 1>(0, 0);
-            // tmpy.block<CG+1, 1>(cg_i + CGROW, 0) -= ty.block<CG+1, 1>(CG+1, 0);
-            // tmpy.block<CG+1, 1>(cg_i + 2 * CGROW, 0) -= ty.block<CG+1, 1>(2*CG+2, 0);
-        }
-    } else
-        abort();
+  // const Eigen::Matrix<Nextsim::FloatType, 1, CGDOFS(CG)> tx = scale * (pmap.divS1[eid].transpose() * S11.row(eid) + pmap.divS2[eid].transpose() * S12.row(eid));
+  // const Eigen::Matrix<Nextsim::FloatType, 1, CGDOFS(CG)> ty = scale * (pmap.divS1[eid].transpose() * S12.row(eid) + pmap.divS2[eid].transpose() * S22.row(eid));
+  
+  // const size_t CGROW = CG * smesh.nx + 1;
+  // const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
+  
+  // if (CG == 1) {
+  //   tmpx(cg_i + 0) += -tx(0);
+  //   tmpx(cg_i + 1) += -tx(1);
+  //   tmpx(cg_i + 0 + CGROW) += -tx(2);
+  //   tmpx(cg_i + 1 + CGROW) += -tx(3);
+    
+  //   tmpy(cg_i + 0) += -ty(0);
+  //   tmpy(cg_i + 1) += -ty(1);
+  //   tmpy(cg_i + 0 + CGROW) += -ty(2);
+  //   tmpy(cg_i + 1 + CGROW) += -ty(3);
+  // } else if (CG == 2) {
+  //   tmpx(cg_i + 0) += -tx(0);
+  //   tmpx(cg_i + 1) += -tx(1);
+  //   tmpx(cg_i + 2) += -tx(2);
+  //   tmpx(cg_i + 0 + CGROW) += -tx(3);
+  //   tmpx(cg_i + 1 + CGROW) += -tx(4);
+  //   tmpx(cg_i + 2 + CGROW) += -tx(5);
+  //   tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
+  //   tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
+  //   tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
+    
+  //   tmpy(cg_i + 0) += -ty(0);
+  //   tmpy(cg_i + 1) += -ty(1);
+  //   tmpy(cg_i + 2) += -ty(2);
+  //   tmpy(cg_i + 0 + CGROW) += -ty(3);
+  //   tmpy(cg_i + 1 + CGROW) += -ty(4);
+  //   tmpy(cg_i + 2 + CGROW) += -ty(5);
+  //   tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
+  //   tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
+  //   tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+  // }
+  
+  //   // } else
+  //   //     abort();
 
 #undef NGP
 }

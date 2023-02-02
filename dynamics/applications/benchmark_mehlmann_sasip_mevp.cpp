@@ -43,7 +43,7 @@ constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
   
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
-double vmax_atm = 60.0 / exp(1.0); //!< Max. vel. of wind
+double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 }
 
 class OceanX : public Nextsim::Interpolations::Function {
@@ -103,15 +103,17 @@ class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      double pos = (pow(sin(M_PI*4.0*x/ReferenceScale::L),2.)*pow(sin(M_PI*4.0*y/ReferenceScale::L),2.))>0.2?1:0.0;
-      return pos*(0.3 +0. *  0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y)));
+      //      double pos = (pow(sin(M_PI*4.0*x/ReferenceScale::L),2.)*pow(sin(M_PI*4.0*y/ReferenceScale::L),2.))>0.2?1:0.0;
+      double pos = 1;
+      return pos*(0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y)));
     }
 };
 class InitialA : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
   {
-    double pos = (pow(sin(M_PI*4.0*x/ReferenceScale::L),2.)*pow(sin(M_PI*4.0*y/ReferenceScale::L),2.))>0.2?1:0.001;
+    //    double pos = (pow(sin(M_PI*4.0*x/ReferenceScale::L),2.)*pow(sin(M_PI*4.0*y/ReferenceScale::L),2.))>0.2?1:0.001;
+    double pos = 1.0;
     return pos;
   }
 };
@@ -157,6 +159,9 @@ void create_mesh(const std::string& meshname, const size_t Nx, const double dist
     }
     OUT.close();
 }
+
+
+
 template <int CG, int DGadvection>
 void run_benchmark(const size_t NX, double distort)
 {
@@ -170,7 +175,7 @@ void run_benchmark(const size_t NX, double distort)
     std::filesystem::create_directory(resultsdir);
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::CARTESIAN);
 
     //! define the time mesh
     constexpr double dt_adv = 120.; //!< Time step of advection problem
@@ -302,7 +307,7 @@ void run_benchmark(const size_t NX, double distort)
 
 int main()
 {
-  run_benchmark<2, 3>(128, 0.0);
+  run_benchmark<1, 3>(128, 0.0);
   // int NN[5] = {32,64,128,256,512};
   // for (int n=0;n<5;++n)
   //   {

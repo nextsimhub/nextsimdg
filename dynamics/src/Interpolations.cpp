@@ -201,9 +201,12 @@ namespace Interpolations {
 
     // ******************** DG -> CG  ******************** //
 
+  // For DG2CG, the kind of coordinate system should not matter. This is no projection
+  // but just an interpolation. And this is done on the level of the reference coordinate
+  // system by restricting the test functions to the lagrange points.
     template <int DG>
     void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
-        CGVector<1>& cg_A, const DGVector<DG>& A)
+        CGVector<1>& cg_A, const DGVector<DG>& A, const COORDINATES CoordinateSystem)
     {
         const size_t CGDofsPerRow = smesh.nx + 1;
         const size_t cgi = CGDofsPerRow * cy + cx; //!< lower left index of CG-vector in element c = (cx,cy)
@@ -217,7 +220,7 @@ namespace Interpolations {
     }
     template <int DG>
     void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
-        CGVector<2>& cg_A, const DGVector<DG>& A)
+		   CGVector<2>& cg_A, const DGVector<DG>& A, const COORDINATES CoordinateSystem)
     {
         const size_t CGDofsPerRow = 2 * smesh.nx + 1;
         const size_t cgi = 2 * CGDofsPerRow * cy
@@ -235,42 +238,27 @@ namespace Interpolations {
         cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * At(7);
         cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * At(8);
     }
-    void DG2CGBoundary(const ParametricMesh& smesh, CGVector<1>& cg_A)
+
+  template<int CG>
+    void DG2CGBoundary(const ParametricMesh& smesh, CGVector<CG>& cg_A, const COORDINATES CoordinateSystem)
     {
-        const size_t CGDofsPerRow = smesh.nx + 1;
-        const size_t UpperLeftIndex = CGDofsPerRow * smesh.ny;
+        const size_t CGDofsPerRow = CG * smesh.nx + 1;
+        const size_t UpperLeftIndex = CG * CGDofsPerRow * smesh.ny;
 
 #pragma omp parallel for
-        for (size_t i = 0; i < smesh.nx + 1; ++i) {
+        for (size_t i = 0; i < CG * smesh.nx + 1; ++i) {
             cg_A(i) *= 2.0;
             cg_A(UpperLeftIndex + i) *= 2.0;
         }
 #pragma omp parallel for
-        for (size_t i = 0; i < smesh.ny + 1; ++i) {
+        for (size_t i = 0; i < CG * smesh.ny + 1; ++i) {
             cg_A(i * CGDofsPerRow) *= 2.0;
-            cg_A(i * CGDofsPerRow + smesh.nx) *= 2.0;
+            cg_A(i * CGDofsPerRow + CG * smesh.nx) *= 2.0;
         }
     }
 
-    void DG2CGBoundary(const ParametricMesh& smesh, CGVector<2>& cg_A)
-    {
-        const size_t CGDofsPerRow = 2 * smesh.nx + 1;
-        const size_t UpperLeftIndex = 2 * CGDofsPerRow * smesh.ny;
-
-#pragma omp parallel for
-        for (size_t i = 0; i < 2 * smesh.nx + 1; ++i) {
-            cg_A(i) *= 2.0;
-            cg_A(UpperLeftIndex + i) *= 2.0;
-        }
-#pragma omp parallel for
-        for (size_t i = 0; i < 2 * smesh.ny + 1; ++i) {
-            cg_A(i * CGDofsPerRow) *= 2.0;
-            cg_A(i * CGDofsPerRow + 2 * smesh.nx) *= 2.0;
-        }
-    }
-
-    template <int CG, int DG>
-    void DG2CG(const ParametricMesh& smesh, CGVector<CG>& dest, const DGVector<DG>& src)
+  template <int CG, int DG>
+    void DG2CG(const ParametricMesh& smesh, CGVector<CG>& dest, const DGVector<DG>& src, const COORDINATES CoordinateSystem)
     {
         assert(src.rows() == static_cast<int>(smesh.nx * smesh.ny));
         assert(dest.rows() == static_cast<int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)));
@@ -287,10 +275,10 @@ namespace Interpolations {
                 size_t c = cy * smesh.nx;
 
                 for (size_t cx = 0; cx < smesh.nx; ++cx, ++c)
-                    DG2CGCell(smesh, c, cx, cy, dest, src);
+		  DG2CGCell(smesh, c, cx, cy, dest, src, CoordinateSystem);
             }
         }
-        DG2CGBoundary(smesh, dest);
+        DG2CGBoundary(smesh, dest, CoordinateSystem);
     }
 
 
@@ -325,12 +313,12 @@ namespace Interpolations {
     return error;
   }
   
-    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<1>& src);
-    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<3>& src);
-    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<6>& src);
-    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<1>& src);
-    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<3>& src);
-    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<6>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<1>& src, const COORDINATES CoordinateSystem);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<3>& src, const COORDINATES CoordinateSystem);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<6>& src, const COORDINATES CoordinateSystem);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<1>& src, const COORDINATES CoordinateSystem);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<3>& src, const COORDINATES CoordinateSystem);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<6>& src, const COORDINATES CoordinateSystem);
 
     template void CG2DG(const ParametricMesh& smesh, DGVector<1>& dg, const CGVector<1>& cg, const COORDINATES CoordinateSystem);
     template void CG2DG(const ParametricMesh& smesh, DGVector<3>& dg, const CGVector<1>& cg, const COORDINATES CoordinateSystem);

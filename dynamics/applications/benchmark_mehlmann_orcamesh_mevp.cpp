@@ -148,7 +148,7 @@ void run_benchmark()
   std::filesystem::create_directory(resultsdir);
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::CARTESIAN);
 
     //! define the time mesh
     constexpr double dt_adv = 60; //!< Time step of advection problem

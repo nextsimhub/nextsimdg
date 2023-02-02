@@ -162,7 +162,7 @@ int main()
     smesh.readmesh("benchmark_box.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::CARTESIAN);
 
     //! define the time mesh
     constexpr double dt_adv = 120.0; //!< Time step of advection problem

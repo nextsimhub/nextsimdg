@@ -47,6 +47,7 @@ public:
     size_t nnodes; //!< total number of nodes
     size_t nelements; //!< total number of nodes
 
+
   
     Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
@@ -348,6 +349,9 @@ public:
 
     double hmin() const; //! returns the minimum mesh size
     double area() const; //! returns the area of the domain
+
+
+  
 };
 
 } /* namespace Nextsim */

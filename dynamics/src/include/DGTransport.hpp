@@ -35,7 +35,7 @@ protected:
   const COORDINATES CoordinateSystem;
   
   //! Precomputed stencil-like matrices for efficient numerical quadrature
-  ParametricMap<DG> parammap;
+  ParametricTransportMap<DG> parammap;
 
 
     //! reference to the current velocity

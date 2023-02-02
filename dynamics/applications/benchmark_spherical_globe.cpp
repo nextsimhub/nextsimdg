@@ -6,14 +6,14 @@
 
 /*!
  *
- * Ice dynamics test case on a Cartesian projection 
+ * Ice dynamics test case the globe in spherical coordinates
  * of the globe. 
- * Domain of size [0,40000] * [-10000,10000]
- * Ice on [0,40000] * [-8000,8000] (by landmask)
- * Periodic at x=0 and x = 40000, Dirichlet at y = +/- 10000
+
+ * Ice on [0,2 Pi] * [- 3/8 Pi, 3/8 Pi]
+ * Periodic at x=0 and x = 2pi, Dirichlet at y = +/- 10000
  * 
  * Wind is perturbation of (10,0)
- * Ocean (1,0) * (1.0 - (x/8000)^2) and zero on land
+ * Ocean (1,0) * (1.0 - (x/ (3/8 Pi)^2) and zero on land
  *
  * Full ice cover, A=1 and H=0.5 
  */
@@ -51,17 +51,15 @@ inline constexpr double SQR(double x) { return x * x; }
 //! Description of the problem data, wind & ocean fields
 
 namespace ReferenceScale {
-constexpr double T = 30.0 * 24 * 60. * 60.; //!< Time horizon 1 month
+constexpr double T = 30.0 * 24.0 * 60.0 * 60.0; //!< Time horizon 1 month
   
-constexpr double Lx = 40000.e3; //!< Size of domain, [0,Lx] x [-Ly,Ly]
-constexpr double Ly = 10000.e3; 
 }
 
 class OceanX : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      double r2 = 1.0-pow(y/8000.0e3,2.0);
+      double r2 = 1.0-pow(y/(3.0/8.0*M_PI),2.0);
       if (r2<0.0)
 	return 0.0;
       return r2;
@@ -81,7 +79,7 @@ public:
   double time;
     double operator()(double x, double y) const
     {
-      return 10.0 + 5.0 * sin(4.0*M_PI*x/ReferenceScale::Lx) * cos(4.0*M_PI*y/ReferenceScale::Ly);
+      return 10.0 + 5.0 * sin(4.0*x) * cos(4.0*y);
     }
 };
  
@@ -91,14 +89,14 @@ public:
   double time;
     double operator()(double x, double y) const
     {
-      return 5.0 * sin(4.0*M_PI*(x/ReferenceScale::Lx-time/ReferenceScale::T)) * cos(4.0*M_PI*y/ReferenceScale::Ly);
+      return 5.0 * sin(4.0*(x-time/ReferenceScale::T)) * cos(4.*y);
     }
 };
 class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {      
-      return 0.5;
+      return 0.5 + 0.1 * cos(4.0*x) * sin(4.0*y);
     }
 };
 class InitialA : public Nextsim::Interpolations::Function {
@@ -110,54 +108,57 @@ public:
 };
 //////////////////////////////////////////////////
 
-void create_mesh(const std::string& meshname, const size_t N)
+
+//! Creates a rectangular mesh of the whole earth. Ice for  poles * Ny < iy < (1-poles) * Ny
+void create_mesh(const std::string meshname, size_t Nx, size_t Ny) 
 {
+  double poles = 1.0/8.0;
     std::ofstream OUT(meshname.c_str());
     OUT << "ParametricMesh 2.0" << std::endl
-        << 2*N << "\t" << N << std::endl;
-    for (size_t iy = 0; iy <= N; ++iy)
-        for (size_t ix = 0; ix <= 2*N; ++ix)
-	  OUT <<  ReferenceScale::Lx * ix / (2*N) << "\t"
-	      << -ReferenceScale::Ly + 2.0 * ReferenceScale::Ly * iy / N << std::endl;
+        << Nx << "\t" << Ny << std::endl;
+    for (size_t iy = 0; iy <= Ny; ++iy) // lat 
+      for (size_t ix = 0; ix <= Nx; ++ix) // lon
+	OUT << -M_PI+2.0 * M_PI*ix/Nx << "\t" << -M_PI/2.0+M_PI*iy/Ny << std::endl;
 
+    OUT << "landmask " << Nx * Ny << std::endl; // no ice on poles :-)
+    size_t y0 = poles*Ny;       // first element that is ice
+    size_t y1 = (1.0-poles)*Ny; // last element that is ice
+    for (size_t iy = 0; iy < Ny; ++iy) // lat 
+      for (size_t ix = 0; ix < Nx; ++ix) // lon
+	if ( (y0 <= iy) && (iy <= y1) )
+	  OUT << 1 << std::endl;
+	else
+	  OUT << 0 << std::endl;
 
-    OUT << "landmask " << 2*N*N << std::endl;
-    for (size_t iy = 0; iy < N; ++iy)
-      {
-	for (size_t ix = 0; ix < 2*N; ++ix)
-	  if ( (iy<0.1*N) || (iy>=0.9*N-1.e-8) )
-	    OUT << "0 ";
-	  else
-	    OUT << "1 ";
-	OUT << std::endl;
-      }
+    // Dirichlet boundary along y0 (bottom) / y1 (top)
+    OUT << "dirichlet " << 2*Nx << std::endl; // horizontal
+    for (size_t i=0;i<Nx;++i)
+      OUT << y0*Nx + i << "\t" << 0 << std::endl; // lower
+    for (size_t i=0;i<Nx;++i)
+      OUT << y1*Nx + i << "\t" << 2 << std::endl; // upper
     
-    // dirichlet top and bottom not required due to land mask
-    OUT << "dirichlet 0" << std::endl;
+    OUT << "periodic 1" << std::endl; // Periodic Y-term [1] left/right
+    OUT << Ny << std::endl;
+    for (size_t i=0;i<Ny;++i)
+      OUT << (i+1)*Nx-1 << "\t" << i*Nx << "\t1" << std::endl;
 
-    // periodic left/right
-    OUT << "periodic 1" << std::endl;
-    
-    OUT << N << std::endl; 
-    for (size_t i = 0; i < N; ++i)
-      OUT << 2*N - 1 + i * 2 * N << "\t" << i * 2 * N << "\t1" << std::endl;
-    
     OUT.close();
 }
+
 template <int CG, int DGadvection>
 void run_benchmark(const size_t N)
 {
     //! Define the spatial mesh
-    create_mesh("tmp-benchmark.smesh", N);
-    Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
-    smesh.readmesh("tmp-benchmark.smesh");
+    create_mesh("tmp-spherical.smesh", 2*N, N);
+    Nextsim::ParametricMesh smesh(Nextsim::SPHERICAL);
+    smesh.readmesh("tmp-spherical.smesh");
 
     //! Compose name of output directory and create it
-    std::string resultsdir = "CartesianGlobe_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(N);
+    std::string resultsdir = "SphericalGlobe_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(N);
     std::filesystem::create_directory(resultsdir);
     
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::CARTESIAN);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::SPHERICAL);
     
     //! define the time mesh
     constexpr double dt_adv = 60*60; //!< Time step of advection problem
@@ -196,25 +197,25 @@ void run_benchmark(const size_t N)
 
     ////////////////////////////////////////////////// Variables and Initial Values
     Nextsim::DGVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
-    Nextsim::Interpolations::Function2DG(smesh, H, InitialH(), Nextsim::CARTESIAN);
-    Nextsim::Interpolations::Function2DG(smesh, A, InitialA(), Nextsim::CARTESIAN);
-
+    Nextsim::Interpolations::Function2DG(smesh, H, InitialH(), Nextsim::SPHERICAL);
+    Nextsim::Interpolations::Function2DG(smesh, A, InitialA(), Nextsim::SPHERICAL);
+    
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
     if (1) // write initial?
         if (WRITE_VTK) {
-            Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-	    Nextsim::VTK::write_cg_velocity(resultsdir + "/atm", 0, momentum.GetAtmx(), momentum.GetAtmy(), smesh);
-	    Nextsim::VTK::write_cg_velocity(resultsdir + "/ocean", 0, momentum.GetOceanx(), momentum.GetOceany(), smesh);
+	  Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh,true);
+	    Nextsim::VTK::write_cg_velocity(resultsdir + "/atm", 0, momentum.GetAtmx(), momentum.GetAtmy(), smesh,true);
+	    Nextsim::VTK::write_cg_velocity(resultsdir + "/ocean", 0, momentum.GetOceanx(), momentum.GetOceany(), smesh,true);
 	    
-            Nextsim::VTK::write_dg(resultsdir + "/A", 0, A, smesh);
-            Nextsim::VTK::write_dg(resultsdir + "/H", 0, H, smesh);
-            Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/A", 0, A, smesh,true);
+            Nextsim::VTK::write_dg(resultsdir + "/H", 0, H, smesh,true);
+            Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh,true);
         }
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::DGTransport<DGadvection> dgtransport(smesh, Nextsim::CARTESIAN);
+    Nextsim::DGTransport<DGadvection> dgtransport(smesh, Nextsim::SPHERICAL);
     dgtransport.settimesteppingscheme("rk2");
 
     ////////////////////////////////////////////////// Main Loop
@@ -265,7 +266,7 @@ void run_benchmark(const size_t N)
 	  //	  momentum.VPStep(VP, dt_adv, H, A);
 	  // <- MPI
         }
-        Nextsim::GlobalTimer.stop("time loop - mevp");
+	Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //////////////////////////////////////////////////
         if (WRITE_VTK) // Output
@@ -274,13 +275,20 @@ void run_benchmark(const size_t N)
 
                 int printstep = timestep / NT_vtk + 1.e-4;
                 Nextsim::GlobalTimer.start("time loop - i/o");
-                Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
-                Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+                Nextsim::VTK::write_cg(resultsdir + "/cgA", printstep, momentum.GetcgA(), smesh,true);
+		Nextsim::VTK::write_cg(resultsdir + "/cgH", printstep, momentum.GetcgH(), smesh,true);
+		Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh,true);
+                Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh,true);
+                Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh,true);
+
+		Nextsim::VTK::write_dg(resultsdir + "/S11", printstep, momentum.GetS11(), smesh,true);
+		Nextsim::VTK::write_dg(resultsdir + "/S12", printstep, momentum.GetS12(), smesh,true);
+		Nextsim::VTK::write_dg(resultsdir + "/S22", printstep, momentum.GetS22(), smesh,true);
+		
+                Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh,true);
+                Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh,true);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
-            }
+		           }
     }
     Nextsim::GlobalTimer.stop("time loop");
 

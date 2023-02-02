@@ -17,8 +17,9 @@ template <int CG, int DG>
 void ParametricTransformation<CG, DG>::BasicInit(const ParametricMesh& smesh)
 {
     // resize vectors
-    divS1.resize(smesh.nelements);
+      divS1.resize(smesh.nelements);
     divS2.resize(smesh.nelements);
+
     iMgradX.resize(smesh.nelements);
     iMgradY.resize(smesh.nelements);
     iMJwPSI.resize(smesh.nelements);
@@ -42,8 +43,9 @@ void ParametricTransformation<CG, DG>::BasicInit(const ParametricMesh& smesh)
         // PSI83 is the DG-Basis-function in the guass-point
         // PSI83_{iq} = PSI_i(q)   [ should be called DG_in_GAUSS ]
 
-        divS1[eid] = dx_cg2 * PSI<DG, GAUSSPOINTS1D(DG)>.transpose();
-        divS2[eid] = dy_cg2 * PSI<DG, GAUSSPOINTS1D(DG)>.transpose();
+	
+         divS1[eid] = dx_cg2 * PSI<DG, GAUSSPOINTS1D(DG)>.transpose();
+         divS2[eid] = dy_cg2 * PSI<DG, GAUSSPOINTS1D(DG)>.transpose();
 
         const Eigen::Matrix<Nextsim::FloatType, DG, DG> imass = ParametricTools::massMatrix<DG>(smesh, eid).inverse();
 
@@ -52,68 +54,6 @@ void ParametricTransformation<CG, DG>::BasicInit(const ParametricMesh& smesh)
 
         const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> J = ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, eid);
         iMJwPSI[eid] = imass * (PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() * J.array())).matrix();
-    }
-}
-
-namespace ParametricTools {
-    /*!
-     * computes and fills the Q1/Q2 lumped mass matrix
-     */
-    template <>
-    void lumpedCGMassMatrix(const ParametricMesh& smesh,
-        CGVector<1>& lumpedcgmass)
-    {
-        lumpedcgmass.resize_by_mesh(smesh);
-
-#pragma omp parallel for
-        for (size_t i = 0; i < smesh.nnodes; ++i)
-            lumpedcgmass(i, 0) = 0;
-
-        // parallelization not critical. called just once.
-
-        const size_t sy = smesh.nx + 1;
-        size_t i = 0;
-        for (size_t iy = 0; iy < smesh.ny; ++iy)
-            for (size_t ix = 0; ix < smesh.nx; ++ix, ++i) {
-                const double a = smesh.area(i);
-
-                const int n0 = sy * iy + ix;
-                lumpedcgmass(n0, 0) += 0.25 * a;
-                lumpedcgmass(n0 + 1, 0) += 0.25 * a;
-                lumpedcgmass(n0 + sy, 0) += 0.25 * a;
-                lumpedcgmass(n0 + sy + 1, 0) += 0.25 * a;
-            }
-    }
-
-    template <>
-    void lumpedCGMassMatrix(const ParametricMesh& smesh,
-        CGVector<2>& lumpedcgmass)
-    {
-        lumpedcgmass.resize_by_mesh(smesh);
-
-        for (size_t i = 0; i < smesh.nnodes; ++i)
-            lumpedcgmass(i, 0) = 0;
-
-        // parallelization not critical. called just once.
-
-        const int sy = 2.0 * smesh.nx + 1;
-        int i = 0;
-        for (size_t iy = 0; iy < smesh.ny; ++iy)
-            for (size_t ix = 0; ix < smesh.nx; ++ix, ++i) {
-                const double a = smesh.area(i);
-                const size_t n0 = 2 * sy * iy + 2 * ix;
-                lumpedcgmass(n0, 0) += a / 36.;
-                lumpedcgmass(n0 + 2, 0) += a / 36.;
-                lumpedcgmass(n0 + 2 * sy, 0) += a / 36.;
-                lumpedcgmass(n0 + 2 * sy + 2, 0) += a / 36.;
-
-                lumpedcgmass(n0 + 1, 0) += a / 9.;
-                lumpedcgmass(n0 + sy, 0) += a / 9.;
-                lumpedcgmass(n0 + sy + 2, 0) += a / 9.;
-                lumpedcgmass(n0 + 2 * sy + 1, 0) += a / 9.;
-
-                lumpedcgmass(n0 + sy + 1, 0) += a * 4. / 9.;
-            }
     }
 }
 

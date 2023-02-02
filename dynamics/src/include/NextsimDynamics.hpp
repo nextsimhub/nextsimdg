@@ -32,6 +32,19 @@ namespace Nextsim
    */
   constexpr double EarthRadius  = 6371000.0;  
 
+
+  /*!
+   * Computes the correct number of stress-unknowns
+   * depending on the CG Discretization
+   *
+   * CG1 = 3, CG2 = 8
+   */
+#define CG2DGSTRESS(CG) ( (CG==1?3:(CG==2?8:-1) ) )
+
+  
+  // Number of local CG dofs per element
+#define CGDOFS(CG) ( (CG==1)?4:9 )
+  
   
   /*!
    * number of Gauss points depending on DG unknowns

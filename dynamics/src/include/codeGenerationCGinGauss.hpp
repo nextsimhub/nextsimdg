@@ -8,10 +8,7 @@
 // - matrices of size ndofs x ngausspoints
 // - X_{iq} = phi_i(xq) 
 
-
-// size of local cgbasis
-#define CGDOFS(CG) ( (CG==1)?4:9 )
-
+#include "NextsimDynamics.hpp"
 
 //------------------------------ CG_CG[1/2]_in_GAUSS[1/2/3]
 

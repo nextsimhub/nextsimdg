@@ -9,12 +9,19 @@
 
 #include "ParametricMesh.hpp"
 #include "NextsimDynamics.hpp"
+#include "cgVector.hpp"
 
 namespace Nextsim
 {
-  
+
+  /*!
+   * Stores precomputed matrices and stencils that are required
+   * for the advection. 
+   *
+   * The coordiante system is encoded into the matrices
+   */
   template<int DG>
-  class ParametricMap
+  class ParametricTransportMap
   {
     //! Reference to the map. Given with constructor
     const ParametricMesh& smesh;
@@ -32,7 +39,7 @@ namespace Nextsim
     std::vector< Eigen::Matrix<Nextsim::FloatType, DG, DG> > InverseDGMassMatrix;
     
 
-    ParametricMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), type(ty)
+    ParametricTransportMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), type(ty)
     {}
 
     //! initialization of the different forms
@@ -53,6 +60,54 @@ namespace Nextsim
     void InitializeInverseDGMassMatrix();
      
   };
+
+
+
+
+  /*!
+   * Stores precomputed matrices and stencils that are required
+   * for the momentum equation
+   *
+   * The coordiante system is encoded into the matrices
+   */
+  template<int CG>
+  class ParametricMomentumMap
+  {
+    //! Reference to the map. Given with constructor
+    const ParametricMesh& smesh;
+
+    //! What type of coordinate system is used
+    const COORDINATES type;
+
+  public:
+
+    //! Vector to store the lumpes mass matrix. Is directly initialized when the mesh is known
+    CGVector<CG> lumpedcgmass;
+
+    /*!
+     * These matrices realize the integration of (-div S, phi) = (S, nabla phi)
+     * as matrix-vector producs (divS1 * S11 + divS2 * S12 ; divS1 * S21 + divS2 * S22)
+     * [ where S12= S21 ]
+     */
+    std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG),CG2DGSTRESS(CG)>,
+		Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), CG2DGSTRESS(CG)>>>
+    divS1, divS2;
+    
+    
+    ParametricMomentumMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), type(ty)
+    {}
+
+    //! initialization of the different forms
+
+
+    //! initializes the lumped mass matrix for the stress update
+    void InitializeLumpedCGMassMatrix();
+    //! initializes div-matrices for the stress update
+    void InitializeDivSMatrices();
+  };
+
+
+
 }
 
 

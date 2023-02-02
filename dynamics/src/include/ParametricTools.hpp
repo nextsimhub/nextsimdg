@@ -48,14 +48,11 @@ template <int CG, int DG>
 class ParametricTransformation {
 
 public:
-    /*!
-     * These matrices realize the integration of (-div S, phi) = (S, nabla phi)
-     * as matrix-vector producs (divS1 * S11 + divS2 * S12 ; divS1 * S21 + divS2 * S22)
-     * [ where S12= S21 ]
-     */
-    std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>,
-        Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>>>
-        divS1, divS2;
+
+  std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG >,
+	      Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>>>
+    divS1, divS2;
+    
 
     /*!
      * These matrices realize the integration of (E, \grad phi) scaled with the
@@ -97,14 +94,6 @@ template <int CG, int DG>
 class SphericalTransformation {
 
 public:
-    /*!
-     * These matrices realize the integration of (-div S, phi) = (S, nabla phi)
-     * as matrix-vector producs (divS1 * S11 + divS2 * S12 ; divS1 * S21 + divS2 * S22)
-     * [ where S12= S21 ]
-     */
-    std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>,
-        Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>>>
-        divS1, divS2;
 
     /*!
      * These matrices realize the integration of (E, \grad phi) scaled with the
@@ -220,12 +209,6 @@ namespace ParametricTools {
       return smesh.coordinatesOfEdgeY(eid).transpose() * PHI1d<1,NGP1d>;
     }
 
-    /*!
-     * computes and fills the Q1/Q2 lumped mass matrix
-     */
-    template <int CG>
-    void lumpedCGMassMatrix(const ParametricMesh& smesh,
-        CGVector<CG>& lumpedcgmass);
 
 }
 

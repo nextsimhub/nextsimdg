@@ -21,7 +21,8 @@ add_executable(benchmark_mehlmann_sasip_mevp benchmark_mehlmann_sasip_mevp.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/parametricTools.cpp" 
-    "${SRC_DIR}/cgParametricMomentum.cpp" 
+    "${SRC_DIR}/cgParametricMomentum.cpp"
+    "${SRC_DIR}/VectorManipulations.cpp"
     )
 add_executable(benchmark_cartesian_globe benchmark_cartesian_globe.cpp
     "${SRC_DIR}/stopwatch.cpp"
@@ -30,7 +31,8 @@ add_executable(benchmark_cartesian_globe benchmark_cartesian_globe.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/parametricTools.cpp" 
-    "${SRC_DIR}/cgParametricMomentum.cpp" 
+    "${SRC_DIR}/cgParametricMomentum.cpp"
+    "${SRC_DIR}/VectorManipulations.cpp"
     )
 add_executable(benchmark_spherical_globe benchmark_spherical_globe.cpp
     "${SRC_DIR}/stopwatch.cpp"
@@ -39,7 +41,8 @@ add_executable(benchmark_spherical_globe benchmark_spherical_globe.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/parametricTools.cpp" 
-    "${SRC_DIR}/cgParametricMomentum.cpp" 
+    "${SRC_DIR}/cgParametricMomentum.cpp"
+    "${SRC_DIR}/VectorManipulations.cpp"    
     )
 
 
