@@ -192,3 +192,12 @@ if __name__ == "__main__":
     tice[:, :, 1] = ice_temp2d
     tice[:, :, 2] = ice_temp2d
     
+    # SST
+    sst = datagrp.createVariable("sst", "f8", ("x", "y"))
+    sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
+    sst[:, :] = sst_data
+    
+    # SSS
+    sss = datagrp.createVariable("sss", "f8", ("x", "y"))
+    sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
+    sss[:, :] = sss_data
