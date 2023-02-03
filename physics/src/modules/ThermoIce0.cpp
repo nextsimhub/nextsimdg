@@ -131,7 +131,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     }
 
     // Melt all ice if it is below minimum threshold
-    if (hice[i] < IceGrowth::minimumIceThickness()) {
+    if (0. < hice[i] && hice[i] < IceGrowth::minimumIceThickness()) {
         if (deltaHi[i] < 0) {
             double scaling = oldHi[i] / deltaHi[i];
             topMelt[i] *= scaling;
