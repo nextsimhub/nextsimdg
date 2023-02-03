@@ -284,48 +284,49 @@ void CGParametricMomentum<CG>::AddStressTensorCell(const double scale, const siz
     // {
 
 
-  std::cout << pmap.divS1[eid] << std::endl;
-  std::cout << S11.row(eid) << std::endl;
-  abort();
 
-  // const Eigen::Matrix<Nextsim::FloatType, 1, CGDOFS(CG)> tx = scale * (pmap.divS1[eid].transpose() * S11.row(eid) + pmap.divS2[eid].transpose() * S12.row(eid));
-  // const Eigen::Matrix<Nextsim::FloatType, 1, CGDOFS(CG)> ty = scale * (pmap.divS1[eid].transpose() * S12.row(eid) + pmap.divS2[eid].transpose() * S22.row(eid));
   
-  // const size_t CGROW = CG * smesh.nx + 1;
-  // const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
+  const Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
+  const Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
   
-  // if (CG == 1) {
-  //   tmpx(cg_i + 0) += -tx(0);
-  //   tmpx(cg_i + 1) += -tx(1);
-  //   tmpx(cg_i + 0 + CGROW) += -tx(2);
-  //   tmpx(cg_i + 1 + CGROW) += -tx(3);
+  const size_t CGROW = CG * smesh.nx + 1;
+  const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
+  
+  if (CG == 1) {
+    tmpx(cg_i + 0) += -tx(0);
+    tmpx(cg_i + 1) += -tx(1);
+    tmpx(cg_i + 0 + CGROW) += -tx(2);
+    tmpx(cg_i + 1 + CGROW) += -tx(3);
     
-  //   tmpy(cg_i + 0) += -ty(0);
-  //   tmpy(cg_i + 1) += -ty(1);
-  //   tmpy(cg_i + 0 + CGROW) += -ty(2);
-  //   tmpy(cg_i + 1 + CGROW) += -ty(3);
-  // } else if (CG == 2) {
-  //   tmpx(cg_i + 0) += -tx(0);
-  //   tmpx(cg_i + 1) += -tx(1);
-  //   tmpx(cg_i + 2) += -tx(2);
-  //   tmpx(cg_i + 0 + CGROW) += -tx(3);
-  //   tmpx(cg_i + 1 + CGROW) += -tx(4);
-  //   tmpx(cg_i + 2 + CGROW) += -tx(5);
-  //   tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
-  //   tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
-  //   tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
+    tmpy(cg_i + 0) += -ty(0);
+    tmpy(cg_i + 1) += -ty(1);
+    tmpy(cg_i + 0 + CGROW) += -ty(2);
+    tmpy(cg_i + 1 + CGROW) += -ty(3);
+  } else if (CG == 2) {
+    tmpx(cg_i + 0) += -tx(0);
+    tmpx(cg_i + 1) += -tx(1);
+    tmpx(cg_i + 2) += -tx(2);
+    tmpx(cg_i + 0 + CGROW) += -tx(3);
+    tmpx(cg_i + 1 + CGROW) += -tx(4);
+    tmpx(cg_i + 2 + CGROW) += -tx(5);
+    tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
+    tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
+    tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
     
-  //   tmpy(cg_i + 0) += -ty(0);
-  //   tmpy(cg_i + 1) += -ty(1);
-  //   tmpy(cg_i + 2) += -ty(2);
-  //   tmpy(cg_i + 0 + CGROW) += -ty(3);
-  //   tmpy(cg_i + 1 + CGROW) += -ty(4);
-  //   tmpy(cg_i + 2 + CGROW) += -ty(5);
-  //   tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
-  //   tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
-  //   tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
-  // }
-  
+    tmpy(cg_i + 0) += -ty(0);
+    tmpy(cg_i + 1) += -ty(1);
+    tmpy(cg_i + 2) += -ty(2);
+    tmpy(cg_i + 0 + CGROW) += -ty(3);
+    tmpy(cg_i + 1 + CGROW) += -ty(4);
+    tmpy(cg_i + 2 + CGROW) += -ty(5);
+    tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
+    tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
+    tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+  }
+  else
+    abort();
+
+
   //   // } else
   //   //     abort();
 

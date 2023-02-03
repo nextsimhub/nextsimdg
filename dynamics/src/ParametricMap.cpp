@@ -174,18 +174,23 @@ namespace Nextsim
     // parallel loop over all elements for computing entries
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+
+      //     [ Fx   Fx ]
+      // F = [         ]
+      //     [ Fy   Fy ]
       
-      //               [  dyT2  -dxT2 ]
-      // A = JF^{-T} = [              ]
-      //               [ -dyT1   dxT1 ]
+      const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(CG2DGSTRESS(CG))> Fx = (ParametricTools::dxT<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array()).matrix();
+      const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(CG2DGSTRESS(CG))> Fy = (ParametricTools::dyT<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array()).matrix();
+      
+      //               [  Fy2  -Fx2 ]
+      // A = JF^{-T} = [            ]
+      //               [ -Fy1   Fx1 ]
       //
-      const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(CG2DGSTRESS(CG))> dxT = (ParametricTools::dxT<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array()).matrix();
-      const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(CG2DGSTRESS(CG))> dyT = (ParametricTools::dyT<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array()).matrix();
+
+      // the transformed gradient of the CG basis function in the gauss points (OBSERVE SIGN IN SECOND, EIGEN CAN'T START WITH A MINUS
+      const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dx_cg2 = PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(1).array() - PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(1).array();
       
-      // the transformed gradient of the CG basis function in the gauss points
-      const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dx_cg2 = PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * dyT.row(1).array() - PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * dxT.row(1).array();
-      
-      const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dy_cg2 = PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * dxT.row(0).array() - PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * dyT.row(0).array();
+      const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dy_cg2 = PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(0).array() - PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(0).array(); 
       
       // PSI83 is the DG-Basis-function in the guass-point
       // PSI83_{iq} = PSI_i(q)   [ should be called DG_in_GAUSS ]
