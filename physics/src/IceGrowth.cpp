@@ -225,7 +225,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 
 void IceGrowth::applyLimits(size_t i, const TimestepTime& tstep)
 {
-    if (cice[i] < minc || hice[i] < minh) {
+    if ((0. < cice[i] && cice[i] < minc) || (0. < hice[i] && hice[i] < minh)) {
         qow[i] += cice[i] * Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
         hice[i] = 0;
         cice[i] = 0;
