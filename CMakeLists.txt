@@ -53,13 +53,13 @@ find_package(Eigen3 3.4 REQUIRED)
 # Set the list of components that define modules. Component subdirectories are
 # contained in this directory level and contain src/modules/ and 
 # src/modules/include/ subdirectories 
-set(ModularComponents
-"physics"
-)
+#set(ModularComponents
+#"physics"
+#)
 
 # Set the components which provide source or object code to the main model
 set(CodeComponents
-"physics"
+#"physics"
 "dynamics"
 )
 
@@ -75,7 +75,7 @@ set(NextsimSources "")
 set(NextsimIncludeDirs "")
 
 # Build the core model. Defines the 'parse_modules' target
-add_subdirectory(core)
+#add_subdirectory(core)
 
 
 # Build all components
@@ -84,12 +84,12 @@ foreach(compo ${CodeComponents})
 endforeach()
 
 # Link the model
-add_executable(nextsim "${NextsimSources}")
+#add_executable(nextsim "${NextsimSources}")
 
-target_include_directories(nextsim PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${NextsimIncludeDirs}"
-    "${netCDF_INCLUDE_DIR}"
-    )
-target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+#target_include_directories(nextsim PRIVATE
+#    "${CMAKE_CURRENT_SOURCE_DIR}"
+#    "${NextsimIncludeDirs}"
+#    "${netCDF_INCLUDE_DIR}"
+#    )
+#target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
+#target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
