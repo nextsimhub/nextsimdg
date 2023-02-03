@@ -81,6 +81,14 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 
 void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
+    // If there is too little ice, do nothing and zero out the computed arrays
+    if (hice[i] == 0. || cice[i] == 0.) {
+        deltaHi[i] = 0.;
+        snowToIce[i] = 0.;
+
+        return;
+    }
+
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
