@@ -105,19 +105,19 @@ namespace Interpolations {
             // coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
 
             // the Gauss points in the element 2 x 4 - Matrix
-	  const Eigen::Matrix<Nextsim::FloatType, 2, GP(DG) * GP(DG)> gp     = ParametricTools::getGaussPointsInElement<GP(DG)>(smesh, eid);
-	  Eigen::Matrix<Nextsim::FloatType, GP(DG) * GP(DG), 1> initial_in_gp;
-	  for (size_t i=0;i<GP(DG)*GP(DG);++i)
+	  const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(DG)> gp     = ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid);
+	  Eigen::Matrix<Nextsim::FloatType, GAUSSPOINTS(DG), 1> initial_in_gp;
+	  for (size_t i=0;i<GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG);++i)
 	    initial_in_gp(i) = initial(gp(0, i), gp(1, i));
 	  
 	  if (CoordinateSystem == SPHERICAL)
 	    {
-	      const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG) * GP(DG)> coslat = (gp.row(1).array()).cos();
-	      phi.row(eid) = SphericalTools::massMatrix<DG>(smesh,eid).inverse() * ((PSI<DG, GP(DG)>.array().rowwise() * (ParametricTools::J<GP(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GP(DG)>.array() * coslat.array())).matrix() * initial_in_gp);
+	      const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> coslat = (gp.row(1).array()).cos();
+	      phi.row(eid) = SphericalTools::massMatrix<DG>(smesh,eid).inverse() * ((PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() * coslat.array())).matrix() * initial_in_gp);
 	    }
 	  else if (CoordinateSystem == CARTESIAN)
 	    {
-	      phi.row(eid) = ParametricTools::massMatrix<DG>(smesh,eid).inverse() * ((PSI<DG, GP(DG)>.array().rowwise() * (ParametricTools::J<GP(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GP(DG)>.array())).matrix() * initial_in_gp);
+	      phi.row(eid) = ParametricTools::massMatrix<DG>(smesh,eid).inverse() * ((PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array())).matrix() * initial_in_gp);
 	    }
 	  else abort();
         }
@@ -151,7 +151,7 @@ namespace Interpolations {
                         cg(cgi + 2 + 2 * cgshift);
                 }
 
-                dg.row(dgi) = ParametricTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GP(DG)> * (ParametricTools::J<GP(DG)>(smesh, dgi).array() * GAUSSWEIGHTS<GP(DG)>.array() * (PHI<CG, GP(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
+                dg.row(dgi) = ParametricTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GAUSSPOINTS1D(DG)> * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() * (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
             }
         }
     }
@@ -183,17 +183,17 @@ namespace Interpolations {
 	    // solve:  (Vdg, PHI) = (Vcg, PHI) with mapping to spher. coord.
 	    if (CoordinateSystem == SPHERICAL)
 	      dg.row(dgi) =
-		SphericalTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GP(DG)>
-		* (ParametricTools::J<GP(DG)>(smesh, dgi).array() *
-		   GAUSSWEIGHTS<GP(DG)>.array() *
-		   (ParametricTools::getGaussPointsInElement<GP(DG)>(smesh, dgi).row(1).array()).cos() * //! metric term
-		   (PHI<CG, GP(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
+		SphericalTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GAUSSPOINTS1D(DG)>
+		* (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array() *
+		   GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() *
+		   (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, dgi).row(1).array()).cos() * //! metric term
+		   (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
 	    else if (CoordinateSystem == CARTESIAN)
 	      dg.row(dgi) =
-		ParametricTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GP(DG)>
-		* (ParametricTools::J<GP(DG)>(smesh, dgi).array() *
-		   GAUSSWEIGHTS<GP(DG)>.array() *
-		   (PHI<CG, GP(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
+		ParametricTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GAUSSPOINTS1D(DG)>
+		* (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array() *
+		   GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() *
+		   (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
 
 		
         }
@@ -290,11 +290,11 @@ namespace Interpolations {
 #pragma omp parallel for reduction(+		\
                                    : error)
     for (size_t eid = 0; eid < smesh.nelements; ++eid) {
-      const Eigen::Matrix<Nextsim::FloatType, 2, GP(DG)* GP(DG)> gp = ParametricTools::getGaussPointsInElement<GP(DG)>(smesh, eid);
-      const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)*GP(DG)> src_in_gauss = src.row(eid) * PSI<DG, GP(DG)>;
+      const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS1D(DG)* GAUSSPOINTS1D(DG)> gp = ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid);
+      const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG)> src_in_gauss = src.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>;
       
-      Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)*GP(DG)> initial_in_gp;
-      for (size_t i=0;i<GP(DG)*GP(DG);++i)
+      Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG)> initial_in_gp;
+      for (size_t i=0;i<GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG);++i)
 	initial_in_gp(i) = initial(gp(0,i), gp(1,i));
 	
       // Jq * wq * Psi_i(x_q) * f(x_q)
@@ -302,12 +302,12 @@ namespace Interpolations {
 
       if (CoordinateSystem == SPHERICAL)
 	{
-	  const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)*GP(DG)> cos_lat = 
+	  const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG)> cos_lat = 
 	    (gp.row(1).array()).cos();
-	  error += (cos_lat.array() * ParametricTools::J<GP(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GP(DG)>.array() * (src_in_gauss.array() - initial_in_gp.array()).square()).sum();
+	  error += (cos_lat.array() * ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() * (src_in_gauss.array() - initial_in_gp.array()).square()).sum();
 	}
       else if (CoordinateSystem == CARTESIAN)
-	error += (ParametricTools::J<GP(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GP(DG)>.array() * (src_in_gauss.array() - initial_in_gp.array()).square()).sum();
+	error += (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() * (src_in_gauss.array() - initial_in_gp.array()).square()).sum();
       else abort();
     }
     return error;

@@ -73,7 +73,7 @@ class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 public:
     double operator()(double x, double y) const
     {
-      return cos(y); // 1 degree per second
+      return cos(y); // 1 m/s at equator
     }
 };
 class InitialVY : public Nextsim::Interpolations::Function {

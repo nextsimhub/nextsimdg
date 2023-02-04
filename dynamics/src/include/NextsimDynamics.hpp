@@ -52,7 +52,10 @@ namespace Nextsim
    * 2 for dG(1)   DG=3
    * 3 for dG(2)   DG=6 and DG=8
    */
-#define GP(DG) ((DG==1?1:(DG==3?2:3)))
+#define GAUSSPOINTS(Q) (( (Q == 8) || (Q==6) ) ? 9 : (Q == 3) ? 4	\
+			: (Q==1) ? 1 : -1)
+#define GAUSSPOINTS1D(Q) (( (Q == 8) || (Q==6) ) ? 3 : (Q == 3) ? 2	\
+			  : (Q==1) ? 1 : -1)
 
   /*!
    * The number of unknowns on an edge depending on DG, 

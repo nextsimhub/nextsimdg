@@ -26,20 +26,21 @@ namespace Nextsim
     //! Reference to the map. Given with constructor
     const ParametricMesh& smesh;
 
-    const COORDINATES type;
+    //! What type of coordinate system
+    const COORDINATES coordinatesystem;
 
-    //! What type of 
+
   public:
 
     //! These terms are required for the cell-term in the advection  -(vA, nabla PHI)
-    std::vector< Eigen::Matrix<Nextsim::FloatType, DG, GP(DG)*GP(DG) > > AdvectionCellTermX;
-    std::vector< Eigen::Matrix<Nextsim::FloatType, DG, GP(DG)*GP(DG) > > AdvectionCellTermY;
+    std::vector< Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(DG) > > AdvectionCellTermX;
+    std::vector< Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(DG) > > AdvectionCellTermY;
 
     //! The inverse of the dG mass matrix
     std::vector< Eigen::Matrix<Nextsim::FloatType, DG, DG> > InverseDGMassMatrix;
     
 
-    ParametricTransportMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), type(ty)
+    ParametricTransportMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), coordinatesystem(ty)
     {}
 
     //! initialization of the different forms
@@ -77,7 +78,7 @@ namespace Nextsim
     const ParametricMesh& smesh;
 
     //! What type of coordinate system is used
-    const COORDINATES type;
+    const COORDINATES coordinatesystem;
 
   public:
 
@@ -88,13 +89,31 @@ namespace Nextsim
      * These matrices realize the integration of (-div S, phi) = (S, nabla phi)
      * as matrix-vector producs (divS1 * S11 + divS2 * S12 ; divS1 * S21 + divS2 * S22)
      * [ where S12= S21 ]
+     * divM is in addition required for spherical coordinates
      */
     std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG),CG2DGSTRESS(CG)>,
 		Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), CG2DGSTRESS(CG)>>>
-    divS1, divS2;
+    divS1, divS2, divM;
+
+        /*!
+     * These matrices realize the integration of (E, \grad phi) scaled with the
+     * inverse mass matrix;
+     */
+    std::vector<Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), CGDOFS(CG)>,
+		Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), CGDOFS(CG)>>>
+    iMgradX, iMgradY, iMM;
+
+    /*!
+     * These matrices are M^-1 J w PSI_i(q)
+     * Multiplied
+     */
+    std::vector<Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), GAUSSPOINTS(CG2DGSTRESS(CG))>,
+      Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), GAUSSPOINTS(CG2DGSTRESS(CG))>>>
+        iMJwPSI;
+
     
     
-    ParametricMomentumMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), type(ty)
+    ParametricMomentumMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), coordinatesystem(ty)
     {}
 
     //! initialization of the different forms

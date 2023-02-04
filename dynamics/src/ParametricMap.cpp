@@ -34,21 +34,21 @@ namespace Nextsim
 #pragma omp parallel for
     for (size_t eid = 0; eid<smesh.nelements;++eid)
       {
-	const Eigen::Matrix<Nextsim::FloatType, 2, GP(DG)* GP(DG)> dxT = ParametricTools::dxT<GP(DG)>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GP(DG)>.array();
-	const Eigen::Matrix<Nextsim::FloatType, 2, GP(DG)* GP(DG)> dyT = ParametricTools::dyT<GP(DG)>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GP(DG)>.array();
+	const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(DG)> dxT = ParametricTools::dxT<GAUSSPOINTS1D(DG)>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array();
+	const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(DG)> dyT = ParametricTools::dyT<GAUSSPOINTS1D(DG)>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array();
 	
 	// [J dT^{-T} nabla phi]_1
-	AdvectionCellTermX[eid] = PSIx<DG, GP(DG)>.array().rowwise() * dyT.row(1).array() - PSIy<DG, GP(DG)>.array().rowwise() * dxT.row(1).array();
+	AdvectionCellTermX[eid] = PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dyT.row(1).array() - PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dxT.row(1).array();
 	// [J dT^{-T} nabla phi]_2
 
 	//! the lat-direction must be scaled with the metric term if in the spherical system
-	if (type == SPHERICAL)
+	if (coordinatesystem == SPHERICAL)
 	  {
-	    const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)*GP(DG)> cos_lat = (ParametricTools::getGaussPointsInElement<GP(DG)>(smesh, eid).row(1).array()).cos();
-	    AdvectionCellTermY[eid] = PSIy<DG, GP(DG)>.array().rowwise() * (dxT.row(0).array() * cos_lat.array()) - PSIx<DG, GP(DG)>.array().rowwise() * (dyT.row(0).array() * cos_lat.array());
+	    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> cos_lat = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid).row(1).array()).cos();
+	    AdvectionCellTermY[eid] = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dxT.row(0).array() * cos_lat.array()) - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dyT.row(0).array() * cos_lat.array());
 	  }
-	else if (type == CARTESIAN)
-	  AdvectionCellTermY[eid] = PSIy<DG, GP(DG)>.array().rowwise() * dxT.row(0).array() - PSIx<DG, GP(DG)>.array().rowwise() * dyT.row(0).array();
+	else if (coordinatesystem == CARTESIAN)
+	  AdvectionCellTermY[eid] = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dxT.row(0).array() - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dyT.row(0).array();
 	else abort();
       }
   }
@@ -63,13 +63,13 @@ namespace Nextsim
       InverseDGMassMatrix.resize(smesh.nelements);
 
 
-      if (type == SPHERICAL)
+      if (coordinatesystem == SPHERICAL)
 	{
 #pragma omp parallel for
 	  for (size_t eid = 0; eid<smesh.nelements;++eid)
 	    InverseDGMassMatrix[eid] = SphericalTools::massMatrix<DG>(smesh, eid).inverse() / Nextsim::EarthRadius;
 	}
-      else if (type == CARTESIAN)
+      else if (coordinatesystem == CARTESIAN)
 	{
 #pragma omp parallel for
 	  for (size_t eid = 0; eid<smesh.nelements;++eid)
@@ -77,7 +77,7 @@ namespace Nextsim
 	}
       else
 	{
-	  std::cerr << "Coordinate System " << type << " not known!" << std::endl;
+	  std::cerr << "Coordinate System " << coordinatesystem << " not known!" << std::endl;
 	  abort();
 	}
   }
@@ -111,14 +111,14 @@ namespace Nextsim
 
 	      Eigen::Vector<Nextsim::FloatType, (CG==1?4:9) > Meid;
 
-	      if (type == CARTESIAN)
+	      if (coordinatesystem == CARTESIAN)
 		{
 		  const Eigen::Matrix<Nextsim::FloatType, 1, CGGP(CG) * CGGP(CG) > J
 		    = ParametricTools::J<CGGP(CG)>(smesh, eid).array() * GAUSSWEIGHTS<CGGP(CG) >.array();
 		  
 		  Meid = PHI<CG,CGGP(CG)> * J.transpose();
 		}
-	      else if (type == SPHERICAL)
+	      else if (coordinatesystem == SPHERICAL)
 		{
 		  const Eigen::Matrix<Nextsim::FloatType, 1, CGGP(CG)*CGGP(CG)> cos_lat = (ParametricTools::getGaussPointsInElement<CGGP(CG)>(smesh, eid).row(1).array()).cos();
 
@@ -170,7 +170,15 @@ namespace Nextsim
   {
     divS1.resize(smesh.nelements);
     divS2.resize(smesh.nelements);
-
+    iMgradX.resize(smesh.nelements);
+    iMgradY.resize(smesh.nelements);
+    iMJwPSI.resize(smesh.nelements);
+    if (coordinatesystem == SPHERICAL)
+      {
+	divM.resize(smesh.nelements);
+	iMM.resize(smesh.nelements);
+      }
+    
     // parallel loop over all elements for computing entries
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid) {
@@ -195,9 +203,52 @@ namespace Nextsim
       // PSI83 is the DG-Basis-function in the guass-point
       // PSI83_{iq} = PSI_i(q)   [ should be called DG_in_GAUSS ]
 
-      
-      divS1[eid] = dx_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
-      divS2[eid] = dy_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+      const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> J = ParametricTools::J<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid);
+	  
+      if (coordinatesystem == CARTESIAN)
+	{
+	  // divS is used for update of stress (S, nabla Phi) in Momentum
+	  divS1[eid] = dx_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+	  divS2[eid] = dy_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+
+	  // iMgradX/Y (inverse-Mass-gradient X/Y) is used to project strain rate from CG to DG
+	  const Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), CG2DGSTRESS(CG)> imass = ParametricTools::massMatrix<CG2DGSTRESS(CG)>(smesh, eid).inverse();
+	  iMgradX[eid] = imass * divS1[eid].transpose();
+	  iMgradY[eid] = imass * divS2[eid].transpose();
+
+	  // imJwPSI is used to compute nonlinear stress update???
+	  iMJwPSI[eid] = imass * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array())).matrix();
+	}
+      else if (coordinatesystem == SPHERICAL)
+	{
+	  // In spherical coordinates (x,y) coordinates are (lon,lat) coordinates
+	  
+	  const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG)) >
+	    cos_lat = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).row(1).array()).cos();
+	  const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG)) >
+	    sin_lat = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).row(1).array()).sin();
+
+	  // 1 is lon-derivative, 2 is lat-derivative of the test function
+	  divS1[eid] =  dx_cg2                                               * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+	  divS2[eid] = (dy_cg2.array().rowwise() * cos_lat.array()).matrix() * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+
+	  
+	  divM [eid] = (PHI<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
+			* (J.array()
+			   * sin_lat.array()
+			   * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array())
+			).matrix() * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+
+	  const Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), CG2DGSTRESS(CG)> imass = SphericalTools::massMatrix<CG2DGSTRESS(CG)>(smesh, eid).inverse();
+	  iMgradX[eid] = imass * divS1[eid].transpose();
+	  iMgradY[eid] = imass * divS2[eid].transpose();
+	  iMM[eid]     = imass * divM [eid].transpose();
+
+	  iMJwPSI[eid] = imass * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array())).matrix();
+
+	}
+      else abort();
+
     }
 
   }

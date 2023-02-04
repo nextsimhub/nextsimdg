@@ -32,7 +32,6 @@ private:
      * accelerates numerics but substantial memory effort!
      */
     static constexpr int precompute_matrices = 1;
-    ParametricTransformation<CG, CG2DGSTRESS(CG)> ptrans;
 
   ParametricMomentumMap<CG> pmap;
 
@@ -104,9 +103,6 @@ public:
         S12.resize_by_mesh(smesh);
         S22.resize_by_mesh(smesh);
 
-        //! precomputes matrices
-        if (precompute_matrices == 1)
-            ptrans.BasicInit(smesh);
 
         /*!
 	 * initialize the lumped mass
@@ -151,6 +147,9 @@ public:
   const CGVector<CG>& GetcgH() const { return cg_H; }
   const CGVector<CG>& GetcgA() const { return cg_A; }
   const CGVector<CG>& GetcgD() const { return cg_D; }
+   CGVector<CG>& GetcgH()  { return cg_H; }
+   CGVector<CG>& GetcgA()  { return cg_A; }
+   CGVector<CG>& GetcgD()  { return cg_D; }
   
     // High level Functions
 
@@ -286,8 +285,14 @@ void CGParametricMomentum<CG>::AddStressTensorCell(const double scale, const siz
 
 
   
-  const Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
-  const Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
+  Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
+  Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
+
+  if (coordinatesystem == SPHERICAL) // In spherical coordinates there is the additional 'derivative term' arising from the derivative of the units
+    {
+      ty += scale * pmap.divM[eid] * S11.row(eid).transpose();
+      tx += scale * pmap.divM[eid] * S12.row(eid).transpose();
+    }
   
   const size_t CGROW = CG * smesh.nx + 1;
   const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)

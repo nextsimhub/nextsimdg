@@ -7,6 +7,7 @@
 #ifndef __PARAMETRICTOOLS_HPP
 #define __PARAMETRICTOOLS_HPP
 
+#include "NextsimDynamics.hpp"
 #include "ParametricMesh.hpp"
 #include "cgVector.hpp"
 #include "codeGenerationDGinGauss.hpp"
@@ -22,57 +23,6 @@
  */
 
 namespace Nextsim {
-
-
-#define GAUSSPOINTS(Q) (( (Q == 8) || (Q==6) ) ? 9 : (Q == 3) ? 4	\
-			: (Q==1) ? 1 : -1)
-#define GAUSSPOINTS1D(Q) (( (Q == 8) || (Q==6) ) ? 3 : (Q == 3) ? 2	\
-			  : (Q==1) ? 1 : -1)
-
-/*!
- * This class stores precomputed values (matrices in each mesh element)
- * that are required to efficiently perform the advection scheme and the
- * momentum equation on the parametric mesh.
- *
- * The values must be initialized once for a mesh. The storage requirements
- * are substantial. An alternative would be to recompute the quantities
- * whenever required. (see ParametricTools)
- *
- * Additional storage per element for CG2 / DG8
- * 1) divS1 + divS2     =  2 * 9*8 = 144
- * 2) iMgradX + iMgradY =  2 * 9*8 = 144
- * 3) iMJwPSI           =      8*9 = 72
- * 360 doubles = 2.88 kB
- */
-template <int CG, int DG>
-class ParametricTransformation {
-
-public:
-
-  std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG >,
-	      Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>>>
-    divS1, divS2;
-    
-
-    /*!
-     * These matrices realize the integration of (E, \grad phi) scaled with the
-     * inverse mass matrix;
-     */
-    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, CGDOFS(CG)>,
-        Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, DG, CGDOFS(CG)>>>
-        iMgradX, iMgradY;
-
-    /*!
-     * These matrices are M^-1 J w PSI_i(q)
-     * Multiplied
-     */
-    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(DG)>,
-        Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(DG)>>>
-        iMJwPSI;
-
-    void BasicInit(const ParametricMesh& smesh);
-};
-
 
 
 /*!

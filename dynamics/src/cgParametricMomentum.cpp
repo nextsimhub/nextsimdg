@@ -16,14 +16,14 @@
 namespace Nextsim {
 
 #define DGSTRESS(CG) ( (CG==1?3:(CG==2?8:-1) ) )
-extern Timer GlobalTimer;
+  extern Timer GlobalTimer;
 
-////////////////////////////////////////////////// Strain (ParametricMesh)
+  ////////////////////////////////////////////////// Strain (ParametricMesh)
 
-template <int CG>
-void CGParametricMomentum<CG>::ProjectCGVelocityToDGStrain()
-{
-  // !!! must still be converted to the spherical system!!!
+  template <int CG>
+  void CGParametricMomentum<CG>::ProjectCGVelocityToDGStrain()
+  {
+    // !!! must still be converted to the spherical system!!!
   
     assert(static_cast<long int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)) == vx.rows());
     assert(static_cast<long int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)) == vy.rows());
@@ -36,69 +36,80 @@ void CGParametricMomentum<CG>::ProjectCGVelocityToDGStrain()
     // parallelize over the rows
 #pragma omp parallel for
     for (size_t row = 0; row < smesh.ny; ++row) { 
-            int dgi = smesh.nx * row; //!< Index of dg vector
-            int cgi = CG * cgshift * row; //!< Lower left index of cg vector
+      int dgi = smesh.nx * row; //!< Index of dg vector
+      int cgi = CG * cgshift * row; //!< Lower left index of cg vector
 
-            for (size_t col = 0; col < smesh.nx; ++col, ++dgi, cgi += CG) { // loop over all elements
+      for (size_t col = 0; col < smesh.nx; ++col, ++dgi, cgi += CG) { // loop over all elements
 
-	      if (smesh.landmask[dgi]==0) // only on ice
-		continue;
+	if (smesh.landmask[dgi]==0) // only on ice
+	  continue;
 	      
 	      
-                // get the 4 (cg1) 9 (cg2) local x/y - velocity coefficients on the element
-                Eigen::Matrix<double, CGDOFS(CG), 1> vx_local, vy_local;
-                if (CG == 1) {
-                    vx_local << vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift);
-                    vy_local << vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift);
-                } else if (CG == 2) {
-                    vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2), vx(cgi + cgshift), vx(cgi + 1 + cgshift),
-                        vx(cgi + 2 + cgshift), vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift),
-                        vx(cgi + 2 + 2 * cgshift);
+	// get the 4 (cg1) 9 (cg2) local x/y - velocity coefficients on the element
+	Eigen::Matrix<double, CGDOFS(CG), 1> vx_local, vy_local;
+	if (CG == 1) {
+	  vx_local << vx(cgi), vx(cgi + 1), vx(cgi + cgshift), vx(cgi + 1 + cgshift);
+	  vy_local << vy(cgi), vy(cgi + 1), vy(cgi + cgshift), vy(cgi + 1 + cgshift);
+	} else if (CG == 2) {
+	  vx_local << vx(cgi), vx(cgi + 1), vx(cgi + 2), vx(cgi + cgshift), vx(cgi + 1 + cgshift),
+	    vx(cgi + 2 + cgshift), vx(cgi + 2 * cgshift), vx(cgi + 1 + 2 * cgshift),
+	    vx(cgi + 2 + 2 * cgshift);
 
-                    vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2), vy(cgi + cgshift), vy(cgi + 1 + cgshift),
-                        vy(cgi + 2 + cgshift), vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift),
-                        vy(cgi + 2 + 2 * cgshift);
-                } else
-                    abort();
+	  vy_local << vy(cgi), vy(cgi + 1), vy(cgi + 2), vy(cgi + cgshift), vy(cgi + 1 + cgshift),
+	    vy(cgi + 2 + cgshift), vy(cgi + 2 * cgshift), vy(cgi + 1 + 2 * cgshift),
+	    vy(cgi + 2 + 2 * cgshift);
+	} else
+	  abort();
 
-		// Solve (E, Psi) = (0.5(DV + DV^T), Psi)
-		// by integrating rhs and inverting with dG(stress) mass matrix
-		//
-		// in spherical coordiante system use correct mapping
-		//
-                E11.row(dgi) = ptrans.iMgradX[dgi] * vx_local;
-                E22.row(dgi) = ptrans.iMgradY[dgi] * vy_local;
-                E12.row(dgi) = 0.5 * (ptrans.iMgradX[dgi] * vy_local + ptrans.iMgradY[dgi] * vx_local);
-            }
-        }
-}
+	// Solve (E, Psi) = (0.5(DV + DV^T), Psi)
+	// by integrating rhs and inverting with dG(stress) mass matrix
+	//
+	E11.row(dgi) = pmap.iMgradX[dgi] * vx_local;
+	E22.row(dgi) = pmap.iMgradY[dgi] * vy_local;
+	E12.row(dgi) = 0.5 * (pmap.iMgradX[dgi] * vy_local + pmap.iMgradY[dgi] * vx_local);
 
-////////////////////////////////////////////////// STRESS Tensor
-// Sasip-Mesh Interface
-template <int CG>
-void CGParametricMomentum<CG>::AddStressTensor(const double scale, CGVector<CG>& tx,
-    CGVector<CG>& ty) const
-{
+	if (coordinatesystem == SPHERICAL)
+	  {
+	    E11.row(dgi) -= pmap.iMM[dgi] * vy_local;
+	    //////////////////////////////////////////////////
+	    //////////////////////////////////////////////////
+	    //////////////////////////////////////////////////		    
+	    E12.row(dgi) += 0.5 * pmap.iMM[dgi] * vx_local; ///// vx oder vy???
+	    //////////////////////////////////////////////////
+	    //////////////////////////////////////////////////
+	    //////////////////////////////////////////////////		    
+
+	  }
+      }
+    }
+  }
+
+  ////////////////////////////////////////////////// STRESS Tensor
+  // Sasip-Mesh Interface
+  template <int CG>
+  void CGParametricMomentum<CG>::AddStressTensor(const double scale, CGVector<CG>& tx,
+						 CGVector<CG>& ty) const
+  {
     // parallelization in tripes
     for (size_t p = 0; p < 2; ++p)
 #pragma omp parallel for schedule(static)
-        for (size_t cy = 0; cy < smesh.ny; ++cy) //!< loop over all cells of the mesh
+      for (size_t cy = 0; cy < smesh.ny; ++cy) //!< loop over all cells of the mesh
         {
-            if (cy % 2 == p) {
-                size_t c = smesh.nx * cy;
-                for (size_t cx = 0; cx < smesh.nx; ++cx, ++c) //!< loop over all cells of the mesh
-		  if (smesh.landmask[c]==1) // only on ice!
-                    AddStressTensorCell(scale, c, cx, cy, tx, ty);
-            }
+	  if (cy % 2 == p) {
+	    size_t c = smesh.nx * cy;
+	    for (size_t cx = 0; cx < smesh.nx; ++cx, ++c) //!< loop over all cells of the mesh
+	      if (smesh.landmask[c]==1) // only on ice!
+		AddStressTensorCell(scale, c, cx, cy, tx, ty);
+	  }
         }
-}
+  }
 
-template <int CG>
-void CGParametricMomentum<CG>::DirichletZero(CGVector<CG>& v)
-{
-  // the four segments bottom, right, top, left, are each processed in parallel
-  for (size_t seg=0;seg<4;++seg)
-    {
+  template <int CG>
+  void CGParametricMomentum<CG>::DirichletZero(CGVector<CG>& v)
+  {
+    // the four segments bottom, right, top, left, are each processed in parallel
+    for (size_t seg=0;seg<4;++seg)
+      {
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.dirichlet[seg].size(); ++i) {
 
@@ -114,70 +125,70 @@ void CGParametricMomentum<CG>::DirichletZero(CGVector<CG>& v)
 	      v(iy * CG * (CG * smesh.nx + 1) + CG * ix + CG + (CG * smesh.nx + 1) * j, 0) = 0.0;
 	  else if (seg == 2) // top
 	    for (size_t j = 0; j < CG + 1; ++j)
-                    v((iy + 1) * CG * (CG * smesh.nx + 1) + CG * ix + j, 0) = 0.0;
+	      v((iy + 1) * CG * (CG * smesh.nx + 1) + CG * ix + j, 0) = 0.0;
 	  else if (seg == 3) // left
-                for (size_t j = 0; j < CG + 1; ++j)
-		  v(iy * CG * (CG * smesh.nx + 1) + CG * ix + (CG * smesh.nx + 1) * j, 0) = 0.0;
+	    for (size_t j = 0; j < CG + 1; ++j)
+	      v(iy * CG * (CG * smesh.nx + 1) + CG * ix + (CG * smesh.nx + 1) * j, 0) = 0.0;
 	  else {
 	    std::cerr << "That should not have happened!" << std::endl;
 	    abort();
-            }
+	  }
         }
-    }
-}
-
-
-template <int CG>
-void CGParametricMomentum<CG>::CheckPeriodicity(CGVector<CG>& v)
-{
-  // the two segments bottom, right, top, left, are each processed in parallel
-  for (size_t seg=0;seg<smesh.periodic.size();++seg)
-    {
-      //#pragma omp parallel for
-      for (size_t i = 0; i < smesh.periodic[seg].size(); ++i) {
-
-	const size_t ptype  = smesh.periodic[seg][i][0];
-	const size_t eid_lb = smesh.periodic[seg][i][2];
-	const size_t eid_rt = smesh.periodic[seg][i][1];
-	
-	size_t ix_lb = eid_lb % smesh.nx;
-	size_t iy_lb = eid_lb / smesh.nx;
-	size_t i0_lb = (CG * smesh.nx + 1) * CG * iy_lb + CG * ix_lb; // lower/left index in left/bottom element
-	size_t ix_rt = eid_rt % smesh.nx;
-	size_t iy_rt = eid_rt / smesh.nx;
-	size_t i0_rt = (CG * smesh.nx + 1) * CG * iy_rt + CG * ix_rt; // lower/left index in right/top element
-
-	std::cout << std::setprecision(16);
-	if (ptype == 0) // X-edge, bottom/top
-	  {
-	    for (size_t j=0;j<=CG;++j)
-	      {
-		double check = v(i0_lb+j) - v(i0_rt+ CG * (CG * smesh.nx + 1) + j);
-		if (fabs(check)>1.e-13)
-		  std::cout << v(i0_lb+j) - v(i0_rt+ CG * (CG * smesh.nx + 1) + j) << std::endl;
-	      }
-	  }
-	else if (ptype == 1) // Y-edge, left/right
-	  {
-	    for (size_t j=0;j<CG;++j)
-	      {
-		double check = 		v(i0_lb+j * (CG * smesh.nx+1)) - v(i0_rt+ CG + j * (CG * smesh.nx+1));
-		if (fabs(check)>1.e-13)
-		  std::cout << v(i0_lb+j * (CG * smesh.nx+1)) -  v(i0_rt+ CG + j * (CG * smesh.nx+1)) << std::endl;
-	      }
-	  }
-	else
-	  abort();
       }
-    }
-}
+  }
 
-// --------------------------------------------------
 
-template <int CG>
-template <int DG>
-void CGParametricMomentum<CG>::prepareIteration(const DGVector<DG>& H, const DGVector<DG>& A)
-{
+  template <int CG>
+  void CGParametricMomentum<CG>::CheckPeriodicity(CGVector<CG>& v)
+  {
+    // the two segments bottom, right, top, left, are each processed in parallel
+    for (size_t seg=0;seg<smesh.periodic.size();++seg)
+      {
+	//#pragma omp parallel for
+	for (size_t i = 0; i < smesh.periodic[seg].size(); ++i) {
+
+	  const size_t ptype  = smesh.periodic[seg][i][0];
+	  const size_t eid_lb = smesh.periodic[seg][i][2];
+	  const size_t eid_rt = smesh.periodic[seg][i][1];
+	
+	  size_t ix_lb = eid_lb % smesh.nx;
+	  size_t iy_lb = eid_lb / smesh.nx;
+	  size_t i0_lb = (CG * smesh.nx + 1) * CG * iy_lb + CG * ix_lb; // lower/left index in left/bottom element
+	  size_t ix_rt = eid_rt % smesh.nx;
+	  size_t iy_rt = eid_rt / smesh.nx;
+	  size_t i0_rt = (CG * smesh.nx + 1) * CG * iy_rt + CG * ix_rt; // lower/left index in right/top element
+
+	  std::cout << std::setprecision(16);
+	  if (ptype == 0) // X-edge, bottom/top
+	    {
+	      for (size_t j=0;j<=CG;++j)
+		{
+		  double check = v(i0_lb+j) - v(i0_rt+ CG * (CG * smesh.nx + 1) + j);
+		  if (fabs(check)>1.e-13)
+		    std::cout << v(i0_lb+j) - v(i0_rt+ CG * (CG * smesh.nx + 1) + j) << std::endl;
+		}
+	    }
+	  else if (ptype == 1) // Y-edge, left/right
+	    {
+	      for (size_t j=0;j<CG;++j)
+		{
+		  double check = 		v(i0_lb+j * (CG * smesh.nx+1)) - v(i0_rt+ CG + j * (CG * smesh.nx+1));
+		  if (fabs(check)>1.e-13)
+		    std::cout << v(i0_lb+j * (CG * smesh.nx+1)) -  v(i0_rt+ CG + j * (CG * smesh.nx+1)) << std::endl;
+		}
+	    }
+	  else
+	    abort();
+	}
+      }
+  }
+
+  // --------------------------------------------------
+
+  template <int CG>
+  template <int DG>
+  void CGParametricMomentum<CG>::prepareIteration(const DGVector<DG>& H, const DGVector<DG>& A)
+  {
     // copy old velocity
     vx_mevp = vx;
     vy_mevp = vy;
@@ -191,16 +202,16 @@ void CGParametricMomentum<CG>::prepareIteration(const DGVector<DG>& H, const DGV
     cg_A = cg_A.cwiseMin(1.0);
     cg_A = cg_A.cwiseMax(0.0);
     cg_H = cg_H.cwiseMax(1.e-4);
-}
+  }
 
-template <int CG>
-template <int DG>
-void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params,
-    const size_t NT_evp, const double alpha, const double beta,
-    double dt_adv,
-    const DGVector<DG>& H, const DGVector<DG>& A)
-{
-  Nextsim::GlobalTimer.start("time loop - mevp - strain");
+  template <int CG>
+  template <int DG>
+  void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params,
+					  const size_t NT_evp, const double alpha, const double beta,
+					  double dt_adv,
+					  const DGVector<DG>& H, const DGVector<DG>& A)
+  {
+    Nextsim::GlobalTimer.start("time loop - mevp - strain");
   
     //! Compute Strain Rate
     // momentum.ProjectCGVelocityToDG1Strain(ptrans_stress, E11, E12, E22);
@@ -211,7 +222,7 @@ void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params,
     // if (precompute_matrices == 0) // computations on the fly
     //   Nextsim::mEVP::StressUpdateHighOrder<CG, DGSTRESS(CG), DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
     // else // --------------------- // use precomputed
-    Nextsim::mEVP::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+    Nextsim::mEVP::StressUpdateHighOrder(params, pmap, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
 
 
     Nextsim::GlobalTimer.stop("time loop - mevp - stress");
@@ -223,7 +234,7 @@ void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params,
 
     double stressscale = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
     if (coordinatesystem == SPHERICAL)
-	stressscale = 1.0/Nextsim::EarthRadius/Nextsim::EarthRadius;
+      stressscale = 1.0/Nextsim::EarthRadius/Nextsim::EarthRadius;
     AddStressTensor(stressscale, tmpx, tmpy); // Compute divergence of stress tensor
     VectorManipulations::CGAddPeriodic(smesh,tmpx); // correct stress update at periodic boundaries
     VectorManipulations::CGAddPeriodic(smesh,tmpy);
@@ -244,32 +255,32 @@ void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params,
       double absocn = sqrt(SQR(vx(i)-ox(i)) + SQR(vy(i)-oy(i)));
 
       vx(i) = (1.0
-            / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                + cg_A(i) * params.F_ocean 
-                    * absocn ) // implicit parts
-            * (params.rho_ice * cg_H(i) / dt_adv
-                    * (beta * vx(i) + vx_mevp(i))
-                + // pseudo-timestepping
-	       cg_A(i) 
-                    * (params.F_atm * absatm * ax(i) + // atm forcing
-                        params.F_ocean * absocn * SC
-                            * ox(i)) // ocean forcing
-                + params.rho_ice * cg_H(i) * params.fc
-                    * (vy(i) - oy(i)) // cor + surface
-                ));
-        vy(i) = (1.0
-            / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                + cg_A(i) * params.F_ocean 
-                    * absocn ) // implicit parts
-            * (params.rho_ice * cg_H(i) / dt_adv
-                    * (beta * vy(i) + vy_mevp(i))
-                + // pseudo-timestepping
-                cg_A(i) 
-                    * (params.F_atm * absatm * ay(i) + // atm forcing
-                        params.F_ocean * absocn * SC
-                            * oy(i)) // ocean forcing
-                + params.rho_ice * cg_H(i) * params.fc
-                    * (ox(i) - vx(i))));
+	       / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+		  + cg_A(i) * params.F_ocean 
+		  * absocn ) // implicit parts
+	       * (params.rho_ice * cg_H(i) / dt_adv
+		  * (beta * vx(i) + vx_mevp(i))
+		  + // pseudo-timestepping
+		  cg_A(i) 
+		  * (params.F_atm * absatm * ax(i) + // atm forcing
+		     params.F_ocean * absocn * SC
+		     * ox(i)) // ocean forcing
+		  + params.rho_ice * cg_H(i) * params.fc
+		  * (vy(i) - oy(i)) // cor + surface
+		  ));
+      vy(i) = (1.0
+	       / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+		  + cg_A(i) * params.F_ocean 
+		  * absocn ) // implicit parts
+	       * (params.rho_ice * cg_H(i) / dt_adv
+		  * (beta * vy(i) + vy_mevp(i))
+		  + // pseudo-timestepping
+		  cg_A(i) 
+		  * (params.F_atm * absatm * ay(i) + // atm forcing
+		     params.F_ocean * absocn * SC
+		     * oy(i)) // ocean forcing
+		  + params.rho_ice * cg_H(i) * params.fc
+		  * (ox(i) - vx(i))));
     }
     Nextsim::GlobalTimer.stop("time loop - mevp - update1");
     
@@ -278,19 +289,19 @@ void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params,
     for (int i = 0; i < vx.rows(); ++i) {
       double absocn = sqrt(SQR(vx(i)-ox(i)) + SQR(vy(i)-oy(i)));
 
-        vx(i) += (1.0
-                     / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                         + cg_A(i) * params.F_ocean 
-                             * absocn ) // implicit parts
-                     * tmpx(i))
-            / pmap.lumpedcgmass(i);
+      vx(i) += (1.0
+		/ (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+		   + cg_A(i) * params.F_ocean 
+		   * absocn ) // implicit parts
+		* tmpx(i))
+	/ pmap.lumpedcgmass(i);
 
-        vy(i) += (1.0
-                     / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-                         + cg_A(i) * params.F_ocean 
-                             * absocn) // implicit parts
-                     * tmpy(i))
-            / pmap.lumpedcgmass(i);
+      vy(i) += (1.0
+		/ (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
+		   + cg_A(i) * params.F_ocean 
+		   * absocn) // implicit parts
+		* tmpy(i))
+	/ pmap.lumpedcgmass(i);
     }
     Nextsim::GlobalTimer.stop("time loop - mevp - update2");
     Nextsim::GlobalTimer.stop("time loop - mevp - update");
@@ -314,13 +325,13 @@ void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params,
 	      }
 	}
     Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
-}
-// --------------------------------------------------
-template <int CG>
-template <int DG>
-void CGParametricMomentum<CG>::prepareIteration(const DGVector<DG>& H,
-    const DGVector<DG>& A, const DGVector<DG>& D)
-{
+  }
+  // --------------------------------------------------
+  template <int CG>
+  template <int DG>
+  void CGParametricMomentum<CG>::prepareIteration(const DGVector<DG>& H,
+						  const DGVector<DG>& A, const DGVector<DG>& D)
+  {
 
     // set the average sub-iteration velocity to zero
     avg_vx.setZero();
@@ -340,14 +351,14 @@ void CGParametricMomentum<CG>::prepareIteration(const DGVector<DG>& H,
     cg_H = cg_H.cwiseMax(1.e-4);
     cg_D = cg_D.cwiseMin(1.0);
     cg_D = cg_D.cwiseMax(0.0);
-}
+  }
 
-template <int CG>
-template <int DG>
-void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
-    const size_t NT_meb, double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A,
-    DGVector<DG>& D)
-{
+  template <int CG>
+  template <int DG>
+  void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
+					 const size_t NT_meb, double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A,
+					 DGVector<DG>& D)
+  {
 
     double dt_mom = dt_adv / NT_meb;
 
@@ -369,28 +380,28 @@ void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
     //	    update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
-        vx(i) = (1.0
-            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                + cg_A(i) * params.F_ocean
-                    * fabs(ox(i) - vx(i))) // implicit parts
-            * (params.rho_ice * cg_H(i) / dt_mom * vx(i)
-                + cg_A(i) * (params.F_atm * fabs(ax(i)) * ax(i) + // atm forcing
-                      params.F_ocean * fabs(ox(i) - vx(i)) * ox(i)) // ocean forcing
-                + params.rho_ice * cg_H(i) * params.fc
-                    * (vy(i) - oy(i)) // cor + surface
-	       + tmpx(i) / pmap.lumpedcgmass(i)
-	       ));
-        vy(i) = (1.0
-            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                + cg_A(i) * params.F_ocean
-                    * fabs(oy(i) - vy(i))) // implicit parts
-            * (params.rho_ice * cg_H(i) / dt_mom * vy(i)
-                + cg_A(i) * (params.F_atm * fabs(ay(i)) * ay(i) + // atm forcing
-                      params.F_ocean * fabs(oy(i) - vy(i)) * oy(i)) // ocean forcing
-                + params.rho_ice * cg_H(i) * params.fc
-                    * (ox(i) - vx(i))
-	       + tmpy(i) / pmap.lumpedcgmass(i)
-	       ));
+      vx(i) = (1.0
+	       / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+		  + cg_A(i) * params.F_ocean
+		  * fabs(ox(i) - vx(i))) // implicit parts
+	       * (params.rho_ice * cg_H(i) / dt_mom * vx(i)
+		  + cg_A(i) * (params.F_atm * fabs(ax(i)) * ax(i) + // atm forcing
+			       params.F_ocean * fabs(ox(i) - vx(i)) * ox(i)) // ocean forcing
+		  + params.rho_ice * cg_H(i) * params.fc
+		  * (vy(i) - oy(i)) // cor + surface
+		  + tmpx(i) / pmap.lumpedcgmass(i)
+		  ));
+      vy(i) = (1.0
+	       / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
+		  + cg_A(i) * params.F_ocean
+		  * fabs(oy(i) - vy(i))) // implicit parts
+	       * (params.rho_ice * cg_H(i) / dt_mom * vy(i)
+		  + cg_A(i) * (params.F_atm * fabs(ay(i)) * ay(i) + // atm forcing
+			       params.F_ocean * fabs(oy(i) - vy(i)) * oy(i)) // ocean forcing
+		  + params.rho_ice * cg_H(i) * params.fc
+		  * (ox(i) - vx(i))
+		  + tmpy(i) / pmap.lumpedcgmass(i)
+		  ));
     }
     Nextsim::GlobalTimer.stop("time loop - meb - update1");
 
@@ -402,78 +413,78 @@ void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
 
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;   
-}
-// --------------------------------------------------
+  }
+  // --------------------------------------------------
 
-template class CGParametricMomentum<1>;
-template class CGParametricMomentum<2>;
+  template class CGParametricMomentum<1>;
+  template class CGParametricMomentum<2>;
 
-template void CGParametricMomentum<1>::prepareIteration(const DGVector<1>& H, const DGVector<1>& A);
-template void CGParametricMomentum<1>::prepareIteration(const DGVector<3>& H, const DGVector<3>& A);
-template void CGParametricMomentum<1>::prepareIteration(const DGVector<6>& H, const DGVector<6>& A);
-template void CGParametricMomentum<2>::prepareIteration(const DGVector<1>& H, const DGVector<1>& A);
-template void CGParametricMomentum<2>::prepareIteration(const DGVector<3>& H, const DGVector<3>& A);
-template void CGParametricMomentum<2>::prepareIteration(const DGVector<6>& H, const DGVector<6>& A);
+  template void CGParametricMomentum<1>::prepareIteration(const DGVector<1>& H, const DGVector<1>& A);
+  template void CGParametricMomentum<1>::prepareIteration(const DGVector<3>& H, const DGVector<3>& A);
+  template void CGParametricMomentum<1>::prepareIteration(const DGVector<6>& H, const DGVector<6>& A);
+  template void CGParametricMomentum<2>::prepareIteration(const DGVector<1>& H, const DGVector<1>& A);
+  template void CGParametricMomentum<2>::prepareIteration(const DGVector<3>& H, const DGVector<3>& A);
+  template void CGParametricMomentum<2>::prepareIteration(const DGVector<6>& H, const DGVector<6>& A);
 
-template void CGParametricMomentum<1>::prepareIteration(const DGVector<1>& H, const DGVector<1>& A, const DGVector<1>& D);
-template void CGParametricMomentum<1>::prepareIteration(const DGVector<3>& H, const DGVector<3>& A, const DGVector<3>& D);
-template void CGParametricMomentum<1>::prepareIteration(const DGVector<6>& H, const DGVector<6>& A, const DGVector<6>& D);
-template void CGParametricMomentum<2>::prepareIteration(const DGVector<1>& H, const DGVector<1>& A, const DGVector<1>& D);
-template void CGParametricMomentum<2>::prepareIteration(const DGVector<3>& H, const DGVector<3>& A, const DGVector<3>& D);
-template void CGParametricMomentum<2>::prepareIteration(const DGVector<6>& H, const DGVector<6>& A, const DGVector<6>& D);
+  template void CGParametricMomentum<1>::prepareIteration(const DGVector<1>& H, const DGVector<1>& A, const DGVector<1>& D);
+  template void CGParametricMomentum<1>::prepareIteration(const DGVector<3>& H, const DGVector<3>& A, const DGVector<3>& D);
+  template void CGParametricMomentum<1>::prepareIteration(const DGVector<6>& H, const DGVector<6>& A, const DGVector<6>& D);
+  template void CGParametricMomentum<2>::prepareIteration(const DGVector<1>& H, const DGVector<1>& A, const DGVector<1>& D);
+  template void CGParametricMomentum<2>::prepareIteration(const DGVector<3>& H, const DGVector<3>& A, const DGVector<3>& D);
+  template void CGParametricMomentum<2>::prepareIteration(const DGVector<6>& H, const DGVector<6>& A, const DGVector<6>& D);
 
-// --------------------------------------------------
+  // --------------------------------------------------
 
-template void CGParametricMomentum<1>::mEVPStep(const VPParameters& params,
-    size_t NT_evp, double alpha, double beta,
-    double dt_adv,
-    const DGVector<1>& H, const DGVector<1>& A);
-template void CGParametricMomentum<1>::mEVPStep(const VPParameters& params,
-    size_t NT_evp, double alpha, double beta,
-    double dt_adv,
-    const DGVector<3>& H, const DGVector<3>& A);
-template void CGParametricMomentum<1>::mEVPStep(const VPParameters& params,
-    size_t NT_evp, double alpha, double beta,
-    double dt_adv,
-    const DGVector<6>& H, const DGVector<6>& A);
-
-
-
-template void CGParametricMomentum<2>::mEVPStep(const VPParameters& params,
-    size_t NT_evp, double alpha, double beta,
-    double dt_adv,
-    const DGVector<1>& H, const DGVector<1>& A);
-template void CGParametricMomentum<2>::mEVPStep(const VPParameters& params,
-    size_t NT_evp, double alpha, double beta,
-    double dt_adv,
-    const DGVector<3>& H, const DGVector<3>& A);
-template void CGParametricMomentum<2>::mEVPStep(const VPParameters& params,
-    size_t NT_evp, double alpha, double beta,
-    double dt_adv,
-    const DGVector<6>& H, const DGVector<6>& A);
-
-// --------------------------------------------------
-
-template void CGParametricMomentum<1>::MEBStep(const MEBParameters& params,
-    size_t NT_evp, double dt_adv,
-    const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
-template void CGParametricMomentum<1>::MEBStep(const MEBParameters& params,
-    size_t NT_evp, double dt_adv,
-    const DGVector<3>& H, const DGVector<3>& A, DGVector<3>& D);
-template void CGParametricMomentum<1>::MEBStep(const MEBParameters& params,
-    size_t NT_evp, double dt_adv,
-    const DGVector<6>& H, const DGVector<6>& A, DGVector<6>& D);
+  template void CGParametricMomentum<1>::mEVPStep(const VPParameters& params,
+						  size_t NT_evp, double alpha, double beta,
+						  double dt_adv,
+						  const DGVector<1>& H, const DGVector<1>& A);
+  template void CGParametricMomentum<1>::mEVPStep(const VPParameters& params,
+						  size_t NT_evp, double alpha, double beta,
+						  double dt_adv,
+						  const DGVector<3>& H, const DGVector<3>& A);
+  template void CGParametricMomentum<1>::mEVPStep(const VPParameters& params,
+						  size_t NT_evp, double alpha, double beta,
+						  double dt_adv,
+						  const DGVector<6>& H, const DGVector<6>& A);
 
 
-template void CGParametricMomentum<2>::MEBStep(const MEBParameters& params,
-    size_t NT_evp, double dt_adv,
-    const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
-template void CGParametricMomentum<2>::MEBStep(const MEBParameters& params,
-    size_t NT_evp, double dt_adv,
-    const DGVector<3>& H, const DGVector<3>& A, DGVector<3>& D);
-template void CGParametricMomentum<2>::MEBStep(const MEBParameters& params,
-    size_t NT_evp, double dt_adv,
-    const DGVector<6>& H, const DGVector<6>& A, DGVector<6>& D);
+
+  template void CGParametricMomentum<2>::mEVPStep(const VPParameters& params,
+						  size_t NT_evp, double alpha, double beta,
+						  double dt_adv,
+						  const DGVector<1>& H, const DGVector<1>& A);
+  template void CGParametricMomentum<2>::mEVPStep(const VPParameters& params,
+						  size_t NT_evp, double alpha, double beta,
+						  double dt_adv,
+						  const DGVector<3>& H, const DGVector<3>& A);
+  template void CGParametricMomentum<2>::mEVPStep(const VPParameters& params,
+						  size_t NT_evp, double alpha, double beta,
+						  double dt_adv,
+						  const DGVector<6>& H, const DGVector<6>& A);
+
+  // --------------------------------------------------
+
+  template void CGParametricMomentum<1>::MEBStep(const MEBParameters& params,
+						 size_t NT_evp, double dt_adv,
+						 const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
+  template void CGParametricMomentum<1>::MEBStep(const MEBParameters& params,
+						 size_t NT_evp, double dt_adv,
+						 const DGVector<3>& H, const DGVector<3>& A, DGVector<3>& D);
+  template void CGParametricMomentum<1>::MEBStep(const MEBParameters& params,
+						 size_t NT_evp, double dt_adv,
+						 const DGVector<6>& H, const DGVector<6>& A, DGVector<6>& D);
+
+
+  template void CGParametricMomentum<2>::MEBStep(const MEBParameters& params,
+						 size_t NT_evp, double dt_adv,
+						 const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
+  template void CGParametricMomentum<2>::MEBStep(const MEBParameters& params,
+						 size_t NT_evp, double dt_adv,
+						 const DGVector<3>& H, const DGVector<3>& A, DGVector<3>& D);
+  template void CGParametricMomentum<2>::MEBStep(const MEBParameters& params,
+						 size_t NT_evp, double dt_adv,
+						 const DGVector<6>& H, const DGVector<6>& A, DGVector<6>& D);
 
 
 } /* namespace Nextsim */

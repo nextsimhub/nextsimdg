@@ -9,7 +9,6 @@ include_directories(${INCLUDE_DIR})
  "${SRC_DIR}/stopwatch.cpp"
  "${SRC_DIR}/Interpolations.cpp"
  "${SRC_DIR}/ParametricMesh.cpp"
- "${SRC_DIR}/parametricTools.cpp" 
  "${SRC_DIR}/DGTransport.cpp"
  "${SRC_DIR}/ParametricMap.cpp"
  "${SRC_DIR}/cgParametricMomentum.cpp" 
@@ -22,7 +21,6 @@ include_directories(${INCLUDE_DIR})
  "${SRC_DIR}/ParametricMap.cpp"
  "${SRC_DIR}/Interpolations.cpp"
  "${SRC_DIR}/ParametricMesh.cpp"
- "${SRC_DIR}/parametricTools.cpp" 
  "${SRC_DIR}/cgParametricMomentum.cpp" 
  )
  
@@ -32,7 +30,6 @@ add_executable(example3-orcamesh example3-orcamesh.cpp
  "${SRC_DIR}/ParametricMap.cpp"
 "${SRC_DIR}/Interpolations.cpp"
 "${SRC_DIR}/ParametricMesh.cpp"
-"${SRC_DIR}/parametricTools.cpp" 
 "${SRC_DIR}/cgParametricMomentum.cpp" 
 )
 
@@ -42,8 +39,6 @@ add_executable(example4-orcamesh-spherical example4-orcamesh-spherical.cpp
 "${SRC_DIR}/DGTransport.cpp"
 "${SRC_DIR}/Interpolations.cpp"
 "${SRC_DIR}/ParametricMesh.cpp"
-"${SRC_DIR}/parametricTools.cpp"
-"${SRC_DIR}/SphericalTools.cpp"
 "${SRC_DIR}/ParametricMap.cpp" 
 "${SRC_DIR}/cgParametricMomentum.cpp" 
 )
@@ -53,8 +48,6 @@ add_executable(example4-orcamesh-spherical-greenland example4-orcamesh-spherical
 "${SRC_DIR}/DGTransport.cpp"
 "${SRC_DIR}/Interpolations.cpp"
 "${SRC_DIR}/ParametricMesh.cpp"
-"${SRC_DIR}/parametricTools.cpp"
-"${SRC_DIR}/SphericalTools.cpp"
 "${SRC_DIR}/ParametricMap.cpp" 
 "${SRC_DIR}/cgParametricMomentum.cpp" 
 )

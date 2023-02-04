@@ -224,9 +224,9 @@ void DGTransport<DG>::cell_term(const ParametricMesh& smesh, double dt,
   if (smesh.landmask[eid]==0)
     return;
 
-  const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)* GP(DG)> vx_gauss = vx.row(eid) * PSI<DG, GP(DG)>; //!< velocity in GP
-  const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)* GP(DG)> vy_gauss = vy.row(eid) * PSI<DG, GP(DG)>;
-  const Eigen::Matrix<Nextsim::FloatType, 1, GP(DG)* GP(DG)> phi_gauss = (phi.row(eid) * PSI<DG, GP(DG)>).array();
+  const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> vx_gauss = vx.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>; //!< velocity in GP
+  const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> vy_gauss = vy.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>;
+  const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> phi_gauss = (phi.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>).array();
   
   phiup.row(eid) += dt * (parammap.AdvectionCellTermX[eid].array().rowwise() * vx_gauss.array() + parammap.AdvectionCellTermY[eid].array().rowwise() * vy_gauss.array()).matrix() * phi_gauss.transpose();
 }
@@ -308,14 +308,14 @@ inline void DGTransport<DG>::edge_term_X(const ParametricMesh& smesh, const doub
   if (smesh.landmask[c1]==0) return;
   if (smesh.landmask[c2]==0) return;
   
-  const LocalEdgeVector<GP(DG)> vel_gauss = normalvel_X.row(ie) * PSIe<EDGEDOFS(DG), GP(DG)>;
+  const LocalEdgeVector<GAUSSPOINTS1D(DG)> vel_gauss = normalvel_X.row(ie) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>;
 
-  const LocalEdgeVector<GP(DG)> tmp =
-    (vel_gauss.array().max(0) * (topedgeofcell<DG>   (phi, c1) * PSIe<EDGEDOFS(DG), GP(DG)>).array() + 
-     vel_gauss.array().min(0) * (bottomedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), GP(DG)>).array() );
+  const LocalEdgeVector<GAUSSPOINTS1D(DG)> tmp =
+    (vel_gauss.array().max(0) * (topedgeofcell<DG>   (phi, c1) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>).array() + 
+     vel_gauss.array().min(0) * (bottomedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>).array() );
     
-    phiup.row(c1) -= dt * tmp * PSIe_w<DG, GP(DG), 2>;
-    phiup.row(c2) += dt * tmp * PSIe_w<DG, GP(DG), 0>;
+    phiup.row(c1) -= dt * tmp * PSIe_w<DG, GAUSSPOINTS1D(DG), 2>;
+    phiup.row(c2) += dt * tmp * PSIe_w<DG, GAUSSPOINTS1D(DG), 0>;
 }
 
 
@@ -326,7 +326,7 @@ inline void DGTransport<DG>::edge_term_Y(const ParametricMesh& smesh, const doub
   if (smesh.landmask[c1]==0) return;
   if (smesh.landmask[c2]==0) return;
   
-    const LocalEdgeVector<GP(DG)> vel_gauss = normalvel_Y.row(ie) * PSIe<EDGEDOFS(DG), GP(DG)>;
+    const LocalEdgeVector<GAUSSPOINTS1D(DG)> vel_gauss = normalvel_Y.row(ie) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>;
 
     const LocalEdgeVector<EDGEDOFS(DG)> tmp =
       (vel_gauss.array().max(0) * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array() +
