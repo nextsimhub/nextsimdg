@@ -59,10 +59,7 @@ class OceanX : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      double r2 = 1.0-pow(y/(3.0/8.0*M_PI),2.0);
-      if (r2<0.0)
-	return 0.0;
-      return r2;
+      return 0.0;
     }
 };
 class OceanY : public Nextsim::Interpolations::Function {
@@ -305,6 +302,14 @@ void run_benchmark(const size_t N)
 		Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh,true);
                 Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh,true);
                 Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh,true);
+		
+	    // Nextsim::VTK::write_dg(resultsdir + "/S11", 0, momentum.GetS11(), smesh,true);
+	    // Nextsim::VTK::write_dg(resultsdir + "/S12", 0, momentum.GetS12(), smesh,true);
+	    // Nextsim::VTK::write_dg(resultsdir + "/S22", 0, momentum.GetS22(), smesh,true);
+	    // Nextsim::VTK::write_dg(resultsdir + "/E11", 0, momentum.GetE11(), smesh,true);
+	    // Nextsim::VTK::write_dg(resultsdir + "/E12", 0, momentum.GetE12(), smesh,true);
+	    // Nextsim::VTK::write_dg(resultsdir + "/E22", 0, momentum.GetE22(), smesh,true);
+
                 Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh,true);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
 		           }
@@ -317,7 +322,7 @@ void run_benchmark(const size_t N)
 
 int main()
 {
-  run_benchmark<2, 1>(128);
+  run_benchmark<2, 1>(1024);
   // int NN[5] = {32,64,128,256,512};
   // for (int n=0;n<5;++n)
   //   {
