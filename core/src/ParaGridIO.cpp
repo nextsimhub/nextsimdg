@@ -209,7 +209,7 @@ void ParaGridIO::dumpModelState(
     }
 
     std::set<std::string> restartFields
-        = { hiceName, ciceName, hsnowName, ticeName, maskName, coordsName }; // TODO and others
+        = { hiceName, ciceName, hsnowName, ticeName, sstName, sssName, maskName, coordsName }; // TODO and others
     // Loop through either the above list (isRestart) or all provided fields(!isRestart)
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
