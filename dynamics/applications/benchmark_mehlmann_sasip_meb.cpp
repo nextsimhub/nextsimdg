@@ -294,12 +294,13 @@ int main()
     //run_benchmark<2, 6, 8>("../ParametricMesh/rectangle_128x128.smesh");
 
     std::vector<std::string> meshes;
-    meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
-    meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
-    meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
+    meshes.push_back("../ParametricMesh/distortedrectangle_64x64.smesh");
+    meshes.push_back("../ParametricMesh/distortedrectangle_128x128.smesh");
+    meshes.push_back("../ParametricMesh/distortedrectangle_256x256.smesh");
+    //meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
 
      for (const auto& it : meshes) {
-         //run_benchmark<1, 3, 3>(it);
+         run_benchmark<1, 3, 3>(it);
          run_benchmark<2, 6, 8>(it);
      }
 }
