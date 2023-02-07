@@ -197,7 +197,10 @@ std::istream& Duration::parse(std::istream& is)
         // Double regex courtesy of https://stackoverflow.com/a/56502134
         std::regex rx(R"(^([+-]?(?:[[:d:]]+\.?|[[:d:]]*\.[[:d:]]+))(?:[Ee][+-]?[[:d:]]+)?$)");
         bool isYMD = std::regex_search(restOf, rx);
-        if (!isYMD) throw std::invalid_argument("The duration should be an ISO 8601 duration (P…) or a number of seconds. Got: " + restOf);
+        if (!isYMD)
+            throw std::invalid_argument(
+                "The duration should be an ISO 8601 duration (P…) or a number of seconds. Got: "
+                + restOf);
         double sec = std::stod(restOf);
         // Assign the seconds value to the Duration
         setDurationSeconds(sec);
