@@ -191,7 +191,17 @@ std::istream& Duration::parse(std::istream& is)
         std::string restOf;
         is >> restOf;
         restOf = possibleP + restOf;
-        throw std::invalid_argument("ISO 8601 requires a leading P for durations: " + restOf);
+        // If the remaining string is a valid double, then interpret that as a
+        // duration in seconds, else throw an invalid argument exception.
+
+        // Double regex courtesy of https://stackoverflow.com/a/56502134
+        std::regex rx(R"(^([+-]?(?:[[:d:]]+\.?|[[:d:]]*\.[[:d:]]+))(?:[Ee][+-]?[[:d:]]+)?$)");
+        bool isYMD = std::regex_search(restOf, rx);
+        if (!isYMD) throw std::invalid_argument("The duration should be an ISO 8601 duration (P…) or a number of seconds. Got: " + restOf);
+        double sec = std::stod(restOf);
+        // Assign the seconds value to the Duration
+        setDurationSeconds(sec);
+        return is;
     }
 
     // Peek at the next character, to see if it is a -
@@ -208,9 +218,11 @@ std::istream& Duration::parse(std::istream& is)
 
 Duration::Duration(const std::string& str) { this->parse(str); }
 
-Duration::Duration(double seconds)
+Duration::Duration(double seconds) { setDurationSeconds(seconds); }
+
+void Duration::setDurationSeconds(double secs)
 {
-    std::chrono::duration<double> sec(seconds);
+    std::chrono::duration<double> sec(secs);
     m_d = std::chrono::duration_cast<Basis>(sec);
 }
 

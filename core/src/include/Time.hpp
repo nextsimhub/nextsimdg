@@ -98,6 +98,7 @@ private:
     {
     }
     Basis m_d;
+    void setDurationSeconds(double);
 };
 
 /*!
