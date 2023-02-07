@@ -157,7 +157,9 @@ void IceGrowth::update(const TimestepTime& tsTime)
 // but only if ice concentration is non-zero.
 void IceGrowth::initializeThicknesses(size_t i, const TimestepTime&)
 {
-    if (cice0[i] > 0) {
+    deltaCIce[i] = 0;
+
+    if (cice0[i] > 0 && hice0[i] > 0) {
         hice[i] = hice0[i] = hIceCell[i] / cice0[i];
         hsnow[i] = hsnow0[i] = hSnowCell[i] / cice0[i];
     } else {
@@ -202,9 +204,11 @@ static double updateThickness(double& thick, double newConc, double deltaC, doub
 
 void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 {
+    deltaCMelt[i] = 0;
+    deltaCFreeze[i] = 0;
     iLateral->freeze(
         tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
-    if (deltaHi[i] < 0) {
+    if (deltaHi[i] > 0) {
         // Note that the cell-averaged hice0 is converted to a ice averaged value
         iLateral->melt(tstep, hice0[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
