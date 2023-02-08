@@ -156,9 +156,10 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         qio[i] += hice[i] * bulkLHFusionIce / tst.step + hsnow[i] * bulkLHFusionSnow / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
+        cice[i] = 0.;
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = Ice::Tm;
+        tice.zIndexAndLayer(i, 0) = 0.;
     }
 }
 
