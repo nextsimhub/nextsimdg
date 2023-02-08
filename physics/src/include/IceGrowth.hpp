@@ -11,6 +11,7 @@
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
+#include "include/IceMinima.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -48,6 +49,9 @@ public:
     std::unordered_set<std::string> zFields() const override { return {}; }
 
     void update(const TimestepTime&);
+
+    static double minimumIceThickness() { return IceMinima::h(); }
+    static double minimumIceConcentration() { return IceMinima::c(); }
 
 private:
     // Vertical Growth ModelComponent & Module

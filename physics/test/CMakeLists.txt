@@ -13,6 +13,7 @@ set(ModulesDir "${SourceDir}/modules")
 add_executable(testIceGrowth
     "IceGrowth_test.cpp"
     "${SourceDir}/IceGrowth.cpp"
+    "${SourceDir}/IceMinima.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
