@@ -317,8 +317,8 @@ void CGParametricMomentum<CG, DGstress>::BBMStep(const MEBParameters& params,
 
     Nextsim::GlobalTimer.start("time loop - meb - stress");
     // TODO compute stress update with precomputed transformations
-    Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-    // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    Nextsim::BBM::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    // Nextsim::BBM::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
     Nextsim::GlobalTimer.stop("time loop - meb - stress");
 
     Nextsim::GlobalTimer.start("time loop - meb - stress tensor");
@@ -454,34 +454,32 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
 
     double dt_mom = dt_adv / NT_meb;
 
-    Nextsim::GlobalTimer.start("time loop - meb - strain");
+    Nextsim::GlobalTimer.start("time loop - strain");
     //! Compute Strain Rate
     ProjectCGVelocityToDGStrain();
-    Nextsim::GlobalTimer.stop("time loop - meb - strain");
+    Nextsim::GlobalTimer.stop("time loop - strain");
 
-    Nextsim::GlobalTimer.start("time loop - meb - stress");
+    Nextsim::GlobalTimer.start("time loop - stress");
+    //Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    Nextsim::BBM::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
     // TODO compute stress update with precomputed transformations
-    Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-    //Nextsim::BBM::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
 
-    // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-    Nextsim::GlobalTimer.stop("time loop - meb - stress");
+    Nextsim::GlobalTimer.stop("time loop - stress");
 
 #pragma omp parallel for
     for (int i = 0; i < tmpx.rows(); ++i)
         tmpx(i) = tmpy(i) = 0;
 
-    Nextsim::GlobalTimer.start("time loop - meb - update2 -stress");
-    // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
+    Nextsim::GlobalTimer.start("time loop - update2 -stress");
     AddStressTensor(-1.0, tmpx, tmpy);
-    Nextsim::GlobalTimer.stop("time loop - meb - update2 -stress");
+    Nextsim::GlobalTimer.stop("time loop - update2 -stress");
 
 
     double const cos_ocean_turning_angle = std::cos(params.ocean_turning_angle * M_PI / 180.);
     double const sin_ocean_turning_angle = std::sin(params.ocean_turning_angle * M_PI / 180.);
 
 
-    Nextsim::GlobalTimer.start("time loop - meb - update");
+    Nextsim::GlobalTimer.start("time loop - update");
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
 
@@ -527,11 +525,11 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
             / lumpedcgmass(i);
         ;
     }
-    Nextsim::GlobalTimer.stop("time loop - meb - update");
+    Nextsim::GlobalTimer.stop("time loop - update");
 
-    Nextsim::GlobalTimer.start("time loop - meb - bound.");
+    Nextsim::GlobalTimer.start("time loop - bound.");
     DirichletZero();
-    Nextsim::GlobalTimer.stop("time loop - meb - bound.");
+    Nextsim::GlobalTimer.stop("time loop - bound.");
 
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;
@@ -614,7 +612,6 @@ template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& params,
     const DGVector<6>& H, const DGVector<6>& A);
 
 // --------------------------------------------------
-
 template void CGParametricMomentum<1, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
     const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
