@@ -63,6 +63,7 @@ list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
 set(Sources
     "IceGrowth.cpp"
+    "IceMinima.cpp"
     "SlabOcean.cpp"
     )
 
