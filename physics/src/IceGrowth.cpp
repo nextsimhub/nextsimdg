@@ -159,7 +159,7 @@ void IceGrowth::initializeThicknesses(size_t i, const TimestepTime&)
 {
     deltaCIce[i] = 0;
 
-    if (cice0[i] > 0 && hice0[i] > 0) {
+    if (cice0[i] > 0 && hIceCell[i] > 0) {
         hice[i] = hice0[i] = hIceCell[i] / cice0[i];
         hsnow[i] = hsnow0[i] = hSnowCell[i] / cice0[i];
     } else {
