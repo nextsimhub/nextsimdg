@@ -73,6 +73,6 @@ ModelArray::DimensionMap::DimensionMap()
 {
 }
 
-const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {};
+const std::vector<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {};
 
 }
