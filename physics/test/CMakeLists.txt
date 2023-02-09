@@ -224,3 +224,26 @@ target_include_directories(testSlabOcn PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testSlabOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testThermoIce0
+    "ThermoIce0_test.cpp"
+    "${ModulesDir}/ThermoIce0.cpp"
+    "${SourceDir}/IceMinima.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/NZLevels.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    )
+target_include_directories(testThermoIce0 PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testThermoIce0 PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
