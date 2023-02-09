@@ -181,5 +181,6 @@ add_executable(testModelArrayRefDebug
     "${CoreSrc}/ModelArray.cpp"
     "${FVModelArrayDetails}/ModelArrayDetails.cpp"
 )
+target_compile_definitions(testModelArrayRefDebug PRIVATE DEBUG_MODELARRAYREF)
 target_include_directories(testModelArrayRefDebug PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testModelArrayRefDebug PRIVATE Catch2::Catch2 Eigen3::Eigen)
