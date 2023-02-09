@@ -49,7 +49,8 @@ public:
     void checkAndMaybeThrow() const
     {
         if (!backingStore[static_cast<size_t>(arrayName)]) {
-            throw std::invalid_argument("No ModelArray registered in position " + std::to_string(static_cast<size_t>(arrayName)));
+            throw std::invalid_argument("No ModelArray registered in position "
+                + std::to_string(static_cast<size_t>(arrayName)));
         }
     }
 
@@ -214,7 +215,8 @@ public:
     void checkAndMaybeThrow() const
     {
         if (!backingStore[static_cast<size_t>(arrayName)]) {
-            throw std::invalid_argument("No ModelArray registered in position " + std::to_string(static_cast<size_t>(arrayName)));
+            throw std::invalid_argument("No ModelArray registered in position "
+                + std::to_string(static_cast<size_t>(arrayName)));
         }
     }
 
