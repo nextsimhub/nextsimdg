@@ -39,8 +39,7 @@ public:
         : m_d()
     {
     }
-    Duration(const std::string& str);
-    Duration(double seconds);
+    Duration(const std::string& str) { this->parse(str); }
 
     Duration(double seconds);
 
@@ -100,7 +99,6 @@ private:
     {
     }
     Basis m_d;
-    void setDurationSeconds(double);
 };
 
 /*!
