@@ -208,8 +208,8 @@ void ParaGridIO::dumpModelState(
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
 
-    std::set<std::string> restartFields
-        = { hiceName, ciceName, hsnowName, ticeName, sstName, sssName, maskName, coordsName }; // TODO and others
+    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
+        sssName, maskName, coordsName }; // TODO and others
     // Loop through either the above list (isRestart) or all provided fields(!isRestart)
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
