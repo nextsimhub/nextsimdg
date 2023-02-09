@@ -5,6 +5,7 @@ set(SRC_DIR "${CoreSrc}")
 set(INCLUDE_DIR "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
 set(ModelArrayDetails "testmodelarraydetails")
+set(FVModelArrayDetails "${CoreSrc}/finitevolume")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
