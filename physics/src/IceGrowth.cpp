@@ -95,10 +95,10 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
 IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
 {
     map["IceGrowth"] = {
-        { keyMap.at(MINC_KEY), ConfigType::NUMERIC, { "0", "1" }, std::to_string(IceMinima::cMinDefault), "",
-            "Minimum allowed ice concentration." },
-        { keyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(IceMinima::hMinDefault), "m",
-            "Minimum allowed ice thickness." },
+        { keyMap.at(MINC_KEY), ConfigType::NUMERIC, { "0", "1" },
+            std::to_string(IceMinima::cMinDefault), "", "Minimum allowed ice concentration." },
+        { keyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            std::to_string(IceMinima::hMinDefault), "m", "Minimum allowed ice thickness." },
     };
     return map;
 }
@@ -223,7 +223,8 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 
 void IceGrowth::applyLimits(size_t i, const TimestepTime& tstep)
 {
-    if ((0. < cice[i] && cice[i] < IceMinima::cMin) || (0. < hice[i] && hice[i] < IceMinima::hMin)) {
+    if ((0. < cice[i] && cice[i] < IceMinima::cMin)
+        || (0. < hice[i] && hice[i] < IceMinima::hMin)) {
         qow[i] += cice[i] * Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
         hice[i] = 0;
         cice[i] = 0;

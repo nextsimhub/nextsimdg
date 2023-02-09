@@ -11,11 +11,13 @@
 namespace Nextsim {
 
 class IceGrowth;
-//! A class to hold the minimum ice thresholds without having to pull in ICeGrowth and its dependencies.
+//! A class to hold the minimum ice thresholds without having to pull in
+//! IceGrowth and its dependencies.
 class IceMinima {
 public:
     static double h();
     static double c();
+
 private:
     static double hMin;
     static double cMin;
@@ -23,7 +25,7 @@ private:
     static const double cMinDefault;
 
     friend IceGrowth;
- };
+};
 
 } /* namespace Nextsim */
 
