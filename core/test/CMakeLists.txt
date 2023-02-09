@@ -5,6 +5,7 @@ set(SRC_DIR "${CoreSrc}")
 set(INCLUDE_DIR "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
 set(ModelArrayDetails "testmodelarraydetails")
+set(FVModelArrayDetails "${CoreSrc}/finitevolume/")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
@@ -162,12 +163,12 @@ add_executable(testModelComponent
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testModelComponent PRIVATE Boost::program_options Catch2::Catch2 Eigen3::Eigen)
 
-add_executable(testTimeClasses
+add_executable(testTime
     "Time_test.cpp"
     "${CoreSrc}/Time.cpp"
 )
-target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
-target_link_libraries(testTimeClasses PRIVATE Catch2::Catch2)
+target_include_directories(testTime PRIVATE "${CoreSrc}")
+target_link_libraries(testTime PRIVATE Catch2::Catch2)
 
 add_executable(testNewModelArrayRef
     "NewModelArrayRef_test.cpp"
@@ -177,3 +178,11 @@ add_executable(testNewModelArrayRef
 
 target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testModelArrayRefDebug
+    "ModelArrayRefDebug_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${FVModelArrayDetails}/ModelArrayDetails.cpp"
+)
+target_include_directories(testModelArrayRefDebug PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_libraries(testModelArrayRefDebug PRIVATE Catch2::Catch2 Eigen3::Eigen)
