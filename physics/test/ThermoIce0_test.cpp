@@ -26,8 +26,8 @@ namespace Nextsim {
 TEST_SUITE_BEGIN("ThermoIce0");
 TEST_CASE("Threshold ice")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     class IceTemperatureData : public ModelComponent {
     public:
