@@ -35,6 +35,9 @@ TEST_CASE("Threshold ice", "[ThermoIce0]")
             registerSharedArray(SharedArray::H_ICE, &hice);
             registerSharedArray(SharedArray::C_ICE, &cice);
             registerSharedArray(SharedArray::H_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::C_ICE, &cice);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
+            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
             registerProtectedArray(ProtectedArray::TF, &tf);
@@ -42,6 +45,10 @@ TEST_CASE("Threshold ice", "[ThermoIce0]")
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
             registerProtectedArray(ProtectedArray::T_ICE, &tice0);
             registerSharedArray(SharedArray::Q_IO, &qio);
+            registerSharedArray(SharedArray::Q_OW, &qow);
+            registerSharedArray(SharedArray::Q_IA, &qia);
+            registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
+            registerSharedArray(SharedArray::SUBLIM, &subl);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -57,6 +64,10 @@ TEST_CASE("Threshold ice", "[ThermoIce0]")
             mlbhc[0] = 4.29151e7;
             tice0[0] = -9.;
             qio[0] = 0.;
+            qow[0] = 0;
+            qia[0] = 0;
+            dqia_dt[0] = 0;
+            subl[0] = 0;
         }
 
         HField hice;
@@ -69,35 +80,15 @@ TEST_CASE("Threshold ice", "[ThermoIce0]")
         HField mlbhc; // Mixed layer bulk heat capacity
         HField tice0;
         HField qio;
+        HField qow;
+        HField qia;
+        HField dqia_dt;
+        HField subl;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmoState;
     atmoState.setData(ModelState::DataMap());
-
-    class FluxData : public IFluxCalculation {
-    public:
-        FluxData()
-            : IFluxCalculation()
-        {
-        }
-        std::string getName() const override { return "FluxData"; }
-
-        void setData(const ModelState::DataMap&) override
-        {
-            qow[0] = 0;
-            qia[0] = 0;
-            dqia_dt[0] = 0;
-            subl[0] = 0;
-        }
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
-
-        void update(const TimestepTime&) override { }
-    } fluxData;
-
-    fluxData.setData(ModelState::DataMap());
 
     TimestepTime tst = { TimePoint("2000-01-01T00:00:00"), Duration(600) };
     ThermoIce0 ti0t;
