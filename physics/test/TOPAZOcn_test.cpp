@@ -45,11 +45,12 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex);
 
     TOPAZOcean topaz;
+    topaz.configure();
     topaz.setFilePath(filePath);
 
-    ModelArrayRef<ModelComponent::ProtectedArray::SST, MARConstBackingStore> sst(
+    ModelArrayRef<ModelComponent::ProtectedArray::EXT_SST, MARConstBackingStore> sst(
         ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::SSS, MARConstBackingStore> sss(
+    ModelArrayRef<ModelComponent::ProtectedArray::EXT_SSS, MARConstBackingStore> sss(
         ModelComponent::getProtectedArray());
     ModelArrayRef<ModelComponent::ProtectedArray::MLD, MARConstBackingStore> mld(
         ModelComponent::getProtectedArray());
@@ -60,6 +61,11 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
 
     TimePoint t1("2000-01-01T00:00:00Z");
     TimestepTime tst = { t1, Duration(600) };
+
+    // The Qio calculation requires c_ice data
+    HField cice(ModelArray::Type::H);
+    cice = 0.;
+    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &cice);
 
     // Get the forcing fields at time 0
     topaz.updateBefore(tst);
