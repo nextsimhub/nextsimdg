@@ -202,7 +202,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
     deltaCFreeze[i] = 0;
     iLateral->freeze(
         tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
-    if (deltaHi[i] > 0) {
+    if (deltaHi[i] < 0) {
         // Note that the cell-averaged hice0 is converted to a ice averaged value
         iLateral->melt(tstep, hice0[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
