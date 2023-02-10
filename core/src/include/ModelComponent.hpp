@@ -61,9 +61,15 @@ public:
         OCEAN_V, // y(north)-ward ocean current, m s⁻¹
         COUNT // Count of enum values
     };
+
+#ifdef DEBUG_MODELARRAYREF
+    static const size_t SharedArrayOffset = static_cast<size_t>(ProtectedArray::COUNT);
+#else
+    static const size_t SharedArrayOffset = 0;
+#endif
     enum class SharedArray {
         // Values of the prognostic fields updated during the timestep
-        H_ICE, // Updated ice thickness, ice average, m
+        H_ICE = SharedArrayOffset, // Updated ice thickness, ice average, m
         C_ICE, // Updated ice concentration
         H_SNOW, // Updated snow depth, ice average, m
         T_ICE, // Updated ice temperatures, ˚C
