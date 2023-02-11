@@ -27,6 +27,7 @@
 
 bool WRITE_VTK = true;
 
+Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
 /*!
  *
  * Sets the order of the velocity (CG) of advection (DGadvection) and
@@ -158,11 +159,11 @@ int main()
   std::string resultsdir = "BenchmarkBox_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(NX);
   std::filesystem::create_directory(resultsdir);
 
-    Nextsim::ParametricMesh smesh;
+  Nextsim::ParametricMesh smesh(CoordinateSystem);
     smesh.readmesh("benchmark_box.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::CARTESIAN);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh, CoordinateSystem);
 
     //! define the time mesh
     constexpr double dt_adv = 120.0; //!< Time step of advection problem

@@ -94,10 +94,10 @@ namespace Nextsim
   {
     lumpedcgmass.resize_by_mesh(smesh);
 
-    for (size_t i = 0; i < smesh.nnodes; ++i)
-      lumpedcgmass(i, 0) = 0;
+    lumpedcgmass.zero();
 
-#define CGGP(CG) ( (CG==1?3:4) )
+
+#define CGGP(CG) ( (CG==1?1:4) )
 
     
     for (size_t p=0;p<2;++p) // for parallelization
@@ -106,7 +106,7 @@ namespace Nextsim
 	for (size_t iy=p;iy<smesh.ny;iy+=2)
 	  for (size_t ix=0;ix<smesh.nx;++ix)
 	    {
-	      size_t eid = smesh.ny*iy+ix;
+	      size_t eid = smesh.nx*iy + ix;
 
 
 	      Eigen::Vector<Nextsim::FloatType, (CG==1?4:9) > Meid;
@@ -117,6 +117,9 @@ namespace Nextsim
 		    = ParametricTools::J<CGGP(CG)>(smesh, eid).array() * GAUSSWEIGHTS<CGGP(CG) >.array();
 		  
 		  Meid = PHI<CG,CGGP(CG)> * J.transpose();
+		  const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
+		    = smesh.coordinatesOfElement(eid);
+		  std::cout <<std::endl;
 		}
 	      else if (coordinatesystem == SPHERICAL)
 		{
@@ -159,7 +162,7 @@ namespace Nextsim
 		abort();
 	    }
       }
-    VectorManipulations::CGAddPeriodic(smesh, lumpedcgmass);
+    //    VectorManipulations::CGAddPeriodic(smesh, lumpedcgmass);
   }
 
 
@@ -229,15 +232,15 @@ namespace Nextsim
 	    sin_lat = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).row(1).array()).sin();
 
 	  // 1 is lon-derivative, 2 is lat-derivative of the test function
-	  divS1[eid] =  dx_cg2                                               * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
-	  divS2[eid] = (dy_cg2.array().rowwise() * cos_lat.array()).matrix() * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+	  divS1[eid] =  dx_cg2                                               * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose() / Nextsim::EarthRadius;
+	  divS2[eid] = (dy_cg2.array().rowwise() * cos_lat.array()).matrix() * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose() / Nextsim::EarthRadius;
 
 	  
 	  divM [eid] = (PHI<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
 			* (J.array()
 			   * sin_lat.array()
 			   * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array())
-			).matrix() * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+			).matrix() * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose() / Nextsim::EarthRadius;
 
 	  const Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), CG2DGSTRESS(CG)> imass = SphericalTools::massMatrix<CG2DGSTRESS(CG)>(smesh, eid).inverse();
 	  iMgradX[eid] = imass * divS1[eid].transpose();

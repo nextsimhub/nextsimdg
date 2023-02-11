@@ -71,14 +71,7 @@ namespace Nextsim {
 	if (coordinatesystem == SPHERICAL)
 	  {
 	    E11.row(dgi) -= pmap.iMM[dgi] * vy_local;
-	    //////////////////////////////////////////////////
-	    //////////////////////////////////////////////////
-	    //////////////////////////////////////////////////		    
-	    E12.row(dgi) += 0.5 * pmap.iMM[dgi] * vx_local; ///// vx oder vy???
-	    //////////////////////////////////////////////////
-	    //////////////////////////////////////////////////
-	    //////////////////////////////////////////////////		    
-
+	    E12.row(dgi) += 0.5 * pmap.iMM[dgi] * vx_local;
 	  }
       }
     }
@@ -87,10 +80,17 @@ namespace Nextsim {
   ////////////////////////////////////////////////// STRESS Tensor
   // Sasip-Mesh Interface
   template <int CG>
-  void CGParametricMomentum<CG>::AddStressTensor(const double scale, CGVector<CG>& tx,
-						 CGVector<CG>& ty) const
+  void CGParametricMomentum<CG>::DivergenceOfStress(const double scale, CGVector<CG>& tx,
+						    CGVector<CG>& ty) const
   {
-    // parallelization in tripes
+#pragma omp parallel for
+    for (size_t i=0;i<tx.rows();++i)
+      {
+	tx(i)=0.0;
+	ty(i)=0.0;
+      }
+    
+    // parallelization in stripes
     for (size_t p = 0; p < 2; ++p)
 #pragma omp parallel for schedule(static)
       for (size_t cy = 0; cy < smesh.ny; ++cy) //!< loop over all cells of the mesh
@@ -102,10 +102,16 @@ namespace Nextsim {
 		AddStressTensorCell(scale, c, cx, cy, tx, ty);
 	  }
         }
+    // set zero on the Dirichlet boundaries
+    DirichletZero(tx);
+    DirichletZero(ty);
+    // add the contributions on the periodic boundaries
+    VectorManipulations::CGAveragePeriodic(smesh, tx);
+    VectorManipulations::CGAveragePeriodic(smesh, ty);
   }
 
   template <int CG>
-  void CGParametricMomentum<CG>::DirichletZero(CGVector<CG>& v)
+  void CGParametricMomentum<CG>::DirichletZero(CGVector<CG>& v) const
   {
     // the four segments bottom, right, top, left, are each processed in parallel
     for (size_t seg=0;seg<4;++seg)
@@ -193,9 +199,9 @@ namespace Nextsim {
     vx_mevp = vx;
     vy_mevp = vy;
     // interpolate ice height and concentration to local cg Variables
-    Interpolations::DG2CG(smesh, cg_A, A, coordinatesystem);
+    Interpolations::DG2CG(smesh, cg_A, A);
     VectorManipulations::CGAveragePeriodic(smesh, cg_A);
-    Interpolations::DG2CG(smesh, cg_H, H, coordinatesystem);
+    Interpolations::DG2CG(smesh, cg_H, H);
     VectorManipulations::CGAveragePeriodic(smesh, cg_H);
 
     // limit A to [0,1] and H to [0, ...)
@@ -211,38 +217,33 @@ namespace Nextsim {
 					  double dt_adv,
 					  const DGVector<DG>& H, const DGVector<DG>& A)
   {
+    
+    // Compute Strain Rate
     Nextsim::GlobalTimer.start("time loop - mevp - strain");
-  
-    //! Compute Strain Rate
-    // momentum.ProjectCGVelocityToDG1Strain(ptrans_stress, E11, E12, E22);
     ProjectCGVelocityToDGStrain();
     Nextsim::GlobalTimer.stop("time loop - mevp - strain");
 
+
+    // Update the stresses according to the mEVP model
     Nextsim::GlobalTimer.start("time loop - mevp - stress");
-    // if (precompute_matrices == 0) // computations on the fly
-    //   Nextsim::mEVP::StressUpdateHighOrder<CG, DGSTRESS(CG), DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
-    // else // --------------------- // use precomputed
     Nextsim::mEVP::StressUpdateHighOrder(params, pmap, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
-
-
     Nextsim::GlobalTimer.stop("time loop - mevp - stress");
 
+    // Compute the divergence of the stress tensor
     Nextsim::GlobalTimer.start("time loop - mevp - stress - stress");
-#pragma omp parallel for
-    for (int i = 0; i < tmpx.rows(); ++i)
-      tmpx(i) = tmpy(i) = 0;
 
     double stressscale = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
-    if (coordinatesystem == SPHERICAL)
+    if (coordinatesystem == Nextsim::SPHERICAL)
       stressscale = 1.0/Nextsim::EarthRadius/Nextsim::EarthRadius;
-    AddStressTensor(stressscale, tmpx, tmpy); // Compute divergence of stress tensor
-    VectorManipulations::CGAddPeriodic(smesh,tmpx); // correct stress update at periodic boundaries
-    VectorManipulations::CGAddPeriodic(smesh,tmpy);
+
+    DivergenceOfStress(stressscale, tmpx, tmpy); // Compute divergence of stress tensor
+    
+    
     Nextsim::GlobalTimer.stop("time loop - mevp - stress - stress");
-
-
     Nextsim::GlobalTimer.start("time loop - mevp - update");
-    //! Update
+
+
+    // Update the velocity
     Nextsim::GlobalTimer.start("time loop - mevp - update1");
 
 
@@ -283,6 +284,8 @@ namespace Nextsim {
 		  * (ox(i) - vx(i))));
     }
     Nextsim::GlobalTimer.stop("time loop - mevp - update1");
+
+
     
     Nextsim::GlobalTimer.start("time loop - mevp - update2");
 #pragma omp parallel for
@@ -325,7 +328,7 @@ namespace Nextsim {
 	      }
 	}
     Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
-  }
+}
   // --------------------------------------------------
   template <int CG>
   template <int DG>
@@ -338,11 +341,11 @@ namespace Nextsim {
     avg_vy.setZero();   
 
     // interpolate ice height and concentration to local cg Variables
-    Interpolations::DG2CG(smesh, cg_A, A, coordinatesystem);
+    Interpolations::DG2CG(smesh, cg_A, A);
     VectorManipulations::CGAveragePeriodic(smesh,cg_A);
-    Interpolations::DG2CG(smesh, cg_H, H, coordinatesystem);
+    Interpolations::DG2CG(smesh, cg_H, H);
     VectorManipulations::CGAveragePeriodic(smesh, cg_H);
-    Interpolations::DG2CG(smesh, cg_D, D, coordinatesystem);
+    Interpolations::DG2CG(smesh, cg_D, D);
     VectorManipulations::CGAveragePeriodic(smesh, cg_D);
 
     // limit A and D to [0,1] and H to [0, ...)

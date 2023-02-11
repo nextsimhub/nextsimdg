@@ -44,7 +44,7 @@ public:
 
     ////////////////////////////////////////////////// Output of CG - Vector (ParametricMesh)
     template <int CG>
-    static void write_cgvector(const std::string& fname, const CGVector<CG>& v, const ParametricMesh& smesh, bool spherical = false)
+    static void write_cgvector(const std::string& fname, const CGVector<CG>& v, const ParametricMesh& smesh)
     {
         // extract variable name
         std::string variableName
@@ -69,7 +69,7 @@ public:
             assert(smesh.nnodes == v.rows());
             assert((smesh.nx + 1) * (smesh.ny + 1) == v.rows());
             for (size_t i = 0; i < smesh.nnodes; ++i)
-	      write_coords(OUT,smesh.vertices(i, 0), smesh.vertices(i, 1), spherical);
+	      write_coords(OUT,smesh.vertices(i, 0), smesh.vertices(i, 1), smesh.CoordinateSystem);
 
             OUT << "CELLS " << smesh.nelements << " " << smesh.nelements * 5 << std::endl;
             for (size_t iy = 0; iy < smesh.ny; ++iy)
@@ -126,7 +126,7 @@ public:
     }
 
     template <int CG>
-    static void write_cg_velocity(const std::string& fname, const CGVector<CG>& vx, const CGVector<CG>& vy, const ParametricMesh& smesh, bool spherical = false)
+    static void write_cg_velocity(const std::string& fname, const CGVector<CG>& vx, const CGVector<CG>& vy, const ParametricMesh& smesh)
     {
         assert(vx.rows() == vy.rows());
         // extract variable name
@@ -152,7 +152,7 @@ public:
             assert(static_cast<int>(smesh.nnodes) == vx.rows());
             assert(static_cast<int>((smesh.nx + 1) * (smesh.ny + 1)) == vx.rows());
             for (size_t i = 0; i < smesh.nnodes; ++i)
-	      write_coords(OUT, smesh.vertices(i, 0), smesh.vertices(i, 1), spherical);
+	      write_coords(OUT, smesh.vertices(i, 0), smesh.vertices(i, 1), smesh.CoordinateSystem);
 
             OUT << "CELLS " << smesh.nelements << " " << smesh.nelements * 5 << std::endl;
             for (size_t iy = 0; iy < smesh.ny; ++iy)
@@ -175,7 +175,7 @@ public:
                 for (size_t ix = 0; ix < 2 * smesh.nx + 1; ++ix)
 		  {
                     const std::array<double,2> v = smesh.coordinate<2>(ix, iy);
-		    write_coords(OUT,v[0],v[1],spherical);
+		    write_coords(OUT,v[0],v[1], smesh.CoordinateSystem);
                 }
 
             OUT << std::endl
@@ -298,9 +298,9 @@ public:
     ////////////////////////////////////////////////// dG(1) output
 
 
-  static void write_coords(std::ostream& OUT, double x, double y, bool spherical)
+  static void write_coords(std::ostream& OUT, double x, double y, COORDINATES CoordinateSystem)
   {
-    if (spherical)
+    if (CoordinateSystem == SPHERICAL)
       {
 	OUT << Nextsim::EarthRadius * cos(y) * cos(x) << "\t"
 	    << Nextsim::EarthRadius * cos(y) * sin(x) << "\t"
@@ -311,7 +311,7 @@ public:
   }
   
     template <int DG>
-    static void write_dg(const std::string& fname, const DGVector<DG>& v, const ParametricMesh& smesh, bool spherical=false)
+    static void write_dg(const std::string& fname, const DGVector<DG>& v, const ParametricMesh& smesh)
     {
         // extract variable name
         std::string variableName
@@ -338,7 +338,7 @@ public:
             for (size_t ix = 0; ix < smesh.nx; ++ix, ++nid) {
 	      for (size_t j=0;j<4;++j) // go along the 4 nodes of the element
 		{
-		  write_coords(OUT, smesh.vertices(nid+LEL[j],0), smesh.vertices(nid+LEL[j],1), spherical);
+		  write_coords(OUT, smesh.vertices(nid+LEL[j],0), smesh.vertices(nid+LEL[j],1), smesh.CoordinateSystem);
 		}
             }
         OUT << "CELLS " << smesh.nx * smesh.ny << " " << 5 * smesh.nx * smesh.ny << std::endl;
@@ -395,7 +395,7 @@ public:
         OUT.close();
     }
 
-  static void write_dg(const std::string& fname, const DGVector<6>& v, const ParametricMesh& smesh, bool spherical = false)
+  static void write_dg(const std::string& fname, const DGVector<6>& v, const ParametricMesh& smesh)
     {
         // extract variable name
         std::string variableName
@@ -422,18 +422,18 @@ public:
                 // Print 9 points of the element incl. subsamples
 	      const Eigen::Matrix<Nextsim::FloatType, 4, 2> coords = smesh.coordinatesOfElement(smesh.nx*iy+ix);
 	      
-	      write_coords(OUT, coords(0,0), coords(0,1), spherical);
-	      write_coords(OUT, 0.5 * (coords(0,0) + coords(1, 0)), 0.5 * (coords(0,1) + coords(1, 1)),spherical);
-	      write_coords(OUT, coords(1, 0), coords(1, 1), spherical);
+	      write_coords(OUT, coords(0,0), coords(0,1), smesh.CoordinateSystem);
+	      write_coords(OUT, 0.5 * (coords(0,0) + coords(1, 0)), 0.5 * (coords(0,1) + coords(1, 1)),smesh.CoordinateSystem);
+	      write_coords(OUT, coords(1, 0), coords(1, 1), smesh.CoordinateSystem);
 	      
-	      write_coords(OUT, 0.5 * (coords(0,0) + coords(2, 0)), 0.5 * (coords(0,1) + coords(2, 1)), spherical);
+	      write_coords(OUT, 0.5 * (coords(0,0) + coords(2, 0)), 0.5 * (coords(0,1) + coords(2, 1)), smesh.CoordinateSystem);
 	      write_coords(OUT,
 			   0.25 * (coords(0,0) + coords(1, 0) + coords(2, 0) + coords(3, 0)),
-			   0.25 * (coords(0,1) + coords(1, 1) + coords(2, 1) + coords(3, 1)), spherical);
-	      write_coords(OUT, 0.5 * (coords(1, 0) + coords(3, 0)), 0.5 * (coords(1, 1) + coords(3, 1)), spherical);
-	      write_coords(OUT, coords(2, 0), coords(2, 1), spherical);
-	      write_coords(OUT, 0.5 * (coords(2, 0) + coords(3, 0)), 0.5 * (coords(2, 1) + coords(3, 1)), spherical);
-	      write_coords(OUT, coords(3, 0),coords(3, 1), spherical);
+			   0.25 * (coords(0,1) + coords(1, 1) + coords(2, 1) + coords(3, 1)), smesh.CoordinateSystem);
+	      write_coords(OUT, 0.5 * (coords(1, 0) + coords(3, 0)), 0.5 * (coords(1, 1) + coords(3, 1)), smesh.CoordinateSystem);
+	      write_coords(OUT, coords(2, 0), coords(2, 1), smesh.CoordinateSystem);
+	      write_coords(OUT, 0.5 * (coords(2, 0) + coords(3, 0)), 0.5 * (coords(2, 1) + coords(3, 1)), smesh.CoordinateSystem);
+	      write_coords(OUT, coords(3, 0),coords(3, 1), smesh.CoordinateSystem);
             }
         OUT << "CELLS " << smesh.nx * smesh.ny << " " << 10 * smesh.nx * smesh.ny << std::endl;
         size_t ii = 0;
@@ -474,21 +474,21 @@ public:
 
     template <int DG>
     static void write_dg(
-			 const std::string& fname, int n, const DGVector<DG>& v, const ParametricMesh& smesh, bool spherical = false)
+			 const std::string& fname, int n, const DGVector<DG>& v, const ParametricMesh& smesh)
     {
-      write_dg(compose_vtkname(fname, DG, n), v, smesh, spherical);
+      write_dg(compose_vtkname(fname, DG, n), v, smesh);
     }
     template <int CGdegree>
     static void write_cg(
-			 const std::string& fname, int n, const CGVector<CGdegree>& v, const ParametricMesh& smesh, bool spherical = false)
+			 const std::string& fname, int n, const CGVector<CGdegree>& v, const ParametricMesh& smesh)
     {
-      write_cgvector(compose_vtkname(fname, CGdegree, n), v, smesh, spherical);
+      write_cgvector(compose_vtkname(fname, CGdegree, n), v, smesh);
     }
     template <int CGdegree>
     static void write_cg_velocity(
-				  const std::string& fname, int n, const CGVector<CGdegree>& vx, const CGVector<CGdegree>& vy, const ParametricMesh& smesh, bool spherical = false)
+				  const std::string& fname, int n, const CGVector<CGdegree>& vx, const CGVector<CGdegree>& vy, const ParametricMesh& smesh)
     {
-      write_cg_velocity(compose_vtkname(fname, CGdegree, n), vx, vy, smesh, spherical);
+      write_cg_velocity(compose_vtkname(fname, CGdegree, n), vx, vy, smesh);
     }
 };
 

@@ -27,6 +27,8 @@
 
 bool WRITE_VTK = true;
 
+Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
+
 namespace Nextsim {
 extern Timer GlobalTimer;
 }
@@ -119,7 +121,7 @@ template <int CG, int DGadvection>
 void run_benchmark(const std::string meshfile)
 {
     //! Define the spatial mesh
-    Nextsim::ParametricMesh smesh;
+  Nextsim::ParametricMesh smesh(CoordinateSystem);
     smesh.readmesh(meshfile);
     size_t NX = smesh.nx;
 

@@ -201,8 +201,8 @@ template <int DG>
 template <int CG>
 void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector<CG>& cg_vy)
 {
-  Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx, CoordinateSystem);
-  Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy, CoordinateSystem);
+  Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
+  Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
   reinitnormalvelocity();
 }
 

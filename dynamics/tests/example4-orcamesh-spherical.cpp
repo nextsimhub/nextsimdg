@@ -142,21 +142,21 @@ public:
 
 
         // initial density
-        Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump(), Nextsim::SPHERICAL);
+        Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump());
 	
         // velocity field
-        Nextsim::Interpolations::Function2DG(smesh, sphericaltransport.GetVx(), VX, Nextsim::SPHERICAL);
-        Nextsim::Interpolations::Function2DG(smesh, sphericaltransport.GetVy(), VY, Nextsim::SPHERICAL);
+        Nextsim::Interpolations::Function2DG(smesh, sphericaltransport.GetVx(), VX);
+        Nextsim::Interpolations::Function2DG(smesh, sphericaltransport.GetVy(), VY);
 
 	
         std::cout << DG << "\t" << ProblemConfig::NT << "\t" << smesh.nx << "\t" << std::flush;
 
 	if (WRITE_VTK)
 	  {
-	    Nextsim::VTK::write_dg<1>(resultsdir + "/landmask", 0, Nextsim::Tools::Landmask(smesh), smesh, true);
-	    Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", 0, phi, smesh, true);
-	    Nextsim::VTK::write_dg<DG>(resultsdir + "/vx", 0, sphericaltransport.GetVx(), smesh, true);
-	    Nextsim::VTK::write_dg<DG>(resultsdir + "/vy", 0, sphericaltransport.GetVy(), smesh, true);
+	    Nextsim::VTK::write_dg<1>(resultsdir + "/landmask", 0, Nextsim::Tools::Landmask(smesh), smesh);
+	    Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", 0, phi, smesh);
+	    Nextsim::VTK::write_dg<DG>(resultsdir + "/vx", 0, sphericaltransport.GetVx(), smesh);
+	    Nextsim::VTK::write_dg<DG>(resultsdir + "/vy", 0, sphericaltransport.GetVy(), smesh);
 	  }
 
 	
@@ -167,10 +167,10 @@ public:
             sphericaltransport.step(dt, phi); // performs one time step with the 2nd or 3rd Order Heun scheme
             if (WRITE_VTK)
                 if (iter % (ProblemConfig::NT / writestep) == 0)
-		  Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", iter / (ProblemConfig::NT / writestep), phi, smesh, true);
+		  Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", iter / (ProblemConfig::NT / writestep), phi, smesh);
         }
         // integral over the solution
-        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump(), Nextsim::SPHERICAL);
+        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump());
     }
 };
 

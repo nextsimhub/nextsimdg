@@ -79,7 +79,7 @@ public:
    */
   std::vector<bool> landmask;
 
-  ParametricMesh(const COORDINATES coords = CARTESIAN, int loglevel = -1)
+  ParametricMesh(const COORDINATES coords, int loglevel = -1)
     : CoordinateSystem (coords)
     , statuslog(loglevel)
         , nx(-1)
@@ -178,7 +178,7 @@ public:
      */
     size_t eid2nid(const size_t eid) const
     {
-        return (eid / nx) * (nx + 1) + (eid % nx);
+        return static_cast<size_t>(eid / nx) * (nx + 1) + (eid % nx);
     }
 
 
@@ -215,7 +215,8 @@ public:
   const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinatesOfElement(const size_t eid) const
     {
         const size_t nid = eid2nid(eid);
-
+	assert(nid<vertices.rows());
+	assert(nid+nx+2<vertices.rows());
 	Eigen::Matrix<Nextsim::FloatType, 4, 2> coords = 
 	  Eigen::Matrix<Nextsim::FloatType, 4, 2>
 	  ({ { vertices(nid, 0),          vertices(nid, 1) },

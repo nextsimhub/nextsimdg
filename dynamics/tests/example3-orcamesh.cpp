@@ -142,11 +142,11 @@ public:
 
 
         // initial density
-        Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump(), Nextsim::CARTESIAN);
+        Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump());
 
         // velocity field
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX, Nextsim::CARTESIAN);
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY, Nextsim::CARTESIAN);
+        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
+        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
 
         if (WRITE_VTK) {
             Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", 0, phi, smesh);
@@ -165,14 +165,14 @@ public:
 		  }
         }
         // integral over the solution
-        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump(), Nextsim::CARTESIAN);
+        return Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump());
     }
 };
 
 template <int DG>
 void run(double distort = 0.0)
 {
-    Nextsim::ParametricMesh smesh; // 0 means no output
+    Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN); // 0 means no output
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 \
                                                          : -1))

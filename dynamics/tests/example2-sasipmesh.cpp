@@ -180,14 +180,14 @@ public:
         init();
 
         // initial density
-        Nextsim::Interpolations::Function2DG(smesh, phi, Packman(), Nextsim::CARTESIAN);
+        Nextsim::Interpolations::Function2DG(smesh, phi, Packman());
 	Nextsim::LimitMax(phi,1.0);
 	Nextsim::LimitMin(phi,0.0);
 
 	double initialmass = Nextsim::Tools::MeanValue(smesh,phi);
         // velocity field
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX, Nextsim::CARTESIAN);
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY, Nextsim::CARTESIAN);
+        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
+        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
 
 	
         if (WRITE_VTK) {
@@ -212,7 +212,7 @@ public:
 	
 	std::cout << initialmass << "\t";
 	// compute error
-	return sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, Packman(), Nextsim::CARTESIAN)) / ProblemConfig::R0;
+	return sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, Packman())) / ProblemConfig::R0;
     }
 };
 
@@ -250,7 +250,7 @@ void create_rectanglemesh(const std::string meshname)
 template <int DG>
 void run(const std::array<std::array<double, 4>, 3>& exact)
 {
-    Nextsim::ParametricMesh smesh; 
+  Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN); 
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 \
                                                          : -1))

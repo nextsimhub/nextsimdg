@@ -41,6 +41,7 @@
 
 bool WRITE_VTK = true;
 
+Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
 namespace Nextsim {
 extern Timer GlobalTimer;
 }
@@ -149,7 +150,7 @@ void run_benchmark(const size_t N)
 {
     //! Define the spatial mesh
     create_mesh("tmp-benchmark.smesh", N);
-    Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
+    Nextsim::ParametricMesh smesh(CoordinateSystem);
     smesh.readmesh("tmp-benchmark.smesh");
 
     //! Compose name of output directory and create it
@@ -196,8 +197,8 @@ void run_benchmark(const size_t N)
 
     ////////////////////////////////////////////////// Variables and Initial Values
     Nextsim::DGVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
-    Nextsim::Interpolations::Function2DG(smesh, H, InitialH(), Nextsim::CARTESIAN);
-    Nextsim::Interpolations::Function2DG(smesh, A, InitialA(), Nextsim::CARTESIAN);
+    Nextsim::Interpolations::Function2DG(smesh, H, InitialH());
+    Nextsim::Interpolations::Function2DG(smesh, A, InitialA());
 
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");

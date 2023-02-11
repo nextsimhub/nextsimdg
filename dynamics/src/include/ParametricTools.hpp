@@ -94,7 +94,6 @@ namespace ParametricTools {
       // get the coordinates of the element as 4x2 - matrix
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
             = smesh.coordinatesOfElement(eid);
-
         const Eigen::Matrix<Nextsim::FloatType, 2, Q*Q> dxT = coordinates.transpose() * PHIx<1,Q>;
         const Eigen::Matrix<Nextsim::FloatType, 2, Q*Q> dyT = coordinates.transpose() * PHIy<1,Q>;
 
@@ -164,46 +163,6 @@ namespace ParametricTools {
 
 
 namespace SphericalTools {
-
-    /*!
-     * computes and returns the gradient of the parametric map in the Gausspoints
-     */
-    template <int Q>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dxT(const ParametricMesh& smesh, const size_t eid)
-    {
-      assert(0);
-        const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
-            = smesh.coordinatesOfElement(eid);
-        return coordinates.transpose() * PHIx<1,Q>;
-    }
-    template <int Q>
-    inline Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dyT(const ParametricMesh& smesh, const size_t eid)
-    {
-      assert(0);
-        const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
-            = smesh.coordinatesOfElement(eid);
-        return coordinates.transpose() * PHIy<1,Q>;
-    }
-
-    /*!
-     * computes and returns the degree of determinant of the transformation's Jacobian
-     * depends on the number of gauss points Q
-     */
-    template <int Q>
-    inline Eigen::Matrix<Nextsim::FloatType, 1, Q * Q> J(const ParametricMesh& smesh, const size_t eid)
-    {
-      assert(0);
-        // get the coordinates of the element as 4x2 - matrix
-        const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
-            = smesh.coordinatesOfElement(eid);
-
-        const Eigen::Matrix<Nextsim::FloatType, 2, Q*Q> dxT = coordinates.transpose() * PHIx<1,Q>;
-        const Eigen::Matrix<Nextsim::FloatType, 2, Q*Q> dyT = coordinates.transpose() * PHIy<1,Q>;
-
-        // (dxT, dyT) is (dx T1, dx T2, dy T1, dy T2)
-        return dxT.array().row(0) * dyT.array().row(1) - dxT.array().row(1) * dyT.array().row(0);
-    }
-
     /*!
      * computes and returns the element mass matrix
      */
@@ -212,7 +171,7 @@ namespace SphericalTools {
     {
       return (PSI<DG, GAUSSPOINTS1D(DG) >.array().rowwise() *
 	      (GAUSSWEIGHTS<GAUSSPOINTS1D(DG) >.array() *
-	       J<GAUSSPOINTS1D(DG)>(smesh, eid).array() *
+	       ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, eid).array() *
 	       (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid).row(1).array()).cos()
 	       )).matrix() * PSI<DG, GAUSSPOINTS1D(DG)>.transpose();
     }

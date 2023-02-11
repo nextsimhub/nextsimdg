@@ -158,13 +158,13 @@ public:
     init();
 
     // initial density
-    Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump(), Nextsim::CARTESIAN);
+    Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump());
 
     double initialaverage = Nextsim::Tools::MeanValue(smesh,phi);
 
     // velocity field
-    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX, Nextsim::CARTESIAN);
-    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY, Nextsim::CARTESIAN);
+    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
+    Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
 
     if (WRITE_VTK) {
       Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", 0, phi, smesh);
@@ -187,7 +187,7 @@ public:
     std::cout << initialaverage << "\t";
 
     // integrate the error
-    return sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump(), Nextsim::CARTESIAN)) / ProblemConfig::Lx;
+    return sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, phi, SmoothBump())) / ProblemConfig::Lx;
   }
 };
 
@@ -227,7 +227,7 @@ void create_rectanglemesh(const double Lx, const double Ly, const size_t Nx, con
 template <int DG>
 void run(double distort, const std::array<std::array<double, 4>, 3>& exact)
 {
-  Nextsim::ParametricMesh smesh; // 0 means no output
+  Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN); // 0 means no output
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2	\
 				   : -1))
