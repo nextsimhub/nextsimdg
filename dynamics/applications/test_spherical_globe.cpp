@@ -118,48 +118,29 @@ class LX : public Nextsim::Interpolations::Function {
 public:
   double operator()(double X, double Y) const
   {
-    const double t1 = sin(Y);
-    const double t2 = cos(Y);
+    const double t1 = cos(Y);
+    const double t2 = t1 * t1;
     const double t3 = t2 * t2;
-    const double t4 = t3 * t3;
-    const double t7 = sin(X);
-    const double t8 = cos(X);
-    const double t9 = t8 * t8;
-    const double t11 = 1.0/SQR(Nextsim::EarthRadius);
-    const double t15 = t9 * t11;
-    const double t24 = t3 * t2;
-    const double t32 = t2 * t11;
-    const double t38 = 1. / t11;
-    const double t41 = t4 * t1;
-    const double t46 = t1 * t11;
-    const double t63 = -t7 * t38 * (70. * t11 * t9 * t7 * t4 * t2 * t1 + t4 * (21. * t15 - 18. * t11) - 58. * t24 * t1 * t7 * (97. / 145. * t15 + 4. / 29. * t11) + t3 * (-79. / 5. * t15 + 361. / 25. * t11) + 54. / 25. * t1 * t7 * t32 - 9. / 25. * t11) / 2. - t38 * t9 * t2 * (70. * t15 * t41 - 70. * t11 * t41 - 194. / 5. * t9 * t3 * t46 - 21. * t11 * t7 * t24 + 234. / 5. * t3 * t46 + 79. / 5. * t7 * t32 - 54. / 25. * t46) / 2.0;
-    return t63;
+    const double t4 = sin(X);
+    const double t7 = cos(X);
+    const double t8 = t7 * t7;
+    const double t11 = sin(Y);
+    const double t24 = 0.9e1 * t4 * t3 + t2 * t1 * t11 * (-0.400e3 * t8 + 0.200e3) / 0.50e2 - 0.361e3 / 0.50e2 * t4 * t2 + t1 * t11 * (0.108e3 * t8 - 0.54e2) / 0.50e2 + 0.9e1 / 0.50e2 * t4;
+    return t24;
   }
 };
 class LY : public Nextsim::Interpolations::Function {
 public:
   double operator()(double X, double Y) const
   {
-    const double t1 = sin(Y);
+    const double t1 = cos(X);
     const double t2 = cos(Y);
     const double t3 = t2 * t2;
     const double t4 = t3 * t3;
-    const double t5 = t4 * t2;
-    const double t7 = sin(X);
-    const double t8 = cos(X);
-    const double t9 = t8 * t8;
-    const double t11 = 1.0/SQR(Nextsim::EarthRadius);
-    const double t15 = t9 * t11;
-    const double t24 = t3 * t2;
-    const double t32 = t2 * t11;
-    const double t38 = 1. / t11;
-    const double t42 = t4 * t1;
-    const double t47 = t1 * t11;
-    const double t52 = t11 * t7 * t24;
-    const double t54 = t3 * t47;
-    const double t56 = t7 * t32;
-    const double t77 = -t8 * t1 * t38 * (70.0 * t11 * t9 * t7 * t5 * t1 + t4 * (21. * t15 - 18. * t11) - 58. * t24 * t1 * t7 * (97. / 145. * t15 + 4. / 29. * t11) + t3 * (-79. / 5. * t15 + 361. / 25. * t11) + 54. / 25. * t1 * t7 * t32 - 9. / 25. * t11) / 2. + t7 * t1 * t38 * t8 * t2 * (70. * t15 * t42 - 70. * t11 * t42 - 194. / 5. * t9 * t3 * t47 - 21. * t52 + 234. / 5. * t54 + 79. / 5. * t56 - 54. / 25. * t47) / 2. - t38 * t8 * t3 * (70. * t11 * t7 * t5 - 334. / 5. * t52 - 3. * t54 + 36. / 5. * t56 + 9. / 25. * t47) / 2.;
-    return t77;
+    const double t6 = sin(X);
+    const double t12 = sin(Y);
+    const double t20 = (0.1298e4 * t6 * t3 * t2 - 0.1450e4 * t6 * t4 * t2 + 0.25e2 * t12 * t3 - 0.108e3 * t6 * t2 + 0.9e1 * t12) * t1 / 0.50e2;
+    return t20;
   }
 };
 //////////////////////////////////////////////////

@@ -317,7 +317,7 @@ void run_benchmark()
 
 int main()
 {
-  run_benchmark<2, 3>();
+  run_benchmark<1, 1>();
   // int NN[5] = {32,64,128,256,512};
   // for (int n=0;n<5;++n)
   //   {
