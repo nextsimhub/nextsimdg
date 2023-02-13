@@ -3,6 +3,7 @@
  *
  * @date Jan 18, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include "include/StructureFactory.hpp"
@@ -41,7 +42,12 @@ std::string structureNameFromFile(const std::string& filePath)
     return structureName;
 }
 
+#ifdef USE_MPI
+ModelState StructureFactory::stateFromFile(
+    const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
+#else
 ModelState StructureFactory::stateFromFile(const std::string& filePath)
+#endif
 {
     std::string structureName = structureNameFromFile(filePath);
     // TODO There must be a better way
