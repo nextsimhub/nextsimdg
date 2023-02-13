@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(nextsim_dg)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build")
+
 find_package(PkgConfig)
 pkg_search_module(NETCDF_CXX4 netcdf-cxx4)
 if (NETCDF_CXX4_FOUND)
@@ -30,6 +32,8 @@ if (OPENMP_FOUND)
    endif()
 endif()
 
+find_package(MPI REQUIRED)
+
 
 
 # Regarding Boost.Log, if our application consists of more
@@ -49,6 +53,17 @@ add_library(doctest::doctest IMPORTED INTERFACE)
 set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}")
 
 find_package(Eigen3 3.4 REQUIRED)
+
+#find_library(xios libxios.a REQUIRED)# HINTS ENV LD_LIBRARY_PATH LIBRARY_PATH)
+
+include(CMakePrintHelpers)
+cmake_print_variables(CMAKE_SOURCE_DIR)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+#pkg_search_module(XIOS REQUIRED xios IMPORTED_TARGET)
+find_package(xios REQUIRED)
+
+cmake_print_variables(xios_INCLUDES)
 
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
@@ -95,6 +110,10 @@ target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
+    "${MPI_CXX_INCLUDE_PATH}"
+    "${xios_INCLUDES}"
+    "${xios_EXTERNS}/blitz/"
+    "${xios_EXTERNS}/rapidxml/include"
     )
-target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
+target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen MPI::MPI_CXX xios "-lhdf5_hl -lhdf5 -lifcore")
