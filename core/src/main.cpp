@@ -47,5 +47,6 @@ int main(int argc, char* argv[])
         model.run();
     }
 
+    std::cout << "SUCCESS\n";
     return 0;
 }
