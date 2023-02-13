@@ -24,8 +24,12 @@ namespace Nextsim {
 //! A class that encapsulates the whole of the model
 class Model : public Configured<Model> {
 public:
+#ifdef USE_MPI
+    Model(MPI_Comm comm);
+#else
     Model(); // TODO add arguments to pass the desired
              // environment and configuration to the model
+#endif
     ~Model(); // Finalize the model. Collect data and so on.
 
     void configure() override;

@@ -48,7 +48,11 @@ int main(int argc, char* argv[])
         Nextsim::ConfigurationHelpPrinter::print(std::cout, map, cmdLine.configHelp());
     } else {
         // Construct the Model
+#ifdef USE_MPI
+        Nextsim::Model model(MPI_COMM_WORLD);
+#else
         Nextsim::Model model;
+#endif
         // Apply the model configuration
         model.configure();
         // Run the Model
