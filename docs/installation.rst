@@ -51,7 +51,7 @@ If your package manager is `Homebrew`_ :
 Compilation on Ubuntu
 ---------------------
 
-You must have root priviledge :
+You must have root privilege :
 
 .. code::
 
@@ -77,7 +77,7 @@ You must have root priviledge :
 Compilation with dependencies installation via conda
 ----------------------------------------------------
 
-Install conda via anaconda or miniconda (no root priviledges required)
+Install conda via anaconda or miniconda (no root privileges required)
 
 .. code::
 

@@ -24,6 +24,7 @@ set(BaseSources
     "PrognosticData.cpp"
     "Time.cpp"
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "Xios.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
