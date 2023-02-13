@@ -38,8 +38,16 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::MISSINGVALUE_KEY, "model.missing_value" },
 };
 
+#ifdef USE_MPI
+Model::Model(MPI_Comm comm)
+#else
 Model::Model()
+#endif
 {
+#ifdef USE_MPI
+    m_etadata.setMpiMetadata(comm);
+#endif
+
     iterator.setIterant(&modelStep);
 
     finalFileName = "restart.nc";
