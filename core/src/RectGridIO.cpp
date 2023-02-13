@@ -3,6 +3,7 @@
  *
  * @date Feb 8, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include "include/RectGridIO.hpp"
@@ -43,7 +44,11 @@ void dimensionSetter(
     ModelArray::setDimensions(type, dims);
 }
 
+#ifdef USE_MPI
+ModelState RectGridIO::getModelState(const std::string& filePath, const std::string& partitionFile)
+#else
 ModelState RectGridIO::getModelState(const std::string& filePath)
+#endif
 {
     ModelState state;
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
