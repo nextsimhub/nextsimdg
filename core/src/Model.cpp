@@ -2,6 +2,7 @@
  * @file Model.cpp
  * @date 12 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include "include/Model.hpp"
@@ -27,6 +28,9 @@ const std::string Model::restartOptionName = "model.init_file";
 template <>
 const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
+#ifdef USE_MPI
+    { Model::PARTITIONFILE_KEY, "model.partition_file" },
+#endif
     { Model::STARTTIME_KEY, "model.start" },
     { Model::STOPTIME_KEY, "model.stop" },
     { Model::RUNLENGTH_KEY, "model.run_length" },
@@ -78,6 +82,11 @@ void Model::configure()
     modelStep.init();
     modelStep.setInitFile(initialFileName);
 
+#ifdef USE_MPI
+    std::string partitionFile
+        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
+#endif
+
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
@@ -114,6 +123,10 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model physics timestep, formatted a ISO8601 duration (P prefix). " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
+#ifdef USE_MPI
+        { keyMap.at(PARTITIONFILE_KEY), ConfigType::STRING, {}, "", "",
+            "The file path to the file describing MPI domain decomposition to use for the run." },
+#endif
     };
 
     return map;
