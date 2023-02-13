@@ -51,7 +51,7 @@ public:
 #ifdef USE_MPI
     ModelState getModelState(const std::string& filePath, const std::string& partitionFile) override
     {
-        return pio ? pio->getModelState(filePath) : ModelState();
+        return pio ? pio->getModelState(filePath, partitionFile) : ModelState();
     }
 #else
     ModelState getModelState(const std::string& filePath) override
@@ -85,7 +85,13 @@ public:
         }
         virtual ~IRectGridIO() = default;
 
+#ifdef USE_MPI
+        virtual ModelState getModelState(
+            const std::string& filePath, const std::string& partitionFile)
+            = 0;
+#else
         virtual ModelState getModelState(const std::string& filePath) = 0;
+#endif
 
         /*!
          * @brief Dumps the given ModelState to the given file path.
