@@ -95,7 +95,12 @@ void Model::configure()
         = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
 #endif
 
+#ifdef USE_MPI
+    ModelState initialState(
+        StructureFactory::stateFromFile(initialFileName, partitionFile, m_etadata));
+#else
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
+#endif
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
     pData.setData(initialState.data);
