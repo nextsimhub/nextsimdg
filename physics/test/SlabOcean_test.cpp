@@ -48,11 +48,15 @@ TEST_CASE("Test Qdw", "[SlabOcean]")
     cpml = Water::cp * Water::rho * mld;
     ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::ML_BULK_CP, &cpml);
 
+    HField cice(ModelArray::Type::H);
+    double cice0 = 0.5;
+    cice = cice0;
+    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &cice);
+
     HField data0(ModelArray::Type::H);
     data0 = 0;
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IO, &data0);
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &data0);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &data0);
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DELTA_HICE, &data0);
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::NEW_ICE, &data0);
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::HSNOW_MELT, &data0);
@@ -87,7 +91,7 @@ TEST_CASE("Test Qdw", "[SlabOcean]")
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IO, &qio);
     // Should not need to update anything else, as the slabOcean update only changes SLAB_SST
     slabOcean.update(tst);
-    REQUIRE(sstSlab[0] == Approx(sst[0] - dt * (qow[0] + qio[0] - qdw[0]) / cpml[0]).epsilon(prec));
+    REQUIRE(sstSlab[0] == Approx(sst[0] - dt * (cice0 * qow[0] + cice0 * qio[0] - qdw[0]) / cpml[0]).epsilon(prec));
 }
 
 TEST_CASE("Test Fdw", "[SlabOcean]")
