@@ -18,24 +18,24 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
 ModelArray::TypeDimensions ModelArray::typeDimensions = {
     { ModelArray::Type::ONED,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
+            ModelArray::Dimension::X,
         } },
     { ModelArray::Type::TWOD,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
         } },
     { ModelArray::Type::DOSD,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Z),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::U),
+            ModelArray::Dimension::Z,
+            ModelArray::Dimension::U,
         } },
     { ModelArray::Type::FOURD,
         {
-            ModelArray::definedDimensions.at(ModelArray::Dimension::X),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Y),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::Z),
-            ModelArray::definedDimensions.at(ModelArray::Dimension::U),
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
+            ModelArray::Dimension::Z,
+            ModelArray::Dimension::U,
         } },
 };
 
@@ -72,5 +72,7 @@ ModelArray::DimensionMap::DimensionMap()
     })
 {
 }
+
+const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {};
 
 }

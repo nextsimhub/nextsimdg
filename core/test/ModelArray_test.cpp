@@ -139,7 +139,6 @@ TEST_CASE("Moving data", "[ModelArray]")
 TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
 {
     DosDField uu = ModelArray::DosDField();
-    REQUIRE(uu.size() == 1);
     ModelArray::MultiDim udim = {5, 5};
     uu.setDimensions(udim);
     REQUIRE(uu.size() == udim[0] * udim[1]);
@@ -234,5 +233,25 @@ TEST_CASE("Arithmetic tests", "[ModelArray]")
 
     REQUIRE(fill[0] == filldub);
     REQUIRE(fill[1] == filldub);
+}
+
+// Location from index. Index from location is assumed to work as it is a
+// wrapper around indexr()
+TEST_CASE("Location from index", "[ModelArray]")
+{
+    const size_t nx = 31;
+    const size_t ny = 37;
+    const size_t nz = 41;
+
+    ModelArray::setDimensions(ModelArray::Type::FOURD, {nx, ny, nz, 1});
+    size_t x = 13;
+    size_t y = 17;
+    size_t z = 19;
+
+    size_t index = ModelArray::indexFromLocation(ModelArray::Type::FOURD, {x, y, z, 0});
+    ModelArray::MultiDim loc = ModelArray::locationFromIndex(ModelArray::Type::FOURD, index);
+    REQUIRE(loc[0] == x);
+    REQUIRE(loc[1] == y);
+    REQUIRE(loc[2] == z);
 }
 } /* namespace Nextsim */

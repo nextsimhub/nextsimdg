@@ -14,8 +14,6 @@
 #include <string>
 #include <utility>
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;
@@ -179,20 +177,27 @@ void ModelArray::setData(double value)
 void ModelArray::setData(const double* pData)
 {
     resize();
-    auto out = std::copy(pData, pData + m_sz.at(type), m_data.data());
+    auto out = std::copy(pData, pData + m_sz.at(type) * nComponents(), m_data.data());
 }
 
-void ModelArray::setData(const DataType& from) { setData(from.data()); }
+void ModelArray::setData(const DataType& from) { m_data = from; } // setData(from.data()); }
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
 void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
-    std::vector<DimensionSpec>& dimSpecs = typeDimensions.at(type);
+    std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
     for (size_t i = 0; i < dimSpecs.size(); ++i) {
-        dimSpecs[i].length = newDims[i];
+        definedDimensions.at(dimSpecs[i]).length = newDims[i];
     }
     validateMaps();
+}
+
+void ModelArray::setNComponents(std::map<Type, size_t> cMap)
+{
+    for (auto entry : cMap) {
+        setNComponents(entry.first, entry.second);
+    }
 }
 
 void ModelArray::setDimension(Dimension dim, size_t length)
@@ -216,6 +221,42 @@ ModelArray::Component ModelArray::components(const MultiDim& loc)
     return components(indexr(dimensions().data(), loc));
 }
 
+const ModelArray::ConstComponent ModelArray::components(const MultiDim& loc) const
+{
+    return components(indexr(dimensions().data(), loc));
+}
+
+/*!
+ * @brief Returns the index for a given set of multi-dimensional location for the given Type.
+ *
+ * @param type The type to act on.
+ * @param loc The multi-dimensional location to return the index for.
+ */
+size_t ModelArray::indexFromLocation(Type type, const MultiDim& loc)
+{
+    return indexr(m_dims.at(type).data(), loc);
+}
+
+/*!
+ * @brief Returns the multi-dimensional location for a given index for the given Type.
+ *
+ * @param type The type to act on.
+ * @param index The index to return the multi-dimensional location for.
+ */
+ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
+{
+    MultiDim& dims = m_dims.at(type);
+    MultiDim loc(dims.size()); // Size to the known number of dimensions
+    for (size_t i = loc.size(); i > 0; --i) {
+        size_t idim = i - 1;
+        size_t theDim = dims[idim];
+        size_t pos = index % theDim;
+        loc[idim] = pos;
+        index /= theDim;
+    }
+    return loc;
+}
+
 void ModelArray::validateMaps()
 {
     m_dims.validate();
@@ -228,10 +269,10 @@ void ModelArray::DimensionMap::validate()
     for (auto entry : typeDimensions) {
         Type type = entry.first;
         std::vector<size_t>& dims = m_dimensions[type];
-        std::vector<DimensionSpec>& dimSpec = entry.second;
-        dims.resize(dimSpec.size());
-        for (size_t i = 0; i < dimSpec.size(); ++i) {
-            dims[i] = dimSpec[i].length;
+        std::vector<Dimension>& typeDims = entry.second;
+        dims.resize(typeDims.size());
+        for (size_t i = 0; i < typeDims.size(); ++i) {
+            dims[i] = definedDimensions.at(typeDims[i]).length;
         }
     }
 }
@@ -240,9 +281,9 @@ void ModelArray::SizeMap::validate()
 {
     for (auto entry : typeDimensions) {
         size_t size = 1;
-        std::vector<DimensionSpec>& dimSpec = entry.second;
-        for (size_t i = 0; i < dimSpec.size(); ++i) {
-            size *= dimSpec[i].length;
+        std::vector<Dimension>& typeDims = entry.second;
+        for (size_t i = 0; i < typeDims.size(); ++i) {
+            size *= definedDimensions.at(typeDims[i]).length;
         }
         m_sizes.at(entry.first) = size;
     }
