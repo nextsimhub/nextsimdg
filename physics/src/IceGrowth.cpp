@@ -186,7 +186,7 @@ void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
         qow[i] = sensibleFlux;
         newice[i] = latentFlux * tst.step * (1 - cice[i]) / (Ice::Lf * Ice::rho);
     } else {
-        newice[0] = 0;
+        newice[i] = 0;
     }
 }
 
