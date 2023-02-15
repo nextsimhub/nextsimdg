@@ -38,160 +38,179 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
+#include "VectorManipulations.hpp"
+#include <map>
 
 bool WRITE_VTK = true;
 
-Nextsim::COORDINATES CoordinateSystem = Nextsim::SPHERICAL;
 
 namespace Nextsim {
 extern Timer GlobalTimer;
 }
 
-inline constexpr double SQR(double x) { return x * x; }
-
-//////////////////////////////////////////////////// Benchmark testcase from [Mehlmann / Richter, ...]
-//! Description of the problem data, wind & ocean fields
+inline constexpr double SQR(double x) { return (x * x); }
 
 namespace ReferenceScale {
-constexpr double T = 30.0 * 24.0 * 60.0 * 60.0; //!< Time horizon 1 month
-constexpr double VMX = 2.0*M_PI * Nextsim::EarthRadius / T;  // once around
+  constexpr double R1 = Nextsim::EarthRadius * 0.8; // For z=R1, Dirichlet zero
+
+  constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
+  constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
+  double vmax_atm = 20.0;
+  
 }
+
+
 
 class OceanX : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      return 0.0;
+      return ReferenceScale::vmax_ocean * (1.0 + 0.5 * sin(2.0*x) * cos(y));
     }
 };
 class OceanY : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      return 0.0;
+        return ReferenceScale::vmax_ocean  * cos(3.*y);
     }
 };
 
 struct AtmX : public Nextsim::Interpolations::Function {
+    double time;
 
 public:
-  double time;
+    void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
-      return ReferenceScale::VMX + 5.0 * cos(3.0*x)*sin(2.0*y);
+      return ReferenceScale::vmax_atm * sin(4.0*(x-time/ReferenceScale::T)) *cos(4.0*y);
     }
 };
- 
 struct AtmY : public Nextsim::Interpolations::Function {
+    double time;
 
 public:
-  double time;
-  double operator()(double x, double y) const
-  {
-    return 5.0 * sin(2.0*(x-4.0*time/ReferenceScale::T*M_PI))*cos(4.0*y);
-  }
+    void settime(double t) { time = t; }
+    double operator()(double x, double y) const
+    {
+      return -ReferenceScale::vmax_atm * cos(8.0*x)*sin(4.0*y);
+    }
 };
+
 class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
-    {      
-      return 0.5 ;//+ 0.1 * cos(4.0*x) * sin(4.0*y);
+    {
+      return 0.3 + 0.01*sin(4*x)*sin(2*y);
     }
 };
 class InitialA : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
   {
-    return 0.9;
+    return 1.0;
   }
 };
+
+
+
+
+
+
+
 //////////////////////////////////////////////////
 
 
-//! Creates a rectangular mesh of the whole earth. Ice for  poles * Ny < iy < (1-poles) * Ny
-void create_mesh(const std::string meshname, size_t Nx, size_t Ny) 
+//! Creates a rectangular mesh of (nearly) whole earth. Ice for  poles * Ny < iy < (1-poles) * Ny
+void create_mesh(Nextsim::ParametricMesh& smesh, size_t Nx, size_t Ny) 
 {
-  double poles = 1.0/8.0;
-    std::ofstream OUT(meshname.c_str());
-    OUT << "ParametricMesh 2.0" << std::endl
-        << Nx << "\t" << Ny << std::endl;
-    for (size_t iy = 0; iy <= Ny; ++iy) // lat 
-      for (size_t ix = 0; ix <= Nx; ++ix) // lon
-	OUT << -M_PI+2.0 * M_PI*ix/Nx << "\t" << -M_PI/2.0+M_PI*iy/Ny << std::endl;
+  smesh.statuslog = -1;
+  smesh.CoordinateSystem = Nextsim::SPHERICAL;
+  
+  smesh.nx = Nx;
+  smesh.ny = Ny;
+  smesh.nelements = Nx*Ny;
+  smesh.nnodes    = (Nx+1)*(Ny+1);
+  smesh.vertices.resize(smesh.nnodes,2);
+  
+  // z coordinate between -0.8*R and 0.8*R
+  const double thetamax = asin(0.8);
+  
+  for (size_t iy = 0; iy <= Ny; ++iy) // lat 
+    for (size_t ix = 0; ix <= Nx; ++ix) // lon
+      {
+	smesh.vertices(iy*(Nx+1)+ix,0) = -M_PI+2.0 * M_PI*ix/Nx;
+	smesh.vertices(iy*(Nx+1)+ix,1) = -thetamax+2.0*thetamax*iy/Ny;
+      }
 
-    OUT << "landmask " << Nx * Ny << std::endl; // no ice on poles :-)
-    size_t y0 = poles*Ny;       // first element that is ice
-    size_t y1 = (1.0-poles)*Ny; // last element that is ice
-    for (size_t iy = 0; iy < Ny; ++iy) // lat 
-      for (size_t ix = 0; ix < Nx; ++ix) // lon
-	if ( (y0 <= iy) && (iy <= y1) )
-	  OUT << 1 << std::endl;
-	else
-	  OUT << 0 << std::endl;
+  // ice everywhere
+  smesh.landmask.resize(Nx*Ny);
+  for (size_t i=0;i<Nx*Ny;++i)
+    smesh.landmask[i]=1;
 
-    // Dirichlet boundary along y0 (bottom) / y1 (top)
-    OUT << "dirichlet " << 2*Nx << std::endl; // horizontal
-    for (size_t i=0;i<Nx;++i)
-      OUT << y0*Nx + i << "\t" << 0 << std::endl; // lower
-    for (size_t i=0;i<Nx;++i)
-      OUT << y1*Nx + i << "\t" << 2 << std::endl; // upper
-    
-    OUT << "periodic 1" << std::endl; // Periodic Y-term [1] left/right
-    OUT << Ny << std::endl;
-    for (size_t i=0;i<Ny;++i)
-      OUT << (i+1)*Nx-1 << "\t" << i*Nx << "\t1" << std::endl;
+  // dirichlet boundary
+  for (auto &it :  smesh.dirichlet)
+    it.clear();
+  for (size_t i=0;i<Nx;++i)
+    {
+      smesh.dirichlet[0].push_back(i);
+      smesh.dirichlet[2].push_back((Ny-1)*Nx + i);
+    }
 
-    OUT.close();
+  // periodic boundary
+  smesh.periodic.clear();
+  smesh.periodic.resize(1); // 1 segments
+  for (size_t i=0;i<Ny;++i)
+    smesh.periodic[0].push_back(std::array<size_t,4> ({1, (i+1)*Nx-1, i*Nx, i*(Nx+1)}));
 }
 
 template <int CG, int DGadvection>
-void run_benchmark(const size_t N)
+void run_benchmark(const size_t NX, double distort)
 {
+  Nextsim::ParametricMesh smesh(Nextsim::SPHERICAL);
     //! Define the spatial mesh
-    create_mesh("tmp-spherical.smesh", 2*N, N);
-    Nextsim::ParametricMesh smesh(CoordinateSystem);
-    smesh.readmesh("tmp-spherical.smesh");
+  create_mesh(smesh, 2 * NX, NX);
 
     //! Compose name of output directory and create it
-    std::string resultsdir = "SphericalGlobe_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(N);
+    std::string resultsdir = "BenchmarkSpherical_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(NX);
     std::filesystem::create_directory(resultsdir);
-    
+
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh, CoordinateSystem);
-    
+    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::SPHERICAL);
+
     //! define the time mesh
-    constexpr double dt_adv = 120; //!< Time step of advection problem
+    constexpr double dt_adv = 120.; //!< Time step of advection problem
     
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 1200.0;
-    constexpr double beta = 1200.0;
-    constexpr size_t NT_evp = 100;
+    constexpr double alpha = 1500.0;
+    constexpr double beta = 1500.0;
+    constexpr size_t NT_evp = 100; //100;
 
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
-    VP.fc = 0.0;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
               << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta << std::endl
               << "CG/DG " << CG << "\t" << DGadvection  << std::endl;
 
     //! VTK output
-    constexpr double T_vtk = ReferenceScale::T/50.;
+    constexpr double T_vtk = ReferenceScale::T/48.; // 48.0 * 60.0 * 60.0; // every our
     constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
-    constexpr double T_log = 60.0 * 60.0; // every hour
+    constexpr double T_log = 10.0 * 60.0; // every 30 minute
     constexpr size_t NT_log = T_log / dt_adv + 1.e-4;
 
     ////////////////////////////////////////////////// Forcing
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceanx(), OceanX());
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceany(), OceanY());
-    AtmX AirX;  AirX.time = 0.0;
-    AtmY AirY;  AirY.time = 0.0;
-    Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AirX);
-    Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AirY);
-
+    AtmX AtmForcingX;
+    AtmY AtmForcingY;
+    AtmForcingX.settime(0.0);
+    AtmForcingY.settime(0.0);
+    Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
+    Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
 
 
     ////////////////////////////////////////////////// Variables and Initial Values
@@ -199,16 +218,11 @@ void run_benchmark(const size_t N)
     Nextsim::Interpolations::Function2DG(smesh, H, InitialH());
     Nextsim::Interpolations::Function2DG(smesh, A, InitialA());
 
-
-    
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
     if (1) // write initial?
         if (WRITE_VTK) {
-	  Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-	    Nextsim::VTK::write_cg_velocity(resultsdir + "/atm", 0, momentum.GetAtmx(), momentum.GetAtmy(), smesh);
-	    Nextsim::VTK::write_cg_velocity(resultsdir + "/ocean", 0, momentum.GetOceanx(), momentum.GetOceany(), smesh);
-	    
+            Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
             Nextsim::VTK::write_dg(resultsdir + "/A", 0, A, smesh);
             Nextsim::VTK::write_dg(resultsdir + "/H", 0, H, smesh);
             Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
@@ -216,7 +230,7 @@ void run_benchmark(const size_t N)
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::DGTransport<DGadvection> dgtransport(smesh, CoordinateSystem);
+    Nextsim::DGTransport<DGadvection> dgtransport(smesh, Nextsim::SPHERICAL);
     dgtransport.settimesteppingscheme("rk2");
 
     ////////////////////////////////////////////////// Main Loop
@@ -234,24 +248,19 @@ void run_benchmark(const size_t N)
                       << timeInHours << "h\t" << std::setw(6) << std::right << timeInDays << "d\t\t"
                       << std::flush;
 
+        //////////////////////////////////////////////////
+        //! Initialize time-dependent forcing
+        Nextsim::GlobalTimer.start("time loop - forcing");
+        AtmForcingX.settime(time);
+        AtmForcingY.settime(time);
+        Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
+        Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
+        Nextsim::GlobalTimer.stop("time loop - forcing");
 
-	AirX.time = time;
-        AirY.time = time;
-        Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AirX);
-        Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AirY);
-
-	
         //////////////////////////////////////////////////
         //! Advection step
         Nextsim::GlobalTimer.start("time loop - advection");
 
-	//! time depend. forcing
-	AirX.time = time;
-	AirY.time = time;
-	Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AirX);
-	Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AirY);
-
-	
         // interpolates CG velocity to DG and reinits normal velocity
         dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
@@ -274,7 +283,7 @@ void run_benchmark(const size_t N)
 	  //	  momentum.VPStep(VP, dt_adv, H, A);
 	  // <- MPI
         }
-	Nextsim::GlobalTimer.stop("time loop - mevp");
+        Nextsim::GlobalTimer.stop("time loop - mevp");
 
         //////////////////////////////////////////////////
         if (WRITE_VTK) // Output
@@ -283,20 +292,13 @@ void run_benchmark(const size_t N)
 
                 int printstep = timestep / NT_vtk + 1.e-4;
                 Nextsim::GlobalTimer.start("time loop - i/o");
-		Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
+                Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
-		
-	    // Nextsim::VTK::write_dg(resultsdir + "/S11", 0, momentum.GetS11(), smesh);
-	    // Nextsim::VTK::write_dg(resultsdir + "/S12", 0, momentum.GetS12(), smesh);
-	    // Nextsim::VTK::write_dg(resultsdir + "/S22", 0, momentum.GetS22(), smesh);
-	    // Nextsim::VTK::write_dg(resultsdir + "/E11", 0, momentum.GetE11(), smesh);
-	    // Nextsim::VTK::write_dg(resultsdir + "/E12", 0, momentum.GetE12(), smesh);
-	    // Nextsim::VTK::write_dg(resultsdir + "/E22", 0, momentum.GetE22(), smesh);
-
+                Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
-		           }
+            }
     }
     Nextsim::GlobalTimer.stop("time loop");
 
@@ -306,7 +308,7 @@ void run_benchmark(const size_t N)
 
 int main()
 {
-  run_benchmark<1, 1>(128);
+  run_benchmark<1, 3>(128, 0.0);
   // int NN[5] = {32,64,128,256,512};
   // for (int n=0;n<5;++n)
   //   {
@@ -318,3 +320,4 @@ int main()
   //     run_benchmark<2, 6, 8>(NN[n], 0.0);
   //   }
 }
+
