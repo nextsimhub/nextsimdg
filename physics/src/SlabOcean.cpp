@@ -74,7 +74,9 @@ void SlabOcean::update(const TimestepTime& tst)
     double dt = tst.step.seconds();
     // Slab SST update
     qdw = (sstExt - sst) * cpml / timeT;
-    sstSlab = sst - dt * (qio + qow - qdw) / cpml;
+    HField qioMean = qio * cice; // cice at start of TS, not updated
+    HField qowMean = qow * (1 - cice); // 1- cice = open water fraction
+    sstSlab = sst - dt * (qioMean + qowMean - qdw) / cpml;
     // Slab SSS update
     HField arealDensity = cpml / Water::cp; // density times depth, or cpml divided by cp
     // This is simplified compared to the finiteelement.cpp calculation
