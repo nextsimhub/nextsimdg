@@ -86,7 +86,12 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
 void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
     const std::string& filePath, bool isRestart) const
 {
+#ifdef USE_MPI
+    auto filePathRank = filePath + "_" + std::to_string(metadata.mpiMyRank);
+    netCDF::NcFile ncFile(filePathRank, netCDF::NcFile::replace);
+#else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
+#endif
 
     CommonRestartMetadata::writeStructureType(ncFile, metadata);
     netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
