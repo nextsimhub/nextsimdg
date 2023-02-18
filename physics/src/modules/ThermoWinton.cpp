@@ -120,6 +120,8 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     // ice
     double h1 = hice[i] / 2;
     double h2 = hice[i] / 2;
+    // Eqs. (1) and (25) - but I 've multiplied them with \rho_i (hence cVol), because it's missing
+    // in the paper
     double e1 = cVol * (tUppr - seaIceTf) - bulkLHFusionIce * (1 - seaIceTf / tUppr);
     double e2 = cVol * (tLowr - seaIceTf) - bulkLHFusionIce;
 
@@ -157,19 +159,22 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         hs = 0;
     }
     // Sublimated ice counts as top melt
-    topMelt[i] = std::max(0., h1 + h2 - hice[i]);
+    topMelt[i] = std::max(0., h1 + h2 - hice[i]); // (23)
 
     // Bottom melt/freezing
     double meltBottom = (qio[i] - 4 * Ice::kappa * (tBott - tLowr) / hice[i]) * dt;
     snowMelt[i] = 0;
     if (meltBottom <= 0.) {
         // Freezing
+        // Eq. (25) - but I 've multiplied them with \rho_i (hence cVol), because it's missing in
+        // the paper
         double eBot = cVol * (tBott - seaIceTf) - bulkLHFusionIce;
-        deltaIce2 = meltBottom / eBot;
-        tLowr = (deltaIce2 * tBott + h2 * tLowr) / (deltaIce2 + h2);
+        deltaIce2 = meltBottom / eBot; // (24)
+        tLowr = (deltaIce2 * tBott + h2 * tLowr) / (deltaIce2 + h2); // (26)
         h2 += deltaIce2;
     } else {
         // Melting
+        // Eqs. (31)-(32) with added division with \rho_i (and \rho_s for 32)
         deltaIce2 = -std::min(-meltBottom / e2, h2);
         deltaIce1 = -std::min(std::max(-(meltBottom + e2 * h2) / e1, 0.), h1);
         snowMelt[i] = -std::min(
@@ -177,6 +182,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 
         // If everything melts we need to put heat back into the ocean
         if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.) {
+            // (34) - with added multiplication of rhoi and rhos and division with dt
             qio[i] -= std::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
         }
 
@@ -188,12 +194,15 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 
     // Melting at the surface
     // Do we really need an assertion here?
+    // assert(surfMelt >= 0);
+    // Eqs. (27)-(29) with division of \rho_i and \rho_s
     snowMelt[i] -= std::min(surfMelt * dt / bulkLHFusionSnow, hs);
     deltaIce1 = -std::min(std::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.), h1);
     deltaIce2
         = -std::min(std::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.), h2);
 
     // If everything melts we need to put heat back into the ocean
+    // Eq (30) - with multiplication of rhoi and rhos and division with dt
     if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.) {
         qio[i] -= std::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
     }
@@ -207,11 +216,11 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     double freeboard
         = (hice[i] * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
     if (doFlooding && freeboard < 0.) {
-        hs += std::min(freeboard * Ice::rho / Ice::rhoSnow, 0.);
-        deltaIce1 = std::max(-freeboard, 0.);
+        hs += std::min(freeboard * Ice::rho / Ice::rhoSnow, 0.); // (35) using +=
+        deltaIce1 = std::max(-freeboard, 0.); // (36)
         double f1 = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper layer
-        double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf;
-        tUppr = (tBar - std::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2;
+        double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39)
+        tUppr = (tBar - std::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
         h1 += deltaIce1;
         snowToIce[i] += deltaIce1;
     }
@@ -223,14 +232,14 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     if (h2 > h1) {
         // Lower layer ice is added to the upper layer
         double f1 = h1 / hi * 2;
-        double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr;
+        double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (39)
         // The upper layer temperature changes
-        tUppr = (tBar - std::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2;
+        tUppr = (tBar - std::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
     } else {
         // Upper layer ice is added to the lower layer
         double f1 = (2 * h1 - hi) / hi;
         // Lower layer temperature changes
-        tLowr = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr;
+        tLowr = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (40)
         // Melt from top and bottom if the lower layer temperature is too high
         if (tLowr > seaIceTf) {
             double deltaMelt = hi / 4 * Ice::cp * (tLowr - seaIceTf) * tUppr
@@ -245,6 +254,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 
     // Remove very small ice thickness
     if (hi < MinimumIce::thickness()) {
+        // (30) - with multiplication of rhoi and rhos and division with dt
         qio[i] -= (-bulkLHFusionSnow * hs + (e1 + e2) * hi / 2) / dt;
 
         if (deltaHi[i] < 0) {
@@ -269,39 +279,47 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 void ThermoWinton::calculateTemps(
     double& tSurf, double& tUppr, double& tLowr, double& mSurf, size_t i, double dt)
 {
+    /*
+     * Internal temperatures
+     * Following Winton (2000) we start by calculating the temperature - first T1, then Tsurf, and
+     * finally T2 Numers in parentheses refer to equations in the paper
+     */
+
     double& hi = hice[i];
     double tBase = tf[i]; // Freezing point of seawater with the local salinity
     double tMelt = (hsnow[i] > 0) ? 0 : Ice::Tm; // Melting point at the surface
-    double k12
-        = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hsnow[i]); // Winton & al. (5)
-    double a = qia[i] - tSurf * dQia_dt[i];
-    double b = dQia_dt[i];
-    double k32 = 2 * Ice::kappa / hi;
+
+    // First some coefficients based on temperatures from the previous time step
+    double k12 = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hsnow[i]); // (5)
+    double a = qia[i] - tSurf * dQia_dt[i]; // (7)
+    double b = dQia_dt[i]; // (8)
+    double k32 = 2 * Ice::kappa / hi; // (10)
 
     double a1 = hi * cVol / (2 * dt) + k32 * (4 * dt * k32 + hi * cVol) / (6 * dt * k32 + hi * cVol)
-        + b * k12 / (k12 + b);
+        + b * k12 / (k12 + b); // (16)
     double b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt)
         - i0 * sw_in[i]
         - k32 * (4 * dt * k32 * tBase + hi * cVol * tLowr) / (6 * dt * k32 + hi * cVol)
-        + a * k12 / (k12 + b);
-    double c1 = hi * Ice::Lf * Ice::rho * seaIceTf / (2 * dt);
+        + a * k12 / (k12 + b); // (17)
+    double c1 = hi * Ice::Lf * Ice::rho * seaIceTf / (2 * dt); // (18)
 
     // Updated surface and mid-ice temperatures
-    tUppr = -(b1 + std::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1);
-    tSurf = (k12 * tUppr - a) / (k12 + b);
+    tUppr = -(b1 + std::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1); // (21)
+    tSurf = (k12 * tUppr - a) / (k12 + b); // (6)
     // Is the surface melting?
     if (tSurf > tMelt) {
         // Recalculate T1 and Tsurf if so
         tSurf = tMelt;
         // apply the change to the *1 parameters, rather than recalculating in full
-        a1 += k12 - k12 * b / (k12 + b);
-        b1 -= k12 * tSurf + a * k12 / (k12 + b);
-        tUppr = -(b1 + std::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1);
+        a1 += k12 - k12 * b / (k12 + b); // (19) simplified using +=
+        b1 -= k12 * tSurf + a * k12 / (k12 + b); // (20) simplified using -=
+        tUppr = -(b1 + std::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1); // (21)
 
-        mSurf = k12 * (tUppr - tSurf) - (a + b * tSurf);
+        // Surface melt
+        mSurf = k12 * (tUppr - tSurf) - (a + b * tSurf); // (22)
     }
 
-    // update the lower T based on the new value of the upper T
+    // update the lower T based on the new value of the upper T (eq 15)
     tLowr = (2 * dt * k32 * (tUppr + 2 * tf[i]) + hi * cVol * tLowr) / (6 * dt * k32 + hi * cVol);
 }
 
