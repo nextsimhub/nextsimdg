@@ -68,9 +68,9 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(&state.data[hsnowName][0]);
     // Since the ZFierld might not have the same dimensions as the tice field
-    //in the file, a little more work is required.
+    // in the file, a little more work is required.
     state.data[ticeName] = ModelArray::ZField();
-    std::vector<size_t> startVector = {0, 0, 0};
+    std::vector<size_t> startVector = { 0, 0, 0 };
     std::vector<size_t> zArrayDims = ModelArray::dimensions(ModelArray::Type::Z);
     dataGroup.getVar(ticeName).getVar(startVector, zArrayDims, &state.data[ticeName][0]);
 

@@ -96,7 +96,7 @@ static ModelState initModelData(const netCDF::NcGroup& dataGroup)
             // Reset the size of the buffer (and we know we have three dimensions)
             totalSz = dim3[0] * dim3[1] * dim3[2];
             buffer.resize(totalSz);
-            std::vector<size_t> startVector = {0, 0, 0};
+            std::vector<size_t> startVector = { 0, 0, 0 };
             var.second.getVar(startVector, dim3, buffer.data());
             data.setData(buffer.data());
             state.data[varName] = data;
