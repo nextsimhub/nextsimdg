@@ -10,9 +10,23 @@
 
 #include "IDynamics.hpp"
 
+#include "include/ModelArray.hpp"
+
 namespace Nextsim {
 class DummyDynamics : public IDynamics{
+public:
+    DummyDynamics();
+
+    std::string getName() const override { return "DummyDynamics"; }
     void update(const TimestepTime& tst) override { }
+
+    void setData(const ModelState::DataMap&) override;
+private:
+    DGField hice;
+    DGField cice;
+    DGField hsnow;
+    CGField uice;
+    CGField vice;
 };
 }
 
