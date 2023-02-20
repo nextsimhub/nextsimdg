@@ -162,12 +162,12 @@ add_executable(testModelComponent
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testModelComponent PRIVATE Boost::program_options Catch2::Catch2 Eigen3::Eigen)
 
-add_executable(testTimeClasses
+add_executable(testTime
     "Time_test.cpp"
     "${CoreSrc}/Time.cpp"
 )
-target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
-target_link_libraries(testTimeClasses PRIVATE Catch2::Catch2)
+target_include_directories(testTime PRIVATE "${CoreSrc}")
+target_link_libraries(testTime PRIVATE Catch2::Catch2)
 
 add_executable(testNewModelArrayRef
     "NewModelArrayRef_test.cpp"
