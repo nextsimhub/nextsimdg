@@ -65,7 +65,7 @@ set(CodeComponents
 
 # The exact selection of dimensions and Types available to ModelArray
 if(True)
-    set(ModelArrayStructure "finitevolume")
+    set(ModelArrayStructure "discontinuousgalerkin")
 endif()
 
 # Set an empty list of sources

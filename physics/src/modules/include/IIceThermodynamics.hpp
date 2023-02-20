@@ -42,6 +42,8 @@ public:
 
     inline static std::string getKappaSConfigKey() { return "thermo.ks"; }
 
+    virtual size_t getNZLevels() const = 0;
+
 protected:
     IIceThermodynamics()
         : tice(ModelArray::Type::Z)

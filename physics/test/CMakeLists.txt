@@ -23,6 +23,7 @@ add_executable(testIceGrowth
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreSourceDir}/NZLevels.cpp"
     "${ModulesDir}/IceThermodynamicsModule.cpp"
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"

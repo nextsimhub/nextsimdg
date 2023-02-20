@@ -195,8 +195,6 @@ public:
         format(ss);
         return ss.str();
     }
-    // FIXME Remove me
-    Basis& getTime() { return m_t; }
 
     std::tm* gmtime() const;
 
