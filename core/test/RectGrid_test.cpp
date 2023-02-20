@@ -9,6 +9,7 @@
 #include <catch2/catch.hpp>
 
 #include "include/CommonRestartMetadata.hpp"
+#include "include/NZLevels.hpp"
 #include "include/RectangularGrid.hpp"
 #include "include/RectGridIO.hpp"
 #include "include/IStructure.hpp"
@@ -30,8 +31,9 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
     double yFactor = 0.01;
     double xFactor = 0.0001;
 
+    NZLevels::set(1);
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
-    ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, NZLevels::get() });
 
     HField fractional(ModelArray::Type::H);
     HField mask(ModelArray::Type::H);
