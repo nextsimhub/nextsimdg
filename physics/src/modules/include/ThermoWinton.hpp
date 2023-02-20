@@ -36,6 +36,8 @@ public:
     void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
 
+    size_t getNZLevels() const override;
+
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
@@ -52,9 +54,8 @@ private:
     static const double seaIceTf;
     static double kappa_s;
 
-    void calculateTemps(double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
-
-
+    void calculateTemps(
+        double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
 };
 
 } /* namespace Nextsim */

@@ -7,6 +7,7 @@
 
 #include "include/ThermoWinton.hpp"
 #include "include/MinimumIce.hpp"
+#include "include/NZLevels.hpp"
 
 #include "include/constants.hpp"
 
@@ -51,6 +52,7 @@ void ThermoWinton::configure()
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
     i0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
     doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), doFlooding);
+    NZLevels::set(nLevels);
 }
 
 ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
@@ -95,6 +97,8 @@ void ThermoWinton::update(const TimestepTime& tst)
                      std::placeholders::_2),
         tst);
 }
+
+size_t ThermoWinton::getNZLevels() const { return nLevels; }
 
 void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {

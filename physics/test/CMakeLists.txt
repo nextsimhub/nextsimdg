@@ -49,6 +49,7 @@ add_executable(testThermoWinton
     "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/NZLevels.cpp"
     "${SourceDir}/MinimumIce.cpp"
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
