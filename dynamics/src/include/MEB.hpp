@@ -128,15 +128,17 @@ namespace MEB {
 
             Eigen::Matrix<double, 1, NGP* NGP> dcrit = Eigen::Matrix<double, 1, NGP* NGP>::Ones();
 
-            // Plante 2020 Cohesion
+            // Fixed Cohesion multipled by h   
+            const Eigen::Matrix<double, 1, NGP* NGP> cohesion = 25000 * h_gauss.array() ;
+            // Cohesion Plante 2020
             // const Eigen::Matrix<double, 1, NGP* NGP> c = params.c0 * h_gauss.array() * expC;
+            
             // Olason 2022 Cohesion
             // const Eigen::Matrix<double, 1, NGP* NGP> c = params.C_lab * std::sqrt(0.1 / (RefScale::L / smesh.nx)) * dcrit.array();
-            // Fixed Cohesion
-            const Eigen::Matrix<double, 1, NGP* NGP> cohesion = 10000 * dcrit.array();
-            
-            const double scale_coef = std::sqrt(0.1 / smesh.h(i));
-            const double compr_strength = params.compr_strength * scale_coef;
+            //const double scale_coef = std::sqrt(0.1 / smesh.h(i));
+            //const double compr_strength = params.compr_strength * scale_coef;
+            const Eigen::Matrix<double, 1, NGP* NGP> compr_strength = 50000 * h_gauss.array() ; //params.compr_strength * scale_coef;
+
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
@@ -145,25 +147,25 @@ namespace MEB {
                       .select(cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
-            dcrit = (sigma_n.array() < -compr_strength)
-                        .select(-compr_strength / sigma_n.array(), dcrit);
+            dcrit = (sigma_n.array() < -compr_strength.array())
+                        .select(-compr_strength.array() / sigma_n.array(), dcrit);
 
 
             // Only damage when we're outside
             dcrit = dcrit.array().min(1.0);
 
-            const Eigen::Matrix<double, 1, NGP* NGP> td = smesh.h(i)
-                * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
+            //const Eigen::Matrix<double, 1, NGP* NGP> td = smesh.h(i)
+            //    * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
 
-            //const double td = smesh.h(i)/500.0 ;
-
+            const double td = dt_mom ; //smesh.h(i)/500.0 ;
+            
             // Update damage
-            d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td;//.array();
 
             // Relax stress in Gassus points
-            s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
-            s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
-            s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td;//.array();
+            s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td;//.array();
+            s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td;//.array();
 
 
             // INTEGRATION OF STRESS AND DAMAGE

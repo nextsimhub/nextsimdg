@@ -89,7 +89,7 @@ namespace BBM {
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
             const Eigen::Matrix<double, 1, NGP* NGP> Pmax
-                = params.P0 * h_gauss.array().pow(params.exponent_compression_factor+1.) * expC.array();
+                = params.P0 * h_gauss.array().pow(params.exponent_compression_factor + 1.) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
@@ -135,14 +135,13 @@ namespace BBM {
 
             const double scale_coef = std::sqrt(0.1 / smesh.h(i));
     
-            //const double cohesion = params.C_lab * scale_coef;
-            //const double cohesion = 10000 ;
             const Eigen::Matrix<double, 1, NGP* NGP> cohesion = params.C_lab * scale_coef * h_gauss.array();
-
+            //const Eigen::Matrix<double, 1, NGP* NGP> cohesion = 25000 * h_gauss.array() ;
 
 
             //const double compr_strength = params.compr_strength * scale_coef;
             const Eigen::Matrix<double, 1, NGP* NGP> compr_strength = params.compr_strength * scale_coef * h_gauss.array();
+            //const Eigen::Matrix<double, 1, NGP* NGP> compr_strength = 50000 * h_gauss.array() ;
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
@@ -159,6 +158,8 @@ namespace BBM {
 
             const Eigen::Matrix<double, 1, NGP* NGP> td = smesh.h(i)
                 * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
+
+            //const Eigen::Matrix<double, 1, NGP* NGP> td = smesh.h(i)/500.0 * Eigen::Matrix<double, 1, NGP* NGP>::Ones();
 
             // Update damage
             d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();

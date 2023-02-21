@@ -145,7 +145,7 @@ void run_benchmark(const std::string meshfile)
 
     //! define the time mesh
     // constexpr double dt_adv = 60.0; //!< Time step of advection problem
-    double dt_adv = ReferenceScale::L / smesh.nx / 1000. * 15.0;  //!< Stable time step 
+    double dt_adv = ReferenceScale::L / smesh.nx / 1000.  5;  //!< Stable time step 
     size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t NT_meb = 100; //!< Momentum substeps
@@ -159,7 +159,7 @@ void run_benchmark(const std::string meshfile)
               << std::endl;
 
     //! VTK output
-    double T_vtk = 1. * 60.0 * 60.0; // every 4 hours
+    double T_vtk = 4. * 60.0 * 60.0; // every 4 hours
     size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
     //! LOG message
     double T_log = 10.0 * 60.0; // every 30 minute
@@ -294,13 +294,13 @@ int main()
     //run_benchmark<2, 6, 8>("../ParametricMesh/rectangle_128x128.smesh");
 
     std::vector<std::string> meshes;
-    meshes.push_back("../ParametricMesh/distortedrectangle_64x64.smesh");
-    meshes.push_back("../ParametricMesh/distortedrectangle_128x128.smesh");
-    meshes.push_back("../ParametricMesh/distortedrectangle_256x256.smesh");
+    //meshes.push_back("../ParametricMesh/rectangle_64x64.smesh");
+    //meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
+    meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
     //meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
 
      for (const auto& it : meshes) {
-         run_benchmark<1, 3, 3>(it);
+         //run_benchmark<1, 3, 3>(it);
          run_benchmark<2, 6, 8>(it);
      }
 }
