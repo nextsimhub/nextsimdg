@@ -130,6 +130,14 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
     REQUIRE(hicef == Approx(target).epsilon(1e-8));
 }
 
+/*
+ * Uncommenting this test case should result in a compile time error, as a ConstBackingStore backed array ref should not be writable.
+
+TEST_CASE("(Not) writing to protected arrays", "[ModelArrayRef]") {
+    ModelArrayRef<MiniModelComponent::ProtectedArray::H_ICE, MARConstBackingStore> hice0(MiniModelComponent::getProtectedArrays());
+    hice0[0] = 3.141592;
+}
+*/
 enum class couplFields {
     SWIN,
     COUNT

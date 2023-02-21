@@ -172,9 +172,9 @@ private:
  *
  * @tparam sh The ModelComponent::SharedArray to be referenced.
  */
-template <auto arrayName> class ModelArrayRef<arrayName, MARBackingStore, RW> {
+template <auto arrayName, typename S> class ModelArrayRef<arrayName, S, RW> {
 public:
-    ModelArrayRef(const MARBackingStore& backingStoreIn)
+    ModelArrayRef(const S& backingStoreIn)
         : backingStore(backingStoreIn)
     {
     }
@@ -284,7 +284,7 @@ public:
     operator ModelArray&() const { return data(); }
 
 private:
-    const MARBackingStore& backingStore;
+    const S& backingStore;
 };
 }
 #endif /* MODELARRAYREF2_HPP */
