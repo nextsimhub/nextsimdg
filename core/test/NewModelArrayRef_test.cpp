@@ -14,6 +14,9 @@
 
 namespace Nextsim {
 
+typedef std::vector<ModelArrayReference> MARBackingStore;
+typedef std::vector<ModelArrayConstReference> MARConstBackingStore;
+
 class MiniModelComponent {
 public:
     enum class ProtectedArray {

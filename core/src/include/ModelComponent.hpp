@@ -23,6 +23,8 @@
 namespace Nextsim {
 
 class ModelComponent;
+typedef std::vector<ModelArrayReference> MARBackingStore;
+typedef std::vector<ModelArrayConstReference> MARConstBackingStore;
 
 /*!
  * A class encapsulating a component of the model. It also provide a method of

@@ -17,8 +17,6 @@ const bool RO = false;
 
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
-typedef std::vector<ModelArrayReference> MARBackingStore;
-typedef std::vector<ModelArrayConstReference> MARConstBackingStore;
 
 /*!
  * @brief A class which provides indirect access to ModelArray.
