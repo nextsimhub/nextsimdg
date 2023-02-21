@@ -10,23 +10,22 @@
 
 #include "IDynamics.hpp"
 
+#include "include/DummyDynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelComponent.hpp"
 
 namespace Nextsim {
-class DummyDynamics : public IDynamics{
+class DummyDynamics : public IDynamics {
 public:
     DummyDynamics();
 
     std::string getName() const override { return "DummyDynamics"; }
-    void update(const TimestepTime& tst) override { }
+    void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
 private:
-    DGField hice;
-    DGField cice;
-    DGField hsnow;
-    CGField uice;
-    CGField vice;
+    // TODO: How to get the template parameters here?
+    DummyDynamicsKernel<2, 2> kernel;
 };
 }
 

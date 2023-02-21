@@ -98,6 +98,8 @@ public:
             return DGModelArray::dg2ma(advectedFields.at(name), data);
         }
     }
+
+    void update(const TimestepTime& tst);
 private:
     DGVector<DG> hice;
     DGVector<DG> cice;

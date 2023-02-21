@@ -7,26 +7,43 @@
 
 #include "include/DummyDynamics.hpp"
 
+#include "include/gridNames.hpp"
+
+#include <string>
+#include <vector>
+
+
 namespace Nextsim {
 
+static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 DummyDynamics::DummyDynamics()
-    : hice(ModelArray::Type::DG)
-    , cice(ModelArray::Type::DG)
-    , hsnow(ModelArray::Type::DG)
-    , uice(ModelArray::Type::CG)
-    , vice(ModelArray::Type::CG)
+    : IDynamics()
 {
 }
 
 void DummyDynamics::setData(const ModelState::DataMap& ms)
 {
-    hice.resize();
-    cice.resize();
-    hsnow.resize();
-    uice.resize();
-    vice.resize();
+    IDynamics::setData(ms);
 
+    // Set the data in the kernel arrays.
+    for (const auto& fieldName : namedFields) {
+        kernel.setData(fieldName, ms.at(fieldName));
+    }
+}
 
+void DummyDynamics::update(const TimestepTime& tst)
+{
+    kernel.setData(hiceName, hice.data());
+    kernel.setData(ciceName, cice.data());
+    kernel.setData(uName, uice);
+    kernel.setData(vName, vice);
+
+    kernel.update(tst);
+
+    hice = kernel.getDG0Data(hiceName);
+    cice = kernel.getDG0Data(ciceName);
+    uice = kernel.getDG0Data(uName);
+    vice = kernel.getDG0Data(vName);
 }
 
 }
