@@ -7,18 +7,37 @@
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
 
+
+#include "include/Configured.hpp"
+
 namespace Nextsim {
 
 //! Class to handle interfacing with the XIOS library
-class Xios {
+class Xios : public Configured<Xios> {
 public:
+    Xios();
+    ~Xios();
+    void Finalise();
+
     static void writeState();
-    static void configure(int argc, char* argv[]);
+    //void configure() override;
+    void configure() override; 
+    void initialise(int argc, char* argv[]);
+
+    //Arguments TBC
+    void setState();
+    void getState();
+    void writeStateData();
+    void readStateData();
+
+    enum {
+        ENABLED_KEY,
+    };
+
 protected:
-    bool isConfigured;
+    bool m_isConfigured;
 private:
-
-
+    std::string m_enabledStr;
 };
 
 } /* end namespace Nextsim */

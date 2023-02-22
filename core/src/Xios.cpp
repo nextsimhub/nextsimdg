@@ -11,21 +11,41 @@
 
 namespace Nextsim {
 
-    void Xios::configure(int argc, char* argv[])
+template <>
+const std::map<int, std::string> Configured<Xios>::keyMap = {
+    { Xios::ENABLED_KEY, "xios.enable" }
+};
+
+    Xios::Xios() {
+        m_isConfigured = false; 
+    }
+
+    void Xios::configure()
     {
             cout << "XIOS --- CONFIGURE ENTRY POINT" << endl; 
+            m_enabledStr = Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string());
+            cout << "XIOS --- Enabled: " << Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()) << endl;
 
+            m_isConfigured = true;
+            cout << "XIOS --- CONFIGURE EXIT POINT" << endl; 
+    }
+
+    //Setup XIOS server process, calendar and parse iodel.xml
+    void Xios::initialise(int argc, char* argv[])
+    {
+            cout << "XIOS --- INITIALISE ENTRY POINT" << endl; 
+            
+            Xios::configure();
+
+            //Temporary MPI setup until syncronisation with assoc branch
             MPI_Init(&argc, &argv);
-
             int n_ranks;
             MPI_Comm_size(MPI_COMM_WORLD, &n_ranks);
             cout << "MPI_RANKS " << n_ranks << endl;
 
-
             string clientId( "client" );
             MPI_Comm clientComm;
-
-            MPI_Fint clientComm_F ;
+            MPI_Fint clientComm_F;
             MPI_Fint nullComm_F = MPI_Comm_c2f( MPI_COMM_NULL );
 
             cxios_init_client( clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F );
@@ -73,16 +93,52 @@ namespace Nextsim {
             
             cxios_update_calendar_timestep( clientCalendar );
 
+            if (rank == 0) cout << "XIOS --- INITIALISE EXIT POINT" << endl; 
+    }
+
+    void Xios::Finalise()
+    {
+            cout << "XIOS --- FINALISE" << endl;
+            //cxios_context_close_definition();
             cxios_context_finalize();
             cxios_finalize();
 
             MPI_Finalize();
-            cout << "XIOS --- MPI FINALIZED" << endl;
+            cout << "XIOS --- FINALISE EXIT" << endl;
     }
 
-    void Xios::writeState()
+    Xios::~Xios()
+    {
+        if (m_isConfigured) {
+            Nextsim::Xios::Finalise();
+        }
+        
+    }
+
+    // Method to update the Xios data
+    // Model -> XIOS
+    void Xios::setState()
+    {
+
+    }
+
+    // Method to access the Xios data
+    // XIOS -> Model
+    void Xios::getState()
+    {
+
+    }
+
+    // Method to write state of Xios data to file
+    void Xios::writeStateData()
     {
         //configure();
+    }
+
+    // Method to update the Xios data state with data from file
+    void Xios::readStateData()
+    {
+        //Unsure if we want this tbh
     }
 
 }
