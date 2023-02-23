@@ -27,6 +27,37 @@
 
 bool WRITE_VTK = true;
 
+/*!
+ *
+ * The benchmark [Mehlmann, 2017, 2021] on the spherical orca NH 25km mesh
+ * 
+ * Mesh rotated to Greenland (Pi/2 lat is in Greenland), pole is at (lat=75^o, lon=0)
+ * Pole-Vector is PV = R (cos(75o) cos(40o), cos(75o)sin(40o), sin(75o) )
+ *
+ * The benchmark data is first transformed from [0,512km]^2 to [-256,256km]^2
+ * and then mapped to the domain as plane orthogonal to PV. 
+ * 
+ * This plane is spanned by the vectors
+ * (0,1,0) and (-sin(75o),0,cos(75o) )
+ * 
+ */
+
+constexpr double L0 = 75./180.*M_PI;
+constexpr double L1 = -180.0/180.*M_PI;
+
+constexpr double P1 = Nextsim::EarthRadius * cos(L0) * cos(L1);
+constexpr double P2 = Nextsim::EarthRadius * cos(L0) * sin(L1);
+constexpr double P3 = Nextsim::EarthRadius * sin(L0);
+
+constexpr double PA1 = -cos(L0) * sin(L1);
+constexpr double PA2 =  cos(L0) * cos(L1);
+constexpr double PA3 =  0.0;
+
+constexpr double PB1 = (P2*PA3-P3*PA2) / Nextsim::EarthRadius;
+constexpr double PB2 = (P3*PA1-P1*PA3) / Nextsim::EarthRadius;
+constexpr double PB3 = (P1*PA2-P2*PA1) / Nextsim::EarthRadius;
+
+
 Nextsim::COORDINATES CoordinateSystem = Nextsim::SPHERICAL;
 
 namespace Nextsim {
@@ -39,7 +70,7 @@ inline constexpr double SQR(double x) { return x * x; }
 //! Description of the problem data, wind & ocean fields
 
 namespace ReferenceScale {
-constexpr double T = 8.0 * 24 * 60. * 60.; //!< Time horizon 8 days
+constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 8 days
   
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
@@ -50,14 +81,42 @@ class OceanX : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      return ReferenceScale::vmax_ocean;
+      double X = Nextsim::EarthRadius * cos(x)*cos(y);
+      double Y = Nextsim::EarthRadius * sin(x)*cos(y);
+      double Z = Nextsim::EarthRadius * sin(y);
+      double xA = X * PA1 + Y * PA2 + Z * PA3;
+      double xB = X * PB1 + Y * PB2 + Z * PB3;
+
+      double oA = ReferenceScale::vmax_ocean * 2.0 * xB / ReferenceScale::L;
+      double oB = ReferenceScale::vmax_ocean * (-2.0) * xA / ReferenceScale::L;
+      // vel points in ox (0,-1,0) + oy(-sin,0,cos) - direction. and must be mapped to lat/lon system
+
+      double ex1 = -sin(x); // elon
+      double ex2 =  cos(x);
+
+      return oA * (ex1*PA1 + ex2 * PA2) + oB * (ex1 * PB1 + ex2 * PB2);
     }
 };
 class OceanY : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      return 0.0;
+      double X = Nextsim::EarthRadius * cos(x)*cos(y);
+      double Y = Nextsim::EarthRadius * sin(x)*cos(y);
+      double Z = Nextsim::EarthRadius * sin(y);
+      double xA = X * PA1 + Y * PA2 + Z * PA3;
+      double xB = X * PB1 + Y * PB2 + Z * PB3;
+
+      double oA = ReferenceScale::vmax_ocean * 2.0 * xB / ReferenceScale::L;
+      double oB = ReferenceScale::vmax_ocean * (-2.0) * xA / ReferenceScale::L;
+      // vel points in ox (0,-1,0) + oy(-sin,0,cos) - direction. and must be mapped to lat/lon system
+
+      double ey1 = -sin(y)*cos(x);
+      double ey2 = -sin(y)*sin(x);
+      double ey3 = cos(y);
+
+      return oA * (ey1*PA1 + ey2 * PA2 + ey3 * PA3) + oB * (ey1 * PB1 + ey2 * PB2 + ey3 * PB3);
+      
     }
 };
 
@@ -68,28 +127,34 @@ public:
     void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
-        //! Center of cyclone (in m)
-      double cMx = 0.75 * M_PI + 0.5 * M_PI * time/ReferenceScale::T;
-      if (cMx>M_PI)
-	cMx -= 2.0 * M_PI;
+      // xA,xB coordinate in Arctic plane
+      double X = Nextsim::EarthRadius * cos(x)*cos(y);
+      double Y = Nextsim::EarthRadius * sin(x)*cos(y);
+      double Z = Nextsim::EarthRadius * sin(y);
+      double xA = X * PA1 + Y * PA2 + Z * PA3;
+      double xB = X * PB1 + Y * PB2 + Z * PB3;
       
-	double cMy = 1.15;
-        double alpha = (90.0 + 18.0 * tanh(20.0*(time/ReferenceScale::T-0.5))) / 180.0 * M_PI;
 
-	double dy = y-cMy;
-	double dx = x-cMx;
-	if (dx>M_PI)
-	  dx -= 2.0 * M_PI;
-	if (dx<-M_PI)
-	  dx += 2.0 * M_PI;
-	
-	
-        //! scaling factor to reduce wind away from center
-        double scale = 3.e3 * exp(1.0) / 100.0 * exp(-15.0 * sqrt(SQR(dx) + SQR(dy)));
+      constexpr double oneday = 24.0 * 60.0 * 60.0;
+      //! Center of cyclone (in m) (cmX, cmX
+      double cMx = 51200.0 * time/oneday;
+      double cMxA = cMx * PA1 + cMx * PA2; // same in the plane-system
+      double cMxB = cMx * PA2 + cMx * PA2;
 
+      
+      
+      double alpha = 72.0/180.0 * M_PI;
+      
+      //! scaling factor to reduce wind away from center
+      double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(xA - cMxA) + SQR(xB - cMxB))) * 1.e-3;
+      double wxA = -scale * ReferenceScale::vmax_atm * (cos(alpha) * (xA - cMxA) + sin(alpha) * (xB - cMxB));
+      double wxB = -scale * ReferenceScale::vmax_atm *(-sin(alpha) * (xA - cMxA) + cos(alpha) * (xB - cMxB));
 
-	
-        return -scale * ReferenceScale::vmax_atm * (cos(alpha) * dx + sin(alpha) * dy);
+      double ex1 = -sin(x); // elon
+      double ex2 =  cos(x);
+
+      return wxA * (ex1*PA1 + ex2 * PA2) + wxB * (ex1 * PB1 + ex2 * PB2);
+
     }
 };
 struct AtmY : public Nextsim::Interpolations::Function {
@@ -99,34 +164,41 @@ public:
     void settime(double t) { time = t; }
     double operator()(double x, double y) const
     {
-      //! Center of cyclone (in m)
-      double cMx = 0.75 * M_PI + 0.5 * M_PI * time/ReferenceScale::T;
-      if (cMx>M_PI)
-	cMx -= 2.0 * M_PI;
+      // xA,xB coordinate in Arctic plane
+      double X = Nextsim::EarthRadius * cos(x)*cos(y);
+      double Y = Nextsim::EarthRadius * sin(x)*cos(y);
+      double Z = Nextsim::EarthRadius * sin(y);
+      double xA = X * PA1 + Y * PA2 + Z * PA3;
+      double xB = X * PB1 + Y * PB2 + Z * PB3;
       
-	double cMy = 1.15;
-        double alpha = (90.0 + 18.0 * tanh(20.0*(time/ReferenceScale::T-0.5))) / 180.0 * M_PI;
 
+      constexpr double oneday = 24.0 * 60.0 * 60.0;
+      //! Center of cyclone (in m) (cmX, cmX
+      double cMx = 51200.0 * time/oneday;
+      double cMxA = cMx * PA1 + cMx * PA2; // same in the plane-system
+      double cMxB = cMx * PA2 + cMx * PA2;
 
-	double dy = y-cMy;
-	double dx = x-cMx;
-	if (dx>M_PI)
-	  dx -= 2.0 * M_PI;
-	if (dx<-M_PI)
-	  dx += 2.0 * M_PI;
-	
-	//! scaling factor to reduce wind away from center
-        double scale = 3.e3 * exp(1.0) / 100.0 * exp(-15.0 * sqrt(SQR(dx) + SQR(dy)));
+      
+      
+      double alpha = 72.0/180.0 * M_PI;
+      
+      //! scaling factor to reduce wind away from center
+      double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(xA - cMxA) + SQR(xB - cMxB))) * 1.e-3; 
+      double wxA = -scale * ReferenceScale::vmax_atm * (cos(alpha) * (xA - cMxA) + sin(alpha) * (xB - cMxB));
+      double wxB = -scale * ReferenceScale::vmax_atm *(-sin(alpha) * (xA - cMxA) + cos(alpha) * (xB - cMxB));
+      
+      double ey1 = -sin(y)*cos(x);
+      double ey2 = -sin(y)*sin(x);
+      double ey3 = cos(y);
 
-
-        return -scale * ReferenceScale::vmax_atm * (-sin(alpha) * dx + cos(alpha) * dy);
+      return wxA * (ey1*PA1 + ey2 * PA2 + ey3 * PA3) + wxB * (ey1 * PB1 + ey2 * PB2 + ey3 * PB3);
     }
 };
 class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-        return 0.3 + 0.005 * (sin(18.0 * x) + sin(24.0 * y));
+      return 0.3;// + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y));
     }
 };
 class InitialA : public Nextsim::Interpolations::Function {
@@ -137,22 +209,20 @@ public:
 template <int CG, int DGadvection>
 void run_benchmark()
 {
+  //! Compose name of output directory and create it
+  std::string resultsdir = "BenchmarkOrcaSpherical_" + std::to_string(CG) + "_" + std::to_string(DGadvection);
+  std::filesystem::create_directory(resultsdir);
+
   Nextsim::ParametricMesh smesh(CoordinateSystem);
   smesh.readmesh("../tests/example3-25km_NH.smesh");
-  for (size_t i = 0; i<smesh.nnodes; ++i) // convert to radians
-    {
-      smesh.vertices(i,0) = smesh.vertices(i,0) * M_PI / 180.;
-      smesh.vertices(i,1) = smesh.vertices(i,1) * M_PI / 180.;
-    }
+  smesh.TransformToRadians();
   smesh.RotatePoleToGreenland();
-
   
-
   // output land mask
   Nextsim::DGVector<1> landmask(smesh);
   for (size_t i=0;i<smesh.nelements;++i)
     landmask(i,0) = smesh.landmask[i];
-  Nextsim::VTK::write_dg<1>("landmask", 0, landmask, smesh);
+  Nextsim::VTK::write_dg<1>(resultsdir + "/landmask", 0, landmask, smesh);
 				   
   
   // output boundary info
@@ -160,12 +230,9 @@ void run_benchmark()
   for (size_t j=0;j<4;++j)
     for (size_t i=0;i<smesh.dirichlet[j].size();++i)
       boundary(smesh.dirichlet[j][i],0) = 1+j;
-  Nextsim::VTK::write_dg<1>("boundary", 0, boundary, smesh);
+  Nextsim::VTK::write_dg<1>(resultsdir + "/boundary", 0, boundary, smesh);
   
   
-  //! Compose name of output directory and create it
-  std::string resultsdir = "BenchmarkOrcaSpherical_" + std::to_string(CG) + "_" + std::to_string(DGadvection);
-  std::filesystem::create_directory(resultsdir);
   
   //! Main class to handle the momentum equation. This class also stores the CG velocity vector
   Nextsim::CGParametricMomentum<CG> momentum(smesh, CoordinateSystem);
@@ -182,14 +249,14 @@ void run_benchmark()
   
   //! Rheology-Parameters
   Nextsim::VPParameters VP;
-  VP.fc = 0.0;
+  VP.fc = 0.0; // no coriolis!
   
   std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
 	    << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta << std::endl
 	    << "CG/DG " << CG << "\t" << DGadvection  << std::endl;
   
   //! VTK output
-  constexpr double T_vtk = 0.01*ReferenceScale::T; // 48.0 * 60.0 * 60.0; // once
+  constexpr double T_vtk = 60.0*60.0;
   constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
   //! LOG message
   constexpr double T_log = 10.0 * 60.0; // every 30 minute
@@ -213,14 +280,6 @@ void run_benchmark()
 
     ////////////////////////////////////////////////// i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
-
-    // for (size_t i = 0; i<smesh.nnodes; ++i) // convert to radians
-    //   {
-    // 	momentum.GetVx()(i) = smesh.vertices(i,0);
-    // 	momentum.GetVy()(i) = smesh.vertices(i,1);
-    //   }
-
-    
     if (1) // write initial?
         if (WRITE_VTK) {
             Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
@@ -231,7 +290,6 @@ void run_benchmark()
             Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
         }
     Nextsim::GlobalTimer.stop("time loop - i/o");
-
 
     ////////////////////////////////////////////////// Initialize transport
     Nextsim::DGTransport<DGadvection> dgtransport(smesh, CoordinateSystem);
@@ -269,6 +327,7 @@ void run_benchmark()
         // interpolates CG velocity to DG and reinits normal velocity
         dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
+	
         // performs the transport steps
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
@@ -298,14 +357,14 @@ void run_benchmark()
                 int printstep = timestep / NT_vtk + 1.e-4;
                 Nextsim::GlobalTimer.start("time loop - i/o");
                 Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
-		Nextsim::VTK::write_cg_velocity(resultsdir + "/atm", printstep, momentum.GetAtmx(), momentum.GetAtmy(), smesh);
-		Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
-		Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
-                // Nextsim::VTK::write_dg(resultsdir + "/E11", printstep, momentum.GetE11(), smesh);
-                // Nextsim::VTK::write_dg(resultsdir + "/E12", printstep, momentum.GetE12(), smesh);
-		// Nextsim::VTK::write_dg(resultsdir + "/E22", printstep, momentum.GetE22(), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+
+                Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
+		Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
+                Nextsim::VTK::write_dg(resultsdir + "/Vx", printstep, dgtransport.GetVx(), smesh);
+		Nextsim::VTK::write_dg(resultsdir + "/Vy", printstep, dgtransport.GetVy(), smesh);
+		
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }
@@ -317,7 +376,7 @@ void run_benchmark()
 
 int main()
 {
-  run_benchmark<1, 1>();
+  run_benchmark<2, 1>();
   // int NN[5] = {32,64,128,256,512};
   // for (int n=0;n<5;++n)
   //   {

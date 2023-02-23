@@ -119,6 +119,16 @@ public:
      */
     void readmesh(std::string fname);
 
+
+  /*!
+   * changes from [-180,180] to [-pi,pi] and [-90,90] to [-pi/2,pi/2]
+   * NO CHECKING IF REQUIRED!
+   */
+  void TransformToRadians()
+  {
+    vertices *= M_PI/180.0;      
+  }
+
   /*!
    * Rotates the mesh such that the singularities are in Greenland / Antarctica at
    * 75N / 40W and 75S / 140E

@@ -297,7 +297,7 @@ public:
 
     ////////////////////////////////////////////////// dG(1) output
 
-
+  
   static void write_coords(std::ostream& OUT, double x, double y, COORDINATES CoordinateSystem)
   {
     if (CoordinateSystem == SPHERICAL)
@@ -307,7 +307,7 @@ public:
 	    << Nextsim::EarthRadius * sin(y)  << std::endl;
       }
     else
-      OUT << x << "\t" << y <<"\t0" << std::endl;
+    OUT << x << "\t" << y <<"\t0" << std::endl;
   }
   
     template <int DG>
