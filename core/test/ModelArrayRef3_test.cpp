@@ -9,9 +9,7 @@
 #include <catch2/catch.hpp>
 
 #include "../src/include/ModelArrayRef3.hpp"
-#include "../src/include/IMARBackingStore.hpp"
-
-#include <iostream>
+#include "../src/include/MARBackingStore.hpp"
 
 namespace Nextsim {
 
@@ -21,12 +19,12 @@ public:
     static const std::string SW_IN;
     static const std::string H_ICE;
 
-    static IMARBackingStore& getSharedArrays() { return sharedArrays; }
+    static MARBackingStore& getSharedArrays() { return sharedArrays; }
 protected:
-    static IMARBackingStore sharedArrays;
+    static MARBackingStore sharedArrays;
 };
 
-IMARBackingStore MiniModelComponent::sharedArrays;
+MARBackingStore MiniModelComponent::sharedArrays;
 const std::string MiniModelComponent::H_ICE0 = "H_ICE0";
 const std::string MiniModelComponent::SW_IN = "SW_IN";
 const std::string MiniModelComponent::H_ICE = "H_ICE";
@@ -63,11 +61,10 @@ public:
 
     void update(int tStep)
     {
-        std::cerr << "IceThermo::update" << std::endl;
         hice[0] *= (1. + tStep) / tStep;
     }
 private:
-    ModelArrayRef<IMARBackingStore, RW> hice;
+    ModelArrayRef<MARBackingStore, RW> hice;
 };
 
 class IceCalc : public MiniModelComponent {
@@ -83,11 +80,8 @@ public:
     }
     void update(int tStep)
     {
-        std::cerr << "Copying hice" << std::endl;
         hice[0] = hice0[0];
-        std::cerr << "Updating thermo" << std::endl;
         thermo.update(tStep);
-        std::cerr << "IceCalc updated" << std::endl;
     }
     void getData(double& dataOut)
     {
@@ -96,7 +90,7 @@ public:
 
 private:
     HField hice;
-    ModelArrayRef<IMARBackingStore> hice0;
+    ModelArrayRef<MARBackingStore> hice0;
 
     IceThermo thermo;
 };
@@ -104,7 +98,6 @@ private:
 
 TEST_CASE("Accessing the data", "[ModelArrayRef]")
 {
-    std::cerr << "Setting AtmIn" << std::endl;
     AtmIn atmIn;
     double hice0 = 0.56;
     double swin = 311;
@@ -112,19 +105,15 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
     atmIn.configure();
     atmIn.setData({hice0, swin});
 
-    std::cerr << "Setting IceCalc" << std::endl;
     IceCalc iceCalc;
     iceCalc.configure();
     int tStep = 40;
-    std::cerr << "Calculating IceCalc" << std::endl;
     iceCalc.update(tStep);
 
-    std::cerr << "Getting data" << std::endl;
     double hicef;
     iceCalc.getData(hicef);
     double target = hice0 * (1. + tStep) / tStep;
     REQUIRE(hicef == Approx(target).epsilon(1e-8));
-    std:: cerr << "Done!" << std::endl;
 }
 
 /*
@@ -156,13 +145,13 @@ static const double targetFlux = 320;
 class CouplEr
 {
 public:
-    CouplEr(IMARBackingStore& bs)
+    CouplEr(MARBackingStore& bs)
     : swFlux("sw_in", bs)
     {
     }
     void update() { swFlux[0] = targetFlux; }
 private:
-    ModelArrayRef<IMARBackingStore, RW> swFlux;
+    ModelArrayRef<MARBackingStore, RW> swFlux;
 };
 
 class CouplIn : public MiniModelComponent
@@ -190,11 +179,11 @@ public:
     {
         coupler.update();
     }
-    IMARBackingStore& bs() { return coupledFields; }
+    MARBackingStore& bs() { return coupledFields; }
 private:
     HField hice;
     HField swin;
-    IMARBackingStore coupledFields;
+    MARBackingStore coupledFields;
     CouplEr coupler;
     };
 
@@ -203,7 +192,7 @@ TEST_CASE("Accessing the data two ways", "[ModelArrayRef]")
     CouplIn couplIn;
     ModelArray::setDimensions(ModelArray::Type::H, {1,1});
     couplIn.configure();
-    ModelArrayRef<IMARBackingStore> swin("sw_in", couplIn.bs());
+    ModelArrayRef<MARBackingStore> swin("sw_in", couplIn.bs());
     couplIn.setData();
 
     REQUIRE(swin[0] != targetFlux);

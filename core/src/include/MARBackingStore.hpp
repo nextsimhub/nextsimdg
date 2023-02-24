@@ -1,18 +1,16 @@
 /*!
- * @file IMARBackingStore.hpp
+ * @file MARBackingStore.hpp
  *
  * @date 22 Feb 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef IMARBACKINGSTORE_HPP
-#define IMARBACKINGSTORE_HPP
+#ifndef MARBACKINGSTORE_HPP
+#define MARBACKINGSTORE_HPP
 
 #include <string>
 #include <unordered_map>
 #include <list>
-
-#include <iostream> // FIXME remove me
 
 namespace Nextsim {
 
@@ -22,16 +20,11 @@ class ModelArray;
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
 
-class IMARBackingStore {
+class MARBackingStore {
 public:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
-        std::cerr << "IMARBS::gFA non-const: ";
         try {
-            std::cerr << "store = {";
-            for (const auto& entry : storeRW)
-                std::cerr << "{" << entry.first << "," << entry.second << "},";
-            std::cerr << "}" << std::endl;
             ptr = storeRW.at(field);
             return ptr;
         } catch (std::out_of_range& oore) {
@@ -40,27 +33,17 @@ public:
                 waitingRW.at(field).push_back(&ptr);
             else
                 waitingRW[field] = {&ptr};
-            std::cerr << " RW MARs waiting on " << field << " = " << waitingRW.at(field).size() << std::endl;
             return nullptr;
         }
     }
 
     const ModelArray* getFieldAddr(const std::string& field, ModelArrayConstReference& ptr)
     {
-        std::cerr << "IMARBS::gFA const: ";
         try {
-            std::cerr << "store = {";
-            for (const auto& entry : storeRO)
-                std::cerr << "{" << entry.first << "," << entry.second << "},";
-            std::cerr << "}" << std::endl;
             ptr = storeRO.at(field);
             return ptr;
         } catch (std::out_of_range& oore_ro) {
             try {
-                std::cerr << "storeRW = {";
-                for (const auto& entry : storeRW)
-                    std::cerr << "{" << entry.first << "," << entry.second << "},";
-                std::cerr << "}" << std::endl;
                 ptr = storeRW.at(field);
                 return ptr;
             } catch (std::out_of_range& oore) {
@@ -69,7 +52,6 @@ public:
                     waitingRO.at(field).push_back(&ptr);
                 else
                     waitingRO[field] = {&ptr};
-                std::cerr << " RO MARs waiting on " << field << " = " << waitingRO.at(field).size() << std::endl;
                 return nullptr;
             }
         }
@@ -82,14 +64,12 @@ public:
         } else {
             storeRW[field] = ptr;
             if (waitingRW.count(field)) {
-                std::cerr << "RW waiting arrays on field " << field << " = " << waitingRW.at(field).size() << std::endl;
                 for (ModelArrayReference* ref : waitingRW.at(field)) {
                     *ref = ptr;
                 }
             }
         }
         if (waitingRO.count(field)) {
-            std::cerr << "RO waiting arrays on field " << field << " = " << waitingRO.at(field).size() << std::endl;
             for (ModelArrayConstReference* ref : waitingRO.at(field)) {
                 *ref = ptr;
             }
@@ -98,7 +78,6 @@ public:
 
     void removeReference(ModelArrayConstReference* ptr)
     {
-        std::cerr << "Removing const reference " << ptr << std::endl;
         for (auto& [name, list] : waitingRO) {
             list.remove(ptr);
             if (list.size() == 0)
@@ -108,7 +87,6 @@ public:
 
     void removeReference(ModelArrayReference *ptr)
     {
-        std::cerr << "Removing non-const reference " << ptr << std::endl;
         for (auto& [name, list] : waitingRW) {
             list.remove(ptr);
             if (list.size() == 0)
@@ -130,4 +108,4 @@ private:
 
 }
 
-#endif /* IMARBACKINGSTORE_HPP */
+#endif /* MARBACKINGSTORE_HPP */

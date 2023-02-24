@@ -11,8 +11,6 @@
 #include "ModelArray.hpp"
 #include <map>
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 const bool RW = true;
@@ -26,19 +24,12 @@ public:
     ModelArrayRef(const std::string& field, S& backingStore)
     {
         ref = nullptr;
-        std::cerr << "RO ModelArrayRef(): field = " << field << ", ref = " << ref << std::endl;
         backingStore.getFieldAddr(field, ref);
-        std::cerr << "RO ModelArrayRef(): -> ref = " << ref << std::endl;
     }
     ~ModelArrayRef() { store.removeReference(&ref); }
     ModelArrayRef(const ModelArrayRef&) = delete;
     ModelArrayRef& operator=(const ModelArrayRef&) = delete;
-    const double& operator[](size_t index) const
-    {
-        std::cerr << "RO ModelArrayRef[]: ref = " << ref << " ref->size() = " << ref->size()
-                  << std::endl;
-        return ref->operator[](index);
-    }
+    const double& operator[](size_t index) const { return ref->operator[](index); }
 
 private:
     ModelArrayConstReference ref;
@@ -51,17 +42,10 @@ public:
     ModelArrayRef(const std::string& field, S& backingStore)
     {
         ref = nullptr;
-        std::cerr << "RW ModelArrayRef(): field = " << field << ", ref = " << ref << std::endl;
         backingStore.getFieldAddr(field, ref);
-        std::cerr << "RW ModelArrayRef(): -> ref = " << ref << std::endl;
     }
     ~ModelArrayRef() { store.removeReference(&ref); }
-    double& operator[](size_t index) const
-    {
-        std::cerr << "RW ModelArrayRef[]: ref = " << ref << " ref->size() = " << ref->size()
-                  << std::endl;
-        return ref->operator[](index);
-    }
+    double& operator[](size_t index) const { return ref->operator[](index); }
 
 private:
     ModelArrayReference ref;
