@@ -30,13 +30,19 @@ public:
         backingStore.getFieldAddr(field, ref);
         std::cerr << "RO ModelArrayRef(): -> ref = " << ref << std::endl;
     }
+    ~ModelArrayRef() { store.removeReference(&ref); }
+    ModelArrayRef(const ModelArrayRef&) = delete;
+    ModelArrayRef& operator=(const ModelArrayRef&) = delete;
     const double& operator[](size_t index) const
     {
-        std::cerr << "RO ModelArrayRef[]: ref = " << ref << " ref->size() = " << ref->size() << std::endl;
+        std::cerr << "RO ModelArrayRef[]: ref = " << ref << " ref->size() = " << ref->size()
+                  << std::endl;
         return ref->operator[](index);
     }
+
 private:
     ModelArrayConstReference ref;
+    S store;
     friend S;
 };
 
@@ -49,13 +55,17 @@ public:
         backingStore.getFieldAddr(field, ref);
         std::cerr << "RW ModelArrayRef(): -> ref = " << ref << std::endl;
     }
+    ~ModelArrayRef() { store.removeReference(&ref); }
     double& operator[](size_t index) const
     {
-        std::cerr << "RW ModelArrayRef[]: ref = " << ref << " ref->size() = " << ref->size() << std::endl;
+        std::cerr << "RW ModelArrayRef[]: ref = " << ref << " ref->size() = " << ref->size()
+                  << std::endl;
         return ref->operator[](index);
     }
+
 private:
     ModelArrayReference ref;
+    S store;
     friend S;
 };
 }

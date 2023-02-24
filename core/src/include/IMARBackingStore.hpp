@@ -95,6 +95,32 @@ public:
             }
         }
     }
+
+    void removeReference(ModelArrayConstReference* ptr)
+    {
+        std::cerr << "Removing const reference " << ptr << std::endl;
+        for (auto& [name, list] : waitingRO) {
+            list.remove(ptr);
+            if (list.size() == 0)
+                waitingRO.erase(name);
+        }
+    }
+
+    void removeReference(ModelArrayReference *ptr)
+    {
+        std::cerr << "Removing non-const reference " << ptr << std::endl;
+        for (auto& [name, list] : waitingRW) {
+            list.remove(ptr);
+            if (list.size() == 0)
+                waitingRW.erase(name);
+        }
+        for (auto& [name, list] : waitingRO) {
+            list.remove(const_cast<ModelArrayConstReference*>(ptr));
+            if (list.size() == 0)
+                waitingRO.erase(name);
+        }
+    }
+
 private:
     std::unordered_map<std::string, ModelArray*> storeRO;
     std::unordered_map<std::string, ModelArray*> storeRW;
