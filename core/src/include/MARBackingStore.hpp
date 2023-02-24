@@ -15,7 +15,6 @@
 namespace Nextsim {
 
 class ModelArray;
-//class ModelArrayRef;
 
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
@@ -24,10 +23,10 @@ class MARBackingStore {
 public:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
-        try {
+        if (storeRW.count(field)) {
             ptr = storeRW.at(field);
             return ptr;
-        } catch (std::out_of_range& oore) {
+        } else {
             // If there is no entry for the field key, then add it to the waiting list
             if (waitingRW.count(field))
                 waitingRW.at(field).push_back(&ptr);
@@ -39,21 +38,19 @@ public:
 
     const ModelArray* getFieldAddr(const std::string& field, ModelArrayConstReference& ptr)
     {
-        try {
+        if (storeRO.count(field)) {
             ptr = storeRO.at(field);
             return ptr;
-        } catch (std::out_of_range& oore_ro) {
-            try {
-                ptr = storeRW.at(field);
-                return ptr;
-            } catch (std::out_of_range& oore) {
-                // If there is no entry for the field key, then add it to the waiting list
-                if (waitingRO.count(field))
-                    waitingRO.at(field).push_back(&ptr);
-                else
-                    waitingRO[field] = {&ptr};
-                return nullptr;
-            }
+        } else if (storeRW.count(field)) {
+            ptr = storeRW.at(field);
+            return ptr;
+        } else {
+            // If there is no entry for the field key, then add it to the waiting list
+            if (waitingRO.count(field))
+                waitingRO.at(field).push_back(&ptr);
+            else
+                waitingRO[field] = {&ptr};
+            return nullptr;
         }
     }
 
