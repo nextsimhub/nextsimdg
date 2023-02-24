@@ -64,7 +64,7 @@ public:
         hice[0] *= (1. + tStep) / tStep;
     }
 private:
-    ModelArrayRef<MARBackingStore, RW> hice;
+    ModelArrayRef<RW> hice;
 };
 
 class IceCalc : public MiniModelComponent {
@@ -90,7 +90,7 @@ public:
 
 private:
     HField hice;
-    ModelArrayRef<MARBackingStore> hice0;
+    ModelArrayRef<> hice0;
 
     IceThermo thermo;
 };
@@ -151,7 +151,7 @@ public:
     }
     void update() { swFlux[0] = targetFlux; }
 private:
-    ModelArrayRef<MARBackingStore, RW> swFlux;
+    ModelArrayRef<RW> swFlux;
 };
 
 class CouplIn : public MiniModelComponent
@@ -192,7 +192,7 @@ TEST_CASE("Accessing the data two ways", "[ModelArrayRef]")
     CouplIn couplIn;
     ModelArray::setDimensions(ModelArray::Type::H, {1,1});
     couplIn.configure();
-    ModelArrayRef<MARBackingStore> swin("sw_in", couplIn.bs());
+    ModelArrayRef<> swin("sw_in", couplIn.bs());
     couplIn.setData();
 
     REQUIRE(swin[0] != targetFlux);

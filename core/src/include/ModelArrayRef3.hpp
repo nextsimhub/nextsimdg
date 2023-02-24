@@ -8,7 +8,8 @@
 #ifndef MODELARRAYREF3_HPP
 #define MODELARRAYREF3_HPP
 
-#include "ModelArray.hpp"
+#include "include/MARBackingStore.hpp"
+#include "include/ModelArray.hpp"
 #include <map>
 
 namespace Nextsim {
@@ -19,9 +20,9 @@ const bool RO = false;
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
 
-template <typename S, bool isReadWrite = RO> class ModelArrayRef {
+template <bool isReadWrite = RO> class ModelArrayRef {
 public:
-    ModelArrayRef(const std::string& field, S& backingStore)
+    ModelArrayRef(const std::string& field, MARBackingStore& backingStore)
     {
         ref = nullptr;
         backingStore.getFieldAddr(field, ref);
@@ -33,13 +34,13 @@ public:
 
 private:
     ModelArrayConstReference ref;
-    S store;
-    friend S;
+    MARBackingStore store;
+    friend MARBackingStore;
 };
 
-template <typename S> class ModelArrayRef<S, RW> {
+template <> class ModelArrayRef<RW> {
 public:
-    ModelArrayRef(const std::string& field, S& backingStore)
+    ModelArrayRef(const std::string& field, MARBackingStore& backingStore)
     {
         ref = nullptr;
         backingStore.getFieldAddr(field, ref);
@@ -49,8 +50,8 @@ public:
 
 private:
     ModelArrayReference ref;
-    S store;
-    friend S;
+    MARBackingStore store;
+    friend MARBackingStore;
 };
 }
 
