@@ -68,7 +68,7 @@ namespace Nextsim {
 	E22.row(dgi) = pmap.iMgradY[dgi] * vy_local;
 	E12.row(dgi) = 0.5 * (pmap.iMgradX[dgi] * vy_local + pmap.iMgradY[dgi] * vx_local);
 
-	if (coordinatesystem == SPHERICAL)
+	if (smesh.CoordinateSystem == SPHERICAL)
 	  {
 	    E11.row(dgi) -= pmap.iMM[dgi] * vy_local;
 	    E12.row(dgi) += 0.5 * pmap.iMM[dgi] * vx_local;
@@ -233,7 +233,7 @@ namespace Nextsim {
     Nextsim::GlobalTimer.start("time loop - mevp - stress - stress");
 
     double stressscale = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
-    if (coordinatesystem == Nextsim::SPHERICAL)
+    if (smesh.CoordinateSystem == Nextsim::SPHERICAL)
       stressscale = 1.0/Nextsim::EarthRadius/Nextsim::EarthRadius;
 
     DivergenceOfStress(stressscale, tmpx, tmpy); // Compute divergence of stress tensor

@@ -176,7 +176,7 @@ void run_benchmark(const size_t NX, double distort)
     std::filesystem::create_directory(resultsdir);
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::SPHERICAL);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh);
 
     //! define the time mesh
     constexpr double dt_adv = 120.; //!< Time step of advection problem
@@ -230,7 +230,7 @@ void run_benchmark(const size_t NX, double distort)
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::DGTransport<DGadvection> dgtransport(smesh, Nextsim::SPHERICAL);
+    Nextsim::DGTransport<DGadvection> dgtransport(smesh);
     dgtransport.settimesteppingscheme("rk2");
 
     ////////////////////////////////////////////////// Main Loop

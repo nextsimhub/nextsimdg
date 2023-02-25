@@ -32,8 +32,6 @@ protected:
     //! spatial mesh.
     const ParametricMesh& smesh;
 
-  const COORDINATES CoordinateSystem;
-  
   //! Precomputed stencil-like matrices for efficient numerical quadrature
   ParametricTransportMap<DG> parammap;
 
@@ -74,10 +72,9 @@ protected:
     void step_rk3(const double dt, DGVector<DG>& phi);
 
 public:
-  DGTransport(const ParametricMesh& mesh, const COORDINATES coords)
+  DGTransport(const ParametricMesh& mesh)
       : smesh(mesh),
-	CoordinateSystem(coords),
-	parammap(mesh, coords)	  
+	parammap(mesh)	  
         , timesteppingscheme("rk2")
     {
         if (!(smesh.nelements > 0)) {

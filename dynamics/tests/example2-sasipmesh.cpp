@@ -150,7 +150,7 @@ class Test {
 public:
     Test(const Nextsim::ParametricMesh& mesh)
         : smesh(mesh)
-        , dgtransport(smesh, Nextsim::CARTESIAN)
+        , dgtransport(smesh)
         , writestep(1)
     {
         //! Set time stepping scheme. 2nd order for dg0 and dg1, 3rd order dG2

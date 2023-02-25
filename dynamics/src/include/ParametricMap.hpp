@@ -26,10 +26,6 @@ namespace Nextsim
     //! Reference to the map. Given with constructor
     const ParametricMesh& smesh;
 
-    //! What type of coordinate system
-    const COORDINATES coordinatesystem;
-
-
   public:
 
     //! These terms are required for the cell-term in the advection  -(vA, nabla PHI)
@@ -40,7 +36,7 @@ namespace Nextsim
     std::vector< Eigen::Matrix<Nextsim::FloatType, DG, DG> > InverseDGMassMatrix;
     
 
-    ParametricTransportMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), coordinatesystem(ty)
+    ParametricTransportMap(const ParametricMesh& sm) : smesh(sm)
     {}
 
     //! initialization of the different forms
@@ -77,9 +73,6 @@ namespace Nextsim
     //! Reference to the map. Given with constructor
     const ParametricMesh& smesh;
 
-    //! What type of coordinate system is used
-    const COORDINATES coordinatesystem;
-
   public:
 
     //! Vector to store the lumpes mass matrix. Is directly initialized when the mesh is known
@@ -113,7 +106,7 @@ namespace Nextsim
 
     
     
-    ParametricMomentumMap(const ParametricMesh& sm, COORDINATES ty) : smesh(sm), coordinatesystem(ty)
+    ParametricMomentumMap(const ParametricMesh& sm) : smesh(sm)
     {}
 
     //! initialization of the different forms

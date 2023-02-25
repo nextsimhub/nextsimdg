@@ -201,7 +201,7 @@ void run_benchmark_strain(const size_t N)
     std::filesystem::create_directory(resultsdir);
     
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::SPHERICAL);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh);
 
 
     std::cout << CG << "\t" << N << "\t";
@@ -311,7 +311,7 @@ void run_benchmark_laplace(const size_t N)
     std::filesystem::create_directory(resultsdir);
     
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG> momentum(smesh, Nextsim::SPHERICAL);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh);
  
 
     std::cout << CG << "\t" << N << "\t";

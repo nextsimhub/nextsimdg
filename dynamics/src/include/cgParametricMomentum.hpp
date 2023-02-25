@@ -26,7 +26,6 @@ class CGParametricMomentum {
 private:
     const ParametricMesh& smesh; //!< const-reference to the mesh
 
-  const COORDINATES coordinatesystem; //! const-ref to the coordinate system (2d Cartesian / SPHERICAL / ...)
   
     /*!
      * Stores precomputed values for efficient numerics on transformed mesh
@@ -62,8 +61,8 @@ public:
     DGVector<CG2DGSTRESS(CG)> S11, S12, S22;
 
 public:
-  CGParametricMomentum(const ParametricMesh& sm, const COORDINATES coords)
-    : smesh(sm), coordinatesystem(coords), pmap(sm,coords)
+  CGParametricMomentum(const ParametricMesh& sm)
+    : smesh(sm), pmap(sm)
     {
         if (!(smesh.nelements > 0)) {
             std::cerr << "CGParametricMomentum: The mesh has to be initialized first!" << std::endl;
@@ -232,7 +231,7 @@ void CGParametricMomentum<CG>::AddStressTensorCell(const double scale, const siz
   Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
   Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
 
-  if (coordinatesystem == SPHERICAL) // In spherical coordinates there is the additional 'derivative term' arising from the derivative of the units
+  if (smesh.CoordinateSystem == SPHERICAL) // In spherical coordinates there is the additional 'derivative term' arising from the derivative of the units
     {
       tx += scale * pmap.divM[eid] * S12.row(eid).transpose();
       ty -= scale * pmap.divM[eid] * S11.row(eid).transpose();

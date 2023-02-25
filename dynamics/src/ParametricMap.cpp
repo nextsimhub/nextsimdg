@@ -42,12 +42,12 @@ namespace Nextsim
 	// [J dT^{-T} nabla phi]_2
 
 	//! the lat-direction must be scaled with the metric term if in the spherical system
-	if (coordinatesystem == SPHERICAL)
+	if (smesh.CoordinateSystem == SPHERICAL)
 	  {
 	    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> cos_lat = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid).row(1).array()).cos();
 	    AdvectionCellTermY[eid] = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dxT.row(0).array() * cos_lat.array()) - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dyT.row(0).array() * cos_lat.array());
 	  }
-	else if (coordinatesystem == CARTESIAN)
+	else if (smesh.CoordinateSystem == CARTESIAN)
 	  AdvectionCellTermY[eid] = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dxT.row(0).array() - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dyT.row(0).array();
 	else abort();
       }
@@ -63,13 +63,13 @@ namespace Nextsim
       InverseDGMassMatrix.resize(smesh.nelements);
 
 
-      if (coordinatesystem == SPHERICAL)
+      if (smesh.CoordinateSystem == SPHERICAL)
 	{
 #pragma omp parallel for
 	  for (size_t eid = 0; eid<smesh.nelements;++eid)
 	    InverseDGMassMatrix[eid] = SphericalTools::massMatrix<DG>(smesh, eid).inverse() / Nextsim::EarthRadius;
 	}
-      else if (coordinatesystem == CARTESIAN)
+      else if (smesh.CoordinateSystem == CARTESIAN)
 	{
 #pragma omp parallel for
 	  for (size_t eid = 0; eid<smesh.nelements;++eid)
@@ -77,7 +77,7 @@ namespace Nextsim
 	}
       else
 	{
-	  std::cerr << "Coordinate System " << coordinatesystem << " not known!" << std::endl;
+	  std::cerr << "Coordinate System " << smesh.CoordinateSystem << " not known!" << std::endl;
 	  abort();
 	}
   }
@@ -111,7 +111,7 @@ namespace Nextsim
 
 	      Eigen::Vector<Nextsim::FloatType, (CG==1?4:9) > Meid;
 
-	      if (coordinatesystem == CARTESIAN)
+	      if (smesh.CoordinateSystem == CARTESIAN)
 		{
 		  const Eigen::Matrix<Nextsim::FloatType, 1, CGGP(CG) * CGGP(CG) > J
 		    = ParametricTools::J<CGGP(CG)>(smesh, eid).array() * GAUSSWEIGHTS<CGGP(CG) >.array();
@@ -121,7 +121,7 @@ namespace Nextsim
 		    = smesh.coordinatesOfElement(eid);
 		  std::cout <<std::endl;
 		}
-	      else if (coordinatesystem == SPHERICAL)
+	      else if (smesh.CoordinateSystem == SPHERICAL)
 		{
 		  const Eigen::Matrix<Nextsim::FloatType, 1, CGGP(CG)*CGGP(CG)> cos_lat = (ParametricTools::getGaussPointsInElement<CGGP(CG)>(smesh, eid).row(1).array()).cos();
 
@@ -176,7 +176,7 @@ namespace Nextsim
     iMgradX.resize(smesh.nelements);
     iMgradY.resize(smesh.nelements);
     iMJwPSI.resize(smesh.nelements);
-    if (coordinatesystem == SPHERICAL)
+    if (smesh.CoordinateSystem == SPHERICAL)
       {
 	divM.resize(smesh.nelements);
 	iMM.resize(smesh.nelements);
@@ -208,7 +208,7 @@ namespace Nextsim
 
       const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> J = ParametricTools::J<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid);
 	  
-      if (coordinatesystem == CARTESIAN)
+      if (smesh.CoordinateSystem == CARTESIAN)
 	{
 	  // divS is used for update of stress (S, nabla Phi) in Momentum
 	  divS1[eid] = dx_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
@@ -222,7 +222,7 @@ namespace Nextsim
 	  // imJwPSI is used to compute nonlinear stress update???
 	  iMJwPSI[eid] = imass * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array())).matrix();
 	}
-      else if (coordinatesystem == SPHERICAL)
+      else if (smesh.CoordinateSystem == SPHERICAL)
 	{
 	  // In spherical coordinates (x,y) coordinates are (lon,lat) coordinates
 	  
