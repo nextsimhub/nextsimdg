@@ -9,6 +9,7 @@
 #define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
+#include "include/MARStore.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
@@ -227,6 +228,10 @@ public:
      */
     static const MARConstBackingStore& getProtectedArray() { return protectedArrays; }
 
+    /*!
+     * @brief Returns the ModelArrayRef backing store.
+     */
+    static MARStore& getStore() { return store; }
 protected:
     void registerModule();
 
@@ -283,6 +288,7 @@ protected:
 private:
     static MARBackingStore sharedArrays;
     static MARConstBackingStore protectedArrays;
+    static MARStore store;
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
 
     static size_t nOcean;

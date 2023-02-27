@@ -12,6 +12,7 @@ namespace Nextsim {
 std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
 MARBackingStore ModelComponent::sharedArrays(static_cast<size_t>(SharedArray::COUNT));
 MARConstBackingStore ModelComponent::protectedArrays(static_cast<size_t>(ProtectedArray::COUNT));
+MARStore ModelComponent::store;
 ModelArray* ModelComponent::p_oceanMaskH = nullptr;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
