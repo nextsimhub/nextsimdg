@@ -27,9 +27,10 @@ template <const TextTag& fieldNameTp, bool isReadWrite = RO> class ModelArrayRef
 public:
     ModelArrayRef(MARStore& backingStore)
         : fieldName(fieldNameTp)
+        , store(backingStore)
     {
         ref = nullptr;
-        backingStore.getFieldAddr(fieldName.text, ref);
+        store.getFieldAddr(fieldName.text, ref);
     }
     ~ModelArrayRef() { store.removeReference(&ref); }
     ModelArrayRef(const ModelArrayRef&) = delete;
@@ -38,7 +39,7 @@ public:
 
 private:
     ModelArrayConstReference ref;
-    MARStore store;
+    MARStore& store;
     TextTag fieldName;
     friend MARStore;
 };
@@ -47,17 +48,18 @@ template <const TextTag &fieldNameTp> class ModelArrayRef<fieldNameTp, RW> {
 public:
     ModelArrayRef(MARStore& backingStore)
         : fieldName(fieldNameTp)
+        , store(backingStore)
     {
         ref = nullptr;
-        backingStore.getFieldAddr(fieldName.text, ref);
+        store.getFieldAddr(fieldName.text, ref);
     }
     ~ModelArrayRef() { store.removeReference(&ref); }
     double& operator[](size_t index) const { return ref->operator[](index); }
 
 private:
-    TextTag fieldName;
     ModelArrayReference ref;
-    MARStore store;
+    MARStore& store;
+    TextTag fieldName;
     friend MARStore;
 };
 }
