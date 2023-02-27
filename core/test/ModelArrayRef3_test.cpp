@@ -15,9 +15,9 @@ namespace Nextsim {
 
 class MiniModelComponent {
 public:
-    static const std::string H_ICE0;
-    static const std::string SW_IN;
-    static const std::string H_ICE;
+    static constexpr TextTag H_ICE0 = { "H_ICE0" };
+    static constexpr TextTag SW_IN = { "SW_IN" };
+    static constexpr TextTag H_ICE = { "H_ICE" };
 
     static MARBackingStore& getSharedArrays() { return sharedArrays; }
 protected:
@@ -25,9 +25,6 @@ protected:
 };
 
 MARBackingStore MiniModelComponent::sharedArrays;
-const std::string MiniModelComponent::H_ICE0 = "H_ICE0";
-const std::string MiniModelComponent::SW_IN = "SW_IN";
-const std::string MiniModelComponent::H_ICE = "H_ICE";
 
 class AtmIn : public MiniModelComponent {
 public:
@@ -55,7 +52,7 @@ private:
 class IceThermo : public MiniModelComponent {
 public:
     IceThermo()
-    : hice(H_ICE, getSharedArrays())
+    : hice(getSharedArrays())
     {
     }
 
@@ -64,13 +61,13 @@ public:
         hice[0] *= (1. + tStep) / tStep;
     }
 private:
-    ModelArrayRef<RW> hice;
+    ModelArrayRef<H_ICE, RW> hice;
 };
 
 class IceCalc : public MiniModelComponent {
 public:
     IceCalc()
-    : hice0(H_ICE0, getSharedArrays())
+    : hice0(getSharedArrays())
     {
         sharedArrays.registerArray(H_ICE, &hice, RW);
     }
@@ -90,7 +87,7 @@ public:
 
 private:
     HField hice;
-    ModelArrayRef<> hice0;
+    ModelArrayRef<H_ICE0> hice0;
 
     IceThermo thermo;
 };
@@ -141,17 +138,18 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
 
 
 static const double targetFlux = 320;
+static constexpr TextTag sw_in = { "sw_in" };
 
 class CouplEr
 {
 public:
     CouplEr(MARBackingStore& bs)
-    : swFlux("sw_in", bs)
+    : swFlux(bs)
     {
     }
     void update() { swFlux[0] = targetFlux; }
 private:
-    ModelArrayRef<RW> swFlux;
+    ModelArrayRef<sw_in, RW> swFlux;
 };
 
 class CouplIn : public MiniModelComponent
@@ -192,7 +190,7 @@ TEST_CASE("Accessing the data two ways", "[ModelArrayRef]")
     CouplIn couplIn;
     ModelArray::setDimensions(ModelArray::Type::H, {1,1});
     couplIn.configure();
-    ModelArrayRef<> swin("sw_in", couplIn.bs());
+    ModelArrayRef<sw_in> swin(couplIn.bs());
     couplIn.setData();
 
     REQUIRE(swin[0] != targetFlux);

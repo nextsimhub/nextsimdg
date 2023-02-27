@@ -20,12 +20,18 @@ const bool RO = false;
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
 
-template <bool isReadWrite = RO> class ModelArrayRef {
+struct TextTag {
+    operator std::string() const { return std::string(text); };
+    const char* text;
+};
+
+template <const TextTag &fieldNameTp, bool isReadWrite = RO> class ModelArrayRef {
 public:
-    ModelArrayRef(const std::string& field, MARBackingStore& backingStore)
+    ModelArrayRef(MARBackingStore& backingStore)
+        : fieldName(fieldNameTp)
     {
         ref = nullptr;
-        backingStore.getFieldAddr(field, ref);
+        backingStore.getFieldAddr(fieldName.text, ref);
     }
     ~ModelArrayRef() { store.removeReference(&ref); }
     ModelArrayRef(const ModelArrayRef&) = delete;
@@ -35,20 +41,23 @@ public:
 private:
     ModelArrayConstReference ref;
     MARBackingStore store;
+    TextTag fieldName;
     friend MARBackingStore;
 };
 
-template <> class ModelArrayRef<RW> {
+template <const TextTag &fieldNameTp> class ModelArrayRef<fieldNameTp, RW> {
 public:
-    ModelArrayRef(const std::string& field, MARBackingStore& backingStore)
+    ModelArrayRef(MARBackingStore& backingStore)
+        : fieldName(fieldNameTp)
     {
         ref = nullptr;
-        backingStore.getFieldAddr(field, ref);
+        backingStore.getFieldAddr(fieldName.text, ref);
     }
     ~ModelArrayRef() { store.removeReference(&ref); }
     double& operator[](size_t index) const { return ref->operator[](index); }
 
 private:
+    TextTag fieldName;
     ModelArrayReference ref;
     MARBackingStore store;
     friend MARBackingStore;
