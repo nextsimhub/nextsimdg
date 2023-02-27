@@ -21,11 +21,14 @@ typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
 
 struct TextTag {
+    constexpr TextTag(const char* textIn) : text(textIn) {}
+    template<std::size_t N>
+    constexpr TextTag(const char (&a)[N]) : text(a) {}
     operator std::string() const { return std::string(text); };
     const char* text;
 };
 
-template <const TextTag &fieldNameTp, bool isReadWrite = RO> class ModelArrayRef {
+template <const TextTag& fieldNameTp, bool isReadWrite = RO> class ModelArrayRef {
 public:
     ModelArrayRef(MARBackingStore& backingStore)
         : fieldName(fieldNameTp)

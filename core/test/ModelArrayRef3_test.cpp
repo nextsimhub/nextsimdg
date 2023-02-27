@@ -161,7 +161,7 @@ public:
         sharedArrays.registerArray(H_ICE, &hice);
         sharedArrays.registerArray(SW_IN, &swin);
         // Set the address of the swin array in the local reference backing store
-        coupledFields.registerArray("sw_in", &swin, RW);
+        coupledFields.registerArray(sw_in, &swin, RW);
     }
     void configure()
     {
