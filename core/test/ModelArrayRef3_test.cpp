@@ -118,7 +118,7 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
 */
 //TEST_CASE("(Not) writing to protected arrays", "[ModelArrayRef]")
 //{
-//    ModelArrayRef<MARStore> hice0(MiniModelComponent::H_ICE0, MiniModelComponent::getSharedArrays());
+//    ModelArrayRef<H_ICE0> hice0(MiniModelComponent::getSharedArrays());
 //    hice0[0] = 3.141592;
 //}
 
@@ -132,7 +132,7 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
 //    hice0Src.resize();
 //    hice0Src[0] = 1.0;
 //    MiniModelComponent::getSharedArrays().registerArray(MiniModelComponent::H_ICE0, &hice0Src);
-//    ModelArrayRef<MARStore, RW> hice0(MiniModelComponent::H_ICE0, MiniModelComponent::getSharedArrays());
+//    ModelArrayRef<H_ICE0, RW> hice0(MiniModelComponent::getSharedArrays());
 //    REQUIRE(hice0[0] != 3.141592);
 //}
 
