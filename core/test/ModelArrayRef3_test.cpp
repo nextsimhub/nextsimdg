@@ -9,7 +9,7 @@
 #include <catch2/catch.hpp>
 
 #include "../src/include/ModelArrayRef3.hpp"
-#include "../src/include/MARBackingStore.hpp"
+#include "../src/include/MARStore.hpp"
 
 namespace Nextsim {
 
@@ -19,12 +19,12 @@ public:
     static constexpr TextTag SW_IN = { "SW_IN" };
     static constexpr TextTag H_ICE = { "H_ICE" };
 
-    static MARBackingStore& getSharedArrays() { return sharedArrays; }
+    static MARStore& getSharedArrays() { return sharedArrays; }
 protected:
-    static MARBackingStore sharedArrays;
+    static MARStore sharedArrays;
 };
 
-MARBackingStore MiniModelComponent::sharedArrays;
+MARStore MiniModelComponent::sharedArrays;
 
 class AtmIn : public MiniModelComponent {
 public:
@@ -118,7 +118,7 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
 */
 //TEST_CASE("(Not) writing to protected arrays", "[ModelArrayRef]")
 //{
-//    ModelArrayRef<IMARBackingStore> hice0(MiniModelComponent::H_ICE0, MiniModelComponent::getSharedArrays());
+//    ModelArrayRef<MARStore> hice0(MiniModelComponent::H_ICE0, MiniModelComponent::getSharedArrays());
 //    hice0[0] = 3.141592;
 //}
 
@@ -132,7 +132,7 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
 //    hice0Src.resize();
 //    hice0Src[0] = 1.0;
 //    MiniModelComponent::getSharedArrays().registerArray(MiniModelComponent::H_ICE0, &hice0Src);
-//    ModelArrayRef<IMARBackingStore, RW> hice0(MiniModelComponent::H_ICE0, MiniModelComponent::getSharedArrays());
+//    ModelArrayRef<MARStore, RW> hice0(MiniModelComponent::H_ICE0, MiniModelComponent::getSharedArrays());
 //    REQUIRE(hice0[0] != 3.141592);
 //}
 
@@ -143,7 +143,7 @@ static constexpr TextTag sw_in = { "sw_in" };
 class CouplEr
 {
 public:
-    CouplEr(MARBackingStore& bs)
+    CouplEr(MARStore& bs)
     : swFlux(bs)
     {
     }
@@ -177,11 +177,11 @@ public:
     {
         coupler.update();
     }
-    MARBackingStore& bs() { return coupledFields; }
+    MARStore& bs() { return coupledFields; }
 private:
     HField hice;
     HField swin;
-    MARBackingStore coupledFields;
+    MARStore coupledFields;
     CouplEr coupler;
     };
 

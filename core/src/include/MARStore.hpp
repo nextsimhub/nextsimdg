@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef MARBACKINGSTORE_HPP
-#define MARBACKINGSTORE_HPP
+#ifndef MARSTORE_HPP
+#define MARSTORE_HPP
 
 #include <string>
 #include <unordered_map>
@@ -19,7 +19,7 @@ class ModelArray;
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
 
-class MARBackingStore {
+class MARStore {
 public:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
@@ -105,4 +105,4 @@ private:
 
 }
 
-#endif /* MARBACKINGSTORE_HPP */
+#endif /* MARSTORE_HPP */
