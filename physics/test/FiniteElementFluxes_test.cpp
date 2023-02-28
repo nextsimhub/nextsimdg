@@ -69,12 +69,12 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     class AtmosphereData : public ModelComponent {
     public:
         AtmosphereData() {
-            registerProtectedArray(ProtectedArray::T_AIR, &tair);
-            registerProtectedArray(ProtectedArray::DEW_2M, &tdew);
-            registerProtectedArray(ProtectedArray::P_AIR, &pair);
-            registerProtectedArray(ProtectedArray::WIND_SPEED, &windSpeed);
-            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-            registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
+            getStore().registerArray(Protected::T_AIR, &tair);
+            getStore().registerArray(Protected::DEW_2M, &tdew);
+            getStore().registerArray(Protected::P_AIR, &pair);
+            getStore().registerArray(Protected::WIND_SPEED, &windSpeed);
+            getStore().registerArray(Protected::SW_IN, &sw_in);
+            getStore().registerArray(Protected::LW_IN, &lw_in);
         }
         void setData(const ModelState::DataMap& state) override
         {
@@ -111,12 +111,12 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     public:
         ProgData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
 
         }
         std::string getName() const override { return "ProgData"; }
@@ -146,19 +146,19 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
 
     HField qow;
     qow.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
 
     HField qia;
     qia.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
     HField dqia_dt;
     dqia_dt.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
 
     HField subl;
     subl.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
@@ -221,12 +221,12 @@ TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
     public:
         AtmosphereData()
         {
-            registerProtectedArray(ProtectedArray::T_AIR, &tair);
-            registerProtectedArray(ProtectedArray::DEW_2M, &tdew);
-            registerProtectedArray(ProtectedArray::P_AIR, &pair);
-            registerProtectedArray(ProtectedArray::WIND_SPEED, &windSpeed);
-            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-            registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
+            getStore().registerArray(Protected::T_AIR, &tair);
+            getStore().registerArray(Protected::DEW_2M, &tdew);
+            getStore().registerArray(Protected::P_AIR, &pair);
+            getStore().registerArray(Protected::WIND_SPEED, &windSpeed);
+            getStore().registerArray(Protected::SW_IN, &sw_in);
+            getStore().registerArray(Protected::LW_IN, &lw_in);
         }
         void setData(const ModelState::DataMap& state) override
         {
@@ -262,12 +262,12 @@ TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
     public:
         ProgData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -297,19 +297,19 @@ TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
 
     HField qow;
     qow.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
 
     HField qia;
     qia.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
     HField dqia_dt;
     dqia_dt.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
 
     HField subl;
     subl.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
