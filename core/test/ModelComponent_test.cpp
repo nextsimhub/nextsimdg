@@ -125,7 +125,7 @@ public:
         , qio_ref(getStore())
     {
         registerModule();
-        getStore().registerArray(Shared::Q_IC, &qic);
+        getStore().registerArray(Shared::Q_IC, &qic, RW);
     }
     void setData(const ModelState::DataMap& ms) override { qic[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
@@ -153,7 +153,7 @@ public:
         , qic_ref(getStore())
     {
         registerModule();
-        getStore().registerArray(Shared::Q_IO, &qio);
+        getStore().registerArray(Shared::Q_IO, &qio, RW);
     }
     void setData(const ModelState::DataMap& ms) override { qio[0]; }
     std::string getName() const override { return "Shared"; }
