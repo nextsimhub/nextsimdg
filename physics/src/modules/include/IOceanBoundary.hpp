@@ -23,14 +23,14 @@ public:
         m_couplingArrays[static_cast<size_t>(CouplingFields::OCEAN_U)] = &u;
         m_couplingArrays[static_cast<size_t>(CouplingFields::OCEAN_V)] = &v;
 
-        registerSharedArray(SharedArray::Q_IO, &qio);
-        registerProtectedArray(ProtectedArray::SST, &sst);
-        registerProtectedArray(ProtectedArray::SSS, &sss);
-        registerProtectedArray(ProtectedArray::MLD, &mld);
-        registerProtectedArray(ProtectedArray::ML_BULK_CP, &cpml);
-        registerProtectedArray(ProtectedArray::TF, &tf);
-        registerProtectedArray(ProtectedArray::OCEAN_U, &u);
-        registerProtectedArray(ProtectedArray::OCEAN_V, &v);
+        getStore().registerArray(Shared::Q_IO, &qio, RW);
+        getStore().registerArray(Protected::SST, &sst);
+        getStore().registerArray(Protected::SSS, &sss);
+        getStore().registerArray(Protected::MLD, &mld);
+        getStore().registerArray(Protected::ML_BULK_CP, &cpml);
+        getStore().registerArray(Protected::TF, &tf);
+        getStore().registerArray(Protected::OCEAN_U, &u);
+        getStore().registerArray(Protected::OCEAN_V, &v);
     }
     virtual ~IOceanBoundary() = default;
 

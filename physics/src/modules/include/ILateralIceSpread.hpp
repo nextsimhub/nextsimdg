@@ -65,7 +65,7 @@ protected:
         , deltaHi(getStore())
     {
         registerModule();
-        getStore().registerArray(Shared::DELTA_CICE, &deltaCi);
+        getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RW);
     }
 
     ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth

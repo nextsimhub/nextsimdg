@@ -41,11 +41,11 @@ IceGrowth::IceGrowth()
     , deltaHi(getStore())
 {
     registerModule();
-    getStore().registerArray(Shared::H_ICE, &hice);
-    getStore().registerArray(Shared::C_ICE, &cice);
-    getStore().registerArray(Shared::H_SNOW, &hsnow);
-    getStore().registerArray(Shared::NEW_ICE, &newice);
-    getStore().registerArray(Shared::HSNOW_MELT, &snowMelt);
+    getStore().registerArray(Shared::H_ICE, &hice, RW);
+    getStore().registerArray(Shared::C_ICE, &cice, RW);
+    getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
+    getStore().registerArray(Shared::NEW_ICE, &newice, RW);
+    getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
 
     getStore().registerArray(Protected::HTRUE_ICE, &hice0);
     getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);

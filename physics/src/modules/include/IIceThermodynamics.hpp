@@ -64,8 +64,8 @@ protected:
     {
         registerModule();
 
-        getStore().registerArray(Shared::DELTA_HICE, &deltaHi);
-        getStore().registerArray(Shared::T_ICE, &tice);
+        getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
+        getStore().registerArray(Shared::T_ICE, &tice, RW);
     }
 
     ModelArrayRef<Shared::H_ICE, RW> hice; // From IceGrowth

@@ -27,11 +27,11 @@ public:
         m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_U)] = &uwind;
         m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_V)] = &vwind;
 
-        registerSharedArray(SharedArray::Q_IA, &qia);
-        registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-        registerSharedArray(SharedArray::Q_OW, &qow);
-        registerSharedArray(SharedArray::SUBLIM, &subl);
-        registerProtectedArray(ProtectedArray::SNOW, &snow);
+        getStore().registerArray(Shared::Q_IA, &qia, RW);
+        getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
+        getStore().registerArray(Shared::Q_OW, &qow, RW);
+        getStore().registerArray(Shared::SUBLIM, &subl, RW);
+        getStore().registerArray(Protected::SNOW, &snow);
     }
     virtual ~IAtmosphereBoundary() = default;
 
