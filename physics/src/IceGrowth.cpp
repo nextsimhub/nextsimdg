@@ -31,24 +31,24 @@ IceGrowth::IceGrowth()
     , newice(ModelArray::Type::H)
     , deltaCFreeze(ModelArray::Type::H)
     , deltaCMelt(ModelArray::Type::H)
-    , hIceCell(getProtectedArray())
-    , hSnowCell(getProtectedArray())
-    , cice0(getProtectedArray())
-    , qow(getSharedArray())
-    , mixedLayerBulkHeatCapacity(getProtectedArray())
-    , sst(getProtectedArray())
-    , tf(getProtectedArray())
-    , deltaHi(getSharedArray())
+    , hIceCell(getStore())
+    , hSnowCell(getStore())
+    , cice0(getStore())
+    , qow(getStore())
+    , mixedLayerBulkHeatCapacity(getStore())
+    , sst(getStore())
+    , tf(getStore())
+    , deltaHi(getStore())
 {
     registerModule();
-    registerSharedArray(SharedArray::H_ICE, &hice);
-    registerSharedArray(SharedArray::C_ICE, &cice);
-    registerSharedArray(SharedArray::H_SNOW, &hsnow);
-    registerSharedArray(SharedArray::NEW_ICE, &newice);
-    registerSharedArray(SharedArray::HSNOW_MELT, &snowMelt);
+    getStore().registerArray(Shared::H_ICE, &hice);
+    getStore().registerArray(Shared::C_ICE, &cice);
+    getStore().registerArray(Shared::H_SNOW, &hsnow);
+    getStore().registerArray(Shared::NEW_ICE, &newice);
+    getStore().registerArray(Shared::HSNOW_MELT, &snowMelt);
 
-    registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-    registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+    getStore().registerArray(Protected::HTRUE_ICE, &hice0);
+    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)

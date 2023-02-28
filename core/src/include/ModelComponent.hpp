@@ -11,7 +11,7 @@
 #include "include/Logged.hpp"
 #include "include/MARStore.hpp"
 #include "include/MissingData.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef3.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
 #include "include/TextTag.hpp"

@@ -12,8 +12,8 @@
 #include <vector>
 
 namespace Nextsim {
-const bool RW = true;
-const bool RO = false;
+//static const bool RW = true;
+//static const bool RO = false;
 
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;

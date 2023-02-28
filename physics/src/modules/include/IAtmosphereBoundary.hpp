@@ -5,7 +5,7 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef3.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 

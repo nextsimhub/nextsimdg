@@ -7,7 +7,7 @@
 
 #include "include/PrognosticData.hpp"
 
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef3.hpp"
 #include "include/Module.hpp"
 
 namespace Nextsim {
@@ -22,10 +22,10 @@ PrognosticData::PrognosticData()
     , pOcnBdy(0)
 
 {
-    registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
-    registerProtectedArray(ProtectedArray::C_ICE, &m_conc);
-    registerProtectedArray(ProtectedArray::H_SNOW, &m_snow);
-    registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
+    getStore().registerArray(Protected::H_ICE, &m_thick);
+    getStore().registerArray(Protected::C_ICE, &m_conc);
+    getStore().registerArray(Protected::H_SNOW, &m_snow);
+    getStore().registerArray(Protected::T_ICE, &m_tice);
 }
 
 void PrognosticData::configure()
@@ -71,10 +71,10 @@ void PrognosticData::update(const TimestepTime& tst)
     iceGrowth.update(tst);
     pOcnBdy->updateAfter(tst);
 
-    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
-    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
-    ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnowTrueUpd(getSharedArray());
-    ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RO> ticeUpd(getSharedArray());
+    ModelArrayRef<Shared::H_ICE, RO> hiceTrueUpd(getStore());
+    ModelArrayRef<Shared::C_ICE, RO> ciceUpd(getStore());
+    ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
+    ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
 
     // Calculate the cell average thicknesses
     HField hiceUpd = hiceTrueUpd * ciceUpd;

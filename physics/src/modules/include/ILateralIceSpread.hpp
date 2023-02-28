@@ -8,7 +8,7 @@
 #ifndef ILATERALICESPREAD_HPP
 #define ILATERALICESPREAD_HPP
 
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef3.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -58,22 +58,22 @@ public:
 
 protected:
     ILateralIceSpread()
-        : cice(getSharedArray())
-        , qow(getSharedArray())
-        , hice(getSharedArray())
-        , hsnow(getSharedArray())
-        , deltaHi(getSharedArray())
+        : cice(getStore())
+        , qow(getStore())
+        , hice(getStore())
+        , hsnow(getStore())
+        , deltaHi(getStore())
     {
         registerModule();
-        ModelComponent::registerSharedArray(SharedArray::DELTA_CICE, &deltaCi);
+        getStore().registerArray(Shared::DELTA_CICE, &deltaCi);
     }
 
-    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RW> cice; // From IceGrowth
-    ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW> qow; // From FluxCalculation
+    ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth
+    ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
 
-    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hice; // From IceGrowth
-    ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnow; // From Ice Growth?
-    ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore, RO> deltaHi; // From Vertical Ice Growth
+    ModelArrayRef<Shared::H_ICE, RO> hice; // From IceGrowth
+    ModelArrayRef<Shared::H_SNOW, RO> hsnow; // From Ice Growth?
+    ModelArrayRef<Shared::DELTA_HICE, RO> deltaHi; // From Vertical Ice Growth
 
     // Owned, shared arrays
     HField deltaCi;

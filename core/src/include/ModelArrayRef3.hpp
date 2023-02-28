@@ -22,7 +22,6 @@ const bool RO = false;
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
 
-
 template <const TextTag& fieldNameTp, bool isReadWrite = RO> class ModelArrayRef {
 public:
     ModelArrayRef(MARStore& backingStore)
@@ -45,10 +44,7 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    const double& operator[](const ModelArray::MultiDim& dims)
-    {
-        return ref->operator[](dims);
-    }
+    const double& operator[](const ModelArray::MultiDim& dims) { return ref->operator[](dims); }
     /*!
      * @brief Returns the data at the specified one dimensional index.
      *
@@ -62,17 +58,11 @@ public:
     //! Returns the specified point from a 1 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    const double& operator()(size_t i) const
-    {
-        return ref->operator()(i);
-    }
+    const double& operator()(size_t i) const { return ref->operator()(i); }
     //! Returns the specified point from a 2 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    const double& operator()(size_t i, size_t j) const
-    {
-        return ref->operator()(i, j);
-    }
+    const double& operator()(size_t i, size_t j) const { return ref->operator()(i, j); }
     //! Returns the specified point from a 3 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
@@ -120,7 +110,7 @@ private:
     friend MARStore;
 };
 
-template <const TextTag &fieldNameTp> class ModelArrayRef<fieldNameTp, RW> {
+template <const TextTag& fieldNameTp> class ModelArrayRef<fieldNameTp, RW> {
 public:
     ModelArrayRef(MARStore& backingStore)
         : fieldName(fieldNameTp)
@@ -140,10 +130,7 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    double& operator[](const ModelArray::MultiDim& dims)
-    {
-        return ref->operator[](dims);
-    }
+    double& operator[](const ModelArray::MultiDim& dims) { return ref->operator[](dims); }
     /*!
      * @brief Returns the data at the specified one dimensional index.
      *
@@ -157,24 +144,15 @@ public:
     //! Returns the specified point from a 1 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    double& operator()(size_t i) const
-    {
-        return ref->operator()(i);
-    }
+    double& operator()(size_t i) const { return ref->operator()(i); }
     //! Returns the specified point from a 2 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    double& operator()(size_t i, size_t j) const
-    {
-        return ref->operator()(i, j);
-    }
+    double& operator()(size_t i, size_t j) const { return ref->operator()(i, j); }
     //! Returns the specified point from a 3 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    double& operator()(size_t i, size_t j, size_t k) const
-    {
-        return ref->operator()(i, j, k);
-    }
+    double& operator()(size_t i, size_t j, size_t k) const { return ref->operator()(i, j, k); }
 
     /*!
      * @brief Special access function for ZFields.

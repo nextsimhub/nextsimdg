@@ -8,7 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "../src/include/ModelArrayRef.hpp"
+#include "../src/include/ModelArrayRef3.hpp"
 #include "../src/include/ModelComponent.hpp"
 
 #include <stdexcept>
@@ -56,10 +56,10 @@ class ModuleSupplyAndWait : public ModelComponent {
 public:
     ModuleSupplyAndWait()
         : hice(ModelArray::HField())
-        , cice_ref(getProtectedArray())
+        , cice_ref(getStore())
     {
         registerModule();
-        registerProtectedArray(ProtectedArray::H_ICE, &hice);
+        getStore().registerArray(Protected::H_ICE, &hice);
     }
     void setData(const ModelState::DataMap& ms) override { hice[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
@@ -77,17 +77,17 @@ public:
 
 private:
     HField hice;
-    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice_ref;
+    ModelArrayRef<Protected::C_ICE> cice_ref;
 };
 
 class ModuleRequestAndSupply : public ModelComponent {
 public:
     ModuleRequestAndSupply()
         : cice(ModelArray::HField())
-        , hice_ref(getProtectedArray())
+        , hice_ref(getStore())
     {
         registerModule();
-        registerProtectedArray(ProtectedArray::C_ICE, &cice);
+        getStore().registerArray(Protected::C_ICE, &cice);
     }
     void setData(const ModelState::DataMap& ms) override { cice[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
@@ -105,7 +105,7 @@ public:
 
 private:
     HField cice;
-    ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore> hice_ref;
+    ModelArrayRef<Protected::H_ICE> hice_ref;
 };
 
 TEST_CASE("Test array registration", "[ModelComponent]")
@@ -122,10 +122,10 @@ class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()
         : qic(ModelArray::HField())
-        , qio_ref(getSharedArray())
+        , qio_ref(getStore())
     {
         registerModule();
-        registerSharedArray(SharedArray::Q_IC, &qic);
+        getStore().registerArray(Shared::Q_IC, &qic);
     }
     void setData(const ModelState::DataMap& ms) override { qic[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
@@ -143,17 +143,17 @@ public:
 
 private:
     HField qic;
-    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RO> qio_ref;
+    ModelArrayRef<Shared::Q_IO, RO> qio_ref;
 };
 
 class ModuleShared : public ModelComponent {
 public:
     ModuleShared()
         : qio(ModelArray::HField())
-        , qic_ref(getSharedArray())
+        , qic_ref(getStore())
     {
         registerModule();
-        registerSharedArray(SharedArray::Q_IO, &qio);
+        getStore().registerArray(Shared::Q_IO, &qio);
     }
     void setData(const ModelState::DataMap& ms) override { qio[0]; }
     std::string getName() const override { return "Shared"; }
@@ -173,7 +173,7 @@ public:
 
 private:
     HField qio;
-    ModelArrayRef<SharedArray::Q_IC, MARBackingStore, RW> qic_ref;
+    ModelArrayRef<Shared::Q_IC, RW> qic_ref;
 };
 
 TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")

@@ -19,7 +19,7 @@
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef3.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -49,17 +49,17 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
     public:
         IceTemperatureData()
             : tice0(ModelArray::Type::Z)
-            , tice(getSharedArray())
+            , tice(getStore())
         {
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
-            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
+            getStore().registerArray(Protected::C_ICE, &cice0);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::SW_IN, &sw_in);
+            getStore().registerArray(Protected::T_ICE, &tice0);
 
-            registerSharedArray(SharedArray::H_ICE, &hice);
-            registerSharedArray(SharedArray::C_ICE, &cice);
-            registerSharedArray(SharedArray::H_SNOW, &hsnow);
+            getStore().registerArray(Shared::H_ICE, &hice);
+            getStore().registerArray(Shared::C_ICE, &cice);
+            getStore().registerArray(Shared::H_SNOW, &hsnow);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -85,7 +85,7 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
         HField hsnow0;
         HField sw_in;
         ZField tice0;
-        ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> tice; // From IIceThermodynamics
+        ModelArrayRef<Shared::T_ICE, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
@@ -131,10 +131,8 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
 
     twin.configure();
     twin.update(tst);
-    ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(
-        ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::T_ICE, RO> tice(ModelComponent::getStore());
+    ModelArrayRef<Shared::Q_IC, RO> qic(ModelComponent::getStore());
 
     double prec = 1e-5;
 
@@ -168,18 +166,18 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
     public:
         IceTemperatureData()
             : tice0(ModelArray::Type::Z)
-        , tice(getSharedArray())
+        , tice(getStore())
         {
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
-            registerProtectedArray(ProtectedArray::SNOW, &snow);
-            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
+            getStore().registerArray(Protected::C_ICE, &cice0);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::SNOW, &snow);
+            getStore().registerArray(Protected::SW_IN, &sw_in);
+            getStore().registerArray(Protected::T_ICE, &tice0);
 
-            registerSharedArray(SharedArray::H_ICE, &hice);
-            registerSharedArray(SharedArray::C_ICE, &cice);
-            registerSharedArray(SharedArray::H_SNOW, &hsnow);
+            getStore().registerArray(Shared::H_ICE, &hice);
+            getStore().registerArray(Shared::C_ICE, &cice);
+            getStore().registerArray(Shared::H_SNOW, &hsnow);
 
         }
         std::string getName() const override { return "IceTemperatureData"; }
@@ -208,7 +206,7 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
         HField snow;
         HField sw_in;
         ZField tice0;
-        ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> tice; // From IIceThermodynamics
+        ModelArrayRef<Shared::T_ICE, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
@@ -254,10 +252,8 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
     twin.configure();
     twin.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(
-        ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::T_ICE, RO> tice(ModelComponent::getStore());
+    ModelArrayRef<Shared::Q_IC, RO> qic(ModelComponent::getStore());
 
     double prec = 1e-5;
 

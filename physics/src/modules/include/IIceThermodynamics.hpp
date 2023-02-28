@@ -10,7 +10,7 @@
 
 #include "include/ConfigurationHelp.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef3.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -49,40 +49,38 @@ protected:
         : tice(ModelArray::Type::Z)
         , deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
-        , hice(getSharedArray())
-        , cice(getSharedArray())
-        , hsnow(getSharedArray())
-        , qic(getSharedArray())
-        , qio(getSharedArray())
-        , qia(getSharedArray())
-        , dQia_dt(getSharedArray())
-        , sublim(getSharedArray())
-        , tice0(getProtectedArray())
-        , tf(getProtectedArray())
-        , snowfall(getProtectedArray())
-        , sss(getProtectedArray())
+        , hice(getStore())
+        , cice(getStore())
+        , hsnow(getStore())
+        , qic(getStore())
+        , qio(getStore())
+        , qia(getStore())
+        , dQia_dt(getStore())
+        , sublim(getStore())
+        , tice0(getStore())
+        , tf(getStore())
+        , snowfall(getStore())
+        , sss(getStore())
     {
         registerModule();
 
-        ModelComponent::registerSharedArray(SharedArray::DELTA_HICE, &deltaHi);
-        ModelComponent::registerSharedArray(SharedArray::T_ICE, &tice);
+        getStore().registerArray(Shared::DELTA_HICE, &deltaHi);
+        getStore().registerArray(Shared::T_ICE, &tice);
     }
 
-    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RW> hice; // From IceGrowth
-    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RW> cice; // From IceGrowth
-    ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RW> hsnow; // From Ice Growth
-    ModelArrayRef<SharedArray::Q_IC, MARBackingStore, RW>
+    ModelArrayRef<Shared::H_ICE, RW> hice; // From IceGrowth
+    ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth
+    ModelArrayRef<Shared::H_SNOW, RW> hsnow; // From Ice Growth
+    ModelArrayRef<Shared::Q_IC, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
-    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio; // From FluxCalculation
-    ModelArrayRef<SharedArray::Q_IA, MARBackingStore, RO> qia; // From FluxCalculation
-    ModelArrayRef<SharedArray::DQIA_DT, MARBackingStore, RO> dQia_dt; // From FluxCalculation
-    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> sublim; // From AtmosphereState
-    ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore>
-        tice0; // Timestep initial ice temperature
-    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf; // Sea water freezing temperature
-    ModelArrayRef<ProtectedArray::SNOW, MARConstBackingStore> snowfall; // From ExternalData
-    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore>
-        sss; // From ExternalData (possibly PrognosticData)
+    ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
+    ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
+    ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
+    ModelArrayRef<Shared::SUBLIM, RO> sublim; // From AtmosphereState
+    ModelArrayRef<Protected::T_ICE> tice0; // Timestep initial ice temperature
+    ModelArrayRef<Protected::TF> tf; // Sea water freezing temperature
+    ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
+    ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
     HField tice;
     HField deltaHi;

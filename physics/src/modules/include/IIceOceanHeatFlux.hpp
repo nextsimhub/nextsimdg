@@ -8,7 +8,7 @@
 #ifndef IICEOCEANHEATFLUX_HPP
 #define IICEOCEANHEATFLUX_HPP
 
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef3.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
@@ -19,9 +19,9 @@ namespace Nextsim {
 class IIceOceanHeatFlux : public ModelComponent {
 public:
     IIceOceanHeatFlux()
-        : sst(getProtectedArray())
-        , tf(getProtectedArray())
-        , qio(getSharedArray())
+        : sst(getStore())
+        , tf(getStore())
+        , qio(getStore())
     {
     }
     virtual ~IIceOceanHeatFlux() = default;
@@ -45,10 +45,10 @@ public:
     virtual void update(const TimestepTime&) = 0;
 
 protected:
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
-    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf;
+    ModelArrayRef<Protected::SST> sst;
+    ModelArrayRef<Protected::TF> tf;
 
-    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio;
+    ModelArrayRef<Shared::Q_IO, RW> qio;
 };
 }
 #endif /* IICEOCEANHEATFLUX_HPP_ */
