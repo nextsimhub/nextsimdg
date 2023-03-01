@@ -113,19 +113,19 @@ TEST_CASE("ConfiguredAtmosphere melting test", "[ConfiguredAtmosphere")
 
     HField qow;
     qow.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
 
     HField qia;
     qia.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia);
+    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
     HField dqia_dt;
     dqia_dt.resize();
-    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt);
+    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
 
     HField subl;
     subl.resize();
-    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl);
+    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     ocnBdy.updateBefore(tst);
