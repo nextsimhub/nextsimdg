@@ -8,9 +8,9 @@
 #ifndef MARSTORE_HPP
 #define MARSTORE_HPP
 
+#include <list>
 #include <string>
 #include <unordered_map>
-#include <list>
 
 namespace Nextsim {
 
@@ -27,7 +27,7 @@ public:
         if (waitingRW.count(field))
             waitingRW.at(field).push_back(&ptr);
         else
-            waitingRW[field] = {&ptr};
+            waitingRW[field] = { &ptr };
         return storeRW.count(field) ? ptr = storeRW.at(field) : nullptr;
     }
 
@@ -37,7 +37,7 @@ public:
         if (waitingRO.count(field))
             waitingRO.at(field).push_back(&ptr);
         else
-            waitingRO[field] = {&ptr};
+            waitingRO[field] = { &ptr };
 
         if (storeRO.count(field)) {
             ptr = storeRO.at(field);
@@ -78,7 +78,7 @@ public:
         }
     }
 
-    void removeReference(ModelArrayReference *ptr)
+    void removeReference(ModelArrayReference* ptr)
     {
         for (auto& [name, list] : waitingRW) {
             list.remove(ptr);
