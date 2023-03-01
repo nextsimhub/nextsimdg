@@ -169,15 +169,6 @@ add_executable(testTime
 target_include_directories(testTime PRIVATE "${CoreSrc}")
 target_link_libraries(testTime PRIVATE Catch2::Catch2)
 
-#add_executable(testNewModelArrayRef
-#    "NewModelArrayRef_test.cpp"
-#    "${CoreSrc}/ModelArray.cpp"
-#    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
-#)
-#
-#target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-#target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)
-
 add_executable(testModelArrayRef
     "ModelArrayRef_test.cpp"
     "${CoreSrc}/ModelArray.cpp"
