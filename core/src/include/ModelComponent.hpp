@@ -87,57 +87,6 @@ constexpr TextTag NEW_ICE = "NEW_ICE"; // Volume of new ice formed [m]
 class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
-
-    enum class ProtectedArray {
-        // Prognostic model fields
-        H_ICE, // Ice thickness, cell average, m
-        C_ICE, // Ice concentration
-        H_SNOW, // Snow depth, cell average, m
-        T_ICE, // Ice temperature, ˚C
-        // External data fields
-        T_AIR, // Air temperature, ˚C
-        DEW_2M, // Dew point at 2 m, ˚C
-        P_AIR, // sea level air pressure, Pa
-        MIXRAT, // water vapour mass mixing ratio
-        SW_IN, // incoming shortwave flux, W m⁻²
-        LW_IN, // incoming longwave flux, W m⁻²
-        MLD, // mixed layer depth, m
-        SNOW, // snow fall, kg m⁻² s⁻¹
-        SSS, // sea surface salinity, PSU
-        SST, // sea surface temperature ˚C
-        EVAP_MINUS_PRECIP, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
-        // Derived fields, calculated once per timestep
-        ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
-        TF, // Ocean freezing temperature, ˚C
-        WIND_SPEED, // Wind speed, m s⁻¹
-        HTRUE_ICE, // Ice thickness, ice average, m
-        HTRUE_SNOW, // Snow thickness, ice average, m
-        OCEAN_U, // x(east)-ward ocean current, m s⁻¹
-        OCEAN_V, // y(north)-ward ocean current, m s⁻¹
-        COUNT // Count of enum values
-    };
-    enum class SharedArray {
-        // Values of the prognostic fields updated during the timestep
-        H_ICE, // Updated ice thickness, ice average, m
-        C_ICE, // Updated ice concentration
-        H_SNOW, // Updated snow depth, ice average, m
-        T_ICE, // Updated ice temperatures, ˚C
-        // Heat fluxes
-        Q_IA, // Ice to atmosphere heat flux W m⁻²
-        Q_IC, // Ice conduction heat flux W m⁻²
-        Q_IO, // Ice to ocean heat flux W m⁻²
-        Q_OW, // Open water heat flux W m⁻²
-        DQIA_DT, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
-        // Mass fluxes
-        HSNOW_MELT, // Thickness of snow that melted, m
-        // Atmospheric conditions
-        SUBLIM, // Upward sublimation rate kg m⁻² s⁻¹
-        DELTA_HICE, // Change in sea ice thickness, m
-        DELTA_CICE, // Change in sea ice concentration
-        // Ice growth (that is not included above)
-        NEW_ICE, // Volume of new ice formed [m]
-        COUNT // Count of enum values
-    };
     typedef std::function<void(size_t, const TimestepTime&)> IteratedFn;
 
     ModelComponent();
@@ -202,54 +151,11 @@ public:
         std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF);
 
     /*!
-     * @brief Registers a ModelArray into a SharedArray slot from outside any
-     *        ModelComponent object. Intended for testing and debugging.
-     */
-    static void registerExternalSharedArray(SharedArray type, ModelArray* addr)
-    {
-        registerSharedArray(type, addr);
-    }
-    /*!
-     * @brief Registers a ModelArray into a ProtectedArray slot from outside
-     *        any ModelComponent object. Intended for testing and debugging.
-     */
-    static void registerExternalProtectedArray(ProtectedArray type, ModelArray* addr)
-    {
-        registerProtectedArray(type, addr);
-    }
-
-    /*!
-     * @brief Returns a const reference to the store for SharedArray fields
-     */
-    static const MARBackingStore& getSharedArray() { return sharedArrays; }
-
-    /*!
-     * @brief Returns a const reference to the store for ProtectedArray fields
-     */
-    static const MARConstBackingStore& getProtectedArray() { return protectedArrays; }
-
-    /*!
      * @brief Returns the ModelArrayRef backing store.
      */
     static MARStore& getStore() { return store; }
 protected:
     void registerModule();
-
-    /*!
-     * Adds a pointer to a slot into the SharedArray array.
-     *
-     * @param type The SharedArray slot to add the ModelArray into.
-     * @param addr The address of the ModelArray to be shared.
-     */
-    static void registerSharedArray(SharedArray type, ModelArray* addr);
-
-    /*!
-     * Adds a pointer to a slot into the ProtectedArray array.
-     *
-     * @param type The ProtectedArray slot to add the ModelArray into.
-     * @param addr The address of the ModelArray to be shared (read only).
-     */
-    static void registerProtectedArray(ProtectedArray type, const ModelArray* addr);
 
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
