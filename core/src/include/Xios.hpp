@@ -7,7 +7,8 @@
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
 
-
+#include <mpi.h>
+#include <include/xios_c_interface.hpp>
 #include "include/Configured.hpp"
 
 namespace Nextsim {
@@ -15,15 +16,30 @@ namespace Nextsim {
 //! Class to handle interfacing with the XIOS library
 class Xios : public Configured<Xios> {
 public:
-    Xios();
+    Xios(int argc, char* argv[]);
     ~Xios();
+    
+    void initialise();//int argc, char* argv[]);
     void Finalise();
+    bool validateConfiguration();
+    bool validateServerConfiguration();
+    bool validateCalendarConfiguration();
+
+    void configure() override; 
+    void configureServer(int argc, char* argv[]);
+    void configureCalendar();
+
+    //Decide if I want these two and the best output type
+    std::string getCalendarOrigin();
+    void setCalendarOrigin();
+    std::string getCalendarStart(bool isoFormat);
+    void setCalendarStart(char *dstart_str, int str_size);
+    std::string getCalendarTimestep();
+    void setCalendarTimestep();
+    void getCalendarConfiguration();
+    static std::string formatXiosDatetime(cxios_date datetime, bool isoFormat);
 
     static void writeState();
-    //void configure() override;
-    void configure() override; 
-    void initialise(int argc, char* argv[]);
-
     //Arguments TBC
     void setState();
     void getState();
@@ -34,10 +50,14 @@ public:
         ENABLED_KEY,
     };
 
+    static void convertXiosDateStringToIsoDate(std::string& dateString);
+
 protected:
-    bool m_isConfigured;
+    bool m_isConfigured = false;
 private:
     std::string m_enabledStr;
+    MPI_Comm m_clientComm;
+    xios::CCalendarWrapper* m_clientCalendar;
 };
 
 } /* end namespace Nextsim */
