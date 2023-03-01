@@ -1,3 +1,5 @@
+#ifndef XIOS_C_INTERFACE
+#define XIOS_C_INTERFACE
 
 #include <calendar_wrapper.hpp>
 #include <icdate.hpp>
@@ -14,14 +16,26 @@ extern "C"
   void cxios_context_close_definition();
   void cxios_context_finalize();
 
+  //Calendar init
   void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret);
-  void cxios_get_calendar_wrapper_date_time_origin(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* time_origin_c);
+  //Date Utility
   void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size);
-  void cxios_get_calendar_wrapper_date_start_date(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
+  cxios_date cxios_date_convert_from_string(char* str, int str_size);
 
+  //Calendar Origin
+  void cxios_set_calendar_wrapper_date_time_origin(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* time_origin_c);
+  void cxios_get_calendar_wrapper_date_time_origin(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* time_origin_c);
+
+  //Calendar Start Date
+  void cxios_get_calendar_wrapper_date_start_date(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
+  void cxios_set_calendar_wrapper_date_start_date(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
+
+  //Calendar Timestep
   void cxios_set_calendar_wrapper_timestep(xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration timestep_c);
+  void cxios_get_calendar_wrapper_timestep(xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration timestep_c);
   void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
     
+  //Grid Axis
   void cxios_axis_handle_create (xios::CAxis** _ret, const char * _id, int _id_len);
   void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
   void cxios_get_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
@@ -37,7 +51,10 @@ extern "C"
   void cxios_set_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
   void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
 
+  
   void cxios_update_calendar(int step);
   void cxios_write_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize, int tileid);
 
 };
+
+#endif

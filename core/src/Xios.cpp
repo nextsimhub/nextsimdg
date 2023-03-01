@@ -8,6 +8,9 @@
 #include <iostream>
 #include <mpi.h>
 #include <include/xios_c_interface.hpp>
+#include <boost/format.hpp>
+#include <boost/format/group.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace Nextsim {
 
@@ -16,82 +19,175 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     { Xios::ENABLED_KEY, "xios.enable" }
 };
 
-    Xios::Xios() {
-        m_isConfigured = false; 
+    Xios::Xios(int argc, char* argv[]) {
+        Xios::configure();
+        Xios::configureServer(argc, argv);
+        Xios::configureCalendar();
+        Xios::validateConfiguration();
     }
 
+    //This does not setup XIOS this sets up the XIOS class (requirement - Define abstract method in Configured)
     void Xios::configure()
     {
-            cout << "XIOS --- CONFIGURE ENTRY POINT" << endl; 
-            m_enabledStr = Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string());
-            cout << "XIOS --- Enabled: " << Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()) << endl;
+        cout << "XIOS --- CONFIGURE ENTRY POINT" << endl; 
+        m_enabledStr = Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string());
+        cout << "XIOS --- Enabled: " << Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()) << endl;
 
-            m_isConfigured = true;
-            cout << "XIOS --- CONFIGURE EXIT POINT" << endl; 
+        m_isConfigured = true;
+        cout << "XIOS --- CONFIGURE EXIT POINT" << endl; 
+    }
+
+    void Xios::configureServer(int argc, char* argv[])
+    {
+
+        cout << "XIOS --- CONFIGURE SERVER ENTRY POINT" << endl; 
+        //Temporary MPI setup until syncronisation with assoc branch
+        MPI_Init(&argc, &argv);
+        int n_ranks;
+        MPI_Comm_size(MPI_COMM_WORLD, &n_ranks);
+        cout << "MPI_RANKS " << n_ranks << endl;
+        string clientId( "client" );
+
+        MPI_Fint clientComm_F;
+        MPI_Fint nullComm_F = MPI_Comm_c2f( MPI_COMM_NULL );
+
+        cxios_init_client( clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F );
+        m_clientComm = MPI_Comm_f2c( clientComm_F );
+
+        string contextId( "test" );
+        cxios_context_initialize( contextId.c_str(), contextId.length(), &clientComm_F );
+
+        // int rank(0);
+        // MPI_Comm_rank( m_clientComm, &rank );
+        // int size(1);
+        // MPI_Comm_size( m_clientComm, &size );
+
+        cout << "XIOS --- CONFIGURE SERVER EXIT POINT" << endl; 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    std::string Xios::getCalendarOrigin()
+    {
+        cxios_date dorigin;
+        char dorigin_str[20];
+        cxios_get_calendar_wrapper_date_time_origin( m_clientCalendar, &dorigin );
+        cxios_date_convert_to_string( dorigin, dorigin_str, 20);
+        return dorigin_str;
+    }
+
+    void Xios::setCalendarStart(char* dstart_str, int str_size)
+    {
+        //This string must be in YYYY-MM-DD HH-MM-SS format (I think the size of each can vary but the orders and delims cant)
+        cxios_date dstart = cxios_date_convert_from_string(dstart_str, str_size);//, m_clientCalendar);
+        cxios_set_calendar_wrapper_date_start_date( m_clientCalendar, &dstart );
+    }
+
+    std::string Xios::getCalendarStart(bool isoFormat = true)
+    {
+        cout << "getCalendarstart" << endl;
+        cxios_date dstart;
+        cxios_get_calendar_wrapper_date_start_date( m_clientCalendar, &dstart);
+        return formatXiosDatetime(dstart, isoFormat);
+    }
+
+    //If I need an Xios utility class then this is a candidate
+    //TODO: Create the reverse operation
+    static std::string Xios::formatXiosDatetime(cxios_date datetime, bool isoFormat)
+    {
+        const int str_size = 20;
+        char datetime_str[20];
+        if (isoFormat) {
+            //TODO: Find a better way of doing this?
+            //TODO: The individual elements need pre-formatting. Make a function?
+            boost::format fmt = boost::format("%1%-%2%-%3%T%4%:%5%:%6%Z") 
+            % datetime.year
+            % boost::io::group(std::setw(2), std::setfill('0'), datetime.month)
+            % boost::io::group(std::setw(2), std::setfill('0'), datetime.day)
+            % boost::io::group(std::setw(2), std::setfill('0'), datetime.hour)
+            % boost::io::group(std::setw(2), std::setfill('0'), datetime.minute)
+            % boost::io::group(std::setw(2), std::setfill('0'), datetime.second);
+            return fmt.str();
+        } else {
+            cxios_date_convert_to_string(datetime, datetime_str, str_size);
+        }
+
+        return datetime_str;
+    }
+
+    void Xios::configureCalendar() 
+    {
+
+        cout << "XIOS --- CONFIGURE CALENDAR ENTRY POINT" << endl; 
+        //Set member variable to xios calendar object
+        cxios_get_current_calendar_wrapper( &m_clientCalendar );
+
+        //TODO: Argument from Xios::Configure, itself from callsite in Model?
+        //TODO: Take string as argument and convert to char for the extern c?
+        char dstart_str[20] = "2021-03-01 00:00:00";
+        cout << "Enter setCalendarStart" << endl;
+        //xios::CException
+        //setCalendarStart(dstart_str, 20);
+        cout << "Enter setCalendarTimestep" << endl;
+        setCalendarTimestep();
+
+        //Report to std out
+        getCalendarConfiguration();
+
+        cout << "XIOS --- CONFIGURE CALENDAR EXIT POINT" << endl; 
+    }
+
+
+    //Do I want arguments here or what? --- how do I link back to config argument value?
+    void Xios::setCalendarTimestep() 
+    {        
+        //Default timestep values
+        cxios_duration dtime;
+        dtime.year = 0;
+        dtime.month = 0;
+        dtime.day = 0;
+        dtime.hour = 0;
+        dtime.minute = 0;
+        dtime.second = 0;
+        dtime.timestep = 0;
+        dtime.second = 3600;
+        
+        cxios_set_calendar_wrapper_timestep( m_clientCalendar, dtime );
+        cxios_update_calendar_timestep( m_clientCalendar );
+    }
+
+    //Do I want an array of strings? Origin/Start/Step?
+    void Xios::getCalendarConfiguration()
+    {
+        //Report calendar origin/start
+        int rank(0);
+        if (rank == 0) 
+        {
+            std::string calendar_origin = getCalendarOrigin();
+            std::string calendar_start = getCalendarStart(true);
+            cout << "calendar time_origin = " << calendar_origin << endl;
+            cout << "calendar start_date = " << calendar_start << endl;
+        }
     }
 
     //Setup XIOS server process, calendar and parse iodel.xml
-    void Xios::initialise(int argc, char* argv[])
+    void Xios::initialise()//int argc, char* argv[])
     {
             cout << "XIOS --- INITIALISE ENTRY POINT" << endl; 
-            
-            Xios::configure();
-
-            //Temporary MPI setup until syncronisation with assoc branch
-            MPI_Init(&argc, &argv);
-            int n_ranks;
-            MPI_Comm_size(MPI_COMM_WORLD, &n_ranks);
-            cout << "MPI_RANKS " << n_ranks << endl;
-
-            string clientId( "client" );
-            MPI_Comm clientComm;
-            MPI_Fint clientComm_F;
-            MPI_Fint nullComm_F = MPI_Comm_c2f( MPI_COMM_NULL );
-
-            cxios_init_client( clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F );
-            clientComm = MPI_Comm_f2c( clientComm_F );
-
             int rank(0);
-            MPI_Comm_rank( clientComm, &rank );
-            int size(1);
-            MPI_Comm_size( clientComm, &size );
-
+            MPI_Comm_rank( m_clientComm, &rank );
             cout << "Hello XIOS from proc " << rank << endl;
 
-            string contextId( "test" );
-            cxios_context_initialize( contextId.c_str(), contextId.length(), &clientComm_F );
-
-            cxios_date dorigin;
-            char dorigin_str[20];
-
-            xios::CCalendarWrapper* clientCalendar;
-            cxios_get_current_calendar_wrapper( &clientCalendar );
-            cxios_get_calendar_wrapper_date_time_origin( clientCalendar, &dorigin );
-
-            cxios_date_convert_to_string( dorigin, dorigin_str, 20);
-            if (rank == 0) cout << "calendar time_origin = " << dorigin_str << endl;
-
-            cxios_date dstart;
-            char dstart_str[20];
-
-            cxios_get_calendar_wrapper_date_start_date( clientCalendar, &dstart );
-            
-            cxios_date_convert_to_string( dstart, dstart_str, 20);
-            if (rank == 0) cout << "calendar start_date = " << dstart_str << endl;
-
-            cxios_duration dtime;
-            dtime.year = 0;
-            dtime.month = 0;
-            dtime.day = 0;
-            dtime.hour = 0;
-            dtime.minute = 0;
-            dtime.second = 0;
-            dtime.timestep = 0;
-            dtime.second = 3600;
-            
-            cxios_set_calendar_wrapper_timestep( clientCalendar, dtime );
-            
-            cxios_update_calendar_timestep( clientCalendar );
 
             if (rank == 0) cout << "XIOS --- INITIALISE EXIT POINT" << endl; 
     }
@@ -105,6 +201,11 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 
             MPI_Finalize();
             cout << "XIOS --- FINALISE EXIT" << endl;
+    }
+
+    bool Xios::validateConfiguration()
+    {
+        return true;
     }
 
     Xios::~Xios()
