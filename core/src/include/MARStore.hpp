@@ -23,21 +23,22 @@ class MARStore {
 public:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
-        if (storeRW.count(field)) {
-            ptr = storeRW.at(field);
-            return ptr;
-        } else {
-            // If there is no entry for the field key, then add it to the waiting list
-            if (waitingRW.count(field))
-                waitingRW.at(field).push_back(&ptr);
-            else
-                waitingRW[field] = {&ptr};
-            return nullptr;
-        }
+        // Add this address to the waiting list for RW fields.
+        if (waitingRW.count(field))
+            waitingRW.at(field).push_back(&ptr);
+        else
+            waitingRW[field] = {&ptr};
+        return storeRW.count(field) ? ptr = storeRW.at(field) : nullptr;
     }
 
     const ModelArray* getFieldAddr(const std::string& field, ModelArrayConstReference& ptr)
     {
+        // Add this address to the waiting list for RO fields.
+        if (waitingRO.count(field))
+            waitingRO.at(field).push_back(&ptr);
+        else
+            waitingRO[field] = {&ptr};
+
         if (storeRO.count(field)) {
             ptr = storeRO.at(field);
             return ptr;
@@ -45,11 +46,6 @@ public:
             ptr = storeRW.at(field);
             return ptr;
         } else {
-            // If there is no entry for the field key, then add it to the waiting list
-            if (waitingRO.count(field))
-                waitingRO.at(field).push_back(&ptr);
-            else
-                waitingRO[field] = {&ptr};
             return nullptr;
         }
     }
