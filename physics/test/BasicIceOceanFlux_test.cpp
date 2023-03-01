@@ -54,12 +54,12 @@ TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
     public:
         ProgData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Shared::H_ICE, &hice, RW);
+            getStore().registerArray(Shared::C_ICE, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
+            getStore().registerArray(Shared::T_ICE, &tice0, RW);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -88,7 +88,7 @@ TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
 
     HField qio;
     qio.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IO, &qio);
+    ModelComponent::getStore().registerArray(Shared::Q_IO, &qio, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     BasicIceOceanHeatFlux biohf;
@@ -130,12 +130,12 @@ TEST_CASE("Freezing conditions", "[BasicIceOceanHeatFlux]")
     public:
         ProgData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -165,7 +165,7 @@ TEST_CASE("Freezing conditions", "[BasicIceOceanHeatFlux]")
 
     HField qio;
     qio.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IO, &qio);
+    ModelComponent::getStore().registerArray(Shared::Q_IO, &qio, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     BasicIceOceanHeatFlux biohf;
