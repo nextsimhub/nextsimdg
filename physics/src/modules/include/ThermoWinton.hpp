@@ -8,9 +8,9 @@
 #ifndef THERMOWINTON_HPP
 #define THERMOWINTON_HPP
 
+#include "../../../../core/src/include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
-#include "include/ModelArrayRef3.hpp"
 namespace Nextsim {
 
 //! A class implementing IIceThermodynamics as the Winton thermodynamics model.

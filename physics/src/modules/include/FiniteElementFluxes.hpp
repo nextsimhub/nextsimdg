@@ -8,11 +8,11 @@
 #ifndef FINITEELEMENTFLUXES_HPP
 #define FINITEELEMENTFLUXES_HPP
 
+#include "../../../../core/src/include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/ModelArrayRef3.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {

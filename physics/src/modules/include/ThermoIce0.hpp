@@ -8,9 +8,9 @@
 #ifndef THERMOICE0HPP
 #define THERMOICE0HPP
 
+#include "../../../../core/src/include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
-#include "include/ModelArrayRef3.hpp"
 namespace Nextsim {
 
 //! A class implementing IIceThermodynamics as the ThermoIce0 model.

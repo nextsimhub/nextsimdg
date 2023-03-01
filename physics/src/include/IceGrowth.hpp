@@ -8,10 +8,10 @@
 #ifndef ICEGROWTH_HPP
 #define ICEGROWTH_HPP
 
+#include "../../../core/src/include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
-#include "include/ModelArrayRef3.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 

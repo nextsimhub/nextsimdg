@@ -19,7 +19,7 @@
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef3.hpp"
+#include "../../core/src/include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 

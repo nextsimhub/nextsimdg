@@ -178,10 +178,10 @@ target_link_libraries(testTime PRIVATE Catch2::Catch2)
 #target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 #target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)
 
-add_executable(testModelArrayRef3
-    "ModelArrayRef3_test.cpp"
+add_executable(testModelArrayRef
+    "ModelArrayRef_test.cpp"
     "${CoreSrc}/ModelArray.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
 )
-target_include_directories(testModelArrayRef3 PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_libraries(testModelArrayRef3 PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_include_directories(testModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_libraries(testModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)

@@ -1,12 +1,12 @@
 /*!
- * @file ModelArrayRef3.hpp
+ * @file ModelArrayRef.hpp
  *
  * @date 22 Feb 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef MODELARRAYREF3_HPP
-#define MODELARRAYREF3_HPP
+#ifndef MODELARRAYREF_HPP
+#define MODELARRAYREF_HPP
 
 #include "include/MARStore.hpp"
 #include "include/ModelArray.hpp"
@@ -181,4 +181,4 @@ private:
 };
 }
 
-#endif /* MODELARRAYREF3_HPP */
+#endif /* MODELARRAYREF_HPP */

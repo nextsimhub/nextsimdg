@@ -8,7 +8,7 @@
 #ifndef ILATERALICESPREAD_HPP
 #define ILATERALICESPREAD_HPP
 
-#include "include/ModelArrayRef3.hpp"
+#include "../../../../core/src/include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 

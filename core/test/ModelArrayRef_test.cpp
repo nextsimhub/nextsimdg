@@ -8,7 +8,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "../src/include/ModelArrayRef3.hpp"
+#include "../src/include/ModelArrayRef.hpp"
 #include "../src/include/MARStore.hpp"
 
 namespace Nextsim {
