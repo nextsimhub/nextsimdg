@@ -8,11 +8,11 @@
 #ifndef MARSTORE_HPP
 #define MARSTORE_HPP
 
-#include "include/TextTag.hpp"
-
 #include <list>
 #include <string>
 #include <unordered_map>
+
+struct TextTag;
 
 namespace Nextsim {
 
