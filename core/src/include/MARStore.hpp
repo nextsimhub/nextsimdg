@@ -8,6 +8,8 @@
 #ifndef MARSTORE_HPP
 #define MARSTORE_HPP
 
+#include "include/TextTag.hpp"
+
 #include <list>
 #include <string>
 #include <unordered_map>
@@ -21,6 +23,25 @@ typedef const ModelArray* ModelArrayConstReference;
 
 class MARStore {
 public:
+    void registerArray(const std::string& field, ModelArray* ptr, bool isReadWrite = false)
+    {
+        if (!isReadWrite) {
+            storeRO[field] = ptr;
+        } else {
+            storeRW[field] = ptr;
+            if (waitingRW.count(field)) {
+                for (ModelArrayReference* ref : waitingRW.at(field)) {
+                    *ref = ptr;
+                }
+            }
+        }
+        if (waitingRO.count(field)) {
+            for (ModelArrayConstReference* ref : waitingRO.at(field)) {
+                *ref = ptr;
+            }
+        }
+    }
+private:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
         // Add this address to the waiting list for RW fields.
@@ -50,24 +71,6 @@ public:
         }
     }
 
-    void registerArray(const std::string& field, ModelArray* ptr, bool isReadWrite = false)
-    {
-        if (!isReadWrite) {
-            storeRO[field] = ptr;
-        } else {
-            storeRW[field] = ptr;
-            if (waitingRW.count(field)) {
-                for (ModelArrayReference* ref : waitingRW.at(field)) {
-                    *ref = ptr;
-                }
-            }
-        }
-        if (waitingRO.count(field)) {
-            for (ModelArrayConstReference* ref : waitingRO.at(field)) {
-                *ref = ptr;
-            }
-        }
-    }
 
     void removeReference(ModelArrayConstReference* ptr)
     {
@@ -92,11 +95,13 @@ public:
         }
     }
 
-private:
     std::unordered_map<std::string, ModelArray*> storeRO;
     std::unordered_map<std::string, ModelArray*> storeRW;
     std::unordered_map<std::string, std::list<ModelArrayReference*>> waitingRW;
     std::unordered_map<std::string, std::list<ModelArrayConstReference*>> waitingRO;
+
+    template <const TextTag& fieldName, bool isReadWrite>
+    friend class ModelArrayRef;
 };
 
 }
