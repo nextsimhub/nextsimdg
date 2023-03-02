@@ -25,6 +25,25 @@ class MARStore {
 public:
     void registerArray(const std::string& field, ModelArray* ptr, bool isReadWrite = false)
     {
+        // Clean the old array, if set
+        if (storeRW.count(field)) {
+            // If the pointer was in the RW array, null it
+            storeRW[field] = nullptr;
+            // Set any RW references with this field to nullptr
+            auto range = referencesRW.equal_range(field);
+            for (auto it = range.first; it != range.second; ++it) {
+                *(it->second) = nullptr;
+            }
+        } else if (storeRO.count(field)) {
+            storeRO[field] = nullptr;
+        }
+        // Set any RO references with this field to nullptr
+        auto range = referencesRO.equal_range(field);
+        for (auto it = range.first; it != range.second; ++it) {
+            *(it->second) = nullptr;
+        }
+
+        // Set the new reference based on the passed access boolean
         if (!isReadWrite) {
             storeRO[field] = ptr;
         } else {
@@ -34,7 +53,7 @@ public:
                 *(it->second) = ptr;
             }
         }
-        auto range = referencesRO.equal_range(field);
+        range = referencesRO.equal_range(field);
         for (auto it = range.first; it != range.second; ++it) {
             *(it->second) = ptr;
         }
