@@ -29,37 +29,27 @@ public:
             storeRO[field] = ptr;
         } else {
             storeRW[field] = ptr;
-            if (waitingRW.count(field)) {
-                for (ModelArrayReference* ref : waitingRW.at(field)) {
-                    *ref = ptr;
-                }
+            auto range = referencesRW.equal_range(field);
+            for (auto it = range.first; it != range.second; ++it) {
+                *(it->second) = ptr;
             }
         }
-        if (waitingRO.count(field)) {
-            for (ModelArrayConstReference* ref : waitingRO.at(field)) {
-                *ref = ptr;
-            }
+        auto range = referencesRO.equal_range(field);
+        for (auto it = range.first; it != range.second; ++it) {
+            *(it->second) = ptr;
         }
     }
 private:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
         // Add this address to the waiting list for RW fields.
-        if (waitingRW.count(field))
-            waitingRW.at(field).push_back(&ptr);
-        else
-            waitingRW[field] = { &ptr };
+        referencesRW.insert({field, &ptr});
         return storeRW.count(field) ? ptr = storeRW.at(field) : nullptr;
     }
 
     const ModelArray* getFieldAddr(const std::string& field, ModelArrayConstReference& ptr)
     {
-        // Add this address to the waiting list for RO fields.
-        if (waitingRO.count(field))
-            waitingRO.at(field).push_back(&ptr);
-        else
-            waitingRO[field] = { &ptr };
-
+        referencesRO.insert({field, &ptr});
         if (storeRO.count(field)) {
             ptr = storeRO.at(field);
             return ptr;
@@ -72,34 +62,30 @@ private:
     }
 
 
-    void removeReference(ModelArrayConstReference* ptr)
+    void removeReference(const std::string& field, ModelArrayConstReference& ptr)
     {
-        for (auto& [name, list] : waitingRO) {
-            list.remove(ptr);
-            if (list.size() == 0)
-                waitingRO.erase(name);
-        }
+        auto range = referencesRO.equal_range(field);
+        for (auto it = range.first; it != range.second;)
+            if (it->second == &ptr)
+                it = referencesRO.erase(it);
+            else
+                ++it;
     }
 
-    void removeReference(ModelArrayReference* ptr)
+    void removeReference(const std::string& field, ModelArrayReference& ptr)
     {
-        for (auto& [name, list] : waitingRW) {
-            list.remove(ptr);
-            if (list.size() == 0)
-                waitingRW.erase(name);
-        }
-        for (auto& [name, list] : waitingRO) {
-            list.remove(const_cast<ModelArrayConstReference*>(ptr));
-            if (list.size() == 0)
-                waitingRO.erase(name);
-        }
+        auto range = referencesRW.equal_range(field);
+        for (auto it = range.first; it != range.second;)
+            if (it->second == &ptr)
+                it = referencesRW.erase(it);
+            else
+                ++it;
     }
 
     std::unordered_map<std::string, ModelArray*> storeRO;
     std::unordered_map<std::string, ModelArray*> storeRW;
-    std::unordered_map<std::string, std::list<ModelArrayReference*>> waitingRW;
-    std::unordered_map<std::string, std::list<ModelArrayConstReference*>> waitingRO;
-
+    std::unordered_multimap<std::string, ModelArrayReference*> referencesRW;
+    std::unordered_multimap<std::string, ModelArrayConstReference*> referencesRO;
     template <const TextTag& fieldName, bool isReadWrite>
     friend class ModelArrayRef;
 };

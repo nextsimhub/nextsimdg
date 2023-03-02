@@ -41,7 +41,7 @@ public:
         ref = nullptr;
         store.getFieldAddr(fieldName.text, ref);
     }
-    ~ModelArrayRef() { store.removeReference(&ref); }
+    ~ModelArrayRef() { store.removeReference(fieldName.text, ref); }
     ModelArrayRef(const ModelArrayRef&) = delete;
     ModelArrayRef& operator=(const ModelArrayRef&) = delete;
     /*!
@@ -138,7 +138,7 @@ public:
         ref = nullptr;
         store.getFieldAddr(fieldName.text, ref);
     }
-    ~ModelArrayRef() { store.removeReference(&ref); }
+    ~ModelArrayRef() { store.removeReference(fieldName.text, ref); }
     /*!
      * @brief Returns the data at the indices.
      *
