@@ -22,11 +22,21 @@ const bool RO = false;
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
 
-template <const TextTag& fieldNameTp, bool isReadWrite = RO> class ModelArrayRef {
+/*!
+ * @brief A class which provides indirect access to ModelArray.
+ *
+ * @details Provides access to data from other parts of the model using a
+ * TextTag-wrapped string key. The class provides indexing of and access to the
+ * referenced ModelArray. Here the returned data are by const references, used
+ * for accessing data in a read-only fashion.
+ *
+ * @tparam fieldName The TextTag containing the name of the field to be referenced.
+ * @tparam isReadWrite A boolean which is here false, indicating access to the array is read-only.
+ */
+template <const TextTag& fieldName, bool isReadWrite = RO> class ModelArrayRef {
 public:
     ModelArrayRef(MARStore& backingStore)
-        : fieldName(fieldNameTp)
-        , store(backingStore)
+        : store(backingStore)
     {
         ref = nullptr;
         store.getFieldAddr(fieldName.text, ref);
@@ -106,15 +116,24 @@ public:
 private:
     ModelArrayConstReference ref;
     MARStore& store;
-    TextTag fieldName;
     friend MARStore;
 };
 
-template <const TextTag& fieldNameTp> class ModelArrayRef<fieldNameTp, RW> {
+/*!
+ * @brief A class which provides indirect access to ModelArray.
+ *
+ * @details Provides access to data from other parts of the model using a
+ * TextTag-wrapped string key. The class provides indexing of and access to the
+ * referenced ModelArray. Here the returned data are by non-const references, used
+ * for accessing data in a read-write fashion.
+ *
+ * @tparam fieldName The TextTag containing the name of the field to be referenced.
+ * @tparam isReadWrite A boolean which is here true, indicating access to the array is read-write.
+ */
+template <const TextTag& fieldName> class ModelArrayRef<fieldName, RW> {
 public:
     ModelArrayRef(MARStore& backingStore)
-        : fieldName(fieldNameTp)
-        , store(backingStore)
+        : store(backingStore)
     {
         ref = nullptr;
         store.getFieldAddr(fieldName.text, ref);
@@ -176,7 +195,6 @@ public:
 private:
     ModelArrayReference ref;
     MARStore& store;
-    TextTag fieldName;
     friend MARStore;
 };
 }
