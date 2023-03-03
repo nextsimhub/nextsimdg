@@ -11,9 +11,15 @@
 #include <string>
 
 struct TextTag {
-    constexpr TextTag(const char* textIn) : text(textIn) {}
-    template<std::size_t N>
-    constexpr TextTag(const char (&a)[N]) : text(a) {}
+    constexpr TextTag(const char* textIn)
+        : text(textIn)
+    {
+    }
+    template <std::size_t N>
+    constexpr TextTag(const char (&a)[N])
+        : text(a)
+    {
+    }
     operator std::string() const { return std::string(text); };
     const char* text;
 };
