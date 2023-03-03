@@ -58,17 +58,18 @@ public:
             *(it->second) = ptr;
         }
     }
+
 private:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
         // Add this address to the waiting list for RW fields.
-        referencesRW.insert({field, &ptr});
+        referencesRW.insert({ field, &ptr });
         return storeRW.count(field) ? ptr = storeRW.at(field) : nullptr;
     }
 
     const ModelArray* getFieldAddr(const std::string& field, ModelArrayConstReference& ptr)
     {
-        referencesRO.insert({field, &ptr});
+        referencesRO.insert({ field, &ptr });
         if (storeRO.count(field)) {
             ptr = storeRO.at(field);
             return ptr;
@@ -79,7 +80,6 @@ private:
             return nullptr;
         }
     }
-
 
     void removeReference(const std::string& field, ModelArrayConstReference& ptr)
     {
@@ -105,8 +105,7 @@ private:
     std::unordered_map<std::string, ModelArray*> storeRW;
     std::unordered_multimap<std::string, ModelArrayReference*> referencesRW;
     std::unordered_multimap<std::string, ModelArrayConstReference*> referencesRO;
-    template <const TextTag& fieldName, bool isReadWrite>
-    friend class ModelArrayRef;
+    template <const TextTag& fieldName, bool isReadWrite> friend class ModelArrayRef;
 };
 
 }
