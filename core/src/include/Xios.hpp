@@ -9,7 +9,7 @@
 
 #include <mpi.h>
 #include <include/xios_c_interface.hpp>
-#include "include/Configured.hpp"
+#include "Configured.hpp"
 
 namespace Nextsim {
 
@@ -24,20 +24,22 @@ public:
     bool validateConfiguration();
     bool validateServerConfiguration();
     bool validateCalendarConfiguration();
+    bool validateAxisConfiguration();
 
     void configure() override; 
     void configureServer(int argc, char* argv[]);
     void configureCalendar();
 
     //Decide if I want these two and the best output type
-    std::string getCalendarOrigin();
+    std::string getCalendarOrigin(bool isoFormat = true);
     void setCalendarOrigin();
-    std::string getCalendarStart(bool isoFormat);
+    std::string getCalendarStart(bool isoFormat = true);
     void setCalendarStart(char *dstart_str, int str_size);
     std::string getCalendarTimestep();
     void setCalendarTimestep();
     void getCalendarConfiguration();
-    static std::string formatXiosDatetime(cxios_date datetime, bool isoFormat);
+    static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat);
+    //cxios_date convertStringToXiosDatetime(std::string datetime);
 
     static void writeState();
     //Arguments TBC

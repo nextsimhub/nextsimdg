@@ -77,33 +77,35 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 
 
 
-    std::string Xios::getCalendarOrigin()
+    std::string Xios::getCalendarOrigin(bool isoFormat)
     {
         cxios_date dorigin;
-        char dorigin_str[20];
+        //char dorigin_str[20];
         cxios_get_calendar_wrapper_date_time_origin( m_clientCalendar, &dorigin );
-        cxios_date_convert_to_string( dorigin, dorigin_str, 20);
-        return dorigin_str;
+        //cxios_date_convert_to_string( dorigin, dorigin_str, 20);
+        return convertXiosDatetimeToString(dorigin, isoFormat);
+    }
+
+    std::string Xios::getCalendarStart(bool isoFormat)
+    {
+        cout << "getCalendarstart" << endl;
+        cxios_date dstart;
+        cxios_get_calendar_wrapper_date_start_date( m_clientCalendar, &dstart);
+        return convertXiosDatetimeToString(dstart, isoFormat);
     }
 
     void Xios::setCalendarStart(char* dstart_str, int str_size)
     {
         //This string must be in YYYY-MM-DD HH-MM-SS format (I think the size of each can vary but the orders and delims cant)
-        cxios_date dstart = cxios_date_convert_from_string(dstart_str, str_size);//, m_clientCalendar);
-        cxios_set_calendar_wrapper_date_start_date( m_clientCalendar, &dstart );
+        cxios_date *dstart = new cxios_date();
+        dstart = cxios_date_convert_from_string(dstart_str, str_size);
+        cxios_set_calendar_wrapper_date_start_date( m_clientCalendar, dstart );
     }
 
-    std::string Xios::getCalendarStart(bool isoFormat = true)
-    {
-        cout << "getCalendarstart" << endl;
-        cxios_date dstart;
-        cxios_get_calendar_wrapper_date_start_date( m_clientCalendar, &dstart);
-        return formatXiosDatetime(dstart, isoFormat);
-    }
 
     //If I need an Xios utility class then this is a candidate
     //TODO: Create the reverse operation
-    static std::string Xios::formatXiosDatetime(cxios_date datetime, bool isoFormat)
+    std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
     {
         const int str_size = 20;
         char datetime_str[20];
@@ -125,6 +127,22 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         return datetime_str;
     }
 
+    // cxios_date Xios::convertStringToXiosDatetime(std::string datetime_str)
+    // {
+    //     int delimiter = std::string::find(datetime_str, 'T');
+    //     int terminator = std::string::find(datetime_str. 'Z');
+
+    //     if (delimiter) {
+    //         std::string::replace
+    //     }
+    //     if (terminator) {
+    //         std::string::replace
+    //     }
+
+    //     cxios_date datetime =cxios_date_convert_from_string
+    //     return datetime;
+    // }
+
     void Xios::configureCalendar() 
     {
 
@@ -136,7 +154,7 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         //TODO: Take string as argument and convert to char for the extern c?
         char dstart_str[20] = "2021-03-01 00:00:00";
         cout << "Enter setCalendarStart" << endl;
-        //xios::CException
+        //TODO: xios::CException is thrown
         //setCalendarStart(dstart_str, 20);
         cout << "Enter setCalendarTimestep" << endl;
         setCalendarTimestep();
@@ -204,6 +222,21 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     }
 
     bool Xios::validateConfiguration()
+    {
+        return validateServerConfiguration() && validateCalendarConfiguration() && validateAxisConfiguration();
+    }
+
+    bool Xios::validateServerConfiguration()
+    {
+        return true;
+    }
+
+    bool Xios::validateCalendarConfiguration()
+    {
+        return true;
+    }
+
+    bool Xios::validateAxisConfiguration()
     {
         return true;
     }
