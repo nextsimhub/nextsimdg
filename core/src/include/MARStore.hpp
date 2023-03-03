@@ -59,6 +59,19 @@ public:
         }
     }
 
+    std::unordered_map<std::string, const ModelArray*> getAllData() const
+    {
+        std::unordered_map<std::string, const ModelArray*> dataMap;
+
+        for (auto entry : storeRW) {
+            dataMap.insert(entry);
+        }
+        for (auto entry : storeRO) {
+            dataMap.insert(entry);
+        }
+        return dataMap;
+    }
+
 private:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
