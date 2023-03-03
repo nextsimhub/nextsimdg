@@ -25,8 +25,6 @@
 namespace Nextsim {
 
 class ModelComponent;
-typedef std::vector<ModelArrayReference> MARBackingStore;
-typedef std::vector<ModelArrayConstReference> MARConstBackingStore;
 
 namespace Protected {
     // Prognostic model fields
@@ -194,8 +192,6 @@ protected:
     static ModelArray* p_oceanMaskH;
 
 private:
-    static MARBackingStore sharedArrays;
-    static MARConstBackingStore protectedArrays;
     static MARStore store;
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
 
