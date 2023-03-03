@@ -174,3 +174,22 @@ add_executable(testNewModelArrayRef
 
 target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)
+
+
+
+add_executable(testXiosInit
+    "XiosInit_test.cpp"
+    "${CoreSrc}/Xios.cpp"
+    "${CoreSrc}/Configurator.cpp"
+)
+
+target_include_directories(testXiosInit PRIVATE 
+    "${CoreSrc}"
+    "${netCDF_INCLUDE_DIR}"
+    "${MPI_CXX_INCLUDE_PATH}"
+    "${xios_INCLUDES}"
+    "${xios_EXTERNS}/blitz/"
+    "${xios_EXTERNS}/rapidxml/include")
+
+target_link_directories(testXiosInit PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
+target_link_libraries(testXiosInit PRIVATE Catch2::Catch2 Eigen3::Eigen Boost::program_options "${NSDG_NetCDF_Library}" MPI::MPI_CXX xios "-lhdf5_hl -lhdf5 -lifcore")
