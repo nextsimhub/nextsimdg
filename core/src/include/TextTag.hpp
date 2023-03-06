@@ -10,6 +10,11 @@
 
 #include <string>
 
+/*!
+ * A transparent class to wrap string literals such that they can be used as
+ * template parameters. Based on the TextTag struct created by Ben Earhart at
+ * https://stackoverflow.com/a/49338542
+ */
 struct TextTag {
     constexpr TextTag(const char* textIn)
         : text(textIn)
