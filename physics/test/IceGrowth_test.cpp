@@ -18,7 +18,7 @@
 #include "include/IFreezingPointModule.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
-#include "../../core/src/include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"

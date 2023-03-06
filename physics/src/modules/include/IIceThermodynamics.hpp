@@ -8,7 +8,7 @@
 #ifndef IICETHERMODYNAMICS_HPP
 #define IICETHERMODYNAMICS_HPP
 
-#include "../../../../core/src/include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ConfigurationHelp.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"

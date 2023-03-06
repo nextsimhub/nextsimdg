@@ -8,7 +8,7 @@
 #ifndef ICEGROWTH_HPP
 #define ICEGROWTH_HPP
 
-#include "../../../core/src/include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"

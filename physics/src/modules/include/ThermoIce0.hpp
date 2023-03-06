@@ -8,7 +8,7 @@
 #ifndef THERMOICE0HPP
 #define THERMOICE0HPP
 
-#include "../../../../core/src/include/ModelArrayRef.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 namespace Nextsim {
