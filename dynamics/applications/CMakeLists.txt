@@ -28,10 +28,10 @@ target_include_directories(createNextsimMeshData PRIVATE "${CoreDir}" "${CoreDir
 
 add_executable(nextsimMEVP NextsimMevp.cpp
     "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/parametricTransport.cpp"
+    "${SRC_DIR}/DGTransport.cpp"
     "${SRC_DIR}/Interpolations.cpp"
     "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/parametricTools.cpp" 
+    "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/cgParametricMomentum.cpp"
     "${CoreDir}/modules/ParametricGrid.cpp"
     "${CoreDir}/modules/RectangularGrid.cpp"
@@ -53,20 +53,20 @@ target_include_directories(nextsimMEVP PRIVATE "${CoreDir}" "${CoreDir}/modules"
 
 add_executable(benchmark_freedrift_meb benchmark_freedrift_meb.cpp
     "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/parametricTransport.cpp"
+    "${SRC_DIR}/DGTransport.cpp"
     "${SRC_DIR}/Interpolations.cpp"
     "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/parametricTools.cpp"
+    "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/cgParametricMomentum.cpp"
     )
-add_executable(benchmark_freedrift_mevp benchmark_freedrift_mevp.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/parametricTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/parametricTools.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    )
+#add_executable(benchmark_freedrift_mevp benchmark_freedrift_mevp.cpp
+#    "${SRC_DIR}/stopwatch.cpp"
+#    "${SRC_DIR}/parametricTransport.cpp"
+#    "${SRC_DIR}/Interpolations.cpp"
+#    "${SRC_DIR}/ParametricMesh.cpp"
+#    "${SRC_DIR}/ParametricMap.cpp"
+#    "${SRC_DIR}/cgParametricMomentum.cpp"
+#    )
 
 add_executable(benchmark_mehlmann_sasip_mevp benchmark_mehlmann_sasip_mevp.cpp
     "${SRC_DIR}/stopwatch.cpp"
@@ -111,7 +111,7 @@ add_executable(benchmark_spherical_globe benchmark_spherical_globe.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"    
+    "${SRC_DIR}/VectorManipulations.cpp"
     )
 add_executable(test_spherical_globe test_spherical_globe.cpp
     "${SRC_DIR}/stopwatch.cpp"
@@ -120,7 +120,7 @@ add_executable(test_spherical_globe test_spherical_globe.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"    
+    "${SRC_DIR}/VectorManipulations.cpp"
     )
 
 
@@ -131,7 +131,7 @@ add_executable(benchmark_mehlmann_sasip_meb benchmark_mehlmann_sasip_meb.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"    
+    "${SRC_DIR}/VectorManipulations.cpp"
     )
 add_executable(benchmark_box_sasip_mevp benchmark_box_sasip_mevp.cpp
     "${SRC_DIR}/stopwatch.cpp"
@@ -140,7 +140,7 @@ add_executable(benchmark_box_sasip_mevp benchmark_box_sasip_mevp.cpp
     "${SRC_DIR}/ParametricMesh.cpp"
     "${SRC_DIR}/ParametricMap.cpp"
     "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"    
+    "${SRC_DIR}/VectorManipulations.cpp"
     )
 
 target_link_libraries(benchmark_mehlmann_sasip_mevp LINK_PUBLIC Eigen3::Eigen)
