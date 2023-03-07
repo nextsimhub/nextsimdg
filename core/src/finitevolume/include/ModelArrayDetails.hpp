@@ -8,6 +8,12 @@
 #ifndef MODELARRAYDETAILS_HPP
 #define MODELARRAYDETAILS_HPP
 
+// An inclusion file to detail the ModelArray dimensions and types for
+// finite volume models.
+
+// Should be grouped with a consistent ModelArrayTypedefs.hpp and
+// ModelArrayDetails.cpp
+
 enum class Dimension { X, Y, Z, COUNT };
 
 enum class Type {

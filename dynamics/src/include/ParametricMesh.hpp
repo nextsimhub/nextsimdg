@@ -21,7 +21,7 @@ namespace Nextsim {
 inline constexpr double SQR(double x) { return x * x; }
 
 /*!
- * Stores the spacial mesh of the domain.
+ * Stores the spatial mesh of the domain.
  *
  * The mesh has a structured topology with nelements = nx * ny elements
  * and nnodes = (nx+1) * (ny+1) nodes.
@@ -37,6 +37,8 @@ inline constexpr double SQR(double x) { return x * x; }
 
 typedef std::array<double, 2> Vertex;
 
+class ModelArray;
+
 class ParametricMesh {
 public:
     int statuslog; //!< -1 no output, 1 full status output
@@ -47,8 +49,6 @@ public:
     size_t nnodes; //!< total number of nodes
     size_t nelements; //!< total number of nodes
 
-
-  
     Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
     /*!
@@ -360,9 +360,6 @@ public:
 
     double hmin() const; //! returns the minimum mesh size
     double area() const; //! returns the area of the domain
-
-
-  
 };
 
 } /* namespace Nextsim */

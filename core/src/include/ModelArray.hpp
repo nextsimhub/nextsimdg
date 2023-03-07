@@ -17,10 +17,15 @@
 
 namespace Nextsim {
 
-const static int DGdegree = 0; // TODO: Replace with the same source as the dynamics
-const static int CellDoF = 1;
-// TODO: (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)));
-const static Eigen::StorageOptions majority = DGdegree == 0 ? Eigen::ColMajor : Eigen::RowMajor;
+/*
+ * Set the storage order to row major. This matches with DGVector when there is
+ * more than one DG component. If there is only one DG component (the finite
+ * element component), then the order of the data in the buffer is the same,
+ * and data can be safely transferred between the buffers underlying the two
+ * types. The physics code will never directly touch the spatially varying
+ * components, so the choice of storage order should not matter.
+ */
+const static Eigen::StorageOptions majority = Eigen::RowMajor;
 
 /*!
  * @brief A class that holds the array data for the model.
@@ -53,26 +58,21 @@ public:
         std::string name;
         size_t length;
     };
-    typedef std::map<Type, std::vector<DimensionSpec>> TypeDimensions;
+    typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
 
+    //! The dimensions that make up each defined type. Defined in ModelArrayDetails.cpp
     static TypeDimensions typeDimensions;
+    //! The name and length of each dimension that is defined
     static std::map<Dimension, DimensionSpec> definedDimensions;
+    //! The name of each type of ModelArray
     static const std::map<Type, std::string> typeNames;
+    // The dimension that defines the components of each ModelArray type, if any
+    static const std::map<Type, Dimension> componentMap;
 
     typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
-    //    typedef std::vector<double> DataType;
 
-    class Component : Eigen::Array<double, 1, Eigen::Dynamic> {
-    public:
-        Component()
-            : Eigen::Array<double, 1, Eigen::Dynamic>()
-        {
-        }
-        Component(const Eigen::Array<double, 1, Eigen::Dynamic>& other)
-            : Eigen::Array<double, 1, Eigen::Dynamic>(other)
-        {
-        }
-    };
+    typedef DataType::RowXpr Component;
+    typedef DataType::ConstRowXpr ConstComponent;
 
     /*!
      * Construct an unnamed ModelArray of Type::H
@@ -234,7 +234,10 @@ public:
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
-    //! Retuns the (enum of) the ModelArray::Type of this.
+
+    //! Returns a const reference to the Eigen data
+    const DataType& data() const { return m_data; }
+    //! Returns the (enum of) the ModelArray::Type of this.
     const Type getType() const { return type; }
 
     /*!
@@ -267,14 +270,19 @@ public:
      * @param dim The dimension to be altered.
      * @param length The new length of the dimension.
      */
-    void setDimension(Dimension dim, size_t length);
+    static void setDimension(Dimension dim, size_t length);
 
     //! Conditionally updates the size of the object data buffer to match the
     //! class specification.
     void resize()
     {
-        if (size() != trueSize())
-            m_data.resize(m_sz.at(type), Eigen::NoChange);
+        if (size() != trueSize()) {
+            if (hasDoF(type)) {
+                m_data.resize(m_sz.at(type), definedDimensions.at(componentMap.at(type)).length);
+            } else {
+                m_data.resize(m_sz.at(type), Eigen::NoChange);
+            }
+        }
     }
 
     /*!
@@ -418,12 +426,41 @@ public:
     }
 
     /*!
+     * @brief Sets the number of components for DG & CG array types.
+     *
+     * @param cMap a map from ModelArray::Type to the number of components.
+     */
+    static void setNComponents(std::map<Type, size_t> cMap);
+
+    /*!
+     * @brief Sets the number of components for a single D/CG array type.
+     *
+     * @param type the DG or CG array type to set the number of components for.
+     * @param nComp the number of components to be set.
+     */
+    static void setNComponents(Type type, size_t nComp)
+    {
+        if (hasDoF(type)) {
+            definedDimensions.at(componentMap.at(type)).length = nComp;
+        }
+    }
+
+    /*!
+     * @brief Sets the number of components for this array's type.
+     *
+     * @param nComp the number of components to be set.
+     */
+    inline void setNComponents(size_t nComp) { setNComponents(type, nComp); }
+
+    /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at
      * the indexed location.
      *
      * @param i one-dimensional index of the target point.
      */
-    Component components(size_t i) { return Component(m_data.col(i)); }
+    Component components(size_t i) { return m_data.row(i); }
+
+    const ConstComponent components(size_t i) const { return m_data.row(i); }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at the specified location.
@@ -431,6 +468,7 @@ public:
      * @param dims indexing argument of the target point.
      */
     Component components(const MultiDim& loc);
+    const ConstComponent components(const MultiDim& loc) const;
 
     /*!
      * @brief Special access function for ZFields.
@@ -459,6 +497,52 @@ public:
         return this->operator[](zLayerIndex(hIndex, layer));
     }
 
+    /*!
+     * @brief Returns the index for a given set of multi-dimensional location for this array's type.
+     *
+     * @param loc The multi-dimensional location to return the index for.
+     */
+    size_t indexFromLocation(const MultiDim& loc) const { return indexFromLocation(type, loc); }
+
+    /*!
+     * @brief Returns the index for a given set of multi-dimensional location for the given Type.
+     *
+     * @param type The type to act on.
+     * @param loc The multi-dimensional location to return the index for.
+     */
+    static size_t indexFromLocation(Type type, const MultiDim& loc);
+
+    /*!
+     * @brief Returns the multi-dimensional location for a given index for this array's type.
+     *
+     * @param index The index to return the multi-dimensional location for.
+     */
+    MultiDim locationFromIndex(size_t index) const { return locationFromIndex(type, index); }
+
+    /*!
+     * @brief Returns the multi-dimensional location for a given index for the given Type.
+     *
+     * @param type The type to act on.
+     * @param index The index to return the multi-dimensional location for.
+     */
+    static MultiDim locationFromIndex(Type type, size_t index);
+
+    //! Returns the number of discontinuous Galerkin components held in this
+    //! type of ModelArray.
+    inline size_t nComponents() const { return nComponents(type); }
+    //! Returns the number of discontinuous Galerkin components held in the
+    //! specified type of ModelArray.
+    inline static size_t nComponents(const Type type)
+    {
+        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).length : 1;
+    }
+    //! Returns whether this type of ModelArray has additional discontinuous
+    //! Galerkin components.
+    inline bool hasDoF() const { return hasDoF(type); }
+    //! Returns whether the specified type of ModelArray has additional
+    //! discontinuous Galerkin components.
+    static bool hasDoF(const Type type);
+
 protected:
     Type type;
 
@@ -476,19 +560,6 @@ protected:
         return hIndex * dimensions()[nDimensions() - 1] + layer;
     }
 
-    //! Returns the number of discontinuous Galerkin components held in this
-    //! type of ModelArray.
-    inline size_t nComponents() const { return nComponents(type); }
-    //! Returns the number of discontinuous Galerkin components held in the
-    //! specified type of ModelArray.
-    inline static size_t nComponents(const Type type) { return (hasDoF(type)) ? CellDoF : 1; }
-    //! Returns whether this type of ModelArray has additional discontinuous
-    //! Galerkin components.
-    inline bool hasDoF() const { return hasDoF(type); }
-    //! Returns whether the specified type of ModelArray has additional
-    //! discontinuous Galerkin components.
-    static bool hasDoF(const Type type);
-
 private:
     static bool areMapsInvalid;
     static void validateMaps();
@@ -505,7 +576,7 @@ private:
 
         void validate();
 
-    private:
+    protected:
         std::map<Type, size_t> m_sizes;
     };
     static SizeMap m_sz;

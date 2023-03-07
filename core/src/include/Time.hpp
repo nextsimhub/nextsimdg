@@ -39,7 +39,8 @@ public:
         : m_d()
     {
     }
-    Duration(const std::string& str) { this->parse(str); }
+    Duration(const std::string& str);
+    Duration(double seconds);
 
     TimePoint operator+(const TimePoint& t) const;
 
@@ -97,6 +98,7 @@ private:
     {
     }
     Basis m_d;
+    void setDurationSeconds(double);
 };
 
 /*!
@@ -195,8 +197,6 @@ public:
         format(ss);
         return ss.str();
     }
-    // FIXME Remove me
-    Basis& getTime() { return m_t; }
 
     std::tm* gmtime() const;
 
