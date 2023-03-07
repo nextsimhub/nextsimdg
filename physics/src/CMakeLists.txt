@@ -16,6 +16,7 @@ set(IceOceanHeatFluxModuleSources
 set(IceThermodynamicsModuleSources
     "IceThermodynamicsModule.cpp"
     "ThermoIce0.cpp"
+    "ThermoWinton.cpp"
     )
     
 set(LateralIceSpreadModuleSources

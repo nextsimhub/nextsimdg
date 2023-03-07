@@ -1,26 +1,30 @@
 /*!
- * @file ThermoIce0.hpp
+ * @file ThermoWinton.hpp
  *
- * @date Mar 17, 2022
+ * @date Sep 30, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef THERMOICE0HPP
-#define THERMOICE0HPP
+#ifndef THERMOWINTON_HPP
+#define THERMOWINTON_HPP
 
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ModelArrayRef.hpp"
 namespace Nextsim {
 
-//! A class implementing IIceThermodynamics as the ThermoIce0 model.
-class ThermoIce0 : public IIceThermodynamics, public Configured<ThermoIce0> {
+//! A class implementing IIceThermodynamics as the Winton thermodynamics model.
+class ThermoWinton : public IIceThermodynamics, public Configured<ThermoWinton> {
 public:
-    ThermoIce0();
-    virtual ~ThermoIce0() = default;
+    static const size_t nLevels;
+
+    ThermoWinton();
+    virtual ~ThermoWinton() = default;
 
     enum {
         KS_KEY,
+        I0_KEY,
+        FLOODING_KEY,
     };
     void configure() override;
 
@@ -40,17 +44,20 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    HField qic;
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
+    ModelArrayRef<ProtectedArray::SW_IN, MARConstBackingStore> sw_in;
+    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> subl;
 
-    static const double freezingPointIce;
+    static double i0;
+    static const double cVol;
+    static bool doFlooding;
+    static const double seaIceTf;
     static double kappa_s;
 
-    bool doFlooding = true; // TODO: read from configuration
-
-    static const size_t nZLevels;
+    void calculateTemps(
+        double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
 };
 
 } /* namespace Nextsim */
 
-#endif /* THERMOICE0HPP */
+#endif /* THERMOWINTON_HPP */
