@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "ParametricTransport.hpp"
+#include "DGTransport.hpp"
 
 #include "Tools.hpp"
 #include "cgParametricMomentum.hpp"
@@ -120,7 +120,7 @@ template <int CG, int DGadvection>
 void run_benchmark(const std::string meshfile)
 {
     //! Define the spatial mesh
-  Nextsim::ParametricMesh smesh(CoordinateSystem);
+    Nextsim::ParametricMesh smesh(CoordinateSystem);
     smesh.readmesh(meshfile);
     size_t NX = smesh.nx;
 
@@ -190,7 +190,7 @@ void run_benchmark(const std::string meshfile)
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::ParametricTransport<DGadvection> dgtransport(smesh);
+    Nextsim::DGTransport<DGadvection> dgtransport(smesh);
     dgtransport.settimesteppingscheme("rk2");
 
     ////////////////////////////////////////////////// Main Loop
@@ -279,8 +279,8 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    //run_benchmark<2, 6, 8>("../ParametricMesh/rectangle_256x256.smesh");
-    //run_benchmark<2, 6, 8>("../ParametricMesh/rectangle_128x128.smesh");
+    //run_benchmark<2, 6>("../ParametricMesh/rectangle_256x256.smesh");
+    //run_benchmark<2, 6>("../ParametricMesh/rectangle_128x128.smesh");
 
     std::vector<std::string> meshes;
     meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
@@ -288,7 +288,7 @@ int main()
     //meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
 
      for (const auto& it : meshes) {
-         run_benchmark<1, 3, 3>(it);
-         run_benchmark<2, 6, 8>(it);
+         run_benchmark<1, 3>(it);
+         run_benchmark<2, 6>(it);
      }
 }

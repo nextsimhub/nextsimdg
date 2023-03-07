@@ -422,7 +422,9 @@ namespace Nextsim {
         tmpx(i) = tmpy(i) = 0;
 
     // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
-    AddStressTensor(-1.0, tmpx, tmpy);
+    // AddStressTensor(-1.0, tmpx, tmpy);
+    // Check first parameter, this scaling 
+    DivergenceOfStress(1.0, tmpx, tmpy); // Compute divergence of stress tensor
 
     // FIXME: We're missing the gradient of the sea-surface slope (\nabla \eta)
 
@@ -445,7 +447,7 @@ namespace Nextsim {
                          + cg_A(i) * params.F_ocean
                              * absocn ) // implicit parts
                      * tmpx(i))
-            / lumpedcgmass(i);
+            / pmap.lumpedcgmass(i);
         ;
 
         vy(i) += (1.0
@@ -453,7 +455,7 @@ namespace Nextsim {
                          + cg_A(i) * params.F_ocean
                              * absocn ) // implicit parts
                      * tmpy(i))
-            / lumpedcgmass(i);
+            / pmap.lumpedcgmass(i);
         ;
         // FIXME: dte_over_mass should include snow (total mass)
         double const dte_over_mass = dt_mom / (params.rho_ice * cg_H(i));
@@ -484,8 +486,8 @@ namespace Nextsim {
          * lat[i]) ); */
 
         // We need to divide the gradient terms with the lumped mass matrix term
-        double const grad_x = tmpx(i) / lumpedcgmass(i);
-        double const grad_y = tmpy(i) / lumpedcgmass(i);
+        double const grad_x = tmpx(i) / pmap.lumpedcgmass(i);
+        double const grad_y = tmpy(i) / pmap.lumpedcgmass(i);
 
         vx(i) = alpha * uice + beta * vice
             + dte_over_mass * (alpha * (grad_x + tau_x) + beta * (grad_y + tau_y));
@@ -508,9 +510,9 @@ namespace Nextsim {
 
 
 
-template <int CG, int DGstress>
+template <int CG>
 template <int DG>
-void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
+void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
     const size_t NT_meb, double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A,
     DGVector<DG>& D)
 {
@@ -524,8 +526,8 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
 
     Nextsim::GlobalTimer.start("time loop - meb - stress");
     // TODO compute stress update with precomputed transformations
-    Nextsim::MEB::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-    //Nextsim::BBM::StressUpdateHighOrder<CG, DGstress, DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    Nextsim::MEB::StressUpdateHighOrder<CG, DGSTRESS(CG), DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
+    //Nextsim::BBM::StressUpdateHighOrder<CG, DGSTRESS(CG), DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
 
     // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
     Nextsim::GlobalTimer.stop("time loop - meb - stress");
@@ -535,8 +537,8 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
         tmpx(i) = tmpy(i) = 0;
 
     Nextsim::GlobalTimer.start("time loop - meb - update2 -stress");
-    // AddStressTensor(ptrans_stress, -1.0, tmpx, tmpy, S11, S12, S22);
-    AddStressTensor(-1.0, tmpx, tmpy);
+    //AddStressTensor(-1.0, tmpx, tmpy);
+    DivergenceOfStress(1.0, tmpx, tmpy); // Compute divergence of stress tensor
     Nextsim::GlobalTimer.stop("time loop - meb - update2 -stress");
 
 
@@ -579,7 +581,7 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
                          + cg_A(i) * params.F_ocean
                              * absocn ) // implicit parts
                      * tmpx(i))
-            / lumpedcgmass(i);
+            / pmap.lumpedcgmass(i);
         ;
 
         vy(i) += (1.0
@@ -587,7 +589,7 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
                          + cg_A(i) * params.F_ocean
                              * absocn ) // implicit parts
                      * tmpy(i))
-            / lumpedcgmass(i);
+            / pmap.lumpedcgmass(i);
         ;
     }
     Nextsim::GlobalTimer.stop("time loop - meb - update");

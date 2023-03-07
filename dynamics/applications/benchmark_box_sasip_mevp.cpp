@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "ParametricTransport.hpp"
+#include "DGTransport.hpp"
 #include "Tools.hpp"
 #include "VPParameters.hpp"
 #include "cgParametricMomentum.hpp"
@@ -210,7 +210,7 @@ int main()
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::ParametricTransport<DGadvection> dgtransport(smesh);
+    Nextsim::DGTransport<DGadvection> dgtransport(smesh);
     dgtransport.settimesteppingscheme("rk2");
 
     //! Initial Forcing
