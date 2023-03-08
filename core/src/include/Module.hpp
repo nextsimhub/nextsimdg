@@ -11,11 +11,11 @@
 #include "include/ConfigurationHelp.hpp"
 #include "include/ConfiguredModule.hpp"
 
-#include <stdexcept>
 #include <functional>
 #include <list>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 namespace Module {
