@@ -11,7 +11,7 @@
 #include "include/ConfigurationHelp.hpp"
 #include "include/ConfiguredModule.hpp"
 
-#include <exception>
+#include <stdexcept>
 #include <functional>
 #include <list>
 #include <map>
