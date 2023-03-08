@@ -15,6 +15,7 @@
 #include "NextsimDynamics.hpp"
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace Nextsim {
 

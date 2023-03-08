@@ -45,17 +45,17 @@ bool WRITE_VTK = true;
 constexpr double L0 = 75./180.*M_PI;
 constexpr double L1 = -180.0/180.*M_PI;
 
-constexpr double P1 = Nextsim::EarthRadius * cos(L0) * cos(L1);
-constexpr double P2 = Nextsim::EarthRadius * cos(L0) * sin(L1);
-constexpr double P3 = Nextsim::EarthRadius * sin(L0);
+const double P1 = Nextsim::EarthRadius * cos(L0) * cos(L1);
+const double P2 = Nextsim::EarthRadius * cos(L0) * sin(L1);
+const double P3 = Nextsim::EarthRadius * sin(L0);
 
-constexpr double PA1 = -cos(L0) * sin(L1);
-constexpr double PA2 =  cos(L0) * cos(L1);
-constexpr double PA3 =  0.0;
+const double PA1 = -cos(L0) * sin(L1);
+const double PA2 =  cos(L0) * cos(L1);
+const double PA3 =  0.0;
 
-constexpr double PB1 = (P2*PA3-P3*PA2) / Nextsim::EarthRadius;
-constexpr double PB2 = (P3*PA1-P1*PA3) / Nextsim::EarthRadius;
-constexpr double PB3 = (P1*PA2-P2*PA1) / Nextsim::EarthRadius;
+const double PB1 = (P2*PA3-P3*PA2) / Nextsim::EarthRadius;
+const double PB2 = (P3*PA1-P1*PA3) / Nextsim::EarthRadius;
+const double PB3 = (P1*PA2-P2*PA1) / Nextsim::EarthRadius;
 
 
 Nextsim::COORDINATES CoordinateSystem = Nextsim::SPHERICAL;
