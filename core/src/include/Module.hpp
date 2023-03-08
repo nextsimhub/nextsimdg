@@ -11,6 +11,7 @@
 #include "include/ConfigurationHelp.hpp"
 #include "include/ConfiguredModule.hpp"
 
+#include <exception>
 #include <functional>
 #include <list>
 #include <map>
@@ -59,7 +60,12 @@ public:
     static void setImplementation(const std::string& implName)
     {
         // setExternalImplementation() holds the common functionality
-        setExternalImplementation(functionMap.at(implName));
+        try {
+            setExternalImplementation(functionMap.at(implName));
+        } catch (const std::out_of_range& oor) {
+            std::throw_with_nested(std::runtime_error(
+                "No implementation named " + implName + " found for Module " + moduleName()));
+        }
     }
 
     static std::unique_ptr<I> getInstance() { return spf(); }
