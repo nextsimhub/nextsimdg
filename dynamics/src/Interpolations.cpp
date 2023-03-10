@@ -48,7 +48,7 @@ namespace Nextsim {
 	// coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
 
 	// the Gauss points in the element 2 x 4 - Matrix
-	    
+
 	const Eigen::Matrix<Nextsim::FloatType, 2, 4> gp     = ParametricTools::getGaussPointsInElement<2>(smesh, eid);
 	const Eigen::Matrix<Nextsim::FloatType, 4, 1>
 	  initial_in_gp(initial(gp(0, 0), gp(1, 0)),
@@ -56,7 +56,7 @@ namespace Nextsim {
 			initial(gp(0, 2), gp(1, 2)),
 			initial(gp(0, 3), gp(1, 3)));
 	const Eigen::Matrix<Nextsim::FloatType, 1, 4> J      = ParametricTools::J<2>(smesh,eid);
-	    
+
 	if (smesh.CoordinateSystem == SPHERICAL)
 	  {
 	    const Eigen::Matrix<Nextsim::FloatType, 1, 4> coslat = (gp.row(1).array()).cos();
@@ -94,7 +94,7 @@ namespace Nextsim {
 	Eigen::Matrix<Nextsim::FloatType, GAUSSPOINTS(DG), 1> initial_in_gp;
 	for (size_t i=0;i<GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG);++i)
 	  initial_in_gp(i) = initial(gp(0, i), gp(1, i));
-	  
+
 	if (smesh.CoordinateSystem == SPHERICAL)
 	  {
 	    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> coslat = (gp.row(1).array()).cos();
@@ -107,39 +107,7 @@ namespace Nextsim {
 	else abort();
       }
     }
-  
-    // ******************** CG -> DG  ******************** //
 
-    //     template <int CG, int DG>
-    //     void CG2DG(const ParametricMesh& smesh, DGVector<DG>& dg, const CGVector<CG>& cg)
-    //     {
-    //         // WHAT GAUSS DEGREE TO TAKE?
-    //         assert(static_cast<long int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)) == cg.rows());
-    //         assert(static_cast<long int>(smesh.nx * smesh.ny) == dg.rows());
-
-    //         const int cgshift = CG * smesh.nx + 1; //!< Index shift for each row
-
-    //         // parallelize over the rows
-    // #pragma omp parallel for
-    //         for (size_t iy = 0; iy < smesh.ny; ++iy) {
-    //             size_t dgi = smesh.nx * iy; //!< Index of dg vector
-    //             size_t cgi = CG * cgshift * iy; //!< Lower left index of cg vector
-
-    //             for (size_t ix = 0; ix < smesh.nx; ++ix, ++dgi, cgi += CG) {
-
-    //                 Eigen::Matrix<double, (CG == 2 ? 9 : 4), 1> cg_local; //!< the 9 local unknowns in the element
-    //                 if (CG == 1) {
-    //                     cg_local << cg(cgi), cg(cgi + 1), cg(cgi + cgshift), cg(cgi + 1 + cgshift);
-    //                 } else {
-    //                     cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift), cg(cgi + 1 + cgshift),
-    //                         cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift),
-    //                         cg(cgi + 2 + 2 * cgshift);
-    //                 }
-
-    //                 dg.row(dgi) = ParametricTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GAUSSPOINTS1D(DG)> * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() * (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
-    //             }
-    //         }
-    //     }
 
     template <int CG, int DG>
     void CG2DG(const ParametricMesh& smesh, DGVector<DG>& dg, const CGVector<CG>& cg)
@@ -154,7 +122,7 @@ namespace Nextsim {
       for (size_t dgi = 0; dgi < smesh.nelements; ++dgi) {
 	size_t iy = dgi / smesh.nx; //!< y-index of element
 	size_t ix = dgi % smesh.nx; //!< x-index of element
-	  
+
 	size_t cgi = CG * cgshift * iy + CG * ix; //!< lower/left Index in cg vector
 
 	Eigen::Matrix<double, (CG == 2 ? 9 : 4), 1> cg_local; //!< the 9 local unknowns in the element
@@ -180,7 +148,7 @@ namespace Nextsim {
 	       GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() *
 	       (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
 
-		
+
       }
     }
 
@@ -280,17 +248,17 @@ namespace Nextsim {
 
 	const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS1D(DG)* GAUSSPOINTS1D(DG)> gp = ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid);
 	const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG)> src_in_gauss = src.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>;
-      
+
 	Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG)> initial_in_gp;
 	for (size_t i=0;i<GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG);++i)
 	  initial_in_gp(i) = initial(gp(0,i), gp(1,i));
-	
+
 	// Jq * wq * Psi_i(x_q) * f(x_q)
 	// matrix of size 3 x 4
 
 	if (smesh.CoordinateSystem == SPHERICAL)
 	  {
-	    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG)> cos_lat = 
+	    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG)*GAUSSPOINTS1D(DG)> cos_lat =
 	      (gp.row(1).array()).cos();
 	    error += (cos_lat.array() * ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, eid).array() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() * (src_in_gauss.array() - initial_in_gp.array()).square()).sum();
 	  }
@@ -313,7 +281,7 @@ namespace Nextsim {
       // parallelize over the rows
 #pragma omp parallel for reduction(+		\
                                    : error)
-      for (size_t row = 0; row < smesh.ny; ++row) { 
+      for (size_t row = 0; row < smesh.ny; ++row) {
 	size_t eid = smesh.nx * row; //!< Index of dg vector
 	size_t cgi = CG * cgshift * row; //!< Lower left index of cg vector
 
@@ -333,20 +301,20 @@ namespace Nextsim {
 	      src(cgi + 2 + 2 * cgshift);
 	  } else
 	    abort();
-	
-	
+
+
 	  const Eigen::Matrix<Nextsim::FloatType, 2, 3*3> gp = ParametricTools::getGaussPointsInElement<3>(smesh, eid);
 	  const Eigen::Matrix<Nextsim::FloatType, 1, 3*3> src_in_gauss = local.transpose() * PHI<CG, 3>;
-	
+
 	  Eigen::Matrix<Nextsim::FloatType, 1, 3*3> initial_in_gp;
 	  for (size_t i=0;i<3*3;++i)
 	    initial_in_gp(i) = initial(gp(0,i), gp(1,i));
 
 	  if (smesh.CoordinateSystem == SPHERICAL)
 	    {
-	      const Eigen::Matrix<Nextsim::FloatType, 1, 3*3> cos_lat = 
+	      const Eigen::Matrix<Nextsim::FloatType, 1, 3*3> cos_lat =
 		(gp.row(1).array()).cos();
-	      error += (cos_lat.array() 
+	      error += (cos_lat.array()
 			* ParametricTools::J<3>(smesh, eid).array()
 			* GAUSSWEIGHTS<3>.array()
 			* (src_in_gauss.array() - initial_in_gp.array()).square()).sum();
@@ -360,15 +328,15 @@ namespace Nextsim {
       }
       return error;
     }
-    
-  
+
+
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<1>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<3>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<6>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<1>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<3>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<6>& src);
-    
+
     template void CG2DG(const ParametricMesh& smesh, DGVector<1>& dg, const CGVector<1>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<3>& dg, const CGVector<1>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<6>& dg, const CGVector<1>& cg);
@@ -378,18 +346,18 @@ namespace Nextsim {
 
     template void Function2CG(const ParametricMesh& smesh, CGVector<1>& phi, const Function& initial);
     template void Function2CG(const ParametricMesh& smesh, CGVector<2>& phi, const Function& initial);
-    
+
     template void Function2DG(const ParametricMesh& smesh, DGVector<3>& phi, const Function& initial);
     template void Function2DG(const ParametricMesh& smesh, DGVector<6>& phi, const Function& initial);
     template void Function2DG(const ParametricMesh& smesh, DGVector<8>& phi, const Function& initial);
-    
+
     template double L2ErrorFunctionDG(const ParametricMesh& smesh, const DGVector<1>& src, const Function& fct);
     template double L2ErrorFunctionDG(const ParametricMesh& smesh, const DGVector<3>& src, const Function& fct);
     template double L2ErrorFunctionDG(const ParametricMesh& smesh, const DGVector<6>& src, const Function& fct);
     template double L2ErrorFunctionDG(const ParametricMesh& smesh, const DGVector<8>& src, const Function& fct);
-    
+
     template double L2ErrorFunctionCG(const ParametricMesh& smesh, const CGVector<1>& src, const Function& fct);
     template double L2ErrorFunctionCG(const ParametricMesh& smesh, const CGVector<2>& src, const Function& fct);
-    
+
   }
 }

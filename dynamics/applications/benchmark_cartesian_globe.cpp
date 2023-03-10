@@ -6,16 +6,16 @@
 
 /*!
  *
- * Ice dynamics test case on a Cartesian projection 
- * of the globe. 
+ * Ice dynamics test case on a Cartesian projection
+ * of the globe.
  * Domain of size [0,40000] * [-10000,10000]
  * Ice on [0,40000] * [-8000,8000] (by landmask)
  * Periodic at x=0 and x = 40000, Dirichlet at y = +/- 10000
- * 
+ *
  * Wind is perturbation of (10,0)
  * Ocean (1,0) * (1.0 - (x/8000)^2) and zero on land
  *
- * Full ice cover, A=1 and H=0.5 
+ * Full ice cover, A=1 and H=0.5
  */
 
 #include "Interpolations.hpp"
@@ -53,9 +53,9 @@ inline constexpr double SQR(double x) { return x * x; }
 
 namespace ReferenceScale {
 constexpr double T = 30.0 * 24 * 60. * 60.; //!< Time horizon 1 month
-  
+
 constexpr double Lx = 40000.e3; //!< Size of domain, [0,Lx] x [-Ly,Ly]
-constexpr double Ly = 10000.e3; 
+constexpr double Ly = 10000.e3;
 }
 
 class OceanX : public Nextsim::Interpolations::Function {
@@ -85,7 +85,7 @@ public:
       return 10.0 + 5.0 * sin(4.0*M_PI*x/ReferenceScale::Lx) * cos(4.0*M_PI*y/ReferenceScale::Ly);
     }
 };
- 
+
 struct AtmY : public Nextsim::Interpolations::Function {
 
 public:
@@ -98,7 +98,7 @@ public:
 class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
-    {      
+    {
       return 0.5;
     }
 };
@@ -132,17 +132,17 @@ void create_mesh(const std::string& meshname, const size_t N)
 	    OUT << "1 ";
 	OUT << std::endl;
       }
-    
+
     // dirichlet top and bottom not required due to land mask
     OUT << "dirichlet 0" << std::endl;
 
     // periodic left/right
     OUT << "periodic 1" << std::endl;
-    
-    OUT << N << std::endl; 
+
+    OUT << N << std::endl;
     for (size_t i = 0; i < N; ++i)
       OUT << 2*N - 1 + i * 2 * N << "\t" << i * 2 * N << "\t1" << std::endl;
-    
+
     OUT.close();
 }
 template <int CG, int DGadvection>
@@ -156,13 +156,13 @@ void run_benchmark(const size_t N)
     //! Compose name of output directory and create it
     std::string resultsdir = "CartesianGlobe_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(N);
     std::filesystem::create_directory(resultsdir);
-    
+
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG> momentum(smesh);
-    
+
     //! define the time mesh
     constexpr double dt_adv = 60*60; //!< Time step of advection problem
-    
+
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
@@ -207,7 +207,7 @@ void run_benchmark(const size_t N)
             Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
 	    Nextsim::VTK::write_cg_velocity(resultsdir + "/atm", 0, momentum.GetAtmx(), momentum.GetAtmy(), smesh);
 	    Nextsim::VTK::write_cg_velocity(resultsdir + "/ocean", 0, momentum.GetOceanx(), momentum.GetOceany(), smesh);
-	    
+
             Nextsim::VTK::write_dg(resultsdir + "/A", 0, A, smesh);
             Nextsim::VTK::write_dg(resultsdir + "/H", 0, H, smesh);
             Nextsim::VTK::write_dg(resultsdir + "/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
@@ -243,14 +243,14 @@ void run_benchmark(const size_t N)
 	Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AirX);
 	Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AirY);
 
-	
+
         // interpolates CG velocity to DG and reinits normal velocity
         dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
         // performs the transport steps
 	dgtransport.step(dt_adv, A);
 	dgtransport.step(dt_adv, H);
-	
+
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
@@ -292,14 +292,4 @@ void run_benchmark(const size_t N)
 int main()
 {
   run_benchmark<2, 6>(64);
-  // int NN[5] = {32,64,128,256,512};
-  // for (int n=0;n<5;++n)
-  //   {
-  //     run_benchmark<1, 1, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 3, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 6, 3>(NN[n], 0.0);
-  //     run_benchmark<2, 1, 8>(NN[n], 0.0);
-  //     run_benchmark<2, 3, 8>(NN[n], 0.0);
-  //     run_benchmark<2, 6, 8>(NN[n], 0.0);
-  //   }
 }

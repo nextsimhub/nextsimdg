@@ -7,15 +7,15 @@
 /*!
  *
  * Ice dynamics test case the globe in spherical coordinates
- * of the globe. 
+ * of the globe.
 
  * Ice on [0,2 Pi] * [- 3/8 Pi, 3/8 Pi]
  * Periodic at x=0 and x = 2pi, Dirichlet at y = +/- 10000
- * 
+ *
  * Wind is perturbation of (10,0)
  * Ocean (1,0) * (1.0 - (x/ (3/8 Pi)^2) and zero on land
  *
- * Full ice cover, A=1 and H=0.5 
+ * Full ice cover, A=1 and H=0.5
  */
 
 #include "Interpolations.hpp"
@@ -147,21 +147,21 @@ public:
 
 
 //! Creates a rectangular mesh of (nearly) whole earth. Ice for  poles * Ny < iy < (1-poles) * Ny
-void create_mesh(Nextsim::ParametricMesh& smesh, size_t Nx, size_t Ny) 
+void create_mesh(Nextsim::ParametricMesh& smesh, size_t Nx, size_t Ny)
 {
   smesh.statuslog = -1;
   smesh.CoordinateSystem = Nextsim::SPHERICAL;
-  
+
   smesh.nx = Nx;
   smesh.ny = Ny;
   smesh.nelements = Nx*Ny;
   smesh.nnodes    = (Nx+1)*(Ny+1);
   smesh.vertices.resize(smesh.nnodes,2);
-  
+
   // z coordinate between -0.8*R and 0.8*R
   const double thetamax = asin(0.8);
-  
-  for (size_t iy = 0; iy <= Ny; ++iy) // lat 
+
+  for (size_t iy = 0; iy <= Ny; ++iy) // lat
     for (size_t ix = 0; ix <= Nx; ++ix) // lon
       {
 	smesh.vertices(iy*(Nx+1)+ix,0) = -M_PI+2.0 * M_PI*ix/Nx;
@@ -199,7 +199,7 @@ void run_benchmark_strain(const size_t N)
     //! Compose name of output directory and create it
     std::string resultsdir = "TestGlobe_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(N);
     std::filesystem::create_directory(resultsdir);
-    
+
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG> momentum(smesh);
 
@@ -221,17 +221,17 @@ void run_benchmark_strain(const size_t N)
     Nextsim::Interpolations::Function2DG(smesh, E11, exE11());
     Nextsim::Interpolations::Function2DG(smesh, E12, exE12());
     Nextsim::Interpolations::Function2DG(smesh, E22, exE22());
- 
-    
+
+
     // (2) Project Velocity to DG strain rate tensor
     momentum.ProjectCGVelocityToDGStrain();
     // compute error w.r.t. exact strain rate tensor given analytically (scale by 1/R)
-    double e11 = sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, momentum.GetE11(), exE11()))/Nextsim::EarthRadius; 
+    double e11 = sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, momentum.GetE11(), exE11()))/Nextsim::EarthRadius;
     double e12 = sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, momentum.GetE12(), exE12()))/Nextsim::EarthRadius;
     double e22 = sqrt(Nextsim::Interpolations::L2ErrorFunctionDG(smesh, momentum.GetE22(), exE22()))/Nextsim::EarthRadius;
 
-    
-    
+
+
 
     // (3) Compute the divergence of the strain rate tensor (sym vector laplace beltrami)
     momentum.GetVx().zero();
@@ -280,18 +280,18 @@ void run_benchmark_strain(const size_t N)
 	}
     Nextsim::VTK::write_cg_velocity(resultsdir + "/laplace", 0, momentum.GetVx(), momentum.GetVy(), smesh);
     Nextsim::VTK::write_cg_velocity(resultsdir + "/laplaceerror", 0, laplaceX, laplaceY, smesh);
-    
+
 
     Nextsim::VTK::write_dg(resultsdir + "/e11", 0, momentum.GetE11(), smesh);
     Nextsim::VTK::write_dg(resultsdir + "/e11ex", 0, E11, smesh);
 
-    
+
     std::cout << std::scientific << std::setprecision(3);
-    std::cout << e11         << check(e11,test1[{CG,N}][0]) 
-	      << "\t" << e12 << check(e12,test1[{CG,N}][1]) 
-	      << "\t" << e22 << check(e22,test1[{CG,N}][2]) 
-	      << "\t" << l1  << check(l1, test1[{CG,N}][3]) 
-	      << "\t" << l2  << check(l2, test1[{CG,N}][4]) 
+    std::cout << e11         << check(e11,test1[{CG,N}][0])
+	      << "\t" << e12 << check(e12,test1[{CG,N}][1])
+	      << "\t" << e22 << check(e22,test1[{CG,N}][2])
+	      << "\t" << l1  << check(l1, test1[{CG,N}][3])
+	      << "\t" << l2  << check(l2, test1[{CG,N}][4])
 	      << std::endl;
 
 }
@@ -304,18 +304,18 @@ void run_benchmark_laplace(const size_t N)
     //! Define the spatial mesh
   Nextsim::ParametricMesh smesh(Nextsim::SPHERICAL);
   create_mesh(smesh, 2*N, N);
-  
+
 
     //! Compose name of output directory and create it
     std::string resultsdir = "TestGlobe_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(N);
     std::filesystem::create_directory(resultsdir);
-    
+
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
     Nextsim::CGParametricMomentum<CG> momentum(smesh);
- 
+
 
     std::cout << CG << "\t" << N << "\t";
-    
+
     ////////////////////////////////////////////////// Set Velocity
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetVx(), VX());
     Nextsim::Interpolations::Function2CG(smesh, momentum.GetVy(), VY());
@@ -324,7 +324,7 @@ void run_benchmark_laplace(const size_t N)
 
     const Nextsim::CGVector<CG> vx_exact = momentum.GetVx();
     const Nextsim::CGVector<CG> vy_exact = momentum.GetVy();
-    
+
     // disturb initial
     momentum.GetVx() *= 0.99;
     momentum.GetVy() *= 1.01;
@@ -343,7 +343,7 @@ void run_benchmark_laplace(const size_t N)
 
     // tmp vector for time-stepping
     Nextsim::CGVector<CG> tmpx(smesh), tmpy(smesh);
-    
+
     for (size_t i=0; i<NT; ++i)
       {
 	// compute strain
@@ -355,7 +355,7 @@ void run_benchmark_laplace(const size_t N)
 
 	// compute the divergence of the stress tensor
 	momentum.DivergenceOfStress(1.0, tmpx, tmpy);
-	
+
 #pragma omp parallel for
 	for (int i = 0; i < tmpx.rows(); ++i)
 	  {
@@ -375,7 +375,7 @@ void run_benchmark_laplace(const size_t N)
     momentum.vy /= SQR(Nextsim::EarthRadius);
 
     Nextsim::VTK::write_cg_velocity(resultsdir + "/velerror", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-    
+
     std::cout << std::scientific << std::setprecision(3);
     std::cout << l1 << check(l1,test2[{CG,N}][0]) << "\t"
 	      << l2 << check(l2,test2[{CG,N}][1]) << std::endl;
@@ -391,12 +391,12 @@ int main()
   test1[{2,64}]  = {8.9717798990046578e-05,  2.9532775918127228e-04,  3.0276932129230877e-04,  8.5461370907648313e-04,  1.0966014629455458e-03};
   test1[{2,128}] = {2.2425141391200837e-05,  7.3840681807791240e-05,  7.5700242049543274e-05,  2.1464766850264012e-04,  2.7488599304577381e-04};
 
-  test2[{1,16}] = {5.2142793198142164e-03 ,4.0986719389934333e-03 };
-  test2[{1,32}] = {1.2883627013626205e-03 ,1.0126458831291392e-03 };
-  test2[{1,64}] = {3.2075639890935184e-04 ,2.5242056460174453e-04 };
-  test2[{2,16}] = {1.2341037350435471e-04 ,1.6181065863764404e-04 };
-  test2[{2,32}] = {1.5163120745444388e-05 ,1.9403500191718245e-05 };
-  test2[{2,64}] = {2.0727071397833376e-06 ,2.3990803774422654e-06 };
+  test2[{1,16}] = {5.2142793198142164e-03,  4.0986719389934333e-03 };
+  test2[{1,32}] = {1.2883627013626205e-03,  1.0126458831291392e-03 };
+  test2[{1,64}] = {3.2075639890935184e-04,  2.5242056460174453e-04 };
+  test2[{2,16}] = {1.2341037350435471e-04,  1.6181065863764404e-04 };
+  test2[{2,32}] = {1.5163120745444388e-05,  1.9403500191718245e-05 };
+  test2[{2,64}] = {2.0727071397833376e-06,  2.3990803774422654e-06 };
 
   std::cout << "Convergence of the strain rate tensor and the Laplacian" << std::endl;
   std::cout << "CG\tN\tE11\t\tE12\t\tE22\t\tLAP1\t\tLAP2" << std::endl;

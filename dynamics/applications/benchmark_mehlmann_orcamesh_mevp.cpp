@@ -40,7 +40,7 @@ inline constexpr double SQR(double x) { return x * x; }
 
 namespace ReferenceScale {
 constexpr double T = 8.0 * 24 * 60. * 60.; //!< Time horizon 8 days
-  
+
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -78,7 +78,7 @@ public:
         double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cMx) + SQR(y - cMy))) * 1.e-3;
 
 
-	
+
         return -scale * ReferenceScale::vmax_atm * (cos(alpha) * (x - cMx) + sin(alpha) * (y - cMy));
     }
 };
@@ -119,8 +119,8 @@ void run_benchmark()
 {
   Nextsim::ParametricMesh smesh(CoordinateSystem);
   smesh.readmesh("../tests/example3-25km_NH.smesh");
-  // transform mesh to 2d-projection 
-  double R = 6371000.0; 
+  // transform mesh to 2d-projection
+  double R = 6371000.0;
   for (size_t i = 0; i<smesh.nnodes;++i)
     {
       const double x = R * cos(M_PI/180.0*smesh.vertices(i,1)) * cos(M_PI/180.0*smesh.vertices(i,0));
@@ -134,47 +134,47 @@ void run_benchmark()
   for (size_t i=0;i<smesh.nelements;++i)
     landmask(i,0) = smesh.landmask[i];
   Nextsim::VTK::write_dg<1>("landmask", 0, landmask, smesh);
-				   
-  
+
+
   // output boundary info
   Nextsim::DGVector<1> boundary(smesh);
   for (size_t j=0;j<4;++j)
     for (size_t i=0;i<smesh.dirichlet[j].size();++i)
       boundary(smesh.dirichlet[j][i],0) = 1+j;
   Nextsim::VTK::write_dg<1>("boundary", 0, boundary, smesh);
-  
-  
+
+
   //! Compose name of output directory and create it
   std::string resultsdir = "BenchmarkOrca_" + std::to_string(CG) + "_" + std::to_string(DGadvection);
   std::filesystem::create_directory(resultsdir);
-  
+
   //! Main class to handle the momentum equation. This class also stores the CG velocity vector
   Nextsim::CGParametricMomentum<CG> momentum(smesh);
-  
+
   //! define the time mesh
   constexpr double dt_adv = 60; //!< Time step of advection problem
-  
+
   constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
-  
+
   //! MEVP parameters
   constexpr double alpha = 1500.0;
   constexpr double beta = 1500.0;
   constexpr size_t NT_evp = 100;
-  
+
   //! Rheology-Parameters
   Nextsim::VPParameters VP;
-  
+
   std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
 	    << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta << std::endl
 	    << "CG/DG " << CG << "\t" << DGadvection  << std::endl;
-  
+
   //! VTK output
   constexpr double T_vtk = 0.01*ReferenceScale::T; // 48.0 * 60.0 * 60.0; // once
   constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
   //! LOG message
   constexpr double T_log = 10.0 * 60.0; // every 30 minute
   constexpr size_t NT_log = T_log / dt_adv + 1.e-4;
-  
+
   ////////////////////////////////////////////////// Forcing
   Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceanx(), OceanX());
   Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceany(), OceanY());
@@ -184,7 +184,7 @@ void run_benchmark()
   AtmForcingY.settime(0.0);
   Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
   Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
-  
+
 
     ////////////////////////////////////////////////// Variables and Initial Values
     Nextsim::DGVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
@@ -285,15 +285,5 @@ void run_benchmark()
 
 int main()
 {
-  run_benchmark<1, 1>();
-  // int NN[5] = {32,64,128,256,512};
-  // for (int n=0;n<5;++n)
-  //   {
-  //     run_benchmark<1, 1, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 3, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 6, 3>(NN[n], 0.0);
-  //     run_benchmark<2, 1, 8>(NN[n], 0.0);
-  //     run_benchmark<2, 3, 8>(NN[n], 0.0);
-  //     run_benchmark<2, 6, 8>(NN[n], 0.0);
-  //   }
+  run_benchmark<2, 1>();
 }

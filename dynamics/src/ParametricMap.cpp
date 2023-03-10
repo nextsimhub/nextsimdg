@@ -11,12 +11,11 @@ namespace Nextsim
     // for advection
     AdvectionCellTermX.clear();
     AdvectionCellTermY.clear();
-    
+
     AdvectionCellTermX.resize(smesh.nelements);
     AdvectionCellTermY.resize(smesh.nelements);
 
-    //    phiup.row(eid) += dt * (parammap.AdvectionCellTermX[eid].array().rowwise() * vx_gauss.array() + parammap.AdvectionCellTermY[eid].array().rowwise() * vy_gauss.array()).matrix() * phi_gauss.transpose();
-    
+
     // gradient of transformation
     //      [ dxT1, dyT1 ]     //            [ dyT2, -dxT2 ]
     // dT = 		     // J dT^{-T}=
@@ -30,13 +29,13 @@ namespace Nextsim
 
     // Store wq * phi(q)
 
-    
+
 #pragma omp parallel for
     for (size_t eid = 0; eid<smesh.nelements;++eid)
       {
 	const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(DG)> dxT = ParametricTools::dxT<GAUSSPOINTS1D(DG)>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array();
 	const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(DG)> dyT = ParametricTools::dyT<GAUSSPOINTS1D(DG)>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array();
-	
+
 	// [J dT^{-T} nabla phi]_1
 	AdvectionCellTermX[eid] = PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dyT.row(1).array() - PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dxT.row(1).array();
 	// [J dT^{-T} nabla phi]_2
@@ -84,10 +83,10 @@ namespace Nextsim
 
 
   //////////////////////////////////////////////////
-  ////////////////////////////////////////////////// Momentum
+  // Momentum
   //////////////////////////////////////////////////
 
-  
+
   //!
   template<int CG>
   void ParametricMomentumMap<CG>::InitializeLumpedCGMassMatrix()
@@ -99,7 +98,7 @@ namespace Nextsim
 
 #define CGGP(CG) ( (CG==1?1:4) )
 
-    
+
     for (size_t p=0;p<2;++p) // for parallelization
       {
 #pragma omp parallel for
@@ -115,7 +114,7 @@ namespace Nextsim
 		{
 		  const Eigen::Matrix<Nextsim::FloatType, 1, CGGP(CG) * CGGP(CG) > J
 		    = ParametricTools::J<CGGP(CG)>(smesh, eid).array() * GAUSSWEIGHTS<CGGP(CG) >.array();
-		  
+
 		  Meid = PHI<CG,CGGP(CG)> * J.transpose();
 		  const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
 		    = smesh.coordinatesOfElement(eid);
@@ -127,20 +126,20 @@ namespace Nextsim
 
 		  const Eigen::Matrix<Nextsim::FloatType, 1, CGGP(CG) * CGGP(CG) > J
 		    = ParametricTools::J<CGGP(CG)>(smesh, eid).array() * GAUSSWEIGHTS<CGGP(CG) >.array() * cos_lat.array();
-		  
+
 		  Meid = PHI<CG,CGGP(CG)> * J.transpose();
 		}
 	      else abort();
-	      
+
 	      // index of first dof in element
 	      const size_t sy = CG * smesh.nx + 1;
 	      const size_t n0 = CG * iy * sy + CG * ix;
-	      
+
 	      if (CG==1)
 		{
 		  lumpedcgmass(n0, 0)                += Meid(0);
 		  lumpedcgmass(n0 + 1, 0)            += Meid(1);
-		  
+
 		  lumpedcgmass(n0     + sy, 0)       += Meid(2);
 		  lumpedcgmass(n0 + 1 + sy, 0)       += Meid(3);
 		}
@@ -149,11 +148,11 @@ namespace Nextsim
 		  lumpedcgmass(n0, 0)                += Meid(0);
 		  lumpedcgmass(n0 + 1, 0)            += Meid(1);
 		  lumpedcgmass(n0 + 2, 0)            += Meid(2);
-		  
+
 		  lumpedcgmass(n0     + sy, 0)       += Meid(3);
 		  lumpedcgmass(n0 + 1 + sy, 0)       += Meid(4);
 		  lumpedcgmass(n0 + 2 + sy, 0)       += Meid(5);
-		  
+
 		  lumpedcgmass(n0     + 2 * sy, 0)   += Meid(6);
 		  lumpedcgmass(n0 + 1 + 2 * sy, 0)   += Meid(7);
 		  lumpedcgmass(n0 + 2 + 2 * sy, 0)   += Meid(8);
@@ -181,7 +180,7 @@ namespace Nextsim
 	divM.resize(smesh.nelements);
 	iMM.resize(smesh.nelements);
       }
-    
+
     // parallel loop over all elements for computing entries
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid) {
@@ -189,10 +188,10 @@ namespace Nextsim
       //     [ Fx   Fx ]
       // F = [         ]
       //     [ Fy   Fy ]
-      
+
       const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(CG2DGSTRESS(CG))> Fx = (ParametricTools::dxT<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array()).matrix();
       const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(CG2DGSTRESS(CG))> Fy = (ParametricTools::dyT<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array()).matrix();
-      
+
       //               [  Fy2  -Fx2 ]
       // A = JF^{-T} = [            ]
       //               [ -Fy1   Fx1 ]
@@ -200,14 +199,14 @@ namespace Nextsim
 
       // the transformed gradient of the CG basis function in the gauss points (OBSERVE SIGN IN SECOND, EIGEN CAN'T START WITH A MINUS
       const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dx_cg2 = PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(1).array() - PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(1).array();
-      
-      const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dy_cg2 = PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(0).array() - PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(0).array(); 
-      
+
+      const Eigen::Matrix<Nextsim::FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dy_cg2 = PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(0).array() - PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(0).array();
+
       // PSI83 is the DG-Basis-function in the guass-point
       // PSI83_{iq} = PSI_i(q)   [ should be called DG_in_GAUSS ]
 
       const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> J = ParametricTools::J<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid);
-	  
+
       if (smesh.CoordinateSystem == CARTESIAN)
 	{
 	  // divS is used for update of stress (S, nabla Phi) in Momentum
@@ -225,7 +224,7 @@ namespace Nextsim
       else if (smesh.CoordinateSystem == SPHERICAL)
 	{
 	  // In spherical coordinates (x,y) coordinates are (lon,lat) coordinates
-	  
+
 	  const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG)) >
 	    cos_lat = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).row(1).array()).cos();
 	  const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG)) >
@@ -235,7 +234,7 @@ namespace Nextsim
 	  divS1[eid] =  dx_cg2                                               * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose() / Nextsim::EarthRadius;
 	  divS2[eid] = (dy_cg2.array().rowwise() * cos_lat.array()).matrix() * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose() / Nextsim::EarthRadius;
 
-	  
+
 	  divM [eid] = (PHI<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
 			* (J.array()
 			   * sin_lat.array()
@@ -257,17 +256,14 @@ namespace Nextsim
   }
 
 
-
-  
   template class ParametricTransportMap<1>;
   template class ParametricTransportMap<3>;
   template class ParametricTransportMap<6>;
 
-    
+
   template class ParametricMomentumMap<1>;
     template class ParametricMomentumMap<2>;
-  
+
 
 }
-
 

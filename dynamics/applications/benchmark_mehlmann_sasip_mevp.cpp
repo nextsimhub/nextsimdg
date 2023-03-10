@@ -309,11 +309,7 @@ int main()
   int NN[5] = {32,64,128,256,512};
    for (int n=0;n<5;++n)
      {
-       run_benchmark<1, 1>(NN[n], 0.0);
-       run_benchmark<1, 3>(NN[n], 0.0);
        run_benchmark<1, 6>(NN[n], 0.0);
-       run_benchmark<2, 1>(NN[n], 0.0);
-       run_benchmark<2, 3>(NN[n], 0.0);
        run_benchmark<2, 6>(NN[n], 0.0);
      }
 }

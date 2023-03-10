@@ -30,16 +30,16 @@ bool WRITE_VTK = true;
 /*!
  *
  * The benchmark [Mehlmann, 2017, 2021] on the spherical orca NH 25km mesh
- * 
+ *
  * Mesh rotated to Greenland (Pi/2 lat is in Greenland), pole is at (lat=75^o, lon=0)
  * Pole-Vector is PV = R (cos(75o) cos(40o), cos(75o)sin(40o), sin(75o) )
  *
  * The benchmark data is first transformed from [0,512km]^2 to [-256,256km]^2
- * and then mapped to the domain as plane orthogonal to PV. 
- * 
+ * and then mapped to the domain as plane orthogonal to PV.
+ *
  * This plane is spanned by the vectors
  * (0,1,0) and (-sin(75o),0,cos(75o) )
- * 
+ *
  */
 
 constexpr double L0 = 75./180.*M_PI;
@@ -71,7 +71,7 @@ inline constexpr double SQR(double x) { return x * x; }
 
 namespace ReferenceScale {
 constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 8 days
-  
+
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
@@ -116,7 +116,7 @@ public:
       double ey3 = cos(y);
 
       return oA * (ey1*PA1 + ey2 * PA2 + ey3 * PA3) + oB * (ey1 * PB1 + ey2 * PB2 + ey3 * PB3);
-      
+
     }
 };
 
@@ -133,7 +133,7 @@ public:
       double Z = Nextsim::EarthRadius * sin(y);
       double xA = X * PA1 + Y * PA2 + Z * PA3;
       double xB = X * PB1 + Y * PB2 + Z * PB3;
-      
+
 
       constexpr double oneday = 24.0 * 60.0 * 60.0;
       //! Center of cyclone (in m) (cmX, cmX
@@ -141,10 +141,10 @@ public:
       double cMxA = cMx * PA1 + cMx * PA2; // same in the plane-system
       double cMxB = cMx * PA2 + cMx * PA2;
 
-      
-      
+
+
       double alpha = 72.0/180.0 * M_PI;
-      
+
       //! scaling factor to reduce wind away from center
       double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(xA - cMxA) + SQR(xB - cMxB))) * 1.e-3;
       double wxA = -scale * ReferenceScale::vmax_atm * (cos(alpha) * (xA - cMxA) + sin(alpha) * (xB - cMxB));
@@ -170,7 +170,7 @@ public:
       double Z = Nextsim::EarthRadius * sin(y);
       double xA = X * PA1 + Y * PA2 + Z * PA3;
       double xB = X * PB1 + Y * PB2 + Z * PB3;
-      
+
 
       constexpr double oneday = 24.0 * 60.0 * 60.0;
       //! Center of cyclone (in m) (cmX, cmX
@@ -178,15 +178,15 @@ public:
       double cMxA = cMx * PA1 + cMx * PA2; // same in the plane-system
       double cMxB = cMx * PA2 + cMx * PA2;
 
-      
-      
+
+
       double alpha = 72.0/180.0 * M_PI;
-      
+
       //! scaling factor to reduce wind away from center
-      double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(xA - cMxA) + SQR(xB - cMxB))) * 1.e-3; 
+      double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(xA - cMxA) + SQR(xB - cMxB))) * 1.e-3;
       double wxA = -scale * ReferenceScale::vmax_atm * (cos(alpha) * (xA - cMxA) + sin(alpha) * (xB - cMxB));
       double wxB = -scale * ReferenceScale::vmax_atm *(-sin(alpha) * (xA - cMxA) + cos(alpha) * (xB - cMxB));
-      
+
       double ey1 = -sin(y)*cos(x);
       double ey2 = -sin(y)*sin(x);
       double ey3 = cos(y);
@@ -217,51 +217,51 @@ void run_benchmark()
   smesh.readmesh("../tests/example3-25km_NH.smesh");
   smesh.TransformToRadians();
   smesh.RotatePoleToGreenland();
-  
+
   // output land mask
   Nextsim::DGVector<1> landmask(smesh);
   for (size_t i=0;i<smesh.nelements;++i)
     landmask(i,0) = smesh.landmask[i];
   Nextsim::VTK::write_dg<1>(resultsdir + "/landmask", 0, landmask, smesh);
-				   
-  
+
+
   // output boundary info
   Nextsim::DGVector<1> boundary(smesh);
   for (size_t j=0;j<4;++j)
     for (size_t i=0;i<smesh.dirichlet[j].size();++i)
       boundary(smesh.dirichlet[j][i],0) = 1+j;
   Nextsim::VTK::write_dg<1>(resultsdir + "/boundary", 0, boundary, smesh);
-  
-  
-  
+
+
+
   //! Main class to handle the momentum equation. This class also stores the CG velocity vector
   Nextsim::CGParametricMomentum<CG> momentum(smesh);
-  
+
   //! define the time mesh
   constexpr double dt_adv = 60; //!< Time step of advection problem
-  
+
   constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
-  
+
   //! MEVP parameters
   constexpr double alpha = 1500.0;
   constexpr double beta = 1500.0;
   constexpr size_t NT_evp = 100;
-  
+
   //! Rheology-Parameters
   Nextsim::VPParameters VP;
   VP.fc = 0.0; // no coriolis!
-  
+
   std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
 	    << "MEVP subcycling NTevp " << NT_evp << "\t alpha/beta " << alpha << " / " << beta << std::endl
 	    << "CG/DG " << CG << "\t" << DGadvection  << std::endl;
-  
+
   //! VTK output
   constexpr double T_vtk = 60.0*60.0;
   constexpr size_t NT_vtk = T_vtk / dt_adv + 1.e-4;
   //! LOG message
   constexpr double T_log = 10.0 * 60.0; // every 30 minute
   constexpr size_t NT_log = T_log / dt_adv + 1.e-4;
-  
+
   ////////////////////////////////////////////////// Forcing
   Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceanx(), OceanX());
   Nextsim::Interpolations::Function2CG(smesh, momentum.GetOceany(), OceanY());
@@ -271,7 +271,7 @@ void run_benchmark()
   AtmForcingY.settime(0.0);
   Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmx(), AtmForcingX);
   Nextsim::Interpolations::Function2CG(smesh, momentum.GetAtmy(), AtmForcingY);
-  
+
 
     ////////////////////////////////////////////////// Variables and Initial Values
     Nextsim::DGVector<DGadvection> H(smesh), A(smesh); //!< ice height and concentration
@@ -327,7 +327,7 @@ void run_benchmark()
         // interpolates CG velocity to DG and reinits normal velocity
         dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
-	
+
         // performs the transport steps
         dgtransport.step(dt_adv, A);
         dgtransport.step(dt_adv, H);
@@ -364,7 +364,7 @@ void run_benchmark()
 		Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Vx", printstep, dgtransport.GetVx(), smesh);
 		Nextsim::VTK::write_dg(resultsdir + "/Vy", printstep, dgtransport.GetVy(), smesh);
-		
+
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }
@@ -377,14 +377,4 @@ void run_benchmark()
 int main()
 {
   run_benchmark<2, 1>();
-  // int NN[5] = {32,64,128,256,512};
-  // for (int n=0;n<5;++n)
-  //   {
-  //     run_benchmark<1, 1, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 3, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 6, 3>(NN[n], 0.0);
-  //     run_benchmark<2, 1, 8>(NN[n], 0.0);
-  //     run_benchmark<2, 3, 8>(NN[n], 0.0);
-  //     run_benchmark<2, 6, 8>(NN[n], 0.0);
-  //   }
 }

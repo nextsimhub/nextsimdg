@@ -7,15 +7,15 @@
 /*!
  *
  * Ice dynamics test case the globe in spherical coordinates
- * of the globe. 
+ * of the globe.
 
  * Ice on [0,2 Pi] * [- 3/8 Pi, 3/8 Pi]
  * Periodic at x=0 and x = 2pi, Dirichlet at y = +/- 10000
- * 
+ *
  * Wind is perturbation of (10,0)
  * Ocean (1,0) * (1.0 - (x/ (3/8 Pi)^2) and zero on land
  *
- * Full ice cover, A=1 and H=0.5 
+ * Full ice cover, A=1 and H=0.5
  */
 
 #include "Interpolations.hpp"
@@ -56,7 +56,7 @@ namespace ReferenceScale {
   constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
   constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
   double vmax_atm = 20.0;
-  
+
 }
 
 
@@ -122,21 +122,21 @@ public:
 
 
 //! Creates a rectangular mesh of (nearly) whole earth. Ice for  poles * Ny < iy < (1-poles) * Ny
-void create_mesh(Nextsim::ParametricMesh& smesh, size_t Nx, size_t Ny) 
+void create_mesh(Nextsim::ParametricMesh& smesh, size_t Nx, size_t Ny)
 {
   smesh.statuslog = -1;
   smesh.CoordinateSystem = Nextsim::SPHERICAL;
-  
+
   smesh.nx = Nx;
   smesh.ny = Ny;
   smesh.nelements = Nx*Ny;
   smesh.nnodes    = (Nx+1)*(Ny+1);
   smesh.vertices.resize(smesh.nnodes,2);
-  
+
   // z coordinate between -0.8*R and 0.8*R
   const double thetamax = asin(0.8);
-  
-  for (size_t iy = 0; iy <= Ny; ++iy) // lat 
+
+  for (size_t iy = 0; iy <= Ny; ++iy) // lat
     for (size_t ix = 0; ix <= Nx; ++ix) // lon
       {
 	smesh.vertices(iy*(Nx+1)+ix,0) = -M_PI+2.0 * M_PI*ix/Nx;
@@ -180,7 +180,7 @@ void run_benchmark(const size_t NX, double distort)
 
     //! define the time mesh
     constexpr double dt_adv = 120.; //!< Time step of advection problem
-    
+
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
@@ -267,7 +267,7 @@ void run_benchmark(const size_t NX, double distort)
         // performs the transport steps
 	dgtransport.step(dt_adv, A);
 	dgtransport.step(dt_adv, H);
-	
+
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
@@ -309,15 +309,5 @@ void run_benchmark(const size_t NX, double distort)
 int main()
 {
   run_benchmark<1, 3>(128, 0.0);
-  // int NN[5] = {32,64,128,256,512};
-  // for (int n=0;n<5;++n)
-  //   {
-  //     run_benchmark<1, 1, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 3, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 6, 3>(NN[n], 0.0);
-  //     run_benchmark<2, 1, 8>(NN[n], 0.0);
-  //     run_benchmark<2, 3, 8>(NN[n], 0.0);
-  //     run_benchmark<2, 6, 8>(NN[n], 0.0);
-  //   }
 }
 
