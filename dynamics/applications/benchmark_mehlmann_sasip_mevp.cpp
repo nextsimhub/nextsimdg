@@ -40,13 +40,11 @@ inline constexpr double SQR(double x) { return x * x; }
 //! Description of the problem data, wind & ocean fields
 
 namespace ReferenceScale {
-constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
-  //constexpr double T = 60. * 60.; //!< 1 hour only... !!! 
+    constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
 
-  
-constexpr double L = 512000.0; //!< Size of domain !!!
-constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
-double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
+    constexpr double L = 512000.0; //!< Size of domain !!!
+    constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
+    double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 }
 
 class OceanX : public Nextsim::Interpolations::Function {
@@ -79,7 +77,7 @@ public:
         double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cM) + SQR(y - cM))) * 1.e-3;
 
         double alpha = 72.0 / 180.0 * M_PI;
-	
+
         return -scale * ReferenceScale::vmax_atm * (cos(alpha) * (x - cM) + sin(alpha) * (y - cM));
     }
 };
@@ -106,7 +104,6 @@ class InitialH : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
     {
-      //      double pos = (pow(sin(M_PI*4.0*x/ReferenceScale::L),2.)*pow(sin(M_PI*4.0*y/ReferenceScale::L),2.))>0.2?1:0.0;
       double pos = 1;
       return pos*(0.3 + 0.005 * (sin(6.e-5 * x) + sin(3.e-5 * y)));
     }
@@ -115,7 +112,6 @@ class InitialA : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const
   {
-    //    double pos = (pow(sin(M_PI*4.0*x/ReferenceScale::L),2.)*pow(sin(M_PI*4.0*y/ReferenceScale::L),2.))>0.2?1:0.001;
     double pos = 1.0;
     return pos;
   }
@@ -134,7 +130,7 @@ void create_mesh(const std::string& meshname, const size_t Nx, const double dist
 
 
     OUT << "landmask 0" << std::endl;
-    
+
     if (1) // std-setup, dirichlet everywhere
     {
         // dirichlet info
@@ -143,12 +139,12 @@ void create_mesh(const std::string& meshname, const size_t Nx, const double dist
 	OUT << i << "\t" << 0 << std::endl; // lower
       for (size_t i = 0; i < Nx; ++i)
 	OUT << Nx * (Nx - 1) + i << "\t" << 2 << std::endl; // upper
-      
+
       for (size_t i = 0; i < Nx; ++i)
 	OUT << i * Nx << "\t" << 3 << std::endl; // left
       for (size_t i = 0; i < Nx; ++i)
 	OUT << i * Nx + Nx - 1 << "\t" << 1 << std::endl; // right
-      
+
         OUT << "periodic 0" << std::endl;
     } else {
         OUT << "dirichlet 0" << std::endl;
@@ -182,7 +178,7 @@ void run_benchmark(const size_t NX, double distort)
 
     //! define the time mesh
     constexpr double dt_adv = 120.; //!< Time step of advection problem
-    
+
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
@@ -267,9 +263,9 @@ void run_benchmark(const size_t NX, double distort)
         dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
         // performs the transport steps
-	dgtransport.step(dt_adv, A);
-	dgtransport.step(dt_adv, H);
-	
+	      dgtransport.step(dt_adv, A);
+	      dgtransport.step(dt_adv, H);
+
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
         Nextsim::LimitMin(A, 0.0);
@@ -310,15 +306,14 @@ void run_benchmark(const size_t NX, double distort)
 
 int main()
 {
-  run_benchmark<1, 3>(128, 0.0);
-  // int NN[5] = {32,64,128,256,512};
-  // for (int n=0;n<5;++n)
-  //   {
-  //     run_benchmark<1, 1>(NN[n], 0.0);
-  //     run_benchmark<1, 3>(NN[n], 0.0);
-  //     run_benchmark<1, 6>(NN[n], 0.0);
-  //     run_benchmark<2, 1>(NN[n], 0.0);
-  //     run_benchmark<2, 3>(NN[n], 0.0);
-  //     run_benchmark<2, 6>(NN[n], 0.0);
-  //   }
+  int NN[5] = {32,64,128,256,512};
+   for (int n=0;n<5;++n)
+     {
+       run_benchmark<1, 1>(NN[n], 0.0);
+       run_benchmark<1, 3>(NN[n], 0.0);
+       run_benchmark<1, 6>(NN[n], 0.0);
+       run_benchmark<2, 1>(NN[n], 0.0);
+       run_benchmark<2, 3>(NN[n], 0.0);
+       run_benchmark<2, 6>(NN[n], 0.0);
+     }
 }

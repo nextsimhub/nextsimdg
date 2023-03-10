@@ -125,7 +125,7 @@ void run_benchmark(const std::string meshfile)
     size_t NX = smesh.nx;
 
     //! Compose name of output directory and create it
-    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) 
+    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection)
         + "__" + std::to_string(NX);
     std::filesystem::create_directory(resultsdir);
 
@@ -134,7 +134,7 @@ void run_benchmark(const std::string meshfile)
 
     //! define the time mesh
     // constexpr double dt_adv = 60.0; //!< Time step of advection problem
-    double dt_adv = ReferenceScale::L / smesh.nx / 1000. * 15.0;  //!< Stable time step 
+    double dt_adv = ReferenceScale::L / smesh.nx / 1000. * 15.0;  //!< Stable time step
     size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t NT_meb = 100; //!< Momentum substeps
@@ -259,9 +259,6 @@ void run_benchmark(const std::string meshfile)
                 Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/D", printstep, D, smesh);
-                //Nextsim::VTK::write_dg(resultsdir + "/S11", printstep, momentum.GetS11(), smesh);
-                //Nextsim::VTK::write_dg(resultsdir + "/S12", printstep, momentum.GetS12(), smesh);
-                //Nextsim::VTK::write_dg(resultsdir + "/S22", printstep, momentum.GetS22(), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Div", printstep, Nextsim::Tools::TensorInvI(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/sigma_n", printstep,
@@ -279,8 +276,6 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    //run_benchmark<2, 6>("../ParametricMesh/rectangle_256x256.smesh");
-    //run_benchmark<2, 6>("../ParametricMesh/rectangle_128x128.smesh");
 
     std::vector<std::string> meshes;
     meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
