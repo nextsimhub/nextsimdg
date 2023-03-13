@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/NZLevels.hpp"
@@ -20,7 +20,7 @@
 const std::string filename = "RectGrid_test.nc";
 
 namespace Nextsim {
-TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]")
+TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 {
     RectangularGrid grid;
     grid.setIO(new RectGridIO(grid));

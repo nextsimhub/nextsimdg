@@ -5,11 +5,11 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
-#include "../src/include/ModelArrayRef.hpp"
-#include "../src/include/ModelComponent.hpp"
+#include "include/ModelArrayRef.hpp"
+#include "include/ModelComponent.hpp"
 
 #include <stdexcept>
 
@@ -35,7 +35,7 @@ public:
     std::unordered_set<std::string> zFields() const override { return { "z1", "z2", "z3" }; }
 };
 
-TEST_CASE("Register a new module", "[ModelComponent]")
+TEST_CASE("Register a new module")
 {
     Module1 m1;
     REQUIRE_THROWS_AS(ModelComponent::setAllModuleData(ModelState()), HappyExcept);
@@ -108,7 +108,7 @@ private:
     ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore> hice_ref;
 };
 
-TEST_CASE("Test array registration", "[ModelComponent]")
+TEST_CASE("Test array registration")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModuleSupplyAndWait saw;
@@ -176,7 +176,7 @@ private:
     ModelArrayRef<SharedArray::Q_IC, MARBackingStore, RW> qic_ref;
 };
 
-TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")
+TEST_CASE("Shared and semi-protected arrays")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 

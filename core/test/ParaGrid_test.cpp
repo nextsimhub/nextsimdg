@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
@@ -37,7 +37,7 @@ namespace Nextsim {
 
 size_t c = 0;
 
-TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[ParametricGrid]")
+TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 {
     Module::setImplementation<IStructure>("ParametricGrid");
 
@@ -183,7 +183,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     std::filesystem::remove(filename);
 }
 
-TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
+TEST_CASE("Write a diagnostic ParaGrid file")
 {
     Module::setImplementation<IStructure>("ParametricGrid");
 
@@ -234,11 +234,11 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
         }
     }
     double prec = 1e-9;
-    REQUIRE(fractional(12, 12) - fractional(11, 12) == Approx(xFactor).epsilon(prec));
-    REQUIRE(fractional(12, 12) - fractional(12, 11) == Approx(yFactor).epsilon(prec));
+    REQUIRE(fractional(12, 12) - fractional(11, 12) == doctest::Approx(xFactor).epsilon(prec));
+    REQUIRE(fractional(12, 12) - fractional(12, 11) == doctest::Approx(yFactor).epsilon(prec));
 
-    REQUIRE(fractionalDG(12, 12) - fractionalDG(11, 12) == Approx(xFactor).epsilon(prec));
-    REQUIRE(fractionalDG(12, 12) - fractionalDG(12, 11) == Approx(yFactor).epsilon(prec));
+    REQUIRE(fractionalDG(12, 12) - fractionalDG(11, 12) == doctest::Approx(xFactor).epsilon(prec));
+    REQUIRE(fractionalDG(12, 12) - fractionalDG(12, 11) == doctest::Approx(yFactor).epsilon(prec));
 
 
     DGField hice = fractionalDG + 10;

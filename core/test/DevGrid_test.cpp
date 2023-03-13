@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/DevGrid.hpp"
@@ -21,7 +21,7 @@ namespace Nextsim {
 
 const std::string stateFilename = "modelState.test.nc";
 
-TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
+TEST_CASE("Write and read a ModelState-based DevGrid restart file")
 {
     DevGrid grid;
     grid.setIO(new DevGridIO(grid));

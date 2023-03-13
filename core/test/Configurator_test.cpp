@@ -16,8 +16,8 @@
 
 #include <boost/program_options.hpp>
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 class Config1 {
 public:
@@ -116,7 +116,7 @@ void Config3::configure()
 
 namespace Nextsim {
 
-TEST_CASE("Parse one config stream using the raw configurator", "[Configurator]")
+TEST_CASE("Parse one config stream using the raw configurator")
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
@@ -143,7 +143,7 @@ TEST_CASE("Parse one config stream using the raw configurator", "[Configurator]"
     REQUIRE(config.checkValue(target));
 }
 
-TEST_CASE("Parse one config stream using the pointer configuration function", "[Configurator]")
+TEST_CASE("Parse one config stream using the pointer configuration function")
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
@@ -165,7 +165,7 @@ TEST_CASE("Parse one config stream using the pointer configuration function", "[
     REQUIRE(config.getName() == targetName);
 }
 
-TEST_CASE("Parse two config streams for one class, reference helper function", "[Configurator]")
+TEST_CASE("Parse two config streams for one class, reference helper function")
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();
@@ -189,7 +189,7 @@ TEST_CASE("Parse two config streams for one class, reference helper function", "
     REQUIRE(config.getName() == targetName);
 }
 
-TEST_CASE("Parse config streams for two overlapping class, try", "[Configurator]")
+TEST_CASE("Parse config streams for two overlapping class, try")
 {
     // Since tests are not different execution environments, clear the streams from other tests.
     Configurator::clearStreams();

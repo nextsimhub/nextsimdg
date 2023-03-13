@@ -7,15 +7,15 @@
 
 #include "include/Timer.hpp"
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include <chrono>
 #include <iostream>
 #include <sstream>
 #include <thread>
 
-TEST_CASE("Test a timer", "[Timer]")
+TEST_CASE("Test a timer")
 {
     Nextsim::Timer::main.reset();
     Nextsim::Timer::main.tick("Level 1");
@@ -57,7 +57,7 @@ void timeAndSleep()
     Nextsim::Timer::main.tock();
 }
 
-TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
+TEST_CASE("Test the scope dependent timer")
 {
     Nextsim::Timer::main.reset();
     Nextsim::Timer::main.tick("test scope timer");
