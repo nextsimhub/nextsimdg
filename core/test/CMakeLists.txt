@@ -27,7 +27,7 @@ add_executable(testIterator
     
     )
 target_include_directories(testIterator PUBLIC "${SRC_DIR}")
-target_link_libraries(testIterator PRIVATE Catch2::Catch2 Boost::program_options Boost::log)
+target_link_libraries(testIterator PRIVATE doctest::doctest Boost::program_options Boost::log)
 
 add_executable(testCommandLineParser
     "CommandLineParser_test.cpp"
