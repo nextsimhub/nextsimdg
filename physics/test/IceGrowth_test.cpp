@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include <sstream>
 
 #include "include/IceGrowth.hpp"
@@ -26,7 +26,7 @@
 
 namespace Nextsim {
 
-TEST_CASE("New ice formation", "[IceGrowth]")
+TEST_CASE("New ice formation")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -129,10 +129,10 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
 
     double prec = 1e-5;
-    REQUIRE(newice[0] == Approx(0.0258264).epsilon(prec));
+    REQUIRE(newice[0] == doctest::Approx(0.0258264).epsilon(prec));
 }
 
-TEST_CASE("Melting conditions", "[IceGrowth]")
+TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -241,14 +241,14 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     double prec = 1e-5;
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
-    REQUIRE(cice[0] == Approx(0.368269).epsilon(prec));
-    REQUIRE((hice[0] * cice[0]) == Approx(0.0473078).epsilon(prec));
-    REQUIRE((hsnow[0] * cice[0]) == Approx(0.00720977).epsilon(prec));
+    REQUIRE(cice[0] == doctest::Approx(0.368269).epsilon(prec));
+    REQUIRE((hice[0] * cice[0]) == doctest::Approx(0.0473078).epsilon(prec));
+    REQUIRE((hsnow[0] * cice[0]) == doctest::Approx(0.00720977).epsilon(prec));
 
     REQUIRE(newice[0] == 0.0);
 }
 
-TEST_CASE("Freezing conditions", "[IceGrowth]")
+TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -356,10 +356,10 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
-    REQUIRE(cice[0] == Approx(0.5002).epsilon(prec));
-    REQUIRE((hice[0] * cice[0]) == Approx(0.100039).epsilon(prec));
-    REQUIRE((hsnow[0] * cice[0]) == Approx(0.0109012).epsilon(prec));
+    REQUIRE(cice[0] == doctest::Approx(0.5002).epsilon(prec));
+    REQUIRE((hice[0] * cice[0]) == doctest::Approx(0.100039).epsilon(prec));
+    REQUIRE((hsnow[0] * cice[0]) == doctest::Approx(0.0109012).epsilon(prec));
 
-    REQUIRE(newice[0] == Approx(6.79906e-5).epsilon(prec));
+    REQUIRE(newice[0] == doctest::Approx(6.79906e-5).epsilon(prec));
 }
 }

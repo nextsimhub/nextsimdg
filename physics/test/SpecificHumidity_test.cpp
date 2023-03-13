@@ -5,14 +5,14 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/FiniteElementSpecHum.hpp"
 
 namespace Nextsim {
 
-TEST_CASE("Specific humidity test", "[FiniteElementSpecHum")
+TEST_CASE("Specific humidity test")
 {
     double tair = -3;
     double tdew = 0.1;
@@ -28,9 +28,9 @@ TEST_CASE("Specific humidity test", "[FiniteElementSpecHum")
     double ice = feshi(tice[0], pair);
 
     double prec = 1e-4;
-    REQUIRE(0.00385326 == Approx(air).epsilon(prec));
-    REQUIRE(0.00349446 == Approx(water).epsilon(prec));
-    REQUIRE(0.00323958 == Approx(ice).epsilon(prec));
+    REQUIRE(0.00385326 == doctest::Approx(air).epsilon(prec));
+    REQUIRE(0.00349446 == doctest::Approx(water).epsilon(prec));
+    REQUIRE(0.00323958 == doctest::Approx(ice).epsilon(prec));
 
 }
 } /* namespace Nextsim */

@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include <sstream>
 
 #include "include/IFluxCalculation.hpp"
@@ -25,7 +25,7 @@
 
 namespace Nextsim {
 
-TEST_CASE("Melting conditions", "[ThermoWinton]")
+TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
@@ -138,13 +138,13 @@ TEST_CASE("Melting conditions", "[ThermoWinton]")
 
     double prec = 1e-5;
 
-    REQUIRE(tice[0] == Approx(0.0).margin(prec));
-    REQUIRE(tice[1] == Approx(-0.999453).margin(prec));
-    REQUIRE(tice[2] == Approx(-0.275).epsilon(prec));
-    //    REQUIRE(qic[0] == Approx(-4.60879).epsilon(prec));
+    REQUIRE(tice[0] == doctest::Approx(0.0).epsilon(prec));
+    REQUIRE(tice[1] == doctest::Approx(-0.999453).epsilon(prec));
+    REQUIRE(tice[2] == doctest::Approx(-0.275).epsilon(prec));
+    //    REQUIRE(qic[0] == doctest::Approx(-4.60879).epsilon(prec));
 }
 
-TEST_CASE("Freezing conditions", "[ThermoWinton]")
+TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
@@ -261,9 +261,9 @@ TEST_CASE("Freezing conditions", "[ThermoWinton]")
 
     double prec = 1e-5;
 
-    REQUIRE(tice[0] == Approx(-10.5129).epsilon(prec));
-    REQUIRE(tice[1] == Approx(-9.00726).epsilon(prec));
-    REQUIRE(tice[2] == Approx(-8.20454).epsilon(prec));
-//    REQUIRE(qic[0] == Approx(44.4839).epsilon(prec));
+    REQUIRE(tice[0] == doctest::Approx(-10.5129).epsilon(prec));
+    REQUIRE(tice[1] == doctest::Approx(-9.00726).epsilon(prec));
+    REQUIRE(tice[2] == doctest::Approx(-8.20454).epsilon(prec));
+//    REQUIRE(qic[0] == doctest::Approx(44.4839).epsilon(prec));
 }
 }
