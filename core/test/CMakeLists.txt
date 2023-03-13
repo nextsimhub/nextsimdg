@@ -46,11 +46,6 @@ add_executable(testConfigurator
 target_include_directories(testConfigurator PUBLIC "${SRC_DIR}")
 target_link_libraries(testConfigurator LINK_PUBLIC Boost::program_options Boost::log doctest::doctest)
 
-add_executable(testEnumWrapper
-    "EnumWrapper_test.cpp"
-    )
-target_link_libraries(testEnumWrapper LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
-
 add_executable(testConfiguredModule
     "ConfiguredModule_test.cpp"
     "ArgV.cpp"
