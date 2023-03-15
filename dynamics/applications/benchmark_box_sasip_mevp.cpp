@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "ParametricTransport.hpp"
+#include "DGTransport.hpp"
 #include "Tools.hpp"
 #include "VPParameters.hpp"
 #include "cgParametricMomentum.hpp"
@@ -20,12 +20,14 @@
 
 #include <cassert>
 #include <chrono>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <vector>
 
 bool WRITE_VTK = true;
 
+Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
 /*!
  *
  * Sets the order of the velocity (CG) of advection (DGadvection) and
@@ -34,7 +36,6 @@ bool WRITE_VTK = true;
  */
 #define CG 2
 #define DGadvection 3
-#define DGstress 8
 
 namespace Nextsim {
 extern Timer GlobalTimer;
@@ -105,25 +106,73 @@ class InitialA : public Nextsim::Interpolations::Function {
 public:
     double operator()(double x, double y) const { return x / ReferenceScale::L; }
 };
+
+
 //////////////////////////////////////////////////
+void create_mesh(const std::string& meshname, const size_t Nx, const double distort)
+{
+    std::ofstream OUT(meshname.c_str());
+    OUT << "ParametricMesh 2.0" << std::endl
+        << Nx << "\t" << Nx << std::endl;
+    for (size_t iy = 0; iy <= Nx; ++iy)
+        for (size_t ix = 0; ix <= Nx; ++ix)
+            OUT << ReferenceScale::L * ix / Nx + ReferenceScale::L * distort * sin(M_PI * ix / Nx * 3.0) * sin(M_PI * iy / Nx) << "\t"
+                << ReferenceScale::L * iy / Nx + ReferenceScale::L * distort * sin(M_PI * iy / Nx * 2.0) * sin(M_PI * ix / Nx * 2.0) << std::endl;
+
+
+    OUT << "landmask 0" << std::endl;
+    
+    if (1) // std-setup, dirichlet everywhere
+    {
+        // dirichlet info
+      OUT << "dirichlet " << 2*Nx+2*Nx << std::endl;
+      for (size_t i = 0; i < Nx; ++i)
+	OUT << i << "\t" << 0 << std::endl; // lower
+      for (size_t i = 0; i < Nx; ++i)
+	OUT << Nx * (Nx - 1) + i << "\t" << 2 << std::endl; // upper
+      
+      for (size_t i = 0; i < Nx; ++i)
+	OUT << i * Nx << "\t" << 3 << std::endl; // left
+      for (size_t i = 0; i < Nx; ++i)
+	OUT << i * Nx + Nx - 1 << "\t" << 1 << std::endl; // right
+      
+        OUT << "periodic 0" << std::endl;
+    } else {
+        OUT << "dirichlet 0" << std::endl;
+        OUT << "periodic 2" << std::endl;
+
+        OUT << 2 * Nx << std::endl; // horizontal (x-)
+        for (size_t i = 0; i < Nx; ++i)
+            OUT << Nx * (Nx - 1) + i << "\t" << i << "\t0" << std::endl; // left
+        for (size_t i = 0; i < Nx; ++i)
+            OUT << Nx - 1 + i * Nx << "\t" << i * Nx << "\t1" << std::endl;
+    }
+    OUT.close();
+}
 
 int main()
 {
+  const int NX = 32;
     //! Define the spatial mesh
-    Nextsim::ParametricMesh smesh;
-    smesh.readmesh("../ParametricMesh/distortedbox.smesh");
+  create_mesh("benchmark_box.smesh",NX,0.0);
+
+  std::string resultsdir = "BenchmarkBox_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(NX);
+  std::filesystem::create_directory(resultsdir);
+
+  Nextsim::ParametricMesh smesh(CoordinateSystem);
+    smesh.readmesh("benchmark_box.smesh");
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh);
 
     //! define the time mesh
     constexpr double dt_adv = 120.0; //!< Time step of advection problem
     constexpr size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     //! MEVP parameters
-    constexpr double alpha = 300.0;
-    constexpr double beta = 300.0;
-    constexpr size_t NT_evp = 100;
+    constexpr double alpha = 600.0;
+    constexpr double beta = 600.0;
+    constexpr size_t NT_evp = 200;
     Nextsim::VPParameters VP;
 
     std::cout << "Time step size (advection) " << dt_adv << "\t" << NT << " time steps" << std::endl
@@ -153,15 +202,15 @@ int main()
 
     // i/o of initial condition
     Nextsim::GlobalTimer.start("time loop - i/o");
-    Nextsim::VTK::write_cg_velocity("ResultsBoxParametricMesh/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
-    Nextsim::VTK::write_dg("ResultsBoxParametricMesh/A", 0, A, smesh);
-    Nextsim::VTK::write_dg("ResultsBoxParametricMesh/H", 0, H, smesh);
-    Nextsim::VTK::write_dg("ResultsBoxParametricMesh/Delta", 0, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
-    Nextsim::VTK::write_dg("ResultsBoxParametricMesh/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+    Nextsim::VTK::write_cg_velocity(resultsdir+"/vel", 0, momentum.GetVx(), momentum.GetVy(), smesh);
+    Nextsim::VTK::write_dg(resultsdir+"/A", 0, A, smesh);
+    Nextsim::VTK::write_dg(resultsdir+"/H", 0, H, smesh);
+    Nextsim::VTK::write_dg(resultsdir+"/Delta", 0, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
+    Nextsim::VTK::write_dg(resultsdir+"/Shear", 0, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::ParametricTransport<DGadvection> dgtransport(smesh);
+    Nextsim::DGTransport<DGadvection> dgtransport(smesh);
     dgtransport.settimesteppingscheme("rk2");
 
     //! Initial Forcing
@@ -229,11 +278,11 @@ int main()
 
                 int printstep = timestep / NT_vtk + 1.e-4;
                 Nextsim::GlobalTimer.start("time loop - i/o");
-                Nextsim::VTK::write_cg_velocity("ResultsBoxParametricMesh/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
-                Nextsim::VTK::write_dg("ResultsBoxParametricMesh/A", printstep, A, smesh);
-                Nextsim::VTK::write_dg("ResultsBoxParametricMesh/H", printstep, H, smesh);
-                Nextsim::VTK::write_dg("ResultsBoxParametricMesh/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
-                Nextsim::VTK::write_dg("ResultsBoxParametricMesh/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
+                Nextsim::VTK::write_cg_velocity(resultsdir+"/vel", printstep, momentum.GetVx(), momentum.GetVy(), smesh);
+                Nextsim::VTK::write_dg(resultsdir+"/A", printstep, A, smesh);
+                Nextsim::VTK::write_dg(resultsdir+"/H", printstep, H, smesh);
+                Nextsim::VTK::write_dg(resultsdir+"/Delta", printstep, Nextsim::Tools::Delta(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22(), VP.DeltaMin), smesh);
+                Nextsim::VTK::write_dg(resultsdir+"/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::GlobalTimer.stop("time loop - i/o");
             }
     }
