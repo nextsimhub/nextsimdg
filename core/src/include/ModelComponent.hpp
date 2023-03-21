@@ -59,6 +59,8 @@ public:
         HTRUE_SNOW, // Snow thickness, ice average, m
         OCEAN_U, // x(east)-ward ocean current, m s⁻¹
         OCEAN_V, // y(north)-ward ocean current, m s⁻¹
+        ICE_U, // x(east)-ward ice velocity, m s⁻¹
+        ICE_V, // y(north)-ward ice velocity, m s⁻¹
         COUNT // Count of enum values
     };
     enum class SharedArray {
