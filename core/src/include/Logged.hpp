@@ -20,7 +20,7 @@ public:
     enum class level {
         ALL,
         TRACE,
-        DEBUG,
+        DEBUG_LVL, // To avoid clashes with the DEBUG macro constant when debugging
         INFO,
         NOTICE,
         WARNING,
@@ -53,11 +53,14 @@ public:
      */
     static void trace(const std::string& message) { log(message, level::TRACE); };
     /*!
-     * @brief Logs a message at level::DEBUG, intended for code debugging.
+     * @brief Logs a message at level::DEBUG_LVL, intended for code debugging.
+     *
+     * @details The enum constant is called DEBUG_LVL to avoid clashes when
+     * the macro constant DEBUG is defined as a result of compiling a Debug build.
      *
      * @param message The message to be logged.
      */
-    static void debug(const std::string& message) { log(message, level::DEBUG); };
+    static void debug(const std::string& message) { log(message, level::DEBUG_LVL); };
     /*!
      * @brief Logs a message at level::INFO, intended for informational
      * messages that would not normally be shown.

@@ -49,7 +49,6 @@ TEST_CASE("Julian-Gregorian shifts", "[Time]")
     // In 2525, if man is still alive, there will have been 7 further fewer
     // Gregorian leap days (1700, 1800, 1900, 2100, 2200, 2300, 2500).
     REQUIRE(julianGregorianShiftDays(2525) == -17);
-
 }
 
 TEST_CASE("mkgmtime", "[Time]")
@@ -68,7 +67,7 @@ TEST_CASE("mkgmtime", "[Time]")
 
     std::stringstream ss1("1971-01-01T00:00:00");
     std::tm tm;
-//    tmZero(tm);
+    //    tmZero(tm);
     ss1 >> std::get_time(&tm, iso);
     REQUIRE(mkgmtime(&tm) == 365 * days);
 
@@ -98,7 +97,7 @@ TEST_CASE("mkgmtime", "[Time]")
     after = mkgmtime(&tm);
 
     REQUIRE((after - before) == 1 * days);
-//    REQUIRE(std::mktime(&tm) > 0); // How does linux return -ve here?
+    //    REQUIRE(std::mktime(&tm) > 0); // How does linux return -ve here?
     REQUIRE(before == 4107456000);
     REQUIRE(after == 4107542400);
 
@@ -114,7 +113,6 @@ TEST_CASE("mkgmtime", "[Time]")
     std::stringstream("2100-01-01T00:00:00") >> std::get_time(&tm, iso);
     before = mkgmtime(&tm);
     REQUIRE(after - before == 365 * days);
-
 }
 
 TEST_CASE("timeFromISO", "[Time]")
@@ -140,7 +138,6 @@ TEST_CASE("timeFromISO", "[Time]")
     TimeOptions::useDOY() = true;
     REQUIRE_THROWS(timeFromISO("1971-01-02"));
     TimeOptions::useDOY() = previousDOY;
-
 }
 
 TEST_CASE("TimePoints", "[TimePoint]")
@@ -202,9 +199,31 @@ TEST_CASE("Durations", "[Duration]")
 
     Duration maybeADay = tt_day - tt;
     REQUIRE(maybeADay.seconds() == 1 * days);
+
+    Duration tenSeconds(10.);
+    REQUIRE(tenSeconds.seconds() == 10);
+
+    Duration hundredSeconds("100.");
+    REQUIRE(hundredSeconds.seconds() == 100);
+
+    Duration minusThousandSeconds("-1000.");
+    REQUIRE(minusThousandSeconds.seconds() == -1000);
+
+    Duration myriadSeconds(1e4);
+    REQUIRE(myriadSeconds.seconds() == 10000);
+
+    Duration strMyriadSeconds("1e4");
+    REQUIRE(strMyriadSeconds.seconds() == 10000);
+
+    Duration complexStrSec("-1440.42e-2");
+    REQUIRE(complexStrSec.seconds() == -14);
+
+    Duration aDay(daySeconds);
+    REQUIRE(aDay.seconds() == daySeconds);
 }
 
-TEST_CASE("gmtime and doy", "[TimePoint]") {
+TEST_CASE("gmtime and doy", "[TimePoint]")
+{
     TimePoint janfirst("2010-01-01T00:00:00Z");
     std::tm* timeStruct = janfirst.gmtime();
     REQUIRE(timeStruct->tm_yday == 0);

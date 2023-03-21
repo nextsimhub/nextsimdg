@@ -7,23 +7,18 @@
 
 #include "include/IceGrowth.hpp"
 
+#include "include/MinimumIce.hpp"
 #include "include/Module.hpp"
 #include "include/constants.hpp"
 
+#include "MinimumIce.cpp"
+
 namespace Nextsim {
-
-double IceGrowth::minc;
-double IceGrowth::minh;
-
-static const double mincDefault = 1e-12;
-static const double minhDefault = 0.01;
 
 template <>
 const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
     { IceGrowth::ICE_THERMODYNAMICS_KEY, "IceThermodynamicsModel" },
     { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
-    { IceGrowth::MINC_KEY, "nextsim_thermo.min_conc" },
-    { IceGrowth::MINH_KEY, "nextsim_thermo.min_thick" },
 
 };
 
@@ -95,16 +90,7 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
     return os ? state : ModelState();
 }
 
-IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
-{
-    map["IceGrowth"] = {
-        { keyMap.at(MINC_KEY), ConfigType::NUMERIC, { "0", "1" }, std::to_string(mincDefault), "",
-            "Minimum allowed ice concentration." },
-        { keyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(minhDefault), "m",
-            "Minimum allowed ice thickness." },
-    };
-    return map;
-}
+IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll) { return map; }
 IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
@@ -115,10 +101,6 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
 
 void IceGrowth::configure()
 {
-    // Configure constants
-    minc = Configured::getConfiguration(keyMap.at(MINC_KEY), mincDefault);
-    minh = Configured::getConfiguration(keyMap.at(MINH_KEY), minhDefault);
-
     // Configure the vertical and lateral growth modules
     iVertical = std::move(Module::getInstance<IIceThermodynamics>());
     iLateral = std::move(Module::getInstance<ILateralIceSpread>());
@@ -126,13 +108,7 @@ void IceGrowth::configure()
     tryConfigure(*iLateral);
 }
 
-ConfigMap IceGrowth::getConfiguration() const
-{
-    return {
-        { keyMap.at(MINC_KEY), minc },
-        { keyMap.at(MINH_KEY), minh },
-    };
-}
+ConfigMap IceGrowth::getConfiguration() const { return {}; }
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
@@ -207,7 +183,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
     }
     double deltaC = deltaCFreeze[i] + deltaCMelt[i];
     cice[i] += deltaC;
-    if (cice[i] >= minc) {
+    if (cice[i] >= MinimumIce::concentration()) {
         // The updated ice thickness must conserve volume
         updateThickness(hice[i], cice[i], deltaC, newice[i]);
         if (deltaC < 0) {
@@ -222,7 +198,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 
 void IceGrowth::applyLimits(size_t i, const TimestepTime& tstep)
 {
-    if (cice[i] < minc || hice[i] < minh) {
+    if (cice[i] < MinimumIce::concentration() || hice[i] < MinimumIce::thickness()) {
         qow[i] += cice[i] * Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
         hice[i] = 0;
         cice[i] = 0;

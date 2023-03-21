@@ -24,7 +24,7 @@ namespace mEVP {
 
     template <int CG, int DGstress, int DGadvection>
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-        const ParametricTransformation<CG, DGstress>& ptrans,
+        const ParametricMomentumMap<CG>& pmap,
         const ParametricMesh& smesh, DGVector<DGstress>& S11, DGVector<DGstress>& S12,
         DGVector<DGstress>& S22, const DGVector<DGstress>& E11, const DGVector<DGstress>& E12,
         const DGVector<DGstress>& E22, const DGVector<DGadvection>& H,
@@ -32,7 +32,7 @@ namespace mEVP {
         const double alpha, const double beta)
     {
 
-#define NGP (DGstress == 8 ? 3 : (DGstress == 3 ? 2 : -1))
+#define NGP ( ((DGstress == 8) || (DGstress == 6) ) ? 3 : (DGstress == 3 ? 2 : -1))
         //! Stress Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
@@ -89,16 +89,16 @@ namespace mEVP {
             // const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
             //     * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
-            S11.row(i) += ptrans.iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix().transpose());
+            S11.row(i) += pmap.iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix().transpose());
 
             //   S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
             // 2 eta = 2/4 * P / (2 Delta) = P / (4 Delta)
-            S12.row(i) += ptrans.iMJwPSI[i] * (1.0 / alpha * (P.array() / 4.0 / DELTA.array() * e12_gauss.array()).matrix().transpose());
+            S12.row(i) += pmap.iMJwPSI[i] * (1.0 / alpha * (P.array() / 4.0 / DELTA.array() * e12_gauss.array()).matrix().transpose());
 
             //   S22.row(i)
             //       += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
             //   S22(i, 0) -= 1.0 / alpha * 0.5 * P;
-            S22.row(i) += ptrans.iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e22_gauss.array() + 3.0 * e11_gauss.array()) - 0.5 * P.array()).matrix().transpose());
+            S22.row(i) += pmap.iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e22_gauss.array() + 3.0 * e11_gauss.array()) - 0.5 * P.array()).matrix().transpose());
         }
 
 #undef NGP
@@ -112,6 +112,9 @@ namespace mEVP {
         const DGVector<DGa>& A,
         const double alpha, const double beta)
     {
+      std::cerr << "This version of StressUpdateHigherOrder should not be used. It is based on recomputing all values required for the numerical quadrature on the fly. It might serve as basis for a GPU version, it is, however, not efficient on CPUs" << std::endl;
+      abort();
+      
 #define NGP 3
         //! Stress Update
 #pragma omp parallel for
