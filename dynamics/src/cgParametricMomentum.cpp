@@ -153,6 +153,62 @@ void CGParametricMomentum<CG, DGstress>::DirichletZero(CGVector<CG>& v)
     }
 }
 
+template <int CG, int DGstress>
+void CGParametricMomentum<CG, DGstress>::DirichletCompressionTop(CGVector<CG>& v, const double& value)
+{
+    size_t upperleftindex = (CG * smesh.nx + 1) * CG * smesh.ny;
+#pragma omp parallel for
+    for (size_t i = 0; i < CG * smesh.nx + 1; ++i) {
+        v(upperleftindex + i, 0) = value;
+    }
+}
+
+
+template <int CG, int DGstress>
+void CGParametricMomentum<CG, DGstress>::DirichletCompressionTop(DGVector<1>& vector,
+    const double& value) 
+{
+    size_t upperleftindex = smesh.nelements- smesh.nx;
+    for (size_t i = 0; i < smesh.nx; ++i) {
+        vector(upperleftindex + i, 0) = value;
+    }
+}
+template <int CG, int DGstress>
+void CGParametricMomentum<CG, DGstress>::DirichletCompressionTop(DGVector<3>& vector,
+    const double& value) 
+{
+    size_t upperleftindex = smesh.nelements - smesh.nx;
+    for (size_t i = 0; i < smesh.nx; ++i) {
+        vector(upperleftindex + i, 0) = value;
+        vector(upperleftindex + i, 1) = 0.0;
+        vector(upperleftindex + i, 2) = 0.0;
+    }
+}
+template <int CG, int DGstress>
+void CGParametricMomentum<CG, DGstress>::DirichletCompressionTop(DGVector<6>& vector,
+    const double& value) 
+{
+    size_t upperleftindex = smesh.nelements - smesh.nx;
+    for (size_t i = 0; i < smesh.nx; ++i) {
+        vector(upperleftindex + i, 0) = value;
+        vector(upperleftindex + i, 1) = 0.0;
+        vector(upperleftindex + i, 2) = 0.0;
+        vector(upperleftindex + i, 3) = 0.0;
+        vector(upperleftindex + i, 4) = 0.0;
+        vector(upperleftindex + i, 5) = 0.0;
+    }
+}
+
+
+template <int CG, int DGstress>
+void CGParametricMomentum<CG, DGstress>::DirichletCompressionBottom(CGVector<CG>& v, const double& value)
+{
+#pragma omp parallel for
+    for (size_t i = 0; i < CG * smesh.nx + 1; ++i) {
+        v(i, 0) = value;
+    }
+}
+
 // --------------------------------------------------
 
 template <int CG, int DGstress>
@@ -297,7 +353,7 @@ void CGParametricMomentum<CG, DGstress>::prepareIteration(const DGVector<DG>& H,
 }
 
 /* This is Hunke and Dukowicz's solution to (22), multiplied
- * with (\Delta t/m)^2 to ensure stability for c' = 0 
+ * with (\Delta t/m)^2 to ensure stability for c' = 0
  *
  * This scheme includes Coriolis terms in an implicit way
  */
@@ -436,7 +492,9 @@ void CGParametricMomentum<CG, DGstress>::BBMStep(const MEBParameters& params,
     Nextsim::GlobalTimer.stop("time loop - meb - update");
 
     Nextsim::GlobalTimer.start("time loop - meb - bound.");
-    DirichletZero();
+    //DirichletZero();
+    DirichletCompressionBottom(vy,0.0);
+    DirichletCompressionBottom(vx,0.0);
     Nextsim::GlobalTimer.stop("time loop - meb - bound.");
 
     avg_vx += vx/NT_meb;
@@ -448,7 +506,7 @@ void CGParametricMomentum<CG, DGstress>::BBMStep(const MEBParameters& params,
 template <int CG, int DGstress>
 template <int DG>
 void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
-    const size_t NT_meb, double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A,
+    const size_t NT_meb, double dt_adv, DGVector<DG>& H, DGVector<DG>& A,
     DGVector<DG>& D)
 {
 
@@ -528,7 +586,18 @@ void CGParametricMomentum<CG, DGstress>::MEBStep(const MEBParameters& params,
     Nextsim::GlobalTimer.stop("time loop - update");
 
     Nextsim::GlobalTimer.start("time loop - bound.");
-    DirichletZero();
+    //DirichletCompressionTop(vy,-1.);
+    DirichletCompressionBottom(vy,0.0);
+    DirichletCompressionBottom(vx,0.0);
+    DirichletCompressionTop(vx,0.0);
+    
+
+    //DirichletCompressionTop(cg_A,1.);
+    //DirichletCompressionTop(cg_H,1.);
+    DirichletCompressionTop(A,1.);
+    DirichletCompressionTop(H,1.);
+    DirichletCompressionTop(D,1.);
+    
     Nextsim::GlobalTimer.stop("time loop - bound.");
 
     avg_vx += vx/NT_meb;
@@ -614,43 +683,43 @@ template void CGParametricMomentum<2, 8>::mEVPStep(const VPParameters& params,
 // --------------------------------------------------
 template void CGParametricMomentum<1, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
+    DGVector<1>& H, DGVector<1>& A, DGVector<1>& D);
 template void CGParametricMomentum<1, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<3>& H, const DGVector<3>& A, DGVector<3>& D);
+    DGVector<3>& H, DGVector<3>& A, DGVector<3>& D);
 template void CGParametricMomentum<1, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<6>& H, const DGVector<6>& A, DGVector<6>& D);
+    DGVector<6>& H, DGVector<6>& A, DGVector<6>& D);
 
 template void CGParametricMomentum<1, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
+    DGVector<1>& H, DGVector<1>& A, DGVector<1>& D);
 template void CGParametricMomentum<1, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<3>& H, const DGVector<3>& A, DGVector<3>& D);
+    DGVector<3>& H, DGVector<3>& A, DGVector<3>& D);
 template void CGParametricMomentum<1, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<6>& H, const DGVector<6>& A, DGVector<6>& D);
+    DGVector<6>& H, DGVector<6>& A, DGVector<6>& D);
 
 template void CGParametricMomentum<2, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
+    DGVector<1>& H, DGVector<1>& A, DGVector<1>& D);
 template void CGParametricMomentum<2, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<3>& H, const DGVector<3>& A, DGVector<3>& D);
+    DGVector<3>& H, DGVector<3>& A, DGVector<3>& D);
 template void CGParametricMomentum<2, 3>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<6>& H, const DGVector<6>& A, DGVector<6>& D);
+    DGVector<6>& H, DGVector<6>& A, DGVector<6>& D);
 
 template void CGParametricMomentum<2, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<1>& H, const DGVector<1>& A, DGVector<1>& D);
+    DGVector<1>& H, DGVector<1>& A, DGVector<1>& D);
 template void CGParametricMomentum<2, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<3>& H, const DGVector<3>& A, DGVector<3>& D);
+    DGVector<3>& H, DGVector<3>& A, DGVector<3>& D);
 template void CGParametricMomentum<2, 8>::MEBStep(const MEBParameters& params,
     size_t NT_evp, double dt_adv,
-    const DGVector<6>& H, const DGVector<6>& A, DGVector<6>& D);
+    DGVector<6>& H, DGVector<6>& A, DGVector<6>& D);
 
 // --------------------------------------------------
 

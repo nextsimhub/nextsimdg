@@ -145,7 +145,7 @@ void run_benchmark(const std::string meshfile)
 
     //! define the time mesh
     // constexpr double dt_adv = 60.0; //!< Time step of advection problem
-    double dt_adv = ReferenceScale::L / smesh.nx / 1000.  5;  //!< Stable time step 
+    double dt_adv = ReferenceScale::L / smesh.nx / 1000. * 5;  //!< Stable time step
     size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t NT_meb = 100; //!< Momentum substeps

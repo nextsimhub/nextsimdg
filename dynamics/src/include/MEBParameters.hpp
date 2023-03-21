@@ -70,7 +70,7 @@ public:
         compaction_param = -20.; //!< Compation parameter
         nu0 = 1. / 3.; //!< \param Poisson's ratio
         // young = 1e9; //!< \param Young's modulus Compression
-        young = 5.96e8; //!< \param Young's modulus
+        young = 5.85e8; //!< \param Young's modulus
         P0 = 10.e3; //! < \param Constant to parametrize Pmax
 
         undamaged_time_relaxation_sigma = 1e7; //!< \param lambda

@@ -160,7 +160,7 @@ public:
     //! performs one complete MEB timestep with NT_meb subiterations
     template <int DG>
     void MEBStep(const MEBParameters& vpparameters, size_t NT_meb,
-        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
+        double dt_adv, DGVector<DG>& H, DGVector<DG>& A, DGVector<DG>& D);
 
     //! performs one complete BBMStep timestep with NT_meb subiterations
     template <int DG>
@@ -190,6 +190,15 @@ public:
         DirichletZero(vy);
     }
     void DirichletZero(CGVector<CG>& v);
+
+    //! Boundary conditions for the compression problem
+    void DirichletCompressionTop(CGVector<CG>& v, const double& value);
+    void DirichletCompressionBottom(CGVector<CG>& v, const double& value);
+
+    void DirichletCompressionTop(DGVector<1>& v, const double& value);
+    void DirichletCompressionTop(DGVector<3>& v, const double& value);
+    void DirichletCompressionTop(DGVector<6>& v, const double& value);
+    
 };
 
 template <int CG, int DG>

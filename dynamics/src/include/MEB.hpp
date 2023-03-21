@@ -49,8 +49,8 @@ namespace MEB {
     void StressUpdateHighOrder(const MEBParameters& params,
         const ParametricMesh& smesh, DGVector<DGs>& S11, DGVector<DGs>& S12,
         DGVector<DGs>& S22, const DGVector<DGs>& E11, const DGVector<DGs>& E12,
-        const DGVector<DGs>& E22, const DGVector<DGa>& H,
-        const DGVector<DGa>& A, DGVector<DGa>& D,
+        const DGVector<DGs>& E22, DGVector<DGa>& H,
+        DGVector<DGa>& A, DGVector<DGa>& D,
         const double dt_mom)
     {
 //#define NGP (DGs == 8 ? 3 : (DGs == 3 ? 2 : -1))
@@ -62,7 +62,11 @@ namespace MEB {
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
             const Eigen::Matrix<double, 1, NGP* NGP> h_gauss = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
-            const Eigen::Matrix<double, 1, NGP* NGP> a_gauss = (A.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
+            
+            //const Eigen::Matrix<double, 1, NGP* NGP> a_gauss = (A.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
+            //Compression: do not change A
+            const Eigen::Matrix<double, 1, NGP* NGP> a_gauss = (A.row(i) * PSI<DGa, NGP>).array().max(1.0).min(1.0).matrix();
+
             Eigen::Matrix<double, 1, NGP* NGP> d_gauss = (D.row(i) * PSI<DGa, NGP>).array().max(1e-12).min(1.0).matrix();
 
             const Eigen::Matrix<double, 1, NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
@@ -123,6 +127,8 @@ namespace MEB {
             s22_gauss.array() *= multiplicator.array();
 
 
+            /*
+
             sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
             const Eigen::Matrix<double, 1, NGP* NGP> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
 
@@ -130,6 +136,12 @@ namespace MEB {
 
             // Fixed Cohesion multipled by h   
             const Eigen::Matrix<double, 1, NGP* NGP> cohesion = 25000 * h_gauss.array() ;
+
+            // Compression
+            // const Eigen::Matrix<double, 1, NGP* NGP> cohesion = 10000 * h_gauss.array() ;
+
+
+
             // Cohesion Plante 2020
             // const Eigen::Matrix<double, 1, NGP* NGP> c = params.c0 * h_gauss.array() * expC;
             
@@ -137,7 +149,9 @@ namespace MEB {
             // const Eigen::Matrix<double, 1, NGP* NGP> c = params.C_lab * std::sqrt(0.1 / (RefScale::L / smesh.nx)) * dcrit.array();
             //const double scale_coef = std::sqrt(0.1 / smesh.h(i));
             //const double compr_strength = params.compr_strength * scale_coef;
-            const Eigen::Matrix<double, 1, NGP* NGP> compr_strength = 50000 * h_gauss.array() ; //params.compr_strength * scale_coef;
+            
+            const Eigen::Matrix<double, 1, NGP* NGP> compr_strength = 50000 * h_gauss.array(); 
+            //const Eigen::Matrix<double, 1, NGP* NGP> compr_strength = 25000 * h_gauss.array(); 
 
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
@@ -167,6 +181,7 @@ namespace MEB {
             s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td;//.array();
             s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td;//.array();
 
+            */
 
             // INTEGRATION OF STRESS AND DAMAGE
             const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J = ParametricTools::J<3>(smesh, i);
