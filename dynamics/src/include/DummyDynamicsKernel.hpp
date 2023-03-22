@@ -8,17 +8,18 @@
 #ifndef DUMMYDYNAMICSKERNEL_HPP
 #define DUMMYDYNAMICSKERNEL_HPP
 
-#include "include/cgVector.hpp"
-#include "include/dgVector.hpp"
+#include "cgVector.hpp"
+#include "dgVector.hpp"
 
-#include "cgModelArray.hpp"
-#include "dgModelArray.hpp"
+#include "CGModelArray.hpp"
+#include "DGModelArray.hpp"
 #include "include/gridNames.hpp"
 
 #include <string>
 #include <unordered_map>
 
 namespace Nextsim {
+    
 template <int DG, int CGdegree> class DummyDynamicsKernel {
 public:
     /*!

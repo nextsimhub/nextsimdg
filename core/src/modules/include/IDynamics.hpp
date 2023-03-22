@@ -20,6 +20,7 @@ public:
         , hice(getSharedArray())
         , cice(getSharedArray())
         , hsnow(getSharedArray())
+        //, damage(getSharedArray())
     {
     }
     virtual ~IDynamics() = default;
@@ -35,7 +36,7 @@ public:
     }
 
     virtual void update(const TimestepTime& tst) = 0;
-private:
+protected:
     // Shared ice velocity arrays
     HField uice;
     HField vice;
@@ -43,7 +44,7 @@ private:
     ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RW> hice;
     ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RW> cice;
     ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RW> hsnow;
-
+    //ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
 };
 }
 

@@ -10,7 +10,7 @@
 
 #include "IDynamics.hpp"
 
-#include "include/DummyDynamicsKernel.hpp"
+#include "../../../../dynamics/src/include/DummyDynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 
