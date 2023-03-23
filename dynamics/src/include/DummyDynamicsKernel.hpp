@@ -19,7 +19,7 @@
 #include <unordered_map>
 
 namespace Nextsim {
-    
+
 template <int DG, int CGdegree> class DummyDynamicsKernel {
 public:
     /*!
@@ -100,7 +100,8 @@ public:
         }
     }
 
-    void update(const TimestepTime& tst);
+    void update(const TimestepTime& tst)  {};
+
 private:
     DGVector<DG> hice;
     DGVector<DG> cice;
