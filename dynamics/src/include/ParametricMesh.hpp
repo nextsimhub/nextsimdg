@@ -105,20 +105,20 @@ public:
     landmask.clear();
   }
   
-    /*!
-     * Reads mesh from a .smesh - file
-     *
-     * File format:
-     *
-     * ParametricMesh 1.0 % Identifier & Version
-     *
-     * nx ny          % number of elements in x- and y- direction  << Version: 1.0
-     * x1       y1    % x- and y- coordinates of vertices. first vertex lower left
-     * x2       y2    % then to the right, then 2nd row, ... up to upper right
-     * ...
-     * xxnnodes ynnodes
-     */
-    void readmesh(std::string fname);
+  /*!
+    * Reads mesh from a .smesh - file
+    *
+    * File format:
+    *
+    * ParametricMesh 1.0 % Identifier & Version
+    *
+    * nx ny          % number of elements in x- and y- direction  << Version: 1.0
+    * x1       y1    % x- and y- coordinates of vertices. first vertex lower left
+    * x2       y2    % then to the right, then 2nd row, ... up to upper right
+    * ...
+    * xxnnodes ynnodes
+    */
+  void readmesh(std::string fname);
 
 
   /*!

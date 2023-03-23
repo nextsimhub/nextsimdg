@@ -184,7 +184,7 @@ void run_benchmark(const size_t NX, double distort)
     //! MEVP parameters
     constexpr double alpha = 1500.0;
     constexpr double beta = 1500.0;
-    constexpr size_t NT_evp = 100; //100;
+    constexpr size_t NT_evp = 100; 
 
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
@@ -263,8 +263,8 @@ void run_benchmark(const size_t NX, double distort)
         dgtransport.prepareAdvection(momentum.GetVx(), momentum.GetVy());
 
         // performs the transport steps
-	      dgtransport.step(dt_adv, A);
-	      dgtransport.step(dt_adv, H);
+	    dgtransport.step(dt_adv, A);
+	    dgtransport.step(dt_adv, H);
 
         //! Gauss-point limiting
         Nextsim::LimitMax(A, 1.0);
