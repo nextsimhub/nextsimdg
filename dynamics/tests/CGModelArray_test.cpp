@@ -15,6 +15,8 @@
 
 #include "include/ParametricMesh.hpp"
 
+Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
+
 namespace Nextsim {
 
 TEST_CASE("cgDims test")
@@ -49,19 +51,19 @@ TEST_CASE("CGVector from ModelArray")
     CHECK(maSource(54, 42) == (54 * mx + 42));
 
     // Create the ParametricMesh object
-    ParametricMesh smash;
-    smash.nx = nx;
-    smash.ny = ny;
-    smash.nnodes = nx * ny;
-    smash.nelements = nx * ny;
-    smash.vertices.resize(smash.nelements, Eigen::NoChange);
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nnodes = nx * ny;
+    smesh.nelements = nx * ny;
+    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; ++j) {
-            smash.vertices(i * ny + j, 0) = i;
-            smash.vertices(i * ny + j, 1) = j;
+            smesh.vertices(i * ny + j, 0) = i;
+            smesh.vertices(i * ny + j, 1) = j;
         }
     }
-    CGVector<CG> cgDest(smash);
+    CGVector<CG> cgDest(smesh);
     CGModelArray::ma2cg<CG>(maSource, cgDest);
 
     // Did it work?
@@ -77,19 +79,19 @@ TEST_CASE("ModelArray from CGVector")
     const size_t mx = 100;
 
     // Create the ParametricMesh object
-    ParametricMesh smash;
-    smash.nx = nx;
-    smash.ny = ny;
-    smash.nnodes = nx * ny;
-    smash.nelements = nx * ny;
-    smash.vertices.resize(smash.nelements, Eigen::NoChange);
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nnodes = nx * ny;
+    smesh.nelements = nx * ny;
+    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; ++j) {
-            smash.vertices(i * ny + j, 0) = i;
-            smash.vertices(i * ny + j, 1) = j;
+            smesh.vertices(i * ny + j, 0) = i;
+            smesh.vertices(i * ny + j, 1) = j;
         }
     }
-    CGVector<CG> cgSource(smash);
+    CGVector<CG> cgSource(smesh);
     ModelArray::setDimensions(ModelArray::Type::CG, CGModelArray::cgDimensions<CG>({ nx, ny }));
     for (size_t i = 0; i < CG * nx + 1; ++i) {
         for (size_t j = 0; j < CG * ny + 1; j++) {
@@ -116,19 +118,19 @@ TEST_CASE("Test with CG = 1") // (It would be a silly case to get wrong!)
     const size_t mx = 100;
 
     // Create the ParametricMesh object
-    ParametricMesh smash;
-    smash.nx = nx;
-    smash.ny = ny;
-    smash.nnodes = nx * ny;
-    smash.nelements = nx * ny;
-    smash.vertices.resize(smash.nelements, Eigen::NoChange);
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nnodes = nx * ny;
+    smesh.nelements = nx * ny;
+    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; ++j) {
-            smash.vertices(i * ny + j, 0) = i;
-            smash.vertices(i * ny + j, 1) = j;
+            smesh.vertices(i * ny + j, 0) = i;
+            smesh.vertices(i * ny + j, 1) = j;
         }
     }
-    CGVector<CG> cgSource(smash);
+    CGVector<CG> cgSource(smesh);
     // Let the H arrays do the index calculation
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     ModelArray::setDimensions(ModelArray::Type::CG,
