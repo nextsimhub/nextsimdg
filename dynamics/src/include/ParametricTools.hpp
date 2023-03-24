@@ -53,6 +53,10 @@ public:
         Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, DG, CGDOFS(CG)>>>
         iMgradX, iMgradY;
 
+    std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>,
+        Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>>>
+        divS1, divS2;
+
     /*!
      * These matrices are M^-1 J w PSI_i(q)
      * Multiplied
