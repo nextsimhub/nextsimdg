@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-// (Ab)use the exception mechanism to inform Catch that things are working correctly internally.
+// (Ab)use the exception mechanism to inform doctest that things are working correctly internally.
 class HappyExcept : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };

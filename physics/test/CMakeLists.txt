@@ -8,11 +8,7 @@ set(ModulesDir "${SourceDir}/modules")
 # add_executable(testexe
 #   test/TestSrc.cpp
 #   otherSource.cpp)
-#target_link_libraries(testexe PRIVATE Catch2::Catch2)
-
-# include(CTest)
-# include(Catch)
-# catch_discover_tests(testexe)
+#target_link_libraries(testexe PRIVATE doctest::doctest)
 
 add_executable(testIceGrowth
     "IceGrowth_test.cpp"

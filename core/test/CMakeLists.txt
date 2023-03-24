@@ -9,11 +9,7 @@ set(ModelArrayDetails "testmodelarraydetails")
 # add_executable(testexe
 #   test/TestSrc.cpp
 #   otherSource.cpp)
-#target_link_libraries(testexe PRIVATE Catch2::Catch2)
-
-# include(CTest)
-# include(Catch)
-# catch_discover_tests(testexe)
+#target_link_libraries(testexe PRIVATE doctest::doctest)
 
 include_directories(${INCLUDE_DIR})
 

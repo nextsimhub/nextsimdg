@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/DevGrid.hpp"
 #include "include/DevGridIO.hpp"
@@ -19,7 +19,7 @@ const std::string stateFilename = "modelState.nc";
 
 namespace Nextsim {
 
-TEST_CASE("Write out a ModelState-based DevGrid restart file", "[DevGrid]")
+TEST_CASE("Write out a ModelState-based DevGrid restart file")
 {
     DevGrid grid;
     grid.setIO(new DevGridIO(grid));
@@ -63,7 +63,7 @@ TEST_CASE("Write out a ModelState-based DevGrid restart file", "[DevGrid]")
     WARN("File written to " << stateFilename);
 }
 
-TEST_CASE("Read the ModelState example file, if it exists", "[DevGrid]")
+TEST_CASE("Read the ModelState example file, if it exists")
 {
     ModelArray::setDimensions(ModelArray::Type::H, {1, 1});
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
