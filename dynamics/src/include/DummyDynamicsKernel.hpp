@@ -20,6 +20,8 @@
 #include "CGModelArray.hpp"
 #include "DGModelArray.hpp"
 #include "include/gridNames.hpp"
+#include "include/Time.hpp"
+
 
 #include <string>
 #include <unordered_map>

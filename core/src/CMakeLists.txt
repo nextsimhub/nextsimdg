@@ -48,10 +48,12 @@ set(DiagnosticOutputModuleSources
     "ConfigOutput.cpp"
     )
 
+
 set(DynamicsModuleSources
     "DynamicsModule.cpp"
     "DummyDynamics.cpp"
     )
+
 
 set(ModuleSources
     "${StructureModuleSources}"
