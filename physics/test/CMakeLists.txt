@@ -145,3 +145,33 @@ target_include_directories(testSpecHum PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testSpecHum PRIVATE doctest::doctest)
+
+add_executable(testConstantOcn
+    "ConstantOceanBoundary_test.cpp"
+    "${ModulesDir}/ConstantOceanBoundary.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${ModulesDir}/FiniteElementFluxes.cpp"
+    "${ModulesDir}/FiniteElementSpecHum.cpp"
+    "${ModulesDir}/FluxCalculationModule.cpp"
+    "${ModulesDir}/IceOceanHeatFluxModule.cpp"
+    "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${ModulesDir}/IIceAlbedoModule.cpp"
+    "${ModulesDir}/SMUIceAlbedo.cpp"
+    "${ModulesDir}/CCSMIceAlbedo.cpp"
+    "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testConstantOcn PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
