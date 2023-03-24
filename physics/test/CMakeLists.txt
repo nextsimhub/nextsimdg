@@ -174,4 +174,4 @@ target_include_directories(testConstantOcn PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)

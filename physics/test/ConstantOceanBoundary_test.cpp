@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/ConstantOceanBoundary.hpp"
 
@@ -16,7 +16,7 @@
 
 namespace Nextsim {
 
-TEST_CASE("ConstantOcean Qio calculation", "[ConstantOceanBoundary]")
+TEST_CASE("ConstantOcean Qio calculation")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
