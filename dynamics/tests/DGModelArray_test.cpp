@@ -8,8 +8,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/DGModelArray.hpp"
 
@@ -17,7 +17,7 @@
 
 namespace Nextsim {
 
-TEST_CASE("DGVector from ModelArray", "[DGModelArray]")
+TEST_CASE("DGVector from ModelArray")
 {
     static const int DG = 3;
     const size_t nx = 32;
@@ -62,7 +62,7 @@ TEST_CASE("DGVector from ModelArray", "[DGModelArray]")
     REQUIRE(dest(targetPoint, 2) == source.components({14, 12})[2]);
 }
 
-TEST_CASE("ModelArray from DGVector", "[DGModelArray]")
+TEST_CASE("ModelArray from DGVector")
 {
     static const int DG = 6;
     const size_t nx = 31;
@@ -108,7 +108,7 @@ TEST_CASE("ModelArray from DGVector", "[DGModelArray]")
     REQUIRE(dest.components({14, 12})[4] == source(targetPoint, 4));
 }
 
-TEST_CASE("Test with DG = 1", "[DGModelArray]") // (It would be a silly case to get wrong!)
+TEST_CASE("Test with DG = 1") // (It would be a silly case to get wrong!)
 {
     static const int DG = 1;
     const size_t nx = 23;
@@ -169,7 +169,7 @@ TEST_CASE("Test with DG = 1", "[DGModelArray]") // (It would be a silly case to 
 }
 
 // Tests to and from HFields.
-TEST_CASE("Test the HField/DG0 transfer", "[DGModelArray]") // (It would be a silly case to get wrong!)
+TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wrong!)
 {
     static const int DG = 3;
     const size_t nx = 19;
