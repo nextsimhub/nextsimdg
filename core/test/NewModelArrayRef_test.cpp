@@ -109,7 +109,7 @@ private:
     IceThermo thermo;
 };
 
-
+TEST_SUITE_BEGIN("ModelArrayRef");
 TEST_CASE("Accessing the data")
 {
     AtmIn atmIn;
@@ -195,4 +195,6 @@ TEST_CASE("Accessing the data two ways")
     couplIn.update();
     REQUIRE(swin[0] == targetFlux);
 }
+TEST_SUITE_END();
+
 };

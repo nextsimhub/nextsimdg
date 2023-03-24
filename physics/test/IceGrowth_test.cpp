@@ -26,6 +26,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("IceGrowth");
 TEST_CASE("New ice formation")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
@@ -362,4 +363,6 @@ TEST_CASE("Freezing conditions")
 
     REQUIRE(newice[0] == doctest::Approx(6.79906e-5).epsilon(prec));
 }
+TEST_SUITE_END();
+
 }

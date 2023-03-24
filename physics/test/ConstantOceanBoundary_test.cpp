@@ -16,6 +16,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("ConstantOceanBoundary");
 TEST_CASE("ConstantOcean Qio calculation")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
@@ -29,4 +30,5 @@ TEST_CASE("ConstantOcean Qio calculation")
 
     REQUIRE(qio[0] != 0.);
 }
+TEST_SUITE_END();
 }

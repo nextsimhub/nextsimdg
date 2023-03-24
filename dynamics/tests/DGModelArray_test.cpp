@@ -19,6 +19,7 @@ Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("DGModelArray");
 TEST_CASE("DGVector from ModelArray")
 {
     static const int DG = 3;
@@ -236,4 +237,6 @@ TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wr
     REQUIRE(source(targetPoint, 0) != retained);
 
 }
+TEST_SUITE_END();
+
 }

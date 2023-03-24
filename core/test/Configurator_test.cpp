@@ -116,6 +116,7 @@ void Config3::configure()
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("Configurator");
 TEST_CASE("Parse one config stream using the raw configurator")
 {
     // Since tests are not different execution environments, clear the streams from other tests.
@@ -228,5 +229,6 @@ TEST_CASE("Parse config streams for two overlapping class, try")
     REQUIRE(confih.getValue() == target);
     REQUIRE(confih.getWeight() == targetWeight);
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */

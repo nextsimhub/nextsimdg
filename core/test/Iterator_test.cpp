@@ -46,7 +46,7 @@ size_t zeroTime<size_t>()
     return 0;
 }
 
-
+TEST_SUITE_BEGIN("Iterator");
 TEST_CASE("Count iterator testing")
 {
     Counterant cant = Counterant();
@@ -70,5 +70,6 @@ TEST_CASE("Count iterator testing")
     REQUIRE(cant.startCount == 1);
     REQUIRE(cant.stopCount == 1);
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */

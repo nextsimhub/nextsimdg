@@ -24,6 +24,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("ThermoIce0Temperature");
 TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1 });
@@ -231,4 +232,6 @@ TEST_CASE("Freezing conditions")
     REQUIRE(tice[0] == doctest::Approx(-8.90443).epsilon(prec));
     REQUIRE(qic[0] == doctest::Approx(44.4839).epsilon(prec));
 }
+TEST_SUITE_END();
+
 }

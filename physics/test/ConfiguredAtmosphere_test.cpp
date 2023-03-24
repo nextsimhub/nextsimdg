@@ -19,6 +19,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("ConfiguredAtmosphere");
 TEST_CASE("ConfiguredAtmosphere melting test")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
@@ -137,5 +138,5 @@ TEST_CASE("ConfiguredAtmosphere melting test")
     REQUIRE(dqia_dt[0] == doctest::Approx(19.7016).epsilon(prec));
     REQUIRE(subl[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
 }
-
+TEST_SUITE_END();
 }

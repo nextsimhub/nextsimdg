@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("FiniteElementSpecHum");
 TEST_CASE("Specific humidity test")
 {
     double tair = -3;
@@ -33,4 +34,6 @@ TEST_CASE("Specific humidity test")
     REQUIRE(0.00323958 == doctest::Approx(ice).epsilon(prec));
 
 }
+TEST_SUITE_END();
+
 } /* namespace Nextsim */

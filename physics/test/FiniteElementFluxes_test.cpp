@@ -24,6 +24,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("FiniteElementFluxes");
 TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
@@ -325,4 +326,6 @@ TEST_CASE("Freezing conditions")
     REQUIRE(dqia_dt[0] == doctest::Approx(16.7615).epsilon(prec));
     REQUIRE(subl[0] == doctest::Approx(2.15132e-6).epsilon(prec));
 }
+TEST_SUITE_END();
+
 }

@@ -44,6 +44,8 @@ template <> void setImplementation<ITest>(const std::string& implName)
 }
 
 namespace Nextsim {
+
+TEST_SUITE_BEGIN("ConfiguredModule");
 TEST_CASE("Configure a module")
 {
     Configurator::clear();
@@ -122,5 +124,6 @@ TEST_CASE("Configure a module with an incorrect name")
     REQUIRE_THROWS(ConfiguredModule::parseConfigurator());
 
 }
+TEST_SUITE_END();
 
 }

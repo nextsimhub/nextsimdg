@@ -22,6 +22,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("BasicIceOceanHeatFlux");
 TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
@@ -174,4 +175,6 @@ TEST_CASE("Freezing conditions")
     double prec = 1e-5;
     REQUIRE(qio[0] == doctest::Approx(73.9465).epsilon(prec));
 }
+TEST_SUITE_END();
+
 } // namespace Nextsim

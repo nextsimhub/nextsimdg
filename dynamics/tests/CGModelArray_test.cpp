@@ -19,6 +19,7 @@ Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("CGModelArray");
 TEST_CASE("cgDims test")
 {
     static const int CG = 2;
@@ -165,4 +166,6 @@ TEST_CASE("Test with CG = 1") // (It would be a silly case to get wrong!)
     // And identical again after
     REQUIRE(cgSource(targetPoint) == maDest(21, 13));
 }
+TEST_SUITE_END();
+
 }

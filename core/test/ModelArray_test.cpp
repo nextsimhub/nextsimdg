@@ -12,6 +12,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("ModelArray");
 TEST_CASE("Two dimensional data access test")
 {
     ModelArray::MultiDim dims2 = {15, 25};
@@ -254,4 +255,6 @@ TEST_CASE("Location from index")
     REQUIRE(loc[1] == y);
     REQUIRE(loc[2] == z);
 }
+TEST_SUITE_END();
+
 } /* namespace Nextsim */

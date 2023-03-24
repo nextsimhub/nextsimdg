@@ -21,6 +21,7 @@ namespace Nextsim {
 
 const std::string stateFilename = "modelState.test.nc";
 
+TEST_SUITE_BEGIN("DevGrid");
 TEST_CASE("Write and read a ModelState-based DevGrid restart file")
 {
     DevGrid grid;
@@ -93,5 +94,6 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file")
 
     std::remove(stateFilename.c_str());
 }
+TEST_SUITE_END();
 
 }

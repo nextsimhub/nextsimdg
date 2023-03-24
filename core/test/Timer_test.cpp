@@ -15,6 +15,7 @@
 #include <sstream>
 #include <thread>
 
+TEST_SUITE_BEGIN("Timer");
 TEST_CASE("Test a timer")
 {
     Nextsim::Timer::main.reset();
@@ -84,3 +85,5 @@ TEST_CASE("Test the scope dependent timer")
 
     std::cout << Nextsim::Timer::main << std::endl;
 }
+TEST_SUITE_END();
+

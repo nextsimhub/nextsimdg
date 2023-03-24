@@ -108,6 +108,7 @@ private:
     ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore> hice_ref;
 };
 
+TEST_SUITE_BEGIN("ModelComponent");
 TEST_CASE("Test array registration")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
@@ -190,5 +191,6 @@ TEST_CASE("Shared and semi-protected arrays")
 
     REQUIRE(semi.data() == share.qicData);
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */

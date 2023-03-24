@@ -20,6 +20,7 @@
 const std::string filename = "RectGrid_test.nc";
 
 namespace Nextsim {
+TEST_SUITE_BEGIN("RectGrid");
 TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 {
     RectangularGrid grid;
@@ -92,6 +93,6 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
     std::remove(filename.c_str());
 }
-
+TEST_SUITE_END();
 
 } /* namespace Nextsim */

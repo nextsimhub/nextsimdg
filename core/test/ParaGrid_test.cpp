@@ -37,6 +37,7 @@ namespace Nextsim {
 
 size_t c = 0;
 
+TEST_SUITE_BEGIN("ParaGrid");
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 {
     Module::setImplementation<IStructure>("ParametricGrid");
@@ -320,5 +321,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     std::filesystem::remove(diagFile);
 
 }
+TEST_SUITE_END();
 
 }

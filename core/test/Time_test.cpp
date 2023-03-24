@@ -14,6 +14,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("Time");
 TEST_CASE("TimePoint parsing and formating")
 {
     // Time with explicit timezone marker so the initial and final strings match.
@@ -234,4 +235,6 @@ TEST_CASE("gmtime and doy")
     TimePoint bissextile("2020-03-01T00:00:00Z");
     REQUIRE(bissextile.gmtime()->tm_yday == 60);
 }
+TEST_SUITE_END();
+
 }

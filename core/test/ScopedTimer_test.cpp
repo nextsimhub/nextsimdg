@@ -24,6 +24,7 @@ void timeAndSleep()
     std::this_thread::sleep_for(std::chrono::milliseconds(45));
 }
 
+TEST_SUITE_BEGIN("ScopedTimer");
 TEST_CASE("Test the scope dependent timer")
 {
     ScopedTimer::setTimerAddress(&Timer::main);
@@ -54,5 +55,6 @@ TEST_CASE("Test the scope dependent timer")
 
     std::cout << ScopedTimer::timer() << std::endl;
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */

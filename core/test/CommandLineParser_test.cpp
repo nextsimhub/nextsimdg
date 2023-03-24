@@ -16,6 +16,7 @@
 
 namespace Nextsim {
 
+TEST_SUITE_BEGIN("CommandLineParser");
 TEST_CASE("Parse config file names")
 {
     // Parse one file
@@ -38,5 +39,6 @@ TEST_CASE("Parse config file names")
     REQUIRE(cfgs.size() == 4);
     REQUIRE(cfgs[cfgs.size() - 1] == finalFileName);
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */
