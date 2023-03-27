@@ -52,6 +52,7 @@ set(DiagnosticOutputModuleSources
 set(DynamicsModuleSources
     "DynamicsModule.cpp"
     "DummyDynamics.cpp"
+    "Dynamics.cpp"
     )
 
 

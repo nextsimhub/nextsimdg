@@ -8,16 +8,22 @@
 #include "include/DynamicsModule.hpp"
 
 #include "include/DummyDynamics.hpp"
+#include "include/Dynamics.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string DUMMYDYNAMICS = "Nextsim::DummyDynamics";
+const std::string DYNAMICS = "Nextsim::Dynamics";
 
 template <>
 Module<Nextsim::IDynamics>::map Module<Nextsim::IDynamics>::functionMap = {
     { DUMMYDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics> },
+    { DYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::Dynamics> },
 };
+
+
+
 
 template <>
 Module<Nextsim::IDynamics>::fn Module<Nextsim::IDynamics>::spf = functionMap.at(DUMMYDYNAMICS);
