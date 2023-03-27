@@ -72,8 +72,8 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 void PrognosticData::update(const TimestepTime& tst)
 {
 
-    pAtmBdy->update(tst);
     pOcnBdy->updateBefore(tst);
+    pAtmBdy->update(tst);
 
     pDynamics->update(tst);
     iceGrowth.update(tst);
@@ -103,6 +103,8 @@ ModelState PrognosticData::getState() const
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
+                 { "sst", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SST))) },
+                 { "sss", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SSS))) },
              },
         {} };
 }

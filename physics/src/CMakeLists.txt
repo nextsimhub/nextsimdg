@@ -35,6 +35,7 @@ set(AtmosphereBoundaryModuleSources
     "ConstantAtmosphereBoundary.cpp"
     "ConfiguredAtmosphere.cpp"
     "FluxConfiguredAtmosphere.cpp"
+    "ERA5Atmosphere.cpp"
     )
 
 set(OceanBoundaryModuleSources
@@ -42,6 +43,7 @@ set(OceanBoundaryModuleSources
     "ConstantOceanBoundary.cpp"
     "ConfiguredOcean.cpp"
     "FluxConfiguredOcean.cpp"
+    "TOPAZOcean.cpp"
     )
 
 set(ModuleSources
@@ -62,6 +64,8 @@ list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
 set(Sources
     "IceGrowth.cpp"
+    "IceMinima.cpp"
+    "SlabOcean.cpp"
     )
 
 list(TRANSFORM Sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")

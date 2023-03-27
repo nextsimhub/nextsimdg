@@ -305,15 +305,15 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
     // TODO test metadata
 
     // test data
-    REQUIRE(dataGrp.getVarCount() == 4);
+    REQUIRE(dataGrp.getVarCount() == 5);
     netCDF::NcVar hiceVar = dataGrp.getVar(hiceName);
     netCDF::NcVar ciceVar = dataGrp.getVar(ciceName);
     netCDF::NcVar coordVar = dataGrp.getVar(coordsName);
     netCDF::NcVar maskVar = dataGrp.getVar(maskName);
+    netCDF::NcVar timeVar = dataGrp.getVar(timeName);
 
     // hice
     REQUIRE(hiceVar.getDimCount() == 4);
-
 
     ncFile.close();
 

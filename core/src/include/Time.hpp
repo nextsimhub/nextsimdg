@@ -39,7 +39,8 @@ public:
         : m_d()
     {
     }
-    Duration(const std::string& str);
+    Duration(const std::string& str) { this->parse(str); }
+
     Duration(double seconds);
 
     TimePoint operator+(const TimePoint& t) const;
@@ -98,7 +99,6 @@ private:
     {
     }
     Basis m_d;
-    void setDurationSeconds(double);
 };
 
 /*!

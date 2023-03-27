@@ -49,7 +49,9 @@ public:
         MLD, // mixed layer depth, m
         SNOW, // snow fall, kg m⁻² s⁻¹
         SSS, // sea surface salinity, PSU
-        SST, // sea surface temperature ˚C
+        SST, // sea surface temperature, ˚C
+        EXT_SSS, // sea surface salinity from coupling or forcing, PSU
+        EXT_SST, // sea surface temperature from coupling or forcing, ˚C
         EVAP_MINUS_PRECIP, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
         // Derived fields, calculated once per timestep
         ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
@@ -61,11 +63,22 @@ public:
         OCEAN_V, // y(north)-ward ocean current, m s⁻¹
         ICE_U, // x(east)-ward ice velocity, m s⁻¹
         ICE_V, // y(north)-ward ice velocity, m s⁻¹
+        // Slab ocean fields
+        SLAB_SST, // Slab ocean sea surface temperature, ˚C
+        SLAB_SSS, // Slab ocean sea surface salinity, ˚C
+        SLAB_QDW, // Slab ocean temperature nudging heat flux, W m⁻²
+        SLAB_FDW, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
         COUNT // Count of enum values
     };
+
+#ifdef DEBUG_MODELARRAYREF
+    static const size_t SharedArrayOffset = static_cast<size_t>(ProtectedArray::COUNT);
+#else
+    static const size_t SharedArrayOffset = 0;
+#endif
     enum class SharedArray {
         // Values of the prognostic fields updated during the timestep
-        H_ICE, // Updated ice thickness, ice average, m
+        H_ICE = SharedArrayOffset, // Updated ice thickness, ice average, m
         C_ICE, // Updated ice concentration
         H_SNOW, // Updated snow depth, ice average, m
         T_ICE, // Updated ice temperatures, ˚C
