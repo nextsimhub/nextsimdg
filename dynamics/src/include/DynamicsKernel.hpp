@@ -119,7 +119,7 @@ public:
         //! Define the spatial mesh
         //tmp_create_mesh("tmp-benchmark.smesh", NX, 0.0);
         Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
-        smesh.readmesh("tmp-benchmark.smesh"); // file temporary committed
+        smesh.readmesh("init_topaz128x128.smesh"); // file temporary committed
 
 
         //! Initialize transport
