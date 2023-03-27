@@ -1,13 +1,18 @@
 /*!
- * @file DummyDynamicsKernel.hpp
+ * @file DynamicsKernel.hpp
  *
  * @date 17 Feb 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
-#ifndef DUMMYDYNAMICSKERNEL_HPP
-#define DUMMYDYNAMICSKERNEL_HPP
+#ifndef DYNAMICSKERNEL_HPP
+#define DYNAMICSKERNEL_HPP
+
+#include "Interpolations.hpp"
+#include "ParametricMesh.hpp"
+#include "ParametricTools.hpp"
+#include "DGTransport.hpp"
 
 #include "cgVector.hpp"
 #include "dgVector.hpp"
@@ -21,9 +26,12 @@
 #include <string>
 #include <unordered_map>
 
+//Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
+
+
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection> class DummyDynamicsKernel {
+template <int CGdegree, int DGadvection> class DynamicsKernel {
 public:
     /*!
      * @brief Sets the data from a provided ModelArray.
@@ -104,6 +112,26 @@ public:
     }
 
     void update(const TimestepTime& tst) {
+        
+        const size_t NX = 128;
+        const double dt_adv = 120.; //!< Time step of advection problem
+        
+        //! Define the spatial mesh
+        //tmp_create_mesh("tmp-benchmark.smesh", NX, 0.0);
+        Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
+        smesh.readmesh("init_topaz128x128.smesh"); // file temporary committed
+
+
+        //! Initialize transport
+        Nextsim::DGTransport<DGadvection> dgtransport(smesh);
+        dgtransport.settimesteppingscheme("rk2");
+
+        //! interpolates CG velocity to DG and reinits normal velocity
+        dgtransport.prepareAdvection(u, v);
+
+        //! Perform transport step
+        dgtransport.step(dt_adv, cice);
+	    dgtransport.step(dt_adv, hice);
 
 
     };
@@ -122,4 +150,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* DUMMYDYNAMICSKERNEL_HPP */
+#endif /* DYNAMICSKERNEL_HPP */
