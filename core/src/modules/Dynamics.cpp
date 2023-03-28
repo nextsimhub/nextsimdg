@@ -26,11 +26,15 @@ void Dynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
+    kernel.initialisation();
+
     // Set the data in the kernel arrays.
     for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
     }
 }
+
+
 
 void Dynamics::update(const TimestepTime& tst)
 {

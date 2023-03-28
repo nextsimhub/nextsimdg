@@ -33,6 +33,32 @@ namespace Nextsim {
 
 template <int CGdegree, int DGadvection> class DynamicsKernel {
 public:
+    
+    void initialisation() {
+
+        //! Define the spatial mesh
+        Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
+        smesh.readmesh("init_topaz128x128.smesh"); // file temporary committed
+
+        //! Initialize transport
+        dgtransport = new Nextsim::DGTransport<DGadvection>(smesh);
+        dgtransport->settimesteppingscheme("rk2");
+
+        //resize CG and DG vectors
+        hice.resize_by_mesh(smesh);
+        cice.resize_by_mesh(smesh);
+
+        u.resize_by_mesh(smesh);
+        v.resize_by_mesh(smesh);
+
+    }
+    
+    
+    
+    
+    
+    
+    
     /*!
      * @brief Sets the data from a provided ModelArray.
      *
@@ -51,6 +77,7 @@ public:
      */
     void setData(const std::string& name, const ModelArray& data)
     {
+
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
         if (name == hiceName) {
             DGModelArray::ma2dg(data, hice);
@@ -64,7 +91,11 @@ public:
             // All other fields get shoved in a (labelled) bucket
             DGModelArray::ma2dg(data, advectedFields[name]);
         }
+
+
     }
+
+
 
     /*!
      * @brief Returns an HField ModelArray containing the DG0 finite volume
@@ -113,25 +144,15 @@ public:
 
     void update(const TimestepTime& tst) {
         
-        const size_t NX = 128;
         const double dt_adv = 120.; //!< Time step of advection problem
         
-        //! Define the spatial mesh
-        //tmp_create_mesh("tmp-benchmark.smesh", NX, 0.0);
-        Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
-        smesh.readmesh("init_topaz128x128.smesh"); // file temporary committed
-
-
-        //! Initialize transport
-        Nextsim::DGTransport<DGadvection> dgtransport(smesh);
-        dgtransport.settimesteppingscheme("rk2");
-
+        
         //! interpolates CG velocity to DG and reinits normal velocity
-        dgtransport.prepareAdvection(u, v);
+        dgtransport->prepareAdvection(u, v);
 
         //! Perform transport step
-        dgtransport.step(dt_adv, cice);
-	    dgtransport.step(dt_adv, hice);
+        dgtransport->step(dt_adv, cice);
+	    dgtransport->step(dt_adv, hice);
 
 
     };
@@ -141,6 +162,8 @@ private:
     DGVector<DGadvection> cice;
     CGVector<CGdegree> u;
     CGVector<CGdegree> v;
+
+    Nextsim::DGTransport<DGadvection>* dgtransport;
 
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 

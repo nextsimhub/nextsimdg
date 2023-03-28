@@ -3,7 +3,7 @@
  *
  * @date 27 Mar 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- * @author Tim Spain <piotr.minakowski@ovgu.de>
+ * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #include "include/DynamicsKernel.hpp"

@@ -111,7 +111,7 @@ namespace Nextsim {
 
     template <int CG, int DG>
     void CG2DG(const ParametricMesh& smesh, DGVector<DG>& dg, const CGVector<CG>& cg)
-    {
+    { 
       assert(static_cast<long int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)) == cg.rows());
       assert(static_cast<long int>(smesh.nx * smesh.ny) == dg.rows());
 
