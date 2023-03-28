@@ -33,6 +33,35 @@ namespace Nextsim {
 
 template <int CGdegree, int DGadvection> class DynamicsKernel {
 public:
+    
+    void initialisation() {
+
+        //! Define the spatial mesh
+        Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
+        smesh.readmesh("init_topaz128x128.smesh"); // file temporary committed
+
+        //! Initialize transport
+        dgtransport = new Nextsim::DGTransport<DGadvection>(smesh);
+        dgtransport->settimesteppingscheme("rk2");
+
+        //resize CG and DG vectors
+        hice.resize_by_mesh(smesh);
+        cice.resize_by_mesh(smesh);
+        std::cout << "Before resize " << u.rows() << " " << v.rows() << std::endl;
+
+        u.resize_by_mesh(smesh);
+        v.resize_by_mesh(smesh);
+
+        std::cout << "After resize " << u.rows() << " " << v.rows() << std::endl;
+
+    }
+    
+    
+    
+    
+    
+    
+    
     /*!
      * @brief Sets the data from a provided ModelArray.
      *
@@ -51,19 +80,6 @@ public:
      */
     void setData(const std::string& name, const ModelArray& data)
     {
-        //! Define the spatial mesh
-        Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
-        smesh.readmesh("init_topaz128x128.smesh"); // file temporary committed
-
-        //! Initialize transport
-        dgtransport = new Nextsim::DGTransport<DGadvection>(smesh);
-        dgtransport->settimesteppingscheme("rk2");
-
-        //resize CG and DG vectors
-        hice.resize_by_mesh(smesh);
-        cice.resize_by_mesh(smesh);
-        u.resize_by_mesh(smesh);
-        v.resize_by_mesh(smesh);
 
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
         if (name == hiceName) {
@@ -81,6 +97,8 @@ public:
 
 
     }
+
+
 
     /*!
      * @brief Returns an HField ModelArray containing the DG0 finite volume
