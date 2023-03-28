@@ -85,12 +85,12 @@ public:
             DGModelArray::ma2dg(data, cice);
         } else if (name == "u") {
             //CGModelArray::ma2cg(data, u);
-            DGVector<DGadvection> utmp;
+            DGVector<DGadvection> utmp(*smesh);
             DGModelArray::ma2dg(data, utmp);
             Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
         } else if (name == "v") {
             //CGModelArray::ma2cg(data, v);
-            DGVector<DGadvection> vtmp;
+            DGVector<DGadvection> vtmp(*smesh);
             DGModelArray::ma2dg(data, vtmp);
             Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
         } else {
