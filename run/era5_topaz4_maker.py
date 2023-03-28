@@ -156,11 +156,17 @@ if __name__ == "__main__":
     parser.add_argument("--file", dest="file", required = True, help = "A restart file containing the target grid information.")
     parser.add_argument("--start", dest = "start", required = True, help = "The ISO start date for the forcing file.")
     parser.add_argument("--stop", dest = "stop", required = True, help = "The ISO end date for the forcing file.")
+    parser.add_argument("--prefix", dest = "prefix", required = False, help = "A string to prefix the created files with.")
     args = parser.parse_args()
     # read the date range
     start_time = time.strptime(args.start, "%Y-%m-%d")
     stop_time = time.strptime(args.stop, "%Y-%m-%d")
     #(unix_times, era5_times, topaz4_times) = create_times(start_time, stop_time)
+
+    if args.prefix is not None:
+        filepfx = args.prefix + "."
+    else:
+        filepfx = "."
 
     # read a grid spec (from a restart file)
     root = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
@@ -202,7 +208,7 @@ if __name__ == "__main__":
 
     # ERA5 data
     
-    era5_out_file = f"ERA5_{args.start}_{args.stop}.nc"
+    era5_out_file = f"{filepfx}ERA5_{args.start}_{args.stop}.nc"
     era_root = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
     structgrp = era_root.createGroup("structure")
     structgrp.type = target_structure
@@ -284,7 +290,7 @@ if __name__ == "__main__":
     
     # TOPAZ data
     
-    topaz_out_file = f"TOPAZ4_{args.start}_{args.stop}.nc"
+    topaz_out_file = f"{filepfx}TOPAZ4_{args.start}_{args.stop}.nc"
     topaz_root = netCDF4.Dataset(topaz_out_file, "w", format="NETCDF4")
     structgrp = topaz_root.createGroup("structure")
     structgrp.type = target_structure
