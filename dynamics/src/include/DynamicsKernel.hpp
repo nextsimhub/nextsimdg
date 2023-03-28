@@ -37,20 +37,20 @@ public:
     void initialisation() {
 
         //! Define the spatial mesh
-        Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
-        smesh.readmesh("init_topaz128x128.smesh"); // file temporary committed
+        smesh = new Nextsim::ParametricMesh(Nextsim::CARTESIAN);
+        smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
 
         //! Initialize transport
-        dgtransport = new Nextsim::DGTransport<DGadvection>(smesh);
+        dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
         dgtransport->settimesteppingscheme("rk2");
 
         //resize CG and DG vectors
-        hice.resize_by_mesh(smesh);
-        cice.resize_by_mesh(smesh);
+        hice.resize_by_mesh(*smesh);
+        cice.resize_by_mesh(*smesh);
 
-        u.resize_by_mesh(smesh);
-        v.resize_by_mesh(smesh);
-
+        u.resize_by_mesh(*smesh);
+        v.resize_by_mesh(*smesh);
+        std::cout << "Initialisation " << u.rows() << " " << v.rows() << std::endl;       
     }
     
     
@@ -84,13 +84,21 @@ public:
         } else if (name == ciceName) {
             DGModelArray::ma2dg(data, cice);
         } else if (name == "u") {
-            CGModelArray::ma2cg(data, u);
+            //CGModelArray::ma2cg(data, u);
+            DGVector<DGadvection> utmp;
+            DGModelArray::ma2dg(data, utmp);
+            Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
         } else if (name == "v") {
-            CGModelArray::ma2cg(data, v);
+            //CGModelArray::ma2cg(data, v);
+            DGVector<DGadvection> vtmp;
+            DGModelArray::ma2dg(data, vtmp);
+            Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
         } else {
             // All other fields get shoved in a (labelled) bucket
             DGModelArray::ma2dg(data, advectedFields[name]);
         }
+        
+        std::cout << "kernel setData " << name << " " << u.rows() << " " << v.rows() << std::endl;       
 
 
     }
@@ -148,6 +156,8 @@ public:
         
         
         //! interpolates CG velocity to DG and reinits normal velocity
+        std::cout << "Kernel Update " << u.rows() << " " << v.rows() << std::endl;       
+
         dgtransport->prepareAdvection(u, v);
 
         //! Perform transport step
@@ -164,6 +174,8 @@ private:
     CGVector<CGdegree> v;
 
     Nextsim::DGTransport<DGadvection>* dgtransport;
+
+    Nextsim::ParametricMesh* smesh;
 
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
