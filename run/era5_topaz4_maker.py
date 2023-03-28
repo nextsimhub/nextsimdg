@@ -88,14 +88,14 @@ def bilinear_missing(eyes, jays, data, missing):
     dataplier = data != missing # False is zero
 
     weighted_sum = ((1 - fj) * (1 - fi) * data[j, i] * dataplier[j, i] +
-        (1 - fj) * (fi) * data[j, i + 1] * dataplier[j, i] +
-        (fj) * (1 - fi) * data[j + 1, i] * dataplier[j, i] +
-        (fj) * (fi) * data[j + 1, i + 1] * dataplier[j, i])
+        (1 - fj) * (fi) * data[j, i + 1] * dataplier[j, i + 1] +
+        (fj) * (1 - fi) * data[j + 1, i] * dataplier[j + 1, i] +
+        (fj) * (fi) * data[j + 1, i + 1] * dataplier[j + 1, i + 1])
 
     sum_of_weights = ((1 - fj) * (1 - fi) * dataplier[j, i] +
-        (1 - fj) * (fi) * dataplier[j, i] +
-        (fj) * (1 - fi) * dataplier[j, i] +
-        (fj) * (fi) * dataplier[j, i])
+        (1 - fj) * (fi) * dataplier[j, i + 1] +
+        (fj) * (1 - fi) * dataplier[j + 1, i] +
+        (fj) * (fi) * dataplier[j + 1, i + 1])
     
     weighted_sum += missing * (sum_of_weights == 0)
     sum_of_weights += (sum_of_weights == 0)
@@ -107,7 +107,7 @@ def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     target_i = (target_lons - data_lons[0]) / (data_lons[1] - data_lons[0])
     # Make sure that the index is in the range of the size of the longitude array
     target_i %= len(data_lons)
-    
+
     # Latitudes are on a Gaussian grid, so we need to search a bit.
     target_j = (target_lats - data_lats[0]) / (data_lats[1] - data_lats[0])
     
