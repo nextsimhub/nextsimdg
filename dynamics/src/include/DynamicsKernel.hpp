@@ -116,6 +116,14 @@ public:
             return DGModelArray::dg2ma(hice, data);
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
+        } else if (name == uName) {
+            DGVector<DGadvection> utmp(*smesh);
+            Nextsim::Interpolations::CG2DG(*smesh, utmp, u);
+            return DGModelArray::dg2ma(utmp, data);
+        } else if (name == vName) {
+            DGVector<DGadvection> vtmp(*smesh);
+            Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
+            return DGModelArray::dg2ma(vtmp, data);
         } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);
