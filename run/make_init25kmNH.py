@@ -80,6 +80,10 @@ hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y",))
 hsnow[:,:] = cice[:,:] / 2
 tice = datagrp.createVariable("tice", "f8", ("x", "y", "nLayers"))
 tice[:,:,0] = -0.5 - cice[:,:]
+sst = datagrp.createVariable("sst", "f8", ("x", "y",))
+sst[:,:] = -cice[:,:]
+sss = datagrp.createVariable("sss", "f8", ("x", "y",))
+sss[:,:] = cice[:,:] * 33.68
 
 mdi = -2.**300
 # mask data
@@ -91,5 +95,10 @@ hsnow[:,:] = hsnow[:,:] * mask[:,:] + antimask * mdi
 hsnow.missing_value = mdi
 tice[:,:,0] = tice[:,:,0] * mask[:,:] + antimask * mdi
 tice.missing_value = mdi
+sst[:,:] = sst[:,:] * mask[:,:] + antimask * mdi
+sst.missing_value = mdi
+sss[:,:] = sss[:,:] * mask[:,:] + antimask * mdi
+sss.missing_value = mdi
+
 
 root.close()
