@@ -47,12 +47,9 @@ public:
         //resize CG and DG vectors
         hice.resize_by_mesh(smesh);
         cice.resize_by_mesh(smesh);
-        std::cout << "Before resize " << u.rows() << " " << v.rows() << std::endl;
 
         u.resize_by_mesh(smesh);
         v.resize_by_mesh(smesh);
-
-        std::cout << "After resize " << u.rows() << " " << v.rows() << std::endl;
 
     }
     

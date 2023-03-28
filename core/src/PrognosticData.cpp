@@ -65,7 +65,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
-    // IDynamics does not set data
+    pDynamics->setData(ms);
     iceGrowth.setData(ms);
 }
 

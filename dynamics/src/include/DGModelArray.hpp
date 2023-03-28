@@ -25,8 +25,8 @@ public:
             dg = ma.data().matrix();
         } else {
             // Assign only to the 0 component.
-            //dg(Eigen::all, 0) = ma.data().matrix();
-            dg.col(0) = ma.data().matrix();
+            dg(Eigen::all, 0) = ma.data().matrix();
+            //dg.col(0) = ma.data().matrix();
         }
         return dg;
     }

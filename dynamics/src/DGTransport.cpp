@@ -200,7 +200,7 @@ void DGTransport<DG>::reinitnormalvelocity()
 template <int DG>
 template <int CG>
 void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector<CG>& cg_vy)
-{
+{ std::cout << "In prepare advection " << cg_vx.rows() << " " << cg_vy.rows() << std::endl;
   Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
   Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
   reinitnormalvelocity();
