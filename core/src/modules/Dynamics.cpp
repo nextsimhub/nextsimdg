@@ -32,6 +32,8 @@ void Dynamics::setData(const ModelState::DataMap& ms)
     }
 }
 
+
+
 void Dynamics::update(const TimestepTime& tst)
 {
     kernel.setData(hiceName, hice.data());
