@@ -38,6 +38,7 @@ public:
 
         //! Define the spatial mesh
         smesh = new Nextsim::ParametricMesh(Nextsim::CARTESIAN);
+        // TODO integrate the creation of the smesh based on restart file
         smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
 
         //! Initialize transport
@@ -50,7 +51,6 @@ public:
 
         u.resize_by_mesh(*smesh);
         v.resize_by_mesh(*smesh);
-        std::cout << "Initialisation " << u.rows() << " " << v.rows() << std::endl;       
     }
     
     
@@ -97,9 +97,6 @@ public:
             // All other fields get shoved in a (labelled) bucket
             DGModelArray::ma2dg(data, advectedFields[name]);
         }
-        
-        std::cout << "kernel setData " << name << " " << u.rows() << " " << v.rows() << std::endl;       
-
 
     }
 
@@ -154,10 +151,7 @@ public:
         
         const double dt_adv = 120.; //!< Time step of advection problem
         
-        
         //! interpolates CG velocity to DG and reinits normal velocity
-        std::cout << "Kernel Update " << u.rows() << " " << v.rows() << std::endl;       
-
         dgtransport->prepareAdvection(u, v);
 
         //! Perform transport step

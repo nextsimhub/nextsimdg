@@ -11,7 +11,7 @@
 
 namespace Nextsim {
 
-extern Timer GlobalTimer;
+//extern Timer GlobalTimer;
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
@@ -200,7 +200,7 @@ void DGTransport<DG>::reinitnormalvelocity()
 template <int DG>
 template <int CG>
 void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector<CG>& cg_vy)
-{ std::cout << "In prepare advection " << cg_vx.rows() << " " << cg_vy.rows() << std::endl;
+{ 
   Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
   Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
   reinitnormalvelocity();
@@ -347,14 +347,14 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const dou
 {
     phiup.zero();
 
-    GlobalTimer.start("-- -- --> cell term");
+    //GlobalTimer.start("-- -- --> cell term");
     // Cell terms
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid)
         cell_term(smesh, dt, phiup, phi, vx, vy, eid);
-    GlobalTimer.stop("-- -- --> cell term");
+    //GlobalTimer.stop("-- -- --> cell term");
 
-    GlobalTimer.start("-- -- --> edge terms");
+    //GlobalTimer.start("-- -- --> edge terms");
     // Y - edges, only inner ones
 #pragma omp parallel for
     for (size_t iy = 0; iy < smesh.ny; ++iy) {
@@ -372,10 +372,10 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const dou
         for (size_t i = 0; i < smesh.ny - 1; ++i, ic += smesh.nx, ie += smesh.nx)
             edge_term_X(smesh, dt, phiup, phi, normalvel_X, ic, ic + smesh.nx, ie);
     }
-    GlobalTimer.stop("-- -- --> edge terms");
+    //GlobalTimer.stop("-- -- --> edge terms");
 
     // boundaries
-    GlobalTimer.start("-- -- --> boundaries");
+    //GlobalTimer.start("-- -- --> boundaries");
 
 
     // Periodic
@@ -421,13 +421,13 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const dou
 	      }
 	  }
       }
-    GlobalTimer.stop("-- -- --> boundaries");
+    //GlobalTimer.stop("-- -- --> boundaries");
 
-    GlobalTimer.start("-- -- --> inverse mass");
+    //GlobalTimer.start("-- -- --> inverse mass");
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid)
       phiup.row(eid) =  parammap.InverseDGMassMatrix[eid] * phiup.row(eid).transpose();
-    GlobalTimer.stop("-- -- --> inverse mass");
+    //GlobalTimer.stop("-- -- --> inverse mass");
 }
 
 template <int DG>
@@ -489,7 +489,7 @@ void DGTransport<DG>::step_rk3(const double dt, DGVector<DG>& phi)
 template <int DG>
 void DGTransport<DG>::step(const double dt, DGVector<DG>& phi)
 {
-  GlobalTimer.start("-- --> step");
+  //GlobalTimer.start("-- --> step");
   if (timesteppingscheme == "rk1")
     step_rk1(dt, phi);
   else if (timesteppingscheme == "rk2")
@@ -500,7 +500,7 @@ void DGTransport<DG>::step(const double dt, DGVector<DG>& phi)
     std::cerr << "Time stepping scheme '" << timesteppingscheme << "' not known!" << std::endl;
     abort();
   }
-  GlobalTimer.stop("-- --> step");
+  //GlobalTimer.stop("-- --> step");
 }
 
 #undef EDGEDOFS
