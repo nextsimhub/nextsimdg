@@ -84,6 +84,10 @@ sst = datagrp.createVariable("sst", "f8", ("x", "y",))
 sst[:,:] = -cice[:,:]
 sss = datagrp.createVariable("sss", "f8", ("x", "y",))
 sss[:,:] = cice[:,:] * 33.68
+u = datagrp.createVariable("u", "f8", ("x", "y",))
+u[:,:] = 0
+v = datagrp.createVariable("v", "f8", ("x", "y",))
+v[:,:] = 0
 
 mdi = -2.**300
 # mask data
@@ -99,6 +103,9 @@ sst[:,:] = sst[:,:] * mask[:,:] + antimask * mdi
 sst.missing_value = mdi
 sss[:,:] = sss[:,:] * mask[:,:] + antimask * mdi
 sss.missing_value = mdi
-
+u[:,:] = u[:,:] * mask[:,:] + antimask * mdi
+u.missing_value = mdi
+v[:,:] = v[:,:] * mask[:,:] + antimask * mdi
+v.missing_value = mdi
 
 root.close()
