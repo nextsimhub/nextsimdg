@@ -163,8 +163,18 @@ public:
         dgtransport->prepareAdvection(u, v);
 
         //! Perform transport step
+        //std::cout << "Before" << cice << std::endl;
+
+        
+        std::cout << "V" << v.row(10) << std::endl;
+        std::cout << "U" << u.row(10) << std::endl;
+
+        std::exit(0);
         dgtransport->step(dt_adv, cice);
-	    dgtransport->step(dt_adv, hice);
+	    
+        dgtransport->step(dt_adv, hice);
+        
+        //std::cout << "After" << cice << std::endl;
 
 
     };
