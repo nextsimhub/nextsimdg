@@ -21,6 +21,7 @@ set(BaseSources
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"
+    "NZLevels.cpp"
     "PrognosticData.cpp"
     "Time.cpp"
     "${ModelArrayStructure}/ModelArrayDetails.cpp"

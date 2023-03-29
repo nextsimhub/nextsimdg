@@ -14,7 +14,7 @@ namespace Nextsim {
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // HOW MANY QUADRATURE POINTS???  I use 3^2 = 9
 template <int CG, int DG>
-void ParametricTransformation<CG, DG>::BasicInit(const ParametricMesh& smesh)
+void SphericalTransformation<CG, DG>::BasicInit(const ParametricMesh& smesh)
 {
     // resize vectors
     divS1.resize(smesh.nelements);
@@ -55,70 +55,9 @@ void ParametricTransformation<CG, DG>::BasicInit(const ParametricMesh& smesh)
     }
 }
 
-namespace ParametricTools {
-    /*!
-     * computes and fills the Q1/Q2 lumped mass matrix
-     */
-    template <>
-    void lumpedCGMassMatrix(const ParametricMesh& smesh,
-        CGVector<1>& lumpedcgmass)
-    {
-        lumpedcgmass.resize_by_mesh(smesh);
 
-#pragma omp parallel for
-        for (size_t i = 0; i < smesh.nnodes; ++i)
-            lumpedcgmass(i, 0) = 0;
-
-        // parallelization not critical. called just once.
-
-        const size_t sy = smesh.nx + 1;
-        size_t i = 0;
-        for (size_t iy = 0; iy < smesh.ny; ++iy)
-            for (size_t ix = 0; ix < smesh.nx; ++ix, ++i) {
-                const double a = smesh.area(i);
-
-                const int n0 = sy * iy + ix;
-                lumpedcgmass(n0, 0) += 0.25 * a;
-                lumpedcgmass(n0 + 1, 0) += 0.25 * a;
-                lumpedcgmass(n0 + sy, 0) += 0.25 * a;
-                lumpedcgmass(n0 + sy + 1, 0) += 0.25 * a;
-            }
-    }
-
-    template <>
-    void lumpedCGMassMatrix(const ParametricMesh& smesh,
-        CGVector<2>& lumpedcgmass)
-    {
-        lumpedcgmass.resize_by_mesh(smesh);
-
-        for (size_t i = 0; i < smesh.nnodes; ++i)
-            lumpedcgmass(i, 0) = 0;
-
-        // parallelization not critical. called just once.
-
-        const int sy = 2.0 * smesh.nx + 1;
-        int i = 0;
-        for (size_t iy = 0; iy < smesh.ny; ++iy)
-            for (size_t ix = 0; ix < smesh.nx; ++ix, ++i) {
-                const double a = smesh.area(i);
-                const size_t n0 = 2 * sy * iy + 2 * ix;
-                lumpedcgmass(n0, 0) += a / 36.;
-                lumpedcgmass(n0 + 2, 0) += a / 36.;
-                lumpedcgmass(n0 + 2 * sy, 0) += a / 36.;
-                lumpedcgmass(n0 + 2 * sy + 2, 0) += a / 36.;
-
-                lumpedcgmass(n0 + 1, 0) += a / 9.;
-                lumpedcgmass(n0 + sy, 0) += a / 9.;
-                lumpedcgmass(n0 + sy + 2, 0) += a / 9.;
-                lumpedcgmass(n0 + 2 * sy + 1, 0) += a / 9.;
-
-                lumpedcgmass(n0 + sy + 1, 0) += a * 4. / 9.;
-            }
-    }
-}
-
-template class ParametricTransformation<2, 3>;
-template class ParametricTransformation<2, 8>;
-template class ParametricTransformation<1, 3>;
-template class ParametricTransformation<1, 8>;
+template class SphericalTransformation<2, 3>;
+template class SphericalTransformation<2, 8>;
+template class SphericalTransformation<1, 3>;
+template class SphericalTransformation<1, 8>;
 }

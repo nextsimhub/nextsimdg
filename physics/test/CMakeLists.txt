@@ -23,10 +23,12 @@ add_executable(testIceGrowth
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreSourceDir}/NZLevels.cpp"
     "${ModulesDir}/IceThermodynamicsModule.cpp"
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoIce0.cpp"
+    "${ModulesDir}/ThermoWinton.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
@@ -38,6 +40,31 @@ target_include_directories(testIceGrowth PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testIceGrowth PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+
+add_executable(testThermoWinton
+    "ThermoWintonTemperature_test.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/NZLevels.cpp"
+    "${SourceDir}/MinimumIce.cpp"
+    "${ModulesDir}/LateralIceSpreadModule.cpp"
+    "${ModulesDir}/HiblerSpread.cpp"
+    "${ModulesDir}/ThermoWinton.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testThermoWinton PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testThermoWinton PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
 
 add_executable(testFEFluxes
     "FiniteElementFluxes_test.cpp"
@@ -122,3 +149,33 @@ target_include_directories(testSpecHum PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testSpecHum PRIVATE Catch2::Catch2)
+
+add_executable(testConstantOcn
+    "ConstantOceanBoundary_test.cpp"
+    "${ModulesDir}/ConstantOceanBoundary.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${ModulesDir}/FiniteElementFluxes.cpp"
+    "${ModulesDir}/FiniteElementSpecHum.cpp"
+    "${ModulesDir}/FluxCalculationModule.cpp"
+    "${ModulesDir}/IceOceanHeatFluxModule.cpp"
+    "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${ModulesDir}/IIceAlbedoModule.cpp"
+    "${ModulesDir}/SMUIceAlbedo.cpp"
+    "${ModulesDir}/CCSMIceAlbedo.cpp"
+    "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testConstantOcn PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)

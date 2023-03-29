@@ -51,11 +51,11 @@ find_package(Eigen3 3.4 REQUIRED)
 # target_link_libraries(target LINK_PUBLIC "${NSDG_NetCDF_Library}")
 
 # Set the list of components that define modules. Component subdirectories are
-# contained in this directory level and contain src/modules/ and 
-# src/modules/include/ subdirectories 
-set(ModularComponents
-"physics"
-)
+# contained in this directory level and contain src/modules/ and
+# src/modules/include/ subdirectories
+#set(ModularComponents
+#"physics"
+#)
 
 # Set the components which provide source or object code to the main model
 set(CodeComponents
@@ -86,7 +86,6 @@ endforeach()
 # Link the model
 add_executable(nextsim "${NextsimSources}")
 
-target_compile_options(nextsim PUBLIC "$<$<CONFIG:DEBUG>:-DDEBUG>")
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"

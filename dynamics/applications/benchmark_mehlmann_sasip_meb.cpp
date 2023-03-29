@@ -7,7 +7,7 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "ParametricTransport.hpp"
+#include "DGTransport.hpp"
 
 #include "Tools.hpp"
 #include "cgParametricMomentum.hpp"
@@ -26,6 +26,8 @@
 
 bool WRITE_VTK = true;
 
+Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
+
 namespace Nextsim {
 extern Timer GlobalTimer;
 }
@@ -35,25 +37,12 @@ inline constexpr double SQR(double x) { return x * x; }
 //////////////////////////////////////////////////// Benchmark testcase from [Mehlmann / Richter, ...]
 //! Description of the problem data, wind & ocean fields
 
-// Benchmark LKF testcase from [Mehlmann et al., 2022]
 namespace ReferenceScale {
 constexpr double T = 2.0 * 24 * 60. * 60.; //!< Time horizon 2 days
 constexpr double L = 512000.0; //!< Size of domain !!!
 constexpr double vmax_ocean = 0.01; //!< Maximum velocity of ocean
 double vmax_atm = 30.0 / exp(1.0); //!< Max. vel. of wind
 }
-
-// Benchmark compression testcase from [Plante Tremblay, 2021]
-namespace RefScaleCompression {
-using namespace ReferenceScale;
-
-constexpr double T = 4 * 60. * 60.; //!< Time horizon 2 hours
-constexpr double L = 60000.0; //!< Size of domain
-constexpr double vmax_ocean = 0.0; //!< Maximum velocity of ocean
-constexpr double vmax_atm = 20; //!< Max. vel. of wind
-
-}
-
 
 class OceanX : public Nextsim::Interpolations::Function {
 public:
@@ -127,25 +116,25 @@ public:
 
 //////////////////////////////////////////////////
 
-template <int CG, int DGadvection, int DGstress>
+template <int CG, int DGadvection>
 void run_benchmark(const std::string meshfile)
 {
     //! Define the spatial mesh
-    Nextsim::ParametricMesh smesh;
+    Nextsim::ParametricMesh smesh(CoordinateSystem);
     smesh.readmesh(meshfile);
     size_t NX = smesh.nx;
 
     //! Compose name of output directory and create it
-    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "_" + std::to_string(DGstress)
+    std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection)
         + "__" + std::to_string(NX);
     std::filesystem::create_directory(resultsdir);
 
     //! Main class to handle the momentum equation. This class also stores the CG velocity vector
-    Nextsim::CGParametricMomentum<CG, DGstress> momentum(smesh);
+    Nextsim::CGParametricMomentum<CG> momentum(smesh);
 
     //! define the time mesh
     // constexpr double dt_adv = 60.0; //!< Time step of advection problem
-    double dt_adv = ReferenceScale::L / smesh.nx / 1000. * 15.0;  //!< Stable time step 
+    double dt_adv = ReferenceScale::L / smesh.nx / 1000. * 15.0;  //!< Stable time step
     size_t NT = ReferenceScale::T / dt_adv + 1.e-4; //!< Number of Advections steps
 
     constexpr size_t NT_meb = 100; //!< Momentum substeps
@@ -201,7 +190,7 @@ void run_benchmark(const std::string meshfile)
     Nextsim::GlobalTimer.stop("time loop - i/o");
 
     ////////////////////////////////////////////////// Initialize transport
-    Nextsim::ParametricTransport<DGadvection> dgtransport(smesh);
+    Nextsim::DGTransport<DGadvection> dgtransport(smesh);
     dgtransport.settimesteppingscheme("rk2");
 
     ////////////////////////////////////////////////// Main Loop
@@ -270,9 +259,6 @@ void run_benchmark(const std::string meshfile)
                 Nextsim::VTK::write_dg(resultsdir + "/A", printstep, A, smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/H", printstep, H, smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/D", printstep, D, smesh);
-                //Nextsim::VTK::write_dg(resultsdir + "/S11", printstep, momentum.GetS11(), smesh);
-                //Nextsim::VTK::write_dg(resultsdir + "/S12", printstep, momentum.GetS12(), smesh);
-                //Nextsim::VTK::write_dg(resultsdir + "/S22", printstep, momentum.GetS22(), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Div", printstep, Nextsim::Tools::TensorInvI(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep, Nextsim::Tools::Shear(smesh, momentum.GetE11(), momentum.GetE12(), momentum.GetE22()), smesh);
                 Nextsim::VTK::write_dg(resultsdir + "/sigma_n", printstep,
@@ -290,16 +276,12 @@ void run_benchmark(const std::string meshfile)
 
 int main()
 {
-    //run_benchmark<2, 6, 8>("../ParametricMesh/rectangle_256x256.smesh");
-    //run_benchmark<2, 6, 8>("../ParametricMesh/rectangle_128x128.smesh");
-
     std::vector<std::string> meshes;
     meshes.push_back("../ParametricMesh/rectangle_128x128.smesh");
     meshes.push_back("../ParametricMesh/rectangle_256x256.smesh");
-    meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
 
      for (const auto& it : meshes) {
-         //run_benchmark<1, 3, 3>(it);
-         run_benchmark<2, 6, 8>(it);
+         run_benchmark<1, 3>(it);
+         run_benchmark<2, 6>(it);
      }
 }
