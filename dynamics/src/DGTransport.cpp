@@ -201,14 +201,8 @@ template <int DG>
 template <int CG>
 void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector<CG>& cg_vy)
 { 
-  //std::cout << "V in prepare advection before interpolation" << GetVx().row(10) << std::endl;
-  //std::cout << "U in prepare advection before interpolation" << GetVy().row(10) << std::endl; 
-  //Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
-  //Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
-  //GetVx().col(0) = Eigen::Matrix<double, smesh.nx*smesh.ny, 1>::Ones();;
-  //GetVy().col(0) = Eigen::Matrix<double, smesh.nx*smesh.ny, 1>::Ones();;
-  //std::cout << "V in prepare advection" << GetVx().row(10) << std::endl;
-  //std::cout << "U in prepare advection" << GetVy().row(10) << std::endl;
+  Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
+  Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
   reinitnormalvelocity();
 }
 
@@ -230,11 +224,12 @@ void DGTransport<DG>::cell_term(const ParametricMesh& smesh, double dt,
     const DGVector<DG>& vy, const size_t eid)
 {
   if (smesh.landmask[eid]==0){
-    std::cout << "element id " << eid  << " lm " << smesh.landmask[eid] << " " << phi.row(eid) << std::endl;
+    // TODO remove comments that are here to validate correctness of landmask
+    //std::cout << "element id " << eid  << " lm " << smesh.landmask[eid] << " " << phi.row(eid) << std::endl;
     return;
-  } else
-    std::cout << "element id " << eid  << " lm " << smesh.landmask[eid] << " " << phi.row(eid) << std::endl;
-
+  } else {
+    //std::cout << "element id " << eid  << " lm " << smesh.landmask[eid] << " " << phi.row(eid) << std::endl;
+  }
   const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> vx_gauss = vx.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>; //!< velocity in GP
   const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> vy_gauss = vy.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>;
   const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> phi_gauss = (phi.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>).array();
