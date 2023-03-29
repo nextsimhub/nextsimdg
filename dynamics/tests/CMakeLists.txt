@@ -45,7 +45,15 @@ add_executable(dgma_test
     "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 target_include_directories(dgma_test PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}")
-target_link_libraries(dgma_test LINK_PUBLIC Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(dgma_test LINK_PUBLIC doctest::doctest Eigen3::Eigen)
+
+add_executable(cgma_test
+    "CGModelArray_test.cpp"
+    "${CoreDir}/ModelArray.cpp"
+    "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    )
+target_include_directories(cgma_test PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}")
+target_link_libraries(cgma_test LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
 add_executable(example4-orcamesh-spherical example4-orcamesh-spherical.cpp
 "${SRC_DIR}/stopwatch.cpp"

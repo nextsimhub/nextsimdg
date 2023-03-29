@@ -9,11 +9,7 @@ set(ModelArrayDetails "testmodelarraydetails")
 # add_executable(testexe
 #   test/TestSrc.cpp
 #   otherSource.cpp)
-#target_link_libraries(testexe PRIVATE Catch2::Catch2)
-
-# include(CTest)
-# include(Catch)
-# catch_discover_tests(testexe)
+#target_link_libraries(testexe PRIVATE doctest::doctest)
 
 include_directories(${INCLUDE_DIR})
 
@@ -27,7 +23,7 @@ add_executable(testIterator
     
     )
 target_include_directories(testIterator PUBLIC "${SRC_DIR}")
-target_link_libraries(testIterator PRIVATE Catch2::Catch2 Boost::program_options Boost::log)
+target_link_libraries(testIterator PRIVATE doctest::doctest Boost::program_options Boost::log)
 
 add_executable(testCommandLineParser
     "CommandLineParser_test.cpp"
@@ -36,7 +32,7 @@ add_executable(testCommandLineParser
     "${SRC_DIR}/ConfigurationHelpPrinter.cpp"
     )
 target_include_directories(testCommandLineParser PUBLIC "${SRC_DIR}")
-target_link_libraries(testCommandLineParser LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
+target_link_libraries(testCommandLineParser LINK_PUBLIC Boost::program_options Boost::log doctest::doctest)
 
 add_executable(testConfigurator
     "Configurator_test.cpp"
@@ -44,12 +40,7 @@ add_executable(testConfigurator
     "${SRC_DIR}/Configurator.cpp"
     )
 target_include_directories(testConfigurator PUBLIC "${SRC_DIR}")
-target_link_libraries(testConfigurator LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
-
-add_executable(testEnumWrapper
-    "EnumWrapper_test.cpp"
-    )
-target_link_libraries(testEnumWrapper LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2)
+target_link_libraries(testConfigurator LINK_PUBLIC Boost::program_options Boost::log doctest::doctest)
 
 add_executable(testConfiguredModule
     "ConfiguredModule_test.cpp"
@@ -57,14 +48,14 @@ add_executable(testConfiguredModule
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
 )
-target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_DIR}" "${TEST_IPP_DIR}")
-target_link_libraries(testConfiguredModule PRIVATE Catch2::Catch2 Boost::program_options Boost::log)
+target_include_directories(testConfiguredModule PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_DIR}")
+target_link_libraries(testConfiguredModule PRIVATE doctest::doctest Boost::program_options Boost::log)
 
 add_executable(testTimer
     "Timer_test.cpp"
     "${SRC_DIR}/Timer.cpp"
     )
-target_link_libraries(testTimer PRIVATE Catch2::Catch2)
+target_link_libraries(testTimer PRIVATE doctest::doctest)
 target_include_directories(testTimer PRIVATE "${SRC_DIR}")
 
 add_executable(testScopedTimer
@@ -72,7 +63,7 @@ add_executable(testScopedTimer
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/ScopedTimer.cpp"
     )
-target_link_libraries(testScopedTimer PRIVATE Catch2::Catch2)
+target_link_libraries(testScopedTimer PRIVATE doctest::doctest)
 target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 
 add_executable(testModelArray
@@ -82,7 +73,7 @@ add_executable(testModelArray
     )
 
 target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
-target_link_libraries(testModelArray PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
 add_executable(testDevGrid
     "DevGrid_test.cpp"
@@ -104,7 +95,7 @@ add_executable(testDevGrid
 
 target_include_directories(testDevGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testRectGrid
     "RectGrid_test.cpp"
@@ -126,7 +117,7 @@ add_executable(testRectGrid
 
 target_include_directories(testRectGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_libraries(testRectGrid LINK_PUBLIC Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testParaGrid
     "ParaGrid_test.cpp"
@@ -148,7 +139,7 @@ add_executable(testParaGrid
 
 target_include_directories(testParaGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testParaGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testParaGrid LINK_PUBLIC Boost::program_options Catch2::Catch2 "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_libraries(testParaGrid LINK_PUBLIC Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
@@ -160,14 +151,14 @@ add_executable(testModelComponent
 )
 
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_libraries(testModelComponent PRIVATE Boost::program_options Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testModelComponent PRIVATE Boost::program_options doctest::doctest Eigen3::Eigen)
 
 add_executable(testTime
     "Time_test.cpp"
     "${CoreSrc}/Time.cpp"
 )
 target_include_directories(testTime PRIVATE "${CoreSrc}")
-target_link_libraries(testTime PRIVATE Catch2::Catch2)
+target_link_libraries(testTime PRIVATE doctest::doctest)
 
 add_executable(testNewModelArrayRef
     "NewModelArrayRef_test.cpp"
@@ -176,7 +167,7 @@ add_executable(testNewModelArrayRef
 )
 
 target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testNewModelArrayRef PRIVATE doctest::doctest Eigen3::Eigen)
 
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 set(PhysSourceDir "${CoreSrc}/../../physics/src/")
@@ -192,6 +183,7 @@ add_executable(testPrognosticData
     "${CoreSrc}/MissingData.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
     "${PhysModulesDir}/FiniteElementFluxes.cpp"
     "${PhysModulesDir}/FiniteElementSpecHum.cpp"
@@ -208,6 +200,7 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/HiblerSpread.cpp"
     "${PhysModulesDir}/IceThermodynamicsModule.cpp"
     "${PhysModulesDir}/ThermoIce0.cpp"
+    "${PhysModulesDir}/ThermoWinton.cpp"
     "${PhysModulesDir}/IceOceanHeatFluxModule.cpp"
     "${PhysModulesDir}/BasicIceOceanHeatFlux.cpp"
     "${PhysModulesDir}/IIceAlbedoModule.cpp"
@@ -223,4 +216,4 @@ target_include_directories(testPrognosticData PRIVATE
     "${PhysSourceDir}"
     "${PhysModulesDir}"
     )
-target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)

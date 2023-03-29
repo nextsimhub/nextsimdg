@@ -8,11 +8,7 @@ set(ModulesDir "${SourceDir}/modules")
 # add_executable(testexe
 #   test/TestSrc.cpp
 #   otherSource.cpp)
-#target_link_libraries(testexe PRIVATE Catch2::Catch2)
-
-# include(CTest)
-# include(Catch)
-# catch_discover_tests(testexe)
+#target_link_libraries(testexe PRIVATE doctest::doctest)
 
 add_executable(testIceGrowth
     "IceGrowth_test.cpp"
@@ -39,7 +35,7 @@ target_include_directories(testIceGrowth PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testIceGrowth PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testIceGrowth PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testThermoWinton
     "ThermoWintonTemperature_test.cpp"
@@ -64,7 +60,7 @@ target_include_directories(testThermoWinton PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testThermoWinton PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testThermoWinton PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testFEFluxes
     "FiniteElementFluxes_test.cpp"
@@ -90,7 +86,7 @@ target_include_directories(testFEFluxes PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testFEFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testFEFluxes PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testConfiguredAtm
     "ConfiguredAtmosphere_test.cpp"
@@ -118,7 +114,7 @@ target_include_directories(testConfiguredAtm PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testConfiguredAtm PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testConfiguredAtm PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testBIOHFluxes
     "BasicIceOceanFlux_test.cpp"
@@ -139,7 +135,7 @@ target_include_directories(testBIOHFluxes PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testBIOHFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testBIOHFluxes PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testSpecHum
     "SpecificHumidity_test.cpp"
@@ -148,7 +144,7 @@ add_executable(testSpecHum
 target_include_directories(testSpecHum PRIVATE
     "${ModulesDir}"
     )
-target_link_libraries(testSpecHum PRIVATE Catch2::Catch2)
+target_link_libraries(testSpecHum PRIVATE doctest::doctest)
 
 add_executable(testConstantOcn
     "ConstantOceanBoundary_test.cpp"
@@ -178,4 +174,4 @@ target_include_directories(testConstantOcn PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
