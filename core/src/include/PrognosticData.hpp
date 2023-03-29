@@ -86,6 +86,8 @@ private:
     IOceanBoundary* pOcnBdy;
     IDynamics* pDynamics;
     IceGrowth iceGrowth;
+
+    void updatePrognosticFields();
 };
 
 } /* namespace Nextsim */

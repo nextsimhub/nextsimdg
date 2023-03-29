@@ -75,11 +75,24 @@ void PrognosticData::update(const TimestepTime& tst)
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
 
+    // The dynamics uses the SharedArrays of hice, cice and hsnow.
+    // Fill the values of the true ice and snow thicknesses.
+    iceGrowth.initializeThicknesses();
     pDynamics->update(tst);
+    updatePrognosticFields();
+
+    // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
+    // IceGrowth updates its own fields during update
     iceGrowth.update(tst);
+    updatePrognosticFields();
 
     pOcnBdy->updateAfter(tst);
 
+
+}
+
+void PrognosticData::updatePrognosticFields()
+{
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
     ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
     ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnowTrueUpd(getSharedArray());
