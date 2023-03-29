@@ -20,6 +20,8 @@ static const std::vector<std::string> namedFields = { hiceName, ciceName, uName,
 Dynamics::Dynamics()
     : IDynamics()
 {
+    registerProtectedArray(ProtectedArray::ICE_U, &uice);
+    registerProtectedArray(ProtectedArray::ICE_V, &vice);
 }
 
 void Dynamics::setData(const ModelState::DataMap& ms)
@@ -27,6 +29,9 @@ void Dynamics::setData(const ModelState::DataMap& ms)
     IDynamics::setData(ms);
 
     kernel.initialisation();
+
+    uice = ms.at(uName);
+    vice = ms.at(vName);
 
     // Set the data in the kernel arrays.
     for (const auto& fieldName : namedFields) {
@@ -40,8 +45,6 @@ void Dynamics::update(const TimestepTime& tst)
 {
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
-    kernel.setData(uName, uice);
-    kernel.setData(vName, vice);
 
     kernel.update(tst);
 
