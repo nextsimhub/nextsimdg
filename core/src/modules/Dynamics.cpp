@@ -28,6 +28,9 @@ void Dynamics::setData(const ModelState::DataMap& ms)
 
     kernel.initialisation();
 
+    uice = ms.at(uName);
+    vice = ms.at(vName);
+
     // Set the data in the kernel arrays.
     for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
@@ -40,8 +43,8 @@ void Dynamics::update(const TimestepTime& tst)
 {
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
-    kernel.setData(uName, uice);
-    kernel.setData(vName, vice);
+//    kernel.setData(uName, uice);
+//    kernel.setData(vName, vice);
 
     kernel.update(tst);
 

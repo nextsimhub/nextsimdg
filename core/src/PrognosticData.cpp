@@ -59,12 +59,6 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
-    if (ms.count("u")) {
-        m_u = ms.at("u");
-    }
-    if (ms.count("v")) {
-        m_v = ms.at("v");
-    }
 
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
