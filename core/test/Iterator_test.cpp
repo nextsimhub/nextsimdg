@@ -6,8 +6,8 @@
 
 #include "Iterator.hpp"
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 namespace Nextsim {
 
@@ -46,8 +46,8 @@ size_t zeroTime<size_t>()
     return 0;
 }
 
-
-TEST_CASE("Count iterator testing", "[Iterator]")
+TEST_SUITE_BEGIN("Iterator");
+TEST_CASE("Count iterator testing")
 {
     Counterant cant = Counterant();
     Iterator iterator = Iterator(&cant);
@@ -70,5 +70,6 @@ TEST_CASE("Count iterator testing", "[Iterator]")
     REQUIRE(cant.startCount == 1);
     REQUIRE(cant.stopCount == 1);
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */
