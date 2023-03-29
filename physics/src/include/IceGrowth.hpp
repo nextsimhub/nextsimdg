@@ -106,7 +106,7 @@ private:
         lateralIceSpread(i, tst);
         applyLimits(i, tst);
     }
-    void initializeThicknesses(size_t i, const TimestepTime&);
+    void initializeThicknessesElement(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */

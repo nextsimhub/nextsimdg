@@ -146,7 +146,7 @@ void IceGrowth::update(const TimestepTime& tsTime)
 void IceGrowth::initializeThicknesses()
 {
     cice = cice0;
-    overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
+    overElements(std::bind(&IceGrowth::initializeThicknessesElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         TimestepTime());
 
@@ -155,7 +155,7 @@ void IceGrowth::initializeThicknesses()
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,
 // but only if ice concentration is non-zero.
-void IceGrowth::initializeThicknesses(size_t i, const TimestepTime&)
+void IceGrowth::initializeThicknessesElement(size_t i, const TimestepTime&)
 {
     deltaCIce[i] = 0;
 
