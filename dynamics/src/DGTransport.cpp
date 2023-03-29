@@ -206,6 +206,8 @@ void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector
   reinitnormalvelocity();
 }
 
+
+
 ////////////////////////////////////////////////// CELL TERM
 
 template <>
@@ -221,9 +223,13 @@ void DGTransport<DG>::cell_term(const ParametricMesh& smesh, double dt,
     const DGVector<DG>& vx,
     const DGVector<DG>& vy, const size_t eid)
 {
-  if (smesh.landmask[eid]==0)
+  if (smesh.landmask[eid]==0){
+    // TODO remove comments that are here to validate correctness of landmask
+    //std::cout << "element id " << eid  << " lm " << smesh.landmask[eid] << " " << phi.row(eid) << std::endl;
     return;
-
+  } else {
+    //std::cout << "element id " << eid  << " lm " << smesh.landmask[eid] << " " << phi.row(eid) << std::endl;
+  }
   const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> vx_gauss = vx.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>; //!< velocity in GP
   const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> vy_gauss = vy.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>;
   const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> phi_gauss = (phi.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>).array();

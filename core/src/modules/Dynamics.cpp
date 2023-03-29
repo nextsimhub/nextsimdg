@@ -45,6 +45,8 @@ void Dynamics::update(const TimestepTime& tst)
 {
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
+    //kernel.setData(uName, uice);
+    //kernel.setData(vName, vice);
 
     kernel.update(tst);
 

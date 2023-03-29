@@ -161,11 +161,11 @@ public:
         
         //! interpolates CG velocity to DG and reinits normal velocity
         dgtransport->prepareAdvection(u, v);
-
+        
         //! Perform transport step
-        dgtransport->step(dt_adv, cice);
-	    dgtransport->step(dt_adv, hice);
-
+        dgtransport->step(dt_adv, cice);	    
+        dgtransport->step(dt_adv, hice);
+        //std::cout << "After" << cice << std::endl;
 
     };
 
