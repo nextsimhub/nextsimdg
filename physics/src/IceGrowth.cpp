@@ -134,10 +134,7 @@ void IceGrowth::update(const TimestepTime& tsTime)
 {
 
     // Copy the ice data from the prognostic fields to the modifiable fields.
-    cice = cice0;
-    overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tsTime);
+    initializeThicknesses();
 
     iVertical->update(tsTime);
     // new ice formation
@@ -145,6 +142,16 @@ void IceGrowth::update(const TimestepTime& tsTime)
         std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),
         tsTime);
 }
+
+void IceGrowth::initializeThicknesses()
+{
+    cice = cice0;
+    overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        TimestepTime());
+
+}
+
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,
 // but only if ice concentration is non-zero.
