@@ -6,7 +6,7 @@
 
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
-#include "stopwatch.hpp"
+//#include "stopwatch.hpp"
 #include "codeGenerationDGinGauss.hpp"
 
 namespace Nextsim {
