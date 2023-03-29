@@ -34,7 +34,7 @@ datagrp = root.createGroup("data")
 
 xDim = datagrp.createDimension("x", nx)
 yDim = datagrp.createDimension("y", ny)
-nLay = datagrp.createDimension("nLayers", nLayers)
+nLay = datagrp.createDimension("z", nLayers)
 xVertexDim = datagrp.createDimension("xvertex", nx + 1)
 yVertexDim = datagrp.createDimension("yvertex", ny + 1)
 xcg_dim = datagrp.createDimension("x_cg", nx * ncg + 1)
@@ -78,7 +78,7 @@ hice = datagrp.createVariable("hice", "f8", ("x", "y",))
 hice[:,:] = cice[:,:] * 2
 hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y",))
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("x", "y", "nLayers"))
+tice = datagrp.createVariable("tice", "f8", ("x", "y", "z"))
 tice[:,:,0] = -0.5 - cice[:,:]
 sst = datagrp.createVariable("sst", "f8", ("x", "y",))
 sst[:,:] = -cice[:,:]
