@@ -54,6 +54,7 @@ add_executable(testThermoWinton
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoWinton.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
@@ -81,6 +82,7 @@ add_executable(testFEFluxes
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testFEFluxes PRIVATE

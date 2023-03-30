@@ -14,13 +14,14 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/constants.hpp"
 #include "include/IFreezingPoint.hpp"
-#include "include/IFreezingPointModule.hpp"
-#include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/Module.hpp"
 #include "include/Time.hpp"
+#include "include/UniformOcean.hpp"
 
 namespace Nextsim {
 
@@ -75,20 +76,7 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
     } atmoState;
     atmoState.setData(ModelState().data);
 
-    class OceanState : public IOceanBoundary {
-        void setData(const ModelState::DataMap& ms) override
-        {
-            IOceanBoundary::setData(ms);
-            sst[0] = -1;
-            sss[0] = 32.;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            cpml[0] = 4.29151e7;
-            qio[0]
-                = 53717.8; // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } oceanData;
+    UniformOcean oceanData(-1, 32., 4.29151e7 / (Water::rho * Water::cp), 0, 0);
     oceanData.setData(ModelState().data);
 
     class FluxData : public IFluxCalculation {
