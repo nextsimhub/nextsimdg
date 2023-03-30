@@ -29,6 +29,7 @@ add_executable(testIceGrowth
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoIce0.cpp"
     "${ModulesDir}/ThermoWinton.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/Time.cpp"
     )

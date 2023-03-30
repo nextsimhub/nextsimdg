@@ -15,13 +15,13 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
-#include "include/IFreezingPointModule.hpp"
-#include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/Module.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
+#include "include/UniformOcean.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -93,30 +93,10 @@ TEST_CASE("New ice formation", "[IceGrowth]")
     } proData;
     proData.setData(ModelState().data);
 
-    class OceanBoundary : public IOceanBoundary {
-    public:
-        OceanBoundary()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            IOceanBoundary::setData(state);
-            qio = 124.689;
-            sst = -1.5;
-            sss = 32.;
-            mld = 10.25;
-            u = 0.;
-            v = 0.;
-        }
-        void updateBefore(const TimestepTime& tst) override
-        {
-            UnescoFreezing uf;
-            cpml = Water::cp * Water::rho * mld;
-            tf = uf(sss[0]);
-        }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+
+    UniformOcean ocnBdy(-1.5, 32., 10.25);
+    ocnBdy.setQio(124.689);
     ocnBdy.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
@@ -200,30 +180,10 @@ TEST_CASE("Melting conditions", "[IceGrowth]")
     } proData;
     proData.setData(ModelState().data);
 
-    class OceanBoundary : public IOceanBoundary {
-    public:
-        OceanBoundary()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            IOceanBoundary::setData(state);
-            qio = 53717.8; // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
-            sst[0] = -1;
-            sss[0] = 32.;
-            mld[0] = 10.25;
-            u = 0;
-            v = 0;
-        }
-        void updateBefore(const TimestepTime& tst) override
-        {
-            UnescoFreezing uf;
-            cpml = Water::cp * Water::rho * mld;
-            tf = uf(sss[0]);
-        }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+
+    UniformOcean ocnBdy(-1, 32., 10.25);
+    ocnBdy.setQio(53717.8);
     ocnBdy.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
@@ -315,29 +275,10 @@ TEST_CASE("Freezing conditions", "[IceGrowth]")
     } proData;
     proData.setData(ModelState().data);
 
-    class OceanBoundary : public IOceanBoundary {
-    public:
-        OceanBoundary()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            qio = 73.9465;
-            sst = -1.75;
-            sss = 32.;
-            mld = 10.25;
-            u = 0.;
-            v = 0.;
-        }
-        void updateBefore(const TimestepTime& tst) override
-        {
-            UnescoFreezing uf;
-            cpml = Water::cp * Water::rho * mld;
-            tf = uf(sss[0]);
-        }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+
+    UniformOcean ocnBdy(-1.75, 32., 10.25);
+    ocnBdy.setQio(73.9465);
     ocnBdy.setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
