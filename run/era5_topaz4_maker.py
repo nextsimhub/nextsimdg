@@ -197,6 +197,9 @@ if __name__ == "__main__":
     element_lon = np.degrees(np.arctan2(element_y, element_x))
     element_lat = np.degrees(np.arctan2(element_z, np.hypot(element_x, element_y)))
 
+    # azimuth of the +y grid direction in radians
+    element_azimuth = np.radians(element_lon * 0 + 45)
+
     wind_speed = "wind_speed"
     atmos_fields = ("dew2m", "lw_in", "sw_in", "pair", "tair", wind_speed)
     era5_fields = ("d2m", "msdwlwrf", "msdwswrf", "msl", "msr", "mtpr", "t2m", "u10", "v10")
@@ -329,6 +332,9 @@ if __name__ == "__main__":
 
     # TOPAZ data is daily, not hourly
     topaz_time_ratio = hr_per_day
+    
+    # The current components are offset by 45˚
+    topaz_phi0 = 45 # degrees
 
     # For each field and time, get the corresponding file name for each dataset
     for field_name in ocean_fields:
@@ -349,6 +355,26 @@ if __name__ == "__main__":
             data[target_t_index, :, :] = time_data
         
     # Ocean currents
+    udata = datagrp.createVariable("u", "f8", ("time", "x", "y"))
+    vdata = datagrp.createVariable("v", "f8", ("time", "x", "y"))
+    for target_t_index in range (len(unix_times_t)):
+        u_source_file = netCDF4.Dataset(topaz4_source_file_name("u", unix_times_t[target_t_index]), "r")
+        v_source_file = netCDF4.Dataset(topaz4_source_file_name("v", unix_times_t[target_t_index]), "r")
+        target_time = topaz4_times[target_t_index]
+        source_times = u_source_file["time"]
+        time_index = (target_time - source_times[0]) // hr_per_day
+        u_source_data = u_source_file["u"][time_index, :, :].squeeze() # Need to squeeze. Why?
+        v_source_data = v_source_file["v"][time_index, :, :].squeeze()
+        u_source_data_tgrid = np.zeros((nx, ny))
+        v_source_data_tgrid = np.zeros((nx, ny))
+        # Interpolate the current components on the TOPAZ basis on to the new grid
+        u_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, u_source_data, lat_array)
+        v_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, v_source_data, lat_array)
 
-        
+        rotation_rad = np.radians(element_lon + topaz_phi0 - element_azimuth)
+        u_target_data = u_source_data_tgrid * np.cos(rotation_rad) + v_source_data_tgrid * np.sin(rotation_rad)
+        v_target_data = -u_source_data_tgrid * np.sin(rotation_rad) + v_source_data_tgrid * np.cos(rotation_rad)
+        udata[target_t_index, :, :] = u_target_data
+        vdata[target_t_index, :, :] = v_target_data
+
     topaz_root.close()
