@@ -111,6 +111,7 @@ add_executable(testConfiguredAtm
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testConfiguredAtm PRIVATE
