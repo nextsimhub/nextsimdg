@@ -123,6 +123,7 @@ target_link_libraries(testConfiguredAtm PRIVATE Boost::program_options Boost::lo
 add_executable(testBIOHFluxes
     "BasicIceOceanFlux_test.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
