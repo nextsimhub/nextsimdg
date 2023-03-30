@@ -15,7 +15,6 @@
 #include "include/BasicIceOceanHeatFlux.hpp"
 
 #include "include/IFreezingPoint.hpp"
-#include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/Module.hpp"
 #include "include/Time.hpp"

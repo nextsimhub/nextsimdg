@@ -14,7 +14,6 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/IFreezingPoint.hpp"
-#include "include/IOceanBoundary.hpp"
 #include "include/Module.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/UniformOcean.hpp"

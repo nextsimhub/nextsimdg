@@ -18,7 +18,6 @@
 #include "include/IFreezingPoint.hpp"
 #include "include/IFreezingPointModule.hpp"
 #include "include/IAtmosphereBoundary.hpp"
-#include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
