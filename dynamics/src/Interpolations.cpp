@@ -158,7 +158,11 @@ namespace Interpolations {
                         (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array())
                           .matrix()
                           .transpose();
-            else if (smesh.CoordinateSystem == CARTESIAN)
+            else if (smesh.CoordinateSystem == CARTESIAN) {
+                // TODO check it
+				if (!smesh.landmask[dgi])
+                	continue;
+
                 dg.row(dgi) = ParametricTools::massMatrix<DG>(smesh, dgi).inverse()
                     * PSI<DG, GAUSSPOINTS1D(DG)>
                     * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
@@ -166,6 +170,8 @@ namespace Interpolations {
                         * (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array())
                           .matrix()
                           .transpose();
+				//std::cout << dgi << " " << dg.row(dgi) << std::endl;
+			}
         }
     }
 

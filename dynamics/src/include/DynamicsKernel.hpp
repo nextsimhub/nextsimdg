@@ -39,8 +39,9 @@ public:
         //! Define the spatial mesh
         smesh = new Nextsim::ParametricMesh(Nextsim::CARTESIAN);
         // TODO integrate the creation of the smesh based on restart file
-        smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
-
+        //smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
+        smesh->readmesh("25km_NH.smesh");
+        
         //! Initialize transport
         dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
         dgtransport->settimesteppingscheme("rk2");
@@ -161,12 +162,13 @@ public:
         
         //! interpolates CG velocity to DG and reinits normal velocity
         dgtransport->prepareAdvection(u, v);
-        
+        std::cout << "Before Advection" << cice.row(8256) << std::endl;
         //! Perform transport step
         dgtransport->step(dt_adv, cice);	    
         dgtransport->step(dt_adv, hice);
-        //std::cout << "After" << cice << std::endl;
-
+        std::cout << "After Advection" << cice.row(8256) << std::endl;
+        //exit(0);
+        
     };
 
 private:

@@ -42,18 +42,20 @@ void Dynamics::setData(const ModelState::DataMap& ms)
 
 
 void Dynamics::update(const TimestepTime& tst)
-{
+{   std::cout << tst.start << std::endl;
+
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
     //kernel.setData(uName, uice);
     //kernel.setData(vName, vice);
-
+    std::cout << "Before update " << cice[8256] << std::endl;
     kernel.update(tst);
 
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
-    uice = kernel.getDG0Data(uName);
-    vice = kernel.getDG0Data(vName);
+    std::cout << "After update " << cice[8256] << std::endl;
+    //uice = kernel.getDG0Data(uName);
+    //vice = kernel.getDG0Data(vName);
 }
 
 }

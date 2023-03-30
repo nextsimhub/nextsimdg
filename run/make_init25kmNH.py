@@ -85,11 +85,23 @@ sst[:,:] = -cice[:,:]
 sss = datagrp.createVariable("sss", "f8", ("x", "y",))
 sss[:,:] = cice[:,:] * 33.68
 u = datagrp.createVariable("u", "f8", ("x", "y",))
-u[:,:] = 0
+u[:,:] = 0.
 v = datagrp.createVariable("v", "f8", ("x", "y",))
-v[:,:] = 0
+v[:,:] = 0.
 
-mdi = -2.**300
+#velocity in the middle of the domain
+midx = (nx + 1)//2
+midy = (nx + 1)//2
+
+for i in range(nx + 1):
+    for j in range(ny + 1):
+        if ( np.abs( j-midy ) < 20) and ( np.abs( i-midx ) < 20):
+            u[i,j] = .1
+            v[i,j] = .1
+             
+
+"""
+mdi =  -2.**300
 # mask data
 cice[:,:] = cice[:,:] * mask[:,:] + antimask * mdi
 cice.missing_value = mdi
@@ -107,5 +119,5 @@ u[:,:] = u[:,:] * mask[:,:] + antimask * mdi
 u.missing_value = mdi
 v[:,:] = v[:,:] * mask[:,:] + antimask * mdi
 v.missing_value = mdi
-
+"""
 root.close()

@@ -203,6 +203,8 @@ void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector
 { 
   Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
   Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
+  //std::cout << "V in prepare advection" << GetVx().row(55) << std::endl;
+  std::cout << "V in prepare advection" << GetVx().row(8256) << std::endl;
   reinitnormalvelocity();
 }
 
