@@ -15,7 +15,19 @@ namespace Nextsim {
 //* Ocean boundary values that are constant with space and time.
 class UniformOcean : public IOceanBoundary {
 public:
-    UniformOcean();
+    UniformOcean()
+        // The same defaults as ConstantOceanBoundary
+        : UniformOcean(-1.5, 32., 10, 0., 0.)
+    {
+    }
+    UniformOcean(double sstIn, double sssIn, double mldIn, double uIn, double vIn)
+        : sst0(sstIn)
+        , sss0(sssIn)
+        , mld0(mldIn)
+        , u0(uIn)
+        , v0(vIn)
+    {
+    }
 
     std::string getName() const override { return "UniformOcean"; }
     void setData(const ModelState::DataMap&) override;
@@ -30,11 +42,11 @@ public:
     UniformOcean& setV(double);
 
 private:
-    static double sst0;
-    static double sss0;
-    static double mld0;
-    static double u0;
-    static double v0;
+    double sst0;
+    double sss0;
+    double mld0;
+    double u0;
+    double v0;
 };
 
 } /* namespace Nextsim */
