@@ -20,12 +20,14 @@ public:
         : UniformOcean(-1.5, 32., 10, 0., 0.)
     {
     }
-    UniformOcean(double sstIn, double sssIn, double mldIn, double uIn, double vIn)
+    UniformOcean(double sstIn, double sssIn, double mldIn, double uIn = 0., double vIn = 0.,
+        double qioIn = 0.)
         : sst0(sstIn)
         , sss0(sssIn)
         , mld0(mldIn)
         , u0(uIn)
         , v0(vIn)
+        , qio0(qioIn)
     {
     }
 
@@ -38,6 +40,7 @@ public:
     UniformOcean& setSST(double);
     UniformOcean& setSSS(double);
     UniformOcean& setMLD(double);
+    UniformOcean& setQio(double);
     UniformOcean& setU(double);
     UniformOcean& setV(double);
 
@@ -47,6 +50,7 @@ private:
     double mld0;
     double u0;
     double v0;
+    double qio0;
 };
 
 } /* namespace Nextsim */

@@ -23,6 +23,7 @@ void UniformOcean::setData(const ModelState::DataMap& ms)
     v = v0;
     tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
     cpml = Water::rho * Water::cp * mld[0];
+    qio = qio0;
 }
 
 UniformOcean& UniformOcean::setSST(double in)
@@ -48,6 +49,11 @@ UniformOcean& UniformOcean::setU(double in)
 UniformOcean& UniformOcean::setV(double in)
 {
     v0 = in;
+    return *this;
+}
+UniformOcean& UniformOcean::setQio(double in)
+{
+    qio0 = in;
     return *this;
 }
 
