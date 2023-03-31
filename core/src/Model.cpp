@@ -69,7 +69,8 @@ void Model::configure()
     TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
     m_etadata.setTime(timeNow);
 
-    MissingData::value = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
+    MissingData::value
+        = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
