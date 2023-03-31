@@ -154,3 +154,22 @@ target_include_directories(testSpecHum PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testSpecHum PRIVATE Catch2::Catch2)
+
+add_executable(testUniformOcean
+    "UniformOcean_test.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+)
+target_include_directories(testUniformOcean PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testUniformOcean PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
