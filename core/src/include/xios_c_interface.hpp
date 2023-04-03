@@ -20,15 +20,21 @@ extern "C"
   void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret);
   //Date Utility
   void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size);
-  cxios_date cxios_date_convert_from_string(char* str, int str_size);
+  //TODO: If I added this then consider void and making final arg cxios_date (again)
+  cxios_date* cxios_date_convert_from_string(char* str, int str_size);
+  //cxios_date cxios_date_convert_from_string(const char* str, int str_size);
+
+  //TODO: Can't be import definitions from the xios header file? Why does this file even exist?
+  void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size);
+  cxios_duration* cxios_duration_convert_from_string(const char* str, int str_size);
 
   //Calendar Origin
   void cxios_set_calendar_wrapper_date_time_origin(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* time_origin_c);
   void cxios_get_calendar_wrapper_date_time_origin(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* time_origin_c);
 
   //Calendar Start Date
-  void cxios_get_calendar_wrapper_date_start_date(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
-  void cxios_set_calendar_wrapper_date_start_date(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
+  void cxios_set_calendar_wrapper_date_start_date(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date *start_date_c);
+  void cxios_get_calendar_wrapper_date_start_date(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date *start_date_c);
 
   //Calendar Timestep
   void cxios_set_calendar_wrapper_timestep(xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration timestep_c);
