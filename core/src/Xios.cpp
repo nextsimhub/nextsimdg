@@ -65,7 +65,30 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         cout << "XIOS --- CONFIGURE SERVER EXIT POINT" << endl; 
     }
 
+    void Xios::configureCalendar() 
+    {
 
+        cout << "XIOS --- CONFIGURE CALENDAR ENTRY POINT" << endl; 
+        //Set member variable to xios calendar object
+        cxios_get_current_calendar_wrapper( &m_clientCalendar );
+
+        //Report to std out
+        //getCalendarConfiguration();
+
+        //TODO: Argument from Xios::Configure, itself from callsite in Model?
+        //TODO: Take string as argument and convert to char for the extern c?
+        char dstart_str[20] = "2023-03-03 17:11:00";
+        cout << "Enter setCalendarStart" << endl;
+        //TODO: xios::CException is thrown
+        //setCalendarStart(dstart_str, 20);
+        cout << "Enter setCalendarTimestep" << endl;
+        setCalendarTimestep();
+
+        //Report to std out
+        getCalendarConfiguration();
+
+        cout << "XIOS --- CONFIGURE CALENDAR EXIT POINT" << endl; 
+    }
 
 
 
@@ -86,20 +109,68 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         return convertXiosDatetimeToString(dorigin, isoFormat);
     }
 
+    //TODO: Consider if we want a std::string or char* 
+    void Xios::setCalendarOrigin()
+    {
+    }
+
     std::string Xios::getCalendarStart(bool isoFormat)
     {
-        cout << "getCalendarstart" << endl;
+        cout << "XIOS --- GET CALENDAR START ENTRY" << endl;
         cxios_date dstart;
         cxios_get_calendar_wrapper_date_start_date( m_clientCalendar, &dstart);
         return convertXiosDatetimeToString(dstart, isoFormat);
+        cout << "XIOS --- GET CALENDAR START EXIT" << endl;
     }
 
     void Xios::setCalendarStart(char* dstart_str, int str_size)
     {
+
+        cout << "XIOS --- SET CALENDAR START ENTRY" << endl;
+        
         //This string must be in YYYY-MM-DD HH-MM-SS format (I think the size of each can vary but the orders and delims cant)
-        cxios_date *dstart = new cxios_date();
-        dstart = cxios_date_convert_from_string(dstart_str, str_size);
+        char *dstart_str_test = "2023-03-03 17-11-00";
+        cxios_date *dstart = new cxios_date;
+        cout << "convert from string" << endl;
+        dstart = cxios_date_convert_from_string(dstart_str_test, 20);//, dstart);
+        cout << "set calendar wrapper" << endl;
         cxios_set_calendar_wrapper_date_start_date( m_clientCalendar, dstart );
+
+        //cxios_set_calendar_wrapper_date_start_date( m_clientCalendar, dstart, 20);
+
+        cout << "XIOS --- SET CALENDAR START EXIT" << endl;
+    }
+
+    std::string Xios::getCalendarTimestep()
+    {
+        cout << "XIOS --- GET CALENDAR TIMESTEP ENTRY" << endl;
+        const int str_size = 50;//11+1; 
+        char dur_str[str_size]; 
+        cxios_duration dtime;
+        cxios_get_calendar_wrapper_timestep(m_clientCalendar, dtime);
+        cxios_duration_convert_to_string(dtime, dur_str, str_size);
+
+        cout << "XIOS --- GET CALENDAR TIMESTEP EXIT" << endl;
+        return dur_str;
+    }
+
+    //Do I want arguments here or what? --- how do I link back to config argument value?
+    //TODO: Consider if we want a std::string or char* 
+    void Xios::setCalendarTimestep() 
+    {   
+        //Default timestep values
+        cxios_duration dtime;
+        dtime.year = 0;
+        dtime.month = 0;
+        dtime.day = 0;
+        dtime.hour = 0;
+        dtime.minute = 0;
+        dtime.second = 0;
+        dtime.timestep = 0;
+        dtime.second = 3600;
+        
+        cxios_set_calendar_wrapper_timestep( m_clientCalendar, dtime );
+        cxios_update_calendar_timestep( m_clientCalendar );
     }
 
 
@@ -107,9 +178,12 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     //TODO: Create the reverse operation
     std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
     {
+
+        cout << "XIOS --- CONVERT XIOS DATETIME TO STRING ENTRY" << endl;
         const int str_size = 20;
         char datetime_str[20];
         if (isoFormat) {
+            cout << "IF" << endl;
             //TODO: Find a better way of doing this?
             //TODO: The individual elements need pre-formatting. Make a function?
             boost::format fmt = boost::format("%1%-%2%-%3%T%4%:%5%:%6%Z") 
@@ -121,9 +195,11 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
             % boost::io::group(std::setw(2), std::setfill('0'), datetime.second);
             return fmt.str();
         } else {
+            cout << "ELSE" << endl;
             cxios_date_convert_to_string(datetime, datetime_str, str_size);
         }
 
+        cout << "XIOS --- CONVERT XIOS DATETIME TO STRING EXIT" << endl;
         return datetime_str;
     }
 
@@ -143,59 +219,23 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     //     return datetime;
     // }
 
-    void Xios::configureCalendar() 
-    {
-
-        cout << "XIOS --- CONFIGURE CALENDAR ENTRY POINT" << endl; 
-        //Set member variable to xios calendar object
-        cxios_get_current_calendar_wrapper( &m_clientCalendar );
-
-        //TODO: Argument from Xios::Configure, itself from callsite in Model?
-        //TODO: Take string as argument and convert to char for the extern c?
-        char dstart_str[20] = "2021-03-01 00:00:00";
-        cout << "Enter setCalendarStart" << endl;
-        //TODO: xios::CException is thrown
-        //setCalendarStart(dstart_str, 20);
-        cout << "Enter setCalendarTimestep" << endl;
-        setCalendarTimestep();
-
-        //Report to std out
-        getCalendarConfiguration();
-
-        cout << "XIOS --- CONFIGURE CALENDAR EXIT POINT" << endl; 
-    }
-
-
-    //Do I want arguments here or what? --- how do I link back to config argument value?
-    void Xios::setCalendarTimestep() 
-    {        
-        //Default timestep values
-        cxios_duration dtime;
-        dtime.year = 0;
-        dtime.month = 0;
-        dtime.day = 0;
-        dtime.hour = 0;
-        dtime.minute = 0;
-        dtime.second = 0;
-        dtime.timestep = 0;
-        dtime.second = 3600;
-        
-        cxios_set_calendar_wrapper_timestep( m_clientCalendar, dtime );
-        cxios_update_calendar_timestep( m_clientCalendar );
-    }
-
     //Do I want an array of strings? Origin/Start/Step?
     void Xios::getCalendarConfiguration()
     {
+        cout << "GET CALENDAR CONFIGURATION ENTRY POINT" << endl;
         //Report calendar origin/start
         int rank(0);
         if (rank == 0) 
         {
             std::string calendar_origin = getCalendarOrigin();
             std::string calendar_start = getCalendarStart(true);
+            std::string calendar_timestep = getCalendarTimestep();
             cout << "calendar time_origin = " << calendar_origin << endl;
             cout << "calendar start_date = " << calendar_start << endl;
+            cout << "calendar time_step = " << calendar_timestep << endl; 
         }
+
+        cout << "GET CALENDAR CONFIGURATION EXIT" << endl;
     }
 
     //Setup XIOS server process, calendar and parse iodel.xml
