@@ -133,7 +133,12 @@ if __name__ == "__main__":
     elem_lat[:, :] = grid["plat"][:, :]
     
     grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", ("x", "y"))
-    grid_azimuth[:, :] = grid["plon"][:, :] + np.degrees(grid["ptheta"][:, :])
+    # Return the grid azimuth to the range -180˚ to 180˚
+    grid_azimuth_data = grid["plon"][:, :] + np.degrees(grid["ptheta"][:, :])
+    grid_azimuth_data += 180
+    grid_azimuth_data %= 360.
+    grid_azimuth_data -= 180
+    grid_azimuth[:, :] = grid_azimuth_data
     
     # Access the TOPAZ data, initally to get latitudes
     source_file_name = topaz4_source_file_name("hice", data_time)
@@ -202,11 +207,9 @@ if __name__ == "__main__":
 
     # Ice starts at rest
     u = datagrp.createVariable("u", "f8", ("x", "y"))
-    u_data = topaz4_interpolate(element_lon, element_lat, uv_source_file["u"][0, :, :].squeeze(), lat_array)
-    u[:, :] = u_data
+    u[:, :] = 0
 
     v = datagrp.createVariable("v", "f8", ("x", "y"))
-    v_data = topaz4_interpolate(element_lon, element_lat, uv_source_file["v"][0, :, :].squeeze(), lat_array)
-    v[:, :] = v_data
+    v[:, :] = 0
     
     root.close()
