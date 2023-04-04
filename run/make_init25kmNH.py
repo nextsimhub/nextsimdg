@@ -71,6 +71,8 @@ elem_lon[:, :] = grid["plon"][:, :]
 elem_lat = datagrp.createVariable("latitude", "f8", ("x", "y",))
 elem_lat[:, :] = grid["plat"][:, :]
 
+grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", ("x", "y"))
+grid_azimuth[:, :] = grid["plon"][:, :] + np.degrees(grid["ptheta"][:, :])
 
 cice = datagrp.createVariable("cice", "f8", ("x", "y",))
 cice[:,:] = mask[:, :] * 0.95
