@@ -300,7 +300,7 @@ int main()
     //meshes.push_back("../ParametricMesh/rectangle_512x512.smesh");
 
      for (const auto& it : meshes) {
-         //run_benchmark<1, 3, 3>(it);
+         run_benchmark<1, 3, 3>(it);
          run_benchmark<2, 6, 8>(it);
      }
 }
