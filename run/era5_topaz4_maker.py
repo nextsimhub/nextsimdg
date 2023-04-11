@@ -147,6 +147,25 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     
     return bilinear_missing(target_i, target_j, data, -32767)
     
+# Returns the rotation angle at a given position to transform vectors from
+# geographic pole coordinates to the Greenland displaced pole coordinate system
+def heading_to_greenland(lat, lon):
+    # The pole lies at 75˚ N, 40˚ W = -40˚ E = 320˚ E
+    pole_lat = math.radians(75.0)
+    pole_lon = 320.0
+    
+    delta_lon = np.radians(pole_lon - lon)
+    
+    rlat = np.radians(lat)
+    
+    # The rotation of the basis vector can be computed as the azimuth of the
+    # great circle path from the location to the location of the new pole.
+    return np.arctan2(math.cos(pole_lat) * np.sin(delta_lon), np.cos(rlat) * math.sin(pole_lat) - np.sin(rlat) * math.cos(pole_lat) * np.cos(delta_lon))
+
+# Rotates the u and v velocity components by an angle given in radians
+def rotate_velocities(u, v, angle):
+    return (u * np.cos(angle) + v * np.sin(angle), -u * np.sin(angle) + v * np.cos(angle))
+
 # The main script. Calculates ERA5 and TOPAZ forcing files, given a grid to
 # interpolate on to and start and stop dates
 if __name__ == "__main__":
@@ -371,9 +390,12 @@ if __name__ == "__main__":
         u_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, u_source_data, lat_array)
         v_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, v_source_data, lat_array)
 
+        # Rotate from grid coordinates to geographic eastward/northward components
         rotation_rad = np.radians(element_lon + topaz_phi0 - element_azimuth)
-        u_target_data = u_source_data_tgrid * np.cos(rotation_rad) + v_source_data_tgrid * np.sin(rotation_rad)
-        v_target_data = -u_source_data_tgrid * np.sin(rotation_rad) + v_source_data_tgrid * np.cos(rotation_rad)
+        rotation_rad += heading_to_greenland(element_lat, element_lon)
+        
+        (u_target_data, v_target_data) = rotate_velocities(u_source_data_tgrid, v_source_data_tgrid, rotation_rad)
+        
         udata[target_t_index, :, :] = u_target_data
         vdata[target_t_index, :, :] = v_target_data
 
