@@ -282,6 +282,9 @@ if __name__ == "__main__":
                     time_data -= zero_C_in_kelvin
                 data[target_t_index, :, :] = time_data
         else:
+            # Also handle the wind components along with the wind speed
+            u_var = datagrp.createVariable("u", "f8", ("time", "x", "y"))
+            v_var = datagrp.createVariable("v", "f8", ("time", "x", "y"))
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
                 u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index]), "r")
@@ -291,13 +294,19 @@ if __name__ == "__main__":
                 target_time = era5_times[target_t_index]
                 source_times = u_file["time"]
                 time_index = target_time - source_times[0]
-                u_data = u_file["u10"][time_index, :, :]
-                v_data = v_file["v10"][time_index, :, :]
+                u_data_source = u_file["u10"][time_index, :, :]
+                v_data_source = v_file["v10"][time_index, :, :]
                 # Now interpolate the source data to the target grid
-                time_data = np.zeros((nx, ny))
-                time_data = np.hypot(era5_interpolate(element_lon, element_lat, u_data, source_lons, source_lats),
-                                     era5_interpolate(element_lon, element_lat, v_data, source_lons, source_lats))
-                data[target_t_index, :, :] = time_data
+                u_data_target = np.zeros((nx, ny))
+                u_data_target = era5_interpolate(element_lon, element_lat, u_data_source, source_lons, source_lats)
+                v_data_target = np.zeros((nx, ny))
+                v_data_target = era5_interpolate(element_lon, element_lat, v_data_source, source_lons, source_lats)
+                speed_data = np.hypot(u_data_target, v_data_target)
+                data[target_t_index, :, :] = speed_data
+                # Rotate the components from the ERA5 geographic grid to the Greenland displaced pole grid
+                (u_data, v_data) = rotate_velocities(u_data_target, -v_data_target, greenland_headings)
+                u_var[target_t_index, :, :] = u_data
+                v_var[target_t_index, :, :] = -v_data
                 # Also use the windspeed loop to fill the time axis
                 nc_times[time_index] = unix_times_e[target_t_index]
     era_root.close()
