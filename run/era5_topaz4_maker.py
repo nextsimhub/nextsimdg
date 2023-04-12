@@ -258,6 +258,8 @@ if __name__ == "__main__":
     nc_lats = datagrp.createVariable("latitude", "f8", ("x", "y"))
     nc_lats[:, :] = element_lat
     
+    greenland_headings = heading_to_greenland(element_lat, element_lon)
+    
     nc_times = datagrp.createVariable("time", "f8", ("time"))
     
     (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
