@@ -57,6 +57,8 @@ public:
         ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
         TF, // Ocean freezing temperature, ˚C
         WIND_SPEED, // Wind speed, m s⁻¹
+        WIND_U, // wind velocity x component, m s⁻¹
+        WIND_V, // wind velocity y component, m s⁻¹
         HTRUE_ICE, // Ice thickness, ice average, m
         HTRUE_SNOW, // Snow thickness, ice average, m
         OCEAN_U, // x(east)-ward ocean current, m s⁻¹
