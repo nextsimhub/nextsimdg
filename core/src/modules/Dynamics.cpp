@@ -46,6 +46,7 @@ void Dynamics::update(const TimestepTime& tst)
 
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
+
     //kernel.setData(uName, uice);
     //kernel.setData(vName, vice);
     std::cout << "Before update " << cice[8256] << std::endl;
@@ -54,6 +55,7 @@ void Dynamics::update(const TimestepTime& tst)
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
     std::cout << "After update " << cice[8256] << std::endl;
+
     //uice = kernel.getDG0Data(uName);
     //vice = kernel.getDG0Data(vName);
 }

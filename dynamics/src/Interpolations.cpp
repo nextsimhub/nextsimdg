@@ -130,6 +130,9 @@ namespace Interpolations {
         // parallelize over elements
 #pragma omp parallel for
         for (size_t dgi = 0; dgi < smesh.nelements; ++dgi) {
+            //! set row to zero
+            dg.row(dgi).setZero();
+
             size_t iy = dgi / smesh.nx; //!< y-index of element
             size_t ix = dgi % smesh.nx; //!< x-index of element
 
@@ -170,7 +173,6 @@ namespace Interpolations {
                         * (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array())
                           .matrix()
                           .transpose();
-				//std::cout << dgi << " " << dg.row(dgi) << std::endl;
 			}
         }
     }

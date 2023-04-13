@@ -16,6 +16,8 @@
 
 #include "cgVector.hpp"
 #include "dgVector.hpp"
+#include "dgVisu.hpp"
+
 
 #include "CGModelArray.hpp"
 #include "DGModelArray.hpp"
@@ -25,9 +27,6 @@
 
 #include <string>
 #include <unordered_map>
-
-//Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
-
 
 namespace Nextsim {
 
@@ -42,6 +41,31 @@ public:
         //smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
         smesh->readmesh("25km_NH.smesh");
         
+        // transform mesh to 2d-projection, see benchmark_mehlmann_orcamesh_mevp.cpp
+        double R = 6371000.0;
+        for (size_t i = 0; i<smesh->nnodes;++i)
+        {
+            const double x = R * cos(M_PI/180.0*smesh->vertices(i,1)) * cos(M_PI/180.0*smesh->vertices(i,0));
+            const double y = R * cos(M_PI/180.0*smesh->vertices(i,1)) * sin(M_PI/180.0*smesh->vertices(i,0));
+            smesh->vertices(i,0) =0.25*(-sin(M_PI/4.)*x+cos(M_PI/4.0)*y       );
+            smesh->vertices(i,1) =0.25*( cos(M_PI/4.)*x+sin(M_PI/4.0)*y + 2.e6);
+        }
+        
+        // output land mask
+        Nextsim::DGVector<1> landmask(*smesh);
+        for (size_t i=0;i<smesh->nelements;++i)
+            landmask(i,0) = smesh->landmask[i];
+        Nextsim::VTK::write_dg<1>("landmask", 0, landmask, *smesh);
+
+
+        // output boundary info
+        Nextsim::DGVector<1> boundary(*smesh);
+        for (size_t j=0;j<4;++j)
+            for (size_t i=0;i<smesh->dirichlet[j].size();++i)
+            boundary(smesh->dirichlet[j][i],0) = 1+j;
+        Nextsim::VTK::write_dg<1>("boundary", 0, boundary, *smesh);
+
+
         //! Initialize transport
         dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
         dgtransport->settimesteppingscheme("rk2");
@@ -88,6 +112,12 @@ public:
             //CGModelArray::ma2cg(data, u);
             DGVector<DGadvection> utmp(*smesh);
             DGModelArray::ma2dg(data, utmp);
+
+            Nextsim::DGVector<DGadvection> X = utmp;
+            for (size_t i=0;i<smesh->nx;++i)
+                for (size_t j=0;j<smesh->ny;++j)
+                    utmp.row((smesh->nx)*j+i) = X.row((smesh->ny)*i+j);
+            
             Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
         } else if (name == "v") {
             //CGModelArray::ma2cg(data, v);
@@ -163,11 +193,30 @@ public:
         //! interpolates CG velocity to DG and reinits normal velocity
         dgtransport->prepareAdvection(u, v);
         std::cout << "Before Advection" << cice.row(8256) << std::endl;
+
+
+        Nextsim::DGVector<6> X = hice;
+        for (size_t i=0;i<smesh->nx;++i)
+            for (size_t j=0;j<smesh->ny;++j)
+                hice.row(smesh->nx*j+i) = X.row(smesh->ny*i+j);
+
+        /*
+        // Switching x and y for CG2 elements
+        Nextsim::CGVector<2> Y = u;
+        for (size_t i=0;i<2*smesh->nx+1;++i)
+            for (size_t j=0;j<2*smesh->ny+1;++j)
+                u.row((1+2*smesh->nx)*j+i) = Y.row((1+2*smesh->ny)*i+j);
+        */
+
+        //Nextsim::VTK::write_cg<2>("u", 0, u, *smesh);
+        //Nextsim::VTK::write_dg<6>("hice", 0, hice, *smesh);
+        
         //! Perform transport step
         dgtransport->step(dt_adv, cice);	    
         dgtransport->step(dt_adv, hice);
-        std::cout << "After Advection" << cice.row(8256) << std::endl;
-        //exit(0);
+
+        
+        
         
     };
 

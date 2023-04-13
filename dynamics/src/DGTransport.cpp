@@ -6,12 +6,10 @@
 
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
-//#include "stopwatch.hpp"
 #include "codeGenerationDGinGauss.hpp"
 
 namespace Nextsim {
 
-//extern Timer GlobalTimer;
 
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
@@ -203,8 +201,6 @@ void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector
 { 
   Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
   Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
-  //std::cout << "V in prepare advection" << GetVx().row(55) << std::endl;
-  std::cout << "V in prepare advection" << GetVx().row(8256) << std::endl;
   reinitnormalvelocity();
 }
 
@@ -355,14 +351,11 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const dou
 {
     phiup.zero();
 
-    //GlobalTimer.start("-- -- --> cell term");
     // Cell terms
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid)
         cell_term(smesh, dt, phiup, phi, vx, vy, eid);
-    //GlobalTimer.stop("-- -- --> cell term");
 
-    //GlobalTimer.start("-- -- --> edge terms");
     // Y - edges, only inner ones
 #pragma omp parallel for
     for (size_t iy = 0; iy < smesh.ny; ++iy) {
@@ -380,11 +373,7 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const dou
         for (size_t i = 0; i < smesh.ny - 1; ++i, ic += smesh.nx, ie += smesh.nx)
             edge_term_X(smesh, dt, phiup, phi, normalvel_X, ic, ic + smesh.nx, ie);
     }
-    //GlobalTimer.stop("-- -- --> edge terms");
-
-    // boundaries
-    //GlobalTimer.start("-- -- --> boundaries");
-
+   
 
     // Periodic
     for (size_t pc = 0 ; pc<smesh.periodic.size(); ++pc)
@@ -429,13 +418,10 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const dou
 	      }
 	  }
       }
-    //GlobalTimer.stop("-- -- --> boundaries");
-
-    //GlobalTimer.start("-- -- --> inverse mass");
+   
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid)
       phiup.row(eid) =  parammap.InverseDGMassMatrix[eid] * phiup.row(eid).transpose();
-    //GlobalTimer.stop("-- -- --> inverse mass");
 }
 
 template <int DG>
@@ -477,27 +463,11 @@ void DGTransport<DG>::step_rk3(const double dt, DGVector<DG>& phi)
 
     phi *= 1.0 / 3.0;
     phi += 2.0 / 3.0 * tmp3;
-
-    // parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
-    //     tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
-
-    // phi += 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
-    // parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
-    //     tmp2); // k * F(k1) // K2 in Heun(3)
-    // phi -= 1. / 3. * tmp1; // phi = phi + k/3 * F(u)   (i.e.: implicit Euler)
-
-    // phi += 2. / 3. * tmp2;
-    // parametricTransportOperator<DG>(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
-    //     tmp3); // k * F(k2) // K3 in Heun(3)
-    // phi -= 2. / 3. * tmp2;
-
-    // phi += 0.25 * tmp1 + 0.75 * tmp3;
 }
 
 template <int DG>
 void DGTransport<DG>::step(const double dt, DGVector<DG>& phi)
 {
-  //GlobalTimer.start("-- --> step");
   if (timesteppingscheme == "rk1")
     step_rk1(dt, phi);
   else if (timesteppingscheme == "rk2")
@@ -508,7 +478,6 @@ void DGTransport<DG>::step(const double dt, DGVector<DG>& phi)
     std::cerr << "Time stepping scheme '" << timesteppingscheme << "' not known!" << std::endl;
     abort();
   }
-  //GlobalTimer.stop("-- --> step");
 }
 
 #undef EDGEDOFS
