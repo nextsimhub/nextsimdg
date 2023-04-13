@@ -31,6 +31,7 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::STOPTIME_KEY, "model.stop" },
     { Model::RUNLENGTH_KEY, "model.run_length" },
     { Model::TIMESTEP_KEY, "model.time_step" },
+    { Model::RESTARTPERIOD_KEY, "model.restart_perod" },
 };
 
 Model::Model()
@@ -91,6 +92,7 @@ ConfigMap Model::getConfig() const
         { keyMap.at(STOPTIME_KEY), stopTimeStr },
         { keyMap.at(RUNLENGTH_KEY), durationStr },
         { keyMap.at(TIMESTEP_KEY), stepStr },
+        { keyMap.at(RESTARTPERIOD_KEY), restartPeriod.format() },
     };
     // MissingData has a static getState
     cMap.merge(MissingData::getConfig());
@@ -111,9 +113,12 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model run length, formatted as an ISO8601 duration (P prefix). "
             "Overrides the stop time if set. " },
         { keyMap.at(TIMESTEP_KEY), ConfigType::STRING, {}, "", "",
-            "Model physics timestep, formatted a ISO8601 duration (P prefix). " },
+            "Model physics timestep, formatted as an ISO8601 duration (P prefix). " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
+        { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "", "",
+            "The period between restart file outputs, formatted as an ISO8601 duration (P prefix) "
+            "or number of seconds." },
     };
 
     return map;

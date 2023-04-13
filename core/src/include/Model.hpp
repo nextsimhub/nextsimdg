@@ -34,6 +34,7 @@ public:
         STOPTIME_KEY,
         RUNLENGTH_KEY,
         TIMESTEP_KEY,
+        RESTARTPERIOD_KEY,
     };
 
     ConfigMap getConfig() const;
@@ -69,6 +70,9 @@ private:
     std::string stopTimeStr;
     std::string durationStr;
     std::string stepStr;
+
+    // Period between restart file outputs
+    Duration restartPeriod;
 };
 
 } /* namespace Nextsim */
