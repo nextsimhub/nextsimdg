@@ -139,12 +139,7 @@ void Model::writeRestartFile()
 {
     // TODO Replace with real logging
     Logged::notice(std::string("  Writing state-based restart file: ") + finalFileName + '\n');
-    // Copy the configuration from the ModelState to the ModelMetadata
-    ConfigMap modelConfig = getConfig();
-    modelConfig.merge(pData.getStateRecursive(true).config);
-    modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
-    m_etadata.setConfig(modelConfig);
-    StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
+    pData.writeRestartFile(finalFileName);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }

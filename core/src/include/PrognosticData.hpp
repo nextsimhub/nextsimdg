@@ -72,6 +72,12 @@ public:
     //! Returns a const reference to the (three dimensional) ice temperature field.
     const ZField& iceTemperature() { return m_tice; }
 
+    /*!
+     * Writes a restart file to the specified file path.
+     * @param filePath the file path to write the restart file to.
+     */
+    void writeRestartFile(const std::string& filePath) const;
+
 private:
     HField m_thick;
     HField m_conc;
@@ -84,6 +90,11 @@ private:
     IceGrowth iceGrowth;
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;
+
+    class PDWriter {
+    public:
+       static void write(const PrognosticData& pd, const std::string& filePath);
+    };
 };
 
 } /* namespace Nextsim */

@@ -23,6 +23,7 @@ set(BaseSources
     "NetcdfMetadataConfiguration.cpp"
     "NZLevels.cpp"
     "PrognosticData.cpp"
+    "PDWriter.cpp"
     "Time.cpp"
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
