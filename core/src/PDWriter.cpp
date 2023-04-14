@@ -8,6 +8,7 @@
 #include "include/PrognosticData.hpp"
 
 #include "include/ConfiguredModule.hpp"
+#include "include/ModelConfig.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/StructureFactory.hpp"
 
@@ -15,6 +16,7 @@ namespace Nextsim {
 void PrognosticData::writeRestartFile(const std::string& filePath) const
 {
     ConfigMap modelConfig;
+    modelConfig.merge(ModelConfig::getConfig());
     modelConfig.merge(getStateRecursive(true).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     ModelMetadata meta;
