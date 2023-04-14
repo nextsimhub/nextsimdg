@@ -11,6 +11,7 @@
 
 #include "include/Configured.hpp"
 #include "include/Iterator.hpp"
+#include "include/ModelConfig.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 #include "include/PrognosticData.hpp"
@@ -28,14 +29,6 @@ public:
     ~Model(); // Finalize the model. Collect data and so on.
 
     void configure() override;
-    enum {
-        RESTARTFILE_KEY,
-        STARTTIME_KEY,
-        STOPTIME_KEY,
-        RUNLENGTH_KEY,
-        TIMESTEP_KEY,
-        RESTARTPERIOD_KEY,
-    };
 
     ConfigMap getConfig() const;
 
@@ -56,6 +49,15 @@ public:
     // Configuration option that holds the restart file name
     const static std::string restartOptionName;
 
+    enum {
+        RESTARTFILE_KEY,
+        STARTTIME_KEY = ModelConfig::STARTTIME_KEY,
+        STOPTIME_KEY = ModelConfig::STOPTIME_KEY,
+        RUNLENGTH_KEY = ModelConfig::RUNLENGTH_KEY,
+        TIMESTEP_KEY = ModelConfig::TIMESTEP_KEY,
+        RESTARTPERIOD_KEY = ModelConfig::RESTARTPERIOD_KEY,
+    };
+
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
@@ -64,7 +66,7 @@ private:
 
     std::string initialFileName;
     std::string finalFileName;
-
+/*
     // Cached values of the start-step-stop/duration times
     std::string startTimeStr;
     std::string stopTimeStr;
@@ -73,6 +75,7 @@ private:
 
     // Period between restart file outputs
     Duration restartPeriod;
+    */
 };
 
 } /* namespace Nextsim */

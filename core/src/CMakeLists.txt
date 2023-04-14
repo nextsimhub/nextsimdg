@@ -19,6 +19,7 @@ set(BaseSources
     "MissingData.cpp"
     "ModelArray.cpp"
     "ModelComponent.cpp"
+    "ModelConfig.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"
     "NZLevels.cpp"

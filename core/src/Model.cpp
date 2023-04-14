@@ -22,17 +22,22 @@
 
 namespace Nextsim {
 
+template<typename Key, typename Value>
+static std::map<Key, Value> combineMaps(std::map<Key, Value>& map1, std::map<Key, Value>& map2)
+{
+    std::map<Key, Value> map3 = map1;
+    map3.merge(map2);
+    return map3;
+}
+
+static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
 const std::string Model::restartOptionName = "model.init_file";
+static std::map<int, std::string> restartKeyMap = {
+    { Model::RESTARTFILE_KEY, Model::restartOptionName },
+};
 
 template <>
-const std::map<int, std::string> Configured<Model>::keyMap = {
-    { Model::RESTARTFILE_KEY, Model::restartOptionName },
-    { Model::STARTTIME_KEY, "model.start" },
-    { Model::STOPTIME_KEY, "model.stop" },
-    { Model::RUNLENGTH_KEY, "model.run_length" },
-    { Model::TIMESTEP_KEY, "model.time_step" },
-    { Model::RESTARTPERIOD_KEY, "model.restart_perod" },
-};
+const std::map<int, std::string> Configured<Model>::keyMap = combineMaps(interimKeyMap, restartKeyMap);
 
 Model::Model()
 {
@@ -61,12 +66,15 @@ void Model::configure()
     // Configure logging
     Logged::configure();
 
-    startTimeStr = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
-    stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
-    durationStr = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
-    stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+    ModelConfig::startTimeStr
+        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
+    ModelConfig::stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
+    ModelConfig::durationStr
+        = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
+    ModelConfig::stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
-    TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
+    TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
+        ModelConfig::durationStr, ModelConfig::stepStr);
     m_etadata.setTime(timeNow);
 
     MissingData mdi;
@@ -87,13 +95,7 @@ void Model::configure()
 
 ConfigMap Model::getConfig() const
 {
-    ConfigMap cMap = {
-        { keyMap.at(STARTTIME_KEY), startTimeStr },
-        { keyMap.at(STOPTIME_KEY), stopTimeStr },
-        { keyMap.at(RUNLENGTH_KEY), durationStr },
-        { keyMap.at(TIMESTEP_KEY), stepStr },
-        { keyMap.at(RESTARTPERIOD_KEY), restartPeriod.format() },
-    };
+    ConfigMap cMap = ModelConfig::getConfig();
     // MissingData has a static getState
     cMap.merge(MissingData::getConfig());
 
