@@ -22,7 +22,7 @@ const std::map<int, std::string> ModelConfig::keyMap = {
     { ModelConfig::STOPTIME_KEY, "model.stop" },
     { ModelConfig::RUNLENGTH_KEY, "model.run_length" },
     { ModelConfig::TIMESTEP_KEY, "model.time_step" },
-    { ModelConfig::RESTARTPERIOD_KEY, "model.restart_perod" },
+    { ModelConfig::RESTARTPERIOD_KEY, "model.restart_period" },
 };
 
 ConfigMap ModelConfig::getConfig()
