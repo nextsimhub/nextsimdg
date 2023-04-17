@@ -13,9 +13,11 @@
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
 #include "DGTransport.hpp"
+#include "cgParametricMomentum.hpp"
 
 #include "cgVector.hpp"
 #include "dgVector.hpp"
+//#include "dgLimit.hpp"
 #include "dgVisu.hpp"
 
 
@@ -37,19 +39,9 @@ public:
 
         //! Define the spatial mesh
         smesh = new Nextsim::ParametricMesh(Nextsim::CARTESIAN);
-        // TODO integrate the creation of the smesh based on restart file
+        // FIXME integrate the creation of the smesh based on restart file
         //smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
         smesh->readmesh("25km_NH.smesh");
-        
-        // transform mesh to 2d-projection, see benchmark_mehlmann_orcamesh_mevp.cpp
-        double R = 6371000.0;
-        for (size_t i = 0; i<smesh->nnodes;++i)
-        {
-            const double x = R * cos(M_PI/180.0*smesh->vertices(i,1)) * cos(M_PI/180.0*smesh->vertices(i,0));
-            const double y = R * cos(M_PI/180.0*smesh->vertices(i,1)) * sin(M_PI/180.0*smesh->vertices(i,0));
-            smesh->vertices(i,0) =0.25*(-sin(M_PI/4.)*x+cos(M_PI/4.0)*y       );
-            smesh->vertices(i,1) =0.25*( cos(M_PI/4.)*x+sin(M_PI/4.0)*y + 2.e6);
-        }
         
         // output land mask
         Nextsim::DGVector<1> landmask(*smesh);
@@ -70,6 +62,11 @@ public:
         dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
         dgtransport->settimesteppingscheme("rk2");
 
+        //! Initialize momentum
+        momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
+
+
+
         //resize CG and DG vectors
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
@@ -77,13 +74,56 @@ public:
         u.resize_by_mesh(*smesh);
         v.resize_by_mesh(*smesh);
     }
+
+
+    /*
+        Temrorary Wind Field
+    */
+
+    struct AtmX : public Nextsim::Interpolations::Function {
+        double time;
+
+    public:
+        void settime(double t) { time = t; }
+        double operator()(double x, double y) const
+        {
+            constexpr double oneday = 24.0 * 60.0 * 60.0;
+            double vmax_atm = 30.0 / exp(1.0);
+            //! Center of cyclone (in m)
+            double cMx = 77000. + 15400. * time / oneday;
+            double cMy = 66000. + 12200. * time / oneday;
+
+            //! scaling factor to reduce wind away from center
+            double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cMx) + SQR(y - cMy))) * 1.e-3;
+
+            double alpha = 72.0 / 180.0 * M_PI;
+
+            return -scale * vmax_atm * (cos(alpha) * (x - cMx) + sin(alpha) * (y - cMy));
+        }
+    };
+    struct AtmY : public Nextsim::Interpolations::Function {
+        double time;
+
+    public:
+        void settime(double t) { time = t; }
+        double operator()(double x, double y) const
+        {
+            constexpr double oneday = 24.0 * 60.0 * 60.0;
+            double vmax_atm = 30.0 / exp(1.0);
+            //! Center of cyclone (in m)
+            double cMx = 77000. + 15400. * time / oneday;
+            double cMy = 66000. + 12200. * time / oneday;
+            //! scaling factor to reduce wind away from center
+            double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cMx) + SQR(y - cMy))) * 1.e-3;
+
+            double alpha = 72.0 / 180.0 * M_PI;
+
+            return -scale * vmax_atm * (-sin(alpha) * (x - cMx) + cos(alpha) * (y - cMy));
+        }
+    };
+
     
-    
-    
-    
-    
-    
-    
+        
     /*!
      * @brief Sets the data from a provided ModelArray.
      *
@@ -109,15 +149,10 @@ public:
         } else if (name == ciceName) {
             DGModelArray::ma2dg(data, cice);
         } else if (name == "u") {
+            // FIXME take into account possibility to restart form CG
             //CGModelArray::ma2cg(data, u);
             DGVector<DGadvection> utmp(*smesh);
             DGModelArray::ma2dg(data, utmp);
-
-            Nextsim::DGVector<DGadvection> X = utmp;
-            for (size_t i=0;i<smesh->nx;++i)
-                for (size_t j=0;j<smesh->ny;++j)
-                    utmp.row((smesh->nx)*j+i) = X.row((smesh->ny)*i+j);
-            
             Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
         } else if (name == "v") {
             //CGModelArray::ma2cg(data, v);
@@ -185,38 +220,51 @@ public:
             return DGModelArray::dg2ma(advectedFields.at(name), data);
         }
     }
-
+    
     void update(const TimestepTime& tst) {
+
+        static int step_number=0;
         
-        const double dt_adv = 120.; //!< Time step of advection problem
+        //! Tmp Set forcing
+        AtmX AtmForcingX;
+        AtmY AtmForcingY;
+
+        AtmForcingX.settime(step_number*tst.step.seconds());
+        AtmForcingY.settime(step_number*tst.step.seconds());
+        Nextsim::Interpolations::Function2CG(*smesh, u, AtmForcingX);
+        Nextsim::Interpolations::Function2CG(*smesh, v, AtmForcingY);
         
+
+
         //! interpolates CG velocity to DG and reinits normal velocity
         dgtransport->prepareAdvection(u, v);
-        std::cout << "Before Advection" << cice.row(8256) << std::endl;
+        int vtk_out = 1;
+        if (step_number % vtk_out == 0) {
+            Nextsim::VTK::write_dg<6>("h", step_number / vtk_out  , hice, *smesh);
+            Nextsim::VTK::write_dg<6>("c", step_number / vtk_out  , cice, *smesh);
+        }
 
-
-        Nextsim::DGVector<6> X = hice;
-        for (size_t i=0;i<smesh->nx;++i)
-            for (size_t j=0;j<smesh->ny;++j)
-                hice.row(smesh->nx*j+i) = X.row(smesh->ny*i+j);
-
-        /*
-        // Switching x and y for CG2 elements
-        Nextsim::CGVector<2> Y = u;
-        for (size_t i=0;i<2*smesh->nx+1;++i)
-            for (size_t j=0;j<2*smesh->ny+1;++j)
-                u.row((1+2*smesh->nx)*j+i) = Y.row((1+2*smesh->ny)*i+j);
-        */
-
-        //Nextsim::VTK::write_cg<2>("u", 0, u, *smesh);
-        //Nextsim::VTK::write_dg<6>("hice", 0, hice, *smesh);
-        
         //! Perform transport step
-        dgtransport->step(dt_adv, cice);	    
-        dgtransport->step(dt_adv, hice);
+        dgtransport->step(tst.step.seconds(), cice);	    
+        dgtransport->step(tst.step.seconds(), hice);
 
+        //! Gauss-point limiting
+        //Nextsim::LimitMax(cice, 1.0);
+        //Nextsim::LimitMin(cice, 0.0);
+        //Nextsim::LimitMin(hice, 0.0);
+
+        //! MEVP parameters
+        constexpr double alpha = 1500.0;
+        constexpr double beta = 1500.0;
+        constexpr size_t NT_evp = 100;
         
-        
+        momentum->prepareIteration(hice, cice);
+        //! Momentum
+        for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
+	        momentum->mEVPStep(VP, 100, alpha, beta, tst.step.seconds(), hice, cice);
+	    }
+
+        step_number++;
         
     };
 
@@ -227,8 +275,13 @@ private:
     CGVector<CGdegree> v;
 
     Nextsim::DGTransport<DGadvection>* dgtransport;
+    Nextsim::CGParametricMomentum<CGdegree>* momentum;
 
     Nextsim::ParametricMesh* smesh;
+    
+    //! Rheology-Parameters
+    Nextsim::VPParameters VP;
+
 
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
