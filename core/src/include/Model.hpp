@@ -66,16 +66,6 @@ private:
 
     std::string initialFileName;
     std::string finalFileName;
-/*
-    // Cached values of the start-step-stop/duration times
-    std::string startTimeStr;
-    std::string stopTimeStr;
-    std::string durationStr;
-    std::string stepStr;
-
-    // Period between restart file outputs
-    Duration restartPeriod;
-    */
 };
 
 } /* namespace Nextsim */
