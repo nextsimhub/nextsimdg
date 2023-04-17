@@ -183,18 +183,18 @@ public:
         return *this;
     }
 
-    std::ostream& format(std::ostream& os) const
+    std::ostream& format(std::ostream& os, std::string formatStr = ymdhmsFormat) const
     {
         // Temporary conversion from int to system_clock
         auto tt = Clock::to_time_t(m_t);
-        os << std::put_time(std::gmtime(&tt), ymdhmsFormat.c_str());
+        os << std::put_time(std::gmtime(&tt), formatStr.c_str());
         return os;
     }
 
-    std::string format() const
+    std::string format(std::string formatStr = ymdhmsFormat) const
     {
         std::stringstream ss;
-        format(ss);
+        format(ss, formatStr);
         return ss.str();
     }
 
