@@ -220,18 +220,18 @@ namespace Nextsim {
   {
     
     // Compute Strain Rate
-    //Nextsim::GlobalTimer.start("time loop - mevp - strain");
+    
     ProjectCGVelocityToDGStrain();
-    //Nextsim::GlobalTimer.stop("time loop - mevp - strain");
+    
 
 
     // Update the stresses according to the mEVP model
-    //Nextsim::GlobalTimer.start("time loop - mevp - stress");
+    
     Nextsim::mEVP::StressUpdateHighOrder(params, pmap, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
-    //Nextsim::GlobalTimer.stop("time loop - mevp - stress");
+    
 
     // Compute the divergence of the stress tensor
-    //Nextsim::GlobalTimer.start("time loop - mevp - stress - stress");
+    
 
     double stressscale = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
     if (smesh.CoordinateSystem == Nextsim::SPHERICAL)
@@ -240,14 +240,8 @@ namespace Nextsim {
     DivergenceOfStress(stressscale, tmpx, tmpy); // Compute divergence of stress tensor
     
     
-    //Nextsim::GlobalTimer.stop("time loop - mevp - stress - stress");
-    //Nextsim::GlobalTimer.start("time loop - mevp - update");
-
 
     // Update the velocity
-    //Nextsim::GlobalTimer.start("time loop - mevp - update1");
-
-
     double SC = 1.0;///(1.0-pow(1.0+1.0/beta,-1.0*NT_evp));
     
     //	    update by a loop.. implicit parts and h-dependent
@@ -284,11 +278,8 @@ namespace Nextsim {
 		  + params.rho_ice * cg_H(i) * params.fc
 		  * (ox(i) - vx(i))));
     }
-    //Nextsim::GlobalTimer.stop("time loop - mevp - update1");
-
-
+       
     
-    //Nextsim::GlobalTimer.start("time loop - mevp - update2");
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
       double absocn = sqrt(SQR(vx(i)-ox(i)) + SQR(vy(i)-oy(i)));
@@ -307,10 +298,8 @@ namespace Nextsim {
 		* tmpy(i))
 	/ pmap.lumpedcgmass(i);
     }
-    //Nextsim::GlobalTimer.stop("time loop - mevp - update2");
-    //Nextsim::GlobalTimer.stop("time loop - mevp - update");
-
-    //Nextsim::GlobalTimer.start("time loop - mevp - bound.");
+    
+       
     DirichletZero();
     
     // Landmask
@@ -328,7 +317,7 @@ namespace Nextsim {
 		vy(inrow*(CG*ey+jy)+CG*ex+jx)=0.0;
 	      }
 	}
-    //Nextsim::GlobalTimer.stop("time loop - mevp - bound.");
+    
 }
   // --------------------------------------------------
   template <int CG>
@@ -371,21 +360,19 @@ namespace Nextsim {
 
     double dt_mom = dt_adv / NT_meb;
 
-    //Nextsim::GlobalTimer.start("time loop - meb - strain");
+    
     //! Compute Strain Rate
     ProjectCGVelocityToDGStrain();
-    //Nextsim::GlobalTimer.stop("time loop - meb - strain");
+    
 
-    //Nextsim::GlobalTimer.start("time loop - meb - stress");
+    
     // TODO compute stress update with precomputed transformations
     Nextsim::MEB::StressUpdateHighOrder<CG, DGSTRESS(CG), DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
     // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-    //Nextsim::GlobalTimer.stop("time loop - meb - stress");
+    
 
-    //Nextsim::GlobalTimer.start("time loop - meb - update");
+    
     //! Update
-    //Nextsim::GlobalTimer.start("time loop - meb - update1");
-
     //	    update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
@@ -413,9 +400,9 @@ namespace Nextsim {
                 + params.rho_ice * cg_H(i) * params.fc
                     * (ox(i) - vx(i))));
     }
-    //Nextsim::GlobalTimer.stop("time loop - meb - update1");
+    
 
-    //Nextsim::GlobalTimer.start("time loop - meb - update2");
+    
     // Divergence of the stress tensor
 #pragma omp parallel for
     for (int i = 0; i < tmpx.rows(); ++i)
@@ -428,9 +415,6 @@ namespace Nextsim {
 
     // FIXME: We're missing the gradient of the sea-surface slope (\nabla \eta)
 
-    //Nextsim::GlobalTimer.stop("time loop - meb - stress tensor");
-
-    //Nextsim::GlobalTimer.start("time loop - meb - update");
 
     /* This is Hunke and Dukowicz's solution to (22), multiplied
      * with (\Delta t/m)^2 to ensure stability for c' = 0 */
@@ -498,16 +482,14 @@ namespace Nextsim {
         vy(i) *= rdenom;
     }
 
-    //Nextsim::GlobalTimer.stop("time loop - meb - update");
-
-    //Nextsim::GlobalTimer.start("time loop - meb - bound.");
+    
+    
     DirichletZero();
-    //Nextsim::GlobalTimer.stop("time loop - meb - bound.");
+    
 
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;
 }
-
 
 
 template <int CG>
@@ -519,34 +501,34 @@ void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
 
     double dt_mom = dt_adv / NT_meb;
 
-    //Nextsim::GlobalTimer.start("time loop - meb - strain");
+    
     //! Compute Strain Rate
     ProjectCGVelocityToDGStrain();
-    //Nextsim::GlobalTimer.stop("time loop - meb - strain");
+    
 
-    //Nextsim::GlobalTimer.start("time loop - meb - stress");
+    
     // TODO compute stress update with precomputed transformations
     Nextsim::MEB::StressUpdateHighOrder<CG, DGSTRESS(CG), DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
     //Nextsim::BBM::StressUpdateHighOrder<CG, DGSTRESS(CG), DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
 
     // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-    //Nextsim::GlobalTimer.stop("time loop - meb - stress");
+    
 
 #pragma omp parallel for
     for (int i = 0; i < tmpx.rows(); ++i)
         tmpx(i) = tmpy(i) = 0;
 
-    //Nextsim::GlobalTimer.start("time loop - meb - update2 -stress");
+    
     //AddStressTensor(-1.0, tmpx, tmpy);
     DivergenceOfStress(1.0, tmpx, tmpy); // Compute divergence of stress tensor
-    //Nextsim::GlobalTimer.stop("time loop - meb - update2 -stress");
+    
 
 
     double const cos_ocean_turning_angle = std::cos(params.ocean_turning_angle * M_PI / 180.);
     double const sin_ocean_turning_angle = std::sin(params.ocean_turning_angle * M_PI / 180.);
 
 
-    //Nextsim::GlobalTimer.start("time loop - meb - update");
+    
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
 
@@ -592,11 +574,11 @@ void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
             / pmap.lumpedcgmass(i);
         ;
     }
-    //Nextsim::GlobalTimer.stop("time loop - meb - update");
+    
 
-    //Nextsim::GlobalTimer.start("time loop - meb - bound.");
+    
     DirichletZero();
-    //Nextsim::GlobalTimer.stop("time loop - meb - bound.");
+    
 
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;   

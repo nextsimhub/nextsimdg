@@ -231,8 +231,8 @@ public:
 
         AtmForcingX.settime(step_number*tst.step.seconds());
         AtmForcingY.settime(step_number*tst.step.seconds());
-        Nextsim::Interpolations::Function2CG(*smesh, u, AtmForcingX);
-        Nextsim::Interpolations::Function2CG(*smesh, v, AtmForcingY);
+        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetAtmx(), AtmForcingX);
+        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetAtmy(), AtmForcingY);
         
 
 
@@ -253,15 +253,12 @@ public:
         //Nextsim::LimitMin(cice, 0.0);
         //Nextsim::LimitMin(hice, 0.0);
 
-        //! MEVP parameters
-        constexpr double alpha = 1500.0;
-        constexpr double beta = 1500.0;
-        constexpr size_t NT_evp = 100;
+
         
         momentum->prepareIteration(hice, cice);
         //! Momentum
         for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
-	        momentum->mEVPStep(VP, 100, alpha, beta, tst.step.seconds(), hice, cice);
+	        momentum->mEVPStep(VP, NT_evp, alpha, beta, tst.step.seconds(), hice, cice);
 	    }
 
         step_number++;
@@ -281,7 +278,10 @@ private:
     
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
-
+    //! MEVP parameters
+    double alpha = 1500.0;
+    double beta = 1500.0;
+    size_t NT_evp = 100;
 
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
