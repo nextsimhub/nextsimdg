@@ -40,7 +40,7 @@ void DevStep::iterate(const TimestepTime& tst)
     if (mData->time() > lastOutput + m_restartPeriod) {
         std::string currentFileName = mData->time().format(m_restartFileName);
         pData->writeRestartFile(currentFileName);
-        lastOutput = mData->time;
+        lastOutput = mData->time();
     }
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
     ModelState overallState = pData->getStateRecursive(true);

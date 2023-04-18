@@ -23,16 +23,12 @@ public:
     const static std::map<int, std::string> keyMap;
     static ConfigMap getConfig();
 
-    // Configuration option that holds the restart file name
-    const static std::string restartOptionName;
-
     enum {
         DUMMY_KEY,
         STARTTIME_KEY,
         STOPTIME_KEY,
         RUNLENGTH_KEY,
         TIMESTEP_KEY,
-        RESTARTPERIOD_KEY,
     };
 
 private:
@@ -41,9 +37,6 @@ private:
     static std::string stopTimeStr;
     static std::string durationStr;
     static std::string stepStr;
-
-    // Period between restart file outputs
-    static Duration restartPeriod;
 
     friend Model;
 };

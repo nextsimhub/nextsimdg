@@ -34,6 +34,8 @@ static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
 const std::string Model::restartOptionName = "model.init_file";
 static std::map<int, std::string> restartKeyMap = {
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
+    { Model::RESTARTPERIOD_KEY, "model.restart_period" },
+    { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
 
 template <>
@@ -81,6 +83,7 @@ void Model::configure()
     mdi.configure();
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+    finalFileName = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), finalFileName);
 
     pData.configure();
 

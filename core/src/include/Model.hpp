@@ -55,7 +55,8 @@ public:
         STOPTIME_KEY = ModelConfig::STOPTIME_KEY,
         RUNLENGTH_KEY = ModelConfig::RUNLENGTH_KEY,
         TIMESTEP_KEY = ModelConfig::TIMESTEP_KEY,
-        RESTARTPERIOD_KEY = ModelConfig::RESTARTPERIOD_KEY,
+        RESTARTPERIOD_KEY,
+        RESTARTOUTFILE_KEY,
     };
 
 private:
@@ -66,6 +67,9 @@ private:
 
     std::string initialFileName;
     std::string finalFileName;
+    // Period between restart file outputs
+    Duration restartPeriod;
+
 };
 
 } /* namespace Nextsim */
