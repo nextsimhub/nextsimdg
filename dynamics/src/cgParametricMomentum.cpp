@@ -263,6 +263,7 @@ namespace Nextsim {
 		     * ox(i)) // ocean forcing
 		  + params.rho_ice * cg_H(i) * params.fc
 		  * (vy(i) - oy(i)) // cor + surface
+		  + tmpx(i)/pmap.lumpedcgmass(i)
 		  ));
       vy(i) = (1.0
 	       / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
@@ -276,29 +277,11 @@ namespace Nextsim {
 		     params.F_ocean * absocn * SC
 		     * oy(i)) // ocean forcing
 		  + params.rho_ice * cg_H(i) * params.fc
-		  * (ox(i) - vx(i))));
+		  * (ox(i) - vx(i))
+		  + tmpy(i)/pmap.lumpedcgmass(i)
+		  ));
     }
        
-    
-#pragma omp parallel for
-    for (int i = 0; i < vx.rows(); ++i) {
-      double absocn = sqrt(SQR(vx(i)-ox(i)) + SQR(vy(i)-oy(i)));
-
-      vx(i) += (1.0
-		/ (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-		   + cg_A(i) * params.F_ocean 
-		   * absocn ) // implicit parts
-		* tmpx(i))
-	/ pmap.lumpedcgmass(i);
-
-      vy(i) += (1.0
-		/ (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
-		   + cg_A(i) * params.F_ocean 
-		   * absocn) // implicit parts
-		* tmpy(i))
-	/ pmap.lumpedcgmass(i);
-    }
-    
        
     DirichletZero();
     
