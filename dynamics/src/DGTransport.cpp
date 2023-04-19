@@ -142,20 +142,18 @@ void DGTransport<DG>::reinitnormalvelocity()
         size_t cy = iy * smesh.nx; // first cell index in row
 
         for (size_t ix = 0; ix < smesh.nx; ++ix, ++ey, ++cy) {
-            // un-normed tangent vector of left edge (pointing up). normal is (y,-x)
-
+	  if (smesh.landmask[cy]==0) // skip all land elements
+	    continue;
+	  
+	  // un-normed tangent vector of left edge (pointing up). normal is (y,-x)
 	  const Eigen::Matrix<Nextsim::FloatType, 1, 2> tangent_left = smesh.edgevector(ey, ey + smesh.nx + 1);
 	  normalvel_Y.row(ey) += 0.5 * (tangent_left(0, 1) * leftedgeofcell<DG>(velx, cy) - tangent_left(0, 0) * leftedgeofcell<DG>(vely, cy));
-	  
 	  
 	  // un-normed tangent vector of left edge (pointing up). normal is (y,-x)
 	  const Eigen::Matrix<Nextsim::FloatType, 1, 2> tangent_right = smesh.edgevector(ey + 1, ey + smesh.nx + 2);
 	  normalvel_Y.row(ey + 1) += 0.5 * (tangent_right(0, 1) * rightedgeofcell<DG>(velx, cy) - tangent_right(0, 0) * rightedgeofcell<DG>(vely, cy));
         }
-
-        // scale boundary
-        normalvel_Y.row(iy * (smesh.nx + 1)) *= 2.0;
-        normalvel_Y.row((iy + 1) * (smesh.nx + 1) - 1) *= 2.0;
+	// we need an adjustment along the boundaries.. This is done later on.
     }
 
 #pragma omp parallel for
@@ -171,6 +169,9 @@ void DGTransport<DG>::reinitnormalvelocity()
         size_t nx = ix; // first cell index in row
 
         for (size_t iy = 0; iy < smesh.ny; ++iy, cx += smesh.nx, nx += smesh.nx + 1) {
+	  if (smesh.landmask[cx]==0) // skip land elements
+	    continue;
+	  
             // un-normed tangent vector of bottom edge (pointing right). normal is (-y,x)
             const Eigen::Matrix<Nextsim::FloatType, 1, 2> tangent_bottom = smesh.edgevector(nx, nx + 1);
 
@@ -181,11 +182,31 @@ void DGTransport<DG>::reinitnormalvelocity()
 
             normalvel_X.row(cx + smesh.nx) += 0.5 * (-tangent_top(0, 1) * topedgeofcell<DG>(velx, cx) + tangent_top(0, 0) * topedgeofcell<DG>(vely, cx));
         }
-
-        // scale boundary
-        normalvel_X.row(ix) *= 2.0;
-        normalvel_X.row(ix + smesh.ny * smesh.nx) *= 2.0;
     }
+
+    // Take care of the boundaries. Usually, the normal velocity is the average velocity
+    // from left and from the right. Hence, we get the factor 0.5 above. At boundaries,
+    // the normal is set only once, from the inside. These edges must be scaled with 2.0
+    
+    for (size_t seg = 0 ; seg<4; ++seg) // run over the 4 segments (bot, right, top, left)
+      {
+#pragma omp parallel for
+	for (size_t i = 0; i<smesh.dirichlet[seg].size();++i)
+	  {
+	    const size_t eid = smesh.dirichlet[seg][i];  //! The i of the boundary element 
+	    const size_t ix = eid % smesh.nx;            //! x & y indices of the element
+           const size_t iy = eid / smesh.nx;
+	   
+           if (seg==0) // bottom
+             normalvel_X.row(smesh.nx*iy + ix) *= 2.0;
+           else if (seg==1) // right
+             normalvel_Y.row((smesh.nx+1)*iy + ix+1) *= 2.0;
+           else if (seg==2) // top
+             normalvel_X.row(smesh.nx*(iy+1) + ix) *= 2.0;
+           else if (seg==3) // left
+             normalvel_Y.row((smesh.nx+1)*iy + ix) *= 2.0;
+         }
+      }
 }
 
 ////////////////////////////////////////////////// PREPARE
