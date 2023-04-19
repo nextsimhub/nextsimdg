@@ -17,7 +17,7 @@
 
 #include "cgVector.hpp"
 #include "dgVector.hpp"
-//#include "dgLimit.hpp"
+#include "dgLimit.hpp"
 #include "dgVisu.hpp"
 
 
@@ -66,6 +66,18 @@ public:
         momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
 
 
+        //! initialize Forcing 
+        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetOceanx(), OceanX());
+        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetOceany(), OceanY());
+
+        AtmForcingX = new AtmX ;
+        AtmForcingY = new AtmY ;
+
+        AtmForcingX->settime(0.0);
+        AtmForcingY->settime(0.0);
+        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetAtmx(), *AtmForcingX);
+        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetAtmy(), *AtmForcingY);
+
 
         //resize CG and DG vectors
         hice.resize_by_mesh(*smesh);
@@ -77,8 +89,23 @@ public:
 
 
     /*
-        Temrorary Wind Field
+        Temrorary Ocen and Wind Field
     */
+
+    class OceanX : public Nextsim::Interpolations::Function {
+    public:
+        double operator()(double x, double y) const
+        {
+            return  0.01 * (2.0 * y / 121000. - 1.0);
+        }
+    };
+    class OceanY : public Nextsim::Interpolations::Function {
+    public:
+        double operator()(double x, double y) const
+        {
+            return  0.01 * (1.0 - 2.0 * x / 154000.);
+        }
+    };
 
     struct AtmX : public Nextsim::Interpolations::Function {
         double time;
@@ -90,8 +117,8 @@ public:
             constexpr double oneday = 24.0 * 60.0 * 60.0;
             double vmax_atm = 30.0 / exp(1.0);
             //! Center of cyclone (in m)
-            double cMx = 77000. + 15400. * time / oneday;
-            double cMy = 66000. + 12200. * time / oneday;
+            double cMx = 154./2. *25000. + 154./10.*25000. * time / oneday;
+            double cMy = 121./2. *25000. + 121./10.*25000. * time / oneday;
 
             //! scaling factor to reduce wind away from center
             double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cMx) + SQR(y - cMy))) * 1.e-3;
@@ -111,8 +138,8 @@ public:
             constexpr double oneday = 24.0 * 60.0 * 60.0;
             double vmax_atm = 30.0 / exp(1.0);
             //! Center of cyclone (in m)
-            double cMx = 77000. + 15400. * time / oneday;
-            double cMy = 66000. + 12200. * time / oneday;
+            double cMx = 154./2. *25000. + 154./10.*25000. * time / oneday;
+            double cMy = 121./2. *25000. + 121./10.*25000. * time / oneday;
             //! scaling factor to reduce wind away from center
             double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cMx) + SQR(y - cMy))) * 1.e-3;
 
@@ -226,32 +253,37 @@ public:
         static int step_number=0;
         
         //! Tmp Set forcing
-        AtmX AtmForcingX;
-        AtmY AtmForcingY;
-
-        AtmForcingX.settime(step_number*tst.step.seconds());
-        AtmForcingY.settime(step_number*tst.step.seconds());
-        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetAtmx(), AtmForcingX);
-        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetAtmy(), AtmForcingY);
+        AtmForcingX->settime(step_number*tst.step.seconds());
+        AtmForcingY->settime(step_number*tst.step.seconds());
+        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetAtmx(), *AtmForcingX);
+        Nextsim::Interpolations::Function2CG(*smesh, momentum->GetAtmy(), *AtmForcingY);
         
 
-
         //! interpolates CG velocity to DG and reinits normal velocity
-        dgtransport->prepareAdvection(u, v);
-        int vtk_out = 1;
+        int vtk_out = 10; // 4h = 120
+        std::string resultsdir = "vtk";
         if (step_number % vtk_out == 0) {
-            Nextsim::VTK::write_dg<6>("h", step_number / vtk_out  , hice, *smesh);
-            Nextsim::VTK::write_dg<6>("c", step_number / vtk_out  , cice, *smesh);
+            std::cout << "Save vtk, step number " << step_number << std::endl;
+            Nextsim::VTK::write_dg<6>(resultsdir + "/h", step_number / vtk_out  , hice, *smesh);
+            Nextsim::VTK::write_dg<6>(resultsdir + "/c", step_number / vtk_out  , cice, *smesh);
+            Nextsim::VTK::write_cg<2>(resultsdir + "/u", step_number / vtk_out  , momentum->GetVx(), *smesh);
+            Nextsim::VTK::write_cg<2>(resultsdir + "/v", step_number / vtk_out  , momentum->GetVy(), *smesh);
+    
+            Nextsim::VTK::write_cg<2>(resultsdir + "/Atmx", step_number / vtk_out  , momentum->GetAtmx(), *smesh);
+            Nextsim::VTK::write_cg<2>(resultsdir + "/Atmy", step_number / vtk_out  , momentum->GetAtmy(), *smesh);
+  
         }
 
         //! Perform transport step
+        dgtransport->prepareAdvection(momentum->GetVx(), momentum->GetVy());
+
         dgtransport->step(tst.step.seconds(), cice);	    
         dgtransport->step(tst.step.seconds(), hice);
 
         //! Gauss-point limiting
-        //Nextsim::LimitMax(cice, 1.0);
-        //Nextsim::LimitMin(cice, 0.0);
-        //Nextsim::LimitMin(hice, 0.0);
+        Nextsim::LimitMax(cice, 1.0);
+        Nextsim::LimitMin(cice, 0.0);
+        Nextsim::LimitMin(hice, 0.0);
 
 
         
@@ -273,6 +305,9 @@ private:
 
     Nextsim::DGTransport<DGadvection>* dgtransport;
     Nextsim::CGParametricMomentum<CGdegree>* momentum;
+
+    AtmX* AtmForcingX;
+    AtmY* AtmForcingY;
 
     Nextsim::ParametricMesh* smesh;
     
