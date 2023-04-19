@@ -218,7 +218,7 @@ public:
 
         OUT.close();
     }
-  
+
   
   static void write_coords(std::ostream& OUT, double x, double y, COORDINATES CoordinateSystem)
   {
