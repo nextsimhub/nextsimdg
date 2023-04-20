@@ -9,4 +9,13 @@
 
 namespace Nextsim {
 
+void BenchmarkOcean::setData(const ModelState::DataMap&)
+{
+
+}
+
+void BenchmarkOcean::updateBefore(const TimestepTime& tst)
+{
+
+}
 } /* namespace Nextsim */
