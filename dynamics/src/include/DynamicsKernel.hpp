@@ -19,6 +19,7 @@
 #include "dgVector.hpp"
 #include "dgLimit.hpp"
 #include "dgVisu.hpp"
+#include "Tools.hpp"
 
 
 #include "CGModelArray.hpp"
@@ -96,14 +97,14 @@ public:
     public:
         double operator()(double x, double y) const
         {
-            return  0.01 * (2.0 * y / 121000. - 1.0);
+            return  0.01 * (2.0 * y / ( 121. * 25000.) - 1.0);
         }
     };
     class OceanY : public Nextsim::Interpolations::Function {
     public:
         double operator()(double x, double y) const
         {
-            return  0.01 * (1.0 - 2.0 * x / 154000.);
+            return  0.01 * (1.0 - 2.0 * x / (154 * 25000.) );
         }
     };
 
@@ -117,15 +118,15 @@ public:
             constexpr double oneday = 24.0 * 60.0 * 60.0;
             double vmax_atm = 30.0 / exp(1.0);
             //! Center of cyclone (in m)
-            double cMx = 154./2. *25000. + 154./10.*25000. * time / oneday;
-            double cMy = 121./2. *25000. + 121./10.*25000. * time / oneday;
+            double cMx = 154./2. * 25000. + 154./10.* 25000. * time / oneday;
+            double cMy = 121./2. * 25000. + 121./10.* 25000. * time / oneday;
 
             //! scaling factor to reduce wind away from center
             double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cMx) + SQR(y - cMy))) * 1.e-3;
 
             double alpha = 72.0 / 180.0 * M_PI;
 
-            return -scale * vmax_atm * (cos(alpha) * (x - cMx) + sin(alpha) * (y - cMy));
+            return -scale * vmax_atm * 50 * (cos(alpha) * (x - cMx) + sin(alpha) * (y - cMy));
         }
     };
     struct AtmY : public Nextsim::Interpolations::Function {
@@ -138,14 +139,14 @@ public:
             constexpr double oneday = 24.0 * 60.0 * 60.0;
             double vmax_atm = 30.0 / exp(1.0);
             //! Center of cyclone (in m)
-            double cMx = 154./2. *25000. + 154./10.*25000. * time / oneday;
-            double cMy = 121./2. *25000. + 121./10.*25000. * time / oneday;
+            double cMx = 154./2. * 25000. + 154./10.* 25000. * time / oneday;
+            double cMy = 121./2. * 25000. + 121./10.* 25000. * time / oneday;
             //! scaling factor to reduce wind away from center
             double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cMx) + SQR(y - cMy))) * 1.e-3;
 
             double alpha = 72.0 / 180.0 * M_PI;
 
-            return -scale * vmax_atm * (-sin(alpha) * (x - cMx) + cos(alpha) * (y - cMy));
+            return -scale * vmax_atm * 50 * (-sin(alpha) * (x - cMx) + cos(alpha) * (y - cMy));
         }
     };
 
@@ -260,18 +261,23 @@ public:
         
 
         //! interpolates CG velocity to DG and reinits normal velocity
-        int vtk_out = 10; // 4h = 120
+        int vtk_out = 60; // 1h = 30 (timestep = 120s)
         std::string resultsdir = "vtk";
         if (step_number % vtk_out == 0) {
-            std::cout << "Save vtk, step number " << step_number << std::endl;
+            std::cout << "Save vtk at " << step_number / 30  << " h " << std::endl;
+            
             Nextsim::VTK::write_dg<6>(resultsdir + "/h", step_number / vtk_out  , hice, *smesh);
             Nextsim::VTK::write_dg<6>(resultsdir + "/c", step_number / vtk_out  , cice, *smesh);
-            Nextsim::VTK::write_cg<2>(resultsdir + "/u", step_number / vtk_out  , momentum->GetVx(), *smesh);
-            Nextsim::VTK::write_cg<2>(resultsdir + "/v", step_number / vtk_out  , momentum->GetVy(), *smesh);
     
-            Nextsim::VTK::write_cg<2>(resultsdir + "/Atmx", step_number / vtk_out  , momentum->GetAtmx(), *smesh);
-            Nextsim::VTK::write_cg<2>(resultsdir + "/Atmy", step_number / vtk_out  , momentum->GetAtmy(), *smesh);
-  
+    
+            Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", step_number / vtk_out, 
+                momentum->GetVx(), momentum->GetVy(), *smesh);
+            Nextsim::VTK::write_cg_velocity(resultsdir + "/atm", step_number / vtk_out, 
+                momentum->GetAtmx(), momentum->GetAtmy(), *smesh);
+    
+            Nextsim::VTK::write_dg(resultsdir + "/Shear", step_number / vtk_out, 
+            Nextsim::Tools::Shear(*smesh, momentum->GetE11(), momentum->GetE12(), momentum->GetE22()), *smesh);
+
         }
 
         //! Perform transport step
@@ -284,7 +290,6 @@ public:
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
         Nextsim::LimitMin(hice, 0.0);
-
 
         
         momentum->prepareIteration(hice, cice);

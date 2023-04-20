@@ -72,28 +72,28 @@ void PrognosticData::update(const TimestepTime& tst)
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARBackingStore> hiceTrue0(getSharedArray());
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
     ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
-    std::cerr << "PD::Update start: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
+    //std::cerr << "PD::Update start: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
 
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
 
     // The dynamics uses the SharedArrays of hice, cice and hsnow.
     // Fill the values of the true ice and snow thicknesses.
-    std::cerr << "Before initTh: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
+    //std::cerr << "Before initTh: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
     iceGrowth.initializeThicknesses();
-    std::cerr << "After initTh: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
+    //std::cerr << "After initTh: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
     pDynamics->update(tst);
-    std::cerr << "After dynamics: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
+    //std::cerr << "After dynamics: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
 
     updatePrognosticFields();
-    std::cerr << "After updProF: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
+    //std::cerr << "After updProF: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
     iceGrowth.update(tst);
-    std::cerr << "After IGupd: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
+    //std::cerr << "After IGupd: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
     updatePrognosticFields();
-    std::cerr << "After updProF2: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
+    //std::cerr << "After updProF2: cice0=" << m_conc[itar] << " cice=" << ciceUpd[itar] << " hice0=" << m_thick[itar] /*<< " htrue0=" << hiceTrue0[itar] */<< " htrue=" << hiceTrueUpd[itar] << std::endl;
 
     pOcnBdy->updateAfter(tst);
 
