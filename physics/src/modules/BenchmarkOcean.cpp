@@ -25,6 +25,11 @@ void BenchmarkOcean::setData(const ModelState::DataMap&)
 
 void BenchmarkOcean::updateBefore(const TimestepTime& tst)
 {
+    // The time and length scales of the current generation function
+    constexpr double L = 512000.; // Size of the domain in km
+    constexpr double vMaxOcean = 0.01; // 1 cm/s in m/s
+    constexpr double T = 8 * 86400; // 8 days in seconds
+
 
 }
 } /* namespace Nextsim */
