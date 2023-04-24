@@ -32,14 +32,16 @@ public:
 
     //Decide if I want these two and the best output type
     std::string getCalendarOrigin(bool isoFormat = true);
-    void setCalendarOrigin();
+    void setCalendarOrigin(char *dstart_str, int str_size);
     std::string getCalendarStart(bool isoFormat = true);
     void setCalendarStart(char *dstart_str, int str_size);
     std::string getCalendarTimestep();
     void setCalendarTimestep();
     void getCalendarConfiguration();
+    
     static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat);
-    //cxios_date convertStringToXiosDatetime(std::string datetime);
+    static cxios_date convertStringToXiosDatetime(std::string datetime);
+    static cxios_duration convertStringToXiosDuration(std::string duration);
 
     static void writeState();
     //Arguments TBC
@@ -52,6 +54,7 @@ public:
         ENABLED_KEY,
     };
 
+    //TODO: Doesn't Exist? -> Remove
     static void convertXiosDateStringToIsoDate(std::string& dateString);
 
 protected:
