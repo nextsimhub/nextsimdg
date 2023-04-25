@@ -11,12 +11,13 @@
 #include <string>
 #include <vector>
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 namespace Nextsim {
 
-TEST_CASE("Parse config file names", "[CommandLineParser]")
+TEST_SUITE_BEGIN("CommandLineParser");
+TEST_CASE("Parse config file names")
 {
     // Parse one file
     ArgV argv1({ "nextsimdg", "--config-file", "config.cfg" });
@@ -38,5 +39,6 @@ TEST_CASE("Parse config file names", "[CommandLineParser]")
     REQUIRE(cfgs.size() == 4);
     REQUIRE(cfgs[cfgs.size() - 1] == finalFileName);
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */

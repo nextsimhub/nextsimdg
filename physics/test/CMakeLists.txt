@@ -8,11 +8,7 @@ set(ModulesDir "${SourceDir}/modules")
 # add_executable(testexe
 #   test/TestSrc.cpp
 #   otherSource.cpp)
-#target_link_libraries(testexe PRIVATE Catch2::Catch2)
-
-# include(CTest)
-# include(Catch)
-# catch_discover_tests(testexe)
+#target_link_libraries(testexe PRIVATE doctest::doctest)
 
 add_executable(testIceGrowth
     "IceGrowth_test.cpp"
@@ -40,7 +36,7 @@ target_include_directories(testIceGrowth PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testIceGrowth PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testIceGrowth PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testThermoWinton
     "ThermoWintonTemperature_test.cpp"
@@ -65,7 +61,7 @@ target_include_directories(testThermoWinton PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testThermoWinton PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testThermoWinton PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testFEFluxes
     "FiniteElementFluxes_test.cpp"
@@ -91,7 +87,7 @@ target_include_directories(testFEFluxes PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testFEFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testFEFluxes PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 
 add_executable(testERA5Atm
@@ -130,7 +126,7 @@ target_include_directories(testERA5Atm PRIVATE
     "${ModulesDir}"
     )
 target_link_directories(testERA5Atm PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen "${NSDG_NetCDF_Library}")
+target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -166,7 +162,7 @@ target_include_directories(testTOPAZOcn PRIVATE
     "${ModulesDir}"
     )
 target_link_directories(testTOPAZOcn PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testTOPAZOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen "${NSDG_NetCDF_Library}")
+target_link_libraries(testTOPAZOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test128x128.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -189,7 +185,7 @@ target_include_directories(testBIOHFluxes PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testBIOHFluxes PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testBIOHFluxes PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testSpecHum
     "SpecificHumidity_test.cpp"
@@ -198,7 +194,7 @@ add_executable(testSpecHum
 target_include_directories(testSpecHum PRIVATE
     "${ModulesDir}"
     )
-target_link_libraries(testSpecHum PRIVATE Catch2::Catch2)
+target_link_libraries(testSpecHum PRIVATE doctest::doctest)
 
 add_executable(testConstantOcn
     "ConstantOceanBoundary_test.cpp"
@@ -228,7 +224,7 @@ target_include_directories(testConstantOcn PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testSlabOcn
     "SlabOcean_test.cpp"
@@ -249,7 +245,7 @@ target_include_directories(testSlabOcn PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testSlabOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testSlabOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testThermoIce0
     "ThermoIce0_test.cpp"
@@ -272,4 +268,4 @@ target_include_directories(testThermoIce0 PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testThermoIce0 PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testThermoIce0 PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)

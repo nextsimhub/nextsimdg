@@ -27,7 +27,6 @@ To compile neXtSIM, you need to install first some libraries :
 
   - `NetCDF`_
   - `Boost`_
-  - `Catch2`_
   - `CMake`_
 
 Compilation on MAC OS
@@ -39,7 +38,6 @@ If your package manager is `Homebrew`_ :
 
         brew install netcdf
         brew install boost
-        brew install catch2
         brew install cmake
         
         cd nextsimdg
@@ -51,17 +49,12 @@ If your package manager is `Homebrew`_ :
 Compilation on Ubuntu
 ---------------------
 
-You must have root priviledge :
+You must have root privilege :
 
 .. code::
 
         sudo apt-get update
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake
-        git clone -b v2.x https://github.com/catchorg/Catch2.git
-        cd Catch2
-        cmake -Bbuild -H. -DBUILD_TESTING=OFF
-        sudo cmake --build build/ --target install
-        cd ..
 
         cd nextsimdg
         mkdir -p build
@@ -73,7 +66,7 @@ You must have root priviledge :
 Compilation with dependencies installation via conda
 ----------------------------------------------------
 
-Install conda via anaconda or miniconda (no root priviledges required)
+Install conda via anaconda or miniconda (no root privileges required)
 
 .. code::
 
@@ -82,7 +75,6 @@ Install conda via anaconda or miniconda (no root priviledges required)
         conda install netCDF4
         conda -c conda-forge boost
         conda -c anaconda cmake
-        conda -c conda-forge catch2
         
         cd nextsimdg
         mkdir -p build
@@ -92,6 +84,5 @@ Install conda via anaconda or miniconda (no root priviledges required)
     
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
-.. _Catch2: https://github.com/catchorg/Catch2
 .. _CMake: https://cmake.org/
 .. _Homebrew: https://brew.sh/

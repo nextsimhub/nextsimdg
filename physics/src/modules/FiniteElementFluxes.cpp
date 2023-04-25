@@ -109,7 +109,6 @@ void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 {
     // Mass flux from open water (evaporation)
     evap[i] = dragOcean_q * rho_air[i] * v_air[i] * (sh_water[i] - sh_air[i]);
-
     // Momentum flux from open water (drag pressure)
     // TODO
 
