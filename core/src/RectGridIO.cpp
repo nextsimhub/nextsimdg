@@ -12,6 +12,7 @@
 #include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
+#include "include/NZLevels.hpp"
 #include "include/RectangularGrid.hpp"
 #include "include/gridNames.hpp"
 
@@ -36,6 +37,9 @@ void dimensionSetter(
     for (size_t d = 0; d < nDims; ++d) {
         dims[d] = dataGroup.getVar(fieldName).getDim(d).getSize();
     }
+    // A special case for Type::Z: use NZLevels for the third dimension
+    if (type == ModelArray::Type::Z)
+        dims[2] = NZLevels::get();
     ModelArray::setDimensions(type, dims);
 }
 
@@ -63,8 +67,12 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dataGroup.getVar(ciceName).getVar(&state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(&state.data[hsnowName][0]);
+    // Since the ZFierld might not have the same dimensions as the tice field
+    // in the file, a little more work is required.
     state.data[ticeName] = ModelArray::ZField();
-    dataGroup.getVar(ticeName).getVar(&state.data[ticeName][0]);
+    std::vector<size_t> startVector = { 0, 0, 0 };
+    std::vector<size_t> zArrayDims = ModelArray::dimensions(ModelArray::Type::Z);
+    dataGroup.getVar(ticeName).getVar(startVector, zArrayDims, &state.data[ticeName][0]);
 
     ncFile.close();
     return state;

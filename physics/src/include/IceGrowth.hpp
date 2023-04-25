@@ -24,9 +24,8 @@ public:
     enum {
         ICE_THERMODYNAMICS_KEY,
         LATERAL_GROWTH_KEY,
-        MINC_KEY,
-        MINH_KEY,
     };
+
     void configure() override;
     ConfigMap getConfiguration() const override;
 
@@ -49,9 +48,6 @@ public:
     std::unordered_set<std::string> zFields() const override { return {}; }
 
     void update(const TimestepTime&);
-
-    static double minimumIceThickness() { return minh; }
-    static double minimumIceConcentration() { return minc; }
 
 private:
     // Vertical Growth ModelComponent & Module
@@ -87,9 +83,6 @@ private:
     ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf; // ocean freezing point, ˚C
     ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore>
         deltaHi; // New ice thickness this timestep, m
-
-    static double minc; // Minimum sea ice concentration
-    static double minh; // Minimum sea ice thickness
 
     void newIceFormation(size_t i, const TimestepTime&);
     void lateralIceSpread(size_t i, const TimestepTime&);
