@@ -118,8 +118,9 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         //Set member variable to xios calendar object
         cxios_get_current_calendar_wrapper( &m_clientCalendar );
 
-                std::cout << "Enter setCalendarTimestep" << std::endl;
-        setCalendarTimestep();
+        std::cout << "Enter setCalendarTimestep" << std::endl;
+        std::string dtimestep_str = "P0-0T1:0:0";
+        setCalendarTimestep(dtimestep_str);
 
         //TODO: Argument from Xios::Configure, itself from callsite in Model?
         //TODO: Take string as argument and convert to char for the extern c?
@@ -208,21 +209,19 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 
     //Do I want arguments here or what? --- how do I link back to config argument value?
     //TODO: Consider if we want a std::string or char* 
-    void Xios::setCalendarTimestep() 
+    void Xios::setCalendarTimestep(std::string timestep_str) 
     {   
-        //Default timestep values
-        cxios_duration dtime;
-        dtime.year = 0;
-        dtime.month = 0;
-        dtime.day = 0;
-        dtime.hour = 1;
-        dtime.minute = 0;
-        dtime.second = 0;
-        dtime.timestep = 0;
+        // //Default timestep values
+        // cxios_duration dtime;
+        // dtime.year = 0;
+        // dtime.month = 0;
+        // dtime.day = 0;
+        // dtime.hour = 1;
+        // dtime.minute = 0;
+        // dtime.second = 0;
+        // dtime.timestep = 0;
 
-        //__XIOS_CDuration__::fromString("1ts")
-
-        //cxios_duration dtime = convertStringToXiosDuration(dtime_str);
+        cxios_duration dtime = convertStringToXiosDuration(timestep_str);
         cxios_set_calendar_wrapper_timestep( m_clientCalendar, dtime );
         cxios_update_calendar_timestep( m_clientCalendar );
     }
@@ -334,12 +333,12 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         return datetime_str;
     }
 
-    cxios_date Xios::convertStringToXiosDatetime(std::string datetime_str)
+    boost::posix_time::ptime Xios::convertStringToDatetime(std::string datetime_str)
     {
-        std::cout << "ConvertStringToXiosDatetime" << std::endl;
-
         //Pre-format and remove the extra characters
-        //TODO: Consider using some formatter to achieve this result
+        //The intention is to use this or something like this for duration too
+        std::cout << "ConvertStringToDatetime" << std::endl;
+        //TODO: Consider using some formatter or different package to achieve this result
         int delimiter = datetime_str.find(datetime_str, 'T');
         int terminator = datetime_str.find(datetime_str, 'Z');
 
@@ -359,15 +358,26 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         std::cout << "boost" << std::endl;
         //boost::gregorian::date datetime(boost::gregorian::from_simple_string(datetime_str));
         boost::posix_time::ptime datetime = boost::posix_time::time_from_string(datetime_str);
+
         auto time = datetime.time_of_day();
         auto date = datetime.date();
-
         std::cout << "Boost Test" << datetime << std::endl; 
         std::cout << date.year() << " " << date.month() << " " << date.day() << " ";
         std::cout << time.hours() << " " << time.minutes() << " " << time.seconds() << std::endl;
 
+        return datetime;
+    }
+
+    cxios_date Xios::convertStringToXiosDatetime(std::string datetime_str)
+    {
+        std::cout << "ConvertStringToXiosDatetime" << std::endl;
+        boost::posix_time::ptime datetime = convertStringToDatetime(datetime_str);
+        auto time = datetime.time_of_day();
+        auto date = datetime.date();
         //Create the cxios_date object
         //TODO: Investigate if there is a suitable constructor
+        //cxios_date dstart(date.year(), date.month(), date.day(), time.hours() ...
+        //                    time.minutes(), time.seconds() );
         cxios_date dstart;
         dstart.year = date.year();
         dstart.month = date.month();
@@ -378,6 +388,98 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 
         //cxios_date datetime = cxios_date_convert_from_string(datetime_str);
         return dstart;
+    }
+
+    // We're going to reading strings in the form
+    // PNNNN-NN-NNTNN:NN:NN 
+    // which represents duration in Years-Months-Dates:Hours:Minutes:Seconds
+    // where padding with zeros is not required as specified in ISO 8601.
+    // These will be extracted and assigned to the cxios_duration struct but
+    // the timestep will be left at zero. A seperate method will be created to
+    // assign timestep values if needed. 
+    //
+    // Note some invalid entries are permitted such as PY-DDD and T1000:0:0
+    cxios_duration Xios::convertStringToXiosDuration(std::string timestep_str) {
+        std::cout << "ConvertStringToXiosDuration " << timestep_str << " " << timestep_str.find('P') << std::endl;
+
+        //Validate P exists
+        int isDuration = timestep_str.find('P') == 0;
+        if (!isDuration) 
+        {
+            //TODO: Error
+            std::cout << timestep_str << " is not a duration string" << std::endl;
+        }
+
+        cxios_duration dduration;
+
+        
+        //Remove the P, denoting duration
+        std::string duration_str = timestep_str.substr(1);
+
+        std::cout << "Duration str " << duration_str << std::endl;
+
+        // Until we shift to PY-M-D format we will need to manually handle the
+        // years, months and days.
+
+        int delimiter = duration_str.find('T');
+
+
+        std::cout << "Duration str '" << duration_str << "'. Delim: " << delimiter << std::endl;
+
+        if (delimiter != std::string::npos) {
+            // we have minutes hours and seconds
+            std::string time_str = duration_str.substr(delimiter+1);
+            //boost::posix_time::ptime datetime = convertStringToDatetime(time_str);
+            //auto time = datetime.time_of_day();
+
+            boost::posix_time::time_duration time = boost::posix_time::duration_from_string(time_str);
+
+            dduration.hour = time.hours();
+            dduration.minute = time.minutes();
+            dduration.second = time.seconds();
+        } else {
+            dduration.hour = 0;
+            dduration.minute = 0;
+            dduration.second = 0;
+        }
+
+        std::cout << "Duration Hour: " << dduration.hour << std::endl; 
+        std::cout << "Duration Minute: " << dduration.minute << std::endl; 
+        std::cout << "Duration Second: " << dduration.second << std::endl; 
+
+        std::string day_str = duration_str.substr(0,delimiter);
+        int year_delimiter = day_str.find('-');
+
+        if (year_delimiter != std::string::npos) {
+            //std::cout << day_str.substr(0,year_delimiter) << std::endl;
+            dduration.year = std::stod( day_str.substr(0,year_delimiter) );
+        }
+
+        int month_delimiter = day_str.find('-', year_delimiter);
+        if (month_delimiter != std::string::npos) {
+
+            int day_delimiter = day_str.find('-', month_delimiter);
+            if (day_delimiter != std::string::npos) {
+                //If you find another delimeter then everything before it is months
+                //and after is days i.e. PY-M-D format
+                dduration.month = std::stod( 
+                    day_str.substr(month_delimiter+1,day_delimiter-(month_delimiter+1)) );
+                dduration.day = std::stod( day_str.substr(day_delimiter+1) );
+            } else {
+                //If there is no additional delimiter then this is days i.e. PY-DDD
+                dduration.day = std::stod( day_str.substr(year_delimiter+1) );
+            }
+
+        }
+
+        std::cout << "Duration Year: " << dduration.year << std::endl; 
+        std::cout << "Duration Month: " << dduration.month << std::endl; 
+        std::cout << "Duration Day: " << dduration.day << std::endl; 
+
+        //TODO: This needs testing like............. 
+        return dduration;
+        
+
     }
 
 }

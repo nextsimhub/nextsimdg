@@ -10,6 +10,9 @@
 #include <mpi.h>
 #include <include/xios_c_interface.hpp>
 #include "Configured.hpp"
+#include <boost/format.hpp>
+#include <boost/format/group.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace Nextsim {
 
@@ -36,10 +39,11 @@ public:
     std::string getCalendarStart(bool isoFormat = true);
     void setCalendarStart(char *dstart_str, int str_size);
     std::string getCalendarTimestep();
-    void setCalendarTimestep();
+    void setCalendarTimestep(std::string timestep_str);
     void getCalendarConfiguration();
     
     static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat);
+    static boost::posix_time::ptime convertStringToDatetime(std::string datetime);
     static cxios_date convertStringToXiosDatetime(std::string datetime);
     static cxios_duration convertStringToXiosDuration(std::string duration);
 
