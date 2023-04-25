@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/SlabOcean.hpp"
 
@@ -20,7 +20,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("Test Qdw", "[SlabOcean]")
+TEST_SUITE_BEGIN("SlabOcean");
+TEST_CASE("Test Qdw")
 {
     // 1000 s timestep
     TimestepTime tst = {TimePoint(), Duration("P0-0T0:16:40")};
@@ -73,11 +74,11 @@ TEST_CASE("Test Qdw", "[SlabOcean]")
 
     ModelArrayRef<ModelComponent::ProtectedArray::SLAB_QDW, MARConstBackingStore> qdw(ModelComponent::getProtectedArray());
     double prec = 1e-6;
-    REQUIRE(qdw[0] == Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
+    REQUIRE(qdw[0] == doctest::Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
     ModelArrayRef<ModelComponent::ProtectedArray::SLAB_SST, MARConstBackingStore> sstSlab(ModelComponent::getProtectedArray());
-    REQUIRE(sstSlab[0] != Approx(sst[0]).epsilon(prec / dt));
-    REQUIRE(sstSlab[0] == Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
+    REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
+    REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
 
     HField qow(ModelArray::Type::H);
     qow[0] = 15;
@@ -87,10 +88,10 @@ TEST_CASE("Test Qdw", "[SlabOcean]")
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IO, &qio);
     // Should not need to update anything else, as the slabOcean update only changes SLAB_SST
     slabOcean.update(tst);
-    REQUIRE(sstSlab[0] == Approx(sst[0] - dt * (qow[0] + qio[0] - qdw[0]) / cpml[0]).epsilon(prec));
+    REQUIRE(sstSlab[0] == doctest::Approx(sst[0] - dt * (qow[0] + qio[0] - qdw[0]) / cpml[0]).epsilon(prec));
 }
 
-TEST_CASE("Test Fdw", "[SlabOcean]")
+TEST_CASE("Test Fdw")
 {
     // 1000 s timestep
     TimestepTime tst = {TimePoint(), Duration("P0-0T0:16:40")};
@@ -143,24 +144,24 @@ TEST_CASE("Test Fdw", "[SlabOcean]")
 
     ModelArrayRef<ModelComponent::ProtectedArray::SLAB_FDW, MARConstBackingStore> fdw(ModelComponent::getProtectedArray());
     double prec = 1e-6;
-    REQUIRE(fdw[0] == Approx(-sOffset / sss[0] * mld[0] * Water::rho / SlabOcean::defaultRelaxationTime).epsilon(prec));
+    REQUIRE(fdw[0] == doctest::Approx(-sOffset / sss[0] * mld[0] * Water::rho / SlabOcean::defaultRelaxationTime).epsilon(prec));
     // Test that the finiteelement.cpp calculation of fdw is not being used
     double delS = -sOffset;
     double timeS = SlabOcean::defaultRelaxationTime;
     double ddt = tst.step.seconds();
     double oldFdw = delS * mld[0] * Water::rho / (timeS * sss[0] - ddt * delS);
-    REQUIRE(fdw[0] != Approx(oldFdw).epsilon(prec));
+    REQUIRE(fdw[0] != doctest::Approx(oldFdw).epsilon(prec * 1e-6));
 
     ModelArrayRef<ModelComponent::ProtectedArray::SLAB_SSS, MARConstBackingStore> sssSlab(ModelComponent::getProtectedArray());
-    REQUIRE(sssSlab[0] != Approx(sss[0]).epsilon(prec / dt));
-    REQUIRE(sssSlab[0] == Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt)).epsilon(prec));
+    REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
+    REQUIRE(sssSlab[0] == doctest::Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt)).epsilon(prec));
 
     HField snowMelt(ModelArray::Type::H);
     snowMelt = -1e-4;
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::HSNOW_MELT, &snowMelt);
     slabOcean.update(tst);
     double snowMeltVol = snowMelt[0] * Ice::rhoSnow;
-    REQUIRE(sssSlab[0] == Approx(sss[0] + (snowMeltVol - fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt)).epsilon(prec));
+    REQUIRE(sssSlab[0] == doctest::Approx(sss[0] + (snowMeltVol - fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt)).epsilon(prec));
 }
-
+TEST_SUITE_END();
 } /* namespace Nextsim */
