@@ -91,6 +91,30 @@ TEST_CASE("Threshold ice")
     } atmoState;
     atmoState.setData(ModelState::DataMap());
 
+    class FluxData : public IFluxCalculation {
+    public:
+        FluxData()
+            : IFluxCalculation()
+        {
+        }
+        std::string getName() const override { return "FluxData"; }
+
+        void setData(const ModelState::DataMap&) override
+        {
+            qow[0] = 0;
+            qia[0] = 0;
+            dqia_dt[0] = 0;
+            subl[0] = 0;
+        }
+
+        ModelState getState() const override { return ModelState(); }
+        ModelState getState(const OutputLevel&) const override { return getState(); }
+
+        void update(const TimestepTime&) override { }
+    } fluxData;
+
+    fluxData.setData(ModelState::DataMap());
+
     TimestepTime tst = { TimePoint("2000-01-01T00:00:00"), Duration(600) };
     ThermoIce0 ti0t;
     ti0t.configure();
