@@ -192,6 +192,9 @@ private:
     void checkMaybeThrow() const
     {
 #ifdef DEBUG_MODELARRAYREF
+        // To activate the debuggin version of this function, add
+        // target_compile_definitions(target PRIVATE DEBUG_MODELARRAYREF)
+        // to the target in the relevant CMakeLists.txt
         if (!backingStore[static_cast<size_t>(arrayName)])
             throw std::invalid_argument(
                 "No registered ModelArray at " + std::to_string(static_cast<size_t>(arrayName)));
