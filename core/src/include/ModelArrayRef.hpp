@@ -52,6 +52,7 @@ public:
      */
     const double& operator[](const ModelArray::MultiDim& dims)
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator[](dims);
     }
     /*!
@@ -65,6 +66,7 @@ public:
      */
     const double& operator[](size_t index) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator[](index);
     }
     //! Returns the specified point from a 1 dimensional ModelArray. If the
@@ -72,6 +74,7 @@ public:
     //! value is returned.
     const double& operator()(size_t i) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i);
     }
     //! Returns the specified point from a 2 dimensional ModelArray. If the
@@ -79,6 +82,7 @@ public:
     //! value is returned.
     const double& operator()(size_t i, size_t j) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j);
     }
     //! Returns the specified point from a 3 dimensional ModelArray. If the
@@ -86,6 +90,7 @@ public:
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k);
     }
     //! Returns the specified point from a 4 dimensional ModelArray. If the
@@ -93,6 +98,7 @@ public:
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k, size_t l) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l);
     }
     //! Returns the specified point from a 5 dimensional ModelArray. If the
@@ -100,6 +106,7 @@ public:
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m);
     }
     //! Returns the specified point from a 6 dimensional ModelArray. If the
@@ -107,6 +114,7 @@ public:
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n);
     }
     //! Returns the specified point from a 7 dimensional ModelArray. If the
@@ -115,6 +123,7 @@ public:
     const double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n, p);
     }
     //! Returns the specified point from a 8 dimensional ModelArray. If the
@@ -123,6 +132,7 @@ public:
     const double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n, p, q);
     }
 
@@ -137,11 +147,16 @@ public:
      */
     const double& zIndexAndLayer(size_t hIndex, size_t layer)
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->zIndexAndLayer(hIndex, layer);
     }
 
     //! Direct access top the underlying data array.
-    const ModelArray& data() const { return *backingStore[static_cast<size_t>(arrayName)]; }
+    const ModelArray& data() const
+    {
+        checkMaybeThrow();
+        return *backingStore[static_cast<size_t>(arrayName)];
+    }
     //! Cast the reference class to a real reference to the referenced ModelArray.
     operator const ModelArray&() const { return data(); }
 
@@ -173,6 +188,20 @@ public:
 
 private:
     const S& backingStore;
+
+    void checkMaybeThrow() const
+    {
+#ifdef DEBUG_MODELARRAYREF
+        // To activate the debuggin version of this function, add
+        // target_compile_definitions(target PRIVATE DEBUG_MODELARRAYREF)
+        // to the target in the relevant CMakeLists.txt
+        if (!backingStore[static_cast<size_t>(arrayName)])
+            throw std::invalid_argument(
+                "No registered ModelArray at " + std::to_string(static_cast<size_t>(arrayName)));
+#else
+
+#endif
+    }
 };
 
 /*!
@@ -204,6 +233,7 @@ public:
      */
     double& operator[](const ModelArray::MultiDim& dims)
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator[](dims);
     }
     /*!
@@ -217,6 +247,7 @@ public:
      */
     double& operator[](size_t index) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator[](index);
     }
     //! Returns the specified point from a 1 dimensional ModelArray. If the
@@ -224,6 +255,7 @@ public:
     //! value is returned.
     double& operator()(size_t i) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i);
     }
     //! Returns the specified point from a 2 dimensional ModelArray. If the
@@ -231,6 +263,7 @@ public:
     //! value is returned.
     double& operator()(size_t i, size_t j) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j);
     }
     //! Returns the specified point from a 3 dimensional ModelArray. If the
@@ -238,6 +271,7 @@ public:
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k);
     }
     //! Returns the specified point from a 4 dimensional ModelArray. If the
@@ -245,6 +279,7 @@ public:
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k, size_t l) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l);
     }
     //! Returns the specified point from a 5 dimensional ModelArray. If the
@@ -252,6 +287,7 @@ public:
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m);
     }
     //! Returns the specified point from a 6 dimensional ModelArray. If the
@@ -259,6 +295,7 @@ public:
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n);
     }
     //! Returns the specified point from a 7 dimensional ModelArray. If the
@@ -266,6 +303,7 @@ public:
     //! value is returned.
     double& operator()(size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n, p);
     }
     //! Returns the specified point from a 8 dimensional ModelArray. If the
@@ -274,6 +312,7 @@ public:
     double& operator()(
         size_t i, size_t j, size_t k, size_t l, size_t m, size_t n, size_t p, size_t q) const
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->operator()(i, j, k, l, m, n, p, q);
     }
 
@@ -288,16 +327,32 @@ public:
      */
     double& zIndexAndLayer(size_t hIndex, size_t layer)
     {
+        checkMaybeThrow();
         return backingStore[static_cast<size_t>(arrayName)]->zIndexAndLayer(hIndex, layer);
     }
 
     //! Direct access top the underlying data array.
-    ModelArray& data() const { return *backingStore[static_cast<size_t>(arrayName)]; }
+    ModelArray& data() const
+    {
+        checkMaybeThrow();
+        return *backingStore[static_cast<size_t>(arrayName)];
+    }
     //! Cast the reference class to a real reference to the referenced ModelArray.
     operator ModelArray&() const { return data(); }
 
 private:
     const MARBackingStore& backingStore;
+
+    void checkMaybeThrow() const
+    {
+#ifdef DEBUG_MODELARRAYREF
+        if (!backingStore[static_cast<size_t>(arrayName)])
+            throw std::invalid_argument(
+                "No registered ModelArray at " + std::to_string(static_cast<size_t>(arrayName)));
+#else
+
+#endif
+    }
 };
 }
 #endif /* MODELARRAYREF2_HPP */

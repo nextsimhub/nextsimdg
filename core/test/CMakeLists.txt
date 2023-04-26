@@ -5,6 +5,7 @@ set(SRC_DIR "${CoreSrc}")
 set(INCLUDE_DIR "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
 set(ModelArrayDetails "testmodelarraydetails")
+set(FVModelArrayDetails "${CoreSrc}/finitevolume/")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
@@ -219,3 +220,12 @@ target_include_directories(testPrognosticData PRIVATE
     "${PhysModulesDir}"
     )
 target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
+
+add_executable(testModelArrayRefDebug
+    "ModelArrayRefDebug_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${FVModelArrayDetails}/ModelArrayDetails.cpp"
+)
+target_compile_definitions(testModelArrayRefDebug PRIVATE DEBUG_MODELARRAYREF)
+target_include_directories(testModelArrayRefDebug PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_libraries(testModelArrayRefDebug PRIVATE Catch2::Catch2 Eigen3::Eigen)
