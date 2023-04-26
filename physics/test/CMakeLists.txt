@@ -196,7 +196,7 @@ target_include_directories(testSlabOcn PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testSlabOcn PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testSlabOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testThermoIce0
     "ThermoIce0_test.cpp"
@@ -219,4 +219,4 @@ target_include_directories(testThermoIce0 PRIVATE
     "${SourceDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testThermoIce0 PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testThermoIce0 PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
