@@ -7,8 +7,11 @@
 
 #include "include/IceGrowth.hpp"
 
+#include "include/MinimumIce.hpp"
 #include "include/Module.hpp"
 #include "include/constants.hpp"
+
+#include "MinimumIce.cpp"
 
 namespace Nextsim {
 
