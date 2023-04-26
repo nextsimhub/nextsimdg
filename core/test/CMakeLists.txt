@@ -185,6 +185,7 @@ add_executable(testPrognosticData
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
+    "${PhysSourceDir}/IceMinima.cpp"
     "${PhysModulesDir}/FiniteElementFluxes.cpp"
     "${PhysModulesDir}/FiniteElementSpecHum.cpp"
     "${PhysModulesDir}/FluxCalculationModule.cpp"
