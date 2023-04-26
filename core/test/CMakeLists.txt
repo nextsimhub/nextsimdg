@@ -228,4 +228,4 @@ add_executable(testModelArrayRefDebug
 )
 target_compile_definitions(testModelArrayRefDebug PRIVATE DEBUG_MODELARRAYREF)
 target_include_directories(testModelArrayRefDebug PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_libraries(testModelArrayRefDebug PRIVATE Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testModelArrayRefDebug PRIVATE doctest::doctest Eigen3::Eigen)
