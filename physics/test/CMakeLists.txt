@@ -13,6 +13,7 @@ set(ModulesDir "${SourceDir}/modules")
 add_executable(testIceGrowth
     "IceGrowth_test.cpp"
     "${SourceDir}/IceGrowth.cpp"
+    "${SourceDir}/IceMinima.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
@@ -46,7 +47,7 @@ add_executable(testThermoWinton
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreSourceDir}/NZLevels.cpp"
-    "${SourceDir}/MinimumIce.cpp"
+    "${SourceDir}/IceMinima.cpp"
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoWinton.cpp"
