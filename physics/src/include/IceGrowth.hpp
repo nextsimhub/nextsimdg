@@ -25,6 +25,8 @@ public:
     enum {
         ICE_THERMODYNAMICS_KEY,
         LATERAL_GROWTH_KEY,
+        MINC_KEY,
+        MINH_KEY,
     };
 
     void configure() override;
