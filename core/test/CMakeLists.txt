@@ -240,12 +240,3 @@ target_include_directories(testPrognosticData PRIVATE
     )
 target_link_directories(testPrognosticData PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
-
-add_executable(testModelArrayRefDebug
-    "ModelArrayRefDebug_test.cpp"
-    "${CoreSrc}/ModelArray.cpp"
-    "${FVModelArrayDetails}/ModelArrayDetails.cpp"
-)
-target_compile_definitions(testModelArrayRefDebug PRIVATE DEBUG_MODELARRAYREF)
-target_include_directories(testModelArrayRefDebug PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_libraries(testModelArrayRefDebug PRIVATE doctest::doctest Eigen3::Eigen)
