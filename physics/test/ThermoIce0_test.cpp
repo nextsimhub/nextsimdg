@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include <sstream>
 
 #include "include/ThermoIce0.hpp"
@@ -23,7 +23,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("Threshold ice", "[ThermoIce0]")
+TEST_SUITE_BEGIN("ThermoIce0");
+TEST_CASE("Threshold ice")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -103,4 +104,5 @@ TEST_CASE("Threshold ice", "[ThermoIce0]")
     REQUIRE(cice[0] == 0.);
 
 }
+TEST_SUITE_END();
 }
