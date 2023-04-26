@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/ModelArrayRef.hpp"
 
@@ -84,7 +84,8 @@ private:
     IceThermo thermo;
 };
 
-TEST_CASE("No registered array", "[ModelArrayRefDebug]")
+TEST_SUITE_BEGIN("ModelArrayRefDebug");
+TEST_CASE("No registered array")
 {
     ModelArray::setDimensions(ModelArray::Type::H, {1,1});
 
@@ -92,7 +93,7 @@ TEST_CASE("No registered array", "[ModelArrayRefDebug]")
     REQUIRE_THROWS_AS(iceThermo.update(1), std::invalid_argument);
 }
 
-TEST_CASE("Correct access", "[ModelArrayRefDebug]")
+TEST_CASE("Correct access")
 {
     ModelArray::setDimensions(ModelArray::Type::H, {1,1});
 
@@ -101,4 +102,5 @@ TEST_CASE("Correct access", "[ModelArrayRefDebug]")
     iceCalc.configure();
     REQUIRE_NOTHROW(iceThermo.update(1));
 }
+TEST_SUITE_END();
 }
