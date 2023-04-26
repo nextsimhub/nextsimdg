@@ -13,6 +13,7 @@ set(ModulesDir "${SourceDir}/modules")
 add_executable(testIceGrowth
     "IceGrowth_test.cpp"
     "${SourceDir}/IceGrowth.cpp"
+    "${SourceDir}/IceMinima.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
@@ -46,7 +47,7 @@ add_executable(testThermoWinton
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreSourceDir}/NZLevels.cpp"
-    "${SourceDir}/MinimumIce.cpp"
+    "${SourceDir}/IceMinima.cpp"
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoWinton.cpp"
@@ -175,3 +176,24 @@ target_include_directories(testConstantOcn PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testConstantOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
+
+add_executable(testSlabOcn
+    "SlabOcean_test.cpp"
+    "${SourceDir}/SlabOcean.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testSlabOcn PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testSlabOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
