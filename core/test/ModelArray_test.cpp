@@ -5,14 +5,15 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
-#include "../src/include/ModelArray.hpp"
+#include "include/ModelArray.hpp"
 
 namespace Nextsim {
 
-TEST_CASE("Two dimensional data access test", "[ModelArray]")
+TEST_SUITE_BEGIN("ModelArray");
+TEST_CASE("Two dimensional data access test")
 {
     ModelArray::MultiDim dims2 = {15, 25};
 
@@ -38,7 +39,7 @@ TEST_CASE("Two dimensional data access test", "[ModelArray]")
     REQUIRE(check1d(dims2[0]-1, dims2[1]-1) == dims2[0] * dims2[1] - 1);
 }
 
-TEST_CASE("Higher dimensional indexing", "[ModelArray]")
+TEST_CASE("Higher dimensional indexing")
 {
     size_t dimLen = 10;
     size_t arrayLen = dimLen * dimLen * dimLen * dimLen;
@@ -91,7 +92,7 @@ TEST_CASE("Higher dimensional indexing", "[ModelArray]")
     REQUIRE(check4d[{4, 7, 2, 6}] == 4726);
 }
 
-TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
+TEST_CASE("Higher dimensional indexing 2")
 {
     ModelArray::MultiDim dims4 = {3, 5, 7, 11};
     size_t totalSize = dims4[0] * dims4[1] * dims4[2] * dims4[3];
@@ -118,7 +119,7 @@ TEST_CASE("Higher dimensional indexing 2", "[ModelArray]")
 
 }
 
-TEST_CASE("Moving data", "[ModelArray]")
+TEST_CASE("Moving data")
 {
     size_t n = 10;
     ModelArray::setDimensions(ModelArray::Type::TWOD, {n, n});
@@ -136,7 +137,7 @@ TEST_CASE("Moving data", "[ModelArray]")
     REQUIRE(cpyAss(2, 3) == 23);
 }
 
-TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
+TEST_CASE("Instance setDimensions sets instance dimensions")
 {
     DosDField uu = ModelArray::DosDField();
     ModelArray::MultiDim udim = {5, 5};
@@ -146,7 +147,7 @@ TEST_CASE("Instance setDimensions sets instance dimensions", "[ModelArray]")
     REQUIRE(uu.dimensions() == udim);
 }
 
-TEST_CASE("Arithmetic tests", "[ModelArray]")
+TEST_CASE("Arithmetic tests")
 {
     // Only test HField for now
     ModelArray::setDimensions(ModelArray::Type::ONED, {2});
@@ -237,7 +238,7 @@ TEST_CASE("Arithmetic tests", "[ModelArray]")
 
 // Location from index. Index from location is assumed to work as it is a
 // wrapper around indexr()
-TEST_CASE("Location from index", "[ModelArray]")
+TEST_CASE("Location from index")
 {
     const size_t nx = 31;
     const size_t ny = 37;
@@ -254,4 +255,6 @@ TEST_CASE("Location from index", "[ModelArray]")
     REQUIRE(loc[1] == y);
     REQUIRE(loc[2] == z);
 }
+TEST_SUITE_END();
+
 } /* namespace Nextsim */

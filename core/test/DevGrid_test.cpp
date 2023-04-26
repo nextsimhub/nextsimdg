@@ -5,13 +5,14 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/DevGrid.hpp"
 #include "include/DevGridIO.hpp"
 #include "include/IStructure.hpp"
+#include "include/NZLevels.hpp"
 
 #include <cstdio>
 #include <fstream>
@@ -20,7 +21,8 @@ namespace Nextsim {
 
 const std::string stateFilename = "modelState.test.nc";
 
-TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
+TEST_SUITE_BEGIN("DevGrid");
+TEST_CASE("Write and read a ModelState-based DevGrid restart file")
 {
     DevGrid grid;
     grid.setIO(new DevGridIO(grid));
@@ -31,8 +33,9 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
     double yFactor = 0.01;
     double xFactor = 0.0001;
 
+    NZLevels::set(1);
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
-    ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, NZLevels::get() });
 
     HField fractional(ModelArray::Type::H);
     HField mask(ModelArray::Type::H);
@@ -91,5 +94,6 @@ TEST_CASE("Write and read a ModelState-based DevGrid restart file", "[DevGrid]")
 
     std::remove(stateFilename.c_str());
 }
+TEST_SUITE_END();
 
 }

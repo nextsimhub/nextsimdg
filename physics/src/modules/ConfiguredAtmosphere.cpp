@@ -112,6 +112,8 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     snow = snowfall0;
     rain = rain0;
     wind = windspeed0;
+
+    fluxImpl->setData(dm);
 }
 
 void ConfiguredAtmosphere::update(const TimestepTime& tst)

@@ -8,16 +8,19 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/DGModelArray.hpp"
 
 #include "include/ParametricMesh.hpp"
 
+Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
+
 namespace Nextsim {
 
-TEST_CASE("DGVector from ModelArray", "[DGModelArray]")
+TEST_SUITE_BEGIN("DGModelArray");
+TEST_CASE("DGVector from ModelArray")
 {
     static const int DG = 3;
     const size_t nx = 32;
@@ -42,19 +45,19 @@ TEST_CASE("DGVector from ModelArray", "[DGModelArray]")
     CHECK(source.components({14, 12})[2] == (2 + my * (12 + mx * (14))));
 
     // Create the ParametricMesh object
-    ParametricMesh smash;
-    smash.nx = nx;
-    smash.ny = ny;
-    smash.nnodes = nx * ny;
-    smash.nelements = nx * ny;
-    smash.vertices.resize(smash.nelements, Eigen::NoChange);
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nnodes = nx * ny;
+    smesh.nelements = nx * ny;
+    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; ++j) {
-            smash.vertices(i * ny + j, 0) = i;
-            smash.vertices(i * ny + j, 1) = j;
+            smesh.vertices(i * ny + j, 0) = i;
+            smesh.vertices(i * ny + j, 1) = j;
         }
     }
-    DGVector<DG> dest(smash);
+    DGVector<DG> dest(smesh);
     DGModelArray::ma2dg<DG>(source, dest);
 
     // Did it work?
@@ -62,7 +65,7 @@ TEST_CASE("DGVector from ModelArray", "[DGModelArray]")
     REQUIRE(dest(targetPoint, 2) == source.components({14, 12})[2]);
 }
 
-TEST_CASE("ModelArray from DGVector", "[DGModelArray]")
+TEST_CASE("ModelArray from DGVector")
 {
     static const int DG = 6;
     const size_t nx = 31;
@@ -71,19 +74,19 @@ TEST_CASE("ModelArray from DGVector", "[DGModelArray]")
     const size_t my = 100;
 
     // Create the ParametricMesh object
-    ParametricMesh smash;
-    smash.nx = nx;
-    smash.ny = ny;
-    smash.nnodes = nx * ny;
-    smash.nelements = nx * ny;
-    smash.vertices.resize(smash.nelements, Eigen::NoChange);
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nnodes = nx * ny;
+    smesh.nelements = nx * ny;
+    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; ++j) {
-            smash.vertices(i * ny + j, 0) = i;
-            smash.vertices(i * ny + j, 1) = j;
+            smesh.vertices(i * ny + j, 0) = i;
+            smesh.vertices(i * ny + j, 1) = j;
         }
     }
-    DGVector<DG> source(smash);
+    DGVector<DG> source(smesh);
     // Let the H arrays do the index calculation
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     for (size_t i = 0; i < nx; ++i) {
@@ -108,7 +111,7 @@ TEST_CASE("ModelArray from DGVector", "[DGModelArray]")
     REQUIRE(dest.components({14, 12})[4] == source(targetPoint, 4));
 }
 
-TEST_CASE("Test with DG = 1", "[DGModelArray]") // (It would be a silly case to get wrong!)
+TEST_CASE("Test with DG = 1") // (It would be a silly case to get wrong!)
 {
     static const int DG = 1;
     const size_t nx = 23;
@@ -116,19 +119,19 @@ TEST_CASE("Test with DG = 1", "[DGModelArray]") // (It would be a silly case to 
     const size_t mx = 100;
 
     // Create the ParametricMesh object
-    ParametricMesh smash;
-    smash.nx = nx;
-    smash.ny = ny;
-    smash.nnodes = nx * ny;
-    smash.nelements = nx * ny;
-    smash.vertices.resize(smash.nelements, Eigen::NoChange);
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nnodes = nx * ny;
+    smesh.nelements = nx * ny;
+    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; ++j) {
-            smash.vertices(i * ny + j, 0) = i;
-            smash.vertices(i * ny + j, 1) = j;
+            smesh.vertices(i * ny + j, 0) = i;
+            smesh.vertices(i * ny + j, 1) = j;
         }
     }
-    DGVector<DG> source(smash);
+    DGVector<DG> source(smesh);
     // Let the H arrays do the index calculation
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     for (size_t i = 0; i < nx; ++i) {
@@ -169,7 +172,7 @@ TEST_CASE("Test with DG = 1", "[DGModelArray]") // (It would be a silly case to 
 }
 
 // Tests to and from HFields.
-TEST_CASE("Test the HField/DG0 transfer", "[DGModelArray]") // (It would be a silly case to get wrong!)
+TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wrong!)
 {
     static const int DG = 3;
     const size_t nx = 19;
@@ -178,19 +181,19 @@ TEST_CASE("Test the HField/DG0 transfer", "[DGModelArray]") // (It would be a si
     const size_t my = 100;
 
     // Create the ParametricMesh object
-    ParametricMesh smash;
-    smash.nx = nx;
-    smash.ny = ny;
-    smash.nnodes = nx * ny;
-    smash.nelements = nx * ny;
-    smash.vertices.resize(smash.nelements, Eigen::NoChange);
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nnodes = nx * ny;
+    smesh.nelements = nx * ny;
+    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; ++j) {
-            smash.vertices(i * ny + j, 0) = i;
-            smash.vertices(i * ny + j, 1) = j;
+            smesh.vertices(i * ny + j, 0) = i;
+            smesh.vertices(i * ny + j, 1) = j;
         }
     }
-    DGVector<DG> source(smash);
+    DGVector<DG> source(smesh);
     // Let the H arrays do the index calculation
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     for (size_t i = 0; i < nx; ++i) {
@@ -234,4 +237,6 @@ TEST_CASE("Test the HField/DG0 transfer", "[DGModelArray]") // (It would be a si
     REQUIRE(source(targetPoint, 0) != retained);
 
 }
+TEST_SUITE_END();
+
 }
