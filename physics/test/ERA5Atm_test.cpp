@@ -117,5 +117,5 @@ TEST_CASE("ERA5Atmosphere construction test")
 
     std::filesystem::remove(filePath);
 }
-
+TEST_SUITE_END();
 }
