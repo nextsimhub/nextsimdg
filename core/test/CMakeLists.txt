@@ -170,6 +170,15 @@ add_executable(testNewModelArrayRef
 target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testNewModelArrayRef PRIVATE doctest::doctest Eigen3::Eigen)
 
+add_executable(testModelArrayRefDebugging
+    "ModelArrayRefDebug_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${FVModelArrayDetails}/ModelArrayDetails.cpp"
+)
+target_compile_definitions(testModelArrayRefDebugging PRIVATE DEBUG_MODELARRAYREF)
+target_include_directories(testModelArrayRefDebugging PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_libraries(testModelArrayRefDebugging PRIVATE doctest::doctest Eigen3::Eigen)
+
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 set(PhysSourceDir "${CoreSrc}/../../physics/src/")
 set(PhysModulesDir "${CoreSrc}/../../physics/src/modules")
@@ -220,12 +229,3 @@ target_include_directories(testPrognosticData PRIVATE
     "${PhysModulesDir}"
     )
 target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
-
-add_executable(testModelArrayRefDebug
-    "ModelArrayRefDebug_test.cpp"
-    "${CoreSrc}/ModelArray.cpp"
-    "${FVModelArrayDetails}/ModelArrayDetails.cpp"
-)
-target_compile_definitions(testModelArrayRefDebug PRIVATE DEBUG_MODELARRAYREF)
-target_include_directories(testModelArrayRefDebug PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_libraries(testModelArrayRefDebug PRIVATE doctest::doctest Eigen3::Eigen)
