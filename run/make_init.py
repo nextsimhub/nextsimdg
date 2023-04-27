@@ -10,9 +10,19 @@ nLayers = 1
 
 root = netCDF4.Dataset(f"init_rect{nx}x{ny}.nc", "w", format="NETCDF4")
 
-metagrp = root.createGroup("structure")
-metagrp.type = "simple_rectangular"
+strgrp = root.createGroup("structure")
+strgrp.type = "simple_rectangular"
 
+metagrp = root.createGroup("metadata")
+metagrp.type = strgrp.type
+confgrp = metagrp.createGroup("configuration") # But add nothing to it
+timegrp = metagrp.createGroup("time")
+time = timegrp.createVariable("time", "i8")
+time[:] = 946684800
+time.units = "seconds since 1970-01-01T00:00:00Z"
+formatted = timegrp.createVariable("formatted", str)
+formatted.format = "%Y-%m-%dT%H:%M:%SZ"
+formatted[0] = "2000-01-01T00:00:00Z"
 
 datagrp = root.createGroup("data")
 
