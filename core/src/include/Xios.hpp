@@ -43,13 +43,15 @@ public:
     
     void getCalendarConfiguration();
 
-    //std::string getCalendarDate(bool isoFormat = true);
+    std::string getCalendarDate(bool isoFormat = true);
     void updateCalendar(int stepNumber);
     
     static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat);
     static boost::posix_time::ptime convertStringToDatetime(std::string datetime);
     static cxios_date convertStringToXiosDatetime(std::string datetime);
     static cxios_duration convertStringToXiosDuration(std::string duration);
+
+    void printCXiosDuration(cxios_duration durationStructure);
 
     static void writeState();
     //Arguments TBC
@@ -69,8 +71,15 @@ protected:
     bool m_isConfigured = false;
 private:
     std::string m_enabledStr;
-    MPI_Comm m_clientComm;
+
     xios::CCalendarWrapper* m_clientCalendar;
+    MPI_Comm m_clientComm;
+    MPI_Fint clientComm_F;
+    MPI_Fint nullComm_F;
+    std::string clientId;
+    std::string contextId;
+
+    cxios_duration dtime;
 };
 
 } /* end namespace Nextsim */

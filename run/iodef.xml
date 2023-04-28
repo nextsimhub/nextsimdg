@@ -34,12 +34,12 @@
     
   </context>
   
-  <context id="xios">
-    <variable_definition>
-      <variable_group id="parameters" >
-        <variable id="print_file" type="bool">true</variable>
-      </variable_group>
-    </variable_definition>
-  </context>
+  !<context id="xios">
+  !  <variable_definition>
+  !    <variable_group id="parameters" >
+  !      <variable id="print_file" type="bool">true</variable>
+  !    </variable_group>
+  !  </variable_definition>
+  !</context>
   
 </simulation>

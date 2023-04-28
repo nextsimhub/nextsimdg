@@ -187,22 +187,16 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     std::string Xios::getCalendarTimestep()
     {
         std::cout << "XIOS --- GET CALENDAR TIMESTEP ENTRY" << std::endl;
+        
         const int str_size = 50;//11+1; 
         char dur_str[str_size]; 
-        cxios_duration dtime;
+        //cxios_duration dtime;
         std::cout << "get calendar wrapper timestep " << std::endl;
         cxios_get_calendar_wrapper_timestep(m_clientCalendar, &dtime);
         std::cout << "Convert Duration To String" << std::endl; 
         cxios_duration_convert_to_string(dtime, dur_str, str_size);
 
-        std::cout << "cxios_duration inspection: " << std::endl;
-        std::cout << "year " << dtime.year << std::endl;
-        std::cout << "month " << dtime.month << std::endl;
-        std::cout << "day " << dtime.day << std::endl;
-        std::cout << "hour " << dtime.hour << std::endl;
-        std::cout << "minute " << dtime.minute << std::endl;
-        std::cout << "second " << dtime.second << std::endl;
-        std::cout << "timestep " << dtime.timestep << std::endl;
+        printCXiosDuration(dtime);
 
         std::cout << "XIOS --- GET CALENDAR TIMESTEP EXIT" << std::endl;
         return dur_str;
@@ -222,7 +216,7 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         // dtime.second = 0;
         // dtime.timestep = 0;
 
-        cxios_duration dtime = convertStringToXiosDuration(timestep_str);
+        dtime = convertStringToXiosDuration(timestep_str);
         cxios_set_calendar_wrapper_timestep( m_clientCalendar, dtime );
         cxios_update_calendar_timestep( m_clientCalendar );
     }
@@ -236,26 +230,30 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         if (rank == 0) 
         {
             std::string calendar_origin = getCalendarOrigin();
-            std::string calendar_start = getCalendarStart(true);
-            std::string calendar_timestep = getCalendarTimestep();
-            //std::string calendar_date = getCalendarDate();
             std::cout << "calendar time_origin = " << calendar_origin << std::endl;
+
+            std::string calendar_start = getCalendarStart(true);
             std::cout << "calendar start_date = " << calendar_start << std::endl;
-            std::cout << "calendar time_step = " << calendar_timestep << std::endl; 
-            //std::cout << "calendar date" << calendar_date << std::endl; 
+
+            // For some reason this only works during initialisation
+            //std::string calendar_timestep = getCalendarTimestep();
+            //std::cout << "calendar time_step = " << calendar_timestep << std::endl; 
+
+            std::string calendar_date = getCalendarDate();
+            std::cout << "calendar date " << calendar_date << std::endl; 
         }
         std::cout << "GET CALENDAR CONFIGURATION EXIT" << std::endl;
         
     }
 
     //Not sure this exists but maybe it should
-    // std::string Xios::getCalendarDate(bool isoFormat)
-    // {
-    //     std::cout << "XIOS --- GET CALENDAR DATE ENTRY" << std::endl;
-    //     cxios_date date;
-    //     cxios_get_calendar_wrapper_current_date(m_clientCalendar, &date);
-    //     return convertXiosDatetimeToString(date, isoFormat);
-    // }
+    std::string Xios::getCalendarDate(bool isoFormat)
+    {
+        std::cout << "XIOS --- GET CALENDAR DATE ENTRY" << std::endl;
+        cxios_date date;
+        cxios_get_current_date(&date);
+        return convertXiosDatetimeToString(date, isoFormat);
+    }
 
     // Advance time by making a call into XIOS library. Wrapping this method
     // to hide implementation details.
@@ -499,6 +497,18 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         return dduration;
         
 
+    }
+
+    void Xios::printCXiosDuration(cxios_duration durationStructure) 
+    {
+        std::cout << "cxios_duration inspection: " << std::endl;
+        std::cout << "year " << durationStructure.year << std::endl;
+        std::cout << "month " << durationStructure.month << std::endl;
+        std::cout << "day " << durationStructure.day << std::endl;
+        std::cout << "hour " << durationStructure.hour << std::endl;
+        std::cout << "minute " << durationStructure.minute << std::endl;
+        std::cout << "second " << durationStructure.second << std::endl;
+        std::cout << "timestep " << durationStructure.timestep << std::endl;
     }
 
 }
