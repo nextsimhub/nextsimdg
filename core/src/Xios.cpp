@@ -16,8 +16,6 @@
 #include <include/xios_c_interface.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
-
-#include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace Nextsim {
@@ -29,89 +27,63 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 
     Xios::Xios(int argc, char* argv[]) {
         Xios::configure();
-        Xios::configureServer(argc, argv);
-        Xios::configureCalendar();
-        Xios::validateConfiguration();
-        cxios_context_close_definition();
+        if (m_isEnabled)
+        {
+            Xios::configureServer(argc, argv);
+            Xios::configureCalendar();
+            Xios::validateConfiguration();
+            m_isConfigured = true;
+            cxios_context_close_definition();
+        }
     }
-
+    
     Xios::~Xios()
     {
         if (m_isConfigured) {
-            Nextsim::Xios::Finalise();
+            Nextsim::Xios::finalise();
         }
         
     }
 
-    //Setup XIOS server process, calendar and parse iodel.xml
-    void Xios::initialise()//int argc, char* argv[])
+    //Inherited functionality from Configured to determine if XIOS is enabled in config file
+    void Xios::configure()
     {
-            std::cout << "XIOS --- INITIALISE ENTRY POINT" << std::endl; 
-            int rank(0);
-            MPI_Comm_rank( m_clientComm, &rank );
-            std::cout << "Hello XIOS from proc " << rank << std::endl;
-
-
-            if (rank == 0) std::cout << "XIOS --- INITIALISE EXIT POINT" << std::endl; 
+        istringstream( Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()) )
+            >> std::boolalpha >> m_isEnabled;
     }
 
-    //Teardown XIOS Server Processes
-    void Xios::Finalise()
+    //Teardown XIOS client & server processes, clear data
+    void Xios::finalise()
     {
-            std::cout << "XIOS --- FINALISE" << std::endl;
-            //cxios_context_close_definition();
             cxios_context_finalize();
             cxios_finalize();
 
+            //Temporary MPI teardown until pre-requisite feature reaches develop branch
             MPI_Finalize();
-            std::cout << "XIOS --- FINALISE EXIT" << std::endl;
     }
 
-    //This does not setup XIOS this sets up the XIOS class (requirement - Define abstract method in Configured)
-    void Xios::configure()
-    {
-        std::cout << "XIOS --- CONFIGURE ENTRY POINT" << std::endl; 
-        m_enabledStr = Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string());
-        std::cout << "XIOS --- Enabled: " << Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()) << std::endl;
-
-        m_isConfigured = true;
-        std::cout << "XIOS --- CONFIGURE EXIT POINT" << std::endl; 
-    }
-
+    // Setup XIOS Server process
+    // TODO: Consider distributed clients
     void Xios::configureServer(int argc, char* argv[])
     {
 
-        std::cout << "XIOS --- CONFIGURE SERVER ENTRY POINT" << std::endl; 
-        //Temporary MPI setup until syncronisation with assoc branch
+        //Temporary MPI setup until pre-requisite feature reaches develop branch
         MPI_Init(&argc, &argv);
-        int n_ranks;
-        MPI_Comm_size(MPI_COMM_WORLD, &n_ranks);
-        std::cout << "MPI_RANKS " << n_ranks << std::endl;
+
         clientId = "client";
-
-        clientComm_F;
         nullComm_F = MPI_Comm_c2f( MPI_COMM_NULL );
-
         cxios_init_client( clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F );
+
         m_clientComm = MPI_Comm_f2c( clientComm_F );
-
-        contextId = "test";
+        contextId = "xios_context";
         cxios_context_initialize( contextId.c_str(), contextId.length(), &clientComm_F );
-
-        // int rank(0);
-        // MPI_Comm_rank( m_clientComm, &rank );
-        // int size(1);
-        // MPI_Comm_size( m_clientComm, &size );
-
-        std::cout << "XIOS --- CONFIGURE SERVER EXIT POINT" << std::endl; 
     }
 
 
 
 
     // Xios Calendar
-
-
+    
     void Xios::configureCalendar() 
     {
 

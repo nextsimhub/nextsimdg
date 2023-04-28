@@ -2,7 +2,7 @@
 
 <simulation>
 
-  <context id="test">
+  <context id="xios_context">
 
     <calendar type="Gregorian" time_origin="2021-01-01" start_date="2021-03" />
 
