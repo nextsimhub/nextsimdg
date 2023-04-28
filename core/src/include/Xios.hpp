@@ -22,8 +22,8 @@ public:
     Xios(int argc, char* argv[]);
     ~Xios();
     
-    void initialise();//int argc, char* argv[]);
-    void Finalise();
+    //void initialise();//int argc, char* argv[]);
+    void finalise();
     bool validateConfiguration();
     bool validateServerConfiguration();
     bool validateCalendarConfiguration();
@@ -70,7 +70,7 @@ public:
 protected:
     bool m_isConfigured = false;
 private:
-    std::string m_enabledStr;
+    bool m_isEnabled;
 
     xios::CCalendarWrapper* m_clientCalendar;
     MPI_Comm m_clientComm;
