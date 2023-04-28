@@ -148,9 +148,10 @@ void Model::run() { iterator.run(); }
 
 void Model::writeRestartFile()
 {
-    // TODO Replace with real logging
-    Logged::notice(std::string("  Writing state-based restart file: ") + finalFileName + '\n');
-    pData.writeRestartFile(finalFileName);
+    std::string formattedFileName = m_etadata.time().format(finalFileName);
+
+    Logged::notice(std::string("  Writing state-based restart file: ") + formattedFileName + '\n');
+    pData.writeRestartFile(formattedFileName);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }
