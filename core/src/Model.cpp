@@ -46,7 +46,7 @@ Model::Model()
 {
     iterator.setIterant(&modelStep);
 
-    finalFileName = "restart.nc";
+    finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
 }
 
 Model::~Model()
