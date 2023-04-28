@@ -22,7 +22,7 @@
 
 namespace Nextsim {
 
-template<typename Key, typename Value>
+template <typename Key, typename Value>
 static std::map<Key, Value> combineMaps(std::map<Key, Value>& map1, std::map<Key, Value>& map2)
 {
     std::map<Key, Value> map3 = map1;
@@ -39,7 +39,8 @@ static std::map<int, std::string> restartKeyMap = {
 };
 
 template <>
-const std::map<int, std::string> Configured<Model>::keyMap = combineMaps(interimKeyMap, restartKeyMap);
+const std::map<int, std::string> Configured<Model>::keyMap
+    = combineMaps(interimKeyMap, restartKeyMap);
 
 Model::Model()
 {
@@ -91,8 +92,13 @@ void Model::configure()
     modelStep.setInitFile(initialFileName);
 
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
+
+    std::string restartPeriodStr
+        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string());
+    restartPeriod = Duration(restartPeriodStr);
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
+    modelStep.setRestartDetails(restartPeriod, finalFileName);
     pData.setData(initialState.data);
 }
 
