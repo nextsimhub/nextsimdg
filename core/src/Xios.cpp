@@ -32,6 +32,7 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         Xios::configureServer(argc, argv);
         Xios::configureCalendar();
         Xios::validateConfiguration();
+        cxios_context_close_definition();
     }
 
     Xios::~Xios()
@@ -86,15 +87,15 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         int n_ranks;
         MPI_Comm_size(MPI_COMM_WORLD, &n_ranks);
         std::cout << "MPI_RANKS " << n_ranks << std::endl;
-        string clientId( "client" );
+        clientId = "client";
 
-        MPI_Fint clientComm_F;
-        MPI_Fint nullComm_F = MPI_Comm_c2f( MPI_COMM_NULL );
+        clientComm_F;
+        nullComm_F = MPI_Comm_c2f( MPI_COMM_NULL );
 
         cxios_init_client( clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F );
         m_clientComm = MPI_Comm_f2c( clientComm_F );
 
-        string contextId( "test" );
+        contextId = "test";
         cxios_context_initialize( contextId.c_str(), contextId.length(), &clientComm_F );
 
         // int rank(0);
