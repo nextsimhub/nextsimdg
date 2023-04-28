@@ -237,12 +237,30 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
             std::string calendar_origin = getCalendarOrigin();
             std::string calendar_start = getCalendarStart(true);
             std::string calendar_timestep = getCalendarTimestep();
+            //std::string calendar_date = getCalendarDate();
             std::cout << "calendar time_origin = " << calendar_origin << std::endl;
             std::cout << "calendar start_date = " << calendar_start << std::endl;
             std::cout << "calendar time_step = " << calendar_timestep << std::endl; 
+            //std::cout << "calendar date" << calendar_date << std::endl; 
         }
-
         std::cout << "GET CALENDAR CONFIGURATION EXIT" << std::endl;
+        
+    }
+
+    //Not sure this exists but maybe it should
+    // std::string Xios::getCalendarDate(bool isoFormat)
+    // {
+    //     std::cout << "XIOS --- GET CALENDAR DATE ENTRY" << std::endl;
+    //     cxios_date date;
+    //     cxios_get_calendar_wrapper_current_date(m_clientCalendar, &date);
+    //     return convertXiosDatetimeToString(date, isoFormat);
+    // }
+
+    // Advance time by making a call into XIOS library. Wrapping this method
+    // to hide implementation details.
+    void Xios::updateCalendar(int stepNumber)
+    {
+        cxios_update_calendar(stepNumber);
     }
 
 

@@ -40,7 +40,11 @@ public:
     void setCalendarStart(char *dstart_str, int str_size);
     std::string getCalendarTimestep();
     void setCalendarTimestep(std::string timestep_str);
+    
     void getCalendarConfiguration();
+
+    //std::string getCalendarDate(bool isoFormat = true);
+    void updateCalendar(int stepNumber);
     
     static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat);
     static boost::posix_time::ptime convertStringToDatetime(std::string datetime);
