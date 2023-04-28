@@ -26,10 +26,7 @@ void DevStep::init()
     tryConfigure(ido);
 }
 
-void DevStep::start(const TimePoint& startTime)
-{
-    lastOutput = startTime;
-}
+void DevStep::start(const TimePoint& startTime) { lastOutput = startTime; }
 
 void DevStep::iterate(const TimestepTime& tst)
 {
@@ -37,7 +34,7 @@ void DevStep::iterate(const TimestepTime& tst)
     // The state of the model has now advanced by one timestep, so update the
     // model metadata timestamp.
     mData->incrementTime(tst.step);
-    if (mData->time() > lastOutput + m_restartPeriod) {
+    if (mData->time() >= lastOutput + m_restartPeriod) {
         std::string currentFileName = mData->time().format(m_restartFileName);
         pData->writeRestartFile(currentFileName);
         lastOutput = mData->time();
