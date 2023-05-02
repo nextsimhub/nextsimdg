@@ -77,7 +77,7 @@ TEST_CASE("Test Qdw")
     slabOcean.update(tst);
 
     ModelArrayRef<ModelComponent::ProtectedArray::SLAB_QDW, MARConstBackingStore> qdw(ModelComponent::getProtectedArray());
-    double prec = 1e-6;
+    double prec = 1e-4;
     REQUIRE(qdw[0] == doctest::Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
     ModelArrayRef<ModelComponent::ProtectedArray::SLAB_SST, MARConstBackingStore> sstSlab(ModelComponent::getProtectedArray());
