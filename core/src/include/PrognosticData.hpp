@@ -93,7 +93,7 @@ private:
 
     class PDWriter {
     public:
-       static void write(const PrognosticData& pd, const std::string& filePath);
+        static void write(const PrognosticData& pd, const std::string& filePath);
     };
 };
 
