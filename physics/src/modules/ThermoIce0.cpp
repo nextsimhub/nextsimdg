@@ -8,8 +8,8 @@
 #include "include/ThermoIce0.hpp"
 
 #include "include/IFreezingPointModule.hpp"
-#include "include/MinimumIce.hpp"
 #include "include/IceGrowth.hpp"
+#include "include/MinimumIce.hpp"
 #include "include/ModelArray.hpp"
 #include "include/NZLevels.hpp"
 #include "include/constants.hpp"

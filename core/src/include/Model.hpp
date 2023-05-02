@@ -69,7 +69,6 @@ private:
     std::string finalFileName;
     // Period between restart file outputs
     Duration restartPeriod;
-
 };
 
 } /* namespace Nextsim */
