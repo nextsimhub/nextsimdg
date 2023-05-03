@@ -331,7 +331,7 @@ private:
     // Fast special case for 2-d indexing
     template <typename T, typename I> static inline T indexr(const T* dims, I first, I second)
     {
-        return first * dims[1] + second;
+        return first + second * dims[0];
     }
 
     // Indices as separate function parameters
@@ -354,10 +354,10 @@ private:
         size_t ndims = loc.size();
         T stride = 1;
         T ii = 0;
-        auto iloc = rbegin(loc);
-        for (size_t dim = ndims; dim > 0; --dim) {
+        auto iloc = begin(loc);
+        for (size_t dim = 0; dim < ndims; ++dim) {
             ii += stride * (*iloc++);
-            stride *= dims[dim - 1];
+            stride *= dims[dim];
         }
         return ii;
     }
