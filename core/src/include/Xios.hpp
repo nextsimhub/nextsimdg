@@ -30,7 +30,7 @@ public:
     bool validateAxisConfiguration();
 
     void configure() override; 
-    void configureServer(int argc, char* argv[]);
+    void configureServer();
     void configureCalendar(std::string timestep, std::string start, std::string origin = "");
 
     //Decide if I want these two and the best output type
@@ -68,7 +68,7 @@ public:
     static void convertXiosDateStringToIsoDate(std::string& dateString);
 
 protected:
-    bool m_isConfigured = false;
+    bool m_isConfigured;
 private:
     bool m_isEnabled;
 
