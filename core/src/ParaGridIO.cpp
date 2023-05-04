@@ -17,6 +17,7 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <map>
 #include <string>
@@ -24,12 +25,12 @@
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
-    { "xy", ModelArray::Type::H },
-    { "xyz", ModelArray::Type::Z },
-    { "xydg_comp", ModelArray::Type::DG },
-    { "xydgstress_comp", ModelArray::Type::DGSTRESS },
-    { "xcgycg", ModelArray::Type::CG },
-    { "xvertexyvertexncoords", ModelArray::Type::VERTEX },
+    { "yx", ModelArray::Type::H },
+    { "zyx", ModelArray::Type::Z },
+    { "yxdg_comp", ModelArray::Type::DG },
+    { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+    { "ycgxcg", ModelArray::Type::CG },
+    { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
 };
 
 // Which dimensions are DG dimension, which could be legitimately missing
@@ -82,7 +83,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         ModelArray::DimensionSpec& dimensionSpec = entry.second;
         netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
         if (entry.first == ModelArray::Dimension::Z) {
-            // A special case, as the number of leves in the file might not be
+            // A special case, as the number of levels in the file might not be
             // the number that the selected ice thermodynamics requires.
             ModelArray::setDimension(entry.first, NZLevels::get());
         } else {
@@ -101,7 +102,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         std::vector<netCDF::NcDim> varDims = var.getDims();
         std::string dimKey = "";
         for (netCDF::NcDim& dim : varDims) {
-            dimKey += dim.getName();
+            dimKey = dim.getName() + dimKey;
         }
         if (!dimensionKeys.count(dimKey)) {
             throw std::out_of_range(
@@ -207,6 +208,11 @@ void ParaGridIO::dumpModelState(
     // Everything that has components needs that dimension, too
     for (auto entry : dimCompMap) {
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
+    }
+
+    // Reverse the order of the dimensions to translate between column-major ModelArray and row-major netCDF
+    for (auto& [type, v] : dimMap) {
+        std::reverse(v.begin(), v.end());
     }
 
     std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
