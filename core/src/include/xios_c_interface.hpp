@@ -41,7 +41,11 @@ extern "C"
   void cxios_set_calendar_wrapper_timestep(xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration timestep_c);
   void cxios_get_calendar_wrapper_timestep(xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration *timestep_c);
   void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
-    
+
+  void cxios_get_current_date(cxios_date *date);
+  //This doesn't work but I find that unexpected
+  //void cxios_get_timestep(cxios_duration *timestep);
+
   //Grid Axis
   void cxios_axis_handle_create (xios::CAxis** _ret, const char * _id, int _id_len);
   void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
@@ -58,7 +62,6 @@ extern "C"
   void cxios_set_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
   void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
 
-  
   void cxios_update_calendar(int step);
   void cxios_write_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize, int tileid);
 

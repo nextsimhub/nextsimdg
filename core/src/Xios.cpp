@@ -30,7 +30,7 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         if (m_isEnabled)
         {
             Xios::configureServer(argc, argv);
-            Xios::configureCalendar();
+            Xios::configureCalendar(m_timestep, m_start, m_origin);
             Xios::validateConfiguration();
             m_isConfigured = true;
             cxios_context_close_definition();
@@ -48,8 +48,15 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     //Inherited functionality from Configured to determine if XIOS is enabled in config file
     void Xios::configure()
     {
+        //Is XIOS enabled in the config file?
         istringstream( Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()) )
             >> std::boolalpha >> m_isEnabled;
+
+        //TODO: Extract other pre-set values from the config file
+        //For now use temporary values
+        m_start = "2023-03-03 17:11:00";
+        m_origin = "1970-01-01 00:00:00";
+        m_timestep = "P0-0T1:0:0";
     }
 
     //Teardown XIOS client & server processes, clear data
@@ -80,11 +87,9 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     }
 
 
-
-
     // Xios Calendar
     
-    void Xios::configureCalendar() 
+    void Xios::configureCalendar(std::string timestep, std::string start, std::string origin) 
     {
 
         std::cout << "XIOS --- CONFIGURE CALENDAR ENTRY POINT" << std::endl; 
@@ -92,15 +97,17 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         cxios_get_current_calendar_wrapper( &m_clientCalendar );
 
         std::cout << "Enter setCalendarTimestep" << std::endl;
-        std::string dtimestep_str = "P0-0T1:0:0";
-        setCalendarTimestep(dtimestep_str);
+        setCalendarTimestep(timestep);
+
+        if (!origin.empty()) {
+            setCalendarOrigin(origin);
+        }
 
         //TODO: Argument from Xios::Configure, itself from callsite in Model?
         //TODO: Take string as argument and convert to char for the extern c?
-        char dstart_str[20] = "2023-03-03 17:11:00";
         std::cout << "Enter setCalendarStart" << std::endl;
         //TODO: xios::CException is thrown
-        setCalendarStart(dstart_str, 20);
+        setCalendarStart(start);
 
 
         //Report to std out
@@ -119,10 +126,13 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     }
 
     //TODO: Consider if we want a std::string or char* 
-    void Xios::setCalendarOrigin(char* dstart_str, int str_size)
+    void Xios::setCalendarOrigin(std::string dorigin_str)
     {
-        cxios_date dstart = convertStringToXiosDatetime(dstart_str);
-        cxios_set_calendar_wrapper_date_time_origin( m_clientCalendar, dstart );
+        std::cout << "XIOS --- SET CALENDAR ORIGIN ENTRY" << std::endl;
+        //Creates a struct from a string in YYYY-MM-DD HH-MM-SS format
+        cxios_date dorigin = convertStringToXiosDatetime(dorigin_str);
+        cxios_set_calendar_wrapper_date_time_origin(m_clientCalendar, dorigin);
+        std::cout << "XIOS --- SET CALENDAR ORIGIN EXIT" << std::endl;
     }
 
     std::string Xios::getCalendarStart(bool isoFormat)
@@ -134,24 +144,14 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
         std::cout << "XIOS --- GET CALENDAR START EXIT" << std::endl;
     }
 
-    void Xios::setCalendarStart(char* dstart_str, int old_str_size)
+    void Xios::setCalendarStart(std::string dstart_str)
     {
 
         std::cout << "XIOS --- SET CALENDAR START ENTRY" << std::endl;
         
-        //This string must be in YYYY-MM-DD HH-MM-SS format (I think the size of each can vary but the orders and delims cant)
-        //char *dstart_str_test = "2023-03-03 17-11-00";
-
-        //int str_size = 20;//11+1; 
-        //const char *dstart_str_test = new char[str_size];
-        //dstart_str_test = "2023-03-03 17:11:00"; 
-
-        //const char *dstart_str_test = "2023-03-03 17:11:00"; 
-        //std::string dstart_str_test = "2023-03-03 17:11:00";
+        //Creates a struct from a string in YYYY-MM-DD HH-MM-SS format
         cxios_date dstart = convertStringToXiosDatetime(dstart_str);
-        cxios_set_calendar_wrapper_date_start_date( m_clientCalendar, dstart );
-
-        //cxios_set_calendar_wrapper_date_start_date( m_clientCalendar, dstart, 20);
+        cxios_set_calendar_wrapper_date_start_date(m_clientCalendar, dstart);
 
         std::cout << "XIOS --- SET CALENDAR START EXIT" << std::endl;
     }
