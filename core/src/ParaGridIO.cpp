@@ -102,7 +102,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         std::vector<netCDF::NcDim> varDims = var.getDims();
         std::string dimKey = "";
         for (netCDF::NcDim& dim : varDims) {
-            dimKey = dim.getName() + dimKey;
+            dimKey += dim.getName();
         }
         if (!dimensionKeys.count(dimKey)) {
             throw std::out_of_range(
@@ -157,7 +157,8 @@ ModelState ParaGridIO::readForcingTimeStatic(
     std::vector<size_t> extentArray = { 1 };
 
     // Loop over the dimensions of H
-    std::vector<ModelArray::Dimension>& dimensions = ModelArray::typeDimensions.at(ModelArray::Type::H);
+    std::vector<ModelArray::Dimension>& dimensions
+        = ModelArray::typeDimensions.at(ModelArray::Type::H);
     for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
         indexArray.push_back(0);
         extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
@@ -205,14 +206,15 @@ void ParaGridIO::dumpModelState(
         }
         dimMap[type] = ncDims;
     }
-    // Everything that has components needs that dimension, too
-    for (auto entry : dimCompMap) {
-        dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
-    }
-
-    // Reverse the order of the dimensions to translate between column-major ModelArray and row-major netCDF
+    // Reverse the order of the dimensions to translate between column-major ModelArray and
+    // row-major netCDF
     for (auto& [type, v] : dimMap) {
         std::reverse(v.begin(), v.end());
+    }
+    // Everything that has components needs that dimension, too. This always varies fastest, and so
+    // is last in the vector of dimensions.
+    for (auto entry : dimCompMap) {
+        dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
 
     std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
