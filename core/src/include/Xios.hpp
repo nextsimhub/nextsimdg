@@ -31,13 +31,13 @@ public:
 
     void configure() override; 
     void configureServer(int argc, char* argv[]);
-    void configureCalendar();
+    void configureCalendar(std::string timestep, std::string start, std::string origin = "");
 
     //Decide if I want these two and the best output type
     std::string getCalendarOrigin(bool isoFormat = true);
-    void setCalendarOrigin(char *dstart_str, int str_size);
+    void setCalendarOrigin(std::string dorigin_str);
     std::string getCalendarStart(bool isoFormat = true);
-    void setCalendarStart(char *dstart_str, int str_size);
+    void setCalendarStart(std::string dstart_str);
     std::string getCalendarTimestep();
     void setCalendarTimestep(std::string timestep_str);
     
@@ -78,6 +78,10 @@ private:
     MPI_Fint nullComm_F;
     std::string clientId;
     std::string contextId;
+
+    std::string m_origin;
+    std::string m_start;
+    std::string m_timestep;
 
     cxios_duration dtime;
 };
