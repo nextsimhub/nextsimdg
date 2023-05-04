@@ -156,9 +156,11 @@ ModelState ParaGridIO::readForcingTimeStatic(
     std::vector<size_t> extentArray = { 1 };
 
     // Loop over the dimensions of H
-    for (auto dimension : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+//    for (auto dimension : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+    std::vector<ModelArray::Dimension>& dimensions = ModelArray::typeDimensions.at(ModelArray::Type::H);
+    for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
         indexArray.push_back(0);
-        extentArray.push_back(ModelArray::definedDimensions.at(dimension).length);
+        extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
     }
 
     for (const std::string& varName : forcings) {
