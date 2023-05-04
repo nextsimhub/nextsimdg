@@ -39,8 +39,8 @@ if __name__ == "__main__":
     x1d = np.arange(nx)
     y1d = np.arange(ny)
     
-    element_x = np.transpose(np.tile(x1d, (ny, 1)))
-    element_y = np.tile(y1d, (nx, 1))
+    element_x = np.tile(x1d, (ny, 1))
+    element_y = np.transpose(np.tile(y1d, (nx, 1)))
     
     time_data = 10 * element_x + element_y
     field_name = "index2d"
@@ -69,9 +69,9 @@ if __name__ == "__main__":
     tDim = datagrp.createDimension("time", None)
     
     # Position and time variables
-    nc_lons = datagrp.createVariable("longitude", "f8", ("x", "y"))
+    nc_lons = datagrp.createVariable("longitude", "f8", ("y", "x"))
     nc_lons[:, :] = element_x
-    nc_lats = datagrp.createVariable("latitude", "f8", ("x", "y"))
+    nc_lats = datagrp.createVariable("latitude", "f8", ("y", "x"))
     nc_lats[:, :] = element_y
     
     nc_times = datagrp.createVariable("time", "f8", ("time"))
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     #(unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
     # For each field and time, get the corresponding file name for each dataset
         # get the source data
-    data = datagrp.createVariable(field_name, "f8", ("time", "x", "y"))
+    data = datagrp.createVariable(field_name, "f8", ("time", "y", "x"))
     data[0, :, :] = time_data
     # 'fill' the time axis
     nc_times[0] = the_time
