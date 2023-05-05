@@ -149,9 +149,7 @@ void IceGrowth::initializeThicknesses()
     overElements(std::bind(&IceGrowth::initializeThicknessesElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         TimestepTime());
-
 }
-
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,
 // but only if ice concentration is non-zero.
