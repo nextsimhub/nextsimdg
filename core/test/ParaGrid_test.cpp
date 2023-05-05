@@ -89,7 +89,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
     DGField hice = fractionalDG + 10;
     DGField cice = fractionalDG + 20;
-    DGField hsnow = fractionalDG + 30;
+    HField hsnow = fractional + 30;
     ZField tice(ModelArray::Type::Z);
     tice.resize();
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
