@@ -10,22 +10,18 @@
 
 #include "IDynamics.hpp"
 
-#include "../../../../dynamics/src/include/DummyDynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
 class DummyDynamics : public IDynamics {
 public:
-    DummyDynamics();
+    DummyDynamics() = default;
 
     std::string getName() const override { return "DummyDynamics"; }
-    void update(const TimestepTime& tst) override;
+    void update(const TimestepTime& tst) override { };
 
-    void setData(const ModelState::DataMap&) override;
-private:
-    // TODO: How to get the template parameters here?
-    DummyDynamicsKernel<2, 6> kernel;
+    void setData(const ModelState::DataMap&) override { };
 };
 }
 

@@ -230,7 +230,6 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/SMUIceAlbedo.cpp"
     "${PhysModulesDir}/CCSMIceAlbedo.cpp"
     "${PhysModulesDir}/SMU2IceAlbedo.cpp"
-    "${CoreModulesDir}/DummyDynamics.cpp"
     "${CoreSrc}/Time.cpp"
     )
 target_include_directories(testPrognosticData PRIVATE

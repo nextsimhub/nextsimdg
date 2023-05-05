@@ -23,10 +23,13 @@ DummyDynamics::DummyDynamics()
 
 void DummyDynamics::setData(const ModelState::DataMap& ms)
 {
+    std::cerr << __FILE__ << ":" << __LINE__ << std::endl;
     IDynamics::setData(ms);
+    std::cerr << __FILE__ << ":" << __LINE__ << std::endl;
 
     // Set the data in the kernel arrays.
     for (const auto& fieldName : namedFields) {
+        std::cerr << __FILE__ << ":" << __LINE__ << " for " << fieldName << std::endl;
         kernel.setData(fieldName, ms.at(fieldName));
     }
 }
