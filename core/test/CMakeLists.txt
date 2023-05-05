@@ -202,6 +202,7 @@ add_executable(testPrognosticData
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "DynamicsModuleForPDtest.cpp"
     "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
     "${PhysSourceDir}/IceMinima.cpp"
