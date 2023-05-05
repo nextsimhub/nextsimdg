@@ -8,4 +8,5 @@
 typedef ModelArray OneDField;
 typedef ModelArray TwoDField;
 typedef ModelArray DosDField;
+typedef ModelArray ThreeDField;
 typedef ModelArray FourDField;
