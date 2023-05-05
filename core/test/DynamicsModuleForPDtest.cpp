@@ -27,10 +27,7 @@ std::unique_ptr<Nextsim::IDynamics> Module<Nextsim::IDynamics>::staticInstance
 
 template <> std::string Module<Nextsim::IDynamics>::moduleName() { return "Nextsim::IDynamics"; }
 
-template <> HelpMap& getHelpRecursive<Nextsim::IDynamics>(HelpMap& map, bool getAll)
-{
-    return map;
-}
+template <> HelpMap& getHelpRecursive<Nextsim::IDynamics>(HelpMap& map, bool getAll) { return map; }
 template <> Nextsim::IDynamics& getImplementation<Nextsim::IDynamics>()
 {
     return getImplTemplate<Nextsim::IDynamics, DynamicsModule>();

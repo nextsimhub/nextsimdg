@@ -54,11 +54,9 @@ TEST_CASE("PrognosticData call order test")
             : IOceanBoundary()
         {
         }
-        void setData(const ModelState::DataMap& state) override
+        void setData(const ModelState::DataMap& state) override { IOceanBoundary::setData(state); }
+        void updateBefore(const TimestepTime& tst) override
         {
-            IOceanBoundary::setData(state);
-        }
-        void updateBefore(const TimestepTime& tst) override {
             UnescoFreezing uf;
             sst = -1.;
             sss = 32.;
@@ -67,13 +65,13 @@ TEST_CASE("PrognosticData call order test")
             cpml = Water::cp * Water::rho * mld[0];
             u = 0;
             v = 0;
-
         }
         void updateAfter(const TimestepTime& tst) override { }
     } ocnBdy;
     ocnBdy.setData(ModelState().data);
 
-    Module::Module<IOceanBoundary>::setExternalImplementation(Module::newImpl<IOceanBoundary, OceanData>);
+    Module::Module<IOceanBoundary>::setExternalImplementation(
+        Module::newImpl<IOceanBoundary, OceanData>);
 
     HField zeroData;
     zeroData.resize();
@@ -83,19 +81,20 @@ TEST_CASE("PrognosticData call order test")
     zeroDataZ[0] = 0.;
 
     ModelState::DataMap initialData = {
-            {"cice", zeroData},
-            {"hice", zeroData},
-            {"hsnow", zeroData},
-            {"tice", zeroDataZ},
+        { "cice", zeroData },
+        { "hice", zeroData },
+        { "hsnow", zeroData },
+        { "tice", zeroDataZ },
     };
 
     PrognosticData pData;
     pData.configure();
     pData.setData(initialData);
-    TimestepTime tst = {TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0")};
+    TimestepTime tst = { TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0") };
     pData.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore> qow(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore> qow(
+        ModelComponent::getSharedArray());
 
     double prec = 1e-5;
     // Correct value
