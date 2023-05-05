@@ -295,7 +295,8 @@ void ParaGridIO::writeDiagnosticTime(
             // For VERTEX in an existing file, there is nothing more to be done
             continue;
         }
-        for (ModelArray::Dimension& maDim : entry.second) {
+        for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
+            ModelArray::Dimension& maDim = *iter;
             ncDims.push_back(ncFromMAMap.at(maDim));
             indexArray.push_back(0);
             extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);
