@@ -557,7 +557,7 @@ protected:
      */
     size_t zLayerIndex(size_t hIndex, size_t layer) const
     {
-        return hIndex * dimensions()[nDimensions() - 1] + layer;
+        return hIndex + layer * dimensions()[0] * dimensions()[1];
     }
 
 private:
