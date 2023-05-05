@@ -43,7 +43,11 @@ endif()
 add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost COMPONENTS program_options log REQUIRED)
 
-find_package(Catch2 REQUIRED)
+# Add the doctest header library
+set(DOCTEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+add_library(doctest::doctest IMPORTED INTERFACE)
+set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}")
+
 find_package(Eigen3 3.4 REQUIRED)
 
 # To add netCDF to a target:

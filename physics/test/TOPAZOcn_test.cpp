@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/TOPAZOcean.hpp"
 
@@ -24,7 +24,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
+TEST_SUITE_BEGIN("TOPAZOcean");
+TEST_CASE("TOPAZOcean test")
 {
     std::string filePath = "topaz_test128x128.nc";
     std::string sourceDir = TO_STR(TEST_FILE_SOURCE);
@@ -104,5 +105,5 @@ TEST_CASE("TOPAZOcean test", "[TOPAZOcean]")
 
     std::filesystem::remove(filePath);
 }
-
+TEST_SUITE_END();
 }

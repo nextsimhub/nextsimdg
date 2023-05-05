@@ -9,12 +9,13 @@
 
 #include <sstream>
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 namespace Nextsim {
 
-TEST_CASE("TimePoint parsing and formating", "[TimePoint]")
+TEST_SUITE_BEGIN("Time");
+TEST_CASE("TimePoint parsing and formating")
 {
     // Time with explicit timezone marker so the initial and final strings match.
     std::stringstream is("2022-06-07T14:16:01Z");
@@ -34,7 +35,7 @@ TEST_CASE("TimePoint parsing and formating", "[TimePoint]")
     REQUIRE(tq.format() == rightNow);
 }
 
-TEST_CASE("Julian-Gregorian shifts", "[Time]")
+TEST_CASE("Julian-Gregorian shifts")
 {
     // In the 1500s, the inital 10 day shift.
     REQUIRE(julianGregorianShiftDays(1582) == -10);
@@ -49,10 +50,9 @@ TEST_CASE("Julian-Gregorian shifts", "[Time]")
     // In 2525, if man is still alive, there will have been 7 further fewer
     // Gregorian leap days (1700, 1800, 1900, 2100, 2200, 2300, 2500).
     REQUIRE(julianGregorianShiftDays(2525) == -17);
-
 }
 
-TEST_CASE("mkgmtime", "[Time]")
+TEST_CASE("mkgmtime")
 {
     const int days = 24 * 60 * 60;
 
@@ -68,7 +68,7 @@ TEST_CASE("mkgmtime", "[Time]")
 
     std::stringstream ss1("1971-01-01T00:00:00");
     std::tm tm;
-//    tmZero(tm);
+    //    tmZero(tm);
     ss1 >> std::get_time(&tm, iso);
     REQUIRE(mkgmtime(&tm) == 365 * days);
 
@@ -98,7 +98,7 @@ TEST_CASE("mkgmtime", "[Time]")
     after = mkgmtime(&tm);
 
     REQUIRE((after - before) == 1 * days);
-//    REQUIRE(std::mktime(&tm) > 0); // How does linux return -ve here?
+    //    REQUIRE(std::mktime(&tm) > 0); // How does linux return -ve here?
     REQUIRE(before == 4107456000);
     REQUIRE(after == 4107542400);
 
@@ -114,10 +114,9 @@ TEST_CASE("mkgmtime", "[Time]")
     std::stringstream("2100-01-01T00:00:00") >> std::get_time(&tm, iso);
     before = mkgmtime(&tm);
     REQUIRE(after - before == 365 * days);
-
 }
 
-TEST_CASE("timeFromISO", "[Time]")
+TEST_CASE("timeFromISO")
 {
     const int days = 24 * 60 * 60;
 
@@ -140,10 +139,9 @@ TEST_CASE("timeFromISO", "[Time]")
     TimeOptions::useDOY() = true;
     REQUIRE_THROWS(timeFromISO("1971-01-02"));
     TimeOptions::useDOY() = previousDOY;
-
 }
 
-TEST_CASE("TimePoints", "[TimePoint]")
+TEST_CASE("TimePoints")
 {
     TimePoint tp;
     TimePoint tq;
@@ -159,7 +157,7 @@ TEST_CASE("TimePoints", "[TimePoint]")
     REQUIRE(tp.parse("1980-07-30") != tq.parse("1980-07-29"));
 }
 
-TEST_CASE("Durations", "[Duration]")
+TEST_CASE("Durations")
 {
     const int days = 24 * 60 * 60;
 
@@ -206,26 +204,27 @@ TEST_CASE("Durations", "[Duration]")
     Duration tenSeconds(10.);
     REQUIRE(tenSeconds.seconds() == 10);
 
-    Duration hundredSeconds(100.);
+    Duration hundredSeconds("100.");
     REQUIRE(hundredSeconds.seconds() == 100);
 
-    Duration thousandSeconds(1000.);
-    REQUIRE(thousandSeconds.seconds() == 1000);
-
-    Duration anHour(3600.);
-    REQUIRE(anHour.seconds() == 3600);
+    Duration minusThousandSeconds("-1000.");
+    REQUIRE(minusThousandSeconds.seconds() == -1000);
 
     Duration myriadSeconds(1e4);
     REQUIRE(myriadSeconds.seconds() == 10000);
 
+    Duration strMyriadSeconds("1e4");
+    REQUIRE(strMyriadSeconds.seconds() == 10000);
+
+    Duration complexStrSec("-1440.42e-2");
+    REQUIRE(complexStrSec.seconds() == -14);
+
     Duration aDay(daySeconds);
     REQUIRE(aDay.seconds() == daySeconds);
-
-
-
 }
 
-TEST_CASE("gmtime and doy", "[TimePoint]") {
+TEST_CASE("gmtime and doy")
+{
     TimePoint janfirst("2010-01-01T00:00:00Z");
     std::tm* timeStruct = janfirst.gmtime();
     REQUIRE(timeStruct->tm_yday == 0);
@@ -236,4 +235,6 @@ TEST_CASE("gmtime and doy", "[TimePoint]") {
     TimePoint bissextile("2020-03-01T00:00:00Z");
     REQUIRE(bissextile.gmtime()->tm_yday == 60);
 }
+TEST_SUITE_END();
+
 }

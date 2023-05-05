@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/ERA5Atmosphere.hpp"
 
@@ -26,7 +26,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
+TEST_SUITE_BEGIN("ERA5Atmosphere");
+TEST_CASE("ERA5Atmosphere construction test")
 {
     std::string filePath = "era5_test128x128.nc";
     std::string sourceDir = TO_STR(TEST_FILE_SOURCE);
@@ -116,5 +117,5 @@ TEST_CASE("ERA5Atmosphere construction test", "[ERA5Atmosphere]")
 
     std::filesystem::remove(filePath);
 }
-
+TEST_SUITE_END();
 }

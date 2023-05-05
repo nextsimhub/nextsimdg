@@ -8,8 +8,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/CGModelArray.hpp"
 
@@ -19,7 +19,8 @@ Nextsim::COORDINATES CoordinateSystem = Nextsim::CARTESIAN;
 
 namespace Nextsim {
 
-TEST_CASE("cgDims test", "[CGModelArray]")
+TEST_SUITE_BEGIN("CGModelArray");
+TEST_CASE("cgDims test")
 {
     static const int CG = 2;
     ModelArray::MultiDim hDims = { 23, 29 };
@@ -29,7 +30,7 @@ TEST_CASE("cgDims test", "[CGModelArray]")
     REQUIRE(cgDims[1] == CG * hDims[1] + 1);
 }
 
-TEST_CASE("CGVector from ModelArray", "[CGModelArray]")
+TEST_CASE("CGVector from ModelArray")
 {
     static const int CG = 2;
     // Base grid size
@@ -71,7 +72,7 @@ TEST_CASE("CGVector from ModelArray", "[CGModelArray]")
     REQUIRE(cgDest(targetPoint) == maSource(52, 44));
 }
 
-TEST_CASE("ModelArray from CGVector", "[CGModelArray]")
+TEST_CASE("ModelArray from CGVector")
 {
     static const int CG = 2;
     const size_t nx = 31;
@@ -110,7 +111,7 @@ TEST_CASE("ModelArray from CGVector", "[CGModelArray]")
     REQUIRE(maDest(14, 12) == cgSource(targetPoint));
 }
 
-TEST_CASE("Test with CG = 1", "[CGModelArray]") // (It would be a silly case to get wrong!)
+TEST_CASE("Test with CG = 1") // (It would be a silly case to get wrong!)
 {
     static const int CG = 1;
     const size_t nx = 23;
@@ -165,4 +166,6 @@ TEST_CASE("Test with CG = 1", "[CGModelArray]") // (It would be a silly case to 
     // And identical again after
     REQUIRE(cgSource(targetPoint) == maDest(21, 13));
 }
+TEST_SUITE_END();
+
 }

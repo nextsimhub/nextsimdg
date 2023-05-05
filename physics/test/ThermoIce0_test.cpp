@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include <sstream>
 
 #include "include/ThermoIce0.hpp"
@@ -23,7 +23,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("Threshold ice", "[ThermoIce0]")
+TEST_SUITE_BEGIN("ThermoIce0");
+TEST_CASE("Threshold ice")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -90,6 +91,30 @@ TEST_CASE("Threshold ice", "[ThermoIce0]")
     } atmoState;
     atmoState.setData(ModelState::DataMap());
 
+    class FluxData : public IFluxCalculation {
+    public:
+        FluxData()
+            : IFluxCalculation()
+        {
+        }
+        std::string getName() const override { return "FluxData"; }
+
+        void setData(const ModelState::DataMap&) override
+        {
+            qow[0] = 0;
+            qia[0] = 0;
+            dqia_dt[0] = 0;
+            subl[0] = 0;
+        }
+
+        ModelState getState() const override { return ModelState(); }
+        ModelState getState(const OutputLevel&) const override { return getState(); }
+
+        void update(const TimestepTime&) override { }
+    } fluxData;
+
+    fluxData.setData(ModelState::DataMap());
+
     TimestepTime tst = { TimePoint("2000-01-01T00:00:00"), Duration(600) };
     ThermoIce0 ti0t;
     ti0t.configure();
@@ -103,4 +128,5 @@ TEST_CASE("Threshold ice", "[ThermoIce0]")
     REQUIRE(cice[0] == 0.);
 
 }
+TEST_SUITE_END();
 }
