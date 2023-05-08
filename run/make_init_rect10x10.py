@@ -6,7 +6,9 @@ datagrp = root.createGroup("data")
 xDim = datagrp.createDimension("x", 10)
 yDim = datagrp.createDimension("y", 10)
 nLay = datagrp.createDimension("nLayers", 1)
+
 hfield_dims = ("y", "x")
+
 mask = datagrp.createVariable("mask", "f8", hfield_dims)
 mask[:,::-1] = [[0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,1,1,0,0,0,0],
@@ -24,6 +26,10 @@ hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = 0.1
 hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = 0.0
+<<<<<<< issue275_2_arrayordering
 tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x",))
+=======
+tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
+>>>>>>> 02453ff Update the basic 10x10 grid to the swapped array ordering.
 tice[:,:,:] = -1.
 root.close()
