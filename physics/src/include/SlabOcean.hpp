@@ -81,8 +81,8 @@ private:
     static const std::string sstSlabName;
     static const std::string sssSlabName;
 
-    double timeT = defaultRelaxationTime;
-    double timeS = defaultRelaxationTime;
+    double relaxationTimeT = defaultRelaxationTime;
+    double relaxationTimeS = defaultRelaxationTime;
 };
 
 } /* namespace Nextsim */
