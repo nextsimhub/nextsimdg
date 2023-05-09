@@ -17,18 +17,19 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
+#include <algorithm>
 #include <map>
 #include <string>
 
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
-    { "xy", ModelArray::Type::H },
-    { "xyz", ModelArray::Type::Z },
-    { "xydg_comp", ModelArray::Type::DG },
-    { "xydgstress_comp", ModelArray::Type::DGSTRESS },
-    { "xcgycg", ModelArray::Type::CG },
-    { "xvertexyvertexncoords", ModelArray::Type::VERTEX },
+        { "yx", ModelArray::Type::H },
+        { "zyx", ModelArray::Type::Z },
+        { "yxdg_comp", ModelArray::Type::DG },
+        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "ycgxcg", ModelArray::Type::CG },
+        { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
 };
 
 // Which dimensions are DG dimension, which could be legitimately missing
@@ -113,6 +114,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         if (newType == ModelArray::Type::Z) {
             std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
             std::vector<size_t> extentVector = ModelArray::dimensions(newType);
+            std::reverse(extentVector.begin(), extentVector.end());
             var.getVar(startVector, extentVector, &data[0]);
         } else {
             var.getVar(&data[0]);
@@ -154,7 +156,13 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
             }
             dimMap[type] = ncDims;
         }
-        // Everything that has components needs that dimension, too
+        // Reverse the order of the dimensions to translate between column-major ModelArray and
+        // row-major netCDF
+        for (auto& [type, v] : dimMap) {
+            std::reverse(v.begin(), v.end());
+        }
+        // Everything that has components needs that dimension, too. This always varies fastest, and so
+        // is last in the vector of dimensions.
         for (auto entry : dimCompMap) {
             dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
         }
@@ -212,7 +220,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
                 indexArray.push_back(nt);
                 extentArray.push_back(1);
                 // Other dimensions
-                for (ModelArray::Dimension& maDim : entry.second) {
+                for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
+                    ModelArray::Dimension& maDim = *iter;
                     ncDims.push_back(ncFromMAMap.at(maDim));
                     indexArray.push_back(0);
                     extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);
