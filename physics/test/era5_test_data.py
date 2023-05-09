@@ -36,6 +36,9 @@ yVertexDim = datagrp.createDimension("yvertex", ny + 1)
 n_coords_comp = datagrp.createDimension("ncoords", n_coords)
 time_dim = datagrp.createDimension("time", None)
 
+hfield_dims = ("y", "x")
+timefield_dims = ("time", "y", "x")
+
 mask33 = np.array(
     [[0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -79,8 +82,8 @@ mask129 = np.zeros((nx+1, ny+1))
 for i in range(nx+1):
     mask129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), mask129x33[i, :])
 
-mask = datagrp.createVariable("mask", "f8", ("x", "y"))
-mask[:,:] = np.rint(mask129[:-1, :-1])
+mask = datagrp.createVariable("mask", "f8", hfield_dims)
+mask[:,:] = np.rint(mask129[:-1, -2::-1])
 
 antimask = 1 - mask[:,:]
 
@@ -99,7 +102,7 @@ for i in range(nx + 1):
 lat = 90 - (x_coords**2 + y_coords**2)**0.5
 lon = np.rad2deg(np.arctan2(y_coords, x_coords))
 
-coords = datagrp.createVariable("coords", "f8", ("xvertex", "yvertex", "ncoords"))
+coords = datagrp.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
 coords[:,:,0] = lon
 coords[:,:,1] = lat
 
@@ -114,12 +117,12 @@ test_data = units + thousandths
 mdi = -2.**300
 
 time_var = datagrp.createVariable("time", "f8", "time")
-q_swin = datagrp.createVariable("sw_in", "f8", ("time", "x", "y"))
-q_lwin = datagrp.createVariable("lw_in", "f8", ("time", "x", "y"))
-wind = datagrp.createVariable("wind_speed", "f8", ("time", "x", "y"))
-pmsl = datagrp.createVariable("pair", "f8", ("time", "x", "y"))
-tair = datagrp.createVariable("tair", "f8", ("time", "x", "y"))
-tdew = datagrp.createVariable("dew2m", "f8", ("time", "x", "y"))
+q_swin = datagrp.createVariable("sw_in", "f8", timefield_dims)
+q_lwin = datagrp.createVariable("lw_in", "f8", timefield_dims)
+wind = datagrp.createVariable("wind_speed", "f8", timefield_dims)
+pmsl = datagrp.createVariable("pair", "f8", timefield_dims)
+tair = datagrp.createVariable("tair", "f8", timefield_dims)
+tdew = datagrp.createVariable("dew2m", "f8", timefield_dims)
 
 # 12 monthly values
 for t in range(12):
