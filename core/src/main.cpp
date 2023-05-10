@@ -23,25 +23,6 @@ int main(int argc, char* argv[])
     int comp_id;
     OASIS_CHECK_ERR(oasis_c_init_comp(&comp_id, comp_name, OASIS_COUPLED));
 
-    // OASIS definition
-    // OASIS defining partition
-    int part_params[OASIS_Serial_Params];
-    int part_in;
-    part_params[OASIS_Strategy] = OASIS_Serial;
-    part_params[OASIS_Offset] = 0;
-    part_params[OASIS_Length] = 30*30;
-    OASIS_CHECK_ERR(oasis_c_def_partition(&part_in, OASIS_Serial_Params,
-        				  part_params, part_params[OASIS_Length],
-					  "part_in"));
-    // OASIS defining variable
-    int bundle_size;
-    int variable;
-    bundle_size = 1;
-    OASIS_CHECK_ERR(oasis_c_def_var(&variable, "FRECVNXT", part_in, bundle_size,
-  				    OASIS_IN, OASIS_REAL));
-    // OASIS finalising definition
-    OASIS_CHECK_ERR(oasis_c_enddef());
-
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
     // Extract any config files defined on the command line
@@ -73,11 +54,6 @@ int main(int argc, char* argv[])
         // Run the Model
         model.run();
     }
-    // OASIS receiving field 
-    int kinfo;
-    int date=0;
-    double bundle[30][30][1];
-    OASIS_CHECK_ERR(oasis_c_get(variable, date, 30, 30, 1, OASIS_REAL, OASIS_ROW_MAJOR, bundle, &kinfo));
 
     // OASIS ending simulation
     OASIS_CHECK_ERR(oasis_c_terminate());
