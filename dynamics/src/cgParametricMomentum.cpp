@@ -10,14 +10,12 @@
 #include "BBM.hpp"
 #include "ParametricTools.hpp"
 #include "mevp.hpp"
-//#include "stopwatch.hpp"
 #include "dgVisu.hpp"
 #include "VectorManipulations.hpp"
 
 namespace Nextsim {
 
 #define DGSTRESS(CG) ( (CG==1?3:(CG==2?8:-1) ) )
-  //extern Timer GlobalTimer;
 
   ////////////////////////////////////////////////// Strain (ParametricMesh)
 
