@@ -24,12 +24,12 @@
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
-        { "yx", ModelArray::Type::H },
-        { "zyx", ModelArray::Type::Z },
-        { "yxdg_comp", ModelArray::Type::DG },
-        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ycgxcg", ModelArray::Type::CG },
-        { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+    { "yx", ModelArray::Type::H },
+    { "zyx", ModelArray::Type::Z },
+    { "yxdg_comp", ModelArray::Type::DG },
+    { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+    { "ycgxcg", ModelArray::Type::CG },
+    { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
 };
 
 // Which dimensions are DG dimension, which could be legitimately missing
@@ -161,8 +161,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
         for (auto& [type, v] : dimMap) {
             std::reverse(v.begin(), v.end());
         }
-        // Everything that has components needs that dimension, too. This always varies fastest, and so
-        // is last in the vector of dimensions.
+        // Everything that has components needs that dimension, too. This always varies fastest, and
+        // so is last in the vector of dimensions.
         for (auto entry : dimCompMap) {
             dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
         }
