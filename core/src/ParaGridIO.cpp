@@ -287,7 +287,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
                     indexArray.push_back(0);
                     extentArray.push_back(1UL);
                 }
-                for (ModelArray::Dimension& maDim : entry.second) {
+                for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
+                    ModelArray::Dimension& maDim = *iter;
                     ncDims.push_back(ncFromMAMap.at(maDim));
                     indexArray.push_back(0);
                     extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);
