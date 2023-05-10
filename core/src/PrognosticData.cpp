@@ -10,9 +10,6 @@
 #include "include/ModelArrayRef.hpp"
 #include "include/Module.hpp"
 
-#include <iostream> // FIXME remove me
-static const size_t itar = 64 * 128 + 64;
-
 namespace Nextsim {
 
 PrognosticData::PrognosticData()
