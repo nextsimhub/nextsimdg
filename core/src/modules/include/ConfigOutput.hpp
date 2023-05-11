@@ -64,6 +64,9 @@ private:
     std::set<ModelComponent::SharedArray> sharedArraysForOutput;
     std::set<ModelComponent::ProtectedArray> protectedArraysForOutput;
 
+    TimePoint lastFileChange;
+    Duration fileChangePeriod;
+
     static const std::string all;
     static const std::string defaultLastOutput;
 };

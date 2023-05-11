@@ -117,14 +117,20 @@ void ConfigOutput::configure()
     std::smatch match;
     std::regex_search(rawFileName, match, ncSuffix);
     m_filePrefix = match.empty() ? rawFileName : match.prefix();
+
+    // The default string is the number of seconds in 10000 years of 365 days
+    std::string newFilePeriodStr
+        = Configured::getConfiguration(keyMap.at(FILEPERIOD_KEY), std::string("315360000000"));
+    fileChangePeriod = Duration(newFilePeriodStr);
+    lastFileChange = lastOutput;
 }
 
 void ConfigOutput::outputState(const ModelMetadata& meta)
 {
-    if (currentFileName == "") {
-        std::stringstream startStream;
-        startStream << meta.time();
-        currentFileName = m_filePrefix + ".nc";
+    const TimePoint& time = meta.time();
+    if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
+        currentFileName = time.format(m_filePrefix) + ".nc";
+        lastFileChange = time;
     }
 
     ModelState state;
