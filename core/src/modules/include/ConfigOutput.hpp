@@ -31,6 +31,8 @@ public:
         PERIOD_KEY,
         START_KEY,
         FIELDNAMES_KEY,
+        FILENAME_KEY,
+        FILEPERIOD_KEY,
     };
 
     // IDiagnosticOutput overrides

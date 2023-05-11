@@ -21,12 +21,15 @@ static const std::string pfx = "ConfigOutput";
 static const std::string periodKey = pfx + ".period";
 static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
-
+static const std::string fileNameKey = pfx + ".filename";
+static const std::string filePeriodKey = pfx + ".file_period";
 template <>
 const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
     { ConfigOutput::PERIOD_KEY, periodKey },
     { ConfigOutput::START_KEY, startKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
+    { ConfigOutput::FILENAME_KEY, fileNameKey },
+    { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
 };
 
 ConfigOutput::ConfigOutput()
@@ -105,6 +108,7 @@ void ConfigOutput::configure()
             }
         }
     }
+
 }
 
 void ConfigOutput::outputState(const ModelMetadata& meta)
