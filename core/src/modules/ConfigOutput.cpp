@@ -10,12 +10,15 @@
 #include "include/StructureFactory.hpp"
 
 #include <cmath>
+#include <regex>
 #include <sstream>
 
 namespace Nextsim {
 
 const std::string ConfigOutput::all = "ALL";
 const std::string ConfigOutput::defaultLastOutput = "0-01-01T00:00:00Z";
+
+static const std::regex ncSuffix(".nc$");
 
 static const std::string pfx = "ConfigOutput";
 static const std::string periodKey = pfx + ".period";
@@ -109,6 +112,11 @@ void ConfigOutput::configure()
         }
     }
 
+    std::string rawFileName = Configured::getConfiguration(fileNameKey, m_filePrefix);
+    // Strip any ".nc" suffix from the end of the configured value.
+    std::smatch match;
+    std::regex_search(rawFileName, match, ncSuffix);
+    m_filePrefix = match.empty() ? rawFileName : match.prefix();
 }
 
 void ConfigOutput::outputState(const ModelMetadata& meta)
