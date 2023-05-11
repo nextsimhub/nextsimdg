@@ -17,11 +17,16 @@ namespace Nextsim {
 const std::string ConfigOutput::all = "ALL";
 const std::string ConfigOutput::defaultLastOutput = "0-01-01T00:00:00Z";
 
+static const std::string pfx = "ConfigOutput";
+static const std::string periodKey = pfx + ".period";
+static const std::string startKey = pfx + ".start";
+static const std::string fieldNamesKey = pfx + ".field_names";
+
 template <>
 const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
-    { ConfigOutput::PERIOD_KEY, "ConfigOutput.period" },
-    { ConfigOutput::START_KEY, "ConfigOutput.start" },
-    { ConfigOutput::FIELDNAMES_KEY, "ConfigOutput.field_names" },
+    { ConfigOutput::PERIOD_KEY, periodKey },
+    { ConfigOutput::START_KEY, startKey },
+    { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
 };
 
 ConfigOutput::ConfigOutput()
@@ -37,6 +42,25 @@ ConfigOutput::ConfigOutput()
 {
 }
 
+ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
+{
+    map[pfx] = {
+        { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the output data." },
+        { startKey, ConfigType::STRING, {}, "model.start", "",
+            "Date at which to start outputting data." },
+        { fieldNamesKey, ConfigType::STRING, {}, "ALL", "",
+            "Comma separated, space free list of fields to be output. "
+            "The special value \""
+                + all + "\" will output all available fields." },
+    };
+    return map;
+}
+
+ConfigurationHelp::HelpMap& ConfigOutput::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+    return map;
+}
 void ConfigOutput::configure()
 {
     std::string periodString = Configured::getConfiguration(keyMap.at(PERIOD_KEY), std::string(""));

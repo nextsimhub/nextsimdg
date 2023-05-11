@@ -45,6 +45,8 @@ public:
     inline ModelState getState(const OutputLevel&) const override { return ModelState(); };
 
     // Configured overrides
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
     void configure() override;
     ModelState getStateRecursive(const OutputSpec& os) const override;
 
