@@ -240,3 +240,37 @@ target_include_directories(testPrognosticData PRIVATE
     )
 target_link_directories(testPrognosticData PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
+
+add_executable(testConfigOutput
+    "ConfigOutput_test.cpp"
+    "${CoreSrc}/CommonRestartMetadata.cpp"
+    "${CoreSrc}/Configurator.cpp"
+    "${CoreSrc}/ConfiguredModule.cpp"
+    "${CoreSrc}/Logged.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${CoreSrc}/ModelComponent.cpp"
+    "${CoreSrc}/ModelMetadata.cpp"
+    "${CoreSrc}/MissingData.cpp"
+    "${CoreSrc}/NZLevels.cpp"
+    "${CoreSrc}/DevGridIO.cpp"
+    "${CoreSrc}/ParaGridIO.cpp"
+    "${CoreSrc}/RectGridIO.cpp"
+    "${CoreSrc}/StructureFactory.cpp"
+    "${CoreSrc}/Time.cpp"
+    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/ParametricGrid.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
+    "${CoreModulesDir}/DiagnosticOutputModule.cpp"
+    "${CoreModulesDir}/SimpleOutput.cpp"
+    "${CoreModulesDir}/ConfigOutput.cpp"
+    )
+target_include_directories(testConfigOutput PRIVATE
+    "${CoreSrc}"
+    "${CoreSrc}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
+    )
+target_link_directories(testConfigOutput PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testConfigOutput PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
