@@ -60,7 +60,7 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
                 + all + "\" will output all available fields." },
         { fileNameKey, ConfigType::STRING, {}, "", "",
             "Filename pattern for the output diagnostic files. Date and time elements can be "
-            "included as in std::puttime()." },
+            "included as in std::put_time()." },
         { filePeriodKey, ConfigType::STRING, {}, "", "",
             "The period with which diagnostic files are created." },
     };
