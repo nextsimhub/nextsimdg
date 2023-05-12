@@ -134,7 +134,11 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
 {
     const TimePoint& time = meta.time();
     if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
-        currentFileName = time.format(m_filePrefix) + ".nc";
+        std::string newFileName = time.format(m_filePrefix) + ".nc";
+        if (newFileName != currentFileName) {
+            // TODO: Close the file currentFileName
+            currentFileName = newFileName;
+        }
         lastFileChange = time;
     }
 

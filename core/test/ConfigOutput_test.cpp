@@ -12,6 +12,8 @@
 
 #include "include/IStructure.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelArrayRef.hpp"
+#include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 #include "include/Module.hpp"
@@ -66,6 +68,11 @@ TEST_CASE("Test periodic output")
     hsnow.resize();
     tice.resize();
 
+    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::H_ICE, &hice);
+    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &cice);
+    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::H_SNOW, &hsnow);
+    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::T_ICE, &tice);
+
     ModelMetadata meta;
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 
@@ -99,12 +106,6 @@ TEST_CASE("Test periodic output")
             hsnow += hourIncr;
             ModelState state;
 
-            state.data[hiceName] = hice;
-            state.data[ciceName] = cice;
-            state.data[hsnowName] = hsnow;
-            state.data[ticeName] = tice;
-
-            ido.setData(state.data);
             ido.outputState(meta);
             meta.incrementTime(Duration(3600.));
         }
