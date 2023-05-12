@@ -58,6 +58,11 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
             "Comma separated, space free list of fields to be output. "
             "The special value \""
                 + all + "\" will output all available fields." },
+        { fileNameKey, ConfigType::STRING, {}, "", "",
+            "Filename pattern for the output diagnostic files. Date and time elements can be "
+            "included as in std::puttime()." },
+        { filePeriodKey, ConfigType::STRING, {}, "", "",
+            "The period with which diagnostic files are created." },
     };
     return map;
 }
