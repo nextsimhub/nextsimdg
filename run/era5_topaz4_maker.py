@@ -147,6 +147,25 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     
     return bilinear_missing(target_i, target_j, data, -32767)
     
+# Returns the rotation angle at a given position to transform vectors from
+# geographic pole coordinates to the Greenland displaced pole coordinate system
+def heading_to_greenland(lat, lon):
+    # The pole lies at 75˚ N, 40˚ W = -40˚ E = 320˚ E
+    pole_lat = math.radians(75.0)
+    pole_lon = 320.0
+    
+    delta_lon = np.radians(pole_lon - lon)
+    
+    rlat = np.radians(lat)
+    
+    # The rotation of the basis vector can be computed as the azimuth of the
+    # great circle path from the location to the location of the new pole.
+    return np.arctan2(math.cos(pole_lat) * np.sin(delta_lon), np.cos(rlat) * math.sin(pole_lat) - np.sin(rlat) * math.cos(pole_lat) * np.cos(delta_lon))
+
+# Rotates the u and v velocity components by an angle given in radians
+def rotate_velocities(u, v, angle):
+    return (u * np.cos(angle) + v * np.sin(angle), -u * np.sin(angle) + v * np.cos(angle))
+
 # The main script. Calculates ERA5 and TOPAZ forcing files, given a grid to
 # interpolate on to and start and stop dates
 if __name__ == "__main__":
@@ -239,6 +258,8 @@ if __name__ == "__main__":
     nc_lats = datagrp.createVariable("latitude", "f8", ("x", "y"))
     nc_lats[:, :] = element_lat
     
+    greenland_headings = heading_to_greenland(element_lat, element_lon)
+    
     nc_times = datagrp.createVariable("time", "f8", ("time"))
     
     (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
@@ -263,6 +284,9 @@ if __name__ == "__main__":
                     time_data -= zero_C_in_kelvin
                 data[target_t_index, :, :] = time_data
         else:
+            # Also handle the wind components along with the wind speed
+            u_var = datagrp.createVariable("u", "f8", ("time", "x", "y"))
+            v_var = datagrp.createVariable("v", "f8", ("time", "x", "y"))
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
                 u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index]), "r")
@@ -272,13 +296,19 @@ if __name__ == "__main__":
                 target_time = era5_times[target_t_index]
                 source_times = u_file["time"]
                 time_index = target_time - source_times[0]
-                u_data = u_file["u10"][time_index, :, :]
-                v_data = v_file["v10"][time_index, :, :]
+                u_data_source = u_file["u10"][time_index, :, :]
+                v_data_source = v_file["v10"][time_index, :, :]
                 # Now interpolate the source data to the target grid
-                time_data = np.zeros((nx, ny))
-                time_data = np.hypot(era5_interpolate(element_lon, element_lat, u_data, source_lons, source_lats),
-                                     era5_interpolate(element_lon, element_lat, v_data, source_lons, source_lats))
-                data[target_t_index, :, :] = time_data
+                u_data_target = np.zeros((nx, ny))
+                u_data_target = era5_interpolate(element_lon, element_lat, u_data_source, source_lons, source_lats)
+                v_data_target = np.zeros((nx, ny))
+                v_data_target = era5_interpolate(element_lon, element_lat, v_data_source, source_lons, source_lats)
+                speed_data = np.hypot(u_data_target, v_data_target)
+                data[target_t_index, :, :] = speed_data
+                # Rotate the components from the ERA5 geographic grid to the Greenland displaced pole grid
+                (u_data, v_data) = rotate_velocities(u_data_target, -v_data_target, greenland_headings)
+                u_var[target_t_index, :, :] = u_data
+                v_var[target_t_index, :, :] = -v_data
                 # Also use the windspeed loop to fill the time axis
                 nc_times[time_index] = unix_times_e[target_t_index]
     era_root.close()
@@ -371,9 +401,12 @@ if __name__ == "__main__":
         u_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, u_source_data, lat_array)
         v_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, v_source_data, lat_array)
 
+        # Rotate from grid coordinates to geographic eastward/northward components
         rotation_rad = np.radians(element_lon + topaz_phi0 - element_azimuth)
-        u_target_data = u_source_data_tgrid * np.cos(rotation_rad) + v_source_data_tgrid * np.sin(rotation_rad)
-        v_target_data = -u_source_data_tgrid * np.sin(rotation_rad) + v_source_data_tgrid * np.cos(rotation_rad)
+        rotation_rad += heading_to_greenland(element_lat, element_lon)
+        
+        (u_target_data, v_target_data) = rotate_velocities(u_source_data_tgrid, v_source_data_tgrid, rotation_rad)
+        
         udata[target_t_index, :, :] = u_target_data
         vdata[target_t_index, :, :] = v_target_data
 
