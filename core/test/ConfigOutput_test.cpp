@@ -18,15 +18,17 @@
 #include "include/ModelState.hpp"
 #include "include/Module.hpp"
 #include "include/NZLevels.hpp"
+#include "include/gridNames.hpp"
+
+#include <ncDim.h>
+#include <ncFile.h>
+#include <ncGroup.h>
+#include <ncVar.h>
 
 #include <sstream>
+#include <filesystem>
 
 namespace Nextsim {
-
-const std::string hiceName = "hice";
-const std::string ciceName = "cice";
-const std::string hsnowName = "hsnow";
-const std::string ticeName = "tice";
 
 TEST_SUITE_BEGIN("ConfigOutput");
 TEST_CASE("Test periodic output")
@@ -93,13 +95,20 @@ TEST_CASE("Test periodic output")
             hsnow(i, j) = 0.2 + 0.01 * (j * nx + i);
         }
     }
+    std::vector<std::string> diagFiles;
+    const std::string pfx = "diag01";
+    const std::string sfx = ".nc";
+    const size_t hr_day = 24;
     for (size_t day = 1; day <= 20; ++day) {
+        if (day > 10) {
+            diagFiles.push_back(pfx + std::to_string(day) + sfx);
+        }
         double dayIncr = 100.;
         hice += dayIncr;
         cice += dayIncr;
         hsnow += dayIncr;
         tice += dayIncr;
-        for (size_t hour = 0; hour < 24; ++hour) {
+        for (size_t hour = 0; hour < hr_day; ++hour) {
             double hourIncr = 1;
             hice += hourIncr;
             cice += hourIncr;
@@ -109,6 +118,41 @@ TEST_CASE("Test periodic output")
             ido.outputState(meta);
             meta.incrementTime(Duration(3600.));
         }
+    }
+    // Now test that there are 10 files, correctly named, and check that one of
+    // them (diag0116.nc) contains what it should.
+
+    for (const std::string& file : diagFiles) {
+        REQUIRE(std::filesystem::exists(file));
+    }
+    // // No output should occur before the designated start date
+    REQUIRE(!std::filesystem::exists(pfx + "10" + sfx));
+
+    const std::string specFile = diagFiles[5];
+    std::set<std::string> fields = { "hice", "cice", "tice" };
+
+    // Read the netCDF file directly
+    netCDF::NcFile ncFile(specFile, netCDF::NcFile::read);
+    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
+    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
+
+    // Read the time axis
+    netCDF::NcDim timeDim = dataGroup.getDim(timeName);
+    // Read the time variable
+    netCDF::NcVar timeVar = dataGroup.getVar(timeName);
+    REQUIRE(timeDim.getSize() == hr_day);
+
+    std::multimap<std::string, netCDF::NcVar> vars(dataGroup.getVars());
+    REQUIRE(vars.size() == fields.size() + 1); // +1 for the time variable
+    for (auto field : fields) {
+        REQUIRE(vars.count(field) == 1);
+    }
+    REQUIRE(vars.count("time") == 1);
+    REQUIRE(vars.count("hsnow") == 0);
+
+    // Clean the testing files
+    for (auto fileName : diagFiles) {
+        std::filesystem::remove(fileName);
     }
 }
 TEST_SUITE_END();
