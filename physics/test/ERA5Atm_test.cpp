@@ -77,6 +77,8 @@ TEST_CASE("ERA5Atmosphere construction test")
         ModelComponent::getProtectedArray());
     ModelArrayRef<ModelComponent::ProtectedArray::WIND_SPEED, MARConstBackingStore> wind(
         ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::WIND_U, MARConstBackingStore> u(
+        ModelComponent::getProtectedArray());
 
     TimePoint t1("2000-01-01T00:00:00Z");
     TimestepTime tst = { t1, Duration(600) };
@@ -114,6 +116,7 @@ TEST_CASE("ERA5Atmosphere construction test")
     REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
     REQUIRE(wind(30, 20) == 30.020 + 100 * 11);
     REQUIRE(pair(30, 20) == (1.01e5 + 30.020) + 1000 * 11);
+    REQUIRE(u(30, 20) == (10 + 30.020) + 10 * 11);
 
     std::filesystem::remove(filePath);
 }
