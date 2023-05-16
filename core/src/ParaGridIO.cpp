@@ -8,6 +8,7 @@
 #include "include/ParaGridIO.hpp"
 
 #include "include/CommonRestartMetadata.hpp"
+#include "include/FileCallbackCloser.hpp"
 #include "include/MissingData.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
@@ -62,6 +63,8 @@ void ParaGridIO::makeDimCompMap()
     // function here, since it should only ever run once
     //    openFiles.clear();
     std::atexit(closeAllFiles);
+    // Further one-off initialization: allow distant classes to close files via a callback.
+    FileCallbackCloser::onClose(ParaGridIO::close);
 }
 
 ParaGridIO::~ParaGridIO() = default;

@@ -15,6 +15,7 @@ add_executable(createNextsimMeshData createNextsimMeshData.cpp
     "${CoreDir}/CommonRestartMetadata.cpp"
     "${CoreDir}/Configurator.cpp"
     "${CoreDir}/ParaGridIO.cpp"
+    "${CoreDir}/FileCallbackCloser.cpp"
     "${CoreDir}/MissingData.cpp"
     "${CoreDir}/ModelArray.cpp"
     "${CoreDir}/ModelMetadata.cpp"
