@@ -6,6 +6,7 @@
  */
 
 #include "include/ConfigOutput.hpp"
+#include "include/FileCallbackCloser.hpp"
 #include "include/Logged.hpp"
 #include "include/StructureFactory.hpp"
 
@@ -137,6 +138,7 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
         std::string newFileName = time.format(m_filePrefix) + ".nc";
         if (newFileName != currentFileName) {
             // TODO: Close the file currentFileName
+            FileCallbackCloser::close(currentFileName);
             currentFileName = newFileName;
         }
         lastFileChange = time;
