@@ -13,6 +13,12 @@
 
 namespace Nextsim {
 
+/*!
+ * A class to store and update the slab ocean that mediates between imposed
+ * ocean boundary conditions and the sea ice. For more details, see §2.3 of
+ * P. Rampal & al., "neXtSIM: a new Lagrangian sea ice model", The Cryosphere,
+ * 10, 1055—1073 (2016)
+ */
 class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
     SlabOcean()
