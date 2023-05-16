@@ -274,3 +274,12 @@ target_include_directories(testConfigOutput PRIVATE
     )
 target_link_directories(testConfigOutput PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testConfigOutput PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
+
+add_executable(testFileCallbackCloser
+    "FileCallbackCloser_test.cpp"
+    "${CoreSrc}/FileCallbackCloser.cpp"
+    )
+target_include_directories(testFileCallbackCloser PRIVATE
+    ${CoreSrc}
+    )
+target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
