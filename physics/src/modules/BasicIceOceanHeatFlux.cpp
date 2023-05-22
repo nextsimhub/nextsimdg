@@ -9,10 +9,10 @@
 
 namespace Nextsim {
 
-static inline double doOne(double tBot, double sst, double mlBulkCp, double ts)
+static inline double doOne(double tBot, double sst, double mlBulkCp, double timeT)
 {
-    // Transfer rate depends on the mixed layer depth an d a timescale. Here, it is the timestep
-    return (sst - tBot) * mlBulkCp / ts;
+    // Transfer rate depends on the mixed layer depth and the relaxation time scale
+    return (sst - tBot) * mlBulkCp / timeT;
 }
 
 void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
@@ -24,6 +24,7 @@ void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
 
 void BasicIceOceanHeatFlux::updateElement(size_t i, const TimestepTime& tst)
 {
+    // Use the timestep length as the relaxation time scale
     qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], tst.step.seconds());
 }
 
