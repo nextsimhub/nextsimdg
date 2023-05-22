@@ -7,19 +7,23 @@
 
 #include "include/ThermoIce0.hpp"
 
+#include "include/IFreezingPointModule.hpp"
+#include "include/MinimumIce.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/ModelArray.hpp"
+#include "include/NZLevels.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
-double ThermoIce0::k_s;
+double ThermoIce0::kappa_s;
 double ThermoIce0::m_I0;
 
 static const double k_sDefault = 0.3096;
 static const double i0_default = 0.17;
 
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
+const size_t ThermoIce0::nZLevels = 1;
 
 ThermoIce0::ThermoIce0()
     : iIceAlbedoImpl(nullptr)
@@ -42,7 +46,7 @@ void ThermoIce0::update(const TimestepTime& tsTime)
 
 template <>
 const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
-    { ThermoIce0::KS_KEY, "thermoice0.ks" },
+    { ThermoIce0::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
     { ThermoIce0::I0_KEY, "thermoice0.I_0" },
 };
 
@@ -51,15 +55,18 @@ void ThermoIce0::configure()
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 
-    k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
+    kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
     m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
+    NZLevels::set(nZLevels);
+
 }
 
 ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state = { {},
         {
-            { keyMap.at(KS_KEY), k_s },
+            { keyMap.at(KS_KEY), kappa_s },
+            { keyMap.at(I0_KEY), m_I0},
         } };
     return os ? state : ModelState();
 }
@@ -104,7 +111,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     // to write the array access expression out in full every time
     double& tice_i = tice.zIndexAndLayer(i, 0);
 
-    const double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
+    const double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]);
     qic[i] = k_lSlab * (tf[i] - tice_i) * gamma;
     double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), hsnow[i]);
     if ( hsnow[i] == 0. )
@@ -154,7 +161,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     }
 
     // Melt all ice if it is below minimum threshold
-    if (hice[i] < IceGrowth::minimumIceThickness()) {
+    if (hice[i] < MinimumIce::thickness()) {
         if (deltaHi[i] < 0) {
             const double scaling = oldHi[i] / deltaHi[i];
             topMelt[i] *= scaling;
@@ -176,4 +183,6 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         tice_i = 0.;
     }
 }
+
+size_t ThermoIce0::getNZLevels() const { return nZLevels; }
 } /* namespace Nextsim */

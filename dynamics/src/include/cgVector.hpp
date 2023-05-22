@@ -4,6 +4,7 @@
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
+
 #ifndef __CGVECTOR_HPP
 #define __CGVECTOR_HPP
 

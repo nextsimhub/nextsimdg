@@ -215,3 +215,6 @@ For issues not requiring a hotfix (less urgent bug-fixes and feature requests):
 3. Once the issue is fixed merge the **develop** branch back into your issue branch and resolve any conflicts.
 4. Create a pull request on GitHub to merge the issue branch back into **develop**. Always include at least one reviewer who will then merge and delete the issue branch, and close the issue.
 
+## doctest
+
+Nextsim-DG uses the doctest library for testing. The doctest library is copyright Viktor Kirilov and written by Viktor Kirilov and the other doctest contributors. The library is licensed under the MIT license, which can be found in the `lib/doctest` subdirectory.

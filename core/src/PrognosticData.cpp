@@ -66,8 +66,8 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
-    pAtmBdy->update(tst);
     pOcnBdy->updateBefore(tst);
+    pAtmBdy->update(tst);
     iceGrowth.update(tst);
     pOcnBdy->updateAfter(tst);
 
