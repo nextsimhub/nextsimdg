@@ -6,6 +6,8 @@
 
 Here you will find the sources for neXtSIM_DG sea-ice model.
 
+**Installation instructions** can be found [here](https://nextsim-dg.readthedocs.io/en/latest/installation.html).
+
 Below are some conventions that every contributors to this model must apply in order to have the most efficient and consistent workflow for the model developments. These conventions deal with :
   - [coding](#coding-conventions)
   - [commenting](#commenting-conventions-for-a-nice-automatic-documentation)
@@ -14,7 +16,7 @@ Below are some conventions that every contributors to this model must apply in o
 ## Coding conventions
 
 For neXtSIM_DG we use clang-format and the [Webkit style](https://webkit.org/code-style-guidelines/), with a 100 character line length limit.
-  -  neXtSIM is written using ISO C++11
+  -  neXtSIM is written using ISO C++17
   -  All array operations should be done using std::vectors - not C-style arrays
   -  The use of C-style pointers, new, and delete is strongly discouraged
   -  Names and values of physical constants reside in src/include/constants.hpp
@@ -149,13 +151,19 @@ The comments providing automatic documentation should be supplemented with ordin
 
 ### Version numbering
 
-We use [semantic versioning](https://semver.org/). In brief this means the main branch has a version number assigned (tagged) to each commit. The numbers are of the form major.minor.patch, where:
+We use a derived version of [semantic versioning](https://semver.org/). In brief this means the main branch has a version number assigned (tagged) to each commit. The numbers are of the form x.y.z, where we:
 
-1. MAJOR version when you make incompatible API changes
-2. MINOR version when you add functionality in a backwards-compatible manner, and
-3. PATCH version when you make backwards-compatible bug fixes.
+1. increment z when there's a hotfix (bugfix) pushed to main
+2. increment y when develop is merged into main
+3. increment x when we've been working on something extraordinary, when there's a significant change in an interface (configs or outputs) ... or when y is becoming too big.
 
-This is not directly applicable to our workflow, but changes in major numbers should be related to major user facing changes (different input or output format, for instance), while minor numbers should (mostly) relate to changes in functionality (new physics, for instance). The patch number is incremented for each hotfix (see below).
+### Tag and releases
+
+To implement the version numbering two steps are required: first, you have to tag a version of the code with the appropriate name (v1.0.0 for instance the rules described above) and then a release can be generated from the tag (same name).
+
+Both operations need to be commented, with ```git tag -a v1.0.0 -m 'description of the tagged version of the code'``` when generating a tag and in the Release title and description fields on github when generating the release so that changelog files are informative for users.
+
+After each release, the changelog file must be generated as described [here](docs/changelog/README.md) and deployed in the docs branch. This changelog file can also be modified anytime to take into account the recent developments.
 
 ### Git branching and merging
 
@@ -207,3 +215,6 @@ For issues not requiring a hotfix (less urgent bug-fixes and feature requests):
 3. Once the issue is fixed merge the **develop** branch back into your issue branch and resolve any conflicts.
 4. Create a pull request on GitHub to merge the issue branch back into **develop**. Always include at least one reviewer who will then merge and delete the issue branch, and close the issue.
 
+## doctest
+
+Nextsim-DG uses the doctest library for testing. The doctest library is copyright Viktor Kirilov and written by Viktor Kirilov and the other doctest contributors. The library is licensed under the MIT license, which can be found in the `lib/doctest` subdirectory.

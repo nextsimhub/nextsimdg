@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_BASICICEOCEANHEATFLUX_HPP_
-#define SRC_INCLUDE_BASICICEOCEANHEATFLUX_HPP_
+#ifndef BASICICEOCEANHEATFLUX_HPP
+#define BASICICEOCEANHEATFLUX_HPP
 
 #include "IIceOceanHeatFlux.hpp"
 
@@ -15,21 +15,20 @@ namespace Nextsim {
 //! The implementation class for the basic ice-ocean heat flux.
 class BasicIceOceanHeatFlux : public IIceOceanHeatFlux {
 public:
-    BasicIceOceanHeatFlux() = default;
+    BasicIceOceanHeatFlux()
+        : IIceOceanHeatFlux()
+        , mlBulkCp(getProtectedArray())
+    {
+    }
     virtual ~BasicIceOceanHeatFlux() = default;
 
-    /*!
-     * @brief Calculate the basic ice-ocean heat flux.
-     *
-     * @param prog PrognosticData for this element (constant).
-     * @param exter ExternalData for this element (constant).
-     * @param phys PhysicsData for this element (constant).
-     * @param nsphys Nextsim physics implementation data for this element
-     * (constant).
-     */
-    double flux(const PrognosticData&, const ExternalData&, const PhysicsData&, const NextsimPhysics&) override;
+    void update(const TimestepTime&) override;
+    void updateElement(size_t i, const TimestepTime&);
+protected:
+    ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> mlBulkCp;
+
 };
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_BASICICEOCEANHEATFLUX_HPP_ */
+#endif /* BASICICEOCEANHEATFLUX_HPP */

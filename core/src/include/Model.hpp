@@ -4,14 +4,16 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_MODEL_HPP
-#define SRC_INCLUDE_MODEL_HPP
+#ifndef MODEL_HPP
+#define MODEL_HPP
 
 #include "include/Logged.hpp"
 
 #include "include/Configured.hpp"
-#include "include/IStructure.hpp"
 #include "include/Iterator.hpp"
+#include "include/ModelMetadata.hpp"
+#include "include/ModelState.hpp"
+#include "include/PrognosticData.hpp"
 
 #include "DevStep.hpp"
 #include <string>
@@ -19,7 +21,7 @@
 namespace Nextsim {
 
 //! A class that encapsulates the whole of the model
-class Model : public Logged, public Configured<Model> {
+class Model : public Configured<Model> {
 public:
     Model(); // TODO add arguments to pass the desired
              // environment and configuration to the model
@@ -34,6 +36,11 @@ public:
         TIMESTEP_KEY,
     };
 
+    ConfigMap getConfig() const;
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     //! Run the model
     void run();
 
@@ -42,16 +49,28 @@ public:
     //! Sets the filename of the restart file that would currently be written out.
     void setFinalFilename(const std::string& finalFile);
 
+    //! Gets the model metadata instance
+    ModelMetadata& metadata();
+
+    // Configuration option that holds the restart file name
+    const static std::string restartOptionName;
+
 private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
+    PrognosticData pData;
+    ModelMetadata m_etadata;
 
     std::string initialFileName;
     std::string finalFileName;
 
-    std::shared_ptr<IStructure> dataStructure;
+    // Cached values of the start-step-stop/duration times
+    std::string startTimeStr;
+    std::string stopTimeStr;
+    std::string durationStr;
+    std::string stepStr;
 };
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_MODEL_HPP */
+#endif /* MODEL_HPP */

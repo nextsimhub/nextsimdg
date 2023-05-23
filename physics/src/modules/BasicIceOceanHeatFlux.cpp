@@ -7,21 +7,25 @@
 
 #include "include/BasicIceOceanHeatFlux.hpp"
 
-#include "include/ExternalData.hpp"
-#include "include/PrognosticData.hpp"
-#include "include/constants.hpp"
-
 namespace Nextsim {
 
-double BasicIceOceanHeatFlux::flux(
-    const PrognosticData& prog, const ExternalData& exter, const PhysicsData& phys, const NextsimPhysics& nsp)
+static inline double doOne(double tBot, double sst, double mlBulkCp, double timeT)
 {
-    // The ice bottom temperature is the freezing point of the surface seawater
-    double iceBottomTemperature = prog.freezingPoint();
-    double tDiff = prog.seaSurfaceTemperature() - iceBottomTemperature;
+    // Transfer rate depends on the mixed layer depth and the relaxation time scale
+    return (sst - tBot) * mlBulkCp / timeT;
+}
 
-    // Transfer rate depends on the mixed layer depth an d a timescale. Here, it is the timestep
-    return tDiff * exter.mixedLayerBulkHeatCapacity() / prog.timestep();
+void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
+{
+    overElements(std::bind(&BasicIceOceanHeatFlux::updateElement, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tst);
+}
+
+void BasicIceOceanHeatFlux::updateElement(size_t i, const TimestepTime& tst)
+{
+    // Use the timestep length as the relaxation time scale
+    qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], tst.step.seconds());
 }
 
 } /* namespace Nextsim */
