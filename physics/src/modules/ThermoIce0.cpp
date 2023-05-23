@@ -17,7 +17,7 @@
 namespace Nextsim {
 
 double ThermoIce0::kappa_s;
-double ThermoIce0::m_I0;
+double ThermoIce0::i0;
 
 static const double k_sDefault = 0.3096;
 static const double i0_default = 0.17;
@@ -56,9 +56,8 @@ void ThermoIce0::configure()
     tryConfigure(iIceAlbedoImpl);
 
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
-    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
+    i0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
     NZLevels::set(nZLevels);
-
 }
 
 ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
@@ -66,7 +65,7 @@ ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
     ModelState state = { {},
         {
             { keyMap.at(KS_KEY), kappa_s },
-            { keyMap.at(I0_KEY), m_I0},
+            { keyMap.at(I0_KEY), i0 },
         } };
     return os ? state : ModelState();
 }
@@ -112,12 +111,12 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     double& tice_i = tice.zIndexAndLayer(i, 0);
 
     const double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]);
-    qic[i] = k_lSlab * (tf[i] - tice_i) * gamma;
-    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), hsnow[i]);
-    if ( hsnow[i] == 0. )
-        albedoValue += beta*(1.-albedoValue)*m_I0;
+    qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0)) * gamma;
+    double albedoValue = iIceAlbedoImpl->albedo(tice_i, hsnow[i]);
+    if (hsnow[i] == 0.)
+        albedoValue += beta * (1. - albedoValue) * i0;
 
-    const double remainingFlux = qic[i] - (qia[i] + (1.-albedoValue) * qsw[i]);
+    const double remainingFlux = qic[i] - (qia[i] + (1. - albedoValue) * qsw[i]);
     tice_i += remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point

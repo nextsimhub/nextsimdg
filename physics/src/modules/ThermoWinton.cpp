@@ -27,6 +27,7 @@ bool ThermoWinton::doFlooding = true;
 
 ThermoWinton::ThermoWinton()
     : IIceThermodynamics()
+    , iIceAlbedoImpl(nullptr)
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
@@ -49,6 +50,9 @@ const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
 
 void ThermoWinton::configure()
 {
+    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
+    tryConfigure(iIceAlbedoImpl);
+
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
     i0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
     doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), doFlooding);
@@ -93,6 +97,7 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
+    iIceAlbedoImpl->setTime(tst.start);
     overElements(std::bind(&ThermoWinton::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);
@@ -293,9 +298,11 @@ void ThermoWinton::calculateTemps(
     double tBase = tf[i]; // Freezing point of seawater with the local salinity
     double tMelt = (hsnow[i] > 0) ? 0 : Ice::Tm; // Melting point at the surface
 
+    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), hsnow[i]);
+
     // First some coefficients based on temperatures from the previous time step
     double k12 = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hsnow[i]); // (5)
-    double a = qia[i] - tSurf * dQia_dt[i]; // (7)
+    double a = (qia[i] + (1. - albedoValue) * qsw[i]) - tSurf * dQia_dt[i]; // (7)
     double b = dQia_dt[i]; // (8)
     double k32 = 2 * Ice::kappa / hi; // (10)
 

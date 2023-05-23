@@ -21,6 +21,7 @@
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/constants.hpp"
+#include "include/IIceAlbedo.hpp"
 
 namespace Nextsim {
 
@@ -29,6 +30,8 @@ TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
+
+    const double I0 = 0.17;
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -153,6 +156,10 @@ TEST_CASE("Melting conditions")
     qia.resize();
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
 
+    HField qsw;
+    qsw.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_SW, &qsw);
+
     HField dqia_dt;
     dqia_dt.resize();
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
@@ -161,6 +168,11 @@ TEST_CASE("Melting conditions")
     subl.resize();
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
 
+    ModelArrayRef<ModelComponent::ProtectedArray::T_ICE, MARConstBackingStore> tice0(
+        ModelComponent::getProtectedArray());
+    ModelArrayRef<ModelComponent::ProtectedArray::HTRUE_SNOW, MARConstBackingStore> hsnow0(
+        ModelComponent::getProtectedArray());
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
     FiniteElementFluxes fef;
@@ -168,6 +180,11 @@ TEST_CASE("Melting conditions")
     fef.setData(ModelState().data);
     ocnBdy.updateBefore(tst);
     fef.update(tst);
+
+    IIceAlbedo* iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
+    tryConfigure(iIceAlbedoImpl);
+    const double albedoValue = iIceAlbedoImpl->albedo(tice0[0], hsnow0[0]);
+    qia[0] += (1. - albedoValue) * (1. - I0) * qsw[0];
 
     double prec = 1e-5;
     REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));

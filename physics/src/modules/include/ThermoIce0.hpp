@@ -46,7 +46,7 @@ private:
     HField qic;
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
 
-    static double m_I0;
+    static double i0;
     static const double freezingPointIce;
     static double kappa_s;
 

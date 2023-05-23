@@ -7,8 +7,8 @@
 
 #include "include/PrognosticData.hpp"
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/PrognosticData.hpp"
 
@@ -23,7 +23,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("PrognosticData call order test", "[PrognosticData]")
+TEST_SUITE_BEGIN("PrognosticData");
+TEST_CASE("PrognosticData call order test")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -84,22 +85,23 @@ TEST_CASE("PrognosticData call order test", "[PrognosticData]")
     ModelState::DataMap initialData = {
             {"cice", zeroData},
             {"hice", zeroData},
-            {"hsnow", zeroData},
-            {"tice", zeroDataZ},
+        { "hsnow", zeroData },
+        { "tice", zeroDataZ },
     };
 
     PrognosticData pData;
     pData.configure();
     pData.setData(initialData);
-    TimestepTime tst = {TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0")};
+    TimestepTime tst = { TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0") };
     pData.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore> qow(ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore> qow(
+        ModelComponent::getSharedArray());
 
     double prec = 1e-5;
     // Correct value
-    REQUIRE(qow[0] == Approx(-109.923).epsilon(prec));
+    REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));
     // Value if pAtmBdy->update and pOcnBdy->updateBefore are switched in PrognosticData::update
-    REQUIRE(qow[0] != Approx(-92.1569).epsilon(prec));
+    REQUIRE(qow[0] != doctest::Approx(-92.1569).epsilon(prec));
 }
 } /* namespace Nextsim */

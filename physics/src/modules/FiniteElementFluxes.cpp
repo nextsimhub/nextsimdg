@@ -135,12 +135,13 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
     // Shortwave flux
     Q_sw_ia[i] = -sw_in[i];
+    qsw[i] = -sw_in[i];
     // Longwave flux
     Q_lw_ia[i] = stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0)) - lw_in[i];
     double dQlw_dT
         = 4 / kelvin(tice.zIndexAndLayer(i, 0)) * stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0));
-    // Total flux
-    qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
+    // Total non-solar flux
+    qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_lw_ia[i];
     // Total temperature dependence of flux
     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
 }
