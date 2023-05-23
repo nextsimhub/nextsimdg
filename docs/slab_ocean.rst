@@ -7,7 +7,7 @@ Introduction
 ------------
 
 The slab ocean of neXtSIM_DG exists to ensure consistency between the
-conditions the ice is experiencing and the ocean forcing applied to the model.
+conditions that the ice is experiencing and the ocean forcing applied to the model.
 
 The slab ocean was first implemented in the Lagrangian version of neXtSIM
 `(Rampal et al., 2016)`_ where the implementation benefitted from the monolithic
