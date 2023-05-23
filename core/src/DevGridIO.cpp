@@ -7,9 +7,12 @@
 
 #include "include/DevGridIO.hpp"
 
+#include "include/CommonRestartMetadata.hpp"
 #include "include/DevGrid.hpp"
-#include "include/ElementData.hpp"
 #include "include/IStructure.hpp"
+#include "include/MissingData.hpp"
+#include "include/ModelArray.hpp"
+#include "include/NZLevels.hpp"
 
 #include <cstddef>
 #include <ncDim.h>
@@ -18,6 +21,7 @@
 #include <ncVar.h>
 
 #include <map>
+#include <string>
 #include <vector>
 
 namespace Nextsim {
@@ -32,181 +36,131 @@ enum class StringName {
     Z_DIM,
 };
 
-std::string hiceName = "hice";
-std::string ciceName = "cice";
-std::string hsnowName = "hsnow";
-std::string ticeName = "tice";
-std::string sstName = "sst";
-std::string sssName = "sss";
+static std::string hiceName = "hice";
+static std::string ciceName = "cice";
+static std::string hsnowName = "hsnow";
+static std::string ticeName = "tice";
 
 typedef std::map<StringName, std::string> NameMap;
 
-void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
-void dumpGroup(const std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap);
+static const std::string metaName = "meta";
+static const std::string dataName = "data";
+static const std::string mdiName = "missing_value";
 
-// See https://isocpp.org/wiki/faq/pointers-to-members#macro-for-ptr-to-memfn
-#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
+// Metadata initialization
+static void initModelMetaData(const netCDF::NcGroup& metaGroup) { }
 
-// pointer to a member of PrognosticData that takes no arguments and returns a
-// double. See https://isocpp.org/wiki/faq/pointers-to-members#typedef-for-ptr-to-memfn
-typedef double (PrognosticData::*ProgDoubleFn)() const;
-
-// Map between variable names and retrieval functions
-// See https://isocpp.org/wiki/faq/pointers-to-members#array-memfnptrs
-// clang-format off
-static const std::map<std::string, ProgDoubleFn> variableFunctions
-= {    { hiceName, &PrognosticData::iceThickness },
-       { ciceName, &PrognosticData::iceConcentration },
-       { hsnowName, &PrognosticData::snowThickness },
-       { sstName, &PrognosticData::seaSurfaceTemperature },
-       { sssName, &PrognosticData::seaSurfaceSalinity } };
-// clang-format on
-
-void DevGridIO::init(std::vector<ElementData>& data, const std::string& filePath) const
+static ModelState initModelData(const netCDF::NcGroup& dataGroup)
 {
-    NameMap nameMap = {
-        { StringName::METADATA_NODE, IStructure::metadataNodeName() },
-        { StringName::DATA_NODE, IStructure::dataNodeName() },
-        { StringName::STRUCTURE, DevGrid::structureName },
-        { StringName::X_DIM, DevGrid::xDimName },
-        { StringName::Y_DIM, DevGrid::yDimName },
-        { StringName::Z_DIM, DevGrid::nIceLayersName },
-    };
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-    initGroup(data, ncFile, nameMap);
-    ncFile.close();
-}
+    // Get the number of array sizes from the dimension data of the ice temperature array
+    size_t nDims = 3;
+    std::vector<size_t> dim3(nDims);
+    std::vector<size_t> dim2(nDims - 1);
 
-void DevGridIO::dump(const std::vector<ElementData>& data, const std::string& filePath) const
-{
-    NameMap nameMap = {
-        { StringName::METADATA_NODE, IStructure::metadataNodeName() },
-        { StringName::DATA_NODE, IStructure::dataNodeName() },
-        { StringName::STRUCTURE, DevGrid::structureName },
-        { StringName::X_DIM, DevGrid::xDimName },
-        { StringName::Y_DIM, DevGrid::yDimName },
-        { StringName::Z_DIM, DevGrid::nIceLayersName },
-    };
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
-    dumpGroup(data, ncFile, nameMap);
-    ncFile.close();
-}
+    for (int iDim = 0; iDim < nDims; ++iDim) {
+        dim3[iDim] = dataGroup.getVar(ticeName).getDim(iDim).getSize();
+    }
+    dim2[0] = dim3[0];
+    dim2[1] = dim3[1];
+    size_t fileZLevels = dim3[2];
+    dim3[2] = NZLevels::get();
 
-void initMeta(std::vector<ElementData>& data, const netCDF::NcGroup& metaGroup)
-{
-    int nx = DevGrid::nx;
-    data.resize(nx * nx);
-}
+    ModelArray::setDimensions(ModelArray::Type::H, dim2);
+    ModelArray::setDimensions(ModelArray::Type::U, dim2);
+    ModelArray::setDimensions(ModelArray::Type::V, dim2);
+    ModelArray::setDimensions(ModelArray::Type::Z, dim3);
 
-void initData(std::vector<ElementData>& data, const netCDF::NcGroup& dataGroup)
-{
-    // Get the number of ice layers from the ice temperature data
-    const int layersDim = 2;
-    int nLayers = dataGroup.getVar(ticeName).getDim(layersDim).getSize();
-    int nx = DevGrid::nx;
-    for (int i = 0; i < nx; ++i) {
-        for (int j = 0; j < nx; ++j) {
-            int linearIndex = i * nx + j;
-            double hice;
-            double cice;
-            double hsnow;
-            double sst;
-            double sss;
-            std::vector<std::size_t> loc = { std::size_t(i), std::size_t(j) };
-            dataGroup.getVar(hiceName).getVar(loc, &hice);
-            dataGroup.getVar(ciceName).getVar(loc, &cice);
-            dataGroup.getVar(hsnowName).getVar(loc, &hsnow);
-            dataGroup.getVar(sstName).getVar(loc, &sst);
-            dataGroup.getVar(sssName).getVar(loc, &sss);
-            // Retrieve ice temperature data
+    // Loop over all data fields, add their name and contents to the ModelState
+    std::multimap<std::string, netCDF::NcVar> varMap = dataGroup.getVars();
+    ModelState state;
+    for (const auto var : varMap) {
+        // Get the dimensions and read into an intermediate buffer
+        int nDims = var.second.getDimCount();
+        std::vector<netCDF::NcDim> dims = var.second.getDims();
+        size_t totalSz = 1;
+        for (const auto dim : dims) {
+            totalSz *= dim.getSize();
+        }
 
-            std::vector<double> tice(nLayers);
-            for (int l = 0; l < nLayers; ++l) {
-                std::vector<std::size_t> loc3 = { loc[0], loc[1], std::size_t(l) };
-                dataGroup.getVar(ticeName).getVar(loc3, &tice[l]);
-            }
-            data[linearIndex]
-                = PrognosticGenerator().hice(hice).cice(cice).sst(sst).sss(sss).hsnow(hsnow).tice(
-                    tice);
+        std::string varName = var.first;
+        std::vector<double> buffer(totalSz);
+        var.second.getVar(buffer.data());
+        if (nDims == 2) {
+            HField data = ModelArray::HField();
+            data.setData(buffer.data());
+            auto [i, y] = state.data.insert({ varName, data });
+        } else if (nDims == 3) {
+            ZField data = ModelArray::ZField();
+            // Transform from the number of z levels in the data file to the
+            // number required by the ice thermodynamics.
+            // Reset the size of the buffer (and we know we have three dimensions)
+            totalSz = dim3[0] * dim3[1] * dim3[2];
+            buffer.resize(totalSz);
+            std::vector<size_t> startVector = { 0, 0, 0 };
+            var.second.getVar(startVector, dim3, buffer.data());
+            data.setData(buffer.data());
+            state.data[varName] = data;
         }
     }
 
-    for (auto fnNamePair : variableFunctions) {
-        const std::string& name = fnNamePair.first;
-        netCDF::NcVar var(dataGroup.getVar(name));
-    }
+    return state;
 }
 
-void initGroup(std::vector<ElementData>& data, netCDF::NcGroup& grp, const NameMap& nameMap)
+ModelState DevGridIO::getModelState(const std::string& filePath) const
 {
-    netCDF::NcGroup metaGroup(grp.getGroup(nameMap.at(StringName::METADATA_NODE)));
-    netCDF::NcGroup dataGroup(grp.getGroup(nameMap.at(StringName::DATA_NODE)));
 
-    initMeta(data, metaGroup);
-    initData(data, dataGroup);
+    netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+
+    netCDF::NcGroup metaGroup(ncFile.getGroup(metaName));
+    netCDF::NcGroup dataGroup(ncFile.getGroup(dataName));
+    initModelMetaData(metaGroup);
+    ModelState ms = initModelData(dataGroup);
+
+    ncFile.close();
+    return ms;
 }
 
-void dumpMeta(
-    const std::vector<ElementData>& data, netCDF::NcGroup& metaGroup, const NameMap& nameMap)
+void dumpModelMeta(const ModelMetadata& metadata, netCDF::NcGroup& metaGroup)
 {
-    metaGroup.putAtt(IStructure::typeNodeName(), nameMap.at(StringName::STRUCTURE));
+    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
 }
 
-/*
- * Uses a pointer-to-member-function to access the data in PrognosticData
- * element by element. Please see the references in the comments associated
- * with ProgDoubleFn and CALL_MEMBER_FN for more details.
- */
-std::vector<double> gather(const std::vector<ElementData>& data, ProgDoubleFn pFunc)
-{
-    std::vector<double> gathered(data.size());
-    for (int i = 0; i < data.size(); ++i) {
-        gathered[i] = CALL_MEMBER_FN(data[i], pFunc)();
-    }
-    return gathered;
-}
-
-void dumpData(
-    const std::vector<ElementData>& data, netCDF::NcGroup& dataGroup, const NameMap& nameMap)
+void dumpModelData(const ModelState& state, netCDF::NcGroup& dataGroup)
 {
     int nx = DevGrid::nx;
     // Create the dimension data, since it has to be in the same group as the
     // data or the parent group
-    netCDF::NcDim xDim = dataGroup.addDim(nameMap.at(StringName::X_DIM), nx);
-    netCDF::NcDim yDim = dataGroup.addDim(nameMap.at(StringName::Y_DIM), nx);
-
+    netCDF::NcDim xDim = dataGroup.addDim(DevGrid::xDimName, nx);
+    netCDF::NcDim yDim = dataGroup.addDim(DevGrid::yDimName, nx);
     std::vector<netCDF::NcDim> dims2 = { xDim, yDim };
-    for (auto fnNamePair : variableFunctions) {
-        const std::string& name = fnNamePair.first;
-        netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
-        std::vector<double> gathered = gather(data, variableFunctions.at(name));
-        var.putVar(gathered.data());
-    }
-
-    int nLayers = data[0].nIceLayers();
-    netCDF::NcDim zDim = dataGroup.addDim(nameMap.at(StringName::Z_DIM), nLayers);
+    int nLayers = 1;
+    netCDF::NcDim zDim = dataGroup.addDim(DevGrid::nIceLayersName, nLayers);
     std::vector<netCDF::NcDim> dims3 = { xDim, yDim, zDim };
-    netCDF::NcVar iceT(dataGroup.addVar(ticeName, netCDF::ncDouble, dims3));
 
-    // Gather the three dimensional data explicitly (until there is more than
-    // one three dimensional dataset).
-    std::vector<double> tice(data.size() * nLayers);
-    for (int i = 0; i < data.size(); ++i) {
-        int ii = nLayers * i;
-        for (int l = 0; l < nLayers; ++l) {
-            tice[ii + l] = data[i].iceTemperature(l);
+    for (const auto entry : state.data) {
+        const std::string& name = entry.first;
+        if (entry.second.getType() == ModelArray::Type::H) {
+            netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+            var.putVar(entry.second.getData());
+        } else if (entry.second.getType() == ModelArray::Type::Z) {
+            netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims3));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+            var.putVar(entry.second.getData());
         }
     }
-    iceT.putVar(tice.data());
 }
 
-void dumpGroup(
-    const std::vector<ElementData>& data, netCDF::NcGroup& headGroup, const NameMap& nameMap)
+void DevGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+    const std::string& filePath, bool isRestart) const
 {
-    netCDF::NcGroup metaGroup = headGroup.addGroup(nameMap.at(StringName::METADATA_NODE));
-    netCDF::NcGroup dataGroup = headGroup.addGroup(nameMap.at(StringName::DATA_NODE));
-    dumpMeta(data, metaGroup, nameMap);
-    dumpData(data, dataGroup, nameMap);
+    netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
+    netCDF::NcGroup metaGroup = ncFile.addGroup(metaName);
+    netCDF::NcGroup dataGroup = ncFile.addGroup(dataName);
+    CommonRestartMetadata::writeStructureType(ncFile, metadata);
+    dumpModelMeta(metadata, metaGroup);
+    dumpModelData(state, dataGroup);
+    ncFile.close();
 }
 
 } /* namespace Nextsim */

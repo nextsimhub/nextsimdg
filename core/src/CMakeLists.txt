@@ -6,17 +6,25 @@ set(BaseSources
     "Timer.cpp"
     "Model.cpp"
     "Iterator.cpp"
-    "SimpleIterant.cpp"
     "Configurator.cpp"
+    "ConfigurationHelpPrinter.cpp"
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
-    "ModuleLoader.cpp"
-    "ElementData.cpp"
-    "PrognosticData.cpp"
-    "ExternalData.cpp"
+    "CommonRestartMetadata.cpp"
     "DevGridIO.cpp"
+    "RectGridIO.cpp"
+    "ParaGridIO.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
+    "MissingData.cpp"
+    "ModelArray.cpp"
+    "ModelComponent.cpp"
+    "ModelMetadata.cpp"
+    "NetcdfMetadataConfiguration.cpp"
+    "NZLevels.cpp"
+    "PrognosticData.cpp"
+    "Time.cpp"
+    "${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
@@ -25,10 +33,25 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 set(StructureModuleSources
     "DevGrid.cpp"
+    "RectangularGrid.cpp"
+    "ParametricGrid.cpp"
+    "IStructureModule.cpp"
     )
-    
+
+set(FreezingPointModuleSources
+    "IFreezingPointModule.cpp"
+    )
+
+set(DiagnosticOutputModuleSources
+    "DiagnosticOutputModule.cpp"
+    "SimpleOutput.cpp"
+    "ConfigOutput.cpp"
+    )
+
 set(ModuleSources
     "${StructureModuleSources}"
+    "${FreezingPointModuleSources}"
+    "${DiagnosticOutputModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
@@ -43,7 +66,5 @@ set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"
     "${ModuleDir}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${ModelArrayStructure}"
     PARENT_SCOPE)
-
-# Build the module loader files. Defines the 'parse_modules' target
-add_subdirectory(modules)
