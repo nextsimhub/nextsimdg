@@ -20,18 +20,18 @@ const double SlabOcean::defaultRelaxationTime = 30 * 24 * 60 * 60; // 30 days in
 
 // Configuration strings
 static const std::string className = "SlabOcean";
-static const std::string timeTName = "timeT";
-static const std::string timeSName = "timeS";
+static const std::string relaxationTimeTName = "timeT";
+static const std::string relaxationTimeSName = "timeS";
 
 template <>
 const std::map<int, std::string> Configured<SlabOcean>::keyMap = {
-    { SlabOcean::TIMET_KEY, className + "." + timeTName },
-    { SlabOcean::TIMES_KEY, className + "." + timeSName },
+    { SlabOcean::TIMET_KEY, className + "." + relaxationTimeTName },
+    { SlabOcean::TIMES_KEY, className + "." + relaxationTimeSName },
 };
 void SlabOcean::configure()
 {
-    timeT = Configured::getConfiguration(keyMap.at(TIMET_KEY), defaultRelaxationTime);
-    timeS = Configured::getConfiguration(keyMap.at(TIMES_KEY), defaultRelaxationTime);
+    relaxationTimeT = Configured::getConfiguration(keyMap.at(TIMET_KEY), defaultRelaxationTime);
+    relaxationTimeS = Configured::getConfiguration(keyMap.at(TIMES_KEY), defaultRelaxationTime);
 
     registerProtectedArray(ProtectedArray::SLAB_QDW, &qdw);
     registerProtectedArray(ProtectedArray::SLAB_FDW, &fdw);
@@ -76,7 +76,7 @@ void SlabOcean::update(const TimestepTime& tst)
 {
     double dt = tst.step.seconds();
     // Slab SST update
-    qdw = (sstExt - sst) * cpml / timeT;
+    qdw = (sstExt - sst) * cpml / relaxationTimeT;
     HField qioMean = qio * cice; // cice at start of TS, not updated
     HField qowMean = qow * (1 - cice); // 1- cice = open water fraction
     sstSlab = sst - dt * (qioMean + qowMean - qdw) / cpml;
@@ -84,7 +84,7 @@ void SlabOcean::update(const TimestepTime& tst)
     HField arealDensity = cpml / Water::cp; // density times depth, or cpml divided by cp
     // This is simplified compared to the finiteelement.cpp calculation
     // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab - sssExt
-    fdw = (1 - sssExt / sss) * arealDensity / timeS;
+    fdw = (1 - sssExt / sss) * arealDensity / relaxationTimeS;
     // ice volume change, both laterally and vertically
     HField deltaIceVol = newIce + deltaHice * cice;
     // change in snow volume due to melting (should be < 0)
