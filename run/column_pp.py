@@ -1,7 +1,8 @@
-import netCDF4
 import glob
-import numpy as np
+
 import matplotlib.pyplot as plt
+import netCDF4
+import numpy as np
 
 first = True
 for file in sorted(glob.glob('diagnostic.*.nc')):
@@ -33,15 +34,15 @@ iceDraught = (hice * rho + hsnow * rhoSnow) / rhoOcean
 plt.figure(1)
 plt.plot([time[0], time[end]], [0, 0], 'k--')
 plt.plot(time, tice[:, 0], 'k')
-# plt.plot(time, tice[:, 1])
-# plt.plot(time, tice[:, 2])
+plt.plot(time, tice[:, 1])
+plt.plot(time, tice[:, 2])
 plt.show(block=False)
 
 plt.figure(2)
 plt.plot([time[0], time[end]], [0, 0], 'k--')
 plt.plot(time, hice - iceDraught, 'b')
-plt.plot(time, hice+hsnow - iceDraught, 'k')
+plt.plot(time, hice + hsnow - iceDraught, 'k')
 plt.plot(time, -iceDraught, 'b')
 ax = plt.gca()
-#ax.set_ylim([0, None])
+# ax.set_ylim([0, None])
 plt.show()

@@ -300,7 +300,7 @@ void ThermoWinton::calculateTemps(
     double tBase = tf[i]; // Freezing point of seawater with the local salinity
     double tMelt = (hsnow[i] > 0) ? 0 : seaIceTf; // Melting point at the surface
 
-    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), hsnow[i]);
+    double albedoValue = iIceAlbedoImpl->albedo(tSurf, hsnow[i]);
 
     // First some coefficients based on temperatures from the previous time step
     double k12 = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hsnow[i]); // (5)
@@ -310,8 +310,8 @@ void ThermoWinton::calculateTemps(
 
     double a1 = hi * cVol / (2 * dt) + k32 * (4 * dt * k32 + hi * cVol) / (6 * dt * k32 + hi * cVol)
         + b * k12 / (k12 + b); // (16)
-    double b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt)
-        - i0 * sw_in[i]
+    double I = i0 * (1. - albedoValue) * qsw[i]; // Footnote 1
+    double b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt) - I
         - k32 * (4 * dt * k32 * tBase + hi * cVol * tLowr) / (6 * dt * k32 + hi * cVol)
         + a * k12 / (k12 + b); // (17)
     double c1 = hi * Ice::Lf * Ice::rho * seaIceTf / (2 * dt); // (18)
