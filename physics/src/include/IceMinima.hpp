@@ -15,8 +15,8 @@ class IceGrowth;
 //! IceGrowth and its dependencies.
 class IceMinima {
 public:
-    static double h();
-    static double c();
+    static inline double h() { return hMin; };
+    static inline double c() { return cMin; };
 
 private:
     static double hMin;

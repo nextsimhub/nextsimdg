@@ -15,7 +15,4 @@ const double IceMinima::cMinDefault = 1e-12;
 double IceMinima::hMin = hMinDefault;
 double IceMinima::cMin = cMinDefault;
 
-double IceMinima::h() { return hMin; }
-double IceMinima::c() { return cMin; }
-
 } /* namespace Nextsim */
