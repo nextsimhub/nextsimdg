@@ -34,12 +34,7 @@ ThermoWinton::ThermoWinton()
     , oldHi(getProtectedArray())
     , sw_in(getProtectedArray())
     , subl(getSharedArray())
-{
-    snowMelt.resize();
-    topMelt.resize();
-    botMelt.resize();
-    snowToIce.resize();
-}
+{ }
 
 template <>
 const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
@@ -86,6 +81,13 @@ ThermoWinton::HelpMap& ThermoWinton::getHelpRecursive(HelpMap& map, bool getAll)
 
 void ThermoWinton::setData(const ModelState::DataMap& state)
 {
+    IIceThermodynamics::setData(state);
+
+    snowMelt.resize();
+    topMelt.resize();
+    botMelt.resize();
+    snowToIce.resize();
+
     // The Winton scheme requires three temperature levels in the ice
     if (tice0.data().size() != nLevels * hice.data().size()) {
         double actualLevels = static_cast<double>(tice0.data().size()) / hice.data().size();
@@ -296,7 +298,7 @@ void ThermoWinton::calculateTemps(
 
     double& hi = hice[i];
     double tBase = tf[i]; // Freezing point of seawater with the local salinity
-    double tMelt = (hsnow[i] > 0) ? 0 : Ice::Tm; // Melting point at the surface
+    double tMelt = (hsnow[i] > 0) ? 0 : seaIceTf; // Melting point at the surface
 
     double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), hsnow[i]);
 
