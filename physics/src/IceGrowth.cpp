@@ -203,7 +203,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
     }
     deltaCIce[i] = deltaCFreeze[i] + deltaCMelt[i];
     cice[i] += deltaCIce[i];
-    if (cice[i] >= IceMinima::cMin) {
+    if (cice[i] >= IceMinima::c()) {
         // The updated ice thickness must conserve volume
         updateThickness(hice[i], cice[i], deltaCIce[i], newice[i]);
         if (deltaCIce[i] < 0) {
@@ -218,8 +218,8 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 
 void IceGrowth::applyLimits(size_t i, const TimestepTime& tstep)
 {
-    if ((0. < cice[i] && cice[i] < IceMinima::cMin)
-        || (0. < hice[i] && hice[i] < IceMinima::hMin)) {
+    if ((0. < cice[i] && cice[i] < IceMinima::c())
+        || (0. < hice[i] && hice[i] < IceMinima::h())) {
         qow[i] += cice[i] * Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
         hice[i] = 0;
         cice[i] = 0;
