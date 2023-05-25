@@ -197,3 +197,10 @@ target_include_directories(testSlabOcn PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testSlabOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
+
+add_executable(testIceMinima
+    "IceMinima_test.cpp"
+    "${SourceDir}/IceMinima.cpp"
+    )
+target_include_directories(testIceMinima PRIVATE "${SourceDir}")
+target_link_libraries(testIceMinima PRIVATE doctest::doctest)
