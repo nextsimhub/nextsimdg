@@ -61,26 +61,32 @@ target_include_directories(testTimer PRIVATE "${SRC_DIR}")
 add_executable(testScopedTimer
     "ScopedTimer_test.cpp"
     "${SRC_DIR}/Timer.cpp"
-    "${SRC_DIR}/ScopedTimer.cpp"
-    )
+        "${SRC_DIR}/ScopedTimer.cpp"
+        )
 target_link_libraries(testScopedTimer PRIVATE doctest::doctest)
 target_include_directories(testScopedTimer PRIVATE "${SRC_DIR}")
 
 add_executable(testModelArray
-    "ModelArray_test.cpp"
-    "${CoreSrc}/ModelArray.cpp"
-    "${ModelArrayDetails}/ModelArrayDetails.cpp"
-    )
+        "ModelArray_test.cpp"
+        "${CoreSrc}/ModelArray.cpp"
+        "${ModelArrayDetails}/ModelArrayDetails.cpp"
+        )
+
+add_executable(testMonthlyCubicBSpline
+        "MonthlyCubicBSpline_test.cpp"
+        )
+target_include_directories(testMonthlyCubicBSpline PUBLIC "${SRC_DIR}")
+target_link_libraries(testMonthlyCubicBSpline LINK_PUBLIC Boost::boost doctest::doctest)
 
 target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
 target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
 add_executable(testDevGrid
-    "DevGrid_test.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
-    "${CoreModulesDir}/IStructureModule.cpp"
-    "${CoreModulesDir}/RectangularGrid.cpp"
-    "${CoreModulesDir}/ParametricGrid.cpp"
+        "DevGrid_test.cpp"
+        "${CoreModulesDir}/DevGrid.cpp"
+        "${CoreModulesDir}/IStructureModule.cpp"
+        "${CoreModulesDir}/RectangularGrid.cpp"
+        "${CoreModulesDir}/ParametricGrid.cpp"
     "${SRC_DIR}/CommonRestartMetadata.cpp"
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
@@ -185,33 +191,33 @@ add_executable(testPrognosticData
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
-    "${PhysSourceDir}/SlabOcean.cpp"
-    "${PhysModulesDir}/FiniteElementFluxes.cpp"
-    "${PhysModulesDir}/FiniteElementSpecHum.cpp"
-    "${PhysModulesDir}/FluxCalculationModule.cpp"
-    "${PhysModulesDir}/OceanBoundaryModule.cpp"
-    "${PhysModulesDir}/ConstantOceanBoundary.cpp"
-    "${PhysModulesDir}/ConfiguredOcean.cpp"
-    "${PhysModulesDir}/FluxConfiguredOcean.cpp"
-    "${PhysModulesDir}/AtmosphereBoundaryModule.cpp"
-    "${PhysModulesDir}/ConstantAtmosphereBoundary.cpp"
+        "${PhysSourceDir}/SlabOcean.cpp"
+        "${PhysModulesDir}/FiniteElementFluxes.cpp"
+        "${PhysModulesDir}/FiniteElementSpecHum.cpp"
+        "${PhysModulesDir}/FluxCalculationModule.cpp"
+        "${PhysModulesDir}/OceanBoundaryModule.cpp"
+        "${PhysModulesDir}/ConstantOceanBoundary.cpp"
+        "${PhysModulesDir}/ConfiguredOcean.cpp"
+        "${PhysModulesDir}/FluxConfiguredOcean.cpp"
+        "${PhysModulesDir}/AtmosphereBoundaryModule.cpp"
+        "${PhysModulesDir}/ConstantAtmosphereBoundary.cpp"
         "${PhysModulesDir}/MU71Atmosphere.cpp"
         "${PhysModulesDir}/ConfiguredAtmosphere.cpp"
-    "${PhysModulesDir}/FluxConfiguredAtmosphere.cpp"
-    "${PhysModulesDir}/LateralIceSpreadModule.cpp"
-    "${PhysModulesDir}/HiblerSpread.cpp"
-    "${PhysModulesDir}/IceThermodynamicsModule.cpp"
-    "${PhysModulesDir}/ThermoIce0.cpp"
-    "${PhysModulesDir}/ThermoWinton.cpp"
-    "${PhysModulesDir}/IceOceanHeatFluxModule.cpp"
-    "${PhysModulesDir}/BasicIceOceanHeatFlux.cpp"
-    "${PhysModulesDir}/IIceAlbedoModule.cpp"
-    "${PhysModulesDir}/SMUIceAlbedo.cpp"
-    "${PhysModulesDir}/CCSMIceAlbedo.cpp"
+        "${PhysModulesDir}/FluxConfiguredAtmosphere.cpp"
+        "${PhysModulesDir}/LateralIceSpreadModule.cpp"
+        "${PhysModulesDir}/HiblerSpread.cpp"
+        "${PhysModulesDir}/IceThermodynamicsModule.cpp"
+        "${PhysModulesDir}/ThermoIce0.cpp"
+        "${PhysModulesDir}/ThermoWinton.cpp"
+        "${PhysModulesDir}/IceOceanHeatFluxModule.cpp"
+        "${PhysModulesDir}/BasicIceOceanHeatFlux.cpp"
+        "${PhysModulesDir}/IIceAlbedoModule.cpp"
+        "${PhysModulesDir}/SMUIceAlbedo.cpp"
+        "${PhysModulesDir}/CCSMIceAlbedo.cpp"
         "${PhysModulesDir}/SMU2IceAlbedo.cpp"
         "${PhysModulesDir}/MU71Albedo.cpp"
         "${CoreSrc}/Time.cpp"
-    )
+        )
 target_include_directories(testPrognosticData PRIVATE
     "${CoreSrc}"
     "${CoreSrc}/${ModelArrayStructure}"

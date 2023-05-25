@@ -26,9 +26,10 @@ public:
     explicit monthlyCubicBSpline(const std::vector<double>& f)
     {
         // Create a cyclic B-spline using a fold with a "ghost border"
-        /* We need k+1 ghost points, plus derivatives at the end, where k is the order of the spline
-         * (here k=3). So, with STL's vector.insert() we need ghostWidth = k + 1 + 1 = 5 */
-        const int ghostWidth = 5;
+        /* We need k+1 ghost points, plus one for each of the derivatives at the end, where k is the
+         * order of the spline
+         * (here k=3). So, with STL's vector.insert() we need ghostWidth = k + 1 + 2 = 6 */
+        const int ghostWidth = 6;
         std::vector<double> y = f;
         y.insert(y.begin(), f.end() - ghostWidth, f.end());
         y.insert(y.end(), f.begin(), f.begin() + ghostWidth);
@@ -37,13 +38,9 @@ public:
         const double h = 1. / 12.;
         const double t0 = h / 2. - ghostWidth * h;
 
-        // Estimate the derivatives at the end of the "ghost border"
-        const double start_deriv = (*(f.end() - ghostWidth) - *(f.end() - ghostWidth - 1)) / h;
-        const double end_deriv = (*(f.begin() + ghostWidth) - *(f.begin() + ghostWidth - 1)) / h;
-
         // Use boost!
         m_spline = std::make_shared<boost::math::interpolators::cardinal_cubic_b_spline<double>>(
-            y.begin(), y.end(), t0, h, start_deriv, end_deriv);
+            y.begin(), y.end(), t0, h);
     };
 
     /*!
