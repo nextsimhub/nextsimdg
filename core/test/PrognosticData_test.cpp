@@ -85,18 +85,17 @@ TEST_CASE("PrognosticData call order test")
     ModelState::DataMap initialData = {
             {"cice", zeroData},
             {"hice", zeroData},
-        { "hsnow", zeroData },
-        { "tice", zeroDataZ },
+            {"hsnow", zeroData},
+            {"tice", zeroDataZ},
     };
 
     PrognosticData pData;
     pData.configure();
     pData.setData(initialData);
-    TimestepTime tst = { TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0") };
+    TimestepTime tst = {TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0")};
     pData.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore> qow(
-        ModelComponent::getSharedArray());
+    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore> qow(ModelComponent::getSharedArray());
 
     double prec = 1e-5;
     // Correct value
