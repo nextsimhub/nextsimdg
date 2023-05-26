@@ -79,7 +79,7 @@ public:
         Q_IA, // Ice to atmosphere non-solar heat flux W m⁻²
         Q_IC, // Ice conduction heat flux W m⁻²
         Q_IO, // Ice to ocean heat flux W m⁻²
-        Q_OW, // Open water non-solar heat flux W m⁻²
+        Q_OW, // Open water heat flux W m⁻²
         DQIA_DT, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
         // Mass fluxes
         HSNOW_MELT, // Thickness of snow that melted, m
