@@ -24,11 +24,15 @@
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ThermoIce0");
+/*
+ * Test that ice below the minimum ice threshold is eliminated.
+ */
 TEST_CASE("Threshold ice")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    // Class derived from ModelComponent providing the physical data for the test
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
@@ -101,6 +105,7 @@ TEST_CASE("Threshold ice")
     subl.resize();
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
 
+    // An implementation of IFluxCalculation that returns zero fluxes
     class FluxData : public IFluxCalculation {
     public:
         FluxData()
