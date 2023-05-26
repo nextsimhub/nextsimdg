@@ -371,7 +371,6 @@ if __name__ == "__main__":
 
     # For each field and time, get the corresponding file name for each dataset
     for field_name in ocean_fields:
-<<<<<<< HEAD
         data = datagrp.createVariable(field_name, "f8", timefield_dims)
         if not field_name in skip_ocean_fields:
             topaz_field = topaz_translation[field_name]
@@ -395,7 +394,6 @@ if __name__ == "__main__":
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 data[target_t_index, :, :] = time_data
-=======
         
     # Ocean currents
     udata = datagrp.createVariable("u", "f8", timefield_dims)
