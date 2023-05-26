@@ -182,6 +182,8 @@ target_link_libraries(testModelArrayRefDebugging PRIVATE doctest::doctest Eigen3
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 set(PhysSourceDir "${CoreSrc}/../../physics/src/")
 set(PhysModulesDir "${CoreSrc}/../../physics/src/modules")
+set(DynModulesDir "${CoreSrc}/../../dynamics/src/modules")
+set(DynSourceDir "${CoreSrc}/../../dynamics/src/")
 
 add_executable(testPrognosticData
     "PrognosticData_test.cpp"
@@ -200,6 +202,7 @@ add_executable(testPrognosticData
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "DynamicsModuleForPDtest.cpp"
     "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
     "${PhysSourceDir}/IceMinima.cpp"

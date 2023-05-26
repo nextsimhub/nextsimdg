@@ -123,7 +123,8 @@ wind = datagrp.createVariable("wind_speed", "f8", timefield_dims)
 pmsl = datagrp.createVariable("pair", "f8", timefield_dims)
 tair = datagrp.createVariable("tair", "f8", timefield_dims)
 tdew = datagrp.createVariable("dew2m", "f8", timefield_dims)
-
+u = datagrp.createVariable("u", "f8", timefield_dims)
+v = datagrp.createVariable("v", "f8", timefield_dims)
 # 12 monthly values
 for t in range(12):
     time_var[t] = 946684800 + 2592000 * t # 30 day months
@@ -145,5 +146,11 @@ for t in range(12):
     
     tdew[t, :, :] = 100 + test_data + 100*t
     tdew.missing_value = mdi
+
+    u[t, :, :] = 10 + test_data + 10*t
+    u.missing_value = mdi
+
+    v[t, :, :] = -10 - test_data - 10*t
+    v.missing_value = mdi
 
 root.close()
