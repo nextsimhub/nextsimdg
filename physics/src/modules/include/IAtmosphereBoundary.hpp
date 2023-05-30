@@ -32,6 +32,7 @@ public:
         registerSharedArray(SharedArray::Q_OW, &qow);
         registerSharedArray(SharedArray::SUBLIM, &subl);
         registerProtectedArray(ProtectedArray::SNOW, &snow);
+        registerSharedArray(SharedArray::Q_PEN_SW, &penSW);
     }
     virtual ~IAtmosphereBoundary() = default;
 
@@ -50,6 +51,7 @@ public:
         evap.resize();
         uwind.resize();
         vwind.resize();
+        penSW.resize();
     }
     virtual void update(const TimestepTime& tst) { }
 
@@ -75,6 +77,7 @@ protected:
     HField evap;
     UField uwind;
     VField vwind;
+    HField penSW;
 
     MARBackingStore m_couplingArrays;
 };
