@@ -288,8 +288,8 @@ if __name__ == "__main__":
                 data[target_t_index, :, :] = time_data
         else:
             # Also handle the wind components along with the wind speed
-            u_var = datagrp.createVariable("u", "f8", ("time", "x", "y"))
-            v_var = datagrp.createVariable("v", "f8", ("time", "x", "y"))
+            u_var = datagrp.createVariable("u", "f8", timefield_dims)
+            v_var = datagrp.createVariable("v", "f8", timefield_dims)
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
                 u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index]), "r")
