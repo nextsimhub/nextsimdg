@@ -4,7 +4,11 @@ import numpy.ma as ma
 import time
 import math
 
+<<<<<<< issue275_3_arrayorderwithavengeance
 import sys # FIXME remove me
+=======
+#import sys # FIXME remove me
+>>>>>>> f5ca18d Swap the array indices.
 
 topaz_mdi = -32767
 
@@ -70,8 +74,11 @@ if __name__ == "__main__":
 
     grid = netCDF4.Dataset("25km_NH.nc", "r")
     
-    nx = grid.dimensions["x"].size
-    ny = grid.dimensions["y"].size
+    # Grid dimensions. Since x and y are switched between the source grid file
+    # and the target restart file, the grid dimensions are nfirst and nsecond.
+    # nsecond is the size of the dimension that varies fastest. 
+    nfirst = grid.dimensions["x"].size
+    nsecond = grid.dimensions["y"].size
     nLayers = 3
     ncg = 1
     n_dg = 1
@@ -98,20 +105,24 @@ if __name__ == "__main__":
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
     
-    xDim = datagrp.createDimension("x", nx)
-    yDim = datagrp.createDimension("y", ny)
     nLay = datagrp.createDimension("z", nLayers)
-    xVertexDim = datagrp.createDimension("xvertex", nx + 1)
-    yVertexDim = datagrp.createDimension("yvertex", ny + 1)
-    xcg_dim = datagrp.createDimension("x_cg", nx * ncg + 1)
-    ycg_dim = datagrp.createDimension("y_cg", ny * ncg + 1)
+    yDim = datagrp.createDimension("y", nfirst)
+    xDim = datagrp.createDimension("x", nsecond)
+    yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
+    xVertexDim = datagrp.createDimension("xvertex", nsecond+ 1)
+    ycg_dim = datagrp.createDimension("y_cg", nfirst * ncg + 1)
+    xcg_dim = datagrp.createDimension("x_cg", nsecond * ncg + 1)
     dg_comp = datagrp.createDimension("dg_comp", n_dg)
     dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = datagrp.createDimension("ncoords", n_coords)
     
+    field_dims = ("y", "x")
+    coord_dims = ("yvertex", "xvertex", "ncoords")
+    zfield_dims = ("z", "y", "x")
+    
     # Array coordinates
-    node_lon = np.zeros((nx + 1, ny + 1))
-    node_lat = np.zeros((nx + 1, ny + 1))
+    node_lon = np.zeros((nfirst + 1, nsecond + 1))
+    node_lat = np.zeros((nfirst + 1, nsecond + 1))
     
     node_lon[0:-1, 0:-1] = grid["lon_corners"][:, :, 0]
     node_lon[0:-1, -1] = grid["lon_corners"][:, -1, 1]
@@ -123,16 +134,16 @@ if __name__ == "__main__":
     node_lat[-1, -1] = grid["lat_corners"][-1, -1, 2]
     node_lat[-1, 0:-1] = grid["lat_corners"][-1, :, 3]
     
-    coords = datagrp.createVariable("coords", "f8", ("xvertex", "yvertex", "ncoords"))
+    coords = datagrp.createVariable("coords", "f8", coord_dims)
     coords[:,:,0] = node_lon
     coords[:,:,1] = node_lat
     
-    elem_lon = datagrp.createVariable("longitude", "f8", ("x", "y",))
+    elem_lon = datagrp.createVariable("longitude", "f8", field_dims)
     elem_lon[:, :] = grid["plon"][:, :]
-    elem_lat = datagrp.createVariable("latitude", "f8", ("x", "y",))
+    elem_lat = datagrp.createVariable("latitude", "f8", field_dims)
     elem_lat[:, :] = grid["plat"][:, :]
     
-    grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", ("x", "y"))
+    grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
     # Return the grid azimuth to the range -180˚ to 180˚
     grid_azimuth_data = grid["plon"][:, :] + np.degrees(grid["ptheta"][:, :])
     grid_azimuth_data += 180
@@ -152,7 +163,7 @@ if __name__ == "__main__":
 
     # All fields are stored in one file, already opened as source_file
     # Sea-land mask
-    mask = datagrp.createVariable("mask", "f8", ("x", "y"))
+    mask = datagrp.createVariable("mask", "f8", field_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     mask[:, :] = 1 - ma.getmask(sst_data)
 
@@ -173,27 +184,26 @@ if __name__ == "__main__":
     hice_data *= isice
     hice_data *= cice_data # Convert from ice averaged to grid averaged
     
-    cice = datagrp.createVariable("cice", "f8", ("x", "y"))
-    hice = datagrp.createVariable("hice", "f8", ("x", "y"))
+    cice = datagrp.createVariable("cice", "f8", field_dims)
+    hice = datagrp.createVariable("hice", "f8", field_dims)
     cice[:, :] = cice_data
     hice[:, :] = hice_data
     
     # Snow thickness
-    hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y"))
+    hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
     hsnow_data = topaz4_interpolate(element_lon, element_lat, source_file["hsnow"][0, :, :].squeeze(), lat_array)
     hsnow_data *= noice
     hsnow_data *= cice_data
     hsnow[:, :] = hsnow_data
-
     # SSS
-    sss = datagrp.createVariable("sss", "f8", ("x", "y"))
+    sss = datagrp.createVariable("sss", "f8", field_dims)
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
     sss[:, :] = sss_data
 
     mu = -0.055
 
     # SST
-    sst = datagrp.createVariable("sst", "f8", ("x", "y"))
+    sst = datagrp.createVariable("sst", "f8", field_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     sst[:, :] = sst_data * noice + mu * sss_data * isice
 
@@ -209,10 +219,10 @@ if __name__ == "__main__":
     uv_source_file = netCDF4.Dataset(topaz4_source_file_name("u", data_time), "r")
 
     # Ice starts at rest
-    u = datagrp.createVariable("u", "f8", ("x", "y"))
+    u = datagrp.createVariable("u", "f8", field_dims)
     u[:, :] = 0
 
-    v = datagrp.createVariable("v", "f8", ("x", "y"))
+    v = datagrp.createVariable("v", "f8", field_dims)
     v[:, :] = 0
     
     root.close()
