@@ -199,9 +199,9 @@ if __name__ == "__main__":
     # assume lon and lat are 0 and 1 coords
     node_lon = node_coords[:, :, 0]
     node_lat = node_coords[:, :, 1]
-    nx = node_lon.shape[0] - 1
-    ny = node_lon.shape[1] - 1
-    element_shape = (nx, ny)
+    ny = node_lon.shape[0] - 1
+    nx = node_lon.shape[1] - 1
+    element_shape = (ny, nx)
     element_lon = np.zeros(element_shape)
     element_lat = np.zeros(element_shape)
     # interpolate lon and lat from nodes to elements, to leave nx x ny arrays
@@ -281,7 +281,7 @@ if __name__ == "__main__":
                 time_index = target_time - source_times[0]
                 source_data = source_file[era5_field][time_index, :, :]
                 # Now interpolate the source data to the target grid
-                time_data = np.zeros((nx, ny))
+                time_data = np.zeros((ny, nx))
                 time_data = era5_interpolate(element_lon, element_lat, source_data, source_lons, source_lats)
                 if era5_field in kelvin_fields:
                     time_data -= zero_C_in_kelvin
@@ -302,9 +302,9 @@ if __name__ == "__main__":
                 u_data_source = u_file["u10"][time_index, :, :]
                 v_data_source = v_file["v10"][time_index, :, :]
                 # Now interpolate the source data to the target grid
-                u_data_target = np.zeros((nx, ny))
+                u_data_target = np.zeros((ny, nx))
                 u_data_target = era5_interpolate(element_lon, element_lat, u_data_source, source_lons, source_lats)
-                v_data_target = np.zeros((nx, ny))
+                v_data_target = np.zeros((ny, nx))
                 v_data_target = era5_interpolate(element_lon, element_lat, v_data_source, source_lons, source_lats)
                 speed_data = np.hypot(u_data_target, v_data_target)
                 data[target_t_index, :, :] = speed_data
