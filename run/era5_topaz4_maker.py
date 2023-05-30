@@ -185,7 +185,7 @@ if __name__ == "__main__":
     if args.prefix is not None:
         filepfx = args.prefix + "."
     else:
-        filepfx = "."
+        filepfx = ""
 
     # read a grid spec (from a restart file)
     root = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
