@@ -4,8 +4,6 @@ import numpy.ma as ma
 import time
 import math
 
-import sys # FIXME remove me
-
 topaz_mdi = -32767
 
 # Returns the file name that holds the TOPAZ data for a given field at a given time
