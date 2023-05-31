@@ -22,7 +22,8 @@ public:
      * @param temperature The temperature of the ice surface.
      * @param snowThickness The true snow thickness on top of the ice.
      */
-    virtual double albedo(double temperature, double snowThickness) = 0;
+    virtual std::tuple<double, double> albedo(double temperature, double snowThickness, double i0)
+        = 0;
 
     /*!
      * Sets the time parameter for the implementation, if it is time dependent.
