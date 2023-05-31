@@ -8,7 +8,6 @@
 #include "include/FluxCalculationModule.hpp"
 
 #include "include/FiniteElementFluxes.hpp"
-#include "include/MU71Atmosphere.hpp"
 
 #include <string>
 

@@ -17,17 +17,12 @@
 namespace Nextsim {
 
 double ThermoIce0::kappa_s;
-double ThermoIce0::i0;
-
 static const double k_sDefault = 0.3096;
-static const double i0_default = 0.17;
-
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
 const size_t ThermoIce0::nZLevels = 1;
 
 ThermoIce0::ThermoIce0()
-    : iIceAlbedoImpl(nullptr)
-    , IIceThermodynamics()
+    : IIceThermodynamics()
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
@@ -38,7 +33,6 @@ ThermoIce0::ThermoIce0()
 
 void ThermoIce0::update(const TimestepTime& tsTime)
 {
-    iIceAlbedoImpl->setTime(tsTime.start);
     overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tsTime);
@@ -47,16 +41,11 @@ void ThermoIce0::update(const TimestepTime& tsTime)
 template <>
 const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
     { ThermoIce0::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
-    { ThermoIce0::I0_KEY, "thermoice0.I_0" },
 };
 
 void ThermoIce0::configure()
 {
-    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
-    tryConfigure(iIceAlbedoImpl);
-
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
-    i0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
     NZLevels::set(nZLevels);
 }
 
@@ -65,7 +54,6 @@ ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
     ModelState state = { {},
         {
             { keyMap.at(KS_KEY), kappa_s },
-            { keyMap.at(I0_KEY), i0 },
         } };
     return os ? state : ModelState();
 }
@@ -75,12 +63,7 @@ ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
     map["ThermoIce0"] = {
         { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
             "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
-        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
-            "Transmissivity of ice." },
     };
-
-    Module::getHelpRecursive<IIceAlbedo>(map, getAll);
-
     return map;
 }
 ThermoIce0::HelpMap& ThermoIce0::getHelpRecursive(HelpMap& map, bool getAll)
@@ -100,24 +83,16 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 
 void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
-    static const double beta = 0.4;
-    static const double gamma = 1.065;
-
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
     double& tice_i = tice.zIndexAndLayer(i, 0);
-
     double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]);
-    qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0)) * gamma;
-    double albedoValue = iIceAlbedoImpl->albedo(tice_i, hsnow[i]);
-    if (hsnow[i] == 0.)
-        albedoValue += beta * (1. - albedoValue) * i0;
-
-    double remainingFlux = qic[i] - (qia[i] + (1. - albedoValue) * qsw[i]);
-    tice_i += remainingFlux / (k_lSlab + dQia_dt[i]);
+    qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
+    double remainingFlux = qic[i] - qia[i];
+    tice_i = tice0.zIndexAndLayer(i, 0) + remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point
     // of ice or snow

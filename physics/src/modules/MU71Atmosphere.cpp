@@ -3,14 +3,47 @@
 //
 
 #include "include/MU71Atmosphere.hpp"
+#include "include/IIceAlbedoModule.hpp"
 
 namespace Nextsim {
 
+double MU71Atmosphere::m_I0;
+
+static const double i0_default = 0.17;
+
+template <>
+const std::map<int, std::string> Configured<MU71Atmosphere>::keyMap = {
+    { MU71Atmosphere::I0_KEY, "nextsim_thermo.I_0" },
+};
+
+void MU71Atmosphere::configure()
+{
+    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
+    tryConfigure(iIceAlbedoImpl);
+
+    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
+}
+
+MU71Atmosphere::HelpMap& MU71Atmosphere::getHelpText(HelpMap& map, bool getAll)
+{
+    map["FiniteElementFluxes"] = {
+        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
+            "Transmissivity of ice." },
+    };
+    return map;
+}
+MU71Atmosphere::HelpMap& MU71Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+    Module::getHelpRecursive<IIceAlbedo>(map, getAll);
+    return map;
+}
+
 MU71Atmosphere::MU71Atmosphere()
-    : tice(getProtectedArray())
-    ,
-    // Just tabulated values
-    q_sw(monthlyCubicBSpline(swTable))
+    : iIceAlbedoImpl(nullptr)
+    , tice(getProtectedArray())
+    , h_snow_true(getProtectedArray())
+    , q_sw(monthlyCubicBSpline(swTable))
     , q_lw(monthlyCubicBSpline(lwTable))
     , q_sh(monthlyCubicBSpline(shTable))
     , q_lh(monthlyCubicBSpline(lhTable))
@@ -19,6 +52,7 @@ MU71Atmosphere::MU71Atmosphere()
 
 void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
 {
+    iIceAlbedoImpl->setTime(tst.start);
     dayOfYear = tst.start.gmtime()->tm_yday;
     isLeap = ((tst.start.gmtime()->tm_year % 4 == 0) && (tst.start.gmtime()->tm_year % 100 != 0))
         || (tst.start.gmtime()->tm_year % 400 == 0);
@@ -33,11 +67,12 @@ void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
     const double Tsurf_K = tice.zIndexAndLayer(i, 0) + PhysicalConstants::Tt;
 
     // We can set ModelArray to double, which sets all the values.
-    qsw = -convFactor * q_sw(dayOfYear, isLeap);
+    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i]);
+    double qsw = -convFactor * q_sw(dayOfYear, isLeap) * (1. - m_I0) * (1. - albedoValue);
     qia = -convFactor
             * (q_sh(dayOfYear, isLeap) + q_lh(dayOfYear, isLeap) + q_lw(dayOfYear, isLeap))
         // LW is tabulated + black body radiation
-        + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4);
+        + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4) + qsw;
 
     // Just the derivative of the black body radiation
     dqia_dt = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);

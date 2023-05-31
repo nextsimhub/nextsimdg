@@ -25,11 +25,6 @@ add_executable(testIceGrowth
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoIce0.cpp"
     "${ModulesDir}/ThermoWinton.cpp"
-    "${ModulesDir}/IIceAlbedoModule.cpp"
-    "${ModulesDir}/SMUIceAlbedo.cpp"
-    "${ModulesDir}/CCSMIceAlbedo.cpp"
-    "${ModulesDir}/SMU2IceAlbedo.cpp"
-    "${ModulesDir}/MU71Albedo.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
@@ -55,11 +50,6 @@ add_executable(testThermoWinton
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoWinton.cpp"
-    "${ModulesDir}/IIceAlbedoModule.cpp"
-    "${ModulesDir}/SMUIceAlbedo.cpp"
-    "${ModulesDir}/CCSMIceAlbedo.cpp"
-    "${ModulesDir}/SMU2IceAlbedo.cpp"
-    "${ModulesDir}/MU71Albedo.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
@@ -115,9 +105,9 @@ add_executable(testConfiguredAtm
     "${ModulesDir}/IIceAlbedoModule.cpp"
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
-        "${ModulesDir}/SMU2IceAlbedo.cpp"
-        "${ModulesDir}/MU71Albedo.cpp"
-        "${CoreSourceDir}/Time.cpp"
+    "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/MU71Albedo.cpp"
+    "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testConfiguredAtm PRIVATE
     "${CoreSourceDir}"
@@ -176,9 +166,9 @@ add_executable(testConstantOcn
     "${ModulesDir}/IIceAlbedoModule.cpp"
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
-        "${ModulesDir}/SMU2IceAlbedo.cpp"
-        "${ModulesDir}/MU71Albedo.cpp"
-        "${CoreSourceDir}/Time.cpp"
+    "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/MU71Albedo.cpp"
+    "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testConstantOcn PRIVATE
     "${CoreSourceDir}"

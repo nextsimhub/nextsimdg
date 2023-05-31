@@ -55,7 +55,6 @@ protected:
         , qic(getSharedArray())
         , qio(getSharedArray())
         , qia(getSharedArray())
-        , qsw(getSharedArray())
         , dQia_dt(getSharedArray())
         , sublim(getSharedArray())
         , tice0(getProtectedArray())
@@ -75,7 +74,6 @@ protected:
     ModelArrayRef<SharedArray::Q_IC, MARBackingStore, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
     ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio; // From FluxCalculation
-    ModelArrayRef<SharedArray::Q_SW, MARBackingStore, RO> qsw; // From FluxCalculation
     ModelArrayRef<SharedArray::Q_IA, MARBackingStore, RO> qia; // From FluxCalculation
     ModelArrayRef<SharedArray::DQIA_DT, MARBackingStore, RO> dQia_dt; // From FluxCalculation
     ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> sublim; // From AtmosphereState

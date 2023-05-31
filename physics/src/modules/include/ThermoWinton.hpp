@@ -11,8 +11,6 @@
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/IIceAlbedo.hpp"
-#include "include/IIceAlbedoModule.hpp"
 
 namespace Nextsim {
 
@@ -59,8 +57,6 @@ private:
 
     void calculateTemps(
         double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
-
-    IIceAlbedo* iIceAlbedoImpl;
 };
 
 } /* namespace Nextsim */

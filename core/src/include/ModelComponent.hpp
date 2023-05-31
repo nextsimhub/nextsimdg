@@ -75,8 +75,7 @@ public:
         H_SNOW, // Updated snow depth, ice average, m
         T_ICE, // Updated ice temperatures, ˚C
         // Heat fluxes
-        Q_SW, // Incomming short wave radiation (positive down) W m⁻²
-        Q_IA, // Ice to atmosphere non-solar heat flux W m⁻²
+        Q_IA, // Ice to atmosphere heat flux W m⁻²
         Q_IC, // Ice conduction heat flux W m⁻²
         Q_IO, // Ice to ocean heat flux W m⁻²
         Q_OW, // Open water heat flux W m⁻²

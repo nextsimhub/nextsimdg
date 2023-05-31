@@ -27,7 +27,6 @@ bool ThermoWinton::doFlooding = true;
 
 ThermoWinton::ThermoWinton()
     : IIceThermodynamics()
-    , iIceAlbedoImpl(nullptr)
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
@@ -45,9 +44,6 @@ const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
 
 void ThermoWinton::configure()
 {
-    iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
-    tryConfigure(iIceAlbedoImpl);
-
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
     i0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
     doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), doFlooding);
@@ -99,7 +95,6 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
-    iIceAlbedoImpl->setTime(tst.start);
     overElements(std::bind(&ThermoWinton::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);
@@ -300,18 +295,16 @@ void ThermoWinton::calculateTemps(
     double tBase = tf[i]; // Freezing point of seawater with the local salinity
     double tMelt = (hsnow[i] > 0) ? 0 : seaIceTf; // Melting point at the surface
 
-    double albedoValue = iIceAlbedoImpl->albedo(tSurf, hsnow[i]);
-
     // First some coefficients based on temperatures from the previous time step
     double k12 = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hsnow[i]); // (5)
-    double a = (qia[i] + (1. - albedoValue) * qsw[i]) - tSurf * dQia_dt[i]; // (7)
+    double a = qia[i] - tSurf * dQia_dt[i]; // (7)
     double b = dQia_dt[i]; // (8)
     double k32 = 2 * Ice::kappa / hi; // (10)
 
     double a1 = hi * cVol / (2 * dt) + k32 * (4 * dt * k32 + hi * cVol) / (6 * dt * k32 + hi * cVol)
         + b * k12 / (k12 + b); // (16)
-    double I = i0 * (1. - albedoValue) * qsw[i]; // Footnote 1
-    double b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt) - I
+    double b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt)
+        - i0 * sw_in[i]
         - k32 * (4 * dt * k32 * tBase + hi * cVol * tLowr) / (6 * dt * k32 + hi * cVol)
         + a * k12 / (k12 + b); // (17)
     double c1 = hi * Ice::Lf * Ice::rho * seaIceTf / (2 * dt); // (18)

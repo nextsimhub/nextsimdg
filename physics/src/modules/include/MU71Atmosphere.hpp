@@ -6,6 +6,7 @@
 #define MU71ATMOSPHERE_HPP
 
 #include "include/IAtmosphereBoundary.hpp"
+#include "include/IIceAlbedo.hpp"
 #include "include/MonthlyCubicBSpline.hpp"
 #include "include/constants.hpp"
 
@@ -15,7 +16,7 @@ namespace Nextsim {
  * @brief The implementation class for the a seasonal atmospheric fluxes following Maykut and
  * Untersteiener's (1971) table 1. Only useful for comparison with that paper and derived setups.
  */
-class MU71Atmosphere : public IAtmosphereBoundary {
+class MU71Atmosphere : public IAtmosphereBoundary, public Configured<MU71Atmosphere> {
 
 public:
     MU71Atmosphere();
@@ -27,17 +28,27 @@ public:
      */
     void update(const TimestepTime& tst) override;
 
+    enum {
+        I0_KEY,
+    };
+    void configure() override;
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
 private:
     /*!
-     * @brief A function to calculate the fluxes qia, qio, and qow (=0), and subl (=0), as well as dqia_dt.
-     * All incoming fluxes are tabulated from Maykut and Untersteiner (1971). Outgoing long wave and
-     * the derivative (dqio_dt) are black body radiation.
+     * @brief A function to calculate the fluxes qia, qio, and qow (=0), and subl (=0), as well as
+     * dqia_dt. All incoming fluxes are tabulated from Maykut and Untersteiner (1971). Outgoing long
+     * wave and the derivative (dqio_dt) are black body radiation.
      * @param i The index of the current grid cell
      * @param tst The TimestepTime object for the current time step
      */
     void calculateElement(size_t i, const TimestepTime& tst);
 
     ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore> tice;
+    ModelArrayRef<ProtectedArray::HTRUE_SNOW, MARConstBackingStore>
+        h_snow_true; // cell-averaged value
 
     /*!
      * @brief A function to calculate the snow fall according tu Maykut and Untersteiner (1971)
@@ -66,6 +77,10 @@ private:
     monthlyCubicBSpline q_lw;
     monthlyCubicBSpline q_sh;
     monthlyCubicBSpline q_lh;
+
+    static double m_I0;
+
+    IIceAlbedo* iIceAlbedoImpl;
 };
 
 }
