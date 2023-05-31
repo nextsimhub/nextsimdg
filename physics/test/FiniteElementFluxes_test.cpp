@@ -153,6 +153,10 @@ TEST_CASE("Melting conditions")
     qia.resize();
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
 
+    HField penSW;
+    penSW.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_PEN_SW, &penSW);
+
     HField dqia_dt;
     dqia_dt.resize();
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
@@ -303,6 +307,10 @@ TEST_CASE("Freezing conditions")
     HField qia;
     qia.resize();
     ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+
+    HField penSW;
+    penSW.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_PEN_SW, &penSW);
 
     HField dqia_dt;
     dqia_dt.resize();
