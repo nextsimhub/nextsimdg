@@ -30,7 +30,7 @@ public:
      * @param snowThickness  Show thickness
      * @return
      */
-    double albedo(double temperature, double snowThickness) override;
+    std::tuple<double, double> albedo(double temperature, double snowThickness, double i0) override;
 
 private:
     TimePoint M_tp;

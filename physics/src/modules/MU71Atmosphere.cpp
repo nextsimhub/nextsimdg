@@ -9,7 +9,7 @@ namespace Nextsim {
 
 double MU71Atmosphere::m_I0;
 
-static const double i0_default = 0.17;
+static const double i0_default = 0.30;
 
 template <>
 const std::map<int, std::string> Configured<MU71Atmosphere>::keyMap = {
@@ -66,30 +66,33 @@ void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
 {
     const double Tsurf_K = tice.zIndexAndLayer(i, 0) + PhysicalConstants::Tt;
 
-    // We can set ModelArray to double, which sets all the values.
-    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i]);
-    double qsw = -convFactor * q_sw(dayOfYear, isLeap) * (1. - m_I0) * (1. - albedoValue);
-    qia = -convFactor
+    double albedoValue, i0;
+    double sw_in = convFactor * q_sw(dayOfYear, isLeap);
+    std::tie(albedoValue, i0)
+        = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
+    double qsw = -sw_in * (1. - albedoValue) * (1. - i0);
+    penSW[i] = sw_in * (1. - albedoValue) * i0;
+    qia[i] = -convFactor
             * (q_sh(dayOfYear, isLeap) + q_lh(dayOfYear, isLeap) + q_lw(dayOfYear, isLeap))
         // LW is tabulated + black body radiation
         + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4) + qsw;
 
     // Just the derivative of the black body radiation
-    dqia_dt = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
+    dqia_dt[i] = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
 
     // Only snowfall if we're not melting
     if (tice.zIndexAndLayer(i, 0) <= 0.)
-        snow = snowfall();
+        snow[i] = snowfall();
     else
-        snow = 0.;
+        snow[i] = 0.;
 
     // Not needed/specified by M&U '71
-    qow = 0.;
-    subl = 0.;
-    rain = 0.;
-    evap = 0.;
-    uwind = 0.;
-    vwind = 0.;
+    qow[i] = 0.;
+    subl[i] = 0.;
+    rain[i] = 0.;
+    evap[i] = 0.;
+    uwind[i] = 0.;
+    vwind[i] = 0.;
 }
 
 // Snowfall according to M&U '71 (in m/s water equivalent)
