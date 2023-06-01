@@ -31,6 +31,9 @@ rhoSnow = 330
 rhoOcean = 1025
 iceDraught = (hice * rho + hsnow * rhoSnow) / rhoOcean
 
+print('hice  max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(hice.max(), hice.min(), hice.mean()))
+print('hsnow max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(hsnow.max(), hsnow.min(), hsnow.mean()))
+
 plt.figure(1)
 plt.plot([time[0], time[end]], [0, 0], 'k--')
 plt.plot(time, tice[:, 0], 'k')

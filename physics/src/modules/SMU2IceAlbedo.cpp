@@ -23,11 +23,11 @@ std::tuple<double, double> SMU2IceAlbedo::albedo(
     double albedo, penSW;
     if (snowThickness > 0.) {
         albedo
-            = std::fmin(SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.2);
-        penSW = i0;
+            = std::fmin(SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.4);
+        penSW = 0;
     } else {
         albedo = ICE_ALBEDO;
-        penSW = 0.;
+        penSW = i0;
     }
     return std::make_tuple(albedo, penSW);
 }

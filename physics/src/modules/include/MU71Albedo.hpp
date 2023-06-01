@@ -34,7 +34,16 @@ public:
 
 private:
     TimePoint M_tp;
-    void setTime(const TimePoint& tp) override { M_tp = tp; }
+    double dayOfYear;
+    bool isLeap;
+
+    void setTime(const TimePoint& tp) override
+    {
+        M_tp = tp;
+        dayOfYear = M_tp.gmtime()->tm_yday;
+        isLeap = ((M_tp.gmtime()->tm_year % 4 == 0) && (M_tp.gmtime()->tm_year % 100 != 0))
+            || (M_tp.gmtime()->tm_year % 400 == 0);
+    }
 
     // Monthly snow albedo from Maykut and Untersteiner (1971)
     const std::vector<double> albedoTable

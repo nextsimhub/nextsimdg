@@ -81,7 +81,8 @@ void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
     dqia_dt[i] = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
 
     // Only snowfall if we're not melting
-    if (tice.zIndexAndLayer(i, 0) <= 0.)
+    if ((h_snow_true[i] > 0 && tice.zIndexAndLayer(i, 0) < 0.)
+        || (h_snow_true[i] == 0 && tice.zIndexAndLayer(i, 0) < Ice::Tm))
         snow[i] = snowfall();
     else
         snow[i] = 0.;
@@ -117,14 +118,14 @@ double MU71Atmosphere::snowfall()
         return winterRate;
     } else if (dayOfYear <= may31) {
         // "an additional 5 cm during the month of May"
-        return 5e-2 * conversionFactor / 30.;
-    } else if (dayOfYear <= aug20) {
+        return 5e-2 * conversionFactor / 31.;
+    } else if (dayOfYear < aug20) {
         return 0.;
     } else if (dayOfYear <= oct31) {
         /* "a linear accumulation of 30 cm between August 20 and October 30"
          * They don't say anything about October 31 - so I assume they meant 31, not 30 in the quote
          * above. */
-        return 30e-2 * conversionFactor / double(oct31 - aug20);
+        return 30e-2 * conversionFactor / double(oct31 - aug20 + 1);
     } else {
         return winterRate;
     }
