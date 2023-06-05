@@ -69,12 +69,15 @@ void PrognosticData::update(const TimestepTime& tst)
     ModelArrayRef<ProtectedArray::HTRUE_ICE, MARBackingStore> hiceTrue0(getSharedArray());
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
     ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
+    ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RW> ticeUpd(getSharedArray());
 
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
 
     // Fill the values of the true ice and snow thicknesses.
     iceGrowth.initializeThicknesses();
+    // Fill the updated ice temperature array
+    ticeUpd.data().setData(m_tice);
     pDynamics->update(tst);
     updatePrognosticFields();
 
