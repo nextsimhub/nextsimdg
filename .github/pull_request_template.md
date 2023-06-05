@@ -1,6 +1,13 @@
 # Pull Request Title
 ## Fixes \#(your issue number)
 
+### Task List
+- [ ] Defined the tests that specify a complete and functioning change (*It may help to create a [design specification & test specification](/wiki/Specification-Template)*)
+- [ ] Implemented the source code change that satisfies the tests
+- [ ] Documented the feature by providing worked example
+- [ ] Updated the README or other documentation
+- [ ] Completed the pre-Request checklist below
+
 ---
 # Change Description
 
