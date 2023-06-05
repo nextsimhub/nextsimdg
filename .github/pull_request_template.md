@@ -11,6 +11,7 @@ Please write a summary of the change and specify which Issue this fixes. This sh
 
 - If there are important design decisions, particularly those that leverage functionality outside this change or were caused by existing limitations, they should be noted here.
 - If there is a design specification which relates to this PR, please provide a link to it here.
+- If the PR relates to an open issue issue, please link the issue to the PR by using the 'closes #issue_number' syntax.
 - If there are any dependencies (third-party or internal downstream) which are added or impacted, please note them here. And if their limitations informed your design, please note how they did so here (particularly if this information was not captured in a design specification).
 </em>
 
