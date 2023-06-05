@@ -5,17 +5,22 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_CONFIGURATOR_HPP
-#define SRC_INCLUDE_CONFIGURATOR_HPP
+#ifndef CONFIGURATOR_HPP
+#define CONFIGURATOR_HPP
+
+#include "include/ConfigMap.hpp"
 
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <istream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
 namespace Nextsim {
+
+class NoAdditionalConfiguration;
 
 /*!
  * @brief A class to handle the sources of configuration, both files and the command line.
@@ -81,6 +86,12 @@ public:
     }
 
     /*!
+     * @brief Adds a std::stringstream configuration stream, wrapping all the pointer mechanics.
+     * @param sstream The std::stringstream containiong the configuration text to be added.
+     */
+    static void addSStream(const std::stringstream& sstream);
+
+    /*!
      * Removes previously assigned stream data sources, both files and istreams.
      */
     inline static void clearStreams() { sources.clear(); }
@@ -111,6 +122,13 @@ public:
     }
 
     /*!
+     * @brief Gets the additional configuration according to the supplied implementation.
+     *
+     * @param source the (implementation-dependent) source of additional configuration.
+     */
+    static void getAdditionalConfiguration(const std::string& source);
+
+    /*!
      * @brief Parses all configuration sources.
      *
      * @details Parses all the the stored configuration sources for the
@@ -131,8 +149,36 @@ private:
 
     static int m_argc;
     static char** m_argv;
+
+public:
+    class AdditionalConfiguration {
+    public:
+        virtual ~AdditionalConfiguration() = default;
+        /*!
+         * @brief Reads the additional configuration from the provided source,
+         * which is interpreted in an implementation defined way.
+         * @param source std::string containing the source specification.
+         */
+        virtual std::stringstream read(const std::string& source) = 0;
+    };
+    /*!
+     * @brief Sets the source of any additional configuration data, such as a
+     * netCDF restart file.
+     *
+     * @param pAC a pointer to the object that will provide the read() function to
+     * read any additional configuration.
+     */
+    static void setAdditionalConfiguration(AdditionalConfiguration* pAC);
+
+private:
+    static AdditionalConfiguration* p_addConf;
+};
+
+//! A default implementation of Configurator::AdditionalConfiguration
+class NoAdditionalConfiguration : public Configurator::AdditionalConfiguration {
+    std::stringstream read(const std::string& source) override { return std::stringstream(); }
 };
 
 } /* namespace Nextsim */
 
-#endif /* SRC_INCLUDE_CONFIGURATOR_HPP */
+#endif /* CONFIGURATOR_HPP */

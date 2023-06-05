@@ -14,6 +14,8 @@ namespace Nextsim {
 std::vector<std::unique_ptr<std::istream>> Configurator::sources;
 int Configurator::m_argc;
 char** Configurator::m_argv;
+static NoAdditionalConfiguration noAddConf;
+Configurator::AdditionalConfiguration* Configurator::p_addConf = &noAddConf;
 
 boost::program_options::variables_map Configurator::parse(
     const boost::program_options::options_description& opt)
@@ -58,4 +60,19 @@ boost::program_options::variables_map Configurator::parse(
 
     return vm;
 }
+
+void Configurator::addSStream(const std::stringstream& sstream)
+{
+    addStream(std::move(std::unique_ptr<std::istream>(new std::stringstream(sstream.str()))));
+}
+
+void Configurator::setAdditionalConfiguration(AdditionalConfiguration* pAC) { p_addConf = pAC; }
+
+void Configurator::getAdditionalConfiguration(const std::string& source)
+{
+    if (p_addConf) {
+        addSStream(p_addConf->read(source));
+    }
+}
+
 } /* namespace Nextsim */

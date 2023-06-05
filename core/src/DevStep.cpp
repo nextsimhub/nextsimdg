@@ -6,20 +6,29 @@
  */
 
 #include "include/DevStep.hpp"
-#include "include/IPrognosticUpdater.hpp"
-#include "include/PrognosticData.hpp"
+
+#include "include/ConfiguredModule.hpp"
+#include "include/DiagnosticOutputModule.hpp"
 
 namespace Nextsim {
 
-void DevStep::iterate(const Iterator::Duration& dt)
+void DevStep::init()
 {
-    PrognosticData::setTimestep(dt);
-    for (pStructure->cursor = 0; pStructure->cursor; ++pStructure->cursor) {
-        auto& data = *pStructure->cursor;
-        data.updateDerivedData(data, data, data);
-        data.calculate(data, data, data);
-        data.updateAndIntegrate(data);
-    }
+    IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
+    ido.setFilenamePrefix("diagnostic");
+    tryConfigure(ido);
+}
+
+void DevStep::iterate(const TimestepTime& tst)
+{
+    pData->update(tst);
+    // The state of the model has now advanced by one timestep, so update the
+    // model metadata timestamp.
+    mData->incrementTime(tst.step);
+    // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
+    ModelState overallState = pData->getStateRecursive(true);
+    overallState.merge(ConfiguredModule::getAllModuleConfigurations());
+    Module::getImplementation<IDiagnosticOutput>().outputState(overallState, *mData);
 }
 
 } /* namespace Nextsim */
