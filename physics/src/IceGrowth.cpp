@@ -163,6 +163,7 @@ void IceGrowth::initializeThicknessesElement(size_t i, const TimestepTime&)
     } else {
         hice[i] = hice0[i] = 0.;
         hsnow[i] = hsnow0[i] = 0.;
+        cice[i] = 0.;
     }
 }
 
