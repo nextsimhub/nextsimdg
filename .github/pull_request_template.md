@@ -42,13 +42,13 @@ Text goes here
 ---
 ### Pre-Request Checklist
 
-- [  ] The requirements of this pull request are fully captured in an issue or design specification and are linked and summarised in the description of this PR
-- [  ] No new warnings are generated
-- [  ] The documentation has been updated (or an issue has been created to track the corresponding change)
-- [  ] Methods and Tests are commented such that they can be understood without having to obtain additional context
-- [  ] This PR/Issue is labelled as a bug/feature/enhancement/breaking change
-- [  ] File dates have been updated to reflect modification date
-- [  ] This change conforms to the conventions described in the README
+- [ ] The requirements of this pull request are fully captured in an issue or design specification and are linked and summarised in the description of this PR
+- [ ] No new warnings are generated
+- [ ] The documentation has been updated (or an issue has been created to track the corresponding change)
+- [ ] Methods and Tests are commented such that they can be understood without having to obtain additional context
+- [ ] This PR/Issue is labelled as a bug/feature/enhancement/breaking change
+- [ ] File dates have been updated to reflect modification date
+- [ ]  This change conforms to the conventions described in the README
 
 *Please complete your pull request description and delete the instructional text before submitting.*
 
