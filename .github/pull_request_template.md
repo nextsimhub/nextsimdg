@@ -20,7 +20,7 @@ Text goes here
 
 *Please describe any operating system limitations placed on the testing (if appropriate).*
 
-*If your tests fix bugs, please explain that in the comment you provided in the test file and please record the mapping here e.g.*
+*If your tests fixes any issue, please explain that in the comment you provided in the test file by referencing the issue within the comment and please record the mapping here e.g.*
 - *testA fixes issue 404*
 - *testB fixes issue 999*
 
@@ -49,7 +49,7 @@ Text goes here
 - [ ] Methods and Tests are commented such that they can be understood without having to obtain additional context
 - [ ] This PR/Issue is labelled as a bug/feature/enhancement/breaking change
 - [ ] File dates have been updated to reflect modification date
-- [ ]  This change conforms to the conventions described in the README
+- [ ] This change conforms to the conventions described in the README
 
 *Please complete your pull request description and delete the instructional text before submitting.*
 
