@@ -33,7 +33,8 @@ ThermoWinton::ThermoWinton()
     , oldHi(getProtectedArray())
     , sw_in(getProtectedArray())
     , subl(getSharedArray())
-{ }
+{
+}
 
 template <>
 const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
@@ -104,6 +105,22 @@ size_t ThermoWinton::getNZLevels() const { return nLevels; }
 
 void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {
+
+    // Don't do anything if there is no ice
+    if (cice[i] <= 0 || hice[i] <= 0) {
+
+        snowToIce[i] = 0;
+
+        deltaHi[i] = 0;
+        hice[i] = 0;
+        hsnow[i] = 0;
+
+        tice.zIndexAndLayer(i, 0) = seaIceTf;
+        tice.zIndexAndLayer(i, 1) = seaIceTf;
+        tice.zIndexAndLayer(i, 2) = seaIceTf;
+
+        return;
+    }
 
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
