@@ -31,18 +31,17 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
 
     // Current time
     netCDF::NcGroup timeGroup = metaGroup.addGroup(timeNodeName());
-    // As a formatted string
-    netCDF::NcVar formVar = timeGroup.addVar(formattedName(), netCDF::ncString);
-    const std::string fTime = metadata.m_time.format();
-    const char* timeCopy = fTime.c_str();
-    formVar.putVar(&timeCopy);
-    formVar.putAtt(std::string("format"), TimePoint::ymdhmsFormat);
     // As Unix time
     netCDF::NcVar unixVar = timeGroup.addVar(unformattedName(), netCDF::ncInt64);
     Duration sinceEpoch = metadata.time() - TimePoint();
     std::uint64_t secondsSinceEpoch = sinceEpoch.seconds();
     unixVar.putVar(&secondsSinceEpoch);
     unixVar.putAtt(std::string("units"), "seconds since 1970-01-01T00:00:00Z");
+
+    // Add formatted string as attribute as NetCDF4 does not support string variables
+    // in parallel mode
+    unixVar.putAtt(std::string("format"), TimePoint::ymdhmsFormat);
+    unixVar.putAtt(formattedName(), metadata.m_time.format());
 
     // All other configuration data
     netCDF::NcGroup configGroup = metaGroup.addGroup(configurationNode());
