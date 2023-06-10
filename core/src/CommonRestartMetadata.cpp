@@ -50,25 +50,20 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
     for (auto entry : metadata.m_config) {
         switch (entry.second.index()) {
         case (CONFIGMAP_DOUBLE): {
-            netCDF::NcVar dblVar = configGroup.addVar(entry.first, netCDF::ncDouble);
-            dblVar.putVar(std::get_if<double>(&entry.second));
+            configGroup.putAtt(entry.first, netCDF::ncDouble, *std::get_if<double>(&entry.second));
             break;
         }
         case (CONFIGMAP_UNSIGNED): {
-            netCDF::NcVar uintVar = configGroup.addVar(entry.first, netCDF::ncUint);
-            uintVar.putVar(std::get_if<unsigned>(&entry.second));
+            configGroup.putAtt(entry.first, netCDF::ncUint, *std::get_if<unsigned>(&entry.second));
             break;
         }
         case (CONFIGMAP_INT): {
-            netCDF::NcVar intVar = configGroup.addVar(entry.first, netCDF::ncInt);
-            intVar.putVar(std::get_if<int>(&entry.second));
+            configGroup.putAtt(entry.first, netCDF::ncInt, *std::get_if<int>(&entry.second));
             break;
         }
         case (CONFIGMAP_STRING): {
-            netCDF::NcVar strVar = configGroup.addVar(entry.first, netCDF::ncString);
             std::string extring = std::get<std::string>(entry.second);
-            const char* ctring = extring.c_str();
-            strVar.putVar(&ctring);
+            configGroup.putAtt(entry.first, std::get<std::string>(entry.second));
             break;
         }
         }
