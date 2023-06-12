@@ -2,9 +2,13 @@
  * @file main.cpp
  * @date 11 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include <iostream>
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
 
 #include "include/CommandLineParser.hpp"
 #include "include/ConfigurationHelpPrinter.hpp"
@@ -15,6 +19,10 @@
 
 int main(int argc, char* argv[])
 {
+#ifdef USE_MPI
+    MPI_Init(&argc, &argv);
+#endif // USE_MPI
+
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
     // Extract any config files defined on the command line
@@ -46,6 +54,9 @@ int main(int argc, char* argv[])
         // Run the Model
         model.run();
     }
+#ifdef USE_MPI
+    MPI_Finalize();
+#endif
 
     std::cout << "SUCCESS\n";
     return 0;
