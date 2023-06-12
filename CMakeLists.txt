@@ -50,6 +50,12 @@ set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${D
 
 find_package(Eigen3 3.4 REQUIRED)
 
+option(ENABLE_MPI "Enable distributed-memory parallelization with MPI" OFF)
+if(ENABLE_MPI)
+  find_package(MPI REQUIRED COMPONENTS C CXX)
+endif()
+
+
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
@@ -89,6 +95,10 @@ foreach(compo ${CodeComponents})
 endforeach()
 
 add_library(nextsimlib SHARED ${NextsimSources})
+target_compile_definitions(nextsimlib
+  PRIVATE
+    $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
+)
 target_include_directories(nextsimlib
     PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -97,9 +107,16 @@ target_include_directories(nextsimlib
     "${netCDF_INCLUDE_DIR}"
     )
 target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsimlib PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_libraries(nextsimlib PUBLIC
+    Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen
+    $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_C> $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_CXX>
+    )
 
 add_executable(nextsim ./core/src/main.cpp)
+target_compile_definitions(nextsim
+  PRIVATE
+    $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
+)
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"
