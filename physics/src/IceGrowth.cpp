@@ -202,7 +202,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
         iLateral->melt(tstep, hice0[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
     deltaCIce[i] = deltaCFreeze[i] + deltaCMelt[i];
-    cice[i] += (hice[i] > 0) ? deltaCIce[i] : -cice[i];
+    cice[i] = (hice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
     if (cice[i] >= IceMinima::c()) {
         // The updated ice thickness must conserve volume
         updateThickness(hice[i], cice[i], deltaCIce[i], newice[i]);
