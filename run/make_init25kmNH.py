@@ -190,12 +190,12 @@ if __name__ == "__main__":
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
     sss[:, :] = sss_data
 
+    mu = -0.055
+
     # SST
     sst = datagrp.createVariable("sst", "f8", ("x", "y"))
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     sst[:, :] = sst_data * noice + mu * sss_data * isice
-
-    mu = -0.055
 
     # Ice temperature
     tice = datagrp.createVariable("tice", "f8", zfield_dims)
