@@ -10,6 +10,7 @@
 
 #include "include/ConfigOutput.hpp"
 
+#include "include/FileCallbackCloser.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
@@ -119,9 +120,14 @@ TEST_CASE("Test periodic output")
             meta.incrementTime(Duration(3600.));
         }
     }
+
+    // Close and finalize the files
+    for (const std::string& file : diagFiles) {
+        FileCallbackCloser::close(file);
+    }
+
     // Now test that there are 10 files, correctly named, and check that one of
     // them (diag0116.nc) contains what it should.
-
     for (const std::string& file : diagFiles) {
         REQUIRE(std::filesystem::exists(file));
     }
@@ -149,6 +155,8 @@ TEST_CASE("Test periodic output")
     }
     REQUIRE(vars.count("time") == 1);
     REQUIRE(vars.count("hsnow") == 0);
+
+    ncFile.close();
 
     // Clean the testing files
     for (auto fileName : diagFiles) {
