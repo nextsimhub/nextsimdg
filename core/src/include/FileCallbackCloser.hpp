@@ -8,6 +8,7 @@
 #ifndef FILECALLBACKCLOSER_HPP
 #define FILECALLBACKCLOSER_HPP
 
+#include <functional>
 #include <list>
 #include <string>
 
