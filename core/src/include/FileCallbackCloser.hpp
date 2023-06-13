@@ -39,9 +39,9 @@ public:
      * Clears all onClose functions
      */
     static void clearAllClose();
+
 private:
     static std::list<ClosingFn> closingFns;
-
 };
 } /* namespace Nextsim */
 
