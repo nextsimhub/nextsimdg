@@ -26,10 +26,14 @@
 { "mlcp", "CPML" }, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
 { "tf", "TF" }, // Ocean freezing temperature, ˚C
 { "wind_speed", "WIND_SPEED" }, // Wind speed, m s⁻¹
+{ "wind_u", "WIND_U" }, // wind velocity x component, m s⁻¹
+{ "wind_v", "WIND_V" }, // wind velocity y component, m s⁻¹
 { "hice_true_pro", "HTRUE_ICE" }, // Ice thickness, ice average, m
 { "hsnow_true_pro", "HTRUE_SNOW" }, // Snow thickness, ice average, m
 { "ocean_u", "OCEAN_U" }, // x(east)-ward ocean current, m s⁻¹
 { "ocean_v", "OCEAN_V" }, // y(north)-ward ocean current, m s⁻¹
+{ "u", "ICE_U" }, // x(east)-ward ice velocity, m s⁻¹
+{ "v", "ICE_V" }, // y(north)-ward ice velocity, m s⁻¹
 { "sst_slab", "SLAB_SST" }, // Slab ocean surface temperature ˚C
 { "sss_slab", "SLAB_SSS" }, // Slab ocean surface salinity PSU
 { "qdw", "SLAB_QDW" }, // Slab ocean temperature nudging heat flux, W m⁻²
