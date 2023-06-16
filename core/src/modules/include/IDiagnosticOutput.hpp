@@ -119,10 +119,14 @@ private:
             PROTEL(ML_BULK_CP), // Mixed layer bulk heat capacity J K⁻¹ m⁻²
             PROTEL(TF), // Ocean freezing temperature, ˚C
             PROTEL(WIND_SPEED), // Wind speed, m s⁻¹
+            PROTEL(WIND_U), // wind velocity x component, m s⁻¹
+            PROTEL(WIND_V), // wind velocity y component, m s⁻¹
             PROTEL(HTRUE_ICE), // Ice thickness, ice average, m
             PROTEL(HTRUE_SNOW), // Snow thickness, ice average, m
             PROTEL(OCEAN_U), // x(east)-ward ocean current, m s⁻¹
             PROTEL(OCEAN_V), // y(north)-ward ocean current, m s⁻¹
+            PROTEL(ICE_U), // x(east)-ward ice velocity, m s⁻¹
+            PROTEL(ICE_V), // y(north)-ward ice velocity, m s⁻¹
             PROTEL(SLAB_SSS), // slab ocean surface salinity, PSU
             PROTEL(SLAB_SST), // slab ocean surface temperature ˚C
             PROTEL(SLAB_QDW), // Slab ocean temperature nudging heat flux, W m⁻²
