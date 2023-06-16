@@ -44,8 +44,15 @@ void Dynamics::setData(const ModelState::DataMap& ms)
 void Dynamics::update(const TimestepTime& tst)
 {   std::cout << tst.start << std::endl;
 
+    // set the updated ice thickness and concentration
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
+
+    // set the forcing velocities
+    kernel.setData(uWindName, uwind.data());
+    kernel.setData(vWindName, vwind.data());
+    kernel.setData(uOceanName, uocean.data());
+    kernel.setData(vOceanName, vocean.data());
 
     //kernel.setData(uName, uice);
     //kernel.setData(vName, vice);
