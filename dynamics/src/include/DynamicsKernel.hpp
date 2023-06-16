@@ -104,6 +104,22 @@ public:
             DGVector<DGadvection> vtmp(*smesh);
             DGModelArray::ma2dg(data, vtmp);
             Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
+        } else if (name == uWindName) {
+            DGVector<DGadvection> utmp(*smesh);
+            DGModelArray::ma2dg(data, utmp);
+            Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmx(), utmp);
+        } else if (name == vWindName) {
+            DGVector<DGadvection> vtmp(*smesh);
+            DGModelArray::ma2dg(data, vtmp);
+            Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmy(), vtmp);
+        } else if (name == uOceanName) {
+            DGVector<DGadvection> utmp(*smesh);
+            DGModelArray::ma2dg(data, utmp);
+            Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceanx(), utmp);
+        } else if (name == vOceanName) {
+            DGVector<DGadvection> vtmp(*smesh);
+            DGModelArray::ma2dg(data, vtmp);
+            Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceany(), vtmp);
         } else {
             // All other fields get shoved in a (labelled) bucket
             DGModelArray::ma2dg(data, advectedFields[name]);
