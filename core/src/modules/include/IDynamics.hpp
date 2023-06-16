@@ -20,7 +20,11 @@ public:
         , hice(getSharedArray())
         , cice(getSharedArray())
         , hsnow(getSharedArray())
-        //, damage(getSharedArray())
+        , uwind(getProtectedArray())
+        , vwind(getProtectedArray())
+        , uocean(getProtectedArray())
+        , vocean(getProtectedArray())
+    //, damage(getSharedArray())
     {
     }
     virtual ~IDynamics() = default;
@@ -36,6 +40,7 @@ public:
     }
 
     virtual void update(const TimestepTime& tst) = 0;
+
 protected:
     // Shared ice velocity arrays
     HField uice;
@@ -44,7 +49,13 @@ protected:
     ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RW> hice;
     ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RW> cice;
     ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RW> hsnow;
-    //ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
+    // ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
+
+    // References to the forcing velocity arrays
+    ModelArrayRef<ModelComponent::ProtectedArray::WIND_U, MARConstBackingStore> uwind;
+    ModelArrayRef<ModelComponent::ProtectedArray::WIND_V, MARConstBackingStore> vwind;
+    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_U, MARConstBackingStore> uocean;
+    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_V, MARConstBackingStore> vocean;
 };
 }
 
