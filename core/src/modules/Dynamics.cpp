@@ -62,8 +62,8 @@ void Dynamics::update(const TimestepTime& tst)
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
     
-    //uice = kernel.getDG0Data(uName);
-    //vice = kernel.getDG0Data(vName);
+    uice = kernel.getDG0Data(uName);
+    vice = kernel.getDG0Data(vName);
 }
 
 }

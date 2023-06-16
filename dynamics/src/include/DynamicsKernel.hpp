@@ -39,7 +39,7 @@ public:
         smesh = new Nextsim::ParametricMesh(Nextsim::CARTESIAN);
         // FIXME integrate the creation of the smesh based on restart file
         // smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
-        smesh->readmesh("25km_NH.smesh");
+        smesh->readmesh("25km_NH_newmask.smesh");
 
         // output land mask
         Nextsim::DGVector<1> landmask(*smesh);
@@ -142,11 +142,11 @@ public:
             return DGModelArray::dg2ma(cice, data);
         } else if (name == uName) {
             DGVector<DGadvection> utmp(*smesh);
-            Nextsim::Interpolations::CG2DG(*smesh, utmp, u);
+            Nextsim::Interpolations::CG2DG(*smesh, utmp, momentum->GetVx());
             return DGModelArray::dg2ma(utmp, data);
         } else if (name == vName) {
             DGVector<DGadvection> vtmp(*smesh);
-            Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
+            Nextsim::Interpolations::CG2DG(*smesh, vtmp, momentum->GetVy());
             return DGModelArray::dg2ma(vtmp, data);
         } else {
             // Any other named field must exist
