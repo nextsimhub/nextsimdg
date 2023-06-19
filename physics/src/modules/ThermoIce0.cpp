@@ -95,12 +95,16 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
+    // Semtner's fudge factors for the zero-layer model
+    constexpr double beta = 0.4;
+    constexpr double gamma = 1.065;
+
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
     double& tice_i = tice.zIndexAndLayer(i, 0);
-    double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]);
+    double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]) * gamma;
     qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
-    double remainingFlux = qic[i] - qia[i];
+    double remainingFlux = qic[i] - (qia[i] + (1. - beta) * penSw[i]);
     tice_i = tice0.zIndexAndLayer(i, 0) + remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point
@@ -117,14 +121,16 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     double excessIceMelt = std::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
     // With the excess flux noted, clamp the snow thickness to a minimum of zero.
     hsnow[i] = std::max(nowSnow, 0.);
-    // Then add snowfall back on top
-    hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Bottom melt or growth
     double iceBottomChange = (qic[i] - qio[i]) * tst.step / bulkLHFusionIce;
     // Total thickness change
     deltaHi[i] = excessIceMelt + iceBottomChange;
     hice[i] += deltaHi[i];
+
+    // Then add snowfall back on top if there's still ice
+    if ( hice[i] > 0. )
+        hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Amount of melting (only) at the top and bottom of the ice
     topMelt[i] = std::min(excessIceMelt, 0.);
