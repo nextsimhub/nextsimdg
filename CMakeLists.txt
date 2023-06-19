@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 project(nextsim_dg)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(PkgConfig)
 pkg_search_module(NETCDF_CXX4 netcdf-cxx4)
@@ -49,13 +50,15 @@ find_package(Boost COMPONENTS program_options log REQUIRED)
 find_package(Catch2 REQUIRED)
 find_package(Eigen3 3.4 REQUIRED)
 
-include(CMakePrintHelpers)
-cmake_print_variables(CMAKE_SOURCE_DIR)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-# Add XIOS and dependencies
-find_package(HDF5 REQUIRED COMPONENTS C HL)
-find_package(xios REQUIRED)
+# Add XIOS and dependencies and setup pre-processor definition for the USE_XIOS flag
+find_package(xios)
+if (XIOS_FOUND)
+    message("XIOS Found")
+    add_compile_definitions(USE_XIOS=true)
+    find_package(HDF5 REQUIRED COMPONENTS C HL)
+else()
+    add_compile_definitions(USE_XIOS=false)
+endif()
 
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
@@ -109,4 +112,8 @@ target_include_directories(nextsim PRIVATE
     "${xios_EXTERNS}/rapidxml/include"
     )
 target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
-target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen MPI::MPI_CXX xios HDF5::HDF5 ifcore)
+target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen MPI::MPI_CXX)
+
+if (XIOS_FOUND)
+    target_link_libraries(nextsim LINK_PUBLIC xios HDF5::HDF5 ifcore)
+endif()
