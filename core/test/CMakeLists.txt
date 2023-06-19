@@ -5,6 +5,7 @@ set(SRC_DIR "${CoreSrc}")
 set(INCLUDE_DIR "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
 set(ModelArrayDetails "testmodelarraydetails")
+set(FVModelArrayDetails "${CoreSrc}/finitevolume")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
@@ -135,6 +136,7 @@ add_executable(testParaGrid
     "${SRC_DIR}/Configurator.cpp"
     "${SRC_DIR}/ConfiguredModule.cpp"
     "${SRC_DIR}/ParaGridIO.cpp"
+    "${SRC_DIR}/FileCallbackCloser.cpp"
     "${SRC_DIR}/MissingData.cpp"
     "${SRC_DIR}/ModelArray.cpp"
     "${SRC_DIR}/ModelMetadata.cpp"
@@ -142,11 +144,11 @@ add_executable(testParaGrid
     "${SRC_DIR}/Time.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
-
+target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(testParaGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testParaGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testParaGrid LINK_PUBLIC Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
-
+ 
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
     "${CoreSrc}/ModelComponent.cpp"
@@ -159,12 +161,12 @@ add_executable(testModelComponent
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testModelComponent PRIVATE Boost::program_options doctest::doctest Eigen3::Eigen)
 
-add_executable(testTime
+add_executable(testTimeClasses
     "Time_test.cpp"
     "${CoreSrc}/Time.cpp"
 )
-target_include_directories(testTime PRIVATE "${CoreSrc}")
-target_link_libraries(testTime PRIVATE doctest::doctest)
+target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
+target_link_libraries(testTimeClasses PRIVATE doctest::doctest)
 
 add_executable(testNewModelArrayRef
     "NewModelArrayRef_test.cpp"
@@ -175,22 +177,43 @@ add_executable(testNewModelArrayRef
 target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testNewModelArrayRef PRIVATE doctest::doctest Eigen3::Eigen)
 
+add_executable(testModelArrayRefDebugging
+    "ModelArrayRefDebug_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${FVModelArrayDetails}/ModelArrayDetails.cpp"
+)
+target_compile_definitions(testModelArrayRefDebugging PRIVATE DEBUG_MODELARRAYREF)
+target_include_directories(testModelArrayRefDebugging PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_libraries(testModelArrayRefDebugging PRIVATE doctest::doctest Eigen3::Eigen)
+
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 set(PhysSourceDir "${CoreSrc}/../../physics/src/")
 set(PhysModulesDir "${CoreSrc}/../../physics/src/modules")
+set(DynModulesDir "${CoreSrc}/../../dynamics/src/modules")
+set(DynSourceDir "${CoreSrc}/../../dynamics/src/")
 
 add_executable(testPrognosticData
     "PrognosticData_test.cpp"
     "${CoreSrc}/PrognosticData.cpp"
+    "${CoreSrc}/CommonRestartMetadata.cpp"
     "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ConfiguredModule.cpp"
     "${CoreSrc}/ModelArray.cpp"
     "${CoreSrc}/ModelComponent.cpp"
+    "${CoreSrc}/ModelMetadata.cpp"
     "${CoreSrc}/MissingData.cpp"
+    "${CoreSrc}/ParaGridIO.cpp"
+    "${CoreSrc}/FileCallbackCloser.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/ParametricGrid.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "DynamicsModuleForPDtest.cpp"
     "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
+    "${PhysSourceDir}/IceMinima.cpp"
     "${PhysSourceDir}/SlabOcean.cpp"
     "${PhysModulesDir}/FiniteElementFluxes.cpp"
     "${PhysModulesDir}/FiniteElementSpecHum.cpp"
@@ -199,11 +222,13 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/ConstantOceanBoundary.cpp"
     "${PhysModulesDir}/ConfiguredOcean.cpp"
     "${PhysModulesDir}/FluxConfiguredOcean.cpp"
+    "${PhysModulesDir}/TOPAZOcean.cpp"
     "${PhysModulesDir}/AtmosphereBoundaryModule.cpp"
     "${PhysModulesDir}/ConstantAtmosphereBoundary.cpp"
     "${PhysModulesDir}/MU71Atmosphere.cpp"
     "${PhysModulesDir}/ConfiguredAtmosphere.cpp"
     "${PhysModulesDir}/FluxConfiguredAtmosphere.cpp"
+    "${PhysModulesDir}/ERA5Atmosphere.cpp"
     "${PhysModulesDir}/LateralIceSpreadModule.cpp"
     "${PhysModulesDir}/HiblerSpread.cpp"
     "${PhysModulesDir}/IceThermodynamicsModule.cpp"
@@ -224,5 +249,51 @@ target_include_directories(testPrognosticData PRIVATE
     "${CoreModulesDir}"
     "${PhysSourceDir}"
     "${PhysModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
     )
-target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
+target_link_directories(testPrognosticData PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
+
+add_executable(testConfigOutput
+    "ConfigOutput_test.cpp"
+    "${CoreSrc}/CommonRestartMetadata.cpp"
+    "${CoreSrc}/Configurator.cpp"
+    "${CoreSrc}/ConfiguredModule.cpp"
+    "${CoreSrc}/Logged.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${CoreSrc}/ModelComponent.cpp"
+    "${CoreSrc}/ModelMetadata.cpp"
+    "${CoreSrc}/MissingData.cpp"
+    "${CoreSrc}/NZLevels.cpp"
+    "${CoreSrc}/DevGridIO.cpp"
+    "${CoreSrc}/ParaGridIO.cpp"
+    "${CoreSrc}/RectGridIO.cpp"
+    "${CoreSrc}/FileCallbackCloser.cpp"
+    "${CoreSrc}/StructureFactory.cpp"
+    "${CoreSrc}/Time.cpp"
+    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/ParametricGrid.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
+    "${CoreModulesDir}/DiagnosticOutputModule.cpp"
+    "${CoreModulesDir}/SimpleOutput.cpp"
+    "${CoreModulesDir}/ConfigOutput.cpp"
+    )
+target_include_directories(testConfigOutput PRIVATE
+    "${CoreSrc}"
+    "${CoreSrc}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
+    )
+target_link_directories(testConfigOutput PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testConfigOutput PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
+
+add_executable(testFileCallbackCloser
+    "FileCallbackCloser_test.cpp"
+    "${CoreSrc}/FileCallbackCloser.cpp"
+    )
+target_include_directories(testFileCallbackCloser PRIVATE
+    ${CoreSrc}
+    )
+target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)

@@ -18,6 +18,16 @@ namespace Nextsim {
 class IAtmosphereBoundary : public ModelComponent {
 public:
     IAtmosphereBoundary()
+        : qia(ModelArray::Type::H)
+        , dqia_dt(ModelArray::Type::H)
+    , qow(ModelArray::Type::H)
+    , subl(ModelArray::Type::H)
+    , snow(ModelArray::Type::H)
+    , rain(ModelArray::Type::H)
+    , evap(ModelArray::Type::H)
+    , emp(ModelArray::Type::H)
+    , uwind(ModelArray::Type::U)
+    , vwind(ModelArray::Type::V)
     {
         m_couplingArrays.resize(static_cast<size_t>(CouplingFields::COUNT));
         m_couplingArrays[static_cast<size_t>(CouplingFields::SUBL)] = &subl;
@@ -33,6 +43,9 @@ public:
         registerSharedArray(SharedArray::SUBLIM, &subl);
         registerProtectedArray(ProtectedArray::SNOW, &snow);
         registerSharedArray(SharedArray::Q_PEN_SW, &penSW);
+        registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
+        registerProtectedArray(ProtectedArray::WIND_U, &uwind);
+        registerProtectedArray(ProtectedArray::WIND_V, &vwind);
     }
     virtual ~IAtmosphereBoundary() = default;
 
@@ -49,6 +62,7 @@ public:
         snow.resize();
         rain.resize();
         evap.resize();
+        emp.resize();
         uwind.resize();
         vwind.resize();
         penSW.resize();
@@ -75,6 +89,7 @@ protected:
     HField snow;
     HField rain;
     HField evap;
+    HField emp;
     UField uwind;
     VField vwind;
     HField penSW;

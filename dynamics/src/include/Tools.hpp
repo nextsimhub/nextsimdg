@@ -33,7 +33,7 @@ namespace Tools {
   }
 
 
-  DGVector<1> Landmask(const ParametricMesh& smesh)
+  static DGVector<1> Landmask(const ParametricMesh& smesh)
     {
       DGVector<1> lm(smesh);
 #pragma omp parallel for

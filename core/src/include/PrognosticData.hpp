@@ -11,6 +11,7 @@
 #include "ModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
+#include "include/IDynamics.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/Time.hpp"
@@ -63,12 +64,6 @@ public:
     //! Returns a const reference to the cell-averaged snow thickness field.
     const HField& snowThickness() { return m_snow; }
 
-    //! Returns a const reference to the eastward component of the ice drift velocity.
-    const UField& u() { return m_u; }
-
-    //! Returns a const reference to the northward component of the ice drift velocity.
-    const VField& v() { return m_v; }
-
     //! Returns a const reference to the (three dimensional) ice temperature field.
     const ZField& iceTemperature() { return m_tice; }
 
@@ -77,13 +72,14 @@ private:
     HField m_conc;
     ZField m_tice;
     HField m_snow;
-    UField m_u;
-    VField m_v;
     double m_dt;
 
-    IceGrowth iceGrowth;
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;
+    IDynamics* pDynamics;
+    IceGrowth iceGrowth;
+
+    void updatePrognosticFields();
 };
 
 } /* namespace Nextsim */

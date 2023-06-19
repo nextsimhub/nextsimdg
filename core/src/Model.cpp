@@ -139,7 +139,7 @@ void Model::writeRestartFile()
     modelConfig.merge(pData.getStateRecursive(true).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     m_etadata.setConfig(modelConfig);
-    StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
+    StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName, true);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }
