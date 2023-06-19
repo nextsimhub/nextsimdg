@@ -320,8 +320,7 @@ void ThermoWinton::calculateTemps(
 
     double a1 = hi * cVol / (2 * dt) + k32 * (4 * dt * k32 + hi * cVol) / (6 * dt * k32 + hi * cVol)
         + b * k12 / (k12 + b); // (16)
-    double b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt)
-        - i0 * sw_in[i]
+    double b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt) - penSw[i]
         - k32 * (4 * dt * k32 * tBase + hi * cVol * tLowr) / (6 * dt * k32 + hi * cVol)
         + a * k12 / (k12 + b); // (17)
     double c1 = hi * Ice::Lf * Ice::rho * seaIceTf / (2 * dt); // (18)
