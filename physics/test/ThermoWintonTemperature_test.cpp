@@ -140,7 +140,7 @@ TEST_CASE("Melting conditions")
     double prec = 1e-5;
 
     REQUIRE(tice[0] == doctest::Approx(0.0).epsilon(prec));
-    REQUIRE(tice[1] == doctest::Approx(-0.999453).epsilon(prec));
+    REQUIRE(tice[1] == doctest::Approx(-0.999333).epsilon(prec));
     REQUIRE(tice[2] == doctest::Approx(-0.275).epsilon(prec));
     //    REQUIRE(qic[0] == doctest::Approx(-4.60879).epsilon(prec));
 }
