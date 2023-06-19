@@ -61,6 +61,7 @@ public:
     MPI_Comm mpiComm;
     int mpiSize = 0;
     int mpiMyRank = -1;
+    int localCornerX, localCornerY, localExtentX, localExtentY;
 #endif
 
 private:

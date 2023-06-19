@@ -35,6 +35,8 @@ public:
 
 private:
     RectGridIO() = default;
+
+    void readPartitionData(const std::string& partitionFile, ModelMetadata& metadata);
 };
 
 } /* namespace Nextsim */
