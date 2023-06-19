@@ -105,19 +105,19 @@ public:
             DGModelArray::ma2dg(data, vtmp);
             Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
         } else if (name == uWindName) {
-            DGVector<DGadvection> utmp(*smesh);
+            DGVector<1> utmp(*smesh);
             DGModelArray::ma2dg(data, utmp);
             Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmx(), utmp);
         } else if (name == vWindName) {
-            DGVector<DGadvection> vtmp(*smesh);
+            DGVector<1> vtmp(*smesh);
             DGModelArray::ma2dg(data, vtmp);
             Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmy(), vtmp);
         } else if (name == uOceanName) {
-            DGVector<DGadvection> utmp(*smesh);
+            DGVector<1> utmp(*smesh);
             DGModelArray::ma2dg(data, utmp);
             Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceanx(), utmp);
         } else if (name == vOceanName) {
-            DGVector<DGadvection> vtmp(*smesh);
+            DGVector<1> vtmp(*smesh);
             DGModelArray::ma2dg(data, vtmp);
             Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceany(), vtmp);
         } else {
