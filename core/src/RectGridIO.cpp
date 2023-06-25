@@ -45,7 +45,8 @@ void dimensionSetter(
 }
 
 #ifdef USE_MPI
-ModelState RectGridIO::getModelState(const std::string& filePath, const std::string& partitionFile)
+ModelState RectGridIO::getModelState(
+    const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
 #else
 ModelState RectGridIO::getModelState(const std::string& filePath)
 #endif

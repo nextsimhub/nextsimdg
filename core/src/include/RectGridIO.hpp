@@ -24,8 +24,8 @@ public:
     typedef RectangularGrid::GridDimensions GridDimensions;
 
 #ifdef USE_MPI
-    ModelState getModelState(
-        const std::string& filePath, const std::string& partitionFile) override;
+    ModelState getModelState(const std::string& filePath, const std::string& partitionFile,
+        ModelMetadata& metadata) override;
 #else
     ModelState getModelState(const std::string& filePath) override;
 #endif
