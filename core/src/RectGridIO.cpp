@@ -22,6 +22,10 @@
 #include <ncFile.h>
 #include <ncVar.h>
 
+#ifdef USE_MPI
+#include <include/ParallelNetcdfFile.hpp>
+#endif
+
 #include <list>
 #include <map>
 #include <string>
@@ -171,9 +175,8 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     const std::string& filePath, bool isRestart) const
 {
 #ifdef USE_MPI
-    auto filePathRank = filePath + "_" + std::to_string(metadata.mpiMyRank);
     std::cout << "MPI metadata: " << metadata.mpiMyRank << " / " << metadata.mpiSize << "\n";
-    netCDF::NcFile ncFile(filePathRank, netCDF::NcFile::replace);
+    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
 #else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
 #endif
@@ -193,22 +196,48 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
 
     // Create the dimension data, since it has to be in the same group as the
     // data or the parent group
+#ifdef USE_MPI
+    netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], metadata.globalExtentX);
+    netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], metadata.globalExtentY);
+#else
     netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], nx);
     netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], ny);
-    std::vector<netCDF::NcDim> dims2 = { xDim, yDim };
+#endif
     netCDF::NcDim zDim = dataGroup.addDim(dimensionNames[2], nz);
+    std::vector<netCDF::NcDim> dims2 = { xDim, yDim };
     std::vector<netCDF::NcDim> dims3 = { xDim, yDim, zDim };
+//
+#ifdef USE_MPI
+    // Set the origins and extensions for reading 2D data based
+    // on MPI decomposition
+    std::vector<size_t> start(3);
+    std::vector<size_t> size(3);
+    start[0] = metadata.localCornerX;
+    start[1] = metadata.localCornerY;
+    start[2] = 0;
+    size[0] = metadata.localExtentX;
+    size[1] = metadata.localExtentY;
+    size[2] = nz;
+#endif
 
     for (const auto entry : state.data) {
         const std::string& name = entry.first;
         if (entry.second.getType() == ModelArray::Type::H) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+#ifdef USE_MPI
+            var.putVar(start, size, entry.second.getData());
+#else
             var.putVar(entry.second.getData());
+#endif
         } else if (entry.second.getType() == ModelArray::Type::Z) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims3));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+#ifdef USE_MPI
+            var.putVar(start, size, entry.second.getData());
+#else
             var.putVar(entry.second.getData());
+#endif
         }
     }
 
