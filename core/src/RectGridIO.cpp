@@ -155,6 +155,8 @@ void RectGridIO::readPartitionData(const std::string& partitionFile, ModelMetada
             + std::to_string(nBoxes) + "\n";
         throw std::runtime_error(errorMsg);
     }
+    metadata.globalExtentX = ncFile.getDim("globalX").getSize();
+    metadata.globalExtentY = ncFile.getDim("globalY").getSize();
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
     std::vector<size_t> index(1, metadata.mpiMyRank);
     bboxGroup.getVar("global_x").getVar(index, &metadata.localCornerX);
