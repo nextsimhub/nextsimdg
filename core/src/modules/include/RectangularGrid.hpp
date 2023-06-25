@@ -49,9 +49,10 @@ public:
 
     // Read/write override functions
 #ifdef USE_MPI
-    ModelState getModelState(const std::string& filePath, const std::string& partitionFile) override
+    ModelState getModelState(const std::string& filePath, const std::string& partitionFile,
+        ModelMetadata& metadata) override
     {
-        return pio ? pio->getModelState(filePath, partitionFile) : ModelState();
+        return pio ? pio->getModelState(filePath, partitionFile, metadata) : ModelState();
     }
 #else
     ModelState getModelState(const std::string& filePath) override
@@ -87,7 +88,7 @@ public:
 
 #ifdef USE_MPI
         virtual ModelState getModelState(
-            const std::string& filePath, const std::string& partitionFile)
+            const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
             = 0;
 #else
         virtual ModelState getModelState(const std::string& filePath) = 0;
