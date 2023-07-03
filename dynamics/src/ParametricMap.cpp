@@ -118,7 +118,6 @@ namespace Nextsim
 		  Meid = PHI<CG,CGGP(CG)> * J.transpose();
 		  const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
 		    = smesh.coordinatesOfElement(eid);
-//		  std::cout <<std::endl;
 		}
 	      else if (smesh.CoordinateSystem == SPHERICAL)
 		{
