@@ -99,6 +99,8 @@ IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
             std::to_string(IceMinima::cMinDefault), "", "Minimum allowed ice concentration." },
         { keyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(IceMinima::hMinDefault), "m", "Minimum allowed ice thickness." },
+        { keyMap.at(USE_THERMO_KEY), ConfigType::BOOLEAN, { "true", "false" }, "true", "",
+            "Perform ice physics calculations as part of the timestep." },
     };
     return map;
 }
@@ -135,11 +137,11 @@ ConfigMap IceGrowth::getConfiguration() const
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
-        // Copy the ice data from the prognostic fields to the modifiable fields.
-        cice = cice0;
-        overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
-                         std::placeholders::_2),
-            tsTime);
+    // Copy the ice data from the prognostic fields to the modifiable fields.
+    cice = cice0;
+    overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        tsTime);
 
     if (doThermo) {
         iVertical->update(tsTime);
