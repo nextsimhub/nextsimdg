@@ -18,6 +18,7 @@ const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
     { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
     { IceGrowth::MINC_KEY, "nextsim_thermo.min_conc" },
     { IceGrowth::MINH_KEY, "nextsim_thermo.min_thick" },
+    { IceGrowth::USE_THERMO_KEY, "nextsim_thermo.use_thermo_forcing" },
 };
 
 IceGrowth::IceGrowth()
@@ -111,6 +112,8 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
 
 void IceGrowth::configure()
 {
+    // Configure whether we actually do anything here
+    doThermo = Configured::getConfiguration(keyMap.at(USE_THERMO_KEY), true);
     // Configure constants
     IceMinima::cMin = Configured::getConfiguration(keyMap.at(MINC_KEY), IceMinima::cMinDefault);
     IceMinima::hMin = Configured::getConfiguration(keyMap.at(MINH_KEY), IceMinima::hMinDefault);
@@ -132,18 +135,19 @@ ConfigMap IceGrowth::getConfiguration() const
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
+        // Copy the ice data from the prognostic fields to the modifiable fields.
+        cice = cice0;
+        overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
+                         std::placeholders::_2),
+            tsTime);
 
-    // Copy the ice data from the prognostic fields to the modifiable fields.
-    cice = cice0;
-    overElements(std::bind(&IceGrowth::initializeThicknesses, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tsTime);
-
-    iVertical->update(tsTime);
-    // new ice formation
-    overElements(
-        std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),
-        tsTime);
+    if (doThermo) {
+        iVertical->update(tsTime);
+        // new ice formation
+        overElements(std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1,
+                         std::placeholders::_2),
+            tsTime);
+    }
 }
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,
