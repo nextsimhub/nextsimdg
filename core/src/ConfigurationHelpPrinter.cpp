@@ -186,7 +186,6 @@ std::ostream& ConfigurationHelpPrinter::printBoolean(
     return os;
 }
 
-
 static std::string ansiMode(std::string mode) { return "\033[" + mode + "m"; }
 
 void ConfigurationHelpPrinter::setOutput(Output out)
