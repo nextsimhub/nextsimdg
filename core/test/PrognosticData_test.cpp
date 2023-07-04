@@ -7,8 +7,8 @@
 
 #include "include/PrognosticData.hpp"
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/PrognosticData.hpp"
 
@@ -23,7 +23,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("PrognosticData call order test", "[PrognosticData]")
+TEST_SUITE_BEGIN("PrognosticData");
+TEST_CASE("PrognosticData call order test")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -98,8 +99,10 @@ TEST_CASE("PrognosticData call order test", "[PrognosticData]")
 
     double prec = 1e-5;
     // Correct value
-    REQUIRE(qow[0] == Approx(-109.923).epsilon(prec));
+    REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));
     // Value if pAtmBdy->update and pOcnBdy->updateBefore are switched in PrognosticData::update
-    REQUIRE(qow[0] != Approx(-92.1569).epsilon(prec));
+    REQUIRE(qow[0] != doctest::Approx(-92.1569).epsilon(prec));
 }
+TEST_SUITE_END();
+
 } /* namespace Nextsim */
