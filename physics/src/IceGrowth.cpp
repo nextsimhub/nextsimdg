@@ -143,6 +143,9 @@ void IceGrowth::update(const TimestepTime& tsTime)
                      std::placeholders::_2),
         tsTime);
 
+    // reset the new ice volume array
+    newice = 0;
+
     if (doThermo) {
         iVertical->update(tsTime);
         // new ice formation
