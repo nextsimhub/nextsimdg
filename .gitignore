@@ -1,3 +1,8 @@
+*
+!*/
+!*.*
+*CMakeFiles*
+CMakeCache.txt
 /build*
 */build
 Results
@@ -15,3 +20,6 @@ Results
 *.vtk
 *.smesh
 *.DS_Store
+*.o
+*.dir
+*.cmake
