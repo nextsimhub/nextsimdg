@@ -61,13 +61,7 @@ class DiagnosticsDB:
             with nc.Dataset(file) as data:
                 var_in_data = set([str(v) for v in data.groups['data'].variables])
                 self.variables = self.variables.union(var_in_data)
-                
-    def _get_mask(self):
-        if len(self.files)>0 and "mask" in self.variables:
-            with nc.Dataset(file) as data:
-                self.mask = np.array(data.groups["data"]["mask"], dtype=np.bool)
-        else:
-            self.mask = None
+            
             
     def read(self, variable):
         """ Read the values for a fields 
@@ -79,7 +73,7 @@ class DiagnosticsDB:
             
         Returns
         -------
-        Requested data. 
+        Requested data as np.array. 
         
         """
         
@@ -98,10 +92,62 @@ class DiagnosticsDB:
                 elif mask is None:
                     mask = np.ones_like(values)
                     
-                print(file,np.shape(values1),np.shape(mask))
                 values1 = np.where(mask, values1, np.nan)
                 
                 values.append(values1)
                 
         return np.array(values)   
+    
+    
+def row_plot(datas):
+    """ 
+    Plot different datas on a row. 
+    
+    Parameter
+    ---------
+    datas : list of tuples
+        Each tuple should contain (name, time, field values)
+        
+    Returns 
+    -------
+    (figure, axes) handles
+    
+    """ 
+    plt.close('all')
+    fig = plt.figure(figsize=(12,6))
+    axes = fig.subplots(1,len(datas)).ravel()
+    
+    #Indices
+    IT, INAME, IDATA = 1, 0, 2
+    
+    for ax, data in zip(axes, datas):
+        x, y = np.meshgrid(np.arange(np.size(data[IDATA],0)),
+                           np.arange(np.size(data[IDATA],1)))
+        p = ax.contourf(x,y,data[IDATA])
+        ax.set_title(data[IT])
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        
+        plt.colorbar(p, ax=ax, label=data[INAME])
+        
+    return fig, axes
+    
+#Connect to output files. 
+diag = DiagnosticsDB(DIR)
+
+
+#Plot last time. 
+cice = diag.read('cice')
+fig, _ = row_plot([('Concentration',diag.times[0],cice[0]), 
+              ("Height [m]",diag.times[-1],cice[-1])])
+fig.savefig(os.path.join(DIR,"cice_start_end.png"), format="png", dpi=400)
+
+#Plot first time. 
+hice = diag.read('hice')
+fig, _ = row_plot([('Concentration',diag.times[0],hice[-1]), 
+              ("Height [m]",diag.times[-1],hice[-1])])
+fig.savefig(os.path.join(DIR,"hice_start_end.png"), format="png", dpi=400)
+
+
+    
     
