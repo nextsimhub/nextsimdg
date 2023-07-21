@@ -212,6 +212,7 @@ add_executable(testPrognosticData
     "${CoreSrc}/Time.cpp"
     )
 target_include_directories(testPrognosticData PRIVATE
+    "${CATCH2_INCLUDE_DIRS}"
     "${CoreSrc}"
     "${CoreSrc}/${ModelArrayStructure}"
     "${CoreModulesDir}"

@@ -30,6 +30,10 @@ if (OPENMP_FOUND)
    endif()
 endif()
 
+pkg_search_module(CATCH2 catch2)
+if (CATCH2_FOUND)
+    message(STATUS "CATCH2 found : ${CATCH2_INCLUDE_DIRS}")
+endif()
 
 # Regarding Boost.Log, if our application consists of more
 # than one modules that use it, we must link to the shared
