@@ -56,6 +56,10 @@ public:
         dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
         dgtransport->settimesteppingscheme("rk2");
 
+        //! Initialize stress transport
+        stresstransport = new Nextsim::DGTransport<CG2DGSTRESS(CGdegree)>(*smesh);
+        stresstransport->settimesteppingscheme("rk2");
+
         //! Initialize momentum
         momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
 
@@ -187,6 +191,13 @@ public:
         dgtransport->step(tst.step.seconds(), cice);
         dgtransport->step(tst.step.seconds(), hice);
 
+        //! Perform transport step for stress
+        stresstransport->prepareAdvection(momentum->GetVx(), momentum->GetVy());
+
+        // stresstransport->step(tst.step.seconds(), momentum->GetS11());
+        // stresstransport->step(tst.step.seconds(), momentum->GetS12());
+        // stresstransport->step(tst.step.seconds(), momentum->GetS22());
+
         //! Gauss-point limiting
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
@@ -201,6 +212,7 @@ public:
 
 protected:
     Nextsim::DGTransport<DGadvection>* dgtransport;
+    Nextsim::DGTransport<CG2DGSTRESS(CGdegree)>* stresstransport;
     Nextsim::CGParametricMomentum<CGdegree>* momentum;
 
     DGVector<DGadvection> hice;

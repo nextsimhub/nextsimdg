@@ -258,10 +258,11 @@ namespace Nextsim
   template class ParametricTransportMap<1>;
   template class ParametricTransportMap<3>;
   template class ParametricTransportMap<6>;
+  template class ParametricTransportMap<8>;
 
 
   template class ParametricMomentumMap<1>;
-    template class ParametricMomentumMap<2>;
+  template class ParametricMomentumMap<2>;
 
 
 }

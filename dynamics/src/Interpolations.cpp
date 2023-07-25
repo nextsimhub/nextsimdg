@@ -303,6 +303,7 @@ namespace Interpolations {
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<1>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<3>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<6>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<8>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<1>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<3>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<6>& src);
@@ -313,6 +314,7 @@ namespace Interpolations {
     template void CG2DG(const ParametricMesh& smesh, DGVector<1>& dg, const CGVector<2>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<3>& dg, const CGVector<2>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<6>& dg, const CGVector<2>& cg);
+    template void CG2DG(const ParametricMesh& smesh, DGVector<8>& dg, const CGVector<2>& cg);
 
     template void Function2CG(
         const ParametricMesh& smesh, CGVector<1>& phi, const Function& initial);
