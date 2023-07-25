@@ -14,6 +14,21 @@ namespace Nextsim {
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
 
 //! returns the localization of the cell vector to the edges
+  /*!
+   * writes the cell-basis on the edges in the edge basis
+   *
+   * CELL:
+   * DGdegree 0:      1
+   * DGdegree 1-2:    + (x-1/2), (y-1/2),
+   * DGdegree 3-5:    + (x-1/2)^2-1/12, (y-1/2)^2-1/12, (x-1/2)(y-1/2)
+   * DGdegree 6-7:    + (y-1/2)(x-1/2)^2-1/12, (x-1/2)(y-1/2)^2-1/12
+   *
+   * EDGE:
+   * DGdegree 0:    1
+   * DGdegree 1: +  (t-1/2)
+   * DGdegree 2: +  (t-1/2)^2-1/12
+   *
+   */
 template <int DG>
 Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)>
 leftedgeofcell(const DGVector<DG>& cv, size_t eid);
@@ -107,6 +122,40 @@ topedgeofcell(const DGVector<6>& cv, size_t eid)
 {
     return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
         cv(eid, 1) + 0.5 * cv(eid, 5), cv(eid, 3));
+}
+
+// dG2+ (8 in cell, 3 on edge)
+template <>
+Eigen::Matrix<Nextsim::FloatType, 1, 3>
+leftedgeofcell(const DGVector<8>& cv, size_t eid)
+{
+    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+						   cv(eid, 2) - 0.5 * cv(eid, 5) + 1./6. * cv(eid,6),
+						   cv(eid, 4) - 0.5 * cv(eid,7));
+}
+template <>
+Eigen::Matrix<Nextsim::FloatType, 1, 3>
+rightedgeofcell(const DGVector<8>& cv, size_t eid)
+{
+  return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+						 cv(eid, 2) + 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 6),
+						 cv(eid, 4) + 0.5 * cv(eid, 7));
+}
+template <>
+Eigen::Matrix<Nextsim::FloatType, 1, 3>
+bottomedgeofcell(const DGVector<8>& cv, size_t eid)
+{
+  return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+						 cv(eid, 1) - 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7), 
+						 cv(eid, 3) - 0.5 * cv(eid, 6));
+}
+  template <>
+Eigen::Matrix<Nextsim::FloatType, 1, 3>
+topedgeofcell(const DGVector<8>& cv, size_t eid) 
+{
+  return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+						 cv(eid, 1) + 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7),
+						 cv(eid, 3) + 0.5 * cv(eid, 6));
 }
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -506,6 +555,7 @@ void DGTransport<DG>::step(const double dt, DGVector<DG>& phi)
 template class DGTransport<1>;
 template class DGTransport<3>;
 template class DGTransport<6>;
+template class DGTransport<8>;
 
 template void DGTransport<1>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
 template void DGTransport<1>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
@@ -513,5 +563,6 @@ template void DGTransport<3>::prepareAdvection(const CGVector<1>& cg_vx, const C
 template void DGTransport<3>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 template void DGTransport<6>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
 template void DGTransport<6>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
+template void DGTransport<8>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 
 } /* namespace Nextsim */
