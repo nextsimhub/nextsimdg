@@ -236,6 +236,7 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/ThermoWinton.cpp"
     "${PhysModulesDir}/IceOceanHeatFluxModule.cpp"
     "${PhysModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${PhysModulesDir}/ConfiguredIceOceanHeatFlux.cpp"
     "${PhysModulesDir}/IIceAlbedoModule.cpp"
     "${PhysModulesDir}/SMUIceAlbedo.cpp"
     "${PhysModulesDir}/CCSMIceAlbedo.cpp"

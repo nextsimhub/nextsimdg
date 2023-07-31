@@ -106,6 +106,7 @@ size_t ThermoWinton::getNZLevels() const { return nLevels; }
 void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {
 
+    bool doPrint = (i == ModelArray::indexFromLocation(ModelArray::Type::H, {79,67}));
     // Don't do anything if there is no ice
     if (cice[i] <= 0 || hice[i] <= 0) {
 
@@ -143,6 +144,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     // ice
     double h1 = hice[i] / 2;
     double h2 = hice[i] / 2;
+    if (doPrint) std::cerr << "initial h1 h2 hice = " << hice[i] << " hs = " << hsnow[i] << " h1 = " << h1 << " h2 = " << h2 << std::endl;
     // Eqs. (1) and (25) - but I 've multiplied them with \rho_i (hence cVol), because it's missing
     // in the paper
     double e1 = cVol * (tUppr - seaIceTf) - bulkLHFusionIce * (1 - seaIceTf / tUppr);
@@ -150,15 +152,16 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 
     double& hs = hsnow[i];
     // snow
-    hs += snowfall[i] / Ice::rhoSnow * dt;
+    hsnow[i] += snowfall[i] / Ice::rhoSnow * dt;
     //    double accumulatedSnowThickness = snowfall[i] / Ice::rhoSnow * dt;
-
+    if (doPrint) std::cerr << "after snowfall=" << snowfall[i] << " hsnow=" << hsnow[i] << " or=" << hs << std::endl;
     // sublimation
     // 4 cases
     const double& subli = subl[i];
     double deltaSnow = subli * dt / Ice::rhoSnow;
-    double deltaIce1 = (subli * dt - hs * Ice::rhoSnow) / Ice::rho;
+    double deltaIce1 = (deltaSnow - hsnow[i]) * Ice::rhoSnow / Ice::rho;
     double deltaIce2 = deltaIce1 - h1;
+    if (doPrint) std::cerr << "sublimation = " << subli << " Δs=" << deltaSnow << " hsnow=" << hsnow[i] << " snow excess=" << (deltaSnow - hsnow[i]) << " Δi1=" << deltaIce1 << " Δi2=" << deltaIce2 << std::endl;
     if (deltaSnow <= hs) {
         // sublimation is less than or equal to the mass of snow
         hs -= deltaSnow;
@@ -181,6 +184,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         h1 = 0;
         hs = 0;
     }
+    if (doPrint) std::cerr << "sublimation hs = " << hs << " h1 = " << h1 << " h2 = " << h2 << std::endl;
     // Sublimated ice counts as top melt
     topMelt[i] = std::max(0., h1 + h2 - hice[i]); // (23)
 
@@ -214,6 +218,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         h2 += deltaIce2;
         botMelt[i] += deltaIce1 + deltaIce2;
     }
+    if (doPrint) std::cerr << "bottom melt hs = " << hs << " h1 = " << h1 << " h2 = " << h2 << std::endl;
 
     // Melting at the surface
     // Do we really need an assertion here?
@@ -234,6 +239,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     h1 += deltaIce1;
     h2 += deltaIce2;
     topMelt[i] += deltaIce1 + deltaIce2;
+    if (doPrint) std::cerr << "top melt hs = " << hs << " h1 = " << h1 << " h2 = " << h2 << std::endl;
 
     // Snow to ice conversion
     double freeboard
@@ -247,9 +253,11 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         h1 += deltaIce1;
         snowToIce[i] += deltaIce1;
     }
+    if (doPrint) std::cerr << "freeboard = " << freeboard << " h1 = " << h1 << " h2 = " << h2 << std::endl;
 
     // Add up the half-layer thicknesses
     double& hi = hice[i];
+    if (doPrint) std::cerr << "before sum hice = " << hi << " h1 = " << h1 << " h2 = " << h2 << std::endl;
     hi = h1 + h2;
     // Adjust the temperatures to evenly divide the ice
     if (h2 > h1) {

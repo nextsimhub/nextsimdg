@@ -10,6 +10,8 @@
 #include "include/ModelArrayRef.hpp"
 #include "include/Module.hpp"
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 PrognosticData::PrognosticData()
@@ -78,13 +80,24 @@ void PrognosticData::update(const TimestepTime& tst)
     iceGrowth.initializeThicknesses();
     // Fill the updated ice temperature array
     ticeUpd.data().setData(m_tice);
+    std::cerr << "Before dynamics: hice = " << hiceTrueUpd(79,67) << " cice = " << ciceUpd(79,67) << std::endl;
+    std::cerr << hiceTrueUpd(78,66) << " " << hiceTrueUpd(79,66) << " " << hiceTrueUpd(80,66) << std::endl
+            << hiceTrueUpd(78,67) << " " << hiceTrueUpd(79,67) << " " << hiceTrueUpd(80,67) << std::endl
+            << hiceTrueUpd(78,68) << " " << hiceTrueUpd(79,68) << " " << hiceTrueUpd(80,68) << std::endl;
     pDynamics->update(tst);
+    std::cerr << "After dynamics: hice = " << hiceTrueUpd(79,67) << " cice = " << ciceUpd(79,67) << std::endl;
+    std::cerr << hiceTrueUpd(78,66) << " " << hiceTrueUpd(79,66) << " " << hiceTrueUpd(80,66) << std::endl
+            << hiceTrueUpd(78,67) << " " << hiceTrueUpd(79,67) << " " << hiceTrueUpd(80,67) << std::endl
+            << hiceTrueUpd(78,68) << " " << hiceTrueUpd(79,68) << " " << hiceTrueUpd(80,68) << std::endl;
     updatePrognosticFields();
+    std::cerr << "After pfield upd: hice = " << hiceTrueUpd(79,67) << " cice = " << ciceUpd(79,67) << std::endl;
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
     iceGrowth.update(tst);
+    std::cerr << "After ice growth: hice = " << hiceTrueUpd(79,67) << " cice = " << ciceUpd(79,67) << std::endl;
     updatePrognosticFields();
+    std::cerr << "After pfield upd: hice = " << hiceTrueUpd(79,67) << " cice = " << ciceUpd(79,67) << std::endl;
 
     pOcnBdy->updateAfter(tst);
 }

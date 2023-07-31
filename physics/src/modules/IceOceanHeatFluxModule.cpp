@@ -7,14 +7,18 @@
 
 #include "include/IceOceanHeatFluxModule.hpp"
 #include "include/BasicIceOceanHeatFlux.hpp"
+#include "include/ConfiguredIceOceanHeatFlux.hpp"
+
 #include <string>
 
 namespace Module {
 const std::string BASICICEOCEANHEATFLUX = "Nextsim::BasicIceOceanHeatFlux";
+const std::string CONFIGUREDICEOCEANHEATFLUX = "Nextsim::ConfiguredIceOceanHeatFlux";
 
 template <>
 Module<Nextsim::IIceOceanHeatFlux>::map Module<Nextsim::IIceOceanHeatFlux>::functionMap = {
     { BASICICEOCEANHEATFLUX, newImpl<Nextsim::IIceOceanHeatFlux, Nextsim::BasicIceOceanHeatFlux> },
+    { CONFIGUREDICEOCEANHEATFLUX, newImpl<Nextsim::IIceOceanHeatFlux, Nextsim::ConfiguredIceOceanHeatFlux> },
 };
 
 template <>
@@ -33,8 +37,9 @@ template <> HelpMap& getHelpRecursive<Nextsim::IIceOceanHeatFlux>(HelpMap& map, 
 {
     const std::string pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IIceOceanHeatFlux>::moduleName(),
-        ConfigType::MODULE, { BASICICEOCEANHEATFLUX }, BASICICEOCEANHEATFLUX, "",
+        ConfigType::MODULE, { BASICICEOCEANHEATFLUX, CONFIGUREDICEOCEANHEATFLUX }, BASICICEOCEANHEATFLUX, "",
         "The module for calculating the ice-ocean heat fluxes." });
+    Nextsim::ConfiguredIceOceanHeatFlux::getHelpRecursive(map, getAll);
     return map;
 }
 template <> Nextsim::IIceOceanHeatFlux& getImplementation<Nextsim::IIceOceanHeatFlux>()
@@ -48,5 +53,10 @@ template <> void setImplementation<Nextsim::IIceOceanHeatFlux>(const std::string
 template <> std::unique_ptr<Nextsim::IIceOceanHeatFlux> getInstance()
 {
     return getInstTemplate<Nextsim::IIceOceanHeatFlux, IceOceanHeatFluxModule>();
+}
+IceOceanHeatFluxModule::Constructor IceOceanHeatFluxModule::ctor;
+IceOceanHeatFluxModule::Constructor::Constructor()
+{
+    addToConfiguredModules<Nextsim::IIceOceanHeatFlux, IceOceanHeatFluxModule>();
 }
 } /* namespace Module */

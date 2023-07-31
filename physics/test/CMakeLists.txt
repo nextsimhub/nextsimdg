@@ -156,6 +156,7 @@ add_executable(testTOPAZOcn
     "${CoreSourceDir}/Time.cpp"
     "${ModulesDir}/IceOceanHeatFluxModule.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${ModulesDir}/ConfiguredIceOceanHeatFlux.cpp"
     )
 target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(testTOPAZOcn PRIVATE
@@ -215,6 +216,7 @@ add_executable(testConstantOcn
     "${ModulesDir}/FluxCalculationModule.cpp"
     "${ModulesDir}/IceOceanHeatFluxModule.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${ModulesDir}/ConfiguredIceOceanHeatFlux.cpp"
     "${ModulesDir}/IIceAlbedoModule.cpp"
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"

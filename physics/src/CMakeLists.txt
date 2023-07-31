@@ -11,7 +11,7 @@ set(IceAlbedoModuleSources
 set(IceOceanHeatFluxModuleSources
     "IceOceanHeatFluxModule.cpp"
     "BasicIceOceanHeatFlux.cpp"
-    
+    "ConfiguredIceOceanHeatFlux.cpp"
     )
 
 set(IceThermodynamicsModuleSources

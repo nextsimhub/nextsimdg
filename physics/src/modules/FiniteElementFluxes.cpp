@@ -13,6 +13,8 @@
 
 #include <memory>
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 static double stefanBoltzmannLaw(double temperature);
@@ -107,6 +109,8 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map
 
 void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 {
+    bool doPrint = (i == ModelArray::indexFromLocation(ModelArray::Type::H, {79,67}));
+    if (doPrint) std::cerr << "rho=" << rho_air[i] << " v=" << v_air[i] << " shw=" << sh_water[i] << " sha=" << sh_air[i] << std::endl;
     // Mass flux from open water (evaporation)
     evap[i] = dragOcean_q * rho_air[i] * v_air[i] * (sh_water[i] - sh_air[i]);
     // Momentum flux from open water (drag pressure)
@@ -114,15 +118,19 @@ void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 
     // Heat flux open water
     //   Latent heat from evaporation (and condensation)
+    if (doPrint) std::cerr << "evap=" << evap[i] << " sst=" << sst[i] << std::endl;
     Q_lh_ow[i] = evap[i] * latentHeatWater(sst[i]);
     //   Sensible heat
+    if (doPrint) std::cerr << "cp=" << cp_air[i] << " t_air=" << t_air[i] << std::endl;
     Q_sh_ow[i] = dragOcean_t * rho_air[i] * cp_air[i] * v_air[i] * (sst[i] - t_air[i]);
     //   Shortwave flux
     Q_sw_ow[i] = -sw_in[i] * (1 - m_oceanAlbedo);
     // Longwave flux
+    if (doPrint) std::cerr << "lw_in=" << lw_in[i] << std::endl;
     Q_lw_ow[i] = stefanBoltzmannLaw(sst[i]) - lw_in[i];
     // Total open water flux
     qow[i] = Q_lh_ow[i] + Q_sh_ow[i] + Q_sw_ow[i] + Q_lw_ow[i];
+    if (doPrint) std::cerr << "Qow = " << qow[i] << " Qlhow = " << Q_lh_ow[i] << " Qshow = " << Q_sh_ow[i] << " Qlwow = " << Q_lw_ow[i] << " Qswow = " << Q_sw_ow[i] << std::endl;
 }
 
 void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)

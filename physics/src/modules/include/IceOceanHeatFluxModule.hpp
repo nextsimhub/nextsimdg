@@ -16,6 +16,10 @@ namespace Module {
 
 template <> Module<Nextsim::IIceOceanHeatFlux>::map Module<Nextsim::IIceOceanHeatFlux>::functionMap;
 class IceOceanHeatFluxModule : public Module<Nextsim::IIceOceanHeatFlux> {
+    struct Constructor {
+        Constructor();
+    };
+    static Constructor ctor;
 };
 
 } /* namespace Module */

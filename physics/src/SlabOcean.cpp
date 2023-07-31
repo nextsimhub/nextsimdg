@@ -79,6 +79,8 @@ void SlabOcean::update(const TimestepTime& tst)
     qdw = (sstExt - sst) * cpml / relaxationTimeT;
     HField qioMean = qio * cice; // cice at start of TS, not updated
     HField qowMean = qow * (1 - cice); // 1- cice = open water fraction
+    ModelArray::MultiDim debugLoc({79,67});
+    std::cerr << "qdw=" << qdw[debugLoc] << " qioMean=" << qioMean[debugLoc] << " qowMean=" << qowMean[debugLoc] << " qio=" << qio[debugLoc] << std::endl;
     sstSlab = sst - dt * (qioMean + qowMean - qdw) / cpml;
     // Slab SSS update
     HField arealDensity = cpml / Water::cp; // density times depth, or cpml divided by cp

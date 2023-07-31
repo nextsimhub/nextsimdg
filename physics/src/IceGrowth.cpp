@@ -135,12 +135,19 @@ void IceGrowth::update(const TimestepTime& tsTime)
 
     // Copy the ice data from the prognostic fields to the modifiable fields.
     initializeThicknesses();
+    overElements(
+            std::bind(&IceGrowth::applyLimits, this, std::placeholders::_1, std::placeholders::_2),
+            tsTime);
+    std::cerr << "After thick init: hice = " << hice(79,67) << " cice = " << cice(79,67) << std::endl;
 
     iVertical->update(tsTime);
+    std::cerr << "After thermo: hice = " << hice(79,67) << " cice = " << cice(79,67) << std::endl;
     // new ice formation
     overElements(
         std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1, std::placeholders::_2),
         tsTime);
+
+    std::cerr << "qow final = " << qow(79,67) << std::endl;
 }
 
 void IceGrowth::initializeThicknesses()
@@ -169,6 +176,8 @@ void IceGrowth::initializeThicknessesElement(size_t i, const TimestepTime&)
 
 void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
 {
+    bool doPrint = (i == ModelArray::indexFromLocation(ModelArray::Type::H, {79,67}));
+    if (doPrint) std::cerr << "before new ice: qow = " << qow[i] << " hice = " << hice[i] << std::endl;
     // Flux cooling the ocean from open water
     // TODO Add assimilation fluxes here
     double coolingFlux = qow[i];
@@ -181,6 +190,7 @@ void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
     // Final temperature
     double t1 = t0 + deltaTml;
 
+    if (doPrint) std::cerr << "cooling flux = " << coolingFlux << " T1 = " << t1 << " Tf = " << tf0;
     // deal with cooling below the freezing point
     if (t1 < tf0) {
         // Heat lost cooling the mixed layer to freezing point
@@ -190,9 +200,12 @@ void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
 
         qow[i] = sensibleFlux;
         newice[i] = latentFlux * tst.step * (1 - cice[i]) / (Ice::Lf * Ice::rho);
+
+    if (doPrint) std::cerr << " qs = " << sensibleFlux << " ql = " << latentFlux << " qow = " << qow[i] << " newice = " << newice[i];
     } else {
         newice[i] = 0;
     }
+    if (doPrint) std::cerr << std::endl << "after new ice: qow = " << qow[i] << " hice = " << hice[i] << std::endl;
 }
 
 // Update thickness with concentration
@@ -203,6 +216,8 @@ static double updateThickness(double& thick, double newConc, double deltaC, doub
 
 void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 {
+    bool doPrint = (i == ModelArray::indexFromLocation(ModelArray::Type::H, {79,67}));
+    if (doPrint) std::cerr << "before ice spread: qow = " << qow[i] << " hice = " << hice[i] << std::endl;
     deltaCMelt[i] = 0;
     deltaCFreeze[i] = 0;
     iLateral->freeze(
@@ -224,15 +239,21 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
             updateThickness(hsnow[i], cice[i], deltaCIce[i], 0);
         }
     }
+    if (doPrint) std::cerr << "after ice spread: qow = " << qow[i] << " hice = " << hice[i] << std::endl;
+
 }
 
 void IceGrowth::applyLimits(size_t i, const TimestepTime& tstep)
 {
+    bool doPrint = (i == ModelArray::indexFromLocation(ModelArray::Type::H, {79,67}));
+    if (doPrint) std::cerr << "cice = " << cice[i] << " hice = " << hice[i] << std::endl;
     if ((0. < cice[i] && cice[i] < IceMinima::c()) || (0. < hice[i] && hice[i] < IceMinima::h())) {
         qow[i] += cice[i] * Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
         hice[i] = 0;
         cice[i] = 0;
         hsnow[i] = 0;
     }
+    if (doPrint) std::cerr << "qow after apply limits = " << qow[i] << std::endl;
+
 }
 } /* namespace Nextsim */
