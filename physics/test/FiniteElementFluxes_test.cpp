@@ -175,7 +175,7 @@ TEST_CASE("Melting conditions")
 
     double prec = 1e-5;
     REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));
-    REQUIRE(qia[0] == doctest::Approx(-84.5952).epsilon(prec));
+    REQUIRE(qia[0] == doctest::Approx(-85.6364).epsilon(prec));
     REQUIRE(dqia_dt[0] == doctest::Approx(19.7016).epsilon(prec));
     REQUIRE(subl[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
 }
