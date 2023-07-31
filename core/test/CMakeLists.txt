@@ -176,20 +176,34 @@ target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}
 target_link_libraries(testNewModelArrayRef PRIVATE Catch2::Catch2 Eigen3::Eigen)
 
 
+#XIOS Tests
+
+set(XIOS_INCLUDE_LIST 
+    "${CoreSrc}" 
+    "${netCDF_INCLUDE_DIR}" 
+    "${MPI_CXX_INCLUDE_PATH}" 
+    "${xios_INCLUDES}"
+    "${xios_EXTERNS}/blitz/"
+    "${xios_EXTERNS}/rapidxml/include"
+    )
+
+set(XIOS_LIBRARY_LIST 
+    Catch2::Catch2
+    Eigen3::Eigen 
+    Boost::program_options
+    Boost::log
+    "${NSDG_NetCDF_Library}"
+    MPI::MPI_CXX
+    xios
+    HDF5::HDF5
+    ifcore
+)
 
 add_executable(testXiosInit
     "XiosInit_test.cpp"
     "${CoreSrc}/Xios.cpp"
     "${CoreSrc}/Configurator.cpp"
 )
-
-target_include_directories(testXiosInit PRIVATE 
-    "${CoreSrc}"
-    "${netCDF_INCLUDE_DIR}"
-    "${MPI_CXX_INCLUDE_PATH}"
-    "${xios_INCLUDES}"
-    "${xios_EXTERNS}/blitz/"
-    "${xios_EXTERNS}/rapidxml/include")
-
+target_include_directories(testXiosInit PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}") 
 target_link_directories(testXiosInit PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
-target_link_libraries(testXiosInit PRIVATE Catch2::Catch2 Eigen3::Eigen Boost::program_options "${NSDG_NetCDF_Library}" MPI::MPI_CXX xios "-lhdf5_hl -lhdf5 -lifcore")
+target_link_libraries(testXiosInit PRIVATE "${XIOS_LIBRARY_LIST}")

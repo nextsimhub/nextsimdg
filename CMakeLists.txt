@@ -107,13 +107,15 @@ target_include_directories(nextsim PRIVATE
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
     "${MPI_CXX_INCLUDE_PATH}"
-    "${xios_INCLUDES}"
-    "${xios_EXTERNS}/blitz/"
-    "${xios_EXTERNS}/rapidxml/include"
     )
 target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
 target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen MPI::MPI_CXX)
 
 if (XIOS_FOUND)
     target_link_libraries(nextsim LINK_PUBLIC xios HDF5::HDF5 ifcore)
+    target_include_directories(nextsim PRIVATE     
+    "${xios_INCLUDES}"
+    "${xios_EXTERNS}/blitz/"
+    "${xios_EXTERNS}/rapidxml/include"
+    )
 endif()

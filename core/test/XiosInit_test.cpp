@@ -9,43 +9,84 @@
  * file serves as a set of unit tests, the system tests are elsewhere.
  */
 
-
-#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
+#include <mpi.h>
 #include "include/Xios.hpp"
+#include <iostream>
 
-TEST_CASE("Init XIOS, check default validation") 
-{
-    // Configure the XIOS server
-    Nextsim::Xios *xios;
-    xios = new Nextsim::Xios::Xios(NULL, NULL);
-    xios->initialise();
+#include "include/Configurator.hpp"
 
-    // Validate initialization
-    REQUIRE(xios->validateServerConfiguration());
+Nextsim::Xios *xios_handler;
 
-    // Validate initialization
-    REQUIRE(xios->validateCalendarConfiguration());
-    // Delete XIOS object
-    delete xios;   
+int main( int argc, char* argv[] ) {
+  // global setup...
+    Nextsim::Configurator::clearStreams();
+    std::stringstream config;
+    config << "[xios]" << std::endl
+            << "enable = true" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Nextsim::Configurator::addStream(std::move(pcstream));
+
+  MPI_Init(NULL, NULL);
+
+  xios_handler = new Nextsim::Xios::Xios(NULL, NULL);
+
+  int result = Catch::Session().run( argc, argv );
+
+  // global clean-up...
+  delete xios_handler;
+  MPI_Finalize();
+  return result;
 }
 
-// TEST_CASE("Init XIOS, check config validation") 
-// {
-//     // Configure the XIOS server
-//     Nextsim::Xios *xios;
-//     xios = new Nextsim::Xios::Xios(NULL, NULL);
-//     xios->initialise();
+TEST_CASE("XiosInitValidation") 
+{
+    //int argc;
+    //char** argv;
+    // Configure the XIOS server
+    //xios->initialise();
 
-//     std::string xios_timestep = xios->getCalendarTimestep();
-//     std::string config_timestep = "P0-0T0:10:0";
+    // Validate initialization
+    REQUIRE(xios_handler->validateServerConfiguration());
 
-//     REQUIRE(xios_timestep == config_timestep);
+    // Validate initialization
+    REQUIRE(xios_handler->validateCalendarConfiguration());
+    // Delete XIOS object
+    //delete xios;  
+}
 
-//     std::string xios_startDate = xios->getCalendarStart();
-//     std::string config_startDate = "2010-01-01T10:00:00Z";
+TEST_CASE("TestXiosDefaultConfigInitialisation") 
+{
+    // Configure the XIOS server
+    //xios = new Nextsim::Xios::Xios(NULL, NULL, true);
+    //xios->initialise();
 
-//     Nextsim::Xios::convertXiosDateStringToIsoDate(xios_startDate);
-//     // Delete XIOS object
-//     delete xios;   
-// }
+    //std::string xios_timestep = xios_handler->getCalendarTimestep().substr(0,2);
+    //TODO: Swap to full timestep format when translator has been written in xios.cpp
+    //std::string config_timestep = "P0-0T1:0:0";
+
+    //TODO: Figure out why this stopped working
+    //std::string config_timestep = "1h";
+    // std::cout << "REQUIRE TIMESTEP MATCH" << std::endl;
+    // REQUIRE(xios_timestep == config_timestep);
+    // std::cout << "TESTED TIMESTEP" << std::endl;
+
+    std::string xios_origin = xios_handler->getCalendarOrigin();
+    std::string config_origin = "1970-01-01T00:00:00Z";
+
+    std::cout << xios_origin << " " << config_origin << std::endl;
+    REQUIRE(xios_origin == config_origin);
+    std::cout << "TESTED ORIGIN" << std::endl;
+
+    std::string xios_start = xios_handler->getCalendarStart();
+    std::string config_start = "2023-03-03T17:11:00Z";
+
+    std::cout << xios_start << " " << config_start << std::endl;
+    REQUIRE(xios_start == config_start);
+    std::cout << "TESTED Start" << std::endl;
+
+
+    // Delete XIOS object
+    //delete xios;   
+}

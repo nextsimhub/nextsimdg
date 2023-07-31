@@ -9,6 +9,8 @@
  *     Calendar Properties must be set here or in iodef.xml before access
  * 
  */
+#if USE_XIOS
+
 #include "include/Xios.hpp"
 
 #include <iostream>
@@ -18,7 +20,7 @@
 #include <boost/format/group.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-bool DEBUG = true;
+bool DEBUG = false;
 
 namespace Nextsim {
 
@@ -28,27 +30,34 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 };
 
     Xios::Xios(int argc, char* argv[]) {
+        
         m_isConfigured = false;
         Xios::configure();
+
+        std::cout << m_isEnabled << std::endl;
+
         if (m_isEnabled)
         {
             //Temporary MPI setup until pre-requisite feature reaches develop branch
-            MPI_Init(&argc, &argv);
+            //MPI_Init(&argc, &argv);
+            std::cout << "INIT CONFIGURE ENTRY" << std::endl;
             Xios::configureServer();
             Xios::configureCalendar(m_timestep, m_start, m_origin);
             Xios::validateConfiguration();
             m_isConfigured = true;
+
+                    std::cout << "cxios_context_close_definition" << std::endl;
             cxios_context_close_definition();
+
+                    std::cout << "INIT CONFIGURE EXIT" << std::endl;
         }
+        std::cout << "XIOS INIT EXIT" << std::endl;
     }
     
     Xios::~Xios()
     {
         if (m_isConfigured) {
             Nextsim::Xios::finalise();
-
-            //Temporary MPI teardown until pre-requisite feature reaches develop branch
-            MPI_Finalize();
         }
         
     }
@@ -96,19 +105,26 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     // e.g. 2023-03-03T17:11:00Z or 2023-03-03 17:11:00
     void Xios::configureCalendar(std::string timestep, std::string start, std::string origin) 
     {
-        //PRepare XIOS and set member variable to xios calendar object
+        
+        std::cout << "CONFIGURE CALENDAR " << timestep << " " << start << " " << origin << std::endl;
+        //Prepare XIOS and set member variable to xios calendar object
         cxios_get_current_calendar_wrapper( &m_clientCalendar );
 
+        std::cout << "SET TIMESTEP " << std::endl;
         setCalendarTimestep(timestep);
 
+        std::cout << "IF " << std::endl;
         if (!origin.empty()) {
+            
+            std::cout << "SET ORIGIN " << std::endl;
             setCalendarOrigin(origin);
         }
 
+        std::cout << "SET START " << std::endl;
         setCalendarStart(start);
 
         //Report to std out
-        getCalendarConfiguration();
+        if (DEBUG) getCalendarConfiguration();
     }
 
     std::string Xios::getCalendarOrigin(bool isoFormat)
@@ -139,15 +155,31 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 
     std::string Xios::getCalendarTimestep()
     {
+        std::cout << "GET CALENDAR TIMESTEP ENTRY" << std::endl;
         const int str_size = 20;
         char dur_str[str_size]; 
 
+        std::cout << "cxios_get_calendar_wrapper_timestep" << std::endl;
         cxios_get_calendar_wrapper_timestep(m_clientCalendar, &dtime);
+        std::cout << "cxios_duration_convert_to_string" << std::endl;
         cxios_duration_convert_to_string(dtime, dur_str, str_size);
 
+
+        std::cout << "if (DEBUG) printCXiosDuration(dtime);" << std::endl;
         if (DEBUG) printCXiosDuration(dtime);
 
+        std::cout << "GET CALENDAR TIMESTEP EXIT" << std::endl;
         return dur_str;
+
+        //TODO: The above bugs sometimes, I think the bottom might be valid too.
+        // Need to figure out where I've messed up.
+
+        // cxios_get_current_calendar_wrapper( &m_clientCalendar );
+        // cxios_duration dtime;
+        // cxios_get_calendar_wrapper_timestep( m_clientCalendar, &dtime );
+        // float test2 = dtime.timestep;
+        // return "test";
+
     }
 
     void Xios::setCalendarTimestep(std::string timestep_str) 
@@ -339,9 +371,9 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 
         }
 
-        std::cout << "Duration Year: " << dduration.year << std::endl; 
-        std::cout << "Duration Month: " << dduration.month << std::endl; 
-        std::cout << "Duration Day: " << dduration.day << std::endl; 
+        //std::cout << "Duration Year: " << dduration.year << std::endl; 
+        //std::cout << "Duration Month: " << dduration.month << std::endl; 
+        //std::cout << "Duration Day: " << dduration.day << std::endl; 
 
         //TODO: This needs testing like............. 
         return dduration;
@@ -417,3 +449,5 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
     }
 
 }
+
+#endif
