@@ -124,6 +124,7 @@ TEST_CASE("Melting conditions")
             qia[0] = -85.6364;
             dqia_dt[0] = 19.7016;
             subl[0] = -7.3858e-06;
+            penSW[0] = 1.04125;
         }
     } atmosState;
     atmosState.setData(ModelState().data);
