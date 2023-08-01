@@ -21,6 +21,7 @@ public:
         : qow(getSharedArray())
         , subl(getSharedArray())
         , qia(getSharedArray())
+        , penSW(getSharedArray())
         , dqia_dt(getSharedArray())
     {
     }
@@ -50,6 +51,7 @@ protected:
     ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW> qow;
     ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RW> subl;
     ModelArrayRef<SharedArray::Q_IA, MARBackingStore, RW> qia;
+    ModelArrayRef<SharedArray::Q_PEN_SW, MARBackingStore, RW> penSW;
     ModelArrayRef<SharedArray::DQIA_DT, MARBackingStore, RW> dqia_dt;
 };
 }
