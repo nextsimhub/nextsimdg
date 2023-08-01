@@ -29,6 +29,6 @@ std::tuple<double, double> SMU2IceAlbedo::albedo(
         albedo = ICE_ALBEDO;
         penSW = 0.;
     }
-    return std::make_tuple(albedo, penSW);
+    return {albedo, penSW};
 }
 }
