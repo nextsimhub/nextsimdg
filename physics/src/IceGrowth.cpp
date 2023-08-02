@@ -253,6 +253,8 @@ void IceGrowth::applyLimits(size_t i, const TimestepTime& tstep)
         cice[i] = 0;
         hsnow[i] = 0;
     }
+    if (hice[i] > 6.371e6)
+        std::cerr << "Suspected polychoronya at " << i << std::endl;
     if (doPrint) std::cerr << "qow after apply limits = " << qow[i] << std::endl;
 
 }
