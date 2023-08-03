@@ -87,13 +87,85 @@ foreach(compo ${CodeComponents})
     add_subdirectory("${compo}")
 endforeach()
 
-# Link the model
-add_executable(nextsim "${NextsimSources}")
+set(sources
+"./core/src/Logged.cpp"
+"./core/src/Timer.cpp"
+"./core/src/Model.cpp"
+"./core/src/Iterator.cpp"
+"./core/src/Configurator.cpp"
+"./core/src/ConfigurationHelpPrinter.cpp"
+"./core/src/ConfiguredModule.cpp"
+"./core/src/CommandLineParser.cpp"
+"./core/src/CommonRestartMetadata.cpp"
+"./core/src/DevGridIO.cpp"
+"./core/src/RectGridIO.cpp"
+"./core/src/ParaGridIO.cpp"
+"./core/src/DevStep.cpp"
+"./core/src/StructureFactory.cpp"
+"./core/src/MissingData.cpp"
+"./core/src/ModelArray.cpp"
+"./core/src/ModelComponent.cpp"
+"./core/src/ModelMetadata.cpp"
+"./core/src/NetcdfMetadataConfiguration.cpp"
+"./core/src/NZLevels.cpp"
+"./core/src/PrognosticData.cpp"
+"./core/src/Time.cpp"
+"./core/src/discontinuousgalerkin/ModelArrayDetails.cpp"
+"./core/src/modules/DevGrid.cpp"
+"./core/src/modules/RectangularGrid.cpp"
+"./core/src/modules/ParametricGrid.cpp"
+"./core/src/modules/IStructureModule.cpp"
+"./core/src/modules/IFreezingPointModule.cpp"
+"./core/src/modules/DiagnosticOutputModule.cpp"
+"./core/src/modules/SimpleOutput.cpp"
+"./core/src/modules/ConfigOutput.cpp"
+"./physics/src/IceGrowth.cpp"
+"./physics/src/IceMinima.cpp"
+"./physics/src/SlabOcean.cpp"
+"./physics/src/modules/IIceAlbedoModule.cpp"
+"./physics/src/modules/CCSMIceAlbedo.cpp"
+"./physics/src/modules/SMUIceAlbedo.cpp"
+"./physics/src/modules/SMU2IceAlbedo.cpp"
+"./physics/src/modules/IceOceanHeatFluxModule.cpp"
+"./physics/src/modules/BasicIceOceanHeatFlux.cpp"
+"./physics/src/modules/IceThermodynamicsModule.cpp"
+"./physics/src/modules/ThermoIce0.cpp"
+"./physics/src/modules/ThermoWinton.cpp"
+"./physics/src/modules/LateralIceSpreadModule.cpp"
+"./physics/src/modules/HiblerSpread.cpp"
+"./physics/src/modules/FluxCalculationModule.cpp"
+"./physics/src/modules/FiniteElementFluxes.cpp"
+"./physics/src/modules/FiniteElementSpecHum.cpp"
+"./physics/src/modules/AtmosphereBoundaryModule.cpp"
+"./physics/src/modules/ConstantAtmosphereBoundary.cpp"
+"./physics/src/modules/ConfiguredAtmosphere.cpp"
+"./physics/src/modules/FluxConfiguredAtmosphere.cpp"
+"./physics/src/modules/OceanBoundaryModule.cpp"
+"./physics/src/modules/ConstantOceanBoundary.cpp"
+"./physics/src/modules/ConfiguredOcean.cpp"
+"./physics/src/modules/FluxConfiguredOcean.cpp"
+)
 
-target_include_directories(nextsim PRIVATE
+add_library(nextsimlib SHARED ${sources})
+target_include_directories(nextsimlib PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
     )
-target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(nextsimlib LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+
+
+# Link the model
+add_executable(nextsim ./core/src/main.cpp)
+# target_link_libraries(nextsim nextsimlib)
+
+# add_executable(nextsim "${NextsimSources}")
+
+target_include_directories(nextsim PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${NextsimIncludeDirs}"
+    # "${netCDF_INCLUDE_DIR}"
+    )
+# target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(nextsim LINK_PUBLIC nextsimlib)
