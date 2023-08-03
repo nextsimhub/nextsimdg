@@ -140,6 +140,10 @@ void IceGrowth::update(const TimestepTime& tsTime)
     // Copy the ice data from the prognostic fields to the modifiable fields.
     initializeThicknesses();
 
+    // The snowMelt array is not currently filled with data, but it used elsewhere
+    // FIXME calculate a true value for snowMelt
+    snowMelt = 0;
+
     if (doThermo) {
         iVertical->update(tsTime);
         // new ice formation
