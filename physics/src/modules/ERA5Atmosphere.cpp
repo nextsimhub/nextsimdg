@@ -67,6 +67,7 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     uwind = state.data.at("u");
     vwind = state.data.at("v");
     snow = 0; // FIXME get snow data
+    emp = 0; // FIXME get E - P data
 
     fluxImpl->update(tst);
 }
