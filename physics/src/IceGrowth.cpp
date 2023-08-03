@@ -140,6 +140,10 @@ void IceGrowth::update(const TimestepTime& tsTime)
             tsTime);
     std::cerr << "After thick init: hice = " << hice(79,67) << " cice = " << cice(79,67) << std::endl;
 
+    // The snowMelt array is not currently filled with data, but it used elsewhere
+    // FIXME calculate a true value for snowMelt
+    snowMelt = 0;
+
     iVertical->update(tsTime);
     std::cerr << "After thermo: hice = " << hice(79,67) << " cice = " << cice(79,67) << std::endl;
     // new ice formation
