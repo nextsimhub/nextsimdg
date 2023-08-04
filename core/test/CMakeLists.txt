@@ -100,7 +100,7 @@ add_executable(testRectGrid
 
 target_include_directories(testRectGrid PRIVATE ${INCLUDE_DIRS})
 target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testRectGrid PRIVATE Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_libraries(testRectGrid PRIVATE nextsimlib Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testParaGrid
     "ParaGrid_test.cpp"
@@ -108,7 +108,7 @@ add_executable(testParaGrid
 
 target_include_directories(testParaGrid PRIVATE ${INCLUDE_DIRS})
 target_link_directories(testParaGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testParaGrid PRIVATE Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_libraries(testParaGrid PRIVATE nextsimlib Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
@@ -130,8 +130,13 @@ add_executable(testNewModelArrayRef
 target_include_directories(testNewModelArrayRef PRIVATE ${INCLUDE_DIRS})
 target_link_libraries(testNewModelArrayRef PRIVATE nextsimlib doctest::doctest)
 
+set(PHYSICS_INCLUDE_DIRS
+    "../../physics/src"
+    "../../physics/src/modules"
+    )
+
 add_executable(testPrognosticData
     "PrognosticData_test.cpp"
     )
-target_include_directories(testPrognosticData PRIVATE ${INCLUDE_DIRS})
+target_include_directories(testPrognosticData PRIVATE ${INCLUDE_DIRS} ${PHYSICS_INCLUDE_DIRS})
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
