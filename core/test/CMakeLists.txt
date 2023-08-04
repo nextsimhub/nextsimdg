@@ -84,6 +84,14 @@ target_include_directories(testDevGrid PRIVATE ${INCLUDE_DIRS})
 target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testDevGrid PRIVATE nextsimlib doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
+add_executable(testParaGrid
+    "ParaGrid_test.cpp"
+    )
+
+target_include_directories(testParaGrid PRIVATE ${INCLUDE_DIRS})
+target_link_directories(testParaGrid PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testParaGrid PRIVATE nextsimlib Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+
 set(INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}
     "../src/include"
@@ -101,14 +109,6 @@ add_executable(testRectGrid
 target_include_directories(testRectGrid PRIVATE ${INCLUDE_DIRS})
 target_link_directories(testRectGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testRectGrid PRIVATE nextsimlib Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
-
-add_executable(testParaGrid
-    "ParaGrid_test.cpp"
-    )
-
-target_include_directories(testParaGrid PRIVATE ${INCLUDE_DIRS})
-target_link_directories(testParaGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testParaGrid PRIVATE nextsimlib Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
