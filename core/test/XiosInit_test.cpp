@@ -20,7 +20,7 @@
 Nextsim::Xios *xios_handler;
 
 int main( int argc, char* argv[] ) {
-  // global setup...
+    // Enable xios in the 'config'
     Nextsim::Configurator::clearStreams();
     std::stringstream config;
     config << "[xios]" << std::endl
@@ -28,40 +28,33 @@ int main( int argc, char* argv[] ) {
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Nextsim::Configurator::addStream(std::move(pcstream));
 
-  MPI_Init(NULL, NULL);
+    // (Temporary) MPI Init - Required by XIOS
+    // TODO: Remove this MPI Init
+    MPI_Init(NULL, NULL);
 
-  xios_handler = new Nextsim::Xios::Xios(NULL, NULL);
+    // XIOS Class Init --- Initialises server. Unknown error if initialised per test.
+    // TODO: Investigate and find workaround
+    xios_handler = new Nextsim::Xios::Xios(NULL, NULL);
 
-  int result = Catch::Session().run( argc, argv );
+    int result = Catch::Session().run( argc, argv );
 
-  // global clean-up...
-  delete xios_handler;
-  MPI_Finalize();
-  return result;
+    // global clean-up...
+    delete xios_handler;
+    MPI_Finalize();
+    return result;
 }
 
 TEST_CASE("XiosInitValidation") 
 {
-    //int argc;
-    //char** argv;
-    // Configure the XIOS server
-    //xios->initialise();
-
     // Validate initialization
     REQUIRE(xios_handler->validateServerConfiguration());
 
     // Validate initialization
     REQUIRE(xios_handler->validateCalendarConfiguration());
-    // Delete XIOS object
-    //delete xios;  
 }
 
 TEST_CASE("TestXiosDefaultConfigInitialisation") 
 {
-    // Configure the XIOS server
-    //xios = new Nextsim::Xios::Xios(NULL, NULL, true);
-    //xios->initialise();
-
     //std::string xios_timestep = xios_handler->getCalendarTimestep().substr(0,2);
     //TODO: Swap to full timestep format when translator has been written in xios.cpp
     //std::string config_timestep = "P0-0T1:0:0";
@@ -85,8 +78,4 @@ TEST_CASE("TestXiosDefaultConfigInitialisation")
     std::cout << xios_start << " " << config_start << std::endl;
     REQUIRE(xios_start == config_start);
     std::cout << "TESTED Start" << std::endl;
-
-
-    // Delete XIOS object
-    //delete xios;   
 }

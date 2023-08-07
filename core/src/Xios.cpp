@@ -38,8 +38,6 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
 
         if (m_isEnabled)
         {
-            //Temporary MPI setup until pre-requisite feature reaches develop branch
-            //MPI_Init(&argc, &argv);
             std::cout << "INIT CONFIGURE ENTRY" << std::endl;
             Xios::configureServer();
             Xios::configureCalendar(m_timestep, m_start, m_origin);
@@ -247,7 +245,7 @@ const std::map<int, std::string> Configured<Xios>::keyMap = {
             % boost::io::group(std::setw(2), std::setfill('0'), datetime.second);
             return fmt.str();
         } else {
-            if (DEBUG) std::cout << "ELSE" << std::endl;
+            if (DEBUG) std::cou t << "ELSE" << std::endl;
             cxios_date_convert_to_string(datetime, datetime_str, str_size);
         }
         return datetime_str;
