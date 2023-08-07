@@ -139,6 +139,9 @@ void IceGrowth::update(const TimestepTime& tsTime)
 {
     // Copy the ice data from the prognostic fields to the modifiable fields.
     initializeThicknesses();
+    overElements(
+        std::bind(&IceGrowth::applyLimits, this, std::placeholders::_1, std::placeholders::_2),
+        tsTime);
 
     if (doThermo) {
         iVertical->update(tsTime);
