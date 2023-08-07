@@ -22,11 +22,13 @@ public:
     }
     virtual ~BasicIceOceanHeatFlux() = default;
 
+    std::string getName() const override { return "BasicIceOceanHeatFlux"; }
+
     void update(const TimestepTime&) override;
     void updateElement(size_t i, const TimestepTime&);
+
 protected:
     ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> mlBulkCp;
-
 };
 
 } /* namespace Nextsim */
