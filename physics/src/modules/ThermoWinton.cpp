@@ -161,7 +161,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     // 4 cases
     const double& subli = subl[i];
     double deltaSnow = subli * dt / Ice::rhoSnow;
-    double deltaIce1 = (subli * dt - hs * Ice::rhoSnow) / Ice::rho;
+    double deltaIce1 = (deltaSnow - hs) * Ice::rhoSnow / Ice::rho;
     double deltaIce2 = deltaIce1 - h1;
     if (deltaSnow <= hs) {
         // sublimation is less than or equal to the mass of snow
