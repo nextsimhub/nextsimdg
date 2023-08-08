@@ -8,7 +8,19 @@
 #ifndef MONTHLYCUBICBSPLINE_HPP
 #define MONTHLYCUBICBSPLINE_HPP
 
+#include <boost/version.hpp>
+
+#if BOOST_VERSION >= 107200
+#define NEW_SPLINES 1
+#else
+#define NEW_SPLINES 0
+#endif
+
+#if NEW_SPLINES
 #include <boost/math/interpolators/cardinal_cubic_b_spline.hpp>
+#else
+#include <boost/math/interpolators/cubic_b_spline.hpp>
+#endif
 
 namespace Nextsim {
 /*!
@@ -19,6 +31,12 @@ namespace Nextsim {
 class monthlyCubicBSpline {
 
 public:
+
+#if NEW_SPLINES
+    typedef boost::math::interpolators::cardinal_cubic_b_spline<double> bSpline;
+#else
+    typedef boost::math::cubic_b_spline<double> bSpline;
+#endif
     /*!
      * @brief The constructor for a monthlyCubicBSpline object.
      * @param f A vector of length 12 containing the monthly values for the spline
@@ -39,7 +57,7 @@ public:
         const double t0 = h / 2. - ghostWidth * h;
 
         // Use boost!
-        m_spline = std::make_shared<boost::math::interpolators::cardinal_cubic_b_spline<double>>(
+        m_spline = std::make_shared<bSpline>(
             y.begin(), y.end(), t0, h);
     };
 
@@ -63,7 +81,7 @@ public:
     };
 
 private:
-    std::shared_ptr<boost::math::interpolators::cardinal_cubic_b_spline<double>> m_spline;
+    std::shared_ptr<bSpline> m_spline;
 };
 }
 
