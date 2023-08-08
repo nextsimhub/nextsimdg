@@ -40,7 +40,8 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
             "all    print all help messages associated with all available modules.";
     opt.add_options()
             ("help,h", "print help message")
-            (helpConfigStr, boost::program_options::value<std::string>(), helpConfigHelp.c_str())
+            (helpConfigStr, boost::program_options::value<std::string>()
+                    ->implicit_value(ConfigurationHelpPrinter::allStr), helpConfigHelp.c_str())
             (oneConfigFile, boost::program_options::value<std::string>(),
                     "specify a configuration file")
             (manyConfigFiles,
@@ -58,12 +59,11 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
 
     // Print help and exit
     if (m_arguments.count("help") || m_arguments.empty()) {
-        std::cerr << opt << std::endl;
         std::exit(EXIT_SUCCESS);
     }
 
     m_configHelp.clear();
-
+    std::cerr << "cleared m_configHelp" << std::endl;
     // Store the config file names in order. The variables_map does not.
     for (auto& lionOption : parsed.options) {
         if (lionOption.string_key == oneConfigFile || lionOption.string_key == manyConfigFiles) {
@@ -71,7 +71,8 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
                 m_configFilenames.push_back(stringValue);
             }
         } else if (lionOption.string_key == helpConfigStr) {
-            m_configHelp = lionOption.value.front();
+            m_configHelp = (lionOption.value.empty()) ? ConfigurationHelpPrinter::allStr
+                                                      : lionOption.value.front();
         }
     }
 }
