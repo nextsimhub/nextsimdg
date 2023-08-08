@@ -32,30 +32,31 @@ Getting Help
 Built-in Help
 -------------
 
-`--help`, `-h`
+``--help``, ``-h``
     The Unix standard  help arguments will print a message to the terminal listing the command line options.
     Currently this reads::
 
-    neXtSIM_DG command line options::
-      -h [ --help ]         print help message
-      --help-config arg     arg = [avail | moduleName | all]
-                            print help associated with one or more modules.
-                            avail    list all available module names.
-                            moduleName    print the help message associated with 
-                            the given module.
-                            all    print all help messages associated with all 
-                            available modules.
-      --config-file arg     specify a configuration file
-      --config-files arg    specify a list of configuration files
+        neXtSIM_DG command line options::
+          -h [ --help ]         print help message
+          --help-config arg     arg = [avail | moduleName | all]
+                                print help associated with one or more modules.
+                                avail    list all available module names.
+                                moduleName    print the help message associated with 
+                                the given module.
+                                all    print all help messages associated with all 
+                                available modules.
+          --config-file arg     specify a configuration file
+          --config-files arg    specify a list of configuration files
 
-`--help-config`
+``--help-config``
     This argument will display helpful information about the possible configuration of the model. There are three values that the argument can take:
-    - `avail`
+
+- ``avail``
         This lists the names of all the available options.
-    - *moduleName*
+- *moduleName*
         Given the name of a module, print all relevant configuration options,
         along with some text describing the option, the range of permitted
         values and the unconfigured default value.
-    - `all`
+- ``all``
         List the information described above for all `avail`able configuration
         options.
