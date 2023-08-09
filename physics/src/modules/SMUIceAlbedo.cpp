@@ -25,6 +25,6 @@ std::tuple<double, double> SMUIceAlbedo::albedo(double temperature, double snowT
         albedo = ICE_ALBEDO;
         penSW = i0;
     }
-    return std::make_tuple(albedo, penSW);
+    return {albedo, penSW};
 }
 }

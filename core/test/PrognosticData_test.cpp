@@ -104,4 +104,5 @@ TEST_CASE("PrognosticData call order test")
     REQUIRE(qow[0] != doctest::Approx(-92.1569).epsilon(prec));
 }
 TEST_SUITE_END();
+
 } /* namespace Nextsim */
