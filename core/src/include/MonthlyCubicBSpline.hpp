@@ -31,7 +31,6 @@ namespace Nextsim {
 class monthlyCubicBSpline {
 
 public:
-
 #if NEW_SPLINES
     typedef boost::math::interpolators::cardinal_cubic_b_spline<double> bSpline;
 #else
@@ -57,8 +56,7 @@ public:
         const double t0 = h / 2. - ghostWidth * h;
 
         // Use boost!
-        m_spline = std::make_shared<bSpline>(
-            y.begin(), y.end(), t0, h);
+        m_spline = std::make_shared<bSpline>(y.begin(), y.end(), t0, h);
     };
 
     /*!
