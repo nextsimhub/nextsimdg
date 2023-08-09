@@ -74,8 +74,6 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
-        brew extract --version=2.13.9 catch2 homebrew/cask
-        brew install catch2@2.13.9
     - name: make
       run: |
         cmake .
