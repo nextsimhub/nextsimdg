@@ -17,13 +17,18 @@ namespace Nextsim {
 const double ICE_ALBEDO = 0.64;
 const double SNOW_ALBEDO = 0.85;
 
-double SMU2IceAlbedo::albedo(double temperature, double snowThickness)
+std::tuple<double, double> SMU2IceAlbedo::albedo(
+    double temperature, double snowThickness, double i0)
 {
+    double albedo, penSW;
     if (snowThickness > 0.) {
-        return std::fmin(
-            SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.2);
+        albedo
+            = std::fmin(SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.2);
+        penSW = i0;
     } else {
-        return ICE_ALBEDO + 0.4 * (1 - ICE_ALBEDO) * 0.17;// FIXME NextsimPhysics::i0();
+        albedo = ICE_ALBEDO;
+        penSW = 0.;
     }
+    return {albedo, penSW};
 }
 }

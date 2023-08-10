@@ -145,7 +145,6 @@ add_executable(testModelComponent
     "ModelComponent_test.cpp"
     "${CoreSrc}/ModelComponent.cpp"
     "${CoreSrc}/MissingData.cpp"
-    "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ModelArray.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
 )
@@ -185,6 +184,8 @@ add_executable(testPrognosticData
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
+    "${PhysSourceDir}/IceMinima.cpp"
+    "${PhysSourceDir}/SlabOcean.cpp"
     "${PhysModulesDir}/FiniteElementFluxes.cpp"
     "${PhysModulesDir}/FiniteElementSpecHum.cpp"
     "${PhysModulesDir}/FluxCalculationModule.cpp"

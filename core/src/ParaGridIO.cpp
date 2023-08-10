@@ -168,7 +168,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
                 ModelArray::Type type = entry.second.getType();
                 std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
                 netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
                 var.putVar(entry.second.getData());
             }
         }
@@ -315,7 +315,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
                     ModelArray::Type type = entry.second.getType();
                     std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
                     netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-                    var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+                    var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
                     var.putVar(indexArrays.at(type), extentArrays.at(type), entry.second.getData());
                 } else {
                     // Write the mask data
