@@ -1,8 +1,9 @@
 /*
  * @file IIceAlbedo.hpp
  *
- * @date Sep 28, 2021
+ * @date Aug 10, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Örn Ólason <einar.olason@nersc.no>
  */
 
 #ifndef IICEALBEDO_HPP
