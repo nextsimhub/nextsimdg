@@ -12,6 +12,7 @@
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/IceMinima.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -82,20 +83,15 @@ private:
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
-    ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore>
-        hIceCell; // Timestep initial cell averaged ice thickness, m
-    ModelArrayRef<ProtectedArray::H_SNOW, MARConstBackingStore>
-        hSnowCell; // Timestep initial cell averaged snow thickness, m
-    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore>
-        cice0; // Timestep initial ice concentration
-    ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW>
-        qow; // open water heat flux, from FluxCalculation
-    ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore>
+    ModelArrayRef<Protected::H_ICE> hIceCell; // Timestep initial cell averaged ice thickness, m
+    ModelArrayRef<Protected::H_SNOW> hSnowCell; // Timestep initial cell averaged snow thickness, m
+    ModelArrayRef<Protected::C_ICE> cice0; // Timestep initial ice concentration
+    ModelArrayRef<Shared::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
+    ModelArrayRef<Protected::ML_BULK_CP>
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst; // sea surface temperature, ˚C
-    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf; // ocean freezing point, ˚C
-    ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore>
-        deltaHi; // New ice thickness this timestep, m
+    ModelArrayRef<Protected::SST> sst; // sea surface temperature, ˚C
+    ModelArrayRef<Protected::TF> tf; // ocean freezing point, ˚C
+    ModelArrayRef<Shared::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
 
     void newIceFormation(size_t i, const TimestepTime&);
     void lateralIceSpread(size_t i, const TimestepTime&);

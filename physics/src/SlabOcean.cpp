@@ -33,10 +33,10 @@ void SlabOcean::configure()
     relaxationTimeT = Configured::getConfiguration(keyMap.at(TIMET_KEY), defaultRelaxationTime);
     relaxationTimeS = Configured::getConfiguration(keyMap.at(TIMES_KEY), defaultRelaxationTime);
 
-    registerProtectedArray(ProtectedArray::SLAB_QDW, &qdw);
-    registerProtectedArray(ProtectedArray::SLAB_FDW, &fdw);
-    registerProtectedArray(ProtectedArray::SLAB_SST, &sstSlab);
-    registerProtectedArray(ProtectedArray::SLAB_SSS, &sssSlab);
+    getStore().registerArray(Protected::SLAB_QDW, &qdw, RO);
+    getStore().registerArray(Protected::SLAB_FDW, &fdw, RO);
+    getStore().registerArray(Protected::SLAB_SST, &sstSlab, RO);
+    getStore().registerArray(Protected::SLAB_SSS, &sssSlab, RO);
 }
 
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)

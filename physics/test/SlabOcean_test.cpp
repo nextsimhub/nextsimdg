@@ -33,68 +33,62 @@ TEST_CASE("Test Qdw")
     // Supply the data to the slab ocean
     HField sss(ModelArray::Type::H);
     sss = 32.;
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::SSS, &sss);
+    ModelComponent::getStore().registerArray(Protected::SSS, &sss, RO);
 
     HField sst(ModelArray::Type::H);
     sst = LinearFreezing()(sss[0]);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::SST, &sst);
+    ModelComponent::getStore().registerArray(Protected::SST, &sst, RO);
 
     HField mld(ModelArray::Type::H);
     mld = 6.48;
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::MLD, &mld);
+    ModelComponent::getStore().registerArray(Protected::MLD, &mld, RO);
 
     HField cpml(ModelArray::Type::H);
     cpml = Water::cp * Water::rho * mld;
-    ModelComponent::registerExternalProtectedArray(
-        ModelComponent::ProtectedArray::ML_BULK_CP, &cpml);
+    ModelComponent::getStore().registerArray(Protected::ML_BULK_CP, &cpml);
 
     HField cice(ModelArray::Type::H);
     double cice0 = 0.5;
     cice = cice0;
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &cice);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
 
     HField data0(ModelArray::Type::H);
     data0 = 0;
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IO, &data0);
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &data0);
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DELTA_HICE, &data0);
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::NEW_ICE, &data0);
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::HSNOW_MELT, &data0);
-    ModelComponent::registerExternalProtectedArray(
-        ModelComponent::ProtectedArray::EVAP_MINUS_PRECIP, &data0);
+    ModelComponent::getStore().registerArray(Shared::Q_IO, &data0);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &data0);
+    ModelComponent::getStore().registerArray(Shared::DELTA_HICE, &data0);
+    ModelComponent::getStore().registerArray(Shared::NEW_ICE, &data0);
+    ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &data0);
+    ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &data0, RO);
 
     // External SS* data
     HField sssExt(ModelArray::Type::H);
     sssExt = sss;
-    ModelComponent::registerExternalProtectedArray(
-        ModelComponent::ProtectedArray::EXT_SSS, &sssExt);
+    ModelComponent::getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
     HField sstExt(ModelArray::Type::H);
     sstExt = sst + tOffset;
-    ModelComponent::registerExternalProtectedArray(
-        ModelComponent::ProtectedArray::EXT_SST, &sstExt);
+    ModelComponent::getStore().registerArray(Protected::EXT_SST, &sstExt);
 
     SlabOcean slabOcean;
     slabOcean.configure();
     slabOcean.update(tst);
 
-    ModelArrayRef<ModelComponent::ProtectedArray::SLAB_QDW, MARConstBackingStore> qdw(
-        ModelComponent::getProtectedArray());
+    ModelArrayRef<Protected::SLAB_QDW> qdw(ModelComponent::getStore());
     double prec = 1e-8;
     REQUIRE(qdw[0]
         == doctest::Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
-    ModelArrayRef<ModelComponent::ProtectedArray::SLAB_SST, MARConstBackingStore> sstSlab(
-        ModelComponent::getProtectedArray());
+    ModelArrayRef<Protected::SLAB_SST> sstSlab(ModelComponent::getStore());
     REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
     REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
 
     HField qow(ModelArray::Type::H);
     qow[0] = 15;
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow);
     HField qio(ModelArray::Type::H);
     qio[0] = -17.5;
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IO, &qio);
+    ModelComponent::getStore().registerArray(Shared::Q_IO, &qio);
     // Should not need to update anything else, as the slabOcean update only changes SLAB_SST
     slabOcean.update(tst);
     REQUIRE(sstSlab[0]
@@ -116,49 +110,44 @@ TEST_CASE("Test Fdw")
     // Supply the data to the slab ocean
     HField sss(ModelArray::Type::H);
     sss = 32.;
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::SSS, &sss);
+    ModelComponent::getStore().registerArray(Protected::SSS, &sss);
 
     HField sst(ModelArray::Type::H);
     sst = LinearFreezing()(sss[0]);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::SST, &sst);
+    ModelComponent::getStore().registerArray(Protected::SST, &sst);
 
     HField mld(ModelArray::Type::H);
     mld = 6.48;
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::MLD, &mld);
+    ModelComponent::getStore().registerArray(Protected::MLD, &mld);
 
     HField cpml(ModelArray::Type::H);
     cpml = Water::cp * Water::rho * mld;
-    ModelComponent::registerExternalProtectedArray(
-        ModelComponent::ProtectedArray::ML_BULK_CP, &cpml);
+    ModelComponent::getStore().registerArray(Protected::ML_BULK_CP, &cpml);
 
     HField data0(ModelArray::Type::H);
     data0 = 0;
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IO, &data0);
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &data0);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &data0);
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DELTA_HICE, &data0);
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::NEW_ICE, &data0);
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::HSNOW_MELT, &data0);
-    ModelComponent::registerExternalProtectedArray(
-        ModelComponent::ProtectedArray::EVAP_MINUS_PRECIP, &data0);
+    ModelComponent::getStore().registerArray(Shared::Q_IO, &data0);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &data0);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &data0, RO);
+    ModelComponent::getStore().registerArray(Shared::DELTA_HICE, &data0);
+    ModelComponent::getStore().registerArray(Shared::NEW_ICE, &data0);
+    ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &data0);
+    ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &data0, RO);
 
     // External SS* data
     HField sssExt(ModelArray::Type::H);
     sssExt = sss + sOffset;
-    ModelComponent::registerExternalProtectedArray(
-        ModelComponent::ProtectedArray::EXT_SSS, &sssExt);
+    ModelComponent::getStore().registerArray(Protected::EXT_SSS, &sssExt);
 
     HField sstExt(ModelArray::Type::H);
     sstExt = sst;
-    ModelComponent::registerExternalProtectedArray(
-        ModelComponent::ProtectedArray::EXT_SST, &sstExt);
+    ModelComponent::getStore().registerArray(Protected::EXT_SST, &sstExt);
 
     SlabOcean slabOcean;
     slabOcean.configure();
     slabOcean.update(tst);
 
-    ModelArrayRef<ModelComponent::ProtectedArray::SLAB_FDW, MARConstBackingStore> fdw(
-        ModelComponent::getProtectedArray());
+    ModelArrayRef<Protected::SLAB_FDW> fdw(ModelComponent::getStore());
     double prec = 1e-6;
     REQUIRE(fdw[0]
         == doctest::Approx(
@@ -171,8 +160,7 @@ TEST_CASE("Test Fdw")
     double oldFdw = delS * mld[0] * Water::rho / (timeS * sss[0] - ddt * delS);
     REQUIRE(fdw[0] != doctest::Approx(oldFdw).epsilon(prec * 1e-6));
 
-    ModelArrayRef<ModelComponent::ProtectedArray::SLAB_SSS, MARConstBackingStore> sssSlab(
-        ModelComponent::getProtectedArray());
+    ModelArrayRef<Protected::SLAB_SSS> sssSlab(ModelComponent::getStore());
     REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
     REQUIRE(sssSlab[0]
         == doctest::Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
@@ -180,7 +168,7 @@ TEST_CASE("Test Fdw")
 
     HField snowMelt(ModelArray::Type::H);
     snowMelt = -1e-4;
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::HSNOW_MELT, &snowMelt);
+    ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &snowMelt);
     slabOcean.update(tst);
     double snowMeltVol = snowMelt[0] * Ice::rhoSnow;
     REQUIRE(sssSlab[0]

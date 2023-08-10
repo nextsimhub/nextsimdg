@@ -74,8 +74,8 @@ void ConfiguredOcean::configure()
         Configured<ConfiguredOcean>::keyMap.at(CURRENTV_KEY), v0);
 
     // set the external SS* arrays as part of configuration, as opposed to at construction as normal
-    registerProtectedArray(ProtectedArray::EXT_SST, &sstExt);
-    registerProtectedArray(ProtectedArray::EXT_SSS, &sssExt);
+    getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
+    getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
     slabOcean.configure();
 
@@ -109,7 +109,7 @@ void ConfiguredOcean::updateBefore(const TimestepTime& tst)
 void ConfiguredOcean::updateAfter(const TimestepTime& tst)
 {
     slabOcean.update(tst);
-    sst = *getProtectedArray()[static_cast<size_t>(ProtectedArray::SLAB_SST)];
-    sss = *getProtectedArray()[static_cast<size_t>(ProtectedArray::SLAB_SSS)];
+    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
+    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
 }
 } /* namespace Nextsim */

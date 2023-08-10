@@ -49,16 +49,11 @@ TEST_CASE("TOPAZOcean test")
     topaz.configure();
     topaz.setFilePath(filePath);
 
-    ModelArrayRef<ModelComponent::ProtectedArray::EXT_SST, MARConstBackingStore> sst(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::EXT_SSS, MARConstBackingStore> sss(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::MLD, MARConstBackingStore> mld(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_U, MARConstBackingStore> u(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_V, MARConstBackingStore> v(
-        ModelComponent::getProtectedArray());
+    ModelArrayRef<Protected::EXT_SST> sst(ModelComponent::getStore());
+    ModelArrayRef<Protected::EXT_SSS> sss(ModelComponent::getStore());
+    ModelArrayRef<Protected::MLD> mld(ModelComponent::getStore());
+    ModelArrayRef<Protected::OCEAN_U> u(ModelComponent::getStore());
+    ModelArrayRef<Protected::OCEAN_V> v(ModelComponent::getStore());
 
     TimePoint t1("2000-01-01T00:00:00Z");
     TimestepTime tst = { t1, Duration(600) };
@@ -66,7 +61,7 @@ TEST_CASE("TOPAZOcean test")
     // The Qio calculation requires c_ice data
     HField cice(ModelArray::Type::H);
     cice = 0.;
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &cice);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
 
     // Get the forcing fields at time 0
     topaz.updateBefore(tst);

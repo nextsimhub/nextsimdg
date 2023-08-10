@@ -19,10 +19,10 @@ namespace Nextsim {
 class IIceOceanHeatFlux : public ModelComponent {
 public:
     IIceOceanHeatFlux()
-        : sst(getProtectedArray())
-        , tf(getProtectedArray())
-        , cice(getProtectedArray())
-        , qio(getSharedArray())
+        : sst(getStore())
+        , tf(getStore())
+        , cice(getStore())
+        , qio(getStore())
     {
     }
     virtual ~IIceOceanHeatFlux() = default;
@@ -46,11 +46,11 @@ public:
     virtual void update(const TimestepTime&) = 0;
 
 protected:
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
-    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf;
-    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice;
+    ModelArrayRef<Protected::SST> sst;
+    ModelArrayRef<Protected::TF> tf;
+    ModelArrayRef<Protected::C_ICE> cice;
 
-    ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio;
+    ModelArrayRef<Shared::Q_IO, RW> qio;
 };
 }
 #endif /* IICEOCEANHEATFLUX_HPP_ */

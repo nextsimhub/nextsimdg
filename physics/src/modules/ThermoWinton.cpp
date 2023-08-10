@@ -30,9 +30,9 @@ ThermoWinton::ThermoWinton()
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
-    , oldHi(getProtectedArray())
-    , sw_in(getProtectedArray())
-    , subl(getSharedArray())
+    , oldHi(getStore())
+    , sw_in(getStore())
+    , subl(getStore())
 {
 }
 

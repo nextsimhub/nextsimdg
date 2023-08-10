@@ -46,6 +46,7 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
+    , reverseExternalNames()
 {
 }
 
@@ -105,12 +106,8 @@ void ConfigOutput::configure()
         // Sort through the list of fields and create lists of Shared- or ProtectedArrays that
         // correspond to the fields.
         for (const std::string& fieldName : fieldsForOutput) {
-            if (sharedExternalNames.count(fieldName)) {
-                sharedArraysForOutput.insert(
-                    sharedArrayNames.at(sharedExternalNames.at(fieldName)));
-            } else if (protectedExternalNames.count(fieldName)) {
-                protectedArraysForOutput.insert(
-                    protectedArrayNames.at(protectedExternalNames.at(fieldName)));
+            if (externalNames.count(fieldName)) {
+                internalFieldsForOutput.insert(externalNames.at(fieldName));
             } else {
                 Logged::warning(
                     "ConfigOutput: No field with the name \"" + fieldName + "\" was found.");
@@ -145,32 +142,35 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
     }
 
     ModelState state;
+    auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
-        for (const auto& entry : protectedArrayNames) {
-            ModelArrayConstReference macr
-                = getProtectedArray().at(static_cast<size_t>(entry.second));
-            if (macr && macr->trueSize() > 0)
-                state.data[entry.first] = *macr;
+        // If the internal to external name lookup table is still empty, fill it
+        if (reverseExternalNames.empty()) {
+            for (auto entry : externalNames) {
+                // Add the reverse lookup between external and internal names, if one has not been added
+                if (!reverseExternalNames.count(entry.second)) {
+                    reverseExternalNames[entry.second] = entry.first;
+                }
+            }
         }
-        for (const auto& entry : sharedArrayNames) {
-            ModelArrayReference mar = getSharedArray().at(static_cast<size_t>(entry.second));
-            if (mar && mar->trueSize() > 0)
-                state.data[entry.first] = *mar;
+
+        // Output every entry in storeData, as either its external name if
+        // defined, or as its internal name.
+        for (auto entry : storeData) {
+            if (entry.second) {
+                if (reverseExternalNames.count(entry.first)) {
+                    state.data[reverseExternalNames.at(entry.first)] = *entry.second;
+                } else {
+                    state.data[entry.first] = *entry.second;
+                }
+            }
         }
     } else {
         // Filter only the given fields to the output state
         for (const auto& fieldExtName : fieldsForOutput) {
-            if (protectedExternalNames.count(fieldExtName)) {
-                ModelArrayConstReference macr = getProtectedArray().at(static_cast<size_t>(
-                    protectedArrayNames.at(protectedExternalNames.at(fieldExtName))));
-                if (macr)
-                    state.data[fieldExtName] = *macr;
-            } else if (sharedExternalNames.count(fieldExtName)) {
-                ModelArrayReference mar = getSharedArray().at(
-                    static_cast<size_t>(sharedArrayNames.at(sharedExternalNames.at(fieldExtName))));
-                if (mar)
-                    state.data[fieldExtName] = *mar;
-            } // else do not add any data to the state under that name
+            if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName)) && storeData.at(externalNames.at(fieldExtName))) {
+                    state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
+            }
         }
     }
 
@@ -181,9 +181,8 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
      *      last output time.
      */
     Duration timeSinceOutput = meta.time() - lastOutput;
-    if (timeSinceOutput.seconds() > 0 && (
-            everyTS ||
-            std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
+    if (timeSinceOutput.seconds() > 0
+        && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
         StructureFactory::fileFromState(state, meta, currentFileName, false);

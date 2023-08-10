@@ -168,23 +168,13 @@ add_executable(testTimeClasses
 target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
 target_link_libraries(testTimeClasses PRIVATE doctest::doctest)
 
-add_executable(testNewModelArrayRef
-    "NewModelArrayRef_test.cpp"
+add_executable(testModelArrayRef
+    "ModelArrayRef_test.cpp"
     "${CoreSrc}/ModelArray.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
 )
-
-target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_libraries(testNewModelArrayRef PRIVATE doctest::doctest Eigen3::Eigen)
-
-add_executable(testModelArrayRefDebugging
-    "ModelArrayRefDebug_test.cpp"
-    "${CoreSrc}/ModelArray.cpp"
-    "${FVModelArrayDetails}/ModelArrayDetails.cpp"
-)
-target_compile_definitions(testModelArrayRefDebugging PRIVATE DEBUG_MODELARRAYREF)
-target_include_directories(testModelArrayRefDebugging PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_libraries(testModelArrayRefDebugging PRIVATE doctest::doctest Eigen3::Eigen)
+target_include_directories(testModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_libraries(testModelArrayRef PRIVATE doctest::doctest Eigen3::Eigen)
 
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 set(PhysSourceDir "${CoreSrc}/../../physics/src/")

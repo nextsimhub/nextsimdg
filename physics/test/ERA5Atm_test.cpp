@@ -65,24 +65,16 @@ TEST_CASE("ERA5Atmosphere construction test")
     e5.configure();
     e5.setFilePath(filePath);
 
-    ModelArrayRef<ModelComponent::ProtectedArray::T_AIR, MARConstBackingStore> tair(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::DEW_2M, MARConstBackingStore> tdew(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::P_AIR, MARConstBackingStore> pair(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::SW_IN, MARConstBackingStore> qswin(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::LW_IN, MARConstBackingStore> qlwin(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::WIND_SPEED, MARConstBackingStore> wind(
-        ModelComponent::getProtectedArray());
-    ModelArrayRef<ModelComponent::ProtectedArray::WIND_U, MARConstBackingStore> u(
-        ModelComponent::getProtectedArray());
+    ModelArrayRef<Protected::T_AIR> tair(ModelComponent::getStore());
+    ModelArrayRef<Protected::DEW_2M> tdew(ModelComponent::getStore());
+    ModelArrayRef<Protected::P_AIR> pair(ModelComponent::getStore());
+    ModelArrayRef<Protected::SW_IN> qswin(ModelComponent::getStore());
+    ModelArrayRef<Protected::LW_IN> qlwin(ModelComponent::getStore());
+    ModelArrayRef<Protected::WIND_SPEED> wind(ModelComponent::getStore());
+    ModelArrayRef<Protected::WIND_U> u(ModelComponent::getStore());
 
     TimePoint t1("2000-01-01T00:00:00Z");
     TimestepTime tst = { t1, Duration(600) };
-
 
     // Get the forcing fields at time 0
     e5.update(tst);

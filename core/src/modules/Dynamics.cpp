@@ -20,8 +20,8 @@ static const std::vector<std::string> namedFields = { hiceName, ciceName, uName,
 Dynamics::Dynamics()
     : IDynamics()
 {
-    registerProtectedArray(ProtectedArray::ICE_U, &uice);
-    registerProtectedArray(ProtectedArray::ICE_V, &vice);
+    getStore().registerArray(Protected::ICE_U, &uice, RO);
+    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void Dynamics::setData(const ModelState::DataMap& ms)

@@ -33,24 +33,24 @@ TEST_CASE("Threshold ice")
     public:
         IceTemperatureData()
         {
-            registerSharedArray(SharedArray::H_ICE, &hice);
-            registerSharedArray(SharedArray::C_ICE, &cice);
-            registerSharedArray(SharedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::SST, &sst);
-            registerProtectedArray(ProtectedArray::SSS, &sss);
-            registerProtectedArray(ProtectedArray::TF, &tf);
-            registerProtectedArray(ProtectedArray::SNOW, &snow);
-            registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerSharedArray(SharedArray::Q_IO, &qio);
-            registerSharedArray(SharedArray::Q_OW, &qow);
-            registerSharedArray(SharedArray::Q_IA, &qia);
-            registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-            registerSharedArray(SharedArray::Q_PEN_SW, &qpensw);
-            registerSharedArray(SharedArray::SUBLIM, &subl);
+            getStore().registerArray(Shared::H_ICE, &hice, RW);
+            getStore().registerArray(Shared::C_ICE, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::SST, &sst, RO);
+            getStore().registerArray(Protected::SSS, &sss, RO);
+            getStore().registerArray(Protected::TF, &tf, RO);
+            getStore().registerArray(Protected::SNOW, &snow, RO);
+            getStore().registerArray(Protected::ML_BULK_CP, &mlbhc, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Shared::Q_IO, &qio, RW);
+            getStore().registerArray(Shared::Q_OW, &qow, RW);
+            getStore().registerArray(Shared::Q_IA, &qia, RW);
+            getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
+            getStore().registerArray(Shared::Q_PEN_SW, &qpensw, RW);
+            getStore().registerArray(Shared::SUBLIM, &subl, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -124,10 +124,10 @@ TEST_CASE("Threshold ice")
     ti0t.setData(ModelState::DataMap());
     ti0t.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore> hice(ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::H_ICE> hice(ModelComponent::getStore());
     // So little ice should be reduced to zero
     REQUIRE(hice[0] == 0.);
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore> cice(ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::C_ICE> cice(ModelComponent::getStore());
     REQUIRE(cice[0] == 0.);
 
 }
