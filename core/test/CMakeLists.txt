@@ -145,7 +145,6 @@ add_executable(testModelComponent
     "ModelComponent_test.cpp"
     "${CoreSrc}/ModelComponent.cpp"
     "${CoreSrc}/MissingData.cpp"
-    "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ModelArray.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
 )
