@@ -9,6 +9,7 @@
 #define IICEALBEDO_HPP
 
 #include "include/Time.hpp"
+#include <tuple>
 
 namespace Nextsim {
 //! The interface class for ice albedo calculation.
