@@ -55,12 +55,12 @@ TEST_CASE("Melting conditions")
     public:
         ProgData()
         {
-            getStore().registerArray(Shared::H_ICE, &hice, RW);
-            getStore().registerArray(Shared::C_ICE, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
-            getStore().registerArray(Shared::T_ICE, &tice0, RW);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
