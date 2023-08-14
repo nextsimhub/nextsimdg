@@ -9,7 +9,6 @@
 #define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
-#include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
@@ -86,6 +85,7 @@ public:
         Q_IO, // Ice to ocean heat flux W m⁻²
         Q_OW, // Open water heat flux W m⁻²
         DQIA_DT, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
+        Q_PEN_SW, // Short-wave flux penetrating the very surface of the ice W m⁻²
         // Mass fluxes
         HSNOW_MELT, // Thickness of snow that melted, m
         // Atmospheric conditions
