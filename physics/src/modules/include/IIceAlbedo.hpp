@@ -1,14 +1,16 @@
 /*
  * @file IIceAlbedo.hpp
  *
- * @date Sep 28, 2021
+ * @date Aug 10, 2023
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Örn Ólason <einar.olason@nersc.no>
  */
 
 #ifndef IICEALBEDO_HPP
 #define IICEALBEDO_HPP
 
 #include "include/Time.hpp"
+#include <tuple>
 
 namespace Nextsim {
 //! The interface class for ice albedo calculation.
