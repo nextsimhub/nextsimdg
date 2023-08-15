@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: clang
       run: |
-        brew extract --version=13.0.1 clang-format homebrew/cask
+        brew extract --version=13.0.1 clang-format homebrew/cask-versions
         brew install clang-format@13.0.1
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
@@ -74,8 +74,6 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
-        brew extract --version=2.13.9 catch2 homebrew/cask
-        brew install catch2@2.13.9
     - name: make
       run: |
         cmake .

@@ -13,13 +13,14 @@
 #include "include/PrognosticData.hpp"
 
 #include "include/ConfiguredModule.hpp"
-#include "include/IOceanBoundary.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Module.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/constants.hpp"
 
 #include <sstream>
+
+extern template class Module::Module<Nextsim::IOceanBoundary>;
 
 namespace Nextsim {
 

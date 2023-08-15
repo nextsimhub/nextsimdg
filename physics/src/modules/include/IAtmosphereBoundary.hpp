@@ -45,6 +45,7 @@ public:
         registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
         registerProtectedArray(ProtectedArray::WIND_U, &uwind);
         registerProtectedArray(ProtectedArray::WIND_V, &vwind);
+        registerSharedArray(SharedArray::Q_PEN_SW, &penSW);
     }
     virtual ~IAtmosphereBoundary() = default;
 
@@ -64,6 +65,7 @@ public:
         emp.resize();
         uwind.resize();
         vwind.resize();
+        penSW.resize();
     }
     virtual void update(const TimestepTime& tst) { }
 
@@ -90,6 +92,7 @@ protected:
     HField emp;
     UField uwind;
     VField vwind;
+    HField penSW;
 
     MARBackingStore m_couplingArrays;
 };
