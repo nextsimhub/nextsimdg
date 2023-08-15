@@ -13,7 +13,6 @@
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 
-
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ConstantOceanBoundary");
@@ -22,6 +21,9 @@ TEST_CASE("ConstantOcean Qio calculation")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    HField cice(ModelArray::Type::H);
+    cice = 1.0; // Need some ice if Qio is to be calculated
+    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &cice);
     ConstantOceanBoundary cob;
 
     cob.setData(ModelState::DataMap());

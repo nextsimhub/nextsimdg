@@ -94,6 +94,8 @@ ModelState PrognosticData::getState() const
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
+                 { "sst", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SST))) },
+                 { "sss", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SSS))) },
              },
         {} };
 }

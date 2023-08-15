@@ -21,6 +21,7 @@ public:
     IIceOceanHeatFlux()
         : sst(getProtectedArray())
         , tf(getProtectedArray())
+        , cice(getProtectedArray())
         , qio(getSharedArray())
     {
     }
@@ -47,6 +48,7 @@ public:
 protected:
     ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
     ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf;
+    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice;
 
     ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio;
 };

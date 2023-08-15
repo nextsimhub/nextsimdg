@@ -31,6 +31,7 @@ if (OPENMP_FOUND)
 endif()
 
 
+
 # Regarding Boost.Log, if our application consists of more
 # than one modules that use it, we must link to the shared
 # version. If we have a single executable or a single module

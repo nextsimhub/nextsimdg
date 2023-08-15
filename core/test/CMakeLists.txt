@@ -5,6 +5,7 @@ set(SRC_DIR "${CoreSrc}")
 set(INCLUDE_DIR "${CoreSrc}/include")
 set(CoreModulesDir "${CoreSrc}/modules")
 set(ModelArrayDetails "testmodelarraydetails")
+set(FVModelArrayDetails "${CoreSrc}/finitevolume")
 
 # add_executable(testexe
 #   test/TestSrc.cpp
@@ -152,12 +153,12 @@ add_executable(testModelComponent
 target_include_directories(testModelComponent PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testModelComponent PRIVATE Boost::program_options doctest::doctest Eigen3::Eigen)
 
-add_executable(testTime
+add_executable(testTimeClasses
     "Time_test.cpp"
     "${CoreSrc}/Time.cpp"
 )
-target_include_directories(testTime PRIVATE "${CoreSrc}")
-target_link_libraries(testTime PRIVATE doctest::doctest)
+target_include_directories(testTimeClasses PRIVATE "${CoreSrc}")
+target_link_libraries(testTimeClasses PRIVATE doctest::doctest)
 
 add_executable(testNewModelArrayRef
     "NewModelArrayRef_test.cpp"
@@ -168,6 +169,15 @@ add_executable(testNewModelArrayRef
 target_include_directories(testNewModelArrayRef PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_libraries(testNewModelArrayRef PRIVATE doctest::doctest Eigen3::Eigen)
 
+add_executable(testModelArrayRefDebugging
+    "ModelArrayRefDebug_test.cpp"
+    "${CoreSrc}/ModelArray.cpp"
+    "${FVModelArrayDetails}/ModelArrayDetails.cpp"
+)
+target_compile_definitions(testModelArrayRefDebugging PRIVATE DEBUG_MODELARRAYREF)
+target_include_directories(testModelArrayRefDebugging PRIVATE "${CoreSrc}" "${CoreSrc}/${ModelArrayStructure}")
+target_link_libraries(testModelArrayRefDebugging PRIVATE doctest::doctest Eigen3::Eigen)
+
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 set(PhysSourceDir "${CoreSrc}/../../physics/src/")
 set(PhysModulesDir "${CoreSrc}/../../physics/src/modules")
@@ -175,12 +185,19 @@ set(PhysModulesDir "${CoreSrc}/../../physics/src/modules")
 add_executable(testPrognosticData
     "PrognosticData_test.cpp"
     "${CoreSrc}/PrognosticData.cpp"
+    "${CoreSrc}/CommonRestartMetadata.cpp"
     "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ConfiguredModule.cpp"
     "${CoreSrc}/ModelArray.cpp"
     "${CoreSrc}/ModelComponent.cpp"
+    "${CoreSrc}/ModelMetadata.cpp"
     "${CoreSrc}/MissingData.cpp"
+    "${CoreSrc}/ParaGridIO.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreModulesDir}/IStructureModule.cpp"
+    "${CoreModulesDir}/DevGrid.cpp"
+    "${CoreModulesDir}/ParametricGrid.cpp"
+    "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
@@ -193,10 +210,12 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/ConstantOceanBoundary.cpp"
     "${PhysModulesDir}/ConfiguredOcean.cpp"
     "${PhysModulesDir}/FluxConfiguredOcean.cpp"
+    "${PhysModulesDir}/TOPAZOcean.cpp"
     "${PhysModulesDir}/AtmosphereBoundaryModule.cpp"
     "${PhysModulesDir}/ConstantAtmosphereBoundary.cpp"
     "${PhysModulesDir}/ConfiguredAtmosphere.cpp"
     "${PhysModulesDir}/FluxConfiguredAtmosphere.cpp"
+    "${PhysModulesDir}/ERA5Atmosphere.cpp"
     "${PhysModulesDir}/LateralIceSpreadModule.cpp"
     "${PhysModulesDir}/HiblerSpread.cpp"
     "${PhysModulesDir}/IceThermodynamicsModule.cpp"
@@ -216,5 +235,7 @@ target_include_directories(testPrognosticData PRIVATE
     "${CoreModulesDir}"
     "${PhysSourceDir}"
     "${PhysModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
     )
-target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
+target_link_directories(testPrognosticData PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")

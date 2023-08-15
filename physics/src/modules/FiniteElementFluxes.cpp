@@ -70,10 +70,7 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
     dshice_dT.resize();
 }
 
-ModelState FiniteElementFluxes::getState() const
-{
-    return { {}, {} };
-}
+ModelState FiniteElementFluxes::getState() const { return { {}, {} }; }
 
 ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
 
@@ -166,7 +163,6 @@ void FiniteElementFluxes::update(const TimestepTime& tst)
     updateOW(tst); // qow
     updateIce(tst); // qia & dqia/dT
 }
-
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {

@@ -9,6 +9,7 @@
 #define SLABOCEAN_HPP
 
 #include "include/Configured.hpp"
+#include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {

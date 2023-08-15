@@ -7,9 +7,9 @@
 
 #include "include/ThermoIce0.hpp"
 
+#include "include/IceMinima.hpp"
 #include "include/IFreezingPointModule.hpp"
 #include "include/IceGrowth.hpp"
-#include "include/IceMinima.hpp"
 #include "include/ModelArray.hpp"
 #include "include/NZLevels.hpp"
 #include "include/constants.hpp"
@@ -83,6 +83,14 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 
 void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
+    // If there is too little ice, do nothing and zero out the computed arrays
+    if (hice[i] == 0. || cice[i] == 0.) {
+        deltaHi[i] = 0.;
+        snowToIce[i] = 0.;
+
+        return;
+    }
+
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
@@ -137,7 +145,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     }
 
     // Melt all ice if it is below minimum threshold
-    if (hice[i] < IceMinima::h()) {
+    if (0. < hice[i] && hice[i] < IceMinima::h()) {
         if (deltaHi[i] < 0) {
             double scaling = oldHi[i] / deltaHi[i];
             topMelt[i] *= scaling;
@@ -154,9 +162,10 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         qio[i] += hice[i] * bulkLHFusionIce / tst.step + hsnow[i] * bulkLHFusionSnow / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
+        cice[i] = 0.;
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = Ice::Tm;
+        tice.zIndexAndLayer(i, 0) = 0.;
     }
 }
 
