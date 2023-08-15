@@ -230,7 +230,7 @@ void ParaGridIO::dumpModelState(
             ModelArray::Type type = entry.second.getType();
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
             netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
             var.putVar(entry.second.getData());
         }
     }
@@ -359,7 +359,7 @@ void ParaGridIO::writeDiagnosticTime(
             netCDF::NcVar var((isNew) ? dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims)
                                       : dataGroup.getVar(entry.first));
             if (isNew)
-                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
 
             var.putVar(indexArrays.at(type), extentArrays.at(type), entry.second.getData());
         }

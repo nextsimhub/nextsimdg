@@ -121,9 +121,10 @@ TEST_CASE("Melting conditions")
             IAtmosphereBoundary::setData(ms);
             snow[0] = 0.00;
             qow[0] = -109.923;
-            qia[0] = -84.5952;
+            qia[0] = -85.6364;
             dqia_dt[0] = 19.7016;
             subl[0] = -7.3858e-06;
+            penSW[0] = 1.04125;
         }
     } atmosState;
     atmosState.setData(ModelState().data);
@@ -140,7 +141,7 @@ TEST_CASE("Melting conditions")
     double prec = 1e-5;
 
     REQUIRE(tice[0] == doctest::Approx(0.0).epsilon(prec));
-    REQUIRE(tice[1] == doctest::Approx(-0.999333).epsilon(prec));
+    REQUIRE(tice[1] == doctest::Approx(-0.999261).epsilon(prec));
     REQUIRE(tice[2] == doctest::Approx(-0.275).epsilon(prec));
     //    REQUIRE(qic[0] == doctest::Approx(-4.60879).epsilon(prec));
 }

@@ -49,8 +49,8 @@ TEST_CASE("Threshold ice")
             registerSharedArray(SharedArray::Q_OW, &qow);
             registerSharedArray(SharedArray::Q_IA, &qia);
             registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-            registerSharedArray(SharedArray::Q_PEN_SW, &qpensw);
             registerSharedArray(SharedArray::SUBLIM, &subl);
+            registerSharedArray(SharedArray::Q_PEN_SW, &penSW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -70,7 +70,7 @@ TEST_CASE("Threshold ice")
             qia[0] = 0;
             dqia_dt[0] = 0;
             subl[0] = 0;
-            qpensw[0] = 0;
+            penSW[0] = 0;
         }
 
         HField hice;
@@ -86,8 +86,8 @@ TEST_CASE("Threshold ice")
         HField qow;
         HField qia;
         HField dqia_dt;
-        HField qpensw;
         HField subl;
+        HField penSW;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -108,6 +108,7 @@ TEST_CASE("Threshold ice")
             qia[0] = 0;
             dqia_dt[0] = 0;
             subl[0] = 0;
+            penSW[0] = 0;
         }
 
         ModelState getState() const override { return ModelState(); }

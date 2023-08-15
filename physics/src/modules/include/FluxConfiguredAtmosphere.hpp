@@ -10,6 +10,8 @@
 
 #include "IAtmosphereBoundary.hpp"
 
+#include "include/Configured.hpp"
+
 namespace Nextsim {
 
 //! A class to provide constant atmospheric forcings that can be configured at run time.

@@ -40,7 +40,7 @@ std::tuple<double, double> CCSMIceAlbedo::albedo(
     const double albedo = snowCoverFraction * snowAlbedoT + (1 - snowCoverFraction) * iceAlbedoT;
     const double penSW = (1. - snowCoverFraction) * i0;
 
-    return std::make_tuple(albedo, penSW);
+    return {albedo, penSW};
 }
 
 void CCSMIceAlbedo::configure()

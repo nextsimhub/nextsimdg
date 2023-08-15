@@ -5,6 +5,7 @@
 #ifndef MU71ATMOSPHERE_HPP
 #define MU71ATMOSPHERE_HPP
 
+#include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/MonthlyCubicBSpline.hpp"
