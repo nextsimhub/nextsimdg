@@ -65,6 +65,9 @@ def topaz4_source_file_name(field, unix_time):
         return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
 
 # Returns bilinearly interpolated data given array of fractional indices
+# 2023-03-28 Add a wrap-around for the ERA longitude. This is formally
+# incorrect when this function is used for TOPAZ data, but since the target
+# point would have to be out of bounds of the source, it is not so important.
 def bilinear(eyes, jays, data):
     i = np.floor(eyes).astype(int)
     j = np.floor(jays).astype(int)
@@ -72,12 +75,17 @@ def bilinear(eyes, jays, data):
     fi = eyes - i
     fj = jays - j
 
+    iwrap = (i + 1) % data.shape[1]
+
     return ((1 - fj) * (1 - fi) * data[j, i] +
-        (1 - fj) * (fi) * data[j, i + 1] +
+        (1 - fj) * (fi) * data[j, iwrap] +
         (fj) * (1 - fi) * data[j + 1, i] +
-        (fj) * (fi) * data[j + 1, i + 1])
+        (fj) * (fi) * data[j + 1, iwrap])
     
 # Returns bilinearly interpolated data given array of fractional indices, when some of the data missing
+# 2023-03-28 Add a wrap-around for the ERA longitude. This is formally
+# incorrect when this function is used for TOPAZ data, but since the target
+# point would have to be out of bounds of the source, it is not so important.
 def bilinear_missing(eyes, jays, data, missing):
     i = np.floor(eyes).astype(int)
     j = np.floor(jays).astype(int)
@@ -85,17 +93,19 @@ def bilinear_missing(eyes, jays, data, missing):
     fi = eyes - i
     fj = jays - j
 
+    iwrap = (i + 1) % data.shape[1]
+
     dataplier = data != missing # False is zero
 
     weighted_sum = ((1 - fj) * (1 - fi) * data[j, i] * dataplier[j, i] +
-        (1 - fj) * (fi) * data[j, i + 1] * dataplier[j, i] +
-        (fj) * (1 - fi) * data[j + 1, i] * dataplier[j, i] +
-        (fj) * (fi) * data[j + 1, i + 1] * dataplier[j, i])
+        (1 - fj) * (fi) * data[j, iwrap] * dataplier[j, iwrap] +
+        (fj) * (1 - fi) * data[j + 1, i] * dataplier[j + 1, i] +
+        (fj) * (fi) * data[j + 1, iwrap] * dataplier[j + 1, iwrap])
 
     sum_of_weights = ((1 - fj) * (1 - fi) * dataplier[j, i] +
-        (1 - fj) * (fi) * dataplier[j, i] +
-        (fj) * (1 - fi) * dataplier[j, i] +
-        (fj) * (fi) * dataplier[j, i])
+        (1 - fj) * (fi) * dataplier[j, iwrap] +
+        (fj) * (1 - fi) * dataplier[j + 1, i] +
+        (fj) * (fi) * dataplier[j + 1, iwrap])
     
     weighted_sum += missing * (sum_of_weights == 0)
     sum_of_weights += (sum_of_weights == 0)
@@ -107,7 +117,7 @@ def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     target_i = (target_lons - data_lons[0]) / (data_lons[1] - data_lons[0])
     # Make sure that the index is in the range of the size of the longitude array
     target_i %= len(data_lons)
-    
+
     # Latitudes are on a Gaussian grid, so we need to search a bit.
     target_j = (target_lats - data_lats[0]) / (data_lats[1] - data_lats[0])
     
