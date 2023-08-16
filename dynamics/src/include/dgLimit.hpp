@@ -1,7 +1,7 @@
 /*!
- * @file MeshdgLimit.hpp
+ * @file dgLimit.hpp
  * @date 30 April 2022
- * @author Thomas Richter <thomas.richter@ovgu.no>
+ * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __DGLIMIT_HPP
@@ -13,11 +13,11 @@
 namespace Nextsim {
 
 //! Limit a dg vector from above
-void LimitMax(DGVector<1>& dg, double max)
+static void LimitMax(DGVector<1>& dg, double max)
 {
     dg.col(0) = dg.col(0).cwiseMin(max);
 }
-void LimitMax(DGVector<3>& dg, double max)
+static void LimitMax(DGVector<3>& dg, double max)
 {
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
@@ -33,8 +33,8 @@ void LimitMax(DGVector<3>& dg, double max)
     }
 }
 
-// limits in the gauss nodes
-void LimitMax(DGVector<6>& dg, double max)
+//! Limit a dg vector from above in the gauss nodes
+static void LimitMax(DGVector<6>& dg, double max)
 {
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
@@ -48,28 +48,13 @@ void LimitMax(DGVector<6>& dg, double max)
     }
 }
 
-//   //! Limit a dg vector from above
-//   void LimitMin(DGVector<1>& dg, double min)
-//   {
-//     for (long int i = 0; i < dg.rows(); ++i) {
-//         dg(i, 0) = std::min(max, dg(i, 0));
-//         const double l0 = std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
-//         if (l0 == 0)
-//             continue;
-//         const double ex = dg(i, 0) + l0 - max;
-//         if (ex > 0) {
-//             dg(i, 1) *= (max - dg(i, 0)) / l0;
-//             dg(i, 2) *= (max - dg(i, 0)) / l0;
-//         }
-//     }
-// }
 
-//! Limit a dg vector from above
-void LimitMin(DGVector<1>& dg, double min)
+//! Limit a dg vector from above in the gauss nodes
+static void LimitMin(DGVector<1>& dg, double min)
 {
     dg.col(0) = dg.col(0).cwiseMax(min);
 }
-void LimitMin(DGVector<3>& dg, double min)
+static void LimitMin(DGVector<3>& dg, double min)
 {
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
@@ -84,7 +69,7 @@ void LimitMin(DGVector<3>& dg, double min)
         }
     }
 }
-void LimitMin(DGVector<6>& dg, double min)
+static void LimitMin(DGVector<6>& dg, double min)
 {
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
@@ -97,20 +82,6 @@ void LimitMin(DGVector<6>& dg, double min)
         }
     }
 }
-
-//     for (long int i = 0; i < dg.rows(); ++i) {
-//         dg(i, 0) = std::max(min, dg(i, 0));
-//         const double l0 = std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
-//         if (l0 == 0)
-//             continue;
-//         const double ex = dg(i, 0) - l0 - min;
-//         if (ex < 0) {
-//             dg(i, 1) *= (min - dg(i, 0)) / l0;
-//             dg(i, 2) *= (min - dg(i, 0)) / l0;
-//         }
-//     }
-// }
-// >>>>>>> e77045893a2f9b81c3242f0d4398b00f3b16af1b
 
 } /* namespace Nextsim */
 

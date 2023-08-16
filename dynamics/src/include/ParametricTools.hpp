@@ -53,6 +53,10 @@ public:
         Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, DG, CGDOFS(CG)>>>
         iMgradX, iMgradY;
 
+    std::vector<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>,
+        Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), DG>>>
+        divS1, divS2;
+
     /*!
      * These matrices are M^-1 J w PSI_i(q)
      * Multiplied
@@ -109,7 +113,8 @@ namespace ParametricTools {
     template <>
     inline Eigen::Matrix<Nextsim::FloatType, 1, 1> massMatrix(const ParametricMesh& smesh, const size_t eid)
     {
-        return Eigen::Matrix<Nextsim::FloatType, 1, 1>(smesh.area(eid));
+      return (PSI<1, 1>.array().rowwise() * (GAUSSWEIGHTS<1>.array() * J<1>(smesh, eid).array())).matrix() * PSI<1, 1>.transpose();
+      //    return Eigen::Matrix<Nextsim::FloatType, 1, 1>(smesh.area(eid));
 
         // mit 1 GP. Reicht das???
         // return (PSI31.array().rowwise() * (GAUSSWEIGHTS_1.array() * J<1>(smesh,eid).array())).matrix() * PSI31.transpose();
