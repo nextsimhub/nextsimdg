@@ -1,110 +1,49 @@
-# Include dynamics headers
-set(DynamicsSrc "../src")
-set(SRC_DIR "${DynamicsSrc}")
-set(INCLUDE_DIR "${DynamicsSrc}/include")
-
-set(CoreDir "../../core/src/")
-
-include_directories(${INCLUDE_DIR})
-
-add_executable(createNextsimMeshData createNextsimMeshData.cpp
-    "${CoreDir}/modules/ParametricGrid.cpp"
-    "${CoreDir}/modules/RectangularGrid.cpp"
-    "${CoreDir}/modules/DevGrid.cpp"
-    "${CoreDir}/modules/IStructureModule.cpp"
-    "${CoreDir}/CommonRestartMetadata.cpp"
-    "${CoreDir}/Configurator.cpp"
-    "${CoreDir}/ParaGridIO.cpp"
-    "${CoreDir}/MissingData.cpp"
-    "${CoreDir}/ModelArray.cpp"
-    "${CoreDir}/ModelMetadata.cpp"
-    "${CoreDir}/NZLevels.cpp"
-    "${CoreDir}/Time.cpp"
-    "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
-    )
-target_link_libraries(createNextsimMeshData LINK_PUBLIC Eigen3::Eigen Boost::program_options "${NSDG_NetCDF_Library}")
-target_link_directories(createNextsimMeshData PUBLIC "${netCDF_LIB_DIR}")
-target_include_directories(createNextsimMeshData PRIVATE "${CoreDir}" "${CoreDir}/modules" "${CoreDir}/${ModelArrayStructure}" "${netCDF_INCLUDE_DIR}")
-
-
-add_executable(benchmark_mehlmann_sasip_mevp benchmark_mehlmann_sasip_mevp.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/DGTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/ParametricMap.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"
-    )
-add_executable(benchmark_mehlmann_orcamesh_mevp benchmark_mehlmann_orcamesh_mevp.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/DGTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/ParametricMap.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"
-    )
-add_executable(benchmark_mehlmann_orcamesh_mevp_spherical benchmark_mehlmann_orcamesh_mevp_spherical.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/DGTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/ParametricMap.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"
-    )
-add_executable(benchmark_cartesian_globe benchmark_cartesian_globe.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/DGTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/ParametricMap.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"
-    )
-add_executable(benchmark_spherical_globe benchmark_spherical_globe.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/DGTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/ParametricMap.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"
-    )
-add_executable(test_spherical_globe test_spherical_globe.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/DGTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/ParametricMap.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"
-    )
-add_executable(benchmark_mehlmann_sasip_meb benchmark_mehlmann_sasip_meb.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/DGTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/ParametricMap.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"
-    )
-add_executable(benchmark_box_sasip_mevp benchmark_box_sasip_mevp.cpp
-    "${SRC_DIR}/stopwatch.cpp"
-    "${SRC_DIR}/DGTransport.cpp"
-    "${SRC_DIR}/Interpolations.cpp"
-    "${SRC_DIR}/ParametricMesh.cpp"
-    "${SRC_DIR}/ParametricMap.cpp"
-    "${SRC_DIR}/cgParametricMomentum.cpp"
-    "${SRC_DIR}/VectorManipulations.cpp"
+set(COMMON_INCLUDE_DIRS
+    "../../core/src/discontinuousgalerkin"
+    "../../core/src"
+    "../../core/src/modules"
+    "../src"
+    "../src/include"
     )
 
-target_link_libraries(benchmark_mehlmann_sasip_mevp LINK_PUBLIC Eigen3::Eigen)
-target_link_libraries(benchmark_cartesian_globe LINK_PUBLIC Eigen3::Eigen)
-target_link_libraries(benchmark_spherical_globe LINK_PUBLIC Eigen3::Eigen)
-target_link_libraries(test_spherical_globe LINK_PUBLIC Eigen3::Eigen)
-target_link_libraries(benchmark_mehlmann_orcamesh_mevp LINK_PUBLIC Eigen3::Eigen)
-target_link_libraries(benchmark_mehlmann_orcamesh_mevp_spherical LINK_PUBLIC Eigen3::Eigen)
-target_link_libraries(benchmark_mehlmann_sasip_meb LINK_PUBLIC Eigen3::Eigen)
-target_link_libraries(benchmark_box_sasip_mevp LINK_PUBLIC Eigen3::Eigen)
+add_executable(createNextsimMeshData "createNextsimMeshData.cpp")
+target_include_directories(createNextsimMeshData PRIVATE ${COMMON_INCLUDE_DIRS} ${netCDF_INCLUDE_DIR})
+target_link_libraries(createNextsimMeshData LINK_PUBLIC nextsimlib)
+
+set(sources
+    "../src/stopwatch.cpp"
+    "../src/DGTransport.cpp"
+    "../src/Interpolations.cpp"
+    "../src/ParametricMesh.cpp"
+    "../src/ParametricMap.cpp"
+    "../src/cgParametricMomentum.cpp"
+    "../src/VectorManipulations.cpp"
+    )
+
+include_directories("../src/include")
+
+add_library(dynamicslib SHARED ${sources})
+
+add_executable(benchmark_mehlmann_sasip_mevp "benchmark_mehlmann_sasip_mevp.cpp")
+target_link_libraries(benchmark_mehlmann_sasip_mevp PRIVATE dynamicslib)
+
+add_executable(benchmark_mehlmann_orcamesh_mevp "benchmark_mehlmann_orcamesh_mevp.cpp")
+target_link_libraries(benchmark_mehlmann_orcamesh_mevp PRIVATE dynamicslib)
+
+add_executable(benchmark_mehlmann_orcamesh_mevp_spherical "benchmark_mehlmann_orcamesh_mevp_spherical.cpp")
+target_link_libraries(benchmark_mehlmann_orcamesh_mevp_spherical PRIVATE dynamicslib)
+
+add_executable(benchmark_cartesian_globe "benchmark_cartesian_globe.cpp")
+target_link_libraries(benchmark_cartesian_globe PRIVATE dynamicslib)
+
+add_executable(benchmark_spherical_globe "benchmark_spherical_globe.cpp")
+target_link_libraries(benchmark_spherical_globe PRIVATE dynamicslib)
+
+add_executable(test_spherical_globe "test_spherical_globe.cpp")
+target_link_libraries(test_spherical_globe PRIVATE dynamicslib)
+
+add_executable(benchmark_mehlmann_sasip_meb "benchmark_mehlmann_sasip_meb.cpp")
+target_link_libraries(benchmark_mehlmann_sasip_meb PRIVATE dynamicslib)
+
+add_executable(benchmark_box_sasip_mevp "benchmark_box_sasip_mevp.cpp")
+target_link_libraries(benchmark_box_sasip_mevp PRIVATE dynamicslib)
