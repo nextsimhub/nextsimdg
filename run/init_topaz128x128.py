@@ -203,3 +203,12 @@ if __name__ == "__main__":
     sst = datagrp.createVariable("sst", "f8", ("x", "y"))
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     sst[:, :] = sst_data * noice + mu * sss_data * isice
+
+    # Ice starts at rest
+    u = datagrp.createVariable("u", "f8", ("x", "y"))
+    u[:, :] = 0
+
+    v = datagrp.createVariable("v", "f8", ("x", "y"))
+    v[:, :] = 0
+    
+    root.close()

@@ -55,6 +55,11 @@ public:
     static double minimumIceThickness() { return IceMinima::h(); }
     static double minimumIceConcentration() { return IceMinima::c(); }
 
+    /*!
+     * Updates the true ice and snow thickness arrays from the cell averages.
+     */
+    void initializeThicknesses();
+
 private:
     // Vertical Growth ModelComponent & Module
     std::unique_ptr<IIceThermodynamics> iVertical;
@@ -101,7 +106,7 @@ private:
         lateralIceSpread(i, tst);
         applyLimits(i, tst);
     }
-    void initializeThicknesses(size_t i, const TimestepTime&);
+    void initializeThicknessesElement(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */

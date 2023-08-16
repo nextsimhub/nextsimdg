@@ -43,6 +43,8 @@ public:
         registerSharedArray(SharedArray::SUBLIM, &subl);
         registerProtectedArray(ProtectedArray::SNOW, &snow);
         registerProtectedArray(ProtectedArray::EVAP_MINUS_PRECIP, &emp);
+        registerProtectedArray(ProtectedArray::WIND_U, &uwind);
+        registerProtectedArray(ProtectedArray::WIND_V, &vwind);
         registerSharedArray(SharedArray::Q_PEN_SW, &penSW);
     }
     virtual ~IAtmosphereBoundary() = default;

@@ -55,7 +55,7 @@ void ERA5Atmosphere::configure()
 void ERA5Atmosphere::update(const TimestepTime& tst)
 {
     // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed" };
+    std::set<std::string> forcings = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     tair = state.data.at("tair");
@@ -64,6 +64,8 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     sw_in = state.data.at("sw_in");
     lw_in = state.data.at("lw_in");
     wind = state.data.at("wind_speed");
+    uwind = state.data.at("u");
+    vwind = state.data.at("v");
 
     fluxImpl->update(tst);
 }
