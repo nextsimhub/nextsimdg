@@ -20,12 +20,14 @@
         ONED,
         TWOD,
         DOSD,
+        THREED,
         FOURD,
     };
 
     static ModelArray OneDField() { return ModelArray(Type::ONED); }
     static ModelArray TwoDField() { return ModelArray(Type::TWOD); }
     static ModelArray DosDField() { return ModelArray(Type::DOSD); }
+    static ModelArray ThreeDField() { return ModelArray(Type::THREED); }
     static ModelArray FourDField() { return ModelArray(Type::FOURD); }
 
 #endif /* MODELARRAYDETAILS_HPP */

@@ -252,10 +252,13 @@ if __name__ == "__main__":
     yDim = datagrp.createDimension("y", ny)
     tDim = datagrp.createDimension("time", None)
     
+    hfield_dims = ("y", "x")
+    timefield_dims = ("time", "y", "x")
+    
     # Position and time variables
-    nc_lons = datagrp.createVariable("longitude", "f8", ("x", "y"))
+    nc_lons = datagrp.createVariable("longitude", "f8", hfield_dims)
     nc_lons[:, :] = element_lon
-    nc_lats = datagrp.createVariable("latitude", "f8", ("x", "y"))
+    nc_lats = datagrp.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
     
     greenland_headings = heading_to_greenland(element_lat, element_lon)
@@ -265,7 +268,7 @@ if __name__ == "__main__":
     (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
     # For each field and time, get the corresponding file name for each dataset
     for field_name in atmos_fields:
-        data = datagrp.createVariable(field_name, "f8", ("time", "x", "y"))
+        data = datagrp.createVariable(field_name, "f8", timefield_dims)
         if (field_name != wind_speed):
             era5_field = era5_translation[field_name]
             for target_t_index in range(len(unix_times_e)):
@@ -353,9 +356,9 @@ if __name__ == "__main__":
     source_file.close()
 
     # Position and time variables
-    nc_lons = datagrp.createVariable("longitude", "f8", ("x", "y"))
+    nc_lons = datagrp.createVariable("longitude", "f8", hfield_dims)
     nc_lons[:, :] = element_lon
-    nc_lats = datagrp.createVariable("latitude", "f8", ("x", "y"))
+    nc_lats = datagrp.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
     
     nc_times = datagrp.createVariable("time", "f8", ("time"))
@@ -368,7 +371,7 @@ if __name__ == "__main__":
 
     # For each field and time, get the corresponding file name for each dataset
     for field_name in ocean_fields:
-        data = datagrp.createVariable(field_name, "f8", ("time", "x", "y"))
+        data = datagrp.createVariable(field_name, "f8", timefield_dims)
         topaz_field = topaz_translation[field_name]
         for target_t_index in range(len(unix_times_t)):
             if field_name == ocean_fields[0]:

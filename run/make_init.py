@@ -30,8 +30,10 @@ xDim = datagrp.createDimension("x", nx)
 yDim = datagrp.createDimension("y", ny)
 nLay = datagrp.createDimension("nLayers", nLayers)
 
-mask = datagrp.createVariable("mask", "f8", ("x", "y"))
-mask[:,:] = [[0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+hfield_dims = ("y", "x")
+
+mask = datagrp.createVariable("mask", "f8", hfield_dims)
+mask[:,::-1] = [[0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
@@ -62,8 +64,8 @@ mask[:,:] = [[0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
              [1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0]]
 antimask = 1 - mask[:,:]
-cice = datagrp.createVariable("cice", "f8", ("x", "y",))
-cice[:,:] = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+cice = datagrp.createVariable("cice", "f8", hfield_dims)
+cice[:,::-1] = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0],
@@ -94,12 +96,12 @@ cice[:,:] = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
 cice[:,:] /= 10
-hice = datagrp.createVariable("hice", "f8", ("x", "y",))
+hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
-hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y",))
+hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("x", "y", "nLayers"))
-tice[:,:,0] = -0.5 - cice[:,:]
+tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
+tice[0,:,:] = -0.5 - cice[:,:]
 
 mdi = -2.**300
 # mask data
@@ -109,7 +111,7 @@ hice[:,:] = hice[:,:] * mask[:,:] + antimask * mdi
 hice.missing_value = mdi
 hsnow[:,:] = hsnow[:,:] * mask[:,:] + antimask * mdi
 hsnow.missing_value = mdi
-tice[:,:,0] = tice[:,:,0] * mask[:,:] + antimask * mdi
+tice[0,:,:] = tice[0,:,:] * mask[:,:] + antimask * mdi
 tice.missing_value = mdi
 
 root.close()

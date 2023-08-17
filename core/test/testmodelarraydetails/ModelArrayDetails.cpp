@@ -30,6 +30,12 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
             ModelArray::Dimension::Z,
             ModelArray::Dimension::U,
         } },
+    { ModelArray::Type::THREED,
+        {
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
+            ModelArray::Dimension::Z,
+        } },
     { ModelArray::Type::FOURD,
         {
             ModelArray::Dimension::X,
@@ -43,6 +49,7 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::ONED, "OneDField" },
     { ModelArray::Type::TWOD, "TwoDField" },
     { ModelArray::Type::DOSD, "TwoDField" },
+    { ModelArray::Type::DOSD, "ThreeDField" },
     { ModelArray::Type::FOURD, "FourDField" },
 };
 
@@ -58,6 +65,7 @@ ModelArray::SizeMap::SizeMap()
         { Type::ONED, 1 },
         { Type::TWOD, 1 },
         { Type::DOSD, 1 },
+        { Type::THREED, 1 },
         { Type::FOURD, 1 },
     })
 {
@@ -68,6 +76,7 @@ ModelArray::DimensionMap::DimensionMap()
         { Type::ONED, { 1 } },
         { Type::TWOD, { 1, 1 } },
         { Type::DOSD, { 1, 1 } },
+        { Type::THREED, { 1, 1, 1 } },
         { Type::FOURD, { 1, 1, 1, 1 } },
     })
 {
