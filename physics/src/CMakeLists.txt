@@ -48,6 +48,7 @@ set(OceanBoundaryModuleSources
     "FluxConfiguredOcean.cpp"
     "TOPAZOcean.cpp"
     "BenchmarkOcean.cpp"
+    "UniformOcean.cpp"
     )
 
 set(ModuleSources
