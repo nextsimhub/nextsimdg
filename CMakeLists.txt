@@ -88,13 +88,20 @@ foreach(compo ${CodeComponents})
     add_subdirectory("${compo}")
 endforeach()
 
-# Link the model
-add_executable(nextsim "${NextsimSources}")
+add_library(nextsimlib SHARED ${NextsimSources})
+target_include_directories(nextsimlib
+    PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${NextsimIncludeDirs}"
+    PUBLIC
+    "${netCDF_INCLUDE_DIR}"
+    )
+target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}")
+target_link_libraries(nextsimlib PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
+add_executable(nextsim ./core/src/main.cpp)
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"
-    "${netCDF_INCLUDE_DIR}"
     )
-target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+target_link_libraries(nextsim PUBLIC nextsimlib)
