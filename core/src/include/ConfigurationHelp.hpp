@@ -20,7 +20,7 @@ public:
     typedef std::list<ConfigurationHelp> OptionList;
     typedef std::map<std::string, OptionList> HelpMap;
 
-    enum class ConfigType { STRING, NUMERIC, INTEGER, MODULE };
+    enum class ConfigType { STRING, NUMERIC, INTEGER, MODULE, BOOLEAN };
 
     std::string name;
     ConfigType type;
