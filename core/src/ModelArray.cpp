@@ -248,7 +248,7 @@ ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
     MultiDim& dims = m_dims.at(type);
     MultiDim loc(dims.size()); // Size to the known number of dimensions
     for (size_t i = 0; i < loc.size(); ++i) {
-//        size_t idim = i - 1;
+        //        size_t idim = i - 1;
         size_t theDim = dims[i];
         size_t pos = index % theDim;
         loc[i] = pos;
