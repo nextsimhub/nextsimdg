@@ -11,6 +11,7 @@
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
+#include "include/IceMinima.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -26,7 +27,9 @@ public:
         LATERAL_GROWTH_KEY,
         MINC_KEY,
         MINH_KEY,
+        USE_THERMO_KEY,
     };
+
     void configure() override;
     ConfigMap getConfiguration() const override;
 
@@ -50,8 +53,13 @@ public:
 
     void update(const TimestepTime&);
 
-    static double minimumIceThickness() { return minh; }
-    static double minimumIceConcentration() { return minc; }
+    static double minimumIceThickness() { return IceMinima::h(); }
+    static double minimumIceConcentration() { return IceMinima::c(); }
+
+    /*!
+     * Updates the true ice and snow thickness arrays from the cell averages.
+     */
+    void initializeThicknesses();
 
 private:
     // Vertical Growth ModelComponent & Module
@@ -69,6 +77,8 @@ private:
     HField hsnow0; // Timestep initial true snow thickness, m
 
     HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
+    // Since ILateralSpread is purely per-element, hold Δcice here
+    HField deltaCIce; // Change in ice concentration
     // Owned data fields, not shared
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
@@ -88,8 +98,7 @@ private:
     ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore>
         deltaHi; // New ice thickness this timestep, m
 
-    static double minc; // Minimum sea ice concentration
-    static double minh; // Minimum sea ice thickness
+    bool doThermo = true; // Perform any thermodynamics calculations at all
 
     void newIceFormation(size_t i, const TimestepTime&);
     void lateralIceSpread(size_t i, const TimestepTime&);
@@ -100,7 +109,7 @@ private:
         lateralIceSpread(i, tst);
         applyLimits(i, tst);
     }
-    void initializeThicknesses(size_t i, const TimestepTime&);
+    void initializeThicknessesElement(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */

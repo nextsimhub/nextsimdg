@@ -8,6 +8,7 @@
 #ifndef IICETHERMODYNAMICS_HPP
 #define IICETHERMODYNAMICS_HPP
 
+#include "include/ConfigurationHelp.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
@@ -39,6 +40,10 @@ public:
      */
     virtual void update(const TimestepTime& tsTime) = 0;
 
+    inline static std::string getKappaSConfigKey() { return "thermo.ks"; }
+
+    virtual size_t getNZLevels() const = 0;
+
 protected:
     IIceThermodynamics()
         : tice(ModelArray::Type::Z)
@@ -51,6 +56,7 @@ protected:
         , qio(getSharedArray())
         , qia(getSharedArray())
         , dQia_dt(getSharedArray())
+        , penSw(getSharedArray())
         , sublim(getSharedArray())
         , tice0(getProtectedArray())
         , tf(getProtectedArray())
@@ -71,6 +77,7 @@ protected:
     ModelArrayRef<SharedArray::Q_IO, MARBackingStore, RW> qio; // From FluxCalculation
     ModelArrayRef<SharedArray::Q_IA, MARBackingStore, RO> qia; // From FluxCalculation
     ModelArrayRef<SharedArray::DQIA_DT, MARBackingStore, RO> dQia_dt; // From FluxCalculation
+    ModelArrayRef<SharedArray::Q_PEN_SW, MARBackingStore, RO> penSw; // From FluxCalculation
     ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> sublim; // From AtmosphereState
     ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore>
         tice0; // Timestep initial ice temperature

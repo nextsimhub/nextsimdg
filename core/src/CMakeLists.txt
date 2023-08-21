@@ -21,6 +21,7 @@ set(BaseSources
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"
+    "NZLevels.cpp"
     "PrognosticData.cpp"
     "Time.cpp"
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
@@ -48,10 +49,18 @@ set(DiagnosticOutputModuleSources
     "ConfigOutput.cpp"
     )
 
+
+set(DynamicsModuleSources
+    "DynamicsModule.cpp"
+    "Dynamics.cpp"
+    )
+
+
 set(ModuleSources
     "${StructureModuleSources}"
     "${FreezingPointModuleSources}"
     "${DiagnosticOutputModuleSources}"
+    "${DynamicsModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
