@@ -2,9 +2,9 @@
 
 <simulation>
 
-  <context id="test">
+  <context id="xios_context">
 
-    <calendar type="Gregorian" time_origin="2021-01-01" start_date="2021-03" />
+    <calendar type="Gregorian" time_origin="2021-01-01" start_date="2021-03-01" />
 
     <axis_definition>
       <axis id="axis_A" n_glo="10" value="(0,9)[100 200 300 400 500 600 700 800 900 1000]">
@@ -34,12 +34,12 @@
     
   </context>
   
-  <context id="xios">
-    <variable_definition>
-      <variable_group id="parameters" >
-        <variable id="print_file" type="bool">true</variable>
-      </variable_group>
-    </variable_definition>
-  </context>
+  !<context id="xios">
+  !  <variable_definition>
+  !    <variable_group id="parameters" >
+  !      <variable id="print_file" type="bool">true</variable>
+  !    </variable_group>
+  !  </variable_definition>
+  !</context>
   
 </simulation>
