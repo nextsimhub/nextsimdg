@@ -263,3 +263,21 @@ add_executable(testXiosInit
 target_include_directories(testXiosInit PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}") 
 target_link_directories(testXiosInit PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
 target_link_libraries(testXiosInit PRIVATE "${XIOS_LIBRARY_LIST}")
+
+add_executable(testXiosBuild
+    "XiosInit_test.cpp"
+    "${CoreSrc}/Xios.cpp"
+    "${CoreSrc}/Configurator.cpp"
+)
+target_include_directories(testXiosBuild PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}") 
+target_link_directories(testXiosBuild PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
+target_link_libraries(testXiosBuild PRIVATE "${XIOS_LIBRARY_LIST}")
+
+add_executable(testXiosDisabled
+    "XiosInit_test.cpp"
+    "${CoreSrc}/Xios.cpp"
+    "${CoreSrc}/Configurator.cpp"
+)
+target_include_directories(testXiosDisabled PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}") 
+target_link_directories(testXiosDisabled PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
+target_link_libraries(testXiosDisabled PRIVATE "${XIOS_LIBRARY_LIST}")

@@ -7,6 +7,8 @@
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
 
+#if USE_XIOS
+
 #include <mpi.h>
 #include <include/xios_c_interface.hpp>
 #include "Configured.hpp"
@@ -19,7 +21,7 @@ namespace Nextsim {
 //! Class to handle interfacing with the XIOS library
 class Xios : public Configured<Xios> {
 public:
-    Xios(int argc, char* argv[]);
+    Xios(int argc, char* argv[]);//, bool manual_enable=false);
     ~Xios();
     
     //void initialise();//int argc, char* argv[]);
@@ -88,4 +90,5 @@ private:
 
 } /* end namespace Nextsim */
 
+#endif // USE_XIOS
 #endif
