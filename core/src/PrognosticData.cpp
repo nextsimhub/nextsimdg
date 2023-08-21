@@ -7,6 +7,7 @@
 
 #include "include/PrognosticData.hpp"
 
+#include "include/gridNames.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/Module.hpp"
 
@@ -106,13 +107,15 @@ void PrognosticData::updatePrognosticFields()
 ModelState PrognosticData::getState() const
 {
     return { {
-                 { "mask", ModelArray(oceanMask()) }, // make a copy
-                 { "hice", mask(m_thick) },
-                 { "cice", mask(m_conc) },
-                 { "hsnow", mask(m_snow) },
-                 { "tice", mask(m_tice) },
-                 { "sst", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SST))) },
-                 { "sss", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SSS))) },
+                 { maskName, ModelArray(oceanMask()) }, // make a copy
+                 { hiceName, mask(m_thick) },
+                 { ciceName, mask(m_conc) },
+                 { hsnowName, mask(m_snow) },
+                 { ticeName, mask(m_tice) },
+                 { sstName, mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SST))) },
+                 { sssName, mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SSS))) },
+                 { uName, mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::ICE_U))) },
+                 { vName, mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::ICE_V))) },
              },
         {} };
 }
