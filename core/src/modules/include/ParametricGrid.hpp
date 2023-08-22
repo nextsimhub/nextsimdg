@@ -94,6 +94,10 @@ public:
 private:
     IParaGridIO* pio;
 
+    HField longitude; // in degrees
+    HField latitude; // in degrees
+    VertexField coords; // vertex longitudes and latitudes in degrees
+
     friend ParaGridIO;
 };
 
