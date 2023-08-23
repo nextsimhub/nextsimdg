@@ -33,35 +33,35 @@ target_link_libraries(testScopedTimer PRIVATE nextsimlib doctest::doctest)
 add_executable(testTimeClasses "Time_test.cpp")
 target_link_libraries(testTimeClasses PRIVATE nextsimlib doctest::doctest)
 
-set(MODEL_INCLUDE_DIRS "./testmodelarraydetails")
+set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
 
-add_executable(testModelArray "ModelArray_test.cpp" "testmodelarraydetails/ModelArrayDetails.cpp")
-target_include_directories(testModelArray PRIVATE ${MODEL_INCLUDE_DIRS})
-target_link_libraries(testModelArray PRIVATE nextsimlib doctest::doctest)
+add_executable(testModelArray "ModelArray_test.cpp" "../src/ModelArray.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp")
+target_include_directories(testModelArray PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
+target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
-set(MODEL_INCLUDE_DIRS "../../core/src/discontinuousgalerkin")
+set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 add_executable(testDevGrid "DevGrid_test.cpp")
-target_include_directories(testDevGrid PRIVATE ${MODEL_INCLUDE_DIRS})
+target_include_directories(testDevGrid PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testDevGrid PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testRectGrid "RectGrid_test.cpp")
-target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIRS})
+target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testParaGrid "ParaGrid_test.cpp")
-target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIRS})
+target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testModelComponent "ModelComponent_test.cpp")
-target_include_directories(testModelComponent PRIVATE ${MODEL_INCLUDE_DIRS})
+target_include_directories(testModelComponent PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testModelComponent PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testModelArrayRef "ModelArrayRef_test.cpp")
-target_include_directories(testModelArrayRef PRIVATE ${MODEL_INCLUDE_DIRS})
+target_include_directories(testModelArrayRef PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
 
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
-target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIRS})
+target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR})
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
