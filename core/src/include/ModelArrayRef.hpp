@@ -126,6 +126,9 @@ public:
     //! object and the provided ModelArray.
     ModelArray operator/(double divisor) const { return data() / divisor; }
 
+    //! Returns true if the pointer is nullptr, false if it is a pointer to valid memory
+    bool isNull() const { return !ref; }
+
 private:
     ModelArrayConstReference ref;
     MARStore& store;
