@@ -24,6 +24,8 @@ static const std::string sstName = "sst";
 static const std::string sssName = "sss";
 
 static const std::string coordsName = "coords";
+static const std::string longitudeName = "longitude";
+static const std::string latitudeName = "latitude";
 
 static const std::string mdiName = "missing_value";
 
