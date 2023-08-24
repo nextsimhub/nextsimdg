@@ -47,17 +47,17 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
     // TODO There must be a better way
     if (DevGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("DevGrid");
-        DevGrid gridIn;
+        DevGrid& gridIn = static_cast<DevGrid&>(Module::getImplementation<IStructure>());
         gridIn.setIO(new DevGridIO(gridIn));
         return gridIn.getModelState(filePath);
     } else if (RectangularGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("RectangularGrid");
-        RectangularGrid gridIn;
+        RectangularGrid& gridIn = static_cast<RectangularGrid&>(Module::getImplementation<IStructure>());
         gridIn.setIO(new RectGridIO(gridIn));
         return gridIn.getModelState(filePath);
     } else if (ParametricGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("ParametricGrid");
-        ParametricGrid gridIn;
+        ParametricGrid& gridIn = static_cast<ParametricGrid&>(Module::getImplementation<IStructure>());
         gridIn.setIO(new ParaGridIO(gridIn));
         return gridIn.getModelState(filePath);
     } else {
