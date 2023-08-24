@@ -9,6 +9,7 @@
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/MissingData.hpp"
+#include "include/Module.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
@@ -121,6 +122,14 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         }
     }
     ncFile.close();
+
+    // copy the coordinate arrays (longitude, latitude and coords) to the reference implementation
+    // of ParametricGrid
+    ParametricGrid& referenceGrid = static_cast<ParametricGrid&>(Module::getImplementation<IStructure>());
+    referenceGrid.longitude.setData(state.data.at(longitudeName));
+    referenceGrid.latitude.setData(state.data.at(latitudeName));
+    referenceGrid.coords.setData(state.data.at(coordsName));
+
     return state;
 }
 
@@ -209,8 +218,8 @@ void ParaGridIO::dumpModelState(
     }
 
     std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, coordsName }; // TODO and others
-    // Loop through either the above list (isRestart) or all provided fields(!isRestart)
+        sssName, maskName }; // TODO and others
+    // Loop through the above list
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
             // Get the type, then relevant vector of NetCDF dimensions
@@ -221,6 +230,19 @@ void ParaGridIO::dumpModelState(
             var.putVar(entry.second.getData());
         }
     }
+    // Also add the coordinates for elements and vertices. THese are stored in the ParaGrid
+    // instance help by the IStructure Module.
+    ParametricGrid& referenceGrid = static_cast<ParametricGrid&>(Module::getImplementation<IStructure>());
+    // Longitude and latitude are HFields. Also, they should not have missing data
+    std::vector<netCDF::NcDim>& llDims = dimMap.at(ModelArray::Type::H);
+    netCDF::NcVar lonVar(dataGroup.addVar(longitudeName, netCDF::ncDouble, llDims));
+    lonVar.putVar(referenceGrid.longitude.getData());
+    netCDF::NcVar latVar(dataGroup.addVar(latitudeName, netCDF::ncDouble, llDims));
+    latVar.putVar(referenceGrid.latitude.getData());
+    // coords is a VERTEX field
+    std::vector<netCDF::NcDim>& coordsDims = dimMap.at(ModelArray::Type::VERTEX);
+    netCDF::NcVar coordsVar(dataGroup.addVar(coordsName, netCDF::ncDouble, coordsDims));
+    coordsVar.putVar(referenceGrid.coords.getData());
 
     ncFile.close();
 }
