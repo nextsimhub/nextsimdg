@@ -35,6 +35,7 @@ set(AtmosphereBoundaryModuleSources
     "ConstantAtmosphereBoundary.cpp"
     "ConfiguredAtmosphere.cpp"
     "FluxConfiguredAtmosphere.cpp"
+    "ERA5Atmosphere.cpp"
     )
 
 set(OceanBoundaryModuleSources
@@ -42,6 +43,7 @@ set(OceanBoundaryModuleSources
     "ConstantOceanBoundary.cpp"
     "ConfiguredOcean.cpp"
     "FluxConfiguredOcean.cpp"
+    "TOPAZOcean.cpp"
     )
 
 set(ModuleSources

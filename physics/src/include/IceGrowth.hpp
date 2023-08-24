@@ -27,6 +27,7 @@ public:
         LATERAL_GROWTH_KEY,
         MINC_KEY,
         MINH_KEY,
+        USE_THERMO_KEY,
     };
 
     void configure() override;
@@ -54,6 +55,11 @@ public:
 
     static double minimumIceThickness() { return IceMinima::h(); }
     static double minimumIceConcentration() { return IceMinima::c(); }
+
+    /*!
+     * Updates the true ice and snow thickness arrays from the cell averages.
+     */
+    void initializeThicknesses();
 
 private:
     // Vertical Growth ModelComponent & Module
@@ -92,6 +98,8 @@ private:
     ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore>
         deltaHi; // New ice thickness this timestep, m
 
+    bool doThermo = true; // Perform any thermodynamics calculations at all
+
     void newIceFormation(size_t i, const TimestepTime&);
     void lateralIceSpread(size_t i, const TimestepTime&);
     void applyLimits(size_t i, const TimestepTime&);
@@ -101,7 +109,7 @@ private:
         lateralIceSpread(i, tst);
         applyLimits(i, tst);
     }
-    void initializeThicknesses(size_t i, const TimestepTime&);
+    void initializeThicknessesElement(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */

@@ -31,6 +31,7 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::STOPTIME_KEY, "model.stop" },
     { Model::RUNLENGTH_KEY, "model.run_length" },
     { Model::TIMESTEP_KEY, "model.time_step" },
+    { Model::MISSINGVALUE_KEY, "model.missing_value" },
 };
 
 Model::Model()
@@ -68,8 +69,8 @@ void Model::configure()
     TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
     m_etadata.setTime(timeNow);
 
-    MissingData mdi;
-    mdi.configure();
+    MissingData::value
+        = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
@@ -91,9 +92,8 @@ ConfigMap Model::getConfig() const
         { keyMap.at(STOPTIME_KEY), stopTimeStr },
         { keyMap.at(RUNLENGTH_KEY), durationStr },
         { keyMap.at(TIMESTEP_KEY), stepStr },
+        { keyMap.at(MISSINGVALUE_KEY), MissingData::value },
     };
-    // MissingData has a static getState
-    cMap.merge(MissingData::getConfig());
 
     return cMap;
 }
@@ -114,6 +114,8 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model physics timestep, formatted a ISO8601 duration (P prefix). " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
+        { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
+            "Missing data indicator used for input and output." },
     };
 
     return map;
@@ -122,7 +124,6 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
 Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
-    MissingData::getHelpRecursive(map, getAll);
     PrognosticData::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IDiagnosticOutput>(map, getAll);
     return map;
@@ -139,7 +140,7 @@ void Model::writeRestartFile()
     modelConfig.merge(pData.getStateRecursive(true).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     m_etadata.setConfig(modelConfig);
-    StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName);
+    StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName, true);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }

@@ -105,20 +105,20 @@ public:
     landmask.clear();
   }
   
-    /*!
-     * Reads mesh from a .smesh - file
-     *
-     * File format:
-     *
-     * ParametricMesh 1.0 % Identifier & Version
-     *
-     * nx ny          % number of elements in x- and y- direction  << Version: 1.0
-     * x1       y1    % x- and y- coordinates of vertices. first vertex lower left
-     * x2       y2    % then to the right, then 2nd row, ... up to upper right
-     * ...
-     * xxnnodes ynnodes
-     */
-    void readmesh(std::string fname);
+  /*!
+    * Reads mesh from a .smesh - file
+    *
+    * File format:
+    *
+    * ParametricMesh 1.0 % Identifier & Version
+    *
+    * nx ny          % number of elements in x- and y- direction  << Version: 1.0
+    * x1       y1    % x- and y- coordinates of vertices. first vertex lower left
+    * x2       y2    % then to the right, then 2nd row, ... up to upper right
+    * ...
+    * xxnnodes ynnodes
+    */
+  void readmesh(std::string fname);
 
 
   /*!
@@ -202,9 +202,10 @@ public:
   template<int N>
   void correctlongitude(Eigen::Matrix<Nextsim::FloatType, N, 2>& coords) const
   {
+    assert(CoordinateSystem == SPHERICAL);
     bool problem = false;
     for (size_t i=1;i<N;++i)
-      if (coords(0,0)-coords(i,0)>2.0/3.0 * M_PI)
+      if (fabs(coords(0,0)-coords(i,0))>2.0/3.0 * M_PI)
 	{
 	  problem = true;
 	  break;
@@ -324,27 +325,64 @@ public:
         } else if (CGdegree == 2) {
             assert(ix < 2 * nx + 1);
             assert(iy < 2 * ny + 1);
-            const size_t cx = ix / 2; // index of the element where the cooridnate belongs to
+
+	    const size_t cx = ix / 2; // index of the element where the cooridnate belongs to
             const size_t cy = iy / 2;
-            const size_t mx = ix % 2; // where are we in the element?
-            const size_t my = iy % 2;
-            const size_t n0 = (nx + 1) * cy + cx; // lower left node
 
-            const size_t shift_y = nx + 1;
+	    const size_t mx = ix % 2; // where are we in the element?
+	    const size_t my = iy % 2;
 
-            if ((my == 0) && (mx == 0))
-                return Vertex({ vertices(n0, 0), vertices(n0, 1) });
-            else if ((my == 0) && (mx == 1))
-                return Vertex({ 0.5 * (vertices(n0, 0) + vertices(n0 + 1, 0)),
-                    0.5 * (vertices(n0, 1) + vertices(n0 + 1, 1)) });
-            else if ((my == 1) && (mx == 0))
-                return Vertex({ 0.5 * (vertices(n0, 0) + vertices(n0 + shift_y, 0)),
-                    0.5 * (vertices(n0, 1) + vertices(n0 + shift_y, 1)) });
-            else if ((my == 1) && (mx == 1))
-                return Vertex({ 0.25 * (vertices(n0, 0) + vertices(n0 + 1, 0) + vertices(n0 + shift_y, 0) + vertices(n0 + shift_y + 1, 0)),
-                    0.25 * (vertices(n0, 1) + vertices(n0 + 1, 1) + vertices(n0 + shift_y, 1) + vertices(n0 + shift_y + 1, 1)) });
-            else
-                abort();
+	    if ( (cx<nx) && (cy<ny) )
+	      {
+		const Eigen::Matrix<Nextsim::FloatType, 4, 2> coe = coordinatesOfElement(nx*cy+cx);
+		
+		if ((my == 0) && (mx == 0))
+		  return Vertex({ coe(0,0),coe(0,1) });
+		else if ((my == 0) && (mx == 1))
+		  return Vertex({ 0.5*(coe(0,0)+coe(1,0)), 0.5*(coe(0,1)+coe(1,1)) });
+		else if ((my == 1) && (mx == 0))
+		  return Vertex({ 0.5*(coe(0,0)+coe(2,0)), 0.5*(coe(0,1)+coe(2,1)) });
+		else if ((my == 1) && (mx == 1))
+		  return Vertex({ 0.25*(coe(0,0)+coe(1,0)+coe(2,0)+coe(3,0)), 0.25*(coe(0,1)+coe(1,1)+coe(2,1)+coe(3,1)) });
+		else
+		  abort();
+	      }
+	    else if (cx<nx)
+	      // the node is on the upper boundary of  the mesh
+	      // we take the element of the last row and access the upper nodes there
+	      // it must be my = 0.
+	      {
+		assert(my == 0);
+		const Eigen::Matrix<Nextsim::FloatType, 4, 2> coe = coordinatesOfElement(nx*(cy-1)+cx);
+		
+		if (mx == 0)
+		  return Vertex({ coe(2,0),coe(2,1) });
+		else if (mx == 1)
+		  return Vertex({ 0.5*(coe(2,0)+coe(3,0)), 0.5*(coe(2,1)+coe(3,1)) });
+		abort();
+	      }
+	    else if (cy<ny)
+	      // the node is on the right boundary of  the mesh
+	      // we take the element of the last col and access the right nodes there
+	      // it must be mx = 0.
+	      {
+		assert(mx == 0);
+
+		const Eigen::Matrix<Nextsim::FloatType, 4, 2> coe = coordinatesOfElement(nx*cy+cx-1);
+
+		if (my == 0)
+		  return Vertex({ coe(1,0),coe(1,1) });
+		else if (my == 1)
+		  return Vertex({ 0.5*(coe(1,0)+coe(3,0)),0.5*(coe(1,1)+coe(3,1)) });
+		abort();
+	      }
+	    else // top right vertex
+	      {
+		assert( (cx == nx) && (ny == ny) );
+		return Vertex( {vertices(nnodes-1,0), vertices(nnodes-1,1)} );
+	      }
+	    abort();
+  
         } else
             abort();
     }
@@ -353,8 +391,21 @@ public:
      * computes the vector between two points n1, n2 (not normed)
      */
     Eigen::Matrix<Nextsim::FloatType, 1, 2> edgevector(const size_t n1, const size_t n2) const
-    {
-        return vertices.block<1, 2>(n2, 0) - vertices.block<1, 2>(n1, 0);
+  {
+      //! In spherical coordinates (and greenland) we must check for the Pi -> -Pi jump
+      if (CoordinateSystem == SPHERICAL)
+	{
+	  Eigen::Matrix<Nextsim::FloatType, 1, 2> dv = vertices.block<1,2>(n2,0) - vertices.block<1,2>(n1,0);
+
+	  if (dv(0,0)>0.5*M_PI)
+	    dv(0,0) -= 2.0 * M_PI;
+	  if (dv(0,0)<-0.5*M_PI)
+	    dv(0,0) += 2.0 * M_PI;
+	  return dv;
+	}
+      else if (CoordinateSystem == CARTESIAN)
+	return vertices.block<1,2>(n2,0) - vertices.block<1,2>(n1,0);
+      else abort();      
     }
 
     // Global access functions

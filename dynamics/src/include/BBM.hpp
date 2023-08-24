@@ -104,7 +104,7 @@ namespace BBM {
 
             //! Eqn. 9
             const Eigen::Matrix<double, 1, NGP* NGP> elasticity
-                = params.young * d_gauss.array() * expC.array();
+                = h_gauss.array() * params.young * d_gauss.array() * expC.array();
 
             // Eqn. 12: first factor on RHS
             /* Stiffness matrix
@@ -135,24 +135,25 @@ namespace BBM {
 
             const double scale_coef = std::sqrt(0.1 / smesh.h(i));
     
-            //const double cohesion = params.C_lab * scale_coef;
-            const double cohesion = 10000 ;//params.C_lab * scale_coef;
-            
-            const double compr_strength = params.compr_strength * scale_coef;
+            //! Eqn. 22
+            const Eigen::Matrix<double, 1, NGP* NGP>  cohesion = params.C_lab * scale_coef * h_gauss.array();
+            //! Eqn. 30
+            const Eigen::Matrix<double, 1, NGP* NGP>  compr_strength = params.compr_strength * scale_coef * h_gauss.array() ;
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
             Eigen::Matrix<double, 1, NGP* NGP> dcrit
                 = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
-                      .select(cohesion / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
+                      .select(cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
-            dcrit = (sigma_n.array() < -compr_strength)
-                        .select(-compr_strength / sigma_n.array(), dcrit);
+            dcrit = (sigma_n.array() < -compr_strength.array())
+                        .select(-compr_strength.array() / sigma_n.array(), dcrit);
 
             // Only damage when we're outside
             dcrit = dcrit.array().min(1.0);
 
+            // Eqn. 29
             const Eigen::Matrix<double, 1, NGP* NGP> td = smesh.h(i)
                 * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
 
