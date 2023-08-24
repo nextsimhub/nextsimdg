@@ -88,6 +88,7 @@ TEST_CASE("Threshold ice")
         HField dqia_dt;
         HField qpensw;
         HField subl;
+        HField penSW;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -108,6 +109,7 @@ TEST_CASE("Threshold ice")
             qia[0] = 0;
             dqia_dt[0] = 0;
             subl[0] = 0;
+            penSW[0] = 0;
         }
 
         ModelState getState() const override { return ModelState(); }

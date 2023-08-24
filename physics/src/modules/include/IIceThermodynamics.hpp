@@ -74,7 +74,6 @@ protected:
     ModelArrayRef<Shared::H_SNOW, RW> hsnow; // From Ice Growth
     ModelArrayRef<Shared::Q_IC, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
-    ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
     ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
     ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
     ModelArrayRef<Shared::Q_PEN_SW, RO> penSw; // From FluxCalculation

@@ -28,6 +28,7 @@ public:
         LATERAL_GROWTH_KEY,
         MINC_KEY,
         MINH_KEY,
+        USE_THERMO_KEY,
     };
 
     void configure() override;
@@ -92,6 +93,8 @@ private:
     ModelArrayRef<Protected::SST> sst; // sea surface temperature, ˚C
     ModelArrayRef<Protected::TF> tf; // ocean freezing point, ˚C
     ModelArrayRef<Shared::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
+
+    bool doThermo = true; // Perform any thermodynamics calculations at all
 
     void newIceFormation(size_t i, const TimestepTime&);
     void lateralIceSpread(size_t i, const TimestepTime&);

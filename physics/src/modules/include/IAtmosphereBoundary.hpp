@@ -45,7 +45,6 @@ public:
         m_couplingArrays.registerArray(CouplingFields::WIND_U, &uwind, RW);
         m_couplingArrays.registerArray(CouplingFields::WIND_V, &vwind, RW);
 
-        getStore().registerArray(Shared::Q_IA, &qia, RW);
         getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
         getStore().registerArray(Shared::Q_OW, &qow, RW);
         getStore().registerArray(Shared::SUBLIM, &subl, RW);
