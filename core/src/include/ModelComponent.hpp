@@ -32,7 +32,7 @@ namespace Protected {
     inline constexpr TextTag C_ICE = "C_ICE0"; // Ice concentration
     inline constexpr TextTag H_SNOW = "H_SNOW_cell"; // Snow depth, cell average, m
     inline constexpr TextTag T_ICE = "T_ICE0"; // Ice temperature, ˚C
-     // External data fields
+                                               // External data fields
     inline constexpr TextTag T_AIR = "T_AIR"; // Air temperature, ˚C
     inline constexpr TextTag DEW_2M = "DEW_2M"; // Dew point at 2 m, ˚C
     inline constexpr TextTag P_AIR = "P_AIR"; // sea level air pressure, Pa
@@ -43,10 +43,13 @@ namespace Protected {
     inline constexpr TextTag SNOW = "SNOWFALL"; // snow fall, kg m⁻² s⁻¹
     inline constexpr TextTag SSS = "SSS"; // sea surface salinity, PSU
     inline constexpr TextTag SST = "SST"; // sea surface temperature ˚C
-    inline constexpr TextTag EXT_SSS = "EXT_SSS"; // sea surface salinity from coupling or forcing, PSU
-    inline constexpr TextTag EXT_SST = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
-    inline constexpr TextTag EVAP_MINUS_PRECIP = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
-     // Derived fields, calculated once per timestep
+    inline constexpr TextTag EXT_SSS
+        = "EXT_SSS"; // sea surface salinity from coupling or forcing, PSU
+    inline constexpr TextTag EXT_SST
+        = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
+    inline constexpr TextTag EVAP_MINUS_PRECIP
+        = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
+                 // Derived fields, calculated once per timestep
     inline constexpr TextTag ML_BULK_CP = "CPML"; // Mixed layer bulk heat capacity J K⁻¹ m⁻²
     inline constexpr TextTag TF = "TF"; // Ocean freezing temperature, ˚C
     inline constexpr TextTag WIND_SPEED = "WIND_SPEED"; // Wind speed, m s⁻¹
@@ -58,11 +61,13 @@ namespace Protected {
     inline constexpr TextTag WIND_V = "WIND_V"; // y(north)-ward component of wind, m s⁻¹
     inline constexpr TextTag ICE_U = "ICE_U"; // x(east)-ward ice velocity, m s⁻¹
     inline constexpr TextTag ICE_V = "ICE_V"; // y(north)-ward ice velocity, m s⁻¹
-     // Slab ocean fields
+                                              // Slab ocean fields
     inline constexpr TextTag SLAB_SST = "SLAB_SST"; // Slab ocean sea surface temperature, ˚C
     inline constexpr TextTag SLAB_SSS = "SLAB_SSS"; // Slab ocean sea surface salinity, ˚C
-    inline constexpr TextTag SLAB_QDW = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
-    inline constexpr TextTag SLAB_FDW = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+    inline constexpr TextTag SLAB_QDW
+        = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
+    inline constexpr TextTag SLAB_FDW
+        = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
 
 }
 
