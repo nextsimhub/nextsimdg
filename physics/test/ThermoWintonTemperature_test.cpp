@@ -293,9 +293,9 @@ TEST_CASE("No ice do nothing")
             getStore().registerArray(Protected::SW_IN, &sw_in);
             getStore().registerArray(Protected::T_ICE, &tice0);
 
-            getStore().registerArray(Shared::H_ICE, &hice);
-            getStore().registerArray(Shared::C_ICE, &cice);
-            getStore().registerArray(Shared::H_SNOW, &hsnow);
+            getStore().registerArray(Shared::H_ICE, &hice, RW);
+            getStore().registerArray(Shared::C_ICE, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
