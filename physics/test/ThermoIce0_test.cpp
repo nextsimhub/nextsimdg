@@ -24,11 +24,15 @@
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ThermoIce0");
+/*
+ * Test that ice below the minimum ice threshold is eliminated.
+ */
 TEST_CASE("Threshold ice")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    // Class derived from ModelComponent providing the physical data for the test
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
@@ -36,8 +40,8 @@ TEST_CASE("Threshold ice")
             registerSharedArray(SharedArray::H_ICE, &hice);
             registerSharedArray(SharedArray::C_ICE, &cice);
             registerSharedArray(SharedArray::H_SNOW, &hsnow);
+            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice);
             registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::SST, &sst);
             registerProtectedArray(ProtectedArray::SSS, &sss);
@@ -58,6 +62,7 @@ TEST_CASE("Threshold ice")
         {
             cice[0] = 0.99;
             hice[0] = 0.001 / cice[0]; // Here we are using the true thicknesses
+            hice0[0] = hice[0];
             hsnow[0] = 0.;
             sss[0] = 32.;
             sst[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
@@ -74,6 +79,7 @@ TEST_CASE("Threshold ice")
         }
 
         HField hice;
+        HField hice0;
         HField cice;
         HField hsnow;
         HField sst;
@@ -94,6 +100,29 @@ TEST_CASE("Threshold ice")
     } atmoState;
     atmoState.setData(ModelState::DataMap());
 
+    // Supply the atmospheric boundary arrays, without an entire
+    // IAtmosphereBoundary implementation
+    HField qow;
+    qow.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+
+    HField qia;
+    qia.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+
+    HField dqia_dt;
+    dqia_dt.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+
+    HField qic;
+    qic.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IC, &qic);
+
+    HField subl;
+    subl.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+
+    // An implementation of IFluxCalculation that returns zero fluxes
     class FluxData : public IFluxCalculation {
     public:
         FluxData()
