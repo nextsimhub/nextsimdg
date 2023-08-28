@@ -206,11 +206,7 @@ void ParaGridIO::dumpModelState(
         }
         dimMap[type] = ncDims;
     }
-    // Reverse the order of the dimensions to translate between column-major ModelArray and
-    // row-major netCDF
-    for (auto& [type, v] : dimMap) {
-        std::reverse(v.begin(), v.end());
-    }
+
     // Everything that has components needs that dimension, too. This always varies fastest, and so
     // is last in the vector of dimensions.
     for (auto entry : dimCompMap) {
