@@ -139,7 +139,7 @@ TEST_CASE("Moving data")
 
 TEST_CASE("Instance setDimensions sets instance dimensions")
 {
-    DosDField uu = ModelArray::DosDField();
+    ZUField uu = ModelArray::ZUField();
     ModelArray::MultiDim udim = {5, 5};
     uu.setDimensions(udim);
     REQUIRE(uu.size() == udim[0] * udim[1]);
@@ -254,6 +254,37 @@ TEST_CASE("Location from index")
     REQUIRE(loc[0] == x);
     REQUIRE(loc[1] == y);
     REQUIRE(loc[2] == z);
+}
+
+// Test the zIndexAndLayer function to ensure that it accesses the correct
+// point in a three-dimensional ModelArray.
+TEST_CASE("zIndexAndLayer")
+{
+    const size_t nx = 29;
+    const size_t ny = 23;
+    const size_t nz = 11;
+
+    ModelArray::setDimensions(ModelArray::Type::THREED, {nx, ny, nz});
+
+    ThreeDField threeD(ModelArray::Type::THREED);
+    threeD.resize();
+
+    size_t mul = 100;
+    // Fill the array fastest last
+    for (size_t i = 0; i < nx; ++i) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t k = 0; k < nz; ++k) {
+                threeD(i, j, k) = k + mul * (j + mul * (i));
+            }
+        }
+    }
+
+    size_t x = 19;
+    size_t y = 17;
+    size_t z = 7;
+    size_t ind = ModelArray::indexFromLocation(ModelArray::Type::TWOD, {x, y});
+    REQUIRE(threeD.zIndexAndLayer(ind, z) == threeD(x, y, z));
+
 }
 TEST_SUITE_END();
 
