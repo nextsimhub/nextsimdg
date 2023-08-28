@@ -139,7 +139,7 @@ TEST_CASE("Moving data")
 
 TEST_CASE("Instance setDimensions sets instance dimensions")
 {
-    DosDField uu = ModelArray::DosDField();
+    ZUField uu = ModelArray::ZUField();
     ModelArray::MultiDim udim = {5, 5};
     uu.setDimensions(udim);
     REQUIRE(uu.size() == udim[0] * udim[1]);
@@ -256,7 +256,8 @@ TEST_CASE("Location from index")
     REQUIRE(loc[2] == z);
 }
 
-// Test the zIndexAndLayer function
+// Test the zIndexAndLayer function to ensure that it accesses the correct
+// point in a three-dimensional ModelArray.
 TEST_CASE("zIndexAndLayer")
 {
     const size_t nx = 29;
