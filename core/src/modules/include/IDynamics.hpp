@@ -17,10 +17,10 @@ public:
     IDynamics()
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
-        , hice(getSharedArray())
-        , cice(getSharedArray())
-        , hsnow(getSharedArray())
-        //, damage(getSharedArray())
+        , hice(getStore())
+        , cice(getStore())
+        , hsnow(getStore())
+        //, damage(getStore())
     {
     }
     virtual ~IDynamics() = default;
@@ -41,10 +41,10 @@ protected:
     HField uice;
     HField vice;
     // References to the DG0 finite volume data arrays
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RW> hice;
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RW> cice;
-    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RW> hsnow;
-    //ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
+    ModelArrayRef<Shared::H_ICE, RW> hice;
+    ModelArrayRef<Shared::C_ICE, RW> cice;
+    ModelArrayRef<Shared::H_SNOW, RW> hsnow;
+    //ModelArrayRef<Shared::D, RW> damage;
 };
 }
 
