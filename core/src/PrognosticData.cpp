@@ -100,14 +100,16 @@ void PrognosticData::updatePrognosticFields()
 
 ModelState PrognosticData::getState() const
 {
+    ModelArrayRef<Protected::SST> sst(getStore());
+    ModelArrayRef<Protected::SSS> sss(getStore());
     return { {
                  { "mask", ModelArray(oceanMask()) }, // make a copy
                  { "hice", mask(m_thick) },
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
-                 { "sst", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SST))) },
-                 { "sss", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SSS))) },
+                 { "sst", mask(sst.data()) },
+                 { "sss", mask(sss.data()) },
              },
         {} };
 }
