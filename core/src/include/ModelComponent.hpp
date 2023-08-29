@@ -52,6 +52,15 @@ namespace Protected {
     constexpr TextTag HTRUE_SNOW = "HTRUE_SNOW"; // Snow thickness, ice average, m
     constexpr TextTag OCEAN_U = "OCEAN_U"; // x(east)-ward ocean current, m s⁻¹
     constexpr TextTag OCEAN_V = "OCEAN_V"; // y(north)-ward ocean current, m s⁻¹
+    constexpr TextTag WIND_U = "WIND_U"; // x(east)-ward component of wind, m s⁻¹
+    constexpr TextTag WIND_V = "WIND_V"; // y(north)-ward component of wind, m s⁻¹
+    constexpr TextTag ICE_U = "ICE_U"; // x(east)-ward ice velocity, m s⁻¹
+    constexpr TextTag ICE_V = "ICE_V"; // y(north)-ward ice velocity, m s⁻¹
+                                       // Slab ocean fields
+    constexpr TextTag SLAB_SST = "SLAB_SST"; // Slab ocean sea surface temperature, ˚C
+    constexpr TextTag SLAB_SSS = "SLAB_SSS"; // Slab ocean sea surface salinity, ˚C
+    constexpr TextTag SLAB_QDW = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
+    constexpr TextTag SLAB_FDW = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
 
 }
 
@@ -68,6 +77,7 @@ namespace Shared {
     constexpr TextTag Q_OW = "Q_OW"; // Open water heat flux W m⁻²
     constexpr TextTag DQIA_DT
         = "DQIA_DT"; // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
+    constexpr TextTag Q_PEN_SW = "Q_PEN_SW"; // Penetrating shortwave flux W m⁻²
     // Mass fluxes
     constexpr TextTag HSNOW_MELT = "HSNOW_MELT"; // Thickness of snow that melted, m
     // Atmospheric conditions
