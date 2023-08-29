@@ -24,7 +24,6 @@ public:
 
     void update(const TimestepTime&) override;
     void updateElement(size_t i, const TimestepTime&);
-
 protected:
     ModelArrayRef<Protected::ML_BULK_CP> mlBulkCp;
 };

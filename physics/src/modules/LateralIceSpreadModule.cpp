@@ -7,16 +7,18 @@
 
 #include "include/LateralIceSpreadModule.hpp"
 
+#include "include/DummyIceSpread.hpp"
 #include "include/HiblerSpread.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string HIBLERSPREAD = "Nextsim::HiblerSpread";
-
+const std::string DUMMYICESPREAD = "Nextsim::DummyIceSpread";
 template <>
 Module<Nextsim::ILateralIceSpread>::map Module<Nextsim::ILateralIceSpread>::functionMap = {
     { HIBLERSPREAD, newImpl<Nextsim::ILateralIceSpread, Nextsim::HiblerSpread> },
+    { DUMMYICESPREAD, newImpl<Nextsim::ILateralIceSpread, Nextsim::DummyIceSpread> },
 };
 
 template <>
@@ -35,7 +37,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::ILateralIceSpread>(HelpMap& map, 
 {
     const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
     map[pfx].push_back({ pfx + "." + Module<Nextsim::ILateralIceSpread>::moduleName(),
-        ConfigType::MODULE, { HIBLERSPREAD }, HIBLERSPREAD, "",
+        ConfigType::MODULE, { HIBLERSPREAD, DUMMYICESPREAD }, HIBLERSPREAD, "",
         "The module for calculating the freezing and thawing of ice on the ocean surface." });
     Nextsim::HiblerSpread::getHelpRecursive(map, getAll);
     return map;

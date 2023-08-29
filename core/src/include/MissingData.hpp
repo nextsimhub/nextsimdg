@@ -14,18 +14,8 @@ namespace Nextsim {
 
 class MissingData : public Configured<MissingData> {
 public:
-    inline static double value() { return m_value; }
-    void configure() override;
-    enum {
-        MISSINGVALUE_KEY,
-    };
-
-    static ConfigMap getConfig();
-    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll) { return getHelpText(map, getAll); }
-    static HelpMap& getHelpText(HelpMap& map, bool getAll);
-
-private:
-    static double m_value;
+    static const double defaultValue;
+    static double value;
 };
 
 } /* namespace Nextsim */

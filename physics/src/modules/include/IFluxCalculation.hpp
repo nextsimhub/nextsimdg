@@ -22,6 +22,7 @@ public:
         , subl(getStore())
         , qia(getStore())
         , dqia_dt(getStore())
+        , penSW(getStore())
     {
     }
     virtual ~IFluxCalculation() = default;
@@ -50,6 +51,7 @@ protected:
     ModelArrayRef<Shared::Q_OW, RW> qow;
     ModelArrayRef<Shared::SUBLIM, RW> subl;
     ModelArrayRef<Shared::Q_IA, RW> qia;
+    ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
     ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
 };
 }

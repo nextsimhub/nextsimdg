@@ -56,6 +56,7 @@ protected:
         , qio(getStore())
         , qia(getStore())
         , dQia_dt(getStore())
+        , penSw(getStore())
         , sublim(getStore())
         , tice0(getStore())
         , tf(getStore())
@@ -76,6 +77,7 @@ protected:
     ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
     ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
     ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
+    ModelArrayRef<Shared::Q_PEN_SW, RO> penSw; // From FluxCalculation
     ModelArrayRef<Shared::SUBLIM, RO> sublim; // From AtmosphereState
     ModelArrayRef<Protected::T_ICE> tice0; // Timestep initial ice temperature
     ModelArrayRef<Protected::TF> tf; // Sea water freezing temperature

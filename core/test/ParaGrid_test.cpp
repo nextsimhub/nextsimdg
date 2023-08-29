@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
@@ -37,7 +37,8 @@ namespace Nextsim {
 
 size_t c = 0;
 
-TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[ParametricGrid]")
+TEST_SUITE_BEGIN("ParaGrid");
+TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 {
     Module::setImplementation<IStructure>("ParametricGrid");
 
@@ -183,7 +184,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file", "[Parametri
     std::filesystem::remove(filename);
 }
 
-TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
+TEST_CASE("Write a diagnostic ParaGrid file")
 {
     Module::setImplementation<IStructure>("ParametricGrid");
 
@@ -234,11 +235,11 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
         }
     }
     double prec = 1e-9;
-    REQUIRE(fractional(12, 12) - fractional(11, 12) == Approx(xFactor).epsilon(prec));
-    REQUIRE(fractional(12, 12) - fractional(12, 11) == Approx(yFactor).epsilon(prec));
+    REQUIRE(fractional(12, 12) - fractional(11, 12) == doctest::Approx(xFactor).epsilon(prec));
+    REQUIRE(fractional(12, 12) - fractional(12, 11) == doctest::Approx(yFactor).epsilon(prec));
 
-    REQUIRE(fractionalDG(12, 12) - fractionalDG(11, 12) == Approx(xFactor).epsilon(prec));
-    REQUIRE(fractionalDG(12, 12) - fractionalDG(12, 11) == Approx(yFactor).epsilon(prec));
+    REQUIRE(fractionalDG(12, 12) - fractionalDG(11, 12) == doctest::Approx(xFactor).epsilon(prec));
+    REQUIRE(fractionalDG(12, 12) - fractionalDG(12, 11) == doctest::Approx(yFactor).epsilon(prec));
 
 
     DGField hice = fractionalDG + 10;
@@ -305,20 +306,21 @@ TEST_CASE("Write a diagnostic ParaGrid file", "[ParaGridIO]")
     // TODO test metadata
 
     // test data
-    REQUIRE(dataGrp.getVarCount() == 4);
+    REQUIRE(dataGrp.getVarCount() == 5);
     netCDF::NcVar hiceVar = dataGrp.getVar(hiceName);
     netCDF::NcVar ciceVar = dataGrp.getVar(ciceName);
     netCDF::NcVar coordVar = dataGrp.getVar(coordsName);
     netCDF::NcVar maskVar = dataGrp.getVar(maskName);
+    netCDF::NcVar timeVar = dataGrp.getVar(timeName);
 
     // hice
     REQUIRE(hiceVar.getDimCount() == 4);
-
 
     ncFile.close();
 
     std::filesystem::remove(diagFile);
 
 }
+TEST_SUITE_END();
 
 }

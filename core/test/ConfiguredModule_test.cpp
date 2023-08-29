@@ -7,8 +7,8 @@
 
 #include "ConfiguredModule.hpp"
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "ArgV.hpp"
 #include "moduleTestClasses.hpp"
@@ -44,7 +44,9 @@ template <> void setImplementation<ITest>(const std::string& implName)
 }
 
 namespace Nextsim {
-TEST_CASE("Configure a module", "[Configurator]")
+
+TEST_SUITE_BEGIN("ConfiguredModule");
+TEST_CASE("Configure a module")
 {
     Configurator::clear();
 
@@ -63,7 +65,7 @@ TEST_CASE("Configure a module", "[Configurator]")
     REQUIRE(impler() == 1);
 }
 
-TEST_CASE("Configure a module from a stream", "[Configurator]")
+TEST_CASE("Configure a module from a stream")
 {
     Configurator::clear();
     std::stringstream config;
@@ -82,7 +84,7 @@ TEST_CASE("Configure a module from a stream", "[Configurator]")
     REQUIRE(impler() == 2);
 }
 
-TEST_CASE("Don't configure a module from a stream", "[Configurator]")
+TEST_CASE("Don't configure a module from a stream")
 {
     Configurator::clear();
     std::stringstream config;
@@ -105,7 +107,7 @@ TEST_CASE("Don't configure a module from a stream", "[Configurator]")
     REQUIRE(impler() == 2);
 }
 
-TEST_CASE("Configure a module with an incorrect name", "[Configurator]")
+TEST_CASE("Configure a module with an incorrect name")
 {
     Configurator::clear();
     std::stringstream config;
@@ -122,5 +124,6 @@ TEST_CASE("Configure a module with an incorrect name", "[Configurator]")
     REQUIRE_THROWS(ConfiguredModule::parseConfigurator());
 
 }
+TEST_SUITE_END();
 
 }

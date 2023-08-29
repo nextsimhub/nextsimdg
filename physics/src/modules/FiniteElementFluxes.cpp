@@ -70,10 +70,7 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
     dshice_dT.resize();
 }
 
-ModelState FiniteElementFluxes::getState() const
-{
-    return { {}, {} };
-}
+ModelState FiniteElementFluxes::getState() const { return { {}, {} }; }
 
 ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
 
@@ -112,7 +109,6 @@ void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 {
     // Mass flux from open water (evaporation)
     evap[i] = dragOcean_q * rho_air[i] * v_air[i] * (sh_water[i] - sh_air[i]);
-
     // Momentum flux from open water (drag pressure)
     // TODO
 
@@ -146,8 +142,11 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
         = dragIce_t * rho_air[i] * cp_air[i] * v_air[i] * (tice.zIndexAndLayer(i, 0) - t_air[i]);
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
     // Shortwave flux
-    double albedoValue = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i]);
-    Q_sw_ia[i] = -sw_in[i] * (1. - m_I0) * (1 - albedoValue);
+    double albedoValue, i0;
+    std::tie(albedoValue, i0)
+        = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
+    Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
+    penSW[i] = sw_in[i] * (1. - albedoValue) * i0;
     // Longwave flux
     Q_lw_ia[i] = stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0)) - lw_in[i];
     double dQlw_dT
@@ -164,7 +163,6 @@ void FiniteElementFluxes::update(const TimestepTime& tst)
     updateOW(tst); // qow
     updateIce(tst); // qia & dqia/dT
 }
-
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {

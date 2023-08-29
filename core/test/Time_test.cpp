@@ -9,12 +9,13 @@
 
 #include <sstream>
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 namespace Nextsim {
 
-TEST_CASE("TimePoint parsing and formating", "[TimePoint]")
+TEST_SUITE_BEGIN("Time");
+TEST_CASE("TimePoint parsing and formating")
 {
     // Time with explicit timezone marker so the initial and final strings match.
     std::stringstream is("2022-06-07T14:16:01Z");
@@ -34,7 +35,7 @@ TEST_CASE("TimePoint parsing and formating", "[TimePoint]")
     REQUIRE(tq.format() == rightNow);
 }
 
-TEST_CASE("Julian-Gregorian shifts", "[Time]")
+TEST_CASE("Julian-Gregorian shifts")
 {
     // In the 1500s, the inital 10 day shift.
     REQUIRE(julianGregorianShiftDays(1582) == -10);
@@ -51,7 +52,7 @@ TEST_CASE("Julian-Gregorian shifts", "[Time]")
     REQUIRE(julianGregorianShiftDays(2525) == -17);
 }
 
-TEST_CASE("mkgmtime", "[Time]")
+TEST_CASE("mkgmtime")
 {
     const int days = 24 * 60 * 60;
 
@@ -115,7 +116,7 @@ TEST_CASE("mkgmtime", "[Time]")
     REQUIRE(after - before == 365 * days);
 }
 
-TEST_CASE("timeFromISO", "[Time]")
+TEST_CASE("timeFromISO")
 {
     const int days = 24 * 60 * 60;
 
@@ -140,7 +141,7 @@ TEST_CASE("timeFromISO", "[Time]")
     TimeOptions::useDOY() = previousDOY;
 }
 
-TEST_CASE("TimePoints", "[TimePoint]")
+TEST_CASE("TimePoints")
 {
     TimePoint tp;
     TimePoint tq;
@@ -156,7 +157,7 @@ TEST_CASE("TimePoints", "[TimePoint]")
     REQUIRE(tp.parse("1980-07-30") != tq.parse("1980-07-29"));
 }
 
-TEST_CASE("Durations", "[Duration]")
+TEST_CASE("Durations")
 {
     const int days = 24 * 60 * 60;
 
@@ -222,7 +223,7 @@ TEST_CASE("Durations", "[Duration]")
     REQUIRE(aDay.seconds() == daySeconds);
 }
 
-TEST_CASE("gmtime and doy", "[TimePoint]")
+TEST_CASE("gmtime and doy")
 {
     TimePoint janfirst("2010-01-01T00:00:00Z");
     std::tm* timeStruct = janfirst.gmtime();
@@ -234,4 +235,6 @@ TEST_CASE("gmtime and doy", "[TimePoint]")
     TimePoint bissextile("2020-03-01T00:00:00Z");
     REQUIRE(bissextile.gmtime()->tm_yday == 60);
 }
+TEST_SUITE_END();
+
 }

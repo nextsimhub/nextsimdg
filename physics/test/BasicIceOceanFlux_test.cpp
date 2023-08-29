@@ -9,8 +9,8 @@
 // FiniteElementFluxes_test and I thought the tests should continue to exist
 // somewhere
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/BasicIceOceanHeatFlux.hpp"
 
@@ -22,7 +22,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
+TEST_SUITE_BEGIN("BasicIceOceanHeatFlux");
+TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -95,10 +96,10 @@ TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
     biohf.update(tst);
 
     double prec = 1e-5;
-    REQUIRE(qio[0] == Approx(53717.8).epsilon(prec));
+    REQUIRE(qio[0] == doctest::Approx(53717.8).epsilon(prec));
 }
 
-TEST_CASE("Freezing conditions", "[BasicIceOceanHeatFlux]")
+TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -172,6 +173,8 @@ TEST_CASE("Freezing conditions", "[BasicIceOceanHeatFlux]")
     biohf.update(tst);
 
     double prec = 1e-5;
-    REQUIRE(qio[0] == Approx(73.9465).epsilon(prec));
+    REQUIRE(qio[0] == doctest::Approx(73.9465).epsilon(prec));
 }
+TEST_SUITE_END();
+
 } // namespace Nextsim
