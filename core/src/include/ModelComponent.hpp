@@ -43,6 +43,8 @@ namespace Protected {
     constexpr TextTag SNOW = "SNOWFALL"; // snow fall, kg m⁻² s⁻¹
     constexpr TextTag SSS = "SSS"; // sea surface salinity, PSU
     constexpr TextTag SST = "SST"; // sea surface temperature ˚C
+    constexpr TextTag EXT_SSS = "SSS"; // sea surface salinity from coupling or forcing, PSU
+    constexpr TextTag EXT_SST = "SST"; // sea surface temperature from coupling or forcing, ˚C
     constexpr TextTag EVAP_MINUS_PRECIP = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
     // Derived fields, calculated once per timestep
     constexpr TextTag ML_BULK_CP = "CPML"; // Mixed layer bulk heat capacity J K⁻¹ m⁻²
