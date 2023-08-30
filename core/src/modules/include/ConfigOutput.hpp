@@ -57,11 +57,12 @@ private:
     TimePoint lastOutput;
     std::set<std::string> fieldsForOutput;
     std::string currentFileName;
-    std::set<ModelComponent::SharedArray> sharedArraysForOutput;
-    std::set<ModelComponent::ProtectedArray> protectedArraysForOutput;
+    std::set<std::string> internalFieldsForOutput;
 
     static const std::string all;
     static const std::string defaultLastOutput;
+
+    std::map<std::string, std::string> reverseExternalNames;
 };
 
 } /* namespace Nextsim */
