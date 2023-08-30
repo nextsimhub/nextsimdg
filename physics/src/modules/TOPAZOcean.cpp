@@ -47,8 +47,8 @@ void TOPAZOcean::configure()
 
     slabOcean.configure();
 
-    registerProtectedArray(ProtectedArray::EXT_SST, &sstExt);
-    registerProtectedArray(ProtectedArray::EXT_SSS, &sssExt);
+    getStore().registerArray(Protected::EXT_SST, &sstExt);
+    getStore().registerArray(Protected::EXT_SSS, &sssExt);
 
 }
 
@@ -76,8 +76,8 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
 {
     slabOcean.update(tst);
-    sst = *getProtectedArray()[static_cast<size_t>(ProtectedArray::SLAB_SST)];
-    sss = *getProtectedArray()[static_cast<size_t>(ProtectedArray::SLAB_SSS)];
+    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
+    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
 }
 
 
