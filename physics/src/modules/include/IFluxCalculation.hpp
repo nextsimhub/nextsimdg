@@ -52,7 +52,7 @@ protected:
     ModelArrayRef<Shared::SUBLIM, RW> subl;
     ModelArrayRef<Shared::Q_IA, RW> qia;
     ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
-    ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
+    ModelArrayRef<Shared::DQIA_DT, RW> penSW;
 };
 }
 #endif /* IFLUXCALCULATION_HPP */
