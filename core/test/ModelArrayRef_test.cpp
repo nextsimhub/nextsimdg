@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "../src/include/ModelArrayRef.hpp"
 #include "../src/include/MARStore.hpp"
@@ -92,8 +92,8 @@ private:
     IceThermo thermo;
 };
 
-
-TEST_CASE("Accessing the data", "[ModelArrayRef]")
+TEST_SUITE_BEGIN("ModelArrayRef");
+TEST_CASE("Accessing the data")
 {
     AtmIn atmIn;
     double hice0 = 0.56;
@@ -110,7 +110,7 @@ TEST_CASE("Accessing the data", "[ModelArrayRef]")
     double hicef;
     iceCalc.getData(hicef);
     double target = hice0 * (1. + tStep) / tStep;
-    REQUIRE(hicef == Approx(target).epsilon(1e-8));
+    REQUIRE(hicef == doctest::Approx(target).epsilon(1e-8));
 }
 
 /*
@@ -185,7 +185,7 @@ private:
     CouplEr coupler;
     };
 
-TEST_CASE("Accessing the data two ways", "[ModelArrayRef]")
+TEST_CASE("Accessing the data two ways")
 {
     CouplIn couplIn;
     ModelArray::setDimensions(ModelArray::Type::H, {1,1});
@@ -197,5 +197,6 @@ TEST_CASE("Accessing the data two ways", "[ModelArrayRef]")
     couplIn.update();
     REQUIRE(swin[0] == targetFlux);
 }
+TEST_SUITE_END();
 
 };
