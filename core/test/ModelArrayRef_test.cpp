@@ -1,5 +1,5 @@
 /*!
- * @file NewModelArrayRef_test.cpp
+ * @file ModelArrayRef_test.cpp
  *
  * @date Sep 19, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
