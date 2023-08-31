@@ -63,7 +63,7 @@ public:
 
 protected:
 
-    MARStore& couplingArrays() { return m_couplingArrays; }
+    ModelArrayReferenceStore& couplingArrays() { return m_couplingArrays; }
 
     HField qia;
     HField dqia_dt;
@@ -75,7 +75,7 @@ protected:
     UField uwind;
     VField vwind;
 
-    MARStore m_couplingArrays;
+    ModelArrayReferenceStore m_couplingArrays;
 };
 
 } // namespace Nextsim

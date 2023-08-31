@@ -9,7 +9,6 @@
 #define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
-#include "include/MARStore.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
@@ -21,6 +20,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include "ModelArrayReferenceStore.hpp"
 
 namespace Nextsim {
 
@@ -152,7 +152,7 @@ public:
     /*!
      * @brief Returns the ModelArrayRef backing store.
      */
-    static MARStore& getStore() { return store; }
+    static ModelArrayReferenceStore& getStore() { return store; }
 
 protected:
     void registerModule();
@@ -192,7 +192,7 @@ protected:
     static ModelArray* p_oceanMaskH;
 
 private:
-    static MARStore store;
+    static ModelArrayReferenceStore store;
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
 
     static size_t nOcean;

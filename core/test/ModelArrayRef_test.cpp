@@ -9,7 +9,7 @@
 #include <catch2/catch.hpp>
 
 #include "../src/include/ModelArrayRef.hpp"
-#include "../src/include/MARStore.hpp"
+#include "../src/include/ModelArrayReferenceStore.hpp"
 
 namespace Nextsim {
 
@@ -19,12 +19,12 @@ public:
     static constexpr TextTag SW_IN = { "SW_IN" };
     static constexpr TextTag H_ICE = { "H_ICE" };
 
-    static MARStore& getSharedArrays() { return sharedArrays; }
+    static ModelArrayReferenceStore& getSharedArrays() { return sharedArrays; }
 protected:
-    static MARStore sharedArrays;
+    static ModelArrayReferenceStore sharedArrays;
 };
 
-MARStore MiniModelComponent::sharedArrays;
+ModelArrayReferenceStore MiniModelComponent::sharedArrays;
 
 class AtmIn : public MiniModelComponent {
 public:
@@ -143,7 +143,7 @@ static constexpr TextTag sw_in = { "sw_in" };
 class CouplEr
 {
 public:
-    CouplEr(MARStore& bs)
+    CouplEr(ModelArrayReferenceStore& bs)
     : swFlux(bs)
     {
     }
@@ -177,11 +177,11 @@ public:
     {
         coupler.update();
     }
-    MARStore& bs() { return coupledFields; }
+    ModelArrayReferenceStore& bs() { return coupledFields; }
 private:
     HField hice;
     HField swin;
-    MARStore coupledFields;
+    ModelArrayReferenceStore coupledFields;
     CouplEr coupler;
     };
 

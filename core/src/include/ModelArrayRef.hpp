@@ -8,11 +8,11 @@
 #ifndef MODELARRAYREF_HPP
 #define MODELARRAYREF_HPP
 
-#include "include/MARStore.hpp"
 #include "include/ModelArray.hpp"
 #include "include/TextTag.hpp"
 
 #include <map>
+#include "include/ModelArrayReferenceStore.hpp"
 
 namespace Nextsim {
 
@@ -35,7 +35,7 @@ typedef const ModelArray* ModelArrayConstReference;
  */
 template <const TextTag& fieldName, bool isReadWrite = RO> class ModelArrayRef {
 public:
-    ModelArrayRef(MARStore& backingStore)
+    ModelArrayRef(ModelArrayReferenceStore& backingStore)
         : store(backingStore)
     {
         dataReference = nullptr;
@@ -115,8 +115,8 @@ public:
 
 private:
     ModelArrayConstReference dataReference;
-    MARStore& store;
-    friend MARStore;
+    ModelArrayReferenceStore& store;
+    friend ModelArrayReferenceStore;
 };
 
 /*!
@@ -132,7 +132,7 @@ private:
  */
 template <const TextTag& fieldName> class ModelArrayRef<fieldName, RW> {
 public:
-    ModelArrayRef(MARStore& backingStore)
+    ModelArrayRef(ModelArrayReferenceStore& backingStore)
         : store(backingStore)
     {
         dataReference = nullptr;
@@ -220,8 +220,8 @@ public:
 
 private:
     ModelArrayReference dataReference;
-    MARStore& store;
-    friend MARStore;
+    ModelArrayReferenceStore& store;
+    friend ModelArrayReferenceStore;
 };
 }
 

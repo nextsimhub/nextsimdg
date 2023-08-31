@@ -80,7 +80,7 @@ protected:
     UField u; // x(east)-ward ocean current, m s⁻¹
     VField v; // y(north)-ward ocean current, m s⁻¹
 
-    MARStore m_couplingArrays;
+    ModelArrayReferenceStore m_couplingArrays;
 };
 } /* namespace Nextsim */
 

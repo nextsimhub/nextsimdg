@@ -21,7 +21,7 @@ class ModelArray;
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
 
-class MARStore {
+class ModelArrayReferenceStore {
 public:
     void registerArray(const std::string& field, ModelArray* ptr, bool isReadWrite = false)
     {
