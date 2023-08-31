@@ -37,7 +37,7 @@ set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
 
 add_executable(testModelArray "ModelArray_test.cpp" "../src/ModelArray.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp")
 target_include_directories(testModelArray PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
-target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
+target_link_libraries(testModelArray PRIVATE doctest::doctest)
 
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
