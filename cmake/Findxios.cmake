@@ -10,8 +10,8 @@
 # if you followed the instructions in the user/reference guide.
 #
 
-
-set(xios_DIR "/home/as3402/nextsim/xios/")
+if not (xios_DIR)
+  set( xios_DIR "${CMAKE_CURRENT_SOURCE_DIR}/xios/")
 set(xios_INCLUDES "${xios_DIR}/inc/")
 set(xios_LIBRARIES "${xios_DIR}/lib/")
 set(xios_EXTERNS "${xios_DIR}/extern/")
