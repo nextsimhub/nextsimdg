@@ -244,7 +244,7 @@ set(XIOS_INCLUDE_LIST
     )
 
 set(XIOS_LIBRARY_LIST 
-    Catch2::Catch2
+    doctest::doctest
     Eigen3::Eigen 
     Boost::program_options
     Boost::log
