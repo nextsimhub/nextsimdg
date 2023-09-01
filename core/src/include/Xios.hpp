@@ -9,45 +9,45 @@
 
 #if USE_XIOS
 
-#include <mpi.h>
-#include <include/xios_c_interface.hpp>
 #include "Configured.hpp"
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <include/xios_c_interface.hpp>
+#include <mpi.h>
 
 namespace Nextsim {
 
 //! Class to handle interfacing with the XIOS library
 class Xios : public Configured<Xios> {
 public:
-    Xios(int argc, char* argv[]);//, bool manual_enable=false);
+    Xios(int argc, char* argv[]); //, bool manual_enable=false);
     ~Xios();
-    
-    //void initialise();//int argc, char* argv[]);
+
+    // void initialise();//int argc, char* argv[]);
     void finalise();
     bool validateConfiguration();
     bool validateServerConfiguration();
     bool validateCalendarConfiguration();
     bool validateAxisConfiguration();
 
-    void configure() override; 
+    void configure() override;
     void configureServer();
     void configureCalendar(std::string timestep, std::string start, std::string origin = "");
 
-    //Decide if I want these two and the best output type
+    // Decide if I want these two and the best output type
     std::string getCalendarOrigin(bool isoFormat = true);
     void setCalendarOrigin(std::string dorigin_str);
     std::string getCalendarStart(bool isoFormat = true);
     void setCalendarStart(std::string dstart_str);
     std::string getCalendarTimestep();
     void setCalendarTimestep(std::string timestep_str);
-    
+
     void getCalendarConfiguration();
 
     std::string getCalendarDate(bool isoFormat = true);
     void updateCalendar(int stepNumber);
-    
+
     static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat);
     static boost::posix_time::ptime convertStringToDatetime(std::string datetime);
     static cxios_date convertStringToXiosDatetime(std::string datetime);
@@ -56,7 +56,7 @@ public:
     void printCXiosDuration(cxios_duration durationStructure);
 
     static void writeState();
-    //Arguments TBC
+    // Arguments TBC
     void setState();
     void getState();
     void writeStateData();
@@ -66,11 +66,12 @@ public:
         ENABLED_KEY,
     };
 
-    //TODO: Doesn't Exist? -> Remove
+    // TODO: Doesn't Exist? -> Remove
     static void convertXiosDateStringToIsoDate(std::string& dateString);
 
 protected:
     bool m_isConfigured;
+
 private:
     bool m_isEnabled;
 
