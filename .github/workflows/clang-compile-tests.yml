@@ -44,7 +44,7 @@ jobs:
         cmake -Bbuild -H. -DBUILD_TESTING=OFF
         sudo cmake --build build/ --target install
         cd ..
-        sudo apt-get install libhdf5-mpi
+        sudo apt-get install libhdf5-dev
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
         cd xios
         ./make_xios --arch GCC_LINUX
