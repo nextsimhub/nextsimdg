@@ -38,8 +38,7 @@ jobs:
     - name: installs
       run: |
         sudo apt-get update
-        # sudo apt install openmpi-bin openmpi-dev openmpi-common openmpi-doc libopenmpi-dev
-        sudo apt-get install mpich
+        # sudo apt install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev mpich
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake 
         git clone -b v2.x https://github.com/catchorg/Catch2.git
         cd Catch2
@@ -50,8 +49,7 @@ jobs:
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
         cd xios
         # TODO: Figure out how to get this running using (default) netcdf4_par on GH Actions
-        ./make_xios --arch GCC_LINUX 
-        # --netcdf_lib netcdf4_seq
+        ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq
         cd ..
 
     - name: make
