@@ -45,7 +45,7 @@ jobs:
         cmake -Bbuild -H. -DBUILD_TESTING=OFF
         sudo cmake --build build/ --target install
         cd ..
-        sudo apt-get install libhdf5-dev libnetcdf-dev libnetcdff-dev libnetcdf-mpi-dev libpnetcdf-dev
+        sudo apt-get install libhdf5-dev libhdf5-103 libhdf5-103 libnetcdf-dev libnetcdff-dev libnetcdf-mpi-dev libpnetcdf-dev
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
         cd xios
         # TODO: Figure out how to get this running using (default) netcdf4_par on GH Actions
