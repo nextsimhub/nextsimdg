@@ -38,6 +38,7 @@ jobs:
     - name: installs
       run: |
         sudo apt-get update
+        sudo apt-get install libhdf5-dev libhdf5-cpp-103 libhdf5-103 hdf5* libnetcdf-dev libnetcdff-dev libnetcdf-mpi-dev libpnetcdf-dev
         # sudo apt install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev mpich
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake 
         git clone -b v2.x https://github.com/catchorg/Catch2.git
@@ -45,7 +46,6 @@ jobs:
         cmake -Bbuild -H. -DBUILD_TESTING=OFF
         sudo cmake --build build/ --target install
         cd ..
-        sudo apt-get install libhdf5-dev libhdf5-103 libhdf5-103 libnetcdf-dev libnetcdff-dev libnetcdf-mpi-dev libpnetcdf-dev
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
         cd xios
         # TODO: Figure out how to get this running using (default) netcdf4_par on GH Actions
