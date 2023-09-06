@@ -26,10 +26,6 @@ hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = 0.1
 hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = 0.0
-<<<<<<< issue275_2_arrayordering
-tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x",))
-=======
 tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
->>>>>>> 02453ff Update the basic 10x10 grid to the swapped array ordering.
 tice[:,:,:] = -1.
 root.close()
