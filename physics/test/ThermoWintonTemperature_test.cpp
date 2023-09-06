@@ -146,7 +146,7 @@ TEST_CASE("Melting conditions")
     //    REQUIRE(qic[0] == doctest::Approx(-4.60879).epsilon(prec));
 }
 
-TEST_CASE("No ice do nothing")
+TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
@@ -188,14 +188,14 @@ TEST_CASE("No ice do nothing")
 
         void setData(const ModelState::DataMap&) override
         {
-            cice0[0] = 0;
-            hice0[0] = 0;
-            hsnow0[0] = 0;
-            snow[0] = 0;
+            cice0[0] = 0.5;
+            hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
+            hsnow0[0] = 0.01 / cice0[0];
+            snow[0] = 1e-3;
             sw_in[0] = 0;
-            tice0[0] = 0;
-            tice0[1] = 0;
-            tice0[2] = 0.;
+            tice0[0] = -9.;
+            tice0[1] = -9.;
+            tice0[2] = -9.;
             tice.data().setData(tice0);
 
             hice = hice0;
@@ -226,11 +226,11 @@ TEST_CASE("No ice do nothing")
         void setData(const ModelState::DataMap& ms) override
         {
             IOceanBoundary::setData(ms);
-            sst[0] = 1.75;
+            sst[0] = -1.75;
             sss[0] = 32.;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             cpml[0] = 4.29151e7;
-            qio[0] = 0;
+            qio[0] = 73.9465;
         }
         void updateBefore(const TimestepTime& tst) override { }
         void updateAfter(const TimestepTime& tst) override { }
@@ -256,15 +256,17 @@ TEST_CASE("No ice do nothing")
     twin.configure();
     twin.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RO> hice(
+    ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(
         ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RO> cice(
+    ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(
         ModelComponent::getSharedArray());
 
     double prec = 1e-5;
 
-    REQUIRE(hice[0] == 0);
-    REQUIRE(cice[0] == 0);
+    REQUIRE(tice[0] == doctest::Approx(-10.5129).epsilon(prec));
+    REQUIRE(tice[1] == doctest::Approx(-9.00726).epsilon(prec));
+    REQUIRE(tice[2] == doctest::Approx(-8.20454).epsilon(prec));
+//    REQUIRE(qic[0] == doctest::Approx(44.4839).epsilon(prec));
 }
 
 TEST_CASE("No ice do nothing")
