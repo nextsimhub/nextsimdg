@@ -372,20 +372,28 @@ if __name__ == "__main__":
     # For each field and time, get the corresponding file name for each dataset
     for field_name in ocean_fields:
         data = datagrp.createVariable(field_name, "f8", timefield_dims)
-        topaz_field = topaz_translation[field_name]
-        for target_t_index in range(len(unix_times_t)):
-            if field_name == ocean_fields[0]:
-                nc_times[target_t_index] = unix_times_t[target_t_index]
-            # get the source data
-            source_file = netCDF4.Dataset(topaz4_source_file_name(topaz_field, unix_times_t[target_t_index]), "r")
-            target_time = topaz4_times[target_t_index]
-            source_times = source_file["time"]
-            time_index = (target_time - source_times[0]) // hr_per_day
-            source_data = source_file[topaz_field][time_index, :, :].squeeze() # Need to squeeze. Why?
-            # Now interpolate the source data to the target grid
-            time_data = np.zeros((nx, ny))
-            time_data = topaz4_interpolate(element_lon, element_lat, source_data, lat_array)
-            data[target_t_index, :, :] = time_data
+        if not field_name in skip_ocean_fields:
+            topaz_field = topaz_translation[field_name]
+            for target_t_index in range(len(unix_times_t)):
+                if field_name == ocean_fields[0]:
+                    nc_times[target_t_index] = unix_times_t[target_t_index]
+                # get the source data
+                source_file = netCDF4.Dataset(topaz4_source_file_name(topaz_field, unix_times_t[target_t_index]), "r")
+                target_time = topaz4_times[target_t_index]
+                source_times = source_file["time"]
+                time_index = (target_time - source_times[0]) // hr_per_day
+                source_data = source_file[topaz_field][time_index, :, :].squeeze() # Need to squeeze. Why?
+                # Now interpolate the source data to the target grid
+                time_data = np.zeros((nx, ny))
+                time_data = topaz4_interpolate(element_lon, element_lat, source_data, lat_array)
+                data[target_t_index, :, :] = time_data
+        else:
+            for target_t_index in range(len(unix_times_t)):
+                # get the source data
+                target_time = topaz4_times[target_t_index]
+                # Now interpolate the source data to the target grid
+                time_data = np.zeros((nx, ny))
+                data[target_t_index, :, :] = time_data
         
     # Ocean currents
     udata = datagrp.createVariable("u", "f8", ("time", "x", "y"))
