@@ -158,7 +158,8 @@ ModelState ParaGridIO::readForcingTimeStatic(
     std::vector<size_t> extentArray = { 1 };
 
     // Loop over the dimensions of H
-    std::vector<ModelArray::Dimension>& dimensions = ModelArray::typeDimensions.at(ModelArray::Type::H);
+    std::vector<ModelArray::Dimension>& dimensions
+        = ModelArray::typeDimensions.at(ModelArray::Type::H);
     for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
         indexArray.push_back(0);
         extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
@@ -214,7 +215,8 @@ void ParaGridIO::dumpModelState(
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
 
-    // Reverse the order of the dimensions to translate between column-major ModelArray and row-major netCDF
+    // Reverse the order of the dimensions to translate between column-major ModelArray and
+    // row-major netCDF
     for (auto& [type, v] : dimMap) {
         std::reverse(v.begin(), v.end());
     }
