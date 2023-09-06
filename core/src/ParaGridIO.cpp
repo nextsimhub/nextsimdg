@@ -83,7 +83,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         ModelArray::DimensionSpec& dimensionSpec = entry.second;
         netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
         if (entry.first == ModelArray::Dimension::Z) {
-            // A special case, as the number of leves in the file might not be
+            // A special case, as the number of levels in the file might not be
             // the number that the selected ice thermodynamics requires.
             ModelArray::setDimension(entry.first, NZLevels::get());
         } else {
@@ -158,9 +158,11 @@ ModelState ParaGridIO::readForcingTimeStatic(
     std::vector<size_t> extentArray = { 1 };
 
     // Loop over the dimensions of H
-    for (auto dimension : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+    std::vector<ModelArray::Dimension>& dimensions
+        = ModelArray::typeDimensions.at(ModelArray::Type::H);
+    for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
         indexArray.push_back(0);
-        extentArray.push_back(ModelArray::definedDimensions.at(dimension).length);
+        extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
     }
 
     for (const std::string& varName : forcings) {
