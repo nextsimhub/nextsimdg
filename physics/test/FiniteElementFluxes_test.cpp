@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include <sstream>
 
 #include "include/FiniteElementFluxes.hpp"
@@ -24,7 +24,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
+TEST_SUITE_BEGIN("FiniteElementFluxes");
+TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -152,6 +153,10 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     qia.resize();
     ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
+    HField penSW;
+    penSW.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_PEN_SW, &penSW);
+
     HField dqia_dt;
     dqia_dt.resize();
     ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
@@ -169,13 +174,13 @@ TEST_CASE("Melting conditions", "[FiniteElementFluxes]")
     fef.update(tst);
 
     double prec = 1e-5;
-    REQUIRE(qow[0] == Approx(-109.923).epsilon(prec));
-    REQUIRE(qia[0] == Approx(-84.5952).epsilon(prec));
-    REQUIRE(dqia_dt[0] == Approx(19.7016).epsilon(prec));
-    REQUIRE(subl[0] == Approx(-7.3858e-06).epsilon(prec));
+    REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));
+    REQUIRE(qia[0] == doctest::Approx(-85.6364).epsilon(prec));
+    REQUIRE(dqia_dt[0] == doctest::Approx(19.7016).epsilon(prec));
+    REQUIRE(subl[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
 }
 
-TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
+TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -303,6 +308,10 @@ TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
     qia.resize();
     ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
+    HField penSW;
+    penSW.resize();
+    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_PEN_SW, &penSW);
+
     HField dqia_dt;
     dqia_dt.resize();
     ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
@@ -320,9 +329,11 @@ TEST_CASE("Freezing conditions", "[FiniteElementFluxes]")
     fef.update(tst);
 
     double prec = 1e-5;
-    REQUIRE(qow[0] == Approx(143.266).epsilon(prec));
-    REQUIRE(qia[0] == Approx(42.2955).epsilon(prec));
-    REQUIRE(dqia_dt[0] == Approx(16.7615).epsilon(prec));
-    REQUIRE(subl[0] == Approx(2.15132e-6).epsilon(prec));
+    REQUIRE(qow[0] == doctest::Approx(143.266).epsilon(prec));
+    REQUIRE(qia[0] == doctest::Approx(42.2955).epsilon(prec));
+    REQUIRE(dqia_dt[0] == doctest::Approx(16.7615).epsilon(prec));
+    REQUIRE(subl[0] == doctest::Approx(2.15132e-6).epsilon(prec));
 }
+TEST_SUITE_END();
+
 }

@@ -27,6 +27,16 @@ constexpr TextTag WIND_V = "WIND_V"; // y-aligned wind component m s⁻¹
 class IAtmosphereBoundary : public ModelComponent {
 public:
     IAtmosphereBoundary()
+        : qia(ModelArray::Type::H)
+        , dqia_dt(ModelArray::Type::H)
+    , qow(ModelArray::Type::H)
+    , subl(ModelArray::Type::H)
+    , snow(ModelArray::Type::H)
+    , rain(ModelArray::Type::H)
+    , evap(ModelArray::Type::H)
+    , emp(ModelArray::Type::H)
+    , uwind(ModelArray::Type::U)
+    , vwind(ModelArray::Type::V)
     {
         m_couplingArrays.registerArray(CouplingFields::SUBL, &subl, RW);
         m_couplingArrays.registerArray(CouplingFields::SNOW, &snow, RW);
@@ -40,6 +50,10 @@ public:
         getStore().registerArray(Shared::Q_OW, &qow, RW);
         getStore().registerArray(Shared::SUBLIM, &subl, RW);
         getStore().registerArray(Protected::SNOW, &snow);
+        getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp);
+        getStore().registerArray(Protected::WIND_U, &uwind);
+        getStore().registerArray(Protected::WIND_V, &vwind);
+        getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
     }
     virtual ~IAtmosphereBoundary() = default;
 
@@ -56,8 +70,10 @@ public:
         snow.resize();
         rain.resize();
         evap.resize();
+        emp.resize();
         uwind.resize();
         vwind.resize();
+        penSW.resize();
     }
     virtual void update(const TimestepTime& tst) { }
 
@@ -72,8 +88,10 @@ protected:
     HField snow;
     HField rain;
     HField evap;
+    HField emp;
     UField uwind;
     VField vwind;
+    HField penSW;
 
     ModelArrayReferenceStore m_couplingArrays;
 };

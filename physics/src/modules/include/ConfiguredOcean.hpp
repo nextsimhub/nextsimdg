@@ -11,6 +11,7 @@
 #include "IOceanBoundary.hpp"
 
 #include "include/Configured.hpp"
+#include "include/SlabOcean.hpp"
 
 namespace Nextsim {
 
@@ -18,7 +19,7 @@ namespace Nextsim {
 //! time as physical variables.
 class ConfiguredOcean : public IOceanBoundary, public Configured<ConfiguredOcean> {
 public:
-    ConfiguredOcean() = default;
+    ConfiguredOcean();
     ~ConfiguredOcean() = default;
 
     enum {
@@ -37,7 +38,7 @@ public:
     void configure() override;
 
     void updateBefore(const TimestepTime& tst) override;
-    void updateAfter(const TimestepTime& tst) override { }
+    void updateAfter(const TimestepTime& tst) override;
 
 private:
     static double sst0;
@@ -45,6 +46,13 @@ private:
     static double mld0;
     static double u0;
     static double v0;
+
+    // External SS* fields to feed the slab ocean
+    HField sstExt;
+    HField sssExt;
+
+    // We need a slab ocean in this implementation
+    SlabOcean slabOcean;
 };
 
 } /* namespace Nextsim */

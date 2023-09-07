@@ -5,17 +5,17 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
-#include "../src/include/ModelArrayRef.hpp"
-#include "../src/include/ModelComponent.hpp"
+#include "include/ModelArrayRef.hpp"
+#include "include/ModelComponent.hpp"
 
 #include <stdexcept>
 
 namespace Nextsim {
 
-// (Ab)use the exception mechanism to inform Catch that things are working correctly internally.
+// (Ab)use the exception mechanism to inform doctest that things are working correctly internally.
 class HappyExcept : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
@@ -35,7 +35,7 @@ public:
     std::unordered_set<std::string> zFields() const override { return { "z1", "z2", "z3" }; }
 };
 
-TEST_CASE("Register a new module", "[ModelComponent]")
+TEST_CASE("Register a new module")
 {
     Module1 m1;
     REQUIRE_THROWS_AS(ModelComponent::setAllModuleData(ModelState()), HappyExcept);
@@ -108,7 +108,8 @@ private:
     ModelArrayRef<Protected::H_ICE> hice_ref;
 };
 
-TEST_CASE("Test array registration", "[ModelComponent]")
+TEST_SUITE_BEGIN("ModelComponent");
+TEST_CASE("Test array registration")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModuleSupplyAndWait saw;
@@ -176,7 +177,7 @@ private:
     ModelArrayRef<Shared::Q_IC, RW> qic_ref;
 };
 
-TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")
+TEST_CASE("Shared and semi-protected arrays")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
@@ -190,5 +191,6 @@ TEST_CASE("Shared and semi-protected arrays", "[ModelComponent]")
 
     REQUIRE(semi.data() == share.qicData);
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */

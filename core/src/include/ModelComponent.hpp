@@ -10,6 +10,7 @@
 
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
 #include "include/TextTag.hpp"

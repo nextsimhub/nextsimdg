@@ -21,6 +21,7 @@ public:
     IIceOceanHeatFlux()
         : sst(getStore())
         , tf(getStore())
+        , cice(getStore())
         , qio(getStore())
     {
     }
@@ -47,6 +48,7 @@ public:
 protected:
     ModelArrayRef<Protected::SST> sst;
     ModelArrayRef<Protected::TF> tf;
+    ModelArrayRef<Protected::C_ICE> cice;
 
     ModelArrayRef<Shared::Q_IO, RW> qio;
 };
