@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 27 Jan 2023
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,6 +10,7 @@
 
 #include "include/Configured.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
@@ -27,19 +28,19 @@ public:
         , fdw(ModelArray::Type::H)
         , sstSlab(ModelArray::Type::H)
         , sssSlab(ModelArray::Type::H)
-        , sstExt(getProtectedArray())
-        , sssExt(getProtectedArray())
-        , sst(getProtectedArray())
-        , sss(getProtectedArray())
-        , mld(getProtectedArray())
-        , cpml(getProtectedArray())
-        , emp(getProtectedArray())
-        , cice(getProtectedArray())
-        , qio(getSharedArray())
-        , qow(getSharedArray())
-        , newIce(getSharedArray())
-        , deltaHice(getSharedArray())
-        , deltaSmelt(getSharedArray())
+        , sstExt(getStore())
+        , sssExt(getStore())
+        , sst(getStore())
+        , sss(getStore())
+        , mld(getStore())
+        , cpml(getStore())
+        , emp(getStore())
+        , cice(getStore())
+        , qio(getStore())
+        , qow(getStore())
+        , newIce(getStore())
+        , deltaHice(getStore())
+        , deltaSmelt(getStore())
     {
     }
 
@@ -70,20 +71,20 @@ private:
     HField sssSlab;
 
     // Input fields
-    ModelArrayRef<ProtectedArray::EXT_SST, MARConstBackingStore> sstExt;
-    ModelArrayRef<ProtectedArray::EXT_SSS, MARConstBackingStore> sssExt;
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst;
-    ModelArrayRef<ProtectedArray::SSS, MARConstBackingStore> sss;
-    ModelArrayRef<ProtectedArray::MLD, MARConstBackingStore> mld;
-    ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore> cpml;
-    ModelArrayRef<ProtectedArray::EVAP_MINUS_PRECIP, MARConstBackingStore> emp;
-    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore> cice;
-    ModelArrayRef<SharedArray::Q_IO, MARBackingStore> qio;
-    ModelArrayRef<SharedArray::Q_OW, MARBackingStore> qow;
+    ModelArrayRef<Protected::EXT_SST> sstExt;
+    ModelArrayRef<Protected::EXT_SSS> sssExt;
+    ModelArrayRef<Protected::SST> sst;
+    ModelArrayRef<Protected::SSS> sss;
+    ModelArrayRef<Protected::MLD> mld;
+    ModelArrayRef<Protected::ML_BULK_CP> cpml;
+    ModelArrayRef<Protected::EVAP_MINUS_PRECIP> emp;
+    ModelArrayRef<Protected::C_ICE> cice;
+    ModelArrayRef<Shared::Q_IO, RW> qio;
+    ModelArrayRef<Shared::Q_OW, RW> qow;
     // TODO ModelArrayRef to assimilation flux
-    ModelArrayRef<SharedArray::NEW_ICE, MARBackingStore> newIce;
-    ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore> deltaHice;
-    ModelArrayRef<SharedArray::HSNOW_MELT, MARBackingStore> deltaSmelt;
+    ModelArrayRef<Shared::NEW_ICE, RW> newIce;
+    ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
+    ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;
 
     static const std::string sstSlabName;
     static const std::string sssSlabName;
