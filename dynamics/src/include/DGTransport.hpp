@@ -72,6 +72,7 @@ protected:
     void step_rk3(const double dt, DGVector<DG>& phi);
 
 public:
+
   DGTransport(const ParametricMesh& mesh)
       : smesh(mesh),
 	parammap(mesh)	  

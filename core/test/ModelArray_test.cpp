@@ -13,6 +13,7 @@
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ModelArray");
+// Test that the (special case) two dimensional index functions correctly
 TEST_CASE("Two dimensional data access test")
 {
     ModelArray::MultiDim dims2 = {15, 25};
@@ -31,14 +32,15 @@ TEST_CASE("Two dimensional data access test")
 
     size_t x = 7;
     size_t y = 13;
-    // Check neighbouring y indices differ in value by 1
-    REQUIRE(check1d(x, y) - check1d(x, y-1) == 1);
-    // Check neighbouring x values differ in value by ny
-    REQUIRE(check1d(x, y) - check1d(x-1, y) == dims2[1]);
+    // Check neighbouring x indices differ in value by 1
+    REQUIRE(check1d(x+1, y) - check1d(x, y) == 1);
+    // Check neighbouring y indices differ in value by nx
+    REQUIRE(check1d(x, y+1) - check1d(x, y) == dims2[0]);
 
     REQUIRE(check1d(dims2[0]-1, dims2[1]-1) == dims2[0] * dims2[1] - 1);
 }
 
+// Test that higher dimensional indexing functions correctly
 TEST_CASE("Higher dimensional indexing")
 {
     size_t dimLen = 10;
@@ -56,7 +58,7 @@ TEST_CASE("Higher dimensional indexing")
     }
 
     // Check indexing using the fact that the dimensions are the same as our counting base
-    REQUIRE(check4d(4, 7, 2, 5) == 4725);
+    REQUIRE(check4d(4, 7, 2, 5) == 5274);
 
     // Reset the data to zero
     for (size_t i = 0; i < check4d.size(); ++i) {
@@ -71,7 +73,7 @@ TEST_CASE("Higher dimensional indexing")
 
     check4d.setData(data);
 
-    REQUIRE(check4d(4, 7, 2, 5) == 4725);
+    REQUIRE(check4d(4, 7, 2, 5) == 5274);
 
     // Reset the data to zero
     for (size_t i = 0; i < check4d.size(); ++i) {
@@ -86,12 +88,13 @@ TEST_CASE("Higher dimensional indexing")
 
     check4d.setData(vData.data());
 
-    REQUIRE(check4d(4, 7, 2, 5) == 4725);
+    REQUIRE(check4d(4, 7, 2, 5) == 5274);
 
 
-    REQUIRE(check4d[{4, 7, 2, 6}] == 4726);
+    REQUIRE(check4d[{5, 7, 2, 5}] == 5275);
 }
 
+// Test that higher dimensional indexing functions correctly
 TEST_CASE("Higher dimensional indexing 2")
 {
     ModelArray::MultiDim dims4 = {3, 5, 7, 11};
@@ -112,14 +115,17 @@ TEST_CASE("Higher dimensional indexing 2")
     size_t k = 5;
     size_t l = 7;
 
-    size_t target = (((i) * dims4[1] + j) * dims4[2] + k) * dims4[3] + l;
+    size_t target = i + dims4[0] * (j + dims4[1] * (k + dims4[2] * (l)));
+            //(((i) * dims4[1] + j) * dims4[2] + k) * dims4[3] + l;
     REQUIRE(primorial[target] == target);
 
     REQUIRE(primorial(i, j, k, l) == target);
 
 }
 
-TEST_CASE("Moving data")
+// Test that the copy constructor and copy assignment operator initialize that
+// data correctly.
+TEST_CASE("Copy constructor and copy assignment operator")
 {
     size_t n = 10;
     ModelArray::setDimensions(ModelArray::Type::TWOD, {n, n});
@@ -129,17 +135,21 @@ TEST_CASE("Moving data")
         src[i] = i;
     }
 
-    ModelArray cpyCtor(src);
-    REQUIRE(cpyCtor(2, 3) == src(2, 3));
+    // Test the copy constructor
+    ModelArray copyConstructor(src);
+    REQUIRE(copyConstructor(2, 3) == src(2, 3));
 
-    ModelArray cpyAss = ModelArray::TwoDField();
-    cpyAss = src;
-    REQUIRE(cpyAss(2, 3) == 23);
+    // Test copy assignment
+    ModelArray copyAssignment = ModelArray::TwoDField();
+    copyAssignment = src;
+    REQUIRE(copyAssignment(2, 3) == src(2, 3));
 }
 
+// Test that setting the dimension via the function applied to an instance
+// correctly propagates to the dimensions of the type.
 TEST_CASE("Instance setDimensions sets instance dimensions")
 {
-    DosDField uu = ModelArray::DosDField();
+    ZUField uu = ModelArray::ZUField();
     ModelArray::MultiDim udim = {5, 5};
     uu.setDimensions(udim);
     REQUIRE(uu.size() == udim[0] * udim[1]);
@@ -147,6 +157,7 @@ TEST_CASE("Instance setDimensions sets instance dimensions")
     REQUIRE(uu.dimensions() == udim);
 }
 
+// Test the arithmetic operators of the class.
 TEST_CASE("Arithmetic tests")
 {
     // Only test HField for now
@@ -254,6 +265,37 @@ TEST_CASE("Location from index")
     REQUIRE(loc[0] == x);
     REQUIRE(loc[1] == y);
     REQUIRE(loc[2] == z);
+}
+
+// Test the zIndexAndLayer function to ensure that it accesses the correct
+// point in a three-dimensional ModelArray.
+TEST_CASE("zIndexAndLayer")
+{
+    const size_t nx = 29;
+    const size_t ny = 23;
+    const size_t nz = 11;
+
+    ModelArray::setDimensions(ModelArray::Type::THREED, {nx, ny, nz});
+
+    ThreeDField threeD(ModelArray::Type::THREED);
+    threeD.resize();
+
+    size_t mul = 100;
+    // Fill the array fastest last
+    for (size_t i = 0; i < nx; ++i) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t k = 0; k < nz; ++k) {
+                threeD(i, j, k) = k + mul * (j + mul * (i));
+            }
+        }
+    }
+
+    size_t x = 19;
+    size_t y = 17;
+    size_t z = 7;
+    size_t ind = ModelArray::indexFromLocation(ModelArray::Type::TWOD, {x, y});
+    REQUIRE(threeD.zIndexAndLayer(ind, z) == threeD(x, y, z));
+
 }
 TEST_SUITE_END();
 

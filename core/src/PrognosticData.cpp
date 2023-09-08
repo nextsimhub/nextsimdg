@@ -20,6 +20,7 @@ PrognosticData::PrognosticData()
     , m_tice(ModelArray::Type::Z)
     , pAtmBdy(0)
     , pOcnBdy(0)
+    , pDynamics(0)
 
 {
     registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
@@ -30,13 +31,16 @@ PrognosticData::PrognosticData()
 
 void PrognosticData::configure()
 {
-    tryConfigure(iceGrowth);
-
     pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
     tryConfigure(pAtmBdy);
 
     pOcnBdy = &Module::getImplementation<IOceanBoundary>();
     tryConfigure(pOcnBdy);
+
+    pDynamics = &Module::getImplementation<IDynamics>();
+    tryConfigure(pDynamics);
+
+    tryConfigure(iceGrowth);
 }
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
@@ -52,25 +56,38 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
-    if (ms.count("u")) {
-        m_u = ms.at("u");
-    }
-    if (ms.count("v")) {
-        m_v = ms.at("v");
-    }
 
-    iceGrowth.setData(ms);
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
+    pDynamics->setData(ms);
+    iceGrowth.setData(ms);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
 {
+    // Debugging MARs
+    ModelArrayRef<ProtectedArray::HTRUE_ICE, MARBackingStore> hiceTrue0(getSharedArray());
+    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
+    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
+
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
-    iceGrowth.update(tst);
-    pOcnBdy->updateAfter(tst);
 
+    // Fill the values of the true ice and snow thicknesses.
+    iceGrowth.initializeThicknesses();
+    pDynamics->update(tst);
+    updatePrognosticFields();
+
+    // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
+    // IceGrowth updates its own fields during update
+    iceGrowth.update(tst);
+    updatePrognosticFields();
+
+    pOcnBdy->updateAfter(tst);
+}
+
+void PrognosticData::updatePrognosticFields()
+{
     ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
     ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
     ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnowTrueUpd(getSharedArray());
@@ -103,17 +120,19 @@ ModelState PrognosticData::getState() const
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state(getState());
-    state.merge(iceGrowth.getStateRecursive(os));
     state.merge(pAtmBdy->getStateRecursive(os));
+    state.merge(iceGrowth.getStateRecursive(os));
+    // Neither OceanBdoudary nor Dynamics contribute to the output model state
     return os ? state : ModelState();
 }
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    IceGrowth::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
     Module::getHelpRecursive<IOceanBoundary>(map, getAll);
+    Module::getHelpRecursive<IDynamics>(map, getAll);
+    IceGrowth::getHelpRecursive(map, getAll);
     return map;
 }
 

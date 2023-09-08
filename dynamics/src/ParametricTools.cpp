@@ -1,5 +1,5 @@
 /*!
- * @file parametricTools.cpp
+ * @file ParametricTools.cpp
  * @date July 28, 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */

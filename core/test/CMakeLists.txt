@@ -138,16 +138,15 @@ add_executable(testParaGrid
     "${SRC_DIR}/Time.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
-
+target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(testParaGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testParaGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testParaGrid LINK_PUBLIC Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
-
+ 
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
     "${CoreSrc}/ModelComponent.cpp"
     "${CoreSrc}/MissingData.cpp"
-    "${CoreSrc}/Configurator.cpp"
     "${CoreSrc}/ModelArray.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
 )
@@ -183,6 +182,8 @@ target_link_libraries(testModelArrayRefDebugging PRIVATE doctest::doctest Eigen3
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 set(PhysSourceDir "${CoreSrc}/../../physics/src/")
 set(PhysModulesDir "${CoreSrc}/../../physics/src/modules")
+set(DynModulesDir "${CoreSrc}/../../dynamics/src/modules")
+set(DynSourceDir "${CoreSrc}/../../dynamics/src/")
 
 add_executable(testPrognosticData
     "PrognosticData_test.cpp"
@@ -202,6 +203,7 @@ add_executable(testPrognosticData
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "DynamicsModuleForPDtest.cpp"
     "${CoreSrc}/NZLevels.cpp"
     "${PhysSourceDir}/IceGrowth.cpp"
     "${PhysSourceDir}/IceMinima.cpp"
