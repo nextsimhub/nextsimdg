@@ -11,8 +11,8 @@
 #include "include/ModelArray.hpp"
 #include "include/TextTag.hpp"
 
-#include <map>
 #include "include/ModelArrayReferenceStore.hpp"
+#include <map>
 
 namespace Nextsim {
 
@@ -54,7 +54,10 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    const double& operator[](const ModelArray::MultiDim& dims) { return dataReference->operator[](dims); }
+    const double& operator[](const ModelArray::MultiDim& dims)
+    {
+        return dataReference->operator[](dims);
+    }
     /*!
      * @brief Returns the data at the specified one dimensional index.
      *
@@ -184,7 +187,10 @@ public:
     //! Returns the specified point from a 3 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    double& operator()(size_t i, size_t j, size_t k) const { return dataReference->operator()(i, j, k); }
+    double& operator()(size_t i, size_t j, size_t k) const
+    {
+        return dataReference->operator()(i, j, k);
+    }
 
     /*!
      * @brief Special access function for ZFields.
