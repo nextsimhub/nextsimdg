@@ -20,19 +20,14 @@ const std::string testFileName = "testFileName.nc";
 
 class FileHolder {
 public:
-    static void open(const std::string& fileName)
-    {
-        openFiles.emplace(fileName, fileName);
-    }
+    static void open(const std::string& fileName) { openFiles.emplace(fileName, fileName); }
     static void close(const std::string& fileName)
     {
         openFiles[fileName].close();
         openFiles.erase(fileName);
     }
-    static bool isOpen(const std::string& fileName)
-    {
-        return openFiles.count(fileName) > 0;
-    }
+    static bool isOpen(const std::string& fileName) { return openFiles.count(fileName) > 0; }
+
 private:
     static std::map<std::string, std::ofstream> openFiles;
 };
