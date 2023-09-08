@@ -17,11 +17,11 @@
 #include "include/Time.hpp"
 
 #include "ModelArrayRef.hpp"
+#include "ModelArrayReferenceStore.hpp"
 #include <functional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include "ModelArrayReferenceStore.hpp"
 
 namespace Nextsim {
 
