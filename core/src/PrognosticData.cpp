@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date Mar 1, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -109,8 +109,8 @@ ModelState PrognosticData::getState() const
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
-                 { "sst", mask(sst.getData()) },
-                 { "sss", mask(sss.getData()) },
+                 { "sst", mask(sst.data()) },
+                 { "sss", mask(sss.data()) },
              },
         {} };
 }
