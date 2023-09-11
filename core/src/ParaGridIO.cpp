@@ -116,6 +116,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         if (newType == ModelArray::Type::Z) {
             std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
             std::vector<size_t> extentVector = ModelArray::dimensions(newType);
+            // Reverse the extent vector to go from logical (x, y, z) ordering
+            // of indexes to netCDF storage ordering.
             std::reverse(extentVector.begin(), extentVector.end());
             var.getVar(startVector, extentVector, &data[0]);
         } else {
