@@ -31,6 +31,8 @@ public:
         PERIOD_KEY,
         START_KEY,
         FIELDNAMES_KEY,
+        FILENAME_KEY,
+        FILEPERIOD_KEY,
     };
 
     // IDiagnosticOutput overrides
@@ -45,6 +47,8 @@ public:
     inline ModelState getState(const OutputLevel&) const override { return ModelState(); };
 
     // Configured overrides
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
     void configure() override;
     ModelState getStateRecursive(const OutputSpec& os) const override;
 
@@ -59,6 +63,9 @@ private:
     std::string currentFileName;
     std::set<ModelComponent::SharedArray> sharedArraysForOutput;
     std::set<ModelComponent::ProtectedArray> protectedArraysForOutput;
+
+    TimePoint lastFileChange;
+    Duration fileChangePeriod;
 
     static const std::string all;
     static const std::string defaultLastOutput;
