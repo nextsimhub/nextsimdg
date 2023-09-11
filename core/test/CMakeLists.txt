@@ -142,7 +142,7 @@ target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT
 target_include_directories(testParaGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
 target_link_directories(testParaGrid PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testParaGrid LINK_PUBLIC Boost::program_options doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
- 
+
 add_executable(testModelComponent
     "ModelComponent_test.cpp"
     "${CoreSrc}/ModelComponent.cpp"
