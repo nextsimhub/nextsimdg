@@ -41,8 +41,8 @@ MU71Atmosphere::HelpMap& MU71Atmosphere::getHelpRecursive(HelpMap& map, bool get
 
 MU71Atmosphere::MU71Atmosphere()
     : iIceAlbedoImpl(nullptr)
-    , tice(getProtectedArray())
-    , h_snow_true(getProtectedArray())
+    , tice(getStore())
+    , h_snow_true(getStore())
     , q_sw(monthlyCubicBSpline(swTable))
     , q_lw(monthlyCubicBSpline(lwTable))
     , q_sh(monthlyCubicBSpline(shTable))

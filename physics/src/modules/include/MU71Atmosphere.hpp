@@ -47,8 +47,8 @@ private:
      */
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    ModelArrayRef<ProtectedArray::T_ICE, MARConstBackingStore> tice;
-    ModelArrayRef<ProtectedArray::HTRUE_SNOW, MARConstBackingStore>
+    ModelArrayRef<Protected::T_ICE> tice;
+    ModelArrayRef<Protected::HTRUE_SNOW>
         h_snow_true; // cell-averaged value
 
     /*!
