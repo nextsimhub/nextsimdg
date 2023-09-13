@@ -68,10 +68,10 @@ TEST_CASE("New ice formation")
     public:
         PrognosticData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -127,8 +127,7 @@ TEST_CASE("New ice formation")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(
-        ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
 
     double prec = 1e-5;
     REQUIRE(newice[0] == doctest::Approx(0.0258264).epsilon(prec));
@@ -176,10 +175,10 @@ TEST_CASE("Melting conditions")
     public:
         PrognosticData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -235,14 +234,10 @@ TEST_CASE("Melting conditions")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RO> hice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RO> cice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RO> hsnow(
-        ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
 
     double prec = 1e-5;
     // The thickness values from old NextSIM are cell-averaged. Perform that
@@ -295,10 +290,10 @@ TEST_CASE("Freezing conditions")
     public:
         PrognosticData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -353,14 +348,10 @@ TEST_CASE("Freezing conditions")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RO> hice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RO> cice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RO> hsnow(
-        ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
 
     double prec = 1e-5;
 
@@ -413,10 +404,10 @@ TEST_CASE("Dummy ice")
     public:
         PrognosticData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -475,10 +466,10 @@ TEST_CASE("Dummy ice")
 
     double prec = 1e-5;
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RO> hice(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RO> cice(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RO> hsnow(ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
@@ -535,10 +526,10 @@ TEST_CASE("Zero thickness")
     public:
         PrognosticData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -608,12 +599,9 @@ TEST_CASE("Zero thickness")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RO> hice(
-        ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RO> cice(
-        ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
 
     double prec = 1e-6;
 
@@ -666,10 +654,10 @@ TEST_CASE("Turn off thermo")
     public:
         PrognosticData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -724,10 +712,10 @@ TEST_CASE("Turn off thermo")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::NEW_ICE, MARBackingStore, RO> newice(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RO> hice(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RO> cice(ModelComponent::getSharedArray());
-    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RO> hsnow(ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
 
     double prec = 1e-5;
 

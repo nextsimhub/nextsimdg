@@ -1,7 +1,7 @@
 /*!
  * @file SimpleOutput.cpp
  *
- * @date May 25, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -21,18 +21,14 @@ void SimpleOutput::outputState(const ModelMetadata& meta)
     startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
     Logged::info("Outputting "
-        + std::to_string(protectedArrayNames.size() + sharedArrayNames.size()) + " fields to "
+        + std::to_string(externalNames.size()) + " fields to "
         + timeFileName + "\n");
 
     // Create the output by iterating over all fields referenced in ModelState
     ModelState state;
-    for (const auto& entry : protectedArrayNames) {
-        ModelArrayConstReference macr = getProtectedArray().at(static_cast<size_t>(entry.second));
-        if (macr) state.data[entry.first] = *macr;
-    }
-    for (const auto& entry : sharedArrayNames) {
-        ModelArrayReference mar = getSharedArray().at(static_cast<size_t>(entry.second));
-        if (mar) state.data[entry.first] = *mar;
+    auto storeData = ModelComponent::getStore().getAllData();
+    for (auto entry : storeData) {
+        if (entry.second) state.data[entry.first] = *entry.second;
     }
     StructureFactory::fileFromState(state, meta, timeFileName);
 }
