@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 6 Jan 2023
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -17,14 +17,14 @@ public:
     IDynamics()
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
-        , hice(getSharedArray())
-        , cice(getSharedArray())
-        , hsnow(getSharedArray())
-        , uwind(getProtectedArray())
-        , vwind(getProtectedArray())
-        , uocean(getProtectedArray())
-        , vocean(getProtectedArray())
-    //, damage(getSharedArray())
+        , hice(getStore())
+        , cice(getStore())
+        , hsnow(getStore())
+        , uwind(getStore())
+        , vwind(getStore())
+        , uocean(getStore())
+        , vocean(getStore())
+        //, damage(getSharedArray())
     {
     }
     virtual ~IDynamics() = default;
@@ -46,16 +46,16 @@ protected:
     HField uice;
     HField vice;
     // References to the DG0 finite volume data arrays
-    ModelArrayRef<ModelComponent::SharedArray::H_ICE, MARBackingStore, RW> hice;
-    ModelArrayRef<ModelComponent::SharedArray::C_ICE, MARBackingStore, RW> cice;
-    ModelArrayRef<ModelComponent::SharedArray::H_SNOW, MARBackingStore, RW> hsnow;
-    // ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
+    ModelArrayRef<Shared::H_ICE, RW> hice;
+    ModelArrayRef<Shared::C_ICE, RW> cice;
+    ModelArrayRef<Shared::H_SNOW, RW> hsnow;
+    //ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
 
     // References to the forcing velocity arrays
-    ModelArrayRef<ModelComponent::ProtectedArray::WIND_U, MARConstBackingStore> uwind;
-    ModelArrayRef<ModelComponent::ProtectedArray::WIND_V, MARConstBackingStore> vwind;
-    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_U, MARConstBackingStore> uocean;
-    ModelArrayRef<ModelComponent::ProtectedArray::OCEAN_V, MARConstBackingStore> vocean;
+    ModelArrayRef<Protected::WIND_U> uwind;
+    ModelArrayRef<Protected::WIND_V> vwind;
+    ModelArrayRef<Protected::OCEAN_U> uocean;
+    ModelArrayRef<Protected::OCEAN_V> vocean;
 };
 }
 

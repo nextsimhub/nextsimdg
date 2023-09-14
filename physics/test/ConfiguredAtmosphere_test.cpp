@@ -76,12 +76,12 @@ TEST_CASE("ConfiguredAtmosphere melting test")
     public:
         ProgData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice);
+            getStore().registerArray(Protected::C_ICE, &cice);
+            getStore().registerArray(Protected::H_SNOW, &hsnow);
+            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -114,19 +114,19 @@ TEST_CASE("ConfiguredAtmosphere melting test")
 
     HField qow;
     qow.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
 
     HField qia;
     qia.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
     HField dqia_dt;
     dqia_dt.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
 
     HField subl;
     subl.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     ocnBdy.updateBefore(tst);

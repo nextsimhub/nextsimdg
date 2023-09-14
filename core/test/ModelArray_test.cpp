@@ -13,6 +13,7 @@
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ModelArray");
+// Test that the (special case) two dimensional index functions correctly
 TEST_CASE("Two dimensional data access test")
 {
     ModelArray::MultiDim dims2 = {15, 25};
@@ -39,6 +40,7 @@ TEST_CASE("Two dimensional data access test")
     REQUIRE(check1d(dims2[0]-1, dims2[1]-1) == dims2[0] * dims2[1] - 1);
 }
 
+// Test that higher dimensional indexing functions correctly
 TEST_CASE("Higher dimensional indexing")
 {
     size_t dimLen = 10;
@@ -92,6 +94,7 @@ TEST_CASE("Higher dimensional indexing")
     REQUIRE(check4d[{5, 7, 2, 5}] == 5275);
 }
 
+// Test that higher dimensional indexing functions correctly
 TEST_CASE("Higher dimensional indexing 2")
 {
     ModelArray::MultiDim dims4 = {3, 5, 7, 11};
@@ -120,7 +123,9 @@ TEST_CASE("Higher dimensional indexing 2")
 
 }
 
-TEST_CASE("Moving data")
+// Test that the copy constructor and copy assignment operator initialize that
+// data correctly.
+TEST_CASE("Copy constructor and copy assignment operator")
 {
     size_t n = 10;
     ModelArray::setDimensions(ModelArray::Type::TWOD, {n, n});
@@ -130,17 +135,21 @@ TEST_CASE("Moving data")
         src[i] = i;
     }
 
-    ModelArray cpyCtor(src);
-    REQUIRE(cpyCtor(2, 3) == src(2, 3));
+    // Test the copy constructor
+    ModelArray copyConstructor(src);
+    REQUIRE(copyConstructor(2, 3) == src(2, 3));
 
-    ModelArray cpyAss = ModelArray::TwoDField();
-    cpyAss = src;
-    REQUIRE(cpyAss(2, 3) == 32);
+    // Test copy assignment
+    ModelArray copyAssignment = ModelArray::TwoDField();
+    copyAssignment = src;
+    REQUIRE(copyAssignment(2, 3) == src(2, 3));
 }
 
+// Test that setting the dimension via the function applied to an instance
+// correctly propagates to the dimensions of the type.
 TEST_CASE("Instance setDimensions sets instance dimensions")
 {
-    DosDField uu = ModelArray::DosDField();
+    ZUField uu = ModelArray::ZUField();
     ModelArray::MultiDim udim = {5, 5};
     uu.setDimensions(udim);
     REQUIRE(uu.size() == udim[0] * udim[1]);
@@ -148,6 +157,7 @@ TEST_CASE("Instance setDimensions sets instance dimensions")
     REQUIRE(uu.dimensions() == udim);
 }
 
+// Test the arithmetic operators of the class.
 TEST_CASE("Arithmetic tests")
 {
     // Only test HField for now
@@ -257,7 +267,8 @@ TEST_CASE("Location from index")
     REQUIRE(loc[2] == z);
 }
 
-// Test the zIndexAndLayer function
+// Test the zIndexAndLayer function to ensure that it accesses the correct
+// point in a three-dimensional ModelArray.
 TEST_CASE("zIndexAndLayer")
 {
     const size_t nx = 29;

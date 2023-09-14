@@ -8,9 +8,9 @@
 #ifndef THERMOWINTON_HPP
 #define THERMOWINTON_HPP
 
+#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
-#include "include/ModelArrayRef.hpp"
 
 namespace Nextsim {
 
@@ -45,9 +45,9 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
-    ModelArrayRef<ProtectedArray::SW_IN, MARConstBackingStore> sw_in;
-    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RO> subl;
+    ModelArrayRef<Protected::HTRUE_ICE> oldHi;
+    ModelArrayRef<Protected::SW_IN> sw_in;
+    ModelArrayRef<Shared::SUBLIM, RO> subl;
 
     static double i0;
     static const double cVol;

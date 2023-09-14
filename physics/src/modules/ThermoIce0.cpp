@@ -28,7 +28,7 @@ ThermoIce0::ThermoIce0()
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
     , qic(ModelArray::Type::H)
-    , oldHi(getProtectedArray())
+    , oldHi(getStore())
 {
 }
 
@@ -168,7 +168,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         cice[i] = 0.;
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = 0.;
+        tice.zIndexAndLayer(i, 0) = celsius(Ice::Tm);
     }
 }
 

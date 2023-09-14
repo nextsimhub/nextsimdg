@@ -45,12 +45,12 @@ const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
 ConfiguredAtmosphere::ConfiguredAtmosphere()
 : fluxImpl(0)
 {
-    registerProtectedArray(ProtectedArray::T_AIR, &tair);
-    registerProtectedArray(ProtectedArray::DEW_2M, &tdew);
-    registerProtectedArray(ProtectedArray::P_AIR, &pair);
-    registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-    registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
-    registerProtectedArray(ProtectedArray::WIND_SPEED, &wind);
+    getStore().registerArray(Protected::T_AIR, &tair);
+    getStore().registerArray(Protected::DEW_2M, &tdew);
+    getStore().registerArray(Protected::P_AIR, &pair);
+    getStore().registerArray(Protected::SW_IN, &sw_in);
+    getStore().registerArray(Protected::LW_IN, &lw_in);
+    getStore().registerArray(Protected::WIND_SPEED, &wind);
 }
 
 
