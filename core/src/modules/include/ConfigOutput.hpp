@@ -63,6 +63,9 @@ private:
     std::string currentFileName;
     std::set<std::string> internalFieldsForOutput;
 
+    TimePoint lastFileChange;
+    Duration fileChangePeriod;
+
     static const std::string all;
     static const std::string defaultLastOutput;
 
