@@ -367,8 +367,8 @@ void ParaGridIO::close(const std::string& filePath)
 {
     if (openFiles.count(filePath) > 0) {
         openFiles.at(filePath).close();
-        openFiles.erase(openFiles.find(filePath));
-        timeIndexByFile.erase(timeIndexByFile.find(filePath));
+        openFiles.erase(filePath);
+        timeIndexByFile.erase(filePath);
     }
 }
 

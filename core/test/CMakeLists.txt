@@ -73,6 +73,12 @@ add_executable(testModelArray
     "${ModelArrayDetails}/ModelArrayDetails.cpp"
     )
 
+add_executable(testMonthlyCubicBSpline
+    "MonthlyCubicBSpline_test.cpp"
+    )
+target_include_directories(testMonthlyCubicBSpline PUBLIC "${SRC_DIR}")
+target_link_libraries(testMonthlyCubicBSpline LINK_PUBLIC Boost::boost doctest::doctest)
+
 target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
 target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
@@ -208,6 +214,7 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/TOPAZOcean.cpp"
     "${PhysModulesDir}/AtmosphereBoundaryModule.cpp"
     "${PhysModulesDir}/ConstantAtmosphereBoundary.cpp"
+    "${PhysModulesDir}/MU71Atmosphere.cpp"
     "${PhysModulesDir}/ConfiguredAtmosphere.cpp"
     "${PhysModulesDir}/FluxConfiguredAtmosphere.cpp"
     "${PhysModulesDir}/ERA5Atmosphere.cpp"
@@ -222,6 +229,7 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/SMUIceAlbedo.cpp"
     "${PhysModulesDir}/CCSMIceAlbedo.cpp"
     "${PhysModulesDir}/SMU2IceAlbedo.cpp"
+    "${PhysModulesDir}/MU71Albedo.cpp"
     "${CoreSrc}/Time.cpp"
     )
 target_include_directories(testPrognosticData PRIVATE

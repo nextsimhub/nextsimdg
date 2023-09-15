@@ -65,12 +65,15 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
+    ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());
 
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
 
     // Fill the values of the true ice and snow thicknesses.
     iceGrowth.initializeThicknesses();
+    // Fill the updated ice temperature array
+    ticeUpd.data().setData(m_tice);
     pDynamics->update(tst);
     updatePrognosticFields();
 

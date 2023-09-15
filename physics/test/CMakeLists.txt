@@ -78,6 +78,7 @@ add_executable(testFEFluxes
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/MU71Albedo.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testFEFluxes PRIVATE
@@ -116,6 +117,7 @@ add_executable(testERA5Atm
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/MU71Albedo.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_compile_definitions(testERA5Atm PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
@@ -217,6 +219,7 @@ add_executable(testConstantOcn
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/MU71Albedo.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testConstantOcn PRIVATE

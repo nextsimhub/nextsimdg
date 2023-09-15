@@ -50,10 +50,10 @@ public:
         getStore().registerArray(Shared::Q_OW, &qow, RW);
         getStore().registerArray(Shared::SUBLIM, &subl, RW);
         getStore().registerArray(Protected::SNOW, &snow);
+        getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
         getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp);
         getStore().registerArray(Protected::WIND_U, &uwind);
         getStore().registerArray(Protected::WIND_V, &vwind);
-        getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
     }
     virtual ~IAtmosphereBoundary() = default;
 

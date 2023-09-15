@@ -11,6 +11,7 @@
 #include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
+
 namespace Nextsim {
 
 //! A class implementing IIceThermodynamics as the Winton thermodynamics model.
