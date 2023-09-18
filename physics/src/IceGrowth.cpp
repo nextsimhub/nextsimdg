@@ -48,8 +48,8 @@ IceGrowth::IceGrowth()
     getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
     getStore().registerArray(Shared::DELTA_CICE, &deltaCIce, RW);
 
-    getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+    getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)

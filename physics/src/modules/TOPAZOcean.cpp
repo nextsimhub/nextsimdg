@@ -47,8 +47,8 @@ void TOPAZOcean::configure()
 
     slabOcean.configure();
 
-    getStore().registerArray(Protected::EXT_SST, &sstExt);
-    getStore().registerArray(Protected::EXT_SSS, &sssExt);
+    getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
+    getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
 }
 

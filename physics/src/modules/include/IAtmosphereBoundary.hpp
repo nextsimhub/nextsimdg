@@ -49,11 +49,11 @@ public:
         getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
         getStore().registerArray(Shared::Q_OW, &qow, RW);
         getStore().registerArray(Shared::SUBLIM, &subl, RW);
-        getStore().registerArray(Protected::SNOW, &snow);
+        getStore().registerArray(Protected::SNOW, &snow, RO);
         getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
-        getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp);
-        getStore().registerArray(Protected::WIND_U, &uwind);
-        getStore().registerArray(Protected::WIND_V, &vwind);
+        getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
+        getStore().registerArray(Protected::WIND_U, &uwind, RO);
+        getStore().registerArray(Protected::WIND_V, &vwind, RO);
     }
     virtual ~IAtmosphereBoundary() = default;
 

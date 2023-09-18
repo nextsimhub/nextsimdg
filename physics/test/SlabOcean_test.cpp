@@ -33,24 +33,24 @@ TEST_CASE("Test Qdw")
     // Supply the data to the slab ocean
     HField sss(ModelArray::Type::H);
     sss = 32.;
-    ModelComponent::getStore().registerArray(Protected::SSS, &sss);
+    ModelComponent::getStore().registerArray(Protected::SSS, &sss, RO);
 
     HField sst(ModelArray::Type::H);
     sst = LinearFreezing()(sss[0]);
-    ModelComponent::getStore().registerArray(Protected::SST, &sst);
+    ModelComponent::getStore().registerArray(Protected::SST, &sst, RO);
 
     HField mld(ModelArray::Type::H);
     mld = 6.48;
-    ModelComponent::getStore().registerArray(Protected::MLD, &mld);
+    ModelComponent::getStore().registerArray(Protected::MLD, &mld, RO);
 
     HField cpml(ModelArray::Type::H);
     cpml = Water::cp * Water::rho * mld;
-    ModelComponent::getStore().registerArray(Protected::ML_BULK_CP, &cpml);
+    ModelComponent::getStore().registerArray(Protected::ML_BULK_CP, &cpml, RO);
 
     HField cice(ModelArray::Type::H);
     double cice0 = 0.5;
     cice = cice0;
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
 
     HField data0(ModelArray::Type::H);
     data0 = 0;
@@ -59,16 +59,16 @@ TEST_CASE("Test Qdw")
     ModelComponent::getStore().registerArray(Shared::DELTA_HICE, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::NEW_ICE, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &data0, RW);
-    ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &data0);
+    ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &data0, RO);
 
     // External SS* data
     HField sssExt(ModelArray::Type::H);
     sssExt = sss;
-    ModelComponent::getStore().registerArray(Protected::EXT_SSS, &sssExt);
+    ModelComponent::getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
     HField sstExt(ModelArray::Type::H);
     sstExt = sst + tOffset;
-    ModelComponent::getStore().registerArray(Protected::EXT_SST, &sstExt);
+    ModelComponent::getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
 
     SlabOcean slabOcean;
     slabOcean.configure();
@@ -110,38 +110,38 @@ TEST_CASE("Test Fdw")
     // Supply the data to the slab ocean
     HField sss(ModelArray::Type::H);
     sss = 32.;
-    ModelComponent::getStore().registerArray(Protected::SSS, &sss);
+    ModelComponent::getStore().registerArray(Protected::SSS, &sss, RO);
 
     HField sst(ModelArray::Type::H);
     sst = LinearFreezing()(sss[0]);
-    ModelComponent::getStore().registerArray(Protected::SST, &sst);
+    ModelComponent::getStore().registerArray(Protected::SST, &sst, RO);
 
     HField mld(ModelArray::Type::H);
     mld = 6.48;
-    ModelComponent::getStore().registerArray(Protected::MLD, &mld);
+    ModelComponent::getStore().registerArray(Protected::MLD, &mld, RO);
 
     HField cpml(ModelArray::Type::H);
     cpml = Water::cp * Water::rho * mld;
-    ModelComponent::getStore().registerArray(Protected::ML_BULK_CP, &cpml);
+    ModelComponent::getStore().registerArray(Protected::ML_BULK_CP, &cpml, RO);
 
     HField data0(ModelArray::Type::H);
     data0 = 0;
     ModelComponent::getStore().registerArray(Shared::Q_IO, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::Q_OW, &data0, RW);
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &data0);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &data0, RO);
     ModelComponent::getStore().registerArray(Shared::DELTA_HICE, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::NEW_ICE, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &data0, RW);
-    ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &data0);
+    ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &data0, RO);
 
     // External SS* data
     HField sssExt(ModelArray::Type::H);
     sssExt = sss + sOffset;
-    ModelComponent::getStore().registerArray(Protected::EXT_SSS, &sssExt);
+    ModelComponent::getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
     HField sstExt(ModelArray::Type::H);
     sstExt = sst;
-    ModelComponent::getStore().registerArray(Protected::EXT_SST, &sstExt);
+    ModelComponent::getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
 
     SlabOcean slabOcean;
     slabOcean.configure();
