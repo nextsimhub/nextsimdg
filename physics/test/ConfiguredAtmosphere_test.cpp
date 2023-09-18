@@ -76,12 +76,12 @@ TEST_CASE("ConfiguredAtmosphere melting test")
     public:
         ProgData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
         std::string getName() const override { return "ProgData"; }
 

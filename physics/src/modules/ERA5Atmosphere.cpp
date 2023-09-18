@@ -25,12 +25,12 @@ const std::map<int, std::string> Configured<ERA5Atmosphere>::keyMap = {
 ERA5Atmosphere::ERA5Atmosphere()
     : fluxImpl(0)
 {
-    getStore().registerArray(Protected::T_AIR, &tair);
-    getStore().registerArray(Protected::DEW_2M, &tdew);
-    getStore().registerArray(Protected::P_AIR, &pair);
-    getStore().registerArray(Protected::SW_IN, &sw_in);
-    getStore().registerArray(Protected::LW_IN, &lw_in);
-    getStore().registerArray(Protected::WIND_SPEED, &wind);
+    getStore().registerArray(Protected::T_AIR, &tair, RO);
+    getStore().registerArray(Protected::DEW_2M, &tdew, RO);
+    getStore().registerArray(Protected::P_AIR, &pair, RO);
+    getStore().registerArray(Protected::SW_IN, &sw_in, RO);
+    getStore().registerArray(Protected::LW_IN, &lw_in, RO);
+    getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
 
 ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
