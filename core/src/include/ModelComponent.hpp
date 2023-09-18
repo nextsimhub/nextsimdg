@@ -44,9 +44,12 @@ namespace Protected {
     inline constexpr TextTag SNOW = "SNOWFALL"; // snow fall, kg m⁻² s⁻¹
     inline constexpr TextTag SSS = "SSS"; // sea surface salinity, PSU
     inline constexpr TextTag SST = "SST"; // sea surface temperature ˚C
-    inline constexpr TextTag EXT_SSS = "EXT_SSS"; // sea surface salinity from coupling or forcing, PSU
-    inline constexpr TextTag EXT_SST = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
-    inline constexpr TextTag EVAP_MINUS_PRECIP = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
+    inline constexpr TextTag EXT_SSS
+        = "EXT_SSS"; // sea surface salinity from coupling or forcing, PSU
+    inline constexpr TextTag EXT_SST
+        = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
+    inline constexpr TextTag EVAP_MINUS_PRECIP
+        = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
     // Derived fields, calculated once per timestep
     inline constexpr TextTag ML_BULK_CP = "CPML"; // Mixed layer bulk heat capacity J K⁻¹ m⁻²
     inline constexpr TextTag TF = "TF"; // Ocean freezing temperature, ˚C
@@ -62,8 +65,10 @@ namespace Protected {
     // Slab ocean fields
     inline constexpr TextTag SLAB_SST = "SLAB_SST"; // Slab ocean sea surface temperature, ˚C
     inline constexpr TextTag SLAB_SSS = "SLAB_SSS"; // Slab ocean sea surface salinity, ˚C
-    inline constexpr TextTag SLAB_QDW = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
-    inline constexpr TextTag SLAB_FDW = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+    inline constexpr TextTag SLAB_QDW
+        = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
+    inline constexpr TextTag SLAB_FDW
+        = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
 }
 
 namespace Shared {
