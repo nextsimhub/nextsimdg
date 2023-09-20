@@ -382,7 +382,8 @@ if __name__ == "__main__":
                 target_time = topaz4_times[target_t_index]
                 source_times = source_file["time"]
                 time_index = (target_time - source_times[0]) // hr_per_day
-                source_data = source_file[topaz_field][time_index, :, :].squeeze() # Need to squeeze. Why?
+                # Index the time and squeeze the time dimension away
+                source_data = source_file[topaz_field][time_index, :, :].squeeze()
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 time_data = topaz4_interpolate(element_lon, element_lat, source_data, lat_array)
