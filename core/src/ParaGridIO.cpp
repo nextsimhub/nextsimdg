@@ -116,6 +116,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         if (newType == ModelArray::Type::Z) {
             std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
             std::vector<size_t> extentVector = ModelArray::dimensions(newType);
+            // Reverse the extent vector to go from logical (x, y, z) ordering
+            // of indexes to netCDF storage ordering.
             std::reverse(extentVector.begin(), extentVector.end());
             var.getVar(startVector, extentVector, &data[0]);
         } else {
@@ -158,7 +160,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
     std::vector<size_t> extentArray = { 1 };
 
     // Loop over the dimensions of H
-    std::vector<ModelArray::Dimension>& dimensions
+    const std::vector<ModelArray::Dimension>& dimensions
         = ModelArray::typeDimensions.at(ModelArray::Type::H);
     for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
         indexArray.push_back(0);
