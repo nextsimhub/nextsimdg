@@ -17,6 +17,7 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <map>
 #include <string>
@@ -24,12 +25,12 @@
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
-    { "xy", ModelArray::Type::H },
-    { "xyz", ModelArray::Type::Z },
-    { "xydg_comp", ModelArray::Type::DG },
-    { "xydgstress_comp", ModelArray::Type::DGSTRESS },
-    { "xcgycg", ModelArray::Type::CG },
-    { "xvertexyvertexncoords", ModelArray::Type::VERTEX },
+    { "yx", ModelArray::Type::H },
+    { "zyx", ModelArray::Type::Z },
+    { "yxdg_comp", ModelArray::Type::DG },
+    { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+    { "ycgxcg", ModelArray::Type::CG },
+    { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
 };
 
 // Which dimensions are DG dimension, which could be legitimately missing
@@ -82,7 +83,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         ModelArray::DimensionSpec& dimensionSpec = entry.second;
         netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
         if (entry.first == ModelArray::Dimension::Z) {
-            // A special case, as the number of leves in the file might not be
+            // A special case, as the number of levels in the file might not be
             // the number that the selected ice thermodynamics requires.
             ModelArray::setDimension(entry.first, NZLevels::get());
         } else {
@@ -115,6 +116,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         if (newType == ModelArray::Type::Z) {
             std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
             std::vector<size_t> extentVector = ModelArray::dimensions(newType);
+            // Reverse the extent vector to go from logical (x, y, z) ordering
+            // of indexes to netCDF storage ordering.
+            std::reverse(extentVector.begin(), extentVector.end());
             var.getVar(startVector, extentVector, &data[0]);
         } else {
             var.getVar(&data[0]);
@@ -156,9 +160,11 @@ ModelState ParaGridIO::readForcingTimeStatic(
     std::vector<size_t> extentArray = { 1 };
 
     // Loop over the dimensions of H
-    for (auto dimension : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+    const std::vector<ModelArray::Dimension>& dimensions
+        = ModelArray::typeDimensions.at(ModelArray::Type::H);
+    for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
         indexArray.push_back(0);
-        extentArray.push_back(ModelArray::definedDimensions.at(dimension).length);
+        extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
     }
 
     for (const std::string& varName : forcings) {
@@ -198,12 +204,15 @@ void ParaGridIO::dumpModelState(
     for (auto entry : ModelArray::typeDimensions) {
         ModelArray::Type type = entry.first;
         std::vector<netCDF::NcDim> ncDims;
-        for (ModelArray::Dimension& maDim : entry.second) {
+        for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
+            ModelArray::Dimension& maDim = *iter;
             ncDims.push_back(ncFromMAMap.at(maDim));
         }
         dimMap[type] = ncDims;
     }
-    // Everything that has components needs that dimension, too
+
+    // Everything that has components needs that dimension, too. This always varies fastest, and so
+    // is last in the vector of dimensions.
     for (auto entry : dimCompMap) {
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
@@ -285,7 +294,8 @@ void ParaGridIO::writeDiagnosticTime(
             // For VERTEX in an existing file, there is nothing more to be done
             continue;
         }
-        for (ModelArray::Dimension& maDim : entry.second) {
+        for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
+            ModelArray::Dimension& maDim = *iter;
             ncDims.push_back(ncFromMAMap.at(maDim));
             indexArray.push_back(0);
             extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);

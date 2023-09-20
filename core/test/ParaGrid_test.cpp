@@ -321,6 +321,46 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     std::filesystem::remove(diagFile);
 
 }
+
+#define TO_STR(s) TO_STRI(s)
+#define TO_STRI(s) #s
+#ifndef TEST_FILE_SOURCE
+#define TEST_FILE_SOURCE .
+#endif
+
+TEST_CASE("Test array ordering")
+{
+    std::string inputFilename = "ParaGridIO_input_test.nc";
+
+    Module::setImplementation<IStructure>("ParametricGrid");
+
+    REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
+
+    size_t nx = 9;
+    size_t ny = 11;
+    NZLevels::set(1);
+
+    double xFactor = 10;
+
+    ModelArray::setDimension(ModelArray::Dimension::X, nx);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny);
+    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
+
+    HField index2d(ModelArray::Type::H);
+    index2d.resize();
+    std::string fieldName = "index2d";
+    std::set<std::string> fields = { fieldName };
+    TimePoint time;
+
+    ModelState state = ParaGridIO::readForcingTimeStatic(fields, time, TO_STR(TEST_FILE_SOURCE) + std::string("/") + inputFilename);
+    REQUIRE(state.data.count(fieldName) > 0);
+    index2d = state.data.at(fieldName);
+    REQUIRE(index2d(3, 5) == 35);
+    // And that's all that's needed
+}
+
+#undef TO_STR
+#undef TO_STRI
 TEST_SUITE_END();
 
 }

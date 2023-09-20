@@ -40,6 +40,8 @@ dg_comp = datagrp.createDimension("dg_comp", n_dg)
 dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
 n_coords_comp = datagrp.createDimension("ncoords", n_coords)
 
+hfield_dims = ("y", "x")
+
 mask33 = np.array(
     [[0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -83,8 +85,8 @@ mask129 = np.zeros((nx+1, ny+1))
 for i in range(nx+1):
     mask129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), mask129x33[i, :])
 
-mask = datagrp.createVariable("mask", "f8", ("x", "y"))
-mask[:,:] = np.rint(mask129[:-1, :-1])
+mask = datagrp.createVariable("mask", "f8", hfield_dims)
+mask[:,:] = np.rint(mask129[:-1, -2::-1])
 
 antimask = 1 - mask[:,:]
 
@@ -97,13 +99,19 @@ coord1d = np.linspace(-limit1d, limit1d, num=129)
 x_coords = np.zeros((nx + 1, ny + 1))
 y_coords = np.zeros((nx + 1, ny + 1))
 for i in range(nx + 1):
-    x_coords[:, i] = coord1d
-    y_coords[i, :] = coord1d
+    x_coords[i, :] = coord1d
+    y_coords[:, i] = coord1d
     
 lat = 90 - (x_coords**2 + y_coords**2)**0.5
-lon = np.rad2deg(np.arctan2(y_coords, x_coords))
 
-coords = datagrp.createVariable("coords", "f8", ("xvertex", "yvertex", "ncoords"))
+lon_x0 = 270. # degrees
+lon = np.rad2deg(np.arctan2(y_coords, x_coords)) + lon_x0
+# Correct the range to -180 to 180
+lon += 180.
+lon %= 360.
+lon -= 180.
+
+coords = datagrp.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
 coords[:,:,0] = lon
 coords[:,:,1] = lat
 
@@ -151,17 +159,17 @@ cice129 = np.zeros((nx+1, ny+1))
 for i in range(nx+1):
     cice129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), cice129x33[i, :])
 
-cice = datagrp.createVariable("cice", "f8", ("x", "y",))
-cice[:,:] = cice129[:-1, :-1]
+cice = datagrp.createVariable("cice", "f8", hfield_dims)
+cice[:,:] = cice129[:-1, -2::-1]
 
-hice = datagrp.createVariable("hice", "f8", ("x", "y",))
+hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
-hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y",))
+hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("x", "y", "nLayers"))
-tice[:,:,0] = -0.5 - cice[:,:]
-tice[:,:,1] = -1.5 - cice[:,:]
-tice[:,:,2] = -2.5 - cice[:,:]
+tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
+tice[0,:,:] = -0.5 - cice[:,:]
+tice[1,:,:] = -1.5 - cice[:,:]
+tice[2,:,:] = -2.5 - cice[:,:]
 
 mdi = -2.**300
 # mask data
@@ -171,7 +179,8 @@ hice[:,:] = hice[:,:] * mask[:,:] + antimask * mdi
 hice.missing_value = mdi
 hsnow[:,:] = hsnow[:,:] * mask[:,:] + antimask * mdi
 hsnow.missing_value = mdi
-tice[:,:,0] = tice[:,:,0] * mask[:,:] + antimask * mdi
+for k in range(3):
+    tice[k,:,:] = tice[k,:,:] * mask[:,:] + antimask * mdi
 tice.missing_value = mdi
 
 root.close()

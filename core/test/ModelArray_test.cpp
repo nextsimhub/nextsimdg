@@ -31,10 +31,10 @@ TEST_CASE("Two dimensional data access test")
 
     size_t x = 7;
     size_t y = 13;
-    // Check neighbouring y indices differ in value by 1
-    REQUIRE(check1d(x, y) - check1d(x, y-1) == 1);
-    // Check neighbouring x values differ in value by ny
-    REQUIRE(check1d(x, y) - check1d(x-1, y) == dims2[1]);
+    // Check neighbouring x indices differ in value by 1
+    REQUIRE(check1d(x+1, y) - check1d(x, y) == 1);
+    // Check neighbouring y indices differ in value by nx
+    REQUIRE(check1d(x, y+1) - check1d(x, y) == dims2[0]);
 
     REQUIRE(check1d(dims2[0]-1, dims2[1]-1) == dims2[0] * dims2[1] - 1);
 }
@@ -56,7 +56,7 @@ TEST_CASE("Higher dimensional indexing")
     }
 
     // Check indexing using the fact that the dimensions are the same as our counting base
-    REQUIRE(check4d(4, 7, 2, 5) == 4725);
+    REQUIRE(check4d(4, 7, 2, 5) == 5274);
 
     // Reset the data to zero
     for (size_t i = 0; i < check4d.size(); ++i) {
@@ -71,7 +71,7 @@ TEST_CASE("Higher dimensional indexing")
 
     check4d.setData(data);
 
-    REQUIRE(check4d(4, 7, 2, 5) == 4725);
+    REQUIRE(check4d(4, 7, 2, 5) == 5274);
 
     // Reset the data to zero
     for (size_t i = 0; i < check4d.size(); ++i) {
@@ -86,10 +86,10 @@ TEST_CASE("Higher dimensional indexing")
 
     check4d.setData(vData.data());
 
-    REQUIRE(check4d(4, 7, 2, 5) == 4725);
+    REQUIRE(check4d(4, 7, 2, 5) == 5274);
 
 
-    REQUIRE(check4d[{4, 7, 2, 6}] == 4726);
+    REQUIRE(check4d[{5, 7, 2, 5}] == 5275);
 }
 
 TEST_CASE("Higher dimensional indexing 2")
@@ -112,7 +112,8 @@ TEST_CASE("Higher dimensional indexing 2")
     size_t k = 5;
     size_t l = 7;
 
-    size_t target = (((i) * dims4[1] + j) * dims4[2] + k) * dims4[3] + l;
+    size_t target = i + dims4[0] * (j + dims4[1] * (k + dims4[2] * (l)));
+            //(((i) * dims4[1] + j) * dims4[2] + k) * dims4[3] + l;
     REQUIRE(primorial[target] == target);
 
     REQUIRE(primorial(i, j, k, l) == target);
@@ -134,7 +135,7 @@ TEST_CASE("Moving data")
 
     ModelArray cpyAss = ModelArray::TwoDField();
     cpyAss = src;
-    REQUIRE(cpyAss(2, 3) == 23);
+    REQUIRE(cpyAss(2, 3) == 32);
 }
 
 TEST_CASE("Instance setDimensions sets instance dimensions")

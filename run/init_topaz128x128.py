@@ -102,6 +102,8 @@ if __name__ == "__main__":
     dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = datagrp.createDimension("ncoords", n_coords)
     
+    hfield_dims = ("y", "x")
+
     # Array coordinates
     array_size1d = 20. # About 20˚ square
     spacing1d = 2 * array_size1d / nx
@@ -111,8 +113,8 @@ if __name__ == "__main__":
     x_coords = np.zeros((nx + 1, ny + 1))
     y_coords = np.zeros((nx + 1, ny + 1))
     for i in range(nx + 1):
-        x_coords[:, i] = coord1d
-        y_coords[i, :] = coord1d
+        x_coords[i, :] = coord1d
+        y_coords[:, i] = coord1d
         
     # Polar azimuthal equidistant projection
     # node coordinates
@@ -142,18 +144,18 @@ if __name__ == "__main__":
     lat_array = source_lats[550:, 380]
     
     # Coordinate values in the file
-    nc_lons = datagrp.createVariable("longitude", "f8", ("x", "y"))
+    nc_lons = datagrp.createVariable("longitude", "f8", hfield_dims)
     nc_lons[:, :] = element_lon
-    nc_lats = datagrp.createVariable("latitude", "f8", ("x", "y"))
+    nc_lats = datagrp.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
 
-    coords = datagrp.createVariable("coords", "f8", ("xvertex", "yvertex", "ncoords"))
+    coords = datagrp.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
     coords[:,:,0] = lon
     coords[:,:,1] = lat
 
     # All fields are stored in one file, already opened as source_file
     # Sea-land mask
-    mask = datagrp.createVariable("mask", "f8", ("x", "y"))
+    mask = datagrp.createVariable("mask", "f8", hfield_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     mask[:, :] = 1 - ma.getmask(sst_data)
 
@@ -171,13 +173,13 @@ if __name__ == "__main__":
     hice_data *= isice
     hice_data *= cice_data # Convert from ice averaged to grid averaged
     
-    cice = datagrp.createVariable("cice", "f8", ("x", "y"))
-    hice = datagrp.createVariable("hice", "f8", ("x", "y"))
+    cice = datagrp.createVariable("cice", "f8", hfield_dims)
+    hice = datagrp.createVariable("hice", "f8", hfield_dims)
     cice[:, :] = cice_data
     hice[:, :] = hice_data
     
     # Snow thickness
-    hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y"))
+    hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
     hsnow_data = topaz4_interpolate(element_lon, element_lat, source_file["hsnow"][0, :, :].squeeze(), lat_array)
     hsnow_data *= noice
     hsnow_data *= cice_data
@@ -186,21 +188,21 @@ if __name__ == "__main__":
     mu = -0.055
     
     # Ice temperature
-    tice = datagrp.createVariable("tice", "f8", ("x", "y", "z"))
+    tice = datagrp.createVariable("tice", "f8", ("z", "y", "x"))
     ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
     ice_temp2d = np.fmin(sst_data, ice_melt) * isice
-    tice[:, :, 0] = ice_temp2d
-    tice[:, :, 1] = ice_temp2d
-    tice[:, :, 2] = ice_temp2d
+    tice[0, :, :] = ice_temp2d
+    tice[1, :, :] = ice_temp2d
+    tice[2, :, :] = ice_temp2d
     
     # SSS
-    sss = datagrp.createVariable("sss", "f8", ("x", "y"))
+    sss = datagrp.createVariable("sss", "f8", hfield_dims)
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
     sss[:, :] = sss_data
 
     # SST
-    sst = datagrp.createVariable("sst", "f8", ("x", "y"))
+    sst = datagrp.createVariable("sst", "f8", hfield_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     sst[:, :] = sst_data * noice + mu * sss_data * isice
 
