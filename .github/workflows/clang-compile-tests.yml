@@ -43,12 +43,8 @@ jobs:
         # sudo apt install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev mpich
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake 
         pkg-config --libs-only-L hdf5
-        which mpicc
-        which mpif90
-        ls /home/runner/hdf5*
-        ls /home/runner/hdf5/
-        ls /home/runner/hdf5/hdf5/
-        ls /home/runner/hdf5/hdf5/lib/
+        mpicc --version
+        mpif90 --version
         git clone -b v2.x https://github.com/catchorg/Catch2.git
         cd Catch2
         cmake -Bbuild -H. -DBUILD_TESTING=OFF
