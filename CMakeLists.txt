@@ -35,6 +35,11 @@ endif()
 
 find_package(MPI REQUIRED)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(FORTRAN_RUNTIME_LIB "-lgfortran")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    set(FORTRAN_RUNTIME_LIB "-lifcore")
+endif()
 
 
 # Regarding Boost.Log, if our application consists of more
@@ -106,20 +111,22 @@ endforeach()
 # Link the model
 add_executable(nextsim "${NextsimSources}")
 
+if (XIOS_FOUND)
+    target_link_directories(nextsim PUBLIC "${xios_LIBRARIES}")
+    target_link_libraries(nextsim PUBLIC xios HDF5::HDF5)
+    target_include_directories(nextsim PRIVATE
+    "${xios_INCLUDES}"
+    "${xios_EXTERNS}/blitz/"
+    "${xios_EXTERNS}/rapidxml/include"
+    )
+endif()
+
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"
     "${netCDF_INCLUDE_DIR}"
     "${MPI_CXX_INCLUDE_PATH}"
     )
-target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
-target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen MPI::MPI_CXX)
+target_link_directories(nextsim PUBLIC "${xios_LIBRARIES}" "${netCDF_LIB_DIR}")
+target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen MPI::MPI_CXX "${FORTRAN_RUNTIME_LIB}")
 
-if (XIOS_FOUND)
-    target_link_libraries(nextsim LINK_PUBLIC xios HDF5::HDF5 ifcore)
-    target_include_directories(nextsim PRIVATE     
-    "${xios_INCLUDES}"
-    "${xios_EXTERNS}/blitz/"
-    "${xios_EXTERNS}/rapidxml/include"
-    )
-endif()
