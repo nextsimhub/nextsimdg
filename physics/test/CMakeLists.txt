@@ -1,5 +1,9 @@
 # Build the unit, integration and model tests for neXtSIM
 
+add_custom_target(netCDF_files_phystest ALL
+    DEPENDS
+)
+
 set(CoreSourceDir "${PROJECT_SOURCE_DIR}/core/src")
 set(CoreModulesDir "${CoreSourceDir}/modules")
 set(SourceDir "../src")
