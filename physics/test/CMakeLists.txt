@@ -2,6 +2,14 @@
 
 add_custom_target(netCDF_files_phystest ALL
     DEPENDS
+    era5_test128x128.nc
+)
+
+add_custom_command(
+    OUTPUT era5_test128x128.nc
+    COMMAND ${Python3_EXECUTABLE} era5_test_data.py
+    MAIN_DEPENDENCY era5_test_data.py
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set(CoreSourceDir "${PROJECT_SOURCE_DIR}/core/src")
@@ -134,8 +142,7 @@ target_include_directories(testERA5Atm PRIVATE
     )
 target_link_directories(testERA5Atm PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
-     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+add_dependencies(testERA5Atm netCDF_files_phystest)
 
 add_executable(testTOPAZOcn
     "TOPAZOcn_test.cpp"
