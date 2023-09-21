@@ -43,7 +43,6 @@ jobs:
         # sudo apt install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev mpich
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake 
         pkg-config --libs-only-L hdf5
-        pkg-config --libs-only-L hdf5_hl
         which mpicc
         which mpif90
         ls /home/runner/hdf5*
