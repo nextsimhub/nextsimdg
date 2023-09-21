@@ -10,7 +10,7 @@
 # if you followed the instructions in the user/reference guide.
 #
 
-if not (xios_DIR)
+#if (NOT (xios_DIR))
   set( xios_DIR "${CMAKE_CURRENT_SOURCE_DIR}/xios/")
 set(xios_INCLUDES "${xios_DIR}/inc/")
 set(xios_LIBRARIES "${xios_DIR}/lib/")
