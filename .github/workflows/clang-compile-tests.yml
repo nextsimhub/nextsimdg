@@ -38,7 +38,7 @@ jobs:
     - name: installs
       run: |
         sudo apt-get update
-        sudo apt-get install libhdf5-103 libhdf5-cpp-103 libhdf5-fortran-102 libhdf5-hl-100 libhdf5-hl-cpp-100 Package libhdf5-hl-fortran-100
+        sudo apt-get install libhdf5-103 libhdf5-cpp-103 libhdf5-fortran-102 libhdf5-hl-100 libhdf5-hl-cpp-100 libhdf5-hl-fortran-100
         sudo apt-get install libnetcdf-dev libnetcdff-dev libnetcdf-mpi-dev libpnetcdf-dev
         # sudo apt install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev mpich
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake 
@@ -49,7 +49,7 @@ jobs:
         ls /home/runner/hdf5*
         ls /home/runner/hdf5/
         ls /home/runner/hdf5/hdf5/
-        ls /home/runner/hdf5/hdf5/lib
+        ls /home/runner/hdf5/hdf5/lib/
         git clone -b v2.x https://github.com/catchorg/Catch2.git
         cd Catch2
         cmake -Bbuild -H. -DBUILD_TESTING=OFF
