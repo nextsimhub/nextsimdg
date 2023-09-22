@@ -52,7 +52,7 @@ jobs:
         scp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.arch
         cd xios
         # TODO: Figure out how to get this running using (default) netcdf4_par on GH Actions
-        ./make_xios --arch GCC_LINUX --full 
+        ./make_xios --arch GCC_LINUX --full --netcdf_lib netcdf4_seq
         cd ..
 
     - name: make
