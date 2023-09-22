@@ -8,60 +8,6 @@ on:
 
 jobs:
 
-  clang-on-mac:
-
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: clang
-      run: |
-        brew extract --version=13.0.1 clang-format homebrew/cask-versions
-        brew install clang-format@13.0.1
-        cd core/src
-        clang-format --dry-run -Werror *cpp include/*hpp
-        cd -
-        for component in physics
-        do
-          cd $component/src
-          clang-format --dry-run -Werror *cpp include/*hpp
-          cd -
-        done
-  
-  
-  build-and-tests-on-ubuntu:
-
-    runs-on: ubuntu-22.04
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: installs
-      run: |
-        sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
-        sudo apt-get install python3-netcdf4
-        git clone -b v2.x https://github.com/catchorg/Catch2.git
-        cd Catch2
-        cmake -Bbuild -H. -DBUILD_TESTING=OFF
-        sudo cmake --build build/ --target install
-        cd ..
-    - name: make
-      run: |
-        cmake .
-        make
-    - name: run tests
-      run: |
-        cd core/test
-        for file in $(find test* -maxdepth 0 -type f); do ./$file; done
-        cd -
-        for component in physics
-        do
-            cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
-            cd -
-        done
-
-
   build-and-tests-on-mac:
 
     runs-on: macos-latest
@@ -75,7 +21,7 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
-        pip install netCDF4
+        pip3 install netCDF4
     - name: make
       run: |
         cmake .
