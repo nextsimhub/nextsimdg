@@ -1,0 +1,19 @@
+NETCDF_INCDIR="-I \$NETCDF_INC_DIR"
+NETCDF_LIBDIR="-L \$NETCDF_LIB_DIR"
+NETCDF_LIB="-lnetcdff -lnetcdf"
+
+MPI_INCDIR=""
+MPI_LIBDIR="\$(pkg-config --libs-only-L libcurl)"
+MPI_LIB="-lcurl"
+
+HDF5_INCDIR="-I \$HDF5_INC_DIR"
+HDF5_LIBDIR="-L \$HDF5_LIB_DIR"
+HDF5_LIB="-lhdf5_hl -lhdf5 -lhdf5 -lz"
+
+BOOST_INCDIR="-I \$BOOST_INC_DIR"
+BOOST_LIBDIR="-L \$BOOST_LIB_DIR"
+BOOST_LIB=""
+
+OASIS_INCDIR="-I\$PWD/../../oasis3-mct/BLD/build/lib/psmile.MPI1"
+OASIS_LIBDIR="-L\$PWD/../../oasis3-mct/BLD/lib"
+OASIS_LIB="-lpsmile.MPI1 -lscrip -lmct -lmpeu"
