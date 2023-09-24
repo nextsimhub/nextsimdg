@@ -2,6 +2,7 @@
  * @file Model.hpp
  * @date 12 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #ifndef MODEL_HPP
@@ -30,6 +31,9 @@ public:
     void configure() override;
     enum {
         RESTARTFILE_KEY,
+#ifdef USE_MPI
+        PARTITIONFILE_KEY,
+#endif
         STARTTIME_KEY,
         STOPTIME_KEY,
         RUNLENGTH_KEY,
