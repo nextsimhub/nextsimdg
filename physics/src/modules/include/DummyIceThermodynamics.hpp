@@ -10,11 +10,17 @@
 
 #include "IIceThermodynamics.hpp"
 
+#include "include/NZLevels.hpp"
+
 namespace Nextsim {
 
 class DummyIceThermodynamics : public IIceThermodynamics {
 public:
-    DummyIceThermodynamics() = default;
+    DummyIceThermodynamics()
+    : IIceThermodynamics()
+    {
+        NZLevels::set(getNZLevels());
+    }
     ~DummyIceThermodynamics() = default;
 
     ModelState getStateRecursive(const OutputSpec& os) const override

@@ -30,7 +30,8 @@ if (OPENMP_FOUND)
    endif()
 endif()
 
-
+# Find python to build NetCDF files
+find_package(Python3 COMPONENTS Interpreter NumPy)
 
 # Regarding Boost.Log, if our application consists of more
 # than one modules that use it, we must link to the shared
@@ -98,3 +99,6 @@ target_include_directories(nextsim PRIVATE
     )
 target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+
+# Build NetCDF files for example runs
+add_subdirectory(run)

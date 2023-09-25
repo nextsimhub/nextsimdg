@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date Feb 28, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,11 +9,15 @@
 #define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
+#include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
+#include "include/TextTag.hpp"
 #include "include/Time.hpp"
 
+#include "ModelArrayRef.hpp"
+#include "ModelArrayReferenceStore.hpp"
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -23,6 +27,69 @@ namespace Nextsim {
 
 class ModelComponent;
 
+namespace Protected {
+    // Prognostic model fields
+    constexpr TextTag H_ICE = "H_ICE_cell"; // Ice thickness, cell average, m
+    constexpr TextTag C_ICE = "C_ICE0"; // Ice concentration
+    constexpr TextTag H_SNOW = "H_SNOW_cell"; // Snow depth, cell average, m
+    constexpr TextTag T_ICE = "T_ICE0"; // Ice temperature, ˚C
+    // External data fields
+    constexpr TextTag T_AIR = "T_AIR"; // Air temperature, ˚C
+    constexpr TextTag DEW_2M = "DEW_2M"; // Dew point at 2 m, ˚C
+    constexpr TextTag P_AIR = "P_AIR"; // sea level air pressure, Pa
+    constexpr TextTag MIXRAT = "MIXRAT"; // water vapour mass mixing ratio
+    constexpr TextTag SW_IN = "SW_IN"; // incoming shortwave flux, W m⁻²
+    constexpr TextTag LW_IN = "LW_IN"; // incoming longwave flux, W m⁻²
+    constexpr TextTag MLD = "MLD"; // mixed layer depth, m
+    constexpr TextTag SNOW = "SNOWFALL"; // snow fall, kg m⁻² s⁻¹
+    constexpr TextTag SSS = "SSS"; // sea surface salinity, PSU
+    constexpr TextTag SST = "SST"; // sea surface temperature ˚C
+    constexpr TextTag EXT_SSS = "EXT_SSS"; // sea surface salinity from coupling or forcing, PSU
+    constexpr TextTag EXT_SST = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
+    constexpr TextTag EVAP_MINUS_PRECIP = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
+    // Derived fields, calculated once per timestep
+    constexpr TextTag ML_BULK_CP = "CPML"; // Mixed layer bulk heat capacity J K⁻¹ m⁻²
+    constexpr TextTag TF = "TF"; // Ocean freezing temperature, ˚C
+    constexpr TextTag WIND_SPEED = "WIND_SPEED"; // Wind speed, m s⁻¹
+    constexpr TextTag HTRUE_ICE = "HTRUE_ICE"; // Ice thickness, ice average, m
+    constexpr TextTag HTRUE_SNOW = "HTRUE_SNOW"; // Snow thickness, ice average, m
+    constexpr TextTag OCEAN_U = "OCEAN_U"; // x(east)-ward ocean current, m s⁻¹
+    constexpr TextTag OCEAN_V = "OCEAN_V"; // y(north)-ward ocean current, m s⁻¹
+    constexpr TextTag WIND_U = "WIND_U"; // x(east)-ward component of wind, m s⁻¹
+    constexpr TextTag WIND_V = "WIND_V"; // y(north)-ward component of wind, m s⁻¹
+    constexpr TextTag ICE_U = "ICE_U"; // x(east)-ward ice velocity, m s⁻¹
+    constexpr TextTag ICE_V = "ICE_V"; // y(north)-ward ice velocity, m s⁻¹
+    // Slab ocean fields
+    constexpr TextTag SLAB_SST = "SLAB_SST"; // Slab ocean sea surface temperature, ˚C
+    constexpr TextTag SLAB_SSS = "SLAB_SSS"; // Slab ocean sea surface salinity, ˚C
+    constexpr TextTag SLAB_QDW = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
+    constexpr TextTag SLAB_FDW = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+}
+
+namespace Shared {
+    // Values of the prognostic fields updated during the timestep
+    constexpr TextTag H_ICE = "H_ICE"; // Updated ice thickness, ice average, m
+    constexpr TextTag C_ICE = "C_ICE"; // Updated ice concentration
+    constexpr TextTag H_SNOW = "H_SNOW"; // Updated snow depth, ice average, m
+    constexpr TextTag T_ICE = "T_ICE"; // Updated ice temperatures, ˚C
+    // Heat fluxes
+    constexpr TextTag Q_IA = "Q_IA"; // Ice to atmosphere heat flux W m⁻²
+    constexpr TextTag Q_IC = "Q_IC"; // Ice conduction heat flux W m⁻²
+    constexpr TextTag Q_IO = "Q_IO"; // Ice to ocean heat flux W m⁻²
+    constexpr TextTag Q_OW = "Q_OW"; // Open water heat flux W m⁻²
+    constexpr TextTag DQIA_DT
+        = "DQIA_DT"; // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
+    constexpr TextTag Q_PEN_SW = "Q_PEN_SW"; // Penetrating shortwave flux W m⁻²
+    // Mass fluxes
+    constexpr TextTag HSNOW_MELT = "HSNOW_MELT"; // Thickness of snow that melted, m
+    // Atmospheric conditions
+    constexpr TextTag SUBLIM = "SUBLIM"; // Upward sublimation rate kg m⁻² s⁻¹
+    constexpr TextTag DELTA_HICE = "DELTA_HICE"; // Change in sea ice thickness, m
+    constexpr TextTag DELTA_CICE = "DELTA_CICE"; // Change in sea ice concentration
+    // Ice growth (that is not included above)
+    constexpr TextTag NEW_ICE = "NEW_ICE"; // Volume of new ice formed [m]
+
+}
 /*!
  * A class encapsulating a component of the model. It also provide a method of
  * communicating data between ModelComponents using enums, static arrays of
@@ -31,75 +98,6 @@ class ModelComponent;
 class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
-
-    enum class ProtectedArray {
-        // Prognostic model fields
-        H_ICE, // Ice thickness, cell average, m
-        C_ICE, // Ice concentration
-        H_SNOW, // Snow depth, cell average, m
-        T_ICE, // Ice temperature, ˚C
-        // External data fields
-        T_AIR, // Air temperature, ˚C
-        DEW_2M, // Dew point at 2 m, ˚C
-        P_AIR, // sea level air pressure, Pa
-        MIXRAT, // water vapour mass mixing ratio
-        SW_IN, // incoming shortwave flux, W m⁻²
-        LW_IN, // incoming longwave flux, W m⁻²
-        MLD, // mixed layer depth, m
-        SNOW, // snow fall, kg m⁻² s⁻¹
-        SSS, // sea surface salinity, PSU
-        SST, // sea surface temperature, ˚C
-        EXT_SSS, // sea surface salinity from coupling or forcing, PSU
-        EXT_SST, // sea surface temperature from coupling or forcing, ˚C
-        EVAP_MINUS_PRECIP, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
-        // Derived fields, calculated once per timestep
-        ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
-        TF, // Ocean freezing temperature, ˚C
-        WIND_SPEED, // Wind speed, m s⁻¹
-        WIND_U, // wind velocity x component, m s⁻¹
-        WIND_V, // wind velocity y component, m s⁻¹
-        HTRUE_ICE, // Ice thickness, ice average, m
-        HTRUE_SNOW, // Snow thickness, ice average, m
-        OCEAN_U, // x(east)-ward ocean current, m s⁻¹
-        OCEAN_V, // y(north)-ward ocean current, m s⁻¹
-        ICE_U, // x(east)-ward ice velocity, m s⁻¹
-        ICE_V, // y(north)-ward ice velocity, m s⁻¹
-        // Slab ocean fields
-        SLAB_SST, // Slab ocean sea surface temperature, ˚C
-        SLAB_SSS, // Slab ocean sea surface salinity, ˚C
-        SLAB_QDW, // Slab ocean temperature nudging heat flux, W m⁻²
-        SLAB_FDW, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
-        COUNT // Count of enum values
-    };
-
-#ifdef DEBUG_MODELARRAYREF
-    static const size_t SharedArrayOffset = static_cast<size_t>(ProtectedArray::COUNT);
-#else
-    static const size_t SharedArrayOffset = 0;
-#endif
-    enum class SharedArray {
-        // Values of the prognostic fields updated during the timestep
-        H_ICE = SharedArrayOffset, // Updated ice thickness, ice average, m
-        C_ICE, // Updated ice concentration
-        H_SNOW, // Updated snow depth, ice average, m
-        T_ICE, // Updated ice temperatures, ˚C
-        // Heat fluxes
-        Q_IA, // Ice to atmosphere heat flux W m⁻²
-        Q_IC, // Ice conduction heat flux W m⁻²
-        Q_IO, // Ice to ocean heat flux W m⁻²
-        Q_OW, // Open water heat flux W m⁻²
-        DQIA_DT, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
-        Q_PEN_SW, // Short-wave flux penetrating the very surface of the ice W m⁻²
-        // Mass fluxes
-        HSNOW_MELT, // Thickness of snow that melted, m
-        // Atmospheric conditions
-        SUBLIM, // Upward sublimation rate kg m⁻² s⁻¹
-        DELTA_HICE, // Change in sea ice thickness, m
-        DELTA_CICE, // Change in sea ice concentration
-        // Ice growth (that is not included above)
-        NEW_ICE, // Volume of new ice formed [m]
-        COUNT // Count of enum values
-    };
     typedef std::function<void(size_t, const TimestepTime&)> IteratedFn;
 
     ModelComponent();
@@ -164,50 +162,12 @@ public:
         std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF);
 
     /*!
-     * @brief Registers a ModelArray into a SharedArray slot from outside any
-     *        ModelComponent object. Intended for testing and debugging.
+     * @brief Returns the ModelArrayRef backing store.
      */
-    static void registerExternalSharedArray(SharedArray type, ModelArray* addr)
-    {
-        registerSharedArray(type, addr);
-    }
-    /*!
-     * @brief Registers a ModelArray into a ProtectedArray slot from outside
-     *        any ModelComponent object. Intended for testing and debugging.
-     */
-    static void registerExternalProtectedArray(ProtectedArray type, ModelArray* addr)
-    {
-        registerProtectedArray(type, addr);
-    }
-
-    /*!
-     * @brief Returns a const reference to the store for SharedArray fields
-     */
-    static const MARBackingStore& getSharedArray() { return sharedArrays; }
-
-    /*!
-     * @brief Returns a const reference to the store for ProtectedArray fields
-     */
-    static const MARConstBackingStore& getProtectedArray() { return protectedArrays; }
+    static ModelArrayReferenceStore& getStore() { return store; }
 
 protected:
     void registerModule();
-
-    /*!
-     * Adds a pointer to a slot into the SharedArray array.
-     *
-     * @param type The SharedArray slot to add the ModelArray into.
-     * @param addr The address of the ModelArray to be shared.
-     */
-    static void registerSharedArray(SharedArray type, ModelArray* addr);
-
-    /*!
-     * Adds a pointer to a slot into the ProtectedArray array.
-     *
-     * @param type The ProtectedArray slot to add the ModelArray into.
-     * @param addr The address of the ModelArray to be shared (read only).
-     */
-    static void registerProtectedArray(ProtectedArray type, const ModelArray* addr);
 
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
@@ -244,8 +204,7 @@ protected:
     static ModelArray* p_oceanMaskH;
 
 private:
-    static MARBackingStore sharedArrays;
-    static MARConstBackingStore protectedArrays;
+    static ModelArrayReferenceStore store;
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
 
     static size_t nOcean;

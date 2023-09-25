@@ -40,6 +40,9 @@ template <> HelpMap& getHelpRecursive<Nextsim::IDiagnosticOutput>(HelpMap& map, 
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IDiagnosticOutput>::moduleName(),
         ConfigType::MODULE, { SIMPLEOUTPUT }, SIMPLEOUTPUT, "",
         "The module controlling the output of NetCDF files containing diagnostic model data." });
+
+    Nextsim::ConfigOutput::getHelpRecursive(map, getAll);
+
     return map;
 }
 template <> Nextsim::IDiagnosticOutput& getImplementation<Nextsim::IDiagnosticOutput>()

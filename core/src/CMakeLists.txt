@@ -14,6 +14,7 @@ set(BaseSources
     "DevGridIO.cpp"
     "RectGridIO.cpp"
     "ParaGridIO.cpp"
+    "FileCallbackCloser.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
     "MissingData.cpp"

@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData_test.cpp
  *
- * @date Jan 27, 2023
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -94,8 +94,7 @@ TEST_CASE("PrognosticData call order test")
     TimestepTime tst = { TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0") };
     pData.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::Q_OW, MARBackingStore> qow(
-        ModelComponent::getSharedArray());
+    ModelArrayRef<Shared::Q_OW> qow(ModelComponent::getStore());
 
     double prec = 1e-5;
     // Correct value

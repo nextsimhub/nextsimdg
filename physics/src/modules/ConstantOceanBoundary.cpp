@@ -28,6 +28,7 @@ void ConstantOceanBoundary::setData(const ModelState::DataMap& ms)
     tf = tf32;
     sst = tf32; // Tf == SST ensures that there is no ice-ocean heat flux
     cpml = Water::cp * Water::rho * mld;
+    qio = 0.;
 }
 
 void ConstantOceanBoundary::updateBefore(const TimestepTime& tst)

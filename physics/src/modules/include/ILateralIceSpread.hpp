@@ -58,20 +58,25 @@ public:
 
 protected:
     ILateralIceSpread()
-        : cice(getSharedArray())
-        , qow(getSharedArray())
-        , hice(getSharedArray())
-        , hsnow(getSharedArray())
-        , deltaHi(getSharedArray())
+        : cice(getStore())
+        , qow(getStore())
+        , hice(getStore())
+        , hsnow(getStore())
+        , deltaHi(getStore())
     {
+        registerModule();
+        getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RW);
     }
 
-    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RW> cice; // From IceGrowth
-    ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW> qow; // From FluxCalculation
+    ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth
+    ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
 
-    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hice; // From IceGrowth
-    ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnow; // From Ice Growth?
-    ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore, RO> deltaHi; // From Vertical Ice Growth
+    ModelArrayRef<Shared::H_ICE, RO> hice; // From IceGrowth
+    ModelArrayRef<Shared::H_SNOW, RO> hsnow; // From Ice Growth?
+    ModelArrayRef<Shared::DELTA_HICE, RO> deltaHi; // From Vertical Ice Growth
+
+    // Owned, shared arrays
+    HField deltaCi;
 };
 
 } /* namespace Nextsim */

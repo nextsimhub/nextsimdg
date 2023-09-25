@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date Mar 1, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,10 +23,10 @@ PrognosticData::PrognosticData()
     , pDynamics(0)
 
 {
-    registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
-    registerProtectedArray(ProtectedArray::C_ICE, &m_conc);
-    registerProtectedArray(ProtectedArray::H_SNOW, &m_snow);
-    registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
+    getStore().registerArray(Protected::H_ICE, &m_thick, RO);
+    getStore().registerArray(Protected::C_ICE, &m_conc, RO);
+    getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
+    getStore().registerArray(Protected::T_ICE, &m_tice, RO);
 }
 
 void PrognosticData::configure()
@@ -65,16 +65,15 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
-    // Debugging MARs
-    ModelArrayRef<ProtectedArray::HTRUE_ICE, MARBackingStore> hiceTrue0(getSharedArray());
-    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
-    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
+    ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());
 
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
 
     // Fill the values of the true ice and snow thicknesses.
     iceGrowth.initializeThicknesses();
+    // Fill the updated ice temperature array
+    ticeUpd.data().setData(m_tice);
     pDynamics->update(tst);
     updatePrognosticFields();
 
@@ -88,10 +87,10 @@ void PrognosticData::update(const TimestepTime& tst)
 
 void PrognosticData::updatePrognosticFields()
 {
-    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
-    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
-    ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnowTrueUpd(getSharedArray());
-    ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RO> ticeUpd(getSharedArray());
+    ModelArrayRef<Shared::H_ICE, RO> hiceTrueUpd(getStore());
+    ModelArrayRef<Shared::C_ICE, RO> ciceUpd(getStore());
+    ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
+    ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
 
     // Calculate the cell average thicknesses
     HField hiceUpd = hiceTrueUpd * ciceUpd;
@@ -105,14 +104,16 @@ void PrognosticData::updatePrognosticFields()
 
 ModelState PrognosticData::getState() const
 {
+    ModelArrayRef<Protected::SST> sst(getStore());
+    ModelArrayRef<Protected::SSS> sss(getStore());
     return { {
                  { "mask", ModelArray(oceanMask()) }, // make a copy
                  { "hice", mask(m_thick) },
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
-                 { "sst", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SST))) },
-                 { "sss", mask(*getProtectedArray().at(static_cast<size_t>(ProtectedArray::SSS))) },
+                 { "sst", mask(sst.data()) },
+                 { "sss", mask(sss.data()) },
              },
         {} };
 }

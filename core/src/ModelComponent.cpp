@@ -12,8 +12,7 @@
 namespace Nextsim {
 
 std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
-MARBackingStore ModelComponent::sharedArrays(static_cast<size_t>(SharedArray::COUNT));
-MARConstBackingStore ModelComponent::protectedArrays(static_cast<size_t>(ProtectedArray::COUNT));
+ModelArrayReferenceStore ModelComponent::store;
 ModelArray* ModelComponent::p_oceanMaskH = nullptr;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
@@ -47,18 +46,6 @@ void ModelComponent::getAllFieldNames(std::unordered_set<std::string>& uF,
         vF.merge(entry.second->vFields());
         zF.merge(entry.second->zFields());
     }
-}
-
-void ModelComponent::registerSharedArray(SharedArray type, ModelArray* addr)
-{
-    // Assignment of pointer in array
-    sharedArrays[static_cast<size_t>(type)] = addr;
-}
-
-void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArray* addr)
-{
-    // Assignment of pointer in array
-    protectedArrays[static_cast<size_t>(type)] = addr;
 }
 
 /*
