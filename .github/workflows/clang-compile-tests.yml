@@ -75,6 +75,8 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
+        python3 -m ensurepip --upgrade
+        pip3 install netCDF4
     - name: make
       run: |
         cmake .
