@@ -55,17 +55,29 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
         Module::setImplementation<IStructure>("DevGrid");
         DevGrid gridIn;
         gridIn.setIO(new DevGridIO(gridIn));
+#ifdef USE_MPI
+        return gridIn.getModelState(filePath, partitionFile);
+#else
         return gridIn.getModelState(filePath);
+#endif
     } else if (RectangularGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("RectangularGrid");
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
+#ifdef USE_MPI
+        return gridIn.getModelState(filePath, partitionFile);
+#else
         return gridIn.getModelState(filePath);
+#endif
     } else if (ParametricGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("ParametricGrid");
         ParametricGrid gridIn;
         gridIn.setIO(new ParaGridIO(gridIn));
+#ifdef USE_MPI
+        return gridIn.getModelState(filePath, partitionFile);
+#else
         return gridIn.getModelState(filePath);
+#endif
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);
