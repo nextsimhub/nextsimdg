@@ -3,6 +3,7 @@
  *
  * @date Dec 17, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #ifndef ISTRUCTURE_HPP
@@ -42,7 +43,12 @@ public:
     /*!
      * @brief Returns the ModelState stored in the file
      */
+#ifdef USE_MPI
+    virtual ModelState getModelState(const std::string& filePath, const std::string& filePartition)
+        = 0;
+#else
     virtual ModelState getModelState(const std::string& filePath) = 0;
+#endif
 
     //! Returns the structure name that this class will process
     virtual const std::string& structureType() const { return processedStructureName; }
