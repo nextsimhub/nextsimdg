@@ -39,6 +39,16 @@ public:
      */
     static const ModelArray& y() const { return m_y; }
 
+    /*!
+     * Returns the benchmark fractional x coordinate array x/(nx dx)
+     */
+    static const ModelArray& fx() const { return m_x / (m_nx * dx); }
+    /*!
+     * Returns the benchmark fractional y coordinate array y/(ny dy)
+     */
+    static const ModelArray& fy() const { return m_y / (m_ny * dy); }
+
+
 private:
     static bool isInitialized = false;
 
