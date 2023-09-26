@@ -14,13 +14,16 @@ namespace Nextsim {
 
 class BenchmarkOcean : public IOceanBoundary {
 public:
-    BenchmarkOcean() = default;
+    BenchmarkOcean()
+        : IOceanBoundary()
+    {
+    }
     ~BenchmarkOcean() = default;
 
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "BenchmarkOcean"; }
 
-    void updateBefore(const TimestepTime& tst) override { };
+    void updateBefore(const TimestepTime& tst) override {};
     void updateAfter(const TimestepTime& tst) override { }
 };
 
