@@ -31,7 +31,7 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
     // length of 1 day in seconds
     constexpr double oneday = 24.0 * 60.0 * 60.0;
     // maximum wind velocity of the cyclone
-    constexpr double vMax = 30.0 / exp(1.0);
+    constexpr double vMax = 30.0;
     // another scale factor?
     const double vFactor = 50;
 
@@ -41,7 +41,7 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
     double cycloneDuration = 5.; // days
 
     // cyclone parameters
-    constexpr double A = exp(1.) * 1e-5;
+    constexpr double A = 1e-5;
     constexpr double k = 1e-5; // m⁻¹
     const double alpha = 72. / 180. * M_PI;
     constexpr double cosalpha = cos(alpha);
