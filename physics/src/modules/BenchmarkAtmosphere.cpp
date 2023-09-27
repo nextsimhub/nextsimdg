@@ -28,6 +28,11 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
 {
     IAtmosphereBoundary::update(tst);
 
+    // set the initial time on the first update
+    if (!t0Set) {
+        t0 = tst.start;
+        t0Set = true;
+    }
     // length of 1 day in seconds
     constexpr double oneday = 24.0 * 60.0 * 60.0;
     // maximum wind velocity of the cyclone

@@ -26,6 +26,7 @@ public:
 
 private:
     TimePoint t0;
+    bool t0Set = false;
 };
 
 } /* namespace Nextsim */
