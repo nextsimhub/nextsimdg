@@ -261,11 +261,11 @@ set(XIOS_LIBRARY_LIST
     Eigen3::Eigen 
     Boost::program_options
     Boost::log
-    "${NSDG_NetCDF_Library}"
     MPI::MPI_CXX
     xios
+    "${NSDG_NetCDF_Library}"
     HDF5::HDF5
-    ifcore
+    "-lgfortran"
 )
 
 add_executable(testXiosInit
