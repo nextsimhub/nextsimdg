@@ -12,7 +12,21 @@
 
 namespace Nextsim {
 
-class BenchmarkAtmosphere : public IAtmosphereBoundary { };
+class BenchmarkAtmosphere : public IAtmosphereBoundary {
+public:
+    BenchmarkAtmosphere()
+    : IAtmosphereBoundary()
+    {}
+    ~BenchmarkAtmosphere() = default;
+
+    void setData(const ModelState::DataMap&) override;
+    std::string getName() const override { return "BenchmarkAtmosphere"; }
+
+    void update(const TimestepTime& tst) override;
+
+private:
+    TimePoint t0;
+};
 
 } /* namespace Nextsim */
 
