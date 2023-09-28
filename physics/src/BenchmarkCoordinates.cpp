@@ -11,7 +11,7 @@ namespace Nextsim {
 
 bool BenchmarkCoordinates::isInitialized = false;
 
-static void BenchmarkCoordinates::setData()
+void BenchmarkCoordinates::setData()
 {
     if (!isInitialized) {
         m_nx = ModelArray::dimensions(ModelArray::Type::H)[0];
