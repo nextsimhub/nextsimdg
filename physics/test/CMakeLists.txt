@@ -281,11 +281,11 @@ add_executable(testBenchmarkBoundaries
     "BenchmarkBoundaries_test.cpp"
     "${ModulesDir}/BenchmarkAtmosphere.cpp"
     "${ModulesDir}/BenchmarkOcean.cpp"
-    "${SourceDir}/BenchmarkCoordinates.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
     "${CoreSourceDir}/ModelComponent.cpp"
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${SourceDir}/BenchmarkCoordinates.cpp"
     )
 target_include_directories(testBenchmarkBoundaries PRIVATE
     "${CoreSourceDir}"
