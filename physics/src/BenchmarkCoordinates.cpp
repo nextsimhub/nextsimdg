@@ -14,14 +14,17 @@ double BenchmarkCoordinates::dx = 25000.;
 double BenchmarkCoordinates::dy = 25000.;
 size_t BenchmarkCoordinates::m_nx;
 size_t BenchmarkCoordinates::m_ny;
-HField BenchmarkCoordinates::m_x;
-HField BenchmarkCoordinates::m_y;
+HField BenchmarkCoordinates::m_x(ModelArray::Type::H);
+HField BenchmarkCoordinates::m_y(ModelArray::Type::H);
 
 void BenchmarkCoordinates::setData()
 {
     if (!isInitialized) {
         m_nx = ModelArray::dimensions(ModelArray::Type::H)[0];
         m_ny = ModelArray::dimensions(ModelArray::Type::H)[1];
+
+        m_x.resize();
+        m_y.resize();
 
         for (size_t j = 0; j < m_ny; ++j) {
             double yVal = j * dy;
