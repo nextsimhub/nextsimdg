@@ -34,5 +34,4 @@ void BenchmarkOcean::setData(const ModelState::DataMap&)
     v = vMaxOcean * (1 - 2 * BenchmarkCoordinates::fx());
 }
 
-void BenchmarkOcean::updateBefore(const TimestepTime& tst) { }
 } /* namespace Nextsim */
