@@ -27,6 +27,7 @@ void BenchmarkAtmosphere::setData(const ModelState::DataMap&)
 void BenchmarkAtmosphere::update(const TimestepTime& tst)
 {
     IAtmosphereBoundary::update(tst);
+    BenchmarkCoordinates::setData();
 
     // set the initial time on the first update
     if (!t0Set) {

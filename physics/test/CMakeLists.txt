@@ -286,6 +286,7 @@ add_executable(testBenchmarkBoundaries
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${SourceDir}/BenchmarkCoordinates.cpp"
+    "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testBenchmarkBoundaries PRIVATE
     "${CoreSourceDir}"
