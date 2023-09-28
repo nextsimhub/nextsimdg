@@ -9,6 +9,8 @@
 
 namespace Nextsim {
 
+bool BenchmarkCoordinates::isInitialized = false;
+
 static void BenchmarkCoordinates::setData()
 {
     if (!isInitialized) {
