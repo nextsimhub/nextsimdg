@@ -21,7 +21,6 @@ add_executable(testIterator
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
     "${SRC_DIR}/Configurator.cpp"
-    
     )
 target_include_directories(testIterator PUBLIC "${SRC_DIR}")
 target_link_libraries(testIterator PRIVATE doctest::doctest Boost::program_options Boost::log)
@@ -234,25 +233,25 @@ target_link_directories(testPrognosticData PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testPrognosticData PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
 #XIOS Tests
 
-set(XIOS_INCLUDE_LIST 
-    "${CoreSrc}" 
-    "${netCDF_INCLUDE_DIR}" 
-    "${MPI_CXX_INCLUDE_PATH}" 
+set(XIOS_INCLUDE_LIST
+    "${CoreSrc}"
+    "${netCDF_INCLUDE_DIR}"
+    "${MPI_CXX_INCLUDE_PATH}"
     "${xios_INCLUDES}"
     "${xios_EXTERNS}/blitz/"
     "${xios_EXTERNS}/rapidxml/include"
     )
 
-set(XIOS_LIBRARY_LIST 
+set(XIOS_LIBRARY_LIST
     doctest::doctest
-    Eigen3::Eigen 
+    Eigen3::Eigen
     Boost::program_options
     Boost::log
     MPI::MPI_CXX
     xios
     "${NSDG_NetCDF_Library}"
     HDF5::HDF5
-    "-lgfortran"
+    "${FORTRAN_RUNTIME_LIB}"
 )
 
 add_executable(testXiosInit
@@ -260,7 +259,7 @@ add_executable(testXiosInit
     "${CoreSrc}/Xios.cpp"
     "${CoreSrc}/Configurator.cpp"
 )
-target_include_directories(testXiosInit PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}") 
+target_include_directories(testXiosInit PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}")
 target_link_directories(testXiosInit PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
 target_link_libraries(testXiosInit PRIVATE "${XIOS_LIBRARY_LIST}")
 
@@ -269,7 +268,7 @@ add_executable(testXiosBuild
     "${CoreSrc}/Xios.cpp"
     "${CoreSrc}/Configurator.cpp"
 )
-target_include_directories(testXiosBuild PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}") 
+target_include_directories(testXiosBuild PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}")
 target_link_directories(testXiosBuild PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
 target_link_libraries(testXiosBuild PRIVATE "${XIOS_LIBRARY_LIST}")
 
@@ -278,6 +277,6 @@ add_executable(testXiosDisabled
     "${CoreSrc}/Xios.cpp"
     "${CoreSrc}/Configurator.cpp"
 )
-target_include_directories(testXiosDisabled PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}") 
+target_include_directories(testXiosDisabled PRIVATE "${XIOS_INCLUDE_LIST}" "${ModuleDir}")
 target_link_directories(testXiosDisabled PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
 target_link_libraries(testXiosDisabled PRIVATE "${XIOS_LIBRARY_LIST}")
