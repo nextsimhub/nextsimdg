@@ -205,6 +205,7 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/ConfiguredOcean.cpp"
     "${PhysModulesDir}/FluxConfiguredOcean.cpp"
     "${PhysModulesDir}/TOPAZOcean.cpp"
+    "${PhysModulesDir}/BenchmarkOcean.cpp"
     "${PhysModulesDir}/AtmosphereBoundaryModule.cpp"
     "${PhysModulesDir}/ConstantAtmosphereBoundary.cpp"
     "${PhysModulesDir}/ConfiguredAtmosphere.cpp"
