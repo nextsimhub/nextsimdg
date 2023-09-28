@@ -22,6 +22,8 @@ TEST_CASE("OceanTest")
     const size_t nx = 154;
     const size_t ny = 121;
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
+    ModelArray::setDimensions(ModelArray::Type::U, { nx, ny });
+    ModelArray::setDimensions(ModelArray::Type::V, { nx, ny });
 
     BenchmarkOcean benchOcean;
     benchOcean.setData(ModelState::DataMap());

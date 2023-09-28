@@ -12,8 +12,9 @@
 
 namespace Nextsim {
 
-void BenchmarkOcean::setData(const ModelState::DataMap&)
+void BenchmarkOcean::setData(const ModelState::DataMap& ms)
 {
+    IOceanBoundary::setData(ms);
     BenchmarkCoordinates::setData();
     // The material parameters of the ocean are fixed to ensure no
     // thermodynamics occurs
