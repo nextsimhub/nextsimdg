@@ -53,7 +53,7 @@ int main( int argc, char* argv[] ) {
 
     // XIOS Class Init --- Initialises server. Unknown error if initialised per test.
     // TODO: Investigate and find workaround
-    xios_handler = new Nextsim::Xios::Xios(NULL, NULL);
+    xios_handler = new Nextsim::Xios(NULL, NULL);
 
     //int result = Catch::Session().run( argc, argv );
     int result = context.run();// argc, argv );
