@@ -10,6 +10,12 @@
 namespace Nextsim {
 
 bool BenchmarkCoordinates::isInitialized = false;
+double BenchmarkCoordinates::dx = 25000.;
+double BenchmarkCoordinates::dy = 25000.;
+size_t BenchmarkCoordinates::m_nx;
+size_t BenchmarkCoordinates::m_ny;
+HField BenchmarkCoordinates::m_x;
+HField BenchmarkCoordinates::m_y;
 
 void BenchmarkCoordinates::setData()
 {

@@ -16,8 +16,8 @@ namespace Nextsim {
 //! BenchmarkAtmosphere classes
 class BenchmarkCoordinates {
 public:
-    static constexpr double dx = 25000.;
-    static constexpr double dy = 25000.;
+    static double dx;
+    static double dy;
 
     //! Sets the data for the benchmark after the initial restart file has been read
     static void setData();
@@ -56,8 +56,8 @@ private:
     static size_t m_ny;
 
     // x and y coordinate arrays
-    static ModelArray m_x;
-    static ModelArray m_y;
+    static HField m_x;
+    static HField m_y;
 };
 
 } /* namespace Nextsim */
