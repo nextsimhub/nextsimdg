@@ -1,13 +1,13 @@
-NETCDF_INCDIR="-I $NETCDF_INC_DIR"
-NETCDF_LIBDIR="-L $NETCDF_LIB_DIR"
+NETCDF_INCDIR="-I $(pkg-config --cflags-only-I netcdf)"
+NETCDF_LIBDIR="-L $(pkg-config --libs-only-L netcdf)"
 NETCDF_LIB="-lnetcdff -lnetcdf"
 
 MPI_INCDIR=""
-MPI_LIBDIR="$(pkg-config --libs-only-L libcurl)"
+MPI_LIBDIR=""
 MPI_LIB="-lcurl"
 
-HDF5_INCDIR="-I $HDF5_INC_DIR"
-HDF5_LIBDIR="-L $HDF5_LIB_DIR"
+HDF5_INCDIR="-I $(pkg-config --cflags-only-I hdf5)"
+HDF5_LIBDIR="-L $(pkg-config --libs-only-L hdf5)"
 HDF5_LIB="-lhdf5_hl -lhdf5 -lhdf5 -lz"
 
 BOOST_INCDIR="-I $BOOST_INC_DIR"
