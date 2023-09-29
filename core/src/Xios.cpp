@@ -28,7 +28,7 @@ template <>
 const std::map<int, std::string> Configured<Xios>::keyMap
     = { { Xios::ENABLED_KEY, "xios.enable" } };
 
-Xios::Xios(int argc, char* argv[])
+Xios::Xios()
 {
 
     m_isConfigured = false;
@@ -363,9 +363,7 @@ cxios_duration Xios::convertStringToXiosDuration(std::string timestep_str)
         }
     }
 
-    // std::cout << "Duration Year: " << dduration.year << std::endl;
-    // std::cout << "Duration Month: " << dduration.month << std::endl;
-    // std::cout << "Duration Day: " << dduration.day << std::endl;
+    dduration.timestep = 0;
 
     // TODO: This needs testing like.............
     return dduration;

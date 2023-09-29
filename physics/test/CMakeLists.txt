@@ -124,9 +124,10 @@ target_include_directories(testERA5Atm PRIVATE
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
     )
 target_link_directories(testERA5Atm PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
+target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}" "-lstdc++fs")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -160,9 +161,10 @@ target_include_directories(testTOPAZOcn PRIVATE
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
     )
 target_link_directories(testTOPAZOcn PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testTOPAZOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
+target_link_libraries(testTOPAZOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}" "-lstdc++fs")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test128x128.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 

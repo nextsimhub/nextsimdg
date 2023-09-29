@@ -21,7 +21,7 @@ namespace Nextsim {
 //! Class to handle interfacing with the XIOS library
 class Xios : public Configured<Xios> {
 public:
-    Xios(int argc, char* argv[]); //, bool manual_enable=false);
+    Xios(); //, bool manual_enable=false);
     ~Xios();
 
     // void initialise();//int argc, char* argv[]);
