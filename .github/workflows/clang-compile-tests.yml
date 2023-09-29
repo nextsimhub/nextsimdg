@@ -37,34 +37,26 @@ jobs:
     - uses: actions/checkout@v2
     - name: installs
       run: |
-        sudo apt-get update
-        sudo apt-get install libhdf5-103 libhdf5-cpp-103 libhdf5-fortran-102 libhdf5-hl-100 libhdf5-hl-cpp-100 libhdf5-hl-fortran-100
-        sudo apt-get install libnetcdf-dev libnetcdff-dev libnetcdf-mpi-dev libpnetcdf-dev
-        # sudo apt install openmpi-bin openmpi-common openmpi-doc libopenmpi-dev mpich
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake 
-        git clone -b v2.x https://github.com/catchorg/Catch2.git
-        cd Catch2
-        cmake -Bbuild -H. -DBUILD_TESTING=OFF
-        sudo cmake --build build/ --target install
-        cd ..
+        sudo apt update -y
+        sudo apt install netcdf-bin libnetcdff-dev libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake libhdf5-dev
+        # sudo apt install subversion
+        # sudo apt install liburi-perl
+
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
-        scp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
-        scp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.arch
-        cd xios
-        # TODO: Figure out how to get this running using (default) netcdf4_par on GH Actions
-        ./make_xios --arch GCC_LINUX --full --netcdf_lib netcdf4_seq
-        cd ..
+        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
+        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
+        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
+
 
     - name: make
       run: |
-        cmake .
+        cmake -Bbuild -Dxios_DIR="$(pwd)/xios" -DCMAKE_CXX_COMPILER="$(which mpic++)"
+        cd build
         make
     - name: run tests
       run: |
-        cd core/test
-        for file in $(find test* -maxdepth 0 -type f); do ./$file; done
-        cd -
-        for component in physics
+        export XIOS_IODEF_PATH="$(pwd)/../run/iodef.xml"
+        for component in core physics
         do
             cd $component/test
             for file in $(find test* -maxdepth 0 -type f); do ./$file; done
