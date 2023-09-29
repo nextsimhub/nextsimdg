@@ -21,7 +21,7 @@ TEST_CASE("Full XIOS method sweep")
 {
     // Configure the XIOS server
     Nextsim::Xios *xios;
-    xios = new Nextsim::Xios::Xios(NULL, NULL);
+    xios = new Nextsim::Xios;
     xios->initialise();
 
     // Validate
