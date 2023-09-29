@@ -2,11 +2,25 @@
  * @file Xios.cpp
  * @date 7th February 2023
  * @author Dr Alexander Smith <as3402@cam.ac.uk>
- * @brief
- * @details Class to handle interfacing with the XIOS library
- *
- *   Note:
- *     Calendar Properties must be set here or in iodef.xml before access
+ * @brief Handler class for interfacing Nextsim-DG with the XIOS library
+ * @details 
+ * The Xios class is designed to abstract away any complexity of iteracting
+ * with the XIOS library. It assumes XIOS 2.0. Design details are available
+ * in the Nextsim-DG wiki. 
+ * 
+ * This class focuses on initialising the XIOS server and client processes and
+ * syncronising calendar data with Nextsim by taking information from Nextsim
+ * and creating XIOS data structures or converting strings into the XIOS format
+ * and using the C-bindings to pass the data to an XIOS context.
+ * 
+ * XIOS_IODEF_PATH
+ * 
+ * TODO: Add XIOS Grid/Axis Class/Data Structure for storing data
+ * TODO: Add XIOS IO Process
+ * 
+ * Users can enable XIOS by adding a line to the config file e.g.
+ *   [xios]
+ *   enable = true
  *
  */
 #if USE_XIOS
@@ -96,7 +110,7 @@ void Xios::configureServer()
 
 // Xios Calendar Methods
 
-// Setup the calendar information. Start Date and Timestep are defined in the iodef xml
+// Setup the calendar information. Start Date and Timestep are defined in the iodef.xml
 // and are required by XIOS library. This method allows them to be modified.
 // Date & timestep strings should match ISO 8601 using the dash-delimted format
 // e.g. 2023-03-03T17:11:00Z or 2023-03-03 17:11:00
@@ -111,6 +125,7 @@ void Xios::configureCalendar(std::string timestep, std::string start, std::strin
     setCalendarTimestep(timestep);
 
     std::cout << "IF " << std::endl;
+    // TODO: Determine if this needs to be guarded from being reset
     if (!origin.empty()) {
 
         std::cout << "SET ORIGIN " << std::endl;
@@ -125,6 +140,13 @@ void Xios::configureCalendar(std::string timestep, std::string start, std::strin
         getCalendarConfiguration();
 }
 
+/*!
+ * getCalendarOrigin
+ *
+ * This test should pass when the Xios server process has been initialized and configured with
+ * valid calendar information. 
+ * 
+ */
 std::string Xios::getCalendarOrigin(bool isoFormat)
 {
     cxios_date dorigin;

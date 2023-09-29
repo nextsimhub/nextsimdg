@@ -9,9 +9,6 @@
  * file serves as a set of unit tests, the system tests are elsewhere.
  */
 
-// #define CATCH_CONFIG_RUNNER
-// #include <catch2/catch.hpp>
-// #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <doctest/doctest.h>
 
@@ -26,18 +23,6 @@ Nextsim::Xios *xios_handler;
 int main( int argc, char* argv[] ) {
 
     doctest::Context context;
-    // // !!! THIS IS JUST AN EXAMPLE SHOWING HOW DEFAULTS/OVERRIDES ARE SET !!!
-
-    // // defaults
-    // context.addFilter("test-case-exclude", "*math*"); // exclude test cases with "math" in their name
-    // context.setOption("abort-after", 5);              // stop test execution after 5 failed assertions
-    // context.setOption("order-by", "name");            // sort the test cases by their name
-
-    // context.applyCommandLine(argc, argv);
-
-    // // overrides
-    // context.setOption("no-breaks", true);             // don't break in the debugger when assertions fail
-
 
     // Enable xios in the 'config'
     Nextsim::Configurator::clearStreams();
@@ -55,11 +40,10 @@ int main( int argc, char* argv[] ) {
     // TODO: Investigate and find workaround
     xios_handler = new Nextsim::Xios(NULL, NULL);
 
-    //int result = Catch::Session().run( argc, argv );
-    int result = context.run();// argc, argv );
+    int result = context.run();
 
-    if(context.shouldExit()) // important - query flags (and --exit) rely on the user doing this
-        return result;          // propagate the result of the tests
+    if(context.shouldExit()) 
+        return result;          
 
     // global clean-up...
     delete xios_handler;
@@ -67,7 +51,15 @@ int main( int argc, char* argv[] ) {
     return result;
 }
 
-TEST_CASE("XiosInitValidation") 
+/*!
+ * #TestXiosInitValidation
+ *
+ * This test should pass when the Xios server process has been initialized and configured with
+ * valid calendar information. 
+ * 
+ */
+
+TEST_CASE("TestXiosInitValidation") 
 {
     // Validate initialization
     REQUIRE(xios_handler->validateServerConfiguration());
@@ -75,6 +67,13 @@ TEST_CASE("XiosInitValidation")
     // Validate initialization
     REQUIRE(xios_handler->validateCalendarConfiguration());
 }
+
+/*!
+ * #TestXiosDefaultConfigInitialisation
+ *
+ * This test verifies that the calendar set and get methods are functioning correctly
+ * 
+ */
 
 TEST_CASE("TestXiosDefaultConfigInitialisation") 
 {
@@ -102,3 +101,19 @@ TEST_CASE("TestXiosDefaultConfigInitialisation")
     REQUIRE(xios_start == config_start);
     std::cout << "TESTED Start" << std::endl;
 }
+
+
+
+/*!
+ * #TestXiosCalendarNextsimConfigInitialisation
+ *
+ * This test verifies that the calendar has been set to match the Nextsim initial config
+ * 
+ */
+
+/*!
+ * #TestXiosCalendarNextsimSimulation
+ *
+ * This test verifies that the calendar is being updated and is syncronised with the Nextsim simulation.
+ * 
+ */
