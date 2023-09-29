@@ -168,9 +168,6 @@ if __name__ == "__main__":
     cice_min = 1e-12
     hice_min = 0.01 # m
 
-    grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", ("x", "y"))
-    grid_azimuth[:, :] = grid["plon"][:, :] + np.degrees(grid["ptheta"][:, :])
-
     noice = np.logical_or(cice_data < cice_min, hice_data < hice_min)
     isice = 1 - noice
     cice_data *= isice
