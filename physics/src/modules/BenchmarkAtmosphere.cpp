@@ -12,8 +12,10 @@
 
 namespace Nextsim {
 
-void BenchmarkAtmosphere::setData(const ModelState::DataMap&)
+void BenchmarkAtmosphere::setData(const ModelState::DataMap& ms)
 {
+    IAtmosphereBoundary::setData(ms);
+    BenchmarkCoordinates::setData();
     // Constant, zero fluxes in the atmosphere
     qia = 0.;
     dqia_dt = 0.;
@@ -27,7 +29,6 @@ void BenchmarkAtmosphere::setData(const ModelState::DataMap&)
 void BenchmarkAtmosphere::update(const TimestepTime& tst)
 {
     IAtmosphereBoundary::update(tst);
-    BenchmarkCoordinates::setData();
 
     // set the initial time on the first update
     if (!t0Set) {
