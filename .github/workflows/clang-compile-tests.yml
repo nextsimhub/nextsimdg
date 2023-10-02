@@ -70,13 +70,13 @@ jobs:
     - uses: actions/checkout@v2
     - name: installs
       run: |
-        brew install hdf5-mpi
         brew install netcdf
         brew install netcdf-cxx
         brew install boost
         brew install eigen
         brew install cmake
         brew install open-mpi
+        brew install subversion
 
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
         cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
