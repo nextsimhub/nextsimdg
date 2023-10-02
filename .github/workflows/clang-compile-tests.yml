@@ -39,8 +39,6 @@ jobs:
       run: |
         sudo apt update -y
         sudo apt install netcdf-bin libnetcdff-dev libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake libhdf5-dev
-        # sudo apt install subversion
-        # sudo apt install liburi-perl
 
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
         cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
@@ -77,6 +75,29 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
+        brew install open-mpi
+        brew install hdf5-mpi
+
+        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
+        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
+        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
+        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
+
+
+    - name: make
+      run: |
+        cmake -Bbuild -Dxios_DIR="$(pwd)/xios" -DCMAKE_CXX_COMPILER="$(which mpic++)"
+        cd build
+        make
+    - name: run tests
+      run: |
+        export XIOS_IODEF_PATH="$(pwd)/../run/iodef.xml"
+        for component in core physics
+        do
+            cd $component/test
+            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
+            cd -
+        done
     - name: make
       run: |
         cmake .
