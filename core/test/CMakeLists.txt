@@ -12,6 +12,11 @@ set(FVModelArrayDetails "${CoreSrc}/finitevolume")
 #   otherSource.cpp)
 #target_link_libraries(testexe PRIVATE doctest::doctest)
 
+if(MPI_FOUND)
+    add_executable(testMPI "MainMPI.cpp" "MPI_example_tests.cpp")
+    target_link_libraries(testMPI doctest::doctest MPI::MPI_CXX)
+endif()
+
 include_directories(${INCLUDE_DIR})
 
 add_executable(testIterator
