@@ -18,76 +18,58 @@
 
 namespace Nextsim {
 
-//! Class to handle interfacing with the XIOS library
-class Xios : public Configured<Xios> {
-public:
-    Xios(); //, bool manual_enable=false);
-    ~Xios();
+  class Xios : public Configured<Xios> {
+    public:
+      Xios();
+      ~Xios();
 
-    // void initialise();//int argc, char* argv[]);
-    void finalise();
-    bool validateConfiguration();
-    bool validateServerConfiguration();
-    bool validateCalendarConfiguration();
-    bool validateAxisConfiguration();
+      void finalise();
+      bool isInitialized();
 
-    void configure() override;
-    void configureServer();
-    void configureCalendar(std::string timestep, std::string start, std::string origin = "");
+      void configure() override;
+      void configureServer();
+      void configureCalendar();
 
-    // Decide if I want these two and the best output type
-    std::string getCalendarOrigin(bool isoFormat = true);
-    void setCalendarOrigin(std::string dorigin_str);
-    std::string getCalendarStart(bool isoFormat = true);
-    void setCalendarStart(std::string dstart_str);
-    std::string getCalendarTimestep();
-    void setCalendarTimestep(std::string timestep_str);
+      cxios_date getCalendarOrigin();
+      cxios_date getCalendarStart();
+      cxios_duration getCalendarTimestep();
+      void setCalendarOrigin(cxios_date origin);
+      void setCalendarStart(cxios_date start);
+      void setCalendarTimestep(cxios_duration timestep);
 
-    void getCalendarConfiguration();
+      void getCalendarConfiguration();
 
-    std::string getCalendarDate(bool isoFormat = true);
-    void updateCalendar(int stepNumber);
+      std::string getCalendarDate(bool isoFormat = true);
 
-    static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat);
-    static boost::posix_time::ptime convertStringToDatetime(std::string datetime);
-    static cxios_date convertStringToXiosDatetime(std::string datetime);
-    static cxios_duration convertStringToXiosDuration(std::string duration);
+      void updateCalendar(int stepNumber);
 
-    void printCXiosDuration(cxios_duration durationStructure);
+      static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
 
-    static void writeState();
-    // Arguments TBC
-    void setState();
-    void getState();
-    void writeStateData();
-    void readStateData();
+      void printCXiosDate(cxios_date date);
+      void printCXiosDuration(cxios_duration duration);
 
-    enum {
+      enum {
         ENABLED_KEY,
-    };
+      };
 
-    // TODO: Doesn't Exist? -> Remove
-    static void convertXiosDateStringToIsoDate(std::string& dateString);
+    protected:
+      bool isConfigured;
 
-protected:
-    bool m_isConfigured;
+    private:
+      bool isEnabled;
 
-private:
-    bool m_isEnabled;
+      xios::CCalendarWrapper* clientCalendar;
+      MPI_Comm m_clientComm;
+      MPI_Fint clientComm_F;
+      MPI_Fint nullComm_F;
+      std::string clientId;
+      std::string contextId;
 
-    xios::CCalendarWrapper* m_clientCalendar;
-    MPI_Comm m_clientComm;
-    MPI_Fint clientComm_F;
-    MPI_Fint nullComm_F;
-    std::string clientId;
-    std::string contextId;
+      cxios_date calendar_origin;
+      cxios_date calendar_start;
+      cxios_duration calendar_timestep;
 
-    std::string m_origin;
-    std::string m_start;
-    std::string m_timestep;
-
-    cxios_duration dtime;
-};
+  };
 
 } /* end namespace Nextsim */
 

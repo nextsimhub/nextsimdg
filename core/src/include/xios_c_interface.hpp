@@ -13,6 +13,7 @@ void cxios_init_client(
 void cxios_finalize();
 
 void cxios_context_initialize(const char* context_id, int len_context_id, MPI_Fint* f_comm);
+void cxios_context_is_initialized(const char* context_id , int len_context_id, bool* initialized);
 void cxios_context_close_definition();
 void cxios_context_finalize();
 
@@ -36,16 +37,12 @@ void cxios_get_calendar_wrapper_date_time_origin(
     xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* time_origin_c);
 
 // Calendar Start Date
-void cxios_set_calendar_wrapper_date_start_date(
-    xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date start_date_c);
-void cxios_get_calendar_wrapper_date_start_date(
-    xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
+void cxios_set_calendar_wrapper_date_start_date( xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date start_date_c);
+void cxios_get_calendar_wrapper_date_start_date( xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
 
 // Calendar Timestep
-void cxios_set_calendar_wrapper_timestep(
-    xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration timestep_c);
-void cxios_get_calendar_wrapper_timestep(
-    xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration* timestep_c);
+void cxios_set_calendar_wrapper_timestep( xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration timestep_c);
+void cxios_get_calendar_wrapper_timestep( xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration* timestep_c);
 void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
 
 void cxios_get_current_date(cxios_date* date);

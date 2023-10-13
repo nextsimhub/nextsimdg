@@ -1,12 +1,8 @@
 <?xml version="1.0"?>
-
 <simulation>
-
-  <context id="xios_context">
-
-    <calendar type="Gregorian" time_origin="2021-01-01" start_date="2021-03-01" />
-
-    <axis_definition>
+  <context id="nextsim">
+    <calendar type="Gregorian" time_origin="2020-01-23 00:08:15" start_date="2023-03-17 17:11:00" timestep="1.5 h"/>
+    <!-- <axis_definition>
       <axis id="axis_A" n_glo="10" value="(0,9)[100 200 300 400 500 600 700 800 900 1000]">
       </axis>
     </axis_definition>
@@ -30,16 +26,13 @@
       <file id="output" name="output_gridA" output_freq="1ts" type="one_file">
         <field id="field_A"/>
       </file>
-    </file_definition>
-    
+    </file_definition>-->
   </context>
-  
-  !<context id="xios">
-  !  <variable_definition>
-  !    <variable_group id="parameters" >
-  !      <variable id="print_file" type="bool">true</variable>
-  !    </variable_group>
-  !  </variable_definition>
-  !</context>
-  
+  <context id="xios">
+    <variable_definition>
+      <variable_group id="parameters">
+        <variable id="print_file" type="bool">true</variable>
+      </variable_group>
+    </variable_definition>
+  </context>
 </simulation>
