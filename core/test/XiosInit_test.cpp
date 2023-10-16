@@ -2,6 +2,7 @@
  * @file XiosInit_test.cpp
  * @brief Initialisation Testing for XIOS
  * @date Feb 28, 2023
+ * @author Dr Tom Meltzer <tdm39@cam.ac.uk>
  * @author Dr Alexander Smith <as3402@cam.ac.uk>
  *
  * Test file intended to validate the initialization of the server process of

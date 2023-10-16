@@ -31,10 +31,8 @@ void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_s
 // cxios_duration* cxios_duration_convert_from_string(const char* str, int str_size);
 
 // Calendar Origin
-void cxios_set_calendar_wrapper_date_time_origin(
-    xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date time_origin_c);
-void cxios_get_calendar_wrapper_date_time_origin(
-    xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* time_origin_c);
+void cxios_set_calendar_wrapper_date_time_origin(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date time_origin_c);
+void cxios_get_calendar_wrapper_date_time_origin(xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* time_origin_c);
 
 // Calendar Start Date
 void cxios_set_calendar_wrapper_date_start_date( xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date start_date_c);
