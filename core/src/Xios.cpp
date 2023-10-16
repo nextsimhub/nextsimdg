@@ -57,9 +57,9 @@ namespace Nextsim {
 
   void Xios::finalize(){
     if (isEnabled) {
+      cxios_context_close_definition();
       cxios_context_finalize();
       cxios_finalize();
-      cxios_context_close_definition();
     }
   }
 

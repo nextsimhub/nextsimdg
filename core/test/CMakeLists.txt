@@ -261,6 +261,7 @@ set(XIOS_LIBRARY_LIST
 
 add_executable(testXiosInit
     "XiosInit_test.cpp"
+    "XiosInit_test_impl.cpp"
     "${CoreSrc}/Xios.cpp"
     "${CoreSrc}/Configurator.cpp"
 )
