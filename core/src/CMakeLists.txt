@@ -28,6 +28,10 @@ set(BaseSources
     "Xios.cpp"
     )
 
+set(ParallelNetCDFSources
+    "${CMAKE_CURRENT_SOURCE_DIR}/ParallelNetcdfFile.cpp"
+    )
+
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
@@ -69,7 +73,24 @@ set(NextsimSources
     "${NextsimSources}"
     "${BaseSources}"
     "${ModuleSources}"
+    "${ParallelNetCDFSources}"
     PARENT_SCOPE)
+
+if(ENABLE_MPI)
+    set(NextsimSources
+        "${NextsimSources}"
+        "${BaseSources}"
+        "${ModuleSources}"
+        "${ParallelNetCDFSources}"
+        PARENT_SCOPE)
+else()
+    set(NextsimSources
+        "${NextsimSources}"
+        "${BaseSources}"
+        "${ModuleSources}"
+        PARENT_SCOPE)
+endif()
+
 
 set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"

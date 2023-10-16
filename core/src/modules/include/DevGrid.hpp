@@ -3,6 +3,7 @@
  *
  * @date Dec 20, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #ifndef DEVGRID_HPP
@@ -39,10 +40,18 @@ public:
     const static std::string structureName;
 
     // Read/write override functions
+#ifdef USE_MPI
+    ModelState getModelState(const std::string& filePath, const std::string& partitionFile,
+        ModelMetadata& metadata) override
+    {
+        return pio ? pio->getModelState(filePath) : ModelState();
+    }
+#else
     ModelState getModelState(const std::string& filePath) override
     {
         return pio ? pio->getModelState(filePath) : ModelState();
     }
+#endif
 
     void dumpModelState(
         const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart = false) const override

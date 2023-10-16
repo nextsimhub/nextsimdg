@@ -70,6 +70,12 @@ else()
     add_compile_definitions(USE_XIOS=false)
 endif()
 
+option(ENABLE_MPI "Enable distributed-memory parallelization with MPI" OFF)
+if(ENABLE_MPI)
+  find_package(MPI REQUIRED COMPONENTS C CXX)
+endif()
+
+
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
@@ -120,6 +126,10 @@ if (XIOS_FOUND)
     "${xios_EXTERNS}/rapidxml/include"
     )
 endif()
+target_compile_definitions(nextsim
+  PRIVATE
+    $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
+)
 
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -128,5 +138,4 @@ target_include_directories(nextsim PRIVATE
     "${MPI_CXX_INCLUDE_PATH}"
     )
 target_link_directories(nextsim PUBLIC "${xios_LIBRARIES}" "${netCDF_LIB_DIR}")
-target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen MPI::MPI_CXX "${FORTRAN_RUNTIME_LIB}")
-
+target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_C> $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_CXX> "${FORTRAN_RUNTIME_LIB}")
