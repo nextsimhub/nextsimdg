@@ -45,6 +45,8 @@ int main( int argc, char* argv[] ) {
   if(context.shouldExit())
     return result;
 
+  // xios_handler->finalize();
+
   // global clean-up
   delete xios_handler;
   MPI_Finalize();

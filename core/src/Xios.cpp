@@ -38,8 +38,6 @@
 #include <string>
 #include <mpi.h>
 
-bool DEBUG = true;
-
 namespace Nextsim {
 
   template <>
@@ -50,16 +48,18 @@ namespace Nextsim {
     configure();
     if (isEnabled) {
       configureServer();
-      configureCalendar();
-      cxios_context_close_definition();
     }
   }
 
   Xios::~Xios()
   {
+  }
+
+  void Xios::finalize(){
     if (isEnabled) {
       cxios_context_finalize();
       cxios_finalize();
+      cxios_context_close_definition();
     }
   }
 
@@ -79,37 +79,32 @@ namespace Nextsim {
     cxios_init_client(clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F);
 
     // initialize nextsim context
-    m_clientComm = MPI_Comm_f2c(clientComm_F);
+    clientComm = MPI_Comm_f2c(clientComm_F);
     contextId = "nextsim";
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
     cxios_get_current_calendar_wrapper(&clientCalendar);
-  }
 
-  void Xios::configureCalendar()
-  {
-    // initialize xios calendar variables (start, origin and timestep)
-    cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
-    cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
-    cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
+    MPI_Comm_rank( clientComm, &rank );
+    MPI_Comm_size( clientComm, &size );
   }
 
   cxios_date Xios::getCalendarOrigin()
   {
+    cxios_date calendar_origin;
     cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
     return calendar_origin;
   }
 
   cxios_date Xios::getCalendarStart()
   {
+    cxios_date calendar_start;
     cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
     return calendar_start;
   }
 
   cxios_duration Xios::getCalendarTimestep()
   {
-    //TODO THIS IS A BUG (BUG 001) the marked lines should not be required but doctest fails without them
-    cxios_set_calendar_wrapper_timestep(clientCalendar, calendar_timestep); //BUG 001 :: this is a workaround
-    cxios_update_calendar_timestep( clientCalendar ); //BUG 001 :: this is a workaround
+    cxios_duration calendar_timestep;
     cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
     return calendar_timestep;
   }
@@ -126,7 +121,6 @@ namespace Nextsim {
 
   void Xios::setCalendarTimestep(cxios_duration timestep)
   {
-    calendar_timestep = timestep; //BUG 001 :: this is a workaround
     cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
     cxios_update_calendar_timestep( clientCalendar );
   }

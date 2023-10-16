@@ -23,7 +23,7 @@ namespace Nextsim {
       Xios();
       ~Xios();
 
-      void finalise();
+      void finalize();
       bool isInitialized();
 
       void configure() override;
@@ -43,7 +43,7 @@ namespace Nextsim {
 
       void updateCalendar(int stepNumber);
 
-      static std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
+      std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
 
       void printCXiosDate(cxios_date date);
       void printCXiosDuration(cxios_duration duration);
@@ -52,6 +52,9 @@ namespace Nextsim {
         ENABLED_KEY,
       };
 
+      int rank{0};
+      int size{0};
+
     protected:
       bool isConfigured;
 
@@ -59,15 +62,11 @@ namespace Nextsim {
       bool isEnabled;
 
       xios::CCalendarWrapper* clientCalendar;
-      MPI_Comm m_clientComm;
+      MPI_Comm clientComm;
       MPI_Fint clientComm_F;
       MPI_Fint nullComm_F;
       std::string clientId;
       std::string contextId;
-
-      cxios_date calendar_origin;
-      cxios_date calendar_start;
-      cxios_duration calendar_timestep;
 
   };
 
