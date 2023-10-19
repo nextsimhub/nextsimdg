@@ -45,6 +45,13 @@ add_executable(testRectGrid "RectGrid_test.cpp")
 target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
 
+if(ENABLE_MPI)
+  add_executable(testRectGrid_MPI "RectGrid_test.cpp" "MainMPI.cpp")
+  target_compile_definitions(testRectGrid_MPI PRIVATE USE_MPI)
+  target_include_directories(testRectGrid_MPI PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testRectGrid_MPI PRIVATE nextsimlib doctest::doctest)
+endif()
+
 add_executable(testParaGrid "ParaGrid_test.cpp")
 target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)

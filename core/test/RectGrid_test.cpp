@@ -18,6 +18,7 @@
 #include <fstream>
 
 const std::string filename = "RectGrid_test.nc";
+const std::string partition_filename = "RectGrid_test_partition.nc";
 
 namespace Nextsim {
 TEST_SUITE_BEGIN("RectGrid");
@@ -77,7 +78,11 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     size_t targetY = 7;
 
     gridIn.setIO(new RectGridIO(grid));
+#ifdef USE_MPI
+    ModelState ms = gridIn.getModelState(filename, partition_filename, metadata);
+#else
     ModelState ms = gridIn.getModelState(filename);
+#endif
 
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
