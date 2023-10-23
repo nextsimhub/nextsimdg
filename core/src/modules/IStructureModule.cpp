@@ -8,8 +8,8 @@
 #include "include/IStructureModule.hpp"
 
 #include "include/DevGrid.hpp"
-#include "include/RectangularGrid.hpp"
 #include "include/ParametricGrid.hpp"
+#include "include/RectangularGrid.hpp"
 
 namespace Module {
 

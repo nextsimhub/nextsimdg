@@ -48,6 +48,13 @@ public:
         tf.resize();
         u.resize();
         v.resize();
+
+        if (ms.count("sst")) {
+            sst = ms.at("sst");
+        }
+        if (ms.count("sss")) {
+            sss = ms.at("sss");
+        }
     }
 
     /*!

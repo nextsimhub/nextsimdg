@@ -29,6 +29,7 @@ public:
         STOPTIME_KEY,
         RUNLENGTH_KEY,
         TIMESTEP_KEY,
+        MISSINGVALUE_KEY,
     };
 
 private:

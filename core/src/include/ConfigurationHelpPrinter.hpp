@@ -40,6 +40,7 @@ protected:
     static std::ostream& printNumeric(std::ostream& os, const ConfigurationHelp& help);
     static std::ostream& printInteger(std::ostream& os, const ConfigurationHelp& help);
     static std::ostream& printModule(std::ostream& os, const ConfigurationHelp& help);
+    static std::ostream& printBoolean(std::ostream& os, const ConfigurationHelp& help);
 };
 
 inline std::ostream& operator<<(std::ostream& os, const ConfigurationHelp& help)

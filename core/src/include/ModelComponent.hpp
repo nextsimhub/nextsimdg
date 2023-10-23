@@ -9,7 +9,6 @@
 #define MODELCOMPONENT_HPP
 
 #include "include/Logged.hpp"
-#include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
@@ -49,21 +48,38 @@ public:
         MLD, // mixed layer depth, m
         SNOW, // snow fall, kg m⁻² s⁻¹
         SSS, // sea surface salinity, PSU
-        SST, // sea surface temperature ˚C
+        SST, // sea surface temperature, ˚C
+        EXT_SSS, // sea surface salinity from coupling or forcing, PSU
+        EXT_SST, // sea surface temperature from coupling or forcing, ˚C
         EVAP_MINUS_PRECIP, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
         // Derived fields, calculated once per timestep
         ML_BULK_CP, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
         TF, // Ocean freezing temperature, ˚C
         WIND_SPEED, // Wind speed, m s⁻¹
+        WIND_U, // wind velocity x component, m s⁻¹
+        WIND_V, // wind velocity y component, m s⁻¹
         HTRUE_ICE, // Ice thickness, ice average, m
         HTRUE_SNOW, // Snow thickness, ice average, m
         OCEAN_U, // x(east)-ward ocean current, m s⁻¹
         OCEAN_V, // y(north)-ward ocean current, m s⁻¹
+        ICE_U, // x(east)-ward ice velocity, m s⁻¹
+        ICE_V, // y(north)-ward ice velocity, m s⁻¹
+        // Slab ocean fields
+        SLAB_SST, // Slab ocean sea surface temperature, ˚C
+        SLAB_SSS, // Slab ocean sea surface salinity, ˚C
+        SLAB_QDW, // Slab ocean temperature nudging heat flux, W m⁻²
+        SLAB_FDW, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
         COUNT // Count of enum values
     };
+
+#ifdef DEBUG_MODELARRAYREF
+    static const size_t SharedArrayOffset = static_cast<size_t>(ProtectedArray::COUNT);
+#else
+    static const size_t SharedArrayOffset = 0;
+#endif
     enum class SharedArray {
         // Values of the prognostic fields updated during the timestep
-        H_ICE, // Updated ice thickness, ice average, m
+        H_ICE = SharedArrayOffset, // Updated ice thickness, ice average, m
         C_ICE, // Updated ice concentration
         H_SNOW, // Updated snow depth, ice average, m
         T_ICE, // Updated ice temperatures, ˚C
@@ -73,6 +89,7 @@ public:
         Q_IO, // Ice to ocean heat flux W m⁻²
         Q_OW, // Open water heat flux W m⁻²
         DQIA_DT, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
+        Q_PEN_SW, // Short-wave flux penetrating the very surface of the ice W m⁻²
         // Mass fluxes
         HSNOW_MELT, // Thickness of snow that melted, m
         // Atmospheric conditions

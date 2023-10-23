@@ -42,7 +42,7 @@ void DevStep::iterate(const TimestepTime& tst)
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
     ModelState overallState = pData->getStateRecursive(true);
     overallState.merge(ConfiguredModule::getAllModuleConfigurations());
-    Module::getImplementation<IDiagnosticOutput>().outputState(overallState, *mData);
+    Module::getImplementation<IDiagnosticOutput>().outputState(*mData);
 }
 
 void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string& fileName)

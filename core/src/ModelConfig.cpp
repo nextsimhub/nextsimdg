@@ -6,6 +6,7 @@
  */
 
 #include "include/ModelConfig.hpp"
+#include "include/MissingData.hpp"
 
 namespace Nextsim {
 
@@ -19,6 +20,7 @@ const std::map<int, std::string> ModelConfig::keyMap = {
     { ModelConfig::STOPTIME_KEY, "model.stop" },
     { ModelConfig::RUNLENGTH_KEY, "model.run_length" },
     { ModelConfig::TIMESTEP_KEY, "model.time_step" },
+    { ModelConfig::MISSINGVALUE_KEY, "model.missing_value" },
 };
 
 ConfigMap ModelConfig::getConfig()
@@ -28,6 +30,7 @@ ConfigMap ModelConfig::getConfig()
         { keyMap.at(STOPTIME_KEY), stopTimeStr },
         { keyMap.at(RUNLENGTH_KEY), durationStr },
         { keyMap.at(TIMESTEP_KEY), stepStr },
+        { keyMap.at(MISSINGVALUE_KEY), MissingData::value },
     };
     return cMap;
 }

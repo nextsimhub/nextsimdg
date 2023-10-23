@@ -30,6 +30,17 @@ public:
 
     void configure() override;
 
+    enum {
+        RESTARTFILE_KEY,
+        STARTTIME_KEY = ModelConfig::STARTTIME_KEY,
+        STOPTIME_KEY = ModelConfig::STOPTIME_KEY,
+        RUNLENGTH_KEY = ModelConfig::RUNLENGTH_KEY,
+        TIMESTEP_KEY = ModelConfig::TIMESTEP_KEY,
+        MISSINGVALUE_KEY = ModelConfig::MISSINGVALUE_KEY,
+        RESTARTPERIOD_KEY,
+        RESTARTOUTFILE_KEY,
+    };
+
     ConfigMap getConfig() const;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
@@ -48,16 +59,6 @@ public:
 
     // Configuration option that holds the restart file name
     const static std::string restartOptionName;
-
-    enum {
-        RESTARTFILE_KEY,
-        STARTTIME_KEY = ModelConfig::STARTTIME_KEY,
-        STOPTIME_KEY = ModelConfig::STOPTIME_KEY,
-        RUNLENGTH_KEY = ModelConfig::RUNLENGTH_KEY,
-        TIMESTEP_KEY = ModelConfig::TIMESTEP_KEY,
-        RESTARTPERIOD_KEY,
-        RESTARTOUTFILE_KEY,
-    };
 
 private:
     Iterator iterator;
