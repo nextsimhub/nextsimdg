@@ -21,6 +21,7 @@
 #include <ncFile.h>
 #include <ncVar.h>
 
+#include <algorithm>
 #include <list>
 #include <map>
 #include <string>
@@ -37,6 +38,8 @@ void dimensionSetter(
     for (size_t d = 0; d < nDims; ++d) {
         dims[d] = dataGroup.getVar(fieldName).getDim(d).getSize();
     }
+    // The dimensions in the netCDF are in the reverse order compared to ModelArray
+    std::reverse(dims.begin(), dims.end());
     // A special case for Type::Z: use NZLevels for the third dimension
     if (type == ModelArray::Type::Z)
         dims[2] = NZLevels::get();
@@ -72,6 +75,7 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     state.data[ticeName] = ModelArray::ZField();
     std::vector<size_t> startVector = { 0, 0, 0 };
     std::vector<size_t> zArrayDims = ModelArray::dimensions(ModelArray::Type::Z);
+    std::reverse(zArrayDims.begin(), zArrayDims.end());
     dataGroup.getVar(ticeName).getVar(startVector, zArrayDims, &state.data[ticeName][0]);
 
     ncFile.close();
