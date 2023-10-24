@@ -26,6 +26,7 @@ void ConstantAtmosphereBoundary::setData(const ModelState::DataMap& ms)
     evap = 0; // somehow...
     uwind = 0;
     vwind = 0;
+    penSW = 0.;
 }
 
 void ConstantAtmosphereBoundary::update(const TimestepTime& tst)
