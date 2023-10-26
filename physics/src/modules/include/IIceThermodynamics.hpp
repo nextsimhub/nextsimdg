@@ -40,6 +40,8 @@ public:
      */
     virtual void update(const TimestepTime& tsTime) = 0;
 
+    virtual void initialiseTice() { tice = tice0; }
+
     inline static std::string getKappaSConfigKey() { return "thermo.ks"; }
 
     virtual size_t getNZLevels() const = 0;
