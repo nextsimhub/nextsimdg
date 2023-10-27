@@ -9,30 +9,9 @@ sec_per_hr = 3600
 hr_per_day = 24
 
 if __name__ == "__main__":
-    # Set up the argument parsing
-#    import argparse
-#    parser = argparse.ArgumentParser(description = "Create fake forcing file for the PAraGridIO test")
-#    parser.add_argument("--file", dest="file", required = True, help = "A restart file containing the target grid information.")
-#    parser.add_argument("--start", dest = "start", required = True, help = "The ISO start date for the forcing file.")
-#    parser.add_argument("--stop", dest = "stop", required = True, help = "The ISO end date for the forcing file.")
-#    args = parser.parse_args()
-    # read the date range
-#    start_time = time.strptime(args.start, "%Y-%m-%d")
-#    stop_time = time.strptime(args.stop, "%Y-%m-%d")
-    #(unix_times, era5_times, topaz4_times) = create_times(start_time, stop_time)
 
-    # read a grid spec (from a restart file)
-#    root = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
-#    structgrp = root.groups["structure"]
     target_structure = "parametric_rectangular"
-#    if structgrp.type != target_structure:
-#        print(f"Incorrect structure found: {structgrp.type}, wanted {target_structure}.")
-#        raise SystemExit
-#    datagrp = root.groups["data"]
-#    node_coords = datagrp["coords"]
-    # assume lon and lat are 0 and 1 coords
-#    node_lon = node_coords[:, :, 0]
-#    node_lat = node_coords[:, :, 1]
+
     nx = 9
     ny = 11
     element_shape = (nx, ny)

@@ -27,7 +27,7 @@ ThermoIce0::ThermoIce0()
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
     , qic(ModelArray::Type::H)
-    , oldHi(getProtectedArray())
+    , oldHi(getStore())
 {
 }
 

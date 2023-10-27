@@ -238,7 +238,7 @@ public:
     //! Returns a const reference to the Eigen data
     const DataType& data() const { return m_data; }
     //! Returns the (enum of) the ModelArray::Type of this.
-    const Type getType() const { return type; }
+    Type getType() const { return type; }
 
     /*!
      * @brief Sets the number and size of the dimensions of a specified type of

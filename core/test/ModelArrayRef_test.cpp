@@ -1,54 +1,37 @@
 /*!
- * @file NewModelArrayRef_test.cpp
+ * @file ModelArrayRef_test.cpp
  *
- * @date Sep 19, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "include/ModelArrayRef.hpp"
-
-#include <iostream>
+#include "../src/include/ModelArrayRef.hpp"
+#include "../src/include/ModelArrayReferenceStore.hpp"
 
 namespace Nextsim {
 
 class MiniModelComponent {
 public:
-    enum class ProtectedArray {
-        H_ICE,
-        SW_IN,
-        COUNT
-    };
-    enum class SharedArray {
-        H_ICE,
-        COUNT
-    };
-    static void registerSharedArray(SharedArray type, ModelArray* p)
-    {
-        sharedArrays[static_cast<size_t>(type)] = p;
-    }
-    static void registerProtectedArray(ProtectedArray type, ModelArray* p)
-    {
-        protectedArrays[static_cast<size_t>(type)] = p;
-    }
-    static const MARConstBackingStore& getProtectedArrays() { return protectedArrays; }
-    static const MARBackingStore& getSharedArrays() { return sharedArrays; }
+    static constexpr TextTag H_ICE0 = { "H_ICE0" };
+    static constexpr TextTag SW_IN = { "SW_IN" };
+    static constexpr TextTag H_ICE = { "H_ICE" };
+
+    static ModelArrayReferenceStore& getSharedArrays() { return sharedArrays; }
 protected:
-    static MARBackingStore sharedArrays;
-    static MARConstBackingStore protectedArrays;
+    static ModelArrayReferenceStore sharedArrays;
 };
 
-MARBackingStore MiniModelComponent::sharedArrays(static_cast<size_t>(SharedArray::COUNT));
-MARConstBackingStore MiniModelComponent::protectedArrays(static_cast<size_t>(ProtectedArray::COUNT));
+ModelArrayReferenceStore MiniModelComponent::sharedArrays;
 
 class AtmIn : public MiniModelComponent {
 public:
     AtmIn()
     {
-        registerProtectedArray(ProtectedArray::H_ICE, &hice);
-        registerProtectedArray(ProtectedArray::SW_IN, &swin);
+        sharedArrays.registerArray(H_ICE0, &hice, RO);
+        sharedArrays.registerArray(SW_IN, &swin, RO);
     }
     void configure()
     {
@@ -69,7 +52,7 @@ private:
 class IceThermo : public MiniModelComponent {
 public:
     IceThermo()
-    : hice(MiniModelComponent::getSharedArrays())
+    : hice(getSharedArrays())
     {
     }
 
@@ -78,15 +61,15 @@ public:
         hice[0] *= (1. + tStep) / tStep;
     }
 private:
-    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RW> hice;
+    ModelArrayRef<H_ICE, RW> hice;
 };
 
 class IceCalc : public MiniModelComponent {
 public:
     IceCalc()
-    : hice0(MiniModelComponent::getProtectedArrays())
+    : hice0(getSharedArrays())
     {
-        registerSharedArray(SharedArray::H_ICE, &hice);
+        sharedArrays.registerArray(H_ICE, &hice, RW);
     }
     void configure()
     {
@@ -104,12 +87,12 @@ public:
 
 private:
     HField hice;
-    ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore> hice0;
+    ModelArrayRef<H_ICE0> hice0;
 
     IceThermo thermo;
 };
 
-TEST_SUITE_BEGIN("ModelArrayRef");
+TEST_SUITE_BEGIN("[ModelArrayRef]");
 TEST_CASE("Accessing the data")
 {
     AtmIn atmIn;
@@ -130,36 +113,55 @@ TEST_CASE("Accessing the data")
     REQUIRE(hicef == doctest::Approx(target).epsilon(1e-8));
 }
 
-enum class couplFields {
-    SWIN,
-    COUNT
-};
+/*
+ * Uncommenting this test case should result in a compile time error, as an RO ref should not be writable.
+*/
+//TEST_CASE("(Not) writing to protected arrays", "[ModelArrayRef]")
+//{
+//    ModelArrayRef<H_ICE0> hice0(MiniModelComponent::getSharedArrays());
+//    hice0[0] = 3.141592;
+//}
+
+/*
+ * Uncommenting this test should result in a run time error, specifically a segmentation violation,
+ * as the H_ICE0 array is never available as a RW array.
+ */
+//TEST_CASE("(Not) writing to protected arrays", "[ModelArrayRef]")
+//{
+//    HField hice0Src;
+//    hice0Src.resize();
+//    hice0Src[0] = 1.0;
+//    MiniModelComponent::getSharedArrays().registerArray(MiniModelComponent::H_ICE0, &hice0Src);
+//    ModelArrayRef<H_ICE0, RW> hice0(MiniModelComponent::getSharedArrays());
+//    REQUIRE(hice0[0] != 3.141592);
+//}
+
 
 static const double targetFlux = 320;
+static constexpr TextTag sw_in = { "sw_in" };
 
 class CouplEr
 {
 public:
-    CouplEr(MARBackingStore& bs)
+    CouplEr(ModelArrayReferenceStore& bs)
     : swFlux(bs)
     {
     }
     void update() { swFlux[0] = targetFlux; }
 private:
-    ModelArrayRef<couplFields::SWIN, MARBackingStore, RW> swFlux;
+    ModelArrayRef<sw_in, RW> swFlux;
 };
 
 class CouplIn : public MiniModelComponent
 {
 public:
     CouplIn()
-    : coupledFields(static_cast<size_t>(couplFields::COUNT))
-    , coupler(coupledFields)
+    : coupler(coupledFields)
     {
-        registerProtectedArray(ProtectedArray::H_ICE, &hice);
-        registerProtectedArray(ProtectedArray::SW_IN, &swin);
+        sharedArrays.registerArray(H_ICE, &hice);
+        sharedArrays.registerArray(SW_IN, &swin);
         // Set the address of the swin array in the local reference backing store
-        coupledFields[static_cast<size_t>(couplFields::SWIN)] = &swin;
+        coupledFields.registerArray(sw_in, &swin, RW);
     }
     void configure()
     {
@@ -175,11 +177,11 @@ public:
     {
         coupler.update();
     }
-    const MARBackingStore& bs() { return coupledFields; }
+    ModelArrayReferenceStore& bs() { return coupledFields; }
 private:
     HField hice;
     HField swin;
-    MARBackingStore coupledFields;
+    ModelArrayReferenceStore coupledFields;
     CouplEr coupler;
     };
 
@@ -188,7 +190,7 @@ TEST_CASE("Accessing the data two ways")
     CouplIn couplIn;
     ModelArray::setDimensions(ModelArray::Type::H, {1,1});
     couplIn.configure();
-    ModelArrayRef<couplFields::SWIN, MARBackingStore> swin(couplIn.bs());
+    ModelArrayRef<sw_in> swin(couplIn.bs());
     couplIn.setData();
 
     REQUIRE(swin[0] != targetFlux);

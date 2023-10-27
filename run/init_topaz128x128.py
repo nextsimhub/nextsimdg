@@ -207,10 +207,10 @@ if __name__ == "__main__":
     sst[:, :] = sst_data * noice + mu * sss_data * isice
 
     # Ice starts at rest
-    u = datagrp.createVariable("u", "f8", ("x", "y"))
+    u = datagrp.createVariable("u", "f8", hfield_dims)
     u[:, :] = 0
 
-    v = datagrp.createVariable("v", "f8", ("x", "y"))
+    v = datagrp.createVariable("v", "f8", hfield_dims)
     v[:, :] = 0
     
     root.close()

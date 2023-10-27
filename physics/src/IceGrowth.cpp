@@ -31,25 +31,25 @@ IceGrowth::IceGrowth()
     , deltaCIce(ModelArray::Type::H)
     , deltaCFreeze(ModelArray::Type::H)
     , deltaCMelt(ModelArray::Type::H)
-    , hIceCell(getProtectedArray())
-    , hSnowCell(getProtectedArray())
-    , cice0(getProtectedArray())
-    , qow(getSharedArray())
-    , mixedLayerBulkHeatCapacity(getProtectedArray())
-    , sst(getProtectedArray())
-    , tf(getProtectedArray())
-    , deltaHi(getSharedArray())
+    , hIceCell(getStore())
+    , hSnowCell(getStore())
+    , cice0(getStore())
+    , qow(getStore())
+    , mixedLayerBulkHeatCapacity(getStore())
+    , sst(getStore())
+    , tf(getStore())
+    , deltaHi(getStore())
 {
     registerModule();
-    registerSharedArray(SharedArray::H_ICE, &hice);
-    registerSharedArray(SharedArray::C_ICE, &cice);
-    registerSharedArray(SharedArray::H_SNOW, &hsnow);
-    registerSharedArray(SharedArray::NEW_ICE, &newice);
-    registerSharedArray(SharedArray::HSNOW_MELT, &snowMelt);
-    registerSharedArray(SharedArray::DELTA_CICE, &deltaCIce);
+    getStore().registerArray(Shared::H_ICE, &hice, RW);
+    getStore().registerArray(Shared::C_ICE, &cice, RW);
+    getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
+    getStore().registerArray(Shared::NEW_ICE, &newice, RW);
+    getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
+    getStore().registerArray(Shared::DELTA_CICE, &deltaCIce, RW);
 
-    registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-    registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+    getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)
@@ -159,6 +159,7 @@ void IceGrowth::initializeThicknesses()
     overElements(std::bind(&IceGrowth::initializeThicknessesElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         TimestepTime());
+    iVertical->initialiseTice();
 }
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,

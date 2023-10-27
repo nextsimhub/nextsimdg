@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.hpp
  *
- * @date Aug 22, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -61,14 +61,19 @@ private:
     TimePoint lastOutput;
     std::set<std::string> fieldsForOutput;
     std::string currentFileName;
-    std::set<ModelComponent::SharedArray> sharedArraysForOutput;
-    std::set<ModelComponent::ProtectedArray> protectedArraysForOutput;
+    std::set<std::string> internalFieldsForOutput;
+
+    TimePoint lastFileChange;
+    Duration fileChangePeriod;
 
     TimePoint lastFileChange;
     Duration fileChangePeriod;
 
     static const std::string all;
     static const std::string defaultLastOutput;
+
+    std::map<std::string, std::string> reverseExternalNames;
+
 };
 
 } /* namespace Nextsim */

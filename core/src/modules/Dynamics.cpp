@@ -1,7 +1,7 @@
 /*!
  * @file Dynamics.cpp
  *
- * @date 27 Mar 2023
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -20,8 +20,8 @@ static const std::vector<std::string> namedFields = { hiceName, ciceName, uName,
 Dynamics::Dynamics()
     : IDynamics()
 {
-    registerProtectedArray(ProtectedArray::ICE_U, &uice);
-    registerProtectedArray(ProtectedArray::ICE_V, &vice);
+    getStore().registerArray(Protected::ICE_U, &uice, RO);
+    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void Dynamics::setData(const ModelState::DataMap& ms)

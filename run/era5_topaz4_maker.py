@@ -185,7 +185,7 @@ if __name__ == "__main__":
     if args.prefix is not None:
         filepfx = args.prefix + "."
     else:
-        filepfx = "."
+        filepfx = ""
 
     # read a grid spec (from a restart file)
     root = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
@@ -231,6 +231,7 @@ if __name__ == "__main__":
     # ERA5 data
     
     era5_out_file = f"{filepfx}ERA5_{args.start}_{args.stop}.nc"
+    print(f"Writing ERA5 data to {era5_out_file}")
     era_root = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
     structgrp = era_root.createGroup("structure")
     structgrp.type = target_structure
@@ -288,8 +289,8 @@ if __name__ == "__main__":
                 data[target_t_index, :, :] = time_data
         else:
             # Also handle the wind components along with the wind speed
-            u_var = datagrp.createVariable("u", "f8", ("time", "x", "y"))
-            v_var = datagrp.createVariable("v", "f8", ("time", "x", "y"))
+            u_var = datagrp.createVariable("u", "f8", timefield_dims)
+            v_var = datagrp.createVariable("v", "f8", timefield_dims)
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
                 u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index]), "r")
@@ -301,6 +302,15 @@ if __name__ == "__main__":
                 time_index = target_time - source_times[0]
                 u_data_source = u_file["u10"][time_index, :, :]
                 v_data_source = v_file["v10"][time_index, :, :]
+                # Fix the polar row winds by copying the pole-adjacent row
+                # Pole in the first row
+                if abs(source_lats[0]) == 90.:
+                    u_data_source[:, 0] = u_data_source[:, 1]
+                    v_data_source[:, 0] = u_data_source[:, 1]
+                # Pole in the last row
+                if abs(source_lats[-1]) == 90.:
+                    u_data_source[:, -1] = u_data_source[:, -2]
+                    v_data_source[:, -1] = u_data_source[:, -2]
                 # Now interpolate the source data to the target grid
                 u_data_target = np.zeros((nx, ny))
                 u_data_target = era5_interpolate(element_lon, element_lat, u_data_source, source_lons, source_lats)
@@ -328,6 +338,7 @@ if __name__ == "__main__":
     
     topaz_out_file = f"{filepfx}TOPAZ4_{args.start}_{args.stop}.nc"
     topaz_root = netCDF4.Dataset(topaz_out_file, "w", format="NETCDF4")
+    print(f"Writing TOPAZ4 data to {topaz_out_file}")
     structgrp = topaz_root.createGroup("structure")
     structgrp.type = target_structure
     
@@ -382,7 +393,8 @@ if __name__ == "__main__":
                 target_time = topaz4_times[target_t_index]
                 source_times = source_file["time"]
                 time_index = (target_time - source_times[0]) // hr_per_day
-                source_data = source_file[topaz_field][time_index, :, :].squeeze() # Need to squeeze. Why?
+                # Index the time and squeeze the time dimension away
+                source_data = source_file[topaz_field][time_index, :, :].squeeze()
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 time_data = topaz4_interpolate(element_lon, element_lat, source_data, lat_array)
