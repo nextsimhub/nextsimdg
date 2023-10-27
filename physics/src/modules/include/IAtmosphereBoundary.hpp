@@ -28,6 +28,7 @@ public:
     , emp(ModelArray::Type::H)
     , uwind(ModelArray::Type::U)
     , vwind(ModelArray::Type::V)
+    , penSW(ModelArray::Type::H)
     {
         m_couplingArrays.resize(static_cast<size_t>(CouplingFields::COUNT));
         m_couplingArrays[static_cast<size_t>(CouplingFields::SUBL)] = &subl;
