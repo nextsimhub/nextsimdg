@@ -30,10 +30,15 @@ ThermoWinton::ThermoWinton()
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
-    , oldHi(getProtectedArray())
-    , sw_in(getProtectedArray())
-    , subl(getSharedArray())
-{ }
+    , oldHi(getStore())
+    , sw_in(getStore())
+    , subl(getStore())
+{
+    snowMelt.resize();
+    topMelt.resize();
+    botMelt.resize();
+    snowToIce.resize();
+}
 
 template <>
 const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
