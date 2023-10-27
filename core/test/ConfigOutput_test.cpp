@@ -71,10 +71,10 @@ TEST_CASE("Test periodic output")
     hsnow.resize();
     tice.resize();
 
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::H_ICE, &hice);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &cice);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::H_SNOW, &hsnow);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::T_ICE, &tice);
+    ModelComponent::getStore().registerArray(Protected::H_ICE, &hice);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
+    ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
+    ModelComponent::getStore().registerArray(Protected::T_ICE, &tice);
 
     ModelMetadata meta;
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
