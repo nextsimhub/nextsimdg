@@ -104,9 +104,9 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     // data or the parent group
     netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], nx);
     netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], ny);
-    std::vector<netCDF::NcDim> dims2 = { xDim, yDim };
+    std::vector<netCDF::NcDim> dims2 = { yDim, xDim };
     netCDF::NcDim zDim = dataGroup.addDim(dimensionNames[2], nz);
-    std::vector<netCDF::NcDim> dims3 = { xDim, yDim, zDim };
+    std::vector<netCDF::NcDim> dims3 = { zDim, yDim, xDim };
 
     for (const auto entry : state.data) {
         const std::string& name = entry.first;
