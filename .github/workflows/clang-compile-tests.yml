@@ -39,24 +39,16 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
-        git clone -b v2.x https://github.com/catchorg/Catch2.git
-        cd Catch2
-        cmake -Bbuild -H. -DBUILD_TESTING=OFF
-        sudo cmake --build build/ --target install
-        cd ..
     - name: make
       run: |
         cmake .
         make
     - name: run tests
       run: |
-        cd core/test
-        for file in $(find test* -maxdepth 0 -type f); do ./$file; done
-        cd -
-        for component in physics
+        for component in core physics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
+            for file in $(find test* -maxdepth 0 -type f); do echo $file; ./$file; done
             cd -
         done
 
@@ -80,12 +72,9 @@ jobs:
         make
     - name: run tests
       run: |
-        cd core/test
-        for file in $(find test* -maxdepth 0 -type f); do ./$file; done
-        cd -
-        for component in physics
+        for component in core physics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
+            for file in $(find test* -maxdepth 0 -type f); do echo $file; ./$file; done
             cd -
         done

@@ -48,8 +48,8 @@ IceGrowth::IceGrowth()
     getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
     getStore().registerArray(Shared::DELTA_CICE, &deltaCIce, RW);
 
-    getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+    getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)
@@ -140,6 +140,10 @@ void IceGrowth::update(const TimestepTime& tsTime)
     // Copy the ice data from the prognostic fields to the modifiable fields.
     initializeThicknesses();
 
+    // The snowMelt array is not currently filled with data, but it used elsewhere
+    // FIXME calculate a true value for snowMelt
+    snowMelt = 0;
+
     if (doThermo) {
         iVertical->update(tsTime);
         // new ice formation
@@ -155,6 +159,7 @@ void IceGrowth::initializeThicknesses()
     overElements(std::bind(&IceGrowth::initializeThicknessesElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         TimestepTime());
+    iVertical->initialiseTice();
 }
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,

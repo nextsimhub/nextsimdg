@@ -75,10 +75,12 @@ void ConfiguredOcean::configure()
         Configured<ConfiguredOcean>::keyMap.at(CURRENTV_KEY), v0);
 
     // set the external SS* arrays as part of configuration, as opposed to at construction as normal
-    getStore().registerArray(Protected::EXT_SST, &sstExt);
-    getStore().registerArray(Protected::EXT_SSS, &sssExt);
+    getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
+    getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
     slabOcean.configure();
+
+    tryConfigure(Module::getImplementation<IIceOceanHeatFlux>());
 }
 
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)
@@ -96,6 +98,8 @@ void ConfiguredOcean::setData(const ModelState::DataMap& ms)
     cpml = Water::rho * Water::cp * mld[0];
 
     slabOcean.setData(ms);
+
+    Module::getImplementation<IIceOceanHeatFlux>().setData(ms);
 }
 
 void ConfiguredOcean::updateBefore(const TimestepTime& tst)

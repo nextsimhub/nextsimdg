@@ -68,10 +68,10 @@ TEST_CASE("New ice formation")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -175,10 +175,10 @@ TEST_CASE("Melting conditions")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -290,10 +290,10 @@ TEST_CASE("Freezing conditions")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -404,10 +404,10 @@ TEST_CASE("Dummy ice")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -526,10 +526,10 @@ TEST_CASE("Zero thickness")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -654,10 +654,10 @@ TEST_CASE("Turn off thermo")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
