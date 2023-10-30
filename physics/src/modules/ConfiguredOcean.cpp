@@ -79,6 +79,8 @@ void ConfiguredOcean::configure()
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
     slabOcean.configure();
+
+    tryConfigure(Module::getImplementation<IIceOceanHeatFlux>());
 }
 
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)
@@ -96,6 +98,8 @@ void ConfiguredOcean::setData(const ModelState::DataMap& ms)
     cpml = Water::rho * Water::cp * mld[0];
 
     slabOcean.setData(ms);
+
+    Module::getImplementation<IIceOceanHeatFlux>().setData(ms);
 }
 
 void ConfiguredOcean::updateBefore(const TimestepTime& tst)

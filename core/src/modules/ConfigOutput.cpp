@@ -181,8 +181,9 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
      *      last output time.
      */
     Duration timeSinceOutput = meta.time() - lastOutput;
-    if (timeSinceOutput.seconds() > 0
-        && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
+    if (timeSinceOutput.seconds() > 0 && (
+            everyTS ||
+            std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
         StructureFactory::fileFromState(state, meta, currentFileName, false);
