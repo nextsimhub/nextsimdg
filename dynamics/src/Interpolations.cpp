@@ -320,6 +320,8 @@ namespace Interpolations {
         const ParametricMesh& smesh, CGVector<2>& phi, const Function& initial);
 
     template void Function2DG(
+        const ParametricMesh& smesh, DGVector<1>& phi, const Function& initial);
+    template void Function2DG(
         const ParametricMesh& smesh, DGVector<3>& phi, const Function& initial);
     template void Function2DG(
         const ParametricMesh& smesh, DGVector<6>& phi, const Function& initial);
