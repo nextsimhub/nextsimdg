@@ -66,6 +66,9 @@ private:
     TimePoint lastFileChange;
     Duration fileChangePeriod;
 
+    TimePoint lastFileChange;
+    Duration fileChangePeriod;
+
     static const std::string all;
     static const std::string defaultLastOutput;
 
