@@ -203,7 +203,7 @@ add_executable(testSpecHum
 target_include_directories(testSpecHum PRIVATE
     "${ModulesDir}"
     )
-target_link_libraries(testSpecHum PRIVATE Catch2::Catch2)
+target_link_libraries(testSpecHum PRIVATE doctest::doctest)
 
 add_executable(testUniformOcean
     "UniformOcean_test.cpp"
@@ -222,7 +222,7 @@ target_include_directories(testUniformOcean PRIVATE
     "${CoreModulesDir}"
     "${ModulesDir}"
     )
-target_link_libraries(testUniformOcean PRIVATE Boost::program_options Boost::log Catch2::Catch2 Eigen3::Eigen)
+target_link_libraries(testUniformOcean PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testConstantOcn
     "ConstantOceanBoundary_test.cpp"

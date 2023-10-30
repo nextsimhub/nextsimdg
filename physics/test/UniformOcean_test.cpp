@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/UniformOcean.hpp"
 
@@ -17,7 +17,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("UniformOcean construction", "[UniformOcean]")
+TEST_SUITE_BEGIN("UniformOcean");
+TEST_CASE("UniformOcean construction")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
@@ -52,7 +53,7 @@ TEST_CASE("UniformOcean construction", "[UniformOcean]")
     REQUIRE(tf[0] == Module::getImplementation<IFreezingPoint>()(sssIn));
 }
 
-TEST_CASE("UniformOcean set functions", "[UniformOcean]")
+TEST_CASE("UniformOcean set functions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
@@ -87,5 +88,6 @@ TEST_CASE("UniformOcean set functions", "[UniformOcean]")
     REQUIRE(cpml[0] == mldIn * Water::rho * Water::cp);
     REQUIRE(tf[0] == Module::getImplementation<IFreezingPoint>()(sssIn));
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */
