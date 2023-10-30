@@ -26,8 +26,18 @@ namespace Tools {
   {
 #define NGP 3
     double mass = 0;
-    for (int i=0;i<smesh.nelements;++i)
-      mass += ((phi.row(i)*PSI<DG, NGP>).array()*(ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array())).sum();
+    if (smesh.CoordinateSystem == SPHERICAL)
+      {
+	for (int i=0;i<smesh.nelements;++i)
+	  {
+	    const Eigen::Matrix<Nextsim::FloatType, 1, NGP*NGP> cos_lat = (ParametricTools::getGaussPointsInElement<NGP>(smesh, i).row(1).array()).cos();
+	    mass += ((phi.row(i)*PSI<DG, NGP>).array() * cos_lat.array() * (ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array())).sum();
+	  }
+      }
+    else
+      for (int i=0;i<smesh.nelements;++i)
+	mass += ((phi.row(i)*PSI<DG, NGP>).array()*(ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array())).sum();
+    
 #undef NGP
     return mass;
   }
