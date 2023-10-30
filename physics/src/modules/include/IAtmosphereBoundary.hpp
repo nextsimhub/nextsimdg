@@ -27,6 +27,17 @@ constexpr TextTag WIND_V = "WIND_V"; // y-aligned wind component m s⁻¹
 class IAtmosphereBoundary : public ModelComponent {
 public:
     IAtmosphereBoundary()
+        : qia(ModelArray::Type::H)
+        , dqia_dt(ModelArray::Type::H)
+    , qow(ModelArray::Type::H)
+    , subl(ModelArray::Type::H)
+    , snow(ModelArray::Type::H)
+    , rain(ModelArray::Type::H)
+    , evap(ModelArray::Type::H)
+    , emp(ModelArray::Type::H)
+    , uwind(ModelArray::Type::U)
+    , vwind(ModelArray::Type::V)
+    , penSW(ModelArray::Type::H)
     {
         m_couplingArrays.registerArray(CouplingFields::SUBL, &subl, RW);
         m_couplingArrays.registerArray(CouplingFields::SNOW, &snow, RW);
@@ -39,7 +50,11 @@ public:
         getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
         getStore().registerArray(Shared::Q_OW, &qow, RW);
         getStore().registerArray(Shared::SUBLIM, &subl, RW);
-        getStore().registerArray(Protected::SNOW, &snow);
+        getStore().registerArray(Protected::SNOW, &snow, RO);
+        getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
+        getStore().registerArray(Protected::WIND_U, &uwind, RO);
+        getStore().registerArray(Protected::WIND_V, &vwind, RO);
+        getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
     }
     virtual ~IAtmosphereBoundary() = default;
 
@@ -56,14 +71,16 @@ public:
         snow.resize();
         rain.resize();
         evap.resize();
+        emp.resize();
         uwind.resize();
         vwind.resize();
+        penSW.resize();
     }
     virtual void update(const TimestepTime& tst) { }
 
 protected:
 
-    MARStore& couplingArrays() { return m_couplingArrays; }
+    ModelArrayReferenceStore& couplingArrays() { return m_couplingArrays; }
 
     HField qia;
     HField dqia_dt;
@@ -72,10 +89,12 @@ protected:
     HField snow;
     HField rain;
     HField evap;
+    HField emp;
     UField uwind;
     VField vwind;
+    HField penSW;
 
-    MARStore m_couplingArrays;
+    ModelArrayReferenceStore m_couplingArrays;
 };
 
 } // namespace Nextsim

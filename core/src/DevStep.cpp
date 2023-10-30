@@ -25,10 +25,8 @@ void DevStep::iterate(const TimestepTime& tst)
     // The state of the model has now advanced by one timestep, so update the
     // model metadata timestamp.
     mData->incrementTime(tst.step);
-    // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    ModelState overallState = pData->getStateRecursive(true);
-    overallState.merge(ConfiguredModule::getAllModuleConfigurations());
-    Module::getImplementation<IDiagnosticOutput>().outputState(overallState, *mData);
+    // Output the model state
+    Module::getImplementation<IDiagnosticOutput>().outputState(*mData);
 }
 
 } /* namespace Nextsim */

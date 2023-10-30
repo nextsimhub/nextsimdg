@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include <sstream>
 
 #include "include/ConfiguredAtmosphere.hpp"
@@ -21,7 +21,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("ConfiguredAtmosphere melting test", "[ConfiguredAtmosphere")
+TEST_SUITE_BEGIN("ConfiguredAtmosphere");
+TEST_CASE("ConfiguredAtmosphere melting test")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -58,12 +59,12 @@ TEST_CASE("ConfiguredAtmosphere melting test", "[ConfiguredAtmosphere")
     public:
         ProgData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -115,10 +116,10 @@ TEST_CASE("ConfiguredAtmosphere melting test", "[ConfiguredAtmosphere")
     ca.update(tst);
 
     double prec = 1e-5;
-    REQUIRE(qow[0] == Approx(-109.923).epsilon(prec));
-    REQUIRE(qia[0] == Approx(-84.5952).epsilon(prec));
-    REQUIRE(dqia_dt[0] == Approx(19.7016).epsilon(prec));
-    REQUIRE(subl[0] == Approx(-7.3858e-06).epsilon(prec));
+    REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));
+    REQUIRE(qia[0] == doctest::Approx(-85.6364).epsilon(prec));
+    REQUIRE(dqia_dt[0] == doctest::Approx(19.7016).epsilon(prec));
+    REQUIRE(subl[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
 }
-
+TEST_SUITE_END();
 }

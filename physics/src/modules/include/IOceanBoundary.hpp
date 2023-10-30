@@ -30,13 +30,13 @@ public:
         m_couplingArrays.registerArray(CouplingFields::OCEAN_V, &v, RW);
 
         getStore().registerArray(Shared::Q_IO, &qio, RW);
-        getStore().registerArray(Protected::SST, &sst);
-        getStore().registerArray(Protected::SSS, &sss);
-        getStore().registerArray(Protected::MLD, &mld);
-        getStore().registerArray(Protected::ML_BULK_CP, &cpml);
-        getStore().registerArray(Protected::TF, &tf);
-        getStore().registerArray(Protected::OCEAN_U, &u);
-        getStore().registerArray(Protected::OCEAN_V, &v);
+        getStore().registerArray(Protected::SST, &sst, RO);
+        getStore().registerArray(Protected::SSS, &sss, RO);
+        getStore().registerArray(Protected::MLD, &mld, RO);
+        getStore().registerArray(Protected::ML_BULK_CP, &cpml, RO);
+        getStore().registerArray(Protected::TF, &tf, RO);
+        getStore().registerArray(Protected::OCEAN_U, &u, RO);
+        getStore().registerArray(Protected::OCEAN_V, &v, RO);
     }
     virtual ~IOceanBoundary() = default;
 
@@ -54,6 +54,13 @@ public:
         tf.resize();
         u.resize();
         v.resize();
+
+        if (ms.count("sst")) {
+            sst = ms.at("sst");
+        }
+        if (ms.count("sss")) {
+            sss = ms.at("sss");
+        }
     }
 
     /*!
@@ -80,7 +87,7 @@ protected:
     UField u; // x(east)-ward ocean current, m s⁻¹
     VField v; // y(north)-ward ocean current, m s⁻¹
 
-    MARStore m_couplingArrays;
+    ModelArrayReferenceStore m_couplingArrays;
 };
 } /* namespace Nextsim */
 

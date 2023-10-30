@@ -27,8 +27,9 @@ namespace MEB {
      * @brief Calculate Stresses for the current time step and update damage.
      *
      * @details MEB model, numbering of equations in comments according to:
-     *          https://doi:10.5194/tc-10-1339-2016
+     *          Dansereau et al. 2016
      *          "A Maxwell elasto-brittle rheology for sea ice modelling"
+     *          https://doi:10.5194/tc-10-1339-2016
      *
      * @tparam CG velocity degree
      * @tparam DGs Stress adn Strain DG degree
@@ -73,30 +74,25 @@ namespace MEB {
             Eigen::Matrix<double, 1, NGP* NGP> s12_gauss = S12.row(i) * PSI<DGs, NGP>;
             Eigen::Matrix<double, 1, NGP* NGP> s22_gauss = S22.row(i) * PSI<DGs, NGP>;
 
-            //! Current normal stress for the evaluation of tildeP (Eqn. 1)
-            Eigen::Matrix<double, 1, NGP* NGP> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
-
             //! exp(-C(1-A))
             const Eigen::Matrix<double, 1, NGP* NGP> expC = (params.compaction_param * (1.0 - a_gauss.array())).exp().array();
 
-            // Eqn. 25
+            // Eqn. 20
             Eigen::Matrix<double, 1, NGP* NGP> powalpha = (d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
             const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array() ).matrix();
-            //const Eigen::Matrix<double, 1, NGP* NGP> time_viscous = (params.undamaged_time_relaxation_sigma * powalpha.array() * expC.array().pow(params.exponent_relaxation_sigma - 1.)  ).matrix();
 
-            // Eqn. 12: first factor on RHS
+            // Eqn. 4: first factor on RHS
             const double Dunit_factor = 1. / (1. - (params.nu0 * params.nu0));
 
             //! MEB
-            // \lambda / (\lambda + dt)) Eqn. 34
-            // 1. / (1. + dt / lambda) Eqn. 33-34
+            // 1. / (1. + dt / lambda) 
             Eigen::Matrix<double, 1, NGP* NGP> multiplicator = (1. / (1. + dt_mom / time_viscous.array())).matrix();
 
             
-            //! Eqn. 9
-            const Eigen::Matrix<double, 1, NGP* NGP> elasticity = params.young * d_gauss.array() * expC.array();
+            //! Eqn. 24
+            const Eigen::Matrix<double, 1, NGP* NGP> elasticity = h_gauss.array() * params.young * d_gauss.array() * expC.array();
 
-            // Eqn. 12: first factor on RHS
+            // Eqn. 4: first factor on RHS
             /* Stiffness matrix
              * / (K:e)11 \       1     /  1  nu    0  \ / e11 \
              * | (K:e)22 |  =  ------- | nu   1    0  | | e22 |
@@ -104,12 +100,6 @@ namespace MEB {
              */
 
 
-            const Eigen::Matrix<double, 1, NGP* NGP> Pmax = params.P0 * h_gauss.array().pow(1.5)*expC.array();
-            // tildeP must be capped at 1 to get an elastic response
-            // (Eqn. 7b) Select case based on sigma_n
-            // tildeP = (sigma_n.array() < 0.0).select(   (-Pmax.array() / sigma_n.array()).min(1.0).matrix() , tildeP);
-
-            
             s11_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e11_gauss.array())).matrix()
                 + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
             s12_gauss += (dt_mom * 1. / (1. + params.nu0) * (elasticity.array() * e12_gauss.array())).matrix();
@@ -117,24 +107,22 @@ namespace MEB {
                 + (dt_mom * Dunit_factor * params.nu0 * (elasticity.array() * (e11_gauss.array() + e22_gauss.array()))).matrix();
 
 
-            //! Implicit part of RHS (Eqn. 33)
+            //! Implicit part of RHS (Eqn. 3)
             s11_gauss.array() *= multiplicator.array();
             s12_gauss.array() *= multiplicator.array();
             s22_gauss.array() *= multiplicator.array();
 
-
-            sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
+            //! Current normal and tangent stress for the evaluation Mohr-Couloumb (Eqn 13)
+            const Eigen::Matrix<double, 1, NGP* NGP> sigma_n = 0.5 * (s11_gauss.array() + s22_gauss.array());
             const Eigen::Matrix<double, 1, NGP* NGP> tau = (0.25 * (s11_gauss.array() - s22_gauss.array()).square() + s12_gauss.array().square()).sqrt();
 
             Eigen::Matrix<double, 1, NGP* NGP> dcrit = Eigen::Matrix<double, 1, NGP* NGP>::Ones();
 
-            // Plante 2020 Cohesion
-            // const Eigen::Matrix<double, 1, NGP* NGP> c = params.c0 * h_gauss.array() * expC;
-            // Olason 2022 Cohesion
-            // const Eigen::Matrix<double, 1, NGP* NGP> c = params.C_lab * std::sqrt(0.1 / (RefScale::L / smesh.nx)) * dcrit.array();
             // Fixed Cohesion
-            const Eigen::Matrix<double, 1, NGP* NGP> cohesion = 10000 * dcrit.array();
+            const Eigen::Matrix<double, 1, NGP* NGP> cohesion = params.c0 * h_gauss.array() ;
             
+            
+            //! This is not part of Dansereau et al. 2016
             const double scale_coef = std::sqrt(0.1 / smesh.h(i));
             const double compr_strength = params.compr_strength * scale_coef;
 
@@ -147,23 +135,19 @@ namespace MEB {
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength)
                         .select(-compr_strength / sigma_n.array(), dcrit);
-
-
             // Only damage when we're outside
             dcrit = dcrit.array().min(1.0);
 
-            const Eigen::Matrix<double, 1, NGP* NGP> td = smesh.h(i)
-                * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
-
-            //const double td = smesh.h(i)/500.0 ;
+            const double C_e = 500.0; //!  Elatic shear wave propagation speed in m/s, see Table 1. and Section 4.1.1 
+            const double td = smesh.h(i)/C_e  ;
 
             // Update damage
-            d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td;
 
             // Relax stress in Gassus points
-            s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
-            s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
-            s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
+            s11_gauss.array() -= s11_gauss.array() * (1. - dcrit.array()) * dt_mom / td;
+            s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td;
+            s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td;
 
 
             // INTEGRATION OF STRESS AND DAMAGE

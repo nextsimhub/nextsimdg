@@ -14,6 +14,7 @@ set(BaseSources
     "DevGridIO.cpp"
     "RectGridIO.cpp"
     "ParaGridIO.cpp"
+    "FileCallbackCloser.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
     "MissingData.cpp"
@@ -48,10 +49,18 @@ set(DiagnosticOutputModuleSources
     "ConfigOutput.cpp"
     )
 
+
+set(DynamicsModuleSources
+    "DynamicsModule.cpp"
+    "Dynamics.cpp"
+    )
+
+
 set(ModuleSources
     "${StructureModuleSources}"
     "${FreezingPointModuleSources}"
     "${DiagnosticOutputModuleSources}"
+    "${DynamicsModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")

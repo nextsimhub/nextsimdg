@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredOcean.cpp
  *
- * @date Aug 31, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,6 +9,7 @@
 
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/Module.hpp"
 #include "include/constants.hpp"
 
@@ -35,6 +36,12 @@ const std::map<int, std::string> Configured<ConfiguredOcean>::keyMap = {
     { ConfiguredOcean::CURRENTU_KEY, uKey },
     { ConfiguredOcean::CURRENTV_KEY, vKey },
 };
+
+ConfiguredOcean::ConfiguredOcean()
+    : sstExt(ModelArray::Type::H)
+    , sssExt(ModelArray::Type::H)
+{
+}
 
 ConfigurationHelp::HelpMap& ConfiguredOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
@@ -66,18 +73,33 @@ void ConfiguredOcean::configure()
         Configured<ConfiguredOcean>::keyMap.at(CURRENTU_KEY), u0);
     v0 = Configured<ConfiguredOcean>::getConfiguration(
         Configured<ConfiguredOcean>::keyMap.at(CURRENTV_KEY), v0);
+
+    // set the external SS* arrays as part of configuration, as opposed to at construction as normal
+    getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
+    getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
+
+    slabOcean.configure();
+
+    tryConfigure(Module::getImplementation<IIceOceanHeatFlux>());
 }
 
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
-    sst = sst0;
-    sss = sss0;
+    sstExt.resize();
+    sssExt.resize();
+
+    sstExt = sst0;
+    sssExt = sss0;
     mld = mld0;
     u = u0;
     v = v0;
-    tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
+    tf = Module::getImplementation<IFreezingPoint>()(sssExt[0]);
     cpml = Water::rho * Water::cp * mld[0];
+
+    slabOcean.setData(ms);
+
+    Module::getImplementation<IIceOceanHeatFlux>().setData(ms);
 }
 
 void ConfiguredOcean::updateBefore(const TimestepTime& tst)
@@ -85,4 +107,11 @@ void ConfiguredOcean::updateBefore(const TimestepTime& tst)
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
 
+void ConfiguredOcean::updateAfter(const TimestepTime& tst)
+{
+    slabOcean.update(tst);
+    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
+    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
+
+}
 } /* namespace Nextsim */

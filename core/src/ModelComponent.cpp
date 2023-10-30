@@ -7,10 +7,12 @@
 
 #include "include/ModelComponent.hpp"
 
+#include "include/MissingData.hpp"
+
 namespace Nextsim {
 
 std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
-MARStore ModelComponent::store;
+ModelArrayReferenceStore ModelComponent::store;
 ModelArray* ModelComponent::p_oceanMaskH = nullptr;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
@@ -101,12 +103,12 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     case (ModelArray::Type::H):
     case (ModelArray::Type::U):
     case (ModelArray::Type::V): {
-        return data * oceanMask() + MissingData::value() * (1 - oceanMask());
+        return data * oceanMask() + MissingData::value * (1 - oceanMask());
         break;
     }
     case (ModelArray::Type::Z): {
         ModelArray copy = ModelArray::ZField();
-        copy = MissingData::value();
+        copy = MissingData::value;
         size_t nZ = data.dimensions()[data.nDimensions() - 1];
         for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
             size_t i = oceanIndex[iOcean];

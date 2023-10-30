@@ -9,6 +9,8 @@
 #define CGMODELARRAY_HPP
 
 #include "cgVector.hpp"
+#include "Interpolations.hpp"
+
 #include "include/ModelArray.hpp"
 
 namespace Nextsim {
@@ -18,6 +20,8 @@ public:
     template <int CG> static CGVector<CG>& ma2cg(const ModelArray& ma, CGVector<CG>& cg)
     {
         cg = ma.data().matrix();
+        //! Interpolation of DG0 to CGVector<CG>
+        //Nextsim::Interpolations::DG2CG(smesh, cg, ma);
         return cg;
     }
 

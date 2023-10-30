@@ -9,8 +9,8 @@
 // FiniteElementFluxes_test and I thought the tests should continue to exist
 // somewhere
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/BasicIceOceanHeatFlux.hpp"
 
@@ -24,7 +24,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
+TEST_SUITE_BEGIN("BasicIceOceanHeatFlux");
+TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -42,8 +43,9 @@ TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
             getStore().registerArray(Shared::C_ICE, &cice, RW);
             getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
             getStore().registerArray(Shared::T_ICE, &tice0, RW);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -79,10 +81,10 @@ TEST_CASE("Melting conditions", "[BasicIceOceanHeatFlux]")
     biohf.update(tst);
 
     double prec = 1e-5;
-    REQUIRE(qio[0] == Approx(53717.8).epsilon(prec));
+    REQUIRE(qio[0] == doctest::Approx(53717.8).epsilon(prec));
 }
 
-TEST_CASE("Freezing conditions", "[BasicIceOceanHeatFlux]")
+TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
@@ -96,12 +98,13 @@ TEST_CASE("Freezing conditions", "[BasicIceOceanHeatFlux]")
     public:
         ProgData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice);
-            getStore().registerArray(Protected::C_ICE, &cice);
-            getStore().registerArray(Protected::H_SNOW, &hsnow);
-            getStore().registerArray(Protected::T_ICE, &tice0);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -138,6 +141,8 @@ TEST_CASE("Freezing conditions", "[BasicIceOceanHeatFlux]")
     biohf.update(tst);
 
     double prec = 1e-5;
-    REQUIRE(qio[0] == Approx(73.9465).epsilon(prec));
+    REQUIRE(qio[0] == doctest::Approx(73.9465).epsilon(prec));
 }
+TEST_SUITE_END();
+
 } // namespace Nextsim

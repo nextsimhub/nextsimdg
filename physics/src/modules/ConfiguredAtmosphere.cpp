@@ -45,12 +45,12 @@ const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
 ConfiguredAtmosphere::ConfiguredAtmosphere()
 : fluxImpl(0)
 {
-    getStore().registerArray(Protected::T_AIR, &tair);
-    getStore().registerArray(Protected::DEW_2M, &tdew);
-    getStore().registerArray(Protected::P_AIR, &pair);
-    getStore().registerArray(Protected::SW_IN, &sw_in);
-    getStore().registerArray(Protected::LW_IN, &lw_in);
-    getStore().registerArray(Protected::WIND_SPEED, &wind);
+    getStore().registerArray(Protected::T_AIR, &tair, RO);
+    getStore().registerArray(Protected::DEW_2M, &tdew, RO);
+    getStore().registerArray(Protected::P_AIR, &pair, RO);
+    getStore().registerArray(Protected::SW_IN, &sw_in, RO);
+    getStore().registerArray(Protected::LW_IN, &lw_in, RO);
+    getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
 
 
@@ -112,6 +112,8 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     snow = snowfall0;
     rain = rain0;
     wind = windspeed0;
+
+    fluxImpl->setData(dm);
 }
 
 void ConfiguredAtmosphere::update(const TimestepTime& tst)

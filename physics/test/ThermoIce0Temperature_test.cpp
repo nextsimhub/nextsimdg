@@ -5,8 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include <sstream>
 
 #include "include/IFluxCalculation.hpp"
@@ -25,7 +25,8 @@
 
 namespace Nextsim {
 
-TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
+TEST_SUITE_BEGIN("ThermoIce0Temperature");
+TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
@@ -114,10 +115,10 @@ TEST_CASE("Melting conditions", "[ThermoIce0Temperature]")
 
     double prec = 1e-5;
     REQUIRE(tice[0] == 0.0);
-    REQUIRE(qic[0] == Approx(-4.60879).epsilon(prec));
+    REQUIRE(qic[0] == doctest::Approx(-4.60879).epsilon(prec));
 }
 
-TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
+TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
@@ -216,7 +217,9 @@ TEST_CASE("Freezing conditions", "[ThermoIce0Growth]")
         ModelComponent::getSharedArray());
 
     double prec = 1e-5;
-    REQUIRE(tice[0] == Approx(-8.90443).epsilon(prec));
-    REQUIRE(qic[0] == Approx(44.4839).epsilon(prec));
+    REQUIRE(tice[0] == doctest::Approx(-8.90443).epsilon(prec));
+    REQUIRE(qic[0] == doctest::Approx(44.4839).epsilon(prec));
 }
+TEST_SUITE_END();
+
 }

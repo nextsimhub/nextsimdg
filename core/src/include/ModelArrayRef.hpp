@@ -8,10 +8,10 @@
 #ifndef MODELARRAYREF_HPP
 #define MODELARRAYREF_HPP
 
-#include "include/MARStore.hpp"
 #include "include/ModelArray.hpp"
 #include "include/TextTag.hpp"
 
+#include "include/ModelArrayReferenceStore.hpp"
 #include <map>
 
 namespace Nextsim {
@@ -35,13 +35,13 @@ typedef const ModelArray* ModelArrayConstReference;
  */
 template <const TextTag& fieldName, bool isReadWrite = RO> class ModelArrayRef {
 public:
-    ModelArrayRef(MARStore& backingStore)
+    ModelArrayRef(ModelArrayReferenceStore& backingStore)
         : store(backingStore)
     {
-        ref = nullptr;
-        store.getFieldAddr(fieldName.text, ref);
+        dataReference = nullptr;
+        store.getFieldAddr(fieldName.text, dataReference);
     }
-    ~ModelArrayRef() { store.removeReference(fieldName.text, ref); }
+    ~ModelArrayRef() { store.removeReference(fieldName.text, dataReference); }
     ModelArrayRef(const ModelArrayRef&) = delete;
     ModelArrayRef& operator=(const ModelArrayRef&) = delete;
     /*!
@@ -54,7 +54,10 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    const double& operator[](const ModelArray::MultiDim& dims) { return ref->operator[](dims); }
+    const double& operator[](const ModelArray::MultiDim& dims)
+    {
+        return dataReference->operator[](dims);
+    }
     /*!
      * @brief Returns the data at the specified one dimensional index.
      *
@@ -64,21 +67,21 @@ public:
      *
      * @param index The one dimensional index of the target point.
      */
-    const double& operator[](size_t index) const { return ref->operator[](index); }
+    const double& operator[](size_t index) const { return dataReference->operator[](index); }
     //! Returns the specified point from a 1 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    const double& operator()(size_t i) const { return ref->operator()(i); }
+    const double& operator()(size_t i) const { return dataReference->operator()(i); }
     //! Returns the specified point from a 2 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    const double& operator()(size_t i, size_t j) const { return ref->operator()(i, j); }
+    const double& operator()(size_t i, size_t j) const { return dataReference->operator()(i, j); }
     //! Returns the specified point from a 3 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
     const double& operator()(size_t i, size_t j, size_t k) const
     {
-        return ref->operator()(i, j, k);
+        return dataReference->operator()(i, j, k);
     }
 
     /*!
@@ -92,11 +95,11 @@ public:
      */
     const double& zIndexAndLayer(size_t hIndex, size_t layer)
     {
-        return ref->zIndexAndLayer(hIndex, layer);
+        return dataReference->zIndexAndLayer(hIndex, layer);
     }
 
     //! Direct access top the underlying data array.
-    const ModelArray& data() const { return *ref; }
+    const ModelArray& data() const { return *dataReference; }
     //! Cast the reference class to a real reference to the referenced ModelArray.
     operator const ModelArray&() const { return data(); }
 
@@ -113,10 +116,23 @@ public:
     //! object and the provided ModelArray.
     ModelArray operator/(const ModelArray& divisor) const { return data() / divisor; }
 
+    //! Returns a ModelArray containing the per-element sum of the
+    //! object and the provided ModelArray.
+    ModelArray operator+(double addend) const { return data() + addend; }
+    //! Returns a ModelArray containing the per-element difference between the
+    //! object and the provided ModelArray.
+    ModelArray operator-(double subtrahend) const { return data() - subtrahend; }
+    //! Returns a ModelArray containing the per-element product of the
+    //! object and the provided ModelArray.
+    ModelArray operator*(double multiplier) const { return data() * multiplier; }
+    //! Returns a ModelArray containing the per-element ratio between the
+    //! object and the provided ModelArray.
+    ModelArray operator/(double divisor) const { return data() / divisor; }
+
 private:
-    ModelArrayConstReference ref;
-    MARStore& store;
-    friend MARStore;
+    ModelArrayConstReference dataReference;
+    ModelArrayReferenceStore& store;
+    friend ModelArrayReferenceStore;
 };
 
 /*!
@@ -132,13 +148,13 @@ private:
  */
 template <const TextTag& fieldName> class ModelArrayRef<fieldName, RW> {
 public:
-    ModelArrayRef(MARStore& backingStore)
+    ModelArrayRef(ModelArrayReferenceStore& backingStore)
         : store(backingStore)
     {
-        ref = nullptr;
-        store.getFieldAddr(fieldName.text, ref);
+        dataReference = nullptr;
+        store.getFieldAddr(fieldName.text, dataReference);
     }
-    ~ModelArrayRef() { store.removeReference(fieldName.text, ref); }
+    ~ModelArrayRef() { store.removeReference(fieldName.text, dataReference); }
     /*!
      * @brief Returns the data at the indices.
      *
@@ -149,7 +165,7 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    double& operator[](const ModelArray::MultiDim& dims) { return ref->operator[](dims); }
+    double& operator[](const ModelArray::MultiDim& dims) { return dataReference->operator[](dims); }
     /*!
      * @brief Returns the data at the specified one dimensional index.
      *
@@ -159,19 +175,22 @@ public:
      *
      * @param index The one dimensional index of the target point.
      */
-    double& operator[](size_t index) const { return ref->operator[](index); }
+    double& operator[](size_t index) const { return dataReference->operator[](index); }
     //! Returns the specified point from a 1 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    double& operator()(size_t i) const { return ref->operator()(i); }
+    double& operator()(size_t i) const { return dataReference->operator()(i); }
     //! Returns the specified point from a 2 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    double& operator()(size_t i, size_t j) const { return ref->operator()(i, j); }
+    double& operator()(size_t i, size_t j) const { return dataReference->operator()(i, j); }
     //! Returns the specified point from a 3 dimensional ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned.
-    double& operator()(size_t i, size_t j, size_t k) const { return ref->operator()(i, j, k); }
+    double& operator()(size_t i, size_t j, size_t k) const
+    {
+        return dataReference->operator()(i, j, k);
+    }
 
     /*!
      * @brief Special access function for ZFields.
@@ -184,11 +203,11 @@ public:
      */
     double& zIndexAndLayer(size_t hIndex, size_t layer)
     {
-        return ref->zIndexAndLayer(hIndex, layer);
+        return dataReference->zIndexAndLayer(hIndex, layer);
     }
 
     //! Direct access top the underlying data array.
-    ModelArray& data() const { return *ref; }
+    ModelArray& data() const { return *dataReference; }
     //! Cast the reference class to a real reference to the referenced ModelArray.
     operator ModelArray&() const { return data(); }
 
@@ -219,9 +238,9 @@ public:
     ModelArray operator/(double divisor) const { return data() / divisor; }
 
 private:
-    ModelArrayReference ref;
-    MARStore& store;
-    friend MARStore;
+    ModelArrayReference dataReference;
+    ModelArrayReferenceStore& store;
+    friend ModelArrayReferenceStore;
 };
 }
 

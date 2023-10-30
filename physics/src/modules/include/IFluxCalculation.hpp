@@ -21,6 +21,7 @@ public:
         : qow(getStore())
         , subl(getStore())
         , qia(getStore())
+        , penSW(getStore())
         , dqia_dt(getStore())
     {
     }
@@ -50,6 +51,7 @@ protected:
     ModelArrayRef<Shared::Q_OW, RW> qow;
     ModelArrayRef<Shared::SUBLIM, RW> subl;
     ModelArrayRef<Shared::Q_IA, RW> qia;
+    ModelArrayRef<Shared::Q_PEN_SW, RW> penSW;
     ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
 };
 }
