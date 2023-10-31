@@ -26,34 +26,34 @@ void UniformOcean::setData(const ModelState::DataMap& ms)
     qio = qio0;
 }
 
-UniformOcean& UniformOcean::setSST(double in)
+UniformOcean& UniformOcean::setSST(double sstIn)
 {
-    sst0 = in;
+    sst0 = sstIn;
     return *this;
 }
-UniformOcean& UniformOcean::setSSS(double in)
+UniformOcean& UniformOcean::setSSS(double sssIn)
 {
-    sss0 = in;
+    sss0 = sssIn;
     return *this;
 }
-UniformOcean& UniformOcean::setMLD(double in)
+UniformOcean& UniformOcean::setMLD(double mldIn)
 {
-    mld0 = in;
+    mld0 = mldIn;
     return *this;
 }
-UniformOcean& UniformOcean::setU(double in)
+UniformOcean& UniformOcean::setU(double uIn)
 {
-    u0 = in;
+    u0 = uIn;
     return *this;
 }
-UniformOcean& UniformOcean::setV(double in)
+UniformOcean& UniformOcean::setV(double vIn)
 {
-    v0 = in;
+    v0 = vIn;
     return *this;
 }
-UniformOcean& UniformOcean::setQio(double in)
+UniformOcean& UniformOcean::setQio(double qioIn)
 {
-    qio0 = in;
+    qio0 = qioIn;
     return *this;
 }
 
