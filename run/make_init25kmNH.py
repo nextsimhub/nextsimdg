@@ -4,12 +4,6 @@ import numpy.ma as ma
 import time
 import math
 
-<<<<<<< issue275_3_arrayorderwithavengeance
-import sys # FIXME remove me
-=======
-#import sys # FIXME remove me
->>>>>>> f5ca18d Swap the array indices.
-
 topaz_mdi = -32767
 
 # Returns the file name that holds the TOPAZ data for a given field at a given time
