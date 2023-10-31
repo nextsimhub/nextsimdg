@@ -408,8 +408,8 @@ if __name__ == "__main__":
                 data[target_t_index, :, :] = time_data
         
     # Ocean currents
-    udata = datagrp.createVariable("u", "f8", ("time", "x", "y"))
-    vdata = datagrp.createVariable("v", "f8", ("time", "x", "y"))
+    udata = datagrp.createVariable("u", "f8", timefield_dims)
+    vdata = datagrp.createVariable("v", "f8", timefield_dims)
     for target_t_index in range (len(unix_times_t)):
         u_source_file = netCDF4.Dataset(topaz4_source_file_name("u", unix_times_t[target_t_index]), "r")
         v_source_file = netCDF4.Dataset(topaz4_source_file_name("v", unix_times_t[target_t_index]), "r")
