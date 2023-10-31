@@ -204,7 +204,7 @@ if __name__ == "__main__":
     element_shape = (ny, nx)
     element_lon = np.zeros(element_shape)
     element_lat = np.zeros(element_shape)
-    # interpolate lon and lat from nodes to elements, to leave nx x ny arrays
+    # interpolate lon and lat from nodes to elements, to leave ny x nx arrays
     node_x = np.cos(np.radians(node_lon)) * np.cos(np.radians(node_lat))
     node_y = np.sin(np.radians(node_lon)) * np.cos(np.radians(node_lat))
     node_z = np.sin(np.radians(node_lat))
