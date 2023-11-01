@@ -13,8 +13,10 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/IOceanBoundary.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/Module.hpp"
 #include "include/UnescoFreezing.hpp"
+#include "include/UniformOcean.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -49,27 +51,8 @@ TEST_CASE("ConfiguredAtmosphere melting test")
 
     ConfiguredModule::parseConfigurator();
 
-    class OceanData : public IOceanBoundary {
-    public:
-        OceanData()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            IOceanBoundary::setData(state);
-            UnescoFreezing uf;
-            sst = -1.;
-            sss = 32.;
-            mld = 10.25;
-            tf = uf(sss[0]);
-            cpml = Water::cp * Water::rho * mld[0];
-            u = 0;
-            v = 0;
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+    UniformOcean ocnBdy(-1., 32., 10.25);
     ocnBdy.setData(ModelState().data);
 
     class ProgData : public ModelComponent {

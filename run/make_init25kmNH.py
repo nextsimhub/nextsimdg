@@ -4,8 +4,6 @@ import numpy.ma as ma
 import time
 import math
 
-#import sys # FIXME remove me
-
 topaz_mdi = -32767
 
 # Returns the file name that holds the TOPAZ data for a given field at a given time
@@ -72,7 +70,7 @@ if __name__ == "__main__":
     
     # Grid dimensions. Since x and y are switched between the source grid file
     # and the target restart file, the grid dimensions are nfirst and nsecond.
-    # nsecond is the size of the dimension that varies fastest. 
+    # nsecond is the size of the dimension that varies fastest.
     nfirst = grid.dimensions["x"].size
     nsecond = grid.dimensions["y"].size
     nLayers = 3
@@ -100,7 +98,7 @@ if __name__ == "__main__":
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
-    
+
     nLay = datagrp.createDimension("z", nLayers)
     yDim = datagrp.createDimension("y", nfirst)
     xDim = datagrp.createDimension("x", nsecond)
@@ -115,7 +113,7 @@ if __name__ == "__main__":
     field_dims = ("y", "x")
     coord_dims = ("yvertex", "xvertex", "ncoords")
     zfield_dims = ("z", "y", "x")
-    
+
     # Array coordinates
     node_lon = np.zeros((nfirst + 1, nsecond + 1))
     node_lat = np.zeros((nfirst + 1, nsecond + 1))
@@ -163,7 +161,7 @@ if __name__ == "__main__":
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     mask[:, :] = 1 - ma.getmask(sst_data)
     mask[100, 95] = 0.0 # Ad-hoc fix for the westernmost point of the New Siberian Islands
-    
+
     # Ice concentration and thickness
     cice_data = topaz4_interpolate(element_lon, element_lat, source_file["fice"][0, :, :].squeeze(), lat_array)
     hice_data = topaz4_interpolate(element_lon, element_lat, source_file["hice"][0, :, :].squeeze(), lat_array)
@@ -189,7 +187,6 @@ if __name__ == "__main__":
     hsnow_data *= noice
     hsnow_data *= cice_data
     hsnow[:, :] = hsnow_data
-
     # SSS
     sss = datagrp.createVariable("sss", "f8", field_dims)
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)

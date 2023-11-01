@@ -14,10 +14,12 @@
 
 #include "include/BasicIceOceanHeatFlux.hpp"
 
-#include "include/IOceanBoundary.hpp"
+#include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
+#include "include/Module.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
+#include "include/UniformOcean.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -28,27 +30,9 @@ TEST_CASE("Melting conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    class OceanData : public IOceanBoundary {
-    public:
-        OceanData()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            IOceanBoundary::setData(state);
-            UnescoFreezing uf;
-            sst = -1.;
-            sss = 32.;
-            mld = 10.25;
-            tf = uf(sss[0]);
-            cpml = Water::cp * Water::rho * mld[0];
-            u = 0;
-            v = 0;
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+    UniformOcean ocnBdy;
+    ocnBdy.setSST(-1.).setSSS(32.).setMLD(10.25).setU(0).setV(0);
     ocnBdy.setData(ModelState().data);
 
     class ProgData : public ModelComponent {
@@ -105,27 +89,9 @@ TEST_CASE("Freezing conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    class OceanData : public IOceanBoundary {
-    public:
-        OceanData()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            IOceanBoundary::setData(state);
-            UnescoFreezing uf;
-            sst = -1.75;
-            sss = 32.;
-            mld = 10.25;
-            tf = uf(sss[0]);
-            cpml = Water::cp * Water::rho * mld[0];
-            u = 0;
-            v = 0;
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+    UniformOcean ocnBdy;
+    ocnBdy.setSST(-1.75).setSSS(32.).setMLD(10.25).setU(0).setV(0);
     ocnBdy.setData(ModelState().data);
 
     class ProgData : public ModelComponent {
