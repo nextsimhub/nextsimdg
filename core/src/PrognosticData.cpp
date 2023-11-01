@@ -23,10 +23,10 @@ PrognosticData::PrognosticData()
     , pDynamics(0)
 
 {
-    getStore().registerArray(Protected::H_ICE, &m_thick);
-    getStore().registerArray(Protected::C_ICE, &m_conc);
-    getStore().registerArray(Protected::H_SNOW, &m_snow);
-    getStore().registerArray(Protected::T_ICE, &m_tice);
+    getStore().registerArray(Protected::H_ICE, &m_thick, RO);
+    getStore().registerArray(Protected::C_ICE, &m_conc, RO);
+    getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
+    getStore().registerArray(Protected::T_ICE, &m_tice, RO);
 }
 
 void PrognosticData::configure()

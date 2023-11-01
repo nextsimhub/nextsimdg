@@ -6,10 +6,10 @@
  */
 
 // External ProtectedArray names must be unique wrt to the external SharedArray names as well
-{ "hice", "H_ICE" }, // Ice thickness, cell average, m
-{ "cice", "C_ICE" }, // Ice concentration
-{ "hsnow", "H_SNOW" }, // Snow depth, cell average, m
-{ "tice", "T_ICE" }, // Ice temperature, ˚C
+{ "hice", "H_ICE_cell" }, // Ice thickness, cell average, m
+{ "cice", "C_ICE0" }, // Ice concentration
+{ "hsnow", "H_SNOW_cell" }, // Snow depth, cell average, m
+{ "tice", "T_ICE0" }, // Ice temperature, ˚C
 { "tair", "T_AIR" }, // Air temperature, ˚C
 { "dew2m", "DEW_2M" }, // Dew point at 2 m, ˚C
 { "pair", "P_AIR" }, // sea level air pressure, Pa
@@ -17,13 +17,13 @@
 { "sw_in", "SW_IN" }, // incoming shortwave flux, W m⁻²
 { "lw_in", "LW_IN" }, // incoming longwave flux, W m⁻²
 { "mld", "MLD" }, // mixed layer depth, m
-{ "snowfall", "SNOW" }, // snow fall, kg m⁻² s⁻¹
+{ "snowfall", "SNOWFALL" }, // snow fall, kg m⁻² s⁻¹
 { "sss", "SSS" }, // sea surface salinity, PSU
 { "sst", "SST" }, // sea surface temperature ˚C
 { "sst_ext", "EXT_SST" }, // External sea surface temperature ˚C
 { "sss_ext", "EXT_SSS" }, // External sea surface salinity PSU
-{ "eminusp", "EVAP_MINUS_PRECIP" }, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
-{ "mlcp", "ML_BULK_CP" }, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
+{ "eminusp", "E-P" }, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
+{ "mlcp", "CPML" }, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
 { "tf", "TF" }, // Ocean freezing temperature, ˚C
 { "wind_speed", "WIND_SPEED" }, // Wind speed, m s⁻¹
 { "wind_u", "WIND_U" }, // wind velocity x component, m s⁻¹

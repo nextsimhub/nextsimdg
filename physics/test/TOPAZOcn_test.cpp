@@ -61,7 +61,7 @@ TEST_CASE("TOPAZOcean test")
     // The Qio calculation requires c_ice data
     HField cice(ModelArray::Type::H);
     cice = 0.;
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
 
     // Get the forcing fields at time 0
     topaz.updateBefore(tst);

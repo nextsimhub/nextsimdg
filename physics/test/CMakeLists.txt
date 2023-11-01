@@ -26,6 +26,7 @@ add_executable(testIceGrowth
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoIce0.cpp"
     "${ModulesDir}/ThermoWinton.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
@@ -51,6 +52,7 @@ add_executable(testThermoWinton
     "${ModulesDir}/LateralIceSpreadModule.cpp"
     "${ModulesDir}/HiblerSpread.cpp"
     "${ModulesDir}/ThermoWinton.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
@@ -78,6 +80,7 @@ add_executable(testFEFluxes
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_include_directories(testFEFluxes PRIVATE
@@ -103,6 +106,7 @@ add_executable(testERA5Atm
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreSourceDir}/NZLevels.cpp"
     "${CoreSourceDir}/ParaGridIO.cpp"
+    "${CoreSourceDir}/FileCallbackCloser.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
@@ -115,6 +119,7 @@ add_executable(testERA5Atm
     "${ModulesDir}/SMUIceAlbedo.cpp"
     "${ModulesDir}/CCSMIceAlbedo.cpp"
     "${ModulesDir}/SMU2IceAlbedo.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreSourceDir}/Time.cpp"
     )
 target_compile_definitions(testERA5Atm PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
@@ -124,6 +129,7 @@ target_include_directories(testERA5Atm PRIVATE
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
     )
 target_link_directories(testERA5Atm PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testERA5Atm PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
@@ -144,6 +150,7 @@ add_executable(testTOPAZOcn
     "${CoreSourceDir}/MissingData.cpp"
     "${CoreSourceDir}/NZLevels.cpp"
     "${CoreSourceDir}/ParaGridIO.cpp"
+    "${CoreSourceDir}/FileCallbackCloser.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
     "${CoreModulesDir}/DevGrid.cpp"
@@ -160,6 +167,7 @@ target_include_directories(testTOPAZOcn PRIVATE
     "${CoreModulesDir}"
     "${SourceDir}"
     "${ModulesDir}"
+    "${netCDF_INCLUDE_DIR}"
     )
 target_link_directories(testTOPAZOcn PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(testTOPAZOcn PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen "${NSDG_NetCDF_Library}")
@@ -169,6 +177,7 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test128x128.nc"
 add_executable(testBIOHFluxes
     "BasicIceOceanFlux_test.cpp"
     "${ModulesDir}/BasicIceOceanHeatFlux.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
     "${CoreSourceDir}/Configurator.cpp"
     "${CoreSourceDir}/ConfiguredModule.cpp"
     "${CoreSourceDir}/ModelArray.cpp"
@@ -195,6 +204,25 @@ target_include_directories(testSpecHum PRIVATE
     "${ModulesDir}"
     )
 target_link_libraries(testSpecHum PRIVATE doctest::doctest)
+
+add_executable(testUniformOcean
+    "UniformOcean_test.cpp"
+    "${ModulesDir}/UniformOcean.cpp"
+    "${CoreSourceDir}/Configurator.cpp"
+    "${CoreSourceDir}/ConfiguredModule.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreModulesDir}/IFreezingPointModule.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+)
+target_include_directories(testUniformOcean PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${CoreModulesDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testUniformOcean PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
 
 add_executable(testConstantOcn
     "ConstantOceanBoundary_test.cpp"

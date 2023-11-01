@@ -186,9 +186,19 @@ if __name__ == "__main__":
     hsnow_data *= noice
     hsnow_data *= cice_data
     hsnow[:, :] = hsnow_data
-    
+
+    # SSS
+    sss = datagrp.createVariable("sss", "f8", field_dims)
+    sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
+    sss[:, :] = sss_data
+
     mu = -0.055
-    
+
+    # SST
+    sst = datagrp.createVariable("sst", "f8", field_dims)
+    sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
+    sst[:, :] = sst_data * noice + mu * sss_data * isice
+
     # Ice temperature
     tice = datagrp.createVariable("tice", "f8", zfield_dims)
     ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
@@ -198,16 +208,6 @@ if __name__ == "__main__":
     tice[1, :, :] = ice_temp2d
     tice[2, :, :] = ice_temp2d
     
-    # SSS
-    sss = datagrp.createVariable("sss", "f8", field_dims)
-    sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
-    sss[:, :] = sss_data
-
-    # SST
-    sst = datagrp.createVariable("sst", "f8", field_dims)
-    sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
-    sst[:, :] = sst_data * noice + mu * sss_data * isice
-
     uv_source_file = netCDF4.Dataset(topaz4_source_file_name("u", data_time), "r")
 
     # Ice starts at rest

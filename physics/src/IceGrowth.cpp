@@ -48,8 +48,8 @@ IceGrowth::IceGrowth()
     getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
     getStore().registerArray(Shared::DELTA_CICE, &deltaCIce, RW);
 
-    getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
+    getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)
@@ -139,6 +139,13 @@ void IceGrowth::update(const TimestepTime& tsTime)
 {
     // Copy the ice data from the prognostic fields to the modifiable fields.
     initializeThicknesses();
+    overElements(
+        std::bind(&IceGrowth::applyLimits, this, std::placeholders::_1, std::placeholders::_2),
+        tsTime);
+
+    // The snowMelt array is not currently filled with data, but it used elsewhere
+    // FIXME calculate a true value for snowMelt
+    snowMelt = 0;
 
     if (doThermo) {
         iVertical->update(tsTime);
@@ -155,6 +162,7 @@ void IceGrowth::initializeThicknesses()
     overElements(std::bind(&IceGrowth::initializeThicknessesElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         TimestepTime());
+    iVertical->initialiseTice();
 }
 
 // Divide by ice concentration to go from cell-averaged to ice-averaged values,
@@ -169,6 +177,7 @@ void IceGrowth::initializeThicknessesElement(size_t i, const TimestepTime&)
     } else {
         hice[i] = hice0[i] = 0.;
         hsnow[i] = hsnow0[i] = 0.;
+        cice[i] = 0.;
     }
 
     // reset the new ice volume array
@@ -220,7 +229,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
         iLateral->melt(tstep, hice0[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
     deltaCIce[i] = deltaCFreeze[i] + deltaCMelt[i];
-    cice[i] = (hice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
+    cice[i] = (hice[i] > 0 || newice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
     if (cice[i] >= IceMinima::c()) {
         // The updated ice thickness must conserve volume
         updateThickness(hice[i], cice[i], deltaCIce[i], newice[i]);

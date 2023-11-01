@@ -14,6 +14,7 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/constants.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IFreezingPointModule.hpp"
@@ -22,6 +23,7 @@
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
+#include "include/UniformOcean.hpp"
 
 namespace Nextsim {
 
@@ -52,11 +54,11 @@ TEST_CASE("Melting conditions")
             : tice0(ModelArray::Type::Z)
             , tice(getStore())
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-            getStore().registerArray(Protected::C_ICE, &cice0);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
-            getStore().registerArray(Protected::SW_IN, &sw_in);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::C_ICE, &cice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
+            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
@@ -96,21 +98,8 @@ TEST_CASE("Melting conditions")
     } initCond;
     initCond.setData(ModelState().data);
 
-    class OceanState : public IOceanBoundary {
-    public:
-        void setData(const ModelState::DataMap& ms) override
-        {
-            IOceanBoundary::setData(ms);
-            sst[0] = -1;
-            sss[0] = 32.;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            cpml[0] = 4.29151e7;
-            qio[0]
-                = 53717.8; // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } oceanData;
+    UniformOcean oceanData(-1, 32., 4.29151e7/(Water::rho * Water::cp));
+    oceanData.setQio(53717.8);
     oceanData.setData(ModelState().data);
 
     class AtmosphereState : public IAtmosphereBoundary {
@@ -169,12 +158,12 @@ TEST_CASE("Freezing conditions")
             : tice0(ModelArray::Type::Z)
             , tice(getStore())
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-            getStore().registerArray(Protected::C_ICE, &cice0);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
-            getStore().registerArray(Protected::SNOW, &snow);
-            getStore().registerArray(Protected::SW_IN, &sw_in);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::C_ICE, &cice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
+            getStore().registerArray(Protected::SNOW, &snow, RO);
+            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
@@ -216,20 +205,8 @@ TEST_CASE("Freezing conditions")
     } atmoState;
     atmoState.setData(ModelState().data);
 
-    class OceanState : public IOceanBoundary {
-    public:
-        void setData(const ModelState::DataMap& ms) override
-        {
-            IOceanBoundary::setData(ms);
-            sst[0] = -1.75;
-            sss[0] = 32.;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            cpml[0] = 4.29151e7;
-            qio[0] = 73.9465;
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } oceanData;
+    UniformOcean oceanData(-1.75, 32., 4.29151e7/(Water::rho * Water::cp));
+    oceanData.setQio(73.9465);
     oceanData.setData(ModelState().data);
 
     class AtmosphereState : public IAtmosphereBoundary {
@@ -288,12 +265,12 @@ TEST_CASE("No ice do nothing")
             : tice0(ModelArray::Type::Z)
             , tice(getStore())
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0);
-            getStore().registerArray(Protected::C_ICE, &cice0);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0);
-            getStore().registerArray(Protected::SNOW, &snow);
-            getStore().registerArray(Protected::SW_IN, &sw_in);
-            getStore().registerArray(Protected::T_ICE, &tice0);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::C_ICE, &cice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
+            getStore().registerArray(Protected::SNOW, &snow, RO);
+            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
