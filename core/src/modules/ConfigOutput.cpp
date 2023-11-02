@@ -156,7 +156,7 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
         // Output every entry in storeData, as either its external name if
         // defined, or as its internal name.
         for (auto entry : storeData) {
-            if (entry.second) {
+            if (entry.second && entry.second->trueSize()) {
                 if (reverseExternalNames.count(entry.first)) {
                     state.data[reverseExternalNames.at(entry.first)] = *entry.second;
                 } else {
