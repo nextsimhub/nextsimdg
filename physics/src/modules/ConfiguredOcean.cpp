@@ -56,8 +56,9 @@ ConfigurationHelp::HelpMap& ConfiguredOcean::getHelpRecursive(HelpMap& map, bool
             "Ocean current in the x (eastward) direction (m s⁻¹)." },
         { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(v0), "",
             "Ocean current in the y (northward) direction (m s⁻¹)." },
-
     };
+    Module::getHelpRecursive<IIceOceanHeatFlux>(map, getAll);
+    Module::getHelpRecursive<IFreezingPoint>(map, getAll);
     return map;
 }
 
