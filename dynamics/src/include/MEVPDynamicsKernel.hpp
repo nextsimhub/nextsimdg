@@ -31,7 +31,7 @@
 
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection> class DynamicsKernel {
+template <int CGdegree, int DGadvection> class MEVPDynamicsKernel {
 public:
     void initialisation()
     {
