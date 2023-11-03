@@ -82,7 +82,7 @@ public:
      * @param data The ModelArray containing the data to be set.
      *
      */
-    void setData(const std::string& name, const ModelArray& data)
+    virtual void setData(const std::string& name, const ModelArray& data)
     {
 
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
