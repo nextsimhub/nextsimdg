@@ -38,8 +38,8 @@ template<> HelpMap& getHelpRecursive<Nextsim::IDynamics>(HelpMap& map, bool getA
 {
     const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IDynamics>::moduleName(), ConfigType::MODULE,
-        { DUMMYDYNAMICS }, DUMMYDYNAMICS, "",
-        "MODULE DESCRIPTION HERE" });
+        { DUMMYDYNAMICS, MEVPDYNAMICS }, DUMMYDYNAMICS, "",
+        "The module selecting which type of dynamics (including rheology) will drive the model." });
     return map;
 }
 template <>
