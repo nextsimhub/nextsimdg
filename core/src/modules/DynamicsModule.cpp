@@ -8,18 +8,18 @@
 #include "include/DynamicsModule.hpp"
 
 #include "include/DummyDynamics.hpp"
-#include "include/Dynamics.hpp"
+#include "include/MEVPDynamics.hpp"
 
 #include <string>
 
 namespace Module {
 const std::string DUMMYDYNAMICS = "Nextsim::DummyDynamics";
-const std::string DYNAMICS = "Nextsim::Dynamics";
+const std::string MEVPDYNAMICS = "Nextsim::MEVPDynamics";
 
 template <>
 Module<Nextsim::IDynamics>::map Module<Nextsim::IDynamics>::functionMap = {
     { DUMMYDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics> },
-    { DYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::Dynamics> },
+    { MEVPDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::MEVPDynamics> },
 };
 
 

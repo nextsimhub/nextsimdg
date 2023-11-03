@@ -52,7 +52,7 @@ set(DiagnosticOutputModuleSources
 
 set(DynamicsModuleSources
     "DynamicsModule.cpp"
-    "Dynamics.cpp"
+    "MEVPDynamics.cpp"
     )
 
 
