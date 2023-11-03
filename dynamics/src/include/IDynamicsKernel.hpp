@@ -32,7 +32,43 @@ namespace Nextsim {
 
 template<int CGdegree, int DGadvection> class IDynamicsKernel {
 public:
-    void initialisation(){}
+    IDynamicsKernel() = default;
+    virtual ~IDynamicsKernel() = default;
+    void initialisation()
+    {
+        //! Define the spatial mesh
+        smesh = new Nextsim::ParametricMesh(Nextsim::CARTESIAN);
+        // FIXME integrate the creation of the smesh based on restart file
+        // smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
+        smesh->readmesh("25km_NH_newmask.smesh");
+
+        // output land mask
+        Nextsim::DGVector<1> landmask(*smesh);
+        for (size_t i = 0; i < smesh->nelements; ++i)
+            landmask(i, 0) = smesh->landmask[i];
+        Nextsim::VTK::write_dg<1>("landmask", 0, landmask, *smesh);
+
+        // output boundary info
+        Nextsim::DGVector<1> boundary(*smesh);
+        for (size_t j = 0; j < 4; ++j)
+            for (size_t i = 0; i < smesh->dirichlet[j].size(); ++i)
+                boundary(smesh->dirichlet[j][i], 0) = 1 + j;
+        Nextsim::VTK::write_dg<1>("boundary", 0, boundary, *smesh);
+
+        //! Initialize transport
+        dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
+        dgtransport->settimesteppingscheme("rk2");
+
+        //! Initialize momentum
+        momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
+
+        // resize CG and DG vectors
+        hice.resize_by_mesh(*smesh);
+        cice.resize_by_mesh(*smesh);
+
+        u.resize_by_mesh(*smesh);
+        v.resize_by_mesh(*smesh);
+    }
 
     /*!
      * @brief Sets the data from a provided ModelArray.
@@ -50,7 +86,46 @@ public:
      * @param data The ModelArray containing the data to be set.
      *
      */
-    void setData(const std::string& name, const ModelArray& data){}
+    void setData(const std::string& name, const ModelArray& data)
+    {
+
+        // Special cases: hice, cice, (damage, stress) <- not yet implemented
+        if (name == hiceName) {
+            DGModelArray::ma2dg(data, hice);
+        } else if (name == ciceName) {
+            DGModelArray::ma2dg(data, cice);
+        } else if (name == "u") {
+            // FIXME take into account possibility to restart form CG
+            // CGModelArray::ma2cg(data, u);
+            DGVector<DGadvection> utmp(*smesh);
+            DGModelArray::ma2dg(data, utmp);
+            Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
+        } else if (name == "v") {
+            // CGModelArray::ma2cg(data, v);
+            DGVector<DGadvection> vtmp(*smesh);
+            DGModelArray::ma2dg(data, vtmp);
+            Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
+        } else if (name == uWindName) {
+            DGVector<DGadvection> utmp(*smesh);
+            DGModelArray::ma2dg(data, utmp);
+            Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmx(), utmp);
+        } else if (name == vWindName) {
+            DGVector<DGadvection> vtmp(*smesh);
+            DGModelArray::ma2dg(data, vtmp);
+            Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmy(), vtmp);
+        } else if (name == uOceanName) {
+            DGVector<DGadvection> utmp(*smesh);
+            DGModelArray::ma2dg(data, utmp);
+            Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceanx(), utmp);
+        } else if (name == vOceanName) {
+            DGVector<DGadvection> vtmp(*smesh);
+            DGModelArray::ma2dg(data, vtmp);
+            Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceany(), vtmp);
+        } else {
+            // All other fields get shoved in a (labelled) bucket
+            DGModelArray::ma2dg(data, advectedFields[name]);
+        }
+    }
 
     /*!
      * @brief Returns an HField ModelArray containing the DG0 finite volume
@@ -59,7 +134,27 @@ public:
      * @param name the name of the requested field.
      *
      */
-    ModelArray getDG0Data(const std::string& name){return ModelArray(ModelArray::Type::H);}
+    ModelArray getDG0Data(const std::string& name)
+    {
+        HField data(ModelArray::Type::H);
+        if (name == hiceName) {
+            return DGModelArray::dg2ma(hice, data);
+        } else if (name == ciceName) {
+            return DGModelArray::dg2ma(cice, data);
+        } else if (name == uName) {
+            DGVector<DGadvection> utmp(*smesh);
+            Nextsim::Interpolations::CG2DG(*smesh, utmp, momentum->GetVx());
+            return DGModelArray::dg2ma(utmp, data);
+        } else if (name == vName) {
+            DGVector<DGadvection> vtmp(*smesh);
+            Nextsim::Interpolations::CG2DG(*smesh, vtmp, momentum->GetVy());
+            return DGModelArray::dg2ma(vtmp, data);
+        } else {
+            // Any other named field must exist
+            return DGModelArray::dg2ma(advectedFields.at(name), data);
+        }
+    }
+
 
     /*!
      * @brief Returns a DG or DGSTRESS ModelArray containing the full DG data for
@@ -67,9 +162,47 @@ public:
      *
      * @param name the name of the requested field.
      */
-    ModelArray getDGData(const std::string& name){return ModelArray(ModelArray::Type::H);}
+    ModelArray getDGData(const std::string& name)
+    {
 
-    void update(const TimestepTime& tst){}
+        if (name == hiceName) {
+            DGField data(ModelArray::Type::DG);
+            data.resize();
+            return DGModelArray::dg2ma(hice, data);
+        } else if (name == ciceName) {
+            DGField data(ModelArray::Type::DG);
+            data.resize();
+            return DGModelArray::dg2ma(cice, data);
+        } else {
+            ModelArray::Type type = fieldType.at(name);
+            ModelArray data(type);
+            data.resize();
+            return DGModelArray::dg2ma(advectedFields.at(name), data);
+        }
+    }
+
+    void update(const TimestepTime& tst)
+    {
+        static int stepNumber = 0;
+
+        //! Perform transport step
+        dgtransport->prepareAdvection(momentum->GetVx(), momentum->GetVy());
+
+        dgtransport->step(tst.step.seconds(), cice);
+        dgtransport->step(tst.step.seconds(), hice);
+
+        //! Gauss-point limiting
+        Nextsim::LimitMax(cice, 1.0);
+        Nextsim::LimitMin(cice, 0.0);
+        Nextsim::LimitMin(hice, 0.0);
+
+        momentum->prepareIteration(hice, cice);
+
+        updateMomentum(tst);
+
+        ++stepNumber;
+    }
+
 protected:
     Nextsim::DGTransport<DGadvection>* dgtransport;
     Nextsim::CGParametricMomentum<CGdegree>* momentum;
@@ -77,7 +210,20 @@ protected:
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;
 
+    size_t NT_evp = 100;
+
+    virtual void updateMomentum(const TimestepTime& tst) = 0;
+
 private:
+    CGVector<CGdegree> u;
+    CGVector<CGdegree> v;
+
+    Nextsim::ParametricMesh* smesh;
+
+    std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
+
+    // A map from field name to the type of
+    const std::unordered_map<std::string, ModelArray::Type> fieldType;
 
 };
 

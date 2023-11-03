@@ -10,10 +10,10 @@
 
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection>
-const std::unordered_map<std::string, ModelArray::Type> MEVPDynamicsKernel<CGdegree, DGadvection>::fieldType = {
+//template <int CGdegree, int DGadvection>
+//const std::unordered_map<std::string, ModelArray::Type> MEVPDynamicsKernel<CGdegree, DGadvection>::fieldType = {
 
-};
+//};
 
 
 } /* namespace Nextsim */
