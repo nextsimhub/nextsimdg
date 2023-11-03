@@ -8,6 +8,7 @@
 #include "include/DynamicsModule.hpp"
 
 #include "include/DummyDynamics.hpp"
+#include "include/BBMDynamics.hpp"
 #include "include/MEVPDynamics.hpp"
 
 #include <string>
@@ -15,11 +16,12 @@
 namespace Module {
 const std::string DUMMYDYNAMICS = "Nextsim::DummyDynamics";
 const std::string MEVPDYNAMICS = "Nextsim::MEVPDynamics";
-
+const std::string BBMDYNAMICS = "Nextsim::BBMDynamics";
 template <>
 Module<Nextsim::IDynamics>::map Module<Nextsim::IDynamics>::functionMap = {
     { DUMMYDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics> },
     { MEVPDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::MEVPDynamics> },
+    { BBMDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::BBMDynamics> },
 };
 
 
@@ -38,7 +40,7 @@ template<> HelpMap& getHelpRecursive<Nextsim::IDynamics>(HelpMap& map, bool getA
 {
     const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IDynamics>::moduleName(), ConfigType::MODULE,
-        { DUMMYDYNAMICS, MEVPDYNAMICS }, DUMMYDYNAMICS, "",
+        { DUMMYDYNAMICS, MEVPDYNAMICS, BBMDYNAMICS }, DUMMYDYNAMICS, "",
         "The module selecting which type of dynamics (including rheology) will drive the model." });
     return map;
 }
