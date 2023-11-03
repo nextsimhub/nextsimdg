@@ -28,6 +28,8 @@ static const std::string vWindName = "vwind";
 static const std::string uOceanName = "uocean";
 static const std::string vOceanName = "vocean";
 
+static const std::string damageName = "damage";
+
 static const std::string coordsName = "coords";
 
 static const std::string mdiName = "missing_value";
