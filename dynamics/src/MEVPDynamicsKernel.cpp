@@ -6,12 +6,12 @@
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
-#include "include/DynamicsKernel.hpp"
+#include "include/MEVPDynamicsKernel.hpp"
 
 namespace Nextsim {
 
 template <int CGdegree, int DGadvection>
-const std::unordered_map<std::string, ModelArray::Type> DynamicsKernel<CGdegree, DGadvection>::fieldType = {
+const std::unordered_map<std::string, ModelArray::Type> MEVPDynamicsKernel<CGdegree, DGadvection>::fieldType = {
 
 };
 
