@@ -111,13 +111,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
 
-    // The domain is not decomposed in z direction so set the extend in this direction
-    // to full range
-    start.push_back(0);
-    size.push_back(dataGroup.getDim("nLayers").getSize());
-
-    state.data[ticeName] = ModelArray::ZField();
-    dataGroup.getVar(ticeName).getVar(start, size, &state.data[ticeName][0]);
 
 #else
     // Get the sizes of the four types of field
@@ -138,6 +131,9 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dataGroup.getVar(ciceName).getVar(&state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(&state.data[hsnowName][0]);
+#endif
+    // Z direction is outside MPI ifdef as the domain is never decomposed in this direction
+
     // Since the ZFierld might not have the same dimensions as the tice field
     // in the file, a little more work is required.
     state.data[ticeName] = ModelArray::ZField();
@@ -145,7 +141,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     std::vector<size_t> zArrayDims = ModelArray::dimensions(ModelArray::Type::Z);
     std::reverse(zArrayDims.begin(), zArrayDims.end());
     dataGroup.getVar(ticeName).getVar(startVector, zArrayDims, &state.data[ticeName][0]);
-#endif
 
     ncFile.close();
     return state;
