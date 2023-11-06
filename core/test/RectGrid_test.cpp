@@ -5,8 +5,13 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#ifdef USE_MPI
+#include <doctest/extensions/doctest_mpi.h>
+#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
+#endif
+
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/NZLevels.hpp"
@@ -18,11 +23,16 @@
 #include <fstream>
 
 const std::string filename = "RectGrid_test.nc";
-const std::string partition_filename = "RectGrid_test_partition.nc";
+const std::string partition_filename = "partition_metadata_1.nc";
 
 namespace Nextsim {
 TEST_SUITE_BEGIN("RectGrid");
+#ifdef USE_MPI
+// Number of ranks should not be hardcoded here
+MPI_TEST_CASE("Write and read a ModelState-based RectGrid restart file", 1)
+#else
 TEST_CASE("Write and read a ModelState-based RectGrid restart file")
+#endif
 {
     RectangularGrid grid;
     grid.setIO(new RectGridIO(grid));
@@ -69,6 +79,15 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
 
+#ifdef USE_MPI
+    metadata.setMpiMetadata(test_comm);
+    metadata.globalExtentX = nx;
+    metadata.globalExtentY = ny;
+    metadata.localCornerX = 0;
+    metadata.localCornerY = 0;
+    metadata.localExtentX = nx;
+    metadata.localExtentY = ny;
+#endif
     grid.dumpModelState(state, metadata, filename);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
