@@ -84,10 +84,18 @@ public:
     //! Return the length of this Duration in seconds.
     double seconds() const { return std::chrono::duration_cast<std::chrono::seconds>(m_d).count(); }
 
-    //! Set this Duration by parsing the characters in an istream.
+    /*!
+     * Set this Duration by parsing the characters in an istream. The
+     * characters should either be an integer, representing a number of seconds,
+     * or an ISO 8601 P format duration (see https://en.wikipedia.org/wiki/ISO_8601#Durations
+     * for example).
+     */
     std::istream& parse(std::istream& is);
 
-    //! Set this Duration by parsing a string.
+    /*! Set this Duration by parsing a string. The characters should either be
+     * an integer, representing a number of seconds, or an ISO 8601 P format
+     * duration (see https://en.wikipedia.org/wiki/ISO_8601#Durations for example).
+     */
     Duration& parse(const std::string& str)
     {
         std::stringstream is(str);
@@ -95,10 +103,16 @@ public:
         return *this;
     }
 
-    //! Print this Duration as a formatted value to an ostream.
+    /*!
+     * Print the number of seconds represented by this Duration as a
+     * formatted value to an ostream.
+     */
     std::ostream& format(std::ostream& os) const { return os << seconds(); }
 
-    //! Return the string representation of this Duration.
+    /*!
+     * Return the string representation of the number of seconds represented by
+     * this Duration.
+     */
     std::string format() const
     {
         std::stringstream ss;
