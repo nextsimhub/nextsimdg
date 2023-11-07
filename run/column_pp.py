@@ -1,51 +1,45 @@
-import glob
-
 import matplotlib.pyplot as plt
 import netCDF4
 import numpy as np
 
-first = True
-for file in sorted(glob.glob('diagnostic.*.nc')):
+file = 'diagnostic.nc'
 
-    root = netCDF4.Dataset(file, "r", format="NETCDF4")
+# Load the basic variables
+root = netCDF4.Dataset(file, "r", format="NETCDF4")
+hice = np.squeeze(np.array(root.groups["data"].variables["hice"][:].data))
+hsnow = np.squeeze(np.array(root.groups["data"].variables["hsnow"][:].data))
+tice = np.array(root.groups["data"].variables["tice"][:].data)
 
-    time_var = root.groups['metadata'].groups["time"].variables["time"]
-    np_time = np.datetime64(netCDF4.num2date(time_var[:], time_var.units).isoformat())
-
-    if first:
-        time = np.array(np_time)
-        hice = np.array(root.groups["data"].variables["hice"][0].data)
-        hsnow = np.array(root.groups["data"].variables["hsnow"][0].data)
-        tice = np.array(root.groups["data"].variables["tice"][0].data)
-        first = False
-    else:
-        time = np.append(time, np_time)
-        hice = np.append(hice, root.groups["data"].variables["hice"][0].data)
-        hsnow = np.append(hsnow, root.groups["data"].variables["hsnow"][0].data)
-        tice = np.vstack((tice, root.groups["data"].variables["tice"][0].data))
-
-end = len(time) - 1
-
+# Calculate ice draught for a nicer visualisation
 rho = 917
 rhoSnow = 330
 rhoOcean = 1025
 iceDraught = (hice * rho + hsnow * rhoSnow) / rhoOcean
 
+# Some simple diagnostics
 print('hice  max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(hice.max(), hice.min(), hice.mean()))
 print('hsnow max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(hsnow.max(), hsnow.min(), hsnow.mean()))
 
+# Figure showing temperature evolution, cf,. Winton (2000) figure 2
 plt.figure(1)
-plt.plot([time[0], time[end]], [0, 0], 'k--')
-plt.plot(time, tice[:, 0], 'k')
-plt.plot(time, tice[:, 1])
-plt.plot(time, tice[:, 2])
+plt.plot([0, len(hice)], [0, 0], 'k--')
+plt.plot(np.squeeze(tice[:, 0]), 'k', label="Surface")
+plt.plot(np.squeeze(tice[:, 1]), label="T1")
+plt.plot(np.squeeze(tice[:, 2]), label="T2")
+plt.xlabel("Day of year")
+plt.ylabel("Temperature [°C]")
+plt.legend()
 plt.show(block=False)
 
+# Figure showing thickness evolution, cf. Winton (2000) figure 2
 plt.figure(2)
-plt.plot([time[0], time[end]], [0, 0], 'k--')
-plt.plot(time, hice - iceDraught, 'b')
-plt.plot(time, hice + hsnow - iceDraught, 'k')
-plt.plot(time, -iceDraught, 'b')
-ax = plt.gca()
-# ax.set_ylim([0, None])
+plt.plot([0, len(hice)], [0, 0], 'k--')
+plt.plot(hice - iceDraught, 'b', label="Ice")
+plt.plot(hice + hsnow - iceDraught, 'k', label="Snow")
+plt.plot(-iceDraught, 'b')
+plt.xlabel("Day of year")
+plt.ylabel("Height over sea level [m]")
+plt.legend()
 plt.show()
+
+# TODO: Reproduce exactly Winton's figures 2 and 3
