@@ -45,6 +45,11 @@ void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldN
     for (size_t d = 2; d < nDims; ++d) {
         dims[d] = dataGroup.getVar(fieldName).getDim(d).getSize();
     }
+    // The dimensions in the netCDF are in the reverse order compared to ModelArray
+    std::reverse(dims.begin(), dims.end());
+    // A special case for Type::Z: use NZLevels for the third dimension
+    if (type == ModelArray::Type::Z)
+        dims[2] = NZLevels::get();
     ModelArray::setDimensions(type, dims);
 }
 #else
@@ -97,10 +102,10 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // on MPI decomposition
     std::vector<size_t> start(2);
     std::vector<size_t> size(2);
-    start[0] = metadata.localCornerX;
-    start[1] = metadata.localCornerY;
-    size[0] = metadata.localExtentX;
-    size[1] = metadata.localExtentY;
+    start[0] = metadata.localCornerY;
+    start[1] = metadata.localCornerX;
+    size[0] = metadata.localExtentY;
+    size[1] = metadata.localExtentX;
 
     state.data[maskName] = ModelArray::HField();
     dataGroup.getVar(maskName).getVar(start, size, &state.data[maskName][0]);
@@ -206,16 +211,14 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     std::vector<netCDF::NcDim> dims2 = { yDim, xDim };
     std::vector<netCDF::NcDim> dims3 = { zDim, yDim, xDim };
 #ifdef USE_MPI
+    // Set the origins and extensions for reading 3D data based
+    // on MPI decomposition
+    std::vector<size_t> start3 = { 0, static_cast<size_t>(metadata.localCornerY), static_cast<size_t>(metadata.localCornerX) };
+    std::vector<size_t> size3 = { static_cast<size_t>(nz), static_cast<size_t>(metadata.localExtentY), static_cast<size_t>(metadata.localExtentX) };
     // Set the origins and extensions for reading 2D data based
     // on MPI decomposition
-    std::vector<size_t> start(3);
-    std::vector<size_t> size(3);
-    start[0] = metadata.localCornerX;
-    start[1] = metadata.localCornerY;
-    start[2] = 0;
-    size[0] = metadata.localExtentX;
-    size[1] = metadata.localExtentY;
-    size[2] = nz;
+    std::vector<size_t> start2(start3.begin() + 1, start3.end());
+    std::vector<size_t> size2(size3.begin() + 1, size3.end());
 #endif
 
     for (const auto entry : state.data) {
@@ -224,7 +227,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
 #ifdef USE_MPI
-            var.putVar(start, size, entry.second.getData());
+            var.putVar(start2, size2, entry.second.getData());
 #else
             var.putVar(entry.second.getData());
 #endif
@@ -232,7 +235,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims3));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
 #ifdef USE_MPI
-            var.putVar(start, size, entry.second.getData());
+            var.putVar(start3, size3, entry.second.getData());
 #else
             var.putVar(entry.second.getData());
 #endif
