@@ -69,7 +69,7 @@ void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
     double albedoValue, i0;
     double sw_in = convFactor * q_sw(dayOfYear, isLeap);
     std::tie(albedoValue, i0)
-        = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
+        = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
     double qsw = -sw_in * (1. - albedoValue) * (1. - i0);
     penSW[i] = sw_in * (1. - albedoValue) * i0;
     qia[i] = -convFactor

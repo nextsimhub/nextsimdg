@@ -14,7 +14,8 @@ MU71Albedo::MU71Albedo()
 {
 }
 
-std::tuple<double, double> MU71Albedo::albedo(double temperature, double snowThickness, double i0)
+std::tuple<double, double> MU71Albedo::surfaceShortWaveBalance(
+    double temperature, double snowThickness, double i0)
 {
     double albedo, penSW;
 
