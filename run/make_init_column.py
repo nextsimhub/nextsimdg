@@ -56,10 +56,7 @@ node_lon[1, 0] = 90
 
 lat0 = 89.84 # Gives a box around the pole 25 km a side
 
-node_lat[0, 0] = lat0
-node_lat[0, 1] = lat0
-node_lat[1, 1] = lat0
-node_lat[1, 0] = lat0
+node_lat[:, :] = lat0
 
 coords = datagrp.createVariable("coords", "f8", coord_dims)
 coords[:,:,0] = node_lon
