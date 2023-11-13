@@ -18,6 +18,15 @@ using IDynamicsKernel<CGdegree, DGadvection>::momentum;
 using IDynamicsKernel<CGdegree, DGadvection>::hice;
 using IDynamicsKernel<CGdegree, DGadvection>::cice;
 
+public:
+    void setData(const std::string& name, const ModelArray& data) override
+    {
+        if (name == damageName) {
+            DGModelArray::ma2dg(data, damage);
+        } else {
+            IDynamicsKernel<CGdegree, DGadvection>::setData(name, data);
+        }
+    }
 protected:
     void updateMomentum(const TimestepTime& tst) override
     {
@@ -27,14 +36,6 @@ protected:
         }
     };
 
-    void setData(const std::string& name, const ModelArray& data) override
-    {
-        if (name == damageName) {
-            DGModelArray::ma2dg(data, damage);
-        } else {
-            IDynamicsKernel::setData(name, data);
-        }
-    }
 private:
     MEBParameters mebParams;
     DGVector<DGadvection> damage;
