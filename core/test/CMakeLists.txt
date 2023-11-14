@@ -21,7 +21,7 @@ add_executable(testIterator
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
     "${SRC_DIR}/Configurator.cpp"
-    
+
     )
 target_include_directories(testIterator PUBLIC "${SRC_DIR}")
 target_link_libraries(testIterator PRIVATE doctest::doctest Boost::program_options Boost::log)
@@ -75,28 +75,6 @@ add_executable(testModelArray
 
 target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
 target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
-
-add_executable(testDevGrid
-    "DevGrid_test.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
-    "${CoreModulesDir}/IStructureModule.cpp"
-    "${CoreModulesDir}/RectangularGrid.cpp"
-    "${CoreModulesDir}/ParametricGrid.cpp"
-    "${SRC_DIR}/CommonRestartMetadata.cpp"
-    "${SRC_DIR}/Configurator.cpp"
-    "${SRC_DIR}/ConfiguredModule.cpp"
-    "${SRC_DIR}/DevGridIO.cpp"
-    "${SRC_DIR}/MissingData.cpp"
-    "${SRC_DIR}/ModelArray.cpp"
-    "${SRC_DIR}/ModelMetadata.cpp"
-    "${SRC_DIR}/NZLevels.cpp"
-    "${SRC_DIR}/Time.cpp"
-    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
-    )
-
-target_include_directories(testDevGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
 
 add_executable(testRectGrid
     "RectGrid_test.cpp"

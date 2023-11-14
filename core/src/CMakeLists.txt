@@ -33,7 +33,6 @@ list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 set(StructureModuleSources
-    "DevGrid.cpp"
     "RectangularGrid.cpp"
     "ParametricGrid.cpp"
     "IStructureModule.cpp"

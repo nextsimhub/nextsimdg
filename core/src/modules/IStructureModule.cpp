@@ -13,7 +13,6 @@
 
 namespace Module {
 
-const std::string DEV_GRID = "DevGrid";
 const std::string RECT_GRID = "RectangularGrid";
 const std::string PARAMETRICGRID = "ParametricGrid";
 
