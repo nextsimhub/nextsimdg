@@ -11,7 +11,6 @@ set(BaseSources
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
-    "DevGridIO.cpp"
     "RectGridIO.cpp"
     "ParaGridIO.cpp"
     "FileCallbackCloser.cpp"
