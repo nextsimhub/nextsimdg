@@ -1,3 +1,6 @@
 sphinx>=4.4.0
 myst_parser>=0.15.2
 sphinx_rtd_theme
+breathe
+Jinja2<3.1
+exhale
