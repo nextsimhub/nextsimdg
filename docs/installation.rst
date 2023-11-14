@@ -11,17 +11,17 @@ First step to install neXtSIM is to download `this repository`_ :
 
 .. code::
 
-    git clone https://github.com/nextsimdg/nextsimdg.git 
+    git clone https://github.com/nextsimhub/nextsimdg.git 
     or 
-    git clone git@github.com:nextsimdg/nextsimdg.git
+    git clone git@github.com:nextsimhub/nextsimdg.git
     
 or a specific version :
 
 .. code::
 
-    git clone -b v0.1.0 https://github.com/nextsimdg/nextsimdg.git 
+    git clone -b v0.1.0 https://github.com/nextsimhub/nextsimdg.git 
     or 
-    git clone -b v0.1.0 git@github.com:nextsimdg/nextsimdg.git
+    git clone -b v0.1.0 git@github.com:nextsimhub/nextsimdg.git
 
 
 Dependencies
@@ -113,7 +113,7 @@ Otherwise, install them via `anaconda`_ or `miniconda`_ (no root priviledges req
         conda activate nextsimdg
         conda install netCDF4
 
-.. _`this repository`: https://github.com/nextsimdg/nextsimdg    
+.. _`this repository`: https://github.com/nextsimhub/nextsimdg    
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
 .. _Catch2: https://github.com/catchorg/Catch2
