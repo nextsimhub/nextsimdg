@@ -31,7 +31,6 @@ To compile neXtSIM, you need to install first some libraries :
 
   - `NetCDF`_
   - `Boost`_
-  - `Catch2`_
   - `CMake`_
   - `Eigen`_
 
@@ -45,7 +44,6 @@ If your package manager is `Homebrew`_ :
         brew install netcdf
         brew install netcdf-cxx
         brew install boost
-        brew install catch2
         brew install cmake
         brew install eigen
         
@@ -64,12 +62,6 @@ You must have root priviledge :
 
         sudo apt-get update
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake libeigen3-dev
-        git clone -b v2.x https://github.com/catchorg/Catch2.git
-        cd Catch2
-        cmake -Bbuild -H. -DBUILD_TESTING=OFF
-        sudo cmake --build build/ --target install
-        cd ..
-
         cd nextsimdg
         mkdir -p build
         cd build
@@ -91,7 +83,6 @@ Install conda via `anaconda`_ or `miniconda`_ (no root priviledges required)
         conda install -c conda-forge boost
         conda install -c conda-forge eigen
         conda install -c anaconda cmake
-        conda install -c conda-forge catch2
         conda install -c conda-forge netcdf-cxx4
         
         cd nextsimdg
