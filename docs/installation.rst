@@ -1,4 +1,4 @@
-.. Copyright (c) 2021, Nansen Environmental and Remote Sensing Center
+.. Copyright (c) 2023, Nansen Environmental and Remote Sensing Center
 
 .. raw:: html
 
@@ -56,7 +56,7 @@ If your package manager is `Homebrew`_ :
 Compilation on Ubuntu
 ---------------------
 
-You must have root priviledge :
+You must have root privilege :
 
 .. code::
 
@@ -72,7 +72,7 @@ You must have root priviledge :
 Compilation with dependencies installation via conda
 ----------------------------------------------------
 
-Install conda via `anaconda`_ or `miniconda`_ (no root priviledges required)
+Install conda via `anaconda`_ or `miniconda`_ (no root privileges required)
 
 .. code::
 
@@ -96,7 +96,7 @@ Extra dependencies needed to run the simple example
 
 To run the simple example described `here`_, you need to install python and netCDF4 library. If you already installed the dependencies for compilation with conda, nothing else is needed.
 
-Otherwise, install them via `anaconda`_ or `miniconda`_ (no root priviledges required)
+Otherwise, install them via `anaconda`_ or `miniconda`_ (no root privileges required)
 
 .. code::
 
