@@ -35,7 +35,7 @@ html_extra_path = ['xml']
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'nextsimdg'
-copyright = '2021, Nansen Environmental and Remote Sensing Center'
+copyright = '2023, Nansen Environmental and Remote Sensing Center'
 author = 'Nansen Environmental and Remote Sensing Center'
 
 exclude_patterns = []
