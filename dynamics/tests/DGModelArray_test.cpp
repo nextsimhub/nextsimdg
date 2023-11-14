@@ -65,6 +65,51 @@ TEST_CASE("DGVector from ModelArray")
     REQUIRE(dest(targetPoint, 2) == source.components({14, 12})[2]);
 }
 
+TEST_CASE("DGVector from ModelArray::Type::H")
+{
+    static const int DG = 3;
+    const size_t nx = 32;
+    const size_t ny = 32;
+    const size_t mx = 100;
+    const size_t my = 100;
+
+    ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
+
+    ModelArray source(ModelArray::Type::H);
+    source.resize();
+    // Fill with data
+    for (size_t i = 0; i < nx; ++i) {
+        for (size_t j = 0; j < ny; j++) {
+            source(i, j) = j + mx * (i);
+        }
+    }
+
+    CHECK(source(14, 12) == 12 + mx * (14));
+
+    // Create the ParametricMesh object
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nnodes = nx * ny;
+    smesh.nelements = nx * ny;
+    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
+    for (size_t i = 0; i < nx; ++i) {
+        for (size_t j = 0; j < ny; ++j) {
+            smesh.vertices(i * ny + j, 0) = i;
+            smesh.vertices(i * ny + j, 1) = j;
+        }
+    }
+    DGVector<DG> dest(smesh);
+    DGModelArray::ma2dg<DG>(source, dest);
+
+    // Did it work?
+    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {14, 12});
+    REQUIRE(dest(targetPoint, 0) == source(14, 12));
+    REQUIRE(dest(targetPoint, 2) == 0.);
+
+}
+
+
 TEST_CASE("ModelArray from DGVector")
 {
     static const int DG = 6;

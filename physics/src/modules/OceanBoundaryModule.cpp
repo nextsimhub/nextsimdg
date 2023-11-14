@@ -7,6 +7,7 @@
 
 #include "include/OceanBoundaryModule.hpp"
 
+#include "include/BenchmarkOcean.hpp"
 #include "include/ConfiguredOcean.hpp"
 #include "include/ConstantOceanBoundary.hpp"
 #include "include/FluxConfiguredOcean.hpp"
@@ -20,13 +21,14 @@ const std::string CONSTANTOCEANBOUNDARY = "Nextsim::ConstantOceanBoundary";
 const std::string CONFIGUREDOCEAN = "Nextsim::ConfiguredOcean";
 const std::string FLUXCONFIGUREDOCEAN = "Nextsim::FluxConfiguredOcean";
 const std::string TOPAZOCEAN = "Nextsim::TOPAZOcean";
-
+const std::string BENCHMARKOCEAN = "Nextsim::BenchmarkOcean";
 template <>
 Module<Nextsim::IOceanBoundary>::map Module<Nextsim::IOceanBoundary>::functionMap = {
     { CONSTANTOCEANBOUNDARY, newImpl<Nextsim::IOceanBoundary, Nextsim::ConstantOceanBoundary> },
     { CONFIGUREDOCEAN, newImpl<Nextsim::IOceanBoundary, Nextsim::ConfiguredOcean> },
     { FLUXCONFIGUREDOCEAN, newImpl<Nextsim::IOceanBoundary, Nextsim::FluxConfiguredOcean> },
     { TOPAZOCEAN, newImpl<Nextsim::IOceanBoundary, Nextsim::TOPAZOcean> },
+    { BENCHMARKOCEAN, newImpl<Nextsim::IOceanBoundary, Nextsim::BenchmarkOcean> },
 };
 
 template <>
@@ -46,7 +48,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IOceanBoundary>(HelpMap& map, boo
     const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IOceanBoundary>::moduleName(),
         ConfigType::MODULE,
-        { CONSTANTOCEANBOUNDARY, CONFIGUREDOCEAN, FLUXCONFIGUREDOCEAN, TOPAZOCEAN },
+        { CONSTANTOCEANBOUNDARY, CONFIGUREDOCEAN, FLUXCONFIGUREDOCEAN, TOPAZOCEAN, BENCHMARKOCEAN },
         CONSTANTOCEANBOUNDARY, "", "Classes providing the oceanic inputs into the ice physics." });
     Nextsim::ConfiguredOcean::getHelpRecursive(map, getAll);
     Nextsim::FluxConfiguredOcean::getHelpRecursive(map, getAll);

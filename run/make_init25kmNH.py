@@ -168,9 +168,6 @@ if __name__ == "__main__":
     cice_min = 1e-12
     hice_min = 0.01 # m
 
-    grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", ("x", "y"))
-    grid_azimuth[:, :] = grid["plon"][:, :] + np.degrees(grid["ptheta"][:, :])
-
     noice = np.logical_or(cice_data < cice_min, hice_data < hice_min)
     isice = 1 - noice
     cice_data *= isice
@@ -189,6 +186,7 @@ if __name__ == "__main__":
     hsnow_data *= noice
     hsnow_data *= cice_data
     hsnow[:, :] = hsnow_data
+
     # SSS
     sss = datagrp.createVariable("sss", "f8", field_dims)
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)

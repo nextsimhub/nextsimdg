@@ -304,3 +304,22 @@ add_executable(testIceMinima
     )
 target_include_directories(testIceMinima PRIVATE "${SourceDir}")
 target_link_libraries(testIceMinima PRIVATE doctest::doctest)
+
+add_executable(testBenchmarkBoundaries
+    "BenchmarkBoundaries_test.cpp"
+    "${ModulesDir}/BenchmarkAtmosphere.cpp"
+    "${ModulesDir}/BenchmarkOcean.cpp"
+    "${CoreSourceDir}/ModelArray.cpp"
+    "${CoreSourceDir}/ModelComponent.cpp"
+    "${CoreSourceDir}/MissingData.cpp"
+    "${CoreSourceDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "${SourceDir}/BenchmarkCoordinates.cpp"
+    "${CoreSourceDir}/Time.cpp"
+    )
+target_include_directories(testBenchmarkBoundaries PRIVATE
+    "${CoreSourceDir}"
+    "${CoreSourceDir}/${ModelArrayStructure}"
+    "${SourceDir}"
+    "${ModulesDir}"
+    )
+target_link_libraries(testBenchmarkBoundaries PRIVATE Boost::program_options Boost::log doctest::doctest Eigen3::Eigen)
