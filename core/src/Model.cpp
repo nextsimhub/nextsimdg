@@ -8,7 +8,6 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"

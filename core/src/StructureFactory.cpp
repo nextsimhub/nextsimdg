@@ -9,9 +9,6 @@
 
 #include "include/IStructureModule.hpp"
 
-#include "include/DevGrid.hpp"
-#include "include/DevGridIO.hpp"
-
 #include "include/RectGridIO.hpp"
 #include "include/RectangularGrid.hpp"
 
@@ -45,12 +42,7 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
 {
     std::string structureName = structureNameFromFile(filePath);
     // TODO There must be a better way
-    if (DevGrid::structureName == structureName) {
-        Module::setImplementation<IStructure>("DevGrid");
-        DevGrid gridIn;
-        gridIn.setIO(new DevGridIO(gridIn));
-        return gridIn.getModelState(filePath);
-    } else if (RectangularGrid::structureName == structureName) {
+    if (RectangularGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("RectangularGrid");
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
@@ -74,11 +66,7 @@ void StructureFactory::fileFromState(
 {
     std::string structureName = Module::getImplementation<IStructure>().structureType();
 
-    if (DevGrid::structureName == structureName) {
-        DevGrid gridOut;
-        gridOut.setIO(new DevGridIO(gridOut));
-        gridOut.dumpModelState(state, meta, filePath, isRestart);
-    } else if (RectangularGrid::structureName == structureName) {
+    if (RectangularGrid::structureName == structureName) {
         RectangularGrid gridOut;
         gridOut.setIO(new RectGridIO(gridOut));
         gridOut.dumpModelState(state, meta, filePath, isRestart);
