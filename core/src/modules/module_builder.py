@@ -19,6 +19,9 @@ description_str = "description"
 has_help_str = "has_help"
 file_encoding = "utf-8"
 
+# Variable names for the dict of common strings
+class_name = "class_name"
+
 # A valid implementation section has an entry "file_prefix = "
 def is_impl_section_valid(section):
     return (file_prefix_str in section)
@@ -35,9 +38,8 @@ def write_file_header(stream, file_suffix):
         )
 
 # Write all of the header file between the include guards
-def write_header_file(header, module_section):
-    guard_macro = (module_section[file_prefix_str]+"_"+header_suffix).upper()
-    class_name = module_section[name_str]
+def write_header_file(header, strings):
+    guard_macro = (strings[file_prefix_str]+"MODULE_"+header_suffix).upper()
     header.write(
         f"""
 #ifndef {guard_macro}
@@ -46,12 +48,12 @@ def write_header_file(header, module_section):
 #include "include/ConfiguredModule.hpp"
 #include "include/Module.hpp"
 
-#include "{module_section[interface_prefix_str]}{module_section[file_prefix_str]}.{header_suffix}"
+#include "{strings[interface_prefix_str]}{strings[file_prefix_str]}.{header_suffix}"
 
 namespace Module {{
 
-template <> Module<{class_name}>::map Module<{class_name}>::functionMap;
-class {module_section[file_prefix_str]}Module : public Module<{class_name}> {{
+template <> Module<{strings[class_name]}>::map Module<{strings[class_name]}>::functionMap;
+class {strings[file_prefix_str]}Module : public Module<{strings[class_name]}> {{
     struct Constructor {{
         Constructor();
     }};
@@ -63,6 +65,9 @@ class {module_section[file_prefix_str]}Module : public Module<{class_name}> {{
 #endif /* {guard_macro} */
 """
 )
+
+def write_source_file(source, config):
+    pass
 
 '''
 Main program
@@ -90,10 +95,17 @@ def main():
     header = open(module_file_prefix + "." + header_suffix, "w", encoding=file_encoding)
     source = open(module_file_prefix + "." + source_suffix, "w", encoding=file_encoding)
     
+    # Create a dictionary of common strings
+    strings = {
+        interface_prefix_str : config[module_section_str][interface_prefix_str],
+        file_prefix_str : config[module_section_str][file_prefix_str],
+        class_name : config[module_section_str][name_str],
+    }
+    
     write_file_header(header, header_suffix)
     write_file_header(source, source_suffix)
     
-    write_header_file(header, config[module_section_str])
+    write_header_file(header, strings)
     
     header.close()
     source.close()
