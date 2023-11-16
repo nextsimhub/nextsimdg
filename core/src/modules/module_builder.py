@@ -7,6 +7,7 @@
 import configparser
 import os
 
+default_str = "DEFAULT"
 module_file_str = "module.cfg"
 module_section_str = "module"
 module_file_prefix = "module"
@@ -17,10 +18,13 @@ file_prefix_str = "file_prefix"
 interface_prefix_str = "interface_prefix"
 description_str = "description"
 has_help_str = "has_help"
+is_default_str = "is_default"
 file_encoding = "utf-8"
+true_str = "true"
 
 # Variable names for the dict of common strings
 class_name = "class_name"
+module_class_name = "module_class_name"
 
 # A valid implementation section has an entry "file_prefix = "
 def is_impl_section_valid(section):
@@ -53,7 +57,7 @@ def write_header_file(header, strings):
 namespace Module {{
 
 template <> Module<{strings[class_name]}>::map Module<{strings[class_name]}>::functionMap;
-class {strings[file_prefix_str]}Module : public Module<{strings[class_name]}> {{
+class {strings[module_class_name]} : public Module<{strings[class_name]}> {{
     struct Constructor {{
         Constructor();
     }};
@@ -66,9 +70,85 @@ class {strings[file_prefix_str]}Module : public Module<{strings[class_name]}> {{
 """
 )
 
-def write_source_file(source, config):
-    pass
+def write_source_file(source, config, strings):
+    # List over all implementation sections that contain a file_prefix entry
+    valid_impl_sections = []
+    for section in config:
+        if section in (module_section_str, default_str,):
+            continue
+        else:
+            if file_prefix_str in config[section]:
+                valid_impl_sections.append(section)
+                if is_default_str in config[section] and config[section][is_default_str]:
+                    default_impl = section
 
+    module_templ = f"Module<{strings[class_name]}>"
+
+    source.write("#include \"module.hpp\"\n")
+    source.write("\n")
+    for section in valid_impl_sections:
+        source.write(f"#include \"{config[section][file_prefix_str]}.{header_suffix}\"\n")
+    source.write("""
+#include<string>
+
+namespace Module {
+""")
+    impl_strings = {}
+    for section in valid_impl_sections:
+        impl_strings[section] = config[section][file_prefix_str].upper()
+        source.write(f"const std::string {impl_strings[section]} = \"{section}\";\n")
+    source.write(f"""
+template <>
+{module_templ}::map {module_templ}::functionMap = {{
+""")
+    for section in valid_impl_sections:
+        source.write(f"    {{ {impl_strings[section]}, newImpl<{strings[class_name]}, {section}> }},\n")
+    source.write(f"""}};
+
+template <>
+{module_templ}::fn {module_templ}::spf = functionMap.at({default_impl});
+template <>
+std::unique_ptr<{strings[class_name]} {module_templ}::staticInstance
+    = std::move({module_templ}::spf());
+
+template <> std::string {module_templ}::moduleName() {{ return \"{strings[class_name]}\"; }}
+
+template <> HelpMap& getHelpRecursive<{strings[class_name]}>(HelpMap& map, bool getAll)
+{{
+    const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
+    map[pfx].push_back({{ pfx + "." + {module_templ}::moduleName(), ConfigType::MODULE,
+        {{ """)
+    for section in valid_impl_sections:
+        source.write(f"{impl_strings[section]}, ")
+    source.write(f"}}, {impl_strings[default_impl]}, \"\",\n")
+    source.write(f"        \"{config[module_section_str][description_str]}\" }});\n")
+    for section in valid_impl_sections:
+        if (has_help_str in config[section]) and (config[section][has_help_str] == true_str):
+            source.write(f"{section}::getHelpRecursive(map, getAll);\n")
+    source.write(f"""}}
+template <> {strings[class_name]}& getImplementation<{strings[class_name]}>()
+{{
+    return getImplTemplate<{strings[class_name]}, {strings[module_class_name]}>();
+}}
+template <> void setImplementation<{strings[class_name]}>(const std::string& implName)
+{{
+    setImplTemplate<{strings[module_class_name]}>(implName);
+}}
+template <> std::unique_ptr<{strings[class_name]} getInstance()
+{{
+    return getInstTemplate<{strings[class_name]}, {strings[module_class_name]}>();
+}}
+
+{strings[module_class_name]}::Constructor {strings[module_class_name]}::ctor;
+{strings[module_class_name]}::Constructor::Constructor()
+{{
+    addToConfiguredModules<{strings[class_name]}, {strings[module_class_name]}>();
+}}
+""")
+    source.write("""
+} /* namespace Module */
+""")
+    
 '''
 Main program
 
@@ -82,6 +162,9 @@ def main():
     # Add in defaults, if optional data is absent
     if not interface_prefix_str in config[module_section_str]:
         config[module_section_str][interface_prefix_str] = ""
+    
+    if not description_str in config[module_section_str]:
+        config[module_section_str][description_str] = ""
     
     # Error reporting if the module section is invalid
     if not name_str in config[module_section_str]:
@@ -100,12 +183,14 @@ def main():
         interface_prefix_str : config[module_section_str][interface_prefix_str],
         file_prefix_str : config[module_section_str][file_prefix_str],
         class_name : config[module_section_str][name_str],
+        module_class_name : config[module_section_str][file_prefix_str]+"Module"
     }
     
     write_file_header(header, header_suffix)
     write_file_header(source, source_suffix)
     
     write_header_file(header, strings)
+    write_source_file(source, config, strings)
     
     header.close()
     source.close()
