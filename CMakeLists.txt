@@ -62,6 +62,9 @@ find_package(Eigen3 3.4 REQUIRED)
 #"physics"
 #)
 
+# The location of the module_builder.py script
+set(ModuleBuilderScript "${PROJECT_SOURCE_DIR}/scripts/module_builder.py")
+
 # Set the components which provide source or object code to the main model
 set(CodeComponents
 "physics"
