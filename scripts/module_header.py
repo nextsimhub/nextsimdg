@@ -64,12 +64,9 @@ def main():
     # Create a dictionary of common strings
     strings = common_strings(config)
     
-    header_file_name = strings[module_class_name] + "." + header_suffix
-    header_file_full_path = os.path.join(config[module_section_str][header_path_str], header_file_name)
+    header = open(strings[header_file_path_str], "w", encoding=file_encoding)
     
-    header = open(header_file_full_path, "w", encoding=file_encoding)
-    
-    write_file_header(header, header_file_name)
+    write_file_header(header, strings[header_file_name_str])
     write_header_file(header, strings)
     header.close()
     

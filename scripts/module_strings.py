@@ -1,4 +1,5 @@
 import configparser
+import os.path
 
 default_str = "DEFAULT"
 module_file_str = "module.cfg"
@@ -9,7 +10,9 @@ source_suffix = "cpp"
 name_str = "name"
 file_prefix_str = "file_prefix"
 interface_prefix_str = "interface_prefix"
-header_path_str = "header_path"
+header_dir_path_str = "header_path"
+header_file_path_str = "header_file_path"
+header_file_name_str = "header_file_name"
 description_str = "description"
 has_help_str = "has_help"
 is_default_str = "is_default"
@@ -32,8 +35,8 @@ def get_config_with_defaults():
         config[module_section_str][description_str] = ""
     
     # Default to ../include for the header file path
-    if not header_path_str in config[module_section_str]:
-        config[module_section_str][header_path_str] = "../include"
+    if not header_dir_path_str in config[module_section_str]:
+        config[module_section_str][header_dir_path_str] = "../include"
     
     return config
 
@@ -50,9 +53,13 @@ def check_config_errors(config):
     return 0
 
 def common_strings(config):
+    module_name = config[module_section_str][file_prefix_str]+"Module"
+    header_file_name = module_name + "." + header_suffix
     return {
         interface_prefix_str : config[module_section_str][interface_prefix_str],
         file_prefix_str : config[module_section_str][file_prefix_str],
         class_name : config[module_section_str][name_str],
-        module_class_name : config[module_section_str][file_prefix_str]+"Module"
+        module_class_name : module_name,
+        header_file_name_str : header_file_name,
+        header_file_path_str : os.path.join(config[module_section_str][header_dir_path_str], module_name + "." + header_suffix)
     }
