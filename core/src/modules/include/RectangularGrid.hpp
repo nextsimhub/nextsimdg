@@ -95,7 +95,7 @@ public:
         RectangularGrid* grid;
     };
 
-    //! Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO
+    //! Sets the pointer to the class that will perform the IO. Should be an instance of IRectGridIO
     void setIO(IRectGridIO* p) { pio = p; }
 
     const static std::string structureName;

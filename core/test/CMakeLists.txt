@@ -21,7 +21,7 @@ add_executable(testIterator
     "${SRC_DIR}/Timer.cpp"
     "${SRC_DIR}/Logged.cpp"
     "${SRC_DIR}/Configurator.cpp"
-    
+
     )
 target_include_directories(testIterator PUBLIC "${SRC_DIR}")
 target_link_libraries(testIterator PRIVATE doctest::doctest Boost::program_options Boost::log)
@@ -82,32 +82,9 @@ target_link_libraries(testMonthlyCubicBSpline LINK_PUBLIC Boost::boost doctest::
 target_include_directories(testModelArray PRIVATE "${CoreSrc}" "${ModelArrayDetails}")
 target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
-add_executable(testDevGrid
-    "DevGrid_test.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
-    "${CoreModulesDir}/IStructureModule.cpp"
-    "${CoreModulesDir}/RectangularGrid.cpp"
-    "${CoreModulesDir}/ParametricGrid.cpp"
-    "${SRC_DIR}/CommonRestartMetadata.cpp"
-    "${SRC_DIR}/Configurator.cpp"
-    "${SRC_DIR}/ConfiguredModule.cpp"
-    "${SRC_DIR}/DevGridIO.cpp"
-    "${SRC_DIR}/MissingData.cpp"
-    "${SRC_DIR}/ModelArray.cpp"
-    "${SRC_DIR}/ModelMetadata.cpp"
-    "${SRC_DIR}/NZLevels.cpp"
-    "${SRC_DIR}/Time.cpp"
-    "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
-    )
-
-target_include_directories(testDevGrid PUBLIC "${SRC_DIR}" "${CoreModulesDir}" "${PhysicsDir}" "${PhysicsModulesDir}" "${netCDF_INCLUDE_DIR}" "${CoreSrc}/${ModelArrayStructure}")
-target_link_directories(testDevGrid PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(testDevGrid LINK_PUBLIC Boost::program_options Boost::log doctest::doctest "${NSDG_NetCDF_Library}" Eigen3::Eigen)
-
 add_executable(testRectGrid
     "RectGrid_test.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
     "${SRC_DIR}/CommonRestartMetadata.cpp"
@@ -130,7 +107,6 @@ add_executable(testParaGrid
     "ParaGrid_test.cpp"
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
     "${SRC_DIR}/CommonRestartMetadata.cpp"
     "${SRC_DIR}/Configurator.cpp"
@@ -195,7 +171,6 @@ add_executable(testPrognosticData
     "${CoreSrc}/FileCallbackCloser.cpp"
     "${CoreModulesDir}/IFreezingPointModule.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
@@ -204,6 +179,7 @@ add_executable(testPrognosticData
     "${PhysSourceDir}/IceGrowth.cpp"
     "${PhysSourceDir}/IceMinima.cpp"
     "${PhysSourceDir}/SlabOcean.cpp"
+    "${PhysSourceDir}/BenchmarkCoordinates.cpp"
     "${PhysModulesDir}/FiniteElementFluxes.cpp"
     "${PhysModulesDir}/FiniteElementSpecHum.cpp"
     "${PhysModulesDir}/FluxCalculationModule.cpp"
@@ -212,12 +188,14 @@ add_executable(testPrognosticData
     "${PhysModulesDir}/ConfiguredOcean.cpp"
     "${PhysModulesDir}/FluxConfiguredOcean.cpp"
     "${PhysModulesDir}/TOPAZOcean.cpp"
+    "${PhysModulesDir}/BenchmarkOcean.cpp"
     "${PhysModulesDir}/AtmosphereBoundaryModule.cpp"
     "${PhysModulesDir}/ConstantAtmosphereBoundary.cpp"
     "${PhysModulesDir}/MU71Atmosphere.cpp"
     "${PhysModulesDir}/ConfiguredAtmosphere.cpp"
     "${PhysModulesDir}/FluxConfiguredAtmosphere.cpp"
     "${PhysModulesDir}/ERA5Atmosphere.cpp"
+    "${PhysModulesDir}/BenchmarkAtmosphere.cpp"
     "${PhysModulesDir}/LateralIceSpreadModule.cpp"
     "${PhysModulesDir}/HiblerSpread.cpp"
     "${PhysModulesDir}/IceThermodynamicsModule.cpp"
@@ -254,7 +232,6 @@ add_executable(testConfigOutput
     "${CoreSrc}/ModelMetadata.cpp"
     "${CoreSrc}/MissingData.cpp"
     "${CoreSrc}/NZLevels.cpp"
-    "${CoreSrc}/DevGridIO.cpp"
     "${CoreSrc}/ParaGridIO.cpp"
     "${CoreSrc}/RectGridIO.cpp"
     "${CoreSrc}/FileCallbackCloser.cpp"
@@ -262,7 +239,6 @@ add_executable(testConfigOutput
     "${CoreSrc}/Time.cpp"
     "${CoreSrc}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     "${CoreModulesDir}/IStructureModule.cpp"
-    "${CoreModulesDir}/DevGrid.cpp"
     "${CoreModulesDir}/ParametricGrid.cpp"
     "${CoreModulesDir}/RectangularGrid.cpp"
     "${CoreModulesDir}/DiagnosticOutputModule.cpp"

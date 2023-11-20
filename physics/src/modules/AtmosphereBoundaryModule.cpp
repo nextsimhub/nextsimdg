@@ -7,6 +7,7 @@
 
 #include "include/AtmosphereBoundaryModule.hpp"
 
+#include "include/BenchmarkAtmosphere.hpp"
 #include "include/ConfiguredAtmosphere.hpp"
 #include "include/ConstantAtmosphereBoundary.hpp"
 #include "include/ERA5Atmosphere.hpp"
@@ -16,6 +17,7 @@
 #include <string>
 
 namespace Module {
+const std::string BENCHMARKATMOSPHERE = "Nextsim::BenchmarkAtmosphere";
 const std::string CONSTANTATMOSPHEREBOUNDARY = "Nextsim::ConstantAtmosphereBoundary";
 const std::string CONFIGUREDATMOSPHERE = "Nextsim::ConfiguredAtmosphere";
 const std::string FLUXCONFIGUREDATMOSPHERE = "Nextsim::FluxConfiguredAtmosphere";
@@ -31,6 +33,7 @@ Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::
         newImpl<Nextsim::IAtmosphereBoundary, Nextsim::FluxConfiguredAtmosphere> },
     { MU71ATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::MU71Atmosphere> },
     { ERA5ATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ERA5Atmosphere> },
+    { BENCHMARKATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::BenchmarkAtmosphere> },
 };
 
 template <>
@@ -51,7 +54,7 @@ template <> HelpMap& getHelpRecursive<Nextsim::IAtmosphereBoundary>(HelpMap& map
     map[pfx].push_back({ pfx + "." + Module<Nextsim::IAtmosphereBoundary>::moduleName(),
         ConfigType::MODULE,
         { CONSTANTATMOSPHEREBOUNDARY, CONFIGUREDATMOSPHERE, FLUXCONFIGUREDATMOSPHERE,
-            ERA5ATMOSPHERE },
+            ERA5ATMOSPHERE, BENCHMARKATMOSPHERE },
         CONSTANTATMOSPHEREBOUNDARY, "", "A Module to provide atmospheric inputs to the model." });
     Nextsim::ConfiguredAtmosphere::getHelpRecursive(map, getAll);
     Nextsim::FluxConfiguredAtmosphere::getHelpRecursive(map, getAll);

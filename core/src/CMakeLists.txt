@@ -11,7 +11,6 @@ set(BaseSources
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
-    "DevGridIO.cpp"
     "RectGridIO.cpp"
     "ParaGridIO.cpp"
     "FileCallbackCloser.cpp"
@@ -33,7 +32,6 @@ list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 set(StructureModuleSources
-    "DevGrid.cpp"
     "RectangularGrid.cpp"
     "ParametricGrid.cpp"
     "IStructureModule.cpp"

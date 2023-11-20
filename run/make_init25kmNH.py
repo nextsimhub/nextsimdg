@@ -160,8 +160,12 @@ if __name__ == "__main__":
     mask = datagrp.createVariable("mask", "f8", field_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     mask[:, :] = 1 - ma.getmask(sst_data)
-    mask[100, 95] = 0.0 # Ad-hoc fix for the westernmost point of the New Siberian Islands
-
+    # Despite having the same data source, the restart file generation script 
+    # and forcing generation script have a consistent, one pixel difference
+    # at the western tip of the New Siberian Islands (100, 95).
+    # Force the land mask to be consistent.
+    mask[100, 95] = 0.0
+    
     # Ice concentration and thickness
     cice_data = topaz4_interpolate(element_lon, element_lat, source_file["fice"][0, :, :].squeeze(), lat_array)
     hice_data = topaz4_interpolate(element_lon, element_lat, source_file["hice"][0, :, :].squeeze(), lat_array)
@@ -187,6 +191,7 @@ if __name__ == "__main__":
     hsnow_data *= noice
     hsnow_data *= cice_data
     hsnow[:, :] = hsnow_data
+
     # SSS
     sss = datagrp.createVariable("sss", "f8", field_dims)
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
