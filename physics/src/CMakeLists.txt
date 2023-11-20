@@ -5,6 +5,7 @@ set(IceAlbedoModuleSources
     "CCSMIceAlbedo.cpp"
     "SMUIceAlbedo.cpp"
     "SMU2IceAlbedo.cpp"
+    "MU71Albedo.cpp"
     )
 
 set(IceOceanHeatFluxModuleSources
@@ -28,6 +29,7 @@ set(FluxCalculationModuleSources
     "FluxCalculationModule.cpp"
     "FiniteElementFluxes.cpp"
     "FiniteElementSpecHum.cpp"
+    "MU71Atmosphere.cpp"
     )
 
 set(AtmosphereBoundaryModuleSources

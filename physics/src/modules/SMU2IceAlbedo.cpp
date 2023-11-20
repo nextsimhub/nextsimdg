@@ -17,18 +17,18 @@ namespace Nextsim {
 const double ICE_ALBEDO = 0.64;
 const double SNOW_ALBEDO = 0.85;
 
-std::tuple<double, double> SMU2IceAlbedo::albedo(
+std::tuple<double, double> SMU2IceAlbedo::surfaceShortWaveBalance(
     double temperature, double snowThickness, double i0)
 {
     double albedo, penSW;
     if (snowThickness > 0.) {
         albedo
-            = std::fmin(SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.2);
-        penSW = i0;
+            = std::fmin(SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.4);
+        penSW = 0;
     } else {
         albedo = ICE_ALBEDO;
-        penSW = 0.;
+        penSW = i0;
     }
-    return {albedo, penSW};
+    return { albedo, penSW };
 }
 }

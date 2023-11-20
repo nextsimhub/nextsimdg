@@ -10,6 +10,7 @@
 #include "include/IceMinima.hpp"
 #include "include/IFreezingPointModule.hpp"
 #include "include/IceGrowth.hpp"
+#include "include/IceMinima.hpp"
 #include "include/ModelArray.hpp"
 #include "include/NZLevels.hpp"
 #include "include/constants.hpp"
@@ -120,14 +121,16 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     double excessIceMelt = std::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
     // With the excess flux noted, clamp the snow thickness to a minimum of zero.
     hsnow[i] = std::max(nowSnow, 0.);
-    // Then add snowfall back on top
-    hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Bottom melt or growth
     double iceBottomChange = (qic[i] - qio[i]) * tst.step / bulkLHFusionIce;
     // Total thickness change
     deltaHi[i] = excessIceMelt + iceBottomChange;
     hice[i] += deltaHi[i];
+
+    // Then add snowfall back on top if there's still ice
+    if ( hice[i] > 0. )
+        hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Amount of melting (only) at the top and bottom of the ice
     topMelt[i] = std::min(excessIceMelt, 0.);
@@ -145,7 +148,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     }
 
     // Melt all ice if it is below minimum threshold
-    if (0. < hice[i] && hice[i] < IceMinima::h()) {
+    if (hice[i] < IceMinima::h()) {
         if (deltaHi[i] < 0) {
             double scaling = oldHi[i] / deltaHi[i];
             topMelt[i] *= scaling;

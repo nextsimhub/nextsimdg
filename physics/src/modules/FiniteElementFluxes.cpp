@@ -144,7 +144,7 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     // Shortwave flux
     double albedoValue, i0;
     std::tie(albedoValue, i0)
-        = iIceAlbedoImpl->albedo(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
+        = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
     Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
     penSW[i] = sw_in[i] * (1. - albedoValue) * i0;
     // Longwave flux

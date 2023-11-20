@@ -12,6 +12,7 @@
 #include "include/ConstantAtmosphereBoundary.hpp"
 #include "include/ERA5Atmosphere.hpp"
 #include "include/FluxConfiguredAtmosphere.hpp"
+#include "include/MU71Atmosphere.hpp"
 
 #include <string>
 
@@ -20,6 +21,7 @@ const std::string BENCHMARKATMOSPHERE = "Nextsim::BenchmarkAtmosphere";
 const std::string CONSTANTATMOSPHEREBOUNDARY = "Nextsim::ConstantAtmosphereBoundary";
 const std::string CONFIGUREDATMOSPHERE = "Nextsim::ConfiguredAtmosphere";
 const std::string FLUXCONFIGUREDATMOSPHERE = "Nextsim::FluxConfiguredAtmosphere";
+const std::string MU71ATMOSPHERE = "Nextsim::MU71Atmosphere";
 const std::string ERA5ATMOSPHERE = "Nextsim::ERA5Atmosphere";
 
 template <>
@@ -29,6 +31,7 @@ Module<Nextsim::IAtmosphereBoundary>::map Module<Nextsim::IAtmosphereBoundary>::
     { CONFIGUREDATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ConfiguredAtmosphere> },
     { FLUXCONFIGUREDATMOSPHERE,
         newImpl<Nextsim::IAtmosphereBoundary, Nextsim::FluxConfiguredAtmosphere> },
+    { MU71ATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::MU71Atmosphere> },
     { ERA5ATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::ERA5Atmosphere> },
     { BENCHMARKATMOSPHERE, newImpl<Nextsim::IAtmosphereBoundary, Nextsim::BenchmarkAtmosphere> },
 };

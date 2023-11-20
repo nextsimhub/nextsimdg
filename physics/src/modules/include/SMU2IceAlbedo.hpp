@@ -21,8 +21,11 @@ class SMU2IceAlbedo : public IIceAlbedo {
      *
      * @param temperature The temperature of the ice surface.
      * @param snowThickness The true snow thickness on top of the ice.
+     * @param i0 The fraction of short-wave radiation that can penetrate bare ice (not taking snow
+     * cover into account).
      */
-    std::tuple<double, double> albedo(double temperature, double snowThickness, double i0);
+    std::tuple<double, double> surfaceShortWaveBalance(
+        double temperature, double snowThickness, double i0);
 };
 
 }
