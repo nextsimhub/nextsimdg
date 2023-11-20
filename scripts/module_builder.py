@@ -37,7 +37,8 @@ def write_source_file(source, config, strings):
 
     module_templ = f"Module<{strings[class_name]}>"
 
-    source.write("#include \"module.hpp\"\n")
+    # Use the provided path to the Module header file
+    source.write(f"#include \"{strings[header_file_path_str]}\"\n")
     source.write("\n")
     for section in valid_impl_sections:
         source.write(f"#include \"{config[section][file_prefix_str]}.{header_suffix}\"\n")
