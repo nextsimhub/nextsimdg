@@ -31,6 +31,10 @@ def get_config_with_defaults():
     if not description_str in config[module_section_str]:
         config[module_section_str][description_str] = ""
     
+    # Default to ../include for the header file path
+    if not header_path_str in config[module_section_str]:
+        config[module_section_str][header_path_str] = "../include"
+    
     return config
 
 def check_config_errors(config):
