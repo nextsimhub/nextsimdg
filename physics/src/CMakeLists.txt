@@ -1,5 +1,7 @@
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
+add_subdirectory("${ModuleDir}")
+
 set(IceAlbedoModuleSources
     "IIceAlbedoModule.cpp"
     "CCSMIceAlbedo.cpp"
