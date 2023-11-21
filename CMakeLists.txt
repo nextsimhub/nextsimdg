@@ -50,6 +50,8 @@ set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${D
 
 find_package(Eigen3 3.4 REQUIRED)
 
+find_package(PythonInterp REQUIRED)
+
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
@@ -62,8 +64,10 @@ find_package(Eigen3 3.4 REQUIRED)
 #"physics"
 #)
 
-# The location of the module_builder.py script
-set(ModuleBuilderScript "${PROJECT_SOURCE_DIR}/scripts/module_builder.py")
+# The location of the module_builder.py scripts
+set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")
+set(ModuleBuilderScript "${ScriptDirectory}/module_builder.py")
+set(ModuleHeaderScript "${ScriptDirectory}/module_header.py")
 
 # Set the components which provide source or object code to the main model
 set(CodeComponents
