@@ -149,7 +149,7 @@ The comments providing automatic documentation should be supplemented with ordin
 
 Two types of documentation are maintained alongside the code :
   - the [automatic documentation](https://nextsimhub.github.io/nextsimdg/index.html) takes all the comments described in the previous section and displays them on a website that is hosted on a github page. To achieve that, Doxygen is configured in docs/Doxyfile and run via .github/workflows/doxygen.yml everytime a push is done on the main and the docs branch.
-  - the [human readable documentation](https://nextsim-dg.readthedocs.io/en/latest/index.html) takes the material contained in all the .rst files in docs/ (ex docs/installation.rst) and displays them as web pages hosted on readthedocs. The building of this documentation is trigeered by modifying the docs branch and can be checked [here](https://readthedocs.org/projects/nextsim-dg/builds/)
+  - the [human readable documentation](https://nextsim-dg.readthedocs.io/en/latest/index.html) takes the material contained in all the .rst files in docs/ (ex docs/installation.rst) and displays them as web pages hosted on readthedocs. The building of this documentation is triggered by modifying the docs branch and can be checked [here](https://readthedocs.org/projects/nextsim-dg/builds/)
  
 ## Code management on github
 
