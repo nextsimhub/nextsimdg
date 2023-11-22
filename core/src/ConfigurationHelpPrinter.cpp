@@ -110,6 +110,9 @@ std::ostream& ConfigurationHelpPrinter::print(std::ostream& os, const Configurat
     case (ConfigType::MODULE):
         return printModule(os, help);
         break;
+    case (ConfigType::BOOLEAN):
+        return printBoolean(os, help);
+        break;
     default:
         return os;
     }
@@ -148,7 +151,7 @@ std::ostream& ConfigurationHelpPrinter::printInteger(
     os << type("integer") + "     range: " << help.range[0] << "—" << help.range[1] << " "
        << help.units;
     if (!help.defaultValue.empty()) {
-        os << " default = " << help.defaultValue << ")";
+        os << " (default = " << help.defaultValue << ")";
     }
     os << std::endl;
     os << help.text << std::endl;
@@ -167,6 +170,18 @@ std::ostream& ConfigurationHelpPrinter::printModule(std::ostream& os, const Conf
         }
     }
     os << "]" << std::endl;
+    os << help.text << std::endl;
+    return os;
+}
+std::ostream& ConfigurationHelpPrinter::printBoolean(
+    std::ostream& os, const ConfigurationHelp& help)
+{
+    os << option(help.name) << std::endl;
+    os << type("Boolean") + "                ";
+    if (!help.defaultValue.empty()) {
+        os << " (default = " << help.defaultValue << ")";
+    }
+    os << std::endl;
     os << help.text << std::endl;
     return os;
 }

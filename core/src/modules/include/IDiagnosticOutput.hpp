@@ -8,15 +8,26 @@
 #ifndef IDIAGNOSTICOUTPUT_HPP
 #define IDIAGNOSTICOUTPUT_HPP
 
+#include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 
 #include <string>
 
 namespace Nextsim {
-class IDiagnosticOutput {
+class IDiagnosticOutput : public ModelComponent {
 public:
-    IDiagnosticOutput() = default;
+    IDiagnosticOutput()
+    : externalNames ({
+        /*
+         * Using a pair of .ipp files to allow definitions of the externally visible
+         * names of the fields to defined outside of an actual source file, even if the
+         * definition file has a slightly odd format.
+         */
+#include "include/ProtectedArrayNames.ipp"
+#include "include/SharedArrayNames.ipp"
+        })    {
+    }
     virtual ~IDiagnosticOutput() = default;
 
     /*!
@@ -32,7 +43,13 @@ public:
      * @param state The model state to be written out.
      * @param meta The model metadata for the the given state.
      */
-    virtual void outputState(const ModelState& state, const ModelMetadata& meta) = 0;
+    virtual void outputState(const ModelMetadata& meta) = 0;
+
+    // Define some of the ModelComponent class functions
+    // No data to be set
+    void setData(const ModelState::DataMap& state) { }
+protected:
+    const std::map<std::string, std::string> externalNames;
 };
 }
 #endif /* IDIAGNOSTICOUTPUT_HPP */

@@ -14,24 +14,47 @@
 
 namespace Nextsim {
 
+namespace CouplingFields {
+constexpr TextTag SUBL = "SUBL"; // sublimation mass flux kg s⁻¹ m⁻²
+constexpr TextTag SNOW = "SNOW"; // snowfall mass flux kg s⁻¹ m⁻²
+constexpr TextTag RAIN = "RAIN"; // rainfall mass flux kg s⁻¹ m⁻²
+constexpr TextTag EVAP = "EVAP"; // evaporation mass flux kg s⁻¹ m⁻²
+constexpr TextTag WIND_U = "WIND_U"; // x-aligned wind component m s⁻¹
+constexpr TextTag WIND_V = "WIND_V"; // y-aligned wind component m s⁻¹
+
+}
 //! An interface class for the atmospheric inputs into the ice physics.
 class IAtmosphereBoundary : public ModelComponent {
 public:
     IAtmosphereBoundary()
+        : qia(ModelArray::Type::H)
+        , dqia_dt(ModelArray::Type::H)
+    , qow(ModelArray::Type::H)
+    , subl(ModelArray::Type::H)
+    , snow(ModelArray::Type::H)
+    , rain(ModelArray::Type::H)
+    , evap(ModelArray::Type::H)
+    , emp(ModelArray::Type::H)
+    , uwind(ModelArray::Type::U)
+    , vwind(ModelArray::Type::V)
+    , penSW(ModelArray::Type::H)
     {
-        m_couplingArrays.resize(static_cast<size_t>(CouplingFields::COUNT));
-        m_couplingArrays[static_cast<size_t>(CouplingFields::SUBL)] = &subl;
-        m_couplingArrays[static_cast<size_t>(CouplingFields::SNOW)] = &snow;
-        m_couplingArrays[static_cast<size_t>(CouplingFields::RAIN)] = &rain;
-        m_couplingArrays[static_cast<size_t>(CouplingFields::EVAP)] = &evap;
-        m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_U)] = &uwind;
-        m_couplingArrays[static_cast<size_t>(CouplingFields::WIND_V)] = &vwind;
+        m_couplingArrays.registerArray(CouplingFields::SUBL, &subl, RW);
+        m_couplingArrays.registerArray(CouplingFields::SNOW, &snow, RW);
+        m_couplingArrays.registerArray(CouplingFields::RAIN, &rain, RW);
+        m_couplingArrays.registerArray(CouplingFields::EVAP, &evap, RW);
+        m_couplingArrays.registerArray(CouplingFields::WIND_U, &uwind, RW);
+        m_couplingArrays.registerArray(CouplingFields::WIND_V, &vwind, RW);
 
-        registerSharedArray(SharedArray::Q_IA, &qia);
-        registerSharedArray(SharedArray::DQIA_DT, &dqia_dt);
-        registerSharedArray(SharedArray::Q_OW, &qow);
-        registerSharedArray(SharedArray::SUBLIM, &subl);
-        registerProtectedArray(ProtectedArray::SNOW, &snow);
+        getStore().registerArray(Shared::Q_IA, &qia, RW);
+        getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
+        getStore().registerArray(Shared::Q_OW, &qow, RW);
+        getStore().registerArray(Shared::SUBLIM, &subl, RW);
+        getStore().registerArray(Protected::SNOW, &snow, RO);
+        getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
+        getStore().registerArray(Protected::WIND_U, &uwind, RO);
+        getStore().registerArray(Protected::WIND_V, &vwind, RO);
+        getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
     }
     virtual ~IAtmosphereBoundary() = default;
 
@@ -48,23 +71,16 @@ public:
         snow.resize();
         rain.resize();
         evap.resize();
+        emp.resize();
         uwind.resize();
         vwind.resize();
+        penSW.resize();
     }
     virtual void update(const TimestepTime& tst) { }
 
 protected:
-    enum class CouplingFields {
-        SUBL, // sublimation mass flux kg s⁻¹ m⁻²
-        SNOW, // snowfall mass flux kg s⁻¹ m⁻²
-        RAIN, // rainfall mass flux kg s⁻¹ m⁻²
-        EVAP, // evaporation mass flux kg s⁻¹ m⁻²
-        WIND_U, // x-aligned wind component m s⁻¹
-        WIND_V, // y-aligned wind component m s⁻¹
-        COUNT
-    };
 
-    const MARBackingStore& couplingArrays() { return m_couplingArrays; }
+    ModelArrayReferenceStore& couplingArrays() { return m_couplingArrays; }
 
     HField qia;
     HField dqia_dt;
@@ -73,10 +89,12 @@ protected:
     HField snow;
     HField rain;
     HField evap;
+    HField emp;
     UField uwind;
     VField vwind;
+    HField penSW;
 
-    MARBackingStore m_couplingArrays;
+    ModelArrayReferenceStore m_couplingArrays;
 };
 
 } // namespace Nextsim

@@ -11,8 +11,9 @@ set(BaseSources
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
-    "DevGridIO.cpp"
     "RectGridIO.cpp"
+    "ParaGridIO.cpp"
+    "FileCallbackCloser.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
     "MissingData.cpp"
@@ -20,8 +21,10 @@ set(BaseSources
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"
+    "NZLevels.cpp"
     "PrognosticData.cpp"
     "Time.cpp"
+    "${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
@@ -29,8 +32,8 @@ list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 set(StructureModuleSources
-    "DevGrid.cpp"
     "RectangularGrid.cpp"
+    "ParametricGrid.cpp"
     "IStructureModule.cpp"
     )
 
@@ -44,10 +47,18 @@ set(DiagnosticOutputModuleSources
     "ConfigOutput.cpp"
     )
 
+
+set(DynamicsModuleSources
+    "DynamicsModule.cpp"
+    "Dynamics.cpp"
+    )
+
+
 set(ModuleSources
     "${StructureModuleSources}"
     "${FreezingPointModuleSources}"
     "${DiagnosticOutputModuleSources}"
+    "${DynamicsModuleSources}"
     )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
@@ -62,4 +73,5 @@ set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"
     "${ModuleDir}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${ModelArrayStructure}"
     PARENT_SCOPE)

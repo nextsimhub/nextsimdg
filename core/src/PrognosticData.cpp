@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date Mar 1, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -20,23 +20,27 @@ PrognosticData::PrognosticData()
     , m_tice(ModelArray::Type::Z)
     , pAtmBdy(0)
     , pOcnBdy(0)
+    , pDynamics(0)
 
 {
-    registerProtectedArray(ProtectedArray::H_ICE, &m_thick);
-    registerProtectedArray(ProtectedArray::C_ICE, &m_conc);
-    registerProtectedArray(ProtectedArray::H_SNOW, &m_snow);
-    registerProtectedArray(ProtectedArray::T_ICE, &m_tice);
+    getStore().registerArray(Protected::H_ICE, &m_thick, RO);
+    getStore().registerArray(Protected::C_ICE, &m_conc, RO);
+    getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
+    getStore().registerArray(Protected::T_ICE, &m_tice, RO);
 }
 
 void PrognosticData::configure()
 {
-    tryConfigure(iceGrowth);
-
     pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
     tryConfigure(pAtmBdy);
 
     pOcnBdy = &Module::getImplementation<IOceanBoundary>();
     tryConfigure(pOcnBdy);
+
+    pDynamics = &Module::getImplementation<IDynamics>();
+    tryConfigure(pDynamics);
+
+    tryConfigure(iceGrowth);
 }
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
@@ -52,29 +56,41 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
-    if (ms.count("u")) {
-        m_u = ms.at("u");
-    }
-    if (ms.count("v")) {
-        m_v = ms.at("v");
-    }
 
-    iceGrowth.setData(ms);
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
+    pDynamics->setData(ms);
+    iceGrowth.setData(ms);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
 {
-    pAtmBdy->update(tst);
-    pOcnBdy->updateBefore(tst);
-    iceGrowth.update(tst);
-    pOcnBdy->updateAfter(tst);
+    ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());
 
-    ModelArrayRef<SharedArray::H_ICE, MARBackingStore, RO> hiceTrueUpd(getSharedArray());
-    ModelArrayRef<SharedArray::C_ICE, MARBackingStore, RO> ciceUpd(getSharedArray());
-    ModelArrayRef<SharedArray::H_SNOW, MARBackingStore, RO> hsnowTrueUpd(getSharedArray());
-    ModelArrayRef<SharedArray::T_ICE, MARBackingStore, RO> ticeUpd(getSharedArray());
+    pOcnBdy->updateBefore(tst);
+    pAtmBdy->update(tst);
+
+    // Fill the values of the true ice and snow thicknesses.
+    iceGrowth.initializeThicknesses();
+    // Fill the updated ice temperature array
+    ticeUpd.data().setData(m_tice);
+    pDynamics->update(tst);
+    updatePrognosticFields();
+
+    // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
+    // IceGrowth updates its own fields during update
+    iceGrowth.update(tst);
+    updatePrognosticFields();
+
+    pOcnBdy->updateAfter(tst);
+}
+
+void PrognosticData::updatePrognosticFields()
+{
+    ModelArrayRef<Shared::H_ICE, RO> hiceTrueUpd(getStore());
+    ModelArrayRef<Shared::C_ICE, RO> ciceUpd(getStore());
+    ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
+    ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
 
     // Calculate the cell average thicknesses
     HField hiceUpd = hiceTrueUpd * ciceUpd;
@@ -88,12 +104,16 @@ void PrognosticData::update(const TimestepTime& tst)
 
 ModelState PrognosticData::getState() const
 {
+    ModelArrayRef<Protected::SST> sst(getStore());
+    ModelArrayRef<Protected::SSS> sss(getStore());
     return { {
                  { "mask", ModelArray(oceanMask()) }, // make a copy
                  { "hice", mask(m_thick) },
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
+                 { "sst", mask(sst.data()) },
+                 { "sss", mask(sss.data()) },
              },
         {} };
 }
@@ -101,17 +121,19 @@ ModelState PrognosticData::getState() const
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state(getState());
-    state.merge(iceGrowth.getStateRecursive(os));
     state.merge(pAtmBdy->getStateRecursive(os));
+    state.merge(iceGrowth.getStateRecursive(os));
+    // Neither OceanBdoudary nor Dynamics contribute to the output model state
     return os ? state : ModelState();
 }
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    IceGrowth::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
     Module::getHelpRecursive<IOceanBoundary>(map, getAll);
+    Module::getHelpRecursive<IDynamics>(map, getAll);
+    IceGrowth::getHelpRecursive(map, getAll);
     return map;
 }
 

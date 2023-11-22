@@ -5,24 +5,27 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 #include <sstream>
 
 #include "include/ConfiguredAtmosphere.hpp"
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/IOceanBoundary.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/Module.hpp"
 #include "include/UnescoFreezing.hpp"
+#include "include/UniformOcean.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
-TEST_CASE("ConfiguredAtmosphere melting test", "[ConfiguredAtmosphere")
+TEST_SUITE_BEGIN("ConfiguredAtmosphere");
+TEST_CASE("ConfiguredAtmosphere melting test")
 {
-    ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -48,39 +51,20 @@ TEST_CASE("ConfiguredAtmosphere melting test", "[ConfiguredAtmosphere")
 
     ConfiguredModule::parseConfigurator();
 
-    class OceanData : public IOceanBoundary {
-    public:
-        OceanData()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            IOceanBoundary::setData(state);
-            UnescoFreezing uf;
-            sst = -1.;
-            sss = 32.;
-            mld = 10.25;
-            tf = uf(sss[0]);
-            cpml = Water::cp * Water::rho * mld[0];
-            u = 0;
-            v = 0;
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+    UniformOcean ocnBdy(-1., 32., 10.25);
     ocnBdy.setData(ModelState().data);
 
     class ProgData : public ModelComponent {
     public:
         ProgData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -113,29 +97,29 @@ TEST_CASE("ConfiguredAtmosphere melting test", "[ConfiguredAtmosphere")
 
     HField qow;
     qow.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
 
     HField qia;
     qia.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
     HField dqia_dt;
     dqia_dt.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
 
     HField subl;
     subl.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     ocnBdy.updateBefore(tst);
     ca.update(tst);
 
     double prec = 1e-5;
-    REQUIRE(qow[0] == Approx(-109.923).epsilon(prec));
-    REQUIRE(qia[0] == Approx(-84.5952).epsilon(prec));
-    REQUIRE(dqia_dt[0] == Approx(19.7016).epsilon(prec));
-    REQUIRE(subl[0] == Approx(-7.3858e-06).epsilon(prec));
+    REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));
+    REQUIRE(qia[0] == doctest::Approx(-85.6364).epsilon(prec));
+    REQUIRE(dqia_dt[0] == doctest::Approx(19.7016).epsilon(prec));
+    REQUIRE(subl[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
 }
-
+TEST_SUITE_END();
 }

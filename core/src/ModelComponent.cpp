@@ -7,16 +7,17 @@
 
 #include "include/ModelComponent.hpp"
 
+#include "include/MissingData.hpp"
+
 namespace Nextsim {
 
 std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
-MARBackingStore ModelComponent::sharedArrays(static_cast<size_t>(SharedArray::COUNT));
-MARConstBackingStore ModelComponent::protectedArrays(static_cast<size_t>(ProtectedArray::COUNT));
+ModelArrayReferenceStore ModelComponent::store;
 ModelArray* ModelComponent::p_oceanMaskH = nullptr;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
 
-ModelComponent::ModelComponent() { }
+ModelComponent::ModelComponent() { noLandMask(); }
 
 void ModelComponent::setAllModuleData(const ModelState& stateIn)
 {
@@ -45,18 +46,6 @@ void ModelComponent::getAllFieldNames(std::unordered_set<std::string>& uF,
         vF.merge(entry.second->vFields());
         zF.merge(entry.second->zFields());
     }
-}
-
-void ModelComponent::registerSharedArray(SharedArray type, ModelArray* addr)
-{
-    // Assignment of pointer in array
-    sharedArrays[static_cast<size_t>(type)] = addr;
-}
-
-void ModelComponent::registerProtectedArray(ProtectedArray type, const ModelArray* addr)
-{
-    // Assignment of pointer in array
-    protectedArrays[static_cast<size_t>(type)] = addr;
 }
 
 /*
@@ -114,12 +103,12 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     case (ModelArray::Type::H):
     case (ModelArray::Type::U):
     case (ModelArray::Type::V): {
-        return data * oceanMask() + MissingData::value() * (1 - oceanMask());
+        return data * oceanMask() + MissingData::value * (1 - oceanMask());
         break;
     }
     case (ModelArray::Type::Z): {
         ModelArray copy = ModelArray::ZField();
-        copy = MissingData::value();
+        copy = MissingData::value;
         size_t nZ = data.dimensions()[data.nDimensions() - 1];
         for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
             size_t i = oceanIndex[iOcean];

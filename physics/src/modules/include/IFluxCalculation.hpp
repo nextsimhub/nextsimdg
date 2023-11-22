@@ -8,8 +8,8 @@
 #ifndef IFLUXCALCULATION_HPP
 #define IFLUXCALCULATION_HPP
 
-#include "include/Configured.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/Configured.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelState.hpp"
 
@@ -18,10 +18,11 @@ namespace Nextsim {
 class IFluxCalculation : public ModelComponent {
 public:
     IFluxCalculation()
-        : qow(getSharedArray())
-        , subl(getSharedArray())
-        , qia(getSharedArray())
-        , dqia_dt(getSharedArray())
+        : qow(getStore())
+        , subl(getStore())
+        , qia(getStore())
+        , penSW(getStore())
+        , dqia_dt(getStore())
     {
     }
     virtual ~IFluxCalculation() = default;
@@ -47,10 +48,11 @@ public:
 protected:
     // All fluxes are positive upwards, including incident radiation fluxes
     // The flux fields are owned by IAtmosphereBoundary
-    ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW> qow;
-    ModelArrayRef<SharedArray::SUBLIM, MARBackingStore, RW> subl;
-    ModelArrayRef<SharedArray::Q_IA, MARBackingStore, RW> qia;
-    ModelArrayRef<SharedArray::DQIA_DT, MARBackingStore, RW> dqia_dt;
+    ModelArrayRef<Shared::Q_OW, RW> qow;
+    ModelArrayRef<Shared::SUBLIM, RW> subl;
+    ModelArrayRef<Shared::Q_IA, RW> qia;
+    ModelArrayRef<Shared::Q_PEN_SW, RW> penSW;
+    ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
 };
 }
 #endif /* IFLUXCALCULATION_HPP */

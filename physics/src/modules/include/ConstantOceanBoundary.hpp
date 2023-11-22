@@ -12,7 +12,7 @@
 
 namespace Nextsim {
 
-//* A set of oceanic inputs that are fixed at compile time.
+//* Ocean boundary data values that are hardcoded.
 class ConstantOceanBoundary : public IOceanBoundary {
 public:
     ConstantOceanBoundary();

@@ -29,14 +29,18 @@ static const std::string pfx = "CCSMIceAlbedo";
 static const std::string iceAlbedoKey = pfx + ".iceAlbedo";
 static const std::string snowAlbedoKey = pfx + ".snowAlbedo";
 
-double CCSMIceAlbedo::albedo(double temperature, double snowThickness)
+std::tuple<double, double> CCSMIceAlbedo::surfaceShortWaveBalance(
+    double temperature, double snowThickness, double i0)
 {
     const double tLimit = -1.;
     double iceAlbedoT = iceAlbedo - std::fmax(0., 0.075 * (temperature - tLimit));
     double snowAlbedoT = snowAlbedo - std::fmax(0., 0.124 * (temperature - tLimit));
     double snowCoverFraction = snowThickness / (snowThickness + 0.02);
 
-    return snowCoverFraction * snowAlbedoT + (1 - snowCoverFraction) * iceAlbedoT;
+    const double albedo = snowCoverFraction * snowAlbedoT + (1 - snowCoverFraction) * iceAlbedoT;
+    const double penSW = (1. - snowCoverFraction) * i0;
+
+    return { albedo, penSW };
 }
 
 void CCSMIceAlbedo::configure()

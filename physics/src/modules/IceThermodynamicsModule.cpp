@@ -8,14 +8,20 @@
 #include "include/IceThermodynamicsModule.hpp"
 
 #include "include/ThermoIce0.hpp"
+#include "include/ThermoWinton.hpp"
+#include "include/DummyIceThermodynamics.hpp"
 #include <string>
 
 namespace Module {
 const std::string THERMOICE0GROWTH = "Nextsim::ThermoIce0";
+const std::string THERMOWINTON = "Nextsim::ThermoWinton";
+const std::string DUMMYICETHERMODYNAMICS = "Nextsim::DummyIceThermodynamics";
 
 template <>
 Module<Nextsim::IIceThermodynamics>::map Module<Nextsim::IIceThermodynamics>::functionMap = {
     { THERMOICE0GROWTH, newImpl<Nextsim::IIceThermodynamics, Nextsim::ThermoIce0> },
+    { THERMOWINTON, newImpl<Nextsim::IIceThermodynamics, Nextsim::ThermoWinton> },
+    { DUMMYICETHERMODYNAMICS, newImpl<Nextsim::IIceThermodynamics, Nextsim::DummyIceThermodynamics> },
 };
 
 template <>
@@ -27,7 +33,7 @@ std::unique_ptr<Nextsim::IIceThermodynamics> Module<Nextsim::IIceThermodynamics>
 
 template <> std::string Module<Nextsim::IIceThermodynamics>::moduleName()
 {
-    return "Nextsim::IVerticalIceGrowth";
+    return "Nextsim::IIceThermodynamics";
 }
 
 template <> HelpMap& getHelpRecursive<Nextsim::IIceThermodynamics>(HelpMap& map, bool getAll)
@@ -35,9 +41,10 @@ template <> HelpMap& getHelpRecursive<Nextsim::IIceThermodynamics>(HelpMap& map,
     map[Nextsim::ConfiguredModule::MODULE_PREFIX].push_back(
         { Nextsim::ConfiguredModule::MODULE_PREFIX + "."
                 + Module<Nextsim::IIceThermodynamics>::moduleName(),
-            ConfigType::MODULE, { THERMOICE0GROWTH }, THERMOICE0GROWTH, "",
+            ConfigType::MODULE, { THERMOICE0GROWTH, THERMOWINTON, DUMMYICETHERMODYNAMICS }, THERMOICE0GROWTH, "",
             "The module which calculates the one-dimensional ice thermodynamics." });
     Nextsim::ThermoIce0::getHelpRecursive(map, getAll);
+    Nextsim::ThermoWinton::getHelpRecursive(map, getAll);
     return map;
 }
 template <> Nextsim::IIceThermodynamics& getImplementation<Nextsim::IIceThermodynamics>()

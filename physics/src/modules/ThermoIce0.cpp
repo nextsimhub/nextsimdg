@@ -7,15 +7,20 @@
 
 #include "include/ThermoIce0.hpp"
 
+#include "include/IceMinima.hpp"
+#include "include/IFreezingPointModule.hpp"
 #include "include/IceGrowth.hpp"
+#include "include/IceMinima.hpp"
 #include "include/ModelArray.hpp"
+#include "include/NZLevels.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
-double ThermoIce0::k_s;
+double ThermoIce0::kappa_s;
 static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
+const size_t ThermoIce0::nZLevels = 1;
 
 ThermoIce0::ThermoIce0()
     : IIceThermodynamics()
@@ -23,7 +28,7 @@ ThermoIce0::ThermoIce0()
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
     , qic(ModelArray::Type::H)
-    , oldHi(getProtectedArray())
+    , oldHi(getStore())
 {
 }
 
@@ -36,16 +41,20 @@ void ThermoIce0::update(const TimestepTime& tsTime)
 
 template <>
 const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
-    { ThermoIce0::KS_KEY, "thermoice0.ks" },
+    { ThermoIce0::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
 };
 
-void ThermoIce0::configure() { k_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault); }
+void ThermoIce0::configure()
+{
+    kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
+    NZLevels::set(nZLevels);
+}
 
 ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state = { {},
         {
-            { keyMap.at(KS_KEY), k_s },
+            { keyMap.at(KS_KEY), kappa_s },
         } };
     return os ? state : ModelState();
 }
@@ -75,15 +84,27 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 
 void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
+    // If there is too little ice, do nothing and zero out the computed arrays
+    if (hice[i] == 0. || cice[i] == 0.) {
+        deltaHi[i] = 0.;
+        snowToIce[i] = 0.;
+
+        return;
+    }
+
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
+
+    // Semtner's fudge factors for the zero-layer model
+    constexpr double beta = 0.4;
+    constexpr double gamma = 1.065;
 
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
     double& tice_i = tice.zIndexAndLayer(i, 0);
-    double k_lSlab = k_s * Ice::kappa / (k_s * hice[i] + Ice::kappa * hsnow[i]);
+    double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]) * gamma;
     qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
-    double remainingFlux = qic[i] - qia[i];
+    double remainingFlux = qic[i] - (qia[i] + (1. - beta) * penSw[i]);
     tice_i = tice0.zIndexAndLayer(i, 0) + remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point
@@ -100,14 +121,16 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     double excessIceMelt = std::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
     // With the excess flux noted, clamp the snow thickness to a minimum of zero.
     hsnow[i] = std::max(nowSnow, 0.);
-    // Then add snowfall back on top
-    hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Bottom melt or growth
     double iceBottomChange = (qic[i] - qio[i]) * tst.step / bulkLHFusionIce;
     // Total thickness change
     deltaHi[i] = excessIceMelt + iceBottomChange;
     hice[i] += deltaHi[i];
+
+    // Then add snowfall back on top if there's still ice
+    if ( hice[i] > 0. )
+        hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Amount of melting (only) at the top and bottom of the ice
     topMelt[i] = std::min(excessIceMelt, 0.);
@@ -125,7 +148,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     }
 
     // Melt all ice if it is below minimum threshold
-    if (hice[i] < IceGrowth::minimumIceThickness()) {
+    if (hice[i] < IceMinima::h()) {
         if (deltaHi[i] < 0) {
             double scaling = oldHi[i] / deltaHi[i];
             topMelt[i] *= scaling;
@@ -142,9 +165,12 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         qio[i] += hice[i] * bulkLHFusionIce / tst.step + hsnow[i] * bulkLHFusionSnow / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
+        cice[i] = 0.;
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = Ice::Tm;
+        tice.zIndexAndLayer(i, 0) = celsius(Ice::Tm);
     }
 }
+
+size_t ThermoIce0::getNZLevels() const { return nZLevels; }
 } /* namespace Nextsim */

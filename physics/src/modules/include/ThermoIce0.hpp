@@ -8,9 +8,9 @@
 #ifndef THERMOICE0HPP
 #define THERMOICE0HPP
 
+#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
-#include "include/ModelArrayRef.hpp"
 namespace Nextsim {
 
 //! A class implementing IIceThermodynamics as the ThermoIce0 model.
@@ -32,6 +32,8 @@ public:
     void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
 
+    size_t getNZLevels() const override;
+
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
@@ -39,12 +41,14 @@ private:
     HField topMelt;
     HField botMelt;
     HField qic;
-    ModelArrayRef<ProtectedArray::HTRUE_ICE, MARConstBackingStore> oldHi;
+    ModelArrayRef<Protected::HTRUE_ICE> oldHi;
 
-    static double k_s;
     static const double freezingPointIce;
+    static double kappa_s;
 
     bool doFlooding = true; // TODO: read from configuration
+
+    static const size_t nZLevels;
 };
 
 } /* namespace Nextsim */

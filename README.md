@@ -22,7 +22,9 @@ For neXtSIM_DG we use clang-format and the [Webkit style](https://webkit.org/cod
   -  Names and values of physical constants reside in src/include/constants.hpp
   -  Runtime modifiable model parameters are set in src/options.cpp and can be set using option files.
 
-A [dedicated clang format file](https://github.com/nextsimdg/nextsimdg/blob/issue9_clang_format/src/.clang-format) has been designed for the code. You may run it loccaly and manually with the command ```clang-format -i $yourfile``` or have a plugin with your favorite code editor or implement a git pre-commit hook locally by putting this pre-commit file in your .git/hooks/. This clang formatting will also be run each time a pull request is done as part of the continuous integration. 
+A [dedicated clang format file](https://github.com/nextsimdg/nextsimdg/blob/issue9_clang_format/src/.clang-format) has been designed for the code. You may run it locally and manually with the command ```clang-format -i $yourfile``` or have a plug-in with your favourite code editor or implement a git pre-commit hook locally by putting this pre-commit file in your .git/hooks/. This clang formatting will also be run each time a pull request is done as part of the continuous integration (see [continuous integration script](https://github.com/nextsimdg/nextsimdg/blob/develop/.github/workflows/clang-compile-tests.yml). 
+
+For each file file.cpp in src/, an associated test file file_test.cpp shall be created in test/ and contain all the associated tests. The executable produced by these files must start with the sub-string ```test```. As an example the [test file](https://github.com/nextsimdg/nextsimdg/blob/develop/test/Iterator_test.cpp) for the [Iterator file](https://github.com/nextsimdg/nextsimdg/blob/develop/src/Iterator.cpp) produce [testIterator executable](https://github.com/nextsimdg/nextsimdg/blob/develop/test/CMakeLists.txt)
 
 
 ## Commenting conventions for a nice automatic documentation
@@ -155,6 +157,14 @@ We use a derived version of [semantic versioning](https://semver.org/). In brief
 2. increment y when develop is merged into main
 3. increment x when we've been working on something extraordinary, when there's a significant change in an interface (configs or outputs) ... or when y is becoming too big.
 
+### Tag and releases
+
+To implement the version numbering two steps are required: first, you have to tag a version of the code with the appropriate name (v1.0.0 for instance the rules described above) and then a release can be generated from the tag (same name).
+
+Both operations need to be commented, with ```git tag -a v1.0.0 -m 'description of the tagged version of the code'``` when generating a tag and in the Release title and description fields on github when generating the release so that changelog files are informative for users.
+
+After each release, the changelog file must be generated as described [here](docs/changelog/README.md) and deployed in the docs branch. This changelog file can also be modified anytime to take into account the recent developments.
+
 ### Git branching and merging
 
 For the code we adopt the following system for branching and merging:
@@ -205,3 +215,6 @@ For issues not requiring a hotfix (less urgent bug-fixes and feature requests):
 3. Once the issue is fixed merge the **develop** branch back into your issue branch and resolve any conflicts.
 4. Create a pull request on GitHub to merge the issue branch back into **develop**. Always include at least one reviewer who will then merge and delete the issue branch, and close the issue.
 
+## doctest
+
+Nextsim-DG uses the doctest library for testing. The doctest library is copyright Viktor Kirilov and written by Viktor Kirilov and the other doctest contributors. The library is licensed under the MIT license, which can be found in the `lib/doctest` subdirectory.

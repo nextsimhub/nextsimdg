@@ -5,6 +5,7 @@ set(IceAlbedoModuleSources
     "CCSMIceAlbedo.cpp"
     "SMUIceAlbedo.cpp"
     "SMU2IceAlbedo.cpp"
+    "MU71Albedo.cpp"
     )
 
 set(IceOceanHeatFluxModuleSources
@@ -16,6 +17,7 @@ set(IceOceanHeatFluxModuleSources
 set(IceThermodynamicsModuleSources
     "IceThermodynamicsModule.cpp"
     "ThermoIce0.cpp"
+    "ThermoWinton.cpp"
     )
     
 set(LateralIceSpreadModuleSources
@@ -27,6 +29,7 @@ set(FluxCalculationModuleSources
     "FluxCalculationModule.cpp"
     "FiniteElementFluxes.cpp"
     "FiniteElementSpecHum.cpp"
+    "MU71Atmosphere.cpp"
     )
 
 set(AtmosphereBoundaryModuleSources
@@ -34,6 +37,8 @@ set(AtmosphereBoundaryModuleSources
     "ConstantAtmosphereBoundary.cpp"
     "ConfiguredAtmosphere.cpp"
     "FluxConfiguredAtmosphere.cpp"
+    "ERA5Atmosphere.cpp"
+    "BenchmarkAtmosphere.cpp"
     )
 
 set(OceanBoundaryModuleSources
@@ -41,6 +46,8 @@ set(OceanBoundaryModuleSources
     "ConstantOceanBoundary.cpp"
     "ConfiguredOcean.cpp"
     "FluxConfiguredOcean.cpp"
+    "TOPAZOcean.cpp"
+    "BenchmarkOcean.cpp"
     )
 
 set(ModuleSources
@@ -61,6 +68,9 @@ list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
 set(Sources
     "IceGrowth.cpp"
+    "IceMinima.cpp"
+    "SlabOcean.cpp"
+    "BenchmarkCoordinates.cpp"
     )
 
 list(TRANSFORM Sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")

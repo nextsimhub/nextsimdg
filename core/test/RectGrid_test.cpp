@@ -5,10 +5,11 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "include/CommonRestartMetadata.hpp"
+#include "include/NZLevels.hpp"
 #include "include/RectangularGrid.hpp"
 #include "include/RectGridIO.hpp"
 #include "include/IStructure.hpp"
@@ -19,7 +20,8 @@
 const std::string filename = "RectGrid_test.nc";
 
 namespace Nextsim {
-TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]")
+TEST_SUITE_BEGIN("RectGrid");
+TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 {
     RectangularGrid grid;
     grid.setIO(new RectGridIO(grid));
@@ -30,8 +32,9 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
     double yFactor = 0.01;
     double xFactor = 0.0001;
 
+    NZLevels::set(1);
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
-    ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, NZLevels::get() });
 
     HField fractional(ModelArray::Type::H);
     HField mask(ModelArray::Type::H);
@@ -90,6 +93,6 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file", "[DevGrid]"
 
     std::remove(filename.c_str());
 }
-
+TEST_SUITE_END();
 
 } /* namespace Nextsim */

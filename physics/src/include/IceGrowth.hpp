@@ -11,6 +11,8 @@
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
+#include "include/IceMinima.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -26,7 +28,9 @@ public:
         LATERAL_GROWTH_KEY,
         MINC_KEY,
         MINH_KEY,
+        USE_THERMO_KEY,
     };
+
     void configure() override;
     ConfigMap getConfiguration() const override;
 
@@ -50,8 +54,13 @@ public:
 
     void update(const TimestepTime&);
 
-    static double minimumIceThickness() { return minh; }
-    static double minimumIceConcentration() { return minc; }
+    static double minimumIceThickness() { return IceMinima::h(); }
+    static double minimumIceConcentration() { return IceMinima::c(); }
+
+    /*!
+     * Updates the true ice and snow thickness arrays from the cell averages.
+     */
+    void initializeThicknesses();
 
 private:
     // Vertical Growth ModelComponent & Module
@@ -69,27 +78,23 @@ private:
     HField hsnow0; // Timestep initial true snow thickness, m
 
     HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
+    // Since ILateralSpread is purely per-element, hold Δcice here
+    HField deltaCIce; // Change in ice concentration
     // Owned data fields, not shared
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
-    ModelArrayRef<ProtectedArray::H_ICE, MARConstBackingStore>
-        hIceCell; // Timestep initial cell averaged ice thickness, m
-    ModelArrayRef<ProtectedArray::H_SNOW, MARConstBackingStore>
-        hSnowCell; // Timestep initial cell averaged snow thickness, m
-    ModelArrayRef<ProtectedArray::C_ICE, MARConstBackingStore>
-        cice0; // Timestep initial ice concentration
-    ModelArrayRef<SharedArray::Q_OW, MARBackingStore, RW>
-        qow; // open water heat flux, from FluxCalculation
-    ModelArrayRef<ProtectedArray::ML_BULK_CP, MARConstBackingStore>
+    ModelArrayRef<Protected::H_ICE> hIceCell; // Timestep initial cell averaged ice thickness, m
+    ModelArrayRef<Protected::H_SNOW> hSnowCell; // Timestep initial cell averaged snow thickness, m
+    ModelArrayRef<Protected::C_ICE> cice0; // Timestep initial ice concentration
+    ModelArrayRef<Shared::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
+    ModelArrayRef<Protected::ML_BULK_CP>
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
-    ModelArrayRef<ProtectedArray::SST, MARConstBackingStore> sst; // sea surface temperature, ˚C
-    ModelArrayRef<ProtectedArray::TF, MARConstBackingStore> tf; // ocean freezing point, ˚C
-    ModelArrayRef<SharedArray::DELTA_HICE, MARBackingStore>
-        deltaHi; // New ice thickness this timestep, m
+    ModelArrayRef<Protected::SST> sst; // sea surface temperature, ˚C
+    ModelArrayRef<Protected::TF> tf; // ocean freezing point, ˚C
+    ModelArrayRef<Shared::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
 
-    static double minc; // Minimum sea ice concentration
-    static double minh; // Minimum sea ice thickness
+    bool doThermo = true; // Perform any thermodynamics calculations at all
 
     void newIceFormation(size_t i, const TimestepTime&);
     void lateralIceSpread(size_t i, const TimestepTime&);
@@ -100,7 +105,7 @@ private:
         lateralIceSpread(i, tst);
         applyLimits(i, tst);
     }
-    void initializeThicknesses(size_t i, const TimestepTime&);
+    void initializeThicknessesElement(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */

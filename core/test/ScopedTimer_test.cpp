@@ -13,8 +13,8 @@
 #include <iostream>
 #include <thread>
 
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 namespace Nextsim {
 
@@ -24,7 +24,8 @@ void timeAndSleep()
     std::this_thread::sleep_for(std::chrono::milliseconds(45));
 }
 
-TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
+TEST_SUITE_BEGIN("ScopedTimer");
+TEST_CASE("Test the scope dependent timer")
 {
     ScopedTimer::setTimerAddress(&Timer::main);
     ScopedTimer::timer().reset();
@@ -54,5 +55,6 @@ TEST_CASE("Test the scope dependent timer", "[LocalTimer]")
 
     std::cout << ScopedTimer::timer() << std::endl;
 }
+TEST_SUITE_END();
 
 } /* namespace Nextsim */
