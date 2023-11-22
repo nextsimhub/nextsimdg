@@ -63,7 +63,7 @@ template <>
 template <>
 {module_templ}::fn {module_templ}::spf = functionMap.at({default_impl});
 template <>
-std::unique_ptr<{strings[class_name]} {module_templ}::staticInstance
+std::unique_ptr<{strings[class_name]}> {module_templ}::staticInstance
     = std::move({module_templ}::spf());
 
 template <> std::string {module_templ}::moduleName() {{ return \"{strings[class_name]}\"; }}
@@ -89,7 +89,7 @@ template <> void setImplementation<{strings[class_name]}>(const std::string& imp
 {{
     setImplTemplate<{strings[module_class_name]}>(implName);
 }}
-template <> std::unique_ptr<{strings[class_name]} getInstance()
+template <> std::unique_ptr<{strings[class_name]}> getInstance()
 {{
     return getInstTemplate<{strings[class_name]}, {strings[module_class_name]}>();
 }}
