@@ -5,6 +5,10 @@ set(CoreModulesDir "${CoreSourceDir}/modules")
 set(SourceDir "../src")
 set(ModulesDir "${SourceDir}/modules")
 
+# Generate the boundary test data files
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/era5_test_data.py" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test_data.py" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # add_executable(testexe
 #   test/TestSrc.cpp
 #   otherSource.cpp)
