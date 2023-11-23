@@ -50,6 +50,8 @@ set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${D
 
 find_package(Eigen3 3.4 REQUIRED)
 
+find_package(PythonInterp REQUIRED)
+
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
 # target_link_directories(target PUBLIC ${netCDF_LIB_DIR})
@@ -98,3 +100,6 @@ target_include_directories(nextsim PRIVATE
     )
 target_link_directories(nextsim PUBLIC "${netCDF_LIB_DIR}")
 target_link_libraries(nextsim LINK_PUBLIC Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen)
+
+# Generate the restart files that don't require additional data
+add_subdirectory(run)
