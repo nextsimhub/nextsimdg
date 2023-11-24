@@ -1,7 +1,6 @@
 # Sources for the main neXtSIM model
 
 set(BaseSources
-    "main.cpp"
     "Logged.cpp"
     "Timer.cpp"
     "Model.cpp"
