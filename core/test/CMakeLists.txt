@@ -63,18 +63,16 @@ target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testConfigOutput "ConfigOutput_test.cpp")
-target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIRS})
+target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testMonthlyCubicBSpline
     "MonthlyCubicBSpline_test.cpp"
     )
-target_include_directories(testMonthlyCubicBSpline PUBLIC ${MODEL_INCLUDE_DIRS})
 target_link_libraries(testMonthlyCubicBSpline LINK_PUBLIC Boost::boost doctest::doctest)
 
 add_executable(testFileCallbackCloser
     "FileCallbackCloser_test.cpp"
     "../../core/src/FileCallbackCloser.cpp"
     )
-target_include_directories(testFileCallbackCloser PRIVATE ${MODEL_INCLUDE_DIRS})
 target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
