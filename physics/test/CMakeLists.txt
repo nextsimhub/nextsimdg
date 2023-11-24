@@ -6,6 +6,8 @@ set(COMMON_INCLUDE_DIRS
     "../src/modules"
     )
 
+set(ModulesRoot "../src/modules")
+
 include_directories(${COMMON_INCLUDE_DIRS})
 
 add_executable(testIceGrowth "IceGrowth_test.cpp")
@@ -36,6 +38,7 @@ add_executable(testIceMinima "IceMinima_test.cpp")
 target_link_libraries(testIceMinima PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testERA5Atm "ERA5Atm_test.cpp")
+target_include_directories(testERA5Atm PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
 target_compile_definitions(testERA5Atm PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(testERA5Atm PRIVATE nextsimlib doctest::doctest)
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
@@ -51,4 +54,5 @@ add_executable(testUniformOcean "UniformOcean_test.cpp")
 target_link_libraries(testUniformOcean PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testBenchmarkBoundaries "BenchmarkBoundaries_test.cpp")
+target_include_directories(testBenchmarkBoundaries PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
 target_link_libraries(testBenchmarkBoundaries PRIVATE nextsimlib doctest::doctest)

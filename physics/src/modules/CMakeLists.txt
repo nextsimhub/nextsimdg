@@ -4,7 +4,7 @@ set(AllModuleSources "")
 # nothing else in this directory can be.
 file(GLOB ModuleSubDirs LIST_DIRECTORIES TRUE "*Module")
 
-foreach(ModuleSubDir IN ITEMS "${ModuleSubDirs}")
+foreach(ModuleSubDir IN LISTS ModuleSubDirs)
     IF (NOT EXISTS("include/${ModuleSubDir}.hpp"))
         # Run the header python script
         EXECUTE_PROCESS(COMMAND "${PYTHON_EXECUTABLE}" "${ModuleHeaderScript}" WORKING_DIRECTORY "${ModuleSubDir}")

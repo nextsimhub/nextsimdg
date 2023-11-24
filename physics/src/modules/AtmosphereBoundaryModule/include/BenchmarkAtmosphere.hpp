@@ -8,7 +8,7 @@
 #ifndef BENCHMARKATMOSPHERE_HPP
 #define BENCHMARKATMOSPHERE_HPP
 
-#include "IAtmosphereBoundary.hpp"
+#include "include/IAtmosphereBoundary.hpp"
 
 namespace Nextsim {
 
