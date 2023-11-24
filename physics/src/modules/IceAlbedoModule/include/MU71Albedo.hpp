@@ -8,7 +8,7 @@
 #ifndef SEASONALICEALBEDO_HPP
 #define SEASONALICEALBEDO_HPP
 
-#include "IIceAlbedo.hpp"
+#include "include/IIceAlbedo.hpp"
 #include "include/MonthlyCubicBSpline.hpp"
 #include <vector>
 

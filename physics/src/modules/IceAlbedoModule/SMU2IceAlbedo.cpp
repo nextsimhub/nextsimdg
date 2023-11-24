@@ -17,7 +17,7 @@ namespace Nextsim {
 const double ICE_ALBEDO = 0.64;
 const double SNOW_ALBEDO = 0.85;
 
-std::tuple<double, double> SMU2IceAlbedo::albedo(
+std::tuple<double, double> SMU2IceAlbedo::surfaceShortWaveBalance(
     double temperature, double snowThickness, double i0)
 {
     double albedo, penSW;

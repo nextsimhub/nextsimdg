@@ -2,13 +2,13 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 add_subdirectory("${ModuleDir}")
 
-set(IceAlbedoModuleSources
-    "IIceAlbedoModule.cpp"
-    "CCSMIceAlbedo.cpp"
-    "SMUIceAlbedo.cpp"
-    "SMU2IceAlbedo.cpp"
-    "MU71Albedo.cpp"
-    )
+#set(IceAlbedoModuleSources
+#    "IIceAlbedoModule.cpp"
+#    "CCSMIceAlbedo.cpp"
+#    "SMUIceAlbedo.cpp"
+#    "SMU2IceAlbedo.cpp"
+#    "MU71Albedo.cpp"
+#    )
 
 set(IceOceanHeatFluxModuleSources
     "IceOceanHeatFluxModule.cpp"
