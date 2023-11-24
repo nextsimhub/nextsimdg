@@ -10,9 +10,10 @@ source_suffix = "cpp"
 name_str = "name"
 file_prefix_str = "file_prefix"
 interface_prefix_str = "interface_prefix"
-header_dir_path_str = "header_path"
+header_dir_path_str = "external_header_path"
 header_file_path_str = "header_file_path"
 header_file_name_str = "header_file_name"
+internal_header_dir = "header_path"
 description_str = "description"
 has_help_str = "has_help"
 is_default_str = "is_default"
@@ -34,9 +35,13 @@ def get_config_with_defaults():
     if not description_str in config[module_section_str]:
         config[module_section_str][description_str] = ""
     
-    # Default to ../include for the header file path
+    # Default to ../include for the external header file path
     if not header_dir_path_str in config[module_section_str]:
         config[module_section_str][header_dir_path_str] = "../include"
+
+    # Default to include for the internal header file path
+    if not header_dir_path_str in config[module_section_str]:
+        config[module_section_str][header_dir_path_str] = "include"
     
     return config
 
@@ -61,5 +66,6 @@ def common_strings(config):
         class_name : config[module_section_str][name_str],
         module_class_name : module_name,
         header_file_name_str : header_file_name,
-        header_file_path_str : os.path.join(config[module_section_str][header_dir_path_str], module_name + "." + header_suffix)
+        header_file_path_str : os.path.join(config[module_section_str][header_dir_path_str], module_name + "." + header_suffix),
+        internal_header_dir : config[module_section_str][internal_header_dir],
     }

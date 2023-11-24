@@ -42,9 +42,9 @@ def write_source_file(source, config, strings):
     source.write(f"#include \"{strings[header_file_path_str]}\"\n")
     source.write("\n")
     for section in valid_impl_sections:
-        source.write(f"#include \"{config[section][file_prefix_str]}.{header_suffix}\"\n")
+        source.write(f"#include \"{os.path.join(strings[internal_header_dir], config[section][file_prefix_str])}.{header_suffix}\"\n")
     source.write("""
-#include<string>
+#include <string>
 
 namespace Module {
 """)
@@ -61,7 +61,7 @@ template <>
     source.write(f"""}};
 
 template <>
-{module_templ}::fn {module_templ}::spf = functionMap.at({default_impl});
+{module_templ}::fn {module_templ}::spf = functionMap.at({impl_strings[default_impl]});
 template <>
 std::unique_ptr<{strings[class_name]}> {module_templ}::staticInstance
     = std::move({module_templ}::spf());
@@ -79,8 +79,10 @@ template <> HelpMap& getHelpRecursive<{strings[class_name]}>(HelpMap& map, bool 
     source.write(f"        \"{config[module_section_str][description_str]}\" }});\n")
     for section in valid_impl_sections:
         if (has_help_str in config[section]) and (config[section][has_help_str] == true_str):
-            source.write(f"{section}::getHelpRecursive(map, getAll);\n")
-    source.write(f"""}}
+            source.write(f"    {section}::getHelpRecursive(map, getAll);\n")
+    source.write(f"""
+    return map;
+}}
 template <> {strings[class_name]}& getImplementation<{strings[class_name]}>()
 {{
     return getImplTemplate<{strings[class_name]}, {strings[module_class_name]}>();
