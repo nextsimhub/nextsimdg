@@ -41,10 +41,6 @@ target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
-add_executable(testDevGrid "DevGrid_test.cpp")
-target_include_directories(testDevGrid PRIVATE ${MODEL_INCLUDE_DIR})
-target_link_libraries(testDevGrid PRIVATE nextsimlib doctest::doctest)
-
 add_executable(testRectGrid "RectGrid_test.cpp")
 target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
