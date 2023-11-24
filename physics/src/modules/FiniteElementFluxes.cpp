@@ -8,7 +8,7 @@
 #include "include/FiniteElementFluxes.hpp"
 
 #include "include/FiniteElementSpecHum.hpp"
-#include "include/IIceAlbedoModule.hpp"
+#include "include/IceAlbedoModule.hpp"
 #include "include/constants.hpp"
 
 #include <memory>

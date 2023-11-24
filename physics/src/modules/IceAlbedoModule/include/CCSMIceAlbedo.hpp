@@ -8,7 +8,7 @@
 #ifndef CCSMICEALBEDO_HPP
 #define CCSMICEALBEDO_HPP
 
-#include "IIceAlbedo.hpp"
+#include "include/IIceAlbedo.hpp"
 #include "include/Configured.hpp"
 
 namespace Nextsim {
@@ -22,7 +22,7 @@ public:
      * @param temperature The temperature of the ice surface.
      * @param snowThickness The true snow thickness on top of the ice.
      */
-    std::tuple<double, double> albedo(double temperature, double snowThickness, double i0) override;
+    std::tuple<double, double> surfaceShortWaveBalance(double temperature, double snowThickness, double i0) override;
 
     void configure() override;
 

@@ -22,7 +22,7 @@ foreach(ModuleSubDir IN ITEMS "${ModuleSubDirs}")
         )
 endforeach()
 
-#set(NextsimSources
-#    "${NextsimSources}"
-#    "${AllModuleSources}"
-#    PARENT_SCOPE)
+set(NextsimSources
+    "${NextsimSources}"
+    "${AllModuleSources}"
+    PARENT_SCOPE)
