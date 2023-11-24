@@ -8,7 +8,7 @@
 #ifndef FLUXCONFIGUREDATMOSPHERE_HPP
 #define FLUXCONFIGUREDATMOSPHERE_HPP
 
-#include "IAtmosphereBoundary.hpp"
+#include "include/IAtmosphereBoundary.hpp"
 
 #include "include/Configured.hpp"
 

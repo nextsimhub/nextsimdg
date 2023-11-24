@@ -31,17 +31,17 @@ set(FluxCalculationModuleSources
     "FluxCalculationModule.cpp"
     "FiniteElementFluxes.cpp"
     "FiniteElementSpecHum.cpp"
-    "MU71Atmosphere.cpp"
     )
 
-set(AtmosphereBoundaryModuleSources
-    "AtmosphereBoundaryModule.cpp"
-    "ConstantAtmosphereBoundary.cpp"
-    "ConfiguredAtmosphere.cpp"
-    "FluxConfiguredAtmosphere.cpp"
-    "ERA5Atmosphere.cpp"
-    "BenchmarkAtmosphere.cpp"
-    )
+#set(AtmosphereBoundaryModuleSources
+#    "AtmosphereBoundaryModule.cpp"
+#    "ConstantAtmosphereBoundary.cpp"
+#    "ConfiguredAtmosphere.cpp"
+#    "FluxConfiguredAtmosphere.cpp"
+#    "ERA5Atmosphere.cpp"
+#    "BenchmarkAtmosphere.cpp"
+#    "MU71Atmosphere.cpp"
+#    )
 
 set(OceanBoundaryModuleSources
     "OceanBoundaryModule.cpp"

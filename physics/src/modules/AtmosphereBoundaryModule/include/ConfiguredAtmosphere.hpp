@@ -8,7 +8,7 @@
 #ifndef CONFIGUREDATMOSPHERE_HPP
 #define CONFIGUREDATMOSPHERE_HPP
 
-#include "IAtmosphereBoundary.hpp"
+#include "include/IAtmosphereBoundary.hpp"
 
 #include "include/IFluxCalculation.hpp"
 
