@@ -16,7 +16,7 @@ foreach(ModuleSubDir IN ITEMS "${ModuleSubDirs}")
     # List all sources in the subdirectory
     file(GLOB ThisModuleSources LIST_DIRECTORIES FALSE "${ModuleSubDir}/*.cpp")
     
-    set(ModuleSources
+    set(AllModuleSources
         "${AllModuleSources}"
         "${ThisModuleSources}"
         )
