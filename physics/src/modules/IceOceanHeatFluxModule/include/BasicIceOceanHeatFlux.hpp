@@ -8,7 +8,7 @@
 #ifndef BASICICEOCEANHEATFLUX_HPP
 #define BASICICEOCEANHEATFLUX_HPP
 
-#include "IIceOceanHeatFlux.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
 
 namespace Nextsim {
 
