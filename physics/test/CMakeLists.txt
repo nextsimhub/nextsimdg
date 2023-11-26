@@ -14,6 +14,7 @@ add_executable(testIceGrowth "IceGrowth_test.cpp")
 target_link_libraries(testIceGrowth PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp")
+target_include_directories(testThermoWinton PRIVATE "${ModulesRoot}/IceThermodynamicsModule")
 target_link_libraries(testThermoWinton PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testFEFluxes "FiniteElementFluxes_test.cpp")
@@ -35,6 +36,7 @@ add_executable(testSlabOcn "SlabOcean_test.cpp")
 target_link_libraries(testSlabOcn PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testThermoIce0 "ThermoIce0_test.cpp")
+target_include_directories(testThermoIce0 PRIVATE "${ModulesRoot}/IceThermodynamicsModule")
 target_link_libraries(testThermoIce0 PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testIceMinima "IceMinima_test.cpp")

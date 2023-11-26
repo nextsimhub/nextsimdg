@@ -8,7 +8,7 @@
 #ifndef DUMMYICETHERMODYNAMICS_HPP
 #define DUMMYICETHERMODYNAMICS_HPP
 
-#include "IIceThermodynamics.hpp"
+#include "include/IIceThermodynamics.hpp"
 
 #include "include/NZLevels.hpp"
 

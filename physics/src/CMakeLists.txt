@@ -16,11 +16,11 @@ add_subdirectory("${ModuleDir}")
 #    
 #    )
 
-set(IceThermodynamicsModuleSources
-    "IceThermodynamicsModule.cpp"
-    "ThermoIce0.cpp"
-    "ThermoWinton.cpp"
-    )
+#set(IceThermodynamicsModuleSources
+#    "IceThermodynamicsModule.cpp"
+#    "ThermoIce0.cpp"
+#    "ThermoWinton.cpp"
+#    )
     
 set(LateralIceSpreadModuleSources
     "LateralIceSpreadModule.cpp"
