@@ -8,7 +8,7 @@
 #ifndef FLUXCONFIGUREDOCEAN_HPP
 #define FLUXCONFIGUREDOCEAN_HPP
 
-#include "IOceanBoundary.hpp"
+#include "include/IOceanBoundary.hpp"
 
 #include "include/Configured.hpp"
 

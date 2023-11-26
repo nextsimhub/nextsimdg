@@ -8,7 +8,7 @@
 #ifndef CONFIGUREDOCEAN_HPP
 #define CONFIGUREDOCEAN_HPP
 
-#include "IOceanBoundary.hpp"
+#include "include/IOceanBoundary.hpp"
 
 #include "include/Configured.hpp"
 #include "include/SlabOcean.hpp"

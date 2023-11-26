@@ -8,7 +8,7 @@
 #ifndef UNIFORMOCEAN_HPP
 #define UNIFORMOCEAN_HPP
 
-#include "IOceanBoundary.hpp"
+#include "include/IOceanBoundary.hpp"
 
 namespace Nextsim {
 
