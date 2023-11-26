@@ -8,7 +8,7 @@
 #ifndef BENCHMARKOCEAN_HPP
 #define BENCHMARKOCEAN_HPP
 
-#include "IOceanBoundary.hpp"
+#include "include/IOceanBoundary.hpp"
 
 namespace Nextsim {
 

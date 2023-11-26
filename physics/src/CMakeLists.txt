@@ -43,15 +43,15 @@ add_subdirectory("${ModuleDir}")
 #    "MU71Atmosphere.cpp"
 #    )
 
-set(OceanBoundaryModuleSources
-    "OceanBoundaryModule.cpp"
-    "ConstantOceanBoundary.cpp"
-    "ConfiguredOcean.cpp"
-    "FluxConfiguredOcean.cpp"
-    "TOPAZOcean.cpp"
-    "BenchmarkOcean.cpp"
-    "UniformOcean.cpp"
-    )
+#set(OceanBoundaryModuleSources
+#    "OceanBoundaryModule.cpp"
+#    "ConstantOceanBoundary.cpp"
+#    "ConfiguredOcean.cpp"
+#    "FluxConfiguredOcean.cpp"
+#    "TOPAZOcean.cpp"
+#    "BenchmarkOcean.cpp"
+#    "UniformOcean.cpp"
+#    )
 
 set(ModuleSources
     "${IceAlbedoModuleSources}"

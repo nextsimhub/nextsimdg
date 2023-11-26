@@ -11,18 +11,19 @@ set(ModulesRoot "../src/modules")
 include_directories(${COMMON_INCLUDE_DIRS})
 
 add_executable(testIceGrowth "IceGrowth_test.cpp")
+target_include_directories(testIceGrowth PRIVATE "${ModulesRoot}/OceanBoundaryModule")
 target_link_libraries(testIceGrowth PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp")
-target_include_directories(testThermoWinton PRIVATE "${ModulesRoot}/IceThermodynamicsModule")
+target_include_directories(testThermoWinton PRIVATE "${ModulesRoot}/IceThermodynamicsModule" "${ModulesRoot}/OceanBoundaryModule")
 target_link_libraries(testThermoWinton PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testFEFluxes "FiniteElementFluxes_test.cpp")
-target_include_directories(testFEFluxes PRIVATE "${ModulesRoot}/FluxCalculationModule")
+target_include_directories(testFEFluxes PRIVATE "${ModulesRoot}/FluxCalculationModule" "${ModulesRoot}/OceanBoundaryModule")
 target_link_libraries(testFEFluxes PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testBIOHFluxes "BasicIceOceanFlux_test.cpp")
-target_include_directories(testBIOHFluxes PRIVATE "${ModulesRoot}/IceOceanHeatFluxModule")
+target_include_directories(testBIOHFluxes PRIVATE "${ModulesRoot}/IceOceanHeatFluxModule" "${ModulesRoot}/OceanBoundaryModule")
 target_link_libraries(testBIOHFluxes PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testSpecHum "SpecificHumidity_test.cpp")
@@ -30,6 +31,7 @@ target_include_directories(testSpecHum PRIVATE "${ModulesRoot}/FluxCalculationMo
 target_link_libraries(testSpecHum PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testConstantOcn "ConstantOceanBoundary_test.cpp")
+target_include_directories(testConstantOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")
 target_link_libraries(testConstantOcn PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testSlabOcn "SlabOcean_test.cpp")
@@ -50,14 +52,16 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(testTOPAZOcn "TOPAZOcn_test.cpp")
+target_include_directories(testTOPAZOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")
 target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test128x128.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(testUniformOcean "UniformOcean_test.cpp")
+target_include_directories(testUniformOcean PRIVATE "${ModulesRoot}/OceanBoundaryModule")
 target_link_libraries(testUniformOcean PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testBenchmarkBoundaries "BenchmarkBoundaries_test.cpp")
-target_include_directories(testBenchmarkBoundaries PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
+target_include_directories(testBenchmarkBoundaries PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule" "${ModulesRoot}/OceanBoundaryModule")
 target_link_libraries(testBenchmarkBoundaries PRIVATE nextsimlib doctest::doctest)

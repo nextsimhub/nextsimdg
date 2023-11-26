@@ -8,7 +8,7 @@
 #ifndef CONSTANTOCEANBOUNDARY_HPP
 #define CONSTANTOCEANBOUNDARY_HPP
 
-#include "IOceanBoundary.hpp"
+#include "include/IOceanBoundary.hpp"
 
 namespace Nextsim {
 
