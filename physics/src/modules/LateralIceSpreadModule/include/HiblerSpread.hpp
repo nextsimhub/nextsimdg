@@ -8,7 +8,7 @@
 #ifndef HIBLERSPREAD_HPP
 #define HIBLERSPREAD_HPP
 
-#include "ILateralIceSpread.hpp"
+#include "include/ILateralIceSpread.hpp"
 #include "include/Configured.hpp"
 
 namespace Nextsim {
