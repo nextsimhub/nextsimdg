@@ -27,11 +27,11 @@ set(LateralIceSpreadModuleSources
     "HiblerSpread.cpp"
     )
 
-set(FluxCalculationModuleSources
-    "FluxCalculationModule.cpp"
-    "FiniteElementFluxes.cpp"
-    "FiniteElementSpecHum.cpp"
-    )
+#set(FluxCalculationModuleSources
+#    "FluxCalculationModule.cpp"
+#    "FiniteElementFluxes.cpp"
+#    "FiniteElementSpecHum.cpp"
+#    )
 
 #set(AtmosphereBoundaryModuleSources
 #    "AtmosphereBoundaryModule.cpp"

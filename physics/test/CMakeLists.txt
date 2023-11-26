@@ -17,12 +17,14 @@ add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp")
 target_link_libraries(testThermoWinton PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testFEFluxes "FiniteElementFluxes_test.cpp")
+target_include_directories(testFEFluxes PRIVATE "${ModulesRoot}/FluxCalculationModule")
 target_link_libraries(testFEFluxes PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testBIOHFluxes "BasicIceOceanFlux_test.cpp")
 target_link_libraries(testBIOHFluxes PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testSpecHum "SpecificHumidity_test.cpp")
+target_include_directories(testSpecHum PRIVATE "${ModulesRoot}/FluxCalculationModule")
 target_link_libraries(testSpecHum PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testConstantOcn "ConstantOceanBoundary_test.cpp")
