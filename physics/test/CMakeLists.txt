@@ -21,6 +21,7 @@ target_include_directories(testFEFluxes PRIVATE "${ModulesRoot}/FluxCalculationM
 target_link_libraries(testFEFluxes PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testBIOHFluxes "BasicIceOceanFlux_test.cpp")
+target_include_directories(testBIOHFluxes PRIVATE "${ModulesRoot}/IceOceanHeatFluxModule")
 target_link_libraries(testBIOHFluxes PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testSpecHum "SpecificHumidity_test.cpp")

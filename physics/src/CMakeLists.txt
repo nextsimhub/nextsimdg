@@ -10,11 +10,11 @@ add_subdirectory("${ModuleDir}")
 #    "MU71Albedo.cpp"
 #    )
 
-set(IceOceanHeatFluxModuleSources
-    "IceOceanHeatFluxModule.cpp"
-    "BasicIceOceanHeatFlux.cpp"
-    
-    )
+#set(IceOceanHeatFluxModuleSources
+#    "IceOceanHeatFluxModule.cpp"
+#    "BasicIceOceanHeatFlux.cpp"
+#    
+#    )
 
 set(IceThermodynamicsModuleSources
     "IceThermodynamicsModule.cpp"
