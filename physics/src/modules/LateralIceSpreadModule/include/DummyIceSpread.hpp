@@ -8,7 +8,7 @@
 #ifndef DUMMYICESPREAD_HPP
 #define DUMMYICESPREAD_HPP
 
-#include "ILateralIceSpread.hpp"
+#include "include/ILateralIceSpread.hpp"
 
 namespace Nextsim {
 
