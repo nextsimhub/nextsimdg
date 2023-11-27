@@ -74,7 +74,7 @@ Install conda via anaconda or miniconda (no root privileges required)
 
         conda create --name nextsimdg
         conda activate nextsimdg
-        conda install netCDF4
+        conda install -c conda-forge netcdf-cxx4
         conda install -c conda-forge boost
         conda install -c anaconda cmake
         
