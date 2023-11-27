@@ -13,7 +13,7 @@ First step to install neXtSIM is to download this repository :
 
     git clone https://github.com/nextsimhub/nextsimdg.git
     
-or a specific version :
+You will get the main branch of the code, if you need a specific version :
 
 .. code::
 
