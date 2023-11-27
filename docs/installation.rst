@@ -48,15 +48,15 @@ If your package manager is `Homebrew`_ :
         cmake ..
         make
         
-Compilation on Ubuntu
----------------------
+Compilation on a Debian-based Linux distribution (Debian, Ubuntu, etc)
+----------------------------------------------------------------------
 
 You must have root privilege :
 
 .. code::
 
         sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake libeigen3-dev
 
         cd nextsimdg
         mkdir -p build
