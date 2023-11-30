@@ -46,6 +46,7 @@ target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testParaGrid "ParaGrid_test.cpp")
+target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR})
 target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
 
