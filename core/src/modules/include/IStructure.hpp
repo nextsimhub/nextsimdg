@@ -44,7 +44,8 @@ public:
      * @brief Returns the ModelState stored in the file
      */
 #ifdef USE_MPI
-    virtual ModelState getModelState(const std::string& filePath, const std::string& filePartition)
+    virtual ModelState getModelState(
+        const std::string& filePath, const std::string& filePartition, ModelMetadata& metadata)
         = 0;
 #else
     virtual ModelState getModelState(const std::string& filePath) = 0;
