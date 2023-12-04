@@ -41,13 +41,25 @@ target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
-add_executable(testRectGrid "RectGrid_test.cpp")
-target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR})
-target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
+if(ENABLE_MPI)
+  add_executable(testRectGrid_MPI "RectGrid_test.cpp" "MainMPI.cpp")
+  target_compile_definitions(testRectGrid_MPI PRIVATE USE_MPI)
+  target_include_directories(testRectGrid_MPI PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testRectGrid_MPI PRIVATE nextsimlib doctest::doctest)
+else()
+  add_executable(testRectGrid "RectGrid_test.cpp")
+  target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
+endif()
 
-add_executable(testParaGrid "ParaGrid_test.cpp")
-target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR})
-target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
+if(ENABLE_MPI)
+  message(WARNING "testParaGrid has been temporarily disabled when running with MPI enabled")
+else()
+  add_executable(testParaGrid "ParaGrid_test.cpp")
+  target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
+  target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
+endif()
 
 add_executable(testModelComponent "ModelComponent_test.cpp")
 target_include_directories(testModelComponent PRIVATE ${MODEL_INCLUDE_DIR})
@@ -62,9 +74,13 @@ add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPD
 target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR})
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
 
-add_executable(testConfigOutput "ConfigOutput_test.cpp")
-target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
-target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
+if(ENABLE_MPI)
+  message(WARNING "testConfigOutput has been temporarily disabled when running with MPI enabled")
+else()
+  add_executable(testConfigOutput "ConfigOutput_test.cpp")
+  target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
+endif()
 
 add_executable(testMonthlyCubicBSpline
     "MonthlyCubicBSpline_test.cpp"
