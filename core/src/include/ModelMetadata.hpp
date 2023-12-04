@@ -13,6 +13,10 @@
 
 #include <string>
 
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+
 namespace Nextsim {
 
 class CommonRestartMetadata;
@@ -50,6 +54,15 @@ public:
 
     // The metadata writer should be a friend
     friend CommonRestartMetadata;
+
+#ifdef USE_MPI
+    void setMpiMetadata(MPI_Comm comm);
+
+    MPI_Comm mpiComm;
+    int mpiSize = 0;
+    int mpiMyRank = -1;
+    int localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX, globalExtentY;
+#endif
 
 private:
     TimePoint m_time;
