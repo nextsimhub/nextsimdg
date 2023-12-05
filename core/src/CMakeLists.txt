@@ -34,6 +34,8 @@ list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
+add_subdirectory("${ModuleDir}")
+
 set(StructureModuleSources
     "RectangularGrid.cpp"
     "ParametricGrid.cpp"
@@ -44,13 +46,6 @@ set(FreezingPointModuleSources
     "IFreezingPointModule.cpp"
     )
 
-set(DiagnosticOutputModuleSources
-    "DiagnosticOutputModule/module.cpp"
-    "DiagnosticOutputModule/SimpleOutput.cpp"
-    "DiagnosticOutputModule/ConfigOutput.cpp"
-    )
-
-
 set(DynamicsModuleSources
     "DynamicsModule.cpp"
     "Dynamics.cpp"
@@ -60,7 +55,6 @@ set(DynamicsModuleSources
 set(ModuleSources
     "${StructureModuleSources}"
     "${FreezingPointModuleSources}"
-    "${DiagnosticOutputModuleSources}"
     "${DynamicsModuleSources}"
     )
 
@@ -71,6 +65,7 @@ set(NextsimSources
     "${BaseSources}"
     "${ModuleSources}"
     "${ParallelNetCDFSources}"
+#    "${DiagnosticOutputModuleSources}"
     PARENT_SCOPE)
 
 if(ENABLE_MPI)
