@@ -8,7 +8,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "include/ConfigOutput.hpp"
+#include "DiagnosticOutputModule/include/ConfigOutput.hpp"
 
 #include "include/FileCallbackCloser.hpp"
 #include "include/IStructure.hpp"
