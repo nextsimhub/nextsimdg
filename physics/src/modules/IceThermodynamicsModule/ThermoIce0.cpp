@@ -8,7 +8,7 @@
 #include "include/ThermoIce0.hpp"
 
 #include "include/IceMinima.hpp"
-#include "include/IFreezingPointModule.hpp"
+#include "include/FreezingPointModule.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/IceMinima.hpp"
 #include "include/ModelArray.hpp"

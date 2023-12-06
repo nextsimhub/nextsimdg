@@ -7,11 +7,12 @@ set(COMMON_INCLUDE_DIRS
     )
 
 set(ModulesRoot "../src/modules")
+set(CoreModulesRoot "../../core/src/modules")
 
 include_directories(${COMMON_INCLUDE_DIRS})
 
 add_executable(testIceGrowth "IceGrowth_test.cpp")
-target_include_directories(testIceGrowth PRIVATE "${ModulesRoot}/OceanBoundaryModule")
+target_include_directories(testIceGrowth PRIVATE "${ModulesRoot}/OceanBoundaryModule" "${CoreModulesRoot}/FreezingPointModule")
 target_link_libraries(testIceGrowth PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp")
@@ -19,11 +20,11 @@ target_include_directories(testThermoWinton PRIVATE "${ModulesRoot}/IceThermodyn
 target_link_libraries(testThermoWinton PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testFEFluxes "FiniteElementFluxes_test.cpp")
-target_include_directories(testFEFluxes PRIVATE "${ModulesRoot}/FluxCalculationModule" "${ModulesRoot}/OceanBoundaryModule")
+target_include_directories(testFEFluxes PRIVATE "${ModulesRoot}/FluxCalculationModule" "${ModulesRoot}/OceanBoundaryModule" "${CoreModulesRoot}/FreezingPointModule")
 target_link_libraries(testFEFluxes PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testBIOHFluxes "BasicIceOceanFlux_test.cpp")
-target_include_directories(testBIOHFluxes PRIVATE "${ModulesRoot}/IceOceanHeatFluxModule" "${ModulesRoot}/OceanBoundaryModule")
+target_include_directories(testBIOHFluxes PRIVATE "${ModulesRoot}/IceOceanHeatFluxModule" "${ModulesRoot}/OceanBoundaryModule" "${CoreModulesRoot}/FreezingPointModule")
 target_link_libraries(testBIOHFluxes PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testSpecHum "SpecificHumidity_test.cpp")
@@ -35,6 +36,7 @@ target_include_directories(testConstantOcn PRIVATE "${ModulesRoot}/OceanBoundary
 target_link_libraries(testConstantOcn PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testSlabOcn "SlabOcean_test.cpp")
+target_include_directories(testSlabOcn PRIVATE "${CoreModulesRoot}/FreezingPointModule")
 target_link_libraries(testSlabOcn PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testThermoIce0 "ThermoIce0_test.cpp")

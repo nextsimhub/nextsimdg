@@ -5,12 +5,12 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_UNESCOFREEZING_HPP
-#define SRC_INCLUDE_UNESCOFREEZING_HPP
+#ifndef UNESCOFREEZING_HPP
+#define UNESCOFREEZING_HPP
 
 #include <cmath>
 
-#include "IFreezingPoint.hpp"
+#include "include/IFreezingPoint.hpp"
 
 namespace Nextsim {
 
@@ -40,4 +40,4 @@ public:
 };
 }
 
-#endif /* SRC_INCLUDE_UNESCOFREEZING_HPP */
+#endif /* UNESCOFREEZING_HPP */
