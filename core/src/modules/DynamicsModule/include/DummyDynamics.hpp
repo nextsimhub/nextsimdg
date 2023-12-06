@@ -8,7 +8,7 @@
 #ifndef DUMMYDYNAMICS_HPP
 #define DUMMYDYNAMICS_HPP
 
-#include "IDynamics.hpp"
+#include "include/IDynamics.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"

@@ -9,9 +9,9 @@
 #ifndef DYNAMICS_HPP
 #define DYNAMICS_HPP
 
-#include "IDynamics.hpp"
+#include "include/IDynamics.hpp"
 
-#include "../../../../dynamics/src/include/DynamicsKernel.hpp"
+#include "../../../../../dynamics/src/include/DynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 

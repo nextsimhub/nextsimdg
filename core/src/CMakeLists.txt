@@ -42,11 +42,11 @@ set(StructureModuleSources
 #    "IFreezingPointModule.cpp"
 #    )
 #
-set(DynamicsModuleSources
-    "DynamicsModule.cpp"
-    "Dynamics.cpp"
-    )
-
+#set(DynamicsModuleSources
+#    "DynamicsModule.cpp"
+#    "Dynamics.cpp"
+#    )
+#
 
 set(ModuleSources
     "${StructureModuleSources}"
