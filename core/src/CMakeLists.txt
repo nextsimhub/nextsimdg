@@ -36,11 +36,11 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 add_subdirectory("${ModuleDir}")
 
-set(StructureModuleSources
-    "RectangularGrid.cpp"
-    "ParametricGrid.cpp"
-    "IStructureModule.cpp"
-    )
+#set(StructureModuleSources
+#    "RectangularGrid.cpp"
+#    "ParametricGrid.cpp"
+#    "IStructureModule.cpp"
+#    )
 
 #set(FreezingPointModuleSources
 #    "IFreezingPointModule.cpp"
@@ -52,11 +52,11 @@ set(StructureModuleSources
 #    )
 #
 
-set(ModuleSources
-    "${StructureModuleSources}"
-    "${FreezingPointModuleSources}"
-    "${DynamicsModuleSources}"
-    )
+#set(ModuleSources
+#    "${StructureModuleSources}"
+#    "${FreezingPointModuleSources}"
+#    "${DynamicsModuleSources}"
+#    )
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
@@ -74,7 +74,6 @@ else()
         "${ModuleSources}"
         PARENT_SCOPE)
 endif()
-
 
 set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"

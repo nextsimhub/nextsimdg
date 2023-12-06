@@ -9,7 +9,7 @@
 #ifndef RECTANGULARGRID_HPP
 #define RECTANGULARGRID_HPP
 
-#include "IStructure.hpp"
+#include "include/IStructure.hpp"
 
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
