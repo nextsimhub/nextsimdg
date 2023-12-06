@@ -14,8 +14,7 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/IFreezingPoint.hpp"
-#include "include/IFreezingPointModule.hpp"
+#include "include/FreezingPointModule.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"

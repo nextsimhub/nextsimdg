@@ -10,6 +10,8 @@ set(PHYSICS_INCLUDE_DIRS
     "../../physics/src/modules"
     )
 
+set(ModulesRoot "../src/modules")
+
 include_directories(${COMMON_INCLUDE_DIRS})
 
 add_executable(testIterator "Iterator_test.cpp")
@@ -59,7 +61,7 @@ target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
 
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
-target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR})
+target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule")
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
 
 add_executable(testConfigOutput "ConfigOutput_test.cpp")

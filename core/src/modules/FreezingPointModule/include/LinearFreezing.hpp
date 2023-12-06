@@ -5,10 +5,10 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef SRC_INCLUDE_LINEARFREEZING_HPP
-#define SRC_INCLUDE_LINEARFREEZING_HPP
+#ifndef LINEARFREEZING_HPP
+#define LINEARFREEZING_HPP
 
-#include "IFreezingPoint.hpp"
+#include "include/IFreezingPoint.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -35,4 +35,4 @@ public:
 };
 }
 
-#endif /* SRC_INCLUDE_LINEARFREEZING_HPP */
+#endif /* LINEARFREEZING_HPP */

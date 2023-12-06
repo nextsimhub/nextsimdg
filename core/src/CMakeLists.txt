@@ -38,10 +38,10 @@ set(StructureModuleSources
     "IStructureModule.cpp"
     )
 
-set(FreezingPointModuleSources
-    "IFreezingPointModule.cpp"
-    )
-
+#set(FreezingPointModuleSources
+#    "IFreezingPointModule.cpp"
+#    )
+#
 set(DynamicsModuleSources
     "DynamicsModule.cpp"
     "Dynamics.cpp"
