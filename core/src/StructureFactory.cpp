@@ -7,13 +7,11 @@
 
 #include "include/StructureFactory.hpp"
 
-#include "include/IStructureModule.hpp"
+#include "include/StructureModule.hpp"
 
 #include "include/RectGridIO.hpp"
-#include "include/RectangularGrid.hpp"
 
 #include "include/ParaGridIO.hpp"
-#include "include/ParametricGrid.hpp"
 
 #include <ncFile.h>
 #include <ncGroup.h>
@@ -43,12 +41,12 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
     std::string structureName = structureNameFromFile(filePath);
     // TODO There must be a better way
     if (RectangularGrid::structureName == structureName) {
-        Module::setImplementation<IStructure>("RectangularGrid");
+        Module::setImplementation<IStructure>("Nextsim::RectangularGrid");
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
         return gridIn.getModelState(filePath);
     } else if (ParametricGrid::structureName == structureName) {
-        Module::setImplementation<IStructure>("ParametricGrid");
+        Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
         ParametricGrid gridIn;
         gridIn.setIO(new ParaGridIO(gridIn));
         return gridIn.getModelState(filePath);

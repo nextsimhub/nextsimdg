@@ -8,7 +8,7 @@
 #ifndef PARAMETRICGRID_HPP
 #define PARAMETRICGRID_HPP
 
-#include "IStructure.hpp"
+#include "include/IStructure.hpp"
 
 #include "include/ModelState.hpp"
 

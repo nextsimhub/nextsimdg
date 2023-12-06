@@ -8,7 +8,7 @@
 #ifndef RECTGRIDIO_HPP
 #define RECTGRIDIO_HPP
 
-#include "include/RectangularGrid.hpp"
+#include "StructureModule/include/RectangularGrid.hpp"
 
 namespace Nextsim {
 
