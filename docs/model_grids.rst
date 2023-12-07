@@ -21,10 +21,23 @@ The bulk of the important code is in the ``*GridIO`` classes, which define how t
 * ``getModelState()`` constructs an instance of `ModelState` given a file path.
 * ``dumpModelState()`` writes the data in a given instance of `ModelState` to the given file path.
 
-RectGridIO
-----------
+``RectGridIO``
+--------------
 
 * ``getModelState()`` sets the size of the ``H``, ``U``, ``V`` and ``Z`` ``ModelArrays`` using the ``dimensionSetter()`` function. With the arrays correctly sized, the function reads the data for the land mask, the ice thickness, the ice concentration, the snow thickness and the ice temperature. The netCDF variable names are those taken from ``gridnames.hpp` and mapped to the same names within the ``ModelState`` data map. Close the netCDF file.
 
 * ``dumpModelState()`` writes the comman restart metadata using the ``CommonRestartMetadata`` class. The dimensions are written using the sizes of ``H``and ``Z``arrays. All of the data in passed ``ModelState`` is then written into the file based on whether it is an ``H`` array
 or a ``Z`` array. Close the netCDF file.
+
+``ParaGridIO``
+--------------
+
+The largest difference in ``ParaGridIO`` is the handling of files with a time axis. These will generally be forcing data files when reading and diagnostic output files when writing. Time-dependent reading is performed using the function ``readForcingTimeStatic()``, which is called directly when required. Writing files with a time axis occurs when ``ParametericGrid::dumpModelState()`` is called with the argument ``isRestart`` set to ``false`` and uses a specific code path, the function ``writeDiagnosticTime()``.
+
+* ``getModelState()`` reads a file without a time axis, usually a restart file. The netCDF dimensions are mapped to the ``ModelArray`` dimensions defined specifically for discontinuous Galerkin numerics. Then read the netCDF variables from the file, adding them to the map by the variable name. If a variable has a type that maps to ``ModelArray::Type::Z`` then the dimensions are re-ordered and the correct extent vector used to call ``getVar()``. Close the netCDF file.
+
+* ``readForcingTimeStatic()`` reads a file with a time axis, such as a forcing file. The index of the latest time point earlier than the passed target time is found. Extent and offset arrays for the data extraction are created. Get all of the variables in the netCDF file and add them to the returned ``ModelState`` data map. Close the netCDF file.
+
+* ``dumpModelState()`` writes a restart file. First, write the common restart data. Write the dimensions from their ``ModelArray`` definitions to the netCDF file. For the hardcoded set of restart field names write that field to disk, using the appropriate extent and offset vector. Close the netCDF file.
+
+* ``writeDiagnosticTime()`` writes data to a file with a time axis. Check if an open file by that name exists. Create it if required and note the fact to pick the 'new file' code branches in the rest of the function. Either write or get the metadata and data node names. Write common metadata if required, as well as creating the dimensions, including time. Get the dimensions out of the file and create extent and offset arrays for each type. A new file requires a landmask, which is (assumed) static with time, so create dimensions for that. Loop over all fields in the supplied ``ModelState``, writing them using the extent and offset masks, and using a special condition for the landmask field. Close the netCDF file.
