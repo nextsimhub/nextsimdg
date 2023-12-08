@@ -45,7 +45,7 @@ TEST_CASE("Test periodic output")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IDiagnosticOutput = Nextsim::ConfigOutput" << std::endl;
+    config << "DiagnosticOutputModule = Nextsim::ConfigOutput" << std::endl;
     config << std::endl;
     config << "[ConfigOutput]" << std::endl;
     config << "period = 3600" << std::endl; // Output every hour

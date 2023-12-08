@@ -66,7 +66,7 @@ template <>
 std::unique_ptr<{strings[class_name]}> {module_templ}::staticInstance
     = std::move({module_templ}::spf());
 
-template <> std::string {module_templ}::moduleName() {{ return \"{strings[class_name]}\"; }}
+template <> std::string {module_templ}::moduleName() {{ return \"{strings[module_class_name]}\"; }}
 
 template <> HelpMap& getHelpRecursive<{strings[class_name]}>(HelpMap& map, bool getAll)
 {{
