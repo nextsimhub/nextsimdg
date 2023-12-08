@@ -38,7 +38,12 @@ namespace Nextsim {
 size_t c = 0;
 
 TEST_SUITE_BEGIN("ParaGrid");
+#ifdef USE_MPI
+// Number of ranks should not be hardcoded here
+MPI_TEST_CASE("Write and read a ModelState-based ParaGrid restart file", 1)
+#else
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
+#endif
 {
     Module::setImplementation<IStructure>("ParametricGrid");
 
@@ -150,8 +155,12 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ParaGridIO* readIO = new ParaGridIO(gridIn);
     gridIn.setIO(readIO);
 
-    ModelState ms = gridIn.getModelState(filename);
-
+    #ifdef USE_MPI
+        ModelState ms = gridIn.getModelState(filename, partition_filename, metadata);
+    #else
+        ModelState ms = gridIn.getModelState(filename);
+    #endif
+    
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());

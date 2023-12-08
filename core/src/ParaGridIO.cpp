@@ -19,6 +19,9 @@
 #include <ncVar.h>
 
 #include <algorithm>
+#ifdef USE_MPI
+#include <include/ParallelNetcdfFile.hpp>
+#endif
 #include <cstdlib>
 #include <map>
 #include <string>
@@ -70,9 +73,19 @@ void ParaGridIO::makeDimCompMap()
 
 ParaGridIO::~ParaGridIO() = default;
 
+#ifdef USE_MPI
+ModelState ParaGridIO::getModelState(
+    const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
+#else
 ModelState ParaGridIO::getModelState(const std::string& filePath)
+#endif
 {
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+  #ifdef USE_MPI
+      readPartitionData(partitionFile, metadata);
+      netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
+  #else
+      netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+  #endif
     netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
     netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 

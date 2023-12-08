@@ -31,12 +31,16 @@ public:
     }
     virtual ~ParaGridIO();
 
-    /*!
-     * Retrieves the ModelState from a restart file of the parametric_grid type.
-     * @param filePath The file path containing the file to be read.
-     */
-    ModelState getModelState(const std::string& filePath) override;
-
+     #ifdef USE_MPI
+         ModelState getModelState(const std::string& filePath, const std::string& partitionFile,
+             ModelMetadata& metadata) override;
+     #else
+     /*!
+      * Retrieves the ModelState from a restart file of the parametric_grid type.
+      * @param filePath The file path containing the file to be read.
+      */
+         ModelState getModelState(const std::string& filePath) override;
+     #endif
     /*!
      * @brief Writes the ModelState to a given file location from the provided
      * model data and metadata.
