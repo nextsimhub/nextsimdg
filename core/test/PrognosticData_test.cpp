@@ -32,7 +32,7 @@ TEST_CASE("PrognosticData call order test")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IAtmosphereBoundary = Nextsim::ConfiguredAtmosphere" << std::endl;
+    config << "AtmosphereBoundaryModule = Nextsim::ConfiguredAtmosphere" << std::endl;
     config << std::endl;
     config << "[ConfiguredAtmosphere]" << std::endl;
     config << "t_air = 3" << std::endl;

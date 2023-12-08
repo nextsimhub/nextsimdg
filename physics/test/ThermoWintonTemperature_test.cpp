@@ -34,8 +34,8 @@ TEST_CASE("Melting conditions")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
-    config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
+    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
+    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
     config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
@@ -138,8 +138,8 @@ TEST_CASE("Freezing conditions")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
-    config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
+    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
+    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
     config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
@@ -245,8 +245,8 @@ TEST_CASE("No ice do nothing")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
-    config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
+    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
+    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
     config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
