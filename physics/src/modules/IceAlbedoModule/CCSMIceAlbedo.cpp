@@ -29,8 +29,8 @@ static const std::string pfx = "CCSMIceAlbedo";
 static const std::string iceAlbedoKey = pfx + ".iceAlbedo";
 static const std::string snowAlbedoKey = pfx + ".snowAlbedo";
 
-std::tuple<double, double> CCSMIceAlbedo::surfaceShortWaveBalance(
-    double temperature, double snowThickness, double i0)
+std::tuple<double, double> CCSMIceAlbedo::surfaceShortWaveBalance(double temperature,
+        double snowThickness, double i0)
 {
     const double tLimit = -1.;
     double iceAlbedoT = iceAlbedo - std::fmax(0., 0.075 * (temperature - tLimit));
@@ -40,7 +40,7 @@ std::tuple<double, double> CCSMIceAlbedo::surfaceShortWaveBalance(
     const double albedo = snowCoverFraction * snowAlbedoT + (1 - snowCoverFraction) * iceAlbedoT;
     const double penSW = (1. - snowCoverFraction) * i0;
 
-    return {albedo, penSW};
+    return { albedo, penSW };
 }
 
 void CCSMIceAlbedo::configure()
@@ -52,19 +52,16 @@ void CCSMIceAlbedo::configure()
 ConfigMap CCSMIceAlbedo::getConfiguration() const
 {
     return {
-        { iceAlbedoKey, iceAlbedo },
-        { snowAlbedoKey, snowAlbedo },
+        {   iceAlbedoKey, iceAlbedo},
+        {   snowAlbedoKey, snowAlbedo},
     };
 }
 
 CCSMIceAlbedo::HelpMap& CCSMIceAlbedo::getHelpText(HelpMap& map, bool getAll)
 {
-    map[pfx] = {
-        { iceAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, std::to_string(ICE_ALBEDO0), "",
-            "Albedo of snow-free ice." },
-        { snowAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, std::to_string(SNOW_ALBEDO0), "",
-            "Albedo of snow." },
-    };
+    map[pfx] = { { iceAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, std::to_string(ICE_ALBEDO0), "",
+            "Albedo of snow-free ice." }, { snowAlbedoKey, ConfigType::NUMERIC, { "0", "1" },
+            std::to_string(SNOW_ALBEDO0), "", "Albedo of snow." }, };
     return map;
 }
 CCSMIceAlbedo::HelpMap& CCSMIceAlbedo::getHelpRecursive(HelpMap& map, bool getAll)
