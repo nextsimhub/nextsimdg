@@ -3,6 +3,7 @@
  *
  * @date Feb 7, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #ifndef RECTANGULARGRID_HPP
@@ -47,10 +48,18 @@ public:
     }
 
     // Read/write override functions
+#ifdef USE_MPI
+    ModelState getModelState(const std::string& filePath, const std::string& partitionFile,
+        ModelMetadata& metadata) override
+    {
+        return pio ? pio->getModelState(filePath, partitionFile, metadata) : ModelState();
+    }
+#else
     ModelState getModelState(const std::string& filePath) override
     {
         return pio ? pio->getModelState(filePath) : ModelState();
     }
+#endif
 
     void dumpModelState(
         const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart = false) const override
@@ -77,7 +86,13 @@ public:
         }
         virtual ~IRectGridIO() = default;
 
+#ifdef USE_MPI
+        virtual ModelState getModelState(
+            const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
+            = 0;
+#else
         virtual ModelState getModelState(const std::string& filePath) = 0;
+#endif
 
         /*!
          * @brief Dumps the given ModelState to the given file path.
