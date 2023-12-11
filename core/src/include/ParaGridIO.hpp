@@ -97,6 +97,9 @@ private:
     static const std::map<ModelArray::Dimension, bool> isDG;
     static std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
 
+    void readPartitionData(const std::string& partitionFile, ModelMetadata& metadata);
+
+
     // Ensures that static variables are created in the correct order.
     static void makeDimCompMap();
 

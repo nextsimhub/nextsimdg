@@ -39,7 +39,7 @@ public:
     ModelState getModelState(const std::string& filePath, const std::string& partitionFile,
         ModelMetadata& metadata) override
     {
-        return pio ? pio->getModelState(filePath) : ModelState();
+      return pio ? pio->getModelState(filePath, partitionFile, metadata) : ModelState();
     }
 #else
     ModelState getModelState(const std::string& filePath) override
