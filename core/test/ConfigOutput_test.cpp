@@ -59,7 +59,7 @@ TEST_CASE("Test periodic output")
 
     ConfiguredModule::parseConfigurator();
 
-    Module::setImplementation<IStructure>("ParametricGrid");
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     HField hice(ModelArray::Type::H);
     HField cice(ModelArray::Type::H);
