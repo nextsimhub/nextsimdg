@@ -60,25 +60,17 @@ set(ModuleSources
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
-set(NextsimSources
-    "${NextsimSources}"
-    "${BaseSources}"
-    "${ModuleSources}"
-    "${ParallelNetCDFSources}"
-#    "${DiagnosticOutputModuleSources}"
-    PARENT_SCOPE)
-
 if(ENABLE_MPI)
     set(NextsimSources
-        "${NextsimSources}"
         "${BaseSources}"
+        "${NextsimSources}"
         "${ModuleSources}"
         "${ParallelNetCDFSources}"
         PARENT_SCOPE)
 else()
     set(NextsimSources
-        "${NextsimSources}"
         "${BaseSources}"
+        "${NextsimSources}"
         "${ModuleSources}"
         PARENT_SCOPE)
 endif()
