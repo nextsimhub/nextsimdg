@@ -36,28 +36,6 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 add_subdirectory("${ModuleDir}")
 
-#set(StructureModuleSources
-#    "RectangularGrid.cpp"
-#    "ParametricGrid.cpp"
-#    "IStructureModule.cpp"
-#    )
-
-#set(FreezingPointModuleSources
-#    "IFreezingPointModule.cpp"
-#    )
-#
-#set(DynamicsModuleSources
-#    "DynamicsModule.cpp"
-#    "Dynamics.cpp"
-#    )
-#
-
-#set(ModuleSources
-#    "${StructureModuleSources}"
-#    "${FreezingPointModuleSources}"
-#    "${DynamicsModuleSources}"
-#    )
-
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
 if(ENABLE_MPI)
