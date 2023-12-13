@@ -8,7 +8,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "include/ConfigOutput.hpp"
+#include "DiagnosticOutputModule/include/ConfigOutput.hpp"
 
 #include "include/FileCallbackCloser.hpp"
 #include "include/IStructure.hpp"
@@ -45,7 +45,7 @@ TEST_CASE("Test periodic output")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IDiagnosticOutput = Nextsim::ConfigOutput" << std::endl;
+    config << "DiagnosticOutputModule = Nextsim::ConfigOutput" << std::endl;
     config << std::endl;
     config << "[ConfigOutput]" << std::endl;
     config << "period = 3600" << std::endl; // Output every hour
@@ -59,7 +59,7 @@ TEST_CASE("Test periodic output")
 
     ConfiguredModule::parseConfigurator();
 
-    Module::setImplementation<IStructure>("ParametricGrid");
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     HField hice(ModelArray::Type::H);
     HField cice(ModelArray::Type::H);
@@ -71,10 +71,10 @@ TEST_CASE("Test periodic output")
     hsnow.resize();
     tice.resize();
 
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::H_ICE, &hice);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::C_ICE, &cice);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::H_SNOW, &hsnow);
-    ModelComponent::registerExternalProtectedArray(ModelComponent::ProtectedArray::T_ICE, &tice);
+    ModelComponent::getStore().registerArray(Protected::H_ICE, &hice);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
+    ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
+    ModelComponent::getStore().registerArray(Protected::T_ICE, &tice);
 
     ModelMetadata meta;
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));

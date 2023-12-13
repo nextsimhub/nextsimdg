@@ -14,7 +14,7 @@
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/gridNames.hpp"
-#include "include/IStructureModule.hpp"
+#include "include/StructureModule.hpp"
 
 #include <cmath>
 #include <filesystem>
@@ -40,7 +40,7 @@ size_t c = 0;
 TEST_SUITE_BEGIN("ParaGrid");
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 {
-    Module::setImplementation<IStructure>("ParametricGrid");
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     std::filesystem::remove(filename);
 
@@ -186,7 +186,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
 TEST_CASE("Write a diagnostic ParaGrid file")
 {
-    Module::setImplementation<IStructure>("ParametricGrid");
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
 
@@ -332,7 +332,7 @@ TEST_CASE("Test array ordering")
 {
     std::string inputFilename = "ParaGridIO_input_test.nc";
 
-    Module::setImplementation<IStructure>("ParametricGrid");
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
 

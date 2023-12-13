@@ -30,8 +30,13 @@ private:
 typedef std::chrono::system_clock SystemClock;
 typedef SystemClock::duration SystemDuration;
 
+// Forward definition of TimePoint (q.v.)
 class TimePoint;
 
+/*!
+ * Wraps the standard C++ duration to provide arithmetic, interactions with
+ * TimePoints and parsing/formatting functions.
+ */
 class Duration {
 public:
     typedef SystemDuration Basis;
@@ -42,37 +47,55 @@ public:
     Duration(const std::string& str);
     Duration(double seconds);
 
+    //! Add a Duration to a TimePoint to get a TimePoint (now + 7 days = next week).
     TimePoint operator+(const TimePoint& t) const;
 
+    //! Add-assign a Duration to this.
     Duration& operator+=(const Duration& a)
     {
         m_d += a.m_d;
         return *this;
     }
+    //! Subtract-assign a Duration from this.
     Duration& operator-=(const Duration& a)
     {
         m_d -= a.m_d;
         return *this;
     }
 
+    //! Multiply-assign this Duration by a factor.
     Duration& operator*=(double a)
     {
         m_d *= a;
         return *this;
     }
+    //! Divide-assign this Duration by a factor.
     Duration& operator/=(double a)
     {
         m_d /= a;
         return *this;
     }
 
+    //! Add two Durations.
     Duration operator+(const Duration& a) const { return Duration(m_d + a.m_d); }
+    //! Subtract one Duration from another.
     Duration operator-(const Duration& a) const { return Duration(m_d - a.m_d); }
 
+    //! Return the length of this Duration in seconds.
     double seconds() const { return std::chrono::duration_cast<std::chrono::seconds>(m_d).count(); }
 
+    /*!
+     * Set this Duration by parsing the characters in an istream. The
+     * characters should either be an integer, representing a number of seconds,
+     * or an ISO 8601 P format duration (see https://en.wikipedia.org/wiki/ISO_8601#Durations
+     * for example).
+     */
     std::istream& parse(std::istream& is);
 
+    /*! Set this Duration by parsing a string. The characters should either be
+     * an integer, representing a number of seconds, or an ISO 8601 P format
+     * duration (see https://en.wikipedia.org/wiki/ISO_8601#Durations for example).
+     */
     Duration& parse(const std::string& str)
     {
         std::stringstream is(str);
@@ -80,8 +103,16 @@ public:
         return *this;
     }
 
+    /*!
+     * Print the number of seconds represented by this Duration as a
+     * formatted value to an ostream.
+     */
     std::ostream& format(std::ostream& os) const { return os << seconds(); }
 
+    /*!
+     * Return the string representation of the number of seconds represented by
+     * this Duration.
+     */
     std::string format() const
     {
         std::stringstream ss;
@@ -135,6 +166,12 @@ std::time_t timeFromISO(const std::string& iso);
  */
 std::time_t timeFromISO(std::istream& is);
 
+/*!
+ * Wraps the C++ standard system_clock point in time to provide arithmetic,
+ * interactions with Durations and parsing/formatting functions.
+ *
+ * The represented time zone is UTC only.
+ */
 class TimePoint {
 public:
     typedef SystemClock Clock;
@@ -145,23 +182,28 @@ public:
     TimePoint(const std::string& str) { this->parse(str); }
     TimePoint(const TimePoint&, const Duration&);
 
+    //! Calculate the Duration between two TimePoints.
     Duration operator-(const TimePoint& a) const { return Duration(m_t - a.m_t); }
+    //! Add-assign a Duration to this TimePoint (now + 7 days = next week).
     TimePoint& operator+=(const Duration& d)
     {
         m_t += d.m_d;
         return *this;
     }
+    //! Subtract-assign a Duration from this TimePoint (now - 7 days = last week).
     TimePoint& operator-=(const Duration& d)
     {
         m_t -= d.m_d;
         return *this;
     }
+    //! Add a Duration to a TimePoint and return the new TimePoint.
     TimePoint operator+(const Duration& d) const
     {
         TimePoint t2(*this);
         return t2 += d;
     }
 
+    // Compare TimePoints.
     bool operator<=(const TimePoint& a) const { return m_t <= a.m_t; }
     bool operator<(const TimePoint& a) const { return m_t < a.m_t; }
     bool operator>=(const TimePoint& a) const { return m_t >= a.m_t; }
@@ -169,6 +211,7 @@ public:
     bool operator==(const TimePoint& a) const { return m_t == a.m_t; }
     bool operator!=(const TimePoint& a) const { return m_t != a.m_t; }
 
+    //! Set this TimePoint by parsing the characters in an istream as an ISO 8601 date.
     std::istream& parse(std::istream& is)
     {
         auto fromTime = Clock::from_time_t(timeFromISO(is));
@@ -176,6 +219,7 @@ public:
         return is;
     }
 
+    //! Set this TimePoint by parsing a string as an ISO 8601 date.
     TimePoint& parse(const std::string& str)
     {
         std::stringstream is(str);
@@ -183,6 +227,7 @@ public:
         return *this;
     }
 
+    //! Print this TimePoint as a formatted date to an ostream.
     std::ostream& format(std::ostream& os, std::string formatStr = ymdhmsFormat) const
     {
         // Temporary conversion from int to system_clock
@@ -191,6 +236,7 @@ public:
         return os;
     }
 
+    //! Return the formatted string representation of this TimePoint.
     std::string format(std::string formatStr = ymdhmsFormat) const
     {
         std::stringstream ss;

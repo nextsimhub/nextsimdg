@@ -16,7 +16,7 @@ html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 def setup(app):
-    app.add_stylesheet("main_stylesheet.css")
+    app.add_css_file("main_stylesheet.css")
 
 extensions = ['breathe','exhale']
 breathe_projects = { 'nextsimdg': 'xml' }
@@ -35,7 +35,7 @@ html_extra_path = ['xml']
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'nextsimdg'
-copyright = '2021, Nansen Environmental and Remote Sensing Center'
+copyright = '2023, Nansen Environmental and Remote Sensing Center'
 author = 'Nansen Environmental and Remote Sensing Center'
 
 exclude_patterns = []

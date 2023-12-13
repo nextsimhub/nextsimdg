@@ -7,7 +7,7 @@
 
 #include "include/ModelMetadata.hpp"
 
-#include "include/IStructureModule.hpp"
+#include "include/StructureModule.hpp"
 
 namespace Nextsim {
 
@@ -15,5 +15,14 @@ const std::string& ModelMetadata::structureName() const
 {
     return Module::getImplementation<IStructure>().structureType();
 }
+
+#ifdef USE_MPI
+void ModelMetadata::setMpiMetadata(MPI_Comm comm)
+{
+    mpiComm = comm;
+    MPI_Comm_size(mpiComm, &mpiSize);
+    MPI_Comm_rank(mpiComm, &mpiMyRank);
+}
+#endif
 
 } /* namespace Nextsim */

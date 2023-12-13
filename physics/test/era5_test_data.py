@@ -125,6 +125,7 @@ tair = datagrp.createVariable("tair", "f8", timefield_dims)
 tdew = datagrp.createVariable("dew2m", "f8", timefield_dims)
 u = datagrp.createVariable("u", "f8", timefield_dims)
 v = datagrp.createVariable("v", "f8", timefield_dims)
+
 # 12 monthly values
 for t in range(12):
     time_var[t] = 946684800 + 2592000 * t # 30 day months

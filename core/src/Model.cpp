@@ -2,13 +2,13 @@
  * @file Model.cpp
  * @date 12 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include "include/Model.hpp"
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
@@ -27,14 +27,26 @@ const std::string Model::restartOptionName = "model.init_file";
 template <>
 const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
+#ifdef USE_MPI
+    { Model::PARTITIONFILE_KEY, "model.partition_file" },
+#endif
     { Model::STARTTIME_KEY, "model.start" },
     { Model::STOPTIME_KEY, "model.stop" },
     { Model::RUNLENGTH_KEY, "model.run_length" },
     { Model::TIMESTEP_KEY, "model.time_step" },
+    { Model::MISSINGVALUE_KEY, "model.missing_value" },
 };
 
+#ifdef USE_MPI
+Model::Model(MPI_Comm comm)
+#else
 Model::Model()
+#endif
 {
+#ifdef USE_MPI
+    m_etadata.setMpiMetadata(comm);
+#endif
+
     iterator.setIterant(&modelStep);
 
     finalFileName = "restart.nc";
@@ -68,8 +80,8 @@ void Model::configure()
     TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
     m_etadata.setTime(timeNow);
 
-    MissingData mdi;
-    mdi.configure();
+    MissingData::value
+        = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
 
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
 
@@ -78,7 +90,17 @@ void Model::configure()
     modelStep.init();
     modelStep.setInitFile(initialFileName);
 
+#ifdef USE_MPI
+    std::string partitionFile
+        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
+#endif
+
+#ifdef USE_MPI
+    ModelState initialState(
+        StructureFactory::stateFromFile(initialFileName, partitionFile, m_etadata));
+#else
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
+#endif
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
     pData.setData(initialState.data);
@@ -91,9 +113,8 @@ ConfigMap Model::getConfig() const
         { keyMap.at(STOPTIME_KEY), stopTimeStr },
         { keyMap.at(RUNLENGTH_KEY), durationStr },
         { keyMap.at(TIMESTEP_KEY), stepStr },
+        { keyMap.at(MISSINGVALUE_KEY), MissingData::value },
     };
-    // MissingData has a static getState
-    cMap.merge(MissingData::getConfig());
 
     return cMap;
 }
@@ -114,6 +135,12 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model physics timestep, formatted a ISO8601 duration (P prefix). " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
+        { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
+            "Missing data indicator used for input and output." },
+#ifdef USE_MPI
+        { keyMap.at(PARTITIONFILE_KEY), ConfigType::STRING, {}, "", "",
+            "The file path to the file describing MPI domain decomposition to use for the run." },
+#endif
     };
 
     return map;
@@ -122,7 +149,6 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
 Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
-    MissingData::getHelpRecursive(map, getAll);
     PrognosticData::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IDiagnosticOutput>(map, getAll);
     return map;

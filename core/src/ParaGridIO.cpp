@@ -119,6 +119,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         if (newType == ModelArray::Type::Z) {
             std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
             std::vector<size_t> extentVector = ModelArray::dimensions(newType);
+            // Reverse the extent vector to go from logical (x, y, z) ordering
+            // of indexes to netCDF storage ordering.
             std::reverse(extentVector.begin(), extentVector.end());
             var.getVar(startVector, extentVector, &data[0]);
         } else {
@@ -161,7 +163,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
     std::vector<size_t> extentArray = { 1 };
 
     // Loop over the dimensions of H
-    std::vector<ModelArray::Dimension>& dimensions
+    const std::vector<ModelArray::Dimension>& dimensions
         = ModelArray::typeDimensions.at(ModelArray::Type::H);
     for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
         indexArray.push_back(0);
@@ -205,16 +207,13 @@ void ParaGridIO::dumpModelState(
     for (auto entry : ModelArray::typeDimensions) {
         ModelArray::Type type = entry.first;
         std::vector<netCDF::NcDim> ncDims;
-        for (ModelArray::Dimension& maDim : entry.second) {
+        for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
+            ModelArray::Dimension& maDim = *iter;
             ncDims.push_back(ncFromMAMap.at(maDim));
         }
         dimMap[type] = ncDims;
     }
-    // Reverse the order of the dimensions to translate between column-major ModelArray and
-    // row-major netCDF
-    for (auto& [type, v] : dimMap) {
-        std::reverse(v.begin(), v.end());
-    }
+
     // Everything that has components needs that dimension, too. This always varies fastest, and so
     // is last in the vector of dimensions.
     for (auto entry : dimCompMap) {
@@ -230,7 +229,7 @@ void ParaGridIO::dumpModelState(
             ModelArray::Type type = entry.second.getType();
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
             netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
             var.putVar(entry.second.getData());
         }
     }
@@ -359,7 +358,7 @@ void ParaGridIO::writeDiagnosticTime(
             netCDF::NcVar var((isNew) ? dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims)
                                       : dataGroup.getVar(entry.first));
             if (isNew)
-                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
 
             var.putVar(indexArrays.at(type), extentArrays.at(type), entry.second.getData());
         }
