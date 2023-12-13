@@ -14,7 +14,6 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/NZLevels.hpp"
-#include "include/RectangularGrid.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>

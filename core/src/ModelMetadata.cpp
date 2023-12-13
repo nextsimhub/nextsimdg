@@ -7,7 +7,7 @@
 
 #include "include/ModelMetadata.hpp"
 
-#include "include/IStructureModule.hpp"
+#include "include/StructureModule.hpp"
 
 namespace Nextsim {
 
