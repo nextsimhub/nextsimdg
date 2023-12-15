@@ -130,7 +130,7 @@ TEST_CASE("Compare readmesh and landmask reading")
         }
     }
      // No periodic boundary conditions
-//     REQUIRE(smesh.periodic.size() == 0);
+     REQUIRE(fromArrays.periodic.size() == 0);
 
 }
 }
