@@ -44,6 +44,14 @@ class ParametricMesh {
 public:
     int statuslog; //!< -1 no output, 1 full status output
 
+    enum Edge {
+        BOTTOM,
+        RIGHT,
+        TOP,
+        LEFT,
+        N_EDGE
+    };
+
   COORDINATES CoordinateSystem; //! CARTESIAN or SPHERICAL
   
     size_t nx, ny; //!< no of elements in x- and y-direction
@@ -407,6 +415,29 @@ public:
 	return vertices.block<1,2>(n2,0) - vertices.block<1,2>(n1,0);
       else abort();      
     }
+
+    /*!
+     * Copy the coordinate arrays from the arguments.
+     *
+     * @param coord1 x in metres or longitude in radians
+     * @param coord2 y in metres or latitude in radians
+     */
+    void coordinatesFromModelArray(const ModelArray& coord1, const ModelArray& coord2);
+
+    /*!
+     * Add to the dirichlet arrays given a landmask.
+     */
+    void dirichletFromMask(const ModelArray& mask);
+
+    /*!
+     * Add to the dirichlet arrays according to an edge index.
+     */
+    void dirichletFromEdge(const ModelArray& mask, Edge edge);
+
+    /*!
+     * Sort the dirichlet arrays, so the indices are ordered.
+     */
+    void sortDirichlet();
 
     // Global access functions
 

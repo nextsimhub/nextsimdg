@@ -189,6 +189,66 @@ void ParametricMesh::readmesh(std::string fname)
     }
 }
 
+void ParametricMesh::coordinatesFromModelArray(const ModelArray& coord1, const ModelArray& coord2)
+{
+    // Fill in the array sizes from the ModelArray dimensions
+    nx = ModelArray::size(ModelArray::Dimension::X);
+    ny = ModelArray::size(ModelArray::Dimension::Y);
+    nelements = nx * ny;
+    nnodes = (nx + 1) * (ny + 1);
+    vertices.resize(nnodes, 2);
+
+    vertices.row(0) = coord1.data();
+    vertices.row(1) = coord2.data();
+}
+
+void ParametricMesh::dirichletFromMask(const ModelArray& mask)
+{
+    // BOTTOM, RIGHT, TOP, LEFT
+    const std::array<size_t, N_EDGE> startX = {0, 0, 0, 1};
+    const std::array<size_t, N_EDGE> stopX = {nx, nx - 1, nx, nx};
+    const std::array<size_t, N_EDGE> startY = {1, 0, 0, 0};
+    const std::array<size_t, N_EDGE> stopY = {ny, ny, ny - 1, ny};
+    const std::array<size_t, N_EDGE> deltaX = {0, 1, 0, -1};
+    const std::array<size_t, N_EDGE> deltaY = {-1, 0, 1, 0};
+
+    // Loop over edges
+    for (Edge edge = 0; edge < N_EDGE; ++edge) {
+        for (size_t j = startY[edge]; j < stopY[edge]; ++j) {
+            for (size_t i = startX[edge]; i < stopX[edge]; ++i) {
+                if (!mask(i, j)) continue;
+                // mask(i, j) is ocean. Check the appropriate neighbour
+                if (!mask(i + deltaX[edge], j + deltaY[edge])) {
+                    dirichlet[edge].push_back(mask.indexFromLocation({i, j}));
+                }
+            }
+        }
+    }
+}
+
+void ParametricMesh::dirichletFromEdge(const ModelArray& mask, Edge edge)
+{
+    // BOTTOM, RIGHT, TOP, LEFT
+    const std::array<size_t, N_EDGE> startX = {0, nx, 0, 0};
+    const std::array<size_t, N_EDGE> stopX = {nx, nx, nx, 0};
+    const std::array<size_t, N_EDGE> startY = {0, 0, ny, 0};
+    const std::array<size_t, N_EDGE> stopY = {0, ny, ny, ny};
+
+    for (size_t j = startY[edge]; j < stopY[edge]; ++j) {
+        for (size_t i = startX[edge]; i < stopX[edge]; ++i) {
+            if (mask(i, j)) {
+                dirichlet[edge].push_back(mask.indexFromLocation({i, j}));
+            }
+        }
+    }
+}
+
+void ParametricMesh::sortDirichlet()
+{
+    for (Edge edge = 0; edge < N_EDGE; ++edge) {
+        std::sort(dirichlet[edge].begin(), dirichlet[edge].end());
+    }
+}
 /*!
  * returns minimum mesh size.
  *
