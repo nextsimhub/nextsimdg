@@ -426,6 +426,11 @@ public:
     void coordinatesFromModelArray(const ModelArray& coord1, const ModelArray& coord2);
 
     /*!
+     * Copy the landmask from the passed ModelArray
+     */
+    void landmaskFromModelArray(const ModelArray& mask);
+
+    /*!
      * Add to the dirichlet arrays given a landmask.
      */
     void dirichletFromMask(const ModelArray& mask);

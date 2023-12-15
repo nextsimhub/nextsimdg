@@ -203,6 +203,15 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coord1, const M
     }
 }
 
+void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
+{
+    landmask.resize(nelements);
+    for (size_t idx = 0; idx < mask.trueSize(); ++idx)
+    {
+        landmask[idx] = (mask[idx] == 1.);
+    }
+}
+
 void ParametricMesh::dirichletFromMask(const ModelArray& mask)
 {
     // BOTTOM, RIGHT, TOP, LEFT

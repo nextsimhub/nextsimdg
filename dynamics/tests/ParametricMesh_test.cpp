@@ -109,14 +109,13 @@ TEST_CASE("Compare readmesh and landmask reading")
     }
 
      // Landmask values
-//     REQUIRE(!smesh.landmask[0]);
-//     REQUIRE(!smesh.landmask[4]);
-//     REQUIRE(smesh.landmask[5]);
-//     REQUIRE(smesh.landmask[nx - 1]);
-//     REQUIRE(!smesh.landmask[(ny - 1) * nx]);
+    fromArrays.landmaskFromModelArray(fakeSmeshData.data.at(maskName));
+    for (size_t idx = 0; idx < fromArrays.nelements; ++idx) {
+        REQUIRE(fromArrays.landmask[idx] == fromFile.landmask[idx]);
+    }
 
-     // Dirichlet conditions
-     // Element 5 comes first, and is closed on edges 0 & 3
+    // Dirichlet conditions
+    // Element 5 comes first, and is closed on edges 0 & 3
 //     REQUIRE(smesh.dirichlet[0][0] == 5);
 //     REQUIRE(smesh.dirichlet[3][0] == 5);
      // Element 7 is the first with a closed edge 1
