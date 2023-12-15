@@ -209,17 +209,17 @@ void ParametricMesh::dirichletFromMask(const ModelArray& mask)
     const std::array<size_t, N_EDGE> stopX = {nx, nx - 1, nx, nx};
     const std::array<size_t, N_EDGE> startY = {1, 0, 0, 0};
     const std::array<size_t, N_EDGE> stopY = {ny, ny, ny - 1, ny};
-    const std::array<size_t, N_EDGE> deltaX = {0, 1, 0, -1};
-    const std::array<size_t, N_EDGE> deltaY = {-1, 0, 1, 0};
+    const std::array<int, N_EDGE> deltaX = {0, 1, 0, -1};
+    const std::array<int, N_EDGE> deltaY = {-1, 0, 1, 0};
 
     // Loop over edges
-    for (Edge edge = 0; edge < N_EDGE; ++edge) {
-        for (size_t j = startY[edge]; j < stopY[edge]; ++j) {
-            for (size_t i = startX[edge]; i < stopX[edge]; ++i) {
+    for (auto edge = edges.begin(); edge != edges.end(); ++edge) {
+        for (size_t j = startY[*edge]; j < stopY[*edge]; ++j) {
+            for (size_t i = startX[*edge]; i < stopX[*edge]; ++i) {
                 if (!mask(i, j)) continue;
                 // mask(i, j) is ocean. Check the appropriate neighbour
-                if (!mask(i + deltaX[edge], j + deltaY[edge])) {
-                    dirichlet[edge].push_back(mask.indexFromLocation({i, j}));
+                if (!mask(i + deltaX[*edge], j + deltaY[*edge])) {
+                    dirichlet[*edge].push_back(mask.indexFromLocation({i, j}));
                 }
             }
         }
@@ -245,8 +245,8 @@ void ParametricMesh::dirichletFromEdge(const ModelArray& mask, Edge edge)
 
 void ParametricMesh::sortDirichlet()
 {
-    for (Edge edge = 0; edge < N_EDGE; ++edge) {
-        std::sort(dirichlet[edge].begin(), dirichlet[edge].end());
+    for (auto edge = edges.begin(); edge != edges.end(); ++edge) {
+        std::sort(dirichlet[*edge].begin(), dirichlet[*edge].end());
     }
 }
 /*!

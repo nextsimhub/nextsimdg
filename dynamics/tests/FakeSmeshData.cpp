@@ -9,7 +9,7 @@
 
 #include "include/ModelArray.hpp"
 
-#include "include/gridnames.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 ModelState FakeSmeshData::getData()
@@ -44,7 +44,7 @@ ModelState FakeSmeshData::getData()
     return state;
 }
 
-std::vector<double> landmask25km_NH()
+std::vector<double> FakeSmeshData::landmask25km_NH()
 {
     return {
         0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

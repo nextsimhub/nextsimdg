@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cstddef>
 
+#include "include/ModelArray.hpp"
 #include "NextsimDynamics.hpp"
 #include <iostream>
 #include <string>
@@ -38,8 +39,6 @@ inline constexpr double SQR(double x) { return x * x; }
 
 typedef std::array<double, 2> Vertex;
 
-class ModelArray;
-
 class ParametricMesh {
 public:
     int statuslog; //!< -1 no output, 1 full status output
@@ -51,6 +50,8 @@ public:
         LEFT,
         N_EDGE
     };
+
+    static constexpr std::array<Edge, N_EDGE> edges = {BOTTOM, RIGHT, TOP, LEFT};
 
   COORDINATES CoordinateSystem; //! CARTESIAN or SPHERICAL
   
