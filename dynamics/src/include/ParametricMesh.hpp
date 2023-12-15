@@ -433,12 +433,12 @@ public:
     /*!
      * Add to the dirichlet arrays given a landmask.
      */
-    void dirichletFromMask(const ModelArray& mask);
+    void dirichletFromMask();
 
     /*!
      * Add to the dirichlet arrays according to an edge index.
      */
-    void dirichletFromEdge(const ModelArray& mask, Edge edge);
+    void dirichletFromEdge(Edge edge);
 
     /*!
      * Sort the dirichlet arrays, so the indices are ordered.
