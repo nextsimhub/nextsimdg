@@ -197,9 +197,10 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coord1, const M
     nelements = nx * ny;
     nnodes = (nx + 1) * (ny + 1);
     vertices.resize(nnodes, 2);
-
-    vertices.row(0) = coord1.data();
-    vertices.row(1) = coord2.data();
+    for (size_t idx = 0; idx < nnodes; ++idx) {
+        vertices(idx, 0) = coord1(idx);
+        vertices(idx, 1) = coord2(idx);
+    }
 }
 
 void ParametricMesh::dirichletFromMask(const ModelArray& mask)

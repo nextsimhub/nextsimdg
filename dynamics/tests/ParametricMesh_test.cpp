@@ -13,6 +13,7 @@
 #include "include/ParametricMesh.hpp"
 
 #include "FakeSmeshData.hpp"
+#include "include/gridNames.hpp"
 
 #include <filesystem>
 
@@ -88,6 +89,48 @@ TEST_CASE("Compare readmesh and landmask reading")
 
     fromFile.readmesh(smeshFile);
 
+    ModelState fakeSmeshData = FakeSmeshData::getData();
+    REQUIRE(fakeSmeshData.data.at(xName).trueSize() == (nx + 1) * (ny + 1));
+    REQUIRE(fakeSmeshData.data.at(maskName).trueSize() == nx * ny);
+
+
+    fromArrays.coordinatesFromModelArray(fakeSmeshData.data.at(xName), fakeSmeshData.data.at(yName));
+    // Sizes of things
+    REQUIRE(fromArrays.nx == fromFile.nx);
+    REQUIRE(fromArrays.ny == fromFile.ny);
+    REQUIRE(fromArrays.nelements == fromFile.nelements);
+    REQUIRE(fromArrays.nnodes == fromFile.nnodes);
+    REQUIRE(fromArrays.vertices.col(0).size() == fromFile.vertices.col(0).size());
+     // Coordinate values
+    std::vector<size_t> checkIndices = { 0, 1, nx + 1, (nx + 1) * (ny + 1) - 1};
+    for (auto index : checkIndices) {
+        REQUIRE(fromArrays.vertices(index, 0) == fromFile.vertices(index, 0));
+        REQUIRE(fromArrays.vertices(index, 1) == fromFile.vertices(index, 1));
+    }
+
+     // Landmask values
+//     REQUIRE(!smesh.landmask[0]);
+//     REQUIRE(!smesh.landmask[4]);
+//     REQUIRE(smesh.landmask[5]);
+//     REQUIRE(smesh.landmask[nx - 1]);
+//     REQUIRE(!smesh.landmask[(ny - 1) * nx]);
+
+     // Dirichlet conditions
+     // Element 5 comes first, and is closed on edges 0 & 3
+//     REQUIRE(smesh.dirichlet[0][0] == 5);
+//     REQUIRE(smesh.dirichlet[3][0] == 5);
+     // Element 7 is the first with a closed edge 1
+//     REQUIRE(smesh.dirichlet[1][0] == 7);
+     // Element 48 is the first with a closed edge 2
+//     REQUIRE(smesh.dirichlet[2][0] == 48);
+     // sizes of the Dirichlet arrays
+//     REQUIRE(smesh.dirichlet[0].size() == 369);
+//     REQUIRE(smesh.dirichlet[1].size() == 384);
+//     REQUIRE(smesh.dirichlet[0].size() == smesh.dirichlet[2].size());
+//     REQUIRE(smesh.dirichlet[1].size() == smesh.dirichlet[3].size());
+
+     // No periodic boundary conditions
+//     REQUIRE(smesh.periodic.size() == 0);
 
 }
 }
