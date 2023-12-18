@@ -445,6 +445,11 @@ public:
      */
     void sortDirichlet();
 
+    /*!
+     * Sort the dirichlet array of one particular edge.
+     */
+    void sortDirichlet(Edge edge);
+
     // Global access functions
 
     double hmin() const; //! returns the minimum mesh size

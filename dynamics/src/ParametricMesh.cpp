@@ -233,6 +233,7 @@ void ParametricMesh::dirichletFromMask()
                 }
             }
         }
+        sortDirichlet(edge);
     }
 }
 
@@ -248,13 +249,19 @@ void ParametricMesh::dirichletFromEdge(Edge edge)
             dirichlet[edge].push_back(idx);
         }
     }
+    sortDirichlet(edge);
 }
 
 void ParametricMesh::sortDirichlet()
 {
     for (ParametricMesh::Edge edge : ParametricMesh::edges) {
-        std::sort(dirichlet[edge].begin(), dirichlet[edge].end());
+        sortDirichlet(edge);
     }
+}
+
+void ParametricMesh::sortDirichlet(Edge edge)
+{
+    std::sort(dirichlet[edge].begin(), dirichlet[edge].end());
 }
 /*!
  * returns minimum mesh size.
