@@ -90,11 +90,12 @@ TEST_CASE("Compare readmesh and landmask reading")
     fromFile.readmesh(smeshFile);
 
     ModelState fakeSmeshData = FakeSmeshData::getData();
-    REQUIRE(fakeSmeshData.data.at(xName).trueSize() == (nx + 1) * (ny + 1));
+    REQUIRE(fakeSmeshData.data.at(xName).trueSize() == nx * ny);
+    REQUIRE(fakeSmeshData.data.at(coordsName).trueSize() == (nx + 1) * (ny + 1));
     REQUIRE(fakeSmeshData.data.at(maskName).trueSize() == nx * ny);
 
 
-    fromArrays.coordinatesFromModelArray(fakeSmeshData.data.at(xName), fakeSmeshData.data.at(yName));
+    fromArrays.coordinatesFromModelArray(fakeSmeshData.data.at(coordsName));
     // Sizes of things
     REQUIRE(fromArrays.nx == fromFile.nx);
     REQUIRE(fromArrays.ny == fromFile.ny);

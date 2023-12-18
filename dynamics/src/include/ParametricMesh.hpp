@@ -423,7 +423,7 @@ public:
      * @param coord1 x in metres or longitude in radians
      * @param coord2 y in metres or latitude in radians
      */
-    void coordinatesFromModelArray(const ModelArray& coord1, const ModelArray& coord2);
+    void coordinatesFromModelArray(const ModelArray& coords);
 
     /*!
      * Copy the landmask from the passed ModelArray

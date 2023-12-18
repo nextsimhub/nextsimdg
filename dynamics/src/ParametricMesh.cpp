@@ -189,7 +189,7 @@ void ParametricMesh::readmesh(std::string fname)
     }
 }
 
-void ParametricMesh::coordinatesFromModelArray(const ModelArray& coord1, const ModelArray& coord2)
+void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
 {
     // Fill in the array sizes from the ModelArray dimensions
     nx = ModelArray::size(ModelArray::Dimension::X);
@@ -198,8 +198,8 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coord1, const M
     nnodes = (nx + 1) * (ny + 1);
     vertices.resize(nnodes, 2);
     for (size_t idx = 0; idx < nnodes; ++idx) {
-        vertices(idx, 0) = coord1(idx);
-        vertices(idx, 1) = coord2(idx);
+        vertices(idx, 0) = coords.components(idx)[0];
+        vertices(idx, 1) = coords.components(idx)[1];
     }
 }
 

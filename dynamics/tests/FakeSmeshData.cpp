@@ -29,20 +29,33 @@ ModelState FakeSmeshData::getData()
     state.data.at(maskName).resize();
     state.data.at(maskName).setData(landmask25km_NH().data());
 
-    state.data[xName] = ModelArray(ModelArray::Type::VERTEX);
-    state.data[yName] = ModelArray(ModelArray::Type::VERTEX);
+    state.data[xName] = ModelArray(ModelArray::Type::H);
+    state.data[yName] = ModelArray(ModelArray::Type::H);
+    state.data[coordsName] = ModelArray(ModelArray::Type::VERTEX);
     state.data.at(xName).resize();
     state.data.at(yName).resize();
+    state.data.at(coordsName).resize();
 
-    // Note the <= comparison, which is correct for vertex positions
-    for(size_t j = 0; j <= ny; ++j) {
+    // Location of vertices
+    for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
         double y = dy * j;
-        for(size_t i = 0; i <= nx; ++i) {
+        for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
             double x = dx * i;
+            state.data.at(coordsName).components({i, j})[0] = x;
+            state.data.at(coordsName).components({i, j})[1] = y;
+        }
+    }
+
+    // Location of grid element centres
+    for (size_t j = 0; j < ny; ++j) {
+        double y = dy * (j + 0.5);
+        for (size_t i = 0; i < nx; ++i) {
+            double x = dx * (i + 0.5);
             state.data.at(xName)(i, j) = x;
             state.data.at(yName)(i, j) = y;
         }
     }
+
 
     return state;
 }
