@@ -57,8 +57,6 @@ void Dynamics::setData(const ModelState::DataMap& ms)
     ModelArray& coords = fake25kmCoords;
     // End of code to be removed
 
-    std::cerr << "dynamics kernel initialization" << std::endl;
-    std::cerr << "mask.size() = " << ms.at(maskName).trueSize() << std::endl;
     // ModelArray& coords = ms.at(coordsName);
     // TODO: Some encoding of the periodic edge boundary conditions
     kernel.initialisation(coords, isSpherical, ms.at(maskName));
