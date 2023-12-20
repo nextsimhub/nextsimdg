@@ -221,8 +221,8 @@ void ParaGridIO::dumpModelState(
     }
 
     std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, coordsName }; // TODO and others
-    // Loop through either the above list (isRestart) or all provided fields(!isRestart)
+        sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName }; // TODO and others
+    // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
             // Get the type, then relevant vector of NetCDF dimensions
