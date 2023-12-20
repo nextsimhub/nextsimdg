@@ -9,6 +9,7 @@
 #define MODELMETADATA_HPP
 
 #include "include/ConfigMap.hpp"
+#include "include/ModelArray.hpp"
 #include "include/Time.hpp"
 
 #include <string>
@@ -67,6 +68,14 @@ public:
 private:
     TimePoint m_time;
     ConfigMap m_config;
+
+    // position coordinates on vertices
+    ModelArray m_vertexCoords;
+    // position coordinates of elements
+    ModelArray m_coord1;
+    ModelArray m_coord2;
+    // Angle from model reference to grid north (+y for grids) TODO: what for meshes? N/A?
+    ModelArray m_gridAzimuth;
 };
 
 } /* namespace Nextsim */
