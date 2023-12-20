@@ -33,6 +33,7 @@ static const std::string latitudeName = "latitude";
 static const std::string longitudeName = "longitude";
 static const std::string xName = "x";
 static const std::string yName = "y";
+static const std::string gridAzimuthName = "grid_azimuth";
 
 static const std::string mdiName = "missing_value";
 
