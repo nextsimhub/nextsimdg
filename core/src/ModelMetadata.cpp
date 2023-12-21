@@ -7,8 +7,8 @@
 
 #include "include/ModelMetadata.hpp"
 
-#include "include/gridNames.hpp"
 #include "include/StructureModule.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 

@@ -118,7 +118,7 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     size[0] = metadata.localExtentY;
     size[1] = metadata.localExtentX;
 #else
-    std::vector<size_t> start = {0, 0};
+    std::vector<size_t> start = { 0, 0 };
     std::vector<size_t> size = ModelArray::dimensions(ModelArray::Type::H);
     std::reverse(size.begin(), size.end());
 #endif
@@ -131,7 +131,7 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
     // coordinates on the H grid
-    if (dataGroup.getVars().count(xName) > 0){
+    if (dataGroup.getVars().count(xName) > 0) {
         state.data[xName] = ModelArray::HField();
         dataGroup.getVar(xName).getVar(start, size, &state.data[xName][0]);
         state.data[yName] = ModelArray::HField();
