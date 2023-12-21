@@ -28,7 +28,9 @@ void ModelMetadata::setMpiMetadata(MPI_Comm comm)
 
 const ModelState& ModelMetadata::extractCoordinates(const ModelState& state)
 {
-    m_vertexCoords = state.data.at(coordsName);
+    if (state.data.count(coordsName) > 0) {
+        m_vertexCoords = state.data.at(coordsName);
+    }
 
     isCartesian = state.data.count(xName);
     if (isCartesian) {
@@ -47,7 +49,9 @@ const ModelState& ModelMetadata::extractCoordinates(const ModelState& state)
 
 ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
 {
-    state.data[coordsName] = m_vertexCoords;
+    if (m_vertexCoords.trueSize() > 0) {
+        state.data[coordsName] = m_vertexCoords;
+    }
 
     if (isCartesian) {
         state.data[xName] = m_coord1;
