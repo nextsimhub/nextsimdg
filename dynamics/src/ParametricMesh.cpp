@@ -189,6 +189,12 @@ void ParametricMesh::readmesh(std::string fname)
     }
 }
 
+/*!
+ * Copy the coordinate arrays from the arguments.
+ *
+ * @param coord1 x in metres or longitude in radians
+ * @param coord2 y in metres or latitude in radians
+ */
 void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
 {
     // Fill in the array sizes from the ModelArray dimensions
@@ -203,6 +209,11 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
     }
 }
 
+/*!
+ * Copy the landmask from the passed ModelArray.
+ *
+ * @param mask the ModelArray containing the mask to be used.
+ */
 void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
 {
     landmask.resize(nelements);
@@ -212,9 +223,12 @@ void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
     }
 }
 
+/*!
+ * Add to the dirichlet arrays according to the stored landmask.
+ */
 void ParametricMesh::dirichletFromMask()
 {
-    // BOTTOM, RIGHT, TOP, LEFT
+    // Edges are accessed in the order: BOTTOM, RIGHT, TOP, LEFT. See also ParametricMesh::edges.
     const std::array<size_t, N_EDGE> startX = {0, 0, 0, 1};
     const std::array<size_t, N_EDGE> stopX = {nx, nx - 1, nx, nx};
     const std::array<size_t, N_EDGE> startY = {1, 0, 0, 0};
@@ -237,6 +251,11 @@ void ParametricMesh::dirichletFromMask()
     }
 }
 
+/*!
+ * Add to the dirichlet arrays due to the domain edges according to an edge index.
+ *
+ * @param edge index of the edge to add closed boundary conditions to.
+ */
 void ParametricMesh::dirichletFromEdge(Edge edge)
 {
     // BOTTOM, RIGHT, TOP, LEFT
@@ -252,6 +271,9 @@ void ParametricMesh::dirichletFromEdge(Edge edge)
     sortDirichlet(edge);
 }
 
+/*!
+ * Sort all the dirichlet arrays, so the element indices are ordered.
+ */
 void ParametricMesh::sortDirichlet()
 {
     for (ParametricMesh::Edge edge : ParametricMesh::edges) {
@@ -259,6 +281,11 @@ void ParametricMesh::sortDirichlet()
     }
 }
 
+/*!
+ * Sort the dirichlet array of one particular edge.
+ *
+ * @param edge the edge to be sorted.
+ */
 void ParametricMesh::sortDirichlet(Edge edge)
 {
     std::sort(dirichlet[edge].begin(), dirichlet[edge].end());

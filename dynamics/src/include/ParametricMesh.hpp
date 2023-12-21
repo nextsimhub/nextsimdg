@@ -51,9 +51,10 @@ public:
         N_EDGE
     };
 
+    // An array to allow the edges to be accessed in the correct order.
     static constexpr std::array<Edge, N_EDGE> edges = {BOTTOM, RIGHT, TOP, LEFT};
 
-  COORDINATES CoordinateSystem; //! CARTESIAN or SPHERICAL
+    COORDINATES CoordinateSystem; //! CARTESIAN or SPHERICAL
   
     size_t nx, ny; //!< no of elements in x- and y-direction
     size_t nnodes; //!< total number of nodes
@@ -426,27 +427,33 @@ public:
     void coordinatesFromModelArray(const ModelArray& coords);
 
     /*!
-     * Copy the landmask from the passed ModelArray
+     * Copy the landmask from the passed ModelArray.
+     *
+     * @param mask the ModelArray containing the mask to be used.
      */
     void landmaskFromModelArray(const ModelArray& mask);
 
     /*!
-     * Add to the dirichlet arrays given a landmask.
+     * Add to the dirichlet arrays according to the stored landmask.
      */
     void dirichletFromMask();
 
     /*!
-     * Add to the dirichlet arrays according to an edge index.
+     * Add to the dirichlet arrays due to the domain edges according to an edge index.
+     *
+     * @param edge index of the edge to add closed boundary conditions to.
      */
     void dirichletFromEdge(Edge edge);
 
     /*!
-     * Sort the dirichlet arrays, so the indices are ordered.
+     * Sort all the dirichlet arrays, so the element indices are ordered.
      */
     void sortDirichlet();
 
     /*!
      * Sort the dirichlet array of one particular edge.
+     *
+     * @param edge the edge to be sorted.
      */
     void sortDirichlet(Edge edge);
 
