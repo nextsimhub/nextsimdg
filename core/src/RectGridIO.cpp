@@ -130,7 +130,21 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dataGroup.getVar(ciceName).getVar(start, size, &state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
-
+    // coordinates on the H grid
+    if (dataGroup.getVars().count(xName) > 0){
+        state.data[xName] = ModelArray::HField();
+        dataGroup.getVar(xName).getVar(start, size, &state.data[xName][0]);
+        state.data[yName] = ModelArray::HField();
+        dataGroup.getVar(yName).getVar(start, size, &state.data[yName][0]);
+    } else {
+        state.data[longitudeName] = ModelArray::HField();
+        dataGroup.getVar(longitudeName).getVar(start, size, &state.data[longitudeName][0]);
+        state.data[latitudeName] = ModelArray::HField();
+        dataGroup.getVar(latitudeName).getVar(start, size, &state.data[latitudeName][0]);
+        state.data[gridAzimuthName] = ModelArray::HField();
+        dataGroup.getVar(gridAzimuthName).getVar(start, size, &state.data[gridAzimuthName][0]);
+    }
+    // Need to read coords as VERTEX type, correctly partitioned
 
     // Z direction is outside MPI ifdef as the domain is never decomposed in this direction
 
