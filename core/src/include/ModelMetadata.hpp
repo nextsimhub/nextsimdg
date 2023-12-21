@@ -93,6 +93,8 @@ private:
     ModelArray m_gridAzimuth;
     // Are the coordinates Cartesian? x & y versus longitude and latitude
     bool isCartesian;
+    // Are the more complex coordinates stored?
+    bool hasParameters;
 };
 
 } /* namespace Nextsim */

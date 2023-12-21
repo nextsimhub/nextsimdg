@@ -28,20 +28,23 @@ void ModelMetadata::setMpiMetadata(MPI_Comm comm)
 
 const ModelState& ModelMetadata::extractCoordinates(const ModelState& state)
 {
+    // More sophisticated grids include both vertex coordinates and grid azimuth values.
     if (state.data.count(coordsName) > 0) {
         m_vertexCoords = state.data.at(coordsName);
+        m_gridAzimuth = state.data.at(gridAzimuthName);
+        hasParameters = true;
+    } else {
+        // else don't resize the arrays
+        hasParameters = false;
     }
 
     isCartesian = state.data.count(xName);
     if (isCartesian) {
         m_coord1 = state.data.at(xName);
         m_coord2 = state.data.at(yName);
-        m_gridAzimuth.resize();
-        m_gridAzimuth = 0;
     } else {
         m_coord1 = state.data.at(longitudeName);
         m_coord2 = state.data.at(latitudeName);
-        m_gridAzimuth = state.data.at(gridAzimuthName);
     }
 
     return state;
@@ -49,8 +52,9 @@ const ModelState& ModelMetadata::extractCoordinates(const ModelState& state)
 
 ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
 {
-    if (m_vertexCoords.trueSize() > 0) {
+    if (hasParameters) {
         state.data[coordsName] = m_vertexCoords;
+        state.data[gridAzimuthName] = m_gridAzimuth;
     }
 
     if (isCartesian) {
@@ -59,7 +63,6 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
     } else {
         state.data[longitudeName] = m_coord1;
         state.data[latitudeName] = m_coord2;
-        state.data[gridAzimuthName] = m_gridAzimuth;
     }
     return state;
 }
