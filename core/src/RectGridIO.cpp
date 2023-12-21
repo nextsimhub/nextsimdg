@@ -141,10 +141,7 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
         dataGroup.getVar(longitudeName).getVar(start, size, &state.data[longitudeName][0]);
         state.data[latitudeName] = ModelArray::HField();
         dataGroup.getVar(latitudeName).getVar(start, size, &state.data[latitudeName][0]);
-        state.data[gridAzimuthName] = ModelArray::HField();
-        dataGroup.getVar(gridAzimuthName).getVar(start, size, &state.data[gridAzimuthName][0]);
     }
-    // Need to read coords as VERTEX type, correctly partitioned
 
     // Z direction is outside MPI ifdef as the domain is never decomposed in this direction
 
