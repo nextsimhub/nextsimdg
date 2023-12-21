@@ -14,6 +14,7 @@
 
 namespace Nextsim {
 
+//! A class providing ModelArrays equivalent to those obtained from a restart file.
 class FakeSmeshData {
 public:
     static ModelState getData();

@@ -12,6 +12,8 @@
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
+
+// Returns a ModelState with data equivalent to the contents of the 25km_NH.smesh file.
 ModelState FakeSmeshData::getData()
 {
     ModelState state;
@@ -60,6 +62,7 @@ ModelState FakeSmeshData::getData()
     return state;
 }
 
+// Returns the 25km_NH.smesh landmask as a C++ array.
 std::vector<double> FakeSmeshData::landmask25km_NH()
 {
     return {

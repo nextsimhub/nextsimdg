@@ -34,6 +34,8 @@ static const double dx = 25000;
 static const double dy = 25000;
 
 TEST_SUITE_BEGIN("ParametricMesh");
+// Read data from a .smesh file. This is the old way, but also provides a
+// reference for testing the newer ways.
 TEST_CASE("Test readmesh")
 {
     ParametricMesh smesh(CoordinateSystem);
@@ -81,6 +83,9 @@ TEST_CASE("Test readmesh")
     REQUIRE(smesh.periodic.size() == 0);
 }
 
+// Read data from ModelArrays and compare to that obtained from a .smesh file.
+// The class FakeSmeshData provide ModelArrays containing data equivalent to
+// that obtained from read the reference smesh file.
 TEST_CASE("Compare readmesh and landmask reading")
 {
 
