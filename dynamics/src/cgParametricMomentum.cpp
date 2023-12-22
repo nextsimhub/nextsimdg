@@ -564,6 +564,23 @@ void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;   
   }
+
+template <int CG>
+template <int DG>
+void CGParametricMomentum<CG>::FreeDriftStep(const FDParameters& params, size_t nt_fd,
+        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D)
+{
+#pragma omp parallel for
+    for (int i = 0; i < vx.rows(); ++i) {
+        // Ice velocity is equal to ocean velocity
+        vx(i) = ox(i);
+        vy(i) = oy(i);
+    }
+    DirichletZero();
+    avg_vx = vx;
+    avg_vy = vy;
+}
+
   // --------------------------------------------------
 
   template class CGParametricMomentum<1>;

@@ -184,6 +184,15 @@ public:
     void BBMStep(const MEBParameters& vpparameters, size_t NT_meb,
         double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
+    // An empty structure so that the free drift step function signature
+    // matches the other step functions.
+    struct FDParameters {
+    };
+
+    //! Performs one step of freedrift dynamics
+    template<int DG>
+    void FreeDriftStep(const FDParameters& params, size_t nt_fd,
+            double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     /*!
      * The following functions take care of the interpolation and projection
