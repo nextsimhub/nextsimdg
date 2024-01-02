@@ -23,6 +23,10 @@ namespace MEB {
 
     inline constexpr double SQR(double x) { return x * x; }
 
+    template <size_t DGDegree, size_t NGP>
+    // Gauss point vector for two dimensions.
+    using GenericGaussPointVector = Eigen::Matrix<Nextsim::FloatType, DGDegree, NGP * NGP>;
+
     /*!
      * @brief Calculate Stresses for the current time step and update damage.
      *
@@ -55,7 +59,7 @@ namespace MEB {
         const double dt_mom)
     {
         const size_t NGaussPoints = 3;
-        typedef Eigen::Matrix<Nextsim::FloatType, 1, NGaussPoints * NGaussPoints> GaussPointVector;
+        using GaussPointVector = GenericGaussPointVector<1, NGaussPoints>;
 
         //! Stress and Damage Update
 #pragma omp parallel for
@@ -151,17 +155,17 @@ namespace MEB {
 
 
             // INTEGRATION OF STRESS AND DAMAGE
-            const Eigen::Matrix<Nextsim::FloatType, 1, NGaussPoints * NGaussPoints> J = ParametricTools::J<3>(smesh, i);
+            const GaussPointVector J = ParametricTools::J<3>(smesh, i);
             // get the inverse of the mass matrix scaled with the test-functions in the gauss points,
             // with the gauss weights and with J. This is a 8 x 9 matrix
-            const Eigen::Matrix<Nextsim::FloatType, DGs, NGaussPoints * NGaussPoints> imass_psi = ParametricTools::massMatrix<DGs>(smesh, i).inverse()
+            const GenericGaussPointVector<DGs, NGaussPoints> imass_psi = ParametricTools::massMatrix<DGs>(smesh, i).inverse()
                 * (PSI<DGs, NGaussPoints>.array().rowwise() * (GAUSSWEIGHTS<NGaussPoints>.array() * J.array())).matrix();
 
             S11.row(i) = imass_psi * s11_gauss.matrix().transpose();
             S12.row(i) = imass_psi * s12_gauss.matrix().transpose();
             S22.row(i) = imass_psi * s22_gauss.matrix().transpose();
 
-            const Eigen::Matrix<Nextsim::FloatType, DGa, NGaussPoints * NGaussPoints> imass_psi2 = ParametricTools::massMatrix<DGa>(smesh, i).inverse()
+            const GenericGaussPointVector<DGa, NGaussPoints> imass_psi2 = ParametricTools::massMatrix<DGa>(smesh, i).inverse()
                 * (PSI<DGa, NGaussPoints>.array().rowwise() * (GAUSSWEIGHTS<NGaussPoints>.array() * J.array())).matrix();
 
             D.row(i) = imass_psi2 * d_gauss.matrix().transpose();
