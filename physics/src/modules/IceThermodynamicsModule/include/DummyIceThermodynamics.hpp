@@ -12,8 +12,6 @@
 
 #include "include/NZLevels.hpp"
 
-#include "include/NZLevels.hpp"
-
 namespace Nextsim {
 
 class DummyIceThermodynamics : public IIceThermodynamics {

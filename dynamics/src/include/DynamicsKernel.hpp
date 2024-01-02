@@ -62,7 +62,7 @@ public:
         stresstransport = new Nextsim::DGTransport<CG2DGSTRESS(CGdegree)>(*smesh);
         stresstransport->settimesteppingscheme("rk2");
 
-       
+
 
         //! Initialize momentum
         momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);

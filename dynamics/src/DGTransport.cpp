@@ -146,12 +146,12 @@ Eigen::Matrix<Nextsim::FloatType, 1, 3>
 bottomedgeofcell(const DGVector<8>& cv, size_t eid)
 {
   return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-						 cv(eid, 1) - 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7), 
+						 cv(eid, 1) - 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7),
 						 cv(eid, 3) - 0.5 * cv(eid, 6));
 }
   template <>
 Eigen::Matrix<Nextsim::FloatType, 1, 3>
-topedgeofcell(const DGVector<8>& cv, size_t eid) 
+topedgeofcell(const DGVector<8>& cv, size_t eid)
 {
   return Eigen::Matrix<Nextsim::FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
 						 cv(eid, 1) + 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7),
