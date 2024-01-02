@@ -37,14 +37,16 @@ public:
 
     enum {
         RESTARTFILE_KEY,
-#ifdef USE_MPI
-        PARTITIONFILE_KEY,
-#endif
+        // Configuration keys mirrored from ModelConfig. These will be written to the restart file.
         STARTTIME_KEY = ModelConfig::STARTTIME_KEY,
         STOPTIME_KEY = ModelConfig::STOPTIME_KEY,
         RUNLENGTH_KEY = ModelConfig::RUNLENGTH_KEY,
         TIMESTEP_KEY = ModelConfig::TIMESTEP_KEY,
         MISSINGVALUE_KEY = ModelConfig::MISSINGVALUE_KEY,
+#ifdef USE_MPI
+        PARTITIONFILE_KEY,
+#endif
+        // Other Model configuration keys, not to be written to the restart file.
         RESTARTPERIOD_KEY,
         RESTARTOUTFILE_KEY,
     };

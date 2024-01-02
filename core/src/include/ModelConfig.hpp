@@ -18,6 +18,9 @@ namespace Nextsim {
 
 class Model;
 
+/*!
+ * A class to store model configuration that is to be written to the restart file.
+ */
 class ModelConfig {
 public:
     const static std::map<int, std::string> keyMap;
