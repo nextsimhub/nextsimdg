@@ -9,9 +9,15 @@
 #define MODELMETADATA_HPP
 
 #include "include/ConfigMap.hpp"
+#include "include/ModelArray.hpp"
+#include "include/ModelState.hpp"
 #include "include/Time.hpp"
 
 #include <string>
+
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
 
 namespace Nextsim {
 
@@ -51,9 +57,44 @@ public:
     // The metadata writer should be a friend
     friend CommonRestartMetadata;
 
+    /*!
+     * @brief Extracts and sets the coordinate metadata from the given ModelState.
+     *
+     * @param state The given ModelState.
+     */
+    const ModelState& extractCoordinates(const ModelState& state);
+
+    /*!
+     * @brief Adds the coordinate metadata to the given ModelState.
+     *
+     * @param state The given ModelState.
+     */
+    ModelState& affixCoordinates(ModelState& state) const;
+
+#ifdef USE_MPI
+    void setMpiMetadata(MPI_Comm comm);
+
+    MPI_Comm mpiComm;
+    int mpiSize = 0;
+    int mpiMyRank = -1;
+    int localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX, globalExtentY;
+#endif
+
 private:
     TimePoint m_time;
     ConfigMap m_config;
+
+    // position coordinates on vertices
+    ModelArray m_vertexCoords;
+    // position coordinates of elements
+    ModelArray m_coord1;
+    ModelArray m_coord2;
+    // Angle from model reference to grid north (+y for grids) TODO: what for meshes? N/A?
+    ModelArray m_gridAzimuth;
+    // Are the coordinates Cartesian? x & y versus longitude and latitude
+    bool isCartesian;
+    // Are the more complex coordinates stored?
+    bool hasParameters;
 };
 
 } /* namespace Nextsim */

@@ -1,7 +1,6 @@
 # Sources for the main neXtSIM model
 
 set(BaseSources
-    "main.cpp"
     "Logged.cpp"
     "Timer.cpp"
     "ModelConfig.cpp"
@@ -12,9 +11,9 @@ set(BaseSources
     "ConfiguredModule.cpp"
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
-    "DevGridIO.cpp"
     "RectGridIO.cpp"
     "ParaGridIO.cpp"
+    "FileCallbackCloser.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
     "MissingData.cpp"
@@ -29,48 +28,32 @@ set(BaseSources
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 
+set(ParallelNetCDFSources
+    "${CMAKE_CURRENT_SOURCE_DIR}/ParallelNetcdfFile.cpp"
+    )
+
 list(TRANSFORM BaseSources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
-set(StructureModuleSources
-    "DevGrid.cpp"
-    "RectangularGrid.cpp"
-    "ParametricGrid.cpp"
-    "IStructureModule.cpp"
-    )
-
-set(FreezingPointModuleSources
-    "IFreezingPointModule.cpp"
-    )
-
-set(DiagnosticOutputModuleSources
-    "DiagnosticOutputModule.cpp"
-    "SimpleOutput.cpp"
-    "ConfigOutput.cpp"
-    )
-
-
-set(DynamicsModuleSources
-    "DynamicsModule.cpp"
-    "Dynamics.cpp"
-    )
-
-
-set(ModuleSources
-    "${StructureModuleSources}"
-    "${FreezingPointModuleSources}"
-    "${DiagnosticOutputModuleSources}"
-    "${DynamicsModuleSources}"
-    )
+add_subdirectory("${ModuleDir}")
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
-set(NextsimSources
-    "${NextsimSources}"
-    "${BaseSources}"
-    "${ModuleSources}"
-    PARENT_SCOPE)
+if(ENABLE_MPI)
+    set(NextsimSources
+        "${BaseSources}"
+        "${NextsimSources}"
+        "${ModuleSources}"
+        "${ParallelNetCDFSources}"
+        PARENT_SCOPE)
+else()
+    set(NextsimSources
+        "${BaseSources}"
+        "${NextsimSources}"
+        "${ModuleSources}"
+        PARENT_SCOPE)
+endif()
 
 set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"

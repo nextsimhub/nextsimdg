@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes_test.cpp
  *
- * @date Apr 29, 2022
+ * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -13,13 +13,14 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/IFreezingPointModule.hpp"
-#include "include/IOceanBoundary.hpp"
+#include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/Module.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
+#include "include/UniformOcean.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -32,8 +33,8 @@ TEST_CASE("Melting conditions")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
-    config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
+    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
+    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
     config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
@@ -44,38 +45,20 @@ TEST_CASE("Melting conditions")
 
     ConfiguredModule::parseConfigurator();
 
-    class OceanData : public IOceanBoundary{
-    public:
-        OceanData()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            IOceanBoundary::setData(state);
-            UnescoFreezing uf;
-            sst = -1.;
-            sss = 32.;
-            mld = 10.25;
-            tf = uf(sss[0]);
-            cpml = Water::cp * Water::rho * mld[0];
-            u = 0;
-            v = 0;
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+
+    UniformOcean ocnBdy(-1., 32., 10.25);
     ocnBdy.setData(ModelState().data);
 
     class AtmosphereData : public ModelComponent {
     public:
         AtmosphereData() {
-            registerProtectedArray(ProtectedArray::T_AIR, &tair);
-            registerProtectedArray(ProtectedArray::DEW_2M, &tdew);
-            registerProtectedArray(ProtectedArray::P_AIR, &pair);
-            registerProtectedArray(ProtectedArray::WIND_SPEED, &windSpeed);
-            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-            registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
+            getStore().registerArray(Protected::T_AIR, &tair, RO);
+            getStore().registerArray(Protected::DEW_2M, &tdew, RO);
+            getStore().registerArray(Protected::P_AIR, &pair, RO);
+            getStore().registerArray(Protected::WIND_SPEED, &windSpeed, RO);
+            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
+            getStore().registerArray(Protected::LW_IN, &lw_in, RO);
         }
         void setData(const ModelState::DataMap& state) override
         {
@@ -112,12 +95,12 @@ TEST_CASE("Melting conditions")
     public:
         ProgData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
 
         }
         std::string getName() const override { return "ProgData"; }
@@ -147,23 +130,23 @@ TEST_CASE("Melting conditions")
 
     HField qow;
     qow.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
 
     HField qia;
     qia.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
     HField penSW;
     penSW.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_PEN_SW, &penSW);
+    ModelComponent::getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
 
     HField dqia_dt;
     dqia_dt.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
 
     HField subl;
     subl.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
@@ -187,8 +170,8 @@ TEST_CASE("Freezing conditions")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
-    config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
+    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
+    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
     config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
@@ -199,39 +182,21 @@ TEST_CASE("Freezing conditions")
 
     ConfiguredModule::parseConfigurator();
 
-    class OceanData : public IOceanBoundary {
-    public:
-        OceanData()
-            : IOceanBoundary()
-        {
-        }
-        void setData(const ModelState::DataMap& state) override
-        {
-            IOceanBoundary::setData(state);
-            UnescoFreezing uf;
-            sst = -1.75;
-            sss = 32.;
-            mld = 10.25;
-            tf = uf(sss[0]);
-            cpml = Water::cp * Water::rho * mld[0];
-            u = 0;
-            v = 0;
-        }
-        void updateBefore(const TimestepTime& tst) override { }
-        void updateAfter(const TimestepTime& tst) override { }
-    } ocnBdy;
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
+
+    UniformOcean ocnBdy(-1.75, 32., 10.25);
     ocnBdy.setData(ModelState().data);
 
     class AtmosphereData : public ModelComponent {
     public:
         AtmosphereData()
         {
-            registerProtectedArray(ProtectedArray::T_AIR, &tair);
-            registerProtectedArray(ProtectedArray::DEW_2M, &tdew);
-            registerProtectedArray(ProtectedArray::P_AIR, &pair);
-            registerProtectedArray(ProtectedArray::WIND_SPEED, &windSpeed);
-            registerProtectedArray(ProtectedArray::SW_IN, &sw_in);
-            registerProtectedArray(ProtectedArray::LW_IN, &lw_in);
+            getStore().registerArray(Protected::T_AIR, &tair, RO);
+            getStore().registerArray(Protected::DEW_2M, &tdew, RO);
+            getStore().registerArray(Protected::P_AIR, &pair, RO);
+            getStore().registerArray(Protected::WIND_SPEED, &windSpeed, RO);
+            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
+            getStore().registerArray(Protected::LW_IN, &lw_in, RO);
         }
         void setData(const ModelState::DataMap& state) override
         {
@@ -267,12 +232,12 @@ TEST_CASE("Freezing conditions")
     public:
         ProgData()
         {
-            registerProtectedArray(ProtectedArray::H_ICE, &hice);
-            registerProtectedArray(ProtectedArray::C_ICE, &cice);
-            registerProtectedArray(ProtectedArray::H_SNOW, &hsnow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
-            registerProtectedArray(ProtectedArray::HTRUE_ICE, &hice0);
-            registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow0);
+            getStore().registerArray(Protected::H_ICE, &hice, RO);
+            getStore().registerArray(Protected::C_ICE, &cice, RO);
+            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
+            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -302,23 +267,23 @@ TEST_CASE("Freezing conditions")
 
     HField qow;
     qow.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_OW, &qow);
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
 
     HField qia;
     qia.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_IA, &qia);
+    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
 
     HField penSW;
     penSW.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::Q_PEN_SW, &penSW);
+    ModelComponent::getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
 
     HField dqia_dt;
     dqia_dt.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::DQIA_DT, &dqia_dt);
+    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
 
     HField subl;
     subl.resize();
-    ModelComponent::registerExternalSharedArray(ModelComponent::SharedArray::SUBLIM, &subl);
+    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated

@@ -8,6 +8,7 @@
 #include "include/ParaGridIO.hpp"
 
 #include "include/CommonRestartMetadata.hpp"
+#include "include/FileCallbackCloser.hpp"
 #include "include/MissingData.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
@@ -63,6 +64,8 @@ void ParaGridIO::makeDimCompMap()
     // function here, since it should only ever run once
     //    openFiles.clear();
     std::atexit(closeAllFiles);
+    // Further one-off initialization: allow distant classes to close files via a callback.
+    FileCallbackCloser::onClose(ParaGridIO::close);
 }
 
 ParaGridIO::~ParaGridIO() = default;
@@ -217,9 +220,10 @@ void ParaGridIO::dumpModelState(
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
 
-    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, coordsName }; // TODO and others
-    // Loop through either the above list (isRestart) or all provided fields(!isRestart)
+    std::set<std::string> restartFields
+        = { hiceName, ciceName, hsnowName, ticeName, sstName, sssName, maskName, coordsName, xName,
+              yName, longitudeName, latitudeName, gridAzimuthName }; // TODO and others
+    // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
             // Get the type, then relevant vector of NetCDF dimensions
@@ -366,8 +370,8 @@ void ParaGridIO::close(const std::string& filePath)
 {
     if (openFiles.count(filePath) > 0) {
         openFiles.at(filePath).close();
-        openFiles.erase(openFiles.find(filePath));
-        timeIndexByFile.erase(timeIndexByFile.find(filePath));
+        openFiles.erase(filePath);
+        timeIndexByFile.erase(filePath);
     }
 }
 

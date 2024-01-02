@@ -14,18 +14,22 @@
 // Should be grouped with a consistent ModelArrayTypedefs.hpp and
 // ModelArrayDetails.cpp
 
-enum class Dimension { X, Y, Z, COUNT };
+enum class Dimension { X, Y, Z, XVERTEX, YVERTEX, COUNT };
 
 enum class Type {
     H,
     U,
     V,
     Z,
+    VERTEX,
 };
 
 static ModelArray HField() { return ModelArray(Type::H); }
 static ModelArray UField() { return ModelArray(Type::U); }
 static ModelArray VField() { return ModelArray(Type::V); }
 static ModelArray ZField() { return ModelArray(Type::Z); }
+static ModelArray VertexField() { return ModelArray(Type::VERTEX); }
+
+const static size_t nCoords;
 
 #endif /* MODELARRAYDETAILS_HPP */

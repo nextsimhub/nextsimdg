@@ -2,6 +2,7 @@
  * @file Model.hpp
  * @date 12 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #ifndef MODEL_HPP
@@ -24,14 +25,21 @@ namespace Nextsim {
 //! A class that encapsulates the whole of the model
 class Model : public Configured<Model> {
 public:
+#ifdef USE_MPI
+    Model(MPI_Comm comm);
+#else
     Model(); // TODO add arguments to pass the desired
              // environment and configuration to the model
+#endif
     ~Model(); // Finalize the model. Collect data and so on.
 
     void configure() override;
 
     enum {
         RESTARTFILE_KEY,
+#ifdef USE_MPI
+        PARTITIONFILE_KEY,
+#endif
         STARTTIME_KEY = ModelConfig::STARTTIME_KEY,
         STOPTIME_KEY = ModelConfig::STOPTIME_KEY,
         RUNLENGTH_KEY = ModelConfig::RUNLENGTH_KEY,

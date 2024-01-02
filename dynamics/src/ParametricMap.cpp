@@ -44,7 +44,7 @@ namespace Nextsim
 	if (smesh.CoordinateSystem == SPHERICAL)
 	  {
 	    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> cos_lat = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid).row(1).array()).cos();
-	    AdvectionCellTermY[eid] = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dxT.row(0).array() * cos_lat.array()) - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dyT.row(0).array() * cos_lat.array());
+	    AdvectionCellTermY[eid] = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dxT.row(0).array() ) - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dyT.row(0).array() );
 	  }
 	else if (smesh.CoordinateSystem == CARTESIAN)
 	  AdvectionCellTermY[eid] = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dxT.row(0).array() - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dyT.row(0).array();
@@ -118,7 +118,6 @@ namespace Nextsim
 		  Meid = PHI<CG,CGGP(CG)> * J.transpose();
 		  const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates
 		    = smesh.coordinatesOfElement(eid);
-		  std::cout <<std::endl;
 		}
 	      else if (smesh.CoordinateSystem == SPHERICAL)
 		{

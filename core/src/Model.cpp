@@ -2,13 +2,13 @@
  * @file Model.cpp
  * @date 12 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include "include/Model.hpp"
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/DevGrid.hpp"
 #include "include/DevStep.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
@@ -34,6 +34,14 @@ static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
 const std::string Model::restartOptionName = "model.init_file";
 static std::map<int, std::string> restartKeyMap = {
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
+#ifdef USE_MPI
+    { Model::PARTITIONFILE_KEY, "model.partition_file" },
+#endif
+    { Model::STARTTIME_KEY, "model.start" },
+    { Model::STOPTIME_KEY, "model.stop" },
+    { Model::RUNLENGTH_KEY, "model.run_length" },
+    { Model::TIMESTEP_KEY, "model.time_step" },
+    { Model::MISSINGVALUE_KEY, "model.missing_value" },
     { Model::RESTARTPERIOD_KEY, "model.restart_period" },
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
@@ -42,8 +50,16 @@ template <>
 const std::map<int, std::string> Configured<Model>::keyMap
     = combineMaps(interimKeyMap, restartKeyMap);
 
+#ifdef USE_MPI
+Model::Model(MPI_Comm comm)
+#else
 Model::Model()
+#endif
 {
+#ifdef USE_MPI
+    m_etadata.setMpiMetadata(comm);
+#endif
+
     iterator.setIterant(&modelStep);
 
     finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
@@ -91,11 +107,25 @@ void Model::configure()
     modelStep.init();
     modelStep.setInitFile(initialFileName);
 
+#ifdef USE_MPI
+    std::string partitionFile
+        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
+#endif
+
+#ifdef USE_MPI
+    ModelState initialState(
+        StructureFactory::stateFromFile(initialFileName, partitionFile, m_etadata));
+#else
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
+#endif
 
     std::string restartPeriodStr
         = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string());
     restartPeriod = Duration(restartPeriodStr);
+
+  // Get the coordinates from the ModelState for persistence
+    m_etadata.extractCoordinates(initialState);
+
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
     modelStep.setRestartDetails(restartPeriod, finalFileName);
@@ -129,6 +159,10 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "or number of seconds." },
         { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
             "Missing data indicator used for input and output." },
+#ifdef USE_MPI
+        { keyMap.at(PARTITIONFILE_KEY), ConfigType::STRING, {}, "", "",
+            "The file path to the file describing MPI domain decomposition to use for the run." },
+#endif
     };
 
     return map;
@@ -154,7 +188,10 @@ void Model::writeRestartFile()
     modelConfig.merge(pData.getStateRecursive(true).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     m_etadata.setConfig(modelConfig);
-    StructureFactory::fileFromState(pData.getState(), m_etadata, formattedFileName, true);
+    // Get the model state from PrognosticData and add the coordinates.
+    ModelState state = pData.getState();
+    m_etadata.affixCoordinates(state);
+    StructureFactory::fileFromState(state, m_etadata, formattedFileName, true);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }
