@@ -101,6 +101,10 @@ void Model::configure()
 #else
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
 #endif
+
+    // Get the coordinates from the ModelState for persistence
+    m_etadata.extractCoordinates(initialState);
+
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
     pData.setData(initialState.data);
@@ -165,7 +169,10 @@ void Model::writeRestartFile()
     modelConfig.merge(pData.getStateRecursive(true).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     m_etadata.setConfig(modelConfig);
-    StructureFactory::fileFromState(pData.getState(), m_etadata, finalFileName, true);
+    // Get the model state from PrognosticData and add the coordinates.
+    ModelState state = pData.getState();
+    m_etadata.affixCoordinates(state);
+    StructureFactory::fileFromState(state, m_etadata, finalFileName, true);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }
