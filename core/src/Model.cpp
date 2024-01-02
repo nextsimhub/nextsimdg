@@ -123,7 +123,7 @@ void Model::configure()
         = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string());
     restartPeriod = Duration(restartPeriodStr);
 
-  // Get the coordinates from the ModelState for persistence
+    // Get the coordinates from the ModelState for persistence
     m_etadata.extractCoordinates(initialState);
 
     modelStep.setData(pData);
