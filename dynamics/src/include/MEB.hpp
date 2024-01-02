@@ -54,9 +54,8 @@ namespace MEB {
         const DGVector<DGa>& A, DGVector<DGa>& D,
         const double dt_mom)
     {
-        constexpr size_t NGaussPoints = (DGs == 8 ? 3 : (DGs == 3 ? 2 : -1));
-        typedef Eigen::Matrix<double, 1, NGaussPoints * NGaussPoints> GaussPointVector;
-
+        const size_t NGaussPoints = 3;
+        typedef Eigen::Matrix<Nextsim::FloatType, 1, NGaussPoints * NGaussPoints> GaussPointVector;
 
         //! Stress and Damage Update
 #pragma omp parallel for
