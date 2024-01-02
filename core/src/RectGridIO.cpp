@@ -14,7 +14,6 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/NZLevels.hpp"
-#include "include/RectangularGrid.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -97,25 +96,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V, metadata);
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z, metadata);
-
-    // Set the origins and extensions for reading 2D data based
-    // on MPI decomposition
-    std::vector<size_t> start(2);
-    std::vector<size_t> size(2);
-    start[0] = metadata.localCornerY;
-    start[1] = metadata.localCornerX;
-    size[0] = metadata.localExtentY;
-    size[1] = metadata.localExtentX;
-
-    state.data[maskName] = ModelArray::HField();
-    dataGroup.getVar(maskName).getVar(start, size, &state.data[maskName][0]);
-    state.data[hiceName] = ModelArray::HField();
-    dataGroup.getVar(hiceName).getVar(start, size, &state.data[hiceName][0]);
-    state.data[ciceName] = ModelArray::HField();
-    dataGroup.getVar(ciceName).getVar(start, size, &state.data[ciceName][0]);
-    state.data[hsnowName] = ModelArray::HField();
-    dataGroup.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
-
 #else
     // Get the sizes of the four types of field
     // HField from hice
@@ -126,16 +106,43 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V);
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z);
-
-    state.data[maskName] = ModelArray::HField();
-    dataGroup.getVar(maskName).getVar(&state.data[maskName][0]);
-    state.data[hiceName] = ModelArray::HField();
-    dataGroup.getVar(hiceName).getVar(&state.data[hiceName][0]);
-    state.data[ciceName] = ModelArray::HField();
-    dataGroup.getVar(ciceName).getVar(&state.data[ciceName][0]);
-    state.data[hsnowName] = ModelArray::HField();
-    dataGroup.getVar(hsnowName).getVar(&state.data[hsnowName][0]);
 #endif
+
+#ifdef USE_MPI
+    // Set the origins and extensions for reading 2D data based
+    // on MPI decomposition
+    std::vector<size_t> start(2);
+    std::vector<size_t> size(2);
+    start[0] = metadata.localCornerY;
+    start[1] = metadata.localCornerX;
+    size[0] = metadata.localExtentY;
+    size[1] = metadata.localExtentX;
+#else
+    std::vector<size_t> start = { 0, 0 };
+    std::vector<size_t> size = ModelArray::dimensions(ModelArray::Type::H);
+    std::reverse(size.begin(), size.end());
+#endif
+    state.data[maskName] = ModelArray::HField();
+    dataGroup.getVar(maskName).getVar(start, size, &state.data[maskName][0]);
+    state.data[hiceName] = ModelArray::HField();
+    dataGroup.getVar(hiceName).getVar(start, size, &state.data[hiceName][0]);
+    state.data[ciceName] = ModelArray::HField();
+    dataGroup.getVar(ciceName).getVar(start, size, &state.data[ciceName][0]);
+    state.data[hsnowName] = ModelArray::HField();
+    dataGroup.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
+    // coordinates on the H grid
+    if (dataGroup.getVars().count(xName) > 0) {
+        state.data[xName] = ModelArray::HField();
+        dataGroup.getVar(xName).getVar(start, size, &state.data[xName][0]);
+        state.data[yName] = ModelArray::HField();
+        dataGroup.getVar(yName).getVar(start, size, &state.data[yName][0]);
+    } else {
+        state.data[longitudeName] = ModelArray::HField();
+        dataGroup.getVar(longitudeName).getVar(start, size, &state.data[longitudeName][0]);
+        state.data[latitudeName] = ModelArray::HField();
+        dataGroup.getVar(latitudeName).getVar(start, size, &state.data[latitudeName][0]);
+    }
+
     // Z direction is outside MPI ifdef as the domain is never decomposed in this direction
 
     // Since the ZFierld might not have the same dimensions as the tice field

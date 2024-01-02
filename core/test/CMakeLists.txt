@@ -10,6 +10,8 @@ set(PHYSICS_INCLUDE_DIRS
     "../../physics/src/modules"
     )
 
+set(ModulesRoot "../src/modules")
+
 include_directories(${COMMON_INCLUDE_DIRS})
 
 add_executable(testIterator "Iterator_test.cpp")
@@ -44,11 +46,11 @@ set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 if(ENABLE_MPI)
   add_executable(testRectGrid_MPI "RectGrid_test.cpp" "MainMPI.cpp")
   target_compile_definitions(testRectGrid_MPI PRIVATE USE_MPI)
-  target_include_directories(testRectGrid_MPI PRIVATE ${MODEL_INCLUDE_DIR})
+  target_include_directories(testRectGrid_MPI PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testRectGrid_MPI PRIVATE nextsimlib doctest::doctest)
 else()
   add_executable(testRectGrid "RectGrid_test.cpp")
-  target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR})
+  target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
 endif()
 
@@ -57,7 +59,7 @@ if(ENABLE_MPI)
 else()
   add_executable(testParaGrid "ParaGrid_test.cpp")
   target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
-  target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR})
+  target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
 endif()
 
@@ -71,7 +73,7 @@ target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
 
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
-target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR})
+target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule")
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
 
 if(ENABLE_MPI)

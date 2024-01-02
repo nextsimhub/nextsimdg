@@ -34,8 +34,8 @@ TEST_CASE("New ice formation")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::ILateralIceSpread = Nextsim::HiblerSpread" << std::endl;
-    config << "Nextsim::IIceThermodynamics = Nextsim::ThermoIce0" << std::endl;
+    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
+    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -120,8 +120,8 @@ TEST_CASE("Melting conditions")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::ILateralIceSpread = Nextsim::HiblerSpread" << std::endl;
-    config << "Nextsim::IIceThermodynamics = Nextsim::ThermoIce0" << std::endl;
+    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
+    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -216,8 +216,8 @@ TEST_CASE("Freezing conditions")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::ILateralIceSpread = Nextsim::HiblerSpread" << std::endl;
-    config << "Nextsim::IIceThermodynamics = Nextsim::ThermoIce0" << std::endl;
+    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
+    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -411,8 +411,8 @@ TEST_CASE("Zero thickness")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::ILateralIceSpread = Nextsim::HiblerSpread" << std::endl;
-    config << "Nextsim::IIceThermodynamics = Nextsim::ThermoIce0" << std::endl;
+    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
+    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -515,8 +515,8 @@ TEST_CASE("Turn off thermo")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::ILateralIceSpread = Nextsim::HiblerSpread" << std::endl;
-    config << "Nextsim::IIceThermodynamics = Nextsim::ThermoIce0" << std::endl;
+    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
+    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
     config << std::endl;
     config << "[nextsim_thermo]" << std::endl;
     config << "use_thermo_forcing = false" << std::endl;

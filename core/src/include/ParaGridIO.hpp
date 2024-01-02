@@ -8,7 +8,7 @@
 #ifndef PARAGRIDIO_HPP
 #define PARAGRIDIO_HPP
 
-#include "include/ParametricGrid.hpp"
+#include "StructureModule/include/ParametricGrid.hpp"
 
 #include <map>
 #include <ncFile.h>
