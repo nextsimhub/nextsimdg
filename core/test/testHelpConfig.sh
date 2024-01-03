@@ -2,6 +2,13 @@
 
 # Test the output of the NextSIM configuration help
 
+# Check that nextsim exists
+if [ ! -f nextsim ]; then
+    echo "nextsim binary not found!"
+    pwd
+    exit 1
+fi
+
 # Get the help text. This will be produced in the case of unrecognized command
 # line arguments.
 HELP_TEXT=`./nextsim --help 2>&1`
