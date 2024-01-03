@@ -30,9 +30,12 @@ static std::map<Key, Value> combineMaps(std::map<Key, Value>& map1, std::map<Key
     return map3;
 }
 
+// Map of configuration that will be written to the restart file
 static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
 const std::string Model::restartOptionName = "model.init_file";
-static std::map<int, std::string> restartKeyMap = {
+// Map of all configuration keys for the main model, including those not to be
+// written to the restart file.
+static std::map<int, std::string> modelConfigKeyMap = {
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
 #ifdef USE_MPI
     { Model::PARTITIONFILE_KEY, "model.partition_file" },
@@ -46,9 +49,10 @@ static std::map<int, std::string> restartKeyMap = {
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
 
+// Merge the configuration from ModelConfig into the Model keyMap.
 template <>
 const std::map<int, std::string> Configured<Model>::keyMap
-    = combineMaps(interimKeyMap, restartKeyMap);
+    = combineMaps(interimKeyMap, modelConfigKeyMap);
 
 #ifdef USE_MPI
 Model::Model(MPI_Comm comm)
@@ -85,6 +89,8 @@ void Model::configure()
     // Configure logging
     Logged::configure();
 
+    // Store the start/stop/step configuration directly in ModelConfig before
+    // parsing these values to the numerical time values used by the model.
     ModelConfig::startTimeStr
         = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
     ModelConfig::stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
@@ -92,13 +98,16 @@ void Model::configure()
         = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
     ModelConfig::stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
+    // Set the time correspond to the current (initial) model state
     TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
         ModelConfig::durationStr, ModelConfig::stepStr);
     m_etadata.setTime(timeNow);
 
+    // Configure the missing data value
     MissingData::value
         = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
 
+    // Parse the initial restart file name and the pattern for output restart files
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
     finalFileName = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), finalFileName);
 
@@ -119,6 +128,7 @@ void Model::configure()
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
 #endif
 
+    // The period with which to write restart files.
     std::string restartPeriodStr
         = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string());
     restartPeriod = Duration(restartPeriodStr);
@@ -178,6 +188,7 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run() { iterator.run(); }
 
+//! Write a restart file for the model.
 void Model::writeRestartFile()
 {
     std::string formattedFileName = m_etadata.time().format(finalFileName);
