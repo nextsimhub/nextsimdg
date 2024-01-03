@@ -94,3 +94,9 @@ add_executable(testFileCallbackCloser
     "../../core/src/FileCallbackCloser.cpp"
     )
 target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
+
+# The help config test needs access to the full binary
+MESSAGE("Current binary path is ${CMAKE_CURRENT_BINARY_DIR}")
+MESSAGE("Target path is ${CMAKE_CURRENT_BINARY_DIR}/nextsim")
+MESSAGE("Source path is ${NEXTSIM_BINARY_PATH}")
+MESSAGE("FILE(CREATE_LINK ${NEXTSIM_BINARY_PATH} ${CMAKE_CURRENT_BINARY_DIR}/nextsim SYMBOLIC)")
