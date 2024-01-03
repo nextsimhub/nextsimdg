@@ -190,6 +190,107 @@ void ParametricMesh::readmesh(std::string fname)
 }
 
 /*!
+ * Copy the coordinate arrays from the arguments.
+ *
+ * @param coord1 x in metres or longitude in radians
+ * @param coord2 y in metres or latitude in radians
+ */
+void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
+{
+    // Fill in the array sizes from the ModelArray dimensions
+    nx = ModelArray::size(ModelArray::Dimension::X);
+    ny = ModelArray::size(ModelArray::Dimension::Y);
+    nelements = nx * ny;
+    nnodes = (nx + 1) * (ny + 1);
+    vertices.resize(nnodes, 2);
+    for (size_t idx = 0; idx < nnodes; ++idx) {
+        vertices(idx, 0) = coords.components(idx)[0];
+        vertices(idx, 1) = coords.components(idx)[1];
+    }
+}
+
+/*!
+ * Copy the landmask from the passed ModelArray.
+ *
+ * @param mask the ModelArray containing the mask to be used.
+ */
+void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
+{
+    landmask.resize(nelements);
+    for (size_t idx = 0; idx < mask.trueSize(); ++idx)
+    {
+        landmask[idx] = (mask[idx] == 1.);
+    }
+}
+
+/*!
+ * Add to the dirichlet arrays according to the stored landmask.
+ */
+void ParametricMesh::dirichletFromMask()
+{
+    // Edges are accessed in the order: BOTTOM, RIGHT, TOP, LEFT. See also ParametricMesh::edges.
+    const std::array<size_t, N_EDGE> startX = {0, 0, 0, 1};
+    const std::array<size_t, N_EDGE> stopX = {nx, nx - 1, nx, nx};
+    const std::array<size_t, N_EDGE> startY = {1, 0, 0, 0};
+    const std::array<size_t, N_EDGE> stopY = {ny, ny, ny - 1, ny};
+    const std::array<int, N_EDGE> deltaIdx = {-static_cast<int>(nx), 1, static_cast<int>(nx), -1};
+
+    // Loop over edges
+    for (Edge edge : edges) {
+        for (size_t j = startY[edge]; j < stopY[edge]; ++j) {
+            for (size_t i = startX[edge]; i < stopX[edge]; ++i) {
+                size_t idx = ModelArray::indexFromLocation(ModelArray::Type::H, {i, j});
+                if (!landmask[idx]) continue;
+                // mask(i, j) is ocean. Check the appropriate neighbour
+                if (!landmask[idx + deltaIdx[edge]]) {
+                    dirichlet[edge].push_back(idx);
+                }
+            }
+        }
+        sortDirichlet(edge);
+    }
+}
+
+/*!
+ * Add to the dirichlet arrays due to the domain edges according to an edge index.
+ *
+ * @param edge index of the edge to add closed boundary conditions to.
+ */
+void ParametricMesh::dirichletFromEdge(Edge edge)
+{
+    // BOTTOM, RIGHT, TOP, LEFT
+    const std::array<size_t, N_EDGE> start = {0, nx - 1, nelements - nx, 0};
+    const std::array<size_t, N_EDGE> stop = {nx, nelements, nelements, nelements};
+    const std::array<size_t, N_EDGE> stride = {1, nx, 1, nx};
+
+    for (size_t idx = start[edge]; idx < stop[edge]; idx += stride[edge]) {
+        if (landmask[idx]) {
+            dirichlet[edge].push_back(idx);
+        }
+    }
+    sortDirichlet(edge);
+}
+
+/*!
+ * Sort all the dirichlet arrays, so the element indices are ordered.
+ */
+void ParametricMesh::sortDirichlet()
+{
+    for (ParametricMesh::Edge edge : ParametricMesh::edges) {
+        sortDirichlet(edge);
+    }
+}
+
+/*!
+ * Sort the dirichlet array of one particular edge.
+ *
+ * @param edge the edge to be sorted.
+ */
+void ParametricMesh::sortDirichlet(Edge edge)
+{
+    std::sort(dirichlet[edge].begin(), dirichlet[edge].end());
+}
+/*!
  * returns minimum mesh size.
  *
  */
