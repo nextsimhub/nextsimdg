@@ -115,6 +115,7 @@ public:
 protected:
     Logged() = default;
     // TODO: Add implementation to actually do some logging
+    static const std::map<int, std::string> keyMap;
 };
 
 } /* namespace Nextsim */

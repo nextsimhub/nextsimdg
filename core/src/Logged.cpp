@@ -42,7 +42,7 @@ const std::map<std::string, Logged::level> Logged::levelNames = {
     { "NONE", level::NONE },
 };
 
-const std::map<int, std::string> keyMap = {
+const std::map<int, std::string> Logged::keyMap = {
     { Logged::MINIMUM_LOG_LEVEL_KEY, "Logged.minimum_log_level" },
     { Logged::FILE_NAME_PATTERN_KEY, "Logged.file_name_pattern" },
     { Logged::CONSOLE_LOG_LEVEL_KEY, "Logged.console_log_level" },
