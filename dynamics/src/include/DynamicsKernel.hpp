@@ -23,36 +23,35 @@
 
 #include "CGModelArray.hpp"
 #include "DGModelArray.hpp"
+#include "include/ModelArray.hpp"
 #include "include/Time.hpp"
 #include "include/gridNames.hpp"
 
 #include <string>
 #include <unordered_map>
 
+#include <iostream>
+
 namespace Nextsim {
 
 template <int CGdegree, int DGadvection> class DynamicsKernel {
 public:
-    void initialisation()
+    void initialisation(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
+        if (isSpherical)
+            throw std::runtime_error("DG dynamics do not yet handle spherical coordinates.");
+            // TODO handle spherical coordinates
+
         //! Define the spatial mesh
-        smesh = new Nextsim::ParametricMesh(Nextsim::CARTESIAN);
-        // FIXME integrate the creation of the smesh based on restart file
-        // smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
-        smesh->readmesh("25km_NH_newmask.smesh");
+        smesh = new ParametricMesh(Nextsim::CARTESIAN);
 
-        // output land mask
-        Nextsim::DGVector<1> landmask(*smesh);
-        for (size_t i = 0; i < smesh->nelements; ++i)
-            landmask(i, 0) = smesh->landmask[i];
-        Nextsim::VTK::write_dg<1>("landmask", 0, landmask, *smesh);
-
-        // output boundary info
-        Nextsim::DGVector<1> boundary(*smesh);
-        for (size_t j = 0; j < 4; ++j)
-            for (size_t i = 0; i < smesh->dirichlet[j].size(); ++i)
-                boundary(smesh->dirichlet[j][i], 0) = 1 + j;
-        Nextsim::VTK::write_dg<1>("boundary", 0, boundary, *smesh);
+        smesh->coordinatesFromModelArray(coords);
+        smesh->landmaskFromModelArray(mask);
+        smesh->dirichletFromMask();
+        // TODO: handle periodic and open edges
+        for (ParametricMesh::Edge edge : ParametricMesh::edges) {
+            smesh->dirichletFromEdge(edge);
+        }
 
         //! Initialize transport
         dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);

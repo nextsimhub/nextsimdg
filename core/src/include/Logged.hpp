@@ -31,11 +31,6 @@ public:
         NONE
     };
 
-    enum {
-        MINIMUM_LOG_LEVEL_KEY,
-        FILE_NAME_PATTERN_KEY,
-        CONSOLE_LOG_LEVEL_KEY,
-    };
     static const std::map<std::string, level> levelNames;
 
     /*!

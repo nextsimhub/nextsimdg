@@ -5,23 +5,35 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#ifdef USE_MPI
+#include <doctest/extensions/doctest_mpi.h>
+#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
+#endif
+
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/NZLevels.hpp"
 #include "include/RectangularGrid.hpp"
 #include "include/RectGridIO.hpp"
 #include "include/IStructure.hpp"
+#include "include/gridNames.hpp"
 
 #include <cstdio>
 #include <fstream>
 
 const std::string filename = "RectGrid_test.nc";
+const std::string partition_filename = "partition_metadata_1.nc";
 
 namespace Nextsim {
 TEST_SUITE_BEGIN("RectGrid");
+#ifdef USE_MPI
+// Number of ranks should not be hardcoded here
+MPI_TEST_CASE("Write and read a ModelState-based RectGrid restart file", 1)
+#else
 TEST_CASE("Write and read a ModelState-based RectGrid restart file")
+#endif
 {
     RectangularGrid grid;
     grid.setIO(new RectGridIO(grid));
@@ -67,7 +79,39 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
     ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
+    // Use x & y coordinates
+    ModelArray x(ModelArray::Type::H);
+    ModelArray y(ModelArray::Type::H);
+    // Use an anisotropic grid so we can differentiate the dimensions.
+    double dx = 25.;
+    double dy = 35.;
+    for (int j = 0; j < ny; ++j) {
+        double yy = j * dy;
+        for (int i = 0; i < nx; ++i) {
+            double xx = i * dx;
+            x(i, j) = xx;
+            y(i, j) = yy;
+        }
+    }
+    // Use a temporary state to set the coordinates
+    ModelState coordState = { {
+            {xName, x},
+            {yName, y},
+    }, {}
+    };
+    metadata.extractCoordinates(coordState);
+    // Then immediately extract them to the output state
+    metadata.affixCoordinates(state);
 
+#ifdef USE_MPI
+    metadata.setMpiMetadata(test_comm);
+    metadata.globalExtentX = nx;
+    metadata.globalExtentY = ny;
+    metadata.localCornerX = 0;
+    metadata.localCornerY = 0;
+    metadata.localExtentX = nx;
+    metadata.localExtentY = ny;
+#endif
     grid.dumpModelState(state, metadata, filename);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
@@ -77,7 +121,11 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     size_t targetY = 7;
 
     gridIn.setIO(new RectGridIO(grid));
+#ifdef USE_MPI
+    ModelState ms = gridIn.getModelState(filename, partition_filename, metadata);
+#else
     ModelState ms = gridIn.getModelState(filename);
+#endif
 
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
@@ -90,6 +138,13 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
     REQUIRE(ticeIn.dimensions()[2] == 1);
     REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0703);
+
+    // Check that the coordinates have been correctly written and read
+    REQUIRE(ms.data.count(xName) > 0);
+    REQUIRE(ms.data.count(yName) > 0);
+    REQUIRE(ms.data.at(xName)(1, 0) == dx);
+    REQUIRE(ms.data.at(xName)(0, 1) == 0);
+    REQUIRE(ms.data.at(yName)(0, 1) == dy);
 
     std::remove(filename.c_str());
 }

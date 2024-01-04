@@ -3,17 +3,16 @@
  *
  * @date Jan 18, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include "include/StructureFactory.hpp"
 
-#include "include/IStructureModule.hpp"
+#include "include/StructureModule.hpp"
 
 #include "include/RectGridIO.hpp"
-#include "include/RectangularGrid.hpp"
 
 #include "include/ParaGridIO.hpp"
-#include "include/ParametricGrid.hpp"
 
 #include <ncFile.h>
 #include <ncGroup.h>
@@ -38,20 +37,33 @@ std::string structureNameFromFile(const std::string& filePath)
     return structureName;
 }
 
+#ifdef USE_MPI
+ModelState StructureFactory::stateFromFile(
+    const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
+#else
 ModelState StructureFactory::stateFromFile(const std::string& filePath)
+#endif
 {
     std::string structureName = structureNameFromFile(filePath);
     // TODO There must be a better way
     if (RectangularGrid::structureName == structureName) {
-        Module::setImplementation<IStructure>("RectangularGrid");
+        Module::setImplementation<IStructure>("Nextsim::RectangularGrid");
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
+#ifdef USE_MPI
+        return gridIn.getModelState(filePath, partitionFile, metadata);
+#else
         return gridIn.getModelState(filePath);
+#endif
     } else if (ParametricGrid::structureName == structureName) {
-        Module::setImplementation<IStructure>("ParametricGrid");
+        Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
         ParametricGrid gridIn;
         gridIn.setIO(new ParaGridIO(gridIn));
+#ifdef USE_MPI
+        return gridIn.getModelState(filePath, partitionFile, metadata);
+#else
         return gridIn.getModelState(filePath);
+#endif
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);

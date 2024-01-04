@@ -5,8 +5,8 @@ Results
 /.project
 /.pydevproject
 /.settings/*
-/src/modules/generated/moduleLoader*.ipp
-/*/src/modules/generated/moduleLoader*.ipp
+/*/src/modules/include/*Module.hpp
+/*/src/modules/*/module.cpp
 /run/*.nc
 /run/nextsim
 /run/.DS_Store

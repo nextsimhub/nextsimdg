@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cstddef>
 
+#include "include/ModelArray.hpp"
 #include "NextsimDynamics.hpp"
 #include <iostream>
 #include <string>
@@ -38,13 +39,22 @@ inline constexpr double SQR(double x) { return x * x; }
 
 typedef std::array<double, 2> Vertex;
 
-class ModelArray;
-
 class ParametricMesh {
 public:
     int statuslog; //!< -1 no output, 1 full status output
 
-  COORDINATES CoordinateSystem; //! CARTESIAN or SPHERICAL
+    enum Edge {
+        BOTTOM,
+        RIGHT,
+        TOP,
+        LEFT,
+        N_EDGE
+    };
+
+    // An array to allow the edges to be accessed in the correct order.
+    static constexpr std::array<Edge, N_EDGE> edges = {BOTTOM, RIGHT, TOP, LEFT};
+
+    COORDINATES CoordinateSystem; //! CARTESIAN or SPHERICAL
   
     size_t nx, ny; //!< no of elements in x- and y-direction
     size_t nnodes; //!< total number of nodes
@@ -407,6 +417,45 @@ public:
 	return vertices.block<1,2>(n2,0) - vertices.block<1,2>(n1,0);
       else abort();      
     }
+
+    /*!
+     * Copy the coordinate arrays from the arguments.
+     *
+     * @param coord1 x in metres or longitude in radians
+     * @param coord2 y in metres or latitude in radians
+     */
+    void coordinatesFromModelArray(const ModelArray& coords);
+
+    /*!
+     * Copy the landmask from the passed ModelArray.
+     *
+     * @param mask the ModelArray containing the mask to be used.
+     */
+    void landmaskFromModelArray(const ModelArray& mask);
+
+    /*!
+     * Add to the dirichlet arrays according to the stored landmask.
+     */
+    void dirichletFromMask();
+
+    /*!
+     * Add to the dirichlet arrays due to the domain edges according to an edge index.
+     *
+     * @param edge index of the edge to add closed boundary conditions to.
+     */
+    void dirichletFromEdge(Edge edge);
+
+    /*!
+     * Sort all the dirichlet arrays, so the element indices are ordered.
+     */
+    void sortDirichlet();
+
+    /*!
+     * Sort the dirichlet array of one particular edge.
+     *
+     * @param edge the edge to be sorted.
+     */
+    void sortDirichlet(Edge edge);
 
     // Global access functions
 

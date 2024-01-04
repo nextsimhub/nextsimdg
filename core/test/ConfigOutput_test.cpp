@@ -8,7 +8,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "include/ConfigOutput.hpp"
+#include "DiagnosticOutputModule/include/ConfigOutput.hpp"
 
 #include "include/FileCallbackCloser.hpp"
 #include "include/IStructure.hpp"
@@ -45,7 +45,7 @@ TEST_CASE("Test periodic output")
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
-    config << "Nextsim::IDiagnosticOutput = Nextsim::ConfigOutput" << std::endl;
+    config << "DiagnosticOutputModule = Nextsim::ConfigOutput" << std::endl;
     config << std::endl;
     config << "[ConfigOutput]" << std::endl;
     config << "period = 3600" << std::endl; // Output every hour
@@ -59,7 +59,7 @@ TEST_CASE("Test periodic output")
 
     ConfiguredModule::parseConfigurator();
 
-    Module::setImplementation<IStructure>("ParametricGrid");
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     HField hice(ModelArray::Type::H);
     HField cice(ModelArray::Type::H);

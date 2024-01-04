@@ -231,6 +231,8 @@ public:
     static size_t size(Type type) { return m_sz.at(type); }
     //! Returns the size of the data array of this object.
     size_t trueSize() const { return m_data.rows(); }
+    //! Returns the size of a dimension
+    static size_t size(Dimension dim) { return definedDimensions.at(dim).length; }
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
