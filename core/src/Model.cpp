@@ -22,10 +22,20 @@
 
 namespace Nextsim {
 
-const std::string Model::restartOptionName = "model.init_file";
+template <typename Key, typename Value>
+static std::map<Key, Value> combineMaps(std::map<Key, Value>& map1, std::map<Key, Value>& map2)
+{
+    std::map<Key, Value> map3 = map1;
+    map3.merge(map2);
+    return map3;
+}
 
-template <>
-const std::map<int, std::string> Configured<Model>::keyMap = {
+// Map of configuration that will be written to the restart file
+static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
+const std::string Model::restartOptionName = "model.init_file";
+// Map of all configuration keys for the main model, including those not to be
+// written to the restart file.
+static std::map<int, std::string> modelConfigKeyMap = {
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
 #ifdef USE_MPI
     { Model::PARTITIONFILE_KEY, "model.partition_file" },
@@ -35,7 +45,14 @@ const std::map<int, std::string> Configured<Model>::keyMap = {
     { Model::RUNLENGTH_KEY, "model.run_length" },
     { Model::TIMESTEP_KEY, "model.time_step" },
     { Model::MISSINGVALUE_KEY, "model.missing_value" },
+    { Model::RESTARTPERIOD_KEY, "model.restart_period" },
+    { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
+
+// Merge the configuration from ModelConfig into the Model keyMap.
+template <>
+const std::map<int, std::string> Configured<Model>::keyMap
+    = combineMaps(interimKeyMap, modelConfigKeyMap);
 
 #ifdef USE_MPI
 Model::Model(MPI_Comm comm)
@@ -49,7 +66,7 @@ Model::Model()
 
     iterator.setIterant(&modelStep);
 
-    finalFileName = "restart.nc";
+    finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
 }
 
 Model::~Model()
@@ -72,18 +89,27 @@ void Model::configure()
     // Configure logging
     Logged::configure();
 
-    startTimeStr = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
-    stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
-    durationStr = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
-    stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+    // Store the start/stop/step configuration directly in ModelConfig before
+    // parsing these values to the numerical time values used by the model.
+    ModelConfig::startTimeStr
+        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
+    ModelConfig::stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
+    ModelConfig::durationStr
+        = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
+    ModelConfig::stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
-    TimePoint timeNow = iterator.parseAndSet(startTimeStr, stopTimeStr, durationStr, stepStr);
+    // Set the time correspond to the current (initial) model state
+    TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
+        ModelConfig::durationStr, ModelConfig::stepStr);
     m_etadata.setTime(timeNow);
 
+    // Configure the missing data value
     MissingData::value
         = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
 
+    // Parse the initial restart file name and the pattern for output restart files
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+    finalFileName = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), finalFileName);
 
     pData.configure();
 
@@ -102,24 +128,23 @@ void Model::configure()
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
 #endif
 
+    // The period with which to write restart files.
+    std::string restartPeriodStr
+        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string());
+    restartPeriod = Duration(restartPeriodStr);
+
     // Get the coordinates from the ModelState for persistence
     m_etadata.extractCoordinates(initialState);
 
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);
+    modelStep.setRestartDetails(restartPeriod, finalFileName);
     pData.setData(initialState.data);
 }
 
 ConfigMap Model::getConfig() const
 {
-    ConfigMap cMap = {
-        { keyMap.at(STARTTIME_KEY), startTimeStr },
-        { keyMap.at(STOPTIME_KEY), stopTimeStr },
-        { keyMap.at(RUNLENGTH_KEY), durationStr },
-        { keyMap.at(TIMESTEP_KEY), stepStr },
-        { keyMap.at(MISSINGVALUE_KEY), MissingData::value },
-    };
-
+    ConfigMap cMap = ModelConfig::getConfig();
     return cMap;
 }
 
@@ -136,9 +161,12 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model run length, formatted as an ISO8601 duration (P prefix). "
             "Overrides the stop time if set. " },
         { keyMap.at(TIMESTEP_KEY), ConfigType::STRING, {}, "", "",
-            "Model physics timestep, formatted a ISO8601 duration (P prefix). " },
+            "Model physics timestep, formatted as an ISO8601 duration (P prefix). " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
+        { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "", "",
+            "The period between restart file outputs, formatted as an ISO8601 duration (P prefix) "
+            "or number of seconds." },
         { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
             "Missing data indicator used for input and output." },
 #ifdef USE_MPI
@@ -160,10 +188,12 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run() { iterator.run(); }
 
+//! Write a restart file for the model.
 void Model::writeRestartFile()
 {
-    // TODO Replace with real logging
-    Logged::notice(std::string("  Writing state-based restart file: ") + finalFileName + '\n');
+    std::string formattedFileName = m_etadata.time().format(finalFileName);
+
+    Logged::notice(std::string("  Writing state-based restart file: ") + formattedFileName + '\n');
     // Copy the configuration from the ModelState to the ModelMetadata
     ConfigMap modelConfig = getConfig();
     modelConfig.merge(pData.getStateRecursive(true).config);
@@ -172,7 +202,7 @@ void Model::writeRestartFile()
     // Get the model state from PrognosticData and add the coordinates.
     ModelState state = pData.getState();
     m_etadata.affixCoordinates(state);
-    StructureFactory::fileFromState(state, m_etadata, finalFileName, true);
+    StructureFactory::fileFromState(state, m_etadata, formattedFileName, true);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }

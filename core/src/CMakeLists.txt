@@ -3,6 +3,7 @@
 set(BaseSources
     "Logged.cpp"
     "Timer.cpp"
+    "ModelConfig.cpp"
     "Model.cpp"
     "Iterator.cpp"
     "Configurator.cpp"
@@ -22,6 +23,7 @@ set(BaseSources
     "NetcdfMetadataConfiguration.cpp"
     "NZLevels.cpp"
     "PrognosticData.cpp"
+    "PDWriter.cpp"
     "Time.cpp"
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
