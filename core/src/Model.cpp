@@ -164,9 +164,10 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model physics timestep, formatted as an ISO8601 duration (P prefix). " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
-        { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "", "",
+        { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
             "The period between restart file outputs, formatted as an ISO8601 duration (P prefix) "
-            "or number of seconds." },
+            "or number of seconds. A value of zero defaults to 10 000 years to ensure no "
+            "intermediate restart files are written." },
         { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
             "Missing data indicator used for input and output." },
 #ifdef USE_MPI
