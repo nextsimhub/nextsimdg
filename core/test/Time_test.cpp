@@ -164,6 +164,7 @@ TEST_CASE("Durations")
     Duration dur;
     // Basic values
     REQUIRE_THROWS(dur.parse("0-0-0T0:0:1"));
+    REQUIRE_THROWS(dur.parse(""));
     REQUIRE(dur.parse("P0-1").seconds() == 1 * days);
     REQUIRE(dur.parse("P0-0T0:0:1").seconds() == 1);
     REQUIRE(dur.parse("P-0-0T0:0:1").seconds() == -1);

@@ -12,6 +12,8 @@
 
 namespace Nextsim {
 
+const Duration DevStep::myriadJulianYears = Duration(3.15576e11);
+
 DevStep::DevStep()
     : pData(nullptr)
     , mData(nullptr)
@@ -47,7 +49,11 @@ void DevStep::iterate(const TimestepTime& tst)
 
 void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string& fileName)
 {
-    m_restartPeriod = restartPeriod;
+    /*
+     * A restart period of zero means zero intermediate restart files.
+     * Use 10 000 years as the period.
+     */
+    m_restartPeriod = (restartPeriod.seconds() != 0 ? restartPeriod : myriadJulianYears);
     m_restartFileName = fileName;
 }
 

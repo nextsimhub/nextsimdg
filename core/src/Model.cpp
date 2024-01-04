@@ -130,7 +130,7 @@ void Model::configure()
 
     // The period with which to write restart files.
     std::string restartPeriodStr
-        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string());
+        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
     restartPeriod = Duration(restartPeriodStr);
 
     // Get the coordinates from the ModelState for persistence
