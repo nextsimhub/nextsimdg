@@ -49,7 +49,6 @@ void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string
 {
     /*
      * A restart period of zero means zero intermediate restart files.
-     * Use 10 000 years as the period.
      */
     m_restartPeriod = restartPeriod;
     m_restartFileName = fileName;
