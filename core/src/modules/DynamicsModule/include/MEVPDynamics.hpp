@@ -20,7 +20,7 @@ class MEVPDynamics : public IDynamics {
 public:
     MEVPDynamics();
 
-    std::string getName() const override { return "Dynamics"; }
+    std::string getName() const override { return "MEVPDynamics"; }
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
