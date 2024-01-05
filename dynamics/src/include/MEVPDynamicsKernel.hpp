@@ -6,8 +6,8 @@
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
-#ifndef DYNAMICSKERNEL_HPP
-#define DYNAMICSKERNEL_HPP
+#ifndef MEVPDYNAMICSKERNEL_HPP
+#define MEVPDYNAMICSKERNEL_HPP
 
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
@@ -34,7 +34,7 @@
 
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection> class DynamicsKernel {
+template <int CGdegree, int DGadvection> class MEVPDynamicsKernel {
 public:
     void initialisation(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
@@ -229,4 +229,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* DYNAMICSKERNEL_HPP */
+#endif /* MEVPDYNAMICSKERNEL_HPP */

@@ -9,9 +9,9 @@
 #ifndef DYNAMICS_HPP
 #define DYNAMICS_HPP
 
+#include "include/MEVPDynamicsKernel.hpp"
 #include "include/IDynamics.hpp"
 
-#include "../../../../../dynamics/src/include/DynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 
@@ -26,7 +26,7 @@ public:
     void setData(const ModelState::DataMap&) override;
 private:
     // TODO: How to get the template parameters here?
-    DynamicsKernel<2, 6> kernel;
+    MEVPDynamicsKernel<2, 6> kernel;
 };
 }
 
