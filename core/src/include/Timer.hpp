@@ -39,7 +39,7 @@ public:
      * @param rootKey Name of the root node.
      */
     Timer(const Key& rootKey);
-    virtual ~Timer() = default;
+    ~Timer() { reset(); }
 
     /*!
      * @brief Starts a named timer.
