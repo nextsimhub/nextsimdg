@@ -130,7 +130,7 @@ void Model::configure()
 
     // The period with which to write restart files.
     std::string restartPeriodStr
-        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string());
+        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
     restartPeriod = Duration(restartPeriodStr);
 
     // Get the coordinates from the ModelState for persistence
@@ -164,9 +164,10 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model physics timestep, formatted as an ISO8601 duration (P prefix). " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
-        { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "", "",
-            "The period between restart file outputs, formatted as an ISO8601 duration (P prefix) "
-            "or number of seconds." },
+        { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between restart file outputs, formatted as an ISO8601 "
+            "duration (P prefix) or number of seconds. A value of zero "
+            "ensures no intermediate restart files are written." },
         { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
             "Missing data indicator used for input and output." },
 #ifdef USE_MPI

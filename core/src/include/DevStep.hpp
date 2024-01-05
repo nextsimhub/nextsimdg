@@ -46,7 +46,7 @@ private:
     PrognosticData* pData;
     ModelMetadata* mData;
     Duration m_restartPeriod;
-    TimePoint lastOutput;
+    TimePoint lastOutput; // The time a restart file was last output
     std::string m_restartFileName;
 };
 
