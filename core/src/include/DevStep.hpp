@@ -48,8 +48,6 @@ private:
     Duration m_restartPeriod;
     TimePoint lastOutput; // The time a restart file was last output
     std::string m_restartFileName;
-    // If no intermediate restart files are required, set the restart period to a very long time.
-    static const Duration myriadJulianYears;
 };
 
 } /* namespace Nextsim */

@@ -8,16 +8,14 @@
 #include "include/DevStep.hpp"
 
 #include "include/ConfiguredModule.hpp"
-#include "include/DiagnosticOutputModule.hpp"
-
+#include "include/IDiagnosticOutput.hpp"
+#include "include/Module.hpp"
 namespace Nextsim {
-
-const Duration DevStep::myriadJulianYears = Duration(3.15576e11);
 
 DevStep::DevStep()
     : pData(nullptr)
     , mData(nullptr)
-    , m_restartPeriod(3.1536e11) // 10 000 years of 365 days
+    , m_restartPeriod(0)
 {
 }
 
@@ -36,7 +34,7 @@ void DevStep::iterate(const TimestepTime& tst)
     // The state of the model has now advanced by one timestep, so update the
     // model metadata timestamp.
     mData->incrementTime(tst.step);
-    if (mData->time() >= lastOutput + m_restartPeriod) {
+    if ((m_restartPeriod.seconds() > 0) && (mData->time() >= lastOutput + m_restartPeriod)) {
         std::string currentFileName = mData->time().format(m_restartFileName);
         pData->writeRestartFile(currentFileName);
         lastOutput = mData->time();
@@ -53,7 +51,7 @@ void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string
      * A restart period of zero means zero intermediate restart files.
      * Use 10 000 years as the period.
      */
-    m_restartPeriod = (restartPeriod.seconds() != 0 ? restartPeriod : myriadJulianYears);
+    m_restartPeriod = restartPeriod;
     m_restartFileName = fileName;
 }
 
