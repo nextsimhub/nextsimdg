@@ -1,5 +1,5 @@
 /*!
- * @file Dynamics.hpp
+ * @file MEVPDynamics.hpp
  *
  * @date 27 Mar 2023
  * @author Tim Spain <timothy.spain@nersc.no>
@@ -16,9 +16,9 @@
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
-class Dynamics : public IDynamics {
+class MEVPDynamics : public IDynamics {
 public:
-    Dynamics();
+    MEVPDynamics();
 
     std::string getName() const override { return "Dynamics"; }
     void update(const TimestepTime& tst) override;
