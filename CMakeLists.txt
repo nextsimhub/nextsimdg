@@ -91,6 +91,9 @@ set(NextsimSources "")
 # Set an empty list of include directories
 set(NextsimIncludeDirs "")
 
+# At least one test shell script runs the full binary. This variable contains the path to it.
+set(NEXTSIM_BINARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/nextsim")
+
 # Build the core model. Defines the 'parse_modules' target
 add_subdirectory(core)
 
