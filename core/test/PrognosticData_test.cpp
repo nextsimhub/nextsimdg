@@ -24,6 +24,10 @@ extern template class Module::Module<Nextsim::IOceanBoundary>;
 
 namespace Nextsim {
 
+void PrognosticData::writeRestartFile(const std::string& filePath) const
+{
+}
+
 TEST_SUITE_BEGIN("PrognosticData");
 TEST_CASE("PrognosticData call order test")
 {

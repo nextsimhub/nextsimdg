@@ -1,13 +1,12 @@
 /*!
- * @file DynamicsKernel.hpp
+ * @file IDynamicsKernel.hpp
  *
- * @date 17 Feb 2023
+ * @date Jan 5, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
-#ifndef DYNAMICSKERNEL_HPP
-#define DYNAMICSKERNEL_HPP
+#ifndef IDYNAMICSKERNEL_HPP
+#define IDYNAMICSKERNEL_HPP
 
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
@@ -23,6 +22,7 @@
 
 #include "CGModelArray.hpp"
 #include "DGModelArray.hpp"
+#include "include/ModelArray.hpp"
 #include "include/Time.hpp"
 #include "include/gridNames.hpp"
 
@@ -31,28 +31,26 @@
 
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection> class DynamicsKernel {
+template<int CGdegree, int DGadvection> class IDynamicsKernel {
 public:
-    void initialisation()
+    IDynamicsKernel() = default;
+    virtual ~IDynamicsKernel() = default;
+    void initialisation(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
+        if (isSpherical)
+            throw std::runtime_error("DG dynamics do not yet handle spherical coordinates.");
+            // TODO handle spherical coordinates
+
         //! Define the spatial mesh
-        smesh = new Nextsim::ParametricMesh(Nextsim::CARTESIAN);
-        // FIXME integrate the creation of the smesh based on restart file
-        // smesh->readmesh("init_topaz128x128.smesh"); // file temporary committed
-        smesh->readmesh("25km_NH_newmask.smesh");
+        smesh = new ParametricMesh(Nextsim::CARTESIAN);
 
-        // output land mask
-        Nextsim::DGVector<1> landmask(*smesh);
-        for (size_t i = 0; i < smesh->nelements; ++i)
-            landmask(i, 0) = smesh->landmask[i];
-        Nextsim::VTK::write_dg<1>("landmask", 0, landmask, *smesh);
-
-        // output boundary info
-        Nextsim::DGVector<1> boundary(*smesh);
-        for (size_t j = 0; j < 4; ++j)
-            for (size_t i = 0; i < smesh->dirichlet[j].size(); ++i)
-                boundary(smesh->dirichlet[j][i], 0) = 1 + j;
-        Nextsim::VTK::write_dg<1>("boundary", 0, boundary, *smesh);
+        smesh->coordinatesFromModelArray(coords);
+        smesh->landmaskFromModelArray(mask);
+        smesh->dirichletFromMask();
+        // TODO: handle periodic and open edges
+        for (ParametricMesh::Edge edge : ParametricMesh::edges) {
+            smesh->dirichletFromEdge(edge);
+        }
 
         //! Initialize transport
         dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
@@ -91,7 +89,7 @@ public:
      * @param data The ModelArray containing the data to be set.
      *
      */
-    void setData(const std::string& name, const ModelArray& data)
+    virtual void setData(const std::string& name, const ModelArray& data)
     {
 
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
@@ -187,8 +185,7 @@ public:
 
     void update(const TimestepTime& tst)
     {
-
-        static int step_number = 0;
+        static int stepNumber = 0;
 
         //! Perform transport step
         dgtransport->prepareAdvection(momentum->GetVx(), momentum->GetVy());
@@ -209,39 +206,37 @@ public:
         Nextsim::LimitMin(hice, 0.0);
 
         momentum->prepareIteration(hice, cice);
-        //! Momentum
-        for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
-            momentum->mEVPStep(VP, NT_evp, alpha, beta, tst.step.seconds(), hice, cice);
-        }
 
-        step_number++;
-    };
+        updateMomentum(tst);
 
-private:
-    DGVector<DGadvection> hice;
-    DGVector<DGadvection> cice;
-    CGVector<CGdegree> u;
-    CGVector<CGdegree> v;
+        ++stepNumber;
+    }
 
+protected:
     Nextsim::DGTransport<DGadvection>* dgtransport;
     Nextsim::DGTransport<CG2DGSTRESS(CGdegree)>* stresstransport;
     Nextsim::CGParametricMomentum<CGdegree>* momentum;
 
-    Nextsim::ParametricMesh* smesh;
+    DGVector<DGadvection> hice;
+    DGVector<DGadvection> cice;
 
-    //! Rheology-Parameters
-    Nextsim::VPParameters VP;
-    //! MEVP parameters
-    double alpha = 1500.0;
-    double beta = 1500.0;
     size_t NT_evp = 100;
+
+    virtual void updateMomentum(const TimestepTime& tst) = 0;
+
+private:
+    CGVector<CGdegree> u;
+    CGVector<CGdegree> v;
+
+    Nextsim::ParametricMesh* smesh;
 
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
     // A map from field name to the type of
-    const static std::unordered_map<std::string, ModelArray::Type> fieldType;
+    const std::unordered_map<std::string, ModelArray::Type> fieldType;
+
 };
 
-} /* namespace Nextsim */
+}
 
-#endif /* DYNAMICSKERNEL_HPP */
+#endif /* IDYNAMICSKERNEL_HPP */

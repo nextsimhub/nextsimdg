@@ -13,8 +13,8 @@
 #include "include/NZLevels.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
-#include "include/gridNames.hpp"
 #include "include/StructureModule.hpp"
+#include "include/gridNames.hpp"
 
 #include <cmath>
 #include <filesystem>
@@ -103,6 +103,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // Planar coordinates
     double scale = 1e5;
 
+    // Vertex coordinates
     for (size_t i = 0; i < ModelArray::definedDimensions.at(ModelArray::Dimension::XVERTEX).length;
          ++i) {
         for (size_t j = 0;
@@ -117,18 +118,48 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(coordinates.components({ 12, 13 })[0] - coordinates.components({ 11, 13 })[0] == scale);
     REQUIRE(coordinates.components({ 12, 13 })[1] - coordinates.components({ 12, 12 })[1] == scale);
 
+    HField x;
+    HField y;
+    x.resize();
+    y.resize();
+    // Element coordinates
+    for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::Y); ++j) {
+        double yy = scale * (j - ny / 2);
+        for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::X); ++i) {
+            double xx = scale * (i - nx / 2);
+            x(i, j) = xx;
+            y(i, j) = yy;
+        }
+    }
+
+    HField gridAzimuth;
+    double gridAzimuth0 = 45.;
+    gridAzimuth = gridAzimuth0;
+
     ModelState state = { {
                              { maskName, mask },
                              { hiceName, hice },
                              { ciceName, cice },
                              { hsnowName, hsnow },
                              { ticeName, tice },
-                             { coordsName, coordinates },
                          },
+        {} };
+
+    // A model state to set the coordinates in the metadata object
+    ModelState coordState = { {
+                                  { xName, x },
+                                  { yName, y },
+                                  { coordsName, coordinates },
+                                  { gridAzimuthName, gridAzimuth },
+                              },
         {} };
 
     ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
+    // The coordinates are passed through the metadata object as affix
+    // coordinates is the correct way to add coordinates to a ModelState
+    metadata.extractCoordinates(coordState);
+    metadata.affixCoordinates(state);
 
     grid.dumpModelState(state, metadata, filename, true);
 
@@ -175,12 +206,25 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
     REQUIRE(ticeRef(12, 14, 1) == tice(12, 14, 1));
 
+    // Here we don't bother passing the coordinate arrays through a ModelMetadata object
     ModelArray& coordRef = ms.data.at(coordsName);
     REQUIRE(coordRef.nDimensions() == 2);
     REQUIRE(coordRef.nComponents() == 2);
+    REQUIRE(coordRef.dimensions()[0] == nx + 1);
+    REQUIRE(coordRef.dimensions()[1] == ny + 1);
     REQUIRE(coordRef.components({ 12, 13 })[0] - coordRef.components({ 11, 13 })[0] == scale);
     REQUIRE(coordRef.components({ 12, 13 })[1] - coordRef.components({ 12, 12 })[1] == scale);
 
+    REQUIRE(ms.data.count(xName) > 0);
+    ModelArray& xRef = ms.data.at(xName);
+    REQUIRE(xRef(12, 13) == coordRef.components({ 12, 13 })[0] + scale / 2);
+
+    REQUIRE(ms.data.count(yName) > 0);
+    ModelArray& yRef = ms.data.at(yName);
+    REQUIRE(yRef(12, 13) == coordRef.components({ 12, 13 })[1] + scale / 2);
+
+    REQUIRE(ms.data.count(gridAzimuthName) > 0);
+    REQUIRE(ms.data.at(gridAzimuthName)(0, 0) == gridAzimuth0);
     std::filesystem::remove(filename);
 }
 
@@ -228,7 +272,8 @@ TEST_CASE("Write a diagnostic ParaGrid file")
         for (size_t i = 0; i < nx; ++i) {
             fractional(i, j) = j * yFactor + i * xFactor;
             mask(i, j) = fractional(i, j);
-//                = (i - nx / 2) * (i - nx / 2) + (j - ny / 2) * (j - ny / 2) > (nx * ny) ? 0 : 1;
+            //                = (i - nx / 2) * (i - nx / 2) + (j - ny / 2) * (j - ny / 2) > (nx *
+            //                ny) ? 0 : 1;
             for (size_t d = 0; d < DG; ++d) {
                 fractionalDG.components({ i, j })[d] = fractional(i, j) + d;
             }
@@ -240,7 +285,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
     REQUIRE(fractionalDG(12, 12) - fractionalDG(11, 12) == doctest::Approx(xFactor).epsilon(prec));
     REQUIRE(fractionalDG(12, 12) - fractionalDG(12, 11) == doctest::Approx(yFactor).epsilon(prec));
-
 
     DGField hice = fractionalDG + 10;
     DGField cice = fractionalDG + 20;
@@ -264,16 +308,46 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     REQUIRE(coordinates.components({ 12, 13 })[0] - coordinates.components({ 11, 13 })[0] == scale);
     REQUIRE(coordinates.components({ 12, 13 })[1] - coordinates.components({ 12, 12 })[1] == scale);
 
+    HField x;
+    HField y;
+    x.resize();
+    y.resize();
+    // Element coordinates
+    for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::Y); ++j) {
+        double yy = scale * (j - ny / 2);
+        for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::X); ++i) {
+            double xx = scale * (i - nx / 2);
+            x(i, j) = xx;
+            y(i, j) = yy;
+        }
+    }
+
+    HField gridAzimuth;
+    double gridAzimuth0 = 45.;
+    gridAzimuth = gridAzimuth0;
+
     ModelState state = { {
                              { maskName, mask },
                              { hiceName, hice },
                              { ciceName, cice },
-                             { coordsName, coordinates },
                          },
+        {} };
+
+    // A model state to set the coordinates in the metadata object
+    ModelState coordState = { {
+                                  { xName, x },
+                                  { yName, y },
+                                  { coordsName, coordinates },
+                                  { gridAzimuthName, gridAzimuth },
+                              },
         {} };
 
     ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
+    // The coordinates are passed through the metadata object as affix
+    // coordinates is the correct way to add coordinates to a ModelState
+    metadata.extractCoordinates(coordState);
+    metadata.affixCoordinates(state);
 
     grid.dumpModelState(state, metadata, diagFile, false);
 
@@ -285,6 +359,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
                       { ciceName, cice },
                   },
             {} };
+        metadata.incrementTime(Duration(3600));
 
         grid.dumpModelState(state, metadata, diagFile, false);
     }
@@ -300,26 +375,29 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
     std::string structureType;
     structGrp.getAtt(grid.typeNodeName()).getValues(structureType);
-    // TODO implement ParametricGrid in the IStructureModule
     REQUIRE(structureType == grid.structureType());
 
     // TODO test metadata
 
     // test data
-    REQUIRE(dataGrp.getVarCount() == 5);
+    REQUIRE(dataGrp.getVarCount() == 8);
     netCDF::NcVar hiceVar = dataGrp.getVar(hiceName);
     netCDF::NcVar ciceVar = dataGrp.getVar(ciceName);
-    netCDF::NcVar coordVar = dataGrp.getVar(coordsName);
     netCDF::NcVar maskVar = dataGrp.getVar(maskName);
     netCDF::NcVar timeVar = dataGrp.getVar(timeName);
 
     // hice
     REQUIRE(hiceVar.getDimCount() == 4);
 
+    // coordinates
+    REQUIRE(dataGrp.getVars().count(xName) > 0);
+    REQUIRE(dataGrp.getVars().count(yName) > 0);
+    REQUIRE(dataGrp.getVars().count(coordsName) > 0);
+    REQUIRE(dataGrp.getVars().count(gridAzimuthName) > 0);
+
     ncFile.close();
 
     std::filesystem::remove(diagFile);
-
 }
 
 #define TO_STR(s) TO_STRI(s)
@@ -352,7 +430,8 @@ TEST_CASE("Test array ordering")
     std::set<std::string> fields = { fieldName };
     TimePoint time;
 
-    ModelState state = ParaGridIO::readForcingTimeStatic(fields, time, TO_STR(TEST_FILE_SOURCE) + std::string("/") + inputFilename);
+    ModelState state = ParaGridIO::readForcingTimeStatic(
+        fields, time, TO_STR(TEST_FILE_SOURCE) + std::string("/") + inputFilename);
     REQUIRE(state.data.count(fieldName) > 0);
     index2d = state.data.at(fieldName);
     REQUIRE(index2d(3, 5) == 35);
