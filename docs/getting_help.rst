@@ -9,7 +9,7 @@ You can get help on compiling and running NextSIM-DG in several ways:
 
 - The documentation that can be found alongside this document.
 - The built-in help system.
-- By emailing the NextSIM-DG team.
+- By emailing the NextSIM-DG team at nextsim@nersc.no
 
 Documentation
 -------------
