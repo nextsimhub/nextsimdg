@@ -27,6 +27,7 @@
 #include "include/gridNames.hpp"
 
 #include <string>
+#include <unordered_map>
 
 namespace Nextsim {
 
