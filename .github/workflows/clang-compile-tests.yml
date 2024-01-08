@@ -39,6 +39,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
+        sudo apt-get install python3-netcdf4
     - name: make
       run: |
         cmake .
@@ -66,6 +67,7 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
+        pip3 install netCDF4
     - name: make
       run: |
         cmake .

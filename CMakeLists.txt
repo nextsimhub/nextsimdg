@@ -128,3 +128,6 @@ target_include_directories(nextsim PRIVATE
     "${NextsimIncludeDirs}"
     )
 target_link_libraries(nextsim PUBLIC nextsimlib)
+
+# Generate the restart files that don't require additional data
+add_subdirectory(run)

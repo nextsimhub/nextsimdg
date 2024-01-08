@@ -9,6 +9,10 @@ set(COMMON_INCLUDE_DIRS
 set(ModulesRoot "../src/modules")
 set(CoreModulesRoot "../../core/src/modules")
 
+# Generate the boundary test data files
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/era5_test_data.py" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test_data.py" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
 include_directories(${COMMON_INCLUDE_DIRS})
 
 add_executable(testIceGrowth "IceGrowth_test.cpp")
