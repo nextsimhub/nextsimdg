@@ -192,7 +192,7 @@ public:
     //! Performs one step of freedrift dynamics
     template<int DG>
     void FreeDriftStep(const FDParameters& params, size_t nt_fd,
-            double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
+            double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A);
 
     /*!
      * The following functions take care of the interpolation and projection

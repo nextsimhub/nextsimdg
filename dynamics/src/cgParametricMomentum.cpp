@@ -512,7 +512,7 @@ void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
 template <int CG>
 template <int DG>
 void CGParametricMomentum<CG>::FreeDriftStep(const FDParameters& params, size_t nt_fd,
-        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D)
+        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A)
 {
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
