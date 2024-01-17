@@ -21,8 +21,8 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <stdexcept>
 #include <map>
+#include <stdexcept>
 #include <string>
 
 namespace Nextsim {
@@ -85,7 +85,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
         for (auto entry : ModelArray::definedDimensions) {
             if (dimCompMap.count(entry.first) > 0)
-                // TODO Assertions that DG in the file equals the compile time DG in the model. See #205
+                // TODO Assertions that DG in the file equals the compile time DG in the model. See
+                // #205
                 continue;
 
             ModelArray::DimensionSpec& dimensionSpec = entry.second;
@@ -112,7 +113,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             }
             if (!dimensionKeys.count(dimKey)) {
                 throw std::out_of_range(
-                        std::string("No ModelArray::Type corresponds to the dimensional key ") + dimKey);
+                    std::string("No ModelArray::Type corresponds to the dimensional key ")
+                    + dimKey);
             }
             ModelArray::Type newType = dimensionKeys.at(dimKey);
             state.data[varName] = ModelArray(newType);
@@ -131,7 +133,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             }
         }
         ncFile.close();
-    } catch ( const netCDF::exceptions::NcException& nce) {
+    } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + filePath;
         throw std::runtime_error(ncWhat);
@@ -173,7 +175,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
         // Loop over the dimensions of H
         const std::vector<ModelArray::Dimension>& dimensions
-        = ModelArray::typeDimensions.at(ModelArray::Type::H);
+            = ModelArray::typeDimensions.at(ModelArray::Type::H);
         for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
             indexArray.push_back(0);
             extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
@@ -188,7 +190,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
             var.getVar(indexArray, extentArray, &data[0]);
         }
         ncFile.close();
-    } catch ( const netCDF::exceptions::NcException& nce) {
+    } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + filePath;
         throw std::runtime_error(ncWhat);
