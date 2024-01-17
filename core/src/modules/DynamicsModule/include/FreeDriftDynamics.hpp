@@ -18,7 +18,9 @@
 namespace Nextsim {
 class FreeDriftDynamics : public IDynamics {
 public:
-    FreeDriftDynamics();
+    FreeDriftDynamics()
+        : IDynamics()
+    {}
 
     std::string getName() const override { return "MEVPDynamics"; }
     void update(const TimestepTime& tst) override;
