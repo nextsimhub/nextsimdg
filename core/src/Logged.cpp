@@ -42,11 +42,6 @@ const std::map<std::string, Logged::level> Logged::levelNames = {
     { "NONE", level::NONE },
 };
 
-const std::map<int, std::string> keyMap = {
-    { Logged::MINIMUM_LOG_LEVEL_KEY, "Logged.minimum_log_level" },
-    { Logged::FILE_NAME_PATTERN_KEY, "Logged.file_name_pattern" },
-    { Logged::CONSOLE_LOG_LEVEL_KEY, "Logged.console_log_level" },
-};
 BOOST_LOG_ATTRIBUTE_KEYWORD(Severity, "Severity", Logged::level)
 
 boost::log::sources::severity_logger<Logged::level> sl;
@@ -54,6 +49,23 @@ boost::log::sources::severity_logger<Logged::level> sl;
 // Initialize the logger, that is set up boost::log how we want it
 void Logged::configure()
 {
+    /*
+     * The enum and keyMap that would usually be inherited from Configured are
+     * defined here so that a class can be derived from Logged
+     * without having to be derived from Configured and Boost::program_options.
+     */
+    enum {
+        MINIMUM_LOG_LEVEL_KEY,
+        FILE_NAME_PATTERN_KEY,
+        CONSOLE_LOG_LEVEL_KEY,
+    };
+
+    const std::map<int, std::string> keyMap = {
+        { MINIMUM_LOG_LEVEL_KEY, "Logged.minimum_log_level" },
+        { FILE_NAME_PATTERN_KEY, "Logged.file_name_pattern" },
+        { CONSOLE_LOG_LEVEL_KEY, "Logged.console_log_level" },
+    };
+
     level minimumLogLevel = levelNames.at(Configured<Logged>::getConfiguration(
         keyMap.at(MINIMUM_LOG_LEVEL_KEY), std::string("info")));
     std::string fileNamePattern = Configured<Logged>::getConfiguration(
