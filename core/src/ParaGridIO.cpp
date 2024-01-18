@@ -14,6 +14,7 @@
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
+#include <ncException.h>
 #include <ncFile.h>
 #include <ncGroup.h>
 #include <ncVar.h>
@@ -21,6 +22,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <map>
+#include <stdexcept>
 #include <string>
 
 namespace Nextsim {
@@ -72,113 +74,127 @@ ParaGridIO::~ParaGridIO() = default;
 
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
-    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
-
-    // Dimensions and DG components
-    std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
-    for (auto entry : ModelArray::definedDimensions) {
-        if (dimCompMap.count(entry.first) > 0)
-            // TODO Assertions that DG in the file equals the compile time DG in the model. See #205
-            continue;
-
-        ModelArray::DimensionSpec& dimensionSpec = entry.second;
-        netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
-        if (entry.first == ModelArray::Dimension::Z) {
-            // A special case, as the number of levels in the file might not be
-            // the number that the selected ice thermodynamics requires.
-            ModelArray::setDimension(entry.first, NZLevels::get());
-        } else {
-            ModelArray::setDimension(entry.first, dim.getSize());
-        }
-    }
-
     ModelState state;
 
-    // Get all vars in the data group, and load them into a new ModelState
+    try {
+        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+        netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
+        netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
-    for (auto entry : dataGroup.getVars()) {
-        const std::string& varName = entry.first;
-        netCDF::NcVar& var = entry.second;
-        // Determine the type from the dimensions
-        std::vector<netCDF::NcDim> varDims = var.getDims();
-        std::string dimKey = "";
-        for (netCDF::NcDim& dim : varDims) {
-            dimKey += dim.getName();
-        }
-        if (!dimensionKeys.count(dimKey)) {
-            throw std::out_of_range(
-                std::string("No ModelArray::Type corresponds to the dimensional key ") + dimKey);
-        }
-        ModelArray::Type newType = dimensionKeys.at(dimKey);
-        state.data[varName] = ModelArray(newType);
-        ModelArray& data = state.data.at(varName);
-        data.resize();
+        // Dimensions and DG components
+        std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
+        for (auto entry : ModelArray::definedDimensions) {
+            if (dimCompMap.count(entry.first) > 0)
+                // TODO Assertions that DG in the file equals the compile time DG in the model. See
+                // #205
+                continue;
 
-        if (newType == ModelArray::Type::Z) {
-            std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
-            std::vector<size_t> extentVector = ModelArray::dimensions(newType);
-            // Reverse the extent vector to go from logical (x, y, z) ordering
-            // of indexes to netCDF storage ordering.
-            std::reverse(extentVector.begin(), extentVector.end());
-            var.getVar(startVector, extentVector, &data[0]);
-        } else {
-            var.getVar(&data[0]);
+            ModelArray::DimensionSpec& dimensionSpec = entry.second;
+            netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
+            if (entry.first == ModelArray::Dimension::Z) {
+                // A special case, as the number of levels in the file might not be
+                // the number that the selected ice thermodynamics requires.
+                ModelArray::setDimension(entry.first, NZLevels::get());
+            } else {
+                ModelArray::setDimension(entry.first, dim.getSize());
+            }
         }
+
+        // Get all vars in the data group, and load them into a new ModelState
+
+        for (auto entry : dataGroup.getVars()) {
+            const std::string& varName = entry.first;
+            netCDF::NcVar& var = entry.second;
+            // Determine the type from the dimensions
+            std::vector<netCDF::NcDim> varDims = var.getDims();
+            std::string dimKey = "";
+            for (netCDF::NcDim& dim : varDims) {
+                dimKey += dim.getName();
+            }
+            if (!dimensionKeys.count(dimKey)) {
+                throw std::out_of_range(
+                    std::string("No ModelArray::Type corresponds to the dimensional key ")
+                    + dimKey);
+            }
+            ModelArray::Type newType = dimensionKeys.at(dimKey);
+            state.data[varName] = ModelArray(newType);
+            ModelArray& data = state.data.at(varName);
+            data.resize();
+
+            if (newType == ModelArray::Type::Z) {
+                std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
+                std::vector<size_t> extentVector = ModelArray::dimensions(newType);
+                // Reverse the extent vector to go from logical (x, y, z) ordering
+                // of indexes to netCDF storage ordering.
+                std::reverse(extentVector.begin(), extentVector.end());
+                var.getVar(startVector, extentVector, &data[0]);
+            } else {
+                var.getVar(&data[0]);
+            }
+        }
+        ncFile.close();
+    } catch (const netCDF::exceptions::NcException& nce) {
+        std::string ncWhat(nce.what());
+        ncWhat += ": " + filePath;
+        throw std::runtime_error(ncWhat);
     }
-    ncFile.close();
     return state;
 }
 
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
-    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
-
     ModelState state;
 
-    // Read the time axis
-    netCDF::NcDim timeDim = dataGroup.getDim(timeName);
-    // Read the time variable
-    netCDF::NcVar timeVar = dataGroup.getVar(timeName);
-    // Calculate the index of the largest time value on the axis below our target
-    size_t targetTIndex;
-    // Get the time axis as a vector
-    std::vector<double> timeVec(timeDim.getSize());
-    timeVar.getVar(timeVec.data());
-    // Get the index of the largest TimePoint less than the target.
-    targetTIndex = std::find_if(begin(timeVec), end(timeVec), [time](double t) {
-        return (TimePoint() + Duration(t)) > time;
-    }) - timeVec.begin();
-    // Rather than the first that is greater than, get the last that is less
-    // than or equal to. But don't go out of bounds.
-    if (targetTIndex > 0)
-        --targetTIndex;
-    // ASSUME all forcings are HFields: finite volume fields on the same
-    // grid as ice thickness
-    std::vector<size_t> indexArray = { targetTIndex };
-    std::vector<size_t> extentArray = { 1 };
+    try {
+        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+        netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
+        netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
-    // Loop over the dimensions of H
-    const std::vector<ModelArray::Dimension>& dimensions
-        = ModelArray::typeDimensions.at(ModelArray::Type::H);
-    for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
-        indexArray.push_back(0);
-        extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
+        // Read the time axis
+        netCDF::NcDim timeDim = dataGroup.getDim(timeName);
+        // Read the time variable
+        netCDF::NcVar timeVar = dataGroup.getVar(timeName);
+        // Calculate the index of the largest time value on the axis below our target
+        size_t targetTIndex;
+        // Get the time axis as a vector
+        std::vector<double> timeVec(timeDim.getSize());
+        timeVar.getVar(timeVec.data());
+        // Get the index of the largest TimePoint less than the target.
+        targetTIndex = std::find_if(begin(timeVec), end(timeVec), [time](double t) {
+            return (TimePoint() + Duration(t)) > time;
+        }) - timeVec.begin();
+        // Rather than the first that is greater than, get the last that is less
+        // than or equal to. But don't go out of bounds.
+        if (targetTIndex > 0)
+            --targetTIndex;
+        // ASSUME all forcings are HFields: finite volume fields on the same
+        // grid as ice thickness
+        std::vector<size_t> indexArray = { targetTIndex };
+        std::vector<size_t> extentArray = { 1 };
+
+        // Loop over the dimensions of H
+        const std::vector<ModelArray::Dimension>& dimensions
+            = ModelArray::typeDimensions.at(ModelArray::Type::H);
+        for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
+            indexArray.push_back(0);
+            extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
+        }
+
+        for (const std::string& varName : forcings) {
+            netCDF::NcVar var = dataGroup.getVar(varName);
+            state.data[varName] = ModelArray(ModelArray::Type::H);
+            ModelArray& data = state.data.at(varName);
+            data.resize();
+
+            var.getVar(indexArray, extentArray, &data[0]);
+        }
+        ncFile.close();
+    } catch (const netCDF::exceptions::NcException& nce) {
+        std::string ncWhat(nce.what());
+        ncWhat += ": " + filePath;
+        throw std::runtime_error(ncWhat);
     }
-
-    for (const std::string& varName : forcings) {
-        netCDF::NcVar var = dataGroup.getVar(varName);
-        state.data[varName] = ModelArray(ModelArray::Type::H);
-        ModelArray& data = state.data.at(varName);
-        data.resize();
-
-        var.getVar(indexArray, extentArray, &data[0]);
-    }
-    ncFile.close();
     return state;
 }
 

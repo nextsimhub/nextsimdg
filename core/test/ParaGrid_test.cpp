@@ -440,6 +440,20 @@ TEST_CASE("Test array ordering")
 
 #undef TO_STR
 #undef TO_STRI
+
+TEST_CASE("Check an exception is thrown for an invalid file name")
+{
+    ParametricGrid gridIn;
+    ParaGridIO* readIO = new ParaGridIO(gridIn);
+    gridIn.setIO(readIO);
+
+    ModelState state;
+
+    // MD5 hash of the current output of $ date
+    std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
+    REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
+
+}
 TEST_SUITE_END();
 
 }
