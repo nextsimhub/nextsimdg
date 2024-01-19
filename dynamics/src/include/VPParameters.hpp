@@ -8,11 +8,11 @@
 #ifndef __VPPARAMETERS_HPP
 #define __VPPARAMETERS_HPP
 
-#include "CommonDynamicsParameters.hpp"
+#include "DynamicsParameters.hpp"
 
 namespace Nextsim {
 
-class VPParameters : public CommonDynamicsParameters {
+class VPParameters : public DynamicsParameters {
 public:
     double Pstar; //!< Ice strength
     double DeltaMin; //!< Viscous regime

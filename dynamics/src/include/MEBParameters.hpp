@@ -8,11 +8,11 @@
 #ifndef __MEBPARAMETERS_HPP
 #define __MEBPARAMETERS_HPP
 
-#include "CommonDynamicsParameters.hpp"
+#include "DynamicsParameters.hpp"
 
 namespace Nextsim {
 
-class MEBParameters : public CommonDynamicsParameters {
+class MEBParameters : public DynamicsParameters {
 public:
     double ocean_turning_angle; //!< Ocean turning angle
 

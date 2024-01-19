@@ -1,5 +1,5 @@
 /*!
- * @file CommonDynamicsParameters.hpp
+ * @file DynamicsParameters.hpp
  *
  * @date Jan 18, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
@@ -7,11 +7,11 @@
  *
  */
 
-#ifndef COMMONDYNAMICSPARAMETERS_HPP
-#define COMMONDYNAMICSPARAMETERS_HPP
+#ifndef DYNAMICSPARAMETERS_HPP
+#define DYNAMICSPARAMETERS_HPP
 
 namespace Nextsim {
-class CommonDynamicsParameters {
+class DynamicsParameters {
 public:
     double rho_ice; //!< Sea ice density
     double rho_atm; //!< Air density
@@ -25,7 +25,7 @@ public:
 
     double fc; //!< Coriolis
 
-    CommonDynamicsParameters()
+    DynamicsParameters()
     {
         rho_ice = 900.0; //!< Sea ice density
         rho_atm = 1.3; //!< Air density
@@ -42,4 +42,4 @@ public:
 };
 }
 
-#endif /* COMMONDYNAMICSPARAMETERS_HPP */
+#endif /* DYNAMICSPARAMETERS_HPP */
