@@ -17,4 +17,4 @@ RUN make -j4 >&2
 WORKDIR /home/nextsim/run
 RUN ln -sf /home/nextsim/build/nextsim
 
-CMD  python3 make_init_column.py && ./nextsim --config-file config_column.cfg 
+#CMD  python3 make_init_column.py && ./nextsim --config-file config_column.cfg 
