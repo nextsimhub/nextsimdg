@@ -7,6 +7,7 @@ import netCDF4
 nx = 30
 ny = 30
 nLayers = 1
+n_coords = 2
 
 root = netCDF4.Dataset(f"init_rect{nx}x{ny}.nc", "w", format="NETCDF4")
 
@@ -26,9 +27,9 @@ formatted[0] = "2000-01-01T00:00:00Z"
 
 datagrp = root.createGroup("data")
 
-xDim = datagrp.createDimension("x", nx)
-yDim = datagrp.createDimension("y", ny)
-nLay = datagrp.createDimension("nLayers", nLayers)
+x_dim = datagrp.createDimension("x", nx)
+y_dim = datagrp.createDimension("y", ny)
+z_dim = datagrp.createDimension("z", nLayers)
 
 hfield_dims = ("y", "x")
 
@@ -100,7 +101,7 @@ hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
 hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
+tice = datagrp.createVariable("tice", "f8", ("z", "y", "x"))
 tice[0,:,:] = -0.5 - cice[:,:]
 
 mdi = -3.40282347e38 # Minus float max
