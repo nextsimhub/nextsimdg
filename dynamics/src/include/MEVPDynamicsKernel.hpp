@@ -39,7 +39,8 @@ public:
     void initialisation(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
         //! Define the spatial mesh
-        smesh = new ParametricMesh(Nextsim::CARTESIAN);
+        COORDINATES coordsType = (isSpherical) ? Nextsim::SPHERICAL : Nextsim::CARTESIAN;
+        smesh = new ParametricMesh(coordsType);
 
         smesh->coordinatesFromModelArray(coords);
         smesh->landmaskFromModelArray(mask);
