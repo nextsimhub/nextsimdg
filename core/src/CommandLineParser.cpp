@@ -63,7 +63,6 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
     }
 
     m_configHelp.clear();
-    std::cerr << "cleared m_configHelp" << std::endl;
     // Store the config file names in order. The variables_map does not.
     for (auto& lionOption : parsed.options) {
         if (lionOption.string_key == oneConfigFile || lionOption.string_key == manyConfigFiles) {
