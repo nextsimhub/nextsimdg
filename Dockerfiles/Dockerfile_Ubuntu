@@ -1,0 +1,20 @@
+FROM ubuntu:23.10 
+
+RUN apt-get update
+RUN apt-get install -y build-essential
+RUN apt-get install -y netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
+RUN apt-get install -y python3-netcdf4
+
+WORKDIR /home/nextsim
+COPY . /home/nextsim
+
+RUN rm -r build
+RUN mkdir -p /home/nextsim/build 
+WORKDIR /home/nextsim/build 
+RUN cmake -B/home/nextsim/build  -H/home/nextsim/ >&2
+RUN make -j4 >&2
+
+WORKDIR /home/nextsim/run
+RUN ln -sf /home/nextsim/build/nextsim
+
+CMD  python3 make_init_column.py && ./nextsim --config-file config_column.cfg 
