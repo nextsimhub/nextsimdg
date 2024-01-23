@@ -30,6 +30,9 @@ datagrp = root.createGroup("data")
 x_dim = datagrp.createDimension("x", nx)
 y_dim = datagrp.createDimension("y", ny)
 z_dim = datagrp.createDimension("z", nLayers)
+xvertex_dim = datagrp.createDimension("xvertex", nx + 1)
+yvertex_dim = datagrp.createDimension("yvertex", ny + 1)
+coords_dim = datagrp.createDimension("ncoords", n_coords)
 
 hfield_dims = ("y", "x")
 
@@ -114,5 +117,28 @@ hsnow[:,:] = hsnow[:,:] * mask[:,:] + antimask * mdi
 hsnow.missing_value = mdi
 tice[0,:,:] = tice[0,:,:] * mask[:,:] + antimask * mdi
 tice.missing_value = mdi
+
+# coordinates
+# element centres
+x_var = datagrp.createVariable("x", "f8", hfield_dims)
+y_var = datagrp.createVariable("y", "f8", hfield_dims)
+
+d_distance = 150000 # 150 km element spacing
+
+for j in range(0, ny):
+    y = (j + 0.5) * d_distance
+    for i in range(0, nx):
+        x = (i + 0.5) * d_distance
+        x_var[j, i] = x
+        y_var[j, i] = y
+
+coords = datagrp.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
+
+for j in range(0, ny + 1):
+    y = j * d_distance
+    for i in range(0, nx + 1):
+        x = i * d_distance
+        coords[j, i, 0] = x
+        coords[j, i, 1] = y
 
 root.close()
