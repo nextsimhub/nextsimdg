@@ -29,8 +29,8 @@ To compile neXtSIM, you need to install first some libraries :
   - `Boost`_
   - `CMake`_
 
-Compilation on MAC OS
----------------------
+Installing dependencies on on MAC OS
+------------------------------------
 
 If your package manager is `Homebrew`_ :
 
@@ -40,14 +40,9 @@ If your package manager is `Homebrew`_ :
         brew install boost
         brew install cmake
         
-        cd nextsimdg
-        mkdir -p build
-        cd build
-        cmake ..
-        make
         
-Compilation on Ubuntu
----------------------
+Installing dependencies on Ubuntu
+---------------------------------
 
 You must have root privilege :
 
@@ -55,16 +50,10 @@ You must have root privilege :
 
         sudo apt-get update
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake
-
-        cd nextsimdg
-        mkdir -p build
-        cd build
-        cmake ..
-        make
         
 
-Compilation with dependencies installation via conda
-----------------------------------------------------
+Installing dependencies via conda
+---------------------------------
 
 Install conda via anaconda or miniconda (no root privileges required)
 
@@ -75,12 +64,19 @@ Install conda via anaconda or miniconda (no root privileges required)
         conda install netCDF4
         conda -c conda-forge boost
         conda -c anaconda cmake
-        
+
+Building the code
+-----------------
+After all dependencies have been installed, we can build the code:
+
+.. code::
+
         cd nextsimdg
         mkdir -p build
         cd build
         cmake ..
         make
+
     
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
