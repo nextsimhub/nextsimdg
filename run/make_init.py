@@ -103,7 +103,7 @@ hsnow[:,:] = cice[:,:] / 2
 tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
 tice[0,:,:] = -0.5 - cice[:,:]
 
-mdi = -2.**300
+mdi = -3.40282347e38 # Minus float max
 # mask data
 cice[:,:] = cice[:,:] * mask[:,:] + antimask * mdi
 cice.missing_value = mdi
