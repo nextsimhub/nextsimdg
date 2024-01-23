@@ -38,10 +38,6 @@ template <int CGdegree, int DGadvection> class MEVPDynamicsKernel {
 public:
     void initialisation(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
-        if (isSpherical)
-            throw std::runtime_error("DG dynamics do not yet handle spherical coordinates.");
-            // TODO handle spherical coordinates
-
         //! Define the spatial mesh
         smesh = new ParametricMesh(Nextsim::CARTESIAN);
 

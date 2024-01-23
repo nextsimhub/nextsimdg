@@ -10,6 +10,7 @@
 
 #include "include/gridNames.hpp"
 
+#include <cmath>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -42,22 +43,12 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
                         + ") coordinates.");
     }
 
-    // TODO: Remove this when spherical coordinates are fully implemented
-    if (isSpherical) std::cout << "Spherical coordinates are not yet implemented. Reverting to Cartesian." << std::endl;
-    isSpherical = false;
-    ModelArray fake25kmCoords(ModelArray::Type::VERTEX);
-    double d = 25000; // 25 km in metres
-    // Fill the fake coordinate array
-    for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
-        for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
-            fake25kmCoords.components({i, j})[0] = d * i;
-            fake25kmCoords.components({i, j})[1] = d * j;
-        }
-    }
-    ModelArray& coords = fake25kmCoords;
-    // End of code to be removed
+    ModelArray coords = ms.at(coordsName);
 
-    // ModelArray& coords = ms.at(coordsName);
+    if (isSpherical) {
+        // Convert from degrees (external values) to radians (dynamics internal values)
+        coords *= M_PI / 180;
+    }
     // TODO: Some encoding of the periodic edge boundary conditions
     kernel.initialisation(coords, isSpherical, ms.at(maskName));
 
