@@ -12,7 +12,6 @@ RUN apk add --no-cache \
     cmake \
     hdf5-dev \
     py3-pip
-#    openmpi openmpi-dev\
 
 RUN pip install --break-system-packages netcdf4 
 

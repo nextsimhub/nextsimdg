@@ -1,0 +1,40 @@
+FROM alpine:latest
+
+RUN apk add --no-cache \
+    bash \
+    build-base \
+    python3-dev \
+    netcdf-cxx4-dev \
+    boost-dev \
+    eigen-dev \ 
+    cmake \
+    hdf5-dev \
+    py3-pip \
+    openmpi-dev \
+    wget \
+    tar \
+    m4
+    
+RUN wget https://parallel-netcdf.github.io/Release/pnetcdf-1.12.3.tar.gz
+RUN tar -xf pnetcdf-1.12.3.tar.gz >&2
+WORKDIR /pnetcdf-1.12.3 
+RUN ./configure --prefix=$HOME/PnetCDF
+RUN make -s LIBTOOLFLAGS=--silent V=1 -j4
+RUN make install
+RUN PATH=$HOME/PnetCDF/bin:$PATH ; export PATH
+
+RUN pip install --break-system-packages netcdf4 
+
+WORKDIR /home/nextsim
+COPY . /home/nextsim
+
+RUN rm -r build
+RUN mkdir -p /home/nextsim/build 
+WORKDIR /home/nextsim/build 
+RUN cmake -B/home/nextsim/build  -H/home/nextsim/ -DENABLE_MPI=ON >&2
+#RUN make -j4 >&2
+
+#WORKDIR /home/nextsim/run
+#RUN ln -sf /home/nextsim/build/nextsim
+
+#CMD  ["/bin/sh"]
