@@ -1,9 +1,20 @@
-FROM ubuntu:23.10 
+FROM alpine:latest
 
-RUN apt-get update
-RUN apt-get install -y build-essential
-RUN apt-get install -y netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
-RUN apt-get install -y python3-netcdf4
+USER root
+
+RUN apk add --no-cache \
+    bash \
+    build-base \
+    python3-dev \
+    netcdf-cxx4-dev \
+    boost-dev \
+    eigen-dev \ 
+    cmake \
+    hdf5-dev \
+    py3-pip
+#    openmpi openmpi-dev\
+
+RUN pip install --break-system-packages netcdf4 
 
 WORKDIR /home/nextsim
 COPY . /home/nextsim
