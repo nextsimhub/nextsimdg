@@ -252,11 +252,9 @@ namespace Nextsim {
 	       / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
 		  + cg_A(i) * params.F_ocean 
 		  * absocn ) // implicit parts
-	       * (params.rho_ice * cg_H(i) / dt_adv
-		  * (beta * vx(i) + vx_mevp(i))
-		  + // pseudo-timestepping
-		  cg_A(i) 
-		  * (params.F_atm * absatm * ax(i) + // atm forcing
+	       * (params.rho_ice * cg_H(i) / dt_adv * (beta * vx(i) + vx_mevp(i)) // pseudo-timestepping
+              + cg_A(i)
+                  * (params.F_atm * absatm * ax(i) + // atm forcing
 		     params.F_ocean * absocn * SC
 		     * ox(i)) // ocean forcing
 		  + params.rho_ice * cg_H(i) * params.fc
@@ -267,11 +265,9 @@ namespace Nextsim {
 	       / (params.rho_ice * cg_H(i) / dt_adv * (1.0 + beta) // implicit parts
 		  + cg_A(i) * params.F_ocean 
 		  * absocn ) // implicit parts
-	       * (params.rho_ice * cg_H(i) / dt_adv
-		  * (beta * vy(i) + vy_mevp(i))
-		  + // pseudo-timestepping
-		  cg_A(i) 
-		  * (params.F_atm * absatm * ay(i) + // atm forcing
+	       * (params.rho_ice * cg_H(i) / dt_adv * (beta * vy(i) + vy_mevp(i)) // pseudo-timestepping
+              + cg_A(i)
+                  * (params.F_atm * absatm * ay(i) + // atm forcing
 		     params.F_ocean * absocn * SC
 		     * oy(i)) // ocean forcing
 		  + params.rho_ice * cg_H(i) * params.fc
@@ -334,9 +330,8 @@ namespace Nextsim {
  */
   template <int CG>
   template <int DG>
-  void CGParametricMomentum<CG>::BBMStep(const MEBParameters& params,
-					 const size_t NT_meb, double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A,
-					 DGVector<DG>& D)
+  void CGParametricMomentum<CG>::BBMStep(const MEBParameters& params, const size_t NT_meb,
+      double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D)
   {
 
     double dt_mom = dt_adv / NT_meb;
@@ -350,37 +345,6 @@ namespace Nextsim {
     // TODO compute stress update with precomputed transformations
     Nextsim::MEB::StressUpdateHighOrder<CG, DGSTRESS(CG), DG>(params, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
     // Nextsim::MEB::StressUpdateHighOrder(params, ptrans, smesh, S11, S12, S22, E11, E12, E22, H, A, D, dt_mom);
-    
-
-    
-    //! Update
-    //	    update by a loop.. implicit parts and h-dependent
-#pragma omp parallel for
-    for (int i = 0; i < vx.rows(); ++i) {
-
-        double absatm = sqrt(ax(i)*ax(i)+ay(i)*ay(i));
-        double absocn = sqrt(SQR(vx(i)-ox(i)) + SQR(vy(i)-oy(i)));
-
-        vx(i) = (1.0
-            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                + cg_A(i) * params.F_ocean
-                    * absocn ) // implicit parts
-            * (params.rho_ice * cg_H(i) / dt_mom * vx(i)
-                + cg_A(i) * (params.F_atm * absatm * ax(i) + // atm forcing
-                      params.F_ocean * absocn * ox(i)) // ocean forcing
-                + params.rho_ice * cg_H(i) * params.fc
-                    * (vy(i) - oy(i)) // cor + surface
-                ));
-        vy(i) = (1.0
-            / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                + cg_A(i) * params.F_ocean
-                    * absocn ) // implicit parts
-            * (params.rho_ice * cg_H(i) / dt_mom * vy(i)
-                + cg_A(i) * (params.F_atm * absatm * ay(i) + // atm forcing
-                      params.F_ocean * absocn * oy(i)) // ocean forcing
-                + params.rho_ice * cg_H(i) * params.fc
-                    * (ox(i) - vx(i))));
-    }
     
 
     
@@ -404,24 +368,6 @@ namespace Nextsim {
 
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
-
-        double absocn = sqrt(SQR(vx(i)-ox(i)) + SQR(vy(i)-oy(i)));
-
-        vx(i) += (1.0
-                     / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                         + cg_A(i) * params.F_ocean
-                             * absocn ) // implicit parts
-                     * tmpx(i))
-            / pmap.lumpedcgmass(i);
-        ;
-
-        vy(i) += (1.0
-                     / (params.rho_ice * cg_H(i) / dt_mom // implicit parts
-                         + cg_A(i) * params.F_ocean
-                             * absocn ) // implicit parts
-                     * tmpy(i))
-            / pmap.lumpedcgmass(i);
-        ;
         // FIXME: dte_over_mass should include snow (total mass)
         double const dte_over_mass = dt_mom / (params.rho_ice * cg_H(i));
         double const uice = vx(i);
@@ -463,8 +409,6 @@ namespace Nextsim {
         vy(i) *= rdenom;
     }
 
-    
-    
     DirichletZero();
     
 
