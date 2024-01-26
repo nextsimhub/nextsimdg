@@ -9,15 +9,15 @@
 #ifndef BBMDYNAMICSKERNEL_HPP
 #define BBMDYNAMICSKERNEL_HPP
 
-#include "IDynamicsKernel.hpp"
+#include "DynamicsKernel.hpp"
 
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection> class BBMDynamicsKernel : public IDynamicsKernel<CGdegree, DGadvection> {
-using IDynamicsKernel<CGdegree, DGadvection>::NT_evp;
-using IDynamicsKernel<CGdegree, DGadvection>::momentum;
-using IDynamicsKernel<CGdegree, DGadvection>::hice;
-using IDynamicsKernel<CGdegree, DGadvection>::cice;
+template <int CGdegree, int DGadvection> class BBMDynamicsKernel : public DynamicsKernel<CGdegree, DGadvection> {
+using DynamicsKernel<CGdegree, DGadvection>::NT_evp;
+using DynamicsKernel<CGdegree, DGadvection>::momentum;
+using DynamicsKernel<CGdegree, DGadvection>::hice;
+using DynamicsKernel<CGdegree, DGadvection>::cice;
 
 public:
     void setData(const std::string& name, const ModelArray& data) override
@@ -25,7 +25,7 @@ public:
         if (name == damageName) {
             DGModelArray::ma2dg(data, damage);
         } else {
-            IDynamicsKernel<CGdegree, DGadvection>::setData(name, data);
+            DynamicsKernel<CGdegree, DGadvection>::setData(name, data);
         }
     }
 

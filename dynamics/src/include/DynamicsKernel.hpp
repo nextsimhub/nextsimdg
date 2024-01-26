@@ -1,12 +1,12 @@
 /*!
- * @file IDynamicsKernel.hpp
+ * @file DynamicsKernel.hpp
  *
  * @date Jan 5, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef IDYNAMICSKERNEL_HPP
-#define IDYNAMICSKERNEL_HPP
+#ifndef DYNAMICSKERNEL_HPP
+#define DYNAMICSKERNEL_HPP
 
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
@@ -27,14 +27,19 @@
 #include "include/gridNames.hpp"
 
 #include <string>
+#include <map>
 #include <unordered_map>
 
 namespace Nextsim {
 
-template<int CGdegree, int DGadvection> class IDynamicsKernel {
+template<int CGdegree, int DGadvection> class DynamicsKernel {
 public:
-    IDynamicsKernel() = default;
-    virtual ~IDynamicsKernel() = default;
+
+    typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
+    typedef std::map<DataMapping::first_type, DataMapping::second_type> DataMap;
+
+    DynamicsKernel() = default;
+    virtual ~DynamicsKernel() = default;
     void initialisation(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
         if (isSpherical)
@@ -222,6 +227,28 @@ protected:
 
     virtual void updateMomentum(const TimestepTime& tst) = 0;
 
+    // Pass through functions to the common momentum solver class
+    /*!
+     * Prepares the stress iteration and momentum equation solution.
+     *
+     * @param data A map from data name to the DGVector containing that data.
+     *             The keys must include H (hiceName), A (ciceName) and can
+     *             optionally contain D (damageName).
+     */
+    void prepareIteration(const DataMap& data);
+    /*!
+     * Updates the strain values based on the velocities
+     */
+    void projectVelocityToStrain();
+    /*!
+     * Calculates the divergence of the stress tensor.
+     */
+    void calculateStressDivergence();
+    /*!
+     * Apply Dirichlet and periodic boundary conditions.
+     */
+    void applyBoundaries();
+
 private:
     CGVector<CGdegree> u;
     CGVector<CGdegree> v;
@@ -237,4 +264,4 @@ private:
 
 }
 
-#endif /* IDYNAMICSKERNEL_HPP */
+#endif /* DYNAMICSKERNEL_HPP */
