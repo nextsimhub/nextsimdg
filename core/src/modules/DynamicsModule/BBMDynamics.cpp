@@ -72,6 +72,9 @@ void BBMDynamics::update(const TimestepTime& tst)
     // set the updated ice thickness and concentration
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
+    ModelArray damage(ModelArray::Type::H);
+    damage = 0.5; // should be resized at this assignment
+    kernel.setData(damageName, damage);
 
     // set the forcing velocities
     kernel.setData(uWindName, uwind.data());
