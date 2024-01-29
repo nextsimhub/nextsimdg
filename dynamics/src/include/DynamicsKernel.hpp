@@ -32,50 +32,19 @@
 
 namespace Nextsim {
 
-template<int CGdegree, int DGadvection> class DynamicsKernel {
+// forward define the class holding the potentially non-DG parts
+template <int DGdegree>
+class DynamicsInternals;
+
+template <int DGadvection, int DGstress> class DynamicsKernel {
 public:
 
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
     typedef std::map<DataMapping::first_type, DataMapping::second_type> DataMap;
 
-    DynamicsKernel() = default;
+    DynamicsKernel();
     virtual ~DynamicsKernel() = default;
-    void initialisation(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
-    {
-        if (isSpherical)
-            throw std::runtime_error("DG dynamics do not yet handle spherical coordinates.");
-            // TODO handle spherical coordinates
-
-        //! Define the spatial mesh
-        smesh = new ParametricMesh(Nextsim::CARTESIAN);
-
-        smesh->coordinatesFromModelArray(coords);
-        smesh->landmaskFromModelArray(mask);
-        smesh->dirichletFromMask();
-        // TODO: handle periodic and open edges
-        for (ParametricMesh::Edge edge : ParametricMesh::edges) {
-            smesh->dirichletFromEdge(edge);
-        }
-
-        //! Initialize transport
-        dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
-        dgtransport->settimesteppingscheme("rk2");
-
-        //! Initialize stress transport
-        stresstransport = new Nextsim::DGTransport<CG2DGSTRESS(CGdegree)>(*smesh);
-        stresstransport->settimesteppingscheme("rk2");
-
-        //! Initialize momentum
-        momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
-
-        // resize CG and DG vectors
-        hice.resize_by_mesh(*smesh);
-        cice.resize_by_mesh(*smesh);
-
-        u.resize_by_mesh(*smesh);
-        v.resize_by_mesh(*smesh);
-    }
-
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
     /*!
      * @brief Sets the data from a provided ModelArray.
      *
@@ -208,7 +177,7 @@ public:
         Nextsim::LimitMin(cice, 0.0);
         Nextsim::LimitMin(hice, 0.0);
 
-        momentum->prepareIteration(hice, cice);
+//        momentum->prepareIteration(hice, cice);
 
         updateMomentum(tst);
 
@@ -217,8 +186,9 @@ public:
 
 protected:
     Nextsim::DGTransport<DGadvection>* dgtransport;
-    Nextsim::DGTransport<CG2DGSTRESS(CGdegree)>* stresstransport;
-    Nextsim::CGParametricMomentum<CGdegree>* momentum;
+//    Nextsim::DGTransport<CG2DGSTRESS(CGdegree)>* stresstransport;
+    Nextsim::DGTransport<DGstress>* stresstransport;
+//    Nextsim::CGParametricMomentum<CGdegree>* momentum;
 
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;
@@ -250,8 +220,10 @@ protected:
     void applyBoundaries();
 
 private:
-    CGVector<CGdegree> u;
-    CGVector<CGdegree> v;
+
+    DynamicsInternals<DGadvection>& internals;
+//    CGVector<CGdegree> u;
+//    CGVector<CGdegree> v;
 
     Nextsim::ParametricMesh* smesh;
 
