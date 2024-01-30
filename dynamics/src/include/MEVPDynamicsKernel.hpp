@@ -13,11 +13,11 @@
 
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection> class MEVPDynamicsKernel : public DynamicsKernel<CGdegree, DGadvection> {
-using DynamicsKernel<CGdegree, DGadvection>::NT_evp;
-using DynamicsKernel<CGdegree, DGadvection>::momentum;
-using DynamicsKernel<CGdegree, DGadvection>::hice;
-using DynamicsKernel<CGdegree, DGadvection>::cice;
+template <int DGadvection, int DGstress> class MEVPDynamicsKernel : public DynamicsKernel<DGadvection, DGstress> {
+using DynamicsKernel<DGadvection, DGstress>::NT_evp;
+using DynamicsKernel<DGadvection, DGstress>::momentum;
+using DynamicsKernel<DGadvection, DGstress>::hice;
+using DynamicsKernel<DGadvection, DGstress>::cice;
 
 protected:
     void updateMomentum(const TimestepTime& tst) override
