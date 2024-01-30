@@ -66,6 +66,7 @@ public:
         // resize CG and DG vectors
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
+        damage.resize_by_mesh(*smesh);
 
         u.resize_by_mesh(*smesh);
         v.resize_by_mesh(*smesh);
@@ -95,6 +96,8 @@ public:
             DGModelArray::ma2dg(data, hice);
         } else if (name == ciceName) {
             DGModelArray::ma2dg(data, cice);
+        } else if (name == damageName) {
+            DGModelArray::ma2dg(data, damage);
         } else if (name == "u") {
             // FIXME take into account possibility to restart form CG
             // CGModelArray::ma2cg(data, u);
@@ -142,6 +145,8 @@ public:
             return DGModelArray::dg2ma(hice, data);
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
+        } else if (name == damageName) {
+            return DGModelArray::dg2ma(damage, data);
         } else if (name == uName) {
             DGVector<DGadvection> utmp(*smesh);
             Nextsim::Interpolations::CG2DG(*smesh, utmp, momentum->GetVx());
@@ -173,6 +178,10 @@ public:
             DGField data(ModelArray::Type::DG);
             data.resize();
             return DGModelArray::dg2ma(cice, data);
+        } else if (name == damageName) {
+            DGField data(ModelArray::Type::DG);
+            data.resize();
+            return DGModelArray::dg2ma(damage, data);
         } else {
             ModelArray::Type type = fieldType.at(name);
             ModelArray data(type);
@@ -190,6 +199,7 @@ public:
 
         dgtransport->step(tst.step.seconds(), cice);
         dgtransport->step(tst.step.seconds(), hice);
+        dgtransport->step(tst.step.seconds(), damage);
 
         //! Perform transport step for stress
         stresstransport->prepareAdvection(momentum->GetVx(), momentum->GetVy());
@@ -202,8 +212,10 @@ public:
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
         Nextsim::LimitMin(hice, 0.0);
+        Nextsim::LimitMax(damage, 1.0);
+        Nextsim::LimitMin(damage, 0.0+1e-12);
 
-        momentum->prepareIteration(hice, cice);
+        momentum->prepareIteration(hice, cice, damage);
 
         updateMomentum(tst);
 
@@ -217,6 +229,7 @@ protected:
 
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;
+    DGVector<DGadvection> damage;
 
     size_t NT_evp = 100;
 

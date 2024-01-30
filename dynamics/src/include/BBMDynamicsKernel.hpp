@@ -18,15 +18,12 @@ using IDynamicsKernel<CGdegree, DGadvection>::NT_evp;
 using IDynamicsKernel<CGdegree, DGadvection>::momentum;
 using IDynamicsKernel<CGdegree, DGadvection>::hice;
 using IDynamicsKernel<CGdegree, DGadvection>::cice;
+using IDynamicsKernel<CGdegree, DGadvection>::damage;
 
 public:
     void setData(const std::string& name, const ModelArray& data) override
     {
-        if (name == damageName) {
-            DGModelArray::ma2dg(data, damage);
-        } else {
-            IDynamicsKernel<CGdegree, DGadvection>::setData(name, data);
-        }
+        IDynamicsKernel<CGdegree, DGadvection>::setData(name, data);
     }
 
 protected:
@@ -41,7 +38,6 @@ protected:
 private:
     //! Brittle rheology parameters
     MEBParameters mebParams;
-    DGVector<DGadvection> damage;
 };
 
 } /* namespace Nextsim */
