@@ -204,9 +204,9 @@ public:
         //! Perform transport step for stress
         stresstransport->prepareAdvection(momentum->GetVx(), momentum->GetVy());
 
-        // stresstransport->step(tst.step.seconds(), momentum->GetS11());
-        // stresstransport->step(tst.step.seconds(), momentum->GetS12());
-        // stresstransport->step(tst.step.seconds(), momentum->GetS22());
+        stresstransport->step(tst.step.seconds(), momentum->GetS11());
+        stresstransport->step(tst.step.seconds(), momentum->GetS12());
+        stresstransport->step(tst.step.seconds(), momentum->GetS22());
 
         //! Gauss-point limiting
         Nextsim::LimitMax(cice, 1.0);
