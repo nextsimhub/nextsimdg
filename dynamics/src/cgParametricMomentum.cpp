@@ -410,7 +410,22 @@ namespace Nextsim {
     }
 
     DirichletZero();
-    
+
+    // Landmask
+    const size_t inrow = CG*smesh.nx+1;
+#pragma omp parallel for
+    for (size_t eid=0;eid<smesh.nelements;++eid)
+        if (smesh.landmask[eid]==0)
+        {
+            const size_t ex = eid%smesh.nx;
+            const size_t ey = eid/smesh.nx;
+            for (int jy=0;jy<CG+1;++jy)
+                for (int jx=0;jx<CG+1;++jx)
+                {
+                    vx(inrow*(CG*ey+jy)+CG*ex+jx)=0.0;
+                    vy(inrow*(CG*ey+jy)+CG*ex+jx)=0.0;
+                }
+        }
 
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;
