@@ -9,7 +9,7 @@
  * The implementation of DynamicsKernel which uses continuous Galerkin (CG) numerics.
  */
 
-#include "include/DynamicsKernel.hpp"
+#include "include/CGDynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 
 #include "include/cgVector.hpp"
@@ -17,16 +17,10 @@
 #include "include/ParametricMap.hpp"
 #include "include/VectorManipulations.hpp"
 
-// Import this from the build system *somehow*
-static const int CGdegree = 2;
-static const int DGstressDegree = CG2DGSTRESS(CGdegree);
-static const int nGauss = CGdegree + 1;
-static const int CGdof = nGauss * nGauss;
-
 namespace Nextsim {
 
-template <int DGadvection, int DGstress>
-void DynamicsKernel<DGadvection, DGstress>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 {
     initialiseDG(coords, isSpherical, mask);
 
@@ -37,8 +31,8 @@ void DynamicsKernel<DGadvection, DGstress>::initialise(const ModelArray& coords,
     internals.v.resize_by_mesh(*smesh);
 }
 
-template <int DGadvection, int DGstress>
-void DynamicsKernel<DGadvection, DGstress>::setVelocityData(const std::string& name, const ModelArray& data)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::setVelocityData(const std::string& name, const ModelArray& data)
 {
     if (name == uName) {
         // FIXME take into account possibility to restart form CG
@@ -70,8 +64,8 @@ void DynamicsKernel<DGadvection, DGstress>::setVelocityData(const std::string& n
     }
 }
 
-template <int DGadvection, int DGstress>
-ModelArray DynamicsKernel<DGadvection, DGstress>::getVelocityDG0Data(const std::string& name)
+template <int DGadvection>
+ModelArray CGDynamicsKernel<DGadvection>::getVelocityDG0Data(const std::string& name)
 {
     if (name == uName) {
         ModelArray data(ModelArray::Type::U);
@@ -91,15 +85,15 @@ ModelArray DynamicsKernel<DGadvection, DGstress>::getVelocityDG0Data(const std::
     }
 }
 
-template <int DGadvection, int DGstress>
-void DynamicsKernel<DGadvection, DGstress>::prepareAdvection()
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::prepareAdvection()
 {
     dgtransport->prepareTransport(internals.momentum->u, internals.momentum->v);
     stresstransport->prepareTransport(internals.momentum->u, internals.momentum->v);
 }
 
-template <int DGadvection, int DGstress>
-void DynamicsKernel<DGadvection, DGstress>::prepareIteration(const DataMap& data)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
 {
     // interpolate ice height and concentration to local cg Variables
     Interpolations::DG2CG(smesh, internals.cgA, data.at(hiceName));
@@ -133,8 +127,8 @@ template Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal,
     return vLocal;
 }
 
-template <int DGadvection, int DGstress>
-void DynamicsKernel<DGadvection, DGstress>::projectVelocityToStrain()
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
 {
     auto& pmap = internals.pmap;
     // !!! must still be converted to the spherical system!!!
@@ -181,8 +175,8 @@ void DynamicsKernel<DGadvection, DGstress>::projectVelocityToStrain()
 //
 //}
 
-template <int DGadvection, int DGstress>
-void DynamicsKernel<DGadvection, DGstress>::calculateStressDivergence(const double scale)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::calculateStressDivergence(const double scale)
 {
     // Somewhat meaningless, but it uses the name in the former version of the code
     auto& tx = internals.dStressX;
@@ -242,20 +236,20 @@ class DynamicsInternals {
 
 // Instantiate the templates for all (1, 2) degrees of DGadvection
 
-template class DynamicsKernel<1, DGstressDegree>;
-template void DynamicsKernel<1, DGstressDegree>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
-template void DynamicsKernel<1, DGstressDegree>::setVelocityData(const std::string& name, const ModelArray& data);
-template ModelArray DynamicsKernel<1, DGstressDegree>::getVelocityDG0Data(const std::string& name);
-template void DynamicsKernel<1, DGstressDegree>::prepareAdvection();
-template void DynamicsKernel<1, DGstressDegree>::projectVelocityToStrain();
+template class CGDynamicsKernel<1>;
+template void CGDynamicsKernel<1>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
+template void CGDynamicsKernel<1>::setVelocityData(const std::string& name, const ModelArray& data);
+template ModelArray CGDynamicsKernel<1>::getVelocityDG0Data(const std::string& name);
+template void CGDynamicsKernel<1>::prepareAdvection();
+template void CGDynamicsKernel<1>::projectVelocityToStrain();
 template class DynamicsInternals<1>;
 
-template class DynamicsKernel<2, DGstressDegree>;
-template void DynamicsKernel<2, DGstressDegree>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
-template void DynamicsKernel<2, DGstressDegree>::setVelocityData(const std::string& name, const ModelArray& data);
-template ModelArray DynamicsKernel<2, DGstressDegree>::getVelocityDG0Data(const std::string& name);
-template void DynamicsKernel<2, DGstressDegree>::prepareAdvection();
-template void DynamicsKernel<1, DGstressDegree>::projectVelocityToStrain();
+template class CGDynamicsKernel<2>;
+template void CGDynamicsKernel<2>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
+template void CGDynamicsKernel<2>::setVelocityData(const std::string& name, const ModelArray& data);
+template ModelArray CGDynamicsKernel<2>::getVelocityDG0Data(const std::string& name);
+template void CGDynamicsKernel<2>::prepareAdvection();
+template void CGDynamicsKernel<2>::projectVelocityToStrain();
 template class DynamicsInternals<2>;
 
 }

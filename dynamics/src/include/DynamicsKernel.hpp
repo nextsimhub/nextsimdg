@@ -43,7 +43,7 @@ public:
 
     DynamicsKernel() = default;
     virtual ~DynamicsKernel() = default;
-    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
+    virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) = 0;
     /*!
      * @brief Sets the data from a provided ModelArray.
      *
@@ -83,7 +83,7 @@ public:
      * @param name the name of the requested field.
      *
      */
-    ModelArray getDG0Data(const std::string& name)
+    virtual ModelArray getDG0Data(const std::string& name)
     {
         HField data(ModelArray::Type::H);
         if (name == hiceName) {
@@ -123,7 +123,7 @@ public:
         }
     }
 
-    void update(const TimestepTime& tst)
+    virtual void update(const TimestepTime& tst)
     {
         static int stepNumber = 0;
 
@@ -171,30 +171,30 @@ protected:
      *             The keys must include H (hiceName), A (ciceName) and can
      *             optionally contain D (damageName).
      */
-    virtual void prepareIteration(const DataMap& data);
+    virtual void prepareIteration(const DataMap& data) = 0;
     /*!
      * Updates the strain values based on the velocities
      */
-    void projectVelocityToStrain();
+    virtual void projectVelocityToStrain() = 0;
     /*!
      * Calculates the divergence of the stress tensor.
      */
-    void calculateStressDivergence(const double scale);
+    virtual void calculateStressDivergence(const double scale) = 0;
     /*!
      * Apply Dirichlet and periodic boundary conditions.
      */
-    void applyBoundaries();
+    virtual void applyBoundaries() = 0;
 
     /*!
      * Prepares the transport objects to perform the advection step.
      */
-    void prepareAdvection();
+    virtual void prepareAdvection() = 0;
 
     //! Sets the data for a velocity component
-    void setVelocityData(const std::string& velocityFieldName, const ModelArray& data);
+    virtual void setVelocityData(const std::string& velocityFieldName, const ModelArray& data) = 0;
 
     //! Gets the DG0/finite volume data for velocity fields
-    ModelArray getVelocityDG0Data(const std::string& name);
+    virtual ModelArray getVelocityDG0Data(const std::string& name) = 0;
 
 private:
 
