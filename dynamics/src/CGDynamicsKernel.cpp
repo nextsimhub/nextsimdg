@@ -12,6 +12,7 @@
 #include "include/DynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 
+#include "include/cgVector.hpp"
 #include "include/Interpolations.hpp"
 #include "include/ParametricMap.hpp"
 #include "include/VectorManipulations.hpp"
@@ -19,6 +20,8 @@
 // Import this from the build system *somehow*
 static const int CGdegree = 2;
 static const int DGstressDegree = CG2DGSTRESS(CGdegree);
+static const int nGauss = CGdegree + 1;
+static const int CGdof = nGauss * nGauss;
 
 namespace Nextsim {
 
@@ -170,15 +173,64 @@ void DynamicsKernel<DGadvection, DGstress>::projectVelocityToStrain()
 
 }
 
+//template
+//void addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy)
+//{
+//    Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
+//    Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
+//
+//}
+
+template <int DGadvection, int DGstress>
+void DynamicsKernel<DGadvection, DGstress>::calculateStressDivergence(const double scale)
+{
+    // Somewhat meaningless, but it uses the name in the former version of the code
+    auto& tx = internals.dStressX;
+    auto& ty = internals.dStressY;
+
+    // Zero the stress gradient vectors
+#pragma omp parallel for
+    for (size_t i = 0; i < tx.rows(); ++i) {
+        tx(i)=0.0;
+        ty(i)=0.0;
+    }
+
+    // parallelization in stripes
+    for (size_t p = 0; p < 2; ++p) {
+#pragma omp parallel for schedule(static)
+        for (size_t cy = 0; cy < smesh->ny; ++cy) {
+        //!< loop over all cells of the mesh
+            if (cy % 2 == p) {
+                size_t c = smesh->nx * cy;
+                for (size_t cx = 0; cx < smesh->nx; ++cx, ++c)
+                    //!< loop over all cells of the mesh
+                    if (smesh->landmask[c] == 1) // only on ice!
+                        AddStressTensorCell(scale, c, cx, cy, tx, ty);
+            }
+        }
+    }
+    // set zero on the Dirichlet boundaries
+    DirichletZero(tx);
+    DirichletZero(ty);
+    // add the contributions on the periodic boundaries
+    VectorManipulations::CGAveragePeriodic(smesh, tx);
+    VectorManipulations::CGAveragePeriodic(smesh, ty);
+}
 
 template <int DGdegree>
 class DynamicsInternals {
 
+    // CG ice velocity
     CGVector<CGdegree> u;
     CGVector<CGdegree> v;
 
+    // CG ice thickness and concentration
     CGVector<CGdegree> cgA;
     CGVector<CGdegree> cgH;
+
+    // divergence of stress
+    CGVector<CGdegree> dStressX;
+    CGVector<CGdegree> dStressY;
 
     CGParametricMomentum<CGdegree>* momentum;
 
@@ -195,6 +247,7 @@ template void DynamicsKernel<1, DGstressDegree>::initialise(const ModelArray& co
 template void DynamicsKernel<1, DGstressDegree>::setVelocityData(const std::string& name, const ModelArray& data);
 template ModelArray DynamicsKernel<1, DGstressDegree>::getVelocityDG0Data(const std::string& name);
 template void DynamicsKernel<1, DGstressDegree>::prepareAdvection();
+template void DynamicsKernel<1, DGstressDegree>::projectVelocityToStrain();
 template class DynamicsInternals<1>;
 
 template class DynamicsKernel<2, DGstressDegree>;
@@ -202,6 +255,7 @@ template void DynamicsKernel<2, DGstressDegree>::initialise(const ModelArray& co
 template void DynamicsKernel<2, DGstressDegree>::setVelocityData(const std::string& name, const ModelArray& data);
 template ModelArray DynamicsKernel<2, DGstressDegree>::getVelocityDG0Data(const std::string& name);
 template void DynamicsKernel<2, DGstressDegree>::prepareAdvection();
+template void DynamicsKernel<1, DGstressDegree>::projectVelocityToStrain();
 template class DynamicsInternals<2>;
 
 }
