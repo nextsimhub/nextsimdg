@@ -171,7 +171,7 @@ protected:
      *             The keys must include H (hiceName), A (ciceName) and can
      *             optionally contain D (damageName).
      */
-    void prepareIteration(const DataMap& data);
+    virtual void prepareIteration(const DataMap& data);
     /*!
      * Updates the strain values based on the velocities
      */
