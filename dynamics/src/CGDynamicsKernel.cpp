@@ -12,10 +12,13 @@
 #include "include/DynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 
+#include "include/Interpolations.hpp"
+#include "include/ParametricMap.hpp"
+#include "include/VectorManipulations.hpp"
+
 // Import this from the build system *somehow*
 static const int CGdegree = 2;
 static const int DGstressDegree = CG2DGSTRESS(CGdegree);
-
 
 namespace Nextsim {
 
@@ -92,16 +95,98 @@ void DynamicsKernel<DGadvection, DGstress>::prepareAdvection()
     stresstransport->prepareTransport(internals.momentum->u, internals.momentum->v);
 }
 
+template <int DGadvection, int DGstress>
+void DynamicsKernel<DGadvection, DGstress>::prepareIteration(const DataMap& data)
+{
+    // interpolate ice height and concentration to local cg Variables
+    Interpolations::DG2CG(smesh, internals.cgA, data.at(hiceName));
+    VectorManipulations::CGAveragePeriodic(smesh, internals.cgA);
+    Interpolations::DG2CG(smesh, internals.cgH, data.at(ciceName));
+    VectorManipulations::CGAveragePeriodic(smesh, internals.cgH);
+
+    // limit A to [0,1] and H to [0, ...)
+    internals.cgA = internals.cgA.cwiseMin(1.0);
+    internals.cgA = internals.cgA.cwiseMax(1.e-4);
+    internals.cgH = internals.cgH.cwiseMax(1.e-4);
+}
+
+template <int CG>
+Eigen::Matrix<double, CGDOFS(CG), 1> cgLocal(const CGVector<CG>& globalVelocity, int cgi, int cgShift);
+
+template Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi, int cgShift)
+{
+    Eigen::Matrix<double, CGDOFS(1), 1> vLocal;
+    vLocal << vGlobal(cgi), vGlobal(cgi + 1),
+            vGlobal(cgi + cgShift), vGlobal(cgi + 1 + cgShift);
+    return vLocal;
+}
+
+template Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi, int cgShift)
+{
+    Eigen::Matrix<double, CGDOFS(2), 1> vLocal;
+    vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + 2),
+            vGlobal(cgi + cgShift), vGlobal(cgi + 1 + cgShift), vGlobal(cgi + 2 + cgShift),
+            vGlobal(cgi + 2 * cgShift), vGlobal(cgi + 1 + 2 * cgShift), vGlobal(cgi + 2 + 2 * cgShift);
+    return vLocal;
+}
+
+template <int DGadvection, int DGstress>
+void DynamicsKernel<DGadvection, DGstress>::projectVelocityToStrain()
+{
+    auto& pmap = internals.pmap;
+    // !!! must still be converted to the spherical system!!!
+
+    const int cgshift = CGdegree * smesh->nx + 1; //!< Index shift for each row
+
+    // parallelize over the rows
+#pragma omp parallel for
+    for (size_t row = 0; row < smesh->ny; ++row) {
+      int dgi = smesh->nx * row; //!< Index of dg vector
+      int cgi = CGdegree * cgshift * row; //!< Lower left index of cg vector
+
+      for (size_t col = 0; col < smesh->nx; ++col, ++dgi, cgi += CGdegree) { // loop over all elements
+
+    if (smesh->landmask[dgi]==0) // only on ice
+      continue;
+
+    // get the local x/y - velocity coefficients on the element
+    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local = cgLocal<CGdegree>(internals.u, cgi, cgshift);
+    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vy_local = cgLocal<CGdegree>(internals.v, cgi, cgshift);
+
+    // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
+    // by integrating rhs and inverting with dG(stress) mass matrix
+    //
+    e11.row(dgi) = pmap.iMgradX[dgi] * vx_local;
+    e22.row(dgi) = pmap.iMgradY[dgi] * vy_local;
+    e12.row(dgi) = 0.5 * (pmap.iMgradX[dgi] * vy_local + pmap.iMgradY[dgi] * vx_local);
+
+    if (smesh->CoordinateSystem == SPHERICAL)
+      {
+        e11.row(dgi) -= pmap.iMM[dgi] * vy_local;
+        e12.row(dgi) += 0.5 * pmap.iMM[dgi] * vx_local;
+      }
+      }
+    }
+
+}
+
+
 template <int DGdegree>
 class DynamicsInternals {
 
     CGVector<CGdegree> u;
     CGVector<CGdegree> v;
 
-    Nextsim::CGParametricMomentum<CGdegree>* momentum;
+    CGVector<CGdegree> cgA;
+    CGVector<CGdegree> cgH;
+
+    CGParametricMomentum<CGdegree>* momentum;
+
+    ParametricMomentumMap<CGdegree> pmap;
 
     friend DynamicsKernel<DGdegree, CG2DGSTRESS(CGdegree)>;
 };
+
 
 // Instantiate the templates for all (1, 2) degrees of DGadvection
 
