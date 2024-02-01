@@ -41,4 +41,17 @@ An example of a launching script ``run_simple_example.sh`` can be found in the `
 
 The model will produce an output file named ``output.nc``, which contains the result of applying the model physics to the initial state over the specified number of time steps.
 
+Running with MPI
+~~~~~~~~~~~~~~~~
+To run the model with MPI you have to have it built with MPI or use the `*_MPI` Dockerfile. In addition, you will need a partition NetCDF file as created by the `Domain Decomposition tool <https://github.com/nextsimhub/domain_decomp>`_. This partition file has to either added to the config file by adding the line `partition_file = partition.nc` or handed as parameter to the nextsim call:
+
+.. code::
+
+    mpirun -n 1 ./nextsim --config-file config_simple_example.cfg --model.partition_file partition.nc
+
+An example partition file for the simple example is added to the `run` directory.
+
+
+
 .. _Installation: https://nextsim-dg.readthedocs.io/en/latest/installation.html
+
