@@ -175,7 +175,7 @@ void CGDynamicsKernel<DGadvection>::addStressTensorCell(const double scale, cons
         tx += scale * pmap.divM[eid] * s12.row(eid).transpose();
         ty -= scale * pmap.divM[eid] * s11.row(eid).transpose();
     }
-    const size_t cgRow = CGdegree * smesh.nx + 1;
+    const size_t cgRow = CGdegree * smesh->nx + 1;
     const size_t cg_i = CGdegree * cgRow * cy + CGdegree * cx; //!< lower left CG-index in element (cx,cy)
 
     // Fill the stress divergence values
@@ -222,6 +222,48 @@ void CGDynamicsKernel<DGadvection>::calculateStressDivergence(const double scale
     VectorManipulations::CGAveragePeriodic(smesh, tx);
     VectorManipulations::CGAveragePeriodic(smesh, ty);
 }
+
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::DirichletZero(CGVector<CGdegree>& v) const
+{
+    // the four segments bottom, right, top, left, are each processed in parallel
+    for (size_t seg=0;seg<4;++seg)
+      {
+#pragma omp parallel for
+        for (size_t i = 0; i < smesh->dirichlet[seg].size(); ++i) {
+
+            const size_t eid = smesh->dirichlet[seg][i];
+            const size_t ix = eid % smesh->nx; // compute coordinates of element
+            const size_t iy = eid / smesh->nx;
+
+            if (seg == 0) // bottom
+                for (size_t j = 0; j < CGdegree + 1; ++j)
+                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + j, 0) = 0.0;
+            else if (seg == 1) // right
+                for (size_t j = 0; j < CGdegree + 1; ++j)
+                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + CGdegree + (CGdegree * smesh->nx + 1) * j, 0) = 0.0;
+            else if (seg == 2) // top
+                for (size_t j = 0; j < CGdegree + 1; ++j)
+                    v((iy + 1) * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + j, 0) = 0.0;
+            else if (seg == 3) // left
+                for (size_t j = 0; j < CGdegree + 1; ++j)
+                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + (CGdegree * smesh->nx + 1) * j, 0) = 0.0;
+            else {
+                std::cerr << "That should not have happened!" << std::endl;
+                abort();
+            }
+        }
+      }
+}
+
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::applyBoundaries()
+{
+    dirichletZero(u);
+    dirichletZero(v);
+    // TODO Periodic boundary conditions.
+}
+
 
 // Instantiate the templates for all (1, 2) degrees of DGadvection
 

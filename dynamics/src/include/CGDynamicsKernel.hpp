@@ -35,7 +35,7 @@ public:
     void prepareAdvection() override;
 protected:
     void addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy);
-
+    void dirichletZero(CGVector<CGdegree>&) const;
     // CG ice velocity
     CGVector<CGdegree> u;
     CGVector<CGdegree> v;
