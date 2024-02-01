@@ -211,7 +211,7 @@ void CGDynamicsKernel<DGadvection>::calculateStressDivergence(const double scale
                 for (size_t cx = 0; cx < smesh->nx; ++cx, ++c)
                     //!< loop over all cells of the mesh
                     if (smesh->landmask[c] == 1) // only on ice!
-                        addStressTensorCell(scale, c, cx, cy, tx, ty);
+                        addStressTensorCell(scale, c, cx, cy);
             }
         }
     }
