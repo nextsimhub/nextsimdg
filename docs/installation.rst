@@ -98,9 +98,22 @@ You might need to tell cmake which compiler to use, e.g.
 
         cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON 
 
+Using Dockerfiles for Dependencies and Building
+-----------------------------------------------
 
+In the Dockerfiles directory we provide two versions of Dockerfiles: with and without MPI support. You need to have _Docker installed on your computer. Then you can build and run it, for example, with 
+
+.. code::
+
+        docker build . --file Dockerfiles/Dockerfile_Ubuntu -t nextsim
+        docker run -it --entrypoint bash nextsim
+        
+The Ubuntu Dockerfiles create a full Ubuntu OS environment and install and build nextsim in there for you.
+With the last command, you are inside your running container on the bash and can use your usual command line commands to look around and run the code.
+    
     
 .. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
 .. _Boost: https://www.boost.org/
 .. _CMake: https://cmake.org/
 .. _Homebrew: https://brew.sh/
+.. _Docker: https://www.docker.com/
