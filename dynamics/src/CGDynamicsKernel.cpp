@@ -171,6 +171,20 @@ void CGDynamicsKernel<DGadvection>::addStressTensorCell(const double scale, cons
     Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
     Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
 
+    if (smesh->CoordinateSystem == SPHERICAL) {
+        tx += scale * pmap.divM[eid] * s12.row(eid).transpose();
+        ty -= scale * pmap.divM[eid] * s11.row(eid).transpose();
+    }
+    const size_t cgRow = CGdegree * smesh.nx + 1;
+    const size_t cg_i = CGdegree * cgRow * cy + CGdegree * cx; //!< lower left CG-index in element (cx,cy)
+
+    // Fill the stress divergence values
+    for (size_t row = 0; row <= CGdegree; ++row) {
+        for (size_t col = 0; col <= CGdegree; ++col) {
+            dStressX(cg_i + col + row * cgRow) -= tx(col + (CGdegree +1) * row);
+            dStressY(cg_i + col + row * cgRow) -= ty(col + (CGdegree +1) * row);
+        }
+    }
 }
 
 template <int DGadvection>
