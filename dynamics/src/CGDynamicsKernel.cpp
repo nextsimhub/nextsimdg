@@ -229,12 +229,16 @@ template class CGDynamicsKernel<1>;
 template void CGDynamicsKernel<1>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
 template void CGDynamicsKernel<1>::prepareAdvection();
 template void CGDynamicsKernel<1>::projectVelocityToStrain();
+template void CGDynamicsKernel<1>::calculateStressDivergence(const double scale);
+template void CGDynamicsKernel<1>::addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy);
 template class DynamicsInternals<1>;
 
 template class CGDynamicsKernel<2>;
 template void CGDynamicsKernel<2>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
 template void CGDynamicsKernel<2>::prepareAdvection();
 template void CGDynamicsKernel<2>::projectVelocityToStrain();
+template void CGDynamicsKernel<2>::calculateStressDivergence(const double scale);
+template void CGDynamicsKernel<2>::addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy);
 template class DynamicsInternals<2>;
 
 }
