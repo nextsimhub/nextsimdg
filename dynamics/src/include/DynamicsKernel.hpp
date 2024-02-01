@@ -43,7 +43,36 @@ public:
 
     DynamicsKernel() = default;
     virtual ~DynamicsKernel() = default;
-    virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) = 0;
+    virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
+    {
+        if (isSpherical)
+            throw std::runtime_error("DG dynamics do not yet handle spherical coordinates.");
+            // TODO handle spherical coordinates
+
+        //! Define the spatial mesh
+        smesh = new ParametricMesh(Nextsim::CARTESIAN);
+
+        smesh->coordinatesFromModelArray(coords);
+        smesh->landmaskFromModelArray(mask);
+        smesh->dirichletFromMask();
+        // TODO: handle periodic and open edges
+        for (ParametricMesh::Edge edge : ParametricMesh::edges) {
+            smesh->dirichletFromEdge(edge);
+        }
+
+        //! Initialize transport
+        dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
+        dgtransport->settimesteppingscheme("rk2");
+
+        //! Initialize stress transport
+        stresstransport = new Nextsim::DGTransport<DGstress>(*smesh);
+        stresstransport->settimesteppingscheme("rk2");
+
+        // resize DG vectors
+        hice.resize_by_mesh(*smesh);
+        cice.resize_by_mesh(*smesh);
+    }
+
     /*!
      * @brief Sets the data from a provided ModelArray.
      *
@@ -68,8 +97,6 @@ public:
             DGModelArray::ma2dg(data, hice);
         } else if (name == ciceName) {
             DGModelArray::ma2dg(data, cice);
-        } else if (velocityFields.count(name)) {
-            setVelocityData(name, data);
         } else {
             // All other fields get shoved in a (labelled) bucket
             DGModelArray::ma2dg(data, advectedFields[name]);
@@ -90,9 +117,6 @@ public:
             return DGModelArray::dg2ma(hice, data);
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
-        } else if (name == uName || name == vName) {
-            return getVelocityDG0Data(name);
-        } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);
         }
@@ -190,16 +214,7 @@ protected:
      */
     virtual void prepareAdvection() = 0;
 
-    //! Sets the data for a velocity component
-    virtual void setVelocityData(const std::string& velocityFieldName, const ModelArray& data) = 0;
-
-    //! Gets the DG0/finite volume data for velocity fields
-    virtual ModelArray getVelocityDG0Data(const std::string& name) = 0;
-
 private:
-
-    DynamicsInternals<DGadvection>& internals;
-
     Nextsim::ParametricMesh* smesh;
 
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
@@ -211,35 +226,7 @@ private:
     inline static const std::set<std::string> velocityFields = { uName, vName, uWindName, vWindName, uOceanName, vOceanName };
 
     // Initialises the common DG parts that do not depend on the velocity numerics implementation
-    void initialiseDG(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
-    {
-        if (isSpherical)
-            throw std::runtime_error("DG dynamics do not yet handle spherical coordinates.");
-            // TODO handle spherical coordinates
-
-        //! Define the spatial mesh
-        smesh = new ParametricMesh(Nextsim::CARTESIAN);
-
-        smesh->coordinatesFromModelArray(coords);
-        smesh->landmaskFromModelArray(mask);
-        smesh->dirichletFromMask();
-        // TODO: handle periodic and open edges
-        for (ParametricMesh::Edge edge : ParametricMesh::edges) {
-            smesh->dirichletFromEdge(edge);
-        }
-
-        //! Initialize transport
-        dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
-        dgtransport->settimesteppingscheme("rk2");
-
-        //! Initialize stress transport
-        stresstransport = new Nextsim::DGTransport<DGstress>(*smesh);
-        stresstransport->settimesteppingscheme("rk2");
-
-        // resize DG vectors
-        hice.resize_by_mesh(*smesh);
-        cice.resize_by_mesh(*smesh);
-    }
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 };
 
 }

@@ -22,89 +22,88 @@ namespace Nextsim {
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 {
-    initialiseDG(coords, isSpherical, mask);
+    DynamicsKernel<DGadvection, DGstressDegree>::initialise(coords, isSpherical, mask);
 
     //! Initialize momentum
-    internals.momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
+    momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
 
-    internals.u.resize_by_mesh(*smesh);
-    internals.v.resize_by_mesh(*smesh);
+    u.resize_by_mesh(*smesh);
+    v.resize_by_mesh(*smesh);
 }
 
 template <int DGadvection>
-void CGDynamicsKernel<DGadvection>::setVelocityData(const std::string& name, const ModelArray& data)
+void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const ModelArray& data)
 {
     if (name == uName) {
         // FIXME take into account possibility to restart form CG
         // CGModelArray::ma2cg(data, u);
         DGVector<DGadvection> utmp(*smesh);
         DGModelArray::ma2dg(data, utmp);
-        Nextsim::Interpolations::DG2CG(*smesh, internals.u, utmp);
+        Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
     } else if (name == vName) {
         // CGModelArray::ma2cg(data, v);
         DGVector<DGadvection> vtmp(*smesh);
         DGModelArray::ma2dg(data, vtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, internals.v, vtmp);
+        Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
     } else if (name == uWindName) {
         DGVector<DGadvection> utmp(*smesh);
         DGModelArray::ma2dg(data, utmp);
-        Nextsim::Interpolations::DG2CG(*smesh, internals.momentum->GetAtmx(), utmp);
+        Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmx(), utmp);
     } else if (name == vWindName) {
         DGVector<DGadvection> vtmp(*smesh);
         DGModelArray::ma2dg(data, vtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, internals.momentum->GetAtmy(), vtmp);
+        Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmy(), vtmp);
     } else if (name == uOceanName) {
         DGVector<DGadvection> utmp(*smesh);
         DGModelArray::ma2dg(data, utmp);
-        Nextsim::Interpolations::DG2CG(*smesh, internals.momentum->GetOceanx(), utmp);
+        Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceanx(), utmp);
     } else if (name == vOceanName) {
         DGVector<DGadvection> vtmp(*smesh);
         DGModelArray::ma2dg(data, vtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, internals.momentum->GetOceany(), vtmp);
+        Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceany(), vtmp);
+    } else {
+        DynamicsKernel<DGadvection, DGstressDegree>::setData(name, data);
     }
 }
 
 template <int DGadvection>
-ModelArray CGDynamicsKernel<DGadvection>::getVelocityDG0Data(const std::string& name)
+ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name)
 {
     if (name == uName) {
         ModelArray data(ModelArray::Type::U);
         DGVector<DGadvection> utmp(*smesh);
-        Nextsim::Interpolations::CG2DG(*smesh, utmp, internals.momentum->u);
+        Nextsim::Interpolations::CG2DG(*smesh, utmp, u);
         return DGModelArray::dg2ma(utmp, data);
     } else if (name == vName) {
         ModelArray data(ModelArray::Type::V);
         DGVector<DGadvection> vtmp(*smesh);
-        Nextsim::Interpolations::CG2DG(*smesh, vtmp, internals.momentum->v);
+        Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
         return DGModelArray::dg2ma(vtmp, data);
     } else {
-        ModelArray noData(ModelArray::Type::H);
-        noData.resize();
-        noData = 0;
-        return noData;
+        return DynamicsKernel<DGadvection, DGstressDegree>::getDG0Data(name);
     }
 }
 
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::prepareAdvection()
 {
-    dgtransport->prepareTransport(internals.momentum->u, internals.momentum->v);
-    stresstransport->prepareTransport(internals.momentum->u, internals.momentum->v);
+    dgtransport->prepareTransport(u, v);
+    stresstransport->prepareTransport(u, v);
 }
 
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
 {
     // interpolate ice height and concentration to local cg Variables
-    Interpolations::DG2CG(smesh, internals.cgA, data.at(hiceName));
-    VectorManipulations::CGAveragePeriodic(smesh, internals.cgA);
-    Interpolations::DG2CG(smesh, internals.cgH, data.at(ciceName));
-    VectorManipulations::CGAveragePeriodic(smesh, internals.cgH);
+    Interpolations::DG2CG(smesh, cgA, data.at(hiceName));
+    VectorManipulations::CGAveragePeriodic(smesh, cgA);
+    Interpolations::DG2CG(smesh, cgH, data.at(ciceName));
+    VectorManipulations::CGAveragePeriodic(smesh, cgH);
 
     // limit A to [0,1] and H to [0, ...)
-    internals.cgA = internals.cgA.cwiseMin(1.0);
-    internals.cgA = internals.cgA.cwiseMax(1.e-4);
-    internals.cgH = internals.cgH.cwiseMax(1.e-4);
+    cgA = cgA.cwiseMin(1.0);
+    cgA = cgA.cwiseMax(1.e-4);
+    cgH = cgH.cwiseMax(1.e-4);
 }
 
 template <int CG>
@@ -130,7 +129,6 @@ template Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal,
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
 {
-    auto& pmap = internals.pmap;
     // !!! must still be converted to the spherical system!!!
 
     const int cgshift = CGdegree * smesh->nx + 1; //!< Index shift for each row
@@ -147,8 +145,8 @@ void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
       continue;
 
     // get the local x/y - velocity coefficients on the element
-    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local = cgLocal<CGdegree>(internals.u, cgi, cgshift);
-    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vy_local = cgLocal<CGdegree>(internals.v, cgi, cgshift);
+    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local = cgLocal<CGdegree>(u, cgi, cgshift);
+    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vy_local = cgLocal<CGdegree>(v, cgi, cgshift);
 
     // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
     // by integrating rhs and inverting with dG(stress) mass matrix
@@ -167,20 +165,20 @@ void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
 
 }
 
-//template
-//void addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy)
-//{
-//    Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
-//    Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
-//
-//}
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy)
+{
+    Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
+    Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
+
+}
 
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::calculateStressDivergence(const double scale)
 {
     // Somewhat meaningless, but it uses the name in the former version of the code
-    auto& tx = internals.dStressX;
-    auto& ty = internals.dStressY;
+    auto& tx = dStressX;
+    auto& ty = dStressY;
 
     // Zero the stress gradient vectors
 #pragma omp parallel for
@@ -199,7 +197,7 @@ void CGDynamicsKernel<DGadvection>::calculateStressDivergence(const double scale
                 for (size_t cx = 0; cx < smesh->nx; ++cx, ++c)
                     //!< loop over all cells of the mesh
                     if (smesh->landmask[c] == 1) // only on ice!
-                        AddStressTensorCell(scale, c, cx, cy, tx, ty);
+                        addStressTensorCell(scale, c, cx, cy, tx, ty);
             }
         }
     }
@@ -211,43 +209,16 @@ void CGDynamicsKernel<DGadvection>::calculateStressDivergence(const double scale
     VectorManipulations::CGAveragePeriodic(smesh, ty);
 }
 
-template <int DGdegree>
-class DynamicsInternals {
-
-    // CG ice velocity
-    CGVector<CGdegree> u;
-    CGVector<CGdegree> v;
-
-    // CG ice thickness and concentration
-    CGVector<CGdegree> cgA;
-    CGVector<CGdegree> cgH;
-
-    // divergence of stress
-    CGVector<CGdegree> dStressX;
-    CGVector<CGdegree> dStressY;
-
-    CGParametricMomentum<CGdegree>* momentum;
-
-    ParametricMomentumMap<CGdegree> pmap;
-
-    friend DynamicsKernel<DGdegree, CG2DGSTRESS(CGdegree)>;
-};
-
-
 // Instantiate the templates for all (1, 2) degrees of DGadvection
 
 template class CGDynamicsKernel<1>;
 template void CGDynamicsKernel<1>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
-template void CGDynamicsKernel<1>::setVelocityData(const std::string& name, const ModelArray& data);
-template ModelArray CGDynamicsKernel<1>::getVelocityDG0Data(const std::string& name);
 template void CGDynamicsKernel<1>::prepareAdvection();
 template void CGDynamicsKernel<1>::projectVelocityToStrain();
 template class DynamicsInternals<1>;
 
 template class CGDynamicsKernel<2>;
 template void CGDynamicsKernel<2>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
-template void CGDynamicsKernel<2>::setVelocityData(const std::string& name, const ModelArray& data);
-template ModelArray CGDynamicsKernel<2>::getVelocityDG0Data(const std::string& name);
 template void CGDynamicsKernel<2>::prepareAdvection();
 template void CGDynamicsKernel<2>::projectVelocityToStrain();
 template class DynamicsInternals<2>;
