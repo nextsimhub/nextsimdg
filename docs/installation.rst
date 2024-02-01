@@ -101,14 +101,15 @@ You might need to tell cmake which compiler to use, e.g.
 Using Dockerfiles for Dependencies and Building
 -----------------------------------------------
 
-In the Dockerfiles directory we provide two versions of Dockerfiles: with and without MPI support. You need to have _Docker installed on your computer. Then you can build and run it, for example, with 
+In the Dockerfiles directory we provide two versions of Dockerfiles: with and without MPI support. You need to have _Docker installed on your computer. Then you can build and run it from the root of your NextSimDG repository, for example, with 
 
 .. code::
 
         docker build . --file Dockerfiles/Dockerfile_Ubuntu -t nextsim
         docker run -it --entrypoint bash nextsim
         
-The Ubuntu Dockerfiles create a full Ubuntu OS environment and install and build nextsim in there for you.
+The Ubuntu Dockerfiles create a full Ubuntu OS environment, copy over the content of the directory it is run from (which should be your nextsim root directory) and install and build nextsim in there for you. That way, you can easily try out your current code changes.
+
 With the last command, you are inside your running container on the bash and can use your usual command line commands to look around and run the code.
     
     
