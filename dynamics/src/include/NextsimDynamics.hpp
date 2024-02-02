@@ -7,7 +7,7 @@
 #ifndef __NEXTSIMDYNAMICS_HPP
 #define __NEXTSIMDYNAMICS_HPP
 
-
+#include <array>
 /*!
  * This file include all the definitions that are shared by nearly all nextsim-dynamics
  * files. 
@@ -16,7 +16,9 @@
 namespace Nextsim
 {
 
-  
+    enum TENSOR_ELEMENT { I11, I12, I22, N_TENSOR_ELEMENTS };
+    const std::array<TENSOR_ELEMENT, N_TENSOR_ELEMENTS> tensorElements = { I11, I12, I22 };
+    typedef std::array<double, N_TENSOR_ELEMENTS> SymmetricTensor;
   /*! 
    *
    * The different mappings used
