@@ -208,7 +208,7 @@ protected:
     /*!
      * Calculates the divergence of the stress tensor.
      */
-    virtual void calculateStressDivergence(const double scale) = 0;
+    virtual void stressDivergence(const double scale) = 0;
     /*!
      * Apply Dirichlet and periodic boundary conditions.
      */
