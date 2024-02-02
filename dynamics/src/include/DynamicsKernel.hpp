@@ -149,8 +149,11 @@ public:
 
     virtual void update(const TimestepTime& tst)
     {
-        static int stepNumber = 0;
+        ++stepNumber;
+    }
 
+    void advectionAndLimits(const TimestepTime& tst)
+    {
         prepareAdvection();
 
         //! Perform transport step
@@ -168,8 +171,6 @@ public:
         Nextsim::LimitMin(hice, 0.0);
 
         updateMomentum(tst);
-
-        ++stepNumber;
     }
 
 protected:
@@ -184,6 +185,10 @@ protected:
     DGVector<DGstress> s11, s12, s22;
 
     size_t NT_evp = 100;
+
+    size_t stepNumber = 0;
+
+    double deltaT;
 
     virtual void updateMomentum(const TimestepTime& tst) = 0;
 
