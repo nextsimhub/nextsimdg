@@ -19,7 +19,7 @@ static const int CGdof = nGauss * nGauss;
 namespace Nextsim {
 
 template <int DGadvection>
-class CGDynamicsKernel: public DynamicsKernel<DGadvection, 1> {
+class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressDegree> {
 public:
     CGDynamicsKernel() = default;
     virtual ~CGDynamicsKernel() = default;
