@@ -48,19 +48,19 @@ void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const Model
     } else if (name == uWindName) {
         DGVector<DGadvection> utmp(*smesh);
         DGModelArray::ma2dg(data, utmp);
-        Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmx(), utmp);
+        Nextsim::Interpolations::DG2CG(*smesh, uAtmos, utmp);
     } else if (name == vWindName) {
         DGVector<DGadvection> vtmp(*smesh);
         DGModelArray::ma2dg(data, vtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, momentum->GetAtmy(), vtmp);
+        Nextsim::Interpolations::DG2CG(*smesh, vAtmos, vtmp);
     } else if (name == uOceanName) {
         DGVector<DGadvection> utmp(*smesh);
         DGModelArray::ma2dg(data, utmp);
-        Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceanx(), utmp);
+        Nextsim::Interpolations::DG2CG(*smesh, uOcean, utmp);
     } else if (name == vOceanName) {
         DGVector<DGadvection> vtmp(*smesh);
         DGModelArray::ma2dg(data, vtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, momentum->GetOceany(), vtmp);
+        Nextsim::Interpolations::DG2CG(*smesh, vOcean, vtmp);
     } else {
         DynamicsKernel<DGadvection, DGstressDegree>::setData(name, data);
     }

@@ -48,6 +48,14 @@ protected:
     CGVector<CGdegree> dStressX;
     CGVector<CGdegree> dStressY;
 
+    // Ocean velocity
+    CGVector<CGdegree> uOcean;
+    CGVector<CGdegree> vOcean;
+
+    // Atmospheric wind velocity
+    CGVector<CGdegree> uAtmos;
+    CGVector<CGdegree> vAtmos;
+
     CGParametricMomentum<CGdegree>* momentum;
 
     ParametricMomentumMap<CGdegree> pmap;
