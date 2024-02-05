@@ -65,26 +65,19 @@ Install conda via anaconda or miniconda (no root privileges required)
 **Installing dependencies via spack**
 
 ``spack`` is a package manager which was designed for HPC software. It is language agnostic and
-compiles binaries from source. See quote from ``spack``'s `documentation
-<https://spack.readthedocs.io/en/latest/>`_ below:
-
-   Spack is a package management tool designed to support multiple versions and configurations of
-   software on a wide variety of platforms and environments. It was designed for large supercomputing
-   centers, where many users and application teams share common installations of software on clusters
-   with exotic architectures, using libraries that do not have a standard ABI. Spack is
-   non-destructive: installing a new version does not break existing installations, so many
-   configurations can coexist on the same system.
-
-To install ``spack`` please follow instruction from their documentation (see `install instructions
+compiles binaries from source. To install ``spack`` please follow instruction from their
+documentation (see `install instructions
 <https://spack.readthedocs.io/en/latest/getting_started.html#installation>`_).
 
 In the root directory of the repository there is a ``spack.yaml`` file which can be used to install
 all required dependencies. The following command will create a ``spack`` environment (called
-``nextsim`` in this example) and install the dependencies automatically:
+``nextsim`` in this example), load the ``spack`` environment and install the dependencies:
 
 .. code::
 
    spack env create nextsim spack.yaml
+   spack env activate nextsim
+   spack install
 
 .. note::
 
@@ -94,13 +87,16 @@ all required dependencies. The following command will create a ``spack`` environ
    hard to give an accurate measurement but the idea is to be patient. This only needs to be done
    once however, and then it can be loaded in seconds whenever you need it.
 
-To use the installed dependencies, you will need to load them first. This can be done using:
+To use the installed dependencies, you will need to load them first. If you are in the same bash
+session as the install they will be already loaded, but in future you can use the following command
+to activate the environment.
 
 .. code::
 
    spack env activate nextsim
 
-For more information on using ``spack`` environments please see `using environments
+To unload an environment you can use the handy (and very fun) alias of ``despacktivate``. For more
+information on using ``spack`` environments please see `using environments
 <https://spack.readthedocs.io/en/latest/environments.html#using-environments>`_.
 
 Building the code
