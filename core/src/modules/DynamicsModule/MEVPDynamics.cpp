@@ -1,12 +1,12 @@
 /*!
- * @file Dynamics.cpp
+ * @file MEVPDynamics.cpp
  *
  * @date 7 Sep 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
-#include "include/Dynamics.hpp"
+#include "include/MEVPDynamics.hpp"
 
 #include "include/gridNames.hpp"
 
@@ -17,14 +17,14 @@
 namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
-Dynamics::Dynamics()
+MEVPDynamics::MEVPDynamics()
         : IDynamics()
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
-void Dynamics::setData(const ModelState::DataMap& ms)
+void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
@@ -70,7 +70,7 @@ void Dynamics::setData(const ModelState::DataMap& ms)
     }
 }
 
-void Dynamics::update(const TimestepTime& tst)
+void MEVPDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
 
