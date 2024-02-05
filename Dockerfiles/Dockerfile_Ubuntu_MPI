@@ -12,7 +12,7 @@ ENV CPLUS_INCLUDE_PATH /usr/lib/x86_64-linux-gnu/netcdf/mpi/include
 WORKDIR /home/nextsim
 COPY . /home/nextsim
 
-RUN rm -r build
+RUN rm -rf build
 RUN mkdir -p /home/nextsim/build 
 WORKDIR /home/nextsim/build 
 RUN cmake -B/home/nextsim/build  -H/home/nextsim/ -DENABLE_MPI=ON >&2
