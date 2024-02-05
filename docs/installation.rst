@@ -62,6 +62,43 @@ Install conda via anaconda or miniconda (no root privileges required)
         conda -c conda-forge boost
         conda -c anaconda cmake
 
+**Installing dependencies via spack**
+
+``spack`` is a package manager which was designed for HPC software. It is language agnostic and
+compiles binaries from source. To install ``spack`` please follow instruction from their
+documentation (see `install instructions
+<https://spack.readthedocs.io/en/latest/getting_started.html#installation>`_).
+
+In the root directory of the repository there is a ``spack.yaml`` file which can be used to install
+all required dependencies. The following command will create a ``spack`` environment (called
+``nextsim`` in this example), load the ``spack`` environment and install the dependencies:
+
+.. code::
+
+   spack env create nextsim spack.yaml
+   spack env activate nextsim
+   spack install
+
+.. note::
+
+   This will install by building from source. This can take a significant amount of time, depending
+   on packages available on your machine and how your spack install is configured. If you use a
+   clean install of ``spack`` this could take 15-50 minutes on a modern CPU with 4-8 cores. It is
+   hard to give an accurate measurement but the idea is to be patient. This only needs to be done
+   once however, and then it can be loaded in seconds whenever you need it.
+
+To use the installed dependencies, you will need to load them first. If you are in the same bash
+session as the install they will be already loaded, but in future you can use the following command
+to activate the environment.
+
+.. code::
+
+   spack env activate nextsim
+
+To unload an environment you can use the handy (and very fun) alias of ``despacktivate``. For more
+information on using ``spack`` environments please see `using environments
+<https://spack.readthedocs.io/en/latest/environments.html#using-environments>`_.
+
 Building the code
 -----------------
 After all dependencies have been installed, we can build the code:
