@@ -43,7 +43,7 @@ The model will produce an output file named ``output.nc``, which contains the re
 
 Running with MPI
 ~~~~~~~~~~~~~~~~
-To run the model with MPI you have to have it built with MPI or use the `*_MPI` Dockerfile. In addition, you will need a partition NetCDF file as created by the `Domain Decomposition tool <https://github.com/nextsimhub/domain_decomp>`_. This partition file has to either added to the config file by adding the line `partition_file = partition.nc` or handed as parameter to the nextsim call:
+To run the model with MPI you have to have it built with MPI or use one of the `*_MPI` Dockerfiles. In addition, you will need a partition NetCDF file as created by the `Domain Decomposition tool <https://github.com/nextsimhub/domain_decomp>`_. This partition file has to either be added to the config file (`*.cfg`) by adding the line `partition_file = partition.nc` or provided as an argument to `nextsim`.
 
 .. code::
 
