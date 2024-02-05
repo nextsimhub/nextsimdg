@@ -8,7 +8,7 @@ RUN apt-get install -y python3-netcdf4
 WORKDIR /home/nextsim
 COPY . /home/nextsim
 
-RUN rm -r build
+RUN rm -rf build
 RUN mkdir -p /home/nextsim/build 
 WORKDIR /home/nextsim/build 
 RUN cmake -B/home/nextsim/build  -H/home/nextsim/ >&2
