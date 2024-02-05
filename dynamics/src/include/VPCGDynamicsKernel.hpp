@@ -20,7 +20,7 @@ namespace Nextsim {
 template <int DGadvection>
 class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 public:
-    VPCGDynamicsKernel(ParametricMap<CGdegree>* pmapIn, StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
+    VPCGDynamicsKernel(ParametricMomentumMap<CGdegree>* pmapIn, StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
         : pmap(pmapIn),
           stressStep(stressStepIn),
           params(paramsIn)
@@ -61,7 +61,7 @@ public:
 
     }
 protected:
-    ParametricMap<CGdegree>* pmap;
+    ParametricMomentumMap<CGdegree>* pmap;
     StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
     const VPParameters& params;
     const double alpha = 1500.;

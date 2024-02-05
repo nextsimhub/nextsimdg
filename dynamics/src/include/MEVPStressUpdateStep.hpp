@@ -97,9 +97,9 @@ public:
         }
 
     }
-    void setPMap(ParametricMap<CG>* pmapIn) { pmap = pmapIn; }
+    void setPMap(ParametricMomentumMap<CG>* pmapIn) { pmap = pmapIn; }
 protected:
-    ParametricMap<CG>* pmap;
+    ParametricMomentumMap<CG>* pmap;
 };
 
 } /* namespace Nextsim */
