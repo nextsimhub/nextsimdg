@@ -9,28 +9,21 @@
 #ifndef MEVPDYNAMICSKERNEL_HPP
 #define MEVPDYNAMICSKERNEL_HPP
 
-#include "DynamicsKernel.hpp"
+#include "VPCGDynamicsKernel.hpp"
 
 namespace Nextsim {
 
-template <int DGadvection, int DGstress> class MEVPDynamicsKernel : public DynamicsKernel<DGadvection, DGstress> {
-using DynamicsKernel<DGadvection, DGstress>::NT_evp;
-using DynamicsKernel<DGadvection, DGstress>::momentum;
-using DynamicsKernel<DGadvection, DGstress>::hice;
-using DynamicsKernel<DGadvection, DGstress>::cice;
-
-protected:
-    void updateMomentum(const TimestepTime& tst) override
+template <int DGadvection> class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
+public:
+    MEVPDynamicsKernel(ParametricMap<CGdegree>* pmapIn, const DynamicsParameters& paramsIn)
+        : VPCGDynamicsKernel<DGadvection>(pmapIn, MEVPStressStep, paramsIn)
     {
-        //! Momentum
-        for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
-            momentum->mEVPStep(VP, NT_evp, alpha, beta, tst.step.seconds(), hice, cice);
-        }
-    };
+    }
 
 private:
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
+    MEVPStressUpdateStep MEVPStressStep;
     //! MEVP parameters
     double alpha = 1500.0;
     double beta = 1500.0;
