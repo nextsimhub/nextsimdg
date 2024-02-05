@@ -1,0 +1,8 @@
+spack:
+  specs:
+    - boost@1.80.0+log+program_options
+    - cmake@3.26.3
+    - eigen@3.4.0
+    - netcdf-c@4.9.2+mpi+parallel-netcdf
+    - netcdf-cxx4@4.3.1
+    - openmpi@4.1.2
