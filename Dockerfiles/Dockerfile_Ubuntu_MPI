@@ -15,8 +15,8 @@ COPY . /home/nextsim
 RUN rm -rf build
 RUN mkdir -p /home/nextsim/build 
 WORKDIR /home/nextsim/build 
-RUN cmake -B/home/nextsim/build  -H/home/nextsim/ -DENABLE_MPI=ON >&2
-RUN make -j4 >&2
+RUN cmake -B/home/nextsim/build  -H/home/nextsim/ -DENABLE_MPI=ON
+RUN make -j4
 
 WORKDIR /home/nextsim/run
 RUN ln -sf /home/nextsim/build/nextsim
