@@ -45,11 +45,21 @@ Running with MPI
 ~~~~~~~~~~~~~~~~
 To run the model with MPI you have to have it built with MPI or use one of the `*_MPI` Dockerfiles. In addition, you will need a partition NetCDF file as created by the `Domain Decomposition tool <https://github.com/nextsimhub/domain_decomp>`_. This partition file has to either be added to the config file (`*.cfg`) by adding the line `partition_file = partition.nc` or provided as an argument to `nextsim`.
 
+An example ``partition.cdl`` file and a ``partition_metadata_2.cdl`` file for the simple example are added to the ``run`` directory. Those can be used to generate the necessary netcdf files by running, for example, ``ncgen partition.cdl -o partition.nc``. You can then run the code with
+
 .. code::
 
     mpirun -n 1 ./nextsim --config-file config_simple_example.cfg --model.partition_file partition.nc
 
-An example partition file for the simple example is added to the ``run`` directory. For more information on the format of the partition files and how to create them, see `the documentation for the decomposition tool <https://github.com/nextsimhub/domain_decomp>`_ . Note that you will need a specific partition file depending on the number of processes you want to run, which will, by default, be named ``partition_metadata_<num_mpi_processes>.nc``.
+or
+
+.. code::
+
+    mpirun -n 2 ./nextsim --config-file config_simple_example.cfg --model.partition_file partition_metadata_2.nc
+    
+, respectively.    
+
+For more information on the format of the partition files and how to create them, see `the documentation for the decomposition tool <https://github.com/nextsimhub/domain_decomp>`_ . Note that you will need a specific partition file depending on the number of processes you want to run, which will, by default, be named ``partition_metadata_<num_mpi_processes>.nc``.
 
 
 
