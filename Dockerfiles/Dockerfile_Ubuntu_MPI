@@ -1,0 +1,24 @@
+FROM ubuntu:23.10 
+
+RUN apt-get update
+RUN apt-get install -y build-essential
+RUN apt-get install -y netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
+RUN apt-get install -y python3-netcdf4
+RUN apt-get install -y libnetcdf-mpi-dev 
+RUN apt-get install -y openmpi-bin libopenmpi-dev 
+
+ENV CPLUS_INCLUDE_PATH /usr/lib/x86_64-linux-gnu/netcdf/mpi/include
+
+WORKDIR /home/nextsim
+COPY . /home/nextsim
+
+RUN rm -rf build
+RUN mkdir -p /home/nextsim/build 
+WORKDIR /home/nextsim/build 
+RUN cmake -B/home/nextsim/build  -H/home/nextsim/ -DENABLE_MPI=ON
+RUN make -j4
+
+WORKDIR /home/nextsim/run
+RUN ln -sf /home/nextsim/build/nextsim
+
+CMD  ["/bin/sh"]

@@ -70,7 +70,7 @@ jobs:
         pip3 install netCDF4
     - name: make
       run: |
-        cmake .
+        cmake . -DPython_ROOT_DIR="/Library/Frameworks/Python.framework/Versions/Current/bin/"
         make
     - name: run tests
       run: |
