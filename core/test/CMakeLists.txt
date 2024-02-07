@@ -54,6 +54,19 @@ if(ENABLE_MPI)
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.nc.dump
   )
   add_custom_target(generate_partition_file ALL DEPENDS partition_metadata_3.nc)
+  if(ENABLE_XIOS)
+    FILE(CREATE_LINK "${CMAKE_SOURCE_DIR}/core/test/iodef.xml" "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml" SYMBOLIC)
+    set(XIOS_INCLUDE_LIST
+      "${xios_INCLUDES}"
+      "${xios_EXTERNS}/blitz/"
+      "${xios_EXTERNS}/rapidxml/include"
+      )
+
+    add_executable(testXiosInit "XiosInit_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosInit PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosInit PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosInit PRIVATE nextsimlib doctest::doctest)
+  endif()
 else()
   add_executable(testRectGrid "RectGrid_test.cpp")
   target_compile_definitions(testRectGrid PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
@@ -67,7 +80,7 @@ else()
   add_executable(testParaGrid "ParaGrid_test.cpp")
   target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
   target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
-  target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
+  target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest "-lstdc++fs")
 endif()
 
 add_executable(testModelComponent "ModelComponent_test.cpp")
