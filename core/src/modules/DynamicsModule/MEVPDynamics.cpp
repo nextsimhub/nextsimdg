@@ -19,6 +19,7 @@ namespace Nextsim {
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 MEVPDynamics::MEVPDynamics()
         : IDynamics()
+        , kernel(params)
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
@@ -59,7 +60,7 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 
     // ModelArray& coords = ms.at(coordsName);
     // TODO: Some encoding of the periodic edge boundary conditions
-    kernel.initialisation(coords, isSpherical, ms.at(maskName));
+    kernel.initialise(coords, isSpherical, ms.at(maskName));
 
     uice = ms.at(uName);
     vice = ms.at(vName);

@@ -27,6 +27,7 @@ public:
 private:
     // TODO: How to get the template parameters here?
     MEVPDynamicsKernel<6> kernel;
+    VPParameters params;
 };
 }
 
