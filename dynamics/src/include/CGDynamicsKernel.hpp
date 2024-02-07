@@ -20,7 +20,15 @@ namespace Nextsim {
 
 template <int DGadvection>
 class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressDegree> {
+    using DynamicsKernel<DGadvection, DGstressDegree>::e11;
+    using DynamicsKernel<DGadvection, DGstressDegree>::e12;
+    using DynamicsKernel<DGadvection, DGstressDegree>::e22;
     using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
+    using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressDegree>::stresstransport;
+    using typename DynamicsKernel<DGadvection, DGstressDegree>::DataMap;
+
+
 public:
     CGDynamicsKernel() = default;
     virtual ~CGDynamicsKernel() = default;
@@ -29,7 +37,7 @@ public:
     ModelArray getDG0Data(const std::string& name) override;
     void update(const TimestepTime& tst) override;
     void updateMomentum(const TimestepTime& tst) override;
-    void prepareIteration(const typename DynamicsKernel<DGadvection, DGstressDegree>::DataMap& data) override;
+    void prepareIteration(const DataMap& data) override;
     void projectVelocityToStrain() override;
     void stressDivergence(const double scale) override;
     void applyBoundaries() override;
