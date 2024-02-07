@@ -55,6 +55,7 @@ jobs:
         make
     - name: run tests
       run: |
+        export XIOS_IODEF_PATH="$(pwd)/run/iodef.xml"
         for component in core physics
         do
             cd $component/test
