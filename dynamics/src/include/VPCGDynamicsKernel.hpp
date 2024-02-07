@@ -44,20 +44,15 @@ class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
     using CGDynamicsKernel<DGadvection>::cgA;
     using CGDynamicsKernel<DGadvection>::dStressX;
     using CGDynamicsKernel<DGadvection>::dStressY;
+    using CGDynamicsKernel<DGadvection>::pmap;
 public:
     VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
-        : pmap(nullptr),
+        : CGDynamicsKernel<DGadvection>(),
           stressStep(stressStepIn),
           params(reinterpret_cast<const VPParameters&>(paramsIn))
     {
     }
     virtual ~VPCGDynamicsKernel() = default;
-    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
-    {
-        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
-
-        pmap = new ParametricMomentumMap<CGdegree>(*smesh);
-    }
     void update(const TimestepTime& tst) override
     {
         // Let DynamicsKernel handle the advection step
@@ -95,7 +90,6 @@ public:
 
     }
 protected:
-    ParametricMomentumMap<CGdegree>* pmap;
     StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
     const VPParameters& params;
     const double alpha = 1500.;

@@ -30,7 +30,10 @@ class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressDegree> {
 
 
 public:
-    CGDynamicsKernel() = default;
+    CGDynamicsKernel()
+        : pmap(nullptr)
+    {
+    }
     virtual ~CGDynamicsKernel() = default;
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
     void setData(const std::string& name, const ModelArray& data) override;
@@ -65,7 +68,7 @@ protected:
     CGVector<CGdegree> uAtmos;
     CGVector<CGdegree> vAtmos;
 
-//    CGParametricMomentum<CGdegree>* momentum;
+    ParametricMomentumMap<CGdegree>* pmap;
 
 };
 

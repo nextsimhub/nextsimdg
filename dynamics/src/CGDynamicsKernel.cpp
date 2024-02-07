@@ -24,8 +24,8 @@ void CGDynamicsKernel<DGadvection>::initialise(const ModelArray& coords, bool is
 {
     DynamicsKernel<DGadvection, DGstressDegree>::initialise(coords, isSpherical, mask);
 
-    //! Initialize momentum
-//    momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
+    //! Initialize the parametric momentum map
+    pmap = new ParametricMomentumMap<CGdegree>(*smesh);
 
     u.resize_by_mesh(*smesh);
     v.resize_by_mesh(*smesh);
@@ -151,14 +151,14 @@ void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
     // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
     // by integrating rhs and inverting with dG(stress) mass matrix
     //
-    e11.row(dgi) = pmap.iMgradX[dgi] * vx_local;
-    e22.row(dgi) = pmap.iMgradY[dgi] * vy_local;
-    e12.row(dgi) = 0.5 * (pmap.iMgradX[dgi] * vy_local + pmap.iMgradY[dgi] * vx_local);
+    e11.row(dgi) = pmap->iMgradX[dgi] * vx_local;
+    e22.row(dgi) = pmap->iMgradY[dgi] * vy_local;
+    e12.row(dgi) = 0.5 * (pmap->iMgradX[dgi] * vy_local + pmap->iMgradY[dgi] * vx_local);
 
     if (smesh->CoordinateSystem == SPHERICAL)
       {
-        e11.row(dgi) -= pmap.iMM[dgi] * vy_local;
-        e12.row(dgi) += 0.5 * pmap.iMM[dgi] * vx_local;
+        e11.row(dgi) -= pmap->iMM[dgi] * vy_local;
+        e12.row(dgi) += 0.5 * pmap->iMM[dgi] * vx_local;
       }
       }
     }
@@ -168,12 +168,12 @@ void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy)
 {
-    Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
-    Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
+    Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale * (pmap->divS1[eid] * S11.row(eid).transpose() + pmap->divS2[eid] * S12.row(eid).transpose());
+    Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale * (pmap->divS1[eid] * S12.row(eid).transpose() + pmap->divS2[eid] * S22.row(eid).transpose());
 
     if (smesh->CoordinateSystem == SPHERICAL) {
-        tx += scale * pmap.divM[eid] * s12.row(eid).transpose();
-        ty -= scale * pmap.divM[eid] * s11.row(eid).transpose();
+        tx += scale * pmap->divM[eid] * s12.row(eid).transpose();
+        ty -= scale * pmap->divM[eid] * s11.row(eid).transpose();
     }
     const size_t cgRow = CGdegree * smesh->nx + 1;
     const size_t cg_i = CGdegree * cgRow * cy + CGdegree * cx; //!< lower left CG-index in element (cx,cy)

@@ -17,7 +17,7 @@ namespace Nextsim {
 
 template <int DGadvection>
 class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
-using VPCGDynamicsKernel<DGadvection>::pmap;
+using CGDynamicsKernel<DGadvection>::pmap;
 public:
     MEVPDynamicsKernel(const DynamicsParameters& paramsIn)
         : VPCGDynamicsKernel<DGadvection>(MEVPStressStep, paramsIn)
