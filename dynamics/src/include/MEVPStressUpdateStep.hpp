@@ -10,7 +10,9 @@
 
 #include "include/StressUpdateStep.hpp"
 
+#include "include/codeGenerationDGinGauss.hpp"
 #include "include/ParametricMap.hpp"
+#include "include/VPParameters.hpp"
 
 namespace Nextsim {
 
@@ -32,6 +34,8 @@ public:
             const double deltaT) override
     {
         const VPParameters& vpParams = reinterpret_cast<const VPParameters&>(params);
+        // Number of Gauss points
+        const size_t nGauss = ( ((DGstress == 8) || (DGstress == 6) ) ? 3 : (DGstress == 3 ? 2 : -1));
         //! Stress Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {

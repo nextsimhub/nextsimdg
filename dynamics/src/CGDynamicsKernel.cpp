@@ -12,6 +12,7 @@
 #include "include/CGDynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 
+#include "include/Interpolations.hpp"
 #include "include/cgVector.hpp"
 #include "include/Interpolations.hpp"
 #include "include/ParametricMap.hpp"
@@ -87,18 +88,18 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name)
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::prepareAdvection()
 {
-    dgtransport->prepareTransport(u, v);
-    stresstransport->prepareTransport(u, v);
+    dgtransport->prepareAdvection(u, v);
+    stresstransport->prepareAdvection(u, v);
 }
 
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
 {
     // interpolate ice height and concentration to local cg Variables
-    Interpolations::DG2CG(smesh, cgA, data.at(hiceName));
-    VectorManipulations::CGAveragePeriodic(smesh, cgA);
-    Interpolations::DG2CG(smesh, cgH, data.at(ciceName));
-    VectorManipulations::CGAveragePeriodic(smesh, cgH);
+    Interpolations::DG2CG(*smesh, cgA, data.at(hiceName));
+    VectorManipulations::CGAveragePeriodic(*smesh, cgA);
+    Interpolations::DG2CG(*smesh, cgH, data.at(ciceName));
+    VectorManipulations::CGAveragePeriodic(*smesh, cgH);
 
     // limit A to [0,1] and H to [0, ...)
     cgA = cgA.cwiseMin(1.0);
@@ -168,8 +169,8 @@ void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy)
 {
-    Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale * (pmap->divS1[eid] * S11.row(eid).transpose() + pmap->divS2[eid] * S12.row(eid).transpose());
-    Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale * (pmap->divS1[eid] * S12.row(eid).transpose() + pmap->divS2[eid] * S22.row(eid).transpose());
+    Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale * (pmap->divS1[eid] * s11.row(eid).transpose() + pmap->divS2[eid] * s12.row(eid).transpose());
+    Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale * (pmap->divS1[eid] * s12.row(eid).transpose() + pmap->divS2[eid] * s22.row(eid).transpose());
 
     if (smesh->CoordinateSystem == SPHERICAL) {
         tx += scale * pmap->divM[eid] * s12.row(eid).transpose();
@@ -188,7 +189,7 @@ void CGDynamicsKernel<DGadvection>::addStressTensorCell(const double scale, cons
 }
 
 template <int DGadvection>
-void CGDynamicsKernel<DGadvection>::calculateStressDivergence(const double scale)
+void CGDynamicsKernel<DGadvection>::stressDivergence(const double scale)
 {
     // Somewhat meaningless, but it uses the name in the former version of the code
     auto& tx = dStressX;
@@ -216,15 +217,15 @@ void CGDynamicsKernel<DGadvection>::calculateStressDivergence(const double scale
         }
     }
     // set zero on the Dirichlet boundaries
-    DirichletZero(tx);
-    DirichletZero(ty);
+    dirichletZero(tx);
+    dirichletZero(ty);
     // add the contributions on the periodic boundaries
-    VectorManipulations::CGAveragePeriodic(smesh, tx);
-    VectorManipulations::CGAveragePeriodic(smesh, ty);
+    VectorManipulations::CGAveragePeriodic(*smesh, tx);
+    VectorManipulations::CGAveragePeriodic(*smesh, ty);
 }
 
 template <int DGadvection>
-void CGDynamicsKernel<DGadvection>::DirichletZero(CGVector<CGdegree>& v) const
+void CGDynamicsKernel<DGadvection>::dirichletZero(CGVector<CGdegree>& v) const
 {
     // the four segments bottom, right, top, left, are each processed in parallel
     for (size_t seg=0;seg<4;++seg)
@@ -265,22 +266,9 @@ void CGDynamicsKernel<DGadvection>::applyBoundaries()
 }
 
 
-// Instantiate the templates for all (1, 2) degrees of DGadvection
-
+// Instantiate the templates for all (1, 3, 6) degrees of DGadvection
 template class CGDynamicsKernel<1>;
-template void CGDynamicsKernel<1>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
-template void CGDynamicsKernel<1>::prepareAdvection();
-template void CGDynamicsKernel<1>::projectVelocityToStrain();
-template void CGDynamicsKernel<1>::calculateStressDivergence(const double scale);
-template void CGDynamicsKernel<1>::addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy);
-template class DynamicsInternals<1>;
-
-template class CGDynamicsKernel<2>;
-template void CGDynamicsKernel<2>::initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask);
-template void CGDynamicsKernel<2>::prepareAdvection();
-template void CGDynamicsKernel<2>::projectVelocityToStrain();
-template void CGDynamicsKernel<2>::calculateStressDivergence(const double scale);
-template void CGDynamicsKernel<2>::addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy);
-template class DynamicsInternals<2>;
+template class CGDynamicsKernel<3>;
+template class CGDynamicsKernel<6>;
 
 }

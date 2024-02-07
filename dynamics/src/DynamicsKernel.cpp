@@ -9,13 +9,15 @@
 
 namespace Nextsim {
 
-template class DynamicsKernel<1, 1>;
-template class DynamicsKernel<1, 2>;
 template class DynamicsKernel<1, 3>;
+template class DynamicsKernel<1, 8>;
 
-template class DynamicsKernel<2, 1>;
-template class DynamicsKernel<2, 2>;
-template class DynamicsKernel<2, 3>;
+template class DynamicsKernel<3, 3>;
+template class DynamicsKernel<3, 8>;
+
+template class DynamicsKernel<6, 3>;
+template class DynamicsKernel<6, 8>;
+
 }
 
 

@@ -20,6 +20,9 @@ namespace Nextsim {
 
 template <int DGadvection>
 class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressDegree> {
+    using DynamicsKernel<DGadvection, DGstressDegree>::s11;
+    using DynamicsKernel<DGadvection, DGstressDegree>::s12;
+    using DynamicsKernel<DGadvection, DGstressDegree>::s22;
     using DynamicsKernel<DGadvection, DGstressDegree>::e11;
     using DynamicsKernel<DGadvection, DGstressDegree>::e12;
     using DynamicsKernel<DGadvection, DGstressDegree>::e22;
