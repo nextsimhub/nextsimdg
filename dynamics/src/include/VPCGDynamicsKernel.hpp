@@ -19,31 +19,31 @@ namespace Nextsim {
 // The VP pseudo-timestepping momentum equation solver for CG velocities
 template <int DGadvection>
 class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
-using DynamicsKernel<DGadvection, DGstressDegree>::NT_evp;
-using DynamicsKernel<DGadvection, DGstressDegree>::s11;
-using DynamicsKernel<DGadvection, DGstressDegree>::s12;
-using DynamicsKernel<DGadvection, DGstressDegree>::s22;
-using DynamicsKernel<DGadvection, DGstressDegree>::e11;
-using DynamicsKernel<DGadvection, DGstressDegree>::e12;
-using DynamicsKernel<DGadvection, DGstressDegree>::e22;
-using DynamicsKernel<DGadvection, DGstressDegree>::hice;
-using DynamicsKernel<DGadvection, DGstressDegree>::cice;
-using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
-using DynamicsKernel<DGadvection, DGstressDegree>::deltaT;
-using DynamicsKernel<DGadvection, DGstressDegree>::stressDivergence;
-using DynamicsKernel<DGadvection, DGstressDegree>::applyBoundaries;
+    using DynamicsKernel<DGadvection, DGstressDegree>::NT_evp;
+    using DynamicsKernel<DGadvection, DGstressDegree>::s11;
+    using DynamicsKernel<DGadvection, DGstressDegree>::s12;
+    using DynamicsKernel<DGadvection, DGstressDegree>::s22;
+    using DynamicsKernel<DGadvection, DGstressDegree>::e11;
+    using DynamicsKernel<DGadvection, DGstressDegree>::e12;
+    using DynamicsKernel<DGadvection, DGstressDegree>::e22;
+    using DynamicsKernel<DGadvection, DGstressDegree>::hice;
+    using DynamicsKernel<DGadvection, DGstressDegree>::cice;
+    using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
+    using DynamicsKernel<DGadvection, DGstressDegree>::deltaT;
+    using DynamicsKernel<DGadvection, DGstressDegree>::stressDivergence;
+    using DynamicsKernel<DGadvection, DGstressDegree>::applyBoundaries;
 
-using CGDynamicsKernel<DGadvection>::u;
-using CGDynamicsKernel<DGadvection>::v;
-using CGDynamicsKernel<DGadvection>::uAtmos;
-using CGDynamicsKernel<DGadvection>::vAtmos;
-using CGDynamicsKernel<DGadvection>::uOcean;
-using CGDynamicsKernel<DGadvection>::vOcean;
-using CGDynamicsKernel<DGadvection>::projectVelocityToStrain;
-using CGDynamicsKernel<DGadvection>::cgH;
-using CGDynamicsKernel<DGadvection>::cgA;
-using CGDynamicsKernel<DGadvection>::dStressX;
-using CGDynamicsKernel<DGadvection>::dStressY;
+    using CGDynamicsKernel<DGadvection>::u;
+    using CGDynamicsKernel<DGadvection>::v;
+    using CGDynamicsKernel<DGadvection>::uAtmos;
+    using CGDynamicsKernel<DGadvection>::vAtmos;
+    using CGDynamicsKernel<DGadvection>::uOcean;
+    using CGDynamicsKernel<DGadvection>::vOcean;
+    using CGDynamicsKernel<DGadvection>::projectVelocityToStrain;
+    using CGDynamicsKernel<DGadvection>::cgH;
+    using CGDynamicsKernel<DGadvection>::cgA;
+    using CGDynamicsKernel<DGadvection>::dStressX;
+    using CGDynamicsKernel<DGadvection>::dStressY;
 public:
     VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
         : pmap(nullptr),

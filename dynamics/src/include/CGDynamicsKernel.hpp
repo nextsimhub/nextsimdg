@@ -20,6 +20,7 @@ namespace Nextsim {
 
 template <int DGadvection>
 class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressDegree> {
+    using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
 public:
     CGDynamicsKernel() = default;
     virtual ~CGDynamicsKernel() = default;
