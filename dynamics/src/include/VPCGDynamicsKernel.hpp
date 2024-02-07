@@ -19,14 +19,45 @@ namespace Nextsim {
 // The VP pseudo-timestepping momentum equation solver for CG velocities
 template <int DGadvection>
 class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
+using DynamicsKernel<DGadvection, DGstressDegree>::NT_evp;
+using DynamicsKernel<DGadvection, DGstressDegree>::s11;
+using DynamicsKernel<DGadvection, DGstressDegree>::s12;
+using DynamicsKernel<DGadvection, DGstressDegree>::s22;
+using DynamicsKernel<DGadvection, DGstressDegree>::e11;
+using DynamicsKernel<DGadvection, DGstressDegree>::e12;
+using DynamicsKernel<DGadvection, DGstressDegree>::e22;
+using DynamicsKernel<DGadvection, DGstressDegree>::hice;
+using DynamicsKernel<DGadvection, DGstressDegree>::cice;
+using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
+using DynamicsKernel<DGadvection, DGstressDegree>::deltaT;
+using DynamicsKernel<DGadvection, DGstressDegree>::stressDivergence;
+using DynamicsKernel<DGadvection, DGstressDegree>::applyBoundaries;
+
+using CGDynamicsKernel<DGadvection>::u;
+using CGDynamicsKernel<DGadvection>::v;
+using CGDynamicsKernel<DGadvection>::uAtmos;
+using CGDynamicsKernel<DGadvection>::vAtmos;
+using CGDynamicsKernel<DGadvection>::uOcean;
+using CGDynamicsKernel<DGadvection>::vOcean;
+using CGDynamicsKernel<DGadvection>::projectVelocityToStrain;
+using CGDynamicsKernel<DGadvection>::cgH;
+using CGDynamicsKernel<DGadvection>::cgA;
+using CGDynamicsKernel<DGadvection>::dStressX;
+using CGDynamicsKernel<DGadvection>::dStressY;
 public:
-    VPCGDynamicsKernel(ParametricMomentumMap<CGdegree>* pmapIn, StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
-        : pmap(pmapIn),
+    VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
+        : pmap(nullptr),
           stressStep(stressStepIn),
-          params(paramsIn)
+          params(reinterpret_cast<const VPParameters&>(paramsIn))
     {
     }
     virtual ~VPCGDynamicsKernel() = default;
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
+    {
+        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
+
+        pmap = new ParametricMomentumMap<CGdegree>(*smesh);
+    }
     void update(const TimestepTime& tst) override
     {
         // Let DynamicsKernel handle the advection step
@@ -39,10 +70,13 @@ public:
 
             projectVelocityToStrain();
 
+            // FIXME Why can I not use the typedef from StressUpdateStep?
+            /*StressUpdateStep<DGadvection, DGstressDegree>::SymmetricTensorVector*/
+            std::array<DGVector<DGstressDegree>, 3> stress = { s11, s12, s22 };
             // Call the step function on the StressUpdateStep class
             stressStep.stressUpdateHighOrder(params,
                     *smesh,
-                    { s11, s12, s22 }, { e11, e12, e22 },
+                    stress, { e11, e12, e22 },
                     hice, cice,
                     deltaT);
 
@@ -71,7 +105,7 @@ protected:
     CGVector<CGdegree> u0;
     CGVector<CGdegree> v0;
 
-    void updateMomentum(const TimestepTime& tst)
+    void updateMomentum(const TimestepTime& tst) override
     {
         // Update the velocity
         double SC = 1.0;///(1.0-pow(1.0+1.0/beta,-1.0*NT_evp));
@@ -84,7 +118,7 @@ protected:
             double absatm = sqrt(SQR(uAtmos(i)) + SQR(vAtmos(i)));
             double absocn = sqrt(SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
 
-            vx(i) = (1.0
+            u(i) = (1.0
                     / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
                             + cgA(i) * params.F_ocean
                             * absocn ) // implicit parts
@@ -97,7 +131,7 @@ protected:
                                             * vOcnRel // cor + surface
                                             + dStressX(i)/pmap->lumpedcgmass(i)
                             ));
-            vy(i) = (1.0
+            v(i) = (1.0
                     / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
                             + cgA(i) * params.F_ocean
                             * absocn ) // implicit parts
@@ -106,7 +140,7 @@ protected:
                                     * (params.F_atm * absatm * vAtmos(i) + // atm forcing
                                             params.F_ocean * absocn * SC
                                             * vOcean(i)) // ocean forcing
-                                            + params.rho_ice * cg_H(i) * params.fc
+                                            + params.rho_ice * cgH(i) * params.fc
                                             * uOcnRel // here the reversed sign of uOcnRel is used
                                             + dStressY(i)/pmap->lumpedcgmass(i)
                             ));

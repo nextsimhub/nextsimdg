@@ -25,7 +25,7 @@ void CGDynamicsKernel<DGadvection>::initialise(const ModelArray& coords, bool is
     DynamicsKernel<DGadvection, DGstressDegree>::initialise(coords, isSpherical, mask);
 
     //! Initialize momentum
-    momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
+//    momentum = new Nextsim::CGParametricMomentum<CGdegree>(*smesh);
 
     u.resize_by_mesh(*smesh);
     v.resize_by_mesh(*smesh);

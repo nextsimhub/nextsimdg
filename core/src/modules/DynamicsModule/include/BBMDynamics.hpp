@@ -9,6 +9,8 @@
 #define BBMDYNAMICS_HPP
 
 #include "include/BBMDynamicsKernel.hpp"
+#include "include/MEVPDynamicsKernel.hpp"
+#include "include/VPParameters.hpp"
 #include "include/IDynamics.hpp"
 
 namespace Nextsim {
@@ -23,7 +25,11 @@ public:
     void setData(const ModelState::DataMap&) override;
 private:
     // TODO: How to get the template parameters here?
-    BBMDynamicsKernel<2, 6> kernel;
+//    BBMDynamicsKernel<2, 6> kernel;
+    // FIXME temporary use of MEVP, revert back to BBM
+    MEVPDynamicsKernel<6> kernel;
+    VPParameters params;
+
 };
 
 } /* namespace Nextsim */

@@ -33,7 +33,7 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IDynamics"; }
-    void setData(const ModelState::DataMap& ms) override
+    virtual void setData(const ModelState::DataMap& ms) override
     {
         uice.resize();
         vice.resize();

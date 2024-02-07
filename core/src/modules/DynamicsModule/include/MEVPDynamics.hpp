@@ -26,7 +26,7 @@ public:
     void setData(const ModelState::DataMap&) override;
 private:
     // TODO: How to get the template parameters here?
-    MEVPDynamicsKernel<2, 6> kernel;
+    MEVPDynamicsKernel<6> kernel;
 };
 }
 

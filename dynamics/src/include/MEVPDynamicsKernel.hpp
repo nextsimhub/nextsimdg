@@ -11,22 +11,24 @@
 
 #include "VPCGDynamicsKernel.hpp"
 
+#include "MEVPStressUpdateStep.hpp"
+
 namespace Nextsim {
 
-template <int DGadvection> class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
+template <int DGadvection>
+class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
+using VPCGDynamicsKernel<DGadvection>::pmap;
 public:
-    MEVPDynamicsKernel(ParametricMomentumMap<CGdegree>* pmapIn, const DynamicsParameters& paramsIn)
-        : VPCGDynamicsKernel<DGadvection>(pmapIn, MEVPStressStep, paramsIn)
+    MEVPDynamicsKernel(const DynamicsParameters& paramsIn)
+        : VPCGDynamicsKernel<DGadvection>(MEVPStressStep, paramsIn)
     {
+        MEVPStressStep.setPMap(pmap);
     }
 
 private:
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
-    MEVPStressUpdateStep MEVPStressStep;
-    //! MEVP parameters
-    double alpha = 1500.0;
-    double beta = 1500.0;
+    MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> MEVPStressStep;
 };
 
 } /* namespace Nextsim */

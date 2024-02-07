@@ -27,8 +27,8 @@ public:
     void setData(const std::string& name, const ModelArray& data) override;
     ModelArray getDG0Data(const std::string& name) override;
     void update(const TimestepTime& tst) override;
-    virtual void updateMomentum(const TimestepTime& tst);
-    void prepareIteration(const DataMap& data) override;
+    void updateMomentum(const TimestepTime& tst) override;
+    void prepareIteration(const typename DynamicsKernel<DGadvection, DGstressDegree>::DataMap& data) override;
     void projectVelocityToStrain() override;
     void stressDivergence(const double scale) override;
     void applyBoundaries() override;
@@ -56,9 +56,8 @@ protected:
     CGVector<CGdegree> uAtmos;
     CGVector<CGdegree> vAtmos;
 
-    CGParametricMomentum<CGdegree>* momentum;
+//    CGParametricMomentum<CGdegree>* momentum;
 
-    ParametricMomentumMap<CGdegree> pmap;
 };
 
 } /* namespace Nextsim */

@@ -25,8 +25,9 @@
 #include "include/Time.hpp"
 #include "include/gridNames.hpp"
 
-#include <string>
 #include <map>
+#include <set>
+#include <string>
 #include <unordered_map>
 
 namespace Nextsim {
@@ -39,7 +40,7 @@ template <int DGadvection, int DGstress> class DynamicsKernel {
 public:
 
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
-    typedef std::map<DataMapping::first_type, DataMapping::second_type> DataMap;
+    typedef std::map<typename DataMapping::first_type, typename DataMapping::second_type> DataMap;
 
     DynamicsKernel() = default;
     virtual ~DynamicsKernel() = default;
@@ -117,6 +118,7 @@ public:
             return DGModelArray::dg2ma(hice, data);
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
+        } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);
         }
@@ -190,6 +192,8 @@ protected:
 
     double deltaT;
 
+    Nextsim::ParametricMesh* smesh;
+
     virtual void updateMomentum(const TimestepTime& tst) = 0;
 
     // Pass through functions to the common momentum solver class
@@ -220,7 +224,6 @@ protected:
     virtual void prepareAdvection() = 0;
 
 private:
-    Nextsim::ParametricMesh* smesh;
 
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
@@ -229,9 +232,6 @@ private:
 
     // Fields that are specially treated on set and get
     inline static const std::set<std::string> velocityFields = { uName, vName, uWindName, vWindName, uOceanName, vOceanName };
-
-    // Initialises the common DG parts that do not depend on the velocity numerics implementation
-    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 };
 
 }

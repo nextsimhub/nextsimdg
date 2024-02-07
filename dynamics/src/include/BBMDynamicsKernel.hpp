@@ -10,12 +10,12 @@
 #define BBMDYNAMICSKERNEL_HPP
 
 #include "DynamicsKernel.hpp"
-
+/*
 namespace Nextsim {
 
 template <int CGdegree, int DGadvection> class BBMDynamicsKernel : public DynamicsKernel<CGdegree, DGadvection> {
 using DynamicsKernel<CGdegree, DGadvection>::NT_evp;
-using DynamicsKernel<CGdegree, DGadvection>::momentum;
+//using DynamicsKernel<CGdegree, DGadvection>::momentum;
 using DynamicsKernel<CGdegree, DGadvection>::hice;
 using DynamicsKernel<CGdegree, DGadvection>::cice;
 
@@ -34,7 +34,7 @@ protected:
     {
         //! Momentum
         for (size_t bbmstep = 0; bbmstep < NT_evp; ++bbmstep) {
-            momentum->BBMStep(mebParams, NT_evp, tst.step.seconds(), hice, cice, damage);
+//            momentum->BBMStep(mebParams, NT_evp, tst.step.seconds(), hice, cice, damage);
         }
     };
 
