@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<simulation>
+  <context id="nextsim">
+    <calendar type="Gregorian" time_origin="2020-01-23 00:08:15" start_date="2023-03-17 17:11:00" timestep="1.5 h"/>
+
+    <axis_definition>
+      <axis id="axis_x" n_glo="30" value="(0,29)[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29]">
+      </axis>
+      <axis id="axis_y" n_glo="30" value="(0,29)[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29]">
+      </axis>
+    </axis_definition>
+
+    <!-- <domain_definition> -->
+    <!--   <domain id="domain_A" type="rectilinear" ni_glo="30" nj_glo="30"/> -->
+    <!-- </domain_definition> -->
+
+    <grid_definition>
+      <grid id="grid_2D">
+        <axis axis_ref="axis_x"/>
+        <axis axis_ref="axis_y"/>
+      </grid>
+    </grid_definition>
+
+    <field_definition>
+      <field id="field_A" name="test_field" operation="instant" grid_ref="grid_2D"/>
+    </field_definition>
+
+    <file_definition>
+      <file id="output" name="diagnostic" output_freq="1ts" type="one_file">
+        <field id="field_A"/>
+      </file>
+    </file_definition>
+
+  </context>
+  <context id="xios">
+    <variable_definition>
+      <variable_group id="parameters">
+        <variable id="print_file" type="bool">true</variable>
+      </variable_group>
+    </variable_definition>
+  </context>
+</simulation>
