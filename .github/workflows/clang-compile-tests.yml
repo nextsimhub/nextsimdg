@@ -38,14 +38,21 @@ jobs:
     - name: installs
       run: |
         sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake libnetcdff-dev libhdf5-dev
         sudo apt-get install python3-netcdf4
+
+        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
+        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
+        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
+        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
+
     - name: make
       run: |
-        cmake .
+        cmake -DENABLE_MPI=ON -Dxios_DIR="$(pwd)/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" .
         make
     - name: run tests
       run: |
+        export XIOS_IODEF_PATH="$(pwd)/run/iodef.xml"
         for component in core physics
         do
             cd $component/test
@@ -67,8 +74,29 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
+        brew install open-mpi
+        brew install subversion
         pip3 install numpy
         pip3 install netCDF4
+
+        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
+        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
+        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
+        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
+
+    - name: make
+      run: |
+        cmake -Dxios_DIR="$(pwd)/xios" -DCMAKE_CXX_COMPILER="$(which mpic++)" .
+        make
+    - name: run tests
+      run: |
+        export XIOS_IODEF_PATH="$(pwd)/run/iodef.xml"
+        for component in core physics
+        do
+            cd $component/test
+            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
+            cd -
+        done
     - name: make
       run: |
         cmake . -DPython_ROOT_DIR="/Library/Frameworks/Python.framework/Versions/Current/bin/"
