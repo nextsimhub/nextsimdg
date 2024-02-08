@@ -41,8 +41,6 @@ public:
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
     void setData(const std::string& name, const ModelArray& data) override;
     ModelArray getDG0Data(const std::string& name) override;
-    void update(const TimestepTime& tst) override;
-    void updateMomentum(const TimestepTime& tst) override;
     void prepareIteration(const DataMap& data) override;
     void projectVelocityToStrain() override;
     void stressDivergence(const double scale) override;
