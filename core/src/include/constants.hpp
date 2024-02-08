@@ -108,7 +108,7 @@ const double Lf = Ice::Lf;
 const double Lv0 = Vapour::Lv0;
 
 //! Proportionality constant between salinity in psu and freezing point depression [K psu⁻¹]
-const double mu = 0.055;
+const double mu = 0.054;
 
 //! Density of fresh water at 4˚C. [kg m⁻³]
 const double rho = 1000;

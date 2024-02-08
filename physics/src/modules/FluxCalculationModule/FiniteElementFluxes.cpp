@@ -27,7 +27,7 @@ static const double dragOcean_q_default = 1.5e-3;
 static const double dragOcean_t_default = 0.83e-3;
 static const double dragIce_t_default = 1.3e-3;
 static const double oceanAlbedo_default = 0.07;
-static const double i0_default = 0.17;
+static const double i0_default = 0.30;
 
 template <>
 const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
