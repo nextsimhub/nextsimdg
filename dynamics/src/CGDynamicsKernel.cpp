@@ -107,9 +107,10 @@ void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
     cgH = cgH.cwiseMax(1.e-4);
 }
 
-template <int CG>
-Eigen::Matrix<double, CGDOFS(CG), 1> cgLocal(const CGVector<CG>& globalVelocity, int cgi, int cgShift);
+//template <int CG>
+//Eigen::Matrix<double, CGDOFS(CG), 1> cgLocal(const CGVector<CG>& globalVelocity, int cgi, int cgShift);
 
+#if (CGDEGREE == 1)
 Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi, int cgShift)
 {
     Eigen::Matrix<double, CGDOFS(1), 1> vLocal;
@@ -117,7 +118,7 @@ Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi,
             vGlobal(cgi + cgShift), vGlobal(cgi + 1 + cgShift);
     return vLocal;
 }
-
+#elif (CGDEGREE == 2)
 Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi, int cgShift)
 {
     Eigen::Matrix<double, CGDOFS(2), 1> vLocal;
@@ -126,7 +127,10 @@ Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi,
             vGlobal(cgi + 2 * cgShift), vGlobal(cgi + 1 + 2 * cgShift), vGlobal(cgi + 2 + 2 * cgShift);
     return vLocal;
 }
-
+#else
+// Not valid syntax? Don't care, want a compile error anyway.
+Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi, int cgShift) = 0;
+#endif
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
 {
@@ -146,8 +150,8 @@ void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
       continue;
 
     // get the local x/y - velocity coefficients on the element
-    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local = cgLocal<CGdegree>(u, cgi, cgshift);
-    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vy_local = cgLocal<CGdegree>(v, cgi, cgshift);
+    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local = cgLocal/*<CGdegree>*/(u, cgi, cgshift);
+    Eigen::Matrix<double, CGDOFS(CGdegree), 1> vy_local = cgLocal/*<CGdegree>*/(v, cgi, cgshift);
 
     // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
     // by integrating rhs and inverting with dG(stress) mass matrix

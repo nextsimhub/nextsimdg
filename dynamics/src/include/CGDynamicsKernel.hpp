@@ -10,8 +10,11 @@
 
 #include "DynamicsKernel.hpp"
 
+// Temporary preprocessor based solution
+#define CGDEGREE 2
+
 // Import this from the build system *somehow*
-static const int CGdegree = 2;
+static const int CGdegree = CGDEGREE;
 static const int DGstressDegree = CG2DGSTRESS(CGdegree);
 static const int nGauss = CGdegree + 1;
 static const int CGdof = nGauss * nGauss;
