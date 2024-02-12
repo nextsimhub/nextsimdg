@@ -49,15 +49,19 @@ jobs:
 
     - name: make
       run: |
-        cmake -DENABLE_MPI=ON -Dxios_DIR="$(pwd)/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" .
+        mkdir -p build
+        cd build
+        cmake -DENABLE_MPI=ON -Dxios_DIR="$(pwd)/../xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make
     - name: run tests
       run: |
-        export XIOS_IODEF_PATH="$(pwd)/run/iodef.xml"
         for component in core physics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do echo $file; ./$file; done
+            # run serial tests
+            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$"); do echo $file; ./$file; done
+            # run MPI tests that require 2 ranks
+            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI2$"); do echo $file; mpirun -n 2 --oversubscribe ./$file; done
             cd -
         done
 
@@ -88,7 +92,9 @@ jobs:
 
     - name: make
       run: |
-        cmake -Dxios_DIR="$(pwd)/xios" -DCMAKE_CXX_COMPILER="$(which mpic++)" .
+        mkdir -p build
+        cd build
+        cmake -DENABLE_MPI=ON -Dxios_DIR="$(pwd)/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make
     - name: run tests
       run: |
@@ -108,6 +114,9 @@ jobs:
         for component in core physics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do echo $file; ./$file; done
+            # run serial tests
+            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$"); do echo $file; ./$file; done
+            # run MPI tests that require 2 ranks
+            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI2$"); do echo $file; mpirun -n 2 --oversubscribe ./$file; done
             cd -
         done

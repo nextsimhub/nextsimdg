@@ -1,25 +1,19 @@
 /*!
- * @file Xios.cpp
- * @date 2023-10-12
- * @author Dr Alexander Smith <as3402@cam.ac.uk>
- * @author Dr Tom Meltzer <tdm39@cam.ac.uk>
- * @brief Handler class for interfacing Nextsim-DG with the XIOS library
+ * @file    Xios.cpp
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @date    Fri 23 Feb 13:43:16 GMT 2024
+ * @brief   XIOS interface implementation
  * @details
- * The Xios class is designed to abstract away any complexity of iteracting
- * with the XIOS library. It assumes XIOS 2.0. Design details are available
- * in the Nextsim-DG wiki.
  *
- * This class focuses on initialising the XIOS server and client processes and
- * syncronising calendar data with Nextsim by taking information from Nextsim
- * and creating XIOS data structures or converting strings into the XIOS format
- * and using the C-bindings to pass the data to an XIOS context.
+ * Implementation of XIOS interface
  *
- * XIOS_IODEF_PATH
+ * This C++ interface is designed to implement core functionality of XIOS so
+ * that it can be used in nextsimdg. It is by no means meant to be
+ * feature-complete. Initially the goal is to generate most of the XIOS
+ * configuration in the xml definition file `iodef.xml`. As required we will
+ * add more features to the C++ interface.
  *
- * TODO: Add XIOS Grid/Axis Class/Data Structure for storing data
- * TODO: Add XIOS IO Process
- *
- * Users can enable XIOS by adding a line to the config file e.g.
+ * To enable XIOS in nextsim add the following lines to the config file.
  *   [xios]
  *   enable = true
  *
@@ -44,16 +38,23 @@ template <>
 const std::map<int, std::string> Configured<Xios>::keyMap
     = { { Xios::ENABLED_KEY, "xios.enable" } };
 
+/*!
+ * Constructor
+ *
+ * Configure an XIOS server
+ *
+ */
 Xios::Xios()
 {
     configure();
-    if (isEnabled) {
-        configureServer();
-    }
 }
 
-Xios::~Xios() { }
+//! Destructor
+Xios::~Xios() {
+  finalize();
+}
 
+//! Finalize XIOS context once xml config has been read and calendar settings updated
 void Xios::context_finalize()
 {
     if (isEnabled) {
@@ -61,6 +62,7 @@ void Xios::context_finalize()
     }
 }
 
+//! close context and finialize server
 void Xios::finalize()
 {
     if (isEnabled) {
@@ -69,30 +71,60 @@ void Xios::finalize()
     }
 }
 
+/*!
+ * Overrides `Configure` method from `Configured`
+ *
+ * Configure the XIOS server if XIOS is enabled in the settings.
+ *
+ */
 void Xios::configure()
 {
     // check if xios is enabled in the nextsim configuration
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
+    if (isEnabled) {
+        configureServer();
+    }
 }
 
+//! Configure calendar settings
 void Xios::configureServer()
 {
-    // initialize XIOS Server process
+    // initialize XIOS Server process and store MPI communicator
     clientId = "client";
     nullComm_F = MPI_Comm_c2f(MPI_COMM_NULL);
     cxios_init_client(clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F);
 
     // initialize nextsim context
-    clientComm = MPI_Comm_f2c(clientComm_F);
     contextId = "nextsim";
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
+
+    // initialize nextsim calendar wrapper
     cxios_get_current_calendar_wrapper(&clientCalendar);
 
+    // initialize rank and size
+    clientComm = MPI_Comm_f2c(clientComm_F);
     MPI_Comm_rank(clientComm, &rank);
     MPI_Comm_size(clientComm, &size);
 }
 
+/*!
+ * verify xios server is initialized
+ *
+ * @return true when xios server is initialized
+ */
+bool Xios::isInitialized()
+{
+    bool init { false };
+    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+    return init;
+}
+
+/*!
+ * get calendar origin
+ *
+ * @return calendar origin
+ */
 cxios_date Xios::getCalendarOrigin()
 {
     cxios_date calendar_origin;
@@ -100,6 +132,11 @@ cxios_date Xios::getCalendarOrigin()
     return calendar_origin;
 }
 
+/*!
+ * get calendar start date
+ *
+ * @return calendar start date
+ */
 cxios_date Xios::getCalendarStart()
 {
     cxios_date calendar_start;
@@ -107,6 +144,11 @@ cxios_date Xios::getCalendarStart()
     return calendar_start;
 }
 
+/*!
+ * get current date
+ *
+ * @return current date
+ */
 xios::CDate Xios::getCurrentDate()
 {
     xios::CDate calendar_date;
@@ -114,6 +156,11 @@ xios::CDate Xios::getCurrentDate()
     return calendar_date;
 }
 
+/*!
+ * get calendar timestep
+ *
+ * @return calendar timestep
+ */
 cxios_duration Xios::getCalendarTimestep()
 {
     cxios_duration calendar_timestep;
@@ -121,41 +168,77 @@ cxios_duration Xios::getCalendarTimestep()
     return calendar_timestep;
 }
 
+/*!
+ * get calendar step
+ *
+ * @return calendar step
+ */
 int Xios::getCalendarStep()
 {
-    int step = -1;
-    step = clientCalendar->getCalendar()->getStep();
+    int step = clientCalendar->getCalendar()->getStep();
     return step;
 }
 
+/*!
+ * set calendar origin
+ *
+ * @param origin
+ */
 void Xios::setCalendarOrigin(cxios_date origin)
 {
     cxios_set_calendar_wrapper_date_time_origin(clientCalendar, origin);
 }
 
+/*!
+ * set calendar start date
+ *
+ * @param start date
+ */
 void Xios::setCalendarStart(cxios_date start)
 {
     cxios_set_calendar_wrapper_date_start_date(clientCalendar, start);
 }
 
+/*!
+ * set calendar timestep
+ *
+ * @param timestep
+ */
 void Xios::setCalendarTimestep(cxios_duration timestep)
 {
     cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
     cxios_update_calendar_timestep(clientCalendar);
 }
 
-// Advance time by making a call into XIOS library. Wrapping this method
-// to hide implementation details.
+/*!
+ * update xios calendar iteration/step number
+ *
+ * @param current step number
+ */
 void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
 
+/*!
+ * send 2D field to xios server to be written to file.
+ *
+ * @param field name
+ * @param data to be written
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ */
 void Xios::write(const std::string fieldstr, double* data, const int ni, const int nj)
 {
     cxios_write_data_k82(fieldstr.c_str(), fieldstr.length(), data, ni, nj, -1);
 }
 
-// return datetime as std::string using ISO 8601 format (default)
-// (isoFormat=true)  2023-03-03T17:11:00Z
-// (isoFormat=false) 2023-03-03 17:11:00
+/*!
+ * return datetime as std::string using ISO 8601 format (default)
+ * if `isoFormat` is true format will be  2023-03-03T17:11:00Z
+ * if `isoFormat` is false format will be 2023-03-03 17:11:00
+ *
+ * @param datetime
+ * @param isoFormat as bool
+ * @return datetime as a string
+ */
 std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
 {
     boost::format fmt;
@@ -169,6 +252,11 @@ std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoForma
     return fmt.str();
 }
 
+/*!
+ * helpful utility function to print cxios date.
+ *
+ * @param date
+ */
 void Xios::printCXiosDate(cxios_date date)
 {
     std::cout << " year     " << date.year << std::endl;
@@ -179,6 +267,11 @@ void Xios::printCXiosDate(cxios_date date)
     std::cout << " second   " << date.second << std::endl;
 }
 
+/*!
+ * helpful utility function to print cxios duration.
+ *
+ * @param duration
+ */
 void Xios::printCXiosDuration(cxios_duration duration)
 {
     std::cout << " year     " << duration.year << std::endl;
@@ -188,14 +281,6 @@ void Xios::printCXiosDuration(cxios_duration duration)
     std::cout << " minute   " << duration.minute << std::endl;
     std::cout << " second   " << duration.second << std::endl;
     std::cout << " timestep " << duration.timestep << std::endl;
-}
-
-// Validation Method
-bool Xios::isInitialized()
-{
-    bool init { false };
-    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
-    return init;
 }
 }
 
