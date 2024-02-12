@@ -70,6 +70,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: installs
       run: |
+        brew install hdf5-mpi
         brew install netcdf
         brew install netcdf-cxx
         brew install boost
