@@ -19,6 +19,7 @@ namespace Nextsim {
 // The VP pseudo-timestepping momentum equation solver for CG velocities
 template <int DGadvection>
 class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
+public:
     using DynamicsKernel<DGadvection, DGstressDegree>::NT_evp;
     using DynamicsKernel<DGadvection, DGstressDegree>::s11;
     using DynamicsKernel<DGadvection, DGstressDegree>::s12;
@@ -45,7 +46,6 @@ class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
     using CGDynamicsKernel<DGadvection>::dStressX;
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
-public:
     VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>(),
           stressStep(stressStepIn),
