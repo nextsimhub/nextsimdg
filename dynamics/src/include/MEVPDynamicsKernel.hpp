@@ -19,9 +19,15 @@ template <int DGadvection>
 class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
 public:
     using CGDynamicsKernel<DGadvection>::pmap;
+    using CGDynamicsKernel<DGadvection>::initialise;
     MEVPDynamicsKernel(const DynamicsParameters& paramsIn)
         : VPCGDynamicsKernel<DGadvection>(MEVPStressStep, paramsIn)
     {
+    }
+
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
+    {
+        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
         MEVPStressStep.setPMap(pmap);
     }
 

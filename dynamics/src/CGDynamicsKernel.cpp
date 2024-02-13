@@ -27,9 +27,23 @@ void CGDynamicsKernel<DGadvection>::initialise(const ModelArray& coords, bool is
 
     //! Initialize the parametric momentum map
     pmap = new ParametricMomentumMap<CGdegree>(*smesh);
+    pmap->InitializeLumpedCGMassMatrix();
+    pmap->InitializeDivSMatrices();
 
     u.resize_by_mesh(*smesh);
     v.resize_by_mesh(*smesh);
+
+    cgH.resize_by_mesh(*smesh);
+    cgA.resize_by_mesh(*smesh);
+
+    dStressX.resize_by_mesh(*smesh);
+    dStressY.resize_by_mesh(*smesh);
+
+    uOcean.resize_by_mesh(*smesh);
+    vOcean.resize_by_mesh(*smesh);
+
+    uAtmos.resize_by_mesh(*smesh);
+    vAtmos.resize_by_mesh(*smesh);
 }
 
 template <int DGadvection>

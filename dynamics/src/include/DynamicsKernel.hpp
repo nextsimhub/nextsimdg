@@ -72,7 +72,14 @@ public:
         // resize DG vectors
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
-    }
+
+        e11.resize_by_mesh(*smesh);
+        e12.resize_by_mesh(*smesh);
+        e22.resize_by_mesh(*smesh);
+        s11.resize_by_mesh(*smesh);
+        s12.resize_by_mesh(*smesh);
+        s22.resize_by_mesh(*smesh);
+}
 
     /*!
      * @brief Sets the data from a provided ModelArray.
@@ -171,8 +178,6 @@ public:
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
         Nextsim::LimitMin(hice, 0.0);
-
-        updateMomentum(tst);
     }
 
 protected:
