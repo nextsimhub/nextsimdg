@@ -110,7 +110,7 @@ void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
 template <int CG>
 Eigen::Matrix<double, CGDOFS(CG), 1> cgLocal(const CGVector<CG>& globalVelocity, int cgi, int cgShift);
 
-Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi, int cgShift)
+template<> Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi, int cgShift)
 {
     Eigen::Matrix<double, CGDOFS(1), 1> vLocal;
     vLocal << vGlobal(cgi), vGlobal(cgi + 1),
@@ -118,7 +118,7 @@ Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi,
     return vLocal;
 }
 
-Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi, int cgShift)
+template<> Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi, int cgShift)
 {
     Eigen::Matrix<double, CGDOFS(2), 1> vLocal;
     vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + 2),
