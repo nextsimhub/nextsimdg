@@ -20,6 +20,7 @@ namespace Nextsim {
 
 template <int DGadvection>
 class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressDegree> {
+public:
     using DynamicsKernel<DGadvection, DGstressDegree>::s11;
     using DynamicsKernel<DGadvection, DGstressDegree>::s12;
     using DynamicsKernel<DGadvection, DGstressDegree>::s22;
@@ -32,7 +33,6 @@ class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressDegree> {
     using typename DynamicsKernel<DGadvection, DGstressDegree>::DataMap;
 
 
-public:
     CGDynamicsKernel()
         : pmap(nullptr)
     {
