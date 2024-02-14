@@ -110,10 +110,10 @@ template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
 {
     // interpolate ice height and concentration to local cg Variables
-    Interpolations::DG2CG(*smesh, cgA, data.at(hiceName));
-    VectorManipulations::CGAveragePeriodic(*smesh, cgA);
-    Interpolations::DG2CG(*smesh, cgH, data.at(ciceName));
+    Interpolations::DG2CG(*smesh, cgH, data.at(hiceName));
     VectorManipulations::CGAveragePeriodic(*smesh, cgH);
+    Interpolations::DG2CG(*smesh, cgA, data.at(ciceName));
+    VectorManipulations::CGAveragePeriodic(*smesh, cgA);
 
     // limit A to [0,1] and H to [0, ...)
     cgA = cgA.cwiseMin(1.0);
