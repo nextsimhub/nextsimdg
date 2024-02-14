@@ -40,6 +40,7 @@ protected:
     using CGDynamicsKernel<DGadvection>::vAtmos;
     using CGDynamicsKernel<DGadvection>::uOcean;
     using CGDynamicsKernel<DGadvection>::vOcean;
+    using CGDynamicsKernel<DGadvection>::prepareIteration;
     using CGDynamicsKernel<DGadvection>::projectVelocityToStrain;
     using CGDynamicsKernel<DGadvection>::cgH;
     using CGDynamicsKernel<DGadvection>::cgA;
@@ -59,8 +60,12 @@ public:
         // Let DynamicsKernel handle the advection step
         DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits(tst);
 
+        prepareIteration({ { hiceName, hice }, { ciceName, cice } });
+
         u0 = u;
         v0 = v;
+
+        deltaT = tst.step.seconds() / NT_evp;
 
         for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
 
