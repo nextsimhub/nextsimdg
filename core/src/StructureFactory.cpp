@@ -36,7 +36,7 @@ std::string structureNameFromFile(const std::string& filePath)
         // &str[0] gives access to the buffer, guaranteed by C++11
         att.getValues(&structureName[0]);
         ncf.close();
-    } catch ( const netCDF::exceptions::NcException& nce) {
+    } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + filePath;
         throw std::runtime_error(ncWhat);

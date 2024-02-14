@@ -94,3 +94,6 @@ add_executable(testFileCallbackCloser
     "../../core/src/FileCallbackCloser.cpp"
     )
 target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
+
+# The help config test needs access to the full binary
+FILE(CREATE_LINK ${NEXTSIM_BINARY_PATH} ${CMAKE_CURRENT_BINARY_DIR}/nextsim SYMBOLIC)

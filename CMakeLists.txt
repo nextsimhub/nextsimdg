@@ -55,7 +55,8 @@ if(ENABLE_MPI)
   find_package(MPI REQUIRED COMPONENTS C CXX)
 endif()
 
-find_package(PythonInterp REQUIRED)
+set(Python_FIND_VIRTUALENV FIRST)
+find_package (Python COMPONENTS Interpreter Development)
 
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
@@ -90,6 +91,9 @@ set(NextsimSources "")
 
 # Set an empty list of include directories
 set(NextsimIncludeDirs "")
+
+# At least one test shell script runs the full binary. This variable contains the path to it.
+set(NEXTSIM_BINARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/nextsim")
 
 # Build the core model. Defines the 'parse_modules' target
 add_subdirectory(core)
@@ -128,3 +132,6 @@ target_include_directories(nextsim PRIVATE
     "${NextsimIncludeDirs}"
     )
 target_link_libraries(nextsim PUBLIC nextsimlib)
+
+# Generate the restart files that don't require additional data
+add_subdirectory(run)

@@ -1,0 +1,26 @@
+// partition.cdl
+netcdf partition {
+dimensions:
+        P = 1 ;
+        L = 1 ;
+        globalX = 30 ;
+        globalY = 30 ;
+
+group: bounding_boxes {
+  variables:
+        int global_x(P) ;
+        int global_y(P) ;
+        int local_extent_x(P) ;
+        int local_extent_y(P) ;
+  data:
+
+   global_x = 0 ;
+
+   global_y = 0 ;
+
+   local_extent_x = 30 ;
+
+   local_extent_y = 30 ;
+  } // group bounding_boxes
+}
+
