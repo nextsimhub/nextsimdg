@@ -234,9 +234,6 @@ private:
 
     // A map from field name to the type of
     const std::unordered_map<std::string, ModelArray::Type> fieldType;
-
-    // Fields that are specially treated on set and get
-    inline static const std::set<std::string> velocityFields = { uName, vName, uWindName, vWindName, uOceanName, vOceanName };
 };
 
 }
