@@ -107,6 +107,8 @@ protected:
 
     void updateMomentum(const TimestepTime& tst) override
     {
+
+        const double dt = tst.step.seconds();
         // Update the velocity
         double SC = 1.0;///(1.0-pow(1.0+1.0/beta,-1.0*NT_evp));
 
@@ -119,10 +121,10 @@ protected:
             double absocn = sqrt(SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
 
             u(i) = (1.0
-                    / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
+                    / (params.rho_ice * cgH(i) / dt * (1.0 + beta) // implicit parts
                             + cgA(i) * params.F_ocean
                             * absocn ) // implicit parts
-                            * (params.rho_ice * cgH(i) / deltaT * (beta * u(i) + u0(i)) // pseudo-timestepping
+                            * (params.rho_ice * cgH(i) / dt * (beta * u(i) + u0(i)) // pseudo-timestepping
                                     + cgA(i)
                                     * (params.F_atm * absatm * uAtmos(i) + // atm forcing
                                             params.F_ocean * absocn * SC
@@ -132,10 +134,10 @@ protected:
                                             + dStressX(i)/pmap->lumpedcgmass(i)
                             ));
             v(i) = (1.0
-                    / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
+                    / (params.rho_ice * cgH(i) / dt * (1.0 + beta) // implicit parts
                             + cgA(i) * params.F_ocean
                             * absocn ) // implicit parts
-                            * (params.rho_ice * cgH(i) / deltaT * (beta * v(i) + v0(i)) // pseudo-timestepping
+                            * (params.rho_ice * cgH(i) / dt * (beta * v(i) + v0(i)) // pseudo-timestepping
                                     + cgA(i)
                                     * (params.F_atm * absatm * vAtmos(i) + // atm forcing
                                             params.F_ocean * absocn * SC
