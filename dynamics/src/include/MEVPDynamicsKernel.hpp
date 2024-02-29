@@ -1,5 +1,4 @@
 /*!
-<<<<<<< HEAD
  * @file MEVPDynamicsKernel.hpp
  *
  * @date 17 Feb 2023
