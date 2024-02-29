@@ -81,6 +81,10 @@ public:
                     hice, cice,
                     deltaT);
 
+            s11 = stress[I11];
+            s12 = stress[I12];
+            s22 = stress[I22];
+
             double stressScale = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
             if (smesh->CoordinateSystem == Nextsim::SPHERICAL)
                 stressScale = 1.0 / Nextsim::EarthRadius / Nextsim::EarthRadius;
