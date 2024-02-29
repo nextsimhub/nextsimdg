@@ -20,7 +20,7 @@ namespace Nextsim {
 template <int DGadvection>
 class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressDegree>::NT_evp;
+    using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
     using DynamicsKernel<DGadvection, DGstressDegree>::s11;
     using DynamicsKernel<DGadvection, DGstressDegree>::s12;
     using DynamicsKernel<DGadvection, DGstressDegree>::s22;
@@ -68,7 +68,7 @@ public:
         // The critical timestep for the VP solver is the advection timestep
         deltaT = tst.step.seconds();
 
-        for (size_t mevpstep = 0; mevpstep < NT_evp; ++mevpstep) {
+        for (size_t mevpstep = 0; mevpstep < nSteps; ++mevpstep) {
 
             projectVelocityToStrain();
 
@@ -114,7 +114,7 @@ protected:
     {
 
         // Update the velocity
-        double SC = 1.0;///(1.0-pow(1.0+1.0/beta,-1.0*NT_evp));
+        double SC = 1.0;///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
 
         //      update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
