@@ -10,7 +10,7 @@
 
 #include "CGDynamicsKernel.hpp"
 
-#include "DynamicsParameters.hpp"
+#include "MEBParameters.hpp"
 #include "ParametricMap.hpp"
 #include "StressUpdateStep.hpp"
 
@@ -42,6 +42,7 @@ protected:
     using CGDynamicsKernel<DGadvection>::vOcean;
     using CGDynamicsKernel<DGadvection>::prepareIteration;
     using CGDynamicsKernel<DGadvection>::projectVelocityToStrain;
+    using CGDynamicsKernel<DGadvection>::dirichletZero;
     using CGDynamicsKernel<DGadvection>::cgH;
     using CGDynamicsKernel<DGadvection>::cgA;
     using CGDynamicsKernel<DGadvection>::dStressX;
@@ -51,7 +52,7 @@ public:
     BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>(),
           stressStep(stressStepIn),
-          params(reinterpret_cast<const VPParameters&>(paramsIn))
+          params(reinterpret_cast<const MEBParameters&>(paramsIn))
     {
     }
     virtual ~BrittleCGDynamicsKernel() = default;
@@ -80,8 +81,103 @@ public:
 
             stressDivergence(1.0);
 
-            // Common brittle parts of the momentum solver.
+            updateMomentum(tst);
+
+            applyBoundaries();
+
+            // Land mask
         }
+        // Finally, do the base class update
+        DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
+
+    }
+
+    void setData(const std::string& name, const ModelArray& data)
+    {
+        if (name == damageName) {
+            DGModelArray::ma2dg(data, damage);
+        } else {
+            CGDynamicsKernel<DGadvection>::setData(name, data);
+        }
+    }
+
+protected:
+    CGVector<CGdegree> avgX;
+    CGVector<CGdegree> avgY;
+
+    StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
+    const MEBParameters& params;
+
+    DGVector<DGadvection> damage;
+
+    // Common brittle parts of the momentum solver.
+    void updateMomentum(const TimestepTime& tst) override
+    {
+        static const double cosOceanAngle = cos(radians(params.ocean_turning_angle));
+        static const double sinOceanAngle = sin(radians(params.ocean_turning_angle));
+
+#pragma omp parallel for
+        for (size_t i = 0; i < u.rows(); ++i) {
+            // FIXME dte_over_mass should include snow in the total mass
+            const double dteOverMass = deltaT / (params.rho_ice * cgH(i));
+            // Memoized initial velocity values
+            const double uIce = u(i);
+            const double vIce = v(i);
+
+            const double cPrime = cgA(i) * params.F_ocean * std::hypot(uOcean(i) - uIce, vOcean(i) - vIce);
+
+            // FIXME grounding term tauB = cBu[i] / std::hypot(uIce, vIce) + u0
+            const double tauB = 0.;
+            const double alpha = 1 + dteOverMass * (cPrime * cosOceanAngle + tauB);
+            /* FIXME latitude needed for spherical cases
+             * const double beta = deltaT * params.fc +
+             * dteOverMass * cPrime * std::copysign(sinOceanAngle, lat[i]);
+             */
+            const double beta = deltaT * params.fc + dteOverMass * cPrime * sinOceanAngle;
+            const double rDenom = 1 / (SQR(alpha) + SQR(beta));
+
+            // Atmospheric drag
+            const double dragAtm = cgA(i) * params.F_atm * std::hypot(uAtmos(i), vAtmos(i));
+            const double tauX = dragAtm * uAtmos(i) +
+                    cPrime * (uOcean(i) * cosOceanAngle - vOcean * sinOceanAngle);
+            const double tauY = dragAtm * vAtmos(i) +
+                    cPrime * (vOcean(i) * cosOceanAngle + uOcean * sinOceanAngle);
+
+            // Stress gradient
+            const double gradX = dStressX(i) / pmap->lumpedcgmass(i);
+            const double gradY = dStressY(i) / pmap->lumpedcgmass(i);
+
+            u(i) = alpha * uIce + beta * vIce
+                    + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));
+            u(i) *= rDenom;
+
+            v(i) = alpha * vIce - beta *uIce
+                    + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
+            v(i) *= rDenom;
+        }
+        dirichletZero();
+
+        // Mask the land on the CG grid, using the finite volume landmask
+        static const size_t cgRowLength = CGdegree * smesh->nx + 1;
+#pragma omp parallel for
+        for (size_t eid = 0; eid < smesh->nelements; ++eid) {
+            if (smesh->landmask[eid] == 0) {
+                const size_t ex = eid % smesh->nx;
+                const size_t ey = eid % smesh->ny;
+                // Loop over CG elements for this finite volume grid cell
+                for (size_t jy = 0; jy <= CGdegree; ++jy) {
+                    for (size_t jx = 0; jx <= CGdegree; ++ jx) {
+                        const size_t cgi = cgRowLength * (CGdegree * ey + jy) + CGdegree * ex + jx;
+                        u(cgi) = 0.;
+                        v(cgi) = 0.;
+                    }
+                }
+            }
+        }
+
+        // Calculate the contribution to the average velocity
+        avgX += u / nSteps;
+        avgY += v / nSteps;
     }
 
 };

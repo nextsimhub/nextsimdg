@@ -9,39 +9,38 @@
 #ifndef BBMDYNAMICSKERNEL_HPP
 #define BBMDYNAMICSKERNEL_HPP
 
-#include "DynamicsKernel.hpp"
-/*
+#include "BrittleCGDynamicsKernel.hpp"
+
+#include "BBMStressUpdateStep.hpp"
+
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection> class BBMDynamicsKernel : public DynamicsKernel<CGdegree, DGadvection> {
-using DynamicsKernel<CGdegree, DGadvection>::NT_evp;
-//using DynamicsKernel<CGdegree, DGadvection>::momentum;
-using DynamicsKernel<CGdegree, DGadvection>::hice;
-using DynamicsKernel<CGdegree, DGadvection>::cice;
-
+template <int DGadvection>
+class BBMDynamicsKernel : public BrittleCGDynamicsKernel<DGadvection> {
 public:
-    void setData(const std::string& name, const ModelArray& data) override
+    using DynamicsKernel<CGdegree, DGadvection>::nSteps;
+//using DynamicsKernel<CGdegree, DGadvection>::momentum;
+    using DynamicsKernel<CGdegree, DGadvection>::hice;
+    using DynamicsKernel<CGdegree, DGadvection>::cice;
+    using CGDynamicsKernel<DGadvection>::pmap;
+    using CGDynamicsKernel<DGadvection>::initialise;
+    BBMDynamicsKernel(const DynamicsParameters& paramsIn)
+        : BrittleCGDynamicsKernel<DGadvection>(bbmStressStep, paramsIn)
     {
-        if (name == damageName) {
-            DGModelArray::ma2dg(data, damage);
-        } else {
-            DynamicsKernel<CGdegree, DGadvection>::setData(name, data);
-        }
     }
 
-protected:
-    void updateMomentum(const TimestepTime& tst) override
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
     {
-        //! Momentum
-        for (size_t bbmstep = 0; bbmstep < NT_evp; ++bbmstep) {
-//            momentum->BBMStep(mebParams, NT_evp, tst.step.seconds(), hice, cice, damage);
-        }
-    };
+        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
+        bbmStressStep.setPMap(pmap);
+    }
+
 
 private:
     //! Brittle rheology parameters
     MEBParameters mebParams;
-    DGVector<DGadvection> damage;
+    // BBM stress update class
+    BBMStressUpdateStep<DGadvection, DGstressDegree, CGdegree> bbmStressStep;
 };
 
 } /* namespace Nextsim */
