@@ -23,6 +23,7 @@ public:
     using DynamicsKernel<CGdegree, DGadvection>::hice;
     using DynamicsKernel<CGdegree, DGadvection>::cice;
     using CGDynamicsKernel<DGadvection>::pmap;
+    using CGDynamicsKernel<DGadvection>::damage;
     using CGDynamicsKernel<DGadvection>::initialise;
     BBMDynamicsKernel(const DynamicsParameters& paramsIn)
         : BrittleCGDynamicsKernel<DGadvection>(bbmStressStep, paramsIn)
@@ -33,6 +34,7 @@ public:
     {
         CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
         bbmStressStep.setPMap(pmap);
+        bbmStressStep.setDamage(damage);
     }
 
 
