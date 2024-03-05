@@ -7,6 +7,7 @@
 
 #include "include/PrognosticData.hpp"
 
+#include "include/gridNames.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/Module.hpp"
 
@@ -27,6 +28,7 @@ PrognosticData::PrognosticData()
     getStore().registerArray(Protected::C_ICE, &m_conc, RO);
     getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
     getStore().registerArray(Protected::T_ICE, &m_tice, RO);
+    getStore().registerArray(Protected::DAMAGE, &m_damage, RO);
 }
 
 void PrognosticData::configure()
@@ -56,6 +58,13 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
+    // Damage is an optional field, and defaults to zero, if absent
+    if (ms.count(damageName) > 0) {
+        m_damage = ms.at(damageName);
+    } else {
+        m_damage.resize();
+        m_damage = 0.;
+    }
 
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
@@ -91,6 +100,7 @@ void PrognosticData::updatePrognosticFields()
     ModelArrayRef<Shared::C_ICE, RO> ciceUpd(getStore());
     ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
     ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
+    ModelArrayRef<Shared::DAMAGE, RO> damageUpd(getStore());
 
     // Calculate the cell average thicknesses
     HField hiceUpd = hiceTrueUpd * ciceUpd;
@@ -100,6 +110,7 @@ void PrognosticData::updatePrognosticFields()
     m_conc.setData(ciceUpd);
     m_snow.setData(hsnowUpd);
     m_tice.setData(ticeUpd);
+    m_damage.setData(damageUpd);
 }
 
 ModelState PrognosticData::getState() const
@@ -112,6 +123,7 @@ ModelState PrognosticData::getState() const
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
+                 { "damage", mask(m_damage) },
                  { "sst", mask(sst.data()) },
                  { "sss", mask(sss.data()) },
              },

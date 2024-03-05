@@ -13,7 +13,7 @@ namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 BBMDynamics::BBMDynamics()
-    : IDynamics()
+    : IDynamics(true)
     , kernel(params)
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
@@ -70,9 +70,13 @@ void BBMDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
 
-    // set the updated ice thickness and concentration
+    // Fill the updated damage array with the initial value
+    damage = damage0.data();
+
+    // set the updated ice thickness, concentration and damage
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
+    kernel.setData(damageName, damage);
 
     // set the forcing velocities
     kernel.setData(uWindName, uwind.data());
@@ -87,6 +91,7 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
+    damage = kernel.getDG0Data(damageName);
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
