@@ -2,60 +2,36 @@ name: compile code and tests
 
 on:
   push:
-    branches: [ main, develop, issue103_CI ]
-  pull_request:
-    branches: [ main, develop,  issue103_CI ]
+    branches: [ main, develop, xios-interface-with-tests ]
 
 jobs:
 
-  clang-on-mac:
-
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: clang
-      run: |
-        brew extract --version=13.0.1 clang-format homebrew/cask-versions
-        brew install clang-format@13.0.1
-        cd core/src
-        clang-format --dry-run -Werror *cpp include/*hpp
-        cd -
-        for component in physics
-        do
-          cd $component/src
-          clang-format --dry-run -Werror *cpp include/*hpp
-          cd -
-        done
-  
-  
   build-and-tests-on-ubuntu:
 
     runs-on: ubuntu-22.04
+    container:
+      image: tommelt/nextsimdg-dev-env:with-xios
 
     steps:
     - uses: actions/checkout@v2
-    - name: installs
-      run: |
-        sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake libnetcdff-dev libhdf5-dev
-        sudo apt-get install python3-netcdf4
 
-        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
-        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
-        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
-        cp .github/xios_arch/ubuntu.fcm xios/arch/arch-GCC_LINUX.fcm
-        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
-
-    - name: make
+    - name: build
       run: |
-        mkdir -p build
-        cd build
-        cmake -DENABLE_MPI=ON -Dxios_DIR="$(pwd)/../xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
-        make
+        . /opt/spack-environment/activate.sh
+        mkdir -p build && cd build
+        cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
+
+    - name: compile
+      run: |
+        . /opt/spack-environment/activate.sh && cd build
+        make -j 4
+
     - name: run tests
       run: |
-        export XIOS_IODEF_PATH="$(pwd)/run/iodef.xml"
+        . /opt/spack-environment/activate.sh
+        apt install -y wget
+        cd build
+        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         for component in core physics
         do
             cd $component/test
@@ -119,5 +95,19 @@ jobs:
             for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$"); do echo $file; ./$file; done
             # run MPI tests that require 2 ranks
             for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI2$"); do echo $file; mpirun -n 2 --oversubscribe ./$file; done
+=======
+            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
+            do
+              echo $file
+              ./$file
+            done
+            # run MPI tests
+            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI\d+$")
+            do
+              echo $file
+              nprocs=$(echo $file | sed -r "s/.*MPI([0-9]+)/\1/")
+              mpirun --allow-run-as-root -n $nprocs ./$file
+            done
+>>>>>>> 6ab5dfea (testing CI)
             cd -
         done
