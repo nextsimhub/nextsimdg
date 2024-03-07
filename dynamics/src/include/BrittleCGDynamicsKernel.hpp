@@ -63,7 +63,7 @@ public:
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
 
-        for (size_t mevpstep = 0; mevpstep < nSteps; ++mevpstep) {
+        for (size_t subStep = 0; subStep < nSteps; ++subStep) {
 
             projectVelocityToStrain();
 
