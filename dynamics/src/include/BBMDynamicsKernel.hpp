@@ -18,12 +18,12 @@ namespace Nextsim {
 template <int DGadvection>
 class BBMDynamicsKernel : public BrittleCGDynamicsKernel<DGadvection> {
 public:
-    using DynamicsKernel<CGdegree, DGadvection>::nSteps;
-//using DynamicsKernel<CGdegree, DGadvection>::momentum;
-    using DynamicsKernel<CGdegree, DGadvection>::hice;
-    using DynamicsKernel<CGdegree, DGadvection>::cice;
+    using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
+//using DynamicsKernel<DGadvection, DGstressDegree>::momentum;
+    using DynamicsKernel<DGadvection, DGstressDegree>::hice;
+    using DynamicsKernel<DGadvection, DGstressDegree>::cice;
     using CGDynamicsKernel<DGadvection>::pmap;
-    using CGDynamicsKernel<DGadvection>::damage;
+    using BrittleCGDynamicsKernel<DGadvection>::damage;
     using CGDynamicsKernel<DGadvection>::initialise;
     BBMDynamicsKernel(const DynamicsParameters& paramsIn)
         : BrittleCGDynamicsKernel<DGadvection>(bbmStressStep, paramsIn)

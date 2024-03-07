@@ -162,9 +162,11 @@ public:
 
                     p_d->row(i) = imass_psi2 * dGauss.matrix().transpose();
                 }
+                std::cout << __FILE__ << " done" << std::endl;
     }
 
     void setDamage(DGVector<DGadvection>& dIn) { p_d = &dIn; }
+    void setPMap(ParametricMomentumMap<CG>* pmapIn) { pmap = pmapIn; }
 
 protected:
     ParametricMomentumMap<CG>* pmap;

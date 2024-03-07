@@ -16,6 +16,9 @@
 
 namespace Nextsim {
 
+// Degrees to radians as a hex float
+static const double radians = 0x1.1df46a2529d39p-6;
+
 // The brittle momentum solver for CG velocity fields
 template <int DGadvection>
 class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
@@ -76,8 +79,8 @@ public:
             s12 = stress[I12];
             s22 = stress[I22];
 
-            dStressX = 0;
-            dStressY = 0;
+            dStressX.zero();
+            dStressY.zero();
 
             stressDivergence(1.0);
 
@@ -92,7 +95,7 @@ public:
 
     }
 
-    void setData(const std::string& name, const ModelArray& data)
+    void setData(const std::string& name, const ModelArray& data) override
     {
         if (name == damageName) {
             DGModelArray::ma2dg(data, damage);
@@ -113,8 +116,8 @@ protected:
     // Common brittle parts of the momentum solver.
     void updateMomentum(const TimestepTime& tst) override
     {
-        static const double cosOceanAngle = cos(radians(params.ocean_turning_angle));
-        static const double sinOceanAngle = sin(radians(params.ocean_turning_angle));
+        static const double cosOceanAngle = cos(radians * params.ocean_turning_angle);
+        static const double sinOceanAngle = sin(radians * params.ocean_turning_angle);
 
 #pragma omp parallel for
         for (size_t i = 0; i < u.rows(); ++i) {
@@ -139,9 +142,9 @@ protected:
             // Atmospheric drag
             const double dragAtm = cgA(i) * params.F_atm * std::hypot(uAtmos(i), vAtmos(i));
             const double tauX = dragAtm * uAtmos(i) +
-                    cPrime * (uOcean(i) * cosOceanAngle - vOcean * sinOceanAngle);
+                    cPrime * (uOcean(i) * cosOceanAngle - vOcean(i) * sinOceanAngle);
             const double tauY = dragAtm * vAtmos(i) +
-                    cPrime * (vOcean(i) * cosOceanAngle + uOcean * sinOceanAngle);
+                    cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
 
             // Stress gradient
             const double gradX = dStressX(i) / pmap->lumpedcgmass(i);
@@ -155,7 +158,8 @@ protected:
                     + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
             v(i) *= rDenom;
         }
-        dirichletZero();
+        dirichletZero(u);
+        dirichletZero(v);
 
         // Mask the land on the CG grid, using the finite volume landmask
         static const size_t cgRowLength = CGdegree * smesh->nx + 1;
@@ -174,6 +178,8 @@ protected:
                 }
             }
         }
+
+        std::cout << __FILE__ << " done" << std::endl;
 
         // Calculate the contribution to the average velocity
         avgX += u / nSteps;
