@@ -26,6 +26,7 @@ static const std::string qowKey = pfx + ".Q_ow";
 static const std::string sublKey = pfx + ".sublim";
 static const std::string snowKey = pfx + ".snowfall";
 static const std::string rainKey = pfx + ".rainfall";
+static const std::string evapKey = pfx + ".evaporation";
 static const std::string uKey = pfx + ".wind_u";
 static const std::string vKey = pfx + ".wind_v";
 
@@ -37,6 +38,7 @@ const std::map<int, std::string> Configured<FluxConfiguredAtmosphere>::keyMap = 
     { FluxConfiguredAtmosphere::SUBL_KEY, sublKey },
     { FluxConfiguredAtmosphere::SNOW_KEY, snowKey },
     { FluxConfiguredAtmosphere::RAIN_KEY, rainKey },
+    { FluxConfiguredAtmosphere::EVAP_KEY, evapKey },
     { FluxConfiguredAtmosphere::WINDU_KEY, uKey },
     { FluxConfiguredAtmosphere::WINDV_KEY, vKey },
 };
