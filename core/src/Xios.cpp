@@ -44,15 +44,10 @@ const std::map<int, std::string> Configured<Xios>::keyMap
  * Configure an XIOS server
  *
  */
-Xios::Xios()
-{
-    configure();
-}
+Xios::Xios() { configure(); }
 
 //! Destructor
-Xios::~Xios() {
-  finalize();
-}
+Xios::~Xios() { finalize(); }
 
 //! Finalize XIOS context once xml config has been read and calendar settings updated
 void Xios::context_finalize()
