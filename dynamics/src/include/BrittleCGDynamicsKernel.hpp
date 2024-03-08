@@ -111,6 +111,15 @@ public:
         }
     }
 
+    ModelArray getDG0Data(const std::string& name) override
+    {
+        if (name == damageName) {
+            ModelArray data(ModelArray::Type::H);
+            return DGModelArray::dg2ma(damage, data);
+        } else {
+            return CGDynamicsKernel<DGadvection>::getDG0Data(name);
+        }
+    }
 protected:
     CGVector<CGdegree> avgX;
     CGVector<CGdegree> avgY;
