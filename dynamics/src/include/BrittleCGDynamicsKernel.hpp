@@ -53,18 +53,25 @@ protected:
     using CGDynamicsKernel<DGadvection>::pmap;
 public:
     BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>(),
-          stressStep(stressStepIn),
-          params(reinterpret_cast<const MEBParameters&>(paramsIn))
-    {
-    }
+        : CGDynamicsKernel<DGadvection>()
+        , stressStep(stressStepIn)
+        , params(reinterpret_cast<const MEBParameters&>(paramsIn))
+      {
+      }
     virtual ~BrittleCGDynamicsKernel() = default;
+
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
+    {
+        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
+        damage.resize_by_mesh(*smesh);
+    }
+
     void update(const TimestepTime& tst) override {
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
 
         for (size_t subStep = 0; subStep < nSteps; ++subStep) {
-
+   
             projectVelocityToStrain();
 
             std::array<DGVector<DGstressDegree>, 3> stress = { s11, s12, s22 };
@@ -178,8 +185,6 @@ protected:
                 }
             }
         }
-
-        std::cout << __FILE__ << " done" << std::endl;
 
         // Calculate the contribution to the average velocity
         avgX += u / nSteps;

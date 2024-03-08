@@ -32,7 +32,7 @@ public:
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
     {
-        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
+        BrittleCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
         bbmStressStep.setPMap(pmap);
         bbmStressStep.setDamage(damage);
     }
