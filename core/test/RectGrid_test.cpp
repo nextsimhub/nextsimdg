@@ -105,15 +105,32 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     metadata.affixCoordinates(state);
 
 #ifdef USE_MPI
+// Create subcommunicator with only first rank
     metadata.setMpiMetadata(test_comm);
-    metadata.globalExtentX = nx;
-    metadata.globalExtentY = ny;
-    metadata.localCornerX = 0;
-    metadata.localCornerY = 0;
-    metadata.localExtentX = nx;
-    metadata.localExtentY = ny;
-#endif
+    int colour = MPI_UNDEFINED, key = 0;
+    MPI_Comm rank0Comm;
+
+    if(metadata.mpiMyRank ==0) {
+        colour = 0;
+    }
+    MPI_Comm_split(test_comm, colour, key, &rank0Comm);
+
+// Write reference file serially on first MPI rank
+    if (metadata.mpiMyRank == 0) {
+        metadata.setMpiMetadata(rank0Comm);
+        metadata.globalExtentX = nx;
+        metadata.globalExtentY = ny;
+        metadata.localCornerX = 0;
+        metadata.localCornerY = 0;
+        metadata.localExtentX = nx;
+        metadata.localExtentY = ny;
+        grid.dumpModelState(state, metadata, filename);
+        MPI_Comm_free(&rank0Comm);
+    }
+#else
     grid.dumpModelState(state, metadata, filename);
+#endif
+
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
