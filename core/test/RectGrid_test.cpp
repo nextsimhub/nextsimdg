@@ -39,8 +39,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     grid.setIO(new RectGridIO(grid));
 
     // Fill in the data. It is not real data.
-    size_t nx = 25;
-    size_t ny = 15;
+    size_t nx = 5;
+    size_t ny = 7;
     double yFactor = 0.01;
     double xFactor = 0.0001;
 
@@ -117,8 +117,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
     RectangularGrid gridIn;
-    size_t targetX = 3;
-    size_t targetY = 7;
+    size_t targetX = 1;
+    size_t targetY = 2;
 
     gridIn.setIO(new RectGridIO(grid));
 #ifdef USE_MPI
@@ -132,12 +132,12 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.at("hice")(targetX, targetY) != 0);
     REQUIRE(ms.data.at("hice")(targetX, targetY) > 1);
     REQUIRE(ms.data.at("hice")(targetX, targetY) < 2);
-    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0703);
+    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201);
 
     ZField ticeIn = ms.data.at("tice");
 
     REQUIRE(ticeIn.dimensions()[2] == 1);
-    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0703);
+    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201);
 
     // Check that the coordinates have been correctly written and read
     REQUIRE(ms.data.count(xName) > 0);
