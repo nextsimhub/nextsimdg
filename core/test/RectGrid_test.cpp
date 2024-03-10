@@ -133,6 +133,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
     RectangularGrid gridIn;
     size_t targetX = 1;
@@ -156,6 +157,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 #else
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
 #endif
     REQUIRE(ms.data.at("hice")(targetX, targetY) != 0);
     REQUIRE(ms.data.at("hice")(targetX, targetY) > 1);
