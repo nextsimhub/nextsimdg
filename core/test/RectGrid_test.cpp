@@ -25,6 +25,7 @@
 
 const std::string filename = "RectGrid_test.nc";
 const std::string partition_filename = "partition_metadata_1.nc";
+const std::string date_string = "2000-01-01T00:00:00Z";
 
 namespace Nextsim {
 TEST_SUITE_BEGIN("RectGrid");
@@ -78,7 +79,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     }, {}};
 
     ModelMetadata metadata;
-    metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
+    metadata.setTime(TimePoint(date_string));
     // Use x & y coordinates
     ModelArray x(ModelArray::Type::H);
     ModelArray y(ModelArray::Type::H);
