@@ -131,8 +131,15 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     ModelState ms = gridIn.getModelState(filename);
 #endif
 
+#ifdef USE_MPI
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == metadataIn.localExtentX);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == metadataIn.localExtentY);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == metadataIn.localExtentX);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == metadataIn.localExtentY);
+#else
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
+#endif
     REQUIRE(ms.data.at("hice")(targetX, targetY) != 0);
     REQUIRE(ms.data.at("hice")(targetX, targetY) > 1);
     REQUIRE(ms.data.at("hice")(targetX, targetY) < 2);
