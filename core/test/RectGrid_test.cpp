@@ -149,10 +149,9 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 // Read reference file
     gridIn.setIO(new RectGridIO(grid));
 #ifdef USE_MPI
-    ModelMetadata metadataIn;
+    ModelMetadata metadataIn(partition_filename, test_comm);
     metadataIn.setTime(TimePoint(date_string));
-    metadataIn.setMpiMetadata(test_comm);
-    ModelState ms = gridIn.getModelState(filename, partition_filename, metadataIn);
+    ModelState ms = gridIn.getModelState(filename, metadataIn);
 #else
     ModelState ms = gridIn.getModelState(filename);
 #endif

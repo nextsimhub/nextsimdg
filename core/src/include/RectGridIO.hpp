@@ -24,8 +24,7 @@ public:
     typedef RectangularGrid::GridDimensions GridDimensions;
 
 #ifdef USE_MPI
-    ModelState getModelState(const std::string& filePath, const std::string& partitionFile,
-        ModelMetadata& metadata) override;
+    ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override;
 #else
     ModelState getModelState(const std::string& filePath) override;
 #endif
@@ -35,8 +34,6 @@ public:
 
 private:
     RectGridIO() = default;
-
-    void readPartitionData(const std::string& partitionFile, ModelMetadata& metadata);
 };
 
 } /* namespace Nextsim */
