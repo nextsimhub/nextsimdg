@@ -56,7 +56,7 @@ if(ENABLE_MPI)
 endif()
 
 set(Python_FIND_VIRTUALENV FIRST)
-find_package (Python COMPONENTS Interpreter Development)
+find_package (Python COMPONENTS Interpreter)
 
 # To add netCDF to a target:
 # target_include_directories(target PUBLIC ${netCDF_INCLUDE_DIR})
