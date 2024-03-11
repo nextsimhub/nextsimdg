@@ -163,19 +163,33 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.at("hice")(targetX, targetY) != 0);
     REQUIRE(ms.data.at("hice")(targetX, targetY) > 1);
     REQUIRE(ms.data.at("hice")(targetX, targetY) < 2);
+#ifdef USE_MPI
+    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201 + metadataIn.localCornerY * 0.01 + metadataIn.localCornerX * 0.0001);
+#else
     REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201);
+#endif
 
     ZField ticeIn = ms.data.at("tice");
 
     REQUIRE(ticeIn.dimensions()[2] == 1);
+#ifdef USE_MPI
+    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201 - metadataIn.localCornerY * 0.01 - metadataIn.localCornerX * 0.0001);
+#else
     REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201);
+#endif
 
     // Check that the coordinates have been correctly written and read
     REQUIRE(ms.data.count(xName) > 0);
     REQUIRE(ms.data.count(yName) > 0);
+#ifdef USE_MPI
+    REQUIRE(ms.data.at(xName)(1, 0) == dx * (metadataIn.localCornerX +1));
+    REQUIRE(ms.data.at(xName)(0, 1) == dx * metadataIn.localCornerX);
+    REQUIRE(ms.data.at(yName)(0, 1) == dy * (metadataIn.localCornerY + 1));
+#else
     REQUIRE(ms.data.at(xName)(1, 0) == dx);
     REQUIRE(ms.data.at(xName)(0, 1) == 0);
     REQUIRE(ms.data.at(yName)(0, 1) == dy);
+#endif
 
     std::remove(filename.c_str());
 }
