@@ -22,9 +22,6 @@
 #include <ncVar.h>
 
 #include <algorithm>
-#ifdef USE_MPI
-#include <include/ParallelNetcdfFile.hpp>
-#endif
 #include <list>
 #include <map>
 #include <string>
@@ -72,15 +69,13 @@ void dimensionSetter(
 #endif
 
 #ifdef USE_MPI
-ModelState RectGridIO::getModelState(
-    const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
+ModelState RectGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 #else
 ModelState RectGridIO::getModelState(const std::string& filePath)
 #endif
 {
     ModelState state;
 #ifdef USE_MPI
-    readPartitionData(partitionFile, metadata);
     netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
 #else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
@@ -157,31 +152,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     ncFile.close();
     return state;
 }
-
-#ifdef USE_MPI
-void RectGridIO::readPartitionData(const std::string& partitionFile, ModelMetadata& metadata)
-{
-    static const std::string bboxName = "bounding_boxes";
-
-    netCDF::NcFile ncFile(partitionFile, netCDF::NcFile::read);
-    int sizes = ncFile.getDim("L").getSize();
-    int nBoxes = ncFile.getDim("P").getSize();
-    if (nBoxes != metadata.mpiSize) {
-        std::string errorMsg = "Number of MPI ranks " + std::to_string(metadata.mpiSize) + " <> "
-            + std::to_string(nBoxes) + "\n";
-        throw std::runtime_error(errorMsg);
-    }
-    metadata.globalExtentX = ncFile.getDim("globalX").getSize();
-    metadata.globalExtentY = ncFile.getDim("globalY").getSize();
-    netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
-    std::vector<size_t> index(1, metadata.mpiMyRank);
-    bboxGroup.getVar("global_x").getVar(index, &metadata.localCornerX);
-    bboxGroup.getVar("global_y").getVar(index, &metadata.localCornerY);
-    bboxGroup.getVar("local_extent_x").getVar(index, &metadata.localExtentX);
-    bboxGroup.getVar("local_extent_y").getVar(index, &metadata.localExtentY);
-    ncFile.close();
-}
-#endif
 
 void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
     const std::string& filePath, bool isRestart) const

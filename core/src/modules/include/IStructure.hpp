@@ -45,7 +45,7 @@ public:
      */
 #ifdef USE_MPI
     virtual ModelState getModelState(
-        const std::string& filePath, const std::string& filePartition, ModelMetadata& metadata)
+        const std::string& filePath, ModelMetadata& metadata)
         = 0;
 #else
     virtual ModelState getModelState(const std::string& filePath) = 0;
