@@ -191,6 +191,10 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.at(yName)(0, 1) == dy);
 #endif
 
+#ifdef USE_MPI
+    gridIn.dumpModelState(ms, metadataIn, "RectGrid_test_parallel.nc");
+#endif
+
     std::remove(filename.c_str());
 }
 TEST_SUITE_END();
