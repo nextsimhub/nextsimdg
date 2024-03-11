@@ -39,9 +39,7 @@ void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldN
     size_t nDims = dataGroup.getVar(fieldName).getDimCount();
     ModelArray::MultiDim dims;
     dims.resize(nDims);
-    dims[0] = metadata.localExtentX;
-    dims[1] = metadata.localExtentY;
-    for (size_t d = 2; d < nDims; ++d) {
+    for (size_t d = 0; d < nDims; ++d) {
         dims[d] = dataGroup.getVar(fieldName).getDim(d).getSize();
     }
     // The dimensions in the netCDF are in the reverse order compared to ModelArray
@@ -49,6 +47,9 @@ void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldN
     // A special case for Type::Z: use NZLevels for the third dimension
     if (type == ModelArray::Type::Z)
         dims[2] = NZLevels::get();
+    // Replace X, Y dimensions with local extends
+    dims[0] = metadata.localExtentX;
+    dims[1] = metadata.localExtentY;
     ModelArray::setDimensions(type, dims);
 }
 #else
