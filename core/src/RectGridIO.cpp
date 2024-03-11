@@ -148,10 +148,10 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // Since the ZFierld might not have the same dimensions as the tice field
     // in the file, a little more work is required.
     state.data[ticeName] = ModelArray::ZField();
-    std::vector<size_t> startVector = { 0, 0, 0 };
+    start.insert(start.begin(), 0);
     std::vector<size_t> zArrayDims = ModelArray::dimensions(ModelArray::Type::Z);
     std::reverse(zArrayDims.begin(), zArrayDims.end());
-    dataGroup.getVar(ticeName).getVar(startVector, zArrayDims, &state.data[ticeName][0]);
+    dataGroup.getVar(ticeName).getVar(start, zArrayDims, &state.data[ticeName][0]);
 
     ncFile.close();
     return state;
