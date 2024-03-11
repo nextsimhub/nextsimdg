@@ -24,14 +24,14 @@
 #include <fstream>
 
 const std::string filename = "RectGrid_test.nc";
-const std::string partition_filename = "partition_metadata_1.nc";
+const std::string partition_filename = "partition_metadata_3.nc";
 const std::string date_string = "2000-01-01T00:00:00Z";
 
 namespace Nextsim {
 TEST_SUITE_BEGIN("RectGrid");
 #ifdef USE_MPI
 // Number of ranks should not be hardcoded here
-MPI_TEST_CASE("Write and read a ModelState-based RectGrid restart file", 1)
+MPI_TEST_CASE("Write and read a ModelState-based RectGrid restart file", 3)
 #else
 TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 #endif
