@@ -164,7 +164,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.at("hice")(targetX, targetY) > 1);
     REQUIRE(ms.data.at("hice")(targetX, targetY) < 2);
 #ifdef USE_MPI
-    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201 + metadataIn.localCornerY * 0.01 + metadataIn.localCornerX * 0.0001);
+    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201 + metadataIn.localCornerY * yFactor + metadataIn.localCornerX * xFactor);
 #else
     REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201);
 #endif
@@ -173,7 +173,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
     REQUIRE(ticeIn.dimensions()[2] == 1);
 #ifdef USE_MPI
-    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201 - metadataIn.localCornerY * 0.01 - metadataIn.localCornerX * 0.0001);
+    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201 - metadataIn.localCornerY * yFactor - metadataIn.localCornerX * xFactor);
 #else
     REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201);
 #endif
