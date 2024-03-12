@@ -7,9 +7,9 @@
 
 #include "include/PrognosticData.hpp"
 
-#include "include/gridNames.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/Module.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
