@@ -67,6 +67,7 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
+        pip3 install numpy
         pip3 install netCDF4
     - name: make
       run: |
