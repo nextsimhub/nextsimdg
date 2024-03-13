@@ -72,8 +72,6 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
         { "mask", mask },
         { "hice", hice },
         { "cice", cice },
-        { "sst", sst },
-        { "sss", sss },
         { "hsnow", hsnow },
         { "tice", tice },
     }, {}};
