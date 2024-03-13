@@ -36,6 +36,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressDegree>::deltaT;
     using DynamicsKernel<DGadvection, DGstressDegree>::stressDivergence;
     using DynamicsKernel<DGadvection, DGstressDegree>::applyBoundaries;
+    using DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -67,6 +68,12 @@ public:
     }
 
     void update(const TimestepTime& tst) override {
+
+        // Let DynamicsKernel handle the advection step
+        advectionAndLimits(tst);
+
+        prepareIteration({ { hiceName, hice }, { ciceName, cice } });
+
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
 
