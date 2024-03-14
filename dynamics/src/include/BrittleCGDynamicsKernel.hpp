@@ -190,7 +190,7 @@ protected:
         for (size_t eid = 0; eid < smesh->nelements; ++eid) {
             if (smesh->landmask[eid] == 0) {
                 const size_t ex = eid % smesh->nx;
-                const size_t ey = eid % smesh->ny;
+                const size_t ey = eid / smesh->nx;
                 // Loop over CG elements for this finite volume grid cell
                 for (size_t jy = 0; jy <= CGdegree; ++jy) {
                     for (size_t jx = 0; jx <= CGdegree; ++ jx) {
