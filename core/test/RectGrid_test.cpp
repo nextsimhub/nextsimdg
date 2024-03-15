@@ -158,9 +158,6 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
 #endif
-    REQUIRE(ms.data.at("hice")(targetX, targetY) != 0);
-    REQUIRE(ms.data.at("hice")(targetX, targetY) > 1);
-    REQUIRE(ms.data.at("hice")(targetX, targetY) < 2);
 #ifdef USE_MPI
     REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201 + metadataIn.localCornerY * yFactor + metadataIn.localCornerX * xFactor);
 #else
