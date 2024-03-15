@@ -45,6 +45,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     double yFactor = 0.01;
     double xFactor = 0.0001;
 
+// Create data for reference file
     NZLevels::set(1);
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, NZLevels::get() });
@@ -102,8 +103,9 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     // Then immediately extract them to the output state
     metadata.affixCoordinates(state);
 
+// Write reference file
 #ifdef USE_MPI
-// Create subcommunicator with only first rank
+    // Create subcommunicator with only first rank
     metadata.setMpiMetadata(test_comm);
     int colour = MPI_UNDEFINED, key = 0;
     MPI_Comm rank0Comm;
@@ -113,7 +115,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     }
     MPI_Comm_split(test_comm, colour, key, &rank0Comm);
 
-// Write reference file serially on first MPI rank
+    // Write reference file serially on first MPI rank
     if (metadata.mpiMyRank == 0) {
         metadata.setMpiMetadata(rank0Comm);
         metadata.globalExtentX = nx;
@@ -130,6 +132,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 #endif
 
 
+// Reset dimensions so it is possible to check if they
+// are read correctly from refeence file
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
@@ -137,6 +141,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     size_t targetX = 1;
     size_t targetY = 2;
 
+// Read reference file
     gridIn.setIO(new RectGridIO(grid));
 #ifdef USE_MPI
     ModelMetadata metadataIn;
@@ -147,6 +152,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     ModelState ms = gridIn.getModelState(filename);
 #endif
 
+// Check if dimensions and data from reference file are correct
 #ifdef USE_MPI
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == metadataIn.localExtentX);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == metadataIn.localExtentY);
@@ -186,6 +192,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.at(yName)(0, 1) == dy);
 #endif
 
+// Write file in parallel so it can be compared with one written serially
 #ifdef USE_MPI
     gridIn.dumpModelState(ms, metadataIn, "RectGrid_test_parallel.nc");
 #endif
