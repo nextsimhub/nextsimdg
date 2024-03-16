@@ -48,6 +48,12 @@ if(ENABLE_MPI)
   target_compile_definitions(testRectGrid_MPI PRIVATE USE_MPI)
   target_include_directories(testRectGrid_MPI PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testRectGrid_MPI PRIVATE nextsimlib doctest::doctest)
+# Generate partition file needed for MPI test from its dump
+  add_custom_command(OUTPUT partition_metadata_3.nc
+      COMMAND ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.nc.dump
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.nc.dump
+  )
+  add_custom_target(generate_partition_file ALL DEPENDS partition_metadata_3.nc)
 else()
   add_executable(testRectGrid "RectGrid_test.cpp")
   target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
