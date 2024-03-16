@@ -23,8 +23,13 @@
 #include <cstdio>
 #include <fstream>
 
-const std::string filename = "RectGrid_test.nc";
-const std::string partition_filename = "partition_metadata_3.nc";
+
+const std::string test_files_dir = TEST_FILES_DIR;
+const std::string filename = test_files_dir + "/RectGrid_test.nc";
+#ifdef USE_MPI
+const std::string filename_parallel = test_files_dir + "/RectGrid_test_parallel.nc";
+const std::string partition_filename = test_files_dir + "/partition_metadata_3.nc";
+#endif
 const std::string date_string = "2000-01-01T00:00:00Z";
 
 namespace Nextsim {
@@ -194,7 +199,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
 // Write file in parallel so it can be compared with one written serially
 #ifdef USE_MPI
-    gridIn.dumpModelState(ms, metadataIn, "RectGrid_test_parallel.nc");
+    gridIn.dumpModelState(ms, metadataIn, filename_parallel);
 #endif
 
     std::remove(filename.c_str());
