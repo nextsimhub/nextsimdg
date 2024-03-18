@@ -37,6 +37,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressDegree>::stressDivergence;
     using DynamicsKernel<DGadvection, DGstressDegree>::applyBoundaries;
     using DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits;
+    using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -71,6 +72,11 @@ public:
 
         // Let DynamicsKernel handle the advection step
         advectionAndLimits(tst);
+
+        // Transport and limits for damage
+        dgtransport->step(tst.step.seconds(), damage);
+        Nextsim::LimitMax(damage, 1.0);
+        Nextsim::LimitMin(damage, 1e-12);
 
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
 
