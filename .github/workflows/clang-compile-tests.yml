@@ -138,7 +138,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: installs
+    # - name: installs
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
       run: |
         brew install hdf5-mpi
         brew install netcdf
