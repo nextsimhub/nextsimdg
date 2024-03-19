@@ -31,12 +31,16 @@ public:
     }
     virtual ~ParaGridIO();
 
-    /*!
-     * Retrieves the ModelState from a restart file of the parametric_grid type.
-     * @param filePath The file path containing the file to be read.
-     */
-    ModelState getModelState(const std::string& filePath) override;
-
+     #ifdef USE_MPI
+         ModelState getModelState(const std::string& filePath, const std::string& partitionFile,
+             ModelMetadata& metadata) override;
+     #else
+     /*!
+      * Retrieves the ModelState from a restart file of the parametric_grid type.
+      * @param filePath The file path containing the file to be read.
+      */
+         ModelState getModelState(const std::string& filePath) override;
+     #endif
     /*!
      * @brief Writes the ModelState to a given file location from the provided
      * model data and metadata.
@@ -92,6 +96,9 @@ private:
 
     static const std::map<ModelArray::Dimension, bool> isDG;
     static std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
+
+    void readPartitionData(const std::string& partitionFile, ModelMetadata& metadata);
+
 
     // Ensures that static variables are created in the correct order.
     static void makeDimCompMap();

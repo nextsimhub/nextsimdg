@@ -38,7 +38,7 @@ public:
 #ifdef USE_MPI
     ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override
     {
-        return pio ? pio->getModelState(filePath) : ModelState();
+      return pio ? pio->getModelState(filePath, partitionFile, metadata) : ModelState();
     }
 #else
     ModelState getModelState(const std::string& filePath) override
@@ -73,7 +73,13 @@ public:
         }
         virtual ~IParaGridIO() = default;
 
-        virtual ModelState getModelState(const std::string& filePath) = 0;
+        #ifdef USE_MPI
+                virtual ModelState getModelState(
+                    const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
+                    = 0;
+        #else
+                virtual ModelState getModelState(const std::string& filePath) = 0;
+        #endif
         virtual void dumpModelState(
             const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
             = 0;
