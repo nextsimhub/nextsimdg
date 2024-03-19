@@ -119,11 +119,11 @@ void Model::configure()
 #ifdef USE_MPI
     std::string partitionFile
         = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
+    m_etadata.getPartitionMetadata(partitionFile);
 #endif
 
 #ifdef USE_MPI
-    ModelState initialState(
-        StructureFactory::stateFromFile(initialFileName, partitionFile, m_etadata));
+    ModelState initialState(StructureFactory::stateFromFile(initialFileName, m_etadata));
 #else
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
 #endif

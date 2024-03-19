@@ -16,7 +16,12 @@
 #include <string>
 
 #ifdef USE_MPI
+#include <include/ParallelNetcdfFile.hpp>
 #include <mpi.h>
+#include <ncDim.h>
+#include <ncDouble.h>
+#include <ncFile.h>
+#include <ncVar.h>
 #endif
 
 namespace Nextsim {
@@ -29,6 +34,19 @@ class CommonRestartMetadata;
  */
 class ModelMetadata {
 public:
+#ifdef USE_MPI
+    /*!
+     * @brief Construct a ModelMedata based on file with decompostion data
+     *
+     * @param partitionFile The name of file with decompostion data
+     * @param comm MPI communicator
+     */
+    ModelMetadata(std::string partitionFile, MPI_Comm comm);
+
+    // We need to force default constructor also
+    ModelMetadata() = default;
+#endif
+
     /*!
      * @brief Sets the initial or current model time
      *
@@ -73,6 +91,12 @@ public:
 
 #ifdef USE_MPI
     void setMpiMetadata(MPI_Comm comm);
+    /*!
+     * @brief Extracts and sets MPI partition metadata from partition file
+     *
+     * @param file with partition metadata
+     */
+    void getPartitionMetadata(std::string partitionFile);
 
     MPI_Comm mpiComm;
     int mpiSize = 0;
@@ -95,6 +119,9 @@ private:
     bool isCartesian;
     // Are the more complex coordinates stored?
     bool hasParameters;
+#ifdef USE_MPI
+    const std::string bboxName = "bounding_boxes";
+#endif
 };
 
 } /* namespace Nextsim */

@@ -46,8 +46,7 @@ std::string structureNameFromFile(const std::string& filePath)
 }
 
 #ifdef USE_MPI
-ModelState StructureFactory::stateFromFile(
-    const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata)
+ModelState StructureFactory::stateFromFile(const std::string& filePath, ModelMetadata& metadata)
 #else
 ModelState StructureFactory::stateFromFile(const std::string& filePath)
 #endif
@@ -59,7 +58,7 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
 #ifdef USE_MPI
-        return gridIn.getModelState(filePath, partitionFile, metadata);
+        return gridIn.getModelState(filePath, metadata);
 #else
         return gridIn.getModelState(filePath);
 #endif
@@ -68,7 +67,7 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
         ParametricGrid gridIn;
         gridIn.setIO(new ParaGridIO(gridIn));
 #ifdef USE_MPI
-        return gridIn.getModelState(filePath, partitionFile, metadata);
+        return gridIn.getModelState(filePath, metadata);
 #else
         return gridIn.getModelState(filePath);
 #endif

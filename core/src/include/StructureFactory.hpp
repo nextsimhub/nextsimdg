@@ -28,8 +28,7 @@ public:
      * @param partitionFile name of file with data for MPI domain decomposition
      * @param metadata ModelMedata to be used to get MPI parameters
      */
-    static ModelState stateFromFile(
-        const std::string& filePath, const std::string& partitionFile, ModelMetadata& metadata);
+    static ModelState stateFromFile(const std::string& filePath, ModelMetadata& metadata);
 #else
     /*!
      * @brief Returns the ModelState of the named restart file.
