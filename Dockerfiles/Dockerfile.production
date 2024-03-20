@@ -1,0 +1,17 @@
+FROM ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+
+RUN git clone https://github.com/nextsimhub/nextsimdg.git /nextsimdg
+
+WORKDIR /nextsimdg/build
+
+ARG mpi=OFF
+ARG xios=OFF
+ARG jobs=1
+
+RUN . /opt/spack-environment/activate.sh && cmake -DENABLE_MPI=$mpi -DENABLE_XIOS=$xios -Dxios_DIR=/xios .. && make -j $jobs
+
+WORKDIR /nextsimdg/run
+RUN ln -sf /nextsimdg/build/nextsim
+
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD [ "/bin/bash" ]
