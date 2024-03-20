@@ -123,7 +123,6 @@ ModelState PrognosticData::getState() const
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
-                 { "damage", mask(m_damage) },
                  { "sst", mask(sst.data()) },
                  { "sss", mask(sss.data()) },
              },
@@ -131,6 +130,12 @@ ModelState PrognosticData::getState() const
     // Get the state from the dynamics (ice velocity). This allows the
     // dynamics to define its own dimensions for the velocity grid.
     localState.merge(pDynamics->getState());
+
+    // Merge in the damage field, if the dynamics uses it.
+    if (pDynamics->usesDamage()) {
+        ModelState damageState = { { { "damage", mask(m_damage) }, }, {} };
+        localState.merge(damageState);
+    }
     return localState;
 }
 

@@ -31,7 +31,7 @@ public:
         , vwind(getStore())
         , uocean(getStore())
         , vocean(getStore())
-        , usesDamage(usesDamageIn)
+        , m_usesDamage(usesDamageIn)
     {
         getStore().registerArray(Shared::DAMAGE, &damage, RW);
     }
@@ -54,12 +54,17 @@ public:
         uice.resize();
         vice.resize();
         damage.resize();
-        if (!usesDamage) {
+        if (!m_usesDamage) {
             damage = 0.;
         }
     }
 
     virtual void update(const TimestepTime& tst) = 0;
+
+    /*!
+     * Returns whether the dynamics implementation uses the damage field.
+     */
+    virtual bool usesDamage() const { return m_usesDamage; }
 
 protected:
     // Shared ice velocity arrays
@@ -81,7 +86,7 @@ protected:
     ModelArrayRef<Protected::OCEAN_V> vocean;
 
     // Does this implementation of the dynamics use damage?
-    bool usesDamage;
+    bool m_usesDamage;
 };
 }
 
