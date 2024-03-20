@@ -236,9 +236,9 @@ void ParaGridIO::dumpModelState(
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
 
-    std::set<std::string> restartFields
-        = { hiceName, ciceName, hsnowName, ticeName, sstName, sssName, maskName, coordsName, xName,
-              yName, longitudeName, latitudeName, gridAzimuthName, uName, vName, damageName }; // TODO and others
+    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
+        sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
+        uName, vName, damageName }; // TODO and others
     // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
