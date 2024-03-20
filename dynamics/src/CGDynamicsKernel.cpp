@@ -103,7 +103,6 @@ template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::prepareAdvection()
 {
     dgtransport->prepareAdvection(u, v);
-    stresstransport->prepareAdvection(u, v);
 }
 
 template <int DGadvection>

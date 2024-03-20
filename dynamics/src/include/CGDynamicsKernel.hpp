@@ -29,7 +29,6 @@ protected:
     using DynamicsKernel<DGadvection, DGstressDegree>::e22;
     using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
     using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
-    using DynamicsKernel<DGadvection, DGstressDegree>::stresstransport;
     using typename DynamicsKernel<DGadvection, DGstressDegree>::DataMap;
 
 

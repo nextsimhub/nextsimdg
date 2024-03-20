@@ -65,10 +65,6 @@ public:
         dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
         dgtransport->settimesteppingscheme("rk2");
 
-        //! Initialize stress transport
-        stresstransport = new Nextsim::DGTransport<DGstress>(*smesh);
-        stresstransport->settimesteppingscheme("rk2");
-
         // resize DG vectors
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
@@ -169,11 +165,6 @@ public:
         dgtransport->step(tst.step.seconds(), cice);
         dgtransport->step(tst.step.seconds(), hice);
 
-        //! Perform transport step for stress
-        // stresstransport->step(tst.step.seconds(), momentum->GetS11());
-        // stresstransport->step(tst.step.seconds(), momentum->GetS12());
-        // stresstransport->step(tst.step.seconds(), momentum->GetS22());
-
         //! Gauss-point limiting
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
@@ -182,7 +173,6 @@ public:
 
 protected:
     Nextsim::DGTransport<DGadvection>* dgtransport;
-    Nextsim::DGTransport<DGstress>* stresstransport;
 
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;

@@ -58,6 +58,7 @@ public:
         : CGDynamicsKernel<DGadvection>()
         , stressStep(stressStepIn)
         , params(reinterpret_cast<const MEBParameters&>(paramsIn))
+        , stresstransport(nullptr)
       {
       }
     virtual ~BrittleCGDynamicsKernel() = default;
@@ -65,6 +66,11 @@ public:
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
     {
         CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
+
+        //! Initialize stress transport
+        stresstransport = new Nextsim::DGTransport<DGstressDegree>(*smesh);
+        stresstransport->settimesteppingscheme("rk2");
+
         damage.resize_by_mesh(*smesh);
     }
 
@@ -72,6 +78,12 @@ public:
 
         // Let DynamicsKernel handle the advection step
         advectionAndLimits(tst);
+
+        //! Perform transport step for stress
+        stresstransport->prepareAdvection(u, v);
+        stresstransport->step(tst.step.seconds(), s11);
+        stresstransport->step(tst.step.seconds(), s12);
+        stresstransport->step(tst.step.seconds(), s22);
 
         // Transport and limits for damage
         dgtransport->step(tst.step.seconds(), damage);
@@ -139,6 +151,8 @@ protected:
 
     StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
     const MEBParameters& params;
+
+    Nextsim::DGTransport<DGstressDegree>* stresstransport;
 
     DGVector<DGadvection> damage;
 
