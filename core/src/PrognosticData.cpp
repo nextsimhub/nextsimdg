@@ -117,7 +117,7 @@ ModelState PrognosticData::getState() const
 {
     ModelArrayRef<Protected::SST> sst(getStore());
     ModelArrayRef<Protected::SSS> sss(getStore());
-    return { {
+    ModelState localState = { {
                  { "mask", ModelArray(oceanMask()) }, // make a copy
                  { "hice", mask(m_thick) },
                  { "cice", mask(m_conc) },
@@ -128,6 +128,10 @@ ModelState PrognosticData::getState() const
                  { "sss", mask(sss.data()) },
              },
         {} };
+    // Get the state from the dynamics (ice velocity). This allows the
+    // dynamics to define its own dimensions for the velocity grid.
+    localState.merge(pDynamics->getState());
+    return localState;
 }
 
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
@@ -135,7 +139,8 @@ ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
     ModelState state(getState());
     state.merge(pAtmBdy->getStateRecursive(os));
     state.merge(iceGrowth.getStateRecursive(os));
-    // Neither OceanBdoudary nor Dynamics contribute to the output model state
+    state.merge(pDynamics->getStateRecursive(os));
+    // OceanBoundary does not contribute to the output model state
     return os ? state : ModelState();
 }
 

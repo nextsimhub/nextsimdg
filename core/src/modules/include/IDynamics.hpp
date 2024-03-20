@@ -10,6 +10,7 @@
 
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 class IDynamics : public ModelComponent {
@@ -36,8 +37,16 @@ public:
     }
     virtual ~IDynamics() = default;
 
-    ModelState getState() const override { return ModelState(); }
+    ModelState getState() const override
+    {
+        return { {
+                     { uName, mask(uice) },
+                     { vName, mask(vice) },
+                 },
+            {} };
+    }
     ModelState getState(const OutputLevel&) const override { return getState(); }
+    ModelState getStateRecursive(const OutputSpec& os) const override { return os ? getState() : ModelState(); }
 
     std::string getName() const override { return "IDynamics"; }
     virtual void setData(const ModelState::DataMap& ms) override
