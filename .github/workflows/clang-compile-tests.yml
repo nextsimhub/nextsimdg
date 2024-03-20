@@ -138,24 +138,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    # - name: installs
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      # run: |
-      #   brew install hdf5-mpi
-      #   brew install netcdf
-      #   brew install netcdf-cxx
-      #   brew install boost
-      #   brew install eigen
-      #   brew install cmake
-      #   brew install open-mpi
-      #   brew install subversion
-      #   pip3 install netCDF4
+    - name: installs
+      run: |
+        brew install hdf5-mpi
+        brew install netcdf
+        brew install netcdf-cxx
+        brew install boost
+        brew install eigen
+        brew install cmake
+        brew install open-mpi
+        brew install subversion
+        pip3 install netCDF4
 
-      #   svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
-      #   cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
-      #   cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
-      #   (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
+        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
+        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
+        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
+        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
 
     - name: make
       run: |
