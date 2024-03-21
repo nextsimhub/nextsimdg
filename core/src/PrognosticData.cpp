@@ -135,7 +135,10 @@ ModelState PrognosticData::getState() const
 
     // Merge in the damage field, if the dynamics uses it.
     if (pDynamics->usesDamage()) {
-        ModelState damageState = { { { "damage", mask(m_damage) }, }, {} };
+        ModelState damageState = { {
+                                       { "damage", mask(m_damage) },
+                                   },
+            {} };
         localState.merge(damageState);
     }
     return localState;
