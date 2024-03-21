@@ -3,33 +3,56 @@
  *
  * @date 17 Feb 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef FREEDRIFTDYNAMICSKERNEL_HPP
 #define FREEDRIFTDYNAMICSKERNEL_HPP
 
-#include "IDynamicsKernel.hpp"
+#include "CGDynamicsKernel.hpp"
 
 namespace Nextsim {
 
-template <int CGdegree, int DGadvection> class FreeDriftDynamicsKernel : public IDynamicsKernel<CGdegree, DGadvection> {
-using IDynamicsKernel<CGdegree, DGadvection>::NT_evp;
-using IDynamicsKernel<CGdegree, DGadvection>::momentum;
-using IDynamicsKernel<CGdegree, DGadvection>::hice;
-using IDynamicsKernel<CGdegree, DGadvection>::cice;
+template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKernel<DGadvection> {
+    using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
+    using DynamicsKernel<DGadvection, DGstressDegree>::hice;
+    using DynamicsKernel<DGadvection, DGstressDegree>::cice;
+    using DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits;
+    using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
+
+    using CGDynamicsKernel<DGadvection>::u;
+    using CGDynamicsKernel<DGadvection>::v;
+    using CGDynamicsKernel<DGadvection>::uOcean;
+    using CGDynamicsKernel<DGadvection>::vOcean;
+    using CGDynamicsKernel<DGadvection>::applyBoundaries;
+
+public:
+    FreeDriftDynamicsKernel()
+        : CGDynamicsKernel<DGadvection>()
+    {
+    }
+
+    virtual ~FreeDriftDynamicsKernel() = default;
+
+    void update(const TimestepTime& tst) override
+    {
+        updateMomentum(tst);
+        applyBoundaries();
+
+        // Let DynamicsKernel handle the advection step
+        advectionAndLimits(tst);
+    };
 
 protected:
     void updateMomentum(const TimestepTime& tst) override
     {
-        //! Momentum
-        for (size_t fdStep = 0; fdStep < NT_evp; ++fdStep) {
-            momentum->freeDriftStep(FDP, NT_evp, tst.step.seconds(), hice, cice);
+        // Set the ice velocity to the ocean velocity
+#pragma omp parallel for
+        for (int i = 0; i < u.rows(); ++i) {
+            // Ice velocity is equal to ocean velocity
+            u(i) = uOcean(i);
+            v(i) = vOcean(i);
         }
-    };
-
-private:
-    FDParameters FDP;
+    }
 };
 } /* namespace Nextsim */
 
