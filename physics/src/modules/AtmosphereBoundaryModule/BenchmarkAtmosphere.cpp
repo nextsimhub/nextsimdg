@@ -39,8 +39,6 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
     constexpr double oneday = 24.0 * 60.0 * 60.0;
     // maximum wind velocity of the cyclone
     constexpr double vMax = 30.0;
-    // another scale factor?
-    const double vFactor = 50;
 
     // number of days elapsed since t0
     Duration elapsedTime = tst.start - t0;
@@ -68,8 +66,8 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
             // Expression taken from the original implementation:
             // double scale = exp(1.0) / 100.0 * exp(-0.01e-3 * sqrt(SQR(x - cMx) + SQR(y - cMy))) * 1.e-3;
             double scale = A * exp(-k * hypot(xPrime(i, j), yPrime(i, j)));
-            uwind(i, j) = -scale * vMax * vFactor * (cosalpha * xPrime(i, j) + sinalpha * yPrime(i, j));
-            vwind(i, j) = -scale * vMax * vFactor * (-sinalpha * xPrime(i, j) + cosalpha * yPrime(i, j));
+            uwind(i, j) = -scale * vMax * (cosalpha * xPrime(i, j) + sinalpha * yPrime(i, j));
+            vwind(i, j) = -scale * vMax * (-sinalpha * xPrime(i, j) + cosalpha * yPrime(i, j));
         }
     }
 }

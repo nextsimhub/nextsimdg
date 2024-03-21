@@ -26,6 +26,9 @@ void BenchmarkCoordinates::setData()
         m_x.resize();
         m_y.resize();
 
+        dx = 512e3 / m_nx;
+        dy = 512e3 / m_ny;
+
         for (size_t j = 0; j < m_ny; ++j) {
             double yVal = j * dy;
             for (size_t i = 0; i < m_nx; ++i) {
