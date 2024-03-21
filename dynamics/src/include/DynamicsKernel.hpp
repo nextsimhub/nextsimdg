@@ -12,7 +12,6 @@
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
-#include "cgParametricMomentum.hpp"
 
 #include "Tools.hpp"
 #include "cgVector.hpp"

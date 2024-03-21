@@ -13,6 +13,7 @@
 #include "DynamicsParameters.hpp"
 #include "ParametricMap.hpp"
 #include "StressUpdateStep.hpp"
+#include "VPParameters.hpp"
 
 namespace Nextsim {
 

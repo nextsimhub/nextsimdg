@@ -117,6 +117,7 @@ ModelState PrognosticData::getState() const
 {
     ModelArrayRef<Protected::SST> sst(getStore());
     ModelArrayRef<Protected::SSS> sss(getStore());
+    // clang-format off
     ModelState localState = { {
                  { "mask", ModelArray(oceanMask()) }, // make a copy
                  { "hice", mask(m_thick) },
@@ -127,13 +128,17 @@ ModelState PrognosticData::getState() const
                  { "sss", mask(sss.data()) },
              },
         {} };
+    // clang-format on
     // Get the state from the dynamics (ice velocity). This allows the
     // dynamics to define its own dimensions for the velocity grid.
     localState.merge(pDynamics->getState());
 
     // Merge in the damage field, if the dynamics uses it.
     if (pDynamics->usesDamage()) {
-        ModelState damageState = { { { "damage", mask(m_damage) }, }, {} };
+        ModelState damageState = { {
+                                       { "damage", mask(m_damage) },
+                                   },
+            {} };
         localState.merge(damageState);
     }
     return localState;
