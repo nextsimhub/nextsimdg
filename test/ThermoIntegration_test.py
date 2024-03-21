@@ -148,9 +148,9 @@ ks = 0.31
         grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
         grid_azimuth[:, :] = 0
 
-        ice_salinity = 1  # should match Ice::s in constants.hpp
-        mu: float = -0.054  # should match Water::mu in constants.hpp
-        ocean_temperature = -1.89
+        ice_salinity = 5  # should match Ice::s in constants.hpp
+        mu: float = -0.055  # should match Water::mu in constants.hpp
+        ocean_temperature = -1.54
         ocean_salinity = ocean_temperature / mu
 
         mask = datagrp.createVariable("mask", "f8", field_dims)
@@ -218,7 +218,7 @@ ks = 0.31
         Test the surface and internal temperatures against standard max, min, and mean values
         """
 
-        mean = [-17.6252, -7.5953, -3.7728]
+        mean = [-17.6252, -7.5954, -3.7729]
         max = [0.0000, -1.1218, -1.5717]
         min = [-33.1642, -14.8618, -6.1176]
         for i in range(3):

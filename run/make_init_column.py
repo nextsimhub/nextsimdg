@@ -71,9 +71,9 @@ elem_lat[:, :] = 90
 grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
 grid_azimuth[:,:] = 0
 
-ice_salinity = 1  # should match Ice::s in constants.hpp
-mu: float = -0.054  # should match Water::mu in constants.hpp
-ocean_temperature = -1.8
+ice_salinity = 5  # should match Ice::s in constants.hpp
+mu: float = -0.055  # should match Water::mu in constants.hpp
+ocean_temperature = -1.54
 ocean_salinity = ocean_temperature / mu
 
 mask = datagrp.createVariable("mask", "f8", field_dims)
