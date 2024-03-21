@@ -1,31 +1,26 @@
 /*!
- * @file MEVPDynamics.cpp
+ * @file BBMDynamics.cpp
  *
- * @date 7 Sep 2023
+ * @date Jan 5, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
-#include "include/MEVPDynamics.hpp"
+#include "include/BBMDynamics.hpp"
 
 #include "include/gridNames.hpp"
-
-#include <stdexcept>
-#include <string>
-#include <vector>
 
 namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
-MEVPDynamics::MEVPDynamics()
-        : IDynamics()
-        , kernel(params)
+BBMDynamics::BBMDynamics()
+    : IDynamics(true)
+    , kernel(params)
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
-void MEVPDynamics::setData(const ModelState::DataMap& ms)
+void BBMDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
@@ -44,24 +39,21 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     }
 
     // TODO: Remove this when spherical coordinates are fully implemented
-    ModelArray coords;
-    if (isSpherical) {
-        std::cout << "Spherical coordinates are not yet implemented. Reverting to Cartesian." << std::endl;
-        isSpherical = false;
-        ModelArray fake25kmCoords(ModelArray::Type::VERTEX);
-        double d = 25000; // 25 km in metres
-        // Fill the fake coordinate array
-        for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
-            for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
-                fake25kmCoords.components({i, j})[0] = d * i;
-                fake25kmCoords.components({i, j})[1] = d * j;
-            }
+    if (isSpherical) std::cout << "Spherical coordinates are not yet implemented. Reverting to Cartesian." << std::endl;
+    isSpherical = false;
+    ModelArray fake25kmCoords(ModelArray::Type::VERTEX);
+    double d = 25000; // 25 km in metres
+    // Fill the fake coordinate array
+    for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
+        for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
+            fake25kmCoords.components({i, j})[0] = d * i;
+            fake25kmCoords.components({i, j})[1] = d * j;
         }
-        coords = fake25kmCoords;
-        // End of code to be removed
-    } else {
-        coords = ms.at(coordsName);
     }
+    ModelArray& coords = fake25kmCoords;
+    // End of code to be removed
+
+    // ModelArray& coords = ms.at(coordsName);
     // TODO: Some encoding of the periodic edge boundary conditions
     kernel.initialise(coords, isSpherical, ms.at(maskName));
 
@@ -69,18 +61,22 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     vice = ms.at(vName);
 
     // Set the data in the kernel arrays.
-    for (const auto &fieldName : namedFields) {
+    for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
     }
 }
 
-void MEVPDynamics::update(const TimestepTime& tst)
+void BBMDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
 
-    // set the updated ice thickness and concentration
+    // Fill the updated damage array with the initial value
+    damage = damage0.data();
+
+    // set the updated ice thickness, concentration and damage
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
+    kernel.setData(damageName, damage);
 
     // set the forcing velocities
     kernel.setData(uWindName, uwind.data());
@@ -95,9 +91,10 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
+    damage = kernel.getDG0Data(damageName);
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
 }
 
-}
+} /* namespace Nextsim */
