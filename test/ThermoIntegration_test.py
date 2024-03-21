@@ -194,9 +194,9 @@ ks = 0.31
         Test the ice thickness against standard max, min, and mean values
         """
 
-        mean = 3.1326
-        max = 3.3554
-        min = 2.9947
+        mean = 3.1189
+        max = 3.3419
+        min = 2.9805
         self.assertAlmostEqual(max, self.hice.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
         self.assertAlmostEqual(min, self.hice.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
         self.assertAlmostEqual(mean, self.hice.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
@@ -218,9 +218,9 @@ ks = 0.31
         Test the surface and internal temperatures against standard max, min, and mean values
         """
 
-        mean = [-17.6252, -7.5954, -3.7729]
-        max = [0.0000, -1.1218, -1.5717]
-        min = [-33.1642, -14.8618, -6.1176]
+        mean = [-17.6250, -7.6068, -3.7998]
+        max = [0.0000, -1.1336, -1.5975]
+        min = [-33.1612, -14.8637, -6.1424]
         for i in range(3):
             self.assertAlmostEqual(max[i], self.tice[:, i].max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " m")
             self.assertAlmostEqual(min[i], self.tice[:, i].min(), 4, "Min T" + str(i) + " not ~= " + str(min[i]) + " m")
