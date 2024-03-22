@@ -216,6 +216,14 @@ ks = 0.31
     def test_temperatureTest(self):
         """
         Test the surface and internal temperatures against standard max, min, and mean values
+
+        NB! Here, I put the "places" argument of assertAlmostEqual to 3 for the mean and min comparison. I do this
+        because I get inconsistent results on different platforms in the GitHub CI(!) The reason is that the testing
+        framework compares up to a given number of decimal places, but the mean and min temperatures have two
+        significant digits before the decimal point, making the comparison for those equal to comparing six
+        significant digits, when the assertAlmostEqual "places" argument is set to 4. In the GitHub CI the seventh
+        significant digit changes between 4 and 5 for the T1 mean, so the result is either -17.6250 or -17.6249 - up
+        to 4 digits. This is normal, because the output is only accurate to six significant digits anyway.
         """
 
         mean = [-17.6250, -7.6068, -3.7998]
@@ -223,8 +231,8 @@ ks = 0.31
         min = [-33.1612, -14.8637, -6.1424]
         for i in range(3):
             self.assertAlmostEqual(max[i], self.tice[:, i].max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " m")
-            self.assertAlmostEqual(min[i], self.tice[:, i].min(), 4, "Min T" + str(i) + " not ~= " + str(min[i]) + " m")
-            self.assertAlmostEqual(mean[i], self.tice[:, i].mean(), 4,
+            self.assertAlmostEqual(min[i], self.tice[:, i].min(), 3, "Min T" + str(i) + " not ~= " + str(min[i]) + " m")
+            self.assertAlmostEqual(mean[i], self.tice[:, i].mean(), 3,
                                    "Mean T" + str(i) + " not ~= " + str(mean[i]) + " m")
 
 
