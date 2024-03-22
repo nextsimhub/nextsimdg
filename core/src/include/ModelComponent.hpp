@@ -210,10 +210,12 @@ protected:
 
 protected:
     static ModelArray* p_oceanMaskH;
+    static std::set<std::string> advectedFields;
 
 private:
     static ModelArrayReferenceStore store;
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
+
 
     static size_t nOcean;
     static std::vector<size_t> oceanIndex;
