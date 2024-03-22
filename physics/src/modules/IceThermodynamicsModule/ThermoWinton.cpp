@@ -17,9 +17,7 @@ namespace Nextsim {
 
 const size_t ThermoWinton::nLevels = 3;
 double ThermoWinton::kappa_s;
-double ThermoWinton::i0;
 static const double k_sDefault = 0.3096;
-static const double i0_default = 0.17;
 
 const double ThermoWinton::cVol = Ice::cp * Ice::rho; // bulk heat capacity of ice
 const double ThermoWinton::seaIceTf = -Water::mu * Ice::s;
@@ -43,14 +41,12 @@ ThermoWinton::ThermoWinton()
 template <>
 const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
     { ThermoWinton::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
-    { ThermoWinton::I0_KEY, "nextsim_thermo.I_0" },
     { ThermoWinton::FLOODING_KEY, "nextsim_thermo.doFlooding" },
 };
 
 void ThermoWinton::configure()
 {
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
-    i0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
     doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), doFlooding);
     NZLevels::set(nLevels);
 }
@@ -60,7 +56,6 @@ ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
     ModelState state = { {},
         {
             { keyMap.at(KS_KEY), kappa_s },
-            { keyMap.at(I0_KEY), i0 },
         } };
     return os ? state : ModelState();
 }
@@ -70,8 +65,6 @@ ThermoWinton::HelpMap& ThermoWinton::getHelpText(HelpMap& map, bool getAll)
     map["ThermoWinton"] = {
         { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
             "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
-        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "1" }, std::to_string(i0_default),
-            "unitless", "Optical albedo of liquid water." },
     };
     return map;
 }

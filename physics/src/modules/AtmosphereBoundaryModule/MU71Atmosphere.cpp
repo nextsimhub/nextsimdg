@@ -64,7 +64,7 @@ void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
 
 void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
 {
-    const double Tsurf_K = tice.zIndexAndLayer(i, 0) + PhysicalConstants::Tt;
+    const double Tsurf_K = kelvin(tice.zIndexAndLayer(i, 0));
 
     double albedoValue, i0;
     double sw_in = convFactor * q_sw(dayOfYear, isLeap);
@@ -82,7 +82,7 @@ void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
 
     // Only snowfall if we're not melting
     if ((h_snow_true[i] > 0 && tice.zIndexAndLayer(i, 0) < 0.)
-        || (h_snow_true[i] == 0 && tice.zIndexAndLayer(i, 0) < Ice::Tm))
+        || (h_snow_true[i] == 0 && tice.zIndexAndLayer(i, 0) < -Ice::s * Water::mu))
         snow[i] = snowfall();
     else
         snow[i] = 0.;

@@ -1,5 +1,6 @@
-import netCDF4
 import time
+
+import netCDF4
 import numpy as np
 
 root = netCDF4.Dataset("init_column.nc", "w", format="NETCDF4")
@@ -71,21 +72,22 @@ grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
 grid_azimuth[:,:] = 0
 
 ice_salinity = 5  # should match Ice::s in constants.hpp
-ocean_salinity = 32.
-mu = -0.055  # should match Water::mu in constants.hpp
+mu: float = -0.055  # should match Water::mu in constants.hpp
+ocean_temperature = -1.54
+ocean_salinity = ocean_temperature / mu
 
 mask = datagrp.createVariable("mask", "f8", field_dims)
 mask[:, :] = [[1]]
 cice = datagrp.createVariable("cice", "f8", field_dims)
 cice[:, :] = 1.
 hice = datagrp.createVariable("hice", "f8", field_dims)
-hice[:, :] = 2.
+hice[:, :] = 3.00
 hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
 hsnow[:, :] = 0.3
 sss = datagrp.createVariable("sss", "f8", field_dims)
 sss[:, :] = ocean_salinity
 sst = datagrp.createVariable("sst", "f8", field_dims)
-sst[:, :] = ocean_salinity * mu
+sst[:, :] = ocean_temperature
 tice = datagrp.createVariable("tice", "f8", zfield_dims)
 tice[:, :, :] = ice_salinity * mu
 # Ice is at rest

@@ -86,4 +86,4 @@ private:
 
 }
 
-#endif // NEXTSIM_DG_MU71ATMOSPHERE_HPP
+#endif // MU71ATMOSPHERE_HPP

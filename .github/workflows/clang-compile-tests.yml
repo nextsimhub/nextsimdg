@@ -52,7 +52,9 @@ jobs:
             for file in $(find test* -maxdepth 0 -type f); do echo $file; ./$file; done
             cd -
         done
-
+        cd test
+        python ThermoIntegration_test.py
+        cd -
 
   build-and-tests-on-mac:
 
@@ -81,3 +83,6 @@ jobs:
             for file in $(find test* -maxdepth 0 -type f); do echo $file; ./$file; done
             cd -
         done
+        cd test
+        python ThermoIntegration_test.py
+        cd -
