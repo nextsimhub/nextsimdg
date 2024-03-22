@@ -8,7 +8,7 @@ import numpy as np
 
 class SingleColumnThermo(unittest.TestCase):
     # A few useful global variables for the class
-    executable = "./nextsim"
+    executable = "../nextsim"
 
     init_file = "init_column.nc"
     config_file = "ThermoIntegration.cfg"
