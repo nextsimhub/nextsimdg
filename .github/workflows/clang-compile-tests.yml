@@ -55,62 +55,6 @@ jobs:
         do
             cd $component/test
             # run serial tests
-            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$"); do echo $file; ./$file; done
-            # run MPI tests that require 2 ranks
-            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI2$"); do echo $file; mpirun -n 2 --oversubscribe ./$file; done
-            cd -
-        done
-
-
-  build-and-tests-on-mac:
-
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: installs
-      run: |
-        brew install hdf5-mpi
-        brew install netcdf
-        brew install netcdf-cxx
-        brew install boost
-        brew install eigen
-        brew install cmake
-        brew install open-mpi
-        brew install subversion
-        pip3 install numpy
-        pip3 install netCDF4
-
-        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
-        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
-        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
-        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
-
-    - name: make
-      run: |
-        mkdir -p build
-        cd build
-        cmake -DENABLE_MPI=ON -Dxios_DIR="$(pwd)/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
-        make
-    - name: run tests
-      run: |
-        export XIOS_IODEF_PATH="$(pwd)/run/iodef.xml"
-        for component in core physics
-        do
-            cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
-            cd -
-        done
-    - name: make
-      run: |
-        cmake . -DPython_ROOT_DIR="/Library/Frameworks/Python.framework/Versions/Current/bin/"
-        make
-    - name: run tests
-      run: |
-        for component in core physics
-        do
-            cd $component/test
-            # run serial tests
             for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
             do
               echo $file
