@@ -12,7 +12,7 @@ First step to install neXtSIM is to download this repository :
 .. code::
 
     git clone https://github.com/nextsimdg/nextsimdg.git
-    
+
 or a specific version :
 
 .. code::
@@ -38,8 +38,8 @@ If your package manager is `Homebrew`_ :
         brew install netcdf
         brew install boost
         brew install cmake
-        
-        
+
+
 **Installing dependencies on Ubuntu**
 
 You must have root privilege :
@@ -51,7 +51,7 @@ You must have root privilege :
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
         cd xios
         ./make_xios --arch <your_architecture>
-        
+
 
 **Installing dependencies via conda**
 
@@ -123,38 +123,75 @@ For example, on Debian-based Linux we need to also do:
 
 .. code::
 
-        sudo apt-get install libnetcdf-mpi-dev 
-        sudo apt-get install openmpi-bin libopenmpi-dev 
+        sudo apt-get install libnetcdf-mpi-dev
+        sudo apt-get install openmpi-bin libopenmpi-dev
 
 The cmake call has to enable MPI support:
 
 .. code::
 
-        cmake .. -DENABLE_MPI=ON 
+        cmake .. -DENABLE_MPI=ON
 
 You might need to tell cmake which compiler to use, e.g.
 
 .. code::
 
-        cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON 
+        cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON
 
-Using Dockerfiles for Dependencies and Building
------------------------------------------------
+Using Dockerfiles for Development or Production Runs
+----------------------------------------------------
 
-In the Dockerfiles directory we provide two versions of Dockerfiles: with and without MPI support. You need to have _Docker installed on your computer. Then you can build and run it from the root of your NextSimDG repository, for example, with 
+In the ``Dockerfiles`` directory we provide two ``Dockerfile``'s are provided.
 
-.. code::
+- ``Dockerfile.devenv`` - This is the ``Dockerfile`` used to build the development image (``ghcr.io/nextsimhub/nextsimdg-dev-env``), that is
+  used in the GitHub CI.
+- ``Dockerfile.production`` - This ``Dockerfile`` is based off of the development image and it
+  additionally installs ``nextsim`` so that you can run on any machine with ``docker`` installed.
 
-        docker build . --file Dockerfiles/Dockerfile_Ubuntu -t nextsim
-        docker run -it --entrypoint bash nextsim
-        
-The Ubuntu Dockerfiles create a full Ubuntu OS environment, copy over the content of the directory it is run from (which should be your nextsim root directory) and install and build nextsim in there for you. That way, you can easily try out your current code changes.
+Development Dockerfile
+^^^^^^^^^^^^^^^^^^^^^^
 
-With the last command, you are inside your running container on the bash and can use your usual command line commands to look around and run the code.
-    
-    
-.. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
-.. _Boost: https://www.boost.org/
-.. _CMake: https://cmake.org/
-.. _Homebrew: https://brew.sh/
-.. _Docker: https://www.docker.com/
+A development image is provided on the nextsimhub `GitHub container registry
+<https://github.com/orgs/nextsimhub/packages>`_ because it is needed for the CI.
+
+If in future, this needs to be replaced. Please see `instructions
+<https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry>`_
+on the GitHub website.
+
+To build the docker image, please use these instructions:
+
+.. code-block:: console
+
+    docker build --file Dockerfile.devenv . -t ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+
+.. note::
+   The formatting of the image name **is important**. The format is
+   ghcr.io/NAME_OF_REPOSITORY/NAME_OF_IMAGE:TAG
+
+If you want to test or use the image locally, use the following command:
+
+.. code-block:: console
+
+   docker pull ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+
+Production Dockerfile
+^^^^^^^^^^^^^^^^^^^^^
+
+The production image is not stored on the nextsimhub `GitHub container registry
+<https://github.com/orgs/nextsimhub/packages>`_ because it is not needed for the CI. Users of the
+code may be interested in building their own. The instructions are as follows:
+
+.. code-block:: console
+
+   docker build --file Dockerfiles/Dockerfile.production . -t nextsim-production:latest
+
+This will build a local image of the nextsim code. The production ``Dockerfile`` supports additional
+build arguments (``--build-arg`` that can be specified at build time). For example, to build with
+``MPI`` enabled, using 4 processes to compile, use the following command,
+
+.. code-block:: console
+
+   docker build --file Dockerfiles/Dockerfile.production --build-arg mpi=ON --build-arg jobs=4 . -t nextsim-production:latest
+
+For a full list of options, please see ``Dockerfile.production``. By default ``MPI`` and ``xios``
+options are disabled and the number of build jobs is 1.
