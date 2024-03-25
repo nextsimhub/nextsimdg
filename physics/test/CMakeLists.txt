@@ -60,7 +60,7 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.nc"
 add_executable(testTOPAZOcn "TOPAZOcn_test.cpp")
 target_include_directories(testTOPAZOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")
 target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)
+target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest "-lstdc++fs")
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test128x128.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 

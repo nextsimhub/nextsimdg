@@ -26,6 +26,7 @@ set(BaseSources
     "PDWriter.cpp"
     "Time.cpp"
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
+    "Xios.cpp"
     )
 
 set(ParallelNetCDFSources
@@ -40,20 +41,19 @@ add_subdirectory("${ModuleDir}")
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
+set(NextsimSourcesTemp
+  "${BaseSources}"
+  "${NextsimSources}"
+  "${ModuleSources}"
+  )
+
 if(ENABLE_MPI)
-    set(NextsimSources
-        "${BaseSources}"
-        "${NextsimSources}"
-        "${ModuleSources}"
-        "${ParallelNetCDFSources}"
-        PARENT_SCOPE)
-else()
-    set(NextsimSources
-        "${BaseSources}"
-        "${NextsimSources}"
-        "${ModuleSources}"
-        PARENT_SCOPE)
+  list(APPEND NextsimSourcesTemp "${ParallelNetCDFSources}")
 endif()
+
+set(NextsimSources
+  "${NextsimSourcesTemp}"
+  PARENT_SCOPE)
 
 set(NextsimIncludeDirs
     "${NextsimIncludeDirs}"
