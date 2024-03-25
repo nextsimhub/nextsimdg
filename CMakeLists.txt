@@ -35,9 +35,8 @@ endif()
 option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
 if (ENABLE_XIOS)
     message(STATUS "Building with XIOS library")
-    find_package(xios)
+    find_package(xios REQUIRED QUIET)
     if (XIOS_FOUND)
-        message(STATUS "XIOS Found")
         find_package(HDF5 REQUIRED COMPONENTS C HL)
     endif()
 endif()
@@ -119,6 +118,11 @@ add_subdirectory(core)
 foreach(compo ${CodeComponents})
     add_subdirectory("${compo}")
 endforeach()
+
+
+# message(STATUS "=========================    GLOBAL LEVEL              ==========================")
+# message(STATUS "${NextsimSources}")
+# message(STATUS "=================================================================================")
 
 add_library(nextsimlib SHARED ${NextsimSources})
 target_compile_definitions(nextsimlib
