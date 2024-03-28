@@ -2,9 +2,9 @@ name: compile code and tests
 
 on:
   push:
-    branches: [ main, develop, issue103_CI ]
+    branches: [ main, develop, xios-interface-with-tests ]
   pull_request:
-    branches: [ main, develop,  issue103_CI ]
+    branches: [ main, develop, xios-interface-with-tests ]
 
 jobs:
 
@@ -32,36 +32,41 @@ jobs:
   build-and-tests-on-ubuntu:
 
     runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: installs
-      run: |
-        sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake libnetcdff-dev libhdf5-dev
-        sudo apt-get install python3-netcdf4
 
-        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
-        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
-        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
-        cp .github/xios_arch/ubuntu.fcm xios/arch/arch-GCC_LINUX.fcm
-        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
-
-    - name: make
+    - name: build and compile
       run: |
-        mkdir -p build
-        cd build
-        cmake -DENABLE_MPI=ON -Dxios_DIR="$(pwd)/../xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
-        make
+        . /opt/spack-environment/activate.sh
+        mkdir -p build && cd build
+        cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
+        make -j 4
+
     - name: run tests
       run: |
+        . /opt/spack-environment/activate.sh
+        apt install -y wget
+        cd build
+        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         for component in core physics
         do
             cd $component/test
             # run serial tests
-            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$"); do echo $file; ./$file; done
-            # run MPI tests that require 2 ranks
-            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI2$"); do echo $file; mpirun -n 2 --oversubscribe ./$file; done
+            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
+            do
+              echo $file
+              ./$file
+            done
+            # run MPI tests
+            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI\d+$")
+            do
+              echo $file
+              nprocs=$(echo $file | sed -r "s/.*MPI([0-9]+)/\1/")
+              mpirun --allow-run-as-root --oversubscribe -n $nprocs ./$file
+            done
             cd -
         done
         cd test
@@ -76,50 +81,37 @@ jobs:
     - uses: actions/checkout@v2
     - name: installs
       run: |
-        brew install hdf5-mpi
         brew install netcdf
         brew install netcdf-cxx
         brew install boost
         brew install eigen
         brew install cmake
-        brew install open-mpi
-        brew install subversion
-        pip3 install numpy
-        pip3 install netCDF4
+        pip install numpy
+        pip install netCDF4
 
-        svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
-        cp .github/xios_arch/ubuntu.arch xios/arch/arch-GCC_LINUX.path
-        cp .github/xios_arch/ubuntu.env xios/arch/arch-GCC_LINUX.env
-        (cd xios && ./make_xios --arch GCC_LINUX --netcdf_lib netcdf4_seq)
+    # uncomment these lines to debug mac build
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
 
     - name: make
       run: |
         mkdir -p build
         cd build
-        cmake -DENABLE_MPI=ON -Dxios_DIR="$(pwd)/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
-        make
+        # added Python_ROOT_DIR to help cmake find correct Python in the mac VM
+        cmake -DENABLE_MPI=OFF -DENABLE_XIOS=OFF -DPython_ROOT_DIR=/Library/Frameworks/Python.framework/Versions/Current/bin ..
+        make -j 4
     - name: run tests
       run: |
-        export XIOS_IODEF_PATH="$(pwd)/run/iodef.xml"
-        for component in core physics
-        do
-            cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do ./$file; done
-            cd -
-        done
-    - name: make
-      run: |
-        cmake . -DPython_ROOT_DIR="/Library/Frameworks/Python.framework/Versions/Current/bin/"
-        make
-    - name: run tests
-      run: |
+        cd build
         for component in core physics
         do
             cd $component/test
             # run serial tests
-            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$"); do echo $file; ./$file; done
-            # run MPI tests that require 2 ranks
-            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI2$"); do echo $file; mpirun -n 2 --oversubscribe ./$file; done
+            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
+            do
+              echo $file
+              ./$file
+            done
             cd -
         done
         cd test
