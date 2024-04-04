@@ -84,8 +84,10 @@ void BBMDynamics::update(const TimestepTime& tst)
     kernel.setData(uOceanName, uocean.data());
     kernel.setData(vOceanName, vocean.data());
 
-    //kernel.setData(uName, uice);
-    //kernel.setData(vName, vice);
+    /*
+     * Ice velocity components are stored in the dynamics, and not changed by the model outside the
+     * dynamics kernel. Hence they are not set at this point.
+     */
 
     kernel.update(tst);
 
