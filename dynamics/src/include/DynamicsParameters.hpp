@@ -37,7 +37,7 @@ public:
         F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
         F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 
-        fc = 1.46e-4; //!< Coriolis
+        fc = 1.45842e-4; //!< Coriolis parameter, 2ω for Quaternary Earth
     }
 };
 }
