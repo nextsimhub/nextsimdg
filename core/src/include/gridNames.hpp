@@ -22,6 +22,7 @@ static const std::string uName = "u";
 static const std::string vName = "v";
 static const std::string sstName = "sst";
 static const std::string sssName = "sss";
+static const std::string damageName = "damage";
 
 static const std::string uWindName = "uwind";
 static const std::string vWindName = "vwind";
