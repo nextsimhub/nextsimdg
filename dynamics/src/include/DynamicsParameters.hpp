@@ -25,6 +25,8 @@ public:
 
     double fc; //!< Coriolis
 
+    double ocean_turning_angle; //!< Ocean turning angle
+
     DynamicsParameters()
     {
         rho_ice = 900.0; //!< Sea ice density
@@ -38,6 +40,9 @@ public:
         F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
 
         fc = 1.45842e-4; //!< Coriolis parameter, 2ω for Quaternary Earth
+
+        ocean_turning_angle = 25.; //!< Ocean turning angle
+        ocean_turning_angle = 0.0; // FIXME decide between ocean turning angles
     }
 };
 }

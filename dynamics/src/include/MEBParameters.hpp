@@ -14,8 +14,6 @@ namespace Nextsim {
 
 class MEBParameters : public DynamicsParameters {
 public:
-    double ocean_turning_angle; //!< Ocean turning angle
-
     // MEB
     double compaction_param; //!< Compation parameter
     double nu0; //!< \param Poisson's ratio
@@ -40,9 +38,6 @@ public:
 
     MEBParameters()
     {
-        ocean_turning_angle = 25.; //!< Ocean turning angle
-        ocean_turning_angle = 0.0; // FIXME decide between ocean turning angles
-    
         // MEB
         compaction_param = -20.; //!< Compation parameter
         nu0 = 1. / 3.; //!< \param Poisson's ratio
