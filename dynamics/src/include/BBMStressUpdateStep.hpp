@@ -20,7 +20,7 @@ template <int DGadvection, int DGstress, int CG>
 class BBMStressUpdateStep : public StressUpdateStep<DGadvection, DGstress> {
 
 public:
-    typedef std::array<DGVector<DGstress>, N_TENSOR_ELEMENTS> SymmetricTensorVector;
+    typedef std::array<DGVector<DGstress>*, N_TENSOR_ELEMENTS> SymmetricTensorVector;
     BBMStressUpdateStep()
         : pmap (nullptr)
         , p_d (nullptr)
@@ -45,13 +45,13 @@ public:
                     const Eigen::Matrix<double, 1, nGauss * nGauss> aGauss = (a.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).min(1.0).matrix();
                     Eigen::Matrix<double, 1, nGauss * nGauss> dGauss = (p_d->row(i) * PSI<DGadvection, nGauss>).array().max(1e-12).min(1.0).matrix();
 
-                    const Eigen::Matrix<double, 1, nGauss * nGauss> e11Gauss = strain[I11].row(i) * PSI<DGstress, nGauss>;
-                    const Eigen::Matrix<double, 1, nGauss * nGauss> e12Gauss = strain[I12].row(i) * PSI<DGstress, nGauss>;
-                    const Eigen::Matrix<double, 1, nGauss * nGauss> e22Gauss = strain[I22].row(i) * PSI<DGstress, nGauss>;
+                    const Eigen::Matrix<double, 1, nGauss * nGauss> e11Gauss = strain[I11]->row(i) * PSI<DGstress, nGauss>;
+                    const Eigen::Matrix<double, 1, nGauss * nGauss> e12Gauss = strain[I12]->row(i) * PSI<DGstress, nGauss>;
+                    const Eigen::Matrix<double, 1, nGauss * nGauss> e22Gauss = strain[I22]->row(i) * PSI<DGstress, nGauss>;
 
-                    Eigen::Matrix<double, 1, nGauss * nGauss> s11Gauss = stress[I11].row(i) * PSI<DGstress, nGauss>;
-                    Eigen::Matrix<double, 1, nGauss * nGauss> s12Gauss = stress[I12].row(i) * PSI<DGstress, nGauss>;
-                    Eigen::Matrix<double, 1, nGauss * nGauss> s22Gauss = stress[I22].row(i) * PSI<DGstress, nGauss>;
+                    Eigen::Matrix<double, 1, nGauss * nGauss> s11Gauss = stress[I11]->row(i) * PSI<DGstress, nGauss>;
+                    Eigen::Matrix<double, 1, nGauss * nGauss> s12Gauss = stress[I12]->row(i) * PSI<DGstress, nGauss>;
+                    Eigen::Matrix<double, 1, nGauss * nGauss> s22Gauss = stress[I22]->row(i) * PSI<DGstress, nGauss>;
 
                     //! Current normal stress for the evaluation of tildeP (Eqn. 1)
                     Eigen::Matrix<double, 1, nGauss * nGauss> sigma_n
@@ -153,9 +153,9 @@ public:
                     const Eigen::Matrix<Nextsim::FloatType, DGstress, nGauss * nGauss> imass_psi = ParametricTools::massMatrix<DGstress>(smesh, i).inverse()
                         * (PSI<DGstress, nGauss>.array().rowwise() * (GAUSSWEIGHTS<nGauss>.array() * J.array())).matrix();
 
-                    stress[I11].row(i) = imass_psi * s11Gauss.matrix().transpose();
-                    stress[I12].row(i) = imass_psi * s12Gauss.matrix().transpose();
-                    stress[I22].row(i) = imass_psi * s22Gauss.matrix().transpose();
+                    stress[I11]->row(i) = imass_psi * s11Gauss.matrix().transpose();
+                    stress[I12]->row(i) = imass_psi * s12Gauss.matrix().transpose();
+                    stress[I22]->row(i) = imass_psi * s22Gauss.matrix().transpose();
 
                     const Eigen::Matrix<Nextsim::FloatType, DGadvection, nGauss * nGauss> imass_psi2 = ParametricTools::massMatrix<DGadvection>(smesh, i).inverse()
                         * (PSI<DGadvection, nGauss>.array().rowwise() * (GAUSSWEIGHTS<nGauss>.array() * J.array())).matrix();
