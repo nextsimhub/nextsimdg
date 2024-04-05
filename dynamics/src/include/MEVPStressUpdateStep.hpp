@@ -21,7 +21,7 @@ class MEVPStressUpdateStep : public StressUpdateStep<DGadvection, DGstress> {
 //using StressUpdateStep<DGadvection, DGstress>::SymmetricTensorVector;
 
 public:
-    typedef std::array<DGVector<DGstress>, N_TENSOR_ELEMENTS> SymmetricTensorVector;
+    typedef std::array<DGVector<DGstress>*, N_TENSOR_ELEMENTS> SymmetricTensorVector;
     MEVPStressUpdateStep()
         : pmap (nullptr)
     {
@@ -46,9 +46,9 @@ public:
             const LocalEdgeVector<nGauss * nGauss> h_gauss = (h.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).matrix();
             const LocalEdgeVector<nGauss * nGauss> a_gauss = (a.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<nGauss * nGauss> e11_gauss = strain[I11].row(i) * PSI<DGstress, nGauss>;
-            const LocalEdgeVector<nGauss * nGauss> e12_gauss = strain[I12].row(i) * PSI<DGstress, nGauss>;
-            const LocalEdgeVector<nGauss * nGauss> e22_gauss = strain[I22].row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss * nGauss> e11_gauss = strain[I11]->row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss * nGauss> e12_gauss = strain[I12]->row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss * nGauss> e22_gauss = strain[I22]->row(i) * PSI<DGstress, nGauss>;
 
             const LocalEdgeVector<nGauss * nGauss> DELTA = (SQR(vpParams.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
@@ -74,9 +74,9 @@ public:
             // abort();
 
             //   // S = S_old + 1/alpha (S(u)-S_old) = (1-1/alpha) S_old + 1/alpha S(u)
-            stress[I11].row(i) *= (1.0 - 1.0 / alpha);
-            stress[I12].row(i) *= (1.0 - 1.0 / alpha);
-            stress[I22].row(i) *= (1.0 - 1.0 / alpha);
+            stress[I11]->row(i) *= (1.0 - 1.0 / alpha);
+            stress[I12]->row(i) *= (1.0 - 1.0 / alpha);
+            stress[I22]->row(i) *= (1.0 - 1.0 / alpha);
 
             //  zeta = P / 2.0 / DELTA;
             //  eta = zeta / 4;
@@ -92,16 +92,16 @@ public:
             // const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi = ParametricTools::massMatrix<8>(smesh, i).inverse()
             //     * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
-            stress[I11].row(i) += pmap->iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix().transpose());
+            stress[I11]->row(i) += pmap->iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array()) - 0.5 * P.array()).matrix().transpose());
 
             //   S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
             // 2 eta = 2/4 * P / (2 Delta) = P / (4 Delta)
-            stress[I12].row(i) += pmap->iMJwPSI[i] * (1.0 / alpha * (P.array() / 4.0 / DELTA.array() * e12_gauss.array()).matrix().transpose());
+            stress[I12]->row(i) += pmap->iMJwPSI[i] * (1.0 / alpha * (P.array() / 4.0 / DELTA.array() * e12_gauss.array()).matrix().transpose());
 
             //   S22.row(i)
             //       += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) + E22.row(i)));
             //   S22(i, 0) -= 1.0 / alpha * 0.5 * P;
-            stress[I22].row(i) += pmap->iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e22_gauss.array() + 3.0 * e11_gauss.array()) - 0.5 * P.array()).matrix().transpose());
+            stress[I22]->row(i) += pmap->iMJwPSI[i] * (1.0 / alpha * (P.array() / 8.0 / DELTA.array() * (5.0 * e22_gauss.array() + 3.0 * e11_gauss.array()) - 0.5 * P.array()).matrix().transpose());
         }
 
     }

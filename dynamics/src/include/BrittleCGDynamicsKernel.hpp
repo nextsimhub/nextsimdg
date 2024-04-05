@@ -53,6 +53,7 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressX;
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
+
 public:
     BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>()
@@ -99,17 +100,13 @@ public:
    
             projectVelocityToStrain();
 
-            std::array<DGVector<DGstressDegree>, 3> stress = { s11, s12, s22 };
+            std::array<DGVector<DGstressDegree>*, N_TENSOR_ELEMENTS> stress = { &s11, &s12, &s22 };
             // Call the step function on the StressUpdateStep class
             stressStep.stressUpdateHighOrder(params,
                     *smesh,
-                    stress, { e11, e12, e22 },
+                    stress, { &e11, &e12, &e22 },
                     hice, cice,
                     deltaT);
-
-            s11 = stress[I11];
-            s12 = stress[I12];
-            s22 = stress[I22];
 
             dStressX.zero();
             dStressY.zero();
