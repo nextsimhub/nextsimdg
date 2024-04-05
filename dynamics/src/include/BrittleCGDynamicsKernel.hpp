@@ -100,11 +100,11 @@ public:
    
             projectVelocityToStrain();
 
-            std::array<DGVector<DGstressDegree>*, N_TENSOR_ELEMENTS> stress = { &s11, &s12, &s22 };
+            std::array<std::reference_wrapper<DGVector<DGstressDegree>>, N_TENSOR_ELEMENTS> stress = { s11, s12, s22 };
             // Call the step function on the StressUpdateStep class
             stressStep.stressUpdateHighOrder(params,
                     *smesh,
-                    stress, { &e11, &e12, &e22 },
+                    stress, { e11, e12, e22 },
                     hice, cice,
                     deltaT);
 
