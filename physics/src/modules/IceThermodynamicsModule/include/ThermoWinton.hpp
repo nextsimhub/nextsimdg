@@ -49,7 +49,6 @@ private:
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Shared::SUBLIM, RO> subl;
 
-    static double i0;
     static const double cVol;
     static bool doFlooding;
     static const double seaIceTf;
