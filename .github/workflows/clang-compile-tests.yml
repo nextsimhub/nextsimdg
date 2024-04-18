@@ -87,6 +87,9 @@ jobs:
         pip install numpy
         pip install netCDF4
 
+    # tmate can be used to get an interactive ssh session to the github runner
+    # for debugging actions. See
+    # [here](https://github.com/mxschmitt/action-tmate) for more information.
     # uncomment these lines to debug mac build
     # - name: Setup tmate session
     #   uses: mxschmitt/action-tmate@v3
