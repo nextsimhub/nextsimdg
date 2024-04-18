@@ -21,7 +21,7 @@ class FreeDriftDynamics : public IDynamics {
 public:
     FreeDriftDynamics()
         : IDynamics()
-        , kernel()
+        , kernel(params)
     {
         getStore().registerArray(Protected::ICE_U, &uice, RO);
         getStore().registerArray(Protected::ICE_V, &vice, RO);
@@ -85,6 +85,7 @@ public:
 private:
     // TODO: How to get the template parameters here?
     FreeDriftDynamicsKernel<6> kernel;
+    DynamicsParameters params;
 };
 }
 
