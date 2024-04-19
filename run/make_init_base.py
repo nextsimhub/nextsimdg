@@ -8,10 +8,10 @@ class initMaker:
     initialisation fields they need, as well as a land maks.
     Usage:
      0. Import make_init_base
-      >>> import make_init_base
+      >>> from make_init_base import initMaker
      1. Create an initialiser object with given filename, dimensions, and
         resolution, e.g.
-      >>> init = make_init_base.initMaker("test", 128, 128, 1, 3e3)
+      >>> init = initMaker("test", 128, 128, 1, 3e3)
      2. Modify any variables needed, e.g.
       >>> init.cice = 1
       >>> init.hice = 3
@@ -51,7 +51,7 @@ class initMaker:
         self.azimuth = np.zeros((self.__nFirst, self.__nSecond))
         self.sss = np.zeros((self.__nFirst, self.__nSecond))
         self.sst = np.zeros((self.__nFirst, self.__nSecond))
-        self.tice= np.zeros((self.__nLayers, self.__nFirst, self.__nSecond))
+        self.tice = np.zeros((self.__nLayers, self.__nFirst, self.__nSecond))
 
         # Set basic coordinate sizes
         self.__nCg = nCg
@@ -78,10 +78,10 @@ class initMaker:
                       ["sst", (self.sst==0).all(), self.sst.shape==(self.__nFirst,self.__nSecond)],
                       ["azimuth", (self.azimuth==0).all(), self.azimuth.shape==(self.__nFirst,self.__nSecond)]]:
 
-            if (check[1]):
+            if check[1]:
                 print("Warning: '"+check[0]+"' is all zeros (this may be ok, if that's what you want).")
 
-            if (not check[2]):
+            if not check[2]:
                 print("Error: '"+check[0]+"' is the wrong shape")
                 raise RuntimeError("Incorrect array shape")
 
@@ -183,7 +183,7 @@ class initMaker:
         sss[:, :] = self.sss
 
         # mask data
-        mdi = -3.282346e38 # Minus float max
+        mdi = -3.282346e38  # Minus float max
         cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
         cice.missing_value = mdi
         hice[:, :] = hice[:, :] * mask[:, :] + antimask * mdi

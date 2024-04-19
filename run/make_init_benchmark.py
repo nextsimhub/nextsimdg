@@ -1,5 +1,4 @@
-import make_init_base
-
+from make_init_base import initMaker
 from math import sin
 
 # Creates initial conditions for the Mehlmann et al. (2021) benchmark case, at 2, 4, 8, and 16 km resolutions.
@@ -15,7 +14,7 @@ for res in [2, 4, 8, 16]:
     fname = f"init_benchmark_{nfirst}x{nsecond}.nc"
     print("Producing file", fname)
 
-    initializer = make_init_base.initMaker(fname, nfirst, nsecond, nLayers, res*1e3)
+    initializer = initMaker(fname, nfirst, nsecond, nLayers, res*1e3)
     # The model expects everything in metres, while the benchmark problem in Mehlman et al. (2021) is defined in km.
 
     # Ice everywhere and all boundaries closed
