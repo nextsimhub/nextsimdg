@@ -51,7 +51,7 @@ class initMaker:
         self.azimuth = np.zeros((self.__nFirst, self.__nSecond))
         self.sss = np.zeros((self.__nFirst, self.__nSecond))
         self.sst = np.zeros((self.__nFirst, self.__nSecond))
-        self.tice= np.zeros((self.__nFirst, self.__nSecond, self.__nLayers))
+        self.tice= np.zeros((self.__nLayers, self.__nFirst, self.__nSecond))
 
         # Set basic coordinate sizes
         self.__nCg = nCg
@@ -71,7 +71,7 @@ class initMaker:
         for check in [["cice", (self.cice==0).all(), self.cice.shape==(self.__nFirst,self.__nSecond)],
                       ["hice", (self.hice==0).all(), self.hice.shape==(self.__nFirst,self.__nSecond)],
                       ["hsnow", (self.hsnow==0).all(), self.hsnow.shape==(self.__nFirst,self.__nSecond)],
-                      ["tice", (self.tice==0).all(), self.tice.shape==(self.__nFirst,self.__nSecond,self.__nLayers)],
+                      ["tice", (self.tice==0).all(), self.tice.shape==(self.__nLayers,self.__nFirst,self.__nSecond)],
                       ["uice", (self.uice==0).all(), self.uice.shape==(self.__nFirst,self.__nSecond)],
                       ["vice", (self.vice==0).all(), self.vice.shape==(self.__nFirst,self.__nSecond)],
                       ["sss", (self.sss==0).all(), self.sss.shape==(self.__nFirst,self.__nSecond)],
@@ -168,7 +168,7 @@ class initMaker:
 
         # Set ice temperatures
         tice = datagrp.createVariable("tice", "f8", ("z", "y", "x"))
-        tice[0, :, :] = self.tice
+        tice[:, :, :] = self.tice
 
         # Set ice velocity
         u = datagrp.createVariable("u", "f8", field_dims)
@@ -183,7 +183,7 @@ class initMaker:
         sss[:, :] = self.sss
 
         # mask data
-        mdi = -1. ** 35
+        mdi = -3.282346e38 # Minus float max
         cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
         cice.missing_value = mdi
         hice[:, :] = hice[:, :] * mask[:, :] + antimask * mdi
@@ -194,10 +194,10 @@ class initMaker:
         u.missing_value = mdi
         v[:, :] = v[:, :] * mask[:, :] + antimask * mdi
         v.missing_value = mdi
-        tice[0, :, :] = tice[0, :, :] * mask[:, :] + antimask * mdi
+        tice[:, :, :] = tice[:, :, :] * mask[:, :] + antimask * mdi
         tice.missing_value = mdi
         grid_azimuth[:, :] = grid_azimuth[:, :] * mask[:, :] + antimask * mdi
-        grid_azimuth.missing_azimuthalue = mdi
+        grid_azimuth.missing_value = mdi
         sss[:, :] = sss[:, :] * mask[:, :] + antimask * mdi
         sss.missing_sssalue = mdi
         sst[:, :] = sst[:, :] * mask[:, :] + antimask * mdi
