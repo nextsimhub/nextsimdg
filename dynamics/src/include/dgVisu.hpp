@@ -337,7 +337,7 @@ public:
         OUT << "POINTS " << 3 * 3 * smesh.nx * smesh.ny << " DOUBLE" << std::endl; // add substructre
         size_t nid = 0; // id of first node
 
-        const size_t sy = smesh.nx + 1; // shift one line up
+        //const size_t sy = smesh.nx + 1; // shift one line up
 
         for (size_t iy = 0; iy < smesh.ny; ++iy, ++nid) // also increase nid to add +1
             for (size_t ix = 0; ix < smesh.nx; ++ix, ++nid) {

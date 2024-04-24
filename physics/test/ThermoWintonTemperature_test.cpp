@@ -349,7 +349,7 @@ TEST_CASE("No ice do nothing")
     ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
     ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
 
-    double prec = 1e-5;
+//    double prec = 1e-5;
 
     REQUIRE(hice[0] == 0);
     REQUIRE(cice[0] == 0);

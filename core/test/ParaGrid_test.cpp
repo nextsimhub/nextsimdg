@@ -418,7 +418,7 @@ TEST_CASE("Test array ordering")
     size_t ny = 11;
     NZLevels::set(1);
 
-    double xFactor = 10;
+    //    double xFactor = 10;
 
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);

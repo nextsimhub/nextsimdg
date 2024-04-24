@@ -16,8 +16,8 @@
 
 namespace Nextsim {
 
-const bool RW = true;
-const bool RO = false;
+constexpr bool RW = true;
+constexpr bool RO = false;
 
 typedef ModelArray* ModelArrayReference;
 typedef const ModelArray* ModelArrayConstReference;
