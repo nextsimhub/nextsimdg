@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(CMAKE_CXX_STANDARD 17)
-
 project(nextsim_dg)
+
+OPTION(WITH_THREADS "Build with support for openmp" OFF)
+OPTION(WITH_KOKKOS "Build the Kokkos accelerated dynamical core" OFF)
+option(ENABLE_MPI "Enable distributed-memory parallelization with MPI" OFF)
+option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -21,18 +24,6 @@ else()
     endif()
 endif()
 
-OPTION(WITH_THREADS      "Build with support for openmp" OFF)
-
-find_package(OpenMP)
-if (OPENMP_FOUND)
-    IF(WITH_THREADS)
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-    endif()
-endif()
-
-option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
 if (ENABLE_XIOS)
     message(STATUS "Building with XIOS library")
     find_package(xios REQUIRED QUIET)
@@ -59,7 +50,6 @@ set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${D
 
 find_package(Eigen3 3.4 REQUIRED)
 
-option(ENABLE_MPI "Enable distributed-memory parallelization with MPI" OFF)
 if(ENABLE_MPI)
     find_package(MPI REQUIRED COMPONENTS C CXX)
 endif()
@@ -120,6 +110,7 @@ foreach(compo ${CodeComponents})
 endforeach()
 
 add_library(nextsimlib SHARED ${NextsimSources})
+target_compile_features(nextsimlib PUBLIC cxx_std_17)
 target_compile_definitions(nextsimlib
     PRIVATE
     $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
@@ -144,6 +135,26 @@ target_link_libraries(nextsimlib PUBLIC
     $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_C> $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_CXX>
     "${FORTRAN_RUNTIME_LIB}"
     )
+
+if (WITH_THREADS)
+    find_package(OpenMP REQUIRED)
+    target_link_libraries(nextsimlib PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
+IF (WITH_KOKKOS)
+    find_package(Kokkos QUIET)
+    IF (NOT Kokkos_FOUND)
+        message("No kokkos installation found. Looking for local version in \"lib\".")
+        add_subdirectory("lib/kokkos")
+    endif ()
+    target_link_libraries(nextsimlib PUBLIC Kokkos::kokkos)
+    if (Kokkos_ENABLE_CUDA)
+        target_compile_definitions(nextsimlib PRIVATE "EIGEN_DONT_VECTORIZE")
+        # disable warning caused by eigen
+        # "calling a __host__ function from a __host__ __device__ function is not allowed"
+        target_compile_options(nextsimlib PUBLIC -Xcudafe --diag_suppress=20014)#-w
+    endif()
+endif()
 
 add_executable(nextsim ./core/src/main.cpp)
 target_compile_definitions(nextsim
