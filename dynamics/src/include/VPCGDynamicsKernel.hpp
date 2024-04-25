@@ -88,8 +88,8 @@ public:
             s22 = stress[I22];
 
             double stressScale = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
-            if (smesh->CoordinateSystem == Nextsim::SPHERICAL)
-                stressScale = 1.0 / Nextsim::EarthRadius / Nextsim::EarthRadius;
+//            if (smesh->CoordinateSystem == Nextsim::SPHERICAL)
+//                stressScale = 1.0 / Nextsim::EarthRadius / Nextsim::EarthRadius;
 
             stressDivergence(stressScale); // Compute divergence of stress tensor
 
