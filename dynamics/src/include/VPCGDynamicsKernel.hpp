@@ -49,11 +49,10 @@ protected:
     using CGDynamicsKernel<DGadvection>::pmap;
 
 public:
-    VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn,
-        const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
-        , stressStep(stressStepIn)
-        , params(reinterpret_cast<const VPParameters&>(paramsIn))
+    VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
+        : CGDynamicsKernel<DGadvection>(),
+          stressStep(stressStepIn),
+          params(static_cast<const VPParameters&>(paramsIn))
     {
     }
     virtual ~VPCGDynamicsKernel() = default;

@@ -28,6 +28,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <memory>
 
 namespace Nextsim {
 
@@ -46,7 +47,7 @@ public:
     virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
         //! Define the spatial mesh
-        smesh = new ParametricMesh((isSpherical) ? Nextsim::SPHERICAL : Nextsim::CARTESIAN);
+        smesh = std::make_unique<ParametricMesh>((isSpherical) ? Nextsim::SPHERICAL : Nextsim::CARTESIAN);
 
         smesh->coordinatesFromModelArray(coords);
         if (isSpherical) smesh->RotatePoleToGreenland();
@@ -58,7 +59,7 @@ public:
         }
 
         //! Initialize transport
-        dgtransport = new Nextsim::DGTransport<DGadvection>(*smesh);
+        dgtransport = std::make_unique<Nextsim::DGTransport<DGadvection>>(*smesh);
         dgtransport->settimesteppingscheme("rk2");
 
         // resize DG vectors
@@ -168,7 +169,7 @@ public:
     }
 
 protected:
-    Nextsim::DGTransport<DGadvection>* dgtransport;
+    std::unique_ptr<Nextsim::DGTransport<DGadvection>> dgtransport;
 
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;
@@ -183,7 +184,7 @@ protected:
 
     double deltaT;
 
-    Nextsim::ParametricMesh* smesh;
+    std::unique_ptr<Nextsim::ParametricMesh> smesh;
 
     virtual void updateMomentum(const TimestepTime& tst) = 0;
 
