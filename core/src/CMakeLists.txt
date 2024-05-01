@@ -1,5 +1,11 @@
 # Sources for the main neXtSIM model
 
+if(USE_XIOS)
+  set(ParaGridIOImpl "ParaGridIO_Xios.cpp")
+else()
+  set(ParaGridIOImpl "ParaGridIO.cpp")
+endif()
+
 set(BaseSources
     "Logged.cpp"
     "Timer.cpp"
@@ -12,7 +18,7 @@ set(BaseSources
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
     "RectGridIO.cpp"
-    "ParaGridIO.cpp"
+    "${ParaGridIOImpl}"
     "FileCallbackCloser.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"

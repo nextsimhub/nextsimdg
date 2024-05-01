@@ -1,52 +1,50 @@
 /*!
- * @file ParaGridIO.hpp
+ * @file ParaGridIO_Xios.hpp
  *
  * @date 2 August, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
  * @author Joe Wallwork <jw2423@cam.ac.uk>
  */
 
-#ifndef PARAGRIDIO_HPP
-#define PARAGRIDIO_HPP
+#ifndef PARAGRIDIO_XIOS_HPP
+#define PARAGRIDIO_XIOS_HPP
 
 #include "StructureModule/include/ParametricGrid.hpp"
-
-#include <map>
-#include <ncFile.h>
-#include <string>
 
 namespace Nextsim {
 
 /*!
- * A class to perform input and output for the ParametricGrid class. unlike the
- * other GridIO classes, this will hold non-restart files open to accumulate
- * data until closed using the close function.
+ * A class to perform input and output for the ParametricGrid class using XIOS
+ * asynchronous input-output tool, replicating the functionality of ParaGridIO.
+ * This class also replicates its behaviour in that it will hold non-restart
+ * files open to accumulate data until the close function.
  */
 class ParaGridIO : public ParametricGrid::IParaGridIO {
 public:
     ParaGridIO(ParametricGrid& grid)
         : IParaGridIO(grid)
     {
-        if (dimCompMap.size() == 0)
-            makeDimCompMap();
+        // TODO: Implement this method
     }
     virtual ~ParaGridIO();
 
     /*!
-     * Retrieves the ModelState from a restart file of the parametric_grid type.
+     * Retrieves the ModelState from a restart file of the ParametricGrid type.
+     *
      * @param filePath The file path containing the file to be read.
      */
+    // TODO: Implement this method
     ModelState getModelState(const std::string& filePath) override;
 
     /*!
      * @brief Writes the ModelState to a given file location from the provided
      * model data and metadata.
      *
-     * @params state The model state and configuration object.
-     * @params metadata The model metadata (principally the initial file
+     * @param state The model state and configuration object.
+     * @param metadata The model metadata (principally the initial file
      * creation model time).
-     * @params filePath The path for the restart file.
+     * @param filePath The path for the restart file.
      */
+    // TODO: Implement this method
     void dumpModelState(
         const ModelState& state, const ModelMetadata& meta, const std::string& filePath) override;
 
@@ -70,6 +68,7 @@ public:
      * @param time The time of the passed data.
      * @param filePath Path of the file to write to.
      */
+    // TODO: Implement this method
     void writeDiagnosticTime(
         const ModelState& state, const ModelMetadata& meta, const std::string& filePath) override;
 
@@ -79,33 +78,17 @@ public:
      *
      * @param filePath The path to the file to be closed.
      */
+    // TODO: Implement this method
     static void close(const std::string& filePath);
 
+    // TODO: Implement this method
     static ModelState readForcingTimeStatic(
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
 private:
-    ParaGridIO() = delete;
-    ParaGridIO(const ParaGridIO& other) = delete;
-    ParaGridIO& operator=(const ParaGridIO& other) = delete;
-
-    static const std::map<std::string, ModelArray::Type> dimensionKeys;
-
-    static const std::map<ModelArray::Dimension, bool> isDG;
-    static std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
-
-    // Ensures that static variables are created in the correct order.
-    static void makeDimCompMap();
-
-    // Closes all still-open NetCDF files
-    static void closeAllFiles();
-
-    // Existing or open files are a property of the computer outside the individual
-    // class instance, so they are static.
-    static std::map<std::string, netCDF::NcFile> openFiles;
-    static std::map<std::string, size_t> timeIndexByFile;
+    /* TODO: Implement private methods? */
 };
 
 } /* namespace Nextsim */
 
-#endif /* PARAGRIDIO_HPP */
+#endif /* PARAGRIDIO_XIOS_HPP */

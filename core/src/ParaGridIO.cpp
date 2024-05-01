@@ -1,8 +1,9 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date Oct 24, 2022
+ * @date 2 August, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/ParaGridIO.hpp"

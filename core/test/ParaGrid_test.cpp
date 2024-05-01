@@ -1,17 +1,27 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date Oct 27, 2022
+ * @date 2 August, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Joe Wallwork <jw2423@cam.ac.uk>
  */
 
+#ifdef USE_XIOS
+#include <doctest/extensions/doctest_mpi.h>
+#undef INFO
+#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
+#endif
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/NZLevels.hpp"
+#ifdef USE_XIOS
+#include "include/ParaGridIO_Xios.hpp"
+#else
 #include "include/ParaGridIO.hpp"
+#endif
 #include "include/ParametricGrid.hpp"
 #include "include/StructureModule.hpp"
 #include "include/gridNames.hpp"
@@ -38,7 +48,11 @@ namespace Nextsim {
 size_t c = 0;
 
 TEST_SUITE_BEGIN("ParaGrid");
+#ifdef USE_XIOS
+MPI_TEST_CASE("Write and read a ModelState-based ParaGrid restart file using XIOS", 1)
+#else
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
+#endif
 {
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
@@ -181,7 +195,11 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ParaGridIO* readIO = new ParaGridIO(gridIn);
     gridIn.setIO(readIO);
 
+#ifdef USE_XIOS
+    ModelState ms = gridIn.getModelState(filename, metadata);
+#else
     ModelState ms = gridIn.getModelState(filename);
+#endif
 
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
@@ -228,7 +246,11 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     std::filesystem::remove(filename);
 }
 
+#ifdef USE_XIOS
+MPI_TEST_CASE("Write a diagnostic ParaGrid file using XIOS", 1)
+#else
 TEST_CASE("Write a diagnostic ParaGrid file")
+#endif
 {
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
@@ -406,7 +428,11 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 #define TEST_FILE_SOURCE .
 #endif
 
+#ifdef USE_XIOS
+MPI_TEST_CASE("Test array ordering using XIOS", 1)
+#else
 TEST_CASE("Test array ordering")
+#endif
 {
     std::string inputFilename = "ParaGridIO_input_test.nc";
 
@@ -441,7 +467,11 @@ TEST_CASE("Test array ordering")
 #undef TO_STR
 #undef TO_STRI
 
+#ifdef USE_XIOS
+MPI_TEST_CASE("Check an exception is thrown for an invalid file name using XIOS", 1)
+#else
 TEST_CASE("Check an exception is thrown for an invalid file name")
+#endif
 {
     ParametricGrid gridIn;
     ParaGridIO* readIO = new ParaGridIO(gridIn);
@@ -451,10 +481,19 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 
     // MD5 hash of the current output of $ date
     std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
+#ifdef USE_XIOS
+    ModelMetadata metadata; // TODO: set up properly
+    REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadata));
+#else
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
+#endif
 }
 
+#ifdef USE_XIOS
+MPI_TEST_CASE("Check if a file with the old dimension names can be read using XIOS", 1)
+#else
 TEST_CASE("Check if a file with the old dimension names can be read")
+#endif
 {
     std::string inputFilename = "old_names.nc";
 
@@ -482,12 +521,16 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
+#ifdef USE_XIOS
+    ModelMetadata metadata; // TODO: set up properly
+    ModelState ms = gridIn.getModelState(inputFilename, metadata);
+#else
     ModelState ms = gridIn.getModelState(inputFilename);
+#endif
 
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
-
 }
 
 TEST_SUITE_END();
