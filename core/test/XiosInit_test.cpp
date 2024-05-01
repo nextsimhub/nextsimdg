@@ -14,9 +14,10 @@
  */
 #include <cstdio>
 #include <doctest/extensions/doctest_mpi.h>
+#include "include/ModelArray.hpp"
 #include "include/Xios.hpp"
-#include <iostream>
-#include "include/Configurator.hpp"
+
+using namespace Nextsim;
 
 /*!
  * TestXiosInitialization
@@ -30,15 +31,8 @@
 MPI_TEST_CASE("TestXiosInitialization", 2)
 {
 
-    // Enable xios in the 'config'
-    Nextsim::Configurator::clearStreams();
-    std::stringstream config;
-    config << "[xios]" << std::endl << "enable = true" << std::endl;
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Nextsim::Configurator::addStream(std::move(pcstream));
-
     // initialized instance of xios_handler
-    Nextsim::Xios xios_handler;
+    Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
 
     // read calendar start date and verify datetime string
@@ -106,10 +100,12 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(current_date == "2023-03-17 17:37:00");
 
     // create some fake data to test writing methods
-    int ni = 30;
-    int nj = 30;
-    double* field_A = new double[ni * nj];
-    for (int idx = 0; idx < ni * nj; idx++) {
+    size_t ni = 30;
+    size_t nj = 30;
+    ModelArray::MultiDim dims2 = {ni, nj};
+    ModelArray::setDimensions(ModelArray::Type::TWOD, dims2);
+    ModelArray field_A = ModelArray::TwoDField();
+    for (int idx = 0; idx < field_A.size(); idx++) {
         field_A[idx] = 1.0 * idx;
     }
 
@@ -125,12 +121,9 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         // update the current timestep
         xios_handler.updateCalendar(ts);
         // send data to XIOS to be written to disk
-        xios_handler.write(fieldId, field_A, ni, nj);
+        xios_handler.write(fieldId, field_A);
         // verify timestep
         step = xios_handler.getCalendarStep();
         REQUIRE(step == ts);
     }
-
-    // clean up
-    delete[] field_A;
 }

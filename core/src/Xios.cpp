@@ -220,9 +220,11 @@ void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
  * @param size of 1st dimension
  * @param size of 2nd dimension
  */
-void Xios::write(const std::string fieldstr, double* data, const int ni, const int nj)
+void Xios::write(const std::string fieldstr, const ModelArray& modelarray)
 {
-    cxios_write_data_k82(fieldstr.c_str(), fieldstr.length(), data, ni, nj, -1);
+    auto dim2 = modelarray.dimensions();
+    cxios_write_data_k82(fieldstr.c_str(), fieldstr.length(), modelarray.getData(),
+                         dim2[0], dim2[1], -1);
 }
 
 /*!

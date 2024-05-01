@@ -18,6 +18,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
+#include <include/ModelArray.hpp>
 #include <include/xios_c_interface.hpp>
 #include <mpi.h>
 
@@ -50,7 +51,8 @@ public:
     int getCalendarStep();
 
     void updateCalendar(int stepNumber);
-    void write(const std::string fieldstr, double* data, const int ni, const int nj);
+
+    void write(const std::string fieldstr, const ModelArray& modelarray);
 
     std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
 
