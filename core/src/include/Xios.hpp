@@ -1,9 +1,13 @@
 /*!
- * @file Xios.hpp
- * @date 7th February 2023
- * @author Dr Alexander Smith <as3402@cam.ac.uk>
+ * @file    Xios.hpp
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @date    Fri 23 Feb 13:43:16 GMT 2024
+ * @brief   XIOS interface header
+ * @details
+ *
+ * Header file for XIOS interface
+ *
  */
-
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
 
@@ -74,7 +78,7 @@ private:
     std::string contextId;
 };
 
-} /* end namespace Nextsim */
+}
 
 #endif // USE_XIOS
 #endif

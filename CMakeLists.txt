@@ -120,11 +120,6 @@ foreach(compo ${CodeComponents})
     add_subdirectory("${compo}")
 endforeach()
 
-
-# message(STATUS "=========================    GLOBAL LEVEL              ==========================")
-# message(STATUS "${NextsimSources}")
-# message(STATUS "=================================================================================")
-
 add_library(nextsimlib SHARED ${NextsimSources})
 target_compile_definitions(nextsimlib
     PRIVATE
