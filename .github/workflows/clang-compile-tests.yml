@@ -110,7 +110,7 @@ jobs:
         do
             cd $component/test
             # run serial tests
-            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
+            for file in $(find test* -maxdepth 0 -type f | grep -v "_MPI\d*$")
             do
               echo $file
               ./$file
