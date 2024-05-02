@@ -79,6 +79,17 @@ void cxios_set_domain_jbegin(xios::CDomain* domain_hdl, int jbegin);
 void cxios_set_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
 void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
 
+// file methods
+void cxios_file_handle_create(xios::CFile _ret, const char* _id, int _id_len);
+void cxios_file_valid_id(bool* _ret, const char* _id, int _id_len);
+void cxios_get_file_name(xios::CFile* file_hdl, char* name, int name_size);
+void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
+void cxios_get_file_type(xios::CFile* file_hdl, char* type, int type_size);
+void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size);
+void cxios_set_file_output_freq(xios::CFile* file_hdl, cxios_duration output_freq_c);
+void cxios_set_file_type(xios::CFile* file_hdl, const char* type, int type_size);
+bool cxios_is_defined_file_output_freq(xios::CFile* file_hdl);
+
 // writing methods
 void cxios_write_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize,
     int data_Ysize, int tileid);
