@@ -63,7 +63,7 @@ jobs:
         done
         mv ../test .
         cd test
-        python ThermoIntegration_test.py
+        python3 ThermoIntegration_test.py
         cd -
 
   test-ubuntu-mpi:
