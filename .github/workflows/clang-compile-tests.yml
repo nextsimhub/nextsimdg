@@ -2,9 +2,9 @@ name: compile code and tests
 
 on:
   push:
-    branches: [ main, develop, xios-interface-with-tests ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop, xios-interface-with-tests ]
+    branches: [ main, develop ]
 
 jobs:
 
