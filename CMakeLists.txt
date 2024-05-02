@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(nextsim_dg)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 find_package(PkgConfig)
 pkg_search_module(NETCDF_CXX4 netcdf-cxx4)
 if (NETCDF_CXX4_FOUND)
@@ -23,14 +25,21 @@ OPTION(WITH_THREADS      "Build with support for openmp" OFF)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
-   IF(WITH_THREADS)
-	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    	set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-   endif()
+    IF(WITH_THREADS)
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    endif()
 endif()
 
-
+option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
+if (ENABLE_XIOS)
+    message(STATUS "Building with XIOS library")
+    find_package(xios REQUIRED QUIET)
+    if (XIOS_FOUND)
+        find_package(HDF5 REQUIRED COMPONENTS C HL)
+    endif()
+endif()
 
 # Regarding Boost.Log, if our application consists of more
 # than one modules that use it, we must link to the shared
@@ -52,8 +61,14 @@ find_package(Eigen3 3.4 REQUIRED)
 
 option(ENABLE_MPI "Enable distributed-memory parallelization with MPI" OFF)
 if(ENABLE_MPI)
-  find_package(MPI REQUIRED COMPONENTS C CXX)
+    find_package(MPI REQUIRED COMPONENTS C CXX)
 endif()
+
+# if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+#     set(FORTRAN_RUNTIME_LIB "-lgfortran")
+# elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+#     set(FORTRAN_RUNTIME_LIB "-lifcore")
+# endif()
 
 set(Python_FIND_VIRTUALENV FIRST)
 find_package (Python COMPONENTS Interpreter)
@@ -77,9 +92,9 @@ set(ModuleHeaderScript "${ScriptDirectory}/module_header.py")
 
 # Set the components which provide source or object code to the main model
 set(CodeComponents
-"physics"
-"dynamics"
-)
+    "physics"
+    "dynamics"
+    )
 
 # The exact selection of dimensions and Types available to ModelArray
 if(True)
@@ -106,27 +121,36 @@ endforeach()
 
 add_library(nextsimlib SHARED ${NextsimSources})
 target_compile_definitions(nextsimlib
-  PRIVATE
+    PRIVATE
     $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
-)
+    $<$<BOOL:${ENABLE_XIOS}>:USE_XIOS>
+    )
 target_include_directories(nextsimlib
     PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"
+    $<$<BOOL:${ENABLE_XIOS}>:${xios_INCLUDES}>
+    $<$<BOOL:${ENABLE_XIOS}>:${xios_EXTERNS}/blitz/>
+    $<$<BOOL:${ENABLE_XIOS}>:${xios_EXTERNS}/rapidxml/include>
     PUBLIC
     "${netCDF_INCLUDE_DIR}"
     )
-target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}")
+
+target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}" $<$<BOOL:${ENABLE_MPI}>:${xios_LIBRARIES}>)
 target_link_libraries(nextsimlib PUBLIC
+    $<$<BOOL:${ENABLE_XIOS}>:xios>
+    $<$<BOOL:${ENABLE_XIOS}>:HDF5::HDF5>
     Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen
     $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_C> $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_CXX>
+    "${FORTRAN_RUNTIME_LIB}"
     )
 
 add_executable(nextsim ./core/src/main.cpp)
 target_compile_definitions(nextsim
-  PRIVATE
+    PRIVATE
     $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
-)
+    $<$<BOOL:${ENABLE_XIOS}>:USE_XIOS>
+    )
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${NextsimIncludeDirs}"

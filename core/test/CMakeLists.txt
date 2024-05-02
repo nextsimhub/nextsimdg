@@ -44,16 +44,28 @@ target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 if(ENABLE_MPI)
-  add_executable(testRectGrid_MPI "RectGrid_test.cpp" "MainMPI.cpp")
-  target_compile_definitions(testRectGrid_MPI PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
-  target_include_directories(testRectGrid_MPI PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
-  target_link_libraries(testRectGrid_MPI PRIVATE nextsimlib doctest::doctest)
+  add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
+  target_compile_definitions(testRectGrid_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+  target_include_directories(testRectGrid_MPI3 PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
+  target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
 # Generate partition file needed for MPI test from its dump
   add_custom_command(OUTPUT partition_metadata_3.nc
       COMMAND ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.nc.dump
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.nc.dump
   )
   add_custom_target(generate_partition_file ALL DEPENDS partition_metadata_3.nc)
+  if(ENABLE_XIOS)
+    FILE(CREATE_LINK "${CMAKE_SOURCE_DIR}/core/test/iodef.xml" "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml" SYMBOLIC)
+    set(XIOS_INCLUDE_LIST
+      "${xios_INCLUDES}"
+      "${xios_EXTERNS}/blitz/"
+      "${xios_EXTERNS}/rapidxml/include"
+      )
+    add_executable(testXiosInit_MPI2 "XiosInit_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosInit_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosInit_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosInit_MPI2 PRIVATE nextsimlib doctest::doctest)
+  endif()
 else()
   add_executable(testRectGrid "RectGrid_test.cpp")
   target_compile_definitions(testRectGrid PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")

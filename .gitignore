@@ -15,4 +15,5 @@ Results
 *.vtk
 *.smesh
 *.DS_Store
-/*/test/*.nc
+*.nc
+__pycache__/
