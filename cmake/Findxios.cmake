@@ -1,9 +1,8 @@
 # Find xios
 #
-# Please set the xios_DIR to point to the top level directory for xios
-# (which contains the makexios executable). This is <path>/xios/trunk/
-# if you followed the instructions in the user/reference guide.
-#
+# Please pass the -Dxios_DIR variable to cmake (location of the xios
+# executable). This is <path>/xios/trunk/ if you followed the instructions in
+# the user/reference guide.
 
 find_library (xios_LIBRARIES NAMES xios HINTS ${xios_DIR}/lib ENV LD_LIBRARY_PATH)
 
