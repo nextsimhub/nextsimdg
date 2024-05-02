@@ -69,7 +69,7 @@ jobs:
             done
             cd -
         done
-        cd physics/test
+        cd ../test
         python ThermoIntegration_test.py
         cd -
 
@@ -117,6 +117,6 @@ jobs:
             done
             cd -
         done
-        cd physics/test
+        cd ../test
         python ThermoIntegration_test.py
         cd -
