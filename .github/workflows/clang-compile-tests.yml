@@ -61,8 +61,8 @@ jobs:
             done
             cd -
         done
-        ln -sf nextsim ..
-        cd ../test
+        mv ../test .
+        cd test
         python ThermoIntegration_test.py
         cd -
 
@@ -144,7 +144,7 @@ jobs:
             done
             cd -
         done
-        ln -sf nextsim ..
-        cd ../test
+        mv ../test .
+        cd test
         python ThermoIntegration_test.py
         cd -
