@@ -36,26 +36,26 @@ public:
     void configureServer();
     void configureCalendar();
 
+    /* Date and duration */
+    xios::CDate getCurrentDate();
+    std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
+    void printCXiosDate(cxios_date date);
+    void printCXiosDuration(cxios_duration duration);
+
+    /* Calendar */
     cxios_date getCalendarOrigin();
     cxios_date getCalendarStart();
-    xios::CDate getCurrentDate();
     cxios_duration getCalendarTimestep();
+    void getCalendarConfiguration();
+    int getCalendarStep();
+    std::string getCalendarDate(bool isoFormat = true);
     void setCalendarOrigin(cxios_date origin);
     void setCalendarStart(cxios_date start);
     void setCalendarTimestep(cxios_duration timestep);
-
-    void getCalendarConfiguration();
-
-    std::string getCalendarDate(bool isoFormat = true);
-    int getCalendarStep();
-
     void updateCalendar(int stepNumber);
+
+    /* I/O */
     void write(const std::string fieldstr, double* data, const int ni, const int nj);
-
-    std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
-
-    void printCXiosDate(cxios_date date);
-    void printCXiosDuration(cxios_duration duration);
 
     enum {
         ENABLED_KEY,
