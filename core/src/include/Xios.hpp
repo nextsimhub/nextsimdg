@@ -34,7 +34,7 @@ public:
 
     void configure() override;
     void configureServer();
-    void configureCalendar();
+    void configureCalendar(); // TODO?
 
     /* Date and duration */
     xios::CDate getCurrentDate();
@@ -46,13 +46,25 @@ public:
     cxios_date getCalendarOrigin();
     cxios_date getCalendarStart();
     cxios_duration getCalendarTimestep();
-    void getCalendarConfiguration();
+    void getCalendarConfiguration(); // TODO?
     int getCalendarStep();
-    std::string getCalendarDate(bool isoFormat = true);
+    std::string getCalendarDate(bool isoFormat = true); // TODO
     void setCalendarOrigin(cxios_date origin);
     void setCalendarStart(cxios_date start);
     void setCalendarTimestep(cxios_duration timestep);
     void updateCalendar(int stepNumber);
+
+    /* Axis */
+    // TODO
+
+    /* Grid */
+    // TODO
+
+    /* Field */
+    // TODO
+
+    /* File */
+    // TODO
 
     /* I/O */
     void write(const std::string fieldstr, double* data, const int ni, const int nj);
