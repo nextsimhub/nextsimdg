@@ -8,16 +8,17 @@ on:
 
 jobs:
 
-  clang-on-mac:
+  clang-formatter:
 
-    runs-on: macos-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v2
-    - name: clang
+    - name: clang-format
       run: |
-        brew extract --version=13.0.1 clang-format homebrew/cask-versions
-        brew install clang-format@13.0.1
+
+        sudo apt-get update
+        sudo apt install clang-format
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
         cd -
@@ -27,8 +28,7 @@ jobs:
           clang-format --dry-run -Werror *cpp include/*hpp
           cd -
         done
-  
-  
+
   test-ubuntu-serial:
 
     runs-on: ubuntu-22.04
