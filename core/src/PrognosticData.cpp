@@ -9,6 +9,7 @@
 
 #include "include/ModelArrayRef.hpp"
 #include "include/Module.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
@@ -27,6 +28,7 @@ PrognosticData::PrognosticData()
     getStore().registerArray(Protected::C_ICE, &m_conc, RO);
     getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
     getStore().registerArray(Protected::T_ICE, &m_tice, RO);
+    getStore().registerArray(Protected::DAMAGE, &m_damage, RO);
 }
 
 void PrognosticData::configure()
@@ -56,6 +58,13 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
+    // Damage is an optional field, and defaults to zero, if absent
+    if (ms.count(damageName) > 0) {
+        m_damage = ms.at(damageName);
+    } else {
+        m_damage.resize();
+        m_damage = 0.5;
+    }
 
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
@@ -91,6 +100,7 @@ void PrognosticData::updatePrognosticFields()
     ModelArrayRef<Shared::C_ICE, RO> ciceUpd(getStore());
     ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
     ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
+    ModelArrayRef<Shared::DAMAGE, RO> damageUpd(getStore());
 
     // Calculate the cell average thicknesses
     HField hiceUpd = hiceTrueUpd * ciceUpd;
@@ -100,13 +110,15 @@ void PrognosticData::updatePrognosticFields()
     m_conc.setData(ciceUpd);
     m_snow.setData(hsnowUpd);
     m_tice.setData(ticeUpd);
+    m_damage.setData(damageUpd);
 }
 
 ModelState PrognosticData::getState() const
 {
     ModelArrayRef<Protected::SST> sst(getStore());
     ModelArrayRef<Protected::SSS> sss(getStore());
-    return { {
+    // clang-format off
+    ModelState localState = { {
                  { "mask", ModelArray(oceanMask()) }, // make a copy
                  { "hice", mask(m_thick) },
                  { "cice", mask(m_conc) },
@@ -116,6 +128,20 @@ ModelState PrognosticData::getState() const
                  { "sss", mask(sss.data()) },
              },
         {} };
+    // clang-format on
+    // Get the state from the dynamics (ice velocity). This allows the
+    // dynamics to define its own dimensions for the velocity grid.
+    localState.merge(pDynamics->getState());
+
+    // Merge in the damage field, if the dynamics uses it.
+    if (pDynamics->usesDamage()) {
+        ModelState damageState = { {
+                                       { "damage", mask(m_damage) },
+                                   },
+            {} };
+        localState.merge(damageState);
+    }
+    return localState;
 }
 
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
@@ -123,7 +149,8 @@ ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
     ModelState state(getState());
     state.merge(pAtmBdy->getStateRecursive(os));
     state.merge(iceGrowth.getStateRecursive(os));
-    // Neither OceanBdoudary nor Dynamics contribute to the output model state
+    state.merge(pDynamics->getStateRecursive(os));
+    // OceanBoundary does not contribute to the output model state
     return os ? state : ModelState();
 }
 

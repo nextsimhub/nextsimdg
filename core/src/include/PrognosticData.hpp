@@ -78,6 +78,7 @@ private:
     HField m_conc;
     ZField m_tice;
     HField m_snow;
+    HField m_damage;
     double m_dt;
 
     IAtmosphereBoundary* pAtmBdy;

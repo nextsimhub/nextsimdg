@@ -2,22 +2,23 @@ name: compile code and tests
 
 on:
   push:
-    branches: [ main, develop, issue103_CI ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop,  issue103_CI ]
+    branches: [ main, develop ]
 
 jobs:
 
-  clang-on-mac:
+  clang-formatter:
 
-    runs-on: macos-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v2
-    - name: clang
+    - name: clang-format
       run: |
-        brew extract --version=13.0.1 clang-format homebrew/cask-versions
-        brew install clang-format@13.0.1
+
+        sudo apt-get update
+        sudo apt install clang-format
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
         cd -
@@ -27,34 +28,80 @@ jobs:
           clang-format --dry-run -Werror *cpp include/*hpp
           cd -
         done
-  
-  
-  build-and-tests-on-ubuntu:
+
+  test-ubuntu-serial:
 
     runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: installs
+
+    - name: build and compile without XIOS or MPI
       run: |
-        sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev libeigen3-dev cmake
-        sudo apt-get install python3-netcdf4
-    - name: make
+        . /opt/spack-environment/activate.sh
+        mkdir -p build && cd build
+        cmake ..
+        make -j 4
+
+    - name: run serial tests
       run: |
-        cmake .
-        make
-    - name: run tests
-      run: |
+        . /opt/spack-environment/activate.sh
+        apt install -y wget
+        cd build
+        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         for component in core physics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do echo $file; ./$file; done
+            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
+            do
+              echo $file
+              ./$file
+            done
             cd -
         done
+        mv ../test .
+        cd test
+        python3 ThermoIntegration_test.py
+        cd -
 
+  test-ubuntu-mpi:
 
-  build-and-tests-on-mac:
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build and compile with XIOS and MPI
+      run: |
+        . /opt/spack-environment/activate.sh
+        mkdir -p build && cd build
+        cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
+        make -j 4
+
+    - name: run MPI tests
+      run: |
+        . /opt/spack-environment/activate.sh
+        apt install -y wget
+        cd build
+        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
+        for component in core physics
+        do
+            cd $component/test
+            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI\d+$")
+            do
+              echo $file
+              nprocs=$(echo $file | sed -r "s/.*MPI([0-9]+)/\1/")
+              mpirun --allow-run-as-root --oversubscribe -n $nprocs ./$file
+            done
+            cd -
+        done
+        cd -
+
+  test-mac-serial:
 
     runs-on: macos-latest
 
@@ -67,17 +114,37 @@ jobs:
         brew install boost
         brew install eigen
         brew install cmake
-        pip3 install numpy
-        pip3 install netCDF4
+        pip install numpy
+        pip install netCDF4
+
+    # tmate can be used to get an interactive ssh session to the github runner
+    # for debugging actions. See
+    # [here](https://github.com/mxschmitt/action-tmate) for more information.
+    # uncomment these lines to debug mac build
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
+
     - name: make
       run: |
-        cmake . -DPython_ROOT_DIR="/Library/Frameworks/Python.framework/Versions/Current/bin/"
-        make
-    - name: run tests
+        mkdir -p build
+        cd build
+        # added Python_ROOT_DIR to help cmake find correct Python in the mac VM
+        cmake -DENABLE_MPI=OFF -DENABLE_XIOS=OFF -DPython_ROOT_DIR=/Library/Frameworks/Python.framework/Versions/Current/bin ..
+        make -j 4
+    - name: run serial tests
       run: |
+        cd build
         for component in core physics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f); do echo $file; ./$file; done
+            for file in $(find test* -maxdepth 0 -type f | grep -v "_MPI\d*$")
+            do
+              echo $file
+              ./$file
+            done
             cd -
         done
+        mv ../test .
+        cd test
+        python ThermoIntegration_test.py
+        cd -

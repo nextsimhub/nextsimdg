@@ -1,32 +1,19 @@
 /*!
  * @file MEBParameters.hpp
- * @date August 15 2022
+ * @date 18 Jan 2024
+ * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef __MEBPARAMETERS_HPP
 #define __MEBPARAMETERS_HPP
 
+#include "DynamicsParameters.hpp"
+
 namespace Nextsim {
 
-class MEBParameters {
+class MEBParameters : public DynamicsParameters {
 public:
-    double rho_ice; //!< Sea ice density
-    double rho_atm; //!< Air density
-    double rho_ocean; //!< Ocean density
-
-    double C_atm; //!< Air drag coefficient
-    double C_ocean; //!< Ocean drag coefficient
-    double ocean_turning_angle; //!< Ocean turning angle
-
-    double F_atm; //!< effective factor for atm-forcing
-    double F_ocean; //!< effective factor for ocean-forcing
-
-    // double Pstar; //!< Ice strength
-    double DeltaMin; //!< Viscous regime
-
-    double fc; //!< Coriolis
-
     // MEB
     double compaction_param; //!< Compation parameter
     double nu0; //!< \param Poisson's ratio
@@ -51,21 +38,6 @@ public:
 
     MEBParameters()
     {
-        rho_ice = 900.0; //!< Sea ice density
-        rho_atm = 1.3; //!< Air density
-        rho_ocean = 1026.0; //!< Ocean density
-
-        C_atm = 1.2e-3; //!< Air drag coefficient
-        C_ocean = 5.5e-3; //!< Ocean drag coefficient
-        ocean_turning_angle = 25.; //!< Ocean turning angle
-        ocean_turning_angle = 0.0;
-    
-        F_atm = C_atm * rho_atm; //!< effective factor for atm-forcing
-        F_ocean = C_ocean * rho_ocean; //!< effective factor for ocean-forcing
-
-        // Pstar = 27500.0; //!< Ice strength
-        // DeltaMin = 2.e-9; //!< Viscous regime
-
         // MEB
         compaction_param = -20.; //!< Compation parameter
         nu0 = 1. / 3.; //!< \param Poisson's ratio
@@ -87,9 +59,6 @@ public:
 
         compr_strength = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
         C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
-
-        fc = 1.46e-4; //!< Coriolis
-        // fc = 0.0; //!< Coriolis Compression
     }
 };
 

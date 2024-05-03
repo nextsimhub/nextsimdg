@@ -25,8 +25,8 @@ static const std::string pfx = "ConfiguredOcean";
 static const std::string sstKey = pfx + ".sst";
 static const std::string sssKey = pfx + ".sss";
 static const std::string mldKey = pfx + ".mld";
-static const std::string uKey = pfx + "current_u";
-static const std::string vKey = pfx + "current_v";
+static const std::string uKey = pfx + ".current_u";
+static const std::string vKey = pfx + ".current_v";
 
 template <>
 const std::map<int, std::string> Configured<ConfiguredOcean>::keyMap = {

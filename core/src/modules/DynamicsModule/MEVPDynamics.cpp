@@ -19,6 +19,7 @@ namespace Nextsim {
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 MEVPDynamics::MEVPDynamics()
         : IDynamics()
+        , kernel(params)
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
@@ -28,19 +29,7 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
-    bool isSpherical;
-    // Decide between Cartesian (x & y) and spherical (longitude & latitude)
-    if (ms.count(longitudeName) > 0 && ms.count(latitudeName) > 0) {
-        isSpherical = true;
-    } else if (ms.count(xName) > 0 && ms.count(yName) > 0) {
-        isSpherical = false;
-    } else {
-        // Throw a runtime_error exception which can either be handled or not
-        throw std::runtime_error(
-                "Input data must contain either Cartesian (" + xName + ", " + yName
-                        + ") or spherical (" + longitudeName + ", " + latitudeName
-                        + ") coordinates.");
-    }
+    bool isSpherical = checkSpherical(ms);
 
     // TODO: Remove this when spherical coordinates are fully implemented
     ModelArray coords;
@@ -62,7 +51,7 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
         coords = ms.at(coordsName);
     }
     // TODO: Some encoding of the periodic edge boundary conditions
-    kernel.initialisation(coords, isSpherical, ms.at(maskName));
+    kernel.initialise(coords, isSpherical, ms.at(maskName));
 
     uice = ms.at(uName);
     vice = ms.at(vName);

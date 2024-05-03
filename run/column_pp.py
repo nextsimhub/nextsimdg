@@ -40,6 +40,27 @@ plt.plot(-iceDraught, 'b')
 plt.xlabel("Day of year")
 plt.ylabel("Height over sea level [m]")
 plt.legend()
-plt.show()
+plt.show(block=False)
 
 # TODO: Reproduce exactly Winton's figures 2 and 3
+
+fig, (ax1, ax2, ax3) = plt.subplots(3)
+
+ax1.plot(np.linspace(0, 13, 365), hice, 'k')
+ax1.plot(np.linspace(0, 13, 365), hice + hsnow, 'k')
+ax1.set_xlim([0, 13])
+ax1.set_ylim([2.4, 3.7])
+ax1.grid(True)
+
+ax2.plot(np.linspace(0, 13, 365), np.squeeze(tice[:, 1]))
+ax2.set_xlim([0, 13])
+ax2.set_ylim([-15, 0])
+ax2.grid(True)
+
+ax3.plot([0, len(hice)], [-1.8, -1.8], 'k--')
+ax3.plot(np.linspace(0, 13, 365), np.squeeze(tice[:, 2]))
+ax3.set_xlim([0, 13])
+ax3.set_ylim([-6, -1])
+ax3.grid(True)
+
+plt.show()
