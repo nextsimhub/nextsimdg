@@ -43,6 +43,9 @@ target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
 if(ENABLE_MPI)
   if(ENABLE_XIOS)
+    set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries" # TODO: Avoid this hack!
+    )
     FILE(CREATE_LINK
       "${CMAKE_SOURCE_DIR}/core/test/iodef.xml"
       "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml"
