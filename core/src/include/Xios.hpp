@@ -14,7 +14,6 @@
 #include "date.hpp"
 #if USE_XIOS
 
-#include "Configured.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -24,7 +23,7 @@
 
 namespace Nextsim {
 
-class Xios : public Configured<Xios> {
+class Xios {
 public:
     Xios();
     ~Xios();
@@ -33,7 +32,7 @@ public:
     void context_finalize();
     bool isInitialized();
 
-    void configure() override;
+    void configure();
     void configureServer();
     void configureCalendar();
 
@@ -58,10 +57,6 @@ public:
 
     void printCXiosDate(cxios_date date);
     void printCXiosDuration(cxios_duration duration);
-
-    enum {
-        ENABLED_KEY,
-    };
 
     int rank { 0 };
     int size { 0 };

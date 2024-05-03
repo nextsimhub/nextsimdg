@@ -34,10 +34,6 @@
 
 namespace Nextsim {
 
-template <>
-const std::map<int, std::string> Configured<Xios>::keyMap
-    = { { Xios::ENABLED_KEY, "xios.enable" } };
-
 /*!
  * Constructor
  *
@@ -74,12 +70,7 @@ void Xios::finalize()
  */
 void Xios::configure()
 {
-    // check if xios is enabled in the nextsim configuration
-    istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
-        >> std::boolalpha >> isEnabled;
-    if (isEnabled) {
-        configureServer();
-    }
+    configureServer();
 }
 
 //! Configure calendar settings

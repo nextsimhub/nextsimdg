@@ -41,6 +41,34 @@ add_executable(testModelArray "ModelArray_test.cpp" "../src/ModelArray.cpp" "${M
 target_include_directories(testModelArray PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
 target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 
+if(ENABLE_MPI)
+  if(ENABLE_XIOS)
+    FILE(CREATE_LINK
+      "${CMAKE_SOURCE_DIR}/core/test/iodef.xml"
+      "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml"
+      SYMBOLIC
+    )
+    set(XIOS_INCLUDE_LIST
+      "${xios_INCLUDES}"
+      "${xios_EXTERNS}/blitz/"
+      "${xios_EXTERNS}/rapidxml/include"
+      )
+    add_executable(testXiosInit_MPI2
+      "XiosInit_test.cpp" "../src/ModelArray.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp"
+      "../src/Xios.cpp" "MainMPI.cpp"
+    )
+    target_compile_definitions(testXiosInit_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosInit_MPI2
+      PRIVATE "../src" "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}"
+      PUBLIC "${netCDF_INCLUDE_DIR}"
+    )
+    target_link_directories(testXiosInit_MPI2 PUBLIC "${netCDF_LIB_DIR}" "${xios_LIBRARIES}")
+    target_link_libraries(testXiosInit_MPI2
+      PUBLIC doctest::doctest xios Boost::program_options "${NSDG_NetCDF_Library}" Eigen3::Eigen "${FORTRAN_RUNTIME_LIB}"
+    )
+  endif()
+endif()
+
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 if(ENABLE_MPI)
@@ -54,18 +82,6 @@ if(ENABLE_MPI)
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.nc.dump
   )
   add_custom_target(generate_partition_file ALL DEPENDS partition_metadata_3.nc)
-  if(ENABLE_XIOS)
-    FILE(CREATE_LINK "${CMAKE_SOURCE_DIR}/core/test/iodef.xml" "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml" SYMBOLIC)
-    set(XIOS_INCLUDE_LIST
-      "${xios_INCLUDES}"
-      "${xios_EXTERNS}/blitz/"
-      "${xios_EXTERNS}/rapidxml/include"
-      )
-    add_executable(testXiosInit_MPI2 "XiosInit_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(testXiosInit_MPI2 PRIVATE USE_XIOS USE_MPI)
-    target_include_directories(testXiosInit_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
-    target_link_libraries(testXiosInit_MPI2 PRIVATE nextsimlib doctest::doctest)
-  endif()
 else()
   add_executable(testRectGrid "RectGrid_test.cpp")
   target_compile_definitions(testRectGrid PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
