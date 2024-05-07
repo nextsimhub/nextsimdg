@@ -20,8 +20,8 @@ TEST_SUITE_BEGIN("BenchmarkOcean");
 TEST_CASE("OceanTest")
 {
     // Expected dimensions of the benchmark domain
-    const size_t nx = 154;
-    const size_t ny = 121;
+    const size_t nx = 256;
+    const size_t ny = 256;
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     ModelArray::setDimensions(ModelArray::Type::U, { nx, ny });
     ModelArray::setDimensions(ModelArray::Type::V, { nx, ny });
@@ -48,8 +48,8 @@ TEST_CASE("OceanTest")
 TEST_CASE("AtmosphereTest")
 {
     // Expected dimensions of the benchmark domain
-    const size_t nx = 154;
-    const size_t ny = 121;
+    const size_t nx = 256;
+    const size_t ny = 256;
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     ModelArray::setDimensions(ModelArray::Type::U, { nx, ny });
     ModelArray::setDimensions(ModelArray::Type::V, { nx, ny });
