@@ -17,6 +17,7 @@ namespace Nextsim {
 class OASISCoupledOcean : public IOceanBoundary {
 public:
     OASISCoupledOcean();
+    ~OASISCoupledOcean();
 
     std::string getName() const override { return "OASISCoupledOcean"; }
     void setData(const ModelState::DataMap&) override;

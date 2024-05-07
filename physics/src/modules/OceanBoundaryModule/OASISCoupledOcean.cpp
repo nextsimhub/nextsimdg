@@ -20,8 +20,13 @@ OASISCoupledOcean::OASISCoupledOcean()
 void OASISCoupledOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
+    // TODO: Insert OASIS initialisation calls here
+}
+
+void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
+{
     // Directly set the array values
-    // TODO: Replace this code with OASIS calls
+    // TODO: Replace this code with OASIS receive-calls
     sss = 32.;
     u = 0;
     v = 0;
@@ -31,12 +36,18 @@ void OASISCoupledOcean::setData(const ModelState::DataMap& ms)
     sst = tf32; // Tf == SST ensures that there is no ice-ocean heat flux
     cpml = Water::cp * Water::rho * mld;
     qio = 0.;
-}
 
-void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
-{
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
 
-void OASISCoupledOcean::updateAfter(const TimestepTime& tst) { }
+void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
+{
+    // TODO: Add OASIS send-calls here
+}
+
+OASISCoupledOcean::~OASISCoupledOcean()
+{
+        // TODO: Insert OASIS finalise call(s) here
+}
+
 } /* namespace Nextsim */
