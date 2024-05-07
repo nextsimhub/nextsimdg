@@ -15,12 +15,16 @@
 namespace Nextsim {
 void PrognosticData::writeRestartFile(const std::string& filePath) const
 {
-    ConfigMap modelConfig;
-    modelConfig.merge(ModelConfig::getConfig());
+    Logged::notice(std::string("  Writing state-based restart file: ") + filePath + '\n');
+
+    ConfigMap modelConfig = ModelConfig::getConfig();
     modelConfig.merge(getStateRecursive(true).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     ModelMetadata meta;
     meta.setConfig(modelConfig);
-    StructureFactory::fileFromState(getState(), meta, filePath);
+    ModelState state = getState();
+    meta.affixCoordinates(state);
+
+    StructureFactory::fileFromState(state, meta, filePath, true);
 }
 }
