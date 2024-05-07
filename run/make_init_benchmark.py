@@ -20,14 +20,14 @@ for res in [2, 4, 8, 16]:
     # Ice everywhere and all boundaries closed
     initializer.mask[:, :] = 1.
     initializer.mask[0, :] = 0.
-    initializer.mask[nfirst - 1, :] = 0.
+    initializer.mask[-1, :] = 0.
     initializer.mask[:, 0] = 0.
-    initializer.mask[:, nsecond - 1] = 0.
+    initializer.mask[:, -1] = 0.
 
     # Uniform concentration of 100%
     initializer.cice[:, :] = 1.
 
-    # Loop over ice thickness to construct the initial conditions. This should be a pattern of slightly varying "hills".
+    # Loop over ice thickness to construct the initial conditions. This should be a pattern of undulating ice.
     for ix in range(nfirst):
         x = ix * res
         for iy in range(nsecond):
