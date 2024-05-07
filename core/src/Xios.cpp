@@ -68,10 +68,7 @@ void Xios::finalize()
  * Configure the XIOS server if XIOS is enabled in the settings.
  *
  */
-void Xios::configure()
-{
-    configureServer();
-}
+void Xios::configure() { configureServer(); }
 
 //! Configure calendar settings
 void Xios::configureServer()
@@ -214,8 +211,8 @@ void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
 void Xios::write(const std::string fieldstr, const ModelArray& modelarray)
 {
     auto dim2 = modelarray.dimensions();
-    cxios_write_data_k82(fieldstr.c_str(), fieldstr.length(), modelarray.getData(),
-                         dim2[0], dim2[1], -1);
+    cxios_write_data_k82(
+        fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dim2[0], dim2[1], -1);
 }
 
 /*!

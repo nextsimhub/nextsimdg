@@ -12,10 +12,12 @@
  * boilerplate, so they have all been group in this test.
  *
  */
+// clang-format off
 #include <cstdio>
 #include <doctest/extensions/doctest_mpi.h>
 #include "include/ModelArray.hpp"
 #include "include/Xios.hpp"
+// clang-format on
 
 using namespace Nextsim;
 
@@ -102,7 +104,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     // create some fake data to test writing methods
     size_t ni = 30;
     size_t nj = 30;
-    ModelArray::MultiDim dims2 = {ni, nj};
+    ModelArray::MultiDim dims2 = { ni, nj };
     ModelArray::setDimensions(ModelArray::Type::TWOD, dims2);
     ModelArray field_A = ModelArray::TwoDField();
     for (int idx = 0; idx < field_A.size(); idx++) {
