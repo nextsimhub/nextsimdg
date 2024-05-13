@@ -15,6 +15,7 @@
 // clang-format off
 #include <cstdio>
 #include <doctest/extensions/doctest_mpi.h>
+#include <filesystem>
 #include "include/ModelArray.hpp"
 #include "include/Xios.hpp"
 // clang-format on
@@ -146,4 +147,9 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         step = xios_handler.getCalendarStep();
         REQUIRE(step == ts);
     }
+
+    // verify output files exist
+    REQUIRE(std::filesystem::exists("diagnostic_2D.nc"));
+    REQUIRE(std::filesystem::exists("diagnostic_3D.nc"));
+    REQUIRE(std::filesystem::exists("diagnostic_4D.nc"));
 }
