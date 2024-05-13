@@ -45,14 +45,11 @@ public:
     virtual ~DynamicsKernel() = default;
     virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
-        if (isSpherical)
-            throw std::runtime_error("DG dynamics do not yet handle spherical coordinates.");
-            // TODO handle spherical coordinates
-
         //! Define the spatial mesh
-        smesh = new ParametricMesh(Nextsim::CARTESIAN);
+        smesh = new ParametricMesh((isSpherical) ? Nextsim::SPHERICAL : Nextsim::CARTESIAN);
 
         smesh->coordinatesFromModelArray(coords);
+        if (isSpherical) smesh->RotatePoleToGreenland();
         smesh->landmaskFromModelArray(mask);
         smesh->dirichletFromMask();
         // TODO: handle periodic and open edges
@@ -206,7 +203,7 @@ protected:
     /*!
      * Calculates the divergence of the stress tensor.
      */
-    virtual void stressDivergence(const double scale) = 0;
+    virtual void stressDivergence() = 0;
     /*!
      * Apply Dirichlet and periodic boundary conditions.
      */

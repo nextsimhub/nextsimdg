@@ -18,8 +18,7 @@
 namespace Nextsim {
 
 // The VP pseudo-timestepping momentum equation solver for CG velocities
-template <int DGadvection>
-class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
+template <int DGadvection> class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
     using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
     using DynamicsKernel<DGadvection, DGstressDegree>::s11;
@@ -48,11 +47,13 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressX;
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
+
 public:
-    VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>(),
-          stressStep(stressStepIn),
-          params(reinterpret_cast<const VPParameters&>(paramsIn))
+    VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn,
+        const DynamicsParameters& paramsIn)
+        : CGDynamicsKernel<DGadvection>()
+        , stressStep(stressStepIn)
+        , params(reinterpret_cast<const VPParameters&>(paramsIn))
     {
     }
     virtual ~VPCGDynamicsKernel() = default;
@@ -77,21 +78,14 @@ public:
             /*StressUpdateStep<DGadvection, DGstressDegree>::SymmetricTensorVector*/
             std::array<DGVector<DGstressDegree>, 3> stress = { s11, s12, s22 };
             // Call the step function on the StressUpdateStep class
-            stressStep.stressUpdateHighOrder(params,
-                    *smesh,
-                    stress, { e11, e12, e22 },
-                    hice, cice,
-                    deltaT);
+            stressStep.stressUpdateHighOrder(
+                params, *smesh, stress, { e11, e12, e22 }, hice, cice, deltaT);
 
             s11 = stress[I11];
             s12 = stress[I12];
             s22 = stress[I22];
 
-            double stressScale = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
-            if (smesh->CoordinateSystem == Nextsim::SPHERICAL)
-                stressScale = 1.0 / Nextsim::EarthRadius / Nextsim::EarthRadius;
-
-            stressDivergence(stressScale); // Compute divergence of stress tensor
+            stressDivergence(); // Compute divergence of stress tensor
 
             updateMomentum(tst);
 
@@ -99,8 +93,8 @@ public:
         }
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
-
     }
+
 protected:
     StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
     const VPParameters& params;
@@ -115,7 +109,7 @@ protected:
     {
 
         // Update the velocity
-        double SC = 1.0;///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
+        double SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
 
         //      update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
@@ -123,37 +117,31 @@ protected:
             auto uOcnRel = uOcean(i) - u(i); // note the reversed sign compared to the v component
             auto vOcnRel = v(i) - vOcean(i);
             double absatm = sqrt(SQR(uAtmos(i)) + SQR(vAtmos(i)));
-            double absocn = sqrt(SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
+            double absocn = sqrt(
+                SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
 
             u(i) = (1.0
-                    / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
-                            + cgA(i) * params.F_ocean
-                            * absocn ) // implicit parts
-                            * (params.rho_ice * cgH(i) / deltaT * (beta * u(i) + u0(i)) // pseudo-timestepping
-                                    + cgA(i)
-                                    * (params.F_atm * absatm * uAtmos(i) + // atm forcing
-                                            params.F_ocean * absocn * SC
-                                            * uOcean(i)) // ocean forcing
-                                            + params.rho_ice * cgH(i) * params.fc
-                                            * vOcnRel // cor + surface
-                                            + dStressX(i)/pmap->lumpedcgmass(i)
-                            ));
+                / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
+                    + cgA(i) * params.F_ocean * absocn) // implicit parts
+                * (params.rho_ice * cgH(i) / deltaT * (beta * u(i) + u0(i)) // pseudo-timestepping
+                    + cgA(i)
+                        * (params.F_atm * absatm * uAtmos(i) + // atm forcing
+                            params.F_ocean * absocn * SC * uOcean(i)) // ocean forcing
+                    + params.rho_ice * cgH(i) * params.fc * vOcnRel // cor + surface
+                    + dStressX(i) / pmap->lumpedcgmass(i)));
             v(i) = (1.0
-                    / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
-                            + cgA(i) * params.F_ocean
-                            * absocn ) // implicit parts
-                            * (params.rho_ice * cgH(i) / deltaT * (beta * v(i) + v0(i)) // pseudo-timestepping
-                                    + cgA(i)
-                                    * (params.F_atm * absatm * vAtmos(i) + // atm forcing
-                                            params.F_ocean * absocn * SC
-                                            * vOcean(i)) // ocean forcing
-                                            + params.rho_ice * cgH(i) * params.fc
-                                            * uOcnRel // here the reversed sign of uOcnRel is used
-                                            + dStressY(i)/pmap->lumpedcgmass(i)
-                            ));
+                / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
+                    + cgA(i) * params.F_ocean * absocn) // implicit parts
+                * (params.rho_ice * cgH(i) / deltaT * (beta * v(i) + v0(i)) // pseudo-timestepping
+                    + cgA(i)
+                        * (params.F_atm * absatm * vAtmos(i) + // atm forcing
+                            params.F_ocean * absocn * SC * vOcean(i)) // ocean forcing
+                    + params.rho_ice * cgH(i) * params.fc
+                        * uOcnRel // here the reversed sign of uOcnRel is used
+                    + dStressY(i) / pmap->lumpedcgmass(i)));
         }
-
     }
+
 private:
     VPCGDynamicsKernel();
 };

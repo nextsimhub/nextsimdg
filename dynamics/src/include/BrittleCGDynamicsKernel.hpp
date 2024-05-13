@@ -114,7 +114,7 @@ public:
             dStressX.zero();
             dStressY.zero();
 
-            stressDivergence(1.0);
+            stressDivergence();
 
             updateMomentum(tst);
 
