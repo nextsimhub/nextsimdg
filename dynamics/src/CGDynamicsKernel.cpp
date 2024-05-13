@@ -19,8 +19,6 @@
 
 namespace Nextsim {
 
-static const size_t iidg = 9316; // FIXME remove me
-
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::initialise(
     const ModelArray& coords, bool isSpherical, const ModelArray& mask)
