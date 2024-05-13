@@ -215,12 +215,12 @@ void Xios::write(const std::string fieldstr, const ModelArray& modelarray)
         cxios_write_data_k82(
             fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dims[0], dims[1], -1);
     } else if (ndim == 3) {
-        cxios_write_data_k83(
-            fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dims[0], dims[1], dims[2], -1);
+        cxios_write_data_k83(fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dims[0],
+            dims[1], dims[2], -1);
 
     } else if (ndim == 4) {
-        cxios_write_data_k84(
-            fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dims[0], dims[1], dims[2], dims[3], -1);
+        cxios_write_data_k84(fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dims[0],
+            dims[1], dims[2], dims[3], -1);
 
     } else {
         throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
