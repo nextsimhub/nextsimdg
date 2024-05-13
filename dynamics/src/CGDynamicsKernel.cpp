@@ -181,18 +181,16 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
 
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::addStressTensorCell(
-    const double scale, const size_t eid, const size_t cx, const size_t cy)
+    const size_t eid, const size_t cx, const size_t cy)
 {
-    Eigen::Vector<Nextsim::FloatType, CGdof> tx = scale
-        * (pmap->divS1[eid] * s11.row(eid).transpose()
-            + pmap->divS2[eid] * s12.row(eid).transpose());
-    Eigen::Vector<Nextsim::FloatType, CGdof> ty = scale
-        * (pmap->divS1[eid] * s12.row(eid).transpose()
-            + pmap->divS2[eid] * s22.row(eid).transpose());
+    Eigen::Vector<Nextsim::FloatType, CGdof> tx = (pmap->divS1[eid] * s11.row(eid).transpose()
+        + pmap->divS2[eid] * s12.row(eid).transpose());
+    Eigen::Vector<Nextsim::FloatType, CGdof> ty = (pmap->divS1[eid] * s12.row(eid).transpose()
+        + pmap->divS2[eid] * s22.row(eid).transpose());
 
     if (smesh->CoordinateSystem == SPHERICAL) {
-        tx += scale * pmap->divM[eid] * s12.row(eid).transpose();
-        ty -= scale * pmap->divM[eid] * s11.row(eid).transpose();
+        tx += pmap->divM[eid] * s12.row(eid).transpose();
+        ty -= pmap->divM[eid] * s11.row(eid).transpose();
     }
     const size_t cgRow = CGdegree * smesh->nx + 1;
     const size_t cg_i
@@ -207,7 +205,7 @@ void CGDynamicsKernel<DGadvection>::addStressTensorCell(
     }
 }
 
-template <int DGadvection> void CGDynamicsKernel<DGadvection>::stressDivergence(const double scale)
+template <int DGadvection> void CGDynamicsKernel<DGadvection>::stressDivergence()
 {
     // Somewhat meaningless, but it uses the name in the former version of the code
     auto& tx = dStressX;
@@ -230,7 +228,7 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::stressDivergence(
                 for (size_t cx = 0; cx < smesh->nx; ++cx, ++c)
                     //!< loop over all cells of the mesh
                     if (smesh->landmask[c] == 1) // only on ice!
-                        addStressTensorCell(scale, c, cx, cy);
+                        addStressTensorCell(c, cx, cy);
             }
         }
     }

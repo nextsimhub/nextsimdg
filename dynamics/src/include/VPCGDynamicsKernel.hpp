@@ -85,9 +85,7 @@ public:
             s12 = stress[I12];
             s22 = stress[I22];
 
-            double stressScale = 1.0; // Stress scale of 1 correctly scales stress in both CARTESIAN
-                                      // and SPHERICAL coordinate systems.
-            stressDivergence(stressScale); // Compute divergence of stress tensor
+            stressDivergence(); // Compute divergence of stress tensor
 
             updateMomentum(tst);
 

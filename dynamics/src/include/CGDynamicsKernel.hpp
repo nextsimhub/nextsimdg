@@ -43,11 +43,11 @@ public:
     ModelArray getDG0Data(const std::string& name) override;
     void prepareIteration(const DataMap& data) override;
     void projectVelocityToStrain() override;
-    void stressDivergence(const double scale) override;
+    void stressDivergence() override;
     void applyBoundaries() override;
     void prepareAdvection() override;
 protected:
-    void addStressTensorCell(const double scale, const size_t eid, const size_t cx, const size_t cy);
+    void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);
     void dirichletZero(CGVector<CGdegree>&) const;
     // CG ice velocity
     CGVector<CGdegree> u;

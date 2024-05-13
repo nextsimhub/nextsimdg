@@ -203,7 +203,7 @@ protected:
     /*!
      * Calculates the divergence of the stress tensor.
      */
-    virtual void stressDivergence(const double scale) = 0;
+    virtual void stressDivergence() = 0;
     /*!
      * Apply Dirichlet and periodic boundary conditions.
      */
