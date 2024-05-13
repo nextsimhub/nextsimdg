@@ -12,11 +12,13 @@
  * boilerplate, so they have all been group in this test.
  *
  */
+// clang-format off
 #include <cstdio>
 #include <doctest/extensions/doctest_mpi.h>
-#include "include/Xios.hpp"
 #include <iostream>
 #include "include/Configurator.hpp"
+#include "include/Xios.hpp"
+// clang-format on
 
 /*!
  * TestXiosInitialization
