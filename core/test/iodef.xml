@@ -39,8 +39,14 @@
     </field_definition>
 
     <file_definition>
-      <file id="output" name="diagnostic" output_freq="1ts" type="one_file">
+      <file id="output_2D" name="diagnostic_2D" output_freq="1ts" type="one_file">
         <field id="field_2D"/>
+      </file>
+      <file id="output_3D" name="diagnostic_3D" output_freq="1ts" type="one_file">
+        <field id="field_3D"/>
+      </file>
+      <file id="output_4D" name="diagnostic_4D" output_freq="1ts" type="one_file">
+        <field id="field_4D"/>
       </file>
     </file_definition>
 
