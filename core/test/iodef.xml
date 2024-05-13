@@ -33,12 +33,14 @@
     </grid_definition>
 
     <field_definition>
-      <field id="field_A" name="test_field" operation="instant" grid_ref="grid_2D"/>
+      <field id="field_2D" name="test_field_2D" operation="instant" grid_ref="grid_2D"/>
+      <field id="field_3D" name="test_field_3D" operation="instant" grid_ref="grid_3D"/>
+      <field id="field_4D" name="test_field_4D" operation="instant" grid_ref="grid_4D"/>
     </field_definition>
 
     <file_definition>
       <file id="output" name="diagnostic" output_freq="1ts" type="one_file">
-        <field id="field_A"/>
+        <field id="field_2D"/>
       </file>
     </file_definition>
 

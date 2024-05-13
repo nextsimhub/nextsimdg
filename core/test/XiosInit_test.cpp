@@ -106,13 +106,13 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     size_t nj = 30;
     ModelArray::MultiDim dims2 = { ni, nj };
     ModelArray::setDimensions(ModelArray::Type::TWOD, dims2);
-    ModelArray field_A = ModelArray::TwoDField();
-    for (int idx = 0; idx < field_A.size(); idx++) {
-        field_A[idx] = 1.0 * idx;
+    ModelArray field_2D = ModelArray::TwoDField();
+    for (int idx = 0; idx < field_2D.size(); idx++) {
+        field_2D[idx] = 1.0 * idx;
     }
 
     // create field
-    std::string fieldId = { "field_A" };
+    std::string fieldId = { "field_2D" };
 
     // verify calendar step is starting from zero
     int step = xios_handler.getCalendarStep();
@@ -123,7 +123,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         // update the current timestep
         xios_handler.updateCalendar(ts);
         // send data to XIOS to be written to disk
-        xios_handler.write(fieldId, field_A);
+        xios_handler.write(fieldId, field_2D);
         // verify timestep
         step = xios_handler.getCalendarStep();
         REQUIRE(step == ts);
