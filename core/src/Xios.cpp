@@ -201,18 +201,30 @@ void Xios::setCalendarTimestep(cxios_duration timestep)
 void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
 
 /*!
- * send 2D field to xios server to be written to file.
+ * send 2D, 3D, or 4D field to xios server to be written to file.
  *
  * @param field name
- * @param data to be written
- * @param size of 1st dimension
- * @param size of 2nd dimension
+ * @param ModelArray containing data to be written
  */
 void Xios::write(const std::string fieldstr, const ModelArray& modelarray)
 {
-    auto dim2 = modelarray.dimensions();
-    cxios_write_data_k82(
-        fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dim2[0], dim2[1], -1);
+    auto ndim = modelarray.nDimensions();
+    auto dims = modelarray.dimensions();
+
+    if (ndim == 2) {
+        cxios_write_data_k82(
+            fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dims[0], dims[1], -1);
+    } else if (ndim == 3) {
+        cxios_write_data_k83(
+            fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dims[0], dims[1], dims[2], -1);
+
+    } else if (ndim == 4) {
+        cxios_write_data_k84(
+            fieldstr.c_str(), fieldstr.length(), modelarray.getData(), dims[0], dims[1], dims[2], dims[3], -1);
+
+    } else {
+        throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
+    }
 }
 
 /*!

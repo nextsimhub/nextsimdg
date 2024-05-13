@@ -81,9 +81,11 @@ void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d
 
 // writing methods
 void cxios_write_data_k82(const char* fieldid, int fieldid_size, const double* data_k8,
-    int data_Xsize, int data_Ysize, int tileid);
+    int data_size1, int data_size2, int tileid);
 void cxios_write_data_k83(const char* fieldid, int fieldid_size, const double* data_k8,
-    int data_Xsize, int data_Ysize, int data_Zsize, int tileid);
+    int data_size1, int data_size2, int data_size3, int tileid);
+void cxios_write_data_k84(const char* fieldid, int fieldid_size, const double* data_k8,
+    int data_size1, int data_size2, int data_size3, int data_size4, int tileid);
 };
 
 #endif
