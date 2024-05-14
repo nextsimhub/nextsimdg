@@ -16,11 +16,11 @@ metagrp.type = "simple_rectangular"
 
 datagrp = root.createGroup("data")
 
-xDim = datagrp.createDimension("x", nx)
-yDim = datagrp.createDimension("y", ny)
+xDim = datagrp.createDimension("xdim", nx)
+yDim = datagrp.createDimension("ydim", ny)
 nLay = datagrp.createDimension("nLayers", nLayers)
 
-hfield_dims = ("y", "x")
+hfield_dims = ("ydim", "xdim")
 
 mask = datagrp.createVariable("mask", "f8", hfield_dims)
 mask[:,::-1] = [[0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],

@@ -108,9 +108,9 @@ class initMaker:
         metagrp.createGroup("configuration")  # But add nothing to it
         datagrp = root.createGroup("data")
 
-        datagrp.createDimension("z", self.__nLayers)
-        datagrp.createDimension("y", self.__nFirst)
-        datagrp.createDimension("x", self.__nSecond)
+        datagrp.createDimension("zdim", self.__nLayers)
+        datagrp.createDimension("ydim", self.__nFirst)
+        datagrp.createDimension("xdim", self.__nSecond)
         datagrp.createDimension("yvertex", self.__nFirst + 1)
         datagrp.createDimension("xvertex", self.__nSecond + 1)
         datagrp.createDimension("y_cg", self.__nFirst * self.__nCg + 1)
@@ -119,7 +119,7 @@ class initMaker:
         datagrp.createDimension("dgstress_comp", self.__nDgStress)
         datagrp.createDimension("ncoords", self.__nCoords)
 
-        field_dims = ("y", "x")
+        field_dims = ("ydim", "xdim")
         coord_dims = ("yvertex", "xvertex", "ncoords")
 
         # Array coordinates
