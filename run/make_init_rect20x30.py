@@ -90,7 +90,7 @@ hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
 hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
+tice = datagrp.createVariable("tice", "f8", ("nLayers", "ydim", "xdim"))
 tice[0,:,:] = -0.5 - cice[:,:]
 
 mdi = -2.**300

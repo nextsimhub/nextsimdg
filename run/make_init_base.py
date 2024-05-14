@@ -5,7 +5,7 @@ class initMaker:
     """
     A "plug-and-play" initialisation class for neXtSIM. The user needs to supply
     at minimum the grid dimensions and resolution. They may also supply any
-    initialisation fields they need, as well as a land maks.
+    initialisation fields they need, as well as a land mask.
     Usage:
      0. Import make_init_base
       >>> from make_init_base import initMaker
@@ -167,7 +167,7 @@ class initMaker:
         hsnow[:, :] = self.hsnow
 
         # Set ice temperatures
-        tice = datagrp.createVariable("tice", "f8", ("z", "y", "x"))
+        tice = datagrp.createVariable("tice", "f8", ("zdim", "ydim", "xdim"))
         tice[:, :, :] = self.tice
 
         # Set ice velocity
