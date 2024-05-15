@@ -65,17 +65,26 @@ void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
 void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
 void cxios_get_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
 
-// domain methods // TODO: unused
+// domain methods
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);
-void cxios_get_domain_type(xios::CDomain* domain_hdl, char* type, int type_size);
-void cxios_get_domain_ni_glo(xios::CDomain* domain_hdl, int* ni_glo);
-void cxios_get_domain_nj_glo(xios::CDomain* domain_hdl, int* nj_glo);
+void cxios_set_domain_type(xios::CDomain* domain_hdl, char* type, int type_size); // TODO: unused
+void cxios_set_domain_ni_glo(xios::CDomain* domain_hdl, int ni_glo); // TODO: unused
+void cxios_set_domain_nj_glo(xios::CDomain* domain_hdl, int nj_glo); // TODO: unused
 void cxios_set_domain_ni(xios::CDomain* domain_hdl, int ni);
 void cxios_set_domain_nj(xios::CDomain* domain_hdl, int nj);
 void cxios_set_domain_ibegin(xios::CDomain* domain_hdl, int ibegin);
 void cxios_set_domain_jbegin(xios::CDomain* domain_hdl, int jbegin);
 void cxios_set_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
 void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
+void cxios_get_domain_type(xios::CDomain* domain_hdl, char* type, int type_size);
+void cxios_get_domain_ni_glo(xios::CDomain* domain_hdl, int* ni_glo);
+void cxios_get_domain_nj_glo(xios::CDomain* domain_hdl, int* nj_glo);
+void cxios_get_domain_ni(xios::CDomain* domain_hdl, int* ni);
+void cxios_get_domain_nj(xios::CDomain* domain_hdl, int* nj);
+void cxios_get_domain_ibegin(xios::CDomain* domain_hdl, int* ibegin);
+void cxios_get_domain_jbegin(xios::CDomain* domain_hdl, int* jbegin);
+void cxios_get_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
+void cxios_get_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
 
 // file methods
 void cxios_file_handle_create(xios::CFile** _ret, const char* _id, int _id_len);

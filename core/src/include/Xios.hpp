@@ -60,6 +60,27 @@ public:
     int getAxisSize(std::string axisId);
     std::vector<double> getAxisValues(std::string axisId);
 
+    /* Domain */
+    void createDomain(std::string domainId); // TODO
+    void setDomainType(std::string domainId, std::string domainType); // TODO
+    void setDomainGlobalLongitudeSize(std::string domainId, int size); // TODO
+    void setDomainGlobalLatitudeSize(std::string domainId, int size); // TODO
+    void setDomainLongitudeSize(std::string domainId, int size);
+    void setDomainLatitudeSize(std::string domainId, int size);
+    void setDomainLongitudeStart(std::string domainId, int start);
+    void setDomainLatitudeStart(std::string domainId, int start);
+    void setDomainLongitudeValues(std::string domainId, std::vector<double> values);
+    void setDomainLatitudeValues(std::string domainId, std::vector<double> values);
+    std::string getDomainType(std::string domainId);
+    int getDomainGlobalLongitudeSize(std::string domainId);
+    int getDomainGlobalLatitudeSize(std::string domainId);
+    int getDomainLongitudeSize(std::string domainId);
+    int getDomainLatitudeSize(std::string domainId);
+    int getDomainLongitudeStart(std::string domainId);
+    int getDomainLatitudeStart(std::string domainId);
+    std::vector<double> getDomainLongitudeValues(std::string domainId); // TODO
+    std::vector<double> getDomainLatitudeValues(std::string domainId); // TODO
+
     /* Grid */
     // TODO
 
@@ -101,7 +122,8 @@ private:
     std::string contextId;
 
     xios::CAxis* getAxis(std::string axisId);
-    xios::CFile* getFile(std::string fileId); // TODO
+    xios::CDomain* getDomain(std::string domainId);
+    xios::CFile* getFile(std::string fileId);
 };
 
 }

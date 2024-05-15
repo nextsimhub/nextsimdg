@@ -108,17 +108,58 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(current_date == "2023-03-17 17:37:00");
 
     // check axis getters
-    int ni = xios_handler.getAxisSize("axis_x");
-    int nj = xios_handler.getAxisSize("axis_y");
-    REQUIRE(ni == 30);
-    REQUIRE(nj == 30);
+    int axis_x_size = xios_handler.getAxisSize("axis_x");
+    int axis_y_size = xios_handler.getAxisSize("axis_y");
+    REQUIRE(axis_x_size == 30);
+    REQUIRE(axis_y_size == 30);
     std::vector<double> axis_x = xios_handler.getAxisValues("axis_x");
     std::vector<double> axis_y = xios_handler.getAxisValues("axis_y");
-    for (int i = 0; i < ni; i++) {
+    for (int i = 0; i < axis_x_size; i++) {
         REQUIRE(axis_x[i] == doctest::Approx(i));
     }
-    for (int j = 0; j < nj; j++) {
+    for (int j = 0; j < axis_y_size; j++) {
         REQUIRE(axis_x[j] == doctest::Approx(j));
+    }
+
+    // check global domain getters
+    std::string domainId { "domain_A" };
+    REQUIRE(xios_handler.getDomainType(domainId) == "rectilinear");
+    int ni_glo = xios_handler.getDomainGlobalLongitudeSize(domainId);
+    int nj_glo = xios_handler.getDomainGlobalLatitudeSize(domainId);
+    REQUIRE(ni_glo == 40);
+    REQUIRE(nj_glo == 60);
+
+    // check local domain setters and getters
+    int rank = xios_handler.rank;
+    int ni = 40;
+    int nj = 20 + 20 * rank;
+    xios_handler.setDomainLongitudeSize(domainId, ni);
+    xios_handler.setDomainLatitudeSize(domainId, nj);
+    REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
+    REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
+    int startLon = 0;
+    int startLat = 20 * rank;
+    xios_handler.setDomainLongitudeStart(domainId, startLon);
+    xios_handler.setDomainLatitudeStart(domainId, startLat);
+    REQUIRE(xios_handler.getDomainLongitudeStart(domainId) == startLon);
+    REQUIRE(xios_handler.getDomainLatitudeStart(domainId) == startLat);
+    std::vector<double> vecLon {};
+    std::vector<double> vecLat {};
+    for (int i = 0; i < ni; i++) {
+        vecLon.push_back(-180 + i + 360 / ni_glo);
+    }
+    for (int j = 0; j < nj; j++) {
+        vecLat.push_back(-90 + (rank * nj + j) * 180 / nj_glo);
+    }
+    xios_handler.setDomainLongitudeValues(domainId, vecLon);
+    xios_handler.setDomainLatitudeValues(domainId, vecLat);
+    std::vector<double> vecLonOut = xios_handler.getDomainLongitudeValues(domainId);
+    std::vector<double> vecLatOut = xios_handler.getDomainLatitudeValues(domainId);
+    for (int i = 0; i < ni; i++) {
+        REQUIRE(vecLonOut[i] == doctest::Approx(vecLon[i]));
+    }
+    for (int j = 0; j < nj; j++) {
+        REQUIRE(vecLatOut[j] == doctest::Approx(vecLat[j]));
     }
 
     // check file getters
@@ -131,8 +172,8 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == "1ts");
 
     // create some fake data to test writing methods
-    double* field_A = new double[ni * nj];
-    for (int idx = 0; idx < ni * nj; idx++) {
+    double* field_A = new double[ni * nj * axis_x_size * axis_y_size];
+    for (int idx = 0; idx < ni * nj * axis_x_size * axis_y_size; idx++) {
         field_A[idx] = 1.0 * idx;
     }
 

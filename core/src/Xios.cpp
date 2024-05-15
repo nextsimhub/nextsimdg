@@ -259,6 +259,228 @@ std::vector<double> Xios::getAxisValues(std::string axisId)
 }
 
 /*!
+ * Set the local longitude size for a given domain
+ *
+ * @param the domain ID
+ * @param the local longitude size
+ */
+void Xios::setDomainLongitudeSize(std::string domainId, int size)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_set_domain_ni(domain, size);
+}
+
+/*!
+ * Set the local latitude size for a given domain
+ *
+ * @param the domain ID
+ * @param the local longitude size
+ */
+void Xios::setDomainLatitudeSize(std::string domainId, int size)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_set_domain_nj(domain, size);
+}
+
+/*!
+ * Set the local start longitude for a given domain
+ *
+ * @param the domain ID
+ * @return the local start longitude
+ */
+void Xios::setDomainLongitudeStart(std::string domainId, int start)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_set_domain_ibegin(domain, start);
+}
+
+/*!
+ * Set the local start latitude for a given domain
+ *
+ * @param the domain ID
+ * @return the local start latitude
+ */
+void Xios::setDomainLatitudeStart(std::string domainId, int start)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_set_domain_jbegin(domain, start);
+}
+
+/*!
+ * Set the local longitude values for a given domain
+ *
+ * @param the domain ID
+ * @return the local longitude values
+ */
+void Xios::setDomainLongitudeValues(std::string domainId, std::vector<double> values)
+{
+    int size = getDomainLongitudeSize(domainId);
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_set_domain_lonvalue_1d(domain, values.data(), &size);
+}
+
+/*!
+ * Set the local latitude values for a given domain
+ *
+ * @param the domain ID
+ * @return the local latitude values
+ */
+void Xios::setDomainLatitudeValues(std::string domainId, std::vector<double> values)
+{
+    int size = getDomainLatitudeSize(domainId);
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_set_domain_latvalue_1d(domain, values.data(), &size);
+}
+
+/*!
+ * Get the domain associated with a given ID
+ *
+ * @param the domain ID
+ * @return a pointer to the XIOS CDomain object
+ */
+xios::CDomain* Xios::getDomain(std::string domainId)
+{
+    xios::CDomain* domain = NULL;
+    cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
+    return domain;
+}
+
+/*!
+ * Get the type of a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding domain type
+ */
+std::string Xios::getDomainType(std::string domainId)
+{
+    int size = 20;
+    char cStr[size];
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_get_domain_type(domain, cStr, size);
+    std::string domainType(cStr, size);
+    boost::algorithm::trim_right(domainType);
+    return domainType;
+}
+
+/*!
+ * Get the global longitude size for a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding global longitude size
+ */
+int Xios::getDomainGlobalLongitudeSize(std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    int size;
+    cxios_get_domain_ni_glo(domain, &size);
+    return size;
+}
+
+/*!
+ * Get the global latitude size for a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding global latitude size
+ */
+int Xios::getDomainGlobalLatitudeSize(std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    int size;
+    cxios_get_domain_nj_glo(domain, &size);
+    return size;
+}
+
+/*!
+ * Get the local longitude size for a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding local longitude size
+ */
+int Xios::getDomainLongitudeSize(std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    int size;
+    cxios_get_domain_ni(domain, &size);
+    return size;
+}
+
+/*!
+ * Get the local latitude size for a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding local latitude size
+ */
+int Xios::getDomainLatitudeSize(std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    int size;
+    cxios_get_domain_nj(domain, &size);
+    return size;
+}
+
+/*!
+ * Get the local starting longitude for a given domain
+ *
+ * @param the domain ID
+ * @return the local starting longitude of the corresponding domain
+ */
+int Xios::getDomainLongitudeStart(std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    int start;
+    cxios_get_domain_ibegin(domain, &start);
+    return start;
+}
+
+/*!
+ * Get the local starting latitude for a given domain
+ *
+ * @param the domain ID
+ * @return the local starting latitude of the corresponding domain
+ */
+int Xios::getDomainLatitudeStart(std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    int start;
+    cxios_get_domain_jbegin(domain, &start);
+    return start;
+}
+
+/*!
+ * Get the local longitude values for a given domain
+ *
+ * @param the domain ID
+ * @return the local longitude values of the corresponding domain
+ */
+std::vector<double> Xios::getDomainLongitudeValues(std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    int size = getDomainLongitudeSize(domainId);
+    double* values = new double[size];
+    cxios_get_domain_lonvalue_1d(domain, values, &size);
+    std::vector<double> vec(values, values + size);
+    delete[] values;
+    return vec;
+}
+
+/*!
+ * Get the local latitude values for a given domain
+ *
+ * @param the domain ID
+ * @return the local latitude values of the corresponding domain
+ */
+std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    int size = getDomainLatitudeSize(domainId);
+    double* values = new double[size];
+    cxios_get_domain_latvalue_1d(domain, values, &size);
+    std::vector<double> vec(values, values + size);
+    delete[] values;
+    return vec;
+}
+
+/*!
  * Get the file associated with a given ID
  *
  * @param the file ID

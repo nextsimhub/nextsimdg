@@ -10,8 +10,14 @@
       </axis>
     </axis_definition>
 
+    <domain_definition>
+      <domain id="domain_A" type="rectilinear" ni_glo="40" nj_glo="60">
+      </domain>
+    </domain_definition>
+
     <grid_definition>
       <grid id="grid_2D">
+        <domain domain_ref="domain_A"/>
         <axis axis_ref="axis_x"/>
         <axis axis_ref="axis_y"/>
       </grid>
