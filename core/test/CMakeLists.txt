@@ -12,6 +12,9 @@ set(PHYSICS_INCLUDE_DIRS
 
 set(ModulesRoot "../src/modules")
 
+# Generate netCDF files for tests
+execute_process(COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
 include_directories(${COMMON_INCLUDE_DIRS})
 
 add_executable(testIterator "Iterator_test.cpp")

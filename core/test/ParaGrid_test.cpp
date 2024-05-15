@@ -452,8 +452,44 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     // MD5 hash of the current output of $ date
     std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
+}
+
+TEST_CASE("Check if a file with the old dimension names can be read")
+{
+    std::string inputFilename = "old_names.nc";
+
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+
+    REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
+
+    size_t nx = 1;
+    size_t ny = 1;
+    NZLevels::set(1);
+
+    ParametricGrid gridIn;
+    ParaGridIO* readIO = new ParaGridIO(gridIn);
+    gridIn.setIO(readIO);
+
+    // Reset the array dimensions to make sure that the read function gets them correct
+    ModelArray::setDimension(ModelArray::Dimension::X, 2);
+    ModelArray::setDimension(ModelArray::Dimension::Y, 2);
+    ModelArray::setDimension(ModelArray::Dimension::Z, 2);
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 3);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 3);
+    ModelArray::setDimension(ModelArray::Dimension::XCG, 2);
+    ModelArray::setDimension(ModelArray::Dimension::YCG, 2);
+    // In the full model numbers of DG components are set at compile time, so they are not reset
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
+
+    ModelState ms = gridIn.getModelState(filename);
+
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
 
 }
+
 TEST_SUITE_END();
 
 }
