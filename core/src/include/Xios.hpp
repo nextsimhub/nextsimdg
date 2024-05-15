@@ -67,7 +67,15 @@ public:
     // TODO
 
     /* File */
-    // TODO
+    void createFile(std::string fileId); // TODO
+    bool validFileId(std::string fileId);
+    bool isDefinedOutputFreq(std::string fileId);
+    void setFileName(std::string fileId, std::string fileName); // TODO
+    void setFileType(std::string fileId, std::string fileType); // TODO
+    void setFileOutputFreq(std::string fileId, cxios_duration duration); // TODO
+    std::string getFileName(std::string fileId);
+    std::string getFileType(std::string fileId);
+    std::string getFileOutputFreq(std::string fileId);
 
     /* I/O */
     void write(const std::string fieldstr, double* data, const int ni, const int nj);
@@ -93,6 +101,7 @@ private:
     std::string contextId;
 
     xios::CAxis* getAxis(std::string axisId);
+    xios::CFile* getFile(std::string fileId); // TODO
 };
 
 }

@@ -121,6 +121,15 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         REQUIRE(axis_x[j] == doctest::Approx(j));
     }
 
+    // check file getters
+    REQUIRE_FALSE(xios_handler.validFileId("invalid"));
+    std::string fileId { "output" };
+    REQUIRE(xios_handler.validFileId(fileId));
+    REQUIRE(xios_handler.getFileName(fileId) == "diagnostic");
+    REQUIRE(xios_handler.getFileType(fileId) == "one_file");
+    REQUIRE(xios_handler.isDefinedOutputFreq(fileId));
+    REQUIRE(xios_handler.getFileOutputFreq(fileId) == "1ts");
+
     // create some fake data to test writing methods
     double* field_A = new double[ni * nj];
     for (int idx = 0; idx < ni * nj; idx++) {

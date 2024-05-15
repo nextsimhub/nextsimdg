@@ -39,8 +39,7 @@ void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret);
 // conversions
 void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size);
 cxios_date cxios_date_convert_from_string(const char* str, int str_size); // TODO: unused
-void cxios_duration_convert_to_string(
-    cxios_duration dur_c, char* str, int str_size); // TODO: unused
+void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size);
 
 // calendar methods
 void cxios_set_calendar_wrapper_date_time_origin(
@@ -78,15 +77,16 @@ void cxios_set_domain_jbegin(xios::CDomain* domain_hdl, int jbegin);
 void cxios_set_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
 void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
 
-// file methods // TODO: unused
-void cxios_file_handle_create(xios::CFile _ret, const char* _id, int _id_len);
+// file methods
+void cxios_file_handle_create(xios::CFile** _ret, const char* _id, int _id_len);
 void cxios_file_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_get_file_name(xios::CFile* file_hdl, char* name, int name_size);
 void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
 void cxios_get_file_type(xios::CFile* file_hdl, char* type, int type_size);
-void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size);
-void cxios_set_file_output_freq(xios::CFile* file_hdl, cxios_duration output_freq_c);
-void cxios_set_file_type(xios::CFile* file_hdl, const char* type, int type_size);
+void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size); // TODO: unused
+void cxios_set_file_output_freq(
+    xios::CFile* file_hdl, cxios_duration output_freq_c); // TODO: unused
+void cxios_set_file_type(xios::CFile* file_hdl, const char* type, int type_size); // TODO: unused
 bool cxios_is_defined_file_output_freq(xios::CFile* file_hdl);
 
 // writing methods

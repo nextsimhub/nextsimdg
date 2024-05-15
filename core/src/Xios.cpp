@@ -23,6 +23,7 @@
 
 #include "include/Xios.hpp"
 
+#include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -255,6 +256,96 @@ std::vector<double> Xios::getAxisValues(std::string axisId)
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
+}
+
+/*!
+ * Get the file associated with a given ID
+ *
+ * @param the file ID
+ * @return a pointer to the XIOS CFile object
+ */
+xios::CFile* Xios::getFile(std::string fileId)
+{
+    xios::CFile* file = NULL;
+    cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
+    return file;
+}
+
+/*!
+ * Verify whether a given file ID is valid
+ *
+ * @param the file ID
+ * @return `true` if the file ID is valid, otherwise `false`
+ */
+bool Xios::validFileId(std::string fileId)
+{
+    bool valid;
+    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
+    return valid;
+}
+/*!
+ * Verify whether an output frequency has been defined for a given file ID
+ *
+ * @param the file ID
+ * @return `true` if the output frequency has been set, otherwise `false`
+ */
+bool Xios::isDefinedOutputFreq(std::string fileId)
+{
+    xios::CFile* file = getFile(fileId);
+    return cxios_is_defined_file_output_freq(file);
+}
+
+/*!
+ * Get the name of a file with a given ID
+ *
+ * @param the file ID
+ * @return name of the corresponding file
+ */
+std::string Xios::getFileName(std::string fileId)
+{
+    int size = 20;
+    char cStr[size];
+    xios::CFile* file = getFile(fileId);
+    cxios_get_file_name(file, cStr, size);
+    std::string fileName(cStr, size);
+    boost::algorithm::trim_right(fileName);
+    return fileName;
+}
+
+/*!
+ * Get the type of a file with a given ID
+ *
+ * @param the file ID
+ * @return type of the corresponding file
+ */
+std::string Xios::getFileType(std::string fileId)
+{
+    int size = 20;
+    char cStr[size];
+    xios::CFile* file = getFile(fileId);
+    cxios_get_file_type(file, cStr, size);
+    std::string fileType(cStr, size);
+    boost::algorithm::trim_right(fileType);
+    return fileType;
+}
+
+/*!
+ * Get the output frequency of a file with a given ID
+ *
+ * @param the file ID
+ * @return the corresponding output frequency
+ */
+std::string Xios::getFileOutputFreq(std::string fileId)
+{
+    cxios_duration duration;
+    xios::CFile* file = getFile(fileId);
+    cxios_get_file_output_freq(file, &duration);
+    int size = 20;
+    char cStr[size];
+    cxios_duration_convert_to_string(duration, cStr, size);
+    std::string outputFreq(cStr, size);
+    boost::algorithm::trim_right(outputFreq);
+    return outputFreq;
 }
 
 /*!
