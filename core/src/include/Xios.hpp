@@ -54,7 +54,11 @@ public:
     void updateCalendar(int stepNumber);
 
     /* Axis */
-    // TODO
+    void createAxis(std::string axisId); // TODO
+    void setAxisSize(std::string axisId, int size); // TODO
+    int getAxisSize(std::string axisId);
+    void setAxisValues(std::string axisId, std::vector<double> values); // TODO
+    std::vector<double> getAxisValues(std::string axisId);
 
     /* Grid */
     // TODO
@@ -87,6 +91,8 @@ private:
     MPI_Fint nullComm_F;
     std::string clientId;
     std::string contextId;
+
+    xios::CAxis* getAxis(std::string axisId);
 };
 
 }

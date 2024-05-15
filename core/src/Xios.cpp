@@ -214,6 +214,50 @@ void Xios::setCalendarTimestep(cxios_duration timestep)
 void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
 
 /*!
+ * Get the axis associated with a given ID
+ *
+ * @param the axis ID
+ * @return a pointer to the XIOS CAxis object
+ */
+xios::CAxis* Xios::getAxis(std::string axisId)
+{
+    xios::CAxis* axis = NULL;
+    cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
+    return axis;
+}
+
+/*!
+ * Get the size of a given axis (the number of global points)
+ *
+ * @param the axis ID
+ * @return size of the corresponding axis
+ */
+int Xios::getAxisSize(std::string axisId)
+{
+    int size;
+    xios::CAxis* axis = getAxis(axisId);
+    cxios_get_axis_n_glo(axis, &size);
+    return size;
+}
+
+/*!
+ * Get the values associated with a given axis
+ *
+ * @param the axis ID
+ * @return the corresponding values
+ */
+std::vector<double> Xios::getAxisValues(std::string axisId)
+{
+    xios::CAxis* axis = getAxis(axisId);
+    int size = getAxisSize(axisId);
+    double* values = new double[size];
+    cxios_get_axis_value(axis, values, &size);
+    std::vector<double> vec(values, values + size);
+    delete[] values;
+    return vec;
+}
+
+/*!
  * send 2D field to xios server to be written to file.
  *
  * @param field name

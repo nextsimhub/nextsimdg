@@ -107,9 +107,21 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     current_date = xios_handler.getCurrentDate(false);
     REQUIRE(current_date == "2023-03-17 17:37:00");
 
+    // check axis getters
+    int ni = xios_handler.getAxisSize("axis_x");
+    int nj = xios_handler.getAxisSize("axis_y");
+    REQUIRE(ni == 30);
+    REQUIRE(nj == 30);
+    std::vector<double> axis_x = xios_handler.getAxisValues("axis_x");
+    std::vector<double> axis_y = xios_handler.getAxisValues("axis_y");
+    for (int i = 0; i < ni; i++) {
+        REQUIRE(axis_x[i] == doctest::Approx(i));
+    }
+    for (int j = 0; j < nj; j++) {
+        REQUIRE(axis_x[j] == doctest::Approx(j));
+    }
+
     // create some fake data to test writing methods
-    int ni = 30;
-    int nj = 30;
     double* field_A = new double[ni * nj];
     for (int idx = 0; idx < ni * nj; idx++) {
         field_A[idx] = 1.0 * idx;
