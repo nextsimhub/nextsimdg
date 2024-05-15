@@ -83,6 +83,8 @@ else()
   target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
   target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/old_names.nc"
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 
 add_executable(testModelComponent "ModelComponent_test.cpp")
