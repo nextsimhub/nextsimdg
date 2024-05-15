@@ -482,7 +482,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
-    ModelState ms = gridIn.getModelState(filename);
+    ModelState ms = gridIn.getModelState(inputFilename);
 
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
