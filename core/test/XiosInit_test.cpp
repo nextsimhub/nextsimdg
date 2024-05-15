@@ -100,11 +100,11 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     xios_handler.context_finalize();
 
-    // check the getCurrentDate method
+    // check the getCurrentDate method with and without ISO formatting
     xios::CDate current;
-    current = xios_handler.getCurrentDate();
-    std::string current_date = {};
-    current_date = current.toString().c_str();
+    std::string current_date = xios_handler.getCurrentDate();
+    REQUIRE(current_date == "2023-03-17T17:37:00Z");
+    current_date = xios_handler.getCurrentDate(false);
     REQUIRE(current_date == "2023-03-17 17:37:00");
 
     // create some fake data to test writing methods

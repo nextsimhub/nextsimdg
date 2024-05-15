@@ -140,18 +140,6 @@ cxios_date Xios::getCalendarStart()
 }
 
 /*!
- * get current date
- *
- * @return current date
- */
-xios::CDate Xios::getCurrentDate()
-{
-    xios::CDate calendar_date;
-    calendar_date = clientCalendar->getCalendar()->getCurrentDate();
-    return calendar_date;
-}
-
-/*!
  * get calendar timestep
  *
  * @return calendar timestep
@@ -172,6 +160,19 @@ int Xios::getCalendarStep()
 {
     int step = clientCalendar->getCalendar()->getStep();
     return step;
+}
+
+/*!
+ * get current calendar date
+ *
+ * @return current calendar date
+ */
+std::string Xios::getCurrentDate(bool isoFormat)
+{
+    cxios_date xiosDate;
+    cxios_get_current_date(&xiosDate);
+    std::string strDate = convertXiosDatetimeToString(xiosDate, isoFormat);
+    return strDate;
 }
 
 /*!

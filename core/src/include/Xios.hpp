@@ -37,7 +37,6 @@ public:
     void configureCalendar(); // TODO?
 
     /* Date and duration */
-    xios::CDate getCurrentDate();
     std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
     void printCXiosDate(cxios_date date);
     void printCXiosDuration(cxios_duration duration);
@@ -48,7 +47,7 @@ public:
     cxios_duration getCalendarTimestep();
     void getCalendarConfiguration(); // TODO?
     int getCalendarStep();
-    std::string getCalendarDate(bool isoFormat = true); // TODO
+    std::string getCurrentDate(bool isoFormat = true);
     void setCalendarOrigin(cxios_date origin);
     void setCalendarStart(cxios_date start);
     void setCalendarTimestep(cxios_duration timestep);
