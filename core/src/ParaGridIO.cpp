@@ -28,7 +28,7 @@
 namespace Nextsim {
 
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
-    { "ydixdim", ModelArray::Type::H },
+    { "ydimxdim", ModelArray::Type::H },
     { "zdimydimxdim", ModelArray::Type::Z },
     { "ydimxdimdg_comp", ModelArray::Type::DG },
     { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
