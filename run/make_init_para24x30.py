@@ -36,9 +36,9 @@ if __name__ == "__main__":
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
 
-    nLay = datagrp.createDimension("z", nLayers)
-    yDim = datagrp.createDimension("y", nfirst)
-    xDim = datagrp.createDimension("x", nsecond)
+    nLay = datagrp.createDimension("zdim", nLayers)
+    yDim = datagrp.createDimension("ydim", nfirst)
+    xDim = datagrp.createDimension("xdim", nsecond)
     yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
     xVertexDim = datagrp.createDimension("xvertex", nsecond+ 1)
     ycg_dim = datagrp.createDimension("y_cg", nfirst * ncg + 1)
@@ -47,9 +47,9 @@ if __name__ == "__main__":
     dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = datagrp.createDimension("ncoords", n_coords)
     
-    field_dims = ("y", "x")
+    field_dims = ("ydim", "xdim")
     coord_dims = ("yvertex", "xvertex", "ncoords")
-    zfield_dims = ("z", "y", "x")
+    zfield_dims = ("zdim", "ydim", "xdim")
 
     # Array coordinates
     space = 25000. # 25 km in metres

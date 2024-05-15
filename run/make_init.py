@@ -27,14 +27,14 @@ formatted[0] = "2000-01-01T00:00:00Z"
 
 datagrp = root.createGroup("data")
 
-x_dim = datagrp.createDimension("x", nx)
-y_dim = datagrp.createDimension("y", ny)
-z_dim = datagrp.createDimension("z", nLayers)
+x_dim = datagrp.createDimension("xdim", nx)
+y_dim = datagrp.createDimension("ydim", ny)
+z_dim = datagrp.createDimension("zdim", nLayers)
 xvertex_dim = datagrp.createDimension("xvertex", nx + 1)
 yvertex_dim = datagrp.createDimension("yvertex", ny + 1)
 coords_dim = datagrp.createDimension("ncoords", n_coords)
 
-hfield_dims = ("y", "x")
+hfield_dims = ("ydim", "xdim")
 
 mask = datagrp.createVariable("mask", "f8", hfield_dims)
 mask[:,::-1] = [[0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -104,7 +104,7 @@ hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
 hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("z", "y", "x"))
+tice = datagrp.createVariable("tice", "f8", ("zdim", "ydim", "xdim"))
 tice[0,:,:] = -0.5 - cice[:,:]
 
 mdi = -3.40282347e38 # Minus float max

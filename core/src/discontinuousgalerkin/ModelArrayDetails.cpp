@@ -16,9 +16,9 @@
 namespace Nextsim {
 // clang-format off
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
-    { ModelArray::Dimension::X, { "x", 0 } },
-    { ModelArray::Dimension::Y, { "y", 0 } },
-    { ModelArray::Dimension::Z, { "z", 1 } },
+    { ModelArray::Dimension::X, { "xdim", 0 } },
+    { ModelArray::Dimension::Y, { "ydim", 0 } },
+    { ModelArray::Dimension::Z, { "zdim", 1 } },
     { ModelArray::Dimension::XVERTEX, { "xvertex", 1 } }, // defined as x + 1
     { ModelArray::Dimension::YVERTEX, { "yvertex", 1 } }, // defined as y + 1
     { ModelArray::Dimension::XCG, { "x_cg", 1 } },
