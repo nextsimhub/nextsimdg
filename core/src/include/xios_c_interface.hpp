@@ -61,7 +61,7 @@ void cxios_get_calendar_wrapper_timestep(
     xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration* timestep_c);
 void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
 
-// axis methods // TODO: unused
+// axis methods
 void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
 void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
 void cxios_get_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);

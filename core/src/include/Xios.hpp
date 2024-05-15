@@ -56,8 +56,8 @@ public:
     /* Axis */
     void createAxis(std::string axisId); // TODO
     void setAxisSize(std::string axisId, int size); // TODO
-    int getAxisSize(std::string axisId);
     void setAxisValues(std::string axisId, std::vector<double> values); // TODO
+    int getAxisSize(std::string axisId);
     std::vector<double> getAxisValues(std::string axisId);
 
     /* Grid */
