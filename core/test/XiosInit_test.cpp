@@ -120,8 +120,8 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getDomainType(domainId) == "rectilinear");
     int ni_glo = xios_handler.getDomainGlobalLongitudeSize(domainId);
     int nj_glo = xios_handler.getDomainGlobalLatitudeSize(domainId);
-    REQUIRE(ni_glo == 40);
-    REQUIRE(nj_glo == 60);
+    REQUIRE(ni_glo == 60);
+    REQUIRE(nj_glo == 20);
 
     // check local domain setters and getters
     int rank = xios_handler.rank;

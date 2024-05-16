@@ -9,7 +9,7 @@
     </axis_definition>
 
     <domain_definition>
-      <domain id="domain_A" type="rectilinear" ni_glo="40" nj_glo="60">
+      <domain id="domain_A" type="rectilinear" ni_glo="60" nj_glo="20">
       </domain>
     </domain_definition>
 
