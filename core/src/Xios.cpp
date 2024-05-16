@@ -634,31 +634,6 @@ bool Xios::isDefinedFieldGridRef(std::string fieldId)
 }
 
 /*!
- * Verify whether a given file ID is valid
- *
- * @param the file ID
- * @return `true` if the file ID is valid, otherwise `false`
- */
-bool Xios::validFileId(std::string fileId)
-{
-    bool valid;
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    return valid;
-}
-
-/*!
- * Verify whether an output frequency has been defined for a given file ID
- *
- * @param the file ID
- * @return `true` if the output frequency has been set, otherwise `false`
- */
-bool Xios::isDefinedFileOutputFreq(std::string fileId)
-{
-    xios::CFile* file = getFile(fileId);
-    return cxios_is_defined_file_output_freq(file);
-}
-
-/*!
  * Get the file associated with a given ID
  *
  * @param the file ID
@@ -722,6 +697,31 @@ std::string Xios::getFileOutputFreq(std::string fileId)
     std::string outputFreq(cStr, size);
     boost::algorithm::trim_right(outputFreq);
     return outputFreq;
+}
+
+/*!
+ * Verify whether a given file ID is valid
+ *
+ * @param the file ID
+ * @return `true` if the file ID is valid, otherwise `false`
+ */
+bool Xios::validFileId(std::string fileId)
+{
+    bool valid;
+    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
+    return valid;
+}
+
+/*!
+ * Verify whether an output frequency has been defined for a given file ID
+ *
+ * @param the file ID
+ * @return `true` if the output frequency has been set, otherwise `false`
+ */
+bool Xios::isDefinedFileOutputFreq(std::string fileId)
+{
+    xios::CFile* file = getFile(fileId);
+    return cxios_is_defined_file_output_freq(file);
 }
 
 /*!
