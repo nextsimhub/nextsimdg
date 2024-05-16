@@ -98,15 +98,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(duration.second == doctest::Approx(0.0));
     REQUIRE(duration.timestep == doctest::Approx(0.0));
 
-    xios_handler.close_context_definition();
-
-    // check the getCurrentDate method with and without ISO formatting
-    xios::CDate current;
-    std::string current_date = xios_handler.getCurrentDate();
-    REQUIRE(current_date == "2023-03-17T17:37:00Z");
-    current_date = xios_handler.getCurrentDate(false);
-    REQUIRE(current_date == "2023-03-17 17:37:00");
-
     // check axis getters
     int axis_size = xios_handler.getAxisSize("axis_A");
     REQUIRE(axis_size == 30);
@@ -178,6 +169,15 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == "1ts");
 
+    xios_handler.close_context_definition();
+
+    // check the getCurrentDate method with and without ISO formatting
+    xios::CDate current;
+    std::string current_date = xios_handler.getCurrentDate();
+    REQUIRE(current_date == "2023-03-17T17:37:00Z");
+    current_date = xios_handler.getCurrentDate(false);
+    REQUIRE(current_date == "2023-03-17 17:37:00");
+
     // create some fake data to test writing methods
     double* field_A = new double[ni * nj * axis_size];
     for (int idx = 0; idx < ni * nj * axis_size; idx++) {
@@ -193,7 +193,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         // update the current timestep
         xios_handler.updateCalendar(ts);
         // send data to XIOS to be written to disk
-        // xios_handler.write(fieldId, field_A, ni, nj, axis_size); // FIXME
+        xios_handler.write(fieldId, field_A, ni, nj, axis_size);
         // verify timestep
         step = xios_handler.getCalendarStep();
         REQUIRE(step == ts);
