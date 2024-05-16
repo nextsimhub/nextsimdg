@@ -296,8 +296,7 @@ xios::CAxis* Xios::getAxis(std::string axisId)
 int Xios::getAxisSize(std::string axisId)
 {
     int size;
-    xios::CAxis* axis = getAxis(axisId);
-    cxios_get_axis_n_glo(axis, &size);
+    cxios_get_axis_n_glo(getAxis(axisId), &size);
     return size;
 }
 
@@ -309,10 +308,9 @@ int Xios::getAxisSize(std::string axisId)
  */
 std::vector<double> Xios::getAxisValues(std::string axisId)
 {
-    xios::CAxis* axis = getAxis(axisId);
     int size = getAxisSize(axisId);
     double* values = new double[size];
-    cxios_get_axis_value(axis, values, &size);
+    cxios_get_axis_value(getAxis(axisId), values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
@@ -326,8 +324,7 @@ std::vector<double> Xios::getAxisValues(std::string axisId)
  */
 void Xios::setDomainLongitudeSize(std::string domainId, int size)
 {
-    xios::CDomain* domain = getDomain(domainId);
-    cxios_set_domain_ni(domain, size);
+    cxios_set_domain_ni(getDomain(domainId), size);
 }
 
 /*!
@@ -338,8 +335,7 @@ void Xios::setDomainLongitudeSize(std::string domainId, int size)
  */
 void Xios::setDomainLatitudeSize(std::string domainId, int size)
 {
-    xios::CDomain* domain = getDomain(domainId);
-    cxios_set_domain_nj(domain, size);
+    cxios_set_domain_nj(getDomain(domainId), size);
 }
 
 /*!
@@ -350,8 +346,7 @@ void Xios::setDomainLatitudeSize(std::string domainId, int size)
  */
 void Xios::setDomainLongitudeStart(std::string domainId, int start)
 {
-    xios::CDomain* domain = getDomain(domainId);
-    cxios_set_domain_ibegin(domain, start);
+    cxios_set_domain_ibegin(getDomain(domainId), start);
 }
 
 /*!
@@ -362,8 +357,7 @@ void Xios::setDomainLongitudeStart(std::string domainId, int start)
  */
 void Xios::setDomainLatitudeStart(std::string domainId, int start)
 {
-    xios::CDomain* domain = getDomain(domainId);
-    cxios_set_domain_jbegin(domain, start);
+    cxios_set_domain_jbegin(getDomain(domainId), start);
 }
 
 /*!
@@ -375,8 +369,7 @@ void Xios::setDomainLatitudeStart(std::string domainId, int start)
 void Xios::setDomainLongitudeValues(std::string domainId, std::vector<double> values)
 {
     int size = getDomainLongitudeSize(domainId);
-    xios::CDomain* domain = getDomain(domainId);
-    cxios_set_domain_lonvalue_1d(domain, values.data(), &size);
+    cxios_set_domain_lonvalue_1d(getDomain(domainId), values.data(), &size);
 }
 
 /*!
@@ -388,8 +381,7 @@ void Xios::setDomainLongitudeValues(std::string domainId, std::vector<double> va
 void Xios::setDomainLatitudeValues(std::string domainId, std::vector<double> values)
 {
     int size = getDomainLatitudeSize(domainId);
-    xios::CDomain* domain = getDomain(domainId);
-    cxios_set_domain_latvalue_1d(domain, values.data(), &size);
+    cxios_set_domain_latvalue_1d(getDomain(domainId), values.data(), &size);
 }
 
 /*!
@@ -415,8 +407,7 @@ std::string Xios::getDomainType(std::string domainId)
 {
     int size = 20;
     char cStr[size];
-    xios::CDomain* domain = getDomain(domainId);
-    cxios_get_domain_type(domain, cStr, size);
+    cxios_get_domain_type(getDomain(domainId), cStr, size);
     std::string domainType(cStr, size);
     boost::algorithm::trim_right(domainType);
     return domainType;
@@ -430,9 +421,8 @@ std::string Xios::getDomainType(std::string domainId)
  */
 int Xios::getDomainGlobalLongitudeSize(std::string domainId)
 {
-    xios::CDomain* domain = getDomain(domainId);
     int size;
-    cxios_get_domain_ni_glo(domain, &size);
+    cxios_get_domain_ni_glo(getDomain(domainId), &size);
     return size;
 }
 
@@ -444,9 +434,8 @@ int Xios::getDomainGlobalLongitudeSize(std::string domainId)
  */
 int Xios::getDomainGlobalLatitudeSize(std::string domainId)
 {
-    xios::CDomain* domain = getDomain(domainId);
     int size;
-    cxios_get_domain_nj_glo(domain, &size);
+    cxios_get_domain_nj_glo(getDomain(domainId), &size);
     return size;
 }
 
@@ -458,9 +447,8 @@ int Xios::getDomainGlobalLatitudeSize(std::string domainId)
  */
 int Xios::getDomainLongitudeSize(std::string domainId)
 {
-    xios::CDomain* domain = getDomain(domainId);
     int size;
-    cxios_get_domain_ni(domain, &size);
+    cxios_get_domain_ni(getDomain(domainId), &size);
     return size;
 }
 
@@ -472,9 +460,8 @@ int Xios::getDomainLongitudeSize(std::string domainId)
  */
 int Xios::getDomainLatitudeSize(std::string domainId)
 {
-    xios::CDomain* domain = getDomain(domainId);
     int size;
-    cxios_get_domain_nj(domain, &size);
+    cxios_get_domain_nj(getDomain(domainId), &size);
     return size;
 }
 
@@ -486,9 +473,8 @@ int Xios::getDomainLatitudeSize(std::string domainId)
  */
 int Xios::getDomainLongitudeStart(std::string domainId)
 {
-    xios::CDomain* domain = getDomain(domainId);
     int start;
-    cxios_get_domain_ibegin(domain, &start);
+    cxios_get_domain_ibegin(getDomain(domainId), &start);
     return start;
 }
 
@@ -500,9 +486,8 @@ int Xios::getDomainLongitudeStart(std::string domainId)
  */
 int Xios::getDomainLatitudeStart(std::string domainId)
 {
-    xios::CDomain* domain = getDomain(domainId);
     int start;
-    cxios_get_domain_jbegin(domain, &start);
+    cxios_get_domain_jbegin(getDomain(domainId), &start);
     return start;
 }
 
@@ -514,10 +499,9 @@ int Xios::getDomainLatitudeStart(std::string domainId)
  */
 std::vector<double> Xios::getDomainLongitudeValues(std::string domainId)
 {
-    xios::CDomain* domain = getDomain(domainId);
     int size = getDomainLongitudeSize(domainId);
     double* values = new double[size];
-    cxios_get_domain_lonvalue_1d(domain, values, &size);
+    cxios_get_domain_lonvalue_1d(getDomain(domainId), values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
@@ -531,10 +515,9 @@ std::vector<double> Xios::getDomainLongitudeValues(std::string domainId)
  */
 std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
 {
-    xios::CDomain* domain = getDomain(domainId);
     int size = getDomainLatitudeSize(domainId);
     double* values = new double[size];
-    cxios_get_domain_latvalue_1d(domain, values, &size);
+    cxios_get_domain_latvalue_1d(getDomain(domainId), values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
@@ -563,8 +546,7 @@ std::string Xios::getFieldName(std::string fieldId)
 {
     int size = 20;
     char cStr[size];
-    xios::CField* field = getField(fieldId);
-    cxios_get_field_name(field, cStr, size);
+    cxios_get_field_name(getField(fieldId), cStr, size);
     std::string fieldName(cStr, size);
     boost::algorithm::trim_right(fieldName);
     return fieldName;
@@ -580,8 +562,7 @@ std::string Xios::getFieldOperation(std::string fieldId)
 {
     int size = 20;
     char cStr[size];
-    xios::CField* field = getField(fieldId);
-    cxios_get_field_operation(field, cStr, size);
+    cxios_get_field_operation(getField(fieldId), cStr, size);
     std::string operation(cStr, size);
     boost::algorithm::trim_right(operation);
     return operation;
@@ -597,8 +578,7 @@ std::string Xios::getFieldGridRef(std::string fieldId)
 {
     int size = 20;
     char cStr[size];
-    xios::CField* field = getField(fieldId);
-    cxios_get_field_grid_ref(field, cStr, size);
+    cxios_get_field_grid_ref(getField(fieldId), cStr, size);
     std::string gridRef(cStr, size);
     boost::algorithm::trim_right(gridRef);
     return gridRef;
@@ -612,8 +592,7 @@ std::string Xios::getFieldGridRef(std::string fieldId)
  */
 bool Xios::isDefinedFieldName(std::string fieldId)
 {
-    xios::CField* field = getField(fieldId);
-    return cxios_is_defined_field_name(field);
+    return cxios_is_defined_field_name(getField(fieldId));
 }
 
 /*!
@@ -624,8 +603,7 @@ bool Xios::isDefinedFieldName(std::string fieldId)
  */
 bool Xios::isDefinedFieldOperation(std::string fieldId)
 {
-    xios::CField* field = getField(fieldId);
-    return cxios_is_defined_field_operation(field);
+    return cxios_is_defined_field_operation(getField(fieldId));
 }
 
 /*!
@@ -636,8 +614,7 @@ bool Xios::isDefinedFieldOperation(std::string fieldId)
  */
 bool Xios::isDefinedFieldGridRef(std::string fieldId)
 {
-    xios::CField* field = getField(fieldId);
-    return cxios_is_defined_field_grid_ref(field);
+    return cxios_is_defined_field_grid_ref(getField(fieldId));
 }
 
 /*!
@@ -663,8 +640,7 @@ std::string Xios::getGridName(std::string gridId)
 {
     int size = 20;
     char cStr[size];
-    xios::CGrid* grid = getGrid(gridId);
-    cxios_get_grid_name(grid, cStr, size);
+    cxios_get_grid_name(getGrid(gridId), cStr, size);
     std::string gridName(cStr, size);
     boost::algorithm::trim_right(gridName);
     return gridName;
@@ -693,8 +669,7 @@ std::string Xios::getFileName(std::string fileId)
 {
     int size = 20;
     char cStr[size];
-    xios::CFile* file = getFile(fileId);
-    cxios_get_file_name(file, cStr, size);
+    cxios_get_file_name(getFile(fileId), cStr, size);
     std::string fileName(cStr, size);
     boost::algorithm::trim_right(fileName);
     return fileName;
@@ -710,8 +685,7 @@ std::string Xios::getFileType(std::string fileId)
 {
     int size = 20;
     char cStr[size];
-    xios::CFile* file = getFile(fileId);
-    cxios_get_file_type(file, cStr, size);
+    cxios_get_file_type(getFile(fileId), cStr, size);
     std::string fileType(cStr, size);
     boost::algorithm::trim_right(fileType);
     return fileType;
@@ -726,8 +700,7 @@ std::string Xios::getFileType(std::string fileId)
 std::string Xios::getFileOutputFreq(std::string fileId)
 {
     cxios_duration duration;
-    xios::CFile* file = getFile(fileId);
-    cxios_get_file_output_freq(file, &duration);
+    cxios_get_file_output_freq(getFile(fileId), &duration);
     int size = 20;
     char cStr[size];
     cxios_duration_convert_to_string(duration, cStr, size);
@@ -757,8 +730,7 @@ bool Xios::validFileId(std::string fileId)
  */
 bool Xios::isDefinedFileOutputFreq(std::string fileId)
 {
-    xios::CFile* file = getFile(fileId);
-    return cxios_is_defined_file_output_freq(file);
+    return cxios_is_defined_file_output_freq(getFile(fileId));
 }
 
 /*!
