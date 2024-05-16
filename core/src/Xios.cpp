@@ -50,19 +50,26 @@ Xios::Xios() { configure(); }
 //! Destructor
 Xios::~Xios() { finalize(); }
 
-//! Finalize XIOS context once xml config has been read and calendar settings updated
-void Xios::context_finalize()
+//! Close XIOS context definition once xml config has been read and calendar settings updated
+void Xios::close_context_definition()
 {
     if (isEnabled) {
         cxios_context_close_definition();
     }
 }
 
-//! close context and finialize server
-void Xios::finalize()
+//! Finalize XIOS context
+void Xios::context_finalize()
 {
     if (isEnabled) {
         cxios_context_finalize();
+    }
+}
+
+//! Close context and finialize server
+void Xios::finalize()
+{
+    if (isEnabled) {
         cxios_finalize();
     }
 }

@@ -98,7 +98,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(duration.second == doctest::Approx(0.0));
     REQUIRE(duration.timestep == doctest::Approx(0.0));
 
-    xios_handler.context_finalize();
+    xios_handler.close_context_definition();
 
     // check the getCurrentDate method with and without ISO formatting
     xios::CDate current;
@@ -125,14 +125,14 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // check local domain setters and getters
     int rank = xios_handler.rank;
-    int ni = 40;
-    int nj = 20 + 20 * rank;
+    int ni = ni_glo / xios_handler.size;
+    int nj = nj_glo;
     xios_handler.setDomainLongitudeSize(domainId, ni);
     xios_handler.setDomainLatitudeSize(domainId, nj);
     REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
     REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
-    int startLon = 0;
-    int startLat = 20 * rank;
+    int startLon = ni * rank;
+    int startLat = 0;
     xios_handler.setDomainLongitudeStart(domainId, startLon);
     xios_handler.setDomainLatitudeStart(domainId, startLat);
     REQUIRE(xios_handler.getDomainLongitudeStart(domainId) == startLon);
@@ -140,10 +140,10 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     std::vector<double> vecLon {};
     std::vector<double> vecLat {};
     for (int i = 0; i < ni; i++) {
-        vecLon.push_back(-180 + i + 360 / ni_glo);
+        vecLon.push_back(-180 + (rank * ni * i) * 360 / ni_glo);
     }
     for (int j = 0; j < nj; j++) {
-        vecLat.push_back(-90 + (rank * nj + j) * 180 / nj_glo);
+        vecLat.push_back(-90 + j * 180 / nj_glo);
     }
     xios_handler.setDomainLongitudeValues(domainId, vecLon);
     xios_handler.setDomainLatitudeValues(domainId, vecLat);
@@ -193,11 +193,13 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         // update the current timestep
         xios_handler.updateCalendar(ts);
         // send data to XIOS to be written to disk
-        // xios_handler.write(fieldId, field_A, ni, nj, axis_size);  // FIXME
+        // xios_handler.write(fieldId, field_A, ni, nj, axis_size); // FIXME
         // verify timestep
         step = xios_handler.getCalendarStep();
         REQUIRE(step == ts);
     }
+
+    xios_handler.context_finalize();
 
     // clean up
     delete[] field_A;

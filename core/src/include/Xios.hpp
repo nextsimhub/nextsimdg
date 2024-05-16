@@ -28,8 +28,9 @@ public:
     Xios();
     ~Xios();
 
-    void finalize();
+    void close_context_definition();
     void context_finalize();
+    void finalize();
     bool isInitialized();
 
     void configure() override;
