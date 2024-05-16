@@ -86,7 +86,10 @@ void cxios_get_domain_jbegin(xios::CDomain* domain_hdl, int* jbegin);
 void cxios_get_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
 void cxios_get_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
 
-// TODO: grid methods
+// grid methods
+void cxios_grid_handle_create(xios::CGrid** _ret, const char* _id, int _id_len);
+void cxios_set_grid_name(xios::CGrid* _ret, const char* name, int name_size);
+void cxios_get_grid_name(xios::CGrid* _ret, char* name, int name_size);
 
 // field methods
 void cxios_field_handle_create(xios::CField** _ret, const char* _id, int _id_len);

@@ -165,6 +165,10 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getFieldOperation(fieldId) == "instant");
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == "grid_2D");
 
+    // check grid getters
+    std::string gridId = { "grid_2D" };
+    REQUIRE(xios_handler.getGridName(gridId) == "test_grid");
+
     // check file getters
     REQUIRE_FALSE(xios_handler.validFileId("invalid"));
     std::string fileId { "output" };

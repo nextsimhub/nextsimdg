@@ -82,7 +82,9 @@ public:
     std::vector<double> getDomainLatitudeValues(std::string domainId); // TODO
 
     /* Grid */
-    // TODO
+    void createGrid(std::string gridId); // TODO
+    void setGridName(std::string gridId, std::string name); // TODO
+    std::string getGridName(std::string gridId);
 
     /* Field */
     void createField(std::string fieldId); // TODO
@@ -134,6 +136,7 @@ private:
     xios::CAxis* getAxis(std::string axisId);
     xios::CDomain* getDomain(std::string domainId);
     xios::CField* getField(std::string fieldId);
+    xios::CGrid* getGrid(std::string gridId);
     xios::CFile* getFile(std::string fileId);
 };
 
