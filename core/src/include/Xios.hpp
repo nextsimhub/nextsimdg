@@ -85,18 +85,27 @@ public:
     // TODO
 
     /* Field */
-    // TODO
+    void createField(std::string fieldId); // TODO
+    void setFieldName(std::string fieldId, std::string name); // TODO
+    void setFieldOperation(std::string fieldId, std::string operation); // TODO
+    void setFieldGridRef(std::string fieldId, std::string gridRef); // TODO
+    std::string getFieldName(std::string fieldId);
+    std::string getFieldOperation(std::string fieldId);
+    std::string getFieldGridRef(std::string fieldId);
+    bool isDefinedFieldName(std::string fieldId);
+    bool isDefinedFieldOperation(std::string fieldId);
+    bool isDefinedFieldGridRef(std::string fieldId);
 
     /* File */
     void createFile(std::string fileId); // TODO
-    bool validFileId(std::string fileId);
-    bool isDefinedOutputFreq(std::string fileId);
     void setFileName(std::string fileId, std::string fileName); // TODO
     void setFileType(std::string fileId, std::string fileType); // TODO
     void setFileOutputFreq(std::string fileId, cxios_duration duration); // TODO
     std::string getFileName(std::string fileId);
     std::string getFileType(std::string fileId);
     std::string getFileOutputFreq(std::string fileId);
+    bool validFileId(std::string fileId);
+    bool isDefinedFileOutputFreq(std::string fileId);
 
     /* I/O */
     void write(const std::string fieldId, double* data, const int ni, const int nj);
@@ -124,6 +133,7 @@ private:
 
     xios::CAxis* getAxis(std::string axisId);
     xios::CDomain* getDomain(std::string domainId);
+    xios::CField* getField(std::string fieldId);
     xios::CFile* getFile(std::string fileId);
 };
 

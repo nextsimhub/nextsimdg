@@ -534,16 +534,103 @@ std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
 }
 
 /*!
- * Get the file associated with a given ID
+ * Get the field associated with a given ID
  *
- * @param the file ID
- * @return a pointer to the XIOS CFile object
+ * @param the field ID
+ * @return a pointer to the XIOS CField object
  */
-xios::CFile* Xios::getFile(std::string fileId)
+xios::CField* Xios::getField(std::string fieldId)
 {
-    xios::CFile* file = NULL;
-    cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
-    return file;
+    xios::CField* field = NULL;
+    cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
+    return field;
+}
+
+/*!
+ * Get the name of a field with a given ID
+ *
+ * @param the field ID
+ * @return name of the corresponding field
+ */
+std::string Xios::getFieldName(std::string fieldId)
+{
+    int size = 20;
+    char cStr[size];
+    xios::CField* field = getField(fieldId);
+    cxios_get_field_name(field, cStr, size);
+    std::string fieldName(cStr, size);
+    boost::algorithm::trim_right(fieldName);
+    return fieldName;
+}
+
+/*!
+ * Get the operation associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return operation used for the corresponding field
+ */
+std::string Xios::getFieldOperation(std::string fieldId)
+{
+    int size = 20;
+    char cStr[size];
+    xios::CField* field = getField(fieldId);
+    cxios_get_field_operation(field, cStr, size);
+    std::string operation(cStr, size);
+    boost::algorithm::trim_right(operation);
+    return operation;
+}
+
+/*!
+ * Get the grid reference associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return grid reference used for the corresponding field
+ */
+std::string Xios::getFieldGridRef(std::string fieldId)
+{
+    int size = 20;
+    char cStr[size];
+    xios::CField* field = getField(fieldId);
+    cxios_get_field_grid_ref(field, cStr, size);
+    std::string gridRef(cStr, size);
+    boost::algorithm::trim_right(gridRef);
+    return gridRef;
+}
+
+/*!
+ * Verify whether a name has been defined for a given field ID
+ *
+ * @param the field ID
+ * @return `true` if the name has been set, otherwise `false`
+ */
+bool Xios::isDefinedFieldName(std::string fieldId)
+{
+    xios::CField* field = getField(fieldId);
+    return cxios_is_defined_field_name(field);
+}
+
+/*!
+ * Verify whether an operation has been defined for a given field ID
+ *
+ * @param the field ID
+ * @return `true` if the operation has been set, otherwise `false`
+ */
+bool Xios::isDefinedFieldOperation(std::string fieldId)
+{
+    xios::CField* field = getField(fieldId);
+    return cxios_is_defined_field_operation(field);
+}
+
+/*!
+ * Verify whether a grid reference has been defined for a given field ID
+ *
+ * @param the field ID
+ * @return `true` if the grid reference has been set, otherwise `false`
+ */
+bool Xios::isDefinedFieldGridRef(std::string fieldId)
+{
+    xios::CField* field = getField(fieldId);
+    return cxios_is_defined_field_grid_ref(field);
 }
 
 /*!
@@ -558,16 +645,30 @@ bool Xios::validFileId(std::string fileId)
     cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
     return valid;
 }
+
 /*!
  * Verify whether an output frequency has been defined for a given file ID
  *
  * @param the file ID
  * @return `true` if the output frequency has been set, otherwise `false`
  */
-bool Xios::isDefinedOutputFreq(std::string fileId)
+bool Xios::isDefinedFileOutputFreq(std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     return cxios_is_defined_file_output_freq(file);
+}
+
+/*!
+ * Get the file associated with a given ID
+ *
+ * @param the file ID
+ * @return a pointer to the XIOS CFile object
+ */
+xios::CFile* Xios::getFile(std::string fileId)
+{
+    xios::CFile* file = NULL;
+    cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
+    return file;
 }
 
 /*!

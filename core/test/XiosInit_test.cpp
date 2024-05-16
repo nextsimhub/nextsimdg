@@ -156,13 +156,22 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         REQUIRE(vecLatOut[j] == doctest::Approx(vecLat[j]));
     }
 
+    // check field getters
+    std::string fieldId = { "field_A" };
+    REQUIRE(xios_handler.isDefinedFieldName(fieldId));
+    REQUIRE(xios_handler.isDefinedFieldOperation(fieldId));
+    REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
+    REQUIRE(xios_handler.getFieldName(fieldId) == "test_field");
+    REQUIRE(xios_handler.getFieldOperation(fieldId) == "instant");
+    REQUIRE(xios_handler.getFieldGridRef(fieldId) == "grid_2D");
+
     // check file getters
     REQUIRE_FALSE(xios_handler.validFileId("invalid"));
     std::string fileId { "output" };
     REQUIRE(xios_handler.validFileId(fileId));
     REQUIRE(xios_handler.getFileName(fileId) == "diagnostic");
     REQUIRE(xios_handler.getFileType(fileId) == "one_file");
-    REQUIRE(xios_handler.isDefinedOutputFreq(fileId));
+    REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == "1ts");
 
     // create some fake data to test writing methods
@@ -170,9 +179,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     for (int idx = 0; idx < ni * nj * axis_size; idx++) {
         field_A[idx] = 1.0 * idx;
     }
-
-    // create field
-    std::string fieldId = { "field_A" };
 
     // verify calendar step is starting from zero
     int step = xios_handler.getCalendarStep();

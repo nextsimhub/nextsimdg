@@ -86,6 +86,22 @@ void cxios_get_domain_jbegin(xios::CDomain* domain_hdl, int* jbegin);
 void cxios_get_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
 void cxios_get_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
 
+// TODO: grid methods
+
+// field methods
+void cxios_field_handle_create(xios::CField** _ret, const char* _id, int _id_len);
+void cxios_set_field_name(xios::CField* _ret, const char* name, int name_size); // TODO: unused
+void cxios_set_field_operation(
+    xios::CField* _ret, const char* operation, int operation_size); // TODO: unused
+void cxios_set_field_grid_ref(
+    xios::CField* _ret, const char* grid_ref, int grid_ref_size); // TODO: unused
+void cxios_get_field_name(xios::CField* _ret, char* name, int name_size);
+void cxios_get_field_operation(xios::CField* _ret, char* operation, int operation_size);
+void cxios_get_field_grid_ref(xios::CField* _ret, char* grid_ref, int grid_ref_size);
+bool cxios_is_defined_field_name(xios::CField* _ret);
+bool cxios_is_defined_field_operation(xios::CField* _ret);
+bool cxios_is_defined_field_grid_ref(xios::CField* _ret);
+
 // file methods
 void cxios_file_handle_create(xios::CFile** _ret, const char* _id, int _id_len);
 void cxios_file_valid_id(bool* _ret, const char* _id, int _id_len);
