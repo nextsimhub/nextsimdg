@@ -117,6 +117,59 @@ bool Xios::isInitialized()
 }
 
 /*!
+ * return datetime as std::string using ISO 8601 format (default)
+ * if `isoFormat` is true format will be  2023-03-03T17:11:00Z
+ * if `isoFormat` is false format will be 2023-03-03 17:11:00
+ *
+ * @param datetime
+ * @param isoFormat as bool
+ * @return datetime as a string
+ */
+std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
+{
+    boost::format fmt;
+    if (isoFormat) {
+        fmt = boost::format("%1$4d-%2$02d-%3$02dT%4$02d:%5$02d:%6$02dZ") % datetime.year
+            % datetime.month % datetime.day % datetime.hour % datetime.minute % datetime.second;
+    } else {
+        fmt = boost::format("%1$4d-%2$02d-%3$02d %4$02d:%5$02d:%6$02d") % datetime.year
+            % datetime.month % datetime.day % datetime.hour % datetime.minute % datetime.second;
+    }
+    return fmt.str();
+}
+
+/*!
+ * helpful utility function to print cxios date.
+ *
+ * @param date
+ */
+void Xios::printCXiosDate(cxios_date date)
+{
+    std::cout << " year     " << date.year << std::endl;
+    std::cout << " month    " << date.month << std::endl;
+    std::cout << " day      " << date.day << std::endl;
+    std::cout << " hour     " << date.hour << std::endl;
+    std::cout << " minute   " << date.minute << std::endl;
+    std::cout << " second   " << date.second << std::endl;
+}
+
+/*!
+ * helpful utility function to print cxios duration.
+ *
+ * @param duration
+ */
+void Xios::printCXiosDuration(cxios_duration duration)
+{
+    std::cout << " year     " << duration.year << std::endl;
+    std::cout << " month    " << duration.month << std::endl;
+    std::cout << " day      " << duration.day << std::endl;
+    std::cout << " hour     " << duration.hour << std::endl;
+    std::cout << " minute   " << duration.minute << std::endl;
+    std::cout << " second   " << duration.second << std::endl;
+    std::cout << " timestep " << duration.timestep << std::endl;
+}
+
+/*!
  * get calendar origin
  *
  * @return calendar origin
@@ -581,59 +634,6 @@ std::string Xios::getFileOutputFreq(std::string fileId)
 void Xios::write(const std::string fieldstr, double* data, const int ni, const int nj)
 {
     cxios_write_data_k82(fieldstr.c_str(), fieldstr.length(), data, ni, nj, -1);
-}
-
-/*!
- * return datetime as std::string using ISO 8601 format (default)
- * if `isoFormat` is true format will be  2023-03-03T17:11:00Z
- * if `isoFormat` is false format will be 2023-03-03 17:11:00
- *
- * @param datetime
- * @param isoFormat as bool
- * @return datetime as a string
- */
-std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
-{
-    boost::format fmt;
-    if (isoFormat) {
-        fmt = boost::format("%1$4d-%2$02d-%3$02dT%4$02d:%5$02d:%6$02dZ") % datetime.year
-            % datetime.month % datetime.day % datetime.hour % datetime.minute % datetime.second;
-    } else {
-        fmt = boost::format("%1$4d-%2$02d-%3$02d %4$02d:%5$02d:%6$02d") % datetime.year
-            % datetime.month % datetime.day % datetime.hour % datetime.minute % datetime.second;
-    }
-    return fmt.str();
-}
-
-/*!
- * helpful utility function to print cxios date.
- *
- * @param date
- */
-void Xios::printCXiosDate(cxios_date date)
-{
-    std::cout << " year     " << date.year << std::endl;
-    std::cout << " month    " << date.month << std::endl;
-    std::cout << " day      " << date.day << std::endl;
-    std::cout << " hour     " << date.hour << std::endl;
-    std::cout << " minute   " << date.minute << std::endl;
-    std::cout << " second   " << date.second << std::endl;
-}
-
-/*!
- * helpful utility function to print cxios duration.
- *
- * @param duration
- */
-void Xios::printCXiosDuration(cxios_duration duration)
-{
-    std::cout << " year     " << duration.year << std::endl;
-    std::cout << " month    " << duration.month << std::endl;
-    std::cout << " day      " << duration.day << std::endl;
-    std::cout << " hour     " << duration.hour << std::endl;
-    std::cout << " minute   " << duration.minute << std::endl;
-    std::cout << " second   " << duration.second << std::endl;
-    std::cout << " timestep " << duration.timestep << std::endl;
 }
 }
 
