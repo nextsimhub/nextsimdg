@@ -631,9 +631,23 @@ std::string Xios::getFileOutputFreq(std::string fileId)
  * @param size of 1st dimension
  * @param size of 2nd dimension
  */
-void Xios::write(const std::string fieldstr, double* data, const int ni, const int nj)
+void Xios::write(const std::string fieldId, double* data, const int ni, const int nj)
 {
-    cxios_write_data_k82(fieldstr.c_str(), fieldstr.length(), data, ni, nj, -1);
+    cxios_write_data_k82(fieldId.c_str(), fieldId.length(), data, ni, nj, -1);
+}
+
+/*!
+ * send 3D field to xios server to be written to file.
+ *
+ * @param field name
+ * @param data to be written
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ * @param size of 3rd dimension
+ */
+void Xios::write(const std::string fieldId, double* data, const int ni, const int nj, const int nk)
+{
+    cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, ni, nj, nk, -1);
 }
 }
 

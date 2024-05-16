@@ -102,7 +102,7 @@ bool cxios_is_defined_file_output_freq(xios::CFile* file_hdl);
 void cxios_write_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize,
     int data_Ysize, int tileid);
 void cxios_write_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize,
-    int data_Ysize, int data_Zsize, int tileid); // TODO: unused
+    int data_Ysize, int data_Zsize, int tileid);
 };
 
 #endif

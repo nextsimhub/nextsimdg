@@ -4,9 +4,7 @@
     <calendar type="Gregorian" time_origin="2020-01-23 00:08:15" start_date="2023-03-17 17:11:00" timestep="1.5 h"/>
 
     <axis_definition>
-      <axis id="axis_x" n_glo="30" value="(0,29)[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29]">
-      </axis>
-      <axis id="axis_y" n_glo="30" value="(0,29)[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29]">
+      <axis id="axis_A" n_glo="30" value="(0,29)[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29]">
       </axis>
     </axis_definition>
 
@@ -18,8 +16,7 @@
     <grid_definition>
       <grid id="grid_2D">
         <domain domain_ref="domain_A"/>
-        <axis axis_ref="axis_x"/>
-        <axis axis_ref="axis_y"/>
+        <axis axis_ref="axis_A"/>
       </grid>
     </grid_definition>
 

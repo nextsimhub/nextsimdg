@@ -99,7 +99,8 @@ public:
     std::string getFileOutputFreq(std::string fileId);
 
     /* I/O */
-    void write(const std::string fieldstr, double* data, const int ni, const int nj);
+    void write(const std::string fieldId, double* data, const int ni, const int nj);
+    void write(const std::string fieldId, double* data, const int ni, const int nj, const int nk);
 
     enum {
         ENABLED_KEY,
