@@ -23,6 +23,7 @@ static const std::vector<std::string> namedFields = { hiceName, ciceName, uName,
 MEVPDynamics::MEVPDynamics()
         : IDynamics()
         , kernel(params)
+        , kernel2(params)
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);

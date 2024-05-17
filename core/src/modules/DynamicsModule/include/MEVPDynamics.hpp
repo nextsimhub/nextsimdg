@@ -11,6 +11,7 @@
 
 #include "include/MEVPDynamicsKernel.hpp"
 #include "include/IDynamics.hpp"
+#include "gpu/KokkosVPCGDynamicsKernel.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -27,6 +28,7 @@ public:
 private:
     // TODO: How to get the template parameters here?
     MEVPDynamicsKernel<6> kernel;
+    KokkosVPCGDynamicsKernel<6> kernel2;
     VPParameters params;
 };
 }

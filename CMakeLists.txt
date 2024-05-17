@@ -109,7 +109,8 @@ foreach(compo ${CodeComponents})
     add_subdirectory("${compo}")
 endforeach()
 
-add_library(nextsimlib SHARED ${NextsimSources})
+# todo: make SHARED work with Kokkos(CUDA) enabled
+add_library(nextsimlib STATIC ${NextsimSources}) # SHARED
 target_compile_features(nextsimlib PUBLIC cxx_std_17)
 target_compile_definitions(nextsimlib
     PRIVATE
