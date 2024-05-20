@@ -100,7 +100,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for axis API
     std::string axisId = { "axis_A" };
-    // xios_handler.createAxis(axisId); // FIXME
+    xios_handler.createAxis(axisId);
     // Axis size
     int axis_size = 30;
     REQUIRE_FALSE(xios_handler.isDefinedAxisSize(axisId));
@@ -122,7 +122,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for domain API
     std::string domainId = { "domain_A" };
-    // xios_handler.createDomain(domainId); // FIXME
+    xios_handler.createDomain(domainId);
     // Domain type
     REQUIRE_FALSE(xios_handler.isDefinedDomainType(domainId));
     std::string domainType = { "rectilinear" };
@@ -203,7 +203,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for field API
     std::string fieldId = { "field_A" };
-    // xios_handler.createField(fieldId); // FIXME
+    xios_handler.createField(fieldId);
     // Field name
     std::string fieldName = { "test_field" };
     REQUIRE_FALSE(xios_handler.isDefinedFieldName(fieldId));

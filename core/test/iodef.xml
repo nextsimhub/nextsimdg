@@ -3,16 +3,6 @@
   <context id="nextsim">
     <calendar type="Gregorian" time_origin="2020-01-23 00:08:15" start_date="2023-03-17 17:11:00" timestep="1.5 h"/>
 
-    <!-- TODO: Drop axis def -->
-    <axis_definition>
-      <axis id="axis_A"/>
-    </axis_definition>
-
-    <!-- TODO: Drop domain def -->
-    <domain_definition>
-      <domain id="domain_A"/>
-    </domain_definition>
-
     <!-- TODO: Drop grid def -->
     <grid_definition>
       <grid id="grid_2D">
@@ -20,11 +10,6 @@
         <axis axis_ref="axis_A"/>
       </grid>
     </grid_definition>
-
-    <!-- TODO: Drop field def -->
-    <field_definition>
-      <field id="field_A"/>
-    </field_definition>
 
     <!-- TODO: Drop file def -->
     <file_definition>
