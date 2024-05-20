@@ -115,6 +115,10 @@ void cxios_grid_handle_create(xios::CGrid** _ret, const char* _id, int _id_len);
 void cxios_set_grid_name(xios::CGrid* _ret, const char* name, int name_size);
 void cxios_get_grid_name(xios::CGrid* _ret, char* name, int name_size);
 bool cxios_is_defined_grid_name(xios::CGrid* file_hdl);
+void cxios_xml_tree_add_axistogrid(
+    xios::CGrid* grid, xios::CAxis** axis, const char* _id, int _id_len);
+void cxios_xml_tree_add_domaintogrid(
+    xios::CGrid* grid, xios::CDomain** domain, const char* _id, int _id_len);
 
 // field methods
 void cxios_xml_tree_add_fieldgroup(xios::CFieldGroup** field_grp, const char* _id, int _id_len);
@@ -146,6 +150,8 @@ void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_fr
 bool cxios_is_defined_file_name(xios::CFile* file_hdl);
 bool cxios_is_defined_file_type(xios::CFile* file_hdl);
 bool cxios_is_defined_file_output_freq(xios::CFile* file_hdl);
+void cxios_xml_tree_add_fieldtofile(
+    xios::CFile* file, xios::CField** field, const char* _id, int _id_len);
 
 // writing methods
 void cxios_write_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize,

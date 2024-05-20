@@ -222,6 +222,8 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
+    // xios_handler.gridAddDomain(gridId, domainId); // FIXME and test
+    // xios_handler.gridAddAxis(gridId, axisId); // FIXME and test
 
     // --- Tests for file API
     REQUIRE_FALSE(xios_handler.validFileId("invalid"));
@@ -247,6 +249,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.setFileOutputFreq(fileId, freq);
     REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
+    // xios_handler.fileAddField(fieldId, fieldId); // FIXME and test
 
     xios_handler.close_context_definition();
 

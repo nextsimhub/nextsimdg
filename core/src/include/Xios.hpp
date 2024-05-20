@@ -96,6 +96,8 @@ public:
     void setGridName(std::string gridId, std::string name);
     std::string getGridName(std::string gridId);
     bool isDefinedGridName(std::string GridId);
+    void gridAddAxis(std::string axisId, std::string domainId);
+    void gridAddDomain(std::string gridId, std::string domainId);
 
     /* Field */
     void createField(std::string fieldId);
@@ -121,6 +123,7 @@ public:
     bool isDefinedFileName(std::string fileId);
     bool isDefinedFileType(std::string fileId);
     bool isDefinedFileOutputFreq(std::string fileId);
+    void fileAddField(std::string fileId, std::string fieldId);
 
     /* I/O */
     void write(const std::string fieldId, double* data, const int ni, const int nj);

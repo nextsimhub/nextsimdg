@@ -282,7 +282,7 @@ void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
 void Xios::createAxis(std::string axisId)
 {
     xios::CAxisGroup* axisGroup = NULL;
-    std::string axisGroupId = { "default_xios_axis_group" }; // TODO: Generalise
+    std::string axisGroupId = { "axis_definition" };
     cxios_xml_tree_add_axisgroup(&axisGroup, axisGroupId.c_str(), axisGroupId.length());
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(axisGroup, &axis, axisId.c_str(), axisId.length());
@@ -383,7 +383,7 @@ bool Xios::areDefinedAxisValues(std::string axisId)
 void Xios::createDomain(std::string domainId)
 {
     xios::CDomainGroup* domainGroup = NULL;
-    std::string domainGroupId = { "default_xios_domain_group" }; // TODO: Generalise
+    std::string domainGroupId = { "domain_definition" };
     cxios_xml_tree_add_domaingroup(&domainGroup, domainGroupId.c_str(), domainGroupId.length());
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(domainGroup, &domain, domainId.c_str(), domainId.length());
@@ -736,7 +736,7 @@ bool Xios::areDefinedDomainLatitudeValues(std::string domainId)
 void Xios::createGrid(std::string gridId)
 {
     xios::CGridGroup* gridGroup = NULL;
-    std::string gridGroupId = { "default_xios_grid_group" }; // TODO: Generalise
+    std::string gridGroupId = { "grid_definition" };
     cxios_xml_tree_add_gridgroup(&gridGroup, gridGroupId.c_str(), gridGroupId.length());
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(gridGroup, &grid, gridId.c_str(), gridId.length());
@@ -794,6 +794,30 @@ bool Xios::isDefinedGridName(std::string gridId)
 }
 
 /*!
+ * Associate an axis with a grid
+ *
+ * @param the grid ID
+ * @param the axis ID
+ */
+void Xios::gridAddAxis(std::string gridId, std::string axisId)
+{
+    xios::CAxis* axis = getAxis(axisId);
+    cxios_xml_tree_add_axistogrid(getGrid(gridId), &axis, axisId.c_str(), axisId.length());
+}
+
+/*!
+ * Associate a domain with a grid
+ *
+ * @param the grid ID
+ * @param the domain ID
+ */
+void Xios::gridAddDomain(std::string gridId, std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_xml_tree_add_domaintogrid(getGrid(gridId), &domain, domainId.c_str(), domainId.length());
+}
+
+/*!
  * Create a field with some ID
  *
  * @param the field ID
@@ -801,7 +825,7 @@ bool Xios::isDefinedGridName(std::string gridId)
 void Xios::createField(std::string fieldId)
 {
     xios::CFieldGroup* fieldGroup = NULL;
-    std::string fieldGroupId = { "default_xios_field_group" }; // TODO: Generalise
+    std::string fieldGroupId = { "field_definition" };
     cxios_xml_tree_add_fieldgroup(&fieldGroup, fieldGroupId.c_str(), fieldGroupId.length());
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(fieldGroup, &field, fieldId.c_str(), fieldId.length());
@@ -942,7 +966,7 @@ bool Xios::isDefinedFieldGridRef(std::string fieldId)
 void Xios::createFile(std::string fileId)
 {
     xios::CFileGroup* fileGroup = NULL;
-    std::string fileGroupId = { "default_xios_file_group" }; // TODO: Generalise
+    std::string fileGroupId = { "file_definition" };
     cxios_xml_tree_add_filegroup(&fileGroup, fileGroupId.c_str(), fileGroupId.length());
     xios::CFile* file = NULL;
     cxios_xml_tree_add_file(fileGroup, &file, fileId.c_str(), fileId.length());
@@ -1089,6 +1113,18 @@ bool Xios::isDefinedFileType(std::string fileId)
 bool Xios::isDefinedFileOutputFreq(std::string fileId)
 {
     return cxios_is_defined_file_output_freq(getFile(fileId));
+}
+
+/*!
+ * Associate a field with a file
+ *
+ * @param the file ID
+ * @param the field ID
+ */
+void Xios::fileAddField(std::string fileId, std::string fieldId)
+{
+    xios::CField* field = getField(fieldId);
+    cxios_xml_tree_add_fieldtofile(getFile(fileId), &field, fieldId.c_str(), fieldId.length());
 }
 
 /*!
