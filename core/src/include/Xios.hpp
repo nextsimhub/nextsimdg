@@ -149,6 +149,12 @@ private:
     std::string clientId;
     std::string contextId;
 
+    xios::CAxisGroup* getAxisGroup();
+    xios::CDomainGroup* getDomainGroup();
+    xios::CFieldGroup* getFieldGroup();
+    xios::CGridGroup* getGridGroup();
+    xios::CFileGroup* getFileGroup();
+
     xios::CAxis* getAxis(std::string axisId);
     xios::CDomain* getDomain(std::string domainId);
     xios::CField* getField(std::string fieldId);
