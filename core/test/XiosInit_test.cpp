@@ -160,14 +160,28 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     std::string gridId = { "grid_2D" };
     REQUIRE(xios_handler.getGridName(gridId) == "test_grid");
 
-    // check file getters
+    // --- Tests for file API
     REQUIRE_FALSE(xios_handler.validFileId("invalid"));
     std::string fileId { "output" };
     REQUIRE(xios_handler.validFileId(fileId));
-    REQUIRE(xios_handler.getFileName(fileId) == "diagnostic");
-    REQUIRE(xios_handler.getFileType(fileId) == "one_file");
+    // File name
+    REQUIRE_FALSE(xios_handler.isDefinedFileName(fileId));
+    std::string fileName { "diagnostic" };
+    xios_handler.setFileName(fileId, fileName);
+    REQUIRE(xios_handler.isDefinedFileName(fileId));
+    REQUIRE(xios_handler.getFileName(fileId) == fileName);
+    // File type
+    std::string fileType { "one_file" };
+    REQUIRE_FALSE(xios_handler.isDefinedFileType(fileId));
+    xios_handler.setFileType(fileId, fileType);
+    REQUIRE(xios_handler.isDefinedFileType(fileId));
+    REQUIRE(xios_handler.getFileType(fileId) == fileType);
+    // Output frequency
+    REQUIRE_FALSE(xios_handler.isDefinedFileOutputFreq(fileId));
+    std::string freq { "1ts" };
+    xios_handler.setFileOutputFreq(fileId, freq);
     REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
-    REQUIRE(xios_handler.getFileOutputFreq(fileId) == "1ts");
+    REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
 
     xios_handler.close_context_definition();
 

@@ -38,6 +38,7 @@ void cxios_context_finalize();
 void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size);
 cxios_date cxios_date_convert_from_string(const char* str, int str_size); // TODO: unused
 void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size);
+cxios_duration cxios_duration_convert_from_string(const char* str, int str_size);
 
 // calendar methods
 void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret);
@@ -107,13 +108,14 @@ bool cxios_is_defined_field_grid_ref(xios::CField* _ret);
 // file methods
 void cxios_file_handle_create(xios::CFile** _ret, const char* _id, int _id_len);
 void cxios_file_valid_id(bool* _ret, const char* _id, int _id_len);
-void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size); // TODO: unused
-void cxios_set_file_type(xios::CFile* file_hdl, const char* type, int type_size); // TODO: unused
-void cxios_set_file_output_freq(
-    xios::CFile* file_hdl, cxios_duration output_freq_c); // TODO: unused
+void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size);
+void cxios_set_file_type(xios::CFile* file_hdl, const char* type, int type_size);
+void cxios_set_file_output_freq(xios::CFile* file_hdl, cxios_duration output_freq_c);
 void cxios_get_file_name(xios::CFile* file_hdl, char* name, int name_size);
 void cxios_get_file_type(xios::CFile* file_hdl, char* type, int type_size);
 void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
+bool cxios_is_defined_file_name(xios::CFile* file_hdl);
+bool cxios_is_defined_file_type(xios::CFile* file_hdl);
 bool cxios_is_defined_file_output_freq(xios::CFile* file_hdl);
 
 // writing methods

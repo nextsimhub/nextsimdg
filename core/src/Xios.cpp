@@ -660,6 +660,40 @@ xios::CFile* Xios::getFile(std::string fileId)
 }
 
 /*!
+ * Set the name of a file with a given ID
+ *
+ * @param the file ID
+ * @param file name to set
+ */
+void Xios::setFileName(std::string fileId, std::string fileName)
+{
+    cxios_set_file_name(getFile(fileId), fileName.c_str(), fileName.length());
+}
+
+/*!
+ * Set the type of a file with a given ID
+ *
+ * @param the file ID
+ * @param file type to set
+ */
+void Xios::setFileType(std::string fileId, std::string fileType)
+{
+    cxios_set_file_type(getFile(fileId), fileType.c_str(), fileType.length());
+}
+
+/*!
+ * Set the output frequency of a file with a given ID
+ *
+ * @param the file ID
+ * @param output frequency to set
+ */
+void Xios::setFileOutputFreq(std::string fileId, std::string freq)
+{
+    cxios_duration duration = cxios_duration_convert_from_string(freq.c_str(), freq.length());
+    cxios_set_file_output_freq(getFile(fileId), duration);
+}
+
+/*!
  * Get the name of a file with a given ID
  *
  * @param the file ID
@@ -704,9 +738,9 @@ std::string Xios::getFileOutputFreq(std::string fileId)
     int size = 20;
     char cStr[size];
     cxios_duration_convert_to_string(duration, cStr, size);
-    std::string outputFreq(cStr, size);
-    boost::algorithm::trim_right(outputFreq);
-    return outputFreq;
+    std::string freq(cStr, size);
+    boost::algorithm::trim_right(freq);
+    return freq;
 }
 
 /*!
@@ -720,6 +754,28 @@ bool Xios::validFileId(std::string fileId)
     bool valid;
     cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
     return valid;
+}
+
+/*!
+ * Verify whether a name has been defined for a given file ID
+ *
+ * @param the file ID
+ * @return `true` if the name has been set, otherwise `false`
+ */
+bool Xios::isDefinedFileName(std::string fileId)
+{
+    return cxios_is_defined_file_name(getFile(fileId));
+}
+
+/*!
+ * Verify whether a type has been defined for a given file ID
+ *
+ * @param the file ID
+ * @return `true` if the type has been set, otherwise `false`
+ */
+bool Xios::isDefinedFileType(std::string fileId)
+{
+    return cxios_is_defined_file_type(getFile(fileId));
 }
 
 /*!

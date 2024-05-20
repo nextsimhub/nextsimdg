@@ -25,7 +25,7 @@
     </field_definition>
 
     <file_definition>
-      <file id="output" name="diagnostic" output_freq="1ts" type="one_file">
+      <file id="output">
         <field id="field_A"/>
       </file>
     </file_definition>

@@ -99,13 +99,15 @@ public:
 
     /* File */
     void createFile(std::string fileId); // TODO
-    void setFileName(std::string fileId, std::string fileName); // TODO
-    void setFileType(std::string fileId, std::string fileType); // TODO
-    void setFileOutputFreq(std::string fileId, cxios_duration duration); // TODO
+    void setFileName(std::string fileId, std::string fileName);
+    void setFileType(std::string fileId, std::string fileType);
+    void setFileOutputFreq(std::string fileId, std::string outputFreq);
     std::string getFileName(std::string fileId);
     std::string getFileType(std::string fileId);
     std::string getFileOutputFreq(std::string fileId);
     bool validFileId(std::string fileId);
+    bool isDefinedFileName(std::string fileId);
+    bool isDefinedFileType(std::string fileId);
     bool isDefinedFileOutputFreq(std::string fileId);
 
     /* I/O */
