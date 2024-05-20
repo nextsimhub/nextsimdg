@@ -53,7 +53,7 @@ public:
     void updateCalendar(int stepNumber);
 
     /* Axis */
-    void createAxis(std::string axisId); // TODO
+    void createAxis(std::string axisId);
     void setAxisSize(std::string axisId, int size);
     void setAxisValues(std::string axisId, std::vector<double> values);
     int getAxisSize(std::string axisId);
@@ -62,7 +62,7 @@ public:
     bool areDefinedAxisValues(std::string axisId);
 
     /* Domain */
-    void createDomain(std::string domainId); // TODO
+    void createDomain(std::string domainId);
     void setDomainType(std::string domainId, std::string domainType);
     void setDomainGlobalLongitudeSize(std::string domainId, int size);
     void setDomainGlobalLatitudeSize(std::string domainId, int size);
@@ -92,13 +92,13 @@ public:
     bool areDefinedDomainLatitudeValues(std::string domainId);
 
     /* Grid */
-    void createGrid(std::string gridId); // TODO
+    void createGrid(std::string gridId);
     void setGridName(std::string gridId, std::string name);
     std::string getGridName(std::string gridId);
     bool isDefinedGridName(std::string GridId);
 
     /* Field */
-    void createField(std::string fieldId); // TODO
+    void createField(std::string fieldId);
     void setFieldName(std::string fieldId, std::string name);
     void setFieldOperation(std::string fieldId, std::string operation);
     void setFieldGridRef(std::string fieldId, std::string gridRef);
@@ -110,7 +110,7 @@ public:
     bool isDefinedFieldGridRef(std::string fieldId);
 
     /* File */
-    void createFile(std::string fileId); // TODO
+    void createFile(std::string fileId);
     void setFileName(std::string fileId, std::string fileName);
     void setFileType(std::string fileId, std::string fileType);
     void setFileOutputFreq(std::string fileId, std::string outputFreq);

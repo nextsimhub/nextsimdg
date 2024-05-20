@@ -100,6 +100,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for axis API
     std::string axisId = { "axis_A" };
+    // xios_handler.createAxis(axisId); // FIXME
     // Axis size
     int axis_size = 30;
     REQUIRE_FALSE(xios_handler.isDefinedAxisSize(axisId));
@@ -121,6 +122,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for domain API
     std::string domainId = { "domain_A" };
+    // xios_handler.createDomain(domainId); // FIXME
     // Domain type
     REQUIRE_FALSE(xios_handler.isDefinedDomainType(domainId));
     std::string domainType = { "rectilinear" };
@@ -191,6 +193,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for grid API
     std::string gridId = { "grid_2D" };
+    // xios_handler.createGrid(gridId); // FIXME
     // Grid name
     REQUIRE_FALSE(xios_handler.isDefinedGridName(gridId));
     std::string gridName = { "test_grid" };
@@ -200,6 +203,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for field API
     std::string fieldId = { "field_A" };
+    // xios_handler.createField(fieldId); // FIXME
     // Field name
     std::string fieldName = { "test_field" };
     REQUIRE_FALSE(xios_handler.isDefinedFieldName(fieldId));
@@ -222,6 +226,8 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     // --- Tests for file API
     REQUIRE_FALSE(xios_handler.validFileId("invalid"));
     std::string fileId { "output" };
+    // REQUIRE_FALSE(xios_handler.validFileId("fileId")); // TODO
+    // xios_handler.createFile(fileId); // FIXME
     REQUIRE(xios_handler.validFileId(fileId));
     // File name
     REQUIRE_FALSE(xios_handler.isDefinedFileName(fileId));
