@@ -77,8 +77,8 @@ public:
     int getDomainLatitudeSize(std::string domainId);
     int getDomainLongitudeStart(std::string domainId);
     int getDomainLatitudeStart(std::string domainId);
-    std::vector<double> getDomainLongitudeValues(std::string domainId); // TODO
-    std::vector<double> getDomainLatitudeValues(std::string domainId); // TODO
+    std::vector<double> getDomainLongitudeValues(std::string domainId);
+    std::vector<double> getDomainLatitudeValues(std::string domainId);
 
     /* Grid */
     void createGrid(std::string gridId); // TODO
