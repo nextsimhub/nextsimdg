@@ -94,11 +94,9 @@ bool cxios_is_defined_grid_name(xios::CGrid* file_hdl);
 
 // field methods
 void cxios_field_handle_create(xios::CField** _ret, const char* _id, int _id_len);
-void cxios_set_field_name(xios::CField* _ret, const char* name, int name_size); // TODO: unused
-void cxios_set_field_operation(
-    xios::CField* _ret, const char* operation, int operation_size); // TODO: unused
-void cxios_set_field_grid_ref(
-    xios::CField* _ret, const char* grid_ref, int grid_ref_size); // TODO: unused
+void cxios_set_field_name(xios::CField* _ret, const char* name, int name_size);
+void cxios_set_field_operation(xios::CField* _ret, const char* operation, int operation_size);
+void cxios_set_field_grid_ref(xios::CField* _ret, const char* grid_ref, int grid_ref_size);
 void cxios_get_field_name(xios::CField* _ret, char* name, int name_size);
 void cxios_get_field_operation(xios::CField* _ret, char* operation, int operation_size);
 void cxios_get_field_grid_ref(xios::CField* _ret, char* grid_ref, int grid_ref_size);

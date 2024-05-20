@@ -156,14 +156,26 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.isDefinedGridName(gridId));
     REQUIRE(xios_handler.getGridName(gridId) == gridName);
 
-    // check field getters
+    // --- Tests for field API
     std::string fieldId = { "field_A" };
+    // Field name
+    std::string fieldName = { "test_field" };
+    REQUIRE_FALSE(xios_handler.isDefinedFieldName(fieldId));
+    xios_handler.setFieldName(fieldId, fieldName);
+    REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
     REQUIRE(xios_handler.isDefinedFieldName(fieldId));
+    // Operation
+    std::string operation = { "instant" };
+    REQUIRE_FALSE(xios_handler.isDefinedFieldOperation(fieldId));
+    xios_handler.setFieldOperation(fieldId, operation);
     REQUIRE(xios_handler.isDefinedFieldOperation(fieldId));
+    REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
+    // Grid reference
+    std::string gridRef = { "grid_2D" };
+    REQUIRE_FALSE(xios_handler.isDefinedFieldGridRef(fieldId));
+    xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
-    REQUIRE(xios_handler.getFieldName(fieldId) == "test_field");
-    REQUIRE(xios_handler.getFieldOperation(fieldId) == "instant");
-    REQUIRE(xios_handler.getFieldGridRef(fieldId) == "grid_2D");
+    REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
 
     // --- Tests for file API
     REQUIRE_FALSE(xios_handler.validFileId("invalid"));

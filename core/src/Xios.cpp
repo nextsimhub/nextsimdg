@@ -588,6 +588,39 @@ xios::CField* Xios::getField(std::string fieldId)
 }
 
 /*!
+ * Set the name of a field with a given ID
+ *
+ * @param the field ID
+ * @param name to set
+ */
+void Xios::setFieldName(std::string fieldId, std::string fieldName)
+{
+    cxios_set_field_name(getField(fieldId), fieldName.c_str(), fieldName.length());
+}
+
+/*!
+ * Set the operation for a field with a given ID
+ *
+ * @param the field ID
+ * @param operation to set
+ */
+void Xios::setFieldOperation(std::string fieldId, std::string operation)
+{
+    cxios_set_field_operation(getField(fieldId), operation.c_str(), operation.length());
+}
+
+/*!
+ * Set the grid reference for a field with a given ID
+ *
+ * @param the field ID
+ * @param grid reference to set
+ */
+void Xios::setFieldGridRef(std::string fieldId, std::string gridRef)
+{
+    cxios_set_field_grid_ref(getField(fieldId), gridRef.c_str(), gridRef.length());
+}
+
+/*!
  * Get the name of a field with a given ID
  *
  * @param the field ID

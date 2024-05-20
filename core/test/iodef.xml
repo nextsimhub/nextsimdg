@@ -21,7 +21,7 @@
     </grid_definition>
 
     <field_definition>
-      <field id="field_A" name="test_field" operation="instant" grid_ref="grid_2D"/>
+      <field id="field_A"/>
     </field_definition>
 
     <file_definition>

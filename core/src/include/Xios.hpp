@@ -88,9 +88,9 @@ public:
 
     /* Field */
     void createField(std::string fieldId); // TODO
-    void setFieldName(std::string fieldId, std::string name); // TODO
-    void setFieldOperation(std::string fieldId, std::string operation); // TODO
-    void setFieldGridRef(std::string fieldId, std::string gridRef); // TODO
+    void setFieldName(std::string fieldId, std::string name);
+    void setFieldOperation(std::string fieldId, std::string operation);
+    void setFieldGridRef(std::string fieldId, std::string gridRef);
     std::string getFieldName(std::string fieldId);
     std::string getFieldOperation(std::string fieldId);
     std::string getFieldGridRef(std::string fieldId);
