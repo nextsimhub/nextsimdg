@@ -106,43 +106,72 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         REQUIRE(axis_A[i] == doctest::Approx(i));
     }
 
-    // check global domain getters
-    std::string domainId { "domain_A" };
-    REQUIRE(xios_handler.getDomainType(domainId) == "rectilinear");
-    int ni_glo = xios_handler.getDomainGlobalLongitudeSize(domainId);
-    int nj_glo = xios_handler.getDomainGlobalLatitudeSize(domainId);
-    REQUIRE(ni_glo == 60);
-    REQUIRE(nj_glo == 20);
-
-    // check local domain setters and getters
-    int rank = xios_handler.rank;
+    // --- Tests for domain API
+    std::string domainId = { "domain_A" };
+    // Domain type
+    REQUIRE_FALSE(xios_handler.isDefinedDomainType(domainId));
+    std::string domainType = { "rectilinear" };
+    xios_handler.setDomainType(domainId, domainType);
+    REQUIRE(xios_handler.isDefinedDomainType(domainId));
+    REQUIRE(xios_handler.getDomainType(domainId) == domainType);
+    // Global longitude size
+    REQUIRE_FALSE(xios_handler.isDefinedDomainGlobalLongitudeSize(domainId));
+    int ni_glo = 60;
+    xios_handler.setDomainGlobalLongitudeSize(domainId, ni_glo);
+    REQUIRE(xios_handler.isDefinedDomainGlobalLongitudeSize(domainId));
+    REQUIRE(xios_handler.getDomainGlobalLongitudeSize(domainId) == ni_glo);
+    // Global latitude size
+    REQUIRE_FALSE(xios_handler.isDefinedDomainGlobalLatitudeSize(domainId));
+    int nj_glo = 20;
+    xios_handler.setDomainGlobalLatitudeSize(domainId, nj_glo);
+    REQUIRE(xios_handler.isDefinedDomainGlobalLatitudeSize(domainId));
+    REQUIRE(xios_handler.getDomainGlobalLatitudeSize(domainId) == nj_glo);
+    // Local longitude size
+    REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeSize(domainId));
     int ni = ni_glo / xios_handler.size;
-    int nj = nj_glo;
     xios_handler.setDomainLongitudeSize(domainId, ni);
-    xios_handler.setDomainLatitudeSize(domainId, nj);
+    REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
+    // Local latitude size
+    REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeSize(domainId));
+    int nj = nj_glo;
+    xios_handler.setDomainLatitudeSize(domainId, nj);
+    REQUIRE(xios_handler.isDefinedDomainLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
+    // Local longitude start
+    REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeStart(domainId));
+    int rank = xios_handler.rank;
     int startLon = ni * rank;
-    int startLat = 0;
     xios_handler.setDomainLongitudeStart(domainId, startLon);
-    xios_handler.setDomainLatitudeStart(domainId, startLat);
+    REQUIRE(xios_handler.isDefinedDomainLongitudeStart(domainId));
     REQUIRE(xios_handler.getDomainLongitudeStart(domainId) == startLon);
+    // Local latitude start
+    REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeStart(domainId));
+    int startLat = 0;
+    xios_handler.setDomainLatitudeStart(domainId, startLat);
+    REQUIRE(xios_handler.isDefinedDomainLatitudeStart(domainId));
     REQUIRE(xios_handler.getDomainLatitudeStart(domainId) == startLat);
+    // Local longitude values
+    REQUIRE_FALSE(xios_handler.areDefinedDomainLongitudeValues(domainId));
     std::vector<double> vecLon {};
-    std::vector<double> vecLat {};
     for (int i = 0; i < ni; i++) {
         vecLon.push_back(-180 + (rank * ni * i) * 360 / ni_glo);
     }
-    for (int j = 0; j < nj; j++) {
-        vecLat.push_back(-90 + j * 180 / nj_glo);
-    }
     xios_handler.setDomainLongitudeValues(domainId, vecLon);
-    xios_handler.setDomainLatitudeValues(domainId, vecLat);
+    REQUIRE(xios_handler.areDefinedDomainLongitudeValues(domainId));
     std::vector<double> vecLonOut = xios_handler.getDomainLongitudeValues(domainId);
-    std::vector<double> vecLatOut = xios_handler.getDomainLatitudeValues(domainId);
     for (int i = 0; i < ni; i++) {
         REQUIRE(vecLonOut[i] == doctest::Approx(vecLon[i]));
     }
+    // Local latitude values
+    REQUIRE_FALSE(xios_handler.areDefinedDomainLatitudeValues(domainId));
+    std::vector<double> vecLat {};
+    for (int j = 0; j < nj; j++) {
+        vecLat.push_back(-90 + j * 180 / nj_glo);
+    }
+    xios_handler.setDomainLatitudeValues(domainId, vecLat);
+    REQUIRE(xios_handler.areDefinedDomainLatitudeValues(domainId));
+    std::vector<double> vecLatOut = xios_handler.getDomainLatitudeValues(domainId);
     for (int j = 0; j < nj; j++) {
         REQUIRE(vecLatOut[j] == doctest::Approx(vecLat[j]));
     }

@@ -398,6 +398,39 @@ xios::CDomain* Xios::getDomain(std::string domainId)
 }
 
 /*!
+ * Set the type of a given domain
+ *
+ * @param the domain ID
+ * @param domain type to set
+ */
+void Xios::setDomainType(std::string domainId, std::string domainType)
+{
+    cxios_set_domain_type(getDomain(domainId), domainType.c_str(), domainType.length());
+}
+
+/*!
+ * Set the global longitude size for a given domain
+ *
+ * @param the domain ID
+ * @param global longitude size to set
+ */
+void Xios::setDomainGlobalLongitudeSize(std::string domainId, int size)
+{
+    cxios_set_domain_ni_glo(getDomain(domainId), size);
+}
+
+/*!
+ * Set the global latitude size for a given domain
+ *
+ * @param the domain ID
+ * @param global latitude size to set
+ */
+void Xios::setDomainGlobalLatitudeSize(std::string domainId, int size)
+{
+    cxios_set_domain_nj_glo(getDomain(domainId), size);
+}
+
+/*!
  * Get the type of a given domain
  *
  * @param the domain ID
@@ -521,6 +554,105 @@ std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
+}
+
+/*!
+ * Verify whether a type has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the type has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainType(std::string domainId)
+{
+    return cxios_is_defined_domain_type(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a global longitude size has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the global longitude size has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainGlobalLongitudeSize(std::string domainId)
+{
+    return cxios_is_defined_domain_ni_glo(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a global latitude size has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the global latitude size has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainGlobalLatitudeSize(std::string domainId)
+{
+    return cxios_is_defined_domain_nj_glo(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local longitude size has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local longitude size has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainLongitudeSize(std::string domainId)
+{
+    return cxios_is_defined_domain_ni(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local latitude size has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local latitude size has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainLatitudeSize(std::string domainId)
+{
+    return cxios_is_defined_domain_nj(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local starting longitude has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local starting longitude has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainLongitudeStart(std::string domainId)
+{
+    return cxios_is_defined_domain_ibegin(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local starting latitude has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local starting latitude has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainLatitudeStart(std::string domainId)
+{
+    return cxios_is_defined_domain_jbegin(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local longitude values have been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local longitude values have been set, otherwise `false`
+ */
+bool Xios::areDefinedDomainLongitudeValues(std::string domainId)
+{
+    return cxios_is_defined_domain_lonvalue_1d(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local latitude values have been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local latitude values have been set, otherwise `false`
+ */
+bool Xios::areDefinedDomainLatitudeValues(std::string domainId)
+{
+    return cxios_is_defined_domain_latvalue_1d(getDomain(domainId));
 }
 
 /*!

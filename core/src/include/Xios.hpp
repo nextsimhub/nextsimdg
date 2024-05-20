@@ -61,9 +61,9 @@ public:
 
     /* Domain */
     void createDomain(std::string domainId); // TODO
-    void setDomainType(std::string domainId, std::string domainType); // TODO
-    void setDomainGlobalLongitudeSize(std::string domainId, int size); // TODO
-    void setDomainGlobalLatitudeSize(std::string domainId, int size); // TODO
+    void setDomainType(std::string domainId, std::string domainType);
+    void setDomainGlobalLongitudeSize(std::string domainId, int size);
+    void setDomainGlobalLatitudeSize(std::string domainId, int size);
     void setDomainLongitudeSize(std::string domainId, int size);
     void setDomainLatitudeSize(std::string domainId, int size);
     void setDomainLongitudeStart(std::string domainId, int start);
@@ -79,6 +79,15 @@ public:
     int getDomainLatitudeStart(std::string domainId);
     std::vector<double> getDomainLongitudeValues(std::string domainId);
     std::vector<double> getDomainLatitudeValues(std::string domainId);
+    bool isDefinedDomainType(std::string domainId);
+    bool isDefinedDomainGlobalLongitudeSize(std::string domainId);
+    bool isDefinedDomainGlobalLatitudeSize(std::string domainId);
+    bool isDefinedDomainLongitudeSize(std::string domainId);
+    bool isDefinedDomainLatitudeSize(std::string domainId);
+    bool isDefinedDomainLongitudeStart(std::string domainId);
+    bool isDefinedDomainLatitudeStart(std::string domainId);
+    bool areDefinedDomainLongitudeValues(std::string domainId);
+    bool areDefinedDomainLatitudeValues(std::string domainId);
 
     /* Grid */
     void createGrid(std::string gridId); // TODO
