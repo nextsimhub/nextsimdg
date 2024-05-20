@@ -19,6 +19,8 @@
 #include <calendar_wrapper.hpp>
 #include <domain.hpp>
 #include <field.hpp>
+#include <file.hpp>
+#include <grid.hpp>
 #include <icdate.hpp>
 
 extern "C" {
@@ -61,6 +63,9 @@ void cxios_get_calendar_wrapper_timestep(
 void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
 
 // axis methods
+void cxios_xml_tree_add_axisgroup(xios::CAxisGroup* axis_grp, const char* _id, int _id_len); // TODO
+void cxios_xml_tree_add_axis(
+    xios::CAxisGroup* axis_grp, xios::CAxis* axis, const char* _id, int _id_len); // TODO
 void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
 void cxios_set_axis_n_glo(xios::CAxis* axis_hdl, int n_glo);
 void cxios_set_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
@@ -70,6 +75,10 @@ bool cxios_is_defined_axis_n_glo(xios::CAxis* axis_hdl);
 bool cxios_is_defined_axis_value(xios::CAxis* axis_hdl);
 
 // domain methods
+void cxios_xml_tree_add_domaingroup(
+    xios::CDomainGroup* domain_grp, const char* _id, int _id_len); // TODO
+void cxios_xml_tree_add_domain(
+    xios::CDomainGroup* domain_grp, xios::CDomain* domain, const char* _id, int _id_len); // TODO
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);
 void cxios_set_domain_type(xios::CDomain* domain_hdl, const char* type, int type_size);
 void cxios_set_domain_ni_glo(xios::CDomain* domain_hdl, int ni_glo);
@@ -100,12 +109,20 @@ bool cxios_is_defined_domain_lonvalue_1d(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_latvalue_1d(xios::CDomain* axis_hdl);
 
 // grid methods
+void cxios_xml_tree_add_gridgroup(
+    xios::CGridGroup** grid_grp, const char* _id, int _id_len); // TODO
+void cxios_xml_tree_add_grid(
+    xios::CGridGroup* grid_grp, xios::CGrid** grid, const char* _id, int _id_len); // TODO
 void cxios_grid_handle_create(xios::CGrid** _ret, const char* _id, int _id_len);
 void cxios_set_grid_name(xios::CGrid* _ret, const char* name, int name_size);
 void cxios_get_grid_name(xios::CGrid* _ret, char* name, int name_size);
 bool cxios_is_defined_grid_name(xios::CGrid* file_hdl);
 
 // field methods
+void cxios_xml_tree_add_fieldgroup(
+    xios::CFieldGroup** field_grp, const char* _id, int _id_len); // TODO
+void cxios_xml_tree_add_field(
+    xios::CFieldGroup* field_grp, xios::CField** field, const char* _id, int _id_len); // TODO
 void cxios_field_handle_create(xios::CField** _ret, const char* _id, int _id_len);
 void cxios_set_field_name(xios::CField* _ret, const char* name, int name_size);
 void cxios_set_field_operation(xios::CField* _ret, const char* operation, int operation_size);
@@ -118,6 +135,10 @@ bool cxios_is_defined_field_operation(xios::CField* _ret);
 bool cxios_is_defined_field_grid_ref(xios::CField* _ret);
 
 // file methods
+void cxios_xml_tree_add_filegroup(
+    xios::CFileGroup** file_grp, const char* _id, int _id_len); // TODO
+void cxios_xml_tree_add_file(
+    xios::CFileGroup* file_grp, xios::CFile** file, const char* _id, int _id_len); // TODO
 void cxios_file_handle_create(xios::CFile** _ret, const char* _id, int _id_len);
 void cxios_file_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size);
