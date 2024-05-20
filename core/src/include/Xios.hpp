@@ -35,7 +35,6 @@ public:
 
     void configure() override;
     void configureServer();
-    void configureCalendar(); // TODO?
 
     /* Date and duration */
     std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
@@ -46,7 +45,6 @@ public:
     cxios_date getCalendarOrigin();
     cxios_date getCalendarStart();
     cxios_duration getCalendarTimestep();
-    void getCalendarConfiguration(); // TODO?
     int getCalendarStep();
     std::string getCurrentDate(bool isoFormat = true);
     void setCalendarOrigin(cxios_date origin);
