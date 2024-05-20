@@ -98,12 +98,25 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(duration.second == doctest::Approx(0.0));
     REQUIRE(duration.timestep == doctest::Approx(0.0));
 
-    // check axis getters
-    int axis_size = xios_handler.getAxisSize("axis_A");
-    REQUIRE(axis_size == 30);
-    std::vector<double> axis_A = xios_handler.getAxisValues("axis_A");
+    // --- Tests for axis API
+    std::string axisId = { "axis_A" };
+    // Axis size
+    int axis_size = 30;
+    REQUIRE_FALSE(xios_handler.isDefinedAxisSize(axisId));
+    xios_handler.setAxisSize(axisId, axis_size);
+    REQUIRE(xios_handler.isDefinedAxisSize(axisId));
+    REQUIRE(xios_handler.getAxisSize(axisId) == axis_size);
+    // Axis values
+    std::vector<double> axisValues;
     for (int i = 0; i < axis_size; i++) {
-        REQUIRE(axis_A[i] == doctest::Approx(i));
+        axisValues.push_back(i);
+    }
+    REQUIRE_FALSE(xios_handler.areDefinedAxisValues(axisId));
+    xios_handler.setAxisValues(axisId, axisValues);
+    REQUIRE(xios_handler.areDefinedAxisValues(axisId));
+    std::vector<double> axis_A = xios_handler.getAxisValues(axisId);
+    for (int i = 0; i < axis_size; i++) {
+        REQUIRE(axis_A[i] == doctest::Approx(axisValues[i]));
     }
 
     // --- Tests for domain API

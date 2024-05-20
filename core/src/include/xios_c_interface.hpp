@@ -62,8 +62,12 @@ void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl)
 
 // axis methods
 void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
+void cxios_set_axis_n_glo(xios::CAxis* axis_hdl, int n_glo);
+void cxios_set_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
 void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
 void cxios_get_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
+bool cxios_is_defined_axis_n_glo(xios::CAxis* axis_hdl);
+bool cxios_is_defined_axis_value(xios::CAxis* axis_hdl);
 
 // domain methods
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);

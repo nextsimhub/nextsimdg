@@ -288,6 +288,29 @@ xios::CAxis* Xios::getAxis(std::string axisId)
 }
 
 /*!
+ * Set the size of a given axis (the number of global points)
+ *
+ * @param the axis ID
+ * @param the size to set
+ */
+void Xios::setAxisSize(std::string axisId, int size)
+{
+    cxios_set_axis_n_glo(getAxis(axisId), size);
+}
+
+/*!
+ * Set the values associated with a given axis
+ *
+ * @param the axis ID
+ * @param the values to set
+ */
+void Xios::setAxisValues(std::string axisId, std::vector<double> values)
+{
+    int size = getAxisSize(axisId);
+    cxios_set_axis_value(getAxis(axisId), values.data(), &size);
+}
+
+/*!
  * Get the size of a given axis (the number of global points)
  *
  * @param the axis ID
@@ -314,6 +337,28 @@ std::vector<double> Xios::getAxisValues(std::string axisId)
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
+}
+
+/*!
+ * Verify whether a size has been defined for a given axis ID
+ *
+ * @param the axis ID
+ * @return `true` if the size has been set, otherwise `false`
+ */
+bool Xios::isDefinedAxisSize(std::string axisId)
+{
+    return cxios_is_defined_axis_n_glo(getAxis(axisId));
+}
+
+/*!
+ * Verify whether values have been defined for a given axis ID
+ *
+ * @param the axis ID
+ * @return `true` if the values have been set, otherwise `false`
+ */
+bool Xios::areDefinedAxisValues(std::string axisId)
+{
+    return cxios_is_defined_axis_value(getAxis(axisId));
 }
 
 /*!

@@ -54,10 +54,12 @@ public:
 
     /* Axis */
     void createAxis(std::string axisId); // TODO
-    void setAxisSize(std::string axisId, int size); // TODO
-    void setAxisValues(std::string axisId, std::vector<double> values); // TODO
+    void setAxisSize(std::string axisId, int size);
+    void setAxisValues(std::string axisId, std::vector<double> values);
     int getAxisSize(std::string axisId);
     std::vector<double> getAxisValues(std::string axisId);
+    bool isDefinedAxisSize(std::string axisId);
+    bool areDefinedAxisValues(std::string axisId);
 
     /* Domain */
     void createDomain(std::string domainId); // TODO
