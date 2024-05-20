@@ -82,8 +82,9 @@ public:
 
     /* Grid */
     void createGrid(std::string gridId); // TODO
-    void setGridName(std::string gridId, std::string name); // TODO
+    void setGridName(std::string gridId, std::string name);
     std::string getGridName(std::string gridId);
+    bool isDefinedGridName(std::string GridId);
 
     /* Field */
     void createField(std::string fieldId); // TODO

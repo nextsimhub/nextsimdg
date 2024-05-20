@@ -14,7 +14,7 @@
     </domain_definition>
 
     <grid_definition>
-      <grid id="grid_2D" name="test_grid">
+      <grid id="grid_2D">
         <domain domain_ref="domain_A"/>
         <axis axis_ref="axis_A"/>
       </grid>

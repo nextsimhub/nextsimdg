@@ -524,6 +524,57 @@ std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
 }
 
 /*!
+ * Get the grid associated with a given ID
+ *
+ * @param the grid ID
+ * @return a pointer to the XIOS CGrid object
+ */
+xios::CGrid* Xios::getGrid(std::string gridId)
+{
+    xios::CGrid* grid = NULL;
+    cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
+    return grid;
+}
+
+/*!
+ * Get the name of a grid with a given ID
+ *
+ * @param the grid ID
+ * @return name of the corresponding grid
+ */
+std::string Xios::getGridName(std::string gridId)
+{
+    int size = 20;
+    char cStr[size];
+    cxios_get_grid_name(getGrid(gridId), cStr, size);
+    std::string gridName(cStr, size);
+    boost::algorithm::trim_right(gridName);
+    return gridName;
+}
+
+/*!
+ * Set the name of a grid with a given ID
+ *
+ * @param the grid ID
+ * @param name to set
+ */
+void Xios::setGridName(std::string gridId, std::string gridName)
+{
+    cxios_set_grid_name(getGrid(gridId), gridName.c_str(), gridName.length());
+}
+
+/*!
+ * Verify whether a name has been defined for a given grid ID
+ *
+ * @param the grid ID
+ * @return `true` if the name has been set, otherwise `false`
+ */
+bool Xios::isDefinedGridName(std::string gridId)
+{
+    return cxios_is_defined_grid_name(getGrid(gridId));
+}
+
+/*!
  * Get the field associated with a given ID
  *
  * @param the field ID
@@ -615,35 +666,6 @@ bool Xios::isDefinedFieldOperation(std::string fieldId)
 bool Xios::isDefinedFieldGridRef(std::string fieldId)
 {
     return cxios_is_defined_field_grid_ref(getField(fieldId));
-}
-
-/*!
- * Get the grid associated with a given ID
- *
- * @param the grid ID
- * @return a pointer to the XIOS CGrid object
- */
-xios::CGrid* Xios::getGrid(std::string gridId)
-{
-    xios::CGrid* grid = NULL;
-    cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
-    return grid;
-}
-
-/*!
- * Get the name of a grid with a given ID
- *
- * @param the grid ID
- * @return name of the corresponding grid
- */
-std::string Xios::getGridName(std::string gridId)
-{
-    int size = 20;
-    char cStr[size];
-    cxios_get_grid_name(getGrid(gridId), cStr, size);
-    std::string gridName(cStr, size);
-    boost::algorithm::trim_right(gridName);
-    return gridName;
 }
 
 /*!

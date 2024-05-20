@@ -147,6 +147,15 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         REQUIRE(vecLatOut[j] == doctest::Approx(vecLat[j]));
     }
 
+    // --- Tests for grid API
+    std::string gridId = { "grid_2D" };
+    // Grid name
+    REQUIRE_FALSE(xios_handler.isDefinedGridName(gridId));
+    std::string gridName = { "test_grid" };
+    xios_handler.setGridName(gridId, gridName);
+    REQUIRE(xios_handler.isDefinedGridName(gridId));
+    REQUIRE(xios_handler.getGridName(gridId) == gridName);
+
     // check field getters
     std::string fieldId = { "field_A" };
     REQUIRE(xios_handler.isDefinedFieldName(fieldId));
@@ -155,10 +164,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getFieldName(fieldId) == "test_field");
     REQUIRE(xios_handler.getFieldOperation(fieldId) == "instant");
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == "grid_2D");
-
-    // check grid getters
-    std::string gridId = { "grid_2D" };
-    REQUIRE(xios_handler.getGridName(gridId) == "test_grid");
 
     // --- Tests for file API
     REQUIRE_FALSE(xios_handler.validFileId("invalid"));
