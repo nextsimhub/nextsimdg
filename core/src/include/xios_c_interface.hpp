@@ -34,14 +34,13 @@ void cxios_context_is_initialized(const char* context_id, int len_context_id, bo
 void cxios_context_close_definition();
 void cxios_context_finalize();
 
-void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret);
-
 // conversions
 void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size);
 cxios_date cxios_date_convert_from_string(const char* str, int str_size); // TODO: unused
 void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size);
 
 // calendar methods
+void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret);
 void cxios_set_calendar_wrapper_date_time_origin(
     xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date time_origin_c);
 void cxios_get_calendar_wrapper_date_time_origin(
