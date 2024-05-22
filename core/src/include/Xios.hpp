@@ -120,6 +120,9 @@ public:
     int size { 0 };
     xios::CCalendarWrapper* clientCalendar;
 
+    /* Length of C-strings passed to XIOS */
+    int cStrLen { 20 };
+
 protected:
     bool isConfigured;
 

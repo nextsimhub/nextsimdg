@@ -405,10 +405,9 @@ xios::CDomain* Xios::getDomain(std::string domainId)
  */
 std::string Xios::getDomainType(std::string domainId)
 {
-    int size = 20;
-    char cStr[size];
-    cxios_get_domain_type(getDomain(domainId), cStr, size);
-    std::string domainType(cStr, size);
+    char cStr[cStrLen];
+    cxios_get_domain_type(getDomain(domainId), cStr, cStrLen);
+    std::string domainType(cStr, cStrLen);
     boost::algorithm::trim_right(domainType);
     return domainType;
 }
@@ -544,10 +543,9 @@ xios::CField* Xios::getField(std::string fieldId)
  */
 std::string Xios::getFieldName(std::string fieldId)
 {
-    int size = 20;
-    char cStr[size];
-    cxios_get_field_name(getField(fieldId), cStr, size);
-    std::string fieldName(cStr, size);
+    char cStr[cStrLen];
+    cxios_get_field_name(getField(fieldId), cStr, cStrLen);
+    std::string fieldName(cStr, cStrLen);
     boost::algorithm::trim_right(fieldName);
     return fieldName;
 }
@@ -560,10 +558,9 @@ std::string Xios::getFieldName(std::string fieldId)
  */
 std::string Xios::getFieldOperation(std::string fieldId)
 {
-    int size = 20;
-    char cStr[size];
-    cxios_get_field_operation(getField(fieldId), cStr, size);
-    std::string operation(cStr, size);
+    char cStr[cStrLen];
+    cxios_get_field_operation(getField(fieldId), cStr, cStrLen);
+    std::string operation(cStr, cStrLen);
     boost::algorithm::trim_right(operation);
     return operation;
 }
@@ -576,10 +573,9 @@ std::string Xios::getFieldOperation(std::string fieldId)
  */
 std::string Xios::getFieldGridRef(std::string fieldId)
 {
-    int size = 20;
-    char cStr[size];
-    cxios_get_field_grid_ref(getField(fieldId), cStr, size);
-    std::string gridRef(cStr, size);
+    char cStr[cStrLen];
+    cxios_get_field_grid_ref(getField(fieldId), cStr, cStrLen);
+    std::string gridRef(cStr, cStrLen);
     boost::algorithm::trim_right(gridRef);
     return gridRef;
 }
@@ -638,10 +634,9 @@ xios::CGrid* Xios::getGrid(std::string gridId)
  */
 std::string Xios::getGridName(std::string gridId)
 {
-    int size = 20;
-    char cStr[size];
-    cxios_get_grid_name(getGrid(gridId), cStr, size);
-    std::string gridName(cStr, size);
+    char cStr[cStrLen];
+    cxios_get_grid_name(getGrid(gridId), cStr, cStrLen);
+    std::string gridName(cStr, cStrLen);
     boost::algorithm::trim_right(gridName);
     return gridName;
 }
@@ -667,10 +662,9 @@ xios::CFile* Xios::getFile(std::string fileId)
  */
 std::string Xios::getFileName(std::string fileId)
 {
-    int size = 20;
-    char cStr[size];
-    cxios_get_file_name(getFile(fileId), cStr, size);
-    std::string fileName(cStr, size);
+    char cStr[cStrLen];
+    cxios_get_file_name(getFile(fileId), cStr, cStrLen);
+    std::string fileName(cStr, cStrLen);
     boost::algorithm::trim_right(fileName);
     return fileName;
 }
@@ -683,10 +677,9 @@ std::string Xios::getFileName(std::string fileId)
  */
 std::string Xios::getFileType(std::string fileId)
 {
-    int size = 20;
-    char cStr[size];
-    cxios_get_file_type(getFile(fileId), cStr, size);
-    std::string fileType(cStr, size);
+    char cStr[cStrLen];
+    cxios_get_file_type(getFile(fileId), cStr, cStrLen);
+    std::string fileType(cStr, cStrLen);
     boost::algorithm::trim_right(fileType);
     return fileType;
 }
@@ -701,10 +694,9 @@ std::string Xios::getFileOutputFreq(std::string fileId)
 {
     cxios_duration duration;
     cxios_get_file_output_freq(getFile(fileId), &duration);
-    int size = 20;
-    char cStr[size];
-    cxios_duration_convert_to_string(duration, cStr, size);
-    std::string outputFreq(cStr, size);
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(duration, cStr, cStrLen);
+    std::string outputFreq(cStr, cStrLen);
     boost::algorithm::trim_right(outputFreq);
     return outputFreq;
 }
