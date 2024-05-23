@@ -385,7 +385,7 @@ TEST_CASE("Dummy ice")
 
     ig.update(tst);
 
-    double prec = 1e-5;
+    //   double prec = 1e-5;
 
     ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
     ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
@@ -502,7 +502,7 @@ TEST_CASE("Zero thickness")
     ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
     ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
 
-    double prec = 1e-6;
+    //    double prec = 1e-6;
 
     REQUIRE(newice[0] == 0);
     REQUIRE(hice[0] == 0);
@@ -616,7 +616,7 @@ TEST_CASE("Turn off thermo")
     ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
     ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
 
-    double prec = 1e-5;
+    //    double prec = 1e-5;
 
     // Rather than the values from old NextSIM, they should be unchanged from the definition above.
     REQUIRE(cice[0] == 0.5);
