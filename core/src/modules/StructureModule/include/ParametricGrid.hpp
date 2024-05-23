@@ -38,7 +38,7 @@ public:
 #ifdef USE_MPI
     ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override
     {
-        return pio ? pio->getModelState(filePath) : ModelState();
+        return pio ? pio->getModelState(filePath, metadata) : ModelState();
     }
 #else
     ModelState getModelState(const std::string& filePath) override
@@ -62,7 +62,7 @@ public:
 
     int nIceLayers() const override
     {
-        return ModelArray::definedDimensions.at(ModelArray::Dimension::Z).length;
+        return ModelArray::definedDimensions.at(ModelArray::Dimension::Z).local_length;
     };
 
     class IParaGridIO {
@@ -73,7 +73,11 @@ public:
         }
         virtual ~IParaGridIO() = default;
 
+#ifdef USE_MPI
+        virtual ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) = 0;
+#else
         virtual ModelState getModelState(const std::string& filePath) = 0;
+#endif
         virtual void dumpModelState(
             const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
             = 0;
