@@ -101,7 +101,7 @@ public:
             if (this->smesh->CoordinateSystem == Nextsim::SPHERICAL)
                 stressScale = 1.0 / Nextsim::EarthRadius / Nextsim::EarthRadius;
 
-            this->stressDivergence(stressScale); // Compute divergence of stress tensor
+            this->stressDivergence(); // Compute divergence of stress tensor
 
             updateMomentum(tst);
 

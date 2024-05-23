@@ -103,14 +103,12 @@ set(NEXTSIM_BINARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/nextsim")
 # Build the core model. Defines the 'parse_modules' target
 add_subdirectory(core)
 
-
 # Build all components
 foreach(compo ${CodeComponents})
     add_subdirectory("${compo}")
 endforeach()
 
-# todo: make SHARED work with Kokkos(CUDA) enabled
-add_library(nextsimlib STATIC ${NextsimSources}) # SHARED
+add_library(nextsimlib SHARED ${NextsimSources})
 target_compile_features(nextsimlib PUBLIC cxx_std_17)
 target_compile_definitions(nextsimlib
     PRIVATE
@@ -143,18 +141,30 @@ if (WITH_THREADS)
 endif()
 
 IF (WITH_KOKKOS)
+    #if nextsimlib is a shared library than kokkos need to be build
+    # with position independent code
+    get_target_property(target_type nextsimlib TYPE)
+    if (${target_type} STREQUAL "SHARED_LIBRARY")
+        # target specific property is difficult here
+        #set_target_properties(kokkos PROPERTIES POSITION_INDEPENDENT_CODE ON)
+        set(CMAKE_POSITION_INDEPENDENT_CODE True)
+    endif()
+
     find_package(Kokkos QUIET)
     IF (NOT Kokkos_FOUND)
-        message("No kokkos installation found. Looking for local version in \"lib\".")
+        message("No kokkos installation found. Looking for local version in \"lib/\".")
         add_subdirectory("lib/kokkos")
     endif ()
     target_link_libraries(nextsimlib PUBLIC Kokkos::kokkos)
+    
     if (Kokkos_ENABLE_CUDA)
         target_compile_definitions(nextsimlib PRIVATE "EIGEN_DONT_VECTORIZE")
         # disable warning caused by eigen
         # "calling a __host__ function from a __host__ __device__ function is not allowed"
         target_compile_options(nextsimlib PUBLIC -Xcudafe --diag_suppress=20014)#-w
     endif()
+    # reset to use defaults again
+    unset(CMAKE_POSITION_INDEPENDENT_CODE)
 endif()
 
 add_executable(nextsim ./core/src/main.cpp)
