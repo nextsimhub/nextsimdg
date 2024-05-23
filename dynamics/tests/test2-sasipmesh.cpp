@@ -1,5 +1,5 @@
 /*!
- * @file eexample1-sasipmesh.cpp
+ * @file test2-sasipmesh.cpp
  * @date 10 Jul 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
