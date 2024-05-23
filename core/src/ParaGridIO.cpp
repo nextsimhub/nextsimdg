@@ -57,7 +57,11 @@ const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
 };
 
 std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap;
+#ifdef USE_MPI
+std::map<std::string, netCDF::NcFilePar> ParaGridIO::openFiles;
+#else
 std::map<std::string, netCDF::NcFile> ParaGridIO::openFiles;
+#endif
 std::map<std::string, size_t> ParaGridIO::timeIndexByFile;
 
 void ParaGridIO::makeDimCompMap()
@@ -77,12 +81,20 @@ void ParaGridIO::makeDimCompMap()
 
 ParaGridIO::~ParaGridIO() = default;
 
+#ifdef USE_MPI
+ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
+#else
 ModelState ParaGridIO::getModelState(const std::string& filePath)
+#endif
 {
     ModelState state;
 
     try {
+#ifdef USE_MPI
+        netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
+#else
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+#endif
         netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
         netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
@@ -110,9 +122,39 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             if (entry.first == ModelArray::Dimension::Z) {
                 // A special case, as the number of levels in the file might not be
                 // the number that the selected ice thermodynamics requires.
-                ModelArray::setDimension(entry.first, NZLevels::get());
+                ModelArray::setDimension(entry.first, NZLevels::get(), NZLevels::get(), 0);
             } else {
+              // this needs MPIifying
+#ifdef USE_MPI
+                auto dimName = dim.getName();
+                size_t local_length = 0;
+                size_t start = 0;
+                printf("dimName = %s\n", dimName.c_str());
+                if (dimName.compare("x") == 0) {
+                  local_length = metadata.localExtentX;
+                  start = metadata.localCornerX;
+                }
+                else if (dimName.compare("y") == 0) {
+                  local_length = metadata.localExtentY;
+                  start = metadata.localCornerY;
+                }
+                else if (dimName.compare("xvertex") == 0) {
+                  local_length = metadata.localExtentX + 1;
+                  start = metadata.localCornerX;
+                }
+                else if (dimName.compare("yvertex") == 0) {
+                  local_length = metadata.localExtentY + 1;
+                  start = metadata.localCornerY;
+                }
+                else{
+                  local_length = dim.getSize();
+                  start = 0;
+                }
+                printf("dim.getSize() = %zu, local_length = %zu, start = %zu\n", dim.getSize() , local_length, start);
+                ModelArray::setDimension(entry.first, dim.getSize(), local_length, start);
+#else
                 ModelArray::setDimension(entry.first, dim.getSize());
+#endif
             }
         }
 
@@ -194,7 +236,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
             = ModelArray::typeDimensions.at(ModelArray::Type::H);
         for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
             indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(*riter).length);
+            extentArray.push_back(ModelArray::definedDimensions.at(*riter).local_length);
         }
 
         for (const std::string& varName : forcings) {
@@ -229,7 +271,7 @@ void ParaGridIO::dumpModelState(
     for (auto entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.length;
+                                               : dimSz = entry.second.local_length;
         ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
         // TODO Do I need to add data, even if it is just integers 0...n-1?
     }
@@ -277,12 +319,20 @@ void ParaGridIO::writeDiagnosticTime(
     size_t nt = (isNew) ? 0 : ++timeIndexByFile.at(filePath);
     if (isNew) {
         // Open a new file and emplace it in the map of open files.
+#ifdef USE_MPI
+        openFiles.try_emplace(filePath, filePath, netCDF::NcFile::read, meta.mpiComm);
+#else
         openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace);
+#endif
         // Set the initial time to be zero (assigned above)
         timeIndexByFile[filePath] = nt;
     }
     // Get the file handle
+#ifdef USE_MPI
+    netCDF::NcFilePar& ncFile = openFiles.at(filePath);
+#else
     netCDF::NcFile& ncFile = openFiles.at(filePath);
+#endif
 
     // Get the netCDF groups, creating them if necessary
     netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName())
@@ -303,7 +353,7 @@ void ParaGridIO::writeDiagnosticTime(
     for (auto entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.length;
+                                               : dimSz = entry.second.local_length;
         ncFromMAMap[dim] = (isNew) ? dataGroup.addDim(entry.second.name, dimSz)
                                    : dataGroup.getDim(entry.second.name);
     }
@@ -334,7 +384,7 @@ void ParaGridIO::writeDiagnosticTime(
             ModelArray::Dimension& maDim = *iter;
             ncDims.push_back(ncFromMAMap.at(maDim));
             indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(maDim).length);
+            extentArray.push_back(ModelArray::definedDimensions.at(maDim).local_length);
         }
         dimMap[type] = ncDims;
         indexArrays[type] = indexArray;
@@ -361,9 +411,9 @@ void ParaGridIO::writeDiagnosticTime(
         maskIndexes = { 0, 0 };
         maskExtents = { ModelArray::definedDimensions
                             .at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
-                            .length,
+                            .local_length,
             ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
-                .length };
+                .local_length };
     }
 
     // Put the time axis variable

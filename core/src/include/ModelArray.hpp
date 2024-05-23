@@ -57,7 +57,9 @@ public:
     struct DimensionSpec {
         std::string name;
         std::string altName;
-        size_t length;
+        size_t global_length;
+        size_t local_length;
+        size_t start;
     };
     typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
 
@@ -233,7 +235,7 @@ public:
     //! Returns the size of the data array of this object.
     size_t trueSize() const { return m_data.rows(); }
     //! Returns the size of a dimension
-    static size_t size(Dimension dim) { return definedDimensions.at(dim).length; }
+    static size_t size(Dimension dim) { return definedDimensions.at(dim).local_length; }
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
@@ -273,7 +275,7 @@ public:
      * @param dim The dimension to be altered.
      * @param length The new length of the dimension.
      */
-    static void setDimension(Dimension dim, size_t length);
+    static void setDimension(Dimension dim, size_t global_length, size_t local_length=0, size_t size=0);
 
     //! Conditionally updates the size of the object data buffer to match the
     //! class specification.
@@ -281,7 +283,7 @@ public:
     {
         if (size() != trueSize()) {
             if (hasDoF(type)) {
-                m_data.resize(m_sz.at(type), definedDimensions.at(componentMap.at(type)).length);
+                m_data.resize(m_sz.at(type), definedDimensions.at(componentMap.at(type)).local_length);
             } else {
                 m_data.resize(m_sz.at(type), Eigen::NoChange);
             }
@@ -444,7 +446,7 @@ public:
     static void setNComponents(Type type, size_t nComp)
     {
         if (hasDoF(type)) {
-            definedDimensions.at(componentMap.at(type)).length = nComp;
+            definedDimensions.at(componentMap.at(type)).local_length = nComp;
         }
     }
 
@@ -537,7 +539,7 @@ public:
     //! specified type of ModelArray.
     inline static size_t nComponents(const Type type)
     {
-        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).length : 1;
+        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).local_length : 1;
     }
     //! Returns whether this type of ModelArray has additional discontinuous
     //! Galerkin components.

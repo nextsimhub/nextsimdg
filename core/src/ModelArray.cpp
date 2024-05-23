@@ -188,7 +188,7 @@ void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
     std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
     for (size_t i = 0; i < dimSpecs.size(); ++i) {
-        definedDimensions.at(dimSpecs[i]).length = newDims[i];
+        definedDimensions.at(dimSpecs[i]).local_length = newDims[i];
     }
     validateMaps();
 }
@@ -200,9 +200,22 @@ void ModelArray::setNComponents(std::map<Type, size_t> cMap)
     }
 }
 
-void ModelArray::setDimension(Dimension dim, size_t length)
+#ifdef USE_MPI
+void ModelArray::setDimension(Dimension dim, size_t global_length, size_t local_length, size_t start)
+#else
+void ModelArray::setDimension(Dimension dim, size_t global_length)
+#endif
 {
-    definedDimensions.at(dim).length = length;
+#ifdef USE_MPI
+    definedDimensions.at(dim).global_length = global_length;
+    definedDimensions.at(dim).local_length = local_length;
+    definedDimensions.at(dim).start = start;
+#else
+    // if MPI is not used then set the local_length to be the same as the global
+    definedDimensions.at(dim).global_length = global_length;
+    definedDimensions.at(dim).local_length = global_length;
+    definedDimensions.at(dim).start = 0;
+#endif
     validateMaps();
 }
 
@@ -271,7 +284,7 @@ void ModelArray::DimensionMap::validate()
         std::vector<Dimension>& typeDims = entry.second;
         dims.resize(typeDims.size());
         for (size_t i = 0; i < typeDims.size(); ++i) {
-            dims[i] = definedDimensions.at(typeDims[i]).length;
+            dims[i] = definedDimensions.at(typeDims[i]).local_length;
         }
     }
 }
@@ -282,7 +295,7 @@ void ModelArray::SizeMap::validate()
         size_t size = 1;
         std::vector<Dimension>& typeDims = entry.second;
         for (size_t i = 0; i < typeDims.size(); ++i) {
-            size *= definedDimensions.at(typeDims[i]).length;
+            size *= definedDimensions.at(typeDims[i]).local_length;
         }
         m_sizes.at(entry.first) = size;
     }
