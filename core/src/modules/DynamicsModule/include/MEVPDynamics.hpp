@@ -27,8 +27,8 @@ public:
     void setData(const ModelState::DataMap&) override;
 private:
     // TODO: How to get the template parameters here?
-    MEVPDynamicsKernel<6> kernel;
-    KokkosVPCGDynamicsKernel<6> kernel2;
+   // MEVPDynamicsKernel<6> kernel;
+    KokkosVPCGDynamicsKernel<1> kernel;
     VPParameters params;
 };
 }

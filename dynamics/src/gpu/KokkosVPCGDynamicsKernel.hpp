@@ -56,33 +56,44 @@ public:
     KokkosVPCGDynamicsKernel(const VPParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>()
         , params(paramsIn)
-        , s11Device(makeKokkosDeviceView("s11", this->s11))
-        , s11Host(makeKokkosHostView(this->s11))
-        , s12Device(makeKokkosDeviceView("s12", this->s12))
-        , s12Host(makeKokkosHostView(this->s12))
-        , s22Device(makeKokkosDeviceView("s22", this->s22))
-        , s22Host(makeKokkosHostView(this->s22))
-        , e11Device(makeKokkosDeviceView("e11", this->e11))
-        , e11Host(makeKokkosHostView(this->e11))
-        , e12Device(makeKokkosDeviceView("e12", this->e12))
-        , e12Host(makeKokkosHostView(this->e12))
-        , e22Device(makeKokkosDeviceView("e22", this->e22))
-        , e22Host(makeKokkosHostView(this->e22))
-        , hiceDevice(makeKokkosDeviceView("hice", this->hice))
-        , hiceHost(makeKokkosHostView( this->hice))
-        , ciceDevice(makeKokkosDeviceView("cice", this->cice))
-        , ciceHost(makeKokkosHostView( this->cice))
-        , PSIAdvectDevice(makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>))
-        , PSIStressDevice(makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressDegree, NGP>))
-        , iMJwPSIDevice(makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true))
+    //        , PSIAdvectDevice(makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection,
+    //        NGP>)) , PSIStressDevice(makeKokkosDeviceView("PSI<DGstress, NGP>",
+    //        PSI<DGstressDegree, NGP>))
     {
+    }
+
+    KokkosVPCGDynamicsKernel(const KokkosVPCGDynamicsKernel<DGadvection>&) = delete;
+    KokkosVPCGDynamicsKernel(KokkosVPCGDynamicsKernel<DGadvection>&&) = delete;
+
+    KokkosVPCGDynamicsKernel& operator=(const KokkosVPCGDynamicsKernel<DGadvection>&) = delete;
+    KokkosVPCGDynamicsKernel& operator=(KokkosVPCGDynamicsKernel<DGadvection>&&) = delete;
+
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
+    {
+        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
+
+        std::tie(s11Host, s11Device) = makeKokkosDualView("s11", this->s11);
+        std::tie(s12Host, s12Device) = makeKokkosDualView("s12", this->s12);
+        std::tie(s22Host, s22Device) = makeKokkosDualView("s11", this->s22);
+        std::tie(e11Host, e11Device) = makeKokkosDualView("e11", this->e11);
+        std::tie(e12Host, e12Device) = makeKokkosDualView("e12", this->e12);
+        std::tie(e22Host, e22Device) = makeKokkosDualView("e11", this->e22);
+        std::tie(hiceHost, hiceDevice) = makeKokkosDualView("hice", this->hice);
+        std::tie(ciceHost, ciceDevice) = makeKokkosDualView("cice", this->cice);
+
+        // does not depend on the data but it can not be allocated in the constructor
+        PSIAdvectDevice = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>);
+        PSIStressDevice = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressDegree, NGP>);
+
+        iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
+
+        stressStep.setPMap(this->pmap);
     }
 
     void update(const TimestepTime& tst) override
     {
         // Let DynamicsKernel handle the advection step
         DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits(tst);
-
         this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
 
         u0 = this->u;
@@ -94,7 +105,31 @@ public:
         for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
             this->projectVelocityToStrain();
 
+            Kokkos::deep_copy(s11Device, s11Host);
+            Kokkos::deep_copy(s12Device, s12Host);
+            Kokkos::deep_copy(s22Device, s22Host);
+            Kokkos::deep_copy(e11Device, e11Host);
+            Kokkos::deep_copy(e12Device, e12Host);
+            Kokkos::deep_copy(e22Device, e22Host);
+            Kokkos::deep_copy(hiceDevice, hiceHost);
+            Kokkos::deep_copy(ciceDevice, ciceHost);
+            std::array<DGVector<DGstressDegree>, N_TENSOR_ELEMENTS> stressTemp { this->s11,
+                this->s12, this->s22 };
+            std::array<std::reference_wrapper<DGVector<DGstressDegree>>, N_TENSOR_ELEMENTS> stress
+                = { stressTemp[0], stressTemp[1],
+                      stressTemp[2] }; // Call the step function on the StressUpdateStep class
             // Call the step function on the StressUpdateStep class
+            stressStep.stressUpdateHighOrder(params, *this->smesh, stress,
+                { this->e11, this->e12, this->e22 }, this->hice, this->cice, this->deltaT);
+
+            Kokkos::deep_copy(s11Host, s11Device);
+            Kokkos::deep_copy(s12Host, s12Device);
+            Kokkos::deep_copy(s22Host, s22Device);
+            Kokkos::deep_copy(e11Host, e11Device);
+            Kokkos::deep_copy(e12Host, e12Device);
+            Kokkos::deep_copy(e22Host, e22Device);
+            Kokkos::deep_copy(hiceHost, hiceDevice);
+            Kokkos::deep_copy(ciceHost, ciceDevice);
 
             double stressScale
                 = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
@@ -112,6 +147,7 @@ public:
     }
 
 private:
+    MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> stressStep;
     const VPParameters& params;
     double alpha = 1500.;
     double beta = 1500.;

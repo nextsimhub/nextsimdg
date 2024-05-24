@@ -100,10 +100,17 @@ auto makeKokkosDeviceView(const std::string& name, EigenMat& mat, bool copy = fa
     }
 }
 
+template <typename EigenMat>
+auto makeKokkosDualView(const std::string& name, EigenMat& mat, bool copy = false)
+{
+    return std::make_pair(makeKokkosHostView(mat), makeKokkosDeviceView(name, mat, copy));
+}
+
 template <typename T> using KokkosDeviceMapView = Kokkos::View<const T*>;
 
 template <typename T, typename Alloc>
-auto makeKokkosDeviceViewMap(const std::string& name, const std::vector<T, Alloc>& buf, bool copy = false)
+auto makeKokkosDeviceViewMap(
+    const std::string& name, const std::vector<T, Alloc>& buf, bool copy = false)
 {
     using MapViewHost
         = Kokkos::View<const T*, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;

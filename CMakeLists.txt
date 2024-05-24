@@ -155,7 +155,9 @@ IF (WITH_KOKKOS)
         message("No kokkos installation found. Looking for local version in \"lib/\".")
         add_subdirectory("lib/kokkos")
     endif ()
+
     target_link_libraries(nextsimlib PUBLIC Kokkos::kokkos)
+    target_compile_definitions(nextsimlib PUBLIC USE_KOKKOS)
     
     if (Kokkos_ENABLE_CUDA)
         target_compile_definitions(nextsimlib PRIVATE "EIGEN_DONT_VECTORIZE")

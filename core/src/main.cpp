@@ -9,6 +9,9 @@
 #ifdef USE_MPI
 #include <mpi.h>
 #endif
+#ifdef USE_KOKKOS
+#include <Kokkos_Core.hpp>
+#endif
 
 #include "include/CommandLineParser.hpp"
 #include "include/ConfigurationHelpPrinter.hpp"
@@ -22,6 +25,9 @@ int main(int argc, char* argv[])
 #ifdef USE_MPI
     MPI_Init(&argc, &argv);
 #endif // USE_MPI
+#ifdef USE_KOKKOS
+    Kokkos::initialize(argc, argv);
+#endif
 
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
@@ -58,6 +64,13 @@ int main(int argc, char* argv[])
         // Run the Model
         model.run();
     }
+
+#ifdef USE_KOKKOS
+    // todo: fix kokkos buffer lifetimes
+    // kernels currently have static lifetimes as part of Nextsim::ConfiguredModule
+    // so the destructor will be called too late
+    Kokkos::finalize();
+#endif
 #ifdef USE_MPI
     MPI_Finalize();
 #endif
