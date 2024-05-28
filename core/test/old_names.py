@@ -1,8 +1,6 @@
 import netCDF4
 import numpy as np
-import numpy.ma as ma
 import time
-import math
 
 # Create a restart file that specifically uses the old dimension names
 if __name__ == "__main__":
@@ -53,9 +51,7 @@ if __name__ == "__main__":
 
     # Array coordinates
     space = 25000. # 25 km in metres
-    node_x = np.zeros((nfirst + 1, nsecond + 1))
-    node_y = np.zeros((nfirst + 1, nsecond + 1))
-    
+
     x_vertex1d = np.arange(0, space * (nsecond + 1), space)
     y_vertex1d = np.arange(0, space * (nfirst +1), space)
     
