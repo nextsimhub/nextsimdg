@@ -86,9 +86,9 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // Get the sizes of the four types of field
     // HField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::H, metadata);
-    // UField from hice        TODO replace with u velocity once it is present
+    // UField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::U, metadata);
-    // VField from hice        TODO replace with v velocity once it is present
+    // VField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V, metadata);
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z, metadata);
@@ -96,9 +96,9 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // Get the sizes of the four types of field
     // HField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::H);
-    // UField from hice        TODO replace with u velocity once it is present
+    // UField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::U);
-    // VField from hice        TODO replace with v velocity once it is present
+    // VField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V);
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z);

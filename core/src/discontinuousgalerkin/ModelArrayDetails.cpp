@@ -16,18 +16,18 @@
 namespace Nextsim {
 // clang-format off
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
-    { ModelArray::Dimension::X, { "xdim", 0 } },
-    { ModelArray::Dimension::Y, { "ydim", 0 } },
-    { ModelArray::Dimension::Z, { "zdim", 1 } },
-    { ModelArray::Dimension::XVERTEX, { "xvertex", 1 } }, // defined as x + 1
-    { ModelArray::Dimension::YVERTEX, { "yvertex", 1 } }, // defined as y + 1
-    { ModelArray::Dimension::XCG, { "x_cg", 1 } },
-    { ModelArray::Dimension::YCG, { "y_cg", 1 } },
+    { ModelArray::Dimension::X, { "xdim", "x", 0 } },
+    { ModelArray::Dimension::Y, { "ydim", "y", 0 } },
+    { ModelArray::Dimension::Z, { "zdim", "z", 1 } },
+    { ModelArray::Dimension::XVERTEX, { "xvertex", "xvertex", 1 } }, // defined as x + 1
+    { ModelArray::Dimension::YVERTEX, { "yvertex", "yvertex", 1 } }, // defined as y + 1
+    { ModelArray::Dimension::XCG, { "x_cg", "x_cg", 1 } },
+    { ModelArray::Dimension::YCG, { "y_cg", "y_cg", 1 } },
     // The DG components are also included here to store the names
-    { ModelArray::Dimension::DG, { "dg_comp", 1 } },
-    { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", 1 } },
-    { ModelArray::Dimension::NCOORDS, { "ncoords", 2 } }, // It's a two dimensional model
-// clang-format on
+    { ModelArray::Dimension::DG, { "dg_comp", "dg_comp", 1 } },
+    { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", "dgstress_comp", 1 } },
+    { ModelArray::Dimension::NCOORDS, { "ncoords", "ncoords", 2 } }, // It's a two dimensional model
+    // clang-format on
 };
 
 ModelArray::TypeDimensions ModelArray::typeDimensions = {
