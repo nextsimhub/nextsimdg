@@ -20,8 +20,7 @@ namespace Nextsim {
 static const double radians = 0x1.1df46a2529d39p-6;
 
 // The brittle momentum solver for CG velocity fields
-template <int DGadvection>
-class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
+template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
     using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
     using DynamicsKernel<DGadvection, DGstressDegree>::s11;
@@ -53,14 +52,16 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressX;
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
+
 public:
-    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
+    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn,
+        const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>()
         , stressStep(stressStepIn)
         , params(reinterpret_cast<const MEBParameters&>(paramsIn))
         , stresstransport(nullptr)
-      {
-      }
+    {
+    }
     virtual ~BrittleCGDynamicsKernel() = default;
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
@@ -74,7 +75,8 @@ public:
         damage.resize_by_mesh(*smesh);
     }
 
-    void update(const TimestepTime& tst) override {
+    void update(const TimestepTime& tst) override
+    {
 
         // Let DynamicsKernel handle the advection step
         advectionAndLimits(tst);
@@ -96,16 +98,13 @@ public:
         deltaT = tst.step.seconds() / nSteps;
 
         for (size_t subStep = 0; subStep < nSteps; ++subStep) {
-   
+
             projectVelocityToStrain();
 
             std::array<DGVector<DGstressDegree>, 3> stress = { s11, s12, s22 };
             // Call the step function on the StressUpdateStep class
-            stressStep.stressUpdateHighOrder(params,
-                    *smesh,
-                    stress, { e11, e12, e22 },
-                    hice, cice,
-                    deltaT);
+            stressStep.stressUpdateHighOrder(
+                params, *smesh, stress, { e11, e12, e22 }, hice, cice, deltaT);
 
             s11 = stress[I11];
             s12 = stress[I12];
@@ -124,7 +123,6 @@ public:
         }
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
-
     }
 
     void setData(const std::string& name, const ModelArray& data) override
@@ -145,6 +143,7 @@ public:
             return CGDynamicsKernel<DGadvection>::getDG0Data(name);
         }
     }
+
 protected:
     CGVector<CGdegree> avgX;
     CGVector<CGdegree> avgY;
@@ -170,7 +169,8 @@ protected:
             const double uIce = u(i);
             const double vIce = v(i);
 
-            const double cPrime = cgA(i) * params.F_ocean * std::hypot(uOcean(i) - uIce, vOcean(i) - vIce);
+            const double cPrime
+                = cgA(i) * params.F_ocean * std::hypot(uOcean(i) - uIce, vOcean(i) - vIce);
 
             // FIXME grounding term tauB = cBu[i] / std::hypot(uIce, vIce) + u0
             const double tauB = 0.;
@@ -184,21 +184,21 @@ protected:
 
             // Atmospheric drag
             const double dragAtm = cgA(i) * params.F_atm * std::hypot(uAtmos(i), vAtmos(i));
-            const double tauX = dragAtm * uAtmos(i) +
-                    cPrime * (uOcean(i) * cosOceanAngle - vOcean(i) * sinOceanAngle);
-            const double tauY = dragAtm * vAtmos(i) +
-                    cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
+            const double tauX = dragAtm * uAtmos(i)
+                + cPrime * (uOcean(i) * cosOceanAngle - vOcean(i) * sinOceanAngle);
+            const double tauY = dragAtm * vAtmos(i)
+                + cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
 
             // Stress gradient
             const double gradX = dStressX(i) / pmap->lumpedcgmass(i);
             const double gradY = dStressY(i) / pmap->lumpedcgmass(i);
 
             u(i) = alpha * uIce + beta * vIce
-                    + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));
+                + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));
             u(i) *= rDenom;
 
-            v(i) = alpha * vIce - beta *uIce
-                    + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
+            v(i) = alpha * vIce - beta * uIce
+                + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
             v(i) *= rDenom;
         }
         dirichletZero(u);
@@ -213,7 +213,7 @@ protected:
                 const size_t ey = eid / smesh->nx;
                 // Loop over CG elements for this finite volume grid cell
                 for (size_t jy = 0; jy <= CGdegree; ++jy) {
-                    for (size_t jx = 0; jx <= CGdegree; ++ jx) {
+                    for (size_t jx = 0; jx <= CGdegree; ++jx) {
                         const size_t cgi = cgRowLength * (CGdegree * ey + jy) + CGdegree * ex + jx;
                         u(cgi) = 0.;
                         v(cgi) = 0.;
@@ -226,7 +226,6 @@ protected:
         avgX += u / nSteps;
         avgY += v / nSteps;
     }
-
 };
 }
 

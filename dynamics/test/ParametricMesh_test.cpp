@@ -99,7 +99,6 @@ TEST_CASE("Compare readmesh and landmask reading")
     REQUIRE(fakeSmeshData.data.at(coordsName).trueSize() == (nx + 1) * (ny + 1));
     REQUIRE(fakeSmeshData.data.at(maskName).trueSize() == nx * ny);
 
-
     fromArrays.coordinatesFromModelArray(fakeSmeshData.data.at(coordsName));
     // Sizes of things
     REQUIRE(fromArrays.nx == fromFile.nx);
@@ -107,14 +106,14 @@ TEST_CASE("Compare readmesh and landmask reading")
     REQUIRE(fromArrays.nelements == fromFile.nelements);
     REQUIRE(fromArrays.nnodes == fromFile.nnodes);
     REQUIRE(fromArrays.vertices.col(0).size() == fromFile.vertices.col(0).size());
-     // Coordinate values
-    std::vector<size_t> checkIndices = { 0, 1, nx + 1, (nx + 1) * (ny + 1) - 1};
+    // Coordinate values
+    std::vector<size_t> checkIndices = { 0, 1, nx + 1, (nx + 1) * (ny + 1) - 1 };
     for (auto index : checkIndices) {
         REQUIRE(fromArrays.vertices(index, 0) == fromFile.vertices(index, 0));
         REQUIRE(fromArrays.vertices(index, 1) == fromFile.vertices(index, 1));
     }
 
-     // Landmask values
+    // Landmask values
     fromArrays.landmaskFromModelArray(fakeSmeshData.data.at(maskName));
     for (size_t idx = 0; idx < fromArrays.nelements; ++idx) {
         REQUIRE(fromArrays.landmask[idx] == fromFile.landmask[idx]);
@@ -135,8 +134,7 @@ TEST_CASE("Compare readmesh and landmask reading")
             REQUIRE(fromArrays.dirichlet[edge][idx] == fromFile.dirichlet[edge][idx]);
         }
     }
-     // No periodic boundary conditions
-     REQUIRE(fromArrays.periodic.size() == 0);
-
+    // No periodic boundary conditions
+    REQUIRE(fromArrays.periodic.size() == 0);
 }
 }

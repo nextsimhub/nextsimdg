@@ -13,10 +13,7 @@
 namespace Nextsim {
 
 //! Limit a dg vector from above
-static void LimitMax(DGVector<1>& dg, double max)
-{
-    dg.col(0) = dg.col(0).cwiseMin(max);
-}
+static void LimitMax(DGVector<1>& dg, double max) { dg.col(0) = dg.col(0).cwiseMin(max); }
 static void LimitMax(DGVector<3>& dg, double max)
 {
 #pragma omp parallel for
@@ -48,12 +45,8 @@ static void LimitMax(DGVector<6>& dg, double max)
     }
 }
 
-
 //! Limit a dg vector from above in the gauss nodes
-static void LimitMin(DGVector<1>& dg, double min)
-{
-    dg.col(0) = dg.col(0).cwiseMax(min);
-}
+static void LimitMin(DGVector<1>& dg, double min) { dg.col(0) = dg.col(0).cwiseMax(min); }
 static void LimitMin(DGVector<3>& dg, double min)
 {
 #pragma omp parallel for
