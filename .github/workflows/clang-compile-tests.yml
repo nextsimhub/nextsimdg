@@ -51,7 +51,7 @@ jobs:
         apt install -y wget
         cd build
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
-        for component in core physics
+        for component in core physics dynamics
         do
             cd $component/test
             for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
@@ -88,7 +88,7 @@ jobs:
         apt install -y wget
         cd build
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
-        for component in core physics
+        for component in core physics dynamics
         do
             cd $component/test
             for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI\d+$")
@@ -134,7 +134,7 @@ jobs:
     - name: run serial tests
       run: |
         cd build
-        for component in core physics
+        for component in core physics dynamics
         do
             cd $component/test
             for file in $(find test* -maxdepth 0 -type f | grep -v "_MPI\d*$")
