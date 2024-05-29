@@ -131,6 +131,61 @@ auto makeKokkosDeviceViewMap(
     }
 }
 
+namespace Details {
+    // Map Kokkos layout to Eigen layout options
+    template <typename KokkosLayout> struct ToEigenLayout;
+
+    template <> struct ToEigenLayout<Kokkos::LayoutLeft> {
+        static constexpr int Options = Eigen::ColMajor;
+    };
+    template <> struct ToEigenLayout<Kokkos::LayoutRight> {
+        static constexpr int Options = Eigen::RowMajor;
+    };
+
+    template <class DataType, class Layout> struct ToEigenMatrix;
+
+    // map kokkos array declaration to Eigen matrix
+    template <typename Scalar, class Layout> struct ToEigenMatrix<Scalar**, Layout> {
+        using Type
+            = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, ToEigenLayout<Layout>::Options>;
+    };
+
+    template <typename Scalar, int Cols, class Layout>
+    struct ToEigenMatrix<Scalar* [Cols], Layout> {
+        using Type = Eigen::Matrix<Scalar, Eigen::Dynamic, Cols,
+            (Cols == 1) ? Eigen::ColMajor : ToEigenLayout<Layout>::Options>;
+    };
+
+    template <typename Scalar, int Rows, int Cols, class Layout>
+    struct ToEigenMatrix<Scalar[Rows][Cols], Layout> {
+        using Type = Eigen::Matrix<Scalar, Rows, Cols,
+            (Cols == 1) ? Eigen::ColMajor : ToEigenLayout<Layout>::Options>;
+    };
+
+    // map kokkos view spec to Eigen map
+    template <class DataType, class Layout> struct ToEigenMap {
+        using Type = Eigen::Map<typename Details::ToEigenMatrix<DataType, Layout>::Type>;
+    };
+
+    template <class DataType, class Layout>
+    struct ToEigenMap<const DataType, Layout> {
+        using Type = Eigen::Map<const typename Details::ToEigenMatrix<DataType, Layout>::Type>;
+    };
 }
+
+// kokkos view -> eigen map
+template <class DataType, class... Properties>
+KOKKOS_IMPL_FUNCTION auto makeEigenMap(const Kokkos::View<DataType, Properties...>& view)
+{
+    using View = Kokkos::View<DataType, Properties...>;
+    static_assert(View::rank() == 2, "currently only rank 2 tensors are supported");
+
+    using MapType = typename Details::ToEigenMap<DataType, typename View::array_layout>::Type;
+    // Eigen::Map<typename Details::ToEigenMatrix<typename View::non_const_value_type, typename
+    // View::array_layout>::Type>;
+    return MapType(view.data(), view.extent(0), view.extent(1));
+}
+
+} // namespace nextsim
 
 #endif /* KOKKOSVPCGDYNAMICSKERNEL_HPP */
