@@ -22,7 +22,7 @@ jobs:
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
         cd -
-        for component in physics
+        for component in physics dynamics
         do
           cd $component/src
           clang-format --dry-run -Werror *cpp include/*hpp

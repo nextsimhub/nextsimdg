@@ -14,12 +14,12 @@
 
 
 #include "stopwatch.hpp"
-#include "testtools.hpp"
 #include <cassert>
 #include <chrono>
 #include <filesystem> // only for automatic creation of output directory
 #include <iostream>
 #include <vector>
+#include "../test/testtools.hpp"
 
 
 bool WRITE_VTK = false; //!< set to true for vtk output

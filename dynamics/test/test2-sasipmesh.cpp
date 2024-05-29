@@ -13,12 +13,12 @@
 #include "Tools.hpp"
 
 #include "stopwatch.hpp"
-#include "testtools.hpp"
 #include <cassert>
 #include <chrono>
 #include <filesystem> // only for automatic creation of output directory
 #include <iostream>
 #include <vector>
+#include "../test/testtools.hpp"
 
 /*!
  * Advection test case on a ring:
