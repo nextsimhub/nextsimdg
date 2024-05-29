@@ -258,15 +258,15 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh)
   for (size_t i = 0; i < smesh.nx; ++i)
     smesh.dirichlet[2][i] = smesh.nx * (smesh.ny - 1) + i;
 
-  smesh.periodic.resize(smesh.ny);
+  smesh.periodic.resize(1);
+  smesh.periodic[0].resize(smesh.ny);
   for (size_t i=0;i<smesh.ny;++i)
-    {
-      smesh.periodic[i].edgeid = (smesh.nx+1)*i + i;
-      smesh.periodic[i].eid1 = (i+1)*smesh.nx-1; //
-      smesh.periodic[i].eid2 = i * smesh.nx;
-      smesh.periodic[i].eoe1 = 1;
-      smesh.periodic[i].eoe2 = 3;
-    }
+      {
+        smesh.periodic[0][i][0] = 1; // periodic on left/right boundary
+        smesh.periodic[0][i][1] = (i+1) * smesh.nx-1; // element on the left of the edge (so the most right one in the row)
+        smesh.periodic[0][i][2] = i * smesh.nx; // element right of the edge (so the very left one) as...
+        smesh.periodic[0][i][3] = i * (smesh.nx+1) + i; // the edge is the most right edge in the row
+      }
 }
 
 template <int DG>
