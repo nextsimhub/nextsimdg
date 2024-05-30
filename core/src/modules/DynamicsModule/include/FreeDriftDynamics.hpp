@@ -18,8 +18,6 @@
 namespace Nextsim {
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 
-// Degrees to radians as a hex float
-static const double radians = 0x1.1df46a2529d39p-6;
 
 class FreeDriftDynamics : public IDynamics {
 public:
@@ -55,6 +53,9 @@ public:
 
     void setData(const ModelState::DataMap& ms) override
     {
+        // Degrees to radians as a hex float
+        static const double radians = 0x1.1df46a2529d39p-6;
+
         IDynamics::setData(ms);
 
         bool isSpherical = checkSpherical(ms);
