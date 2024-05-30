@@ -9,10 +9,10 @@
 
 namespace Nextsim {
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
-    { ModelArray::Dimension::X, { "x", 1 } },
-    { ModelArray::Dimension::Y, { "y", 1 } },
-    { ModelArray::Dimension::Z, { "z", 1 } },
-    { ModelArray::Dimension::U, { "u", 1 } },
+    { ModelArray::Dimension::X, { "x", "x", 1 } },
+    { ModelArray::Dimension::Y, { "y", "y", 1 } },
+    { ModelArray::Dimension::Z, { "z", "z", 1 } },
+    { ModelArray::Dimension::U, { "u", "u", 1 } },
 };
 
 ModelArray::TypeDimensions ModelArray::typeDimensions = {

@@ -1,23 +1,21 @@
 import netCDF4
 import numpy as np
-import numpy.ma as ma
 import time
-import math
 
-# Creates a 24x30 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
+# Create a restart file that specifically uses the old dimension names
 if __name__ == "__main__":
 
     # Grid dimensions. x varies fastest
-    nfirst = 24
-    nsecond = 30
+    nfirst = 1
+    nsecond = 1
     nLayers = 1
     ncg = 1
     n_dg = 1
-    n_dgstress = 3
+    n_dgstress = 1
     n_coords = 2
     
     
-    root = netCDF4.Dataset("init_para24x30.nc", "w", format="NETCDF4")
+    root = netCDF4.Dataset("old_names.nc", "w", format="NETCDF4")
     
     structure_name = "parametric_rectangular"
     structgrp = root.createGroup("structure")
@@ -36,9 +34,9 @@ if __name__ == "__main__":
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
 
-    nLay = datagrp.createDimension("zdim", nLayers)
-    yDim = datagrp.createDimension("ydim", nfirst)
-    xDim = datagrp.createDimension("xdim", nsecond)
+    nLay = datagrp.createDimension("z", nLayers)
+    yDim = datagrp.createDimension("y", nfirst)
+    xDim = datagrp.createDimension("x", nsecond)
     yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
     xVertexDim = datagrp.createDimension("xvertex", nsecond+ 1)
     ycg_dim = datagrp.createDimension("y_cg", nfirst * ncg + 1)
@@ -47,15 +45,13 @@ if __name__ == "__main__":
     dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = datagrp.createDimension("ncoords", n_coords)
     
-    field_dims = ("ydim", "xdim")
+    field_dims = ("y", "x")
     coord_dims = ("yvertex", "xvertex", "ncoords")
-    zfield_dims = ("zdim", "ydim", "xdim")
+    zfield_dims = ("z", "y", "x")
 
     # Array coordinates
     space = 25000. # 25 km in metres
-    node_x = np.zeros((nfirst + 1, nsecond + 1))
-    node_y = np.zeros((nfirst + 1, nsecond + 1))
-    
+
     x_vertex1d = np.arange(0, space * (nsecond + 1), space)
     y_vertex1d = np.arange(0, space * (nfirst +1), space)
     

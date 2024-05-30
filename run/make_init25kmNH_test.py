@@ -32,9 +32,9 @@ formatted[0] = "2000-01-01T00:00:00Z"
 
 datagrp = root.createGroup("data")
 
-xDim = datagrp.createDimension("x", nx)
-yDim = datagrp.createDimension("y", ny)
-nLay = datagrp.createDimension("z", nLayers)
+xDim = datagrp.createDimension("xdim", nx)
+yDim = datagrp.createDimension("ydim", ny)
+nLay = datagrp.createDimension("zdim", nLayers)
 xVertexDim = datagrp.createDimension("xvertex", nx + 1)
 yVertexDim = datagrp.createDimension("yvertex", ny + 1)
 xcg_dim = datagrp.createDimension("x_cg", nx * ncg + 1)
@@ -45,7 +45,7 @@ n_coords_comp = datagrp.createDimension("ncoords", n_coords)
 
 grid_mask = grid["mask"]
 
-mask = datagrp.createVariable("mask", "f8", ("x", "y"))
+mask = datagrp.createVariable("mask", "f8", ("xdim", "ydim"))
 mask[:,:] = grid_mask[:,:]
 antimask = 1 - mask[:,:]
 
@@ -66,27 +66,27 @@ coords = datagrp.createVariable("coords", "f8", ("xvertex", "yvertex", "ncoords"
 coords[:,:,0] = node_lon
 coords[:,:,1] = node_lat
 
-elem_lon = datagrp.createVariable("longitude", "f8", ("x", "y",))
+elem_lon = datagrp.createVariable("longitude", "f8", ("xdim", "ydim",))
 elem_lon[:, :] = grid["plon"][:, :]
-elem_lat = datagrp.createVariable("latitude", "f8", ("x", "y",))
+elem_lat = datagrp.createVariable("latitude", "f8", ("xdim", "ydim",))
 elem_lat[:, :] = grid["plat"][:, :]
 
 
-cice = datagrp.createVariable("cice", "f8", ("x", "y",))
+cice = datagrp.createVariable("cice", "f8", ("xdim", "ydim",))
 cice[:,:] = mask[:, :] * 0.95
-hice = datagrp.createVariable("hice", "f8", ("x", "y",))
+hice = datagrp.createVariable("hice", "f8", ("xdim", "ydim",))
 hice[:,:] = cice[:,:] * 2
-hsnow = datagrp.createVariable("hsnow", "f8", ("x", "y",))
+hsnow = datagrp.createVariable("hsnow", "f8", ("xdim", "ydim",))
 hsnow[:,:] = cice[:,:] / 2
 tice = datagrp.createVariable("tice", "f8", ("x", "y", "z"))
 tice[:,:,0] = -0.5 - cice[:,:]
-sst = datagrp.createVariable("sst", "f8", ("x", "y",))
+sst = datagrp.createVariable("sst", "f8", ("xdim", "ydim",))
 sst[:,:] = -cice[:,:]
-sss = datagrp.createVariable("sss", "f8", ("x", "y",))
+sss = datagrp.createVariable("sss", "f8", ("xdim", "ydim",))
 sss[:,:] = cice[:,:] * 33.68
-u = datagrp.createVariable("u", "f8", ("x", "y",))
+u = datagrp.createVariable("u", "f8", ("xdim", "ydim",))
 u[:,:] = 0.
-v = datagrp.createVariable("v", "f8", ("x", "y",))
+v = datagrp.createVariable("v", "f8", ("xdim", "ydim",))
 v[:,:] = 0.
 
 #velocity in the middle of the domain
