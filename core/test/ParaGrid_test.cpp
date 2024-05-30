@@ -487,7 +487,6 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
-
 }
 
 TEST_SUITE_END();

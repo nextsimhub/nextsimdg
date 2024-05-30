@@ -12,11 +12,11 @@
  * boilerplate, so they have all been group in this test.
  *
  */
+#include "include/Configurator.hpp"
+#include "include/Xios.hpp"
 #include <cstdio>
 #include <doctest/extensions/doctest_mpi.h>
-#include "include/Xios.hpp"
 #include <iostream>
-#include "include/Configurator.hpp"
 
 /*!
  * TestXiosInitialization
