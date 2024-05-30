@@ -9,8 +9,8 @@
 #include <doctest/doctest.h>
 #include <sstream>
 
-#include "include/IFluxCalculation.hpp"
 #include "include/ThermoIce0.hpp"
+#include "include/IFluxCalculation.hpp"
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
@@ -158,6 +158,7 @@ TEST_CASE("Threshold ice")
     REQUIRE(hice[0] == 0.);
     ModelArrayRef<Shared::C_ICE> cice(ModelComponent::getStore());
     REQUIRE(cice[0] == 0.);
+
 }
 TEST_SUITE_END();
 }

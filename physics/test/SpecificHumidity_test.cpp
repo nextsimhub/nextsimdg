@@ -32,6 +32,7 @@ TEST_CASE("Specific humidity test")
     REQUIRE(0.00385326 == doctest::Approx(air).epsilon(prec));
     REQUIRE(0.00349446 == doctest::Approx(water).epsilon(prec));
     REQUIRE(0.00323958 == doctest::Approx(ice).epsilon(prec));
+
 }
 TEST_SUITE_END();
 

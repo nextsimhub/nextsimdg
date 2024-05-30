@@ -58,7 +58,7 @@ TEST_CASE("AtmosphereTest")
     benchAtm.setData(ModelState::DataMap());
     TimePoint time("2000-01-01T00:00:00");
     Duration step(3600);
-    TimestepTime tst = { time, step };
+    TimestepTime tst = {time, step};
 
     benchAtm.update(tst);
 

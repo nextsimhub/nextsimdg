@@ -14,15 +14,15 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/FreezingPointModule.hpp"
+#include "include/constants.hpp"
 #include "include/IAtmosphereBoundary.hpp"
+#include "include/FreezingPointModule.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 #include "include/UniformOcean.hpp"
-#include "include/constants.hpp"
 
 namespace Nextsim {
 
@@ -97,7 +97,7 @@ TEST_CASE("Melting conditions")
     } initCond;
     initCond.setData(ModelState().data);
 
-    UniformOcean oceanData(-1, 32., 4.29151e7 / (Water::rho * Water::cp));
+    UniformOcean oceanData(-1, 32., 4.29151e7/(Water::rho * Water::cp));
     oceanData.setQio(53717.8);
     oceanData.setData(ModelState().data);
 
@@ -204,7 +204,7 @@ TEST_CASE("Freezing conditions")
     } atmoState;
     atmoState.setData(ModelState().data);
 
-    UniformOcean oceanData(-1.75, 32., 4.29151e7 / (Water::rho * Water::cp));
+    UniformOcean oceanData(-1.75, 32., 4.29151e7/(Water::rho * Water::cp));
     oceanData.setQio(73.9465);
     oceanData.setData(ModelState().data);
 

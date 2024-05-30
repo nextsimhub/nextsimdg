@@ -85,7 +85,7 @@ public:
         map = inMap;
     }
 
-    friend std::istream& operator>> <E>(std::istream& is, EnumWrapper<E>&);
+    friend std::istream& operator>><E>(std::istream& is, EnumWrapper<E>&);
 
 private:
     //! The public, static mapping between input strings and enum values.

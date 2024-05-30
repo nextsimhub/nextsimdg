@@ -14,6 +14,7 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/constants.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
@@ -21,7 +22,6 @@
 #include "include/Module.hpp"
 #include "include/Time.hpp"
 #include "include/UniformOcean.hpp"
-#include "include/constants.hpp"
 
 namespace Nextsim {
 

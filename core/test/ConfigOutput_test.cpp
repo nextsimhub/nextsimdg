@@ -26,8 +26,8 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
-#include <filesystem>
 #include <sstream>
+#include <filesystem>
 
 namespace Nextsim {
 
