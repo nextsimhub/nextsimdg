@@ -60,7 +60,7 @@ protected:
     {
 #pragma omp parallel for
         for (int i = 0; i < u.rows(); ++i) {
-            // Ice velocity is equal to ocean velocity
+            // Free drift ice velocity
             u(i) = uOcean(i) + NansenNumber * (uAtmos(i) * cosOceanAngle - vAtmos(i) * sinOceanAngle);
             v(i) = vOcean(i) + NansenNumber * (-uAtmos(i) * sinOceanAngle + vAtmos(i) * cosOceanAngle);
         }
