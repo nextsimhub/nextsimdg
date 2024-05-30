@@ -17,6 +17,10 @@
 
 namespace Nextsim {
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+
+// Degrees to radians as a hex float
+static const double radians = 0x1.1df46a2529d39p-6;
+
 class FreeDriftDynamics : public IDynamics {
 public:
     FreeDriftDynamics()
@@ -55,25 +59,11 @@ public:
 
         bool isSpherical = checkSpherical(ms);
 
-        // TODO: Remove this when spherical coordinates are fully implemented
-        ModelArray coords;
+        ModelArray coords = ms.at(coordsName);
         if (isSpherical) {
-            std::cout << "Spherical coordinates are not yet implemented. Reverting to Cartesian." << std::endl;
-            isSpherical = false;
-            ModelArray fake25kmCoords(ModelArray::Type::VERTEX);
-            double d = 25000; // 25 km in metres
-            // Fill the fake coordinate array
-            for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
-                for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
-                    fake25kmCoords.components({i, j})[0] = d * i;
-                    fake25kmCoords.components({i, j})[1] = d * j;
-                }
-            }
-            coords = fake25kmCoords;
-            // End of code to be removed
-        } else {
-            coords = ms.at(coordsName);
+            coords *= radians;
         }
+        // TODO: Some encoding of the periodic edge boundary conditions
         kernel.initialise(coords, false, ms.at(maskName));
 
         // Set the data in the kernel arrays.
