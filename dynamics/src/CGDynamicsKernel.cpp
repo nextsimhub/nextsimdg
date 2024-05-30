@@ -155,8 +155,8 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
         for (size_t col = 0; col < smesh->nx;
              ++col, ++dgi, cgi += CGdegree) { // loop over all elements
 
-            if (smesh->landmask[dgi] == 0) // only on ice
-                continue;
+        //    if (smesh->landmask[dgi] == 0) // only on ice
+        //        continue;
 
             // get the local x/y - velocity coefficients on the element
             Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local
@@ -168,9 +168,11 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
             // by integrating rhs and inverting with dG(stress) mass matrix
             //
             e11.row(dgi) = pmap->iMgradX[dgi] * vx_local;
+        //    for(int i = 0; i < 8; ++i)
+        //        e11.row(dgi)(i) = pmap->iMgradX[dgi](i,0);
             e22.row(dgi) = pmap->iMgradY[dgi] * vy_local;
             e12.row(dgi) = 0.5 * (pmap->iMgradX[dgi] * vy_local + pmap->iMgradY[dgi] * vx_local);
-
+        
             if (smesh->CoordinateSystem == SPHERICAL) {
                 e11.row(dgi) -= pmap->iMM[dgi] * vy_local;
                 e12.row(dgi) += 0.5 * pmap->iMM[dgi] * vx_local;

@@ -13,6 +13,25 @@
 
 namespace Nextsim {
 
+namespace Details {
+    template <int CG, typename Vec>
+    KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgToLocal(const Vec& vGlobal, int cgi, int cgShift)
+    {
+        if constexpr (CG == 1) {
+            Eigen::Matrix<FloatType, CGDOFS(1), 1> vLocal;
+            vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + cgShift),
+                vGlobal(cgi + 1 + cgShift);
+            return vLocal;
+        } else {
+            Eigen::Matrix<FloatType, CGDOFS(2), 1> vLocal;
+            vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + 2), vGlobal(cgi + cgShift),
+                vGlobal(cgi + 1 + cgShift), vGlobal(cgi + 2 + cgShift), vGlobal(cgi + 2 * cgShift),
+                vGlobal(cgi + 1 + 2 * cgShift), vGlobal(cgi + 2 + 2 * cgShift);
+            return vLocal;
+        }
+    }
+}
+
 template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3 ? 2 : -1);
 
 // The VP pseudo-timestepping momentum equation solver for CG velocities
@@ -24,6 +43,14 @@ private:
 
 public:
     struct KokkosBuffers {
+        // velocity components
+        using DeviceViewCG = KokkosDeviceView<CGVector<CGdegree>>;
+        using HostViewCG = KokkosHostView<CGVector<CGdegree>>;
+        DeviceViewCG uDevice;
+        HostViewCG uHost;
+        DeviceViewCG vDevice;
+        HostViewCG vHost;
+
         // strain and stress components
         using DeviceViewStress = KokkosDeviceView<DGVector<DGstressDegree>>;
         using HostViewStress = KokkosHostView<DGVector<DGstressDegree>>;
@@ -53,8 +80,10 @@ public:
         ConstKokkosDeviceView<PSIAdvectType> PSIAdvectDevice;
         ConstKokkosDeviceView<PSIStressType> PSIStressDevice;
 
-        using IMJwPSIType = Eigen::Matrix<FloatType, DGstressDegree, NGP * NGP>;
-        KokkosDeviceMapView<IMJwPSIType> iMJwPSIDevice;
+        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
+        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMgradXDevice;
+        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMgradYDevice;
+        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMMDevice;
     };
 
     KokkosVPCGDynamicsKernel(const VPParameters& paramsIn)
@@ -76,21 +105,28 @@ public:
     {
         CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
+        std::tie(buffers.uHost, buffers.uDevice) = makeKokkosDualView("u", this->u);
+        std::tie(buffers.vHost, buffers.vDevice) = makeKokkosDualView("v", this->v);
+
         std::tie(buffers.s11Host, buffers.s11Device) = makeKokkosDualView("s11", this->s11);
         std::tie(buffers.s12Host, buffers.s12Device) = makeKokkosDualView("s12", this->s12);
         std::tie(buffers.s22Host, buffers.s22Device) = makeKokkosDualView("s11", this->s22);
         std::tie(buffers.e11Host, buffers.e11Device) = makeKokkosDualView("e11", this->e11);
         std::tie(buffers.e12Host, buffers.e12Device) = makeKokkosDualView("e12", this->e12);
         std::tie(buffers.e22Host, buffers.e22Device) = makeKokkosDualView("e11", this->e22);
+
         std::tie(buffers.hiceHost, buffers.hiceDevice) = makeKokkosDualView("hice", this->hice);
         std::tie(buffers.ciceHost, buffers.ciceDevice) = makeKokkosDualView("cice", this->cice);
 
         // does not depend on the data but it can not be allocated in the constructor
         buffers.PSIAdvectDevice
-            = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>);
+            = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, true);
         buffers.PSIStressDevice
-            = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressDegree, NGP>);
+            = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressDegree, NGP>, true);
 
+        buffers.iMgradXDevice = makeKokkosDeviceViewMap("iMgradX", this->pmap->iMgradX, true);
+        buffers.iMgradYDevice = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, true);
+        buffers.iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, true);
         buffers.iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
 
         stressStep.setPMap(this->pmap);
@@ -108,38 +144,49 @@ public:
         // The critical timestep for the VP solver is the advection timestep
         this->deltaT = tst.step.seconds();
 
+        Kokkos::deep_copy(buffers.uDevice, buffers.uHost);
+        Kokkos::deep_copy(buffers.vDevice, buffers.vHost);
+
+        Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
+        Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
+        Kokkos::deep_copy(buffers.s22Device, buffers.s22Host);
+        Kokkos::deep_copy(buffers.e11Device, buffers.e11Host);
+        Kokkos::deep_copy(buffers.e12Device, buffers.e12Host);
+        Kokkos::deep_copy(buffers.e22Device, buffers.e22Host);
+        Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
+        Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
+
+        auto checkDiff = [](const auto& a, const auto& b, bool detailed){
+            if (detailed){
+                std::cout << a.row(7) - b.row(7) << "\n";
+            }
+            auto aNorm = a.norm();
+            std::cout << "a: " << aNorm << ", b: " << b.norm() << ", (a-b)/|a|: " << (a-b).norm() / aNorm << std::endl;
+        }; 
+
         for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
+        //    projVelocityToStrain(buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
             this->projectVelocityToStrain();
+        /*    auto tempE11 = this->e11;
+            auto tempE12 = this->e12;
+            auto tempE22 = this->e22;
+            Kokkos::deep_copy(buffers.e11Host, buffers.e11Device);
+            Kokkos::deep_copy(buffers.e12Host, buffers.e12Device);
+            Kokkos::deep_copy(buffers.e22Host, buffers.e22Device);
+            checkDiff(tempE11, this->e11, false);
+            checkDiff(tempE12, this->e12, false);
+            checkDiff(tempE22, this->e22, false);
+            std::abort();*/
 
-            Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
-            Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
-            Kokkos::deep_copy(buffers.s22Device, buffers.s22Host);
-            Kokkos::deep_copy(buffers.e11Device, buffers.e11Host);
-            Kokkos::deep_copy(buffers.e12Device, buffers.e12Host);
-            Kokkos::deep_copy(buffers.e22Device, buffers.e22Host);
-            Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
-            Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
-            std::array<DGVector<DGstressDegree>, N_TENSOR_ELEMENTS> stressTemp { this->s11,
-                this->s12, this->s22 };
-            std::array<std::reference_wrapper<DGVector<DGstressDegree>>, N_TENSOR_ELEMENTS> stress
-                = { stressTemp[0], stressTemp[1],
-                      stressTemp[2] };
-            stressStep.stressUpdateHighOrder(params, *this->smesh, stress,
-                { this->e11, this->e12, this->e22 }, this->hice, this->cice, this->deltaT);
-
+            /*            std::array<DGVector<DGstressDegree>, N_TENSOR_ELEMENTS> stressTemp {
+               this->s11, this->s12, this->s22 };
+                        std::array<std::reference_wrapper<DGVector<DGstressDegree>>,
+               N_TENSOR_ELEMENTS> stress = { stressTemp[0], stressTemp[1], stressTemp[2] };*/
             stressUpdateHighOrder(buffers, params, alpha);
 
             Kokkos::deep_copy(buffers.s11Host, buffers.s11Device);
             Kokkos::deep_copy(buffers.s12Host, buffers.s12Device);
             Kokkos::deep_copy(buffers.s22Host, buffers.s22Device);
-
-            std::cout << "ref: " << stressTemp[0].norm() << ", gpu: " << this->s11.norm()
-                      << ", dif: " << (stressTemp[0] - this->s11).norm() << "\n";
-
-            double stressScale
-                = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
-            if (this->smesh->CoordinateSystem == Nextsim::SPHERICAL)
-                stressScale = 1.0 / Nextsim::EarthRadius / Nextsim::EarthRadius;
 
             this->stressDivergence(); // Compute divergence of stress tensor
 
@@ -151,6 +198,53 @@ public:
         DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
     }
 
+    static void projVelocityToStrain(
+        const KokkosBuffers& _buffers, int nx, int ny, COORDINATES coordinates)
+    {
+        const int cgshift = CGdegree * nx + 1; //!< Index shift for each row
+
+        // parallelize over the rows
+        Kokkos::parallel_for(
+            "projectVelocityToStrain", ny, KOKKOS_LAMBDA(const int row) {
+                auto u = makeEigenMap(_buffers.uDevice);
+                auto v = makeEigenMap(_buffers.vDevice);
+
+                auto e11 = makeEigenMap(_buffers.e11Device);
+                auto e12 = makeEigenMap(_buffers.e12Device);
+                auto e22 = makeEigenMap(_buffers.e22Device);
+
+                int dgi = nx * row; //!< Index of dg vector
+                int cgi = CGdegree * cgshift * row; //!< Lower left index of cg vector
+
+                for (int col = 0; col < nx;
+                     ++col, ++dgi, cgi += CGdegree) { // loop over all elements
+
+                    //     if (smesh->landmask[dgi] == 0) // only on ice
+                    //         continue;
+
+                    // get the local x/y - velocity coefficients on the element
+                    auto vx_local = Details::cgToLocal<CGdegree>(u, cgi, cgshift);
+                    auto vy_local = Details::cgToLocal<CGdegree>(v, cgi, cgshift);
+
+                    // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
+                    // by integrating rhs and inverting with dG(stress) mass matrix
+                    e11.row(dgi) = _buffers.iMgradXDevice[dgi] * vx_local; 
+            //        for(int i = 0; i < 8; ++i)
+            //            e11.row(dgi)(i) = _buffers.iMgradXDevice[dgi](i,0);
+                    e22.row(dgi) = _buffers.iMgradYDevice[dgi] * vy_local;
+                    e12.row(dgi) = 0.5
+                        * (_buffers.iMgradXDevice[dgi] * vy_local
+                            + _buffers.iMgradYDevice[dgi] * vx_local);
+
+                    if (coordinates == SPHERICAL) {
+                        e11.row(dgi) -= _buffers.iMMDevice[dgi] * vy_local;
+                        e12.row(dgi) += 0.5 * _buffers.iMMDevice[dgi] * vx_local;
+                    }
+                }
+            });
+    }
+
+    // todo: move kokkos stuff this out of class into extra namespace?
     static void stressUpdateHighOrder(
         const KokkosBuffers& _buffers, const VPParameters& _params, double _alpha)
     {
@@ -168,24 +262,6 @@ public:
 
                 auto PSIAdvect = makeEigenMap(_buffers.PSIAdvectDevice);
                 auto PSIStress = makeEigenMap(_buffers.PSIStressDevice);
-                /*           auto S11 = AlignedMap<DGVec<DGstress>>(
-                              S11Device.data(), nElem, DGVec<DGstress>::ColsAtCompileTime);
-                          auto S12 = AlignedMap<DGVec<DGstress>>(
-                              S12Device.data(), nElem, DGVec<DGstress>::ColsAtCompileTime);
-                          auto S22 = AlignedMap<DGVec<DGstress>>(
-                              S22Device.data(), nElem, DGVec<DGstress>::ColsAtCompileTime);
-
-                          auto E11 = AlignedMap<const DGVec<DGstress>>(
-                              E11Device.data(), nElem, DGVec<DGstress>::ColsAtCompileTime);
-                          auto E12 = AlignedMap<const DGVec<DGstress>>(
-                              E12Device.data(), nElem, DGVec<DGstress>::ColsAtCompileTime);
-                          auto E22 = AlignedMap<const DGVec<DGstress>>(
-                              E22Device.data(), nElem, DGVec<DGstress>::ColsAtCompileTime);
-
-                          auto H = AlignedMap<const DGVec<DGadvection>>(
-                              Hdevice.data(), nElem, DGVec<DGadvection>::ColsAtCompileTime);
-                          auto A = AlignedMap<const DGVec<DGadvection>>(
-                              Adevice.data(), nElem, DGVec<DGadvection>::ColsAtCompileTime);*/
 
                 auto h_gauss = (hice.row(i) * PSIAdvect).array().max(0.0).matrix();
                 auto a_gauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
@@ -203,7 +279,7 @@ public:
                                        .sqrt()
                                        .matrix();
 
-                const auto& map = _buffers.iMJwPSIDevice[i];
+                const auto map = _buffers.iMJwPSIDevice[i];
 
                 const FloatType alphaInv = 1.0 / _alpha;
                 const FloatType fac = 1.0 - alphaInv;
