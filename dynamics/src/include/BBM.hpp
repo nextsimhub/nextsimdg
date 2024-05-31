@@ -198,4 +198,3 @@ namespace BBM {
 } /* namespace Nextsim */
 
 #endif /* __BBM_HPP */
-
