@@ -38,6 +38,11 @@ public:
         DeviceViewCG vDevice;
         HostViewCG vHost;
 
+        DeviceViewCG dStressXDevice;
+        HostViewCG dStressXHost;
+        DeviceViewCG dStressYDevice;
+        HostViewCG dStressYHost;
+
         // strain and stress components
         using DeviceViewStress = KokkosDeviceView<DGVector<DGstressDegree>>;
         using HostViewStress = KokkosHostView<DGVector<DGstressDegree>>;
@@ -69,10 +74,15 @@ public:
 
         // parametric map precomputed transforms
         // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
-        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
+        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::DivMatrix> divS1Device;
+        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::DivMatrix> divS2Device;
+        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::DivMatrix> divMDevice;
+        
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMgradXDevice;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMgradYDevice;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMMDevice;
+
+        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
 
         // mesh related
         Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace> landMaskDevice;
@@ -102,6 +112,7 @@ public:
         const KokkosBuffers& _buffers, int nx, int ny, COORDINATES coordinates);
     static void stressUpdateHighOrder(
         const KokkosBuffers& _buffers, const VPParameters& _params, double _alpha);
+    static void computeStressDivergence(const KokkosBuffers& _buffers, int nx, int ny, COORDINATES coordinates);
 
 private:
     MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> stressStep;
