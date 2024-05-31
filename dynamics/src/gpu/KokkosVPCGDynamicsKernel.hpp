@@ -13,9 +13,35 @@
 
 namespace Nextsim {
 
+class PerfTimer {
+public:
+    PerfTimer(const std::string& _name)
+        : m_name(_name)
+        , m_count(0)
+        , m_total(0.0)
+    {
+    }
+
+    void start() { m_start = std::chrono::high_resolution_clock::now(); }
+    void stop()
+    {
+        auto end = std::chrono::high_resolution_clock::now();
+        ++m_count;
+        m_total += std::chrono::duration<double>(end - m_start).count();
+    }
+    void print() { std::cout << m_name << " total: " << m_total << ", avg: " << m_total / m_count << "\n"; }
+
+private:
+    std::string m_name;
+    int m_count;
+    double m_total;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_start;
+};
+
 namespace Details {
     template <int CG, typename Vec>
-    KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgToLocal(const Vec& vGlobal, int cgi, int cgShift)
+    KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgToLocal(
+        const Vec& vGlobal, int cgi, int cgShift)
     {
         if constexpr (CG == 1) {
             Eigen::Matrix<FloatType, CGDOFS(1), 1> vLocal;
@@ -156,27 +182,37 @@ public:
         Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
         Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
 
-        auto checkDiff = [](const auto& a, const auto& b, bool detailed){
-            if (detailed){
+        auto checkDiff = [](const auto& a, const auto& b, bool detailed) {
+            if (detailed) {
                 std::cout << a.row(7) - b.row(7) << "\n";
             }
             auto aNorm = a.norm();
-            std::cout << "a: " << aNorm << ", b: " << b.norm() << ", (a-b)/|a|: " << (a-b).norm() / aNorm << std::endl;
-        }; 
+            std::cout << "a: " << aNorm << ", b: " << b.norm()
+                      << ", (a-b)/|a|: " << (a - b).norm() / aNorm << std::endl;
+        };
+        PerfTimer timerProjGPU("projGPU");
+        PerfTimer timerProjCPU("projCPU");
 
         for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
-        //    projVelocityToStrain(buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
+            timerProjGPU.start();
+            projVelocityToStrain(
+                buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
+            Kokkos::fence();
+            timerProjGPU.stop();
+            
+            timerProjCPU.start();
             this->projectVelocityToStrain();
-        /*    auto tempE11 = this->e11;
-            auto tempE12 = this->e12;
-            auto tempE22 = this->e22;
-            Kokkos::deep_copy(buffers.e11Host, buffers.e11Device);
-            Kokkos::deep_copy(buffers.e12Host, buffers.e12Device);
-            Kokkos::deep_copy(buffers.e22Host, buffers.e22Device);
-            checkDiff(tempE11, this->e11, false);
-            checkDiff(tempE12, this->e12, false);
-            checkDiff(tempE22, this->e22, false);
-            std::abort();*/
+            timerProjCPU.stop();
+            /*    auto tempE11 = this->e11;
+                auto tempE12 = this->e12;
+                auto tempE22 = this->e22;
+                Kokkos::deep_copy(buffers.e11Host, buffers.e11Device);
+                Kokkos::deep_copy(buffers.e12Host, buffers.e12Device);
+                Kokkos::deep_copy(buffers.e22Host, buffers.e22Device);
+                checkDiff(tempE11, this->e11, false);
+                checkDiff(tempE12, this->e12, false);
+                checkDiff(tempE22, this->e22, false);
+                std::abort();*/
 
             /*            std::array<DGVector<DGstressDegree>, N_TENSOR_ELEMENTS> stressTemp {
                this->s11, this->s12, this->s22 };
@@ -194,6 +230,8 @@ public:
 
             this->applyBoundaries();
         }
+        timerProjGPU.print();
+        timerProjCPU.print();
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
     }
@@ -228,9 +266,9 @@ public:
 
                     // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
                     // by integrating rhs and inverting with dG(stress) mass matrix
-                    e11.row(dgi) = _buffers.iMgradXDevice[dgi] * vx_local; 
-            //        for(int i = 0; i < 8; ++i)
-            //            e11.row(dgi)(i) = _buffers.iMgradXDevice[dgi](i,0);
+                    e11.row(dgi) = _buffers.iMgradXDevice[dgi] * vx_local;
+                    //        for(int i = 0; i < 8; ++i)
+                    //            e11.row(dgi)(i) = _buffers.iMgradXDevice[dgi](i,0);
                     e22.row(dgi) = _buffers.iMgradYDevice[dgi] * vy_local;
                     e12.row(dgi) = 0.5
                         * (_buffers.iMgradXDevice[dgi] * vy_local
