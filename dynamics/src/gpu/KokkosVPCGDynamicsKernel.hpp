@@ -11,6 +11,8 @@
 #include "../include/CGDynamicsKernel.hpp"
 #include "KokkosUtils.hpp"
 
+#include <Kokkos_Bitset.hpp>
+
 namespace Nextsim {
 
 class PerfTimer {
@@ -29,7 +31,10 @@ public:
         ++m_count;
         m_total += std::chrono::duration<double>(end - m_start).count();
     }
-    void print() { std::cout << m_name << " total: " << m_total << ", avg: " << m_total / m_count << "\n"; }
+    void print()
+    {
+        std::cout << m_name << " total: " << m_total << ", avg: " << m_total / m_count << "\n";
+    }
 
 private:
     std::string m_name;
@@ -106,10 +111,15 @@ public:
         ConstKokkosDeviceView<PSIAdvectType> PSIAdvectDevice;
         ConstKokkosDeviceView<PSIStressType> PSIStressDevice;
 
+        // parametric map precomputed transforms
+        // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMgradXDevice;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMgradYDevice;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMMDevice;
+
+        // mesh related
+        Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace> landMaskDevice;
     };
 
     KokkosVPCGDynamicsKernel(const VPParameters& paramsIn)
@@ -150,12 +160,24 @@ public:
         buffers.PSIStressDevice
             = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressDegree, NGP>, true);
 
+        // parametric map
         buffers.iMgradXDevice = makeKokkosDeviceViewMap("iMgradX", this->pmap->iMgradX, true);
         buffers.iMgradYDevice = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, true);
         buffers.iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, true);
         buffers.iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
+        stressStep.setPMap(this->pmap); // only needed for debugging
 
-        stressStep.setPMap(this->pmap);
+        // mesh related
+        // unfortunately there is no more direct way to initialize an Kokkos::Bitset
+        Kokkos::Bitset<Kokkos::HostSpace> landMaskHost(n);
+        landMaskHost.clear();
+        for (unsigned i = 0; i < n; ++i) {
+            if (this->smesh->landmask[i])
+                landMaskHost.set(i);
+        }
+        Kokkos::Bitset<Kokkos::DefaultExecutionSpace> landMaskTemp(n);
+        Kokkos::deep_copy(landMaskTemp, landMaskHost);
+        buffers.landMaskDevice = landMaskTemp;
     }
 
     void update(const TimestepTime& tst) override
@@ -176,9 +198,9 @@ public:
         Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
         Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
         Kokkos::deep_copy(buffers.s22Device, buffers.s22Host);
-        Kokkos::deep_copy(buffers.e11Device, buffers.e11Host);
-        Kokkos::deep_copy(buffers.e12Device, buffers.e12Host);
-        Kokkos::deep_copy(buffers.e22Device, buffers.e22Host);
+        /*     Kokkos::deep_copy(buffers.e11Device, buffers.e11Host);
+             Kokkos::deep_copy(buffers.e12Device, buffers.e12Host);
+             Kokkos::deep_copy(buffers.e22Device, buffers.e22Host);*/
         Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
         Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
 
@@ -194,25 +216,32 @@ public:
         PerfTimer timerProjCPU("projCPU");
 
         for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
+            Kokkos::deep_copy(buffers.uDevice, buffers.uHost);
+            Kokkos::deep_copy(buffers.vDevice, buffers.vHost);
+
+            Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
+            Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
+            Kokkos::deep_copy(buffers.s22Device, buffers.s22Host);
+            Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
+            Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
             timerProjGPU.start();
             projVelocityToStrain(
                 buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
             Kokkos::fence();
             timerProjGPU.stop();
-            
+
             timerProjCPU.start();
             this->projectVelocityToStrain();
             timerProjCPU.stop();
-            /*    auto tempE11 = this->e11;
-                auto tempE12 = this->e12;
-                auto tempE22 = this->e22;
-                Kokkos::deep_copy(buffers.e11Host, buffers.e11Device);
-                Kokkos::deep_copy(buffers.e12Host, buffers.e12Device);
-                Kokkos::deep_copy(buffers.e22Host, buffers.e22Device);
-                checkDiff(tempE11, this->e11, false);
-                checkDiff(tempE12, this->e12, false);
-                checkDiff(tempE22, this->e22, false);
-                std::abort();*/
+      /*      auto tempE11 = this->e11;
+            auto tempE12 = this->e12;
+            auto tempE22 = this->e22;
+            Kokkos::deep_copy(buffers.e11Host, buffers.e11Device);
+            Kokkos::deep_copy(buffers.e12Host, buffers.e12Device);
+            Kokkos::deep_copy(buffers.e22Host, buffers.e22Device);*/
+            checkDiff(tempE11, this->e11, false);
+            checkDiff(tempE12, this->e12, false);
+            checkDiff(tempE22, this->e22, false);
 
             /*            std::array<DGVector<DGstressDegree>, N_TENSOR_ELEMENTS> stressTemp {
                this->s11, this->s12, this->s22 };
@@ -230,8 +259,8 @@ public:
 
             this->applyBoundaries();
         }
-        timerProjGPU.print();
-        timerProjCPU.print();
+    //    timerProjGPU.print();
+    //    timerProjCPU.print();
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
     }
@@ -241,9 +270,10 @@ public:
     {
         const int cgshift = CGdegree * nx + 1; //!< Index shift for each row
 
-        // parallelize over the rows
+        // parallelize over 2D grid
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx, ny });
         Kokkos::parallel_for(
-            "projectVelocityToStrain", ny, KOKKOS_LAMBDA(const int row) {
+            "projectVelocityToStrain", policy, KOKKOS_LAMBDA(const int col, const int row) {
                 auto u = makeEigenMap(_buffers.uDevice);
                 auto v = makeEigenMap(_buffers.vDevice);
 
@@ -251,33 +281,32 @@ public:
                 auto e12 = makeEigenMap(_buffers.e12Device);
                 auto e22 = makeEigenMap(_buffers.e22Device);
 
-                int dgi = nx * row; //!< Index of dg vector
-                int cgi = CGdegree * cgshift * row; //!< Lower left index of cg vector
+                const int dgi = nx * row + col; //!< Index of dg vector
+                const int cgi
+                    = CGdegree * cgshift * row + col * CGdegree; //!< Lower left index of cg vector
 
-                for (int col = 0; col < nx;
-                     ++col, ++dgi, cgi += CGdegree) { // loop over all elements
+                // only on ice
+                if (!_buffers.landMaskDevice.test(dgi)) {
+                    return;
+                }
 
-                    //     if (smesh->landmask[dgi] == 0) // only on ice
-                    //         continue;
+                // get the local x/y - velocity coefficients on the element
+                auto vx_local = Details::cgToLocal<CGdegree>(u, cgi, cgshift);
+                auto vy_local = Details::cgToLocal<CGdegree>(v, cgi, cgshift);
 
-                    // get the local x/y - velocity coefficients on the element
-                    auto vx_local = Details::cgToLocal<CGdegree>(u, cgi, cgshift);
-                    auto vy_local = Details::cgToLocal<CGdegree>(v, cgi, cgshift);
+                // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
+                // by integrating rhs and inverting with dG(stress) mass matrix
+                e11.row(dgi) = _buffers.iMgradXDevice[dgi] * vx_local;
+                //        for(int i = 0; i < 8; ++i)
+                //            e11.row(dgi)(i) = _buffers.iMgradXDevice[dgi](i,0);
+                e22.row(dgi) = _buffers.iMgradYDevice[dgi] * vy_local;
+                e12.row(dgi) = 0.5
+                    * (_buffers.iMgradXDevice[dgi] * vy_local
+                        + _buffers.iMgradYDevice[dgi] * vx_local);
 
-                    // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
-                    // by integrating rhs and inverting with dG(stress) mass matrix
-                    e11.row(dgi) = _buffers.iMgradXDevice[dgi] * vx_local;
-                    //        for(int i = 0; i < 8; ++i)
-                    //            e11.row(dgi)(i) = _buffers.iMgradXDevice[dgi](i,0);
-                    e22.row(dgi) = _buffers.iMgradYDevice[dgi] * vy_local;
-                    e12.row(dgi) = 0.5
-                        * (_buffers.iMgradXDevice[dgi] * vy_local
-                            + _buffers.iMgradYDevice[dgi] * vx_local);
-
-                    if (coordinates == SPHERICAL) {
-                        e11.row(dgi) -= _buffers.iMMDevice[dgi] * vy_local;
-                        e12.row(dgi) += 0.5 * _buffers.iMMDevice[dgi] * vx_local;
-                    }
+                if (coordinates == SPHERICAL) {
+                    e11.row(dgi) -= _buffers.iMMDevice[dgi] * vy_local;
+                    e12.row(dgi) += 0.5 * _buffers.iMMDevice[dgi] * vx_local;
                 }
             });
     }

@@ -155,8 +155,8 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
         for (size_t col = 0; col < smesh->nx;
              ++col, ++dgi, cgi += CGdegree) { // loop over all elements
 
-        //    if (smesh->landmask[dgi] == 0) // only on ice
-        //        continue;
+            if (smesh->landmask[dgi] == 0) // only on ice
+                continue;
 
             // get the local x/y - velocity coefficients on the element
             Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local
