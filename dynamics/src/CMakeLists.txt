@@ -5,12 +5,14 @@ set(IncludeDir "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 ### Set the list of all cpp files
 FILE(GLOB DynamicsSources *.cpp)
+FILE(GLOB GPUSources gpu/*.cpp)
 
 set(NextsimSources
     "${NextsimSources}"
     "${Sources}"
     "${ModuleSources}"
     "${DynamicsSources}"
+    "${GPUSources}"
     PARENT_SCOPE)
 
 
