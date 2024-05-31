@@ -76,9 +76,10 @@ public:
             OUT << "CELLS " << smesh.nelements << " " << smesh.nelements * 5 << std::endl;
             for (size_t iy = 0; iy < smesh.ny; ++iy)
                 for (size_t ix = 0; ix < smesh.nx; ++ix)
-                    OUT << "4" << " " << iy * (smesh.nx + 1) + ix << " "
-                        << iy * (smesh.nx + 1) + ix + 1 << " " << (iy + 1) * (smesh.nx + 1) + ix + 1
-                        << " " << (iy + 1) * (smesh.nx + 1) + ix << std::endl;
+                    OUT << "4"
+                        << " " << iy * (smesh.nx + 1) + ix << " " << iy * (smesh.nx + 1) + ix + 1
+                        << " " << (iy + 1) * (smesh.nx + 1) + ix + 1 << " "
+                        << (iy + 1) * (smesh.nx + 1) + ix << std::endl;
 
             OUT << "CELL_TYPES " << smesh.nelements << std::endl;
             for (size_t i = 0; i < smesh.nelements; ++i)
@@ -99,8 +100,9 @@ public:
             for (size_t iy = 0; iy < 2 * smesh.ny; ++iy)
                 for (size_t ix = 0; ix < 2 * smesh.nx; ++ix) {
                     const size_t n0 = (2 * smesh.nx + 1) * iy + ix;
-                    OUT << "4" << " " << n0 << " " << n0 + 1 << " " << n0 + 2 * smesh.nx + 1 + 1
-                        << " " << n0 + 2 * smesh.nx + 1 << std::endl;
+                    OUT << "4"
+                        << " " << n0 << " " << n0 + 1 << " " << n0 + 2 * smesh.nx + 1 + 1 << " "
+                        << n0 + 2 * smesh.nx + 1 << std::endl;
                 }
 
             OUT << std::endl << "CELL_TYPES " << 4 * smesh.nelements << std::endl;
@@ -154,9 +156,10 @@ public:
             OUT << "CELLS " << smesh.nelements << " " << smesh.nelements * 5 << std::endl;
             for (size_t iy = 0; iy < smesh.ny; ++iy)
                 for (size_t ix = 0; ix < smesh.nx; ++ix)
-                    OUT << "4" << " " << iy * (smesh.nx + 1) + ix << " "
-                        << iy * (smesh.nx + 1) + ix + 1 << " " << (iy + 1) * (smesh.nx + 1) + ix + 1
-                        << " " << (iy + 1) * (smesh.nx + 1) + ix << std::endl;
+                    OUT << "4"
+                        << " " << iy * (smesh.nx + 1) + ix << " " << iy * (smesh.nx + 1) + ix + 1
+                        << " " << (iy + 1) * (smesh.nx + 1) + ix + 1 << " "
+                        << (iy + 1) * (smesh.nx + 1) + ix << std::endl;
 
             OUT << "CELL_TYPES " << smesh.nelements << std::endl;
             for (size_t i = 0; i < smesh.nelements; ++i)
@@ -177,8 +180,9 @@ public:
             for (size_t iy = 0; iy < 2 * smesh.ny; ++iy)
                 for (size_t ix = 0; ix < 2 * smesh.nx; ++ix) {
                     const size_t n0 = (2 * smesh.nx + 1) * iy + ix;
-                    OUT << "4" << " " << n0 << " " << n0 + 1 << " " << n0 + 2 * smesh.nx + 1 + 1
-                        << " " << n0 + 2 * smesh.nx + 1 << std::endl;
+                    OUT << "4"
+                        << " " << n0 << " " << n0 + 1 << " " << n0 + 2 * smesh.nx + 1 + 1 << " "
+                        << n0 + 2 * smesh.nx + 1 << std::endl;
                 }
 
             OUT << std::endl << "CELL_TYPES " << 4 * smesh.nelements << std::endl;

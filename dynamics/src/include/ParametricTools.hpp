@@ -95,10 +95,8 @@ namespace ParametricTools {
     {
         // get the coordinates of the element as 4x2 - matrix
         const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinates = smesh.coordinatesOfElement(eid);
-        const Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dxT
-            = coordinates.transpose() * PHIx<1, Q>;
-        const Eigen::Matrix<Nextsim::FloatType, 2, Q * Q> dyT
-            = coordinates.transpose() * PHIy<1, Q>;
+        const Eigen::Matrix<Nextsim::FloatType, 2, Q* Q> dxT = coordinates.transpose() * PHIx<1, Q>;
+        const Eigen::Matrix<Nextsim::FloatType, 2, Q* Q> dyT = coordinates.transpose() * PHIy<1, Q>;
 
         // (dxT, dyT) is (dx T1, dx T2, dy T1, dy T2)
         return dxT.array().row(0) * dyT.array().row(1) - dxT.array().row(1) * dyT.array().row(0);

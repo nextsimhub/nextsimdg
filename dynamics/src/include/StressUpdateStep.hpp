@@ -19,7 +19,8 @@ namespace Nextsim {
 
 template <int DGadvection, int DGstress> class StressUpdateStep {
 public:
-    typedef std::array<std::reference_wrapper<DGVector<DGstress>>, N_TENSOR_ELEMENTS> SymmetricTensorVector;
+    typedef std::array<std::reference_wrapper<DGVector<DGstress>>, N_TENSOR_ELEMENTS>
+        SymmetricTensorVector;
 
     static const int nGauss = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
     StressUpdateStep() = default;
