@@ -96,6 +96,12 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
     stressStep.setPMap(this->pmap); // only needed for debugging
 
     // mesh related
+    // direchlet boundary
+    for (size_t i = 0; i < 4; ++i) {
+        buffers.dirichletDevice[i] = makeKokkosDeviceViewMap(
+            "dirichlet" + std::to_string(i), this->smesh->dirichlet[i], true);
+    }
+
     // unfortunately there is no more direct way to initialize an Kokkos::Bitset
     const unsigned nBits = this->smesh->landmask.size();
     Kokkos::Bitset<Kokkos::HostSpace> landMaskHost(nBits);
@@ -309,7 +315,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::stressUpdateHighOrder(
 }
 /*
 template <int DGadvection>
-KOKKOS_INLINE_FUNCTION static void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy)
+KOKKOS_INLINE_FUNCTION static void addStressTensorCell(const size_t eid, const size_t cx, const
+size_t cy)
 {
     auto divS1 = _buffers.divS1Device[eid];
     auto divS2 = _buffers.divS2Device[eid];
@@ -334,53 +341,64 @@ KOKKOS_INLINE_FUNCTION static void addStressTensorCell(const size_t eid, const s
             _buffers.dStressYDevice(cg_i + col + row * cgRow, 0) -= ty(col + (CGdegree + 1) * row);
         }
     }
-}
+}*/
 
-template <int DGadvection>
-void CGDynamicsKernel<DGadvection>::dirichletZero(CGVector<CGdegree>& v) const
+// todo: should be KokkosVPCGDynamicsKernel::DeviceViewCG
+template <typename DeviceViewCG, typename KokkosDeviceMapView>
+void dirichletZero(
+    DeviceViewCG& v, int nx, int ny, const std::array<KokkosDeviceMapView, 4>& dirichlet)
 {
-    // the four segments bottom, right, top, left, are each processed in parallel
-    for (size_t seg = 0; seg < 4; ++seg) {
-#pragma omp parallel for
-        for (size_t i = 0; i < smesh->dirichlet[seg].size(); ++i) {
-
-            const size_t eid = smesh->dirichlet[seg][i];
-            const size_t ix = eid % smesh->nx; // compute coordinates of element
-            const size_t iy = eid / smesh->nx;
-
-            if (seg == 0) // bottom
-                for (size_t j = 0; j < CGdegree + 1; ++j)
-                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + j, 0) = 0.0;
-            else if (seg == 1) // right
-                for (size_t j = 0; j < CGdegree + 1; ++j)
-                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + CGdegree
-                            + (CGdegree * smesh->nx + 1) * j,
-                        0)
-                        = 0.0;
-            else if (seg == 2) // top
-                for (size_t j = 0; j < CGdegree + 1; ++j)
-                    v((iy + 1) * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + j, 0)
-                        = 0.0;
-            else if (seg == 3) // left
-                for (size_t j = 0; j < CGdegree + 1; ++j)
-                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix
-                            + (CGdegree * smesh->nx + 1) * j,
-                        0)
-                        = 0.0;
-            else {
-                std::cerr << "That should not have happened!" << std::endl;
-                abort();
+    // bot
+    Kokkos::parallel_for(
+        "dirichletZeroBot", dirichlet[0].extent(0), KOKKOS_LAMBDA(const int i) {
+            const int eid = dirichlet[0][i];
+            const int ix = eid % nx; // compute coordinates of element
+            const int iy = eid / nx;
+            for (int j = 0; j < CGdegree + 1; ++j) {
+                v(iy * CGdegree * (CGdegree * nx + 1, 0) + CGdegree * ix + j, 0) = 0.0;
             }
-        }
-    }
+        });
+    // right
+    Kokkos::parallel_for(
+        "dirichletZeroRight", dirichlet[1].extent(0), KOKKOS_LAMBDA(const int i) {
+            const int eid = dirichlet[1][i];
+            const int ix = eid % nx; // compute coordinates of element
+            const int iy = eid / nx;
+            for (int j = 0; j < CGdegree + 1; ++j) {
+                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + CGdegree
+                        + (CGdegree * nx + 1) * j,
+                    0)
+                    = 0.0;
+            }
+        });
+    // top
+    Kokkos::parallel_for(
+        "dirichletZeroRight", dirichlet[2].extent(0), KOKKOS_LAMBDA(const int i) {
+            const int eid = dirichlet[2][i];
+            const int ix = eid % nx; // compute coordinates of element
+            const int iy = eid / nx;
+            for (int j = 0; j < CGdegree + 1; ++j) {
+                v((iy + 1) * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j, 0) = 0.0;
+            }
+        });
+    // left
+    Kokkos::parallel_for(
+        "dirichletZeroLeft", dirichlet[3].extent(0), KOKKOS_LAMBDA(const int i) {
+            const int eid = dirichlet[3][i];
+            const int ix = eid % nx; // compute coordinates of element
+            const int iy = eid / nx;
+            for (int j = 0; j < CGdegree + 1; ++j) {
+                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + (CGdegree * nx + 1) * j, 0)
+                    = 0.0;
+            }
+        });
 }
-
-*/
 
 template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
     const KokkosBuffers& _buffers, int nx, int ny, COORDINATES coordinates)
 {
+    // zero buffers
     Kokkos::parallel_for(
         "initStressDivergence", _buffers.dStressXDevice.extent(0), KOKKOS_LAMBDA(const int i) {
             _buffers.dStressXDevice(i, 0) = 0.0;
@@ -435,10 +453,10 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
             });
     }
     // set zero on the Dirichlet boundaries
-    /*   dirichletZero(tx);
-       dirichletZero(ty);
-       // add the contributions on the periodic boundaries
-       VectorManipulations::CGAveragePeriodic(*smesh, tx);
+    dirichletZero(_buffers.dStressXDevice, nx, ny, _buffers.dirichletDevice);
+    dirichletZero(_buffers.dStressYDevice, nx, ny, _buffers.dirichletDevice);
+    // add the contributions on the periodic boundaries
+    /*   VectorManipulations::CGAveragePeriodic(*smesh, tx);
        VectorManipulations::CGAveragePeriodic(*smesh, ty);*/
 }
 

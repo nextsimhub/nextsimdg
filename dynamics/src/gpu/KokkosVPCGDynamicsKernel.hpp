@@ -85,6 +85,7 @@ public:
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
 
         // mesh related
+        std::array<KokkosDeviceMapView<size_t>,4> dirichletDevice;
         Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace> landMaskDevice;
     };
 
