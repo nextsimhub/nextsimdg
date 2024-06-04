@@ -199,8 +199,8 @@ class initMaker:
         grid_azimuth[:, :] = grid_azimuth[:, :] * mask[:, :] + antimask * mdi
         grid_azimuth.missing_value = mdi
         sss[:, :] = sss[:, :] * mask[:, :] + antimask * mdi
-        sss.missing_sssalue = mdi
+        sss.missing_value = mdi
         sst[:, :] = sst[:, :] * mask[:, :] + antimask * mdi
-        sst.missing_sstalue = mdi
+        sst.missing_value = mdi
 
         root.close()
