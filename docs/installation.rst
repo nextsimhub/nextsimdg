@@ -11,13 +11,13 @@ First step to install neXtSIM is to download this repository :
 
 .. code::
 
-    git clone https://github.com/nextsimdg/nextsimdg.git
-
-or a specific version :
+    git clone https://github.com/nextsimhub/nextsimdg.git
+    
+You will get the main branch of the code, if you need a specific version :
 
 .. code::
 
-    git clone -b v1.0 https://github.com/nextsimdg/nextsimdg.git
+    git clone -b v1.0 https://github.com/nextsimhub/nextsimdg.git
 
 It may be easier to use either the docker file (see below), or the ``spack`` installation instructions.
 
@@ -38,18 +38,23 @@ If your package manager is `Homebrew`_ :
 .. code::
 
         brew install netcdf
+        brew install netcdf-cxx
         brew install boost
         brew install cmake
+        brew install eigen
 
 
 **Installing dependencies on Ubuntu**
+
+Compilation on a Debian-based Linux distribution (Debian, Ubuntu, etc)
+----------------------------------------------------------------------
 
 You must have root privilege :
 
 .. code::
 
         sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake subversion
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake subversion libeigen3-dev
         svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk xios
         cd xios
         ./make_xios --arch <your_architecture>
@@ -63,9 +68,10 @@ Install conda via anaconda or miniconda (no root privileges required)
 
         conda create --name nextsimdg
         conda activate nextsimdg
-        conda install netCDF4
-        conda -c conda-forge boost
-        conda -c anaconda cmake
+        conda install -c conda-forge netcdf-cxx4
+        conda install -c conda-forge eigen
+        conda install -c conda-forge boost
+        conda install -c anaconda cmake
 
 **Installing dependencies via spack**
 
