@@ -20,6 +20,8 @@
 namespace Nextsim {
 
 template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3 ? 2 : -1);
+// todo: move into kokkos / gpu index
+using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
 
 // The VP pseudo-timestepping momentum equation solver for CG velocities
 template <int DGadvection> class KokkosVPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
@@ -86,6 +88,7 @@ public:
 
         // mesh related
         std::array<KokkosDeviceMapView<size_t>,4> dirichletDevice;
+        std::array<KokkosDeviceMapView<size_t>,4> periodicDevice;
         Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace> landMaskDevice;
     };
 
@@ -110,17 +113,17 @@ public:
     // todo: move kokkos stuff out of class into extra namespace?
     // cuda requires these functions to be public
     static void projVelocityToStrain(
-        const KokkosBuffers& _buffers, int nx, int ny, COORDINATES coordinates);
+        const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
     static void stressUpdateHighOrder(
         const KokkosBuffers& _buffers, const VPParameters& _params, double _alpha);
-    static void computeStressDivergence(const KokkosBuffers& _buffers, int nx, int ny, COORDINATES coordinates);
+    static void computeStressDivergence(const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
 
 private:
     MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> stressStep;
     KokkosBuffers buffers;
     const VPParameters& params;
-    double alpha = 1500.;
-    double beta = 1500.;
+    FloatType alpha = 1500.;
+    FloatType beta = 1500.;
 
     // Step-initial ice velocity
     CGVector<CGdegree> u0;

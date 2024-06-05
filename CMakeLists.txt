@@ -160,7 +160,10 @@ IF (WITH_KOKKOS)
     target_compile_definitions(nextsimlib PUBLIC USE_KOKKOS)
     
     if (Kokkos_ENABLE_CUDA)
+        # intrinsic implementations are not compatible with cuda
         target_compile_definitions(nextsimlib PRIVATE "EIGEN_DONT_VECTORIZE")
+        # 64 bits are only emulated on GPU
+        target_compile_definitions(nextsimlib PUBLIC EIGEN_DEFAULT_DENSE_INDEX_TYPE=int)
         # disable warning caused by eigen
         # "calling a __host__ function from a __host__ __device__ function is not allowed"
         target_compile_options(nextsimlib PUBLIC -Xcudafe --diag_suppress=20014)#-w

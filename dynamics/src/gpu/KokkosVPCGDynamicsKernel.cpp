@@ -39,7 +39,7 @@ private:
 
 template <int CG, typename Vec>
 static KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgToLocal(
-    const Vec& vGlobal, int cgi, int cgShift)
+    const Vec& vGlobal, DeviceIndex cgi, DeviceIndex cgShift)
 {
     if constexpr (CG == 1) {
         Eigen::Matrix<FloatType, CGDOFS(1), 1> vLocal;
@@ -203,14 +203,15 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
 template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
-    const KokkosBuffers& _buffers, int nx, int ny, COORDINATES coordinates)
+    const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
-    const int cgshift = CGdegree * nx + 1; //!< Index shift for each row
+    const DeviceIndex cgshift = CGdegree * nx + 1; //!< Index shift for each row
 
     // parallelize over 2D grid
     Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx, ny });
     Kokkos::parallel_for(
-        "projectVelocityToStrain", policy, KOKKOS_LAMBDA(const int col, const int row) {
+        "projectVelocityToStrain", policy,
+        KOKKOS_LAMBDA(const DeviceIndex col, const DeviceIndex row) {
             auto u = makeEigenMap(_buffers.uDevice);
             auto v = makeEigenMap(_buffers.vDevice);
 
@@ -218,8 +219,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
             auto e12 = makeEigenMap(_buffers.e12Device);
             auto e22 = makeEigenMap(_buffers.e22Device);
 
-            const int dgi = nx * row + col; //!< Index of dg vector
-            const int cgi
+            const DeviceIndex dgi = nx * row + col; //!< Index of dg vector
+            const DeviceIndex cgi
                 = CGdegree * cgshift * row + col * CGdegree; //!< Lower left index of cg vector
 
             // only on ice
@@ -249,11 +250,11 @@ void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
 
 template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::stressUpdateHighOrder(
-    const KokkosBuffers& _buffers, const VPParameters& _params, double _alpha)
+    const KokkosBuffers& _buffers, const VPParameters& _params, FloatType _alpha)
 {
-    const int n = _buffers.s11Device.extent(0);
+    const DeviceIndex n = _buffers.s11Device.extent(0);
     Kokkos::parallel_for(
-        "stressUpdateHighOrder", n, KOKKOS_LAMBDA(const int i) {
+        "stressUpdateHighOrder", n, KOKKOS_LAMBDA(const DeviceIndex i) {
             auto s11 = makeEigenMap(_buffers.s11Device);
             auto s12 = makeEigenMap(_buffers.s12Device);
             auto s22 = makeEigenMap(_buffers.s22Device);
@@ -345,26 +346,26 @@ size_t cy)
 
 // todo: should be KokkosVPCGDynamicsKernel::DeviceViewCG
 template <typename DeviceViewCG, typename KokkosDeviceMapView>
-void dirichletZero(
-    DeviceViewCG& v, int nx, int ny, const std::array<KokkosDeviceMapView, 4>& dirichlet)
+void dirichletZero(DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
+    const std::array<KokkosDeviceMapView, 4>& dirichlet)
 {
     // bot
     Kokkos::parallel_for(
-        "dirichletZeroBot", dirichlet[0].extent(0), KOKKOS_LAMBDA(const int i) {
-            const int eid = dirichlet[0][i];
-            const int ix = eid % nx; // compute coordinates of element
-            const int iy = eid / nx;
-            for (int j = 0; j < CGdegree + 1; ++j) {
-                v(iy * CGdegree * (CGdegree * nx + 1, 0) + CGdegree * ix + j, 0) = 0.0;
+        "dirichletZeroBot", dirichlet[0].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex eid = dirichlet[0][i];
+            const DeviceIndex ix = eid % nx; // compute coordinates of element
+            const DeviceIndex iy = eid / nx;
+            for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
+                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j, 0) = 0.0;
             }
         });
     // right
     Kokkos::parallel_for(
-        "dirichletZeroRight", dirichlet[1].extent(0), KOKKOS_LAMBDA(const int i) {
-            const int eid = dirichlet[1][i];
-            const int ix = eid % nx; // compute coordinates of element
-            const int iy = eid / nx;
-            for (int j = 0; j < CGdegree + 1; ++j) {
+        "dirichletZeroRight", dirichlet[1].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex eid = dirichlet[1][i];
+            const DeviceIndex ix = eid % nx; // compute coordinates of element
+            const DeviceIndex iy = eid / nx;
+            for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
                 v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + CGdegree
                         + (CGdegree * nx + 1) * j,
                     0)
@@ -373,21 +374,21 @@ void dirichletZero(
         });
     // top
     Kokkos::parallel_for(
-        "dirichletZeroRight", dirichlet[2].extent(0), KOKKOS_LAMBDA(const int i) {
-            const int eid = dirichlet[2][i];
-            const int ix = eid % nx; // compute coordinates of element
-            const int iy = eid / nx;
-            for (int j = 0; j < CGdegree + 1; ++j) {
+        "dirichletZeroRight", dirichlet[2].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex eid = dirichlet[2][i];
+            const DeviceIndex ix = eid % nx; // compute coordinates of element
+            const DeviceIndex iy = eid / nx;
+            for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
                 v((iy + 1) * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j, 0) = 0.0;
             }
         });
     // left
     Kokkos::parallel_for(
-        "dirichletZeroLeft", dirichlet[3].extent(0), KOKKOS_LAMBDA(const int i) {
-            const int eid = dirichlet[3][i];
-            const int ix = eid % nx; // compute coordinates of element
-            const int iy = eid / nx;
-            for (int j = 0; j < CGdegree + 1; ++j) {
+        "dirichletZeroLeft", dirichlet[3].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex eid = dirichlet[3][i];
+            const DeviceIndex ix = eid % nx; // compute coordinates of element
+            const DeviceIndex iy = eid / nx;
+            for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
                 v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + (CGdegree * nx + 1) * j, 0)
                     = 0.0;
             }
@@ -396,27 +397,28 @@ void dirichletZero(
 
 template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
-    const KokkosBuffers& _buffers, int nx, int ny, COORDINATES coordinates)
+    const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
     // zero buffers
     Kokkos::parallel_for(
-        "initStressDivergence", _buffers.dStressXDevice.extent(0), KOKKOS_LAMBDA(const int i) {
+        "initStressDivergence", _buffers.dStressXDevice.extent(0),
+        KOKKOS_LAMBDA(const DeviceIndex i) {
             _buffers.dStressXDevice(i, 0) = 0.0;
             _buffers.dStressYDevice(i, 0) = 0.0;
         });
 
     // parallelization in stripes
-    for (int p = 0; p < 2; ++p) {
+    for (DeviceIndex p = 0; p < 2; ++p) {
         Kokkos::parallel_for(
-            "computeStressDivergence", ny, KOKKOS_LAMBDA(const int cy) {
+            "computeStressDivergence", ny, KOKKOS_LAMBDA(const DeviceIndex cy) {
                 auto s11 = makeEigenMap(_buffers.s11Device);
                 auto s12 = makeEigenMap(_buffers.s12Device);
                 auto s22 = makeEigenMap(_buffers.s22Device);
 
                 //!< loop over all cells of the mesh
                 if (cy % 2 == p) {
-                    unsigned eid = nx * cy;
-                    for (int cx = 0; cx < nx; ++cx, ++eid) {
+                    DeviceIndex eid = nx * cy;
+                    for (DeviceIndex cx = 0; cx < nx; ++cx, ++eid) {
                         //!< loop over all cells of the mesh
                         // only on ice!
                         if (_buffers.landMaskDevice.test(eid)) {
@@ -434,13 +436,13 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
                                 tx += divM * s12.row(eid).transpose();
                                 ty -= divM * s11.row(eid).transpose();
                             }
-                            const unsigned cgRow = CGdegree * nx + 1;
-                            const unsigned cg_i = CGdegree * cgRow * cy
+                            const DeviceIndex cgRow = CGdegree * nx + 1;
+                            const DeviceIndex cg_i = CGdegree * cgRow * cy
                                 + CGdegree * cx; //!< lower left CG-index in element (cx,cy)
 
                             // Fill the stress divergence values
-                            for (int row = 0; row <= CGdegree; ++row) {
-                                for (int col = 0; col <= CGdegree; ++col) {
+                            for (DeviceIndex row = 0; row <= CGdegree; ++row) {
+                                for (DeviceIndex col = 0; col <= CGdegree; ++col) {
                                     _buffers.dStressXDevice(cg_i + col + row * cgRow, 0)
                                         -= tx(col + (CGdegree + 1) * row);
                                     _buffers.dStressYDevice(cg_i + col + row * cgRow, 0)
