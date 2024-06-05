@@ -25,6 +25,14 @@ namespace Details {
         using Type = Scalar**;
     };
 
+        template <typename Scalar> struct ToKokkosArrayDec<Scalar, -1, 1> {
+        using Type = Scalar*;
+    };
+
+    template <typename Scalar> struct ToKokkosArrayDec<Scalar, 1, -1> {
+        using Type = Scalar*;
+    };
+
     template <typename Scalar, int Cols> struct ToKokkosArrayDec<Scalar, -1, Cols> {
         using Type = Scalar* [Cols];
     };
@@ -47,8 +55,9 @@ using KokkosDeviceView
                        EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
         typename Details::ToKokkosLayout<EigenMat::Options>::Type>;
 template <typename EigenMat>
+// todo make Scalar const
 using ConstKokkosDeviceView
-    = Kokkos::View<const typename Details::ToKokkosArrayDec<typename EigenMat::Scalar,
+    = Kokkos::View<typename Details::ToKokkosArrayDec<typename EigenMat::Scalar,
                        EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
         typename Details::ToKokkosLayout<EigenMat::Options>::Type>;
 template <typename EigenMat>
@@ -162,6 +171,11 @@ namespace Details {
             (Cols == 1) ? Eigen::ColMajor : ToEigenLayout<Layout>::Options>;
     };
 
+    template <typename Scalar, class Layout>
+    struct ToEigenMatrix<Scalar*, Layout> {
+        using Type = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+    };
+
     // map kokkos view spec to Eigen map
     template <class DataType, class Layout> struct ToEigenMap {
         using Type = Eigen::Map<typename Details::ToEigenMatrix<DataType, Layout>::Type>;
@@ -178,12 +192,15 @@ template <class DataType, class... Properties>
 KOKKOS_IMPL_FUNCTION auto makeEigenMap(const Kokkos::View<DataType, Properties...>& view)
 {
     using View = Kokkos::View<DataType, Properties...>;
-    static_assert(View::rank() == 2, "currently only rank 2 tensors are supported");
 
     using MapType = typename Details::ToEigenMap<DataType, typename View::array_layout>::Type;
     // Eigen::Map<typename Details::ToEigenMatrix<typename View::non_const_value_type, typename
     // View::array_layout>::Type>;
-    return MapType(view.data(), view.extent(0), view.extent(1));
+    if constexpr(View::rank() == 1) {
+        return MapType(view.data(), view.extent(0));
+    } else {
+        return MapType(view.data(), view.extent(0), view.extent(1));
+    }
 }
 
 } // namespace nextsim

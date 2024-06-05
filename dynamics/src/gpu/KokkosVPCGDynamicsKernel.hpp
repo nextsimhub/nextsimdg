@@ -35,15 +35,29 @@ public:
         // velocity components
         using DeviceViewCG = KokkosDeviceView<CGVector<CGdegree>>;
         using HostViewCG = KokkosHostView<CGVector<CGdegree>>;
+        using ConstDeviceViewCG = ConstKokkosDeviceView<CGVector<CGdegree>>;
         DeviceViewCG uDevice;
         HostViewCG uHost;
         DeviceViewCG vDevice;
         HostViewCG vHost;
+        // Step-initial ice velocity
+        ConstDeviceViewCG u0Device;
+        ConstDeviceViewCG v0Device;
 
         DeviceViewCG dStressXDevice;
         HostViewCG dStressXHost;
         DeviceViewCG dStressYDevice;
         HostViewCG dStressYHost;
+
+        DeviceViewCG uOceanDevice;
+        HostViewCG uOceanHost;
+        DeviceViewCG vOceanDevice;
+        HostViewCG vOceanHost;
+
+        DeviceViewCG uAtmosDevice;
+        HostViewCG uAtmosHost;
+        DeviceViewCG vAtmosDevice;
+        HostViewCG vAtmosHost;
 
         // strain and stress components
         using DeviceViewStress = KokkosDeviceView<DGVector<DGstressDegree>>;
@@ -68,6 +82,11 @@ public:
         DeviceViewAdvect ciceDevice;
         HostViewAdvect ciceHost;
 
+        DeviceViewCG cgHDevice;
+        HostViewCG cgHHost;
+        DeviceViewCG cgADevice;
+        HostViewCG cgAHost;
+
         // constant matrices also need to be available on the GPU
         using PSIAdvectType = decltype(PSI<DGadvection, NGP>);
         using PSIStressType = decltype(PSI<DGstressDegree, NGP>);
@@ -76,10 +95,11 @@ public:
 
         // parametric map precomputed transforms
         // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
+        ConstDeviceViewCG lumpedcgmassDevice;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::DivMatrix> divS1Device;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::DivMatrix> divS2Device;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::DivMatrix> divMDevice;
-        
+
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMgradXDevice;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMgradYDevice;
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMMDevice;
@@ -87,8 +107,8 @@ public:
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
 
         // mesh related
-        std::array<KokkosDeviceMapView<size_t>,4> dirichletDevice;
-        std::array<KokkosDeviceMapView<size_t>,4> periodicDevice;
+        std::array<KokkosDeviceMapView<size_t>, 4> dirichletDevice;
+        // std::array<KokkosDeviceMapView<std::array<size_t, 4>>,4> periodicDevice;
         Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace> landMaskDevice;
     };
 
@@ -111,12 +131,18 @@ public:
     void update(const TimestepTime& tst) override;
 
     // todo: move kokkos stuff out of class into extra namespace?
+    // todo: rename functions that currently conflict with base class versions
     // cuda requires these functions to be public
     static void projVelocityToStrain(
         const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
     static void stressUpdateHighOrder(
         const KokkosBuffers& _buffers, const VPParameters& _params, double _alpha);
-    static void computeStressDivergence(const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
+    static void computeStressDivergence(
+        const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
+    static void applyBoundariesDevice(
+        const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny);
+    static void updateMomentumDevice(
+        const TimestepTime& tst, const KokkosBuffers& _buffers, const VPParameters& _params, FloatType beta);
 
 private:
     MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> stressStep;
@@ -131,7 +157,6 @@ private:
 
     void updateMomentum(const TimestepTime& tst) override
     {
-
         // Update the velocity
         double SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
 

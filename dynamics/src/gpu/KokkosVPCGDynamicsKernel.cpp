@@ -63,6 +63,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
 
     std::tie(buffers.uHost, buffers.uDevice) = makeKokkosDualView("u", this->u);
     std::tie(buffers.vHost, buffers.vDevice) = makeKokkosDualView("v", this->v);
+    buffers.u0Device = makeKokkosDeviceView("u0", this->u);
+    buffers.v0Device = makeKokkosDeviceView("v0", this->v);
 
     std::tie(buffers.dStressXHost, buffers.dStressXDevice)
         = makeKokkosDualView("dStressX", this->dStressX);
@@ -78,6 +80,14 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
 
     std::tie(buffers.hiceHost, buffers.hiceDevice) = makeKokkosDualView("hice", this->hice);
     std::tie(buffers.ciceHost, buffers.ciceDevice) = makeKokkosDualView("cice", this->cice);
+    std::tie(buffers.cgHHost, buffers.cgHDevice) = makeKokkosDualView("cgH", this->cgH);
+    std::tie(buffers.cgAHost, buffers.cgADevice) = makeKokkosDualView("cgA", this->cgA);
+
+    std::tie(buffers.uOceanHost, buffers.uOceanDevice) = makeKokkosDualView("uOcean", this->uOcean);
+    std::tie(buffers.vOceanHost, buffers.vOceanDevice) = makeKokkosDualView("vOcean", this->vOcean);
+
+    std::tie(buffers.uAtmosHost, buffers.uAtmosDevice) = makeKokkosDualView("uAtmos", this->uAtmos);
+    std::tie(buffers.vAtmosHost, buffers.vAtmosDevice) = makeKokkosDualView("vAtmos", this->vAtmos);
 
     // does not depend on the data but it can not be allocated in the constructor
     buffers.PSIAdvectDevice
@@ -86,6 +96,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
         = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressDegree, NGP>, true);
 
     // parametric map
+    buffers.lumpedcgmassDevice
+        = makeKokkosDeviceView("lumpedcgmass", this->pmap->lumpedcgmass, true);
     buffers.divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, true);
     buffers.divS2Device = makeKokkosDeviceViewMap("divS2", this->pmap->divS2, true);
     buffers.divMDevice = makeKokkosDeviceViewMap("divM", this->pmap->divM, true);
@@ -96,11 +108,18 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
     stressStep.setPMap(this->pmap); // only needed for debugging
 
     // mesh related
-    // direchlet boundary
+    // boundary data
     for (size_t i = 0; i < 4; ++i) {
         buffers.dirichletDevice[i] = makeKokkosDeviceViewMap(
             "dirichlet" + std::to_string(i), this->smesh->dirichlet[i], true);
+        //    buffers.periodicDevice[i] = makeKokkosDeviceViewMap(
+        //        "periodic" + std::to_string(i), this->smesh->periodic[i], true);
     }
+    std::cout << "periodic bcs: " << this->smesh->periodic.size() << "\n";
+    for (const auto& bc : this->smesh->periodic) {
+        std::cout << ", " << bc.size();
+    }
+    std::cout << "\n";
 
     // unfortunately there is no more direct way to initialize an Kokkos::Bitset
     const unsigned nBits = this->smesh->landmask.size();
@@ -122,14 +141,21 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits(tst);
     this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
 
-    u0 = this->u;
-    v0 = this->v;
-
     // The critical timestep for the VP solver is the advection timestep
     this->deltaT = tst.step.seconds();
 
     Kokkos::deep_copy(buffers.uDevice, buffers.uHost);
     Kokkos::deep_copy(buffers.vDevice, buffers.vHost);
+    Kokkos::deep_copy(buffers.u0Device, buffers.uDevice);
+    Kokkos::deep_copy(buffers.v0Device, buffers.vDevice);
+    u0 = this->u;
+    v0 = this->v;
+
+    Kokkos::deep_copy(buffers.uOceanDevice, buffers.uOceanHost);
+    Kokkos::deep_copy(buffers.vOceanDevice, buffers.vOceanHost);
+
+    Kokkos::deep_copy(buffers.uAtmosDevice, buffers.uAtmosHost);
+    Kokkos::deep_copy(buffers.vAtmosDevice, buffers.vAtmosHost);
 
     Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
     Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
@@ -139,6 +165,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
          Kokkos::deep_copy(buffers.e22Device, buffers.e22Host);*/
     Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
     Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
+    Kokkos::deep_copy(buffers.cgHDevice, buffers.cgHHost);
+    Kokkos::deep_copy(buffers.cgADevice, buffers.cgAHost);
 
     auto checkDiff = [](const auto& a, const auto& b, bool detailed) {
         if (detailed) {
@@ -190,10 +218,25 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         Kokkos::deep_copy(buffers.s22Host, buffers.s22Device);
 
         this->stressDivergence(); // Compute divergence of stress tensor
+        auto tempDStressX = this->dStressX;
+        auto tempDStressY = this->dStressY;
+        computeStressDivergence(
+            buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
+/*        Kokkos::deep_copy(buffers.dStressXHost, buffers.dStressXDevice);
+        Kokkos::deep_copy(buffers.dStressYHost, buffers.dStressYDevice);
+        checkDiff(tempDStressX, this->dStressX, false);
+        checkDiff(tempDStressY, this->dStressY, false);*/
 
         updateMomentum(tst);
-
-        this->applyBoundaries();
+        auto tempU = this->u;
+        auto tempV = this->v;
+        updateMomentumDevice(tst, buffers, params, beta);
+        Kokkos::deep_copy(buffers.uHost, buffers.uDevice);
+        Kokkos::deep_copy(buffers.vHost, buffers.vDevice);
+        checkDiff(tempU, this->u, false);
+        checkDiff(tempV, this->v, false);
+        
+        applyBoundariesDevice(buffers, this->smesh->nx, this->smesh->ny);
     }
     //    timerProjGPU.print();
     //    timerProjCPU.print();
@@ -356,7 +399,7 @@ void dirichletZero(DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
             const DeviceIndex ix = eid % nx; // compute coordinates of element
             const DeviceIndex iy = eid / nx;
             for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
-                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j, 0) = 0.0;
+                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j) = 0.0;
             }
         });
     // right
@@ -367,8 +410,7 @@ void dirichletZero(DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
             const DeviceIndex iy = eid / nx;
             for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
                 v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + CGdegree
-                        + (CGdegree * nx + 1) * j,
-                    0)
+                    + (CGdegree * nx + 1) * j)
                     = 0.0;
             }
         });
@@ -379,7 +421,7 @@ void dirichletZero(DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
             const DeviceIndex ix = eid % nx; // compute coordinates of element
             const DeviceIndex iy = eid / nx;
             for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
-                v((iy + 1) * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j, 0) = 0.0;
+                v((iy + 1) * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j) = 0.0;
             }
         });
     // left
@@ -389,11 +431,53 @@ void dirichletZero(DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
             const DeviceIndex ix = eid % nx; // compute coordinates of element
             const DeviceIndex iy = eid / nx;
             for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
-                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + (CGdegree * nx + 1) * j, 0)
+                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + (CGdegree * nx + 1) * j)
                     = 0.0;
             }
         });
 }
+/*
+template <typename DeviceViewCG, typename KokkosDeviceMapView>
+void CGAveragePeriodic(DeviceViewCG& v, DeviceIndex nx, const std::array<KokkosDeviceMapView, 4>&
+periodic)
+{
+    // the two segments bottom, right, top, left, are each processed in parallel
+    for (size_t seg = 0; seg < smesh.periodic.size(); ++seg) {
+        // #pragma omp parallel for
+        for (size_t i = 0; i < smesh.periodic[seg].size(); ++i) {
+
+            const size_t ptype = smesh.periodic[seg][i][0];
+            const size_t eid_lb = smesh.periodic[seg][i][2];
+            const size_t eid_rt = smesh.periodic[seg][i][1];
+
+            size_t ix_lb = eid_lb % smesh.nx;
+            size_t iy_lb = eid_lb / smesh.nx;
+            size_t i0_lb = (CG * smesh.nx + 1) * CG * iy_lb
+                + CG * ix_lb; // lower/left index in left/bottom element
+            size_t ix_rt = eid_rt % smesh.nx;
+            size_t iy_rt = eid_rt / smesh.nx;
+            size_t i0_rt = (CG * smesh.nx + 1) * CG * iy_rt
+                + CG * ix_rt; // lower/left index in right/top element
+
+            if (ptype == 0) // X-edge, bottom/top
+            {
+                for (size_t j = 0; j <= CG; ++j) {
+                    v(i0_lb + j) = 0.5 * (v(i0_lb + j) + v(i0_rt + CG * (CG * smesh.nx + 1) + j));
+                    v(i0_rt + CG * (CG * smesh.nx + 1) + j) = v(i0_lb + j);
+                }
+            } else if (ptype == 1) // Y-edge, left/right
+            {
+                for (size_t j = 0; j <= CG; ++j) {
+                    const size_t i1 = i0_lb + j * (CG * smesh.nx + 1);
+                    const size_t i2 = i0_rt + CG + j * (CG * smesh.nx + 1);
+                    v(i1) = 0.5 * (v(i1) + v(i2));
+                    v(i2) = v(i1);
+                }
+            } else
+                abort();
+        }
+    }
+    }*/
 
 template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
@@ -403,8 +487,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
     Kokkos::parallel_for(
         "initStressDivergence", _buffers.dStressXDevice.extent(0),
         KOKKOS_LAMBDA(const DeviceIndex i) {
-            _buffers.dStressXDevice(i, 0) = 0.0;
-            _buffers.dStressYDevice(i, 0) = 0.0;
+            _buffers.dStressXDevice(i) = 0.0;
+            _buffers.dStressYDevice(i) = 0.0;
         });
 
     // parallelization in stripes
@@ -443,9 +527,9 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
                             // Fill the stress divergence values
                             for (DeviceIndex row = 0; row <= CGdegree; ++row) {
                                 for (DeviceIndex col = 0; col <= CGdegree; ++col) {
-                                    _buffers.dStressXDevice(cg_i + col + row * cgRow, 0)
+                                    _buffers.dStressXDevice(cg_i + col + row * cgRow)
                                         -= tx(col + (CGdegree + 1) * row);
-                                    _buffers.dStressYDevice(cg_i + col + row * cgRow, 0)
+                                    _buffers.dStressYDevice(cg_i + col + row * cgRow)
                                         -= ty(col + (CGdegree + 1) * row);
                                 }
                             }
@@ -457,9 +541,70 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
     // set zero on the Dirichlet boundaries
     dirichletZero(_buffers.dStressXDevice, nx, ny, _buffers.dirichletDevice);
     dirichletZero(_buffers.dStressYDevice, nx, ny, _buffers.dirichletDevice);
+    // todo: add
     // add the contributions on the periodic boundaries
-    /*   VectorManipulations::CGAveragePeriodic(*smesh, tx);
-       VectorManipulations::CGAveragePeriodic(*smesh, ty);*/
+    // VectorManipulations::CGAveragePeriodic(*smesh, tx);
+    //   VectorManipulations::CGAveragePeriodic(*smesh, ty);
+}
+
+template <int DGadvection>
+void KokkosVPCGDynamicsKernel<DGadvection>::applyBoundariesDevice(
+    const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny)
+{
+    dirichletZero(_buffers.uDevice, nx, ny, _buffers.dirichletDevice);
+    dirichletZero(_buffers.vDevice, nx, ny, _buffers.dirichletDevice);
+    ;
+    // TODO Periodic boundary conditions.
+}
+
+template <int DGadvection>
+void KokkosVPCGDynamicsKernel<DGadvection>::updateMomentumDevice(const TimestepTime& tst,
+    const KokkosBuffers& _buffers, const VPParameters& _params, FloatType beta)
+{
+
+    // Update the velocity
+    const FloatType SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
+
+    const FloatType deltaT = tst.step.seconds();
+
+    //      update by a loop.. implicit parts and h-dependent
+    Kokkos::parallel_for(
+        "updateMomentum", _buffers.uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            auto uOcnRel = _buffers.uOceanDevice(i)
+                - _buffers.uDevice(i); // note the reversed sign compared to the v component
+            auto vOcnRel = _buffers.vDevice(i) - _buffers.vOceanDevice(i);
+            const FloatType absatm
+                = Kokkos::sqrt(SQR(_buffers.uAtmosDevice(i)) + SQR(_buffers.vAtmosDevice(i)));
+            const FloatType absocn = Kokkos::sqrt(
+                SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
+
+            _buffers.uDevice(i) = (1.0
+                / (_params.rho_ice * _buffers.cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
+                    + _buffers.cgADevice(i) * _params.F_ocean * absocn) // implicit parts
+                * (_params.rho_ice * _buffers.cgHDevice(i) / deltaT
+                        * (beta * _buffers.uDevice(i)
+                            + _buffers.u0Device(i)) // pseudo - timestepping
+                    + _buffers.cgADevice(i)
+                        * (_params.F_atm * absatm * _buffers.uAtmosDevice(i) + // atm forcing
+                            _params.F_ocean * absocn * SC
+                                * _buffers.uOceanDevice(i)) // ocean forcing
+                    + _params.rho_ice * _buffers.cgHDevice(i) * _params.fc
+                        * vOcnRel // cor + surface
+                    + _buffers.dStressXDevice(i) / _buffers.lumpedcgmassDevice(i)));
+            _buffers.vDevice(i) = (1.0
+                / (_params.rho_ice * _buffers.cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
+                    + _buffers.cgADevice(i) * _params.F_ocean * absocn) // implicit parts
+                * (_params.rho_ice * _buffers.cgHDevice(i) / deltaT
+                        * (beta * _buffers.vDevice(i)
+                            + _buffers.v0Device(i)) // pseudo - timestepping
+                    + _buffers.cgADevice(i)
+                        * (_params.F_atm * absatm * _buffers.vAtmosDevice(i) + // atm forcing
+                            _params.F_ocean * absocn * SC
+                                * _buffers.vOceanDevice(i)) // ocean forcing
+                    + _params.rho_ice * _buffers.cgHDevice(i) * _params.fc
+                        * uOcnRel // here the reversed sign of uOcnRel is used
+                    + _buffers.dStressYDevice(i) / _buffers.lumpedcgmassDevice(i)));
+        });
 }
 
 template class KokkosVPCGDynamicsKernel<1>;
