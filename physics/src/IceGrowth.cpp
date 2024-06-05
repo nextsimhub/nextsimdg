@@ -56,6 +56,7 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
 {
     iVertical->setData(ms);
     iLateral->setData(ms);
+    iHealing->setData(ms);
 
     hice.resize();
     cice.resize();
@@ -88,6 +89,7 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
     // Merge in other states here
     state.merge(iLateral->getStateRecursive(os));
     state.merge(iVertical->getStateRecursive(os));
+    state.merge(iHealing->getStateRecursive(os));
 
     return os ? state : ModelState();
 }
@@ -123,8 +125,10 @@ void IceGrowth::configure()
     // Configure the vertical and lateral growth modules
     iVertical = std::move(Module::getInstance<IIceThermodynamics>());
     iLateral = std::move(Module::getInstance<ILateralIceSpread>());
+    iHealing = std::move(Module::getInstance<IDamageHealing>());
     tryConfigure(*iVertical);
     tryConfigure(*iLateral);
+    tryConfigure(*iHealing);
 }
 
 ConfigMap IceGrowth::getConfiguration() const
@@ -154,6 +158,10 @@ void IceGrowth::update(const TimestepTime& tsTime)
                          std::placeholders::_2),
             tsTime);
     }
+
+    // Damage always heals, even if there's no active thermo
+    // TODO: This should only be called for brittle rheologies
+    iHealing->update(tsTime);
 }
 
 void IceGrowth::initializeThicknesses()

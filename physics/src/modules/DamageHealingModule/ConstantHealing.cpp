@@ -42,6 +42,29 @@ ConstantHealing::HelpMap& ConstantHealing::getHelpRecursive(HelpMap& map, bool g
 /* Heal damage through
  * 1. Lateral ice formation: Newly formed ice is undamaged
  * 2. Constant healing with a given time scale (tD) */
-void ConstantHealing::update(const TimestepTime& tstep) { }
+void ConstantHealing::update(const TimestepTime& tstep)
+{
+    overElements(std::bind(&ConstantHealing::updateElement, this, std::placeholders::_1,
+                     std::placeholders::_2),
+        TimestepTime());
+}
+
+void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
+{
+    /* 1. Lateral ice formation
+     * A weighted average of the original damage, weighted by the old concentration, and the
+     * undamaged new ice damage (1), weighted by the concentration of new ice. */
+    damage[i] = (damage[i] * (cice[i] - deltaCi[i]) + deltaCi[i]) / cice[i];
+
+    /* 2. Constant healing
+     * Damage healing using a constant timescale. Originally conceived as an exponential decay, but
+     * then revised to a linear one (not documented anywhere). */
+    // This is what Sylvain and Pierre did
+    // damage[i] +=  damage[i] * tstep.step / tD;
+
+    // This is what neXtSIM LG is doing
+    damage[i] +=  tstep.step / tD;
+    damage[i] = std::min(1., damage[i]);
+}
 
 }
