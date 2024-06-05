@@ -21,6 +21,8 @@ public:
     void start() { m_start = std::chrono::high_resolution_clock::now(); }
     void stop()
     {
+        // ensure that gpu tasks are finished
+        Kokkos::fence();
         auto end = std::chrono::high_resolution_clock::now();
         ++m_count;
         m_total += std::chrono::duration<double>(end - m_start).count();
@@ -177,67 +179,25 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
                   << ", (a-b)/|a|: " << (a - b).norm() / aNorm << std::endl;
     };
     PerfTimer timerProjGPU("projGPU");
-    PerfTimer timerProjCPU("projCPU");
-
+    PerfTimer timerMevpGPU("mevpGPU");
+    timerMevpGPU.start();
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
-        Kokkos::deep_copy(buffers.uDevice, buffers.uHost);
-        Kokkos::deep_copy(buffers.vDevice, buffers.vHost);
-
-        Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
-        Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
-        Kokkos::deep_copy(buffers.s22Device, buffers.s22Host);
-        Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
-        Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
-        timerProjGPU.start();
+    //    timerProjGPU.start();
         projVelocityToStrain(
             buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
-        Kokkos::fence();
-        timerProjGPU.stop();
+    //    timerProjGPU.stop();
 
-        timerProjCPU.start();
-        this->projectVelocityToStrain();
-        timerProjCPU.stop();
-        /*      auto tempE11 = this->e11;
-              auto tempE12 = this->e12;
-              auto tempE22 = this->e22;
-              Kokkos::deep_copy(buffers.e11Host, buffers.e11Device);
-              Kokkos::deep_copy(buffers.e12Host, buffers.e12Device);
-              Kokkos::deep_copy(buffers.e22Host, buffers.e22Device);
-        checkDiff(tempE11, this->e11, false);
-        checkDiff(tempE12, this->e12, false);
-        checkDiff(tempE22, this->e22, false);*/
-
-        /*            std::array<DGVector<DGstressDegree>, N_TENSOR_ELEMENTS> stressTemp {
-           this->s11, this->s12, this->s22 };
-                    std::array<std::reference_wrapper<DGVector<DGstressDegree>>,
-           N_TENSOR_ELEMENTS> stress = { stressTemp[0], stressTemp[1], stressTemp[2] };*/
         stressUpdateHighOrder(buffers, params, alpha);
 
-        Kokkos::deep_copy(buffers.s11Host, buffers.s11Device);
-        Kokkos::deep_copy(buffers.s12Host, buffers.s12Device);
-        Kokkos::deep_copy(buffers.s22Host, buffers.s22Device);
-
-        this->stressDivergence(); // Compute divergence of stress tensor
-        auto tempDStressX = this->dStressX;
-        auto tempDStressY = this->dStressY;
         computeStressDivergence(
             buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
-/*        Kokkos::deep_copy(buffers.dStressXHost, buffers.dStressXDevice);
-        Kokkos::deep_copy(buffers.dStressYHost, buffers.dStressYDevice);
-        checkDiff(tempDStressX, this->dStressX, false);
-        checkDiff(tempDStressY, this->dStressY, false);*/
 
-        updateMomentum(tst);
-        auto tempU = this->u;
-        auto tempV = this->v;
         updateMomentumDevice(tst, buffers, params, beta);
-        Kokkos::deep_copy(buffers.uHost, buffers.uDevice);
-        Kokkos::deep_copy(buffers.vHost, buffers.vDevice);
-        checkDiff(tempU, this->u, false);
-        checkDiff(tempV, this->v, false);
-        
+
         applyBoundariesDevice(buffers, this->smesh->nx, this->smesh->ny);
     }
+    timerMevpGPU.stop();
+    timerMevpGPU.print();
     //    timerProjGPU.print();
     //    timerProjCPU.print();
     // Finally, do the base class update
