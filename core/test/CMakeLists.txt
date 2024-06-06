@@ -59,10 +59,10 @@ if(ENABLE_MPI)
   )
   add_custom_target(generate_partition_file ALL DEPENDS partition_metadata_3.nc)
 
-  add_executable(testParaGrid_MPI1 "ParaGrid_test.cpp" "MainMPI.cpp")
-  target_compile_definitions(testParaGrid_MPI1 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
-  target_include_directories(testParaGrid_MPI1 PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
-  target_link_libraries(testParaGrid_MPI1 PRIVATE nextsimlib doctest::doctest)
+  add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
+  target_compile_definitions(testParaGrid_MPI2 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+  target_include_directories(testParaGrid_MPI2 PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
+  target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 
   if(ENABLE_XIOS)
     FILE(CREATE_LINK "${CMAKE_SOURCE_DIR}/core/test/iodef.xml" "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml" SYMBOLIC)
@@ -124,7 +124,7 @@ else()
   target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
 
   add_executable(testParaGrid "ParaGrid_test.cpp")
-  target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
+  target_compile_definitions(testParaGrid PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
   target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/old_names.nc"
