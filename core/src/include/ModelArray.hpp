@@ -275,7 +275,11 @@ public:
      * @param dim The dimension to be altered.
      * @param length The new length of the dimension.
      */
+#ifdef USE_MPI
     static void setDimension(Dimension dim, size_t global_length, size_t local_length=0, size_t size=0);
+#else
+    static void setDimension(Dimension dim, size_t global_length);
+#endif
 
     //! Conditionally updates the size of the object data buffer to match the
     //! class specification.
@@ -447,6 +451,7 @@ public:
     {
         if (hasDoF(type)) {
             definedDimensions.at(componentMap.at(type)).local_length = nComp;
+            definedDimensions.at(componentMap.at(type)).global_length = nComp;
         }
     }
 
