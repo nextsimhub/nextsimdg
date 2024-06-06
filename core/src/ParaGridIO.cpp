@@ -101,7 +101,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         // Dimensions and DG components
         std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
         for (auto entry : ModelArray::definedDimensions) {
-            if (dimCompMap.count(entry.first) > 0)
+            auto dimType = entry.first;
+            if (dimCompMap.count(dimType) > 0)
                 // TODO Assertions that DG in the file equals the compile time DG in the model. See
                 // #205
                 continue;
@@ -119,30 +120,33 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                     std::string("No netCDF dimension found corresponding to the dimension named ")
                     + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
             }
-            if (entry.first == ModelArray::Dimension::Z) {
+            if (dimType == ModelArray::Dimension::Z) {
                 // A special case, as the number of levels in the file might not be
                 // the number that the selected ice thermodynamics requires.
-                ModelArray::setDimension(entry.first, NZLevels::get(), NZLevels::get(), 0);
+#ifdef USE_MPI
+                ModelArray::setDimension(dimType, NZLevels::get(), NZLevels::get(), 0);
+#else
+                ModelArray::setDimension(dimType, NZLevels::get());
+#endif
             } else {
               // this needs MPIifying
 #ifdef USE_MPI
                 auto dimName = dim.getName();
                 size_t local_length = 0;
                 size_t start = 0;
-                printf("dimName = %s\n", dimName.c_str());
-                if (dimName.compare("x") == 0) {
+                if (dimType == ModelArray::Dimension::X) {
                   local_length = metadata.localExtentX;
                   start = metadata.localCornerX;
                 }
-                else if (dimName.compare("y") == 0) {
+                else if (dimType == ModelArray::Dimension::Y) {
                   local_length = metadata.localExtentY;
                   start = metadata.localCornerY;
                 }
-                else if (dimName.compare("xvertex") == 0) {
+                else if (dimType == ModelArray::Dimension::XVERTEX) {
                   local_length = metadata.localExtentX + 1;
                   start = metadata.localCornerX;
                 }
-                else if (dimName.compare("yvertex") == 0) {
+                else if (dimType == ModelArray::Dimension::YVERTEX) {
                   local_length = metadata.localExtentY + 1;
                   start = metadata.localCornerY;
                 }
@@ -150,10 +154,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                   local_length = dim.getSize();
                   start = 0;
                 }
-                printf("dim.getSize() = %zu, local_length = %zu, start = %zu\n", dim.getSize() , local_length, start);
-                ModelArray::setDimension(entry.first, dim.getSize(), local_length, start);
+                ModelArray::setDimension(dimType, dim.getSize(), local_length, start);
 #else
-                ModelArray::setDimension(entry.first, dim.getSize());
+                ModelArray::setDimension(dimType, dim.getSize());
 #endif
             }
         }
@@ -174,21 +177,30 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                     std::string("No ModelArray::Type corresponds to the dimensional key ")
                     + dimKey);
             }
-            ModelArray::Type newType = dimensionKeys.at(dimKey);
-            state.data[varName] = ModelArray(newType);
+            ModelArray::Type type = dimensionKeys.at(dimKey);
+            state.data[varName] = ModelArray(type);
             ModelArray& data = state.data.at(varName);
             data.resize();
 
-            if (newType == ModelArray::Type::Z) {
-                std::vector<size_t> startVector(ModelArray::nDimensions(newType), 0);
-                std::vector<size_t> extentVector = ModelArray::dimensions(newType);
-                // Reverse the extent vector to go from logical (x, y, z) ordering
-                // of indexes to netCDF storage ordering.
-                std::reverse(extentVector.begin(), extentVector.end());
-                var.getVar(startVector, extentVector, &data[0]);
-            } else {
-                var.getVar(&data[0]);
+            std::vector<size_t> start;
+            std::vector<size_t> count;
+            if (ModelArray::hasDoF(type)){
+              auto ncomps = data.nComponents();
+              start.push_back(0);
+              count.push_back(ncomps);
             }
+            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)){
+              auto dim = ModelArray::definedDimensions.at(dt);
+              start.push_back(dim.start);
+              count.push_back(dim.local_length);
+
+            }
+            // dims are looped in [dg], x, y, [z] order so start and count
+            // order must be reveresed to match order netcdf expects
+            std::reverse(start.begin(), start.end());
+            std::reverse(count.begin(), count.end());
+
+            var.getVar(start, count, &data[0]);
         }
         ncFile.close();
     } catch (const netCDF::exceptions::NcException& nce) {
@@ -259,7 +271,12 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
 {
+
+#ifdef USE_MPI
+    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
+#else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
+#endif
 
     CommonRestartMetadata::writeStructureType(ncFile, metadata);
     netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
@@ -271,7 +288,7 @@ void ParaGridIO::dumpModelState(
     for (auto entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.local_length;
+                                               : dimSz = entry.second.global_length;
         ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
         // TODO Do I need to add data, even if it is just integers 0...n-1?
     }
@@ -302,10 +319,28 @@ void ParaGridIO::dumpModelState(
         if (restartFields.count(entry.first)) {
             // Get the type, then relevant vector of NetCDF dimensions
             ModelArray::Type type = entry.second.getType();
+            std::vector<size_t> start;
+            std::vector<size_t> count;
+            if (ModelArray::hasDoF(type)){
+              auto ncomps = entry.second.nComponents();
+              start.push_back(0);
+              count.push_back(ncomps);
+            }
+            for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)){
+              auto dim = entry.second.definedDimensions.at(dt);
+              start.push_back(dim.start);
+              count.push_back(dim.local_length);
+
+            }
+            // dims are looped in [dg], x, y, [z] order so start and count
+            // order must be reveresed to match order netcdf expects
+            std::reverse(start.begin(), start.end());
+            std::reverse(count.begin(), count.end());
+
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
             netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
-            var.putVar(entry.second.getData());
+            var.putVar(start, count, entry.second.getData());
         }
     }
 

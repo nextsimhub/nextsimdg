@@ -35,7 +35,7 @@ const std::string filename = test_files_dir + "/paraGrid_test.nc";
 const std::string diagFile = "paraGrid_diag.nc";
 const std::string date_string = "2000-01-01T00:00:00Z";
 #ifdef USE_MPI
-const std::string partition_filename = test_files_dir + "/partition_metadata_1.nc";
+const std::string partition_filename = test_files_dir + "/partition_metadata_2.nc";
 #endif
 
 static const int DG = 3;
@@ -48,7 +48,7 @@ size_t c = 0;
 
 TEST_SUITE_BEGIN("ParaGrid");
 #ifdef USE_MPI
-MPI_TEST_CASE("Write and read a ModelState-based ParaGrid restart file", 1)
+MPI_TEST_CASE("Write and read a ModelState-based ParaGrid restart file", 2)
 #else
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 #endif
@@ -62,20 +62,29 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     grid.setIO(pio);
 
     // Set the dimension lengths
-    size_t nx = 25;
-    size_t ny = 15;
+    size_t nx = 10;
+    size_t ny = 9;
     size_t nz = 3;
     NZLevels::set(nz);
 
     double yFactor = 0.01;
-    double xFactor = 0.0001;
+    double xFactor = 0.1;
 
 #ifdef USE_MPI
-    ModelArray::setDimension(ModelArray::Dimension::X, nx, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
-    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, nx + 1, 0);
-    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, ny + 1, 0);
+    if (test_rank == 0) {
+      ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
+      ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
+      ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
+      ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
+      ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, ny + 1, 0);
+    }
+    if (test_rank == 1) {
+      ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
+      ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
+      ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
+      ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
+      ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, ny + 1, 0);
+    }
 #else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
@@ -93,11 +102,13 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     HField mask(ModelArray::Type::H);
     fractional.resize();
     fractionalDG.resize();
+    auto start = ModelArray::definedDimensions.at(ModelArray::Dimension::X).start;
+    auto local_nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).local_length;
     for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            fractional(i, j) = j * yFactor + i * xFactor;
+        for (size_t i = 0; i < local_nx; ++i) {
+            fractional(i, j) = j * yFactor + (i+start) * xFactor;
             mask(i, j)
-                = (i - nx / 2) * (i - nx / 2) + (j - ny / 2) * (j - ny / 2) > (nx * ny) ? 0 : 1;
+                = ((i + start) - nx / 2) * ((i + start) - nx / 2) + (j - ny / 2) * (j - ny / 2) > (nx * ny) ? 0 : 1;
             for (size_t d = 0; d < DG; ++d) {
                 fractionalDG.components({ i, j })[d] = fractional(i, j) + d;
             }
@@ -107,7 +118,6 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     DGField hice = fractionalDG + 10;
     DGField cice = fractionalDG + 20;
     DGField hsnow = fractionalDG + 30;
-    DGField tom = fractionalDG + 40;
     DGField damage = fractionalDG * 0.;
     HField sss = fractional;
     ZField tice(ModelArray::Type::Z);
@@ -124,29 +134,28 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     double scale = 1e5;
 
     // Vertex coordinates
-    for (size_t i = 0; i < ModelArray::definedDimensions.at(ModelArray::Dimension::XVERTEX).local_length;
-         ++i) {
-        for (size_t j = 0;
-             j < ModelArray::definedDimensions.at(ModelArray::Dimension::YVERTEX).local_length; ++j) {
-            double x = i - 0.5 - nx / 2;
-            double y = j - 0.5 - ny / 2;
+    auto local_nvx = ModelArray::definedDimensions.at(ModelArray::Dimension::XVERTEX).local_length;
+    for (size_t i = 0; i < local_nvx; ++i) {
+        for (size_t j = 0; j < ny + 1; ++j) {
+            double x = (i + start) - 0.5 - float(nx) / 2;
+            double y = j - 0.5 - float(ny) / 2;
             coordinates.components({ i, j })[0] = x * scale;
             coordinates.components({ i, j })[1] = y * scale;
         }
     }
 
-    REQUIRE(coordinates.components({ 12, 13 })[0] - coordinates.components({ 11, 13 })[0] == scale);
-    REQUIRE(coordinates.components({ 12, 13 })[1] - coordinates.components({ 12, 12 })[1] == scale);
+    REQUIRE(coordinates.components({ 3, 8 })[0] - coordinates.components({ 2, 8 })[0] == scale);
+    REQUIRE(coordinates.components({ 3, 8 })[1] - coordinates.components({ 3, 7 })[1] == scale);
 
     HField x;
     HField y;
     x.resize();
     y.resize();
     // Element coordinates
-    for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::Y); ++j) {
-        double yy = scale * (j - ny / 2);
-        for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::X); ++i) {
-            double xx = scale * (i - nx / 2);
+    for (size_t j = 0; j < ny; ++j) {
+        double yy = scale * (j - float(ny) / 2);
+        for (size_t i = 0; i < local_nx; ++i) {
+            double xx = scale * ((i + start) - float(nx) / 2);
             x(i, j) = xx;
             y(i, j) = yy;
         }
@@ -182,6 +191,27 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     metadata.extractCoordinates(coordState);
     metadata.affixCoordinates(state);
 
+#ifdef USE_MPI
+    metadata.setMpiMetadata(test_comm);
+    if (metadata.mpiMyRank == 0) {
+        metadata.setMpiMetadata(test_comm);
+        metadata.globalExtentX = nx;
+        metadata.globalExtentY = ny;
+        metadata.localCornerX = start;
+        metadata.localCornerY = 0;
+        metadata.localExtentX = local_nx;
+        metadata.localExtentY = ny;
+    }
+    if (metadata.mpiMyRank == 1) {
+        metadata.setMpiMetadata(test_comm);
+        metadata.globalExtentX = local_nx;
+        metadata.globalExtentY = ny;
+        metadata.localCornerX = start;
+        metadata.localCornerY = 0;
+        metadata.localExtentX = local_nx;
+        metadata.localExtentY = ny;
+    }
+#endif
     grid.dumpModelState(state, metadata, filename, true);
 
     REQUIRE(std::filesystem::exists(std::filesystem::path(filename)));
@@ -208,7 +238,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ModelState ms = gridIn.getModelState(filename);
 #endif
 
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == local_nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
 
@@ -218,39 +248,39 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(ModelArray::nDimensions(ModelArray::Type::Z) == 3);
     REQUIRE(ticeRef.getType() == ModelArray::Type::Z);
     REQUIRE(ticeRef.nDimensions() == 3);
-    REQUIRE(ticeRef.dimensions()[0] == nx);
+    REQUIRE(ticeRef.dimensions()[0] == local_nx);
     REQUIRE(ticeRef.dimensions()[1] == ny);
     REQUIRE(ticeRef.dimensions()[2] == NZLevels::get());
 
     ModelArray& hiceRef = ms.data.at(hiceName);
     REQUIRE(hiceRef.nDimensions() == 2);
-    REQUIRE(hiceRef.dimensions()[0] == nx);
+    REQUIRE(hiceRef.dimensions()[0] == local_nx);
     REQUIRE(hiceRef.dimensions()[1] == ny);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(hiceRef.nComponents() == DG);
 
-    REQUIRE(ticeRef(12, 14, 1) == tice(12, 14, 1));
+    REQUIRE(ticeRef(4, 9, 1) == tice(4, 9, 1));
 
     // Here we don't bother passing the coordinate arrays through a ModelMetadata object
     ModelArray& coordRef = ms.data.at(coordsName);
     REQUIRE(coordRef.nDimensions() == 2);
     REQUIRE(coordRef.nComponents() == 2);
-    REQUIRE(coordRef.dimensions()[0] == nx + 1);
+    REQUIRE(coordRef.dimensions()[0] == local_nvx);
     REQUIRE(coordRef.dimensions()[1] == ny + 1);
-    REQUIRE(coordRef.components({ 12, 13 })[0] - coordRef.components({ 11, 13 })[0] == scale);
-    REQUIRE(coordRef.components({ 12, 13 })[1] - coordRef.components({ 12, 12 })[1] == scale);
+    REQUIRE(coordRef.components({ 3, 8 })[0] - coordRef.components({ 2, 8 })[0] == scale);
+    REQUIRE(coordRef.components({ 3, 8 })[1] - coordRef.components({ 3, 7 })[1] == scale);
 
     REQUIRE(ms.data.count(xName) > 0);
     ModelArray& xRef = ms.data.at(xName);
-    REQUIRE(xRef(12, 13) == coordRef.components({ 12, 13 })[0] + scale / 2);
+    REQUIRE(xRef(3, 8) == coordRef.components({ 3, 7 })[0] + scale / 2);
 
     REQUIRE(ms.data.count(yName) > 0);
     ModelArray& yRef = ms.data.at(yName);
-    REQUIRE(yRef(12, 13) == coordRef.components({ 12, 13 })[1] + scale / 2);
+    REQUIRE(yRef(3, 8) == coordRef.components({ 2, 8 })[1] + scale / 2);
 
     REQUIRE(ms.data.count(gridAzimuthName) > 0);
     REQUIRE(ms.data.at(gridAzimuthName)(0, 0) == gridAzimuth0);
-    // std::filesystem::remove(filename);
+    std::filesystem::remove(filename);
 }
 
 // #ifdef USE_MPI
