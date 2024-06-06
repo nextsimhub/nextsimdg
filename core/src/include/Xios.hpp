@@ -28,34 +28,89 @@ public:
     Xios();
     ~Xios();
 
-    void finalize();
+    void close_context_definition();
     void context_finalize();
+    void finalize();
     bool isInitialized();
 
     void configure() override;
     void configureServer();
-    void configureCalendar();
 
+    /* Date and duration */
+    std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
+    void printCXiosDate(cxios_date date);
+    void printCXiosDuration(cxios_duration duration);
+
+    /* Calendar */
     cxios_date getCalendarOrigin();
     cxios_date getCalendarStart();
-    xios::CDate getCurrentDate();
     cxios_duration getCalendarTimestep();
+    int getCalendarStep();
+    std::string getCurrentDate(bool isoFormat = true);
     void setCalendarOrigin(cxios_date origin);
     void setCalendarStart(cxios_date start);
     void setCalendarTimestep(cxios_duration timestep);
-
-    void getCalendarConfiguration();
-
-    std::string getCalendarDate(bool isoFormat = true);
-    int getCalendarStep();
-
     void updateCalendar(int stepNumber);
-    void write(const std::string fieldstr, double* data, const int ni, const int nj);
 
-    std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
+    /* Axis */
+    void createAxis(std::string axisId); // TODO
+    void setAxisSize(std::string axisId, int size); // TODO
+    void setAxisValues(std::string axisId, std::vector<double> values); // TODO
+    int getAxisSize(std::string axisId);
+    std::vector<double> getAxisValues(std::string axisId);
 
-    void printCXiosDate(cxios_date date);
-    void printCXiosDuration(cxios_duration duration);
+    /* Domain */
+    void createDomain(std::string domainId); // TODO
+    void setDomainType(std::string domainId, std::string domainType); // TODO
+    void setDomainGlobalLongitudeSize(std::string domainId, int size); // TODO
+    void setDomainGlobalLatitudeSize(std::string domainId, int size); // TODO
+    void setDomainLongitudeSize(std::string domainId, int size);
+    void setDomainLatitudeSize(std::string domainId, int size);
+    void setDomainLongitudeStart(std::string domainId, int start);
+    void setDomainLatitudeStart(std::string domainId, int start);
+    void setDomainLongitudeValues(std::string domainId, std::vector<double> values);
+    void setDomainLatitudeValues(std::string domainId, std::vector<double> values);
+    std::string getDomainType(std::string domainId);
+    int getDomainGlobalLongitudeSize(std::string domainId);
+    int getDomainGlobalLatitudeSize(std::string domainId);
+    int getDomainLongitudeSize(std::string domainId);
+    int getDomainLatitudeSize(std::string domainId);
+    int getDomainLongitudeStart(std::string domainId);
+    int getDomainLatitudeStart(std::string domainId);
+    std::vector<double> getDomainLongitudeValues(std::string domainId);
+    std::vector<double> getDomainLatitudeValues(std::string domainId);
+
+    /* Grid */
+    void createGrid(std::string gridId); // TODO
+    void setGridName(std::string gridId, std::string name); // TODO
+    std::string getGridName(std::string gridId);
+
+    /* Field */
+    void createField(std::string fieldId); // TODO
+    void setFieldName(std::string fieldId, std::string name); // TODO
+    void setFieldOperation(std::string fieldId, std::string operation); // TODO
+    void setFieldGridRef(std::string fieldId, std::string gridRef); // TODO
+    std::string getFieldName(std::string fieldId);
+    std::string getFieldOperation(std::string fieldId);
+    std::string getFieldGridRef(std::string fieldId);
+    bool isDefinedFieldName(std::string fieldId);
+    bool isDefinedFieldOperation(std::string fieldId);
+    bool isDefinedFieldGridRef(std::string fieldId);
+
+    /* File */
+    void createFile(std::string fileId); // TODO
+    void setFileName(std::string fileId, std::string fileName); // TODO
+    void setFileType(std::string fileId, std::string fileType); // TODO
+    void setFileOutputFreq(std::string fileId, cxios_duration duration); // TODO
+    std::string getFileName(std::string fileId);
+    std::string getFileType(std::string fileId);
+    std::string getFileOutputFreq(std::string fileId);
+    bool validFileId(std::string fileId);
+    bool isDefinedFileOutputFreq(std::string fileId);
+
+    /* I/O */
+    void write(const std::string fieldId, double* data, const int ni, const int nj);
+    void write(const std::string fieldId, double* data, const int ni, const int nj, const int nk);
 
     enum {
         ENABLED_KEY,
@@ -64,6 +119,9 @@ public:
     int rank { 0 };
     int size { 0 };
     xios::CCalendarWrapper* clientCalendar;
+
+    /* Length of C-strings passed to XIOS */
+    int cStrLen { 20 };
 
 protected:
     bool isConfigured;
@@ -76,6 +134,12 @@ private:
     MPI_Fint nullComm_F;
     std::string clientId;
     std::string contextId;
+
+    xios::CAxis* getAxis(std::string axisId);
+    xios::CDomain* getDomain(std::string domainId);
+    xios::CField* getField(std::string fieldId);
+    xios::CGrid* getGrid(std::string gridId);
+    xios::CFile* getFile(std::string fileId);
 };
 
 }

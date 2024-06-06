@@ -12,11 +12,13 @@
  * boilerplate, so they have all been group in this test.
  *
  */
+// clang-format off
 #include <cstdio>
 #include <doctest/extensions/doctest_mpi.h>
-#include "include/Xios.hpp"
 #include <iostream>
 #include "include/Configurator.hpp"
+#include "include/Xios.hpp"
+// clang-format on
 
 /*!
  * TestXiosInitialization
@@ -96,25 +98,91 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(duration.second == doctest::Approx(0.0));
     REQUIRE(duration.timestep == doctest::Approx(0.0));
 
-    xios_handler.context_finalize();
+    // check axis getters
+    int axis_size = xios_handler.getAxisSize("axis_A");
+    REQUIRE(axis_size == 30);
+    std::vector<double> axis_A = xios_handler.getAxisValues("axis_A");
+    for (int i = 0; i < axis_size; i++) {
+        REQUIRE(axis_A[i] == doctest::Approx(i));
+    }
 
-    // check the getCurrentDate method
+    // check global domain getters
+    std::string domainId { "domain_A" };
+    REQUIRE(xios_handler.getDomainType(domainId) == "rectilinear");
+    int ni_glo = xios_handler.getDomainGlobalLongitudeSize(domainId);
+    int nj_glo = xios_handler.getDomainGlobalLatitudeSize(domainId);
+    REQUIRE(ni_glo == 60);
+    REQUIRE(nj_glo == 20);
+
+    // check local domain setters and getters
+    int rank = xios_handler.rank;
+    int ni = ni_glo / xios_handler.size;
+    int nj = nj_glo;
+    xios_handler.setDomainLongitudeSize(domainId, ni);
+    xios_handler.setDomainLatitudeSize(domainId, nj);
+    REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
+    REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
+    int startLon = ni * rank;
+    int startLat = 0;
+    xios_handler.setDomainLongitudeStart(domainId, startLon);
+    xios_handler.setDomainLatitudeStart(domainId, startLat);
+    REQUIRE(xios_handler.getDomainLongitudeStart(domainId) == startLon);
+    REQUIRE(xios_handler.getDomainLatitudeStart(domainId) == startLat);
+    std::vector<double> vecLon {};
+    std::vector<double> vecLat {};
+    for (int i = 0; i < ni; i++) {
+        vecLon.push_back(-180 + (rank * ni * i) * 360 / ni_glo);
+    }
+    for (int j = 0; j < nj; j++) {
+        vecLat.push_back(-90 + j * 180 / nj_glo);
+    }
+    xios_handler.setDomainLongitudeValues(domainId, vecLon);
+    xios_handler.setDomainLatitudeValues(domainId, vecLat);
+    std::vector<double> vecLonOut = xios_handler.getDomainLongitudeValues(domainId);
+    std::vector<double> vecLatOut = xios_handler.getDomainLatitudeValues(domainId);
+    for (int i = 0; i < ni; i++) {
+        REQUIRE(vecLonOut[i] == doctest::Approx(vecLon[i]));
+    }
+    for (int j = 0; j < nj; j++) {
+        REQUIRE(vecLatOut[j] == doctest::Approx(vecLat[j]));
+    }
+
+    // check field getters
+    std::string fieldId = { "field_A" };
+    REQUIRE(xios_handler.isDefinedFieldName(fieldId));
+    REQUIRE(xios_handler.isDefinedFieldOperation(fieldId));
+    REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
+    REQUIRE(xios_handler.getFieldName(fieldId) == "test_field");
+    REQUIRE(xios_handler.getFieldOperation(fieldId) == "instant");
+    REQUIRE(xios_handler.getFieldGridRef(fieldId) == "grid_2D");
+
+    // check grid getters
+    std::string gridId = { "grid_2D" };
+    REQUIRE(xios_handler.getGridName(gridId) == "test_grid");
+
+    // check file getters
+    REQUIRE_FALSE(xios_handler.validFileId("invalid"));
+    std::string fileId { "output" };
+    REQUIRE(xios_handler.validFileId(fileId));
+    REQUIRE(xios_handler.getFileName(fileId) == "diagnostic");
+    REQUIRE(xios_handler.getFileType(fileId) == "one_file");
+    REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
+    REQUIRE(xios_handler.getFileOutputFreq(fileId) == "1ts");
+
+    xios_handler.close_context_definition();
+
+    // check the getCurrentDate method with and without ISO formatting
     xios::CDate current;
-    current = xios_handler.getCurrentDate();
-    std::string current_date = {};
-    current_date = current.toString().c_str();
+    std::string current_date = xios_handler.getCurrentDate();
+    REQUIRE(current_date == "2023-03-17T17:37:00Z");
+    current_date = xios_handler.getCurrentDate(false);
     REQUIRE(current_date == "2023-03-17 17:37:00");
 
     // create some fake data to test writing methods
-    int ni = 30;
-    int nj = 30;
-    double* field_A = new double[ni * nj];
-    for (int idx = 0; idx < ni * nj; idx++) {
+    double* field_A = new double[ni * nj * axis_size];
+    for (int idx = 0; idx < ni * nj * axis_size; idx++) {
         field_A[idx] = 1.0 * idx;
     }
-
-    // create field
-    std::string fieldId = { "field_A" };
 
     // verify calendar step is starting from zero
     int step = xios_handler.getCalendarStep();
@@ -125,11 +193,13 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         // update the current timestep
         xios_handler.updateCalendar(ts);
         // send data to XIOS to be written to disk
-        xios_handler.write(fieldId, field_A, ni, nj);
+        xios_handler.write(fieldId, field_A, ni, nj, axis_size);
         // verify timestep
         step = xios_handler.getCalendarStep();
         REQUIRE(step == ts);
     }
+
+    xios_handler.context_finalize();
 
     // clean up
     delete[] field_A;

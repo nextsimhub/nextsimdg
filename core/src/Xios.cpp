@@ -23,6 +23,7 @@
 
 #include "include/Xios.hpp"
 
+#include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -49,19 +50,26 @@ Xios::Xios() { configure(); }
 //! Destructor
 Xios::~Xios() { finalize(); }
 
-//! Finalize XIOS context once xml config has been read and calendar settings updated
-void Xios::context_finalize()
+//! Close XIOS context definition once xml config has been read and calendar settings updated
+void Xios::close_context_definition()
 {
     if (isEnabled) {
         cxios_context_close_definition();
     }
 }
 
-//! close context and finialize server
-void Xios::finalize()
+//! Finalize XIOS context
+void Xios::context_finalize()
 {
     if (isEnabled) {
         cxios_context_finalize();
+    }
+}
+
+//! Close context and finialize server
+void Xios::finalize()
+{
+    if (isEnabled) {
         cxios_finalize();
     }
 }
@@ -116,116 +124,6 @@ bool Xios::isInitialized()
 }
 
 /*!
- * get calendar origin
- *
- * @return calendar origin
- */
-cxios_date Xios::getCalendarOrigin()
-{
-    cxios_date calendar_origin;
-    cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
-    return calendar_origin;
-}
-
-/*!
- * get calendar start date
- *
- * @return calendar start date
- */
-cxios_date Xios::getCalendarStart()
-{
-    cxios_date calendar_start;
-    cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
-    return calendar_start;
-}
-
-/*!
- * get current date
- *
- * @return current date
- */
-xios::CDate Xios::getCurrentDate()
-{
-    xios::CDate calendar_date;
-    calendar_date = clientCalendar->getCalendar()->getCurrentDate();
-    return calendar_date;
-}
-
-/*!
- * get calendar timestep
- *
- * @return calendar timestep
- */
-cxios_duration Xios::getCalendarTimestep()
-{
-    cxios_duration calendar_timestep;
-    cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
-    return calendar_timestep;
-}
-
-/*!
- * get calendar step
- *
- * @return calendar step
- */
-int Xios::getCalendarStep()
-{
-    int step = clientCalendar->getCalendar()->getStep();
-    return step;
-}
-
-/*!
- * set calendar origin
- *
- * @param origin
- */
-void Xios::setCalendarOrigin(cxios_date origin)
-{
-    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, origin);
-}
-
-/*!
- * set calendar start date
- *
- * @param start date
- */
-void Xios::setCalendarStart(cxios_date start)
-{
-    cxios_set_calendar_wrapper_date_start_date(clientCalendar, start);
-}
-
-/*!
- * set calendar timestep
- *
- * @param timestep
- */
-void Xios::setCalendarTimestep(cxios_duration timestep)
-{
-    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
-    cxios_update_calendar_timestep(clientCalendar);
-}
-
-/*!
- * update xios calendar iteration/step number
- *
- * @param current step number
- */
-void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
-
-/*!
- * send 2D field to xios server to be written to file.
- *
- * @param field name
- * @param data to be written
- * @param size of 1st dimension
- * @param size of 2nd dimension
- */
-void Xios::write(const std::string fieldstr, double* data, const int ni, const int nj)
-{
-    cxios_write_data_k82(fieldstr.c_str(), fieldstr.length(), data, ni, nj, -1);
-}
-
-/*!
  * return datetime as std::string using ISO 8601 format (default)
  * if `isoFormat` is true format will be  2023-03-03T17:11:00Z
  * if `isoFormat` is false format will be 2023-03-03 17:11:00
@@ -276,6 +174,582 @@ void Xios::printCXiosDuration(cxios_duration duration)
     std::cout << " minute   " << duration.minute << std::endl;
     std::cout << " second   " << duration.second << std::endl;
     std::cout << " timestep " << duration.timestep << std::endl;
+}
+
+/*!
+ * get calendar origin
+ *
+ * @return calendar origin
+ */
+cxios_date Xios::getCalendarOrigin()
+{
+    cxios_date calendar_origin;
+    cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
+    return calendar_origin;
+}
+
+/*!
+ * get calendar start date
+ *
+ * @return calendar start date
+ */
+cxios_date Xios::getCalendarStart()
+{
+    cxios_date calendar_start;
+    cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
+    return calendar_start;
+}
+
+/*!
+ * get calendar timestep
+ *
+ * @return calendar timestep
+ */
+cxios_duration Xios::getCalendarTimestep()
+{
+    cxios_duration calendar_timestep;
+    cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
+    return calendar_timestep;
+}
+
+/*!
+ * get calendar step
+ *
+ * @return calendar step
+ */
+int Xios::getCalendarStep()
+{
+    int step = clientCalendar->getCalendar()->getStep();
+    return step;
+}
+
+/*!
+ * get current calendar date
+ *
+ * @return current calendar date
+ */
+std::string Xios::getCurrentDate(bool isoFormat)
+{
+    cxios_date xiosDate;
+    cxios_get_current_date(&xiosDate);
+    std::string strDate = convertXiosDatetimeToString(xiosDate, isoFormat);
+    return strDate;
+}
+
+/*!
+ * set calendar origin
+ *
+ * @param origin
+ */
+void Xios::setCalendarOrigin(cxios_date origin)
+{
+    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, origin);
+}
+
+/*!
+ * set calendar start date
+ *
+ * @param start date
+ */
+void Xios::setCalendarStart(cxios_date start)
+{
+    cxios_set_calendar_wrapper_date_start_date(clientCalendar, start);
+}
+
+/*!
+ * set calendar timestep
+ *
+ * @param timestep
+ */
+void Xios::setCalendarTimestep(cxios_duration timestep)
+{
+    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
+    cxios_update_calendar_timestep(clientCalendar);
+}
+
+/*!
+ * update xios calendar iteration/step number
+ *
+ * @param current step number
+ */
+void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
+
+/*!
+ * Get the axis associated with a given ID
+ *
+ * @param the axis ID
+ * @return a pointer to the XIOS CAxis object
+ */
+xios::CAxis* Xios::getAxis(std::string axisId)
+{
+    xios::CAxis* axis = NULL;
+    cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
+    return axis;
+}
+
+/*!
+ * Get the size of a given axis (the number of global points)
+ *
+ * @param the axis ID
+ * @return size of the corresponding axis
+ */
+int Xios::getAxisSize(std::string axisId)
+{
+    int size;
+    cxios_get_axis_n_glo(getAxis(axisId), &size);
+    return size;
+}
+
+/*!
+ * Get the values associated with a given axis
+ *
+ * @param the axis ID
+ * @return the corresponding values
+ */
+std::vector<double> Xios::getAxisValues(std::string axisId)
+{
+    int size = getAxisSize(axisId);
+    double* values = new double[size];
+    cxios_get_axis_value(getAxis(axisId), values, &size);
+    std::vector<double> vec(values, values + size);
+    delete[] values;
+    return vec;
+}
+
+/*!
+ * Set the local longitude size for a given domain
+ *
+ * @param the domain ID
+ * @param the local longitude size
+ */
+void Xios::setDomainLongitudeSize(std::string domainId, int size)
+{
+    cxios_set_domain_ni(getDomain(domainId), size);
+}
+
+/*!
+ * Set the local latitude size for a given domain
+ *
+ * @param the domain ID
+ * @param the local longitude size
+ */
+void Xios::setDomainLatitudeSize(std::string domainId, int size)
+{
+    cxios_set_domain_nj(getDomain(domainId), size);
+}
+
+/*!
+ * Set the local start longitude for a given domain
+ *
+ * @param the domain ID
+ * @return the local start longitude
+ */
+void Xios::setDomainLongitudeStart(std::string domainId, int start)
+{
+    cxios_set_domain_ibegin(getDomain(domainId), start);
+}
+
+/*!
+ * Set the local start latitude for a given domain
+ *
+ * @param the domain ID
+ * @return the local start latitude
+ */
+void Xios::setDomainLatitudeStart(std::string domainId, int start)
+{
+    cxios_set_domain_jbegin(getDomain(domainId), start);
+}
+
+/*!
+ * Set the local longitude values for a given domain
+ *
+ * @param the domain ID
+ * @return the local longitude values
+ */
+void Xios::setDomainLongitudeValues(std::string domainId, std::vector<double> values)
+{
+    int size = getDomainLongitudeSize(domainId);
+    cxios_set_domain_lonvalue_1d(getDomain(domainId), values.data(), &size);
+}
+
+/*!
+ * Set the local latitude values for a given domain
+ *
+ * @param the domain ID
+ * @return the local latitude values
+ */
+void Xios::setDomainLatitudeValues(std::string domainId, std::vector<double> values)
+{
+    int size = getDomainLatitudeSize(domainId);
+    cxios_set_domain_latvalue_1d(getDomain(domainId), values.data(), &size);
+}
+
+/*!
+ * Get the domain associated with a given ID
+ *
+ * @param the domain ID
+ * @return a pointer to the XIOS CDomain object
+ */
+xios::CDomain* Xios::getDomain(std::string domainId)
+{
+    xios::CDomain* domain = NULL;
+    cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
+    return domain;
+}
+
+/*!
+ * Get the type of a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding domain type
+ */
+std::string Xios::getDomainType(std::string domainId)
+{
+    char cStr[cStrLen];
+    cxios_get_domain_type(getDomain(domainId), cStr, cStrLen);
+    std::string domainType(cStr, cStrLen);
+    boost::algorithm::trim_right(domainType);
+    return domainType;
+}
+
+/*!
+ * Get the global longitude size for a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding global longitude size
+ */
+int Xios::getDomainGlobalLongitudeSize(std::string domainId)
+{
+    int size;
+    cxios_get_domain_ni_glo(getDomain(domainId), &size);
+    return size;
+}
+
+/*!
+ * Get the global latitude size for a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding global latitude size
+ */
+int Xios::getDomainGlobalLatitudeSize(std::string domainId)
+{
+    int size;
+    cxios_get_domain_nj_glo(getDomain(domainId), &size);
+    return size;
+}
+
+/*!
+ * Get the local longitude size for a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding local longitude size
+ */
+int Xios::getDomainLongitudeSize(std::string domainId)
+{
+    int size;
+    cxios_get_domain_ni(getDomain(domainId), &size);
+    return size;
+}
+
+/*!
+ * Get the local latitude size for a given domain
+ *
+ * @param the domain ID
+ * @return the corresponding local latitude size
+ */
+int Xios::getDomainLatitudeSize(std::string domainId)
+{
+    int size;
+    cxios_get_domain_nj(getDomain(domainId), &size);
+    return size;
+}
+
+/*!
+ * Get the local starting longitude for a given domain
+ *
+ * @param the domain ID
+ * @return the local starting longitude of the corresponding domain
+ */
+int Xios::getDomainLongitudeStart(std::string domainId)
+{
+    int start;
+    cxios_get_domain_ibegin(getDomain(domainId), &start);
+    return start;
+}
+
+/*!
+ * Get the local starting latitude for a given domain
+ *
+ * @param the domain ID
+ * @return the local starting latitude of the corresponding domain
+ */
+int Xios::getDomainLatitudeStart(std::string domainId)
+{
+    int start;
+    cxios_get_domain_jbegin(getDomain(domainId), &start);
+    return start;
+}
+
+/*!
+ * Get the local longitude values for a given domain
+ *
+ * @param the domain ID
+ * @return the local longitude values of the corresponding domain
+ */
+std::vector<double> Xios::getDomainLongitudeValues(std::string domainId)
+{
+    int size = getDomainLongitudeSize(domainId);
+    double* values = new double[size];
+    cxios_get_domain_lonvalue_1d(getDomain(domainId), values, &size);
+    std::vector<double> vec(values, values + size);
+    delete[] values;
+    return vec;
+}
+
+/*!
+ * Get the local latitude values for a given domain
+ *
+ * @param the domain ID
+ * @return the local latitude values of the corresponding domain
+ */
+std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
+{
+    int size = getDomainLatitudeSize(domainId);
+    double* values = new double[size];
+    cxios_get_domain_latvalue_1d(getDomain(domainId), values, &size);
+    std::vector<double> vec(values, values + size);
+    delete[] values;
+    return vec;
+}
+
+/*!
+ * Get the field associated with a given ID
+ *
+ * @param the field ID
+ * @return a pointer to the XIOS CField object
+ */
+xios::CField* Xios::getField(std::string fieldId)
+{
+    xios::CField* field = NULL;
+    cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
+    return field;
+}
+
+/*!
+ * Get the name of a field with a given ID
+ *
+ * @param the field ID
+ * @return name of the corresponding field
+ */
+std::string Xios::getFieldName(std::string fieldId)
+{
+    char cStr[cStrLen];
+    cxios_get_field_name(getField(fieldId), cStr, cStrLen);
+    std::string fieldName(cStr, cStrLen);
+    boost::algorithm::trim_right(fieldName);
+    return fieldName;
+}
+
+/*!
+ * Get the operation associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return operation used for the corresponding field
+ */
+std::string Xios::getFieldOperation(std::string fieldId)
+{
+    char cStr[cStrLen];
+    cxios_get_field_operation(getField(fieldId), cStr, cStrLen);
+    std::string operation(cStr, cStrLen);
+    boost::algorithm::trim_right(operation);
+    return operation;
+}
+
+/*!
+ * Get the grid reference associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return grid reference used for the corresponding field
+ */
+std::string Xios::getFieldGridRef(std::string fieldId)
+{
+    char cStr[cStrLen];
+    cxios_get_field_grid_ref(getField(fieldId), cStr, cStrLen);
+    std::string gridRef(cStr, cStrLen);
+    boost::algorithm::trim_right(gridRef);
+    return gridRef;
+}
+
+/*!
+ * Verify whether a name has been defined for a given field ID
+ *
+ * @param the field ID
+ * @return `true` if the name has been set, otherwise `false`
+ */
+bool Xios::isDefinedFieldName(std::string fieldId)
+{
+    return cxios_is_defined_field_name(getField(fieldId));
+}
+
+/*!
+ * Verify whether an operation has been defined for a given field ID
+ *
+ * @param the field ID
+ * @return `true` if the operation has been set, otherwise `false`
+ */
+bool Xios::isDefinedFieldOperation(std::string fieldId)
+{
+    return cxios_is_defined_field_operation(getField(fieldId));
+}
+
+/*!
+ * Verify whether a grid reference has been defined for a given field ID
+ *
+ * @param the field ID
+ * @return `true` if the grid reference has been set, otherwise `false`
+ */
+bool Xios::isDefinedFieldGridRef(std::string fieldId)
+{
+    return cxios_is_defined_field_grid_ref(getField(fieldId));
+}
+
+/*!
+ * Get the grid associated with a given ID
+ *
+ * @param the grid ID
+ * @return a pointer to the XIOS CGrid object
+ */
+xios::CGrid* Xios::getGrid(std::string gridId)
+{
+    xios::CGrid* grid = NULL;
+    cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
+    return grid;
+}
+
+/*!
+ * Get the name of a grid with a given ID
+ *
+ * @param the grid ID
+ * @return name of the corresponding grid
+ */
+std::string Xios::getGridName(std::string gridId)
+{
+    char cStr[cStrLen];
+    cxios_get_grid_name(getGrid(gridId), cStr, cStrLen);
+    std::string gridName(cStr, cStrLen);
+    boost::algorithm::trim_right(gridName);
+    return gridName;
+}
+
+/*!
+ * Get the file associated with a given ID
+ *
+ * @param the file ID
+ * @return a pointer to the XIOS CFile object
+ */
+xios::CFile* Xios::getFile(std::string fileId)
+{
+    xios::CFile* file = NULL;
+    cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
+    return file;
+}
+
+/*!
+ * Get the name of a file with a given ID
+ *
+ * @param the file ID
+ * @return name of the corresponding file
+ */
+std::string Xios::getFileName(std::string fileId)
+{
+    char cStr[cStrLen];
+    cxios_get_file_name(getFile(fileId), cStr, cStrLen);
+    std::string fileName(cStr, cStrLen);
+    boost::algorithm::trim_right(fileName);
+    return fileName;
+}
+
+/*!
+ * Get the type of a file with a given ID
+ *
+ * @param the file ID
+ * @return type of the corresponding file
+ */
+std::string Xios::getFileType(std::string fileId)
+{
+    char cStr[cStrLen];
+    cxios_get_file_type(getFile(fileId), cStr, cStrLen);
+    std::string fileType(cStr, cStrLen);
+    boost::algorithm::trim_right(fileType);
+    return fileType;
+}
+
+/*!
+ * Get the output frequency of a file with a given ID
+ *
+ * @param the file ID
+ * @return the corresponding output frequency
+ */
+std::string Xios::getFileOutputFreq(std::string fileId)
+{
+    cxios_duration duration;
+    cxios_get_file_output_freq(getFile(fileId), &duration);
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(duration, cStr, cStrLen);
+    std::string outputFreq(cStr, cStrLen);
+    boost::algorithm::trim_right(outputFreq);
+    return outputFreq;
+}
+
+/*!
+ * Verify whether a given file ID is valid
+ *
+ * @param the file ID
+ * @return `true` if the file ID is valid, otherwise `false`
+ */
+bool Xios::validFileId(std::string fileId)
+{
+    bool valid;
+    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
+    return valid;
+}
+
+/*!
+ * Verify whether an output frequency has been defined for a given file ID
+ *
+ * @param the file ID
+ * @return `true` if the output frequency has been set, otherwise `false`
+ */
+bool Xios::isDefinedFileOutputFreq(std::string fileId)
+{
+    return cxios_is_defined_file_output_freq(getFile(fileId));
+}
+
+/*!
+ * send 2D field to xios server to be written to file.
+ *
+ * @param field name
+ * @param data to be written
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ */
+void Xios::write(const std::string fieldId, double* data, const int ni, const int nj)
+{
+    cxios_write_data_k82(fieldId.c_str(), fieldId.length(), data, ni, nj, -1);
+}
+
+/*!
+ * send 3D field to xios server to be written to file.
+ *
+ * @param field name
+ * @param data to be written
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ * @param size of 3rd dimension
+ */
+void Xios::write(const std::string fieldId, double* data, const int ni, const int nj, const int nk)
+{
+    cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, ni, nj, nk, -1);
 }
 }
 

@@ -36,10 +36,9 @@ void cxios_context_finalize();
 
 void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret);
 
-// datetime conversions
+// conversions
 void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size);
-cxios_date cxios_date_convert_from_string(const char* str, int str_size);
-
+cxios_date cxios_date_convert_from_string(const char* str, int str_size); // TODO: unused
 void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size);
 
 // calendar methods
@@ -52,7 +51,6 @@ void cxios_set_calendar_wrapper_date_start_date(
 void cxios_get_calendar_wrapper_date_start_date(
     xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
 void cxios_get_current_date(cxios_date* date);
-
 void cxios_update_calendar(int step);
 
 // timestep methods
@@ -62,22 +60,62 @@ void cxios_get_calendar_wrapper_timestep(
     xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration* timestep_c);
 void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
 
-// grid methods
+// axis methods
 void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
 void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
 void cxios_get_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
 
 // domain methods
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);
-void cxios_get_domain_type(xios::CDomain* domain_hdl, char* type, int type_size);
-void cxios_get_domain_ni_glo(xios::CDomain* domain_hdl, int* ni_glo);
-void cxios_get_domain_nj_glo(xios::CDomain* domain_hdl, int* nj_glo);
+void cxios_set_domain_type(xios::CDomain* domain_hdl, char* type, int type_size); // TODO: unused
+void cxios_set_domain_ni_glo(xios::CDomain* domain_hdl, int ni_glo); // TODO: unused
+void cxios_set_domain_nj_glo(xios::CDomain* domain_hdl, int nj_glo); // TODO: unused
 void cxios_set_domain_ni(xios::CDomain* domain_hdl, int ni);
 void cxios_set_domain_nj(xios::CDomain* domain_hdl, int nj);
 void cxios_set_domain_ibegin(xios::CDomain* domain_hdl, int ibegin);
 void cxios_set_domain_jbegin(xios::CDomain* domain_hdl, int jbegin);
 void cxios_set_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
 void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
+void cxios_get_domain_type(xios::CDomain* domain_hdl, char* type, int type_size);
+void cxios_get_domain_ni_glo(xios::CDomain* domain_hdl, int* ni_glo);
+void cxios_get_domain_nj_glo(xios::CDomain* domain_hdl, int* nj_glo);
+void cxios_get_domain_ni(xios::CDomain* domain_hdl, int* ni);
+void cxios_get_domain_nj(xios::CDomain* domain_hdl, int* nj);
+void cxios_get_domain_ibegin(xios::CDomain* domain_hdl, int* ibegin);
+void cxios_get_domain_jbegin(xios::CDomain* domain_hdl, int* jbegin);
+void cxios_get_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
+void cxios_get_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
+
+// grid methods
+void cxios_grid_handle_create(xios::CGrid** _ret, const char* _id, int _id_len);
+void cxios_set_grid_name(xios::CGrid* _ret, const char* name, int name_size);
+void cxios_get_grid_name(xios::CGrid* _ret, char* name, int name_size);
+
+// field methods
+void cxios_field_handle_create(xios::CField** _ret, const char* _id, int _id_len);
+void cxios_set_field_name(xios::CField* _ret, const char* name, int name_size); // TODO: unused
+void cxios_set_field_operation(
+    xios::CField* _ret, const char* operation, int operation_size); // TODO: unused
+void cxios_set_field_grid_ref(
+    xios::CField* _ret, const char* grid_ref, int grid_ref_size); // TODO: unused
+void cxios_get_field_name(xios::CField* _ret, char* name, int name_size);
+void cxios_get_field_operation(xios::CField* _ret, char* operation, int operation_size);
+void cxios_get_field_grid_ref(xios::CField* _ret, char* grid_ref, int grid_ref_size);
+bool cxios_is_defined_field_name(xios::CField* _ret);
+bool cxios_is_defined_field_operation(xios::CField* _ret);
+bool cxios_is_defined_field_grid_ref(xios::CField* _ret);
+
+// file methods
+void cxios_file_handle_create(xios::CFile** _ret, const char* _id, int _id_len);
+void cxios_file_valid_id(bool* _ret, const char* _id, int _id_len);
+void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size); // TODO: unused
+void cxios_set_file_type(xios::CFile* file_hdl, const char* type, int type_size); // TODO: unused
+void cxios_set_file_output_freq(
+    xios::CFile* file_hdl, cxios_duration output_freq_c); // TODO: unused
+void cxios_get_file_name(xios::CFile* file_hdl, char* name, int name_size);
+void cxios_get_file_type(xios::CFile* file_hdl, char* type, int type_size);
+void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
+bool cxios_is_defined_file_output_freq(xios::CFile* file_hdl);
 
 // writing methods
 void cxios_write_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize,
