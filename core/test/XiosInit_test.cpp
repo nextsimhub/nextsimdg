@@ -225,10 +225,10 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.gridAddDomain(gridId, domainId);
     xios_handler.gridAddAxis(gridId, axisId);
 
-    // // --- Tests for file API
+    // --- Tests for file API
     std::string fileId { "output" };
-    // REQUIRE_FALSE(xios_handler.validFileId(fileId)); // TODO: Needs fix for following line
-    // xios_handler.createFile(fileId); // FIXME: throws unknown exception
+    REQUIRE_FALSE(xios_handler.validFileId(fileId));
+    xios_handler.createFile(fileId);
     REQUIRE(xios_handler.validFileId(fileId));
     // File name
     REQUIRE_FALSE(xios_handler.isDefinedFileName(fileId));

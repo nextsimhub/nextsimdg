@@ -2,12 +2,6 @@
 <simulation>
   <context id="nextsim">
     <calendar type="Gregorian" time_origin="2020-01-23 00:08:15" start_date="2023-03-17 17:11:00" timestep="1.5 h"/>
-
-    <!-- TODO: Drop file def -->
-    <file_definition>
-      <file id="output"/>
-    </file_definition>
-
   </context>
   <context id="xios">
     <variable_definition>
