@@ -28,13 +28,19 @@ public:
     Xios();
     ~Xios();
 
+    /* Initialization and finalization */
     void close_context_definition();
     void context_finalize();
     void finalize();
     bool isInitialized();
 
+    /* Configuration */
     void configure() override;
     void configureServer();
+
+    /* MPI decomposition */
+    int getClientMPISize();
+    int getClientMPIRank();
 
     /* Date and duration */
     std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
@@ -133,10 +139,6 @@ public:
         ENABLED_KEY,
     };
 
-    int rank { 0 };
-    int size { 0 };
-    xios::CCalendarWrapper* clientCalendar;
-
     /* Length of C-strings passed to XIOS */
     int cStrLen { 20 };
 
@@ -146,11 +148,15 @@ protected:
 private:
     bool isEnabled;
 
+    std::string clientId;
+    std::string contextId;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
-    std::string clientId;
-    std::string contextId;
+    int mpi_rank { 0 };
+    int mpi_size { 0 };
+
+    xios::CCalendarWrapper* clientCalendar;
 
     xios::CAxisGroup* getAxisGroup();
     xios::CDomainGroup* getDomainGroup();

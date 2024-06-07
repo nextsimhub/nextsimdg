@@ -107,9 +107,19 @@ void Xios::configureServer()
 
     // initialize rank and size
     clientComm = MPI_Comm_f2c(clientComm_F);
-    MPI_Comm_rank(clientComm, &rank);
-    MPI_Comm_size(clientComm, &size);
+    MPI_Comm_rank(clientComm, &mpi_rank);
+    MPI_Comm_size(clientComm, &mpi_size);
 }
+
+/*!
+ * @return size of the client MPI communicator
+ */
+int Xios::getClientMPISize() { return mpi_size; }
+
+/*!
+ * @return rank of the client MPI communicator
+ */
+int Xios::getClientMPIRank() { return mpi_rank; }
 
 /*!
  * verify xios server is initialized

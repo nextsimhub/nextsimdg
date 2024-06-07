@@ -39,9 +39,14 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Nextsim::Configurator::addStream(std::move(pcstream));
 
-    // initialized instance of xios_handler
+    // Initialize an Xios instance called xios_handler
     Nextsim::Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
+
+    // Extract MPI size and rank
+    int size = xios_handler.getClientMPISize();
+    REQUIRE(size == 2);
+    int rank = xios_handler.getClientMPIRank();
 
     // read calendar start date and verify datetime string
     cxios_date start = xios_handler.getCalendarStart();
@@ -143,7 +148,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getDomainGlobalLatitudeSize(domainId) == nj_glo);
     // Local longitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeSize(domainId));
-    int ni = ni_glo / xios_handler.size;
+    int ni = ni_glo / size;
     xios_handler.setDomainLongitudeSize(domainId, ni);
     REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
@@ -155,7 +160,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
     // Local longitude start
     REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeStart(domainId));
-    int rank = xios_handler.rank;
     int startLon = ni * rank;
     xios_handler.setDomainLongitudeStart(domainId, startLon);
     REQUIRE(xios_handler.isDefinedDomainLongitudeStart(domainId));
