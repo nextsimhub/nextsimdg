@@ -15,11 +15,11 @@
 
 namespace Nextsim {
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
-    { ModelArray::Dimension::X, { "xdim", 0 } },
-    { ModelArray::Dimension::Y, { "ydim", 0 } },
-    { ModelArray::Dimension::Z, { "zdim", 1 } },
-    { ModelArray::Dimension::XVERTEX, { "xvertex", 1 } }, // defined as x + 1
-    { ModelArray::Dimension::YVERTEX, { "yvertex", 1 } }, // defined as y + 1
+    { ModelArray::Dimension::X, { "xdim", "x", 0 } },
+    { ModelArray::Dimension::Y, { "ydim", "y", 0 } },
+    { ModelArray::Dimension::Z, { "zdim", "z", 1 } },
+    { ModelArray::Dimension::XVERTEX, { "xvertex", "xvertex", 1 } }, // defined as x + 1
+    { ModelArray::Dimension::YVERTEX, { "yvertex", "yvertex", 1 } }, // defined as y + 1
 };
 
 ModelArray::TypeDimensions ModelArray::typeDimensions = {

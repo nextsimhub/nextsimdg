@@ -249,12 +249,12 @@ if __name__ == "__main__":
     time_attr.units = "seconds since 1970-01-01T00:00:00Z"
     
     datagrp = era_root.createGroup("data")
-    xDim = datagrp.createDimension("x", nx)
-    yDim = datagrp.createDimension("y", ny)
+    xDim = datagrp.createDimension("xdim", nx)
+    yDim = datagrp.createDimension("ydim", ny)
     tDim = datagrp.createDimension("time", None)
     
-    hfield_dims = ("y", "x")
-    timefield_dims = ("time", "y", "x")
+    hfield_dims = ("ydim", "xdim")
+    timefield_dims = ("time", "ydim", "xdim")
     
     # Position and time variables
     nc_lons = datagrp.createVariable("longitude", "f8", hfield_dims)
@@ -355,8 +355,8 @@ if __name__ == "__main__":
     time_attr.units = "seconds since 1970-01-01T00:00:00Z"
     
     datagrp = topaz_root.createGroup("data")
-    xDim = datagrp.createDimension("x", nx)
-    yDim = datagrp.createDimension("y", ny)
+    xDim = datagrp.createDimension("xdim", nx)
+    yDim = datagrp.createDimension("ydim", ny)
     tDim = datagrp.createDimension("time", None)
     
     (unix_times_t, topaz4_times) = create_topaz_times(start_time, stop_time)

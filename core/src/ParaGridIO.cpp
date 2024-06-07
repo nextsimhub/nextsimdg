@@ -27,10 +27,15 @@
 
 namespace Nextsim {
 
+// Accept both post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
 const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
+    { "yx", ModelArray::Type::H },
     { "ydimxdim", ModelArray::Type::H },
+    { "zyx", ModelArray::Type::Z },
     { "zdimydimxdim", ModelArray::Type::Z },
+    { "yxdg_comp", ModelArray::Type::DG },
     { "ydimxdimdg_comp", ModelArray::Type::DG },
+    { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
     { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
     { "ycgxcg", ModelArray::Type::CG },
     { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
@@ -90,7 +95,18 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 continue;
 
             ModelArray::DimensionSpec& dimensionSpec = entry.second;
+            // Find dimensions in the netCDF file by their name in the ModelArray details
             netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
+            // Also check the old name
+            if (dim.isNull()) {
+                dim = dataGroup.getDim(dimensionSpec.altName);
+            }
+            // If we didn't find a dimension with the dimensions name or altName, throw.
+            if (dim.isNull()) {
+                throw std::out_of_range(
+                    std::string("No netCDF dimension found corresponding to the dimension named ")
+                    + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
+            }
             if (entry.first == ModelArray::Dimension::Z) {
                 // A special case, as the number of levels in the file might not be
                 // the number that the selected ice thermodynamics requires.

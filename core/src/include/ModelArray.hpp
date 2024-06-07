@@ -56,6 +56,7 @@ public:
 
     struct DimensionSpec {
         std::string name;
+        std::string altName;
         size_t length;
     };
     typedef std::map<Type, std::vector<Dimension>> TypeDimensions;

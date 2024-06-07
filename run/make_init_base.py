@@ -183,6 +183,7 @@ class initMaker:
         sss[:, :] = self.sss
 
         # mask data
+        """ TODO: Figure out why this masking doesn't work
         mdi = -3.282346e38  # Minus float max
         cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
         cice.missing_value = mdi
@@ -199,8 +200,9 @@ class initMaker:
         grid_azimuth[:, :] = grid_azimuth[:, :] * mask[:, :] + antimask * mdi
         grid_azimuth.missing_value = mdi
         sss[:, :] = sss[:, :] * mask[:, :] + antimask * mdi
-        sss.missing_sssalue = mdi
+        sss.missing_value = mdi
         sst[:, :] = sst[:, :] * mask[:, :] + antimask * mdi
-        sst.missing_sstalue = mdi
+        sst.missing_value = mdi
+        """
 
         root.close()
