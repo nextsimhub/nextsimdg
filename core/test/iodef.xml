@@ -5,9 +5,7 @@
 
     <!-- TODO: Drop file def -->
     <file_definition>
-      <file id="output">
-        <field id="field_A"/>
-      </file>
+      <file id="output"/>
     </file_definition>
 
   </context>

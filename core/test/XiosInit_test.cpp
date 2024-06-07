@@ -248,7 +248,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.setFileOutputFreq(fileId, freq);
     REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
-    // xios_handler.fileAddField(fieldId, fieldId); // FIXME: throws unknown exception
+    xios_handler.fileAddField(fileId, fieldId);
 
     xios_handler.close_context_definition();
 
