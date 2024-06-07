@@ -193,7 +193,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for grid API
     std::string gridId = { "grid_2D" };
-    // xios_handler.createGrid(gridId); // FIXME
+    xios_handler.createGrid(gridId);
     // Grid name
     REQUIRE_FALSE(xios_handler.isDefinedGridName(gridId));
     std::string gridName = { "test_grid" };
