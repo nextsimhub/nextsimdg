@@ -143,7 +143,7 @@ bool cxios_is_defined_field_name(xios::CField* _ret);
 bool cxios_is_defined_field_operation(xios::CField* _ret);
 bool cxios_is_defined_field_grid_ref(xios::CField* _ret);
 
-// file methods
+// file group methods
 void cxios_filegroup_handle_create(xios::CFileGroup** _ret, const char* _id, int _id_len);
 void cxios_xml_tree_add_file(
     xios::CFileGroup* file_grp, xios::CFile** file, const char* _id, int _id_len);
