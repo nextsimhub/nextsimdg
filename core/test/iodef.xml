@@ -5,10 +5,7 @@
 
     <!-- TODO: Drop grid def -->
     <grid_definition>
-      <grid id="grid_2D">
-        <domain domain_ref="domain_A"/>
-        <axis axis_ref="axis_A"/>
-      </grid>
+      <grid id="grid_2D"/>
     </grid_definition>
 
     <!-- TODO: Drop file def -->

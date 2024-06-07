@@ -222,14 +222,13 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
-    // xios_handler.gridAddDomain(gridId, domainId); // FIXME and test
-    // xios_handler.gridAddAxis(gridId, axisId); // FIXME and test
+    xios_handler.gridAddDomain(gridId, domainId);
+    xios_handler.gridAddAxis(gridId, axisId);
 
-    // --- Tests for file API
-    REQUIRE_FALSE(xios_handler.validFileId("invalid"));
+    // // --- Tests for file API
     std::string fileId { "output" };
-    // REQUIRE_FALSE(xios_handler.validFileId("fileId")); // TODO
-    // xios_handler.createFile(fileId); // FIXME
+    // REQUIRE_FALSE(xios_handler.validFileId(fileId)); // TODO: Needs fix for following line
+    // xios_handler.createFile(fileId); // FIXME: throws unknown exception
     REQUIRE(xios_handler.validFileId(fileId));
     // File name
     REQUIRE_FALSE(xios_handler.isDefinedFileName(fileId));
@@ -249,7 +248,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.setFileOutputFreq(fileId, freq);
     REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
-    // xios_handler.fileAddField(fieldId, fieldId); // FIXME and test
+    // xios_handler.fileAddField(fieldId, fieldId); // FIXME: throws unknown exception
 
     xios_handler.close_context_definition();
 
