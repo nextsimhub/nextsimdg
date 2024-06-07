@@ -73,6 +73,14 @@ public:
         stresstransport->settimesteppingscheme("rk2");
 
         damage.resize_by_mesh(*smesh);
+        avgU.resize_by_mesh(*smesh);
+        avgV.resize_by_mesh(*smesh);
+    }
+
+    // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
+    void prepareAdvection() override
+    {
+        dgtransport->prepareAdvection(avgU, avgV);
     }
 
     void update(const TimestepTime& tst) override
@@ -82,7 +90,7 @@ public:
         advectionAndLimits(tst);
 
         //! Perform transport step for stress
-        stresstransport->prepareAdvection(u, v);
+        stresstransport->prepareAdvection(avgU, avgV);
         stresstransport->step(tst.step.seconds(), s11);
         stresstransport->step(tst.step.seconds(), s12);
         stresstransport->step(tst.step.seconds(), s22);
@@ -96,6 +104,9 @@ public:
 
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
+
+        avgU.zero();
+        avgV.zero();
 
         for (size_t subStep = 0; subStep < nSteps; ++subStep) {
 
@@ -144,8 +155,8 @@ public:
     }
 
 protected:
-    CGVector<CGdegree> avgX;
-    CGVector<CGdegree> avgY;
+    CGVector<CGdegree> avgU;
+    CGVector<CGdegree> avgV;
 
     StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
     const MEBParameters& params;
@@ -222,8 +233,8 @@ protected:
         }
 
         // Calculate the contribution to the average velocity
-        avgX += u / nSteps;
-        avgY += v / nSteps;
+        avgU += u / nSteps;
+        avgV += v / nSteps;
     }
 };
 }
