@@ -62,10 +62,18 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.setCalendarOrigin(origin);
     datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarOrigin());
     REQUIRE(datetime == "2020-01-23T00:08:15Z");
-
-    // read calendar start date and verify datetime string
-    cxios_date start = xios_handler.getCalendarStart();
+    // Calendar start
+    cxios_date start;
+    start.year = 2023;
+    start.month = 3;
+    start.day = 17;
+    start.hour = 17;
+    start.minute = 11;
+    start.second = 0;
     datetime = xios_handler.convertXiosDatetimeToString(start);
+    REQUIRE(datetime == "2023-03-17T17:11:00Z");
+    xios_handler.setCalendarStart(start);
+    datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarStart());
     REQUIRE(datetime == "2023-03-17T17:11:00Z");
 
     // check all elements of cxios_duration struct
@@ -78,17 +86,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(duration.minute == doctest::Approx(0.0));
     REQUIRE(duration.second == doctest::Approx(0.0));
     REQUIRE(duration.timestep == doctest::Approx(0.0));
-
-    // get Calendar start date and modify it
-    start = xios_handler.getCalendarStart();
-    start.minute = 37;
-    // set new start date
-    xios_handler.setCalendarStart(start);
-    // get Calendar modified start date
-    start = xios_handler.getCalendarStart();
-    // convert cxios_date to string for comparison
-    datetime = xios_handler.convertXiosDatetimeToString(start);
-    REQUIRE(datetime == "2023-03-17T17:37:00Z");
 
     // get Calendar timestep and modify it
     duration = xios_handler.getCalendarTimestep();
@@ -261,9 +258,9 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     // check the getCurrentDate method with and without ISO formatting
     xios::CDate current;
     std::string current_date = xios_handler.getCurrentDate();
-    REQUIRE(current_date == "2023-03-17T17:37:00Z");
+    REQUIRE(current_date == "2023-03-17T17:11:00Z");
     current_date = xios_handler.getCurrentDate(false);
-    REQUIRE(current_date == "2023-03-17 17:37:00");
+    REQUIRE(current_date == "2023-03-17 17:11:00");
 
     // create some fake data to test writing methods
     double* field_A = new double[ni * nj * axis_size];

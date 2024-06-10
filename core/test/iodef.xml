@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <simulation>
   <context id="nextsim">
-    <calendar type="Gregorian" start_date="2023-03-17 17:11:00" timestep="1.5 h"/>
+    <calendar type="Gregorian" timestep="1.5 h"/>
   </context>
   <context id="xios">
     <variable_definition>
