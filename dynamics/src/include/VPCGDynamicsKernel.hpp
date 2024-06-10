@@ -68,7 +68,7 @@ public:
 
         // The critical timestep for the VP solver is the advection timestep
         deltaT = tst.step.seconds();
-
+        auto start = std::chrono::high_resolution_clock::now();
         for (size_t mevpstep = 0; mevpstep < nSteps; ++mevpstep) {
 
             projectVelocityToStrain();
@@ -85,6 +85,8 @@ public:
 
             applyBoundaries();
         }
+        auto stop = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration<float>(stop-start).count() << "\n";
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
     }

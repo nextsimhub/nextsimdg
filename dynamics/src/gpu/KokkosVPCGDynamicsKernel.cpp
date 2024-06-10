@@ -139,6 +139,13 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
 template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
+    PerfTimer timerProj("projGPU");
+    PerfTimer timerStress("stressGPU");
+    PerfTimer timerMevp("mevpGPU");
+    PerfTimer timerDivergence("divGPU");
+    PerfTimer timerMomentum("momentumGPU");
+    PerfTimer timerBoundary("bcGPU");
+
     // Let DynamicsKernel handle the advection step
     DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits(tst);
     this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
@@ -146,6 +153,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     // The critical timestep for the VP solver is the advection timestep
     this->deltaT = tst.step.seconds();
 
+    // todo: determine fields only changed by the mevp iteration to copy them just once
+    timerMevp.start();
     Kokkos::deep_copy(buffers.uDevice, buffers.uHost);
     Kokkos::deep_copy(buffers.vDevice, buffers.vHost);
     Kokkos::deep_copy(buffers.u0Device, buffers.uDevice);
@@ -178,28 +187,39 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         std::cout << "a: " << aNorm << ", b: " << b.norm()
                   << ", (a-b)/|a|: " << (a - b).norm() / aNorm << std::endl;
     };
-    PerfTimer timerProjGPU("projGPU");
-    PerfTimer timerMevpGPU("mevpGPU");
-    timerMevpGPU.start();
+
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
-    //    timerProjGPU.start();
+        timerProj.start();
         projVelocityToStrain(
             buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
-    //    timerProjGPU.stop();
+        timerProj.stop();
 
+        timerStress.start();
         stressUpdateHighOrder(buffers, params, alpha);
+        timerStress.stop();
 
+        timerDivergence.start();
         computeStressDivergence(
             buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
+        timerDivergence.stop();
 
+        timerMomentum.start();
         updateMomentumDevice(tst, buffers, params, beta);
+        timerMomentum.stop();
 
+        timerBoundary.start();
         applyBoundariesDevice(buffers, this->smesh->nx, this->smesh->ny);
+        timerBoundary.stop();
     }
-    timerMevpGPU.stop();
-    timerMevpGPU.print();
-    //    timerProjGPU.print();
-    //    timerProjCPU.print();
+    Kokkos::deep_copy(buffers.uHost, buffers.uDevice);
+    Kokkos::deep_copy(buffers.vHost, buffers.vDevice);
+
+    timerMevp.stop();
+    timerMevp.print();
+    timerStress.print();
+    timerDivergence.print();
+    timerMomentum.print();
+    timerBoundary.print();
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
 }
@@ -376,7 +396,7 @@ void dirichletZero(DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
         });
     // top
     Kokkos::parallel_for(
-        "dirichletZeroRight", dirichlet[2].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+        "dirichletZeroTop", dirichlet[2].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
             const DeviceIndex eid = dirichlet[2][i];
             const DeviceIndex ix = eid % nx; // compute coordinates of element
             const DeviceIndex iy = eid / nx;
@@ -443,6 +463,7 @@ template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
     const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
+    using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
     // zero buffers
     Kokkos::parallel_for(
         "initStressDivergence", _buffers.dStressXDevice.extent(0),
@@ -451,52 +472,54 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
             _buffers.dStressYDevice(i) = 0.0;
         });
 
-    // parallelization in stripes
-    for (DeviceIndex p = 0; p < 2; ++p) {
-        Kokkos::parallel_for(
-            "computeStressDivergence", ny, KOKKOS_LAMBDA(const DeviceIndex cy) {
-                auto s11 = makeEigenMap(_buffers.s11Device);
-                auto s12 = makeEigenMap(_buffers.s12Device);
-                auto s22 = makeEigenMap(_buffers.s22Device);
+    // parallelization in checkerboard pattern
+    for (DeviceIndex ix = 0; ix < 2; ++ix) {
+        for (DeviceIndex iy = 0; iy < 2; ++iy) {
+            const DeviceIndex nx_half = nx / 2 + (ix == 0 ? nx % 2 : 0);
+            const DeviceIndex ny_half = ny / 2 + (iy == 0 ? ny % 2 : 0);
+            Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx_half, ny_half });
 
-                //!< loop over all cells of the mesh
-                if (cy % 2 == p) {
-                    DeviceIndex eid = nx * cy;
-                    for (DeviceIndex cx = 0; cx < nx; ++cx, ++eid) {
-                        //!< loop over all cells of the mesh
-                        // only on ice!
-                        if (_buffers.landMaskDevice.test(eid)) {
-                            auto divS1 = _buffers.divS1Device[eid];
-                            auto divS2 = _buffers.divS2Device[eid];
-                            Eigen::Vector<Nextsim::FloatType, CGdof> tx
-                                = (divS1 * s11.row(eid).transpose()
-                                    + divS2 * s12.row(eid).transpose());
-                            Eigen::Vector<Nextsim::FloatType, CGdof> ty
-                                = (divS1 * s12.row(eid).transpose()
-                                    + divS2 * s22.row(eid).transpose());
+            Kokkos::parallel_for(
+                "computeStressDivergence", policy,
+                KOKKOS_LAMBDA(const DeviceIndex jx, const DeviceIndex jy) {
+                    // actual cell index
+                    const DeviceIndex cx = jx * 2 + ix;
+                    const DeviceIndex cy = jy * 2 + iy;
+                    const DeviceIndex eid = cx + nx * cy;
+                    // only on ice!
+                    if (!_buffers.landMaskDevice.test(eid)) {
+                        return;
+                    }
 
-                            if (coordinates == SPHERICAL) {
-                                auto divM = _buffers.divMDevice[eid];
-                                tx += divM * s12.row(eid).transpose();
-                                ty -= divM * s11.row(eid).transpose();
-                            }
-                            const DeviceIndex cgRow = CGdegree * nx + 1;
-                            const DeviceIndex cg_i = CGdegree * cgRow * cy
-                                + CGdegree * cx; //!< lower left CG-index in element (cx,cy)
+                    const auto s11 = makeEigenMap(_buffers.s11Device);
+                    const auto s12 = makeEigenMap(_buffers.s12Device);
+                    const auto s22 = makeEigenMap(_buffers.s22Device);
 
-                            // Fill the stress divergence values
-                            for (DeviceIndex row = 0; row <= CGdegree; ++row) {
-                                for (DeviceIndex col = 0; col <= CGdegree; ++col) {
-                                    _buffers.dStressXDevice(cg_i + col + row * cgRow)
-                                        -= tx(col + (CGdegree + 1) * row);
-                                    _buffers.dStressYDevice(cg_i + col + row * cgRow)
-                                        -= ty(col + (CGdegree + 1) * row);
-                                }
-                            }
+                    const auto divS1 = _buffers.divS1Device[eid];
+                    const auto divS2 = _buffers.divS2Device[eid];
+                    CGVec tx = divS1 * s11.row(eid).transpose() + divS2 * s12.row(eid).transpose();
+                    CGVec ty = divS1 * s12.row(eid).transpose() + divS2 * s22.row(eid).transpose();
+
+                    if (coordinates == SPHERICAL) {
+                        const auto divM = _buffers.divMDevice[eid];
+                        tx += divM * s12.row(eid).transpose();
+                        ty -= divM * s11.row(eid).transpose();
+                    }
+                    const DeviceIndex cgRow = CGdegree * nx + 1;
+                    //!< lower left CG-index in element (cx,cy)
+                    const DeviceIndex cg_i = CGdegree * cgRow * cy + CGdegree * cx;
+
+                    // Fill the stress divergence values
+                    for (DeviceIndex row = 0; row <= CGdegree; ++row) {
+                        for (DeviceIndex col = 0; col <= CGdegree; ++col) {
+                            _buffers.dStressXDevice(cg_i + col + row * cgRow)
+                                -= tx(col + (CGdegree + 1) * row);
+                            _buffers.dStressYDevice(cg_i + col + row * cgRow)
+                                -= ty(col + (CGdegree + 1) * row);
                         }
                     }
-                }
-            });
+                });
+        }
     }
     // set zero on the Dirichlet boundaries
     dirichletZero(_buffers.dStressXDevice, nx, ny, _buffers.dirichletDevice);
@@ -513,7 +536,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::applyBoundariesDevice(
 {
     dirichletZero(_buffers.uDevice, nx, ny, _buffers.dirichletDevice);
     dirichletZero(_buffers.vDevice, nx, ny, _buffers.dirichletDevice);
-    ;
+
     // TODO Periodic boundary conditions.
 }
 

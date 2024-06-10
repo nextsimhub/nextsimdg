@@ -9,9 +9,9 @@
 #ifndef DYNAMICS_HPP
 #define DYNAMICS_HPP
 
-#include "include/MEVPDynamicsKernel.hpp"
-#include "include/IDynamics.hpp"
 #include "gpu/KokkosVPCGDynamicsKernel.hpp"
+#include "include/IDynamics.hpp"
+#include "include/MEVPDynamicsKernel.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -25,10 +25,11 @@ public:
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
+
 private:
     // TODO: How to get the template parameters here?
-   // MEVPDynamicsKernel<6> kernel;
-    KokkosVPCGDynamicsKernel<1> kernel;
+    // MEVPDynamicsKernel<6> kernel;
+    KokkosVPCGDynamicsKernel<6> kernel;
     VPParameters params;
 };
 }
