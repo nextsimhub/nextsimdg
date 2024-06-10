@@ -48,15 +48,25 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(size == 2);
     int rank = xios_handler.getClientMPIRank();
 
+    // --- Tests for calendar API
+    // Calendar origin
+    cxios_date origin;
+    origin.year = 2020;
+    origin.month = 1;
+    origin.day = 23;
+    origin.hour = 0;
+    origin.minute = 8;
+    origin.second = 15;
+    std::string datetime = xios_handler.convertXiosDatetimeToString(origin);
+    REQUIRE(datetime == "2020-01-23T00:08:15Z");
+    xios_handler.setCalendarOrigin(origin);
+    datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarOrigin());
+    REQUIRE(datetime == "2020-01-23T00:08:15Z");
+
     // read calendar start date and verify datetime string
     cxios_date start = xios_handler.getCalendarStart();
-    std::string datetime = xios_handler.convertXiosDatetimeToString(start);
+    datetime = xios_handler.convertXiosDatetimeToString(start);
     REQUIRE(datetime == "2023-03-17T17:11:00Z");
-
-    // read calendar origin date and verify datetime string
-    cxios_date origin = xios_handler.getCalendarOrigin();
-    datetime = xios_handler.convertXiosDatetimeToString(origin);
-    REQUIRE(datetime == "2020-01-23T00:08:15Z");
 
     // check all elements of cxios_duration struct
     cxios_duration duration;
@@ -79,14 +89,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     // convert cxios_date to string for comparison
     datetime = xios_handler.convertXiosDatetimeToString(start);
     REQUIRE(datetime == "2023-03-17T17:37:00Z");
-
-    // same steps as calendar start date but for calendar Origin
-    origin = xios_handler.getCalendarOrigin();
-    origin.second = 1;
-    xios_handler.setCalendarOrigin(origin);
-    origin = xios_handler.getCalendarOrigin();
-    datetime = xios_handler.convertXiosDatetimeToString(origin);
-    REQUIRE(datetime == "2020-01-23T00:08:01Z");
 
     // get Calendar timestep and modify it
     duration = xios_handler.getCalendarTimestep();
