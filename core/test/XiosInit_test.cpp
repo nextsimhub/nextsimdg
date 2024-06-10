@@ -75,26 +75,18 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.setCalendarStart(start);
     datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarStart());
     REQUIRE(datetime == "2023-03-17T17:11:00Z");
-
-    // check all elements of cxios_duration struct
+    // Timestep
     cxios_duration duration;
+    duration.year = 0.0;
+    duration.month = 0.0;
+    duration.day = 0.0;
+    duration.hour = 1.5;
+    duration.minute = 0.0;
+    duration.second = 0.0;
+    duration.timestep = 0.0;
+    xios_handler.setCalendarTimestep(duration);
     duration = xios_handler.getCalendarTimestep();
     REQUIRE(duration.year == doctest::Approx(0.0));
-    REQUIRE(duration.month == doctest::Approx(0.0));
-    REQUIRE(duration.day == doctest::Approx(0.0));
-    REQUIRE(duration.hour == doctest::Approx(1.5));
-    REQUIRE(duration.minute == doctest::Approx(0.0));
-    REQUIRE(duration.second == doctest::Approx(0.0));
-    REQUIRE(duration.timestep == doctest::Approx(0.0));
-
-    // get Calendar timestep and modify it
-    duration = xios_handler.getCalendarTimestep();
-    duration.year = 0.5;
-    // set Calendar timestep
-    xios_handler.setCalendarTimestep(duration);
-    // verify timestep has been successfully modified
-    duration = xios_handler.getCalendarTimestep();
-    REQUIRE(duration.year == doctest::Approx(0.5));
     REQUIRE(duration.month == doctest::Approx(0.0));
     REQUIRE(duration.day == doctest::Approx(0.0));
     REQUIRE(duration.hour == doctest::Approx(1.5));

@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <simulation>
   <context id="nextsim">
-    <calendar type="Gregorian" timestep="1.5 h"/>
+    <!-- TODO: Drop calendar type here -->
+    <calendar type="Gregorian"/>
   </context>
   <context id="xios">
     <variable_definition>
