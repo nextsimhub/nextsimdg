@@ -1,9 +1,5 @@
 <?xml version="1.0"?>
 <simulation>
-  <context id="nextsim">
-    <!-- TODO: Drop calendar type here -->
-    <calendar type="Gregorian"/>
-  </context>
   <context id="xios">
     <variable_definition>
       <variable_group id="parameters">

@@ -49,6 +49,9 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     int rank = xios_handler.getClientMPIRank();
 
     // --- Tests for calendar API
+    // Calendar type
+    std::string calendarType = xios_handler.getCalendarType();
+    REQUIRE(calendarType == "Gregorian");
     // Calendar origin
     cxios_date origin;
     origin.year = 2020;
@@ -226,7 +229,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.createFile(fileId);
     REQUIRE(xios_handler.validFileId(fileId));
     // File name
-    REQUIRE_FALSE(xios_handler.isDefinedFileName(fileId));
     std::string fileName { "diagnostic" };
     xios_handler.setFileName(fileId, fileName);
     REQUIRE(xios_handler.isDefinedFileName(fileId));

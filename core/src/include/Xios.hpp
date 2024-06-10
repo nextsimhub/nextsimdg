@@ -36,7 +36,7 @@ public:
 
     /* Configuration */
     void configure() override;
-    void configureServer();
+    void configureServer(std::string calendarType = "Gregorian");
 
     /* MPI decomposition */
     int getClientMPISize();
@@ -48,14 +48,16 @@ public:
     void printCXiosDuration(cxios_duration duration);
 
     /* Calendar */
+    void setCalendarType(std::string type);
+    void setCalendarOrigin(cxios_date origin);
+    void setCalendarStart(cxios_date start);
+    void setCalendarTimestep(cxios_duration timestep);
+    std::string getCalendarType();
     cxios_date getCalendarOrigin();
     cxios_date getCalendarStart();
     cxios_duration getCalendarTimestep();
     int getCalendarStep();
     std::string getCurrentDate(bool isoFormat = true);
-    void setCalendarOrigin(cxios_date origin);
-    void setCalendarStart(cxios_date start);
-    void setCalendarTimestep(cxios_duration timestep);
     void updateCalendar(int stepNumber);
 
     /* Axis */
