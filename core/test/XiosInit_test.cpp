@@ -268,7 +268,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         // update the current timestep
         xios_handler.updateCalendar(ts);
         // send data to XIOS to be written to disk
-        xios_handler.write(fieldId, field_A, (int)ni, (int)nj, (int)axis_size);
+        xios_handler.write(fieldId, field_A, ni, nj, axis_size);
         // verify timestep
         step = xios_handler.getCalendarStep();
         REQUIRE(step == ts);

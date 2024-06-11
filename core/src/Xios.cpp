@@ -1203,9 +1203,9 @@ void Xios::fileAddField(std::string fileId, std::string fieldId)
  * @param size of 1st dimension
  * @param size of 2nd dimension
  */
-void Xios::write(const std::string fieldId, double* data, const int ni, const int nj)
+void Xios::write(const std::string fieldId, double* data, const size_t ni, const size_t nj)
 {
-    cxios_write_data_k82(fieldId.c_str(), fieldId.length(), data, ni, nj, -1);
+    cxios_write_data_k82(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, -1);
 }
 
 /*!
@@ -1217,9 +1217,10 @@ void Xios::write(const std::string fieldId, double* data, const int ni, const in
  * @param size of 2nd dimension
  * @param size of 3rd dimension
  */
-void Xios::write(const std::string fieldId, double* data, const int ni, const int nj, const int nk)
+void Xios::write(
+    const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk)
 {
-    cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, ni, nj, nk, -1);
+    cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, -1);
 }
 }
 

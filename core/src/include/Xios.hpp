@@ -134,8 +134,9 @@ public:
     void fileAddField(std::string fileId, std::string fieldId);
 
     /* I/O */
-    void write(const std::string fieldId, double* data, const int ni, const int nj);
-    void write(const std::string fieldId, double* data, const int ni, const int nj, const int nk);
+    void write(const std::string fieldId, double* data, const size_t ni, const size_t nj);
+    void write(
+        const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk);
 
     enum {
         ENABLED_KEY,
