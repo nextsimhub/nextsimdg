@@ -169,12 +169,12 @@ void cxios_xml_tree_add_fieldtofile(
     xios::CFile* file, xios::CField** field, const char* _id, int _id_len);
 
 // writing methods
-void cxios_write_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_size1,
-    int data_size2, int tileid);
-void cxios_write_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_size1,
-    int data_size2, int data_size3, int tileid);
-void cxios_write_data_k84(const char* fieldid, int fieldid_size, double* data_k8, int data_size1,
-    int data_size2, int data_size3, int data_size4, int tileid);
+void cxios_write_data_k82(const char* fieldid, int fieldid_size, const double* data_k8,
+    int data_size1, int data_size2, int tileid);
+void cxios_write_data_k83(const char* fieldid, int fieldid_size, const double* data_k8,
+    int data_size1, int data_size2, int data_size3, int tileid);
+void cxios_write_data_k84(const char* fieldid, int fieldid_size, const double* data_k8,
+    int data_size1, int data_size2, int data_size3, int date_size4, int tileid);
 };
 
 #endif
