@@ -355,7 +355,7 @@ void ParaGridIO::writeDiagnosticTime(
     if (isNew) {
         // Open a new file and emplace it in the map of open files.
 #ifdef USE_MPI
-        openFiles.try_emplace(filePath, filePath, netCDF::NcFile::read, meta.mpiComm);
+        openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace, meta.mpiComm);
 #else
         openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace);
 #endif
@@ -388,7 +388,7 @@ void ParaGridIO::writeDiagnosticTime(
     for (auto entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.local_length;
+                                               : dimSz = entry.second.global_length;
         ncFromMAMap[dim] = (isNew) ? dataGroup.addDim(entry.second.name, dimSz)
                                    : dataGroup.getDim(entry.second.name);
     }
@@ -396,43 +396,49 @@ void ParaGridIO::writeDiagnosticTime(
     // Also create the sets of dimensions to be connected to the data fields
     std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
     // Create the index and size arrays
-    // The index arrays always start from zero, except in the first/time axis
-    std::map<ModelArray::Type, std::vector<size_t>> indexArrays;
-    std::map<ModelArray::Type, std::vector<size_t>> extentArrays;
+    std::map<ModelArray::Type, std::vector<size_t>> startMap;
+    std::map<ModelArray::Type, std::vector<size_t>> countMap;
     for (auto entry : ModelArray::typeDimensions) {
         ModelArray::Type type = entry.first;
         std::vector<netCDF::NcDim> ncDims;
-        std::vector<size_t> indexArray;
-        std::vector<size_t> extentArray;
+        std::vector<size_t> start;
+        std::vector<size_t> count;
+
+        // Everything that has components needs that dimension, too
+        if (ModelArray::hasDoF(type)){
+          if (type == ModelArray::Type::VERTEX && !isNew)
+            continue;
+          auto ncomps = ModelArray::nComponents(type);
+          auto dim = ModelArray::componentMap.at(type);
+          ncDims.push_back(ncFromMAMap.at(dim));
+          start.push_back(0);
+          count.push_back(ncomps);
+        }
+        for (auto dt : entry.second){
+          auto dim = ModelArray::definedDimensions.at(dt);
+          ncDims.push_back(ncFromMAMap.at(dt));
+          start.push_back(dim.start);
+          count.push_back(dim.local_length);
+        }
+
+        std::reverse(ncDims.begin(), ncDims.end());
+        std::reverse(start.begin(), start.end());
+        std::reverse(count.begin(), count.end());
 
         // Deal with VERTEX in each case
         // Add the time dimension for all types that are not VERTEX
         if (type != ModelArray::Type::VERTEX) {
             ncDims.push_back(timeDim);
-            indexArray.push_back(nt);
-            extentArray.push_back(1UL);
+            start.push_back(nt);
+            count.push_back(1UL);
         } else if (!isNew) {
             // For VERTEX in an existing file, there is nothing more to be done
             continue;
         }
-        for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
-            ModelArray::Dimension& maDim = *iter;
-            ncDims.push_back(ncFromMAMap.at(maDim));
-            indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(maDim).local_length);
-        }
+
         dimMap[type] = ncDims;
-        indexArrays[type] = indexArray;
-        extentArrays[type] = extentArray;
-    }
-    // Everything that has components needs that dimension, too
-    for (auto entry : dimCompMap) {
-        // Skip VERTEX fields on existing files
-        if (entry.second == ModelArray::Type::VERTEX && !isNew)
-            continue;
-        dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
-        indexArrays.at(entry.second).push_back(0);
-        extentArrays.at(entry.second).push_back(ModelArray::nComponents(entry.second));
+        startMap[type] = start;
+        countMap[type] = count;
     }
 
     // Create a special timeless set of dimensions for the landmask
@@ -456,6 +462,9 @@ void ParaGridIO::writeDiagnosticTime(
     netCDF::NcVar timeVar((isNew) ? dataGroup.addVar(timeName, netCDF::ncDouble, timeDimVec)
                                   : dataGroup.getVar(timeName));
     double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
+#ifdef USE_MPI
+    netCDF::setVariableCollective(timeVar, dataGroup);
+#endif
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
 
     // Write the data
@@ -468,6 +477,9 @@ void ParaGridIO::writeDiagnosticTime(
             // Land mask in a new file (since it was skipped above in existing files)
             netCDF::NcVar var(dataGroup.addVar(maskName, netCDF::ncDouble, maskDims));
             // No missing data
+#ifdef USE_MPI
+            netCDF::setVariableCollective(var, dataGroup);
+#endif
             var.putVar(maskIndexes, maskExtents, entry.second.getData());
 
         } else {
@@ -477,8 +489,10 @@ void ParaGridIO::writeDiagnosticTime(
                                       : dataGroup.getVar(entry.first));
             if (isNew)
                 var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
-
-            var.putVar(indexArrays.at(type), extentArrays.at(type), entry.second.getData());
+#ifdef USE_MPI
+            netCDF::setVariableCollective(var, dataGroup);
+#endif
+            var.putVar(startMap.at(type), countMap.at(type), entry.second.getData());
         }
     }
 }

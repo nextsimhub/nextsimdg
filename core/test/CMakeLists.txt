@@ -47,22 +47,31 @@ target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 if(ENABLE_MPI)
-  add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
-  target_compile_definitions(testRectGrid_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
-  target_include_directories(testRectGrid_MPI3 PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
-  target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
-
 # Generate partition file needed for MPI test from its dump
   add_custom_command(OUTPUT partition_metadata_3.nc
       COMMAND ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.nc.dump
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.nc.dump
   )
-  add_custom_target(generate_partition_file ALL DEPENDS partition_metadata_3.nc)
+  add_custom_command(OUTPUT partition_metadata_2.nc
+      COMMAND ncgen -b -o partition_metadata_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.nc.dump
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.nc.dump
+  )
+  add_custom_target(generate_partition_files ALL DEPENDS partition_metadata_3.nc partition_metadata_2.nc)
+
+  add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
+  target_compile_definitions(testRectGrid_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+  target_include_directories(testRectGrid_MPI3 PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
+  target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
 
   add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
-  target_compile_definitions(testParaGrid_MPI2 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+  target_compile_definitions(testParaGrid_MPI2 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\" TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\")
   target_include_directories(testParaGrid_MPI2 PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+  add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
+  target_compile_definitions(testConfigOutput_MPI2 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+  target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
 
   if(ENABLE_XIOS)
     FILE(CREATE_LINK "${CMAKE_SOURCE_DIR}/core/test/iodef.xml" "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml" SYMBOLIC)
@@ -83,11 +92,17 @@ else()
   target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
 
   add_executable(testParaGrid "ParaGrid_test.cpp")
-  target_compile_definitions(testParaGrid PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+  target_compile_definitions(testParaGrid PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\" TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\")
   target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
+
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/old_names.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
+  add_executable(testConfigOutput "ConfigOutput_test.cpp")
+  target_compile_definitions(testConfigOutput PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+  target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
 endif()
 
 add_executable(testModelComponent "ModelComponent_test.cpp")
@@ -102,14 +117,6 @@ target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
 add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
 target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule")
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
-
-if(ENABLE_MPI)
-  message(WARNING "testConfigOutput has been temporarily disabled when running with MPI enabled")
-else()
-  add_executable(testConfigOutput "ConfigOutput_test.cpp")
-  target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
-  target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
-endif()
 
 add_executable(testMonthlyCubicBSpline
     "MonthlyCubicBSpline_test.cpp"
