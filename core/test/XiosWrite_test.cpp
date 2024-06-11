@@ -12,6 +12,9 @@
 #undef INFO
 
 #include "include/Configurator.hpp"
+// #include "include/ConfiguredModule.hpp"
+#include "include/ParametricGrid.hpp"
+#include "include/StructuredModule.hpp"
 #include "include/Xios.hpp"
 
 #include <iostream>
@@ -102,37 +105,35 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     xios_handler.close_context_definition();
 
-    // --- Tests for file API
-    // create some fake data to test writing methods
-    double* field_2D = new double[n1 * n2];
-    double* field_3D = new double[n1 * n2 * n3];
-    double* field_4D = new double[n1 * n2 * n3 * n4];
-    for (size_t idx = 0; idx < n1 * n2; idx++) {
-        field_2D[idx] = 1.0 * idx;
-    }
-    for (size_t idx = 0; idx < n1 * n2 * n3; idx++) {
-        field_3D[idx] = 1.0 * idx;
-    }
-    for (size_t idx = 0; idx < n1 * n2 * n3 * n4; idx++) {
-        field_4D[idx] = 1.0 * idx;
+    // --- Tests for writing to file
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ModelArray::setDimension(ModelArray::Dimension::X, ni);
+    ModelArray::setDimension(ModelArray::Dimension::Y, nj);
+    ModelArray::setDimension(ModelArray::Dimension::Z, axis_size);
+    // Create some fake data to test writing methods
+    HField field_A(ModelArray::Type::Z);
+    field_A.resize();
+    for (size_t k = 0; k < axis_size; ++k) {
+        for (size_t j = 0; j < nj; ++j) {
+            for (size_t i = 0; i < ni; ++i) {
+                field_A(i, j, k) = 1.0 * (i + ni * (j + nj * k));
+            }
+        }
     }
     // Verify calendar step is starting from zero
-    REQUIRE(xios_handler.getCalendarStep() == 0);
-    // simulate 4 iterations (timesteps)
+    int step = xios_handler.getCalendarStep();
+    REQUIRE(step == 0);
+    // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
-        // update the current timestep
+        // Update the current timestep
         xios_handler.updateCalendar(ts);
-        // send data to XIOS to be written to disk
-        xios_handler.write("field_2D", field_2D, n1, n2);
-        xios_handler.write("field_3D", field_3D, n1, n2, n3);
-        xios_handler.write("field_4D", field_4D, n1, n2, n3, n4);
+        // Send data to XIOS to be written to disk
+        xios_handler.write(fieldId, field_A);
         // Verify timestep
-        REQUIRE(xios_handler.getCalendarStep() == ts);
+        step = xios_handler.getCalendarStep();
+        REQUIRE(step == ts);
     }
-    // clean up
-    delete[] field_2D;
-    delete[] field_3D;
-    delete[] field_4D;
 
     xios_handler.context_finalize();
 }

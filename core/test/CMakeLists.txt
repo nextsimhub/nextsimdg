@@ -112,7 +112,7 @@ if(ENABLE_MPI)
 else()
   add_executable(testParaGrid "ParaGrid_test.cpp")
   target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
-  target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
+  target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR} "${modulesroot}/structuremodule")
   target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/old_names.nc"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
