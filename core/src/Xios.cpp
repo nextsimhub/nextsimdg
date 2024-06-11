@@ -343,9 +343,9 @@ void Xios::createAxis(std::string axisId)
  * @param the axis ID
  * @param the size to set
  */
-void Xios::setAxisSize(std::string axisId, int size)
+void Xios::setAxisSize(std::string axisId, size_t size)
 {
-    cxios_set_axis_n_glo(getAxis(axisId), size);
+    cxios_set_axis_n_glo(getAxis(axisId), (int)size);
 }
 
 /*!
@@ -366,11 +366,11 @@ void Xios::setAxisValues(std::string axisId, std::vector<double> values)
  * @param the axis ID
  * @return size of the corresponding axis
  */
-int Xios::getAxisSize(std::string axisId)
+size_t Xios::getAxisSize(std::string axisId)
 {
     int size;
     cxios_get_axis_n_glo(getAxis(axisId), &size);
-    return size;
+    return (size_t)size;
 }
 
 /*!

@@ -62,9 +62,9 @@ public:
 
     /* Axis */
     void createAxis(std::string axisId);
-    void setAxisSize(std::string axisId, int size);
+    void setAxisSize(std::string axisId, size_t size);
     void setAxisValues(std::string axisId, std::vector<double> values);
-    int getAxisSize(std::string axisId);
+    size_t getAxisSize(std::string axisId);
     std::vector<double> getAxisValues(std::string axisId);
     bool isDefinedAxisSize(std::string axisId);
     bool areDefinedAxisValues(std::string axisId);
