@@ -1,5 +1,5 @@
 /*!
- * @file test1-sasipmesh.cpp
+ * @file Advection_test.cpp
  * @date 10 Jul 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
@@ -23,7 +23,7 @@
 bool WRITE_VTK = false; //!< set to true for vtk output
 int WRITE_EVERY = 5;
 
-double TOL = 1.e-10; //!< tolerance for checking test results
+double TOL = 1.e-4; //!< tolerance for checking test results
 
 /*!
  *  Description of the test case
@@ -261,7 +261,7 @@ template <int DG> void run(double distort, const std::array<std::array<double, 4
         Test<DG> test(smesh);
         double error = test.run();
         std::cout << error << "\t" << exact[DG2DEG(DG)][it];
-        if (fabs(error - exact[DG2DEG(DG)][it]) / exact[DG2DEG(DG)][it] < 1.e-4)
+        if (fabs(error - exact[DG2DEG(DG)][it]) / exact[DG2DEG(DG)][it] < TOL)
             std::cout << "\ttest passed" << std::endl;
         else
             std::cout << "\ttest failed" << std::endl;
