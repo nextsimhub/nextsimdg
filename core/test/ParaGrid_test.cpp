@@ -209,24 +209,12 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
 #ifdef USE_MPI
     metadata.setMpiMetadata(test_comm);
-    if (metadata.mpiMyRank == 0) {
-        metadata.setMpiMetadata(test_comm);
-        metadata.globalExtentX = nx;
-        metadata.globalExtentY = ny;
-        metadata.localCornerX = start_x;
-        metadata.localCornerY = 0;
-        metadata.localExtentX = local_nx;
-        metadata.localExtentY = ny;
-    }
-    if (metadata.mpiMyRank == 1) {
-        metadata.setMpiMetadata(test_comm);
-        metadata.globalExtentX = local_nx;
-        metadata.globalExtentY = ny;
-        metadata.localCornerX = start_x;
-        metadata.localCornerY = 0;
-        metadata.localExtentX = local_nx;
-        metadata.localExtentY = ny;
-    }
+    metadata.globalExtentX = nx;
+    metadata.globalExtentY = ny;
+    metadata.localCornerX = start_x;
+    metadata.localCornerY = 0;
+    metadata.localExtentX = local_nx;
+    metadata.localExtentY = ny;
 #endif
     grid.dumpModelState(state, metadata, filename, true);
 
@@ -417,24 +405,12 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
 #ifdef USE_MPI
     metadata.setMpiMetadata(test_comm);
-    if (metadata.mpiMyRank == 0) {
-        metadata.setMpiMetadata(test_comm);
-        metadata.globalExtentX = nx;
-        metadata.globalExtentY = ny;
-        metadata.localCornerX = start_x;
-        metadata.localCornerY = 0;
-        metadata.localExtentX = local_nx;
-        metadata.localExtentY = ny;
-    }
-    if (metadata.mpiMyRank == 1) {
-        metadata.setMpiMetadata(test_comm);
-        metadata.globalExtentX = local_nx;
-        metadata.globalExtentY = ny;
-        metadata.localCornerX = start_x;
-        metadata.localCornerY = 0;
-        metadata.localExtentX = local_nx;
-        metadata.localExtentY = ny;
-    }
+    metadata.globalExtentX = nx;
+    metadata.globalExtentY = ny;
+    metadata.localCornerX = start_x;
+    metadata.localCornerY = 0;
+    metadata.localExtentX = local_nx;
+    metadata.localExtentY = ny;
 #endif
 
     for (int t = 1; t < 5; ++t) {
@@ -536,7 +512,6 @@ TEST_CASE("Test array ordering")
     std::set<std::string> fields = { fieldName };
     TimePoint time;
 
-    printf("path = %s\n", inputFilename.c_str());
     ModelState state = ParaGridIO::readForcingTimeStatic(fields, time, inputFilename);
     REQUIRE(state.data.count(fieldName) > 0);
     index2d = state.data.at(fieldName);
@@ -567,15 +542,19 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 
 }
 
+#ifdef USE_MPI
+MPI_TEST_CASE("Check if a file with the old dimension names can be read", 2)
+#else
 TEST_CASE("Check if a file with the old dimension names can be read")
+#endif
 {
-    std::string inputFilename = "old_names.nc";
+    std::string inputFilename = std::string(TEST_FILE_SOURCE) + "/old_names.nc";
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
 
-    size_t nx = 1;
+    size_t nx = 2;
     size_t ny = 1;
     NZLevels::set(1);
 
@@ -584,23 +563,51 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     gridIn.setIO(readIO);
 
     // Reset the array dimensions to make sure that the read function gets them correct
-    ModelArray::setDimension(ModelArray::Dimension::X, 2);
-    ModelArray::setDimension(ModelArray::Dimension::Y, 2);
-    ModelArray::setDimension(ModelArray::Dimension::Z, 2);
-    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 3);
-    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 3);
-    ModelArray::setDimension(ModelArray::Dimension::XCG, 2);
-    ModelArray::setDimension(ModelArray::Dimension::YCG, 2);
+#ifdef USE_MPI
+    ModelArray::setDimension(ModelArray::Dimension::X, 1, 1, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Y, 1, 1, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Z, 1, 1, 0);
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 1, 1, 0);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 1, 1, 0);
+    ModelArray::setDimension(ModelArray::Dimension::XCG, 1, 1, 0);
+    ModelArray::setDimension(ModelArray::Dimension::YCG, 1, 1, 0);
+#else
+    ModelArray::setDimension(ModelArray::Dimension::X, 1);
+    ModelArray::setDimension(ModelArray::Dimension::Y, 1);
+    ModelArray::setDimension(ModelArray::Dimension::Z, 1);
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 1);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 1);
+    ModelArray::setDimension(ModelArray::Dimension::XCG, 1);
+    ModelArray::setDimension(ModelArray::Dimension::YCG, 1);
+#endif
     // In the full model numbers of DG components are set at compile time, so they are not reset
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
+#ifdef USE_MPI
+    ModelMetadata metadata;
+    metadata.setMpiMetadata(test_comm);
+    if (metadata.mpiMyRank == 0) {
+        metadata.localCornerX = 0;
+    }
+    if (metadata.mpiMyRank == 1) {
+        metadata.localCornerX = 1;
+    }
+    metadata.globalExtentX = nx;
+    metadata.globalExtentY = ny;
+    metadata.localCornerY = 0;
+    metadata.localExtentX = 1;
+    metadata.localExtentY = ny;
+    metadata.setTime(TimePoint(date_string));
+    ModelState ms = gridIn.getModelState(inputFilename, metadata);
+#else
     ModelState ms = gridIn.getModelState(inputFilename);
+#endif
 
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
+    auto local_nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).local_length;
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == local_nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
-
 }
 
 TEST_SUITE_END();
