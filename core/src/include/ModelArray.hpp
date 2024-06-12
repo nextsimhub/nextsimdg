@@ -287,7 +287,8 @@ public:
     {
         if (size() != trueSize()) {
             if (hasDoF(type)) {
-                m_data.resize(m_sz.at(type), definedDimensions.at(componentMap.at(type)).local_length);
+                m_data.resize(
+                    m_sz.at(type), definedDimensions.at(componentMap.at(type)).local_length);
             } else {
                 m_data.resize(m_sz.at(type), Eigen::NoChange);
             }
