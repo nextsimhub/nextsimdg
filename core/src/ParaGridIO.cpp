@@ -129,30 +129,25 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 ModelArray::setDimension(dimType, NZLevels::get());
 #endif
             } else {
-              // this needs MPIifying
 #ifdef USE_MPI
                 auto dimName = dim.getName();
                 size_t local_length = 0;
                 size_t start = 0;
                 if (dimType == ModelArray::Dimension::X) {
-                  local_length = metadata.localExtentX;
-                  start = metadata.localCornerX;
-                }
-                else if (dimType == ModelArray::Dimension::Y) {
-                  local_length = metadata.localExtentY;
-                  start = metadata.localCornerY;
-                }
-                else if (dimType == ModelArray::Dimension::XVERTEX) {
-                  local_length = metadata.localExtentX + 1;
-                  start = metadata.localCornerX;
-                }
-                else if (dimType == ModelArray::Dimension::YVERTEX) {
-                  local_length = metadata.localExtentY + 1;
-                  start = metadata.localCornerY;
-                }
-                else{
-                  local_length = dim.getSize();
-                  start = 0;
+                    local_length = metadata.localExtentX;
+                    start = metadata.localCornerX;
+                } else if (dimType == ModelArray::Dimension::Y) {
+                    local_length = metadata.localExtentY;
+                    start = metadata.localCornerY;
+                } else if (dimType == ModelArray::Dimension::XVERTEX) {
+                    local_length = metadata.localExtentX + 1;
+                    start = metadata.localCornerX;
+                } else if (dimType == ModelArray::Dimension::YVERTEX) {
+                    local_length = metadata.localExtentY + 1;
+                    start = metadata.localCornerY;
+                } else {
+                    local_length = dim.getSize();
+                    start = 0;
                 }
                 ModelArray::setDimension(dimType, dim.getSize(), local_length, start);
 #else
@@ -184,16 +179,15 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 
             std::vector<size_t> start;
             std::vector<size_t> count;
-            if (ModelArray::hasDoF(type)){
-              auto ncomps = data.nComponents();
-              start.push_back(0);
-              count.push_back(ncomps);
+            if (ModelArray::hasDoF(type)) {
+                auto ncomps = data.nComponents();
+                start.push_back(0);
+                count.push_back(ncomps);
             }
-            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)){
-              auto dim = ModelArray::definedDimensions.at(dt);
-              start.push_back(dim.start);
-              count.push_back(dim.local_length);
-
+            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)) {
+                auto dim = ModelArray::definedDimensions.at(dt);
+                start.push_back(dim.start);
+                count.push_back(dim.local_length);
             }
             // dims are looped in [dg], x, y, [z] order so start and count
             // order must be reveresed to match order netcdf expects
@@ -321,16 +315,15 @@ void ParaGridIO::dumpModelState(
             ModelArray::Type type = entry.second.getType();
             std::vector<size_t> start;
             std::vector<size_t> count;
-            if (ModelArray::hasDoF(type)){
-              auto ncomps = entry.second.nComponents();
-              start.push_back(0);
-              count.push_back(ncomps);
+            if (ModelArray::hasDoF(type)) {
+                auto ncomps = entry.second.nComponents();
+                start.push_back(0);
+                count.push_back(ncomps);
             }
-            for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)){
-              auto dim = entry.second.definedDimensions.at(dt);
-              start.push_back(dim.start);
-              count.push_back(dim.local_length);
-
+            for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)) {
+                auto dim = entry.second.definedDimensions.at(dt);
+                start.push_back(dim.start);
+                count.push_back(dim.local_length);
             }
             // dims are looped in [dg], x, y, [z] order so start and count
             // order must be reveresed to match order netcdf expects
@@ -405,20 +398,20 @@ void ParaGridIO::writeDiagnosticTime(
         std::vector<size_t> count;
 
         // Everything that has components needs that dimension, too
-        if (ModelArray::hasDoF(type)){
-          if (type == ModelArray::Type::VERTEX && !isNew)
-            continue;
-          auto ncomps = ModelArray::nComponents(type);
-          auto dim = ModelArray::componentMap.at(type);
-          ncDims.push_back(ncFromMAMap.at(dim));
-          start.push_back(0);
-          count.push_back(ncomps);
+        if (ModelArray::hasDoF(type)) {
+            if (type == ModelArray::Type::VERTEX && !isNew)
+                continue;
+            auto ncomps = ModelArray::nComponents(type);
+            auto dim = ModelArray::componentMap.at(type);
+            ncDims.push_back(ncFromMAMap.at(dim));
+            start.push_back(0);
+            count.push_back(ncomps);
         }
-        for (auto dt : entry.second){
-          auto dim = ModelArray::definedDimensions.at(dt);
-          ncDims.push_back(ncFromMAMap.at(dt));
-          start.push_back(dim.start);
-          count.push_back(dim.local_length);
+        for (auto dt : entry.second) {
+            auto dim = ModelArray::definedDimensions.at(dt);
+            ncDims.push_back(ncFromMAMap.at(dt));
+            start.push_back(dim.start);
+            count.push_back(dim.local_length);
         }
 
         std::reverse(ncDims.begin(), ncDims.end());

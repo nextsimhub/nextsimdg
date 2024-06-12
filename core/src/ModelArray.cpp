@@ -201,7 +201,8 @@ void ModelArray::setNComponents(std::map<Type, size_t> cMap)
 }
 
 #ifdef USE_MPI
-void ModelArray::setDimension(Dimension dim, size_t global_length, size_t local_length, size_t start)
+void ModelArray::setDimension(
+    Dimension dim, size_t global_length, size_t local_length, size_t start)
 #else
 void ModelArray::setDimension(Dimension dim, size_t global_length)
 #endif
