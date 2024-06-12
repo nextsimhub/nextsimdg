@@ -120,11 +120,6 @@ public:
 
             stressDivergence(); // Compute divergence of stress tensor
 
-            dStressX.zero();
-            dStressY.zero();
-
-            stressDivergence();
-
             updateMomentum(tst);
 
             applyBoundaries();
@@ -175,7 +170,7 @@ protected:
         for (size_t i = 0; i < u.rows(); ++i) {
             // FIXME dte_over_mass should include snow in the total mass
             const double dteOverMass = deltaT / (params.rho_ice * cgH(i));
-            // Memoized initial velocity values
+            // Memorized initial velocity values
             const double uIce = u(i);
             const double vIce = v(i);
 
@@ -210,26 +205,6 @@ protected:
             v(i) = alpha * vIce - beta * uIce
                 + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
             v(i) *= rDenom;
-        }
-        dirichletZero(u);
-        dirichletZero(v);
-
-        // Mask the land on the CG grid, using the finite volume landmask
-        static const size_t cgRowLength = CGdegree * smesh->nx + 1;
-#pragma omp parallel for
-        for (size_t eid = 0; eid < smesh->nelements; ++eid) {
-            if (smesh->landmask[eid] == 0) {
-                const size_t ex = eid % smesh->nx;
-                const size_t ey = eid / smesh->nx;
-                // Loop over CG elements for this finite volume grid cell
-                for (size_t jy = 0; jy <= CGdegree; ++jy) {
-                    for (size_t jx = 0; jx <= CGdegree; ++jx) {
-                        const size_t cgi = cgRowLength * (CGdegree * ey + jy) + CGdegree * ex + jx;
-                        u(cgi) = 0.;
-                        v(cgi) = 0.;
-                    }
-                }
-            }
         }
 
         // Calculate the contribution to the average velocity
