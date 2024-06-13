@@ -54,7 +54,7 @@ jobs:
         for component in core physics dynamics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
+            for file in $(find test* -maxdepth 0 -type f)
             do
               echo $file
               ./$file
@@ -91,7 +91,7 @@ jobs:
         for component in core physics dynamics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI\d+$")
+            for file in $(find test* -maxdepth 0 -type f)
             do
               echo $file
               nprocs=$(echo $file | sed -r "s/.*MPI([0-9]+)/\1/")

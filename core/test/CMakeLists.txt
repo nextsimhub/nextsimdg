@@ -16,34 +16,6 @@ set(ModulesRoot "../src/modules")
 execute_process(COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
 include_directories(${COMMON_INCLUDE_DIRS})
-
-add_executable(testIterator "Iterator_test.cpp")
-target_link_libraries(testIterator PRIVATE nextsimlib doctest::doctest)
-
-add_executable(testCommandLineParser "CommandLineParser_test.cpp" "ArgV.cpp")
-target_link_libraries(testCommandLineParser PRIVATE nextsimlib doctest::doctest)
-
-add_executable(testConfigurator "Configurator_test.cpp" "ArgV.cpp")
-target_link_libraries(testConfigurator PRIVATE nextsimlib doctest::doctest)
-
-add_executable(testConfiguredModule "ConfiguredModule_test.cpp" "ArgV.cpp")
-target_link_libraries(testConfiguredModule PRIVATE nextsimlib doctest::doctest)
-
-add_executable(testTimer "Timer_test.cpp")
-target_link_libraries(testTimer PRIVATE nextsimlib doctest::doctest)
-
-add_executable(testScopedTimer "ScopedTimer_test.cpp" "../src/ScopedTimer.cpp")
-target_link_libraries(testScopedTimer PRIVATE nextsimlib doctest::doctest)
-
-add_executable(testTimeClasses "Time_test.cpp")
-target_link_libraries(testTimeClasses PRIVATE nextsimlib doctest::doctest)
-
-set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
-
-add_executable(testModelArray "ModelArray_test.cpp" "../src/ModelArray.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp")
-target_include_directories(testModelArray PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
-target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
-
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 if(ENABLE_MPI)
@@ -57,6 +29,7 @@ if(ENABLE_MPI)
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.nc.dump
   )
   add_custom_target(generate_partition_files ALL DEPENDS partition_metadata_3.nc partition_metadata_2.nc)
+
 
   add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
   target_compile_definitions(testRectGrid_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
@@ -127,6 +100,7 @@ if(ENABLE_MPI)
     target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
   endif()
 else()
+
   add_executable(testRectGrid "RectGrid_test.cpp")
   target_compile_definitions(testRectGrid PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
   target_include_directories(testRectGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
@@ -141,51 +115,64 @@ else()
   target_compile_definitions(testConfigOutput PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
   target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
   target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
-endif()
 
-add_executable(testModelComponent "ModelComponent_test.cpp")
-target_include_directories(testModelComponent PRIVATE ${MODEL_INCLUDE_DIR})
-target_link_libraries(testModelComponent PRIVATE nextsimlib doctest::doctest)
+  add_executable(testIterator "Iterator_test.cpp")
+  target_link_libraries(testIterator PRIVATE nextsimlib doctest::doctest)
 
-add_executable(testModelArrayRef "ModelArrayRef_test.cpp")
-target_include_directories(testModelArrayRef PRIVATE ${MODEL_INCLUDE_DIR})
-target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
+  add_executable(testCommandLineParser "CommandLineParser_test.cpp" "ArgV.cpp")
+  target_link_libraries(testCommandLineParser PRIVATE nextsimlib doctest::doctest)
 
-# PrognosticData (and hopefully that alone) requires code from the physics tree
-add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
-target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule")
-target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
+  add_executable(testConfigurator "Configurator_test.cpp" "ArgV.cpp")
+  target_link_libraries(testConfigurator PRIVATE nextsimlib doctest::doctest)
 
-# PrognosticDataIO, which cannot currently be tested with MPI.
-# TODO: itegrate with the above test.
-if(ENABLE_MPI)
-  message(WARNING "testPrognosticDataIO has been temporarily disabled when running with MPI enabled")
-else()
+  add_executable(testConfiguredModule "ConfiguredModule_test.cpp" "ArgV.cpp")
+  target_link_libraries(testConfiguredModule PRIVATE nextsimlib doctest::doctest)
+
+  add_executable(testTimer "Timer_test.cpp")
+  target_link_libraries(testTimer PRIVATE nextsimlib doctest::doctest)
+
+  add_executable(testScopedTimer "ScopedTimer_test.cpp" "../src/ScopedTimer.cpp")
+  target_link_libraries(testScopedTimer PRIVATE nextsimlib doctest::doctest)
+
+  add_executable(testTimeClasses "Time_test.cpp")
+  target_link_libraries(testTimeClasses PRIVATE nextsimlib doctest::doctest)
+
+  add_executable(testModelComponent "ModelComponent_test.cpp")
+  target_include_directories(testModelComponent PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testModelComponent PRIVATE nextsimlib doctest::doctest)
+
+  add_executable(testModelArrayRef "ModelArrayRef_test.cpp")
+  target_include_directories(testModelArrayRef PRIVATE ${MODEL_INCLUDE_DIR})
+  target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
+
+  # PrognosticData (and hopefully that alone) requires code from the physics tree
+  add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
+  target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule")
+  target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
+
+  # TODO: itegrate with the above test.
   add_executable(testPrognosticDataIO "PrognosticDataIO_test.cpp" "DynamicsModuleForPDtest.cpp")
   target_compile_definitions(testPrognosticDataIO PRIVATE ISDG=${isDG})
   target_include_directories(testPrognosticDataIO PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule" "${ModulesRoot}/StructureModule")
   target_link_libraries(testPrognosticDataIO PRIVATE nextsimlib doctest::doctest)
+
+  add_executable(testMonthlyCubicBSpline
+      "MonthlyCubicBSpline_test.cpp"
+      )
+  target_link_libraries(testMonthlyCubicBSpline LINK_PUBLIC Boost::boost doctest::doctest)
+
+  add_executable(testFileCallbackCloser
+      "FileCallbackCloser_test.cpp"
+      "../../core/src/FileCallbackCloser.cpp"
+      )
+  target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
+
+  set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
+
+  add_executable(testModelArray "ModelArray_test.cpp" "../src/ModelArray.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp")
+  target_include_directories(testModelArray PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
+  target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
+
+  # The help config test needs access to the full binary
+  FILE(CREATE_LINK ${NEXTSIM_BINARY_PATH} ${CMAKE_CURRENT_BINARY_DIR}/nextsim SYMBOLIC)
 endif()
-
-
-if(ENABLE_MPI)
-  message(WARNING "testConfigOutput has been temporarily disabled when running with MPI enabled")
-else()
-  add_executable(testConfigOutput "ConfigOutput_test.cpp")
-  target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
-  target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
-endif()
-
-add_executable(testMonthlyCubicBSpline
-    "MonthlyCubicBSpline_test.cpp"
-    )
-target_link_libraries(testMonthlyCubicBSpline LINK_PUBLIC Boost::boost doctest::doctest)
-
-add_executable(testFileCallbackCloser
-    "FileCallbackCloser_test.cpp"
-    "../../core/src/FileCallbackCloser.cpp"
-    )
-target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
-
-# The help config test needs access to the full binary
-FILE(CREATE_LINK ${NEXTSIM_BINARY_PATH} ${CMAKE_CURRENT_BINARY_DIR}/nextsim SYMBOLIC)
