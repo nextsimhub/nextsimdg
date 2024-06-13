@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
- * @author  Tom Meltzer <tdm39@cam.ac.uk>
- * @date    Fri 23 Feb 13:43:16 GMT 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk
+ * @date    7 June 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -275,6 +275,19 @@ void Xios::setCalendarTimestep(cxios_duration timestep)
 void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
 
 /*!
+ * Get the axis_definition group
+ *
+ * @return a pointer to the XIOS CAxisGroup object
+ */
+xios::CAxisGroup* Xios::getAxisGroup()
+{
+    std::string groupId = { "axis_definition" };
+    xios::CAxisGroup* group = NULL;
+    cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
+    return group;
+}
+
+/*!
  * Get the axis associated with a given ID
  *
  * @param the axis ID
@@ -285,6 +298,40 @@ xios::CAxis* Xios::getAxis(std::string axisId)
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
     return axis;
+}
+
+/*!
+ * Create an axis with some ID
+ *
+ * @param the axis ID
+ */
+void Xios::createAxis(std::string axisId)
+{
+    xios::CAxis* axis = NULL;
+    cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
+}
+
+/*!
+ * Set the size of a given axis (the number of global points)
+ *
+ * @param the axis ID
+ * @param the size to set
+ */
+void Xios::setAxisSize(std::string axisId, int size)
+{
+    cxios_set_axis_n_glo(getAxis(axisId), size);
+}
+
+/*!
+ * Set the values associated with a given axis
+ *
+ * @param the axis ID
+ * @param the values to set
+ */
+void Xios::setAxisValues(std::string axisId, std::vector<double> values)
+{
+    int size = getAxisSize(axisId);
+    cxios_set_axis_value(getAxis(axisId), values.data(), &size);
 }
 
 /*!
@@ -314,6 +361,65 @@ std::vector<double> Xios::getAxisValues(std::string axisId)
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
+}
+
+/*!
+ * Verify whether a size has been defined for a given axis ID
+ *
+ * @param the axis ID
+ * @return `true` if the size has been set, otherwise `false`
+ */
+bool Xios::isDefinedAxisSize(std::string axisId)
+{
+    return cxios_is_defined_axis_n_glo(getAxis(axisId));
+}
+
+/*!
+ * Verify whether values have been defined for a given axis ID
+ *
+ * @param the axis ID
+ * @return `true` if the values have been set, otherwise `false`
+ */
+bool Xios::areDefinedAxisValues(std::string axisId)
+{
+    return cxios_is_defined_axis_value(getAxis(axisId));
+}
+
+/*!
+ * Get the domain_definition group
+ *
+ * @return a pointer to the XIOS CDomainGroup object
+ */
+xios::CDomainGroup* Xios::getDomainGroup()
+{
+    std::string groupId = { "domain_definition" };
+    xios::CDomainGroup* group = NULL;
+    cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
+    return group;
+}
+
+/*!
+ * Get the domain associated with a given ID
+ *
+ * @param the domain ID
+ * @return a pointer to the XIOS CDomain object
+ */
+xios::CDomain* Xios::getDomain(std::string domainId)
+{
+    xios::CDomain* domain = NULL;
+    cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
+    return domain;
+}
+
+/*!
+ * Create a domain with some ID
+ *
+ * @param the domain ID
+ */
+void Xios::createDomain(std::string domainId)
+{
+    xios::CDomain* domain = NULL;
+    cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
 }
 
 /*!
@@ -385,16 +491,36 @@ void Xios::setDomainLatitudeValues(std::string domainId, std::vector<double> val
 }
 
 /*!
- * Get the domain associated with a given ID
+ * Set the type of a given domain
  *
  * @param the domain ID
- * @return a pointer to the XIOS CDomain object
+ * @param domain type to set
  */
-xios::CDomain* Xios::getDomain(std::string domainId)
+void Xios::setDomainType(std::string domainId, std::string domainType)
 {
-    xios::CDomain* domain = NULL;
-    cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
-    return domain;
+    cxios_set_domain_type(getDomain(domainId), domainType.c_str(), domainType.length());
+}
+
+/*!
+ * Set the global longitude size for a given domain
+ *
+ * @param the domain ID
+ * @param global longitude size to set
+ */
+void Xios::setDomainGlobalLongitudeSize(std::string domainId, int size)
+{
+    cxios_set_domain_ni_glo(getDomain(domainId), size);
+}
+
+/*!
+ * Set the global latitude size for a given domain
+ *
+ * @param the domain ID
+ * @param global latitude size to set
+ */
+void Xios::setDomainGlobalLatitudeSize(std::string domainId, int size)
+{
+    cxios_set_domain_nj_glo(getDomain(domainId), size);
 }
 
 /*!
@@ -523,6 +649,216 @@ std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
 }
 
 /*!
+ * Verify whether a type has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the type has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainType(std::string domainId)
+{
+    return cxios_is_defined_domain_type(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a global longitude size has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the global longitude size has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainGlobalLongitudeSize(std::string domainId)
+{
+    return cxios_is_defined_domain_ni_glo(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a global latitude size has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the global latitude size has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainGlobalLatitudeSize(std::string domainId)
+{
+    return cxios_is_defined_domain_nj_glo(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local longitude size has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local longitude size has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainLongitudeSize(std::string domainId)
+{
+    return cxios_is_defined_domain_ni(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local latitude size has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local latitude size has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainLatitudeSize(std::string domainId)
+{
+    return cxios_is_defined_domain_nj(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local starting longitude has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local starting longitude has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainLongitudeStart(std::string domainId)
+{
+    return cxios_is_defined_domain_ibegin(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local starting latitude has been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local starting latitude has been set, otherwise `false`
+ */
+bool Xios::isDefinedDomainLatitudeStart(std::string domainId)
+{
+    return cxios_is_defined_domain_jbegin(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local longitude values have been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local longitude values have been set, otherwise `false`
+ */
+bool Xios::areDefinedDomainLongitudeValues(std::string domainId)
+{
+    return cxios_is_defined_domain_lonvalue_1d(getDomain(domainId));
+}
+
+/*!
+ * Verify whether a local latitude values have been defined for a given domain ID
+ *
+ * @param the domain ID
+ * @return `true` if the local latitude values have been set, otherwise `false`
+ */
+bool Xios::areDefinedDomainLatitudeValues(std::string domainId)
+{
+    return cxios_is_defined_domain_latvalue_1d(getDomain(domainId));
+}
+
+/*!
+ * Get the grid_definition group
+ *
+ * @return a pointer to the XIOS CGridGroup object
+ */
+xios::CGridGroup* Xios::getGridGroup()
+{
+    std::string groupId = { "grid_definition" };
+    xios::CGridGroup* group = NULL;
+    cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
+    return group;
+}
+
+/*!
+ * Get the grid associated with a given ID
+ *
+ * @param the grid ID
+ * @return a pointer to the XIOS CGrid object
+ */
+xios::CGrid* Xios::getGrid(std::string gridId)
+{
+    xios::CGrid* grid = NULL;
+    cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
+    return grid;
+}
+
+/*!
+ * Create a grid with some ID
+ *
+ * @param the grid ID
+ */
+void Xios::createGrid(std::string gridId)
+{
+    xios::CGrid* grid = NULL;
+    cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
+}
+
+/*!
+ * Get the name of a grid with a given ID
+ *
+ * @param the grid ID
+ * @return name of the corresponding grid
+ */
+std::string Xios::getGridName(std::string gridId)
+{
+    char cStr[cStrLen];
+    cxios_get_grid_name(getGrid(gridId), cStr, cStrLen);
+    std::string gridName(cStr, cStrLen);
+    boost::algorithm::trim_right(gridName);
+    return gridName;
+}
+
+/*!
+ * Set the name of a grid with a given ID
+ *
+ * @param the grid ID
+ * @param name to set
+ */
+void Xios::setGridName(std::string gridId, std::string gridName)
+{
+    cxios_set_grid_name(getGrid(gridId), gridName.c_str(), gridName.length());
+}
+
+/*!
+ * Verify whether a name has been defined for a given grid ID
+ *
+ * @param the grid ID
+ * @return `true` if the name has been set, otherwise `false`
+ */
+bool Xios::isDefinedGridName(std::string gridId)
+{
+    return cxios_is_defined_grid_name(getGrid(gridId));
+}
+
+/*!
+ * Associate an axis with a grid
+ *
+ * @param the grid ID
+ * @param the axis ID
+ */
+void Xios::gridAddAxis(std::string gridId, std::string axisId)
+{
+    xios::CAxis* axis = getAxis(axisId);
+    cxios_xml_tree_add_axistogrid(getGrid(gridId), &axis, axisId.c_str(), axisId.length());
+}
+
+/*!
+ * Associate a domain with a grid
+ *
+ * @param the grid ID
+ * @param the domain ID
+ */
+void Xios::gridAddDomain(std::string gridId, std::string domainId)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    cxios_xml_tree_add_domaintogrid(getGrid(gridId), &domain, domainId.c_str(), domainId.length());
+}
+
+/*!
+ * Get the field_definition group
+ *
+ * @return a pointer to the XIOS CFieldGroup object
+ */
+xios::CFieldGroup* Xios::getFieldGroup()
+{
+    std::string groupId = { "field_definition" };
+    xios::CFieldGroup* group = NULL;
+    cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
+    return group;
+}
+
+/*!
  * Get the field associated with a given ID
  *
  * @param the field ID
@@ -533,6 +869,50 @@ xios::CField* Xios::getField(std::string fieldId)
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
     return field;
+}
+
+/*!
+ * Create a field with some ID
+ *
+ * @param the field ID
+ */
+void Xios::createField(std::string fieldId)
+{
+    xios::CField* field = NULL;
+    cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
+}
+
+/*!
+ * Set the name of a field with a given ID
+ *
+ * @param the field ID
+ * @param name to set
+ */
+void Xios::setFieldName(std::string fieldId, std::string fieldName)
+{
+    cxios_set_field_name(getField(fieldId), fieldName.c_str(), fieldName.length());
+}
+
+/*!
+ * Set the operation for a field with a given ID
+ *
+ * @param the field ID
+ * @param operation to set
+ */
+void Xios::setFieldOperation(std::string fieldId, std::string operation)
+{
+    cxios_set_field_operation(getField(fieldId), operation.c_str(), operation.length());
+}
+
+/*!
+ * Set the grid reference for a field with a given ID
+ *
+ * @param the field ID
+ * @param grid reference to set
+ */
+void Xios::setFieldGridRef(std::string fieldId, std::string gridRef)
+{
+    cxios_set_field_grid_ref(getField(fieldId), gridRef.c_str(), gridRef.length());
 }
 
 /*!
@@ -614,31 +994,16 @@ bool Xios::isDefinedFieldGridRef(std::string fieldId)
 }
 
 /*!
- * Get the grid associated with a given ID
+ * Get the file_definition group
  *
- * @param the grid ID
- * @return a pointer to the XIOS CGrid object
+ * @return a pointer to the XIOS CFileGroup object
  */
-xios::CGrid* Xios::getGrid(std::string gridId)
+xios::CFileGroup* Xios::getFileGroup()
 {
-    xios::CGrid* grid = NULL;
-    cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
-    return grid;
-}
-
-/*!
- * Get the name of a grid with a given ID
- *
- * @param the grid ID
- * @return name of the corresponding grid
- */
-std::string Xios::getGridName(std::string gridId)
-{
-    char cStr[cStrLen];
-    cxios_get_grid_name(getGrid(gridId), cStr, cStrLen);
-    std::string gridName(cStr, cStrLen);
-    boost::algorithm::trim_right(gridName);
-    return gridName;
+    std::string groupId = { "file_definition" };
+    xios::CFileGroup* group = NULL;
+    cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
+    return group;
 }
 
 /*!
@@ -652,6 +1017,51 @@ xios::CFile* Xios::getFile(std::string fileId)
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
     return file;
+}
+
+/*!
+ * Create a file with some ID
+ *
+ * @param the file ID
+ */
+void Xios::createFile(std::string fileId)
+{
+    xios::CFile* file = NULL;
+    cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
+}
+
+/*!
+ * Set the name of a file with a given ID
+ *
+ * @param the file ID
+ * @param file name to set
+ */
+void Xios::setFileName(std::string fileId, std::string fileName)
+{
+    cxios_set_file_name(getFile(fileId), fileName.c_str(), fileName.length());
+}
+
+/*!
+ * Set the type of a file with a given ID
+ *
+ * @param the file ID
+ * @param file type to set
+ */
+void Xios::setFileType(std::string fileId, std::string fileType)
+{
+    cxios_set_file_type(getFile(fileId), fileType.c_str(), fileType.length());
+}
+
+/*!
+ * Set the output frequency of a file with a given ID
+ *
+ * @param the file ID
+ * @param output frequency to set
+ */
+void Xios::setFileOutputFreq(std::string fileId, std::string freq)
+{
+    cxios_duration duration = cxios_duration_convert_from_string(freq.c_str(), freq.length());
+    cxios_set_file_output_freq(getFile(fileId), duration);
 }
 
 /*!
@@ -715,6 +1125,28 @@ bool Xios::validFileId(std::string fileId)
 }
 
 /*!
+ * Verify whether a name has been defined for a given file ID
+ *
+ * @param the file ID
+ * @return `true` if the name has been set, otherwise `false`
+ */
+bool Xios::isDefinedFileName(std::string fileId)
+{
+    return cxios_is_defined_file_name(getFile(fileId));
+}
+
+/*!
+ * Verify whether a type has been defined for a given file ID
+ *
+ * @param the file ID
+ * @return `true` if the type has been set, otherwise `false`
+ */
+bool Xios::isDefinedFileType(std::string fileId)
+{
+    return cxios_is_defined_file_type(getFile(fileId));
+}
+
+/*!
  * Verify whether an output frequency has been defined for a given file ID
  *
  * @param the file ID
@@ -723,6 +1155,18 @@ bool Xios::validFileId(std::string fileId)
 bool Xios::isDefinedFileOutputFreq(std::string fileId)
 {
     return cxios_is_defined_file_output_freq(getFile(fileId));
+}
+
+/*!
+ * Associate a field with a file
+ *
+ * @param the file ID
+ * @param the field ID
+ */
+void Xios::fileAddField(std::string fileId, std::string fieldId)
+{
+    xios::CField* field = getField(fieldId);
+    cxios_xml_tree_add_fieldtofile(getFile(fileId), &field, fieldId.c_str(), fieldId.length());
 }
 
 /*!

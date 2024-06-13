@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
- * @author  Tom Meltzer <tdm39@cam.ac.uk>
- * @date    Fri 23 Feb 13:43:16 GMT 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk
+ * @date    7 June 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -53,17 +53,19 @@ public:
     void updateCalendar(int stepNumber);
 
     /* Axis */
-    void createAxis(std::string axisId); // TODO
-    void setAxisSize(std::string axisId, int size); // TODO
-    void setAxisValues(std::string axisId, std::vector<double> values); // TODO
+    void createAxis(std::string axisId);
+    void setAxisSize(std::string axisId, int size);
+    void setAxisValues(std::string axisId, std::vector<double> values);
     int getAxisSize(std::string axisId);
     std::vector<double> getAxisValues(std::string axisId);
+    bool isDefinedAxisSize(std::string axisId);
+    bool areDefinedAxisValues(std::string axisId);
 
     /* Domain */
-    void createDomain(std::string domainId); // TODO
-    void setDomainType(std::string domainId, std::string domainType); // TODO
-    void setDomainGlobalLongitudeSize(std::string domainId, int size); // TODO
-    void setDomainGlobalLatitudeSize(std::string domainId, int size); // TODO
+    void createDomain(std::string domainId);
+    void setDomainType(std::string domainId, std::string domainType);
+    void setDomainGlobalLongitudeSize(std::string domainId, int size);
+    void setDomainGlobalLatitudeSize(std::string domainId, int size);
     void setDomainLongitudeSize(std::string domainId, int size);
     void setDomainLatitudeSize(std::string domainId, int size);
     void setDomainLongitudeStart(std::string domainId, int start);
@@ -79,17 +81,29 @@ public:
     int getDomainLatitudeStart(std::string domainId);
     std::vector<double> getDomainLongitudeValues(std::string domainId);
     std::vector<double> getDomainLatitudeValues(std::string domainId);
+    bool isDefinedDomainType(std::string domainId);
+    bool isDefinedDomainGlobalLongitudeSize(std::string domainId);
+    bool isDefinedDomainGlobalLatitudeSize(std::string domainId);
+    bool isDefinedDomainLongitudeSize(std::string domainId);
+    bool isDefinedDomainLatitudeSize(std::string domainId);
+    bool isDefinedDomainLongitudeStart(std::string domainId);
+    bool isDefinedDomainLatitudeStart(std::string domainId);
+    bool areDefinedDomainLongitudeValues(std::string domainId);
+    bool areDefinedDomainLatitudeValues(std::string domainId);
 
     /* Grid */
-    void createGrid(std::string gridId); // TODO
-    void setGridName(std::string gridId, std::string name); // TODO
+    void createGrid(std::string gridId);
+    void setGridName(std::string gridId, std::string name);
     std::string getGridName(std::string gridId);
+    bool isDefinedGridName(std::string GridId);
+    void gridAddAxis(std::string axisId, std::string domainId);
+    void gridAddDomain(std::string gridId, std::string domainId);
 
     /* Field */
-    void createField(std::string fieldId); // TODO
-    void setFieldName(std::string fieldId, std::string name); // TODO
-    void setFieldOperation(std::string fieldId, std::string operation); // TODO
-    void setFieldGridRef(std::string fieldId, std::string gridRef); // TODO
+    void createField(std::string fieldId);
+    void setFieldName(std::string fieldId, std::string name);
+    void setFieldOperation(std::string fieldId, std::string operation);
+    void setFieldGridRef(std::string fieldId, std::string gridRef);
     std::string getFieldName(std::string fieldId);
     std::string getFieldOperation(std::string fieldId);
     std::string getFieldGridRef(std::string fieldId);
@@ -98,15 +112,18 @@ public:
     bool isDefinedFieldGridRef(std::string fieldId);
 
     /* File */
-    void createFile(std::string fileId); // TODO
-    void setFileName(std::string fileId, std::string fileName); // TODO
-    void setFileType(std::string fileId, std::string fileType); // TODO
-    void setFileOutputFreq(std::string fileId, cxios_duration duration); // TODO
+    void createFile(std::string fileId);
+    void setFileName(std::string fileId, std::string fileName);
+    void setFileType(std::string fileId, std::string fileType);
+    void setFileOutputFreq(std::string fileId, std::string outputFreq);
     std::string getFileName(std::string fileId);
     std::string getFileType(std::string fileId);
     std::string getFileOutputFreq(std::string fileId);
     bool validFileId(std::string fileId);
+    bool isDefinedFileName(std::string fileId);
+    bool isDefinedFileType(std::string fileId);
     bool isDefinedFileOutputFreq(std::string fileId);
+    void fileAddField(std::string fileId, std::string fieldId);
 
     /* I/O */
     void write(const std::string fieldId, double* data, const int ni, const int nj);
@@ -134,6 +151,12 @@ private:
     MPI_Fint nullComm_F;
     std::string clientId;
     std::string contextId;
+
+    xios::CAxisGroup* getAxisGroup();
+    xios::CDomainGroup* getDomainGroup();
+    xios::CFieldGroup* getFieldGroup();
+    xios::CGridGroup* getGridGroup();
+    xios::CFileGroup* getFileGroup();
 
     xios::CAxis* getAxis(std::string axisId);
     xios::CDomain* getDomain(std::string domainId);
