@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    7 June 2024
+ * @date    13 June 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -28,13 +28,19 @@ public:
     Xios();
     ~Xios();
 
+    /* Initialization and finalization */
     void close_context_definition();
     void context_finalize();
     void finalize();
     bool isInitialized();
 
+    /* Configuration */
     void configure() override;
-    void configureServer();
+    void configureServer(std::string calendarType = "Gregorian");
+
+    /* MPI decomposition */
+    int getClientMPISize();
+    int getClientMPIRank();
 
     /* Date and duration */
     std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
@@ -42,14 +48,16 @@ public:
     void printCXiosDuration(cxios_duration duration);
 
     /* Calendar */
+    void setCalendarType(std::string type);
+    void setCalendarOrigin(cxios_date origin);
+    void setCalendarStart(cxios_date start);
+    void setCalendarTimestep(cxios_duration timestep);
+    std::string getCalendarType();
     cxios_date getCalendarOrigin();
     cxios_date getCalendarStart();
     cxios_duration getCalendarTimestep();
     int getCalendarStep();
     std::string getCurrentDate(bool isoFormat = true);
-    void setCalendarOrigin(cxios_date origin);
-    void setCalendarStart(cxios_date start);
-    void setCalendarTimestep(cxios_duration timestep);
     void updateCalendar(int stepNumber);
 
     /* Axis */
@@ -133,10 +141,6 @@ public:
         ENABLED_KEY,
     };
 
-    int rank { 0 };
-    int size { 0 };
-    xios::CCalendarWrapper* clientCalendar;
-
     /* Length of C-strings passed to XIOS */
     int cStrLen { 20 };
 
@@ -146,11 +150,15 @@ protected:
 private:
     bool isEnabled;
 
+    std::string clientId;
+    std::string contextId;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
-    std::string clientId;
-    std::string contextId;
+    int mpi_rank { 0 };
+    int mpi_size { 0 };
+
+    xios::CCalendarWrapper* clientCalendar;
 
     xios::CAxisGroup* getAxisGroup();
     xios::CDomainGroup* getDomainGroup();

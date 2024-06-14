@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    7 June 2024
+ * @date    13 June 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -91,25 +91,37 @@ void Xios::configure()
 }
 
 //! Configure calendar settings
-void Xios::configureServer()
+void Xios::configureServer(std::string calendarType)
 {
-    // initialize XIOS Server process and store MPI communicator
+    // Initialize XIOS Server process and store MPI communicator
     clientId = "client";
     nullComm_F = MPI_Comm_c2f(MPI_COMM_NULL);
     cxios_init_client(clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F);
 
-    // initialize nextsim context
+    // Initialize MPI rank and size
+    clientComm = MPI_Comm_f2c(clientComm_F);
+    MPI_Comm_rank(clientComm, &mpi_rank);
+    MPI_Comm_size(clientComm, &mpi_size);
+
+    // Initialize 'nextsim' context
     contextId = "nextsim";
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
 
-    // initialize nextsim calendar wrapper
+    // Initialize calendar wrapper for 'nextsim' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
-
-    // initialize rank and size
-    clientComm = MPI_Comm_f2c(clientComm_F);
-    MPI_Comm_rank(clientComm, &rank);
-    MPI_Comm_size(clientComm, &size);
+    cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
+    cxios_create_calendar(clientCalendar);
 }
+
+/*!
+ * @return size of the client MPI communicator
+ */
+int Xios::getClientMPISize() { return mpi_size; }
+
+/*!
+ * @return rank of the client MPI communicator
+ */
+int Xios::getClientMPIRank() { return mpi_rank; }
 
 /*!
  * verify xios server is initialized
@@ -177,7 +189,52 @@ void Xios::printCXiosDuration(cxios_duration duration)
 }
 
 /*!
- * get calendar origin
+ * Set calendar origin
+ *
+ * @param origin
+ */
+void Xios::setCalendarOrigin(cxios_date origin)
+{
+    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, origin);
+}
+
+/*!
+ * Set calendar start date
+ *
+ * @param start date
+ */
+void Xios::setCalendarStart(cxios_date start)
+{
+    cxios_set_calendar_wrapper_date_start_date(clientCalendar, start);
+}
+
+/*!
+ * Set calendar timestep
+ *
+ * @param timestep
+ */
+void Xios::setCalendarTimestep(cxios_duration timestep)
+{
+    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
+    cxios_update_calendar_timestep(clientCalendar);
+}
+
+/*!
+ * Get calendar type
+ *
+ * @return calendar type
+ */
+std::string Xios::getCalendarType()
+{
+    char cStr[cStrLen];
+    cxios_get_calendar_wrapper_type(clientCalendar, cStr, cStrLen);
+    std::string calendarType(cStr, cStrLen);
+    boost::algorithm::trim_right(calendarType);
+    return calendarType;
+}
+
+/*!
+ * Get calendar origin
  *
  * @return calendar origin
  */
@@ -189,7 +246,7 @@ cxios_date Xios::getCalendarOrigin()
 }
 
 /*!
- * get calendar start date
+ * Get calendar start date
  *
  * @return calendar start date
  */
@@ -201,7 +258,7 @@ cxios_date Xios::getCalendarStart()
 }
 
 /*!
- * get calendar timestep
+ * Get calendar timestep
  *
  * @return calendar timestep
  */
@@ -213,7 +270,7 @@ cxios_duration Xios::getCalendarTimestep()
 }
 
 /*!
- * get calendar step
+ * Get calendar step
  *
  * @return calendar step
  */
@@ -224,7 +281,7 @@ int Xios::getCalendarStep()
 }
 
 /*!
- * get current calendar date
+ * Get current calendar date
  *
  * @return current calendar date
  */
@@ -237,38 +294,7 @@ std::string Xios::getCurrentDate(bool isoFormat)
 }
 
 /*!
- * set calendar origin
- *
- * @param origin
- */
-void Xios::setCalendarOrigin(cxios_date origin)
-{
-    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, origin);
-}
-
-/*!
- * set calendar start date
- *
- * @param start date
- */
-void Xios::setCalendarStart(cxios_date start)
-{
-    cxios_set_calendar_wrapper_date_start_date(clientCalendar, start);
-}
-
-/*!
- * set calendar timestep
- *
- * @param timestep
- */
-void Xios::setCalendarTimestep(cxios_duration timestep)
-{
-    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
-    cxios_update_calendar_timestep(clientCalendar);
-}
-
-/*!
- * update xios calendar iteration/step number
+ * Update XIOS calendar iteration/step number
  *
  * @param current step number
  */

@@ -1,7 +1,7 @@
 /*!
  * @file    XiosInit_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    7 June 2024
+ * @date    13 June 2024
  * @brief   Tests for XIOS C++ interface
  * @details
  * This test is designed to test all core functionality of the C++ interface
@@ -39,58 +39,57 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Nextsim::Configurator::addStream(std::move(pcstream));
 
-    // initialized instance of xios_handler
+    // Initialize an Xios instance called xios_handler
     Nextsim::Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
 
-    // read calendar start date and verify datetime string
-    cxios_date start = xios_handler.getCalendarStart();
-    std::string datetime = xios_handler.convertXiosDatetimeToString(start);
-    REQUIRE(datetime == "2023-03-17T17:11:00Z");
+    // Extract MPI size and rank
+    int size = xios_handler.getClientMPISize();
+    REQUIRE(size == 2);
+    int rank = xios_handler.getClientMPIRank();
 
-    // read calendar origin date and verify datetime string
-    cxios_date origin = xios_handler.getCalendarOrigin();
-    datetime = xios_handler.convertXiosDatetimeToString(origin);
+    // --- Tests for calendar API
+    // Calendar type
+    std::string calendarType = xios_handler.getCalendarType();
+    REQUIRE(calendarType == "Gregorian");
+    // Calendar origin
+    cxios_date origin;
+    origin.year = 2020;
+    origin.month = 1;
+    origin.day = 23;
+    origin.hour = 0;
+    origin.minute = 8;
+    origin.second = 15;
+    std::string datetime = xios_handler.convertXiosDatetimeToString(origin);
     REQUIRE(datetime == "2020-01-23T00:08:15Z");
-
-    // check all elements of cxios_duration struct
+    xios_handler.setCalendarOrigin(origin);
+    datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarOrigin());
+    REQUIRE(datetime == "2020-01-23T00:08:15Z");
+    // Calendar start
+    cxios_date start;
+    start.year = 2023;
+    start.month = 3;
+    start.day = 17;
+    start.hour = 17;
+    start.minute = 11;
+    start.second = 0;
+    datetime = xios_handler.convertXiosDatetimeToString(start);
+    REQUIRE(datetime == "2023-03-17T17:11:00Z");
+    xios_handler.setCalendarStart(start);
+    datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarStart());
+    REQUIRE(datetime == "2023-03-17T17:11:00Z");
+    // Timestep
     cxios_duration duration;
+    duration.year = 0.0;
+    duration.month = 0.0;
+    duration.day = 0.0;
+    duration.hour = 1.5;
+    duration.minute = 0.0;
+    duration.second = 0.0;
+    duration.timestep = 0.0;
+    xios_handler.setCalendarTimestep(duration);
     duration = xios_handler.getCalendarTimestep();
     REQUIRE(duration.year == doctest::Approx(0.0));
-    REQUIRE(duration.month == doctest::Approx(0.0));
-    REQUIRE(duration.day == doctest::Approx(0.0));
-    REQUIRE(duration.hour == doctest::Approx(1.5));
-    REQUIRE(duration.minute == doctest::Approx(0.0));
-    REQUIRE(duration.second == doctest::Approx(0.0));
-    REQUIRE(duration.timestep == doctest::Approx(0.0));
-
-    // get Calendar start date and modify it
-    start = xios_handler.getCalendarStart();
-    start.minute = 37;
-    // set new start date
-    xios_handler.setCalendarStart(start);
-    // get Calendar modified start date
-    start = xios_handler.getCalendarStart();
-    // convert cxios_date to string for comparison
-    datetime = xios_handler.convertXiosDatetimeToString(start);
-    REQUIRE(datetime == "2023-03-17T17:37:00Z");
-
-    // same steps as calendar start date but for calendar Origin
-    origin = xios_handler.getCalendarOrigin();
-    origin.second = 1;
-    xios_handler.setCalendarOrigin(origin);
-    origin = xios_handler.getCalendarOrigin();
-    datetime = xios_handler.convertXiosDatetimeToString(origin);
-    REQUIRE(datetime == "2020-01-23T00:08:01Z");
-
-    // get Calendar timestep and modify it
-    duration = xios_handler.getCalendarTimestep();
-    duration.year = 0.5;
-    // set Calendar timestep
-    xios_handler.setCalendarTimestep(duration);
-    // verify timestep has been successfully modified
-    duration = xios_handler.getCalendarTimestep();
-    REQUIRE(duration.year == doctest::Approx(0.5));
     REQUIRE(duration.month == doctest::Approx(0.0));
     REQUIRE(duration.day == doctest::Approx(0.0));
     REQUIRE(duration.hour == doctest::Approx(1.5));
@@ -143,7 +142,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getDomainGlobalLatitudeSize(domainId) == nj_glo);
     // Local longitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeSize(domainId));
-    int ni = ni_glo / xios_handler.size;
+    int ni = ni_glo / size;
     xios_handler.setDomainLongitudeSize(domainId, ni);
     REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
@@ -155,7 +154,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
     // Local longitude start
     REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeStart(domainId));
-    int rank = xios_handler.rank;
     int startLon = ni * rank;
     xios_handler.setDomainLongitudeStart(domainId, startLon);
     REQUIRE(xios_handler.isDefinedDomainLongitudeStart(domainId));
@@ -231,7 +229,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.createFile(fileId);
     REQUIRE(xios_handler.validFileId(fileId));
     // File name
-    REQUIRE_FALSE(xios_handler.isDefinedFileName(fileId));
     std::string fileName { "diagnostic" };
     xios_handler.setFileName(fileId, fileName);
     REQUIRE(xios_handler.isDefinedFileName(fileId));
@@ -252,12 +249,9 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     xios_handler.close_context_definition();
 
-    // check the getCurrentDate method with and without ISO formatting
-    xios::CDate current;
-    std::string current_date = xios_handler.getCurrentDate();
-    REQUIRE(current_date == "2023-03-17T17:37:00Z");
-    current_date = xios_handler.getCurrentDate(false);
-    REQUIRE(current_date == "2023-03-17 17:37:00");
+    // --- Tests for getCurrentDate method
+    REQUIRE(xios_handler.getCurrentDate() == "2023-03-17T17:11:00Z");
+    REQUIRE(xios_handler.getCurrentDate(false) == "2023-03-17 17:11:00");
 
     // create some fake data to test writing methods
     double* field_A = new double[ni * nj * axis_size];
