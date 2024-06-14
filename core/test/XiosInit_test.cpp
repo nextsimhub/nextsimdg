@@ -1,7 +1,7 @@
 /*!
  * @file    XiosInit_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    7 June 2024
+ * @date    13 June 2024
  * @brief   Tests for XIOS C++ interface
  * @details
  * This test is designed to test all core functionality of the C++ interface
