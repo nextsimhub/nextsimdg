@@ -15,6 +15,7 @@
 #if USE_XIOS
 
 #include "Configured.hpp"
+#include "Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -42,20 +43,15 @@ public:
     int getClientMPISize();
     int getClientMPIRank();
 
-    /* Date and duration */
-    std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
-    void printCXiosDate(cxios_date date);
-    void printCXiosDuration(cxios_duration duration);
-
-    /* Calendar */
+    /* Calendar, date and duration */
     void setCalendarType(std::string type);
-    void setCalendarOrigin(cxios_date origin);
-    void setCalendarStart(cxios_date start);
-    void setCalendarTimestep(cxios_duration timestep);
+    void setCalendarOrigin(TimePoint origin);
+    void setCalendarStart(TimePoint start);
+    void setCalendarTimestep(Duration timestep);
     std::string getCalendarType();
-    cxios_date getCalendarOrigin();
-    cxios_date getCalendarStart();
-    cxios_duration getCalendarTimestep();
+    TimePoint getCalendarOrigin();
+    TimePoint getCalendarStart();
+    Duration getCalendarTimestep();
     int getCalendarStep();
     std::string getCurrentDate(bool isoFormat = true);
     void updateCalendar(int stepNumber);
@@ -160,6 +156,8 @@ private:
     int mpi_size { 0 };
 
     xios::CCalendarWrapper* clientCalendar;
+    std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
+    cxios_date convertStringToXiosDatetime(const std::string datetime, bool isoFormat = true);
 
     xios::CAxisGroup* getAxisGroup();
     xios::CDomainGroup* getDomainGroup();

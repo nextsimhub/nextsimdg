@@ -8,15 +8,11 @@
  * Implementation of XIOS interface
  *
  * This C++ interface is designed to implement core functionality of XIOS so
- * that it can be used in nextsimdg. It is by no means meant to be
- * feature-complete. Initially the goal is to generate most of the XIOS
- * configuration in the xml definition file `iodef.xml`. As required we will
- * add more features to the C++ interface.
+ * that it can be used in nextSIM-DG.
  *
- * To enable XIOS in nextsim add the following lines to the config file.
+ * To enable XIOS in nextSIM-DG add the following lines to the config file.
  *   [xios]
  *   enable = true
- *
  */
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
@@ -43,7 +39,6 @@ const std::map<int, std::string> Configured<Xios>::keyMap
  * Constructor
  *
  * Configure an XIOS server
- *
  */
 Xios::Xios() { configure(); }
 
@@ -82,7 +77,7 @@ void Xios::finalize()
  */
 void Xios::configure()
 {
-    // check if xios is enabled in the nextsim configuration
+    // Check if XIOS is enabled in the nextSIM-DG configuration
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
     if (isEnabled) {
@@ -103,11 +98,11 @@ void Xios::configureServer(std::string calendarType)
     MPI_Comm_rank(clientComm, &mpi_rank);
     MPI_Comm_size(clientComm, &mpi_size);
 
-    // Initialize 'nextsim' context
-    contextId = "nextsim";
+    // Initialize 'nextSIM-DG' context
+    contextId = "nextSIM-DG";
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
 
-    // Initialize calendar wrapper for 'nextsim' context
+    // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
     cxios_create_calendar(clientCalendar);
@@ -124,9 +119,9 @@ int Xios::getClientMPISize() { return mpi_size; }
 int Xios::getClientMPIRank() { return mpi_rank; }
 
 /*!
- * verify xios server is initialized
+ * Verify XIOS server is initialized
  *
- * @return true when xios server is initialized
+ * @return true when XIOS server is initialized
  */
 bool Xios::isInitialized()
 {
@@ -136,13 +131,14 @@ bool Xios::isInitialized()
 }
 
 /*!
- * return datetime as std::string using ISO 8601 format (default)
- * if `isoFormat` is true format will be  2023-03-03T17:11:00Z
- * if `isoFormat` is false format will be 2023-03-03 17:11:00
+ * Return datetime as std::string using ISO 8601 format (default).
  *
- * @param datetime
+ * - If `isoFormat` is true  format will be 2023-03-03T17:11:00Z
+ * - If `isoFormat` is false format will be 2023-03-03 17:11:00
+ *
+ * @param XIOS datetime representation
  * @param isoFormat as bool
- * @return datetime as a string
+ * @return corresponding string representation
  */
 std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
 {
@@ -158,34 +154,23 @@ std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoForma
 }
 
 /*!
- * helpful utility function to print cxios date.
+ * Return std::string in ISO 8601 format (default) as an XIOS datetime object.
  *
- * @param date
- */
-void Xios::printCXiosDate(cxios_date date)
-{
-    std::cout << " year     " << date.year << std::endl;
-    std::cout << " month    " << date.month << std::endl;
-    std::cout << " day      " << date.day << std::endl;
-    std::cout << " hour     " << date.hour << std::endl;
-    std::cout << " minute   " << date.minute << std::endl;
-    std::cout << " second   " << date.second << std::endl;
-}
-
-/*!
- * helpful utility function to print cxios duration.
+ * - If `isoFormat` is true  format will be 2023-03-03T17:11:00Z
+ * - If `isoFormat` is false format will be 2023-03-03 17:11:00
  *
- * @param duration
+ * @param string representation
+ * @param isoFormat as bool
+ * @return corresponding XIOS datetime representation
  */
-void Xios::printCXiosDuration(cxios_duration duration)
+cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, bool isoFormat)
 {
-    std::cout << " year     " << duration.year << std::endl;
-    std::cout << " month    " << duration.month << std::endl;
-    std::cout << " day      " << duration.day << std::endl;
-    std::cout << " hour     " << duration.hour << std::endl;
-    std::cout << " minute   " << duration.minute << std::endl;
-    std::cout << " second   " << duration.second << std::endl;
-    std::cout << " timestep " << duration.timestep << std::endl;
+    std::string str = datetimeStr;
+    if (isoFormat) {
+        str = str.replace(10, 1, " "); // replaces T with a space
+        str = str.replace(19, 1, " "); // replaces Z with a space
+    }
+    return cxios_date_convert_from_string(str.c_str(), str.length());
 }
 
 /*!
@@ -193,9 +178,10 @@ void Xios::printCXiosDuration(cxios_duration duration)
  *
  * @param origin
  */
-void Xios::setCalendarOrigin(cxios_date origin)
+void Xios::setCalendarOrigin(TimePoint origin)
 {
-    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, origin);
+    cxios_date datetime = convertStringToXiosDatetime(origin.format(), true);
+    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, datetime);
 }
 
 /*!
@@ -203,9 +189,10 @@ void Xios::setCalendarOrigin(cxios_date origin)
  *
  * @param start date
  */
-void Xios::setCalendarStart(cxios_date start)
+void Xios::setCalendarStart(TimePoint start)
 {
-    cxios_set_calendar_wrapper_date_start_date(clientCalendar, start);
+    cxios_date datetime = convertStringToXiosDatetime(start.format(), true);
+    cxios_set_calendar_wrapper_date_start_date(clientCalendar, datetime);
 }
 
 /*!
@@ -213,9 +200,10 @@ void Xios::setCalendarStart(cxios_date start)
  *
  * @param timestep
  */
-void Xios::setCalendarTimestep(cxios_duration timestep)
+void Xios::setCalendarTimestep(Duration timestep)
 {
-    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
+    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, timestep.seconds(), 0.0 };
+    cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
     cxios_update_calendar_timestep(clientCalendar);
 }
 
@@ -238,11 +226,11 @@ std::string Xios::getCalendarType()
  *
  * @return calendar origin
  */
-cxios_date Xios::getCalendarOrigin()
+TimePoint Xios::getCalendarOrigin()
 {
     cxios_date calendar_origin;
     cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
-    return calendar_origin;
+    return TimePoint(convertXiosDatetimeToString(calendar_origin, true));
 }
 
 /*!
@@ -250,11 +238,11 @@ cxios_date Xios::getCalendarOrigin()
  *
  * @return calendar start date
  */
-cxios_date Xios::getCalendarStart()
+TimePoint Xios::getCalendarStart()
 {
     cxios_date calendar_start;
     cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
-    return calendar_start;
+    return TimePoint(convertXiosDatetimeToString(calendar_start, true));
 }
 
 /*!
@@ -262,11 +250,16 @@ cxios_date Xios::getCalendarStart()
  *
  * @return calendar timestep
  */
-cxios_duration Xios::getCalendarTimestep()
+Duration Xios::getCalendarTimestep()
 {
     cxios_duration calendar_timestep;
     cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
-    return calendar_timestep;
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(calendar_timestep, cStr, cStrLen);
+    std::string durationStr(cStr, cStrLen);
+    boost::algorithm::trim_right(durationStr);
+    boost::erase_all(durationStr, "s");
+    return Duration(std::stod(durationStr));
 }
 
 /*!
@@ -274,11 +267,7 @@ cxios_duration Xios::getCalendarTimestep()
  *
  * @return calendar step
  */
-int Xios::getCalendarStep()
-{
-    int step = clientCalendar->getCalendar()->getStep();
-    return step;
-}
+int Xios::getCalendarStep() { return clientCalendar->getCalendar()->getStep(); }
 
 /*!
  * Get current calendar date
@@ -289,8 +278,7 @@ std::string Xios::getCurrentDate(bool isoFormat)
 {
     cxios_date xiosDate;
     cxios_get_current_date(&xiosDate);
-    std::string strDate = convertXiosDatetimeToString(xiosDate, isoFormat);
-    return strDate;
+    return convertXiosDatetimeToString(xiosDate, isoFormat);
 }
 
 /*!
