@@ -1,7 +1,7 @@
 /*!
  * @file    XiosInit_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    13 June 2024
+ * @date    17 June 2024
  * @brief   Tests for XIOS C++ interface
  * @details
  * This test is designed to test all core functionality of the C++ interface
@@ -44,9 +44,9 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.isInitialized());
 
     // Extract MPI size and rank
-    int size = xios_handler.getClientMPISize();
+    size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);
-    int rank = xios_handler.getClientMPIRank();
+    size_t rank = xios_handler.getClientMPIRank();
 
     // --- Tests for calendar API
     // Calendar type
@@ -101,21 +101,21 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     std::string axisId = { "axis_A" };
     xios_handler.createAxis(axisId);
     // Axis size
-    int axis_size = 30;
+    size_t axis_size = 30;
     REQUIRE_FALSE(xios_handler.isDefinedAxisSize(axisId));
     xios_handler.setAxisSize(axisId, axis_size);
     REQUIRE(xios_handler.isDefinedAxisSize(axisId));
     REQUIRE(xios_handler.getAxisSize(axisId) == axis_size);
     // Axis values
     std::vector<double> axisValues;
-    for (int i = 0; i < axis_size; i++) {
+    for (size_t i = 0; i < axis_size; i++) {
         axisValues.push_back(i);
     }
     REQUIRE_FALSE(xios_handler.areDefinedAxisValues(axisId));
     xios_handler.setAxisValues(axisId, axisValues);
     REQUIRE(xios_handler.areDefinedAxisValues(axisId));
     std::vector<double> axis_A = xios_handler.getAxisValues(axisId);
-    for (int i = 0; i < axis_size; i++) {
+    for (size_t i = 0; i < axis_size; i++) {
         REQUIRE(axis_A[i] == doctest::Approx(axisValues[i]));
     }
 
@@ -130,62 +130,62 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getDomainType(domainId) == domainType);
     // Global longitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainGlobalLongitudeSize(domainId));
-    int ni_glo = 60;
+    size_t ni_glo = 60;
     xios_handler.setDomainGlobalLongitudeSize(domainId, ni_glo);
     REQUIRE(xios_handler.isDefinedDomainGlobalLongitudeSize(domainId));
     REQUIRE(xios_handler.getDomainGlobalLongitudeSize(domainId) == ni_glo);
     // Global latitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainGlobalLatitudeSize(domainId));
-    int nj_glo = 20;
+    size_t nj_glo = 20;
     xios_handler.setDomainGlobalLatitudeSize(domainId, nj_glo);
     REQUIRE(xios_handler.isDefinedDomainGlobalLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainGlobalLatitudeSize(domainId) == nj_glo);
     // Local longitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeSize(domainId));
-    int ni = ni_glo / size;
+    size_t ni = ni_glo / size;
     xios_handler.setDomainLongitudeSize(domainId, ni);
     REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
     // Local latitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeSize(domainId));
-    int nj = nj_glo;
+    size_t nj = nj_glo;
     xios_handler.setDomainLatitudeSize(domainId, nj);
     REQUIRE(xios_handler.isDefinedDomainLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
     // Local longitude start
     REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeStart(domainId));
-    int startLon = ni * rank;
+    size_t startLon = ni * rank;
     xios_handler.setDomainLongitudeStart(domainId, startLon);
     REQUIRE(xios_handler.isDefinedDomainLongitudeStart(domainId));
     REQUIRE(xios_handler.getDomainLongitudeStart(domainId) == startLon);
     // Local latitude start
     REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeStart(domainId));
-    int startLat = 0;
+    size_t startLat = 0;
     xios_handler.setDomainLatitudeStart(domainId, startLat);
     REQUIRE(xios_handler.isDefinedDomainLatitudeStart(domainId));
     REQUIRE(xios_handler.getDomainLatitudeStart(domainId) == startLat);
     // Local longitude values
     REQUIRE_FALSE(xios_handler.areDefinedDomainLongitudeValues(domainId));
     std::vector<double> vecLon {};
-    for (int i = 0; i < ni; i++) {
+    for (size_t i = 0; i < ni; i++) {
         vecLon.push_back(-180 + (rank * ni * i) * 360 / ni_glo);
     }
     xios_handler.setDomainLongitudeValues(domainId, vecLon);
     REQUIRE(xios_handler.areDefinedDomainLongitudeValues(domainId));
     std::vector<double> vecLonOut = xios_handler.getDomainLongitudeValues(domainId);
-    for (int i = 0; i < ni; i++) {
+    for (size_t i = 0; i < ni; i++) {
         REQUIRE(vecLonOut[i] == doctest::Approx(vecLon[i]));
     }
     // Local latitude values
     REQUIRE_FALSE(xios_handler.areDefinedDomainLatitudeValues(domainId));
     std::vector<double> vecLat {};
-    for (int j = 0; j < nj; j++) {
+    for (size_t j = 0; j < nj; j++) {
         vecLat.push_back(-90 + j * 180 / nj_glo);
     }
     xios_handler.setDomainLatitudeValues(domainId, vecLat);
     REQUIRE(xios_handler.areDefinedDomainLatitudeValues(domainId));
     std::vector<double> vecLatOut = xios_handler.getDomainLatitudeValues(domainId);
-    for (int j = 0; j < nj; j++) {
+    for (size_t j = 0; j < nj; j++) {
         REQUIRE(vecLatOut[j] == doctest::Approx(vecLat[j]));
     }
 
@@ -255,7 +255,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // create some fake data to test writing methods
     double* field_A = new double[ni * nj * axis_size];
-    for (int idx = 0; idx < ni * nj * axis_size; idx++) {
+    for (size_t idx = 0; idx < ni * nj * axis_size; idx++) {
         field_A[idx] = 1.0 * idx;
     }
 

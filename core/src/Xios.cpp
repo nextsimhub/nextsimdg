@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    13 June 2024
+ * @date    17 June 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -310,6 +310,9 @@ xios::CAxisGroup* Xios::getAxisGroup()
     std::string groupId = { "axis_definition" };
     xios::CAxisGroup* group = NULL;
     cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
+    if (!group) {
+        throw std::runtime_error("Xios: Null pointer for axis_definition group");
+    }
     return group;
 }
 
@@ -323,6 +326,9 @@ xios::CAxis* Xios::getAxis(std::string axisId)
 {
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
+    if (!axis) {
+        throw std::runtime_error("Xios: Null pointer for axis with ID '" + axisId + "'");
+    }
     return axis;
 }
 
@@ -335,6 +341,9 @@ void Xios::createAxis(std::string axisId)
 {
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
+    if (!axis) {
+        throw std::runtime_error("Xios: Null pointer for axis with ID '" + axisId + "'");
+    }
 }
 
 /*!
@@ -343,9 +352,9 @@ void Xios::createAxis(std::string axisId)
  * @param the axis ID
  * @param the size to set
  */
-void Xios::setAxisSize(std::string axisId, int size)
+void Xios::setAxisSize(std::string axisId, size_t size)
 {
-    cxios_set_axis_n_glo(getAxis(axisId), size);
+    cxios_set_axis_n_glo(getAxis(axisId), (int)size);
 }
 
 /*!
@@ -366,11 +375,11 @@ void Xios::setAxisValues(std::string axisId, std::vector<double> values)
  * @param the axis ID
  * @return size of the corresponding axis
  */
-int Xios::getAxisSize(std::string axisId)
+size_t Xios::getAxisSize(std::string axisId)
 {
     int size;
     cxios_get_axis_n_glo(getAxis(axisId), &size);
-    return size;
+    return (size_t)size;
 }
 
 /*!
@@ -421,6 +430,9 @@ xios::CDomainGroup* Xios::getDomainGroup()
     std::string groupId = { "domain_definition" };
     xios::CDomainGroup* group = NULL;
     cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
+    if (!group) {
+        throw std::runtime_error("Xios: Null pointer for domain_definition group");
+    }
     return group;
 }
 
@@ -434,6 +446,9 @@ xios::CDomain* Xios::getDomain(std::string domainId)
 {
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
+    if (!domain) {
+        throw std::runtime_error("Xios: Null pointer for domain with ID '" + domainId + "'");
+    }
     return domain;
 }
 
@@ -446,6 +461,9 @@ void Xios::createDomain(std::string domainId)
 {
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
+    if (!domain) {
+        throw std::runtime_error("Xios: Null pointer for domain with ID '" + domainId + "'");
+    }
 }
 
 /*!
@@ -454,9 +472,9 @@ void Xios::createDomain(std::string domainId)
  * @param the domain ID
  * @param the local longitude size
  */
-void Xios::setDomainLongitudeSize(std::string domainId, int size)
+void Xios::setDomainLongitudeSize(std::string domainId, size_t size)
 {
-    cxios_set_domain_ni(getDomain(domainId), size);
+    cxios_set_domain_ni(getDomain(domainId), (int)size);
 }
 
 /*!
@@ -465,9 +483,9 @@ void Xios::setDomainLongitudeSize(std::string domainId, int size)
  * @param the domain ID
  * @param the local longitude size
  */
-void Xios::setDomainLatitudeSize(std::string domainId, int size)
+void Xios::setDomainLatitudeSize(std::string domainId, size_t size)
 {
-    cxios_set_domain_nj(getDomain(domainId), size);
+    cxios_set_domain_nj(getDomain(domainId), (int)size);
 }
 
 /*!
@@ -476,9 +494,9 @@ void Xios::setDomainLatitudeSize(std::string domainId, int size)
  * @param the domain ID
  * @return the local start longitude
  */
-void Xios::setDomainLongitudeStart(std::string domainId, int start)
+void Xios::setDomainLongitudeStart(std::string domainId, size_t start)
 {
-    cxios_set_domain_ibegin(getDomain(domainId), start);
+    cxios_set_domain_ibegin(getDomain(domainId), (int)start);
 }
 
 /*!
@@ -487,9 +505,9 @@ void Xios::setDomainLongitudeStart(std::string domainId, int start)
  * @param the domain ID
  * @return the local start latitude
  */
-void Xios::setDomainLatitudeStart(std::string domainId, int start)
+void Xios::setDomainLatitudeStart(std::string domainId, size_t start)
 {
-    cxios_set_domain_jbegin(getDomain(domainId), start);
+    cxios_set_domain_jbegin(getDomain(domainId), (int)start);
 }
 
 /*!
@@ -533,9 +551,9 @@ void Xios::setDomainType(std::string domainId, std::string domainType)
  * @param the domain ID
  * @param global longitude size to set
  */
-void Xios::setDomainGlobalLongitudeSize(std::string domainId, int size)
+void Xios::setDomainGlobalLongitudeSize(std::string domainId, size_t size)
 {
-    cxios_set_domain_ni_glo(getDomain(domainId), size);
+    cxios_set_domain_ni_glo(getDomain(domainId), (int)size);
 }
 
 /*!
@@ -544,9 +562,9 @@ void Xios::setDomainGlobalLongitudeSize(std::string domainId, int size)
  * @param the domain ID
  * @param global latitude size to set
  */
-void Xios::setDomainGlobalLatitudeSize(std::string domainId, int size)
+void Xios::setDomainGlobalLatitudeSize(std::string domainId, size_t size)
 {
-    cxios_set_domain_nj_glo(getDomain(domainId), size);
+    cxios_set_domain_nj_glo(getDomain(domainId), (int)size);
 }
 
 /*!
@@ -570,11 +588,11 @@ std::string Xios::getDomainType(std::string domainId)
  * @param the domain ID
  * @return the corresponding global longitude size
  */
-int Xios::getDomainGlobalLongitudeSize(std::string domainId)
+size_t Xios::getDomainGlobalLongitudeSize(std::string domainId)
 {
     int size;
     cxios_get_domain_ni_glo(getDomain(domainId), &size);
-    return size;
+    return (size_t)size;
 }
 
 /*!
@@ -583,11 +601,11 @@ int Xios::getDomainGlobalLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding global latitude size
  */
-int Xios::getDomainGlobalLatitudeSize(std::string domainId)
+size_t Xios::getDomainGlobalLatitudeSize(std::string domainId)
 {
     int size;
     cxios_get_domain_nj_glo(getDomain(domainId), &size);
-    return size;
+    return (size_t)size;
 }
 
 /*!
@@ -596,11 +614,11 @@ int Xios::getDomainGlobalLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding local longitude size
  */
-int Xios::getDomainLongitudeSize(std::string domainId)
+size_t Xios::getDomainLongitudeSize(std::string domainId)
 {
     int size;
     cxios_get_domain_ni(getDomain(domainId), &size);
-    return size;
+    return (size_t)size;
 }
 
 /*!
@@ -609,11 +627,11 @@ int Xios::getDomainLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding local latitude size
  */
-int Xios::getDomainLatitudeSize(std::string domainId)
+size_t Xios::getDomainLatitudeSize(std::string domainId)
 {
     int size;
     cxios_get_domain_nj(getDomain(domainId), &size);
-    return size;
+    return (size_t)size;
 }
 
 /*!
@@ -622,11 +640,11 @@ int Xios::getDomainLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return the local starting longitude of the corresponding domain
  */
-int Xios::getDomainLongitudeStart(std::string domainId)
+size_t Xios::getDomainLongitudeStart(std::string domainId)
 {
     int start;
     cxios_get_domain_ibegin(getDomain(domainId), &start);
-    return start;
+    return (size_t)start;
 }
 
 /*!
@@ -635,11 +653,11 @@ int Xios::getDomainLongitudeStart(std::string domainId)
  * @param the domain ID
  * @return the local starting latitude of the corresponding domain
  */
-int Xios::getDomainLatitudeStart(std::string domainId)
+size_t Xios::getDomainLatitudeStart(std::string domainId)
 {
     int start;
     cxios_get_domain_jbegin(getDomain(domainId), &start);
-    return start;
+    return (size_t)start;
 }
 
 /*!
@@ -783,6 +801,9 @@ xios::CGridGroup* Xios::getGridGroup()
     std::string groupId = { "grid_definition" };
     xios::CGridGroup* group = NULL;
     cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
+    if (!group) {
+        throw std::runtime_error("Xios: Null pointer for grid_definition group");
+    }
     return group;
 }
 
@@ -796,6 +817,9 @@ xios::CGrid* Xios::getGrid(std::string gridId)
 {
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
+    if (!grid) {
+        throw std::runtime_error("Xios: Null pointer for grid with ID '" + gridId + "'");
+    }
     return grid;
 }
 
@@ -808,6 +832,9 @@ void Xios::createGrid(std::string gridId)
 {
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
+    if (!grid) {
+        throw std::runtime_error("Xios: Null pointer for grid with ID '" + gridId + "'");
+    }
 }
 
 /*!
@@ -881,6 +908,9 @@ xios::CFieldGroup* Xios::getFieldGroup()
     std::string groupId = { "field_definition" };
     xios::CFieldGroup* group = NULL;
     cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
+    if (!group) {
+        throw std::runtime_error("Xios: Null pointer for field_definition group");
+    }
     return group;
 }
 
@@ -894,6 +924,9 @@ xios::CField* Xios::getField(std::string fieldId)
 {
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
+    if (!field) {
+        throw std::runtime_error("Xios: Null pointer for field with ID '" + fieldId + "'");
+    }
     return field;
 }
 
@@ -906,6 +939,9 @@ void Xios::createField(std::string fieldId)
 {
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
+    if (!field) {
+        throw std::runtime_error("Xios: Null pointer for field with ID '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -1029,6 +1065,9 @@ xios::CFileGroup* Xios::getFileGroup()
     std::string groupId = { "file_definition" };
     xios::CFileGroup* group = NULL;
     cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
+    if (!group) {
+        throw std::runtime_error("Xios: Null pointer for file_definition group");
+    }
     return group;
 }
 
@@ -1042,6 +1081,9 @@ xios::CFile* Xios::getFile(std::string fileId)
 {
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
+    if (!file) {
+        throw std::runtime_error("Xios: Null pointer for file with ID '" + fileId + "'");
+    }
     return file;
 }
 
@@ -1054,6 +1096,9 @@ void Xios::createFile(std::string fileId)
 {
     xios::CFile* file = NULL;
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
+    if (!file) {
+        throw std::runtime_error("Xios: Null pointer for file with ID '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1203,9 +1248,9 @@ void Xios::fileAddField(std::string fileId, std::string fieldId)
  * @param size of 1st dimension
  * @param size of 2nd dimension
  */
-void Xios::write(const std::string fieldId, double* data, const int ni, const int nj)
+void Xios::write(const std::string fieldId, double* data, const size_t ni, const size_t nj)
 {
-    cxios_write_data_k82(fieldId.c_str(), fieldId.length(), data, ni, nj, -1);
+    cxios_write_data_k82(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, -1);
 }
 
 /*!
@@ -1217,9 +1262,10 @@ void Xios::write(const std::string fieldId, double* data, const int ni, const in
  * @param size of 2nd dimension
  * @param size of 3rd dimension
  */
-void Xios::write(const std::string fieldId, double* data, const int ni, const int nj, const int nk)
+void Xios::write(
+    const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk)
 {
-    cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, ni, nj, nk, -1);
+    cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, -1);
 }
 }
 

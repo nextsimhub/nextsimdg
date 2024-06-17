@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    13 June 2024
+ * @date    17 June 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -62,9 +62,9 @@ public:
 
     /* Axis */
     void createAxis(std::string axisId);
-    void setAxisSize(std::string axisId, int size);
+    void setAxisSize(std::string axisId, size_t size);
     void setAxisValues(std::string axisId, std::vector<double> values);
-    int getAxisSize(std::string axisId);
+    size_t getAxisSize(std::string axisId);
     std::vector<double> getAxisValues(std::string axisId);
     bool isDefinedAxisSize(std::string axisId);
     bool areDefinedAxisValues(std::string axisId);
@@ -72,21 +72,21 @@ public:
     /* Domain */
     void createDomain(std::string domainId);
     void setDomainType(std::string domainId, std::string domainType);
-    void setDomainGlobalLongitudeSize(std::string domainId, int size);
-    void setDomainGlobalLatitudeSize(std::string domainId, int size);
-    void setDomainLongitudeSize(std::string domainId, int size);
-    void setDomainLatitudeSize(std::string domainId, int size);
-    void setDomainLongitudeStart(std::string domainId, int start);
-    void setDomainLatitudeStart(std::string domainId, int start);
+    void setDomainGlobalLongitudeSize(std::string domainId, size_t size);
+    void setDomainGlobalLatitudeSize(std::string domainId, size_t size);
+    void setDomainLongitudeSize(std::string domainId, size_t size);
+    void setDomainLatitudeSize(std::string domainId, size_t size);
+    void setDomainLongitudeStart(std::string domainId, size_t start);
+    void setDomainLatitudeStart(std::string domainId, size_t start);
     void setDomainLongitudeValues(std::string domainId, std::vector<double> values);
     void setDomainLatitudeValues(std::string domainId, std::vector<double> values);
     std::string getDomainType(std::string domainId);
-    int getDomainGlobalLongitudeSize(std::string domainId);
-    int getDomainGlobalLatitudeSize(std::string domainId);
-    int getDomainLongitudeSize(std::string domainId);
-    int getDomainLatitudeSize(std::string domainId);
-    int getDomainLongitudeStart(std::string domainId);
-    int getDomainLatitudeStart(std::string domainId);
+    size_t getDomainGlobalLongitudeSize(std::string domainId);
+    size_t getDomainGlobalLatitudeSize(std::string domainId);
+    size_t getDomainLongitudeSize(std::string domainId);
+    size_t getDomainLatitudeSize(std::string domainId);
+    size_t getDomainLongitudeStart(std::string domainId);
+    size_t getDomainLatitudeStart(std::string domainId);
     std::vector<double> getDomainLongitudeValues(std::string domainId);
     std::vector<double> getDomainLatitudeValues(std::string domainId);
     bool isDefinedDomainType(std::string domainId);
@@ -134,8 +134,9 @@ public:
     void fileAddField(std::string fileId, std::string fieldId);
 
     /* I/O */
-    void write(const std::string fieldId, double* data, const int ni, const int nj);
-    void write(const std::string fieldId, double* data, const int ni, const int nj, const int nk);
+    void write(const std::string fieldId, double* data, const size_t ni, const size_t nj);
+    void write(
+        const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk);
 
     enum {
         ENABLED_KEY,
