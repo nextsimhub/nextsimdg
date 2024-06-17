@@ -37,33 +37,33 @@ public:
 
     /* Configuration */
     void configure() override;
-    void configureServer(std::string calendarType = "Gregorian");
+    void configureServer(const std::string calendarType = "Gregorian");
 
     /* MPI decomposition */
     int getClientMPISize();
     int getClientMPIRank();
 
     /* Calendar, date and duration */
-    void setCalendarType(std::string type);
-    void setCalendarOrigin(TimePoint origin);
-    void setCalendarStart(TimePoint start);
-    void setCalendarTimestep(Duration timestep);
+    void setCalendarType(const std::string type);
+    void setCalendarOrigin(const TimePoint origin);
+    void setCalendarStart(const TimePoint start);
+    void setCalendarTimestep(const Duration timestep);
     std::string getCalendarType();
     TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
     Duration getCalendarTimestep();
     int getCalendarStep();
-    std::string getCurrentDate(bool isoFormat = true);
-    void updateCalendar(int stepNumber);
+    std::string getCurrentDate(const bool isoFormat = true);
+    void updateCalendar(const int stepNumber);
 
     /* Axis */
-    void createAxis(std::string axisId);
-    void setAxisSize(std::string axisId, size_t size);
-    void setAxisValues(std::string axisId, std::vector<double> values);
-    size_t getAxisSize(std::string axisId);
-    std::vector<double> getAxisValues(std::string axisId);
-    bool isDefinedAxisSize(std::string axisId);
-    bool areDefinedAxisValues(std::string axisId);
+    void createAxis(const std::string axisId);
+    void setAxisSize(const std::string axisId, const size_t size);
+    void setAxisValues(const std::string axisId, std::vector<double> values);
+    size_t getAxisSize(const std::string axisId);
+    std::vector<double> getAxisValues(const std::string axisId);
+    bool isDefinedAxisSize(const std::string axisId);
+    bool areDefinedAxisValues(const std::string axisId);
 
     /* Domain */
     void createDomain(std::string domainId);
@@ -156,8 +156,8 @@ private:
     int mpi_size { 0 };
 
     xios::CCalendarWrapper* clientCalendar;
-    std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
-    cxios_date convertStringToXiosDatetime(const std::string datetime, bool isoFormat = true);
+    std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
+    cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
 
     xios::CAxisGroup* getAxisGroup();
     xios::CDomainGroup* getDomainGroup();

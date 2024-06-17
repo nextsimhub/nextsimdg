@@ -86,7 +86,7 @@ void Xios::configure()
 }
 
 //! Configure calendar settings
-void Xios::configureServer(std::string calendarType)
+void Xios::configureServer(const std::string calendarType)
 {
     // Initialize XIOS Server process and store MPI communicator
     clientId = "client";
@@ -140,7 +140,7 @@ bool Xios::isInitialized()
  * @param isoFormat as bool
  * @return corresponding string representation
  */
-std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
+std::string Xios::convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat)
 {
     boost::format fmt;
     if (isoFormat) {
@@ -163,7 +163,7 @@ std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoForma
  * @param isoFormat as bool
  * @return corresponding XIOS datetime representation
  */
-cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, bool isoFormat)
+cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, const bool isoFormat)
 {
     std::string str = datetimeStr;
     if (isoFormat) {
@@ -178,7 +178,7 @@ cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, bool
  *
  * @param origin
  */
-void Xios::setCalendarOrigin(TimePoint origin)
+void Xios::setCalendarOrigin(const TimePoint origin)
 {
     cxios_date datetime = convertStringToXiosDatetime(origin.format(), true);
     cxios_set_calendar_wrapper_date_time_origin(clientCalendar, datetime);
@@ -189,7 +189,7 @@ void Xios::setCalendarOrigin(TimePoint origin)
  *
  * @param start date
  */
-void Xios::setCalendarStart(TimePoint start)
+void Xios::setCalendarStart(const TimePoint start)
 {
     cxios_date datetime = convertStringToXiosDatetime(start.format(), true);
     cxios_set_calendar_wrapper_date_start_date(clientCalendar, datetime);
@@ -200,7 +200,7 @@ void Xios::setCalendarStart(TimePoint start)
  *
  * @param timestep
  */
-void Xios::setCalendarTimestep(Duration timestep)
+void Xios::setCalendarTimestep(const Duration timestep)
 {
     cxios_duration duration { 0.0, 0.0, 0.0, 0.0, timestep.seconds(), 0.0 };
     cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
@@ -274,7 +274,7 @@ int Xios::getCalendarStep() { return clientCalendar->getCalendar()->getStep(); }
  *
  * @return current calendar date
  */
-std::string Xios::getCurrentDate(bool isoFormat)
+std::string Xios::getCurrentDate(const bool isoFormat)
 {
     cxios_date xiosDate;
     cxios_get_current_date(&xiosDate);
@@ -286,7 +286,7 @@ std::string Xios::getCurrentDate(bool isoFormat)
  *
  * @param current step number
  */
-void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
+void Xios::updateCalendar(const int stepNumber) { cxios_update_calendar(stepNumber); }
 
 /*!
  * Get the axis_definition group
@@ -295,7 +295,7 @@ void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
  */
 xios::CAxisGroup* Xios::getAxisGroup()
 {
-    std::string groupId = { "axis_definition" };
+    const std::string groupId = { "axis_definition" };
     xios::CAxisGroup* group = NULL;
     cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -310,7 +310,7 @@ xios::CAxisGroup* Xios::getAxisGroup()
  * @param the axis ID
  * @return a pointer to the XIOS CAxis object
  */
-xios::CAxis* Xios::getAxis(std::string axisId)
+xios::CAxis* Xios::getAxis(const std::string axisId)
 {
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
@@ -325,7 +325,7 @@ xios::CAxis* Xios::getAxis(std::string axisId)
  *
  * @param the axis ID
  */
-void Xios::createAxis(std::string axisId)
+void Xios::createAxis(const std::string axisId)
 {
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
@@ -340,7 +340,7 @@ void Xios::createAxis(std::string axisId)
  * @param the axis ID
  * @param the size to set
  */
-void Xios::setAxisSize(std::string axisId, size_t size)
+void Xios::setAxisSize(const std::string axisId, const size_t size)
 {
     cxios_set_axis_n_glo(getAxis(axisId), (int)size);
 }
@@ -351,7 +351,7 @@ void Xios::setAxisSize(std::string axisId, size_t size)
  * @param the axis ID
  * @param the values to set
  */
-void Xios::setAxisValues(std::string axisId, std::vector<double> values)
+void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
 {
     int size = getAxisSize(axisId);
     cxios_set_axis_value(getAxis(axisId), values.data(), &size);
@@ -363,7 +363,7 @@ void Xios::setAxisValues(std::string axisId, std::vector<double> values)
  * @param the axis ID
  * @return size of the corresponding axis
  */
-size_t Xios::getAxisSize(std::string axisId)
+size_t Xios::getAxisSize(const std::string axisId)
 {
     int size;
     cxios_get_axis_n_glo(getAxis(axisId), &size);
@@ -376,7 +376,7 @@ size_t Xios::getAxisSize(std::string axisId)
  * @param the axis ID
  * @return the corresponding values
  */
-std::vector<double> Xios::getAxisValues(std::string axisId)
+std::vector<double> Xios::getAxisValues(const std::string axisId)
 {
     int size = getAxisSize(axisId);
     double* values = new double[size];
@@ -392,7 +392,7 @@ std::vector<double> Xios::getAxisValues(std::string axisId)
  * @param the axis ID
  * @return `true` if the size has been set, otherwise `false`
  */
-bool Xios::isDefinedAxisSize(std::string axisId)
+bool Xios::isDefinedAxisSize(const std::string axisId)
 {
     return cxios_is_defined_axis_n_glo(getAxis(axisId));
 }
@@ -403,7 +403,7 @@ bool Xios::isDefinedAxisSize(std::string axisId)
  * @param the axis ID
  * @return `true` if the values have been set, otherwise `false`
  */
-bool Xios::areDefinedAxisValues(std::string axisId)
+bool Xios::areDefinedAxisValues(const std::string axisId)
 {
     return cxios_is_defined_axis_value(getAxis(axisId));
 }
