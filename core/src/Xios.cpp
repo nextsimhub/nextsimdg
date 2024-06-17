@@ -136,13 +136,14 @@ bool Xios::isInitialized()
 }
 
 /*!
- * return datetime as std::string using ISO 8601 format (default)
- * if `isoFormat` is true format will be  2023-03-03T17:11:00Z
- * if `isoFormat` is false format will be 2023-03-03 17:11:00
+ * Return datetime as std::string using ISO 8601 format (default).
  *
- * @param datetime
+ * - If `isoFormat` is true  format will be 2023-03-03T17:11:00Z
+ * - If `isoFormat` is false format will be 2023-03-03 17:11:00
+ *
+ * @param XIOS datetime representation
  * @param isoFormat as bool
- * @return datetime as a string
+ * @return corresponding string representation
  */
 std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
 {
@@ -155,6 +156,26 @@ std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoForma
             % datetime.month % datetime.day % datetime.hour % datetime.minute % datetime.second;
     }
     return fmt.str();
+}
+
+/*!
+ * Return std::string in ISO 8601 format (default) as an XIOS datetime object.
+ *
+ * - If `isoFormat` is true  format will be 2023-03-03T17:11:00Z
+ * - If `isoFormat` is false format will be 2023-03-03 17:11:00
+ *
+ * @param string representation
+ * @param isoFormat as bool
+ * @return corresponding XIOS datetime representation
+ */
+cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, bool isoFormat)
+{
+    std::string str = datetimeStr;
+    if (isoFormat) {
+        str = str.replace(10, 1, " "); // replaces T with a space
+        str = str.replace(19, 1, " "); // replaces Z with a space
+    }
+    return cxios_date_convert_from_string(str.c_str(), str.length());
 }
 
 /*!
@@ -191,41 +212,23 @@ void Xios::printCXiosDuration(cxios_duration duration)
 /*!
  * Set calendar origin
  *
- * @param origin as a `cxios_date`
+ * @param origin as a TimePoint
  */
-void Xios::setCalendarOrigin(cxios_date origin)
+void Xios::setCalendarOrigin(TimePoint origin)
 {
-    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, origin);
-}
-
-/*!
- * Set calendar origin
- *
- * @param origin as a string
- */
-void Xios::setCalendarOrigin(std::string originStr)
-{
-    setCalendarOrigin(cxios_date_convert_from_string(originStr.c_str(), originStr.length()));
+    cxios_date datetime = convertStringToXiosDatetime(origin.format(), true);
+    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, datetime);
 }
 
 /*!
  * Set calendar start date
  *
- * @param start date as a `cxios_date`
+ * @param start date as a TimePoint
  */
-void Xios::setCalendarStart(cxios_date start)
+void Xios::setCalendarStart(TimePoint start)
 {
-    cxios_set_calendar_wrapper_date_start_date(clientCalendar, start);
-}
-
-/*!
- * Set calendar start date
- *
- * @param start date as a string
- */
-void Xios::setCalendarStart(std::string startStr)
-{
-    setCalendarStart(cxios_date_convert_from_string(startStr.c_str(), startStr.length()));
+    cxios_date datetime = convertStringToXiosDatetime(start.format(), true);
+    cxios_set_calendar_wrapper_date_start_date(clientCalendar, datetime);
 }
 
 /*!

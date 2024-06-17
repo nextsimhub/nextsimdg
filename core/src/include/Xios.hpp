@@ -15,6 +15,7 @@
 #if USE_XIOS
 
 #include "Configured.hpp"
+#include "Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -44,15 +45,14 @@ public:
 
     /* Date and duration */
     std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
+    cxios_date convertStringToXiosDatetime(const std::string datetime, bool isoFormat = true);
     void printCXiosDate(cxios_date date);
     void printCXiosDuration(cxios_duration duration);
 
     /* Calendar */
     void setCalendarType(std::string type);
-    void setCalendarOrigin(cxios_date origin);
-    void setCalendarOrigin(std::string originStr);
-    void setCalendarStart(cxios_date start);
-    void setCalendarStart(std::string startStr);
+    void setCalendarOrigin(TimePoint origin);
+    void setCalendarStart(TimePoint start);
     void setCalendarTimestep(cxios_duration timestep);
     std::string getCalendarType();
     cxios_date getCalendarOrigin();
