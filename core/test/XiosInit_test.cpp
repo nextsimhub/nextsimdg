@@ -52,32 +52,20 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     // Calendar type
     REQUIRE(xios_handler.getCalendarType() == "Gregorian");
     // Calendar origin
-    Nextsim::TimePoint tp;
-    tp.parse("2020-01-23T00:08:15Z");
+    Nextsim::TimePoint tp("2020-01-23T00:08:15Z");
     xios_handler.setCalendarOrigin(tp);
     REQUIRE(tp == xios_handler.getCalendarOrigin());
+    REQUIRE(tp.format() == "2020-01-23T00:08:15Z");
     // Calendar start
     tp.parse("2023-03-17T17:11:00Z");
     xios_handler.setCalendarStart(tp);
     REQUIRE(tp == xios_handler.getCalendarStart());
+    REQUIRE(tp.format() == "2023-03-17T17:11:00Z");
     // Timestep
-    cxios_duration duration;
-    duration.year = 0.0;
-    duration.month = 0.0;
-    duration.day = 0.0;
-    duration.hour = 1.5;
-    duration.minute = 0.0;
-    duration.second = 0.0;
-    duration.timestep = 0.0;
-    xios_handler.setCalendarTimestep(duration);
-    duration = xios_handler.getCalendarTimestep();
-    REQUIRE(duration.year == doctest::Approx(0.0));
-    REQUIRE(duration.month == doctest::Approx(0.0));
-    REQUIRE(duration.day == doctest::Approx(0.0));
-    REQUIRE(duration.hour == doctest::Approx(1.5));
-    REQUIRE(duration.minute == doctest::Approx(0.0));
-    REQUIRE(duration.second == doctest::Approx(0.0));
-    REQUIRE(duration.timestep == doctest::Approx(0.0));
+    Nextsim::Duration dur("P0-0T01:30:00");
+    REQUIRE(dur.seconds() == doctest::Approx(5400.0));
+    xios_handler.setCalendarTimestep(dur);
+    REQUIRE(xios_handler.getCalendarTimestep().seconds() == doctest::Approx(5400.0));
 
     // --- Tests for axis API
     std::string axisId = { "axis_A" };

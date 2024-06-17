@@ -47,16 +47,14 @@ public:
     void setCalendarType(std::string type);
     void setCalendarOrigin(TimePoint origin);
     void setCalendarStart(TimePoint start);
-    void setCalendarTimestep(cxios_duration timestep);
+    void setCalendarTimestep(Duration timestep);
     std::string getCalendarType();
     TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
-    cxios_duration getCalendarTimestep();
+    Duration getCalendarTimestep();
     int getCalendarStep();
     std::string getCurrentDate(bool isoFormat = true);
     void updateCalendar(int stepNumber);
-    void printCXiosDate(cxios_date date);
-    void printCXiosDuration(cxios_duration duration);
 
     /* Axis */
     void createAxis(std::string axisId);

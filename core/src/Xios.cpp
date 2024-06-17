@@ -179,37 +179,6 @@ cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, bool
 }
 
 /*!
- * helpful utility function to print cxios date.
- *
- * @param date
- */
-void Xios::printCXiosDate(cxios_date date)
-{
-    std::cout << " year     " << date.year << std::endl;
-    std::cout << " month    " << date.month << std::endl;
-    std::cout << " day      " << date.day << std::endl;
-    std::cout << " hour     " << date.hour << std::endl;
-    std::cout << " minute   " << date.minute << std::endl;
-    std::cout << " second   " << date.second << std::endl;
-}
-
-/*!
- * helpful utility function to print cxios duration.
- *
- * @param duration
- */
-void Xios::printCXiosDuration(cxios_duration duration)
-{
-    std::cout << " year     " << duration.year << std::endl;
-    std::cout << " month    " << duration.month << std::endl;
-    std::cout << " day      " << duration.day << std::endl;
-    std::cout << " hour     " << duration.hour << std::endl;
-    std::cout << " minute   " << duration.minute << std::endl;
-    std::cout << " second   " << duration.second << std::endl;
-    std::cout << " timestep " << duration.timestep << std::endl;
-}
-
-/*!
  * Set calendar origin
  *
  * @param origin as a TimePoint
@@ -236,9 +205,17 @@ void Xios::setCalendarStart(TimePoint start)
  *
  * @param timestep
  */
-void Xios::setCalendarTimestep(cxios_duration timestep)
+void Xios::setCalendarTimestep(Duration timestep)
 {
-    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
+    cxios_duration duration; // { 0.0, 0.0, 0.0, 0.0, timestep.seconds(), 0.0 };
+    duration.year = 0.0;
+    duration.month = 0.0;
+    duration.day = 0.0;
+    duration.hour = 0.0;
+    duration.minute = 0.0;
+    duration.second = timestep.seconds();
+    duration.timestep = 0.0;
+    cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
     cxios_update_calendar_timestep(clientCalendar);
 }
 
@@ -265,9 +242,7 @@ TimePoint Xios::getCalendarOrigin()
 {
     cxios_date calendar_origin;
     cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
-    TimePoint tp;
-    tp.parse(convertXiosDatetimeToString(calendar_origin, true));
-    return tp;
+    return TimePoint(convertXiosDatetimeToString(calendar_origin, true));
 }
 
 /*!
@@ -279,9 +254,7 @@ TimePoint Xios::getCalendarStart()
 {
     cxios_date calendar_start;
     cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
-    TimePoint tp;
-    tp.parse(convertXiosDatetimeToString(calendar_start, true));
-    return tp;
+    return TimePoint(convertXiosDatetimeToString(calendar_start, true));
 }
 
 /*!
@@ -289,11 +262,16 @@ TimePoint Xios::getCalendarStart()
  *
  * @return calendar timestep
  */
-cxios_duration Xios::getCalendarTimestep()
+Duration Xios::getCalendarTimestep()
 {
     cxios_duration calendar_timestep;
     cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
-    return calendar_timestep;
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(calendar_timestep, cStr, cStrLen);
+    std::string durationStr(cStr, cStrLen);
+    boost::algorithm::trim_right(durationStr);
+    boost::erase_all(durationStr, "s");
+    return Duration(std::stod(durationStr));
 }
 
 /*!
@@ -301,11 +279,7 @@ cxios_duration Xios::getCalendarTimestep()
  *
  * @return calendar step
  */
-int Xios::getCalendarStep()
-{
-    int step = clientCalendar->getCalendar()->getStep();
-    return step;
-}
+int Xios::getCalendarStep() { return clientCalendar->getCalendar()->getStep(); }
 
 /*!
  * Get current calendar date
@@ -316,8 +290,7 @@ std::string Xios::getCurrentDate(bool isoFormat)
 {
     cxios_date xiosDate;
     cxios_get_current_date(&xiosDate);
-    std::string strDate = convertXiosDatetimeToString(xiosDate, isoFormat);
-    return strDate;
+    return convertXiosDatetimeToString(xiosDate, isoFormat);
 }
 
 /*!
