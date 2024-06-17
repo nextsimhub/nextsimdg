@@ -38,13 +38,11 @@ void cxios_context_finalize();
 
 // conversions
 void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size);
-cxios_date cxios_date_convert_from_string(const char* str, int str_size); // TODO: unused
+cxios_date cxios_date_convert_from_string(const char* str, int str_size);
 void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size);
 cxios_duration cxios_duration_convert_from_string(const char* str, int str_size);
 
 // calendar methods
-void cxios_calendar_wrapper_handle_create(
-    xios::CCalendarWrapper** calendar_wrapper_hdl, const char* _id, int _id_len); // TODO: unused
 void cxios_create_calendar(xios::CCalendarWrapper* calendar_wrapper_hdl);
 void cxios_set_calendar_wrapper_date_time_origin(
     xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date time_origin_c);
@@ -52,7 +50,7 @@ void cxios_set_calendar_wrapper_date_start_date(
     xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date start_date_c);
 void cxios_set_calendar_wrapper_type(
     xios::CCalendarWrapper* calendarWrapper_hdl, const char* type, int type_size);
-void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret); // TODO: unused
+void cxios_get_current_calendar_wrapper(xios::CCalendarWrapper** _ret);
 void cxios_get_calendar_wrapper_date_start_date(
     xios::CCalendarWrapper* calendarWrapper_hdl, cxios_date* start_date_c);
 void cxios_get_calendar_wrapper_date_time_origin(

@@ -191,7 +191,7 @@ void Xios::printCXiosDuration(cxios_duration duration)
 /*!
  * Set calendar origin
  *
- * @param origin
+ * @param origin as a `cxios_date`
  */
 void Xios::setCalendarOrigin(cxios_date origin)
 {
@@ -199,13 +199,33 @@ void Xios::setCalendarOrigin(cxios_date origin)
 }
 
 /*!
+ * Set calendar origin
+ *
+ * @param origin as a string
+ */
+void Xios::setCalendarOrigin(std::string originStr)
+{
+    setCalendarOrigin(cxios_date_convert_from_string(originStr.c_str(), originStr.length()));
+}
+
+/*!
  * Set calendar start date
  *
- * @param start date
+ * @param start date as a `cxios_date`
  */
 void Xios::setCalendarStart(cxios_date start)
 {
     cxios_set_calendar_wrapper_date_start_date(clientCalendar, start);
+}
+
+/*!
+ * Set calendar start date
+ *
+ * @param start date as a string
+ */
+void Xios::setCalendarStart(std::string startStr)
+{
+    setCalendarStart(cxios_date_convert_from_string(startStr.c_str(), startStr.length()));
 }
 
 /*!

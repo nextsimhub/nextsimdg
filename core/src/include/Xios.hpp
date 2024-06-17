@@ -50,7 +50,9 @@ public:
     /* Calendar */
     void setCalendarType(std::string type);
     void setCalendarOrigin(cxios_date origin);
+    void setCalendarOrigin(std::string originStr);
     void setCalendarStart(cxios_date start);
+    void setCalendarStart(std::string startStr);
     void setCalendarTimestep(cxios_duration timestep);
     std::string getCalendarType();
     cxios_date getCalendarOrigin();

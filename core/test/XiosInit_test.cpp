@@ -53,29 +53,12 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     std::string calendarType = xios_handler.getCalendarType();
     REQUIRE(calendarType == "Gregorian");
     // Calendar origin
-    cxios_date origin;
-    origin.year = 2020;
-    origin.month = 1;
-    origin.day = 23;
-    origin.hour = 0;
-    origin.minute = 8;
-    origin.second = 15;
-    std::string datetime = xios_handler.convertXiosDatetimeToString(origin);
-    REQUIRE(datetime == "2020-01-23T00:08:15Z");
-    xios_handler.setCalendarOrigin(origin);
+    xios_handler.setCalendarOrigin("2020-01-23 00:08:15");
+    std::string datetime {};
     datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarOrigin());
     REQUIRE(datetime == "2020-01-23T00:08:15Z");
     // Calendar start
-    cxios_date start;
-    start.year = 2023;
-    start.month = 3;
-    start.day = 17;
-    start.hour = 17;
-    start.minute = 11;
-    start.second = 0;
-    datetime = xios_handler.convertXiosDatetimeToString(start);
-    REQUIRE(datetime == "2023-03-17T17:11:00Z");
-    xios_handler.setCalendarStart(start);
+    xios_handler.setCalendarStart("2023-03-17 17:11:00");
     datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarStart());
     REQUIRE(datetime == "2023-03-17T17:11:00Z");
     // Timestep
