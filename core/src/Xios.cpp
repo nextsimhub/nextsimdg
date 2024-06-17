@@ -415,7 +415,7 @@ bool Xios::areDefinedAxisValues(const std::string axisId)
  */
 xios::CDomainGroup* Xios::getDomainGroup()
 {
-    std::string groupId = { "domain_definition" };
+    const std::string groupId = { "domain_definition" };
     xios::CDomainGroup* group = NULL;
     cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -430,7 +430,7 @@ xios::CDomainGroup* Xios::getDomainGroup()
  * @param the domain ID
  * @return a pointer to the XIOS CDomain object
  */
-xios::CDomain* Xios::getDomain(std::string domainId)
+xios::CDomain* Xios::getDomain(const std::string domainId)
 {
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
@@ -445,7 +445,7 @@ xios::CDomain* Xios::getDomain(std::string domainId)
  *
  * @param the domain ID
  */
-void Xios::createDomain(std::string domainId)
+void Xios::createDomain(const std::string domainId)
 {
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
@@ -460,7 +460,7 @@ void Xios::createDomain(std::string domainId)
  * @param the domain ID
  * @param the local longitude size
  */
-void Xios::setDomainLongitudeSize(std::string domainId, size_t size)
+void Xios::setDomainLongitudeSize(const std::string domainId, const size_t size)
 {
     cxios_set_domain_ni(getDomain(domainId), (int)size);
 }
@@ -471,7 +471,7 @@ void Xios::setDomainLongitudeSize(std::string domainId, size_t size)
  * @param the domain ID
  * @param the local longitude size
  */
-void Xios::setDomainLatitudeSize(std::string domainId, size_t size)
+void Xios::setDomainLatitudeSize(const std::string domainId, const size_t size)
 {
     cxios_set_domain_nj(getDomain(domainId), (int)size);
 }
@@ -482,7 +482,7 @@ void Xios::setDomainLatitudeSize(std::string domainId, size_t size)
  * @param the domain ID
  * @return the local start longitude
  */
-void Xios::setDomainLongitudeStart(std::string domainId, size_t start)
+void Xios::setDomainLongitudeStart(const std::string domainId, const size_t start)
 {
     cxios_set_domain_ibegin(getDomain(domainId), (int)start);
 }
@@ -493,7 +493,7 @@ void Xios::setDomainLongitudeStart(std::string domainId, size_t start)
  * @param the domain ID
  * @return the local start latitude
  */
-void Xios::setDomainLatitudeStart(std::string domainId, size_t start)
+void Xios::setDomainLatitudeStart(const std::string domainId, const size_t start)
 {
     cxios_set_domain_jbegin(getDomain(domainId), (int)start);
 }
@@ -504,7 +504,7 @@ void Xios::setDomainLatitudeStart(std::string domainId, size_t start)
  * @param the domain ID
  * @return the local longitude values
  */
-void Xios::setDomainLongitudeValues(std::string domainId, std::vector<double> values)
+void Xios::setDomainLongitudeValues(const std::string domainId, std::vector<double> values)
 {
     int size = getDomainLongitudeSize(domainId);
     cxios_set_domain_lonvalue_1d(getDomain(domainId), values.data(), &size);
@@ -516,7 +516,7 @@ void Xios::setDomainLongitudeValues(std::string domainId, std::vector<double> va
  * @param the domain ID
  * @return the local latitude values
  */
-void Xios::setDomainLatitudeValues(std::string domainId, std::vector<double> values)
+void Xios::setDomainLatitudeValues(const std::string domainId, std::vector<double> values)
 {
     int size = getDomainLatitudeSize(domainId);
     cxios_set_domain_latvalue_1d(getDomain(domainId), values.data(), &size);
@@ -528,7 +528,7 @@ void Xios::setDomainLatitudeValues(std::string domainId, std::vector<double> val
  * @param the domain ID
  * @param domain type to set
  */
-void Xios::setDomainType(std::string domainId, std::string domainType)
+void Xios::setDomainType(const std::string domainId, const std::string domainType)
 {
     cxios_set_domain_type(getDomain(domainId), domainType.c_str(), domainType.length());
 }
@@ -539,7 +539,7 @@ void Xios::setDomainType(std::string domainId, std::string domainType)
  * @param the domain ID
  * @param global longitude size to set
  */
-void Xios::setDomainGlobalLongitudeSize(std::string domainId, size_t size)
+void Xios::setDomainGlobalLongitudeSize(const std::string domainId, const size_t size)
 {
     cxios_set_domain_ni_glo(getDomain(domainId), (int)size);
 }
@@ -550,7 +550,7 @@ void Xios::setDomainGlobalLongitudeSize(std::string domainId, size_t size)
  * @param the domain ID
  * @param global latitude size to set
  */
-void Xios::setDomainGlobalLatitudeSize(std::string domainId, size_t size)
+void Xios::setDomainGlobalLatitudeSize(const std::string domainId, const size_t size)
 {
     cxios_set_domain_nj_glo(getDomain(domainId), (int)size);
 }
@@ -561,7 +561,7 @@ void Xios::setDomainGlobalLatitudeSize(std::string domainId, size_t size)
  * @param the domain ID
  * @return the corresponding domain type
  */
-std::string Xios::getDomainType(std::string domainId)
+std::string Xios::getDomainType(const std::string domainId)
 {
     char cStr[cStrLen];
     cxios_get_domain_type(getDomain(domainId), cStr, cStrLen);
@@ -576,7 +576,7 @@ std::string Xios::getDomainType(std::string domainId)
  * @param the domain ID
  * @return the corresponding global longitude size
  */
-size_t Xios::getDomainGlobalLongitudeSize(std::string domainId)
+size_t Xios::getDomainGlobalLongitudeSize(const std::string domainId)
 {
     int size;
     cxios_get_domain_ni_glo(getDomain(domainId), &size);
@@ -589,7 +589,7 @@ size_t Xios::getDomainGlobalLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding global latitude size
  */
-size_t Xios::getDomainGlobalLatitudeSize(std::string domainId)
+size_t Xios::getDomainGlobalLatitudeSize(const std::string domainId)
 {
     int size;
     cxios_get_domain_nj_glo(getDomain(domainId), &size);
@@ -602,7 +602,7 @@ size_t Xios::getDomainGlobalLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding local longitude size
  */
-size_t Xios::getDomainLongitudeSize(std::string domainId)
+size_t Xios::getDomainLongitudeSize(const std::string domainId)
 {
     int size;
     cxios_get_domain_ni(getDomain(domainId), &size);
@@ -615,7 +615,7 @@ size_t Xios::getDomainLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding local latitude size
  */
-size_t Xios::getDomainLatitudeSize(std::string domainId)
+size_t Xios::getDomainLatitudeSize(const std::string domainId)
 {
     int size;
     cxios_get_domain_nj(getDomain(domainId), &size);
@@ -628,7 +628,7 @@ size_t Xios::getDomainLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return the local starting longitude of the corresponding domain
  */
-size_t Xios::getDomainLongitudeStart(std::string domainId)
+size_t Xios::getDomainLongitudeStart(const std::string domainId)
 {
     int start;
     cxios_get_domain_ibegin(getDomain(domainId), &start);
@@ -641,7 +641,7 @@ size_t Xios::getDomainLongitudeStart(std::string domainId)
  * @param the domain ID
  * @return the local starting latitude of the corresponding domain
  */
-size_t Xios::getDomainLatitudeStart(std::string domainId)
+size_t Xios::getDomainLatitudeStart(const std::string domainId)
 {
     int start;
     cxios_get_domain_jbegin(getDomain(domainId), &start);
@@ -654,7 +654,7 @@ size_t Xios::getDomainLatitudeStart(std::string domainId)
  * @param the domain ID
  * @return the local longitude values of the corresponding domain
  */
-std::vector<double> Xios::getDomainLongitudeValues(std::string domainId)
+std::vector<double> Xios::getDomainLongitudeValues(const std::string domainId)
 {
     int size = getDomainLongitudeSize(domainId);
     double* values = new double[size];
@@ -670,7 +670,7 @@ std::vector<double> Xios::getDomainLongitudeValues(std::string domainId)
  * @param the domain ID
  * @return the local latitude values of the corresponding domain
  */
-std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
+std::vector<double> Xios::getDomainLatitudeValues(const std::string domainId)
 {
     int size = getDomainLatitudeSize(domainId);
     double* values = new double[size];
@@ -686,7 +686,7 @@ std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
  * @param the domain ID
  * @return `true` if the type has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainType(std::string domainId)
+bool Xios::isDefinedDomainType(const std::string domainId)
 {
     return cxios_is_defined_domain_type(getDomain(domainId));
 }
@@ -697,7 +697,7 @@ bool Xios::isDefinedDomainType(std::string domainId)
  * @param the domain ID
  * @return `true` if the global longitude size has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainGlobalLongitudeSize(std::string domainId)
+bool Xios::isDefinedDomainGlobalLongitudeSize(const std::string domainId)
 {
     return cxios_is_defined_domain_ni_glo(getDomain(domainId));
 }
@@ -708,7 +708,7 @@ bool Xios::isDefinedDomainGlobalLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return `true` if the global latitude size has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainGlobalLatitudeSize(std::string domainId)
+bool Xios::isDefinedDomainGlobalLatitudeSize(const std::string domainId)
 {
     return cxios_is_defined_domain_nj_glo(getDomain(domainId));
 }
@@ -719,7 +719,7 @@ bool Xios::isDefinedDomainGlobalLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return `true` if the local longitude size has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainLongitudeSize(std::string domainId)
+bool Xios::isDefinedDomainLongitudeSize(const std::string domainId)
 {
     return cxios_is_defined_domain_ni(getDomain(domainId));
 }
@@ -730,7 +730,7 @@ bool Xios::isDefinedDomainLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return `true` if the local latitude size has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainLatitudeSize(std::string domainId)
+bool Xios::isDefinedDomainLatitudeSize(const std::string domainId)
 {
     return cxios_is_defined_domain_nj(getDomain(domainId));
 }
@@ -741,7 +741,7 @@ bool Xios::isDefinedDomainLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return `true` if the local starting longitude has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainLongitudeStart(std::string domainId)
+bool Xios::isDefinedDomainLongitudeStart(const std::string domainId)
 {
     return cxios_is_defined_domain_ibegin(getDomain(domainId));
 }
@@ -752,7 +752,7 @@ bool Xios::isDefinedDomainLongitudeStart(std::string domainId)
  * @param the domain ID
  * @return `true` if the local starting latitude has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainLatitudeStart(std::string domainId)
+bool Xios::isDefinedDomainLatitudeStart(const std::string domainId)
 {
     return cxios_is_defined_domain_jbegin(getDomain(domainId));
 }
@@ -763,7 +763,7 @@ bool Xios::isDefinedDomainLatitudeStart(std::string domainId)
  * @param the domain ID
  * @return `true` if the local longitude values have been set, otherwise `false`
  */
-bool Xios::areDefinedDomainLongitudeValues(std::string domainId)
+bool Xios::areDefinedDomainLongitudeValues(const std::string domainId)
 {
     return cxios_is_defined_domain_lonvalue_1d(getDomain(domainId));
 }
@@ -774,7 +774,7 @@ bool Xios::areDefinedDomainLongitudeValues(std::string domainId)
  * @param the domain ID
  * @return `true` if the local latitude values have been set, otherwise `false`
  */
-bool Xios::areDefinedDomainLatitudeValues(std::string domainId)
+bool Xios::areDefinedDomainLatitudeValues(const std::string domainId)
 {
     return cxios_is_defined_domain_latvalue_1d(getDomain(domainId));
 }
@@ -880,7 +880,7 @@ void Xios::gridAddAxis(std::string gridId, std::string axisId)
  * @param the grid ID
  * @param the domain ID
  */
-void Xios::gridAddDomain(std::string gridId, std::string domainId)
+void Xios::gridAddDomain(std::string gridId, const std::string domainId)
 {
     xios::CDomain* domain = getDomain(domainId);
     cxios_xml_tree_add_domaintogrid(getGrid(gridId), &domain, domainId.c_str(), domainId.length());
