@@ -8,15 +8,11 @@
  * Implementation of XIOS interface
  *
  * This C++ interface is designed to implement core functionality of XIOS so
- * that it can be used in nextsimdg. It is by no means meant to be
- * feature-complete. Initially the goal is to generate most of the XIOS
- * configuration in the xml definition file `iodef.xml`. As required we will
- * add more features to the C++ interface.
+ * that it can be used in nextSIM-DG.
  *
- * To enable XIOS in nextsim add the following lines to the config file.
+ * To enable XIOS in nextSIM-DG add the following lines to the config file.
  *   [xios]
  *   enable = true
- *
  */
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
@@ -81,7 +77,7 @@ void Xios::finalize()
  */
 void Xios::configure()
 {
-    // Check if XIOS is enabled in the neXtSIM-DG configuration
+    // Check if XIOS is enabled in the nextSIM-DG configuration
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
     if (isEnabled) {
@@ -102,11 +98,11 @@ void Xios::configureServer(std::string calendarType)
     MPI_Comm_rank(clientComm, &mpi_rank);
     MPI_Comm_size(clientComm, &mpi_size);
 
-    // Initialize 'nextsim' context
-    contextId = "nextsim";
+    // Initialize 'nextSIM-DG' context
+    contextId = "nextSIM-DG";
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
 
-    // Initialize calendar wrapper for 'nextsim' context
+    // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
     cxios_create_calendar(clientCalendar);
