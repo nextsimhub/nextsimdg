@@ -311,7 +311,7 @@ xios::CAxisGroup* Xios::getAxisGroup()
     xios::CAxisGroup* group = NULL;
     cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Null pointer for axis_definition group");
+        throw std::runtime_error("Xios: Null pointer for axis_definition group");
     }
     return group;
 }
@@ -327,7 +327,7 @@ xios::CAxis* Xios::getAxis(std::string axisId)
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
     if (!axis) {
-        throw std::runtime_error("Null pointer for axis with ID '" + axisId + "'");
+        throw std::runtime_error("Xios: Null pointer for axis with ID '" + axisId + "'");
     }
     return axis;
 }
@@ -342,7 +342,7 @@ void Xios::createAxis(std::string axisId)
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
     if (!axis) {
-        throw std::runtime_error("Null pointer for axis with ID '" + axisId + "'");
+        throw std::runtime_error("Xios: Null pointer for axis with ID '" + axisId + "'");
     }
 }
 
@@ -431,7 +431,7 @@ xios::CDomainGroup* Xios::getDomainGroup()
     xios::CDomainGroup* group = NULL;
     cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Null pointer for domain_definition group");
+        throw std::runtime_error("Xios: Null pointer for domain_definition group");
     }
     return group;
 }
@@ -447,7 +447,7 @@ xios::CDomain* Xios::getDomain(std::string domainId)
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
     if (!domain) {
-        throw std::runtime_error("Null pointer for domain with ID '" + domainId + "'");
+        throw std::runtime_error("Xios: Null pointer for domain with ID '" + domainId + "'");
     }
     return domain;
 }
@@ -462,7 +462,7 @@ void Xios::createDomain(std::string domainId)
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
     if (!domain) {
-        throw std::runtime_error("Null pointer for domain with ID '" + domainId + "'");
+        throw std::runtime_error("Xios: Null pointer for domain with ID '" + domainId + "'");
     }
 }
 
@@ -802,7 +802,7 @@ xios::CGridGroup* Xios::getGridGroup()
     xios::CGridGroup* group = NULL;
     cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Null pointer for grid_definition group");
+        throw std::runtime_error("Xios: Null pointer for grid_definition group");
     }
     return group;
 }
@@ -818,7 +818,7 @@ xios::CGrid* Xios::getGrid(std::string gridId)
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
     if (!grid) {
-        throw std::runtime_error("Null pointer for grid with ID '" + gridId + "'");
+        throw std::runtime_error("Xios: Null pointer for grid with ID '" + gridId + "'");
     }
     return grid;
 }
@@ -833,7 +833,7 @@ void Xios::createGrid(std::string gridId)
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
     if (!grid) {
-        throw std::runtime_error("Null pointer for grid with ID '" + gridId + "'");
+        throw std::runtime_error("Xios: Null pointer for grid with ID '" + gridId + "'");
     }
 }
 
@@ -909,7 +909,7 @@ xios::CFieldGroup* Xios::getFieldGroup()
     xios::CFieldGroup* group = NULL;
     cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Null pointer for field_definition group");
+        throw std::runtime_error("Xios: Null pointer for field_definition group");
     }
     return group;
 }
@@ -925,7 +925,7 @@ xios::CField* Xios::getField(std::string fieldId)
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
     if (!field) {
-        throw std::runtime_error("Null pointer for field with ID '" + fieldId + "'");
+        throw std::runtime_error("Xios: Null pointer for field with ID '" + fieldId + "'");
     }
     return field;
 }
@@ -940,7 +940,7 @@ void Xios::createField(std::string fieldId)
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
     if (!field) {
-        throw std::runtime_error("Null pointer for field with ID '" + fieldId + "'");
+        throw std::runtime_error("Xios: Null pointer for field with ID '" + fieldId + "'");
     }
 }
 
@@ -1066,7 +1066,7 @@ xios::CFileGroup* Xios::getFileGroup()
     xios::CFileGroup* group = NULL;
     cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Null pointer for file_definition group");
+        throw std::runtime_error("Xios: Null pointer for file_definition group");
     }
     return group;
 }
@@ -1082,7 +1082,7 @@ xios::CFile* Xios::getFile(std::string fileId)
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
     if (!file) {
-        throw std::runtime_error("Null pointer for file with ID '" + fileId + "'");
+        throw std::runtime_error("Xios: Null pointer for file with ID '" + fileId + "'");
     }
     return file;
 }
@@ -1097,7 +1097,7 @@ void Xios::createFile(std::string fileId)
     xios::CFile* file = NULL;
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
     if (!file) {
-        throw std::runtime_error("Null pointer for file with ID '" + fileId + "'");
+        throw std::runtime_error("Xios: Null pointer for file with ID '" + fileId + "'");
     }
 }
 
