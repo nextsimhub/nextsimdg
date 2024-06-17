@@ -11,10 +11,9 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
+#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
-// #include "include/ConfiguredModule.hpp"
-#include "include/ParametricGrid.hpp"
-#include "include/StructuredModule.hpp"
+#include "include/Module.hpp"
 #include "include/Xios.hpp"
 
 #include <iostream>
@@ -106,8 +105,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xios_handler.close_context_definition();
 
     // --- Tests for writing to file
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ParametricGrid grid;
+    Module::setImplementation<IStructure>("ParametricGrid");
     ModelArray::setDimension(ModelArray::Dimension::X, ni);
     ModelArray::setDimension(ModelArray::Dimension::Y, nj);
     ModelArray::setDimension(ModelArray::Dimension::Z, axis_size);
@@ -122,8 +120,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         }
     }
     // Verify calendar step is starting from zero
-    int step = xios_handler.getCalendarStep();
-    REQUIRE(step == 0);
+    REQUIRE(xios_handler.getCalendarStep() == 0);
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep
@@ -131,8 +128,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Send data to XIOS to be written to disk
         xios_handler.write(fieldId, field_A);
         // Verify timestep
-        step = xios_handler.getCalendarStep();
-        REQUIRE(step == ts);
+        REQUIRE(xios_handler.getCalendarStep() == ts);
     }
 
     xios_handler.context_finalize();

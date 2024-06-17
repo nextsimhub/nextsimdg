@@ -97,7 +97,7 @@ if(ENABLE_MPI)
 
     add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
     target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS USE_MPI)
-    target_include_directories(testXiosWrite_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_include_directories(testXiosWrite_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"})
     target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
   endif()
 else()
