@@ -261,11 +261,13 @@ std::string Xios::getCalendarType()
  *
  * @return calendar origin
  */
-cxios_date Xios::getCalendarOrigin()
+TimePoint Xios::getCalendarOrigin()
 {
     cxios_date calendar_origin;
     cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
-    return calendar_origin;
+    TimePoint tp;
+    tp.parse(convertXiosDatetimeToString(calendar_origin, true));
+    return tp;
 }
 
 /*!
@@ -273,11 +275,13 @@ cxios_date Xios::getCalendarOrigin()
  *
  * @return calendar start date
  */
-cxios_date Xios::getCalendarStart()
+TimePoint Xios::getCalendarStart()
 {
     cxios_date calendar_start;
     cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
-    return calendar_start;
+    TimePoint tp;
+    tp.parse(convertXiosDatetimeToString(calendar_start, true));
+    return tp;
 }
 
 /*!

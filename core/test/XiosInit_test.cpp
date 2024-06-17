@@ -50,20 +50,16 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     // --- Tests for calendar API
     // Calendar type
-    std::string calendarType = xios_handler.getCalendarType();
-    REQUIRE(calendarType == "Gregorian");
+    REQUIRE(xios_handler.getCalendarType() == "Gregorian");
     // Calendar origin
     Nextsim::TimePoint tp;
     tp.parse("2020-01-23T00:08:15Z");
     xios_handler.setCalendarOrigin(tp);
-    std::string datetime {};
-    datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarOrigin());
-    REQUIRE(datetime == "2020-01-23T00:08:15Z");
+    REQUIRE(tp == xios_handler.getCalendarOrigin());
     // Calendar start
     tp.parse("2023-03-17T17:11:00Z");
     xios_handler.setCalendarStart(tp);
-    datetime = xios_handler.convertXiosDatetimeToString(xios_handler.getCalendarStart());
-    REQUIRE(datetime == "2023-03-17T17:11:00Z");
+    REQUIRE(tp == xios_handler.getCalendarStart());
     // Timestep
     cxios_duration duration;
     duration.year = 0.0;
