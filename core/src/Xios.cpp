@@ -43,7 +43,6 @@ const std::map<int, std::string> Configured<Xios>::keyMap
  * Constructor
  *
  * Configure an XIOS server
- *
  */
 Xios::Xios() { configure(); }
 
@@ -82,7 +81,7 @@ void Xios::finalize()
  */
 void Xios::configure()
 {
-    // check if xios is enabled in the nextsim configuration
+    // Check if XIOS is enabled in the neXtSIM-DG configuration
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
     if (isEnabled) {
@@ -124,9 +123,9 @@ int Xios::getClientMPISize() { return mpi_size; }
 int Xios::getClientMPIRank() { return mpi_rank; }
 
 /*!
- * verify xios server is initialized
+ * Verify XIOS server is initialized
  *
- * @return true when xios server is initialized
+ * @return true when XIOS server is initialized
  */
 bool Xios::isInitialized()
 {
@@ -181,7 +180,7 @@ cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, bool
 /*!
  * Set calendar origin
  *
- * @param origin as a TimePoint
+ * @param origin
  */
 void Xios::setCalendarOrigin(TimePoint origin)
 {
@@ -192,7 +191,7 @@ void Xios::setCalendarOrigin(TimePoint origin)
 /*!
  * Set calendar start date
  *
- * @param start date as a TimePoint
+ * @param start date
  */
 void Xios::setCalendarStart(TimePoint start)
 {
@@ -207,14 +206,7 @@ void Xios::setCalendarStart(TimePoint start)
  */
 void Xios::setCalendarTimestep(Duration timestep)
 {
-    cxios_duration duration; // { 0.0, 0.0, 0.0, 0.0, timestep.seconds(), 0.0 };
-    duration.year = 0.0;
-    duration.month = 0.0;
-    duration.day = 0.0;
-    duration.hour = 0.0;
-    duration.minute = 0.0;
-    duration.second = timestep.seconds();
-    duration.timestep = 0.0;
+    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, timestep.seconds(), 0.0 };
     cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
     cxios_update_calendar_timestep(clientCalendar);
 }
