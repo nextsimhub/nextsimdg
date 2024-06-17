@@ -96,38 +96,38 @@ public:
     bool areDefinedDomainLatitudeValues(const std::string domainId);
 
     /* Grid */
-    void createGrid(std::string gridId);
-    void setGridName(std::string gridId, std::string name);
-    std::string getGridName(std::string gridId);
-    bool isDefinedGridName(std::string GridId);
+    void createGrid(const std::string gridId);
+    void setGridName(const std::string gridId, const std::string name);
+    std::string getGridName(const std::string gridId);
+    bool isDefinedGridName(const std::string gridId);
     void gridAddAxis(std::string axisId, const std::string domainId);
-    void gridAddDomain(std::string gridId, const std::string domainId);
+    void gridAddDomain(const std::string gridId, const std::string domainId);
 
     /* Field */
-    void createField(std::string fieldId);
-    void setFieldName(std::string fieldId, std::string name);
-    void setFieldOperation(std::string fieldId, std::string operation);
-    void setFieldGridRef(std::string fieldId, std::string gridRef);
-    std::string getFieldName(std::string fieldId);
-    std::string getFieldOperation(std::string fieldId);
-    std::string getFieldGridRef(std::string fieldId);
-    bool isDefinedFieldName(std::string fieldId);
-    bool isDefinedFieldOperation(std::string fieldId);
-    bool isDefinedFieldGridRef(std::string fieldId);
+    void createField(const std::string fieldId);
+    void setFieldName(const std::string fieldId, const std::string name);
+    void setFieldOperation(const std::string fieldId, const std::string operation);
+    void setFieldGridRef(const std::string fieldId, const std::string gridRef);
+    std::string getFieldName(const std::string fieldId);
+    std::string getFieldOperation(const std::string fieldId);
+    std::string getFieldGridRef(const std::string fieldId);
+    bool isDefinedFieldName(const std::string fieldId);
+    bool isDefinedFieldOperation(const std::string fieldId);
+    bool isDefinedFieldGridRef(const std::string fieldId);
 
     /* File */
-    void createFile(std::string fileId);
-    void setFileName(std::string fileId, std::string fileName);
-    void setFileType(std::string fileId, std::string fileType);
-    void setFileOutputFreq(std::string fileId, std::string outputFreq);
-    std::string getFileName(std::string fileId);
-    std::string getFileType(std::string fileId);
-    std::string getFileOutputFreq(std::string fileId);
-    bool validFileId(std::string fileId);
-    bool isDefinedFileName(std::string fileId);
-    bool isDefinedFileType(std::string fileId);
-    bool isDefinedFileOutputFreq(std::string fileId);
-    void fileAddField(std::string fileId, std::string fieldId);
+    void createFile(const std::string fileId);
+    void setFileName(const std::string fileId, const std::string fileName);
+    void setFileType(const std::string fileId, const std::string fileType);
+    void setFileOutputFreq(const std::string fileId, const std::string outputFreq);
+    std::string getFileName(const std::string fileId);
+    std::string getFileType(const std::string fileId);
+    std::string getFileOutputFreq(const std::string fileId);
+    bool validFileId(const std::string fileId);
+    bool isDefinedFileName(const std::string fileId);
+    bool isDefinedFileType(const std::string fileId);
+    bool isDefinedFileOutputFreq(const std::string fileId);
+    void fileAddField(const std::string fileId, const std::string fieldId);
 
     /* I/O */
     void write(const std::string fieldId, double* data, const size_t ni, const size_t nj);
@@ -167,9 +167,9 @@ private:
 
     xios::CAxis* getAxis(const std::string axisId);
     xios::CDomain* getDomain(const std::string domainId);
-    xios::CField* getField(std::string fieldId);
-    xios::CGrid* getGrid(std::string gridId);
-    xios::CFile* getFile(std::string fileId);
+    xios::CField* getField(const std::string fieldId);
+    xios::CGrid* getGrid(const std::string gridId);
+    xios::CFile* getFile(const std::string fileId);
 };
 
 }

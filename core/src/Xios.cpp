@@ -786,7 +786,7 @@ bool Xios::areDefinedDomainLatitudeValues(const std::string domainId)
  */
 xios::CGridGroup* Xios::getGridGroup()
 {
-    std::string groupId = { "grid_definition" };
+    const std::string groupId = { "grid_definition" };
     xios::CGridGroup* group = NULL;
     cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -801,7 +801,7 @@ xios::CGridGroup* Xios::getGridGroup()
  * @param the grid ID
  * @return a pointer to the XIOS CGrid object
  */
-xios::CGrid* Xios::getGrid(std::string gridId)
+xios::CGrid* Xios::getGrid(const std::string gridId)
 {
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
@@ -816,7 +816,7 @@ xios::CGrid* Xios::getGrid(std::string gridId)
  *
  * @param the grid ID
  */
-void Xios::createGrid(std::string gridId)
+void Xios::createGrid(const std::string gridId)
 {
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
@@ -831,7 +831,7 @@ void Xios::createGrid(std::string gridId)
  * @param the grid ID
  * @return name of the corresponding grid
  */
-std::string Xios::getGridName(std::string gridId)
+std::string Xios::getGridName(const std::string gridId)
 {
     char cStr[cStrLen];
     cxios_get_grid_name(getGrid(gridId), cStr, cStrLen);
@@ -846,7 +846,7 @@ std::string Xios::getGridName(std::string gridId)
  * @param the grid ID
  * @param name to set
  */
-void Xios::setGridName(std::string gridId, std::string gridName)
+void Xios::setGridName(const std::string gridId, const std::string gridName)
 {
     cxios_set_grid_name(getGrid(gridId), gridName.c_str(), gridName.length());
 }
@@ -857,7 +857,7 @@ void Xios::setGridName(std::string gridId, std::string gridName)
  * @param the grid ID
  * @return `true` if the name has been set, otherwise `false`
  */
-bool Xios::isDefinedGridName(std::string gridId)
+bool Xios::isDefinedGridName(const std::string gridId)
 {
     return cxios_is_defined_grid_name(getGrid(gridId));
 }
@@ -868,7 +868,7 @@ bool Xios::isDefinedGridName(std::string gridId)
  * @param the grid ID
  * @param the axis ID
  */
-void Xios::gridAddAxis(std::string gridId, std::string axisId)
+void Xios::gridAddAxis(const std::string gridId, const std::string axisId)
 {
     xios::CAxis* axis = getAxis(axisId);
     cxios_xml_tree_add_axistogrid(getGrid(gridId), &axis, axisId.c_str(), axisId.length());
@@ -880,7 +880,7 @@ void Xios::gridAddAxis(std::string gridId, std::string axisId)
  * @param the grid ID
  * @param the domain ID
  */
-void Xios::gridAddDomain(std::string gridId, const std::string domainId)
+void Xios::gridAddDomain(const std::string gridId, const std::string domainId)
 {
     xios::CDomain* domain = getDomain(domainId);
     cxios_xml_tree_add_domaintogrid(getGrid(gridId), &domain, domainId.c_str(), domainId.length());
@@ -893,7 +893,7 @@ void Xios::gridAddDomain(std::string gridId, const std::string domainId)
  */
 xios::CFieldGroup* Xios::getFieldGroup()
 {
-    std::string groupId = { "field_definition" };
+    const std::string groupId = { "field_definition" };
     xios::CFieldGroup* group = NULL;
     cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -908,7 +908,7 @@ xios::CFieldGroup* Xios::getFieldGroup()
  * @param the field ID
  * @return a pointer to the XIOS CField object
  */
-xios::CField* Xios::getField(std::string fieldId)
+xios::CField* Xios::getField(const std::string fieldId)
 {
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
@@ -923,7 +923,7 @@ xios::CField* Xios::getField(std::string fieldId)
  *
  * @param the field ID
  */
-void Xios::createField(std::string fieldId)
+void Xios::createField(const std::string fieldId)
 {
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
@@ -938,7 +938,7 @@ void Xios::createField(std::string fieldId)
  * @param the field ID
  * @param name to set
  */
-void Xios::setFieldName(std::string fieldId, std::string fieldName)
+void Xios::setFieldName(const std::string fieldId, const std::string fieldName)
 {
     cxios_set_field_name(getField(fieldId), fieldName.c_str(), fieldName.length());
 }
@@ -949,7 +949,7 @@ void Xios::setFieldName(std::string fieldId, std::string fieldName)
  * @param the field ID
  * @param operation to set
  */
-void Xios::setFieldOperation(std::string fieldId, std::string operation)
+void Xios::setFieldOperation(const std::string fieldId, const std::string operation)
 {
     cxios_set_field_operation(getField(fieldId), operation.c_str(), operation.length());
 }
@@ -960,7 +960,7 @@ void Xios::setFieldOperation(std::string fieldId, std::string operation)
  * @param the field ID
  * @param grid reference to set
  */
-void Xios::setFieldGridRef(std::string fieldId, std::string gridRef)
+void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
 {
     cxios_set_field_grid_ref(getField(fieldId), gridRef.c_str(), gridRef.length());
 }
@@ -971,7 +971,7 @@ void Xios::setFieldGridRef(std::string fieldId, std::string gridRef)
  * @param the field ID
  * @return name of the corresponding field
  */
-std::string Xios::getFieldName(std::string fieldId)
+std::string Xios::getFieldName(const std::string fieldId)
 {
     char cStr[cStrLen];
     cxios_get_field_name(getField(fieldId), cStr, cStrLen);
@@ -986,7 +986,7 @@ std::string Xios::getFieldName(std::string fieldId)
  * @param the field ID
  * @return operation used for the corresponding field
  */
-std::string Xios::getFieldOperation(std::string fieldId)
+std::string Xios::getFieldOperation(const std::string fieldId)
 {
     char cStr[cStrLen];
     cxios_get_field_operation(getField(fieldId), cStr, cStrLen);
@@ -1001,7 +1001,7 @@ std::string Xios::getFieldOperation(std::string fieldId)
  * @param the field ID
  * @return grid reference used for the corresponding field
  */
-std::string Xios::getFieldGridRef(std::string fieldId)
+std::string Xios::getFieldGridRef(const std::string fieldId)
 {
     char cStr[cStrLen];
     cxios_get_field_grid_ref(getField(fieldId), cStr, cStrLen);
@@ -1016,7 +1016,7 @@ std::string Xios::getFieldGridRef(std::string fieldId)
  * @param the field ID
  * @return `true` if the name has been set, otherwise `false`
  */
-bool Xios::isDefinedFieldName(std::string fieldId)
+bool Xios::isDefinedFieldName(const std::string fieldId)
 {
     return cxios_is_defined_field_name(getField(fieldId));
 }
@@ -1027,7 +1027,7 @@ bool Xios::isDefinedFieldName(std::string fieldId)
  * @param the field ID
  * @return `true` if the operation has been set, otherwise `false`
  */
-bool Xios::isDefinedFieldOperation(std::string fieldId)
+bool Xios::isDefinedFieldOperation(const std::string fieldId)
 {
     return cxios_is_defined_field_operation(getField(fieldId));
 }
@@ -1038,7 +1038,7 @@ bool Xios::isDefinedFieldOperation(std::string fieldId)
  * @param the field ID
  * @return `true` if the grid reference has been set, otherwise `false`
  */
-bool Xios::isDefinedFieldGridRef(std::string fieldId)
+bool Xios::isDefinedFieldGridRef(const std::string fieldId)
 {
     return cxios_is_defined_field_grid_ref(getField(fieldId));
 }
@@ -1050,7 +1050,7 @@ bool Xios::isDefinedFieldGridRef(std::string fieldId)
  */
 xios::CFileGroup* Xios::getFileGroup()
 {
-    std::string groupId = { "file_definition" };
+    const std::string groupId = { "file_definition" };
     xios::CFileGroup* group = NULL;
     cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -1065,7 +1065,7 @@ xios::CFileGroup* Xios::getFileGroup()
  * @param the file ID
  * @return a pointer to the XIOS CFile object
  */
-xios::CFile* Xios::getFile(std::string fileId)
+xios::CFile* Xios::getFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
@@ -1080,7 +1080,7 @@ xios::CFile* Xios::getFile(std::string fileId)
  *
  * @param the file ID
  */
-void Xios::createFile(std::string fileId)
+void Xios::createFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
@@ -1095,7 +1095,7 @@ void Xios::createFile(std::string fileId)
  * @param the file ID
  * @param file name to set
  */
-void Xios::setFileName(std::string fileId, std::string fileName)
+void Xios::setFileName(const std::string fileId, const std::string fileName)
 {
     cxios_set_file_name(getFile(fileId), fileName.c_str(), fileName.length());
 }
@@ -1106,7 +1106,7 @@ void Xios::setFileName(std::string fileId, std::string fileName)
  * @param the file ID
  * @param file type to set
  */
-void Xios::setFileType(std::string fileId, std::string fileType)
+void Xios::setFileType(const std::string fileId, const std::string fileType)
 {
     cxios_set_file_type(getFile(fileId), fileType.c_str(), fileType.length());
 }
@@ -1117,10 +1117,10 @@ void Xios::setFileType(std::string fileId, std::string fileType)
  * @param the file ID
  * @param output frequency to set
  */
-void Xios::setFileOutputFreq(std::string fileId, std::string freq)
+void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
 {
-    cxios_duration duration = cxios_duration_convert_from_string(freq.c_str(), freq.length());
-    cxios_set_file_output_freq(getFile(fileId), duration);
+    cxios_set_file_output_freq(
+        getFile(fileId), cxios_duration_convert_from_string(freq.c_str(), freq.length()));
 }
 
 /*!
@@ -1129,7 +1129,7 @@ void Xios::setFileOutputFreq(std::string fileId, std::string freq)
  * @param the file ID
  * @return name of the corresponding file
  */
-std::string Xios::getFileName(std::string fileId)
+std::string Xios::getFileName(const std::string fileId)
 {
     char cStr[cStrLen];
     cxios_get_file_name(getFile(fileId), cStr, cStrLen);
@@ -1144,7 +1144,7 @@ std::string Xios::getFileName(std::string fileId)
  * @param the file ID
  * @return type of the corresponding file
  */
-std::string Xios::getFileType(std::string fileId)
+std::string Xios::getFileType(const std::string fileId)
 {
     char cStr[cStrLen];
     cxios_get_file_type(getFile(fileId), cStr, cStrLen);
@@ -1159,7 +1159,7 @@ std::string Xios::getFileType(std::string fileId)
  * @param the file ID
  * @return the corresponding output frequency
  */
-std::string Xios::getFileOutputFreq(std::string fileId)
+std::string Xios::getFileOutputFreq(const std::string fileId)
 {
     cxios_duration duration;
     cxios_get_file_output_freq(getFile(fileId), &duration);
@@ -1176,7 +1176,7 @@ std::string Xios::getFileOutputFreq(std::string fileId)
  * @param the file ID
  * @return `true` if the file ID is valid, otherwise `false`
  */
-bool Xios::validFileId(std::string fileId)
+bool Xios::validFileId(const std::string fileId)
 {
     bool valid;
     cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
@@ -1189,7 +1189,7 @@ bool Xios::validFileId(std::string fileId)
  * @param the file ID
  * @return `true` if the name has been set, otherwise `false`
  */
-bool Xios::isDefinedFileName(std::string fileId)
+bool Xios::isDefinedFileName(const std::string fileId)
 {
     return cxios_is_defined_file_name(getFile(fileId));
 }
@@ -1200,7 +1200,7 @@ bool Xios::isDefinedFileName(std::string fileId)
  * @param the file ID
  * @return `true` if the type has been set, otherwise `false`
  */
-bool Xios::isDefinedFileType(std::string fileId)
+bool Xios::isDefinedFileType(const std::string fileId)
 {
     return cxios_is_defined_file_type(getFile(fileId));
 }
@@ -1211,7 +1211,7 @@ bool Xios::isDefinedFileType(std::string fileId)
  * @param the file ID
  * @return `true` if the output frequency has been set, otherwise `false`
  */
-bool Xios::isDefinedFileOutputFreq(std::string fileId)
+bool Xios::isDefinedFileOutputFreq(const std::string fileId)
 {
     return cxios_is_defined_file_output_freq(getFile(fileId));
 }
@@ -1222,7 +1222,7 @@ bool Xios::isDefinedFileOutputFreq(std::string fileId)
  * @param the file ID
  * @param the field ID
  */
-void Xios::fileAddField(std::string fileId, std::string fieldId)
+void Xios::fileAddField(const std::string fileId, const std::string fieldId)
 {
     xios::CField* field = getField(fieldId);
     cxios_xml_tree_add_fieldtofile(getFile(fileId), &field, fieldId.c_str(), fieldId.length());
