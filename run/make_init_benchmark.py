@@ -14,7 +14,7 @@ for res in [2, 4, 8, 16]:
     fname = f"init_benchmark_{nfirst}x{nsecond}.nc"
     print("Producing file", fname)
 
-    initializer = initMaker(fname, nfirst, nsecond, nLayers, res*1e3)
+    initializer = initMaker(fname, nfirst, nsecond, nLayers, res*1e3, checkZeros=False)
     # The model expects everything in metres, while the benchmark problem in Mehlman et al. (2021) is defined in km.
 
     # Ice everywhere and all boundaries closed

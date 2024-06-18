@@ -1,6 +1,7 @@
 import netCDF4
 import numpy as np
 
+
 class initMaker:
     """
     A "plug-and-play" initialisation class for neXtSIM. The user needs to supply
@@ -20,7 +21,7 @@ class initMaker:
         (e.g. when the program ends or at the end of a loop).
     """
 
-    def __init__(self, fname, nFirst, nSecond, nLayers, res, nCg=1, nDg=1, nDgStress=3, nCoords=2):
+    def __init__(self, fname, nFirst, nSecond, nLayers, res, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
         """
         Initialise all internal variables, except __nfirst, __nsecond, __nLayers,
         and __res to zero. All arrays are set to the right size as well.
@@ -60,6 +61,9 @@ class initMaker:
         self.__nDgStress = nDgStress
         self.__nCoords = nCoords
 
+        # Do we check for zeros?
+        self.__checkZeros = checkZeros
+
     def __testFields__(self):
         """
         Check if arrays are non-zero and the right size. Print a warning if
@@ -80,7 +84,7 @@ class initMaker:
                       ["sst", (self.sst==0).all(), self.sst.shape==(self.__nFirst,self.__nSecond)],
                       ["azimuth", (self.azimuth==0).all(), self.azimuth.shape==(self.__nFirst,self.__nSecond)]]:
 
-            if check[1]:
+            if self.__checkZeros and check[1]:
                 print("Warning: '"+check[0]+"' is all zeros (this may be ok, if that's what you want).")
 
             if not check[2]:
