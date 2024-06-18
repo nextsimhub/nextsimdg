@@ -63,7 +63,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
         m_damage = ms.at(damageName);
     } else {
         m_damage.resize();
-        m_damage = 0.5;
+        m_damage = 0.;
     }
 
     pAtmBdy->setData(ms);

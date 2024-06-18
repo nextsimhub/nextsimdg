@@ -46,6 +46,7 @@ class initMaker:
         self.cice = np.zeros((self.__nFirst, self.__nSecond))
         self.hice = np.zeros((self.__nFirst, self.__nSecond))
         self.hsnow = np.zeros((self.__nFirst, self.__nSecond))
+        self.damage = np.zeros((self.__nFirst, self.__nSecond))
         self.uice = np.zeros((self.__nFirst, self.__nSecond))
         self.vice = np.zeros((self.__nFirst, self.__nSecond))
         self.azimuth = np.zeros((self.__nFirst, self.__nSecond))
@@ -71,6 +72,7 @@ class initMaker:
         for check in [["cice", (self.cice==0).all(), self.cice.shape==(self.__nFirst,self.__nSecond)],
                       ["hice", (self.hice==0).all(), self.hice.shape==(self.__nFirst,self.__nSecond)],
                       ["hsnow", (self.hsnow==0).all(), self.hsnow.shape==(self.__nFirst,self.__nSecond)],
+                      ["damage", (self.damage==0).all(), self.damage.shape==(self.__nFirst,self.__nSecond)],
                       ["tice", (self.tice==0).all(), self.tice.shape==(self.__nLayers,self.__nFirst,self.__nSecond)],
                       ["uice", (self.uice==0).all(), self.uice.shape==(self.__nFirst,self.__nSecond)],
                       ["vice", (self.vice==0).all(), self.vice.shape==(self.__nFirst,self.__nSecond)],
@@ -166,6 +168,10 @@ class initMaker:
         hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
         hsnow[:, :] = self.hsnow
 
+        # Set snow thickness
+        damage = datagrp.createVariable("damage", "f8", field_dims)
+        damage[:, :] = self.damage
+
         # Set ice temperatures
         tice = datagrp.createVariable("tice", "f8", ("zdim", "ydim", "xdim"))
         tice[:, :, :] = self.tice
@@ -191,6 +197,8 @@ class initMaker:
         hice.missing_value = mdi
         hsnow[:, :] = hsnow[:, :] * mask[:, :] + antimask * mdi
         hsnow.missing_value = mdi
+        damage[:, :] = damage[:, :] * mask[:, :] + antimask * mdi
+        damage.missing_value = mdi
         u[:, :] = u[:, :] * mask[:, :] + antimask * mdi
         u.missing_value = mdi
         v[:, :] = v[:, :] * mask[:, :] + antimask * mdi
