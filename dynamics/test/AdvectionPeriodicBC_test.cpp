@@ -4,6 +4,9 @@
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
+ #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+ #include <doctest/doctest.h>
+
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
@@ -255,11 +258,13 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh)
     }
 }
 
-template <int DG> void run(const std::array<std::array<double, 4>, 3>& exact)
+template <int DG> bool run(const std::array<std::array<double, 4>, 3>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 : -1))
+
+    bool success = true;
 
     for (int it = 0; it < 2; ++it) {
 
@@ -272,14 +277,19 @@ template <int DG> void run(const std::array<std::array<double, 4>, 3>& exact)
         Test<DG> test(smesh);
         double error = test.run();
         std::cout << error << "\t" << exact[DG2DEG(DG)][it];
-        if (fabs(error - exact[DG2DEG(DG)][it]) / exact[DG2DEG(DG)][it] < TOL)
+        if (fabs(error - exact[DG2DEG(DG)][it]) / exact[DG2DEG(DG)][it] < TOL){
             std::cout << "\ttest passed" << std::endl;
-        else
+          }
+        else{
             std::cout << "\ttest failed" << std::endl;
+            success = false;
+          }
     }
+    return success;
 }
 
-int main()
+TEST_SUITE_BEGIN("Advection Periodic Boundary Conditions");
+TEST_CASE("Advection Periodic Boundary Conditions")
 {
     std::cout << "DG\tNT\tNX\tmass\t\terror\t\texact\t\tpassed" << std::endl;
     std::cout << std::setprecision(4) << std::scientific;
@@ -292,8 +302,8 @@ int main()
             std::array<double, 4>({ 6.0748693509577401e-01, 4.1527390403823250e-01,
                 3.0257967665165653e-01, 2.2100034857331666e-01 }) };
 
-    run<1>(exact);
-    run<3>(exact);
-    run<6>(exact);
-    return 0;
+    REQUIRE(run<1>(exact) == true);
+    REQUIRE(run<3>(exact) == true);
+    REQUIRE(run<6>(exact) == true);
+
 }

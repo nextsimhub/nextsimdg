@@ -4,6 +4,9 @@
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
@@ -240,12 +243,12 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh, const double Lx, const
     // no other boundaries.
 }
 
-template <int DG> void run(double distort, const std::array<std::array<double, 4>, 3>& exact)
+template <int DG> bool run(double distort, const std::array<std::array<double, 4>, 3>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN); // 0 means no output
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 : -1))
-
+    bool success = true;
     for (int it = 0; it < 2; ++it) {
 
         // set number of elements in x- and y-direction
@@ -261,14 +264,18 @@ template <int DG> void run(double distort, const std::array<std::array<double, 4
         Test<DG> test(smesh);
         double error = test.run();
         std::cout << error << "\t" << exact[DG2DEG(DG)][it];
-        if (fabs(error - exact[DG2DEG(DG)][it]) / exact[DG2DEG(DG)][it] < TOL)
+        if (fabs(error - exact[DG2DEG(DG)][it]) / exact[DG2DEG(DG)][it] < TOL){
             std::cout << "\ttest passed" << std::endl;
-        else
+            }
+        else{
             std::cout << "\ttest failed" << std::endl;
+            success = false;}
     }
+    return success;
 }
 
-int main()
+TEST_SUITE_BEGIN("Advection");
+TEST_CASE("Advection")
 {
     std::cout << std::setprecision(4) << std::scientific;
 
@@ -281,11 +288,13 @@ int main()
                 2.8460172952094940e-04, 4.5459584746490405e-05 }) };
 
     std::cout << std::endl << "DG\tNT\tNX\tmass loss\terror\t\texact\t\tpassed" << std::endl;
-    run<1>(0.0, exact);
-    run<3>(0.0, exact);
-    run<6>(0.0, exact);
-
-    exact = { std::array<double, 4>({ 4.8471012332113990e-02, 4.3923292993805568e-02,
+    REQUIRE(run<1>(0.0, exact) == true);
+    REQUIRE(run<3>(0.0, exact) == true);
+    REQUIRE(run<6>(0.0, exact) == true);
+}
+TEST_CASE("Distorted Mesh")
+{
+    std::array<std::array<double, 4>, 3> exact = { std::array<double, 4>({ 4.8471012332113990e-02, 4.3923292993805568e-02,
                   3.7043103484653367e-02, 2.8337995655005246e-02 }),
         std::array<double, 4>({ 1.5639053380182857e-02, 6.7927021150567882e-03,
             2.7369920558767478e-03, 9.2109978015705776e-04 }),
@@ -294,9 +303,8 @@ int main()
 
     std::cout << std::endl << "Distorted mesh" << std::endl;
     std::cout << "DG\tNT\tNX\tmass loss\terror\t\texact\t\tpassed" << std::endl;
-    run<1>(0.05, exact);
-    run<3>(0.05, exact);
-    run<6>(0.05, exact);
+    REQUIRE(run<1>(0.05, exact) == true);
+    REQUIRE(run<3>(0.05, exact) == true);
+    REQUIRE(run<6>(0.05, exact) == true);
 
-    return 0;
 }

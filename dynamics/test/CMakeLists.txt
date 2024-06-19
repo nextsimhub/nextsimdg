@@ -34,7 +34,7 @@ add_executable(testAdvection Advection_test.cpp
  "${SRC_DIR}/cgParametricMomentum.cpp"
  )
 target_include_directories(testAdvection PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}")
-target_link_libraries(testAdvection LINK_PUBLIC Eigen3::Eigen)
+target_link_libraries(testAdvection LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
 add_executable(testAdvectionPeriodicBC AdvectionPeriodicBC_test.cpp
  "${CoreDir}/ModelArray.cpp"
@@ -47,4 +47,4 @@ add_executable(testAdvectionPeriodicBC AdvectionPeriodicBC_test.cpp
  "${SRC_DIR}/cgParametricMomentum.cpp"
  )
 target_include_directories(testAdvectionPeriodicBC PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}")
-target_link_libraries(testAdvectionPeriodicBC LINK_PUBLIC Eigen3::Eigen)
+target_link_libraries(testAdvectionPeriodicBC LINK_PUBLIC doctest::doctest Eigen3::Eigen)
