@@ -80,6 +80,11 @@ if(ENABLE_MPI)
     target_include_directories(testXiosDomain_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
     target_link_libraries(testXiosDomain_MPI2 PRIVATE nextsimlib doctest::doctest)
 
+    add_executable(testXiosGrid_MPI2 "XiosGrid_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosGrid_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosGrid_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+
     add_executable(testXiosInit_MPI2 "XiosInit_test.cpp" "MainMPI.cpp")
     target_compile_definitions(testXiosInit_MPI2 PRIVATE USE_XIOS USE_MPI)
     target_include_directories(testXiosInit_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")

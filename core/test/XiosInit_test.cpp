@@ -89,15 +89,11 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     }
     xios_handler.setDomainLatitudeValues("domain_A", vecLat);
 
-    // --- Tests for grid API
-    const std::string gridId = { "grid_2D" };
-    xios_handler.createGrid(gridId);
-    // Grid name
-    REQUIRE_FALSE(xios_handler.isDefinedGridName(gridId));
-    const std::string gridName = { "test_grid" };
-    xios_handler.setGridName(gridId, gridName);
-    REQUIRE(xios_handler.isDefinedGridName(gridId));
-    REQUIRE(xios_handler.getGridName(gridId) == gridName);
+    // Grid setup
+    xios_handler.createGrid("grid_2D");
+    xios_handler.setGridName("grid_2D", "test_grid");
+    xios_handler.gridAddDomain("grid_2D", "domain_A");
+    xios_handler.gridAddAxis("grid_2D", "axis_A");
 
     // --- Tests for field API
     const std::string fieldId = { "field_A" };
@@ -120,8 +116,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
-    xios_handler.gridAddDomain(gridId, "domain_A");
-    xios_handler.gridAddAxis(gridId, "axis_A");
 
     // --- Tests for file API
     const std::string fileId { "output" };
