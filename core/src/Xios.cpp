@@ -1261,6 +1261,23 @@ void Xios::write(
 {
     cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, -1);
 }
+
+/*!
+ * send 4D field to xios server to be written to file.
+ *
+ * @param field name
+ * @param data to be written
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ * @param size of 3rd dimension
+ * @param size of 4th dimension
+ */
+void Xios::write(const std::string fieldId, double* data, const size_t ni, const size_t nj,
+    const size_t nk, const size_t nl)
+{
+    cxios_write_data_k84(
+        fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, (int)nl, -1);
+}
 }
 
 #endif

@@ -133,6 +133,8 @@ public:
     void write(const std::string fieldId, double* data, const size_t ni, const size_t nj);
     void write(
         const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk);
+    void write(const std::string fieldId, double* data, const size_t ni, const size_t nj,
+        const size_t nk, const size_t nl);
 
     enum {
         ENABLED_KEY,
