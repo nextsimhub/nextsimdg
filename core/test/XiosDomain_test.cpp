@@ -42,9 +42,7 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     REQUIRE(size == 2);
     const size_t rank = xios_handler.getClientMPIRank();
 
-    // Calendar setup
-    xios_handler.setCalendarOrigin(Nextsim::TimePoint("2020-01-23T00:08:15Z"));
-    xios_handler.setCalendarStart(Nextsim::TimePoint("2023-03-17T17:11:00Z"));
+    // Set timestep as a minimum
     xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:30:00"));
 
     // --- Tests for domain API
