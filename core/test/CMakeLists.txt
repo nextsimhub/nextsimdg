@@ -64,6 +64,12 @@ if(ENABLE_MPI)
       "${xios_EXTERNS}/blitz/"
       "${xios_EXTERNS}/rapidxml/include"
       )
+
+    add_executable(testXiosCalendar_MPI2 "XiosCalendar_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosCalendar_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosCalendar_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosCalendar_MPI2 PRIVATE nextsimlib doctest::doctest)
+
     add_executable(testXiosInit_MPI2 "XiosInit_test.cpp" "MainMPI.cpp")
     target_compile_definitions(testXiosInit_MPI2 PRIVATE USE_XIOS USE_MPI)
     target_include_directories(testXiosInit_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")

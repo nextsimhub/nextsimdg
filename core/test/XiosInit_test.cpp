@@ -48,24 +48,10 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(size == 2);
     const size_t rank = xios_handler.getClientMPIRank();
 
-    // --- Tests for calendar API
-    // Calendar type
-    REQUIRE(xios_handler.getCalendarType() == "Gregorian");
-    // Calendar origin
-    Nextsim::TimePoint tp("2020-01-23T00:08:15Z");
-    xios_handler.setCalendarOrigin(tp);
-    REQUIRE(tp == xios_handler.getCalendarOrigin());
-    REQUIRE(tp.format() == "2020-01-23T00:08:15Z");
-    // Calendar start
-    tp.parse("2023-03-17T17:11:00Z");
-    xios_handler.setCalendarStart(tp);
-    REQUIRE(tp == xios_handler.getCalendarStart());
-    REQUIRE(tp.format() == "2023-03-17T17:11:00Z");
-    // Timestep
-    Nextsim::Duration dur("P0-0T01:30:00");
-    REQUIRE(dur.seconds() == doctest::Approx(5400.0));
-    xios_handler.setCalendarTimestep(dur);
-    REQUIRE(xios_handler.getCalendarTimestep().seconds() == doctest::Approx(5400.0));
+    // Calendar setup
+    xios_handler.setCalendarOrigin(Nextsim::TimePoint("2020-01-23T00:08:15Z"));
+    xios_handler.setCalendarStart(Nextsim::TimePoint("2023-03-17T17:11:00Z"));
+    xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:30:00"));
 
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };
@@ -218,10 +204,6 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.fileAddField(fileId, fieldId);
 
     xios_handler.close_context_definition();
-
-    // --- Tests for getCurrentDate method
-    REQUIRE(xios_handler.getCurrentDate() == "2023-03-17T17:11:00Z");
-    REQUIRE(xios_handler.getCurrentDate(false) == "2023-03-17 17:11:00");
 
     // create some fake data to test writing methods
     double* field_A = new double[ni * nj * axis_size];
