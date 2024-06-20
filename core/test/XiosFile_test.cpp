@@ -8,13 +8,12 @@
  * for XIOS.
  *
  */
-// clang-format off
-#include <cstdio>
 #include <doctest/extensions/doctest_mpi.h>
-#include <iostream>
+
 #include "include/Configurator.hpp"
 #include "include/Xios.hpp"
-// clang-format on
+
+#include <iostream>
 
 /*!
  * TestXiosInitialization
