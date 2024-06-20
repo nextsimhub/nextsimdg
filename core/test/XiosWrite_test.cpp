@@ -1,15 +1,11 @@
 /*!
- * @file    XiosInit_test.cpp
+ * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    17 June 2024
- * @brief   Tests for XIOS C++ interface
+ * @date    20 June 2024
+ * @brief   Tests for XIOS write method
  * @details
- * This test is designed to test all core functionality of the C++ interface
+ * This test is designed to test the write method of the C++ interface
  * for XIOS.
- *
- * Due to the fact that XIOS relies on MPI, it is not convenient to split the
- * tests out into individual test routines. Each one would require a lot of
- * boilerplate, so they have all been group in this test.
  *
  */
 // clang-format off
@@ -21,18 +17,18 @@
 // clang-format on
 
 /*!
- * TestXiosInitialization
+ * TestXiosWrite
  *
- * This test checks all core functionality of the C++ interface for XIOS. It
+ * This function tests the file writing functionality of the C++ interface for XIOS. It
  * needs to be run with 2 ranks i.e.,
  *
- * `mpirun -n 2 ./testXiosInit_MPI2`
+ * `mpirun -n 2 ./testXiosWrite_MPI2`
  *
  */
-MPI_TEST_CASE("TestXiosInitialization", 2)
+MPI_TEST_CASE("TestXiosWrite", 2)
 {
 
-    // Enable xios in the 'config'
+    // Enable XIOS in the 'config'
     Nextsim::Configurator::clearStreams();
     std::stringstream config;
     config << "[xios]" << std::endl << "enable = true" << std::endl;
@@ -110,15 +106,14 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 
     xios_handler.close_context_definition();
 
+    // --- Tests for file API
     // create some fake data to test writing methods
     double* field_A = new double[ni * nj * axis_size];
     for (size_t idx = 0; idx < ni * nj * axis_size; idx++) {
         field_A[idx] = 1.0 * idx;
     }
-
     // Verify calendar step is starting from zero
     REQUIRE(xios_handler.getCalendarStep() == 0);
-
     // simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
         // update the current timestep
@@ -128,9 +123,8 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
-
-    xios_handler.context_finalize();
-
     // clean up
     delete[] field_A;
+
+    xios_handler.context_finalize();
 }
