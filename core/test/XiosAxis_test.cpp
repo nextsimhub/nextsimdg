@@ -38,11 +38,7 @@ MPI_TEST_CASE("TestXiosAxis", 2)
     // Initialize an Xios instance called xios_handler
     Nextsim::Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
-
-    // Extract MPI size and rank
-    const size_t size = xios_handler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xios_handler.getClientMPIRank();
+    REQUIRE(xios_handler.getClientMPISize() == 2);
 
     // Calendar setup
     xios_handler.setCalendarOrigin(Nextsim::TimePoint("2020-01-23T00:08:15Z"));

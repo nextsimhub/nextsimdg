@@ -38,8 +38,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Initialize an Xios instance called xios_handler
     Nextsim::Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
-
-    // Extract MPI size and rank
     const size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);
     const size_t rank = xios_handler.getClientMPIRank();
