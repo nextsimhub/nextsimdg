@@ -44,17 +44,11 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     // Set timestep as a minimum
     xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:30:00"));
 
-    // --- Tests for axis API
+    // Axis setup
     xios_handler.createAxis("axis_A");
-    const size_t axis_size = 30;
-    xios_handler.setAxisSize("axis_A", axis_size);
-    std::vector<double> axisValues(axis_size);
-    for (size_t i = 0; i < axis_size; i++) {
-        axisValues[i] = i;
-    }
-    xios_handler.setAxisValues("axis_A", axisValues);
+    xios_handler.setAxisValues("axis_A", { 0, 1 });
 
-    // --- Tests for domain API
+    // Domain setup
     xios_handler.createDomain("domain_A");
     xios_handler.setDomainType("domain_A", "rectilinear");
     const size_t ni_glo = 60;

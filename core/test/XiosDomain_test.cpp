@@ -42,7 +42,7 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     const size_t rank = xios_handler.getClientMPIRank();
 
     // Set timestep as a minimum
-    xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:30:00"));
+    xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:00:00"));
 
     // --- Tests for domain API
     const std::string domainId = { "domain_A" };

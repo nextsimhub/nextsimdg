@@ -353,7 +353,13 @@ void Xios::setAxisSize(const std::string axisId, const size_t size)
  */
 void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
 {
+    if (!isDefinedAxisSize(axisId)) {
+        setAxisSize(axisId, values.size());
+    }
     int size = getAxisSize(axisId);
+    if (size != values.size()) {
+        throw std::runtime_error("Xios: Axis size incompatible with values for '" + axisId + "'");
+    }
     cxios_set_axis_value(getAxis(axisId), values.data(), &size);
 }
 

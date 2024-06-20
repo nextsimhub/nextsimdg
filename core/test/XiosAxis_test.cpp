@@ -40,29 +40,25 @@ MPI_TEST_CASE("TestXiosAxis", 2)
     REQUIRE(xios_handler.getClientMPISize() == 2);
 
     // Set timestep as a minimum
-    xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:30:00"));
+    xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:00:00"));
 
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };
     xios_handler.createAxis(axisId);
     // Axis size
-    const size_t axis_size = 30;
+    const size_t axis_size { 2 };
     REQUIRE_FALSE(xios_handler.isDefinedAxisSize(axisId));
     xios_handler.setAxisSize(axisId, axis_size);
     REQUIRE(xios_handler.isDefinedAxisSize(axisId));
     REQUIRE(xios_handler.getAxisSize(axisId) == axis_size);
     // Axis values
-    std::vector<double> axisValues(axis_size);
-    for (size_t i = 0; i < axis_size; i++) {
-        axisValues[i] = i;
-    }
+    std::vector<double> axisValues { 0, 1 };
     REQUIRE_FALSE(xios_handler.areDefinedAxisValues(axisId));
     xios_handler.setAxisValues(axisId, axisValues);
     REQUIRE(xios_handler.areDefinedAxisValues(axisId));
     std::vector<double> axis_A = xios_handler.getAxisValues(axisId);
-    for (size_t i = 0; i < axis_size; i++) {
-        REQUIRE(axis_A[i] == doctest::Approx(axisValues[i]));
-    }
+    REQUIRE(axis_A[0] == doctest::Approx(0));
+    REQUIRE(axis_A[1] == doctest::Approx(1));
 
     xios_handler.close_context_definition();
     xios_handler.context_finalize();

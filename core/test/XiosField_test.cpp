@@ -46,11 +46,10 @@ MPI_TEST_CASE("TestXiosField", 2)
 
     // Axis setup
     xios_handler.createAxis("axis_A");
-    xios_handler.setAxisValues("axis_A", {0, 1});
+    xios_handler.setAxisValues("axis_A", { 0, 1 });
 
     // Grid setup
     xios_handler.createGrid("grid_1D");
-    xios_handler.setGridName("grid_1D", "test_grid");
     xios_handler.gridAddAxis("grid_1D", "axis_A");
 
     // --- Tests for field API
