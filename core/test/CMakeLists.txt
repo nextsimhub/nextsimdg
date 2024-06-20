@@ -75,6 +75,11 @@ if(ENABLE_MPI)
     target_include_directories(testXiosAxis_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
     target_link_libraries(testXiosAxis_MPI2 PRIVATE nextsimlib doctest::doctest)
 
+    add_executable(testXiosDomain_MPI2 "XiosDomain_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosDomain_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosDomain_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosDomain_MPI2 PRIVATE nextsimlib doctest::doctest)
+
     add_executable(testXiosInit_MPI2 "XiosInit_test.cpp" "MainMPI.cpp")
     target_compile_definitions(testXiosInit_MPI2 PRIVATE USE_XIOS USE_MPI)
     target_include_directories(testXiosInit_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
