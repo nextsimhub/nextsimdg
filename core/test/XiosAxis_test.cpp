@@ -59,9 +59,9 @@ MPI_TEST_CASE("TestXiosAxis", 2)
     REQUIRE(xios_handler.isDefinedAxisSize(axisId));
     REQUIRE(xios_handler.getAxisSize(axisId) == axis_size);
     // Axis values
-    std::vector<double> axisValues;
+    std::vector<double> axisValues(axis_size);
     for (size_t i = 0; i < axis_size; i++) {
-        axisValues.push_back(i);
+        axisValues[i] = i;
     }
     REQUIRE_FALSE(xios_handler.areDefinedAxisValues(axisId));
     xios_handler.setAxisValues(axisId, axisValues);

@@ -53,9 +53,9 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.createAxis("axis_A");
     const size_t axis_size = 30;
     xios_handler.setAxisSize("axis_A", axis_size);
-    std::vector<double> axisValues;
+    std::vector<double> axisValues(axis_size);
     for (size_t i = 0; i < axis_size; i++) {
-        axisValues.push_back(i);
+        axisValues[i] = i;
     }
     xios_handler.setAxisValues("axis_A", axisValues);
 
@@ -74,14 +74,14 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.setDomainLongitudeStart("domain_A", startLon);
     const size_t startLat = 0;
     xios_handler.setDomainLatitudeStart("domain_A", startLat);
-    std::vector<double> vecLon {};
+    std::vector<double> vecLon(ni);
     for (size_t i = 0; i < ni; i++) {
-        vecLon.push_back(-180 + (rank * ni * i) * 360 / ni_glo);
+        vecLon[i] = -180 + (rank * ni * i) * 360 / ni_glo;
     }
     xios_handler.setDomainLongitudeValues("domain_A", vecLon);
-    std::vector<double> vecLat {};
+    std::vector<double> vecLat(nj);
     for (size_t j = 0; j < nj; j++) {
-        vecLat.push_back(-90 + j * 180 / nj_glo);
+        vecLat[j] = -90 + j * 180 / nj_glo;
     }
     xios_handler.setDomainLatitudeValues("domain_A", vecLat);
 

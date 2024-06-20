@@ -96,9 +96,9 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     REQUIRE(xios_handler.getDomainLatitudeStart(domainId) == startLat);
     // Local longitude values
     REQUIRE_FALSE(xios_handler.areDefinedDomainLongitudeValues(domainId));
-    std::vector<double> vecLon {};
+    std::vector<double> vecLon(ni);
     for (size_t i = 0; i < ni; i++) {
-        vecLon.push_back(-180 + (rank * ni * i) * 360 / ni_glo);
+        vecLon[i] = -180 + (rank * ni * i) * 360 / ni_glo;
     }
     xios_handler.setDomainLongitudeValues(domainId, vecLon);
     REQUIRE(xios_handler.areDefinedDomainLongitudeValues(domainId));
@@ -108,9 +108,9 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     }
     // Local latitude values
     REQUIRE_FALSE(xios_handler.areDefinedDomainLatitudeValues(domainId));
-    std::vector<double> vecLat {};
+    std::vector<double> vecLat(nj);
     for (size_t j = 0; j < nj; j++) {
-        vecLat.push_back(-90 + j * 180 / nj_glo);
+        vecLat[j] = -90 + j * 180 / nj_glo;
     }
     xios_handler.setDomainLatitudeValues(domainId, vecLat);
     REQUIRE(xios_handler.areDefinedDomainLatitudeValues(domainId));
