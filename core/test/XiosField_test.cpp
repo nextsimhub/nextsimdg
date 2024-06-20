@@ -1,15 +1,11 @@
 /*!
- * @file    XiosInit_test.cpp
+ * @file    XiosField_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    17 June 2024
- * @brief   Tests for XIOS C++ interface
+ * @date    20 June 2024
+ * @brief   Tests for XIOS axes
  * @details
- * This test is designed to test all core functionality of the C++ interface
+ * This test is designed to test axis functionality of the C++ interface
  * for XIOS.
- *
- * Due to the fact that XIOS relies on MPI, it is not convenient to split the
- * tests out into individual test routines. Each one would require a lot of
- * boilerplate, so they have all been group in this test.
  *
  */
 // clang-format off
@@ -21,18 +17,18 @@
 // clang-format on
 
 /*!
- * TestXiosInitialization
+ * TestXiosField
  *
- * This test checks all core functionality of the C++ interface for XIOS. It
+ * This function tests the field functionality of the C++ interface for XIOS. It
  * needs to be run with 2 ranks i.e.,
  *
- * `mpirun -n 2 ./testXiosInit_MPI2`
+ * `mpirun -n 2 ./testXiosField_MPI2`
  *
  */
-MPI_TEST_CASE("TestXiosInitialization", 2)
+MPI_TEST_CASE("TestXiosField", 2)
 {
 
-    // Enable xios in the 'config'
+    // Enable XIOS in the 'config'
     Nextsim::Configurator::clearStreams();
     std::stringstream config;
     config << "[xios]" << std::endl << "enable = true" << std::endl;
@@ -95,59 +91,28 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.gridAddDomain("grid_2D", "domain_A");
     xios_handler.gridAddAxis("grid_2D", "axis_A");
 
-    // Field setup
-    xios_handler.createField("field_A");
-    xios_handler.setFieldName("field_A", "test_field");
-    xios_handler.setFieldOperation("field_A", "instant");
-    xios_handler.setFieldGridRef("field_A", "grid_2D");
-
-    // --- Tests for file API
-    const std::string fileId { "output" };
-    REQUIRE_FALSE(xios_handler.validFileId(fileId));
-    xios_handler.createFile(fileId);
-    REQUIRE(xios_handler.validFileId(fileId));
-    // File name
-    const std::string fileName { "diagnostic" };
-    xios_handler.setFileName(fileId, fileName);
-    REQUIRE(xios_handler.isDefinedFileName(fileId));
-    REQUIRE(xios_handler.getFileName(fileId) == fileName);
-    // File type
-    const std::string fileType { "one_file" };
-    REQUIRE_FALSE(xios_handler.isDefinedFileType(fileId));
-    xios_handler.setFileType(fileId, fileType);
-    REQUIRE(xios_handler.isDefinedFileType(fileId));
-    REQUIRE(xios_handler.getFileType(fileId) == fileType);
-    // Output frequency
-    REQUIRE_FALSE(xios_handler.isDefinedFileOutputFreq(fileId));
-    const std::string freq { "1ts" };
-    xios_handler.setFileOutputFreq(fileId, freq);
-    REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
-    REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
-    xios_handler.fileAddField(fileId, "field_A");
+    // --- Tests for field API
+    const std::string fieldId = { "field_A" };
+    xios_handler.createField(fieldId);
+    // Field name
+    const std::string fieldName = { "test_field" };
+    REQUIRE_FALSE(xios_handler.isDefinedFieldName(fieldId));
+    xios_handler.setFieldName(fieldId, fieldName);
+    REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
+    REQUIRE(xios_handler.isDefinedFieldName(fieldId));
+    // Operation
+    const std::string operation = { "instant" };
+    REQUIRE_FALSE(xios_handler.isDefinedFieldOperation(fieldId));
+    xios_handler.setFieldOperation(fieldId, operation);
+    REQUIRE(xios_handler.isDefinedFieldOperation(fieldId));
+    REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
+    // Grid reference
+    const std::string gridRef = { "grid_2D" };
+    REQUIRE_FALSE(xios_handler.isDefinedFieldGridRef(fieldId));
+    xios_handler.setFieldGridRef(fieldId, gridRef);
+    REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
+    REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
 
     xios_handler.close_context_definition();
-
-    // create some fake data to test writing methods
-    double* field_A = new double[ni * nj * axis_size];
-    for (size_t idx = 0; idx < ni * nj * axis_size; idx++) {
-        field_A[idx] = 1.0 * idx;
-    }
-
-    // Verify calendar step is starting from zero
-    REQUIRE(xios_handler.getCalendarStep() == 0);
-
-    // simulate 4 iterations (timesteps)
-    for (int ts = 1; ts <= 4; ts++) {
-        // update the current timestep
-        xios_handler.updateCalendar(ts);
-        // send data to XIOS to be written to disk
-        xios_handler.write("field_A", field_A, ni, nj, axis_size);
-        // Verify timestep
-        REQUIRE(xios_handler.getCalendarStep() == ts);
-    }
-
     xios_handler.context_finalize();
-
-    // clean up
-    delete[] field_A;
 }
