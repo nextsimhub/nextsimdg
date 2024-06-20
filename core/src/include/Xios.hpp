@@ -37,97 +37,97 @@ public:
 
     /* Configuration */
     void configure() override;
-    void configureServer(std::string calendarType = "Gregorian");
+    void configureServer(const std::string calendarType = "Gregorian");
 
     /* MPI decomposition */
     int getClientMPISize();
     int getClientMPIRank();
 
     /* Calendar, date and duration */
-    void setCalendarType(std::string type);
-    void setCalendarOrigin(TimePoint origin);
-    void setCalendarStart(TimePoint start);
-    void setCalendarTimestep(Duration timestep);
+    void setCalendarType(const std::string type);
+    void setCalendarOrigin(const TimePoint origin);
+    void setCalendarStart(const TimePoint start);
+    void setCalendarTimestep(const Duration timestep);
     std::string getCalendarType();
     TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
     Duration getCalendarTimestep();
     int getCalendarStep();
-    std::string getCurrentDate(bool isoFormat = true);
-    void updateCalendar(int stepNumber);
+    std::string getCurrentDate(const bool isoFormat = true);
+    void updateCalendar(const int stepNumber);
 
     /* Axis */
-    void createAxis(std::string axisId);
-    void setAxisSize(std::string axisId, size_t size);
-    void setAxisValues(std::string axisId, std::vector<double> values);
-    size_t getAxisSize(std::string axisId);
-    std::vector<double> getAxisValues(std::string axisId);
-    bool isDefinedAxisSize(std::string axisId);
-    bool areDefinedAxisValues(std::string axisId);
+    void createAxis(const std::string axisId);
+    void setAxisSize(const std::string axisId, const size_t size);
+    void setAxisValues(const std::string axisId, std::vector<double> values);
+    size_t getAxisSize(const std::string axisId);
+    std::vector<double> getAxisValues(const std::string axisId);
+    bool isDefinedAxisSize(const std::string axisId);
+    bool areDefinedAxisValues(const std::string axisId);
 
     /* Domain */
-    void createDomain(std::string domainId);
-    void setDomainType(std::string domainId, std::string domainType);
-    void setDomainGlobalLongitudeSize(std::string domainId, size_t size);
-    void setDomainGlobalLatitudeSize(std::string domainId, size_t size);
-    void setDomainLongitudeSize(std::string domainId, size_t size);
-    void setDomainLatitudeSize(std::string domainId, size_t size);
-    void setDomainLongitudeStart(std::string domainId, size_t start);
-    void setDomainLatitudeStart(std::string domainId, size_t start);
-    void setDomainLongitudeValues(std::string domainId, std::vector<double> values);
-    void setDomainLatitudeValues(std::string domainId, std::vector<double> values);
-    std::string getDomainType(std::string domainId);
-    size_t getDomainGlobalLongitudeSize(std::string domainId);
-    size_t getDomainGlobalLatitudeSize(std::string domainId);
-    size_t getDomainLongitudeSize(std::string domainId);
-    size_t getDomainLatitudeSize(std::string domainId);
-    size_t getDomainLongitudeStart(std::string domainId);
-    size_t getDomainLatitudeStart(std::string domainId);
-    std::vector<double> getDomainLongitudeValues(std::string domainId);
-    std::vector<double> getDomainLatitudeValues(std::string domainId);
-    bool isDefinedDomainType(std::string domainId);
-    bool isDefinedDomainGlobalLongitudeSize(std::string domainId);
-    bool isDefinedDomainGlobalLatitudeSize(std::string domainId);
-    bool isDefinedDomainLongitudeSize(std::string domainId);
-    bool isDefinedDomainLatitudeSize(std::string domainId);
-    bool isDefinedDomainLongitudeStart(std::string domainId);
-    bool isDefinedDomainLatitudeStart(std::string domainId);
-    bool areDefinedDomainLongitudeValues(std::string domainId);
-    bool areDefinedDomainLatitudeValues(std::string domainId);
+    void createDomain(const std::string domainId);
+    void setDomainType(const std::string domainId, const std::string domainType);
+    void setDomainGlobalLongitudeSize(const std::string domainId, const size_t size);
+    void setDomainGlobalLatitudeSize(const std::string domainId, const size_t size);
+    void setDomainLongitudeSize(const std::string domainId, const size_t size);
+    void setDomainLatitudeSize(const std::string domainId, const size_t size);
+    void setDomainLongitudeStart(const std::string domainId, const size_t start);
+    void setDomainLatitudeStart(const std::string domainId, const size_t start);
+    void setDomainLongitudeValues(const std::string domainId, std::vector<double> values);
+    void setDomainLatitudeValues(const std::string domainId, std::vector<double> values);
+    std::string getDomainType(const std::string domainId);
+    size_t getDomainGlobalLongitudeSize(const std::string domainId);
+    size_t getDomainGlobalLatitudeSize(const std::string domainId);
+    size_t getDomainLongitudeSize(const std::string domainId);
+    size_t getDomainLatitudeSize(const std::string domainId);
+    size_t getDomainLongitudeStart(const std::string domainId);
+    size_t getDomainLatitudeStart(const std::string domainId);
+    std::vector<double> getDomainLongitudeValues(const std::string domainId);
+    std::vector<double> getDomainLatitudeValues(const std::string domainId);
+    bool isDefinedDomainType(const std::string domainId);
+    bool isDefinedDomainGlobalLongitudeSize(const std::string domainId);
+    bool isDefinedDomainGlobalLatitudeSize(const std::string domainId);
+    bool isDefinedDomainLongitudeSize(const std::string domainId);
+    bool isDefinedDomainLatitudeSize(const std::string domainId);
+    bool isDefinedDomainLongitudeStart(const std::string domainId);
+    bool isDefinedDomainLatitudeStart(const std::string domainId);
+    bool areDefinedDomainLongitudeValues(const std::string domainId);
+    bool areDefinedDomainLatitudeValues(const std::string domainId);
 
     /* Grid */
-    void createGrid(std::string gridId);
-    void setGridName(std::string gridId, std::string name);
-    std::string getGridName(std::string gridId);
-    bool isDefinedGridName(std::string GridId);
-    void gridAddAxis(std::string axisId, std::string domainId);
-    void gridAddDomain(std::string gridId, std::string domainId);
+    void createGrid(const std::string gridId);
+    void setGridName(const std::string gridId, const std::string name);
+    std::string getGridName(const std::string gridId);
+    bool isDefinedGridName(const std::string gridId);
+    void gridAddAxis(std::string axisId, const std::string domainId);
+    void gridAddDomain(const std::string gridId, const std::string domainId);
 
     /* Field */
-    void createField(std::string fieldId);
-    void setFieldName(std::string fieldId, std::string name);
-    void setFieldOperation(std::string fieldId, std::string operation);
-    void setFieldGridRef(std::string fieldId, std::string gridRef);
-    std::string getFieldName(std::string fieldId);
-    std::string getFieldOperation(std::string fieldId);
-    std::string getFieldGridRef(std::string fieldId);
-    bool isDefinedFieldName(std::string fieldId);
-    bool isDefinedFieldOperation(std::string fieldId);
-    bool isDefinedFieldGridRef(std::string fieldId);
+    void createField(const std::string fieldId);
+    void setFieldName(const std::string fieldId, const std::string name);
+    void setFieldOperation(const std::string fieldId, const std::string operation);
+    void setFieldGridRef(const std::string fieldId, const std::string gridRef);
+    std::string getFieldName(const std::string fieldId);
+    std::string getFieldOperation(const std::string fieldId);
+    std::string getFieldGridRef(const std::string fieldId);
+    bool isDefinedFieldName(const std::string fieldId);
+    bool isDefinedFieldOperation(const std::string fieldId);
+    bool isDefinedFieldGridRef(const std::string fieldId);
 
     /* File */
-    void createFile(std::string fileId);
-    void setFileName(std::string fileId, std::string fileName);
-    void setFileType(std::string fileId, std::string fileType);
-    void setFileOutputFreq(std::string fileId, std::string outputFreq);
-    std::string getFileName(std::string fileId);
-    std::string getFileType(std::string fileId);
-    std::string getFileOutputFreq(std::string fileId);
-    bool validFileId(std::string fileId);
-    bool isDefinedFileName(std::string fileId);
-    bool isDefinedFileType(std::string fileId);
-    bool isDefinedFileOutputFreq(std::string fileId);
-    void fileAddField(std::string fileId, std::string fieldId);
+    void createFile(const std::string fileId);
+    void setFileName(const std::string fileId, const std::string fileName);
+    void setFileType(const std::string fileId, const std::string fileType);
+    void setFileOutputFreq(const std::string fileId, const std::string outputFreq);
+    std::string getFileName(const std::string fileId);
+    std::string getFileType(const std::string fileId);
+    std::string getFileOutputFreq(const std::string fileId);
+    bool validFileId(const std::string fileId);
+    bool isDefinedFileName(const std::string fileId);
+    bool isDefinedFileType(const std::string fileId);
+    bool isDefinedFileOutputFreq(const std::string fileId);
+    void fileAddField(const std::string fileId, const std::string fieldId);
 
     /* I/O */
     void write(const std::string fieldId, double* data, const size_t ni, const size_t nj);
@@ -156,8 +156,8 @@ private:
     int mpi_size { 0 };
 
     xios::CCalendarWrapper* clientCalendar;
-    std::string convertXiosDatetimeToString(cxios_date datetime, bool isoFormat = true);
-    cxios_date convertStringToXiosDatetime(const std::string datetime, bool isoFormat = true);
+    std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
+    cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
 
     xios::CAxisGroup* getAxisGroup();
     xios::CDomainGroup* getDomainGroup();
@@ -165,11 +165,11 @@ private:
     xios::CGridGroup* getGridGroup();
     xios::CFileGroup* getFileGroup();
 
-    xios::CAxis* getAxis(std::string axisId);
-    xios::CDomain* getDomain(std::string domainId);
-    xios::CField* getField(std::string fieldId);
-    xios::CGrid* getGrid(std::string gridId);
-    xios::CFile* getFile(std::string fileId);
+    xios::CAxis* getAxis(const std::string axisId);
+    xios::CDomain* getDomain(const std::string domainId);
+    xios::CField* getField(const std::string fieldId);
+    xios::CGrid* getGrid(const std::string gridId);
+    xios::CFile* getFile(const std::string fileId);
 };
 
 }

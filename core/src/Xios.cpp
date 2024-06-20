@@ -86,7 +86,7 @@ void Xios::configure()
 }
 
 //! Configure calendar settings
-void Xios::configureServer(std::string calendarType)
+void Xios::configureServer(const std::string calendarType)
 {
     // Initialize XIOS Server process and store MPI communicator
     clientId = "client";
@@ -140,7 +140,7 @@ bool Xios::isInitialized()
  * @param isoFormat as bool
  * @return corresponding string representation
  */
-std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoFormat)
+std::string Xios::convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat)
 {
     boost::format fmt;
     if (isoFormat) {
@@ -163,7 +163,7 @@ std::string Xios::convertXiosDatetimeToString(cxios_date datetime, bool isoForma
  * @param isoFormat as bool
  * @return corresponding XIOS datetime representation
  */
-cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, bool isoFormat)
+cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, const bool isoFormat)
 {
     std::string str = datetimeStr;
     if (isoFormat) {
@@ -178,7 +178,7 @@ cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, bool
  *
  * @param origin
  */
-void Xios::setCalendarOrigin(TimePoint origin)
+void Xios::setCalendarOrigin(const TimePoint origin)
 {
     cxios_date datetime = convertStringToXiosDatetime(origin.format(), true);
     cxios_set_calendar_wrapper_date_time_origin(clientCalendar, datetime);
@@ -189,7 +189,7 @@ void Xios::setCalendarOrigin(TimePoint origin)
  *
  * @param start date
  */
-void Xios::setCalendarStart(TimePoint start)
+void Xios::setCalendarStart(const TimePoint start)
 {
     cxios_date datetime = convertStringToXiosDatetime(start.format(), true);
     cxios_set_calendar_wrapper_date_start_date(clientCalendar, datetime);
@@ -200,7 +200,7 @@ void Xios::setCalendarStart(TimePoint start)
  *
  * @param timestep
  */
-void Xios::setCalendarTimestep(Duration timestep)
+void Xios::setCalendarTimestep(const Duration timestep)
 {
     cxios_duration duration { 0.0, 0.0, 0.0, 0.0, timestep.seconds(), 0.0 };
     cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
@@ -274,7 +274,7 @@ int Xios::getCalendarStep() { return clientCalendar->getCalendar()->getStep(); }
  *
  * @return current calendar date
  */
-std::string Xios::getCurrentDate(bool isoFormat)
+std::string Xios::getCurrentDate(const bool isoFormat)
 {
     cxios_date xiosDate;
     cxios_get_current_date(&xiosDate);
@@ -286,7 +286,7 @@ std::string Xios::getCurrentDate(bool isoFormat)
  *
  * @param current step number
  */
-void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
+void Xios::updateCalendar(const int stepNumber) { cxios_update_calendar(stepNumber); }
 
 /*!
  * Get the axis_definition group
@@ -295,7 +295,7 @@ void Xios::updateCalendar(int stepNumber) { cxios_update_calendar(stepNumber); }
  */
 xios::CAxisGroup* Xios::getAxisGroup()
 {
-    std::string groupId = { "axis_definition" };
+    const std::string groupId = { "axis_definition" };
     xios::CAxisGroup* group = NULL;
     cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -310,7 +310,7 @@ xios::CAxisGroup* Xios::getAxisGroup()
  * @param the axis ID
  * @return a pointer to the XIOS CAxis object
  */
-xios::CAxis* Xios::getAxis(std::string axisId)
+xios::CAxis* Xios::getAxis(const std::string axisId)
 {
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
@@ -325,7 +325,7 @@ xios::CAxis* Xios::getAxis(std::string axisId)
  *
  * @param the axis ID
  */
-void Xios::createAxis(std::string axisId)
+void Xios::createAxis(const std::string axisId)
 {
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
@@ -340,7 +340,7 @@ void Xios::createAxis(std::string axisId)
  * @param the axis ID
  * @param the size to set
  */
-void Xios::setAxisSize(std::string axisId, size_t size)
+void Xios::setAxisSize(const std::string axisId, const size_t size)
 {
     cxios_set_axis_n_glo(getAxis(axisId), (int)size);
 }
@@ -351,7 +351,7 @@ void Xios::setAxisSize(std::string axisId, size_t size)
  * @param the axis ID
  * @param the values to set
  */
-void Xios::setAxisValues(std::string axisId, std::vector<double> values)
+void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
 {
     int size = getAxisSize(axisId);
     cxios_set_axis_value(getAxis(axisId), values.data(), &size);
@@ -363,7 +363,7 @@ void Xios::setAxisValues(std::string axisId, std::vector<double> values)
  * @param the axis ID
  * @return size of the corresponding axis
  */
-size_t Xios::getAxisSize(std::string axisId)
+size_t Xios::getAxisSize(const std::string axisId)
 {
     int size;
     cxios_get_axis_n_glo(getAxis(axisId), &size);
@@ -376,7 +376,7 @@ size_t Xios::getAxisSize(std::string axisId)
  * @param the axis ID
  * @return the corresponding values
  */
-std::vector<double> Xios::getAxisValues(std::string axisId)
+std::vector<double> Xios::getAxisValues(const std::string axisId)
 {
     int size = getAxisSize(axisId);
     double* values = new double[size];
@@ -392,7 +392,7 @@ std::vector<double> Xios::getAxisValues(std::string axisId)
  * @param the axis ID
  * @return `true` if the size has been set, otherwise `false`
  */
-bool Xios::isDefinedAxisSize(std::string axisId)
+bool Xios::isDefinedAxisSize(const std::string axisId)
 {
     return cxios_is_defined_axis_n_glo(getAxis(axisId));
 }
@@ -403,7 +403,7 @@ bool Xios::isDefinedAxisSize(std::string axisId)
  * @param the axis ID
  * @return `true` if the values have been set, otherwise `false`
  */
-bool Xios::areDefinedAxisValues(std::string axisId)
+bool Xios::areDefinedAxisValues(const std::string axisId)
 {
     return cxios_is_defined_axis_value(getAxis(axisId));
 }
@@ -415,7 +415,7 @@ bool Xios::areDefinedAxisValues(std::string axisId)
  */
 xios::CDomainGroup* Xios::getDomainGroup()
 {
-    std::string groupId = { "domain_definition" };
+    const std::string groupId = { "domain_definition" };
     xios::CDomainGroup* group = NULL;
     cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -430,7 +430,7 @@ xios::CDomainGroup* Xios::getDomainGroup()
  * @param the domain ID
  * @return a pointer to the XIOS CDomain object
  */
-xios::CDomain* Xios::getDomain(std::string domainId)
+xios::CDomain* Xios::getDomain(const std::string domainId)
 {
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
@@ -445,7 +445,7 @@ xios::CDomain* Xios::getDomain(std::string domainId)
  *
  * @param the domain ID
  */
-void Xios::createDomain(std::string domainId)
+void Xios::createDomain(const std::string domainId)
 {
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
@@ -460,7 +460,7 @@ void Xios::createDomain(std::string domainId)
  * @param the domain ID
  * @param the local longitude size
  */
-void Xios::setDomainLongitudeSize(std::string domainId, size_t size)
+void Xios::setDomainLongitudeSize(const std::string domainId, const size_t size)
 {
     cxios_set_domain_ni(getDomain(domainId), (int)size);
 }
@@ -471,7 +471,7 @@ void Xios::setDomainLongitudeSize(std::string domainId, size_t size)
  * @param the domain ID
  * @param the local longitude size
  */
-void Xios::setDomainLatitudeSize(std::string domainId, size_t size)
+void Xios::setDomainLatitudeSize(const std::string domainId, const size_t size)
 {
     cxios_set_domain_nj(getDomain(domainId), (int)size);
 }
@@ -482,7 +482,7 @@ void Xios::setDomainLatitudeSize(std::string domainId, size_t size)
  * @param the domain ID
  * @return the local start longitude
  */
-void Xios::setDomainLongitudeStart(std::string domainId, size_t start)
+void Xios::setDomainLongitudeStart(const std::string domainId, const size_t start)
 {
     cxios_set_domain_ibegin(getDomain(domainId), (int)start);
 }
@@ -493,7 +493,7 @@ void Xios::setDomainLongitudeStart(std::string domainId, size_t start)
  * @param the domain ID
  * @return the local start latitude
  */
-void Xios::setDomainLatitudeStart(std::string domainId, size_t start)
+void Xios::setDomainLatitudeStart(const std::string domainId, const size_t start)
 {
     cxios_set_domain_jbegin(getDomain(domainId), (int)start);
 }
@@ -504,7 +504,7 @@ void Xios::setDomainLatitudeStart(std::string domainId, size_t start)
  * @param the domain ID
  * @return the local longitude values
  */
-void Xios::setDomainLongitudeValues(std::string domainId, std::vector<double> values)
+void Xios::setDomainLongitudeValues(const std::string domainId, std::vector<double> values)
 {
     int size = getDomainLongitudeSize(domainId);
     cxios_set_domain_lonvalue_1d(getDomain(domainId), values.data(), &size);
@@ -516,7 +516,7 @@ void Xios::setDomainLongitudeValues(std::string domainId, std::vector<double> va
  * @param the domain ID
  * @return the local latitude values
  */
-void Xios::setDomainLatitudeValues(std::string domainId, std::vector<double> values)
+void Xios::setDomainLatitudeValues(const std::string domainId, std::vector<double> values)
 {
     int size = getDomainLatitudeSize(domainId);
     cxios_set_domain_latvalue_1d(getDomain(domainId), values.data(), &size);
@@ -528,7 +528,7 @@ void Xios::setDomainLatitudeValues(std::string domainId, std::vector<double> val
  * @param the domain ID
  * @param domain type to set
  */
-void Xios::setDomainType(std::string domainId, std::string domainType)
+void Xios::setDomainType(const std::string domainId, const std::string domainType)
 {
     cxios_set_domain_type(getDomain(domainId), domainType.c_str(), domainType.length());
 }
@@ -539,7 +539,7 @@ void Xios::setDomainType(std::string domainId, std::string domainType)
  * @param the domain ID
  * @param global longitude size to set
  */
-void Xios::setDomainGlobalLongitudeSize(std::string domainId, size_t size)
+void Xios::setDomainGlobalLongitudeSize(const std::string domainId, const size_t size)
 {
     cxios_set_domain_ni_glo(getDomain(domainId), (int)size);
 }
@@ -550,7 +550,7 @@ void Xios::setDomainGlobalLongitudeSize(std::string domainId, size_t size)
  * @param the domain ID
  * @param global latitude size to set
  */
-void Xios::setDomainGlobalLatitudeSize(std::string domainId, size_t size)
+void Xios::setDomainGlobalLatitudeSize(const std::string domainId, const size_t size)
 {
     cxios_set_domain_nj_glo(getDomain(domainId), (int)size);
 }
@@ -561,7 +561,7 @@ void Xios::setDomainGlobalLatitudeSize(std::string domainId, size_t size)
  * @param the domain ID
  * @return the corresponding domain type
  */
-std::string Xios::getDomainType(std::string domainId)
+std::string Xios::getDomainType(const std::string domainId)
 {
     char cStr[cStrLen];
     cxios_get_domain_type(getDomain(domainId), cStr, cStrLen);
@@ -576,7 +576,7 @@ std::string Xios::getDomainType(std::string domainId)
  * @param the domain ID
  * @return the corresponding global longitude size
  */
-size_t Xios::getDomainGlobalLongitudeSize(std::string domainId)
+size_t Xios::getDomainGlobalLongitudeSize(const std::string domainId)
 {
     int size;
     cxios_get_domain_ni_glo(getDomain(domainId), &size);
@@ -589,7 +589,7 @@ size_t Xios::getDomainGlobalLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding global latitude size
  */
-size_t Xios::getDomainGlobalLatitudeSize(std::string domainId)
+size_t Xios::getDomainGlobalLatitudeSize(const std::string domainId)
 {
     int size;
     cxios_get_domain_nj_glo(getDomain(domainId), &size);
@@ -602,7 +602,7 @@ size_t Xios::getDomainGlobalLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding local longitude size
  */
-size_t Xios::getDomainLongitudeSize(std::string domainId)
+size_t Xios::getDomainLongitudeSize(const std::string domainId)
 {
     int size;
     cxios_get_domain_ni(getDomain(domainId), &size);
@@ -615,7 +615,7 @@ size_t Xios::getDomainLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return the corresponding local latitude size
  */
-size_t Xios::getDomainLatitudeSize(std::string domainId)
+size_t Xios::getDomainLatitudeSize(const std::string domainId)
 {
     int size;
     cxios_get_domain_nj(getDomain(domainId), &size);
@@ -628,7 +628,7 @@ size_t Xios::getDomainLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return the local starting longitude of the corresponding domain
  */
-size_t Xios::getDomainLongitudeStart(std::string domainId)
+size_t Xios::getDomainLongitudeStart(const std::string domainId)
 {
     int start;
     cxios_get_domain_ibegin(getDomain(domainId), &start);
@@ -641,7 +641,7 @@ size_t Xios::getDomainLongitudeStart(std::string domainId)
  * @param the domain ID
  * @return the local starting latitude of the corresponding domain
  */
-size_t Xios::getDomainLatitudeStart(std::string domainId)
+size_t Xios::getDomainLatitudeStart(const std::string domainId)
 {
     int start;
     cxios_get_domain_jbegin(getDomain(domainId), &start);
@@ -654,7 +654,7 @@ size_t Xios::getDomainLatitudeStart(std::string domainId)
  * @param the domain ID
  * @return the local longitude values of the corresponding domain
  */
-std::vector<double> Xios::getDomainLongitudeValues(std::string domainId)
+std::vector<double> Xios::getDomainLongitudeValues(const std::string domainId)
 {
     int size = getDomainLongitudeSize(domainId);
     double* values = new double[size];
@@ -670,7 +670,7 @@ std::vector<double> Xios::getDomainLongitudeValues(std::string domainId)
  * @param the domain ID
  * @return the local latitude values of the corresponding domain
  */
-std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
+std::vector<double> Xios::getDomainLatitudeValues(const std::string domainId)
 {
     int size = getDomainLatitudeSize(domainId);
     double* values = new double[size];
@@ -686,7 +686,7 @@ std::vector<double> Xios::getDomainLatitudeValues(std::string domainId)
  * @param the domain ID
  * @return `true` if the type has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainType(std::string domainId)
+bool Xios::isDefinedDomainType(const std::string domainId)
 {
     return cxios_is_defined_domain_type(getDomain(domainId));
 }
@@ -697,7 +697,7 @@ bool Xios::isDefinedDomainType(std::string domainId)
  * @param the domain ID
  * @return `true` if the global longitude size has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainGlobalLongitudeSize(std::string domainId)
+bool Xios::isDefinedDomainGlobalLongitudeSize(const std::string domainId)
 {
     return cxios_is_defined_domain_ni_glo(getDomain(domainId));
 }
@@ -708,7 +708,7 @@ bool Xios::isDefinedDomainGlobalLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return `true` if the global latitude size has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainGlobalLatitudeSize(std::string domainId)
+bool Xios::isDefinedDomainGlobalLatitudeSize(const std::string domainId)
 {
     return cxios_is_defined_domain_nj_glo(getDomain(domainId));
 }
@@ -719,7 +719,7 @@ bool Xios::isDefinedDomainGlobalLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return `true` if the local longitude size has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainLongitudeSize(std::string domainId)
+bool Xios::isDefinedDomainLongitudeSize(const std::string domainId)
 {
     return cxios_is_defined_domain_ni(getDomain(domainId));
 }
@@ -730,7 +730,7 @@ bool Xios::isDefinedDomainLongitudeSize(std::string domainId)
  * @param the domain ID
  * @return `true` if the local latitude size has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainLatitudeSize(std::string domainId)
+bool Xios::isDefinedDomainLatitudeSize(const std::string domainId)
 {
     return cxios_is_defined_domain_nj(getDomain(domainId));
 }
@@ -741,7 +741,7 @@ bool Xios::isDefinedDomainLatitudeSize(std::string domainId)
  * @param the domain ID
  * @return `true` if the local starting longitude has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainLongitudeStart(std::string domainId)
+bool Xios::isDefinedDomainLongitudeStart(const std::string domainId)
 {
     return cxios_is_defined_domain_ibegin(getDomain(domainId));
 }
@@ -752,7 +752,7 @@ bool Xios::isDefinedDomainLongitudeStart(std::string domainId)
  * @param the domain ID
  * @return `true` if the local starting latitude has been set, otherwise `false`
  */
-bool Xios::isDefinedDomainLatitudeStart(std::string domainId)
+bool Xios::isDefinedDomainLatitudeStart(const std::string domainId)
 {
     return cxios_is_defined_domain_jbegin(getDomain(domainId));
 }
@@ -763,7 +763,7 @@ bool Xios::isDefinedDomainLatitudeStart(std::string domainId)
  * @param the domain ID
  * @return `true` if the local longitude values have been set, otherwise `false`
  */
-bool Xios::areDefinedDomainLongitudeValues(std::string domainId)
+bool Xios::areDefinedDomainLongitudeValues(const std::string domainId)
 {
     return cxios_is_defined_domain_lonvalue_1d(getDomain(domainId));
 }
@@ -774,7 +774,7 @@ bool Xios::areDefinedDomainLongitudeValues(std::string domainId)
  * @param the domain ID
  * @return `true` if the local latitude values have been set, otherwise `false`
  */
-bool Xios::areDefinedDomainLatitudeValues(std::string domainId)
+bool Xios::areDefinedDomainLatitudeValues(const std::string domainId)
 {
     return cxios_is_defined_domain_latvalue_1d(getDomain(domainId));
 }
@@ -786,7 +786,7 @@ bool Xios::areDefinedDomainLatitudeValues(std::string domainId)
  */
 xios::CGridGroup* Xios::getGridGroup()
 {
-    std::string groupId = { "grid_definition" };
+    const std::string groupId = { "grid_definition" };
     xios::CGridGroup* group = NULL;
     cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -801,7 +801,7 @@ xios::CGridGroup* Xios::getGridGroup()
  * @param the grid ID
  * @return a pointer to the XIOS CGrid object
  */
-xios::CGrid* Xios::getGrid(std::string gridId)
+xios::CGrid* Xios::getGrid(const std::string gridId)
 {
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
@@ -816,7 +816,7 @@ xios::CGrid* Xios::getGrid(std::string gridId)
  *
  * @param the grid ID
  */
-void Xios::createGrid(std::string gridId)
+void Xios::createGrid(const std::string gridId)
 {
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
@@ -831,7 +831,7 @@ void Xios::createGrid(std::string gridId)
  * @param the grid ID
  * @return name of the corresponding grid
  */
-std::string Xios::getGridName(std::string gridId)
+std::string Xios::getGridName(const std::string gridId)
 {
     char cStr[cStrLen];
     cxios_get_grid_name(getGrid(gridId), cStr, cStrLen);
@@ -846,7 +846,7 @@ std::string Xios::getGridName(std::string gridId)
  * @param the grid ID
  * @param name to set
  */
-void Xios::setGridName(std::string gridId, std::string gridName)
+void Xios::setGridName(const std::string gridId, const std::string gridName)
 {
     cxios_set_grid_name(getGrid(gridId), gridName.c_str(), gridName.length());
 }
@@ -857,7 +857,7 @@ void Xios::setGridName(std::string gridId, std::string gridName)
  * @param the grid ID
  * @return `true` if the name has been set, otherwise `false`
  */
-bool Xios::isDefinedGridName(std::string gridId)
+bool Xios::isDefinedGridName(const std::string gridId)
 {
     return cxios_is_defined_grid_name(getGrid(gridId));
 }
@@ -868,7 +868,7 @@ bool Xios::isDefinedGridName(std::string gridId)
  * @param the grid ID
  * @param the axis ID
  */
-void Xios::gridAddAxis(std::string gridId, std::string axisId)
+void Xios::gridAddAxis(const std::string gridId, const std::string axisId)
 {
     xios::CAxis* axis = getAxis(axisId);
     cxios_xml_tree_add_axistogrid(getGrid(gridId), &axis, axisId.c_str(), axisId.length());
@@ -880,7 +880,7 @@ void Xios::gridAddAxis(std::string gridId, std::string axisId)
  * @param the grid ID
  * @param the domain ID
  */
-void Xios::gridAddDomain(std::string gridId, std::string domainId)
+void Xios::gridAddDomain(const std::string gridId, const std::string domainId)
 {
     xios::CDomain* domain = getDomain(domainId);
     cxios_xml_tree_add_domaintogrid(getGrid(gridId), &domain, domainId.c_str(), domainId.length());
@@ -893,7 +893,7 @@ void Xios::gridAddDomain(std::string gridId, std::string domainId)
  */
 xios::CFieldGroup* Xios::getFieldGroup()
 {
-    std::string groupId = { "field_definition" };
+    const std::string groupId = { "field_definition" };
     xios::CFieldGroup* group = NULL;
     cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -908,7 +908,7 @@ xios::CFieldGroup* Xios::getFieldGroup()
  * @param the field ID
  * @return a pointer to the XIOS CField object
  */
-xios::CField* Xios::getField(std::string fieldId)
+xios::CField* Xios::getField(const std::string fieldId)
 {
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
@@ -923,7 +923,7 @@ xios::CField* Xios::getField(std::string fieldId)
  *
  * @param the field ID
  */
-void Xios::createField(std::string fieldId)
+void Xios::createField(const std::string fieldId)
 {
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
@@ -938,7 +938,7 @@ void Xios::createField(std::string fieldId)
  * @param the field ID
  * @param name to set
  */
-void Xios::setFieldName(std::string fieldId, std::string fieldName)
+void Xios::setFieldName(const std::string fieldId, const std::string fieldName)
 {
     cxios_set_field_name(getField(fieldId), fieldName.c_str(), fieldName.length());
 }
@@ -949,7 +949,7 @@ void Xios::setFieldName(std::string fieldId, std::string fieldName)
  * @param the field ID
  * @param operation to set
  */
-void Xios::setFieldOperation(std::string fieldId, std::string operation)
+void Xios::setFieldOperation(const std::string fieldId, const std::string operation)
 {
     cxios_set_field_operation(getField(fieldId), operation.c_str(), operation.length());
 }
@@ -960,7 +960,7 @@ void Xios::setFieldOperation(std::string fieldId, std::string operation)
  * @param the field ID
  * @param grid reference to set
  */
-void Xios::setFieldGridRef(std::string fieldId, std::string gridRef)
+void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
 {
     cxios_set_field_grid_ref(getField(fieldId), gridRef.c_str(), gridRef.length());
 }
@@ -971,7 +971,7 @@ void Xios::setFieldGridRef(std::string fieldId, std::string gridRef)
  * @param the field ID
  * @return name of the corresponding field
  */
-std::string Xios::getFieldName(std::string fieldId)
+std::string Xios::getFieldName(const std::string fieldId)
 {
     char cStr[cStrLen];
     cxios_get_field_name(getField(fieldId), cStr, cStrLen);
@@ -986,7 +986,7 @@ std::string Xios::getFieldName(std::string fieldId)
  * @param the field ID
  * @return operation used for the corresponding field
  */
-std::string Xios::getFieldOperation(std::string fieldId)
+std::string Xios::getFieldOperation(const std::string fieldId)
 {
     char cStr[cStrLen];
     cxios_get_field_operation(getField(fieldId), cStr, cStrLen);
@@ -1001,7 +1001,7 @@ std::string Xios::getFieldOperation(std::string fieldId)
  * @param the field ID
  * @return grid reference used for the corresponding field
  */
-std::string Xios::getFieldGridRef(std::string fieldId)
+std::string Xios::getFieldGridRef(const std::string fieldId)
 {
     char cStr[cStrLen];
     cxios_get_field_grid_ref(getField(fieldId), cStr, cStrLen);
@@ -1016,7 +1016,7 @@ std::string Xios::getFieldGridRef(std::string fieldId)
  * @param the field ID
  * @return `true` if the name has been set, otherwise `false`
  */
-bool Xios::isDefinedFieldName(std::string fieldId)
+bool Xios::isDefinedFieldName(const std::string fieldId)
 {
     return cxios_is_defined_field_name(getField(fieldId));
 }
@@ -1027,7 +1027,7 @@ bool Xios::isDefinedFieldName(std::string fieldId)
  * @param the field ID
  * @return `true` if the operation has been set, otherwise `false`
  */
-bool Xios::isDefinedFieldOperation(std::string fieldId)
+bool Xios::isDefinedFieldOperation(const std::string fieldId)
 {
     return cxios_is_defined_field_operation(getField(fieldId));
 }
@@ -1038,7 +1038,7 @@ bool Xios::isDefinedFieldOperation(std::string fieldId)
  * @param the field ID
  * @return `true` if the grid reference has been set, otherwise `false`
  */
-bool Xios::isDefinedFieldGridRef(std::string fieldId)
+bool Xios::isDefinedFieldGridRef(const std::string fieldId)
 {
     return cxios_is_defined_field_grid_ref(getField(fieldId));
 }
@@ -1050,7 +1050,7 @@ bool Xios::isDefinedFieldGridRef(std::string fieldId)
  */
 xios::CFileGroup* Xios::getFileGroup()
 {
-    std::string groupId = { "file_definition" };
+    const std::string groupId = { "file_definition" };
     xios::CFileGroup* group = NULL;
     cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -1065,7 +1065,7 @@ xios::CFileGroup* Xios::getFileGroup()
  * @param the file ID
  * @return a pointer to the XIOS CFile object
  */
-xios::CFile* Xios::getFile(std::string fileId)
+xios::CFile* Xios::getFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
@@ -1080,7 +1080,7 @@ xios::CFile* Xios::getFile(std::string fileId)
  *
  * @param the file ID
  */
-void Xios::createFile(std::string fileId)
+void Xios::createFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
@@ -1095,7 +1095,7 @@ void Xios::createFile(std::string fileId)
  * @param the file ID
  * @param file name to set
  */
-void Xios::setFileName(std::string fileId, std::string fileName)
+void Xios::setFileName(const std::string fileId, const std::string fileName)
 {
     cxios_set_file_name(getFile(fileId), fileName.c_str(), fileName.length());
 }
@@ -1106,7 +1106,7 @@ void Xios::setFileName(std::string fileId, std::string fileName)
  * @param the file ID
  * @param file type to set
  */
-void Xios::setFileType(std::string fileId, std::string fileType)
+void Xios::setFileType(const std::string fileId, const std::string fileType)
 {
     cxios_set_file_type(getFile(fileId), fileType.c_str(), fileType.length());
 }
@@ -1117,10 +1117,10 @@ void Xios::setFileType(std::string fileId, std::string fileType)
  * @param the file ID
  * @param output frequency to set
  */
-void Xios::setFileOutputFreq(std::string fileId, std::string freq)
+void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
 {
-    cxios_duration duration = cxios_duration_convert_from_string(freq.c_str(), freq.length());
-    cxios_set_file_output_freq(getFile(fileId), duration);
+    cxios_set_file_output_freq(
+        getFile(fileId), cxios_duration_convert_from_string(freq.c_str(), freq.length()));
 }
 
 /*!
@@ -1129,7 +1129,7 @@ void Xios::setFileOutputFreq(std::string fileId, std::string freq)
  * @param the file ID
  * @return name of the corresponding file
  */
-std::string Xios::getFileName(std::string fileId)
+std::string Xios::getFileName(const std::string fileId)
 {
     char cStr[cStrLen];
     cxios_get_file_name(getFile(fileId), cStr, cStrLen);
@@ -1144,7 +1144,7 @@ std::string Xios::getFileName(std::string fileId)
  * @param the file ID
  * @return type of the corresponding file
  */
-std::string Xios::getFileType(std::string fileId)
+std::string Xios::getFileType(const std::string fileId)
 {
     char cStr[cStrLen];
     cxios_get_file_type(getFile(fileId), cStr, cStrLen);
@@ -1159,7 +1159,7 @@ std::string Xios::getFileType(std::string fileId)
  * @param the file ID
  * @return the corresponding output frequency
  */
-std::string Xios::getFileOutputFreq(std::string fileId)
+std::string Xios::getFileOutputFreq(const std::string fileId)
 {
     cxios_duration duration;
     cxios_get_file_output_freq(getFile(fileId), &duration);
@@ -1176,7 +1176,7 @@ std::string Xios::getFileOutputFreq(std::string fileId)
  * @param the file ID
  * @return `true` if the file ID is valid, otherwise `false`
  */
-bool Xios::validFileId(std::string fileId)
+bool Xios::validFileId(const std::string fileId)
 {
     bool valid;
     cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
@@ -1189,7 +1189,7 @@ bool Xios::validFileId(std::string fileId)
  * @param the file ID
  * @return `true` if the name has been set, otherwise `false`
  */
-bool Xios::isDefinedFileName(std::string fileId)
+bool Xios::isDefinedFileName(const std::string fileId)
 {
     return cxios_is_defined_file_name(getFile(fileId));
 }
@@ -1200,7 +1200,7 @@ bool Xios::isDefinedFileName(std::string fileId)
  * @param the file ID
  * @return `true` if the type has been set, otherwise `false`
  */
-bool Xios::isDefinedFileType(std::string fileId)
+bool Xios::isDefinedFileType(const std::string fileId)
 {
     return cxios_is_defined_file_type(getFile(fileId));
 }
@@ -1211,7 +1211,7 @@ bool Xios::isDefinedFileType(std::string fileId)
  * @param the file ID
  * @return `true` if the output frequency has been set, otherwise `false`
  */
-bool Xios::isDefinedFileOutputFreq(std::string fileId)
+bool Xios::isDefinedFileOutputFreq(const std::string fileId)
 {
     return cxios_is_defined_file_output_freq(getFile(fileId));
 }
@@ -1222,7 +1222,7 @@ bool Xios::isDefinedFileOutputFreq(std::string fileId)
  * @param the file ID
  * @param the field ID
  */
-void Xios::fileAddField(std::string fileId, std::string fieldId)
+void Xios::fileAddField(const std::string fileId, const std::string fieldId)
 {
     xios::CField* field = getField(fieldId);
     cxios_xml_tree_add_fieldtofile(getFile(fileId), &field, fieldId.c_str(), fieldId.length());

@@ -44,9 +44,9 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.isInitialized());
 
     // Extract MPI size and rank
-    size_t size = xios_handler.getClientMPISize();
+    const size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);
-    size_t rank = xios_handler.getClientMPIRank();
+    const size_t rank = xios_handler.getClientMPIRank();
 
     // --- Tests for calendar API
     // Calendar type
@@ -68,10 +68,10 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getCalendarTimestep().seconds() == doctest::Approx(5400.0));
 
     // --- Tests for axis API
-    std::string axisId = { "axis_A" };
+    const std::string axisId = { "axis_A" };
     xios_handler.createAxis(axisId);
     // Axis size
-    size_t axis_size = 30;
+    const size_t axis_size = 30;
     REQUIRE_FALSE(xios_handler.isDefinedAxisSize(axisId));
     xios_handler.setAxisSize(axisId, axis_size);
     REQUIRE(xios_handler.isDefinedAxisSize(axisId));
@@ -90,47 +90,47 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     }
 
     // --- Tests for domain API
-    std::string domainId = { "domain_A" };
+    const std::string domainId = { "domain_A" };
     xios_handler.createDomain(domainId);
     // Domain type
     REQUIRE_FALSE(xios_handler.isDefinedDomainType(domainId));
-    std::string domainType = { "rectilinear" };
+    const std::string domainType = { "rectilinear" };
     xios_handler.setDomainType(domainId, domainType);
     REQUIRE(xios_handler.isDefinedDomainType(domainId));
     REQUIRE(xios_handler.getDomainType(domainId) == domainType);
     // Global longitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainGlobalLongitudeSize(domainId));
-    size_t ni_glo = 60;
+    const size_t ni_glo = 60;
     xios_handler.setDomainGlobalLongitudeSize(domainId, ni_glo);
     REQUIRE(xios_handler.isDefinedDomainGlobalLongitudeSize(domainId));
     REQUIRE(xios_handler.getDomainGlobalLongitudeSize(domainId) == ni_glo);
     // Global latitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainGlobalLatitudeSize(domainId));
-    size_t nj_glo = 20;
+    const size_t nj_glo = 20;
     xios_handler.setDomainGlobalLatitudeSize(domainId, nj_glo);
     REQUIRE(xios_handler.isDefinedDomainGlobalLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainGlobalLatitudeSize(domainId) == nj_glo);
     // Local longitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeSize(domainId));
-    size_t ni = ni_glo / size;
+    const size_t ni = ni_glo / size;
     xios_handler.setDomainLongitudeSize(domainId, ni);
     REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
     // Local latitude size
     REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeSize(domainId));
-    size_t nj = nj_glo;
+    const size_t nj = nj_glo;
     xios_handler.setDomainLatitudeSize(domainId, nj);
     REQUIRE(xios_handler.isDefinedDomainLatitudeSize(domainId));
     REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
     // Local longitude start
     REQUIRE_FALSE(xios_handler.isDefinedDomainLongitudeStart(domainId));
-    size_t startLon = ni * rank;
+    const size_t startLon = ni * rank;
     xios_handler.setDomainLongitudeStart(domainId, startLon);
     REQUIRE(xios_handler.isDefinedDomainLongitudeStart(domainId));
     REQUIRE(xios_handler.getDomainLongitudeStart(domainId) == startLon);
     // Local latitude start
     REQUIRE_FALSE(xios_handler.isDefinedDomainLatitudeStart(domainId));
-    size_t startLat = 0;
+    const size_t startLat = 0;
     xios_handler.setDomainLatitudeStart(domainId, startLat);
     REQUIRE(xios_handler.isDefinedDomainLatitudeStart(domainId));
     REQUIRE(xios_handler.getDomainLatitudeStart(domainId) == startLat);
@@ -160,32 +160,32 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     }
 
     // --- Tests for grid API
-    std::string gridId = { "grid_2D" };
+    const std::string gridId = { "grid_2D" };
     xios_handler.createGrid(gridId);
     // Grid name
     REQUIRE_FALSE(xios_handler.isDefinedGridName(gridId));
-    std::string gridName = { "test_grid" };
+    const std::string gridName = { "test_grid" };
     xios_handler.setGridName(gridId, gridName);
     REQUIRE(xios_handler.isDefinedGridName(gridId));
     REQUIRE(xios_handler.getGridName(gridId) == gridName);
 
     // --- Tests for field API
-    std::string fieldId = { "field_A" };
+    const std::string fieldId = { "field_A" };
     xios_handler.createField(fieldId);
     // Field name
-    std::string fieldName = { "test_field" };
+    const std::string fieldName = { "test_field" };
     REQUIRE_FALSE(xios_handler.isDefinedFieldName(fieldId));
     xios_handler.setFieldName(fieldId, fieldName);
     REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
     REQUIRE(xios_handler.isDefinedFieldName(fieldId));
     // Operation
-    std::string operation = { "instant" };
+    const std::string operation = { "instant" };
     REQUIRE_FALSE(xios_handler.isDefinedFieldOperation(fieldId));
     xios_handler.setFieldOperation(fieldId, operation);
     REQUIRE(xios_handler.isDefinedFieldOperation(fieldId));
     REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
     // Grid reference
-    std::string gridRef = { "grid_2D" };
+    const std::string gridRef = { "grid_2D" };
     REQUIRE_FALSE(xios_handler.isDefinedFieldGridRef(fieldId));
     xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
@@ -194,24 +194,24 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     xios_handler.gridAddAxis(gridId, axisId);
 
     // --- Tests for file API
-    std::string fileId { "output" };
+    const std::string fileId { "output" };
     REQUIRE_FALSE(xios_handler.validFileId(fileId));
     xios_handler.createFile(fileId);
     REQUIRE(xios_handler.validFileId(fileId));
     // File name
-    std::string fileName { "diagnostic" };
+    const std::string fileName { "diagnostic" };
     xios_handler.setFileName(fileId, fileName);
     REQUIRE(xios_handler.isDefinedFileName(fileId));
     REQUIRE(xios_handler.getFileName(fileId) == fileName);
     // File type
-    std::string fileType { "one_file" };
+    const std::string fileType { "one_file" };
     REQUIRE_FALSE(xios_handler.isDefinedFileType(fileId));
     xios_handler.setFileType(fileId, fileType);
     REQUIRE(xios_handler.isDefinedFileType(fileId));
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
     REQUIRE_FALSE(xios_handler.isDefinedFileOutputFreq(fileId));
-    std::string freq { "1ts" };
+    const std::string freq { "1ts" };
     xios_handler.setFileOutputFreq(fileId, freq);
     REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
@@ -229,9 +229,8 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         field_A[idx] = 1.0 * idx;
     }
 
-    // verify calendar step is starting from zero
-    int step = xios_handler.getCalendarStep();
-    REQUIRE(step == 0);
+    // Verify calendar step is starting from zero
+    REQUIRE(xios_handler.getCalendarStep() == 0);
 
     // simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
@@ -239,9 +238,8 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
         xios_handler.updateCalendar(ts);
         // send data to XIOS to be written to disk
         xios_handler.write(fieldId, field_A, ni, nj, axis_size);
-        // verify timestep
-        step = xios_handler.getCalendarStep();
-        REQUIRE(step == ts);
+        // Verify timestep
+        REQUIRE(xios_handler.getCalendarStep() == ts);
     }
 
     xios_handler.context_finalize();
