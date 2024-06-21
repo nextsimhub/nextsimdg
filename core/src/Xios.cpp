@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    17 June 2024
+ * @date    21 June 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -353,7 +353,13 @@ void Xios::setAxisSize(const std::string axisId, const size_t size)
  */
 void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
 {
+    if (!isDefinedAxisSize(axisId)) {
+        setAxisSize(axisId, values.size());
+    }
     int size = getAxisSize(axisId);
+    if (size != values.size()) {
+        throw std::runtime_error("Xios: Axis size incompatible with values for '" + axisId + "'");
+    }
     cxios_set_axis_value(getAxis(axisId), values.data(), &size);
 }
 
@@ -887,6 +893,28 @@ void Xios::gridAddDomain(const std::string gridId, const std::string domainId)
 }
 
 /*!
+ * Get all axis IDs associated with a given grid
+ *
+ * @param the grid ID
+ * @return all axis IDs associated with the grid
+ */
+std::vector<std::string> Xios::gridGetAxisIds(const std::string gridId)
+{
+    return getGrid(gridId)->getAxisList();
+}
+
+/*!
+ * Get all domain IDs associated with a given grid
+ *
+ * @param the grid ID
+ * @return all domain IDs associated with the grid
+ */
+std::vector<std::string> Xios::gridGetDomainIds(const std::string gridId)
+{
+    return getGrid(gridId)->getDomainList();
+}
+
+/*!
  * Get the field_definition group
  *
  * @return a pointer to the XIOS CFieldGroup object
@@ -1184,6 +1212,22 @@ bool Xios::validFileId(const std::string fileId)
 }
 
 /*!
+ * Get all field IDs associated with a given file
+ *
+ * @param the file ID
+ * @return all field IDs associated with the file
+ */
+std::vector<std::string> Xios::fileGetFieldIds(const std::string fileId)
+{
+    std::vector<xios::CField*> fields = getFile(fileId)->getAllFields();
+    std::vector<std::string> fieldIds(fields.size());
+    for (int i = 0; i < fields.size(); i++) {
+        fieldIds[i] = fields[i]->getId();
+    }
+    return fieldIds;
+}
+
+/*!
  * Verify whether a name has been defined for a given file ID
  *
  * @param the file ID
@@ -1254,6 +1298,23 @@ void Xios::write(
     const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk)
 {
     cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, -1);
+}
+
+/*!
+ * send 4D field to xios server to be written to file.
+ *
+ * @param field name
+ * @param data to be written
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ * @param size of 3rd dimension
+ * @param size of 4th dimension
+ */
+void Xios::write(const std::string fieldId, double* data, const size_t ni, const size_t nj,
+    const size_t nk, const size_t nl)
+{
+    cxios_write_data_k84(
+        fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, (int)nl, -1);
 }
 }
 

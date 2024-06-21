@@ -1,7 +1,7 @@
 /*!
  * @file    xios_c_interface.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    17 June 2024
+ * @date    21 June 2024
  * @brief   C interface for xios library
  * @details
  * This interface is based on an earlier version provided by Laurent as part of
@@ -169,10 +169,12 @@ void cxios_xml_tree_add_fieldtofile(
     xios::CFile* file, xios::CField** field, const char* _id, int _id_len);
 
 // writing methods
-void cxios_write_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize,
-    int data_Ysize, int tileid);
-void cxios_write_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize,
-    int data_Ysize, int data_Zsize, int tileid);
+void cxios_write_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_size1,
+    int data_size2, int tileid);
+void cxios_write_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_size1,
+    int data_size2, int data_size3, int tileid);
+void cxios_write_data_k84(const char* fieldid, int fieldid_size, double* data_k8, int data_size1,
+    int data_size2, int data_size3, int data_size4, int tileid);
 };
 
 #endif

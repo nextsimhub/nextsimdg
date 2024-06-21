@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    17 June 2024
+ * @date    21 June 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -102,6 +102,8 @@ public:
     bool isDefinedGridName(const std::string gridId);
     void gridAddAxis(std::string axisId, const std::string domainId);
     void gridAddDomain(const std::string gridId, const std::string domainId);
+    std::vector<std::string> gridGetAxisIds(const std::string gridId);
+    std::vector<std::string> gridGetDomainIds(const std::string gridId);
 
     /* Field */
     void createField(const std::string fieldId);
@@ -128,11 +130,14 @@ public:
     bool isDefinedFileType(const std::string fileId);
     bool isDefinedFileOutputFreq(const std::string fileId);
     void fileAddField(const std::string fileId, const std::string fieldId);
+    std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
     /* I/O */
     void write(const std::string fieldId, double* data, const size_t ni, const size_t nj);
     void write(
         const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk);
+    void write(const std::string fieldId, double* data, const size_t ni, const size_t nj,
+        const size_t nk, const size_t nl);
 
     enum {
         ENABLED_KEY,
