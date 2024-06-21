@@ -82,9 +82,16 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     xios_handler.setGridName(gridId, gridName);
     REQUIRE(xios_handler.isDefinedGridName(gridId));
     REQUIRE(xios_handler.getGridName(gridId) == gridName);
-    xios_handler.gridAddDomain("grid_2D", "domain_A");
+    // Add axis
     xios_handler.gridAddAxis("grid_2D", "axis_A");
-    // TODO: Test adding domain and axis
+    std::vector<std::string> axisIds = xios_handler.gridGetAxisIds(gridId);
+    REQUIRE(axisIds.size() == 1);
+    REQUIRE(axisIds[0] == "axis_A");
+    // Add domain
+    xios_handler.gridAddDomain("grid_2D", "domain_A");
+    std::vector<std::string> domainIds = xios_handler.gridGetDomainIds(gridId);
+    REQUIRE(domainIds.size() == 1);
+    REQUIRE(domainIds[0] == "domain_A");
 
     xios_handler.close_context_definition();
     xios_handler.context_finalize();

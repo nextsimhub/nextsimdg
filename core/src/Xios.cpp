@@ -893,6 +893,28 @@ void Xios::gridAddDomain(const std::string gridId, const std::string domainId)
 }
 
 /*!
+ * Get all axis IDs associated with a given grid
+ *
+ * @param the grid ID
+ * @return all axis IDs associated with the grid
+ */
+std::vector<std::string> Xios::gridGetAxisIds(const std::string gridId)
+{
+    return getGrid(gridId)->getAxisList();
+}
+
+/*!
+ * Get all domain IDs associated with a given grid
+ *
+ * @param the grid ID
+ * @return all domain IDs associated with the grid
+ */
+std::vector<std::string> Xios::gridGetDomainIds(const std::string gridId)
+{
+    return getGrid(gridId)->getDomainList();
+}
+
+/*!
  * Get the field_definition group
  *
  * @return a pointer to the XIOS CFieldGroup object
