@@ -128,6 +128,7 @@ public:
     bool isDefinedFileType(const std::string fileId);
     bool isDefinedFileOutputFreq(const std::string fileId);
     void fileAddField(const std::string fileId, const std::string fieldId);
+    std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
     /* I/O */
     void write(const std::string fieldId, double* data, const size_t ni, const size_t nj);

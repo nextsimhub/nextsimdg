@@ -80,8 +80,11 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.setFileOutputFreq(fileId, freq);
     REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
+    // Add field
     xios_handler.fileAddField(fileId, "field_A");
-    // TODO test adding field
+    std::vector<std::string> fieldIds = xios_handler.fileGetFieldIds(fileId);
+    REQUIRE(fieldIds.size() == 1);
+    REQUIRE(fieldIds[0] == "field_A");
 
     xios_handler.close_context_definition();
     xios_handler.context_finalize();

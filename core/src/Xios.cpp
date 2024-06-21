@@ -1190,6 +1190,22 @@ bool Xios::validFileId(const std::string fileId)
 }
 
 /*!
+ * Get all field IDs associated with a given file
+ *
+ * @param the file ID
+ * @return all field IDs associated with the file
+ */
+std::vector<std::string> Xios::fileGetFieldIds(const std::string fileId)
+{
+    std::vector<xios::CField*> fields = getFile(fileId)->getAllFields();
+    std::vector<std::string> fieldIds(fields.size());
+    for (int i = 0; i < fields.size(); i++) {
+        fieldIds[i] = fields[i]->getId();
+    }
+    return fieldIds;
+}
+
+/*!
  * Verify whether a name has been defined for a given file ID
  *
  * @param the file ID
