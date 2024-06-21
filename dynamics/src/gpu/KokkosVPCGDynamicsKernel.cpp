@@ -65,8 +65,10 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
 
     std::tie(buffers.uHost, buffers.uDevice) = makeKokkosDualView("u", this->u);
     std::tie(buffers.vHost, buffers.vDevice) = makeKokkosDualView("v", this->v);
-    buffers.u0Device = makeKokkosDeviceView("u0", this->u);
-    buffers.v0Device = makeKokkosDeviceView("v0", this->v);
+    buffers.u0DeviceMut = makeKokkosDeviceView("u0", this->u);
+    buffers.v0DeviceMut = makeKokkosDeviceView("v0", this->v);
+    buffers.u0Device = buffers.u0DeviceMut;
+    buffers.v0Device = buffers.v0DeviceMut;
 
     std::tie(buffers.dStressXHost, buffers.dStressXDevice)
         = makeKokkosDualView("dStressX", this->dStressX);
@@ -157,8 +159,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerMevp.start();
     Kokkos::deep_copy(buffers.uDevice, buffers.uHost);
     Kokkos::deep_copy(buffers.vDevice, buffers.vHost);
-    Kokkos::deep_copy(buffers.u0Device, buffers.uDevice);
-    Kokkos::deep_copy(buffers.v0Device, buffers.vDevice);
+    Kokkos::deep_copy(buffers.u0DeviceMut, buffers.uDevice);
+    Kokkos::deep_copy(buffers.v0DeviceMut, buffers.vDevice);
     u0 = this->u;
     v0 = this->v;
 

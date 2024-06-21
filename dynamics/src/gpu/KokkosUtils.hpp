@@ -25,7 +25,7 @@ namespace Details {
         using Type = Scalar**;
     };
 
-        template <typename Scalar> struct ToKokkosArrayDec<Scalar, -1, 1> {
+    template <typename Scalar> struct ToKokkosArrayDec<Scalar, -1, 1> {
         using Type = Scalar*;
     };
 
@@ -57,7 +57,7 @@ using KokkosDeviceView
 template <typename EigenMat>
 // todo make Scalar const
 using ConstKokkosDeviceView
-    = Kokkos::View<typename Details::ToKokkosArrayDec<typename EigenMat::Scalar,
+    = Kokkos::View<typename Details::ToKokkosArrayDec<const typename EigenMat::Scalar,
                        EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
         typename Details::ToKokkosLayout<EigenMat::Options>::Type>;
 template <typename EigenMat>
@@ -109,6 +109,9 @@ auto makeKokkosDeviceView(const std::string& name, EigenMat& mat, bool copy = fa
     }
 }
 
+/*!
+ * @brief Creates compatible device and host views for a given Eigen matrix.
+ */
 template <typename EigenMat>
 auto makeKokkosDualView(const std::string& name, EigenMat& mat, bool copy = false)
 {
@@ -117,6 +120,18 @@ auto makeKokkosDualView(const std::string& name, EigenMat& mat, bool copy = fals
 
 template <typename T> using KokkosDeviceMapView = Kokkos::View<const T*>;
 
+/*!
+ * @brief Creates a const device view from an std::vector of simple data.
+ *
+ * @details The type T needs to be effectively trivially copyable, i.e. has no reference or pointer
+ * members or non-default copy constructors. The caller has to ensure this, since enforcing the
+ * requirements for T is impractical without C++ 20. The function works with compile-time-sized
+ * Eigen matrices.
+ *
+ * @param name The name of the view.
+ * @param buf The host side std::vector holding the data.
+ * @param copy If true, the contents of mat are copied to the returned device buffer.
+ */
 template <typename T, typename Alloc>
 auto makeKokkosDeviceViewMap(
     const std::string& name, const std::vector<T, Alloc>& buf, bool copy = false)
@@ -171,8 +186,7 @@ namespace Details {
             (Cols == 1) ? Eigen::ColMajor : ToEigenLayout<Layout>::Options>;
     };
 
-    template <typename Scalar, class Layout>
-    struct ToEigenMatrix<Scalar*, Layout> {
+    template <typename Scalar, class Layout> struct ToEigenMatrix<Scalar*, Layout> {
         using Type = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
     };
 
@@ -181,8 +195,7 @@ namespace Details {
         using Type = Eigen::Map<typename Details::ToEigenMatrix<DataType, Layout>::Type>;
     };
 
-    template <class DataType, class Layout>
-    struct ToEigenMap<const DataType, Layout> {
+    template <class DataType, class Layout> struct ToEigenMap<const DataType, Layout> {
         using Type = Eigen::Map<const typename Details::ToEigenMatrix<DataType, Layout>::Type>;
     };
 }
@@ -196,7 +209,7 @@ KOKKOS_IMPL_FUNCTION auto makeEigenMap(const Kokkos::View<DataType, Properties..
     using MapType = typename Details::ToEigenMap<DataType, typename View::array_layout>::Type;
     // Eigen::Map<typename Details::ToEigenMatrix<typename View::non_const_value_type, typename
     // View::array_layout>::Type>;
-    if constexpr(View::rank() == 1) {
+    if constexpr (View::rank() == 1) {
         return MapType(view.data(), view.extent(0));
     } else {
         return MapType(view.data(), view.extent(0), view.extent(1));

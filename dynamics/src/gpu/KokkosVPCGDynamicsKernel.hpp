@@ -41,6 +41,9 @@ public:
         DeviceViewCG vDevice;
         HostViewCG vHost;
         // Step-initial ice velocity
+        // mutable variants are needed to copy the data but accesses on the device are all constant
+        DeviceViewCG u0DeviceMut;
+        DeviceViewCG v0DeviceMut;
         ConstDeviceViewCG u0Device;
         ConstDeviceViewCG v0Device;
 
@@ -141,8 +144,8 @@ public:
         const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
     static void applyBoundariesDevice(
         const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny);
-    static void updateMomentumDevice(
-        const TimestepTime& tst, const KokkosBuffers& _buffers, const VPParameters& _params, FloatType beta);
+    static void updateMomentumDevice(const TimestepTime& tst, const KokkosBuffers& _buffers,
+        const VPParameters& _params, FloatType beta);
 
 private:
     MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> stressStep;
