@@ -414,10 +414,6 @@ void ParaGridIO::writeDiagnosticTime(
             count.push_back(dim.local_length);
         }
 
-        std::reverse(ncDims.begin(), ncDims.end());
-        std::reverse(start.begin(), start.end());
-        std::reverse(count.begin(), count.end());
-
         // Deal with VERTEX in each case
         // Add the time dimension for all types that are not VERTEX
         if (type != ModelArray::Type::VERTEX) {
@@ -428,6 +424,10 @@ void ParaGridIO::writeDiagnosticTime(
             // For VERTEX in an existing file, there is nothing more to be done
             continue;
         }
+
+        std::reverse(ncDims.begin(), ncDims.end());
+        std::reverse(start.begin(), start.end());
+        std::reverse(count.begin(), count.end());
 
         dimMap[type] = ncDims;
         startMap[type] = start;
