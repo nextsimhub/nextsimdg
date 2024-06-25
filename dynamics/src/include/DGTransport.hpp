@@ -162,11 +162,12 @@ private:
 							  const EdgeVector<EDGEDOFS(DG)>& normalvel_Y,
 							  const DGVector<DG>& phi, DGVector<DG>& phiup);
 
-  void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, 
-		   const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie);
-  void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, 
-		   const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie);
-    
+  template<int EOE1, int EOE2>
+  void edge_term(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, 
+		 const EdgeVector<EDGEDOFS(DG)>& normalvel,
+		 const size_t eid1, const size_t eid2,
+		 const size_t edgeid);
+  
   void cell_term(const ParametricMesh& smesh, double dt,
 		 DGVector<DG>& phiup, const DGVector<DG>& phi,
 		 const DGVector<DG>& vx,
