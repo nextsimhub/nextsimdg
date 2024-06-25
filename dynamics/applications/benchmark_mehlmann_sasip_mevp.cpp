@@ -122,45 +122,46 @@ public:
 };
 //////////////////////////////////////////////////
 
-void create_mesh(const std::string& meshname, const size_t Nx, const double distort)
+void create_mesh(Nextsim::ParametricMesh& smesh, const size_t Nx, const double distort)
 {
-    std::ofstream OUT(meshname.c_str());
-    OUT << "ParametricMesh 2.0" << std::endl
-        << Nx << "\t" << Nx << std::endl;
-    for (size_t iy = 0; iy <= Nx; ++iy)
-        for (size_t ix = 0; ix <= Nx; ++ix)
-            OUT << ReferenceScale::L * ix / Nx + ReferenceScale::L * distort * sin(M_PI * ix / Nx * 3.0) * sin(M_PI * iy / Nx) << "\t"
-                << ReferenceScale::L * iy / Nx + ReferenceScale::L * distort * sin(M_PI * iy / Nx * 2.0) * sin(M_PI * ix / Nx * 2.0) << std::endl;
-
-
-    OUT << "landmask 0" << std::endl;
+    smesh.reset(); // clear all mesh information
     
-    if (1) // std-setup, dirichlet everywhere
-    {
-        // dirichlet info
-      OUT << "dirichlet " << 2*Nx+2*Nx << std::endl;
-      for (size_t i = 0; i < Nx; ++i)
-	OUT << i << "\t" << 0 << std::endl; // lower
-      for (size_t i = 0; i < Nx; ++i)
-	OUT << Nx * (Nx - 1) + i << "\t" << 2 << std::endl; // upper
-      
-      for (size_t i = 0; i < Nx; ++i)
-	OUT << i * Nx << "\t" << 3 << std::endl; // left
-      for (size_t i = 0; i < Nx; ++i)
-	OUT << i * Nx + Nx - 1 << "\t" << 1 << std::endl; // right
-      
-        OUT << "periodic 0" << std::endl;
-    } else {
-        OUT << "dirichlet 0" << std::endl;
-        OUT << "periodic 2" << std::endl;
+    smesh.nx = Nx; // set number of elements and nodes
+    smesh.ny = Nx;
+    smesh.nelements = smesh.nx * smesh.ny;
+    smesh.nnodes    = (smesh.nx+1) * (smesh.ny+1);
 
-        OUT << 2 * Nx << std::endl; // horizontal (x-)
-        for (size_t i = 0; i < Nx; ++i)
-            OUT << Nx * (Nx - 1) + i << "\t" << i << "\t0" << std::endl; // left
-        for (size_t i = 0; i < Nx; ++i)
-            OUT << Nx - 1 + i * Nx << "\t" << i * Nx << "\t1" << std::endl;
-    }
-    OUT.close();
+    // initialize the coordinate
+    smesh.vertices.resize(smesh.nnodes, 2);
+    size_t ii = 0;
+    for (size_t iy = 0; iy <= Nx; ++iy)
+        for (size_t ix = 0; ix <= Nx; ++ix, ++ii)
+	  {
+	    smesh.vertices(ii,0) = ReferenceScale::L * ix / Nx + ReferenceScale::L * distort * sin(M_PI * ix / Nx * 3.0) * sin(M_PI * iy / Nx);
+	    smesh.vertices(ii,1) = ReferenceScale::L * iy / Nx + ReferenceScale::L * distort * sin(M_PI * iy / Nx * 2.0) * sin(M_PI * ix / Nx * 2.0);
+	  }
+
+    // landmask
+    smesh.landmask.resize(smesh.nelements);
+    ii = 0;
+    for (size_t iy=0;iy<Nx;++iy)
+        for (size_t ix=0;ix<Nx;++ix,++ii)
+	    smesh.landmask[ii] = true;
+
+    // Boundary. Dirichlet along the sides
+    smesh.dirichlet[0].resize(Nx);
+    smesh.dirichlet[1].resize(Nx);
+    smesh.dirichlet[2].resize(Nx);
+    smesh.dirichlet[3].resize(Nx);
+    
+    for (size_t i = 0; i < Nx; ++i) // lower
+        smesh.dirichlet[0][i] = i;
+    for (size_t i = 0; i < Nx; ++i) // upper
+        smesh.dirichlet[2][i] = Nx * (Nx - 1) + i;
+    for (size_t i = 0; i < Nx; ++i) // left
+        smesh.dirichlet[3][i] = i * Nx;
+    for (size_t i = 0; i < Nx; ++i) // right
+        smesh.dirichlet[1][i] = i * Nx + Nx - 1;
 }
 
 
@@ -169,9 +170,8 @@ template <int CG, int DGadvection>
 void run_benchmark(const size_t NX, double distort)
 {
     //! Define the spatial mesh
-    create_mesh("tmp-benchmark.smesh", NX, distort);
     Nextsim::ParametricMesh smesh(CoordinateSystem);
-    smesh.readmesh("tmp-benchmark.smesh");
+    create_mesh(smesh, NX, distort);
 
     //! Compose name of output directory and create it
     std::string resultsdir = "Benchmark_" + std::to_string(CG) + "_" + std::to_string(DGadvection) + "__" + std::to_string(NX);
