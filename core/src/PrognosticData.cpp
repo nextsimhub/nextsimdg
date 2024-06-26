@@ -146,10 +146,22 @@ ModelState PrognosticData::getState() const
 
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
-    ModelState state(getState());
-    state.merge(pAtmBdy->getStateRecursive(os));
-    state.merge(iceGrowth.getStateRecursive(os));
-    state.merge(pDynamics->getStateRecursive(os));
+    ModelState state;
+    /* If allComponents is set on the OutputSpec, then for any duplicate fields, the subsystems
+     * take priority, otherwise the fields held by PrognosticData itself. Note that merge will not
+     * overwrite existing keys, so the first one that exists will survive.
+     */
+    if (os.allComponents()) {
+        state.merge(pAtmBdy->getStateRecursive(os));
+        state.merge(iceGrowth.getStateRecursive(os));
+        state.merge(pDynamics->getStateRecursive(os));
+        state.merge(getState());
+    } else {
+        state.merge(getState());
+        state.merge(pAtmBdy->getStateRecursive(os));
+        state.merge(iceGrowth.getStateRecursive(os));
+        state.merge(pDynamics->getStateRecursive(os));
+    }
     // OceanBoundary does not contribute to the output model state
     return os ? state : ModelState();
 }
