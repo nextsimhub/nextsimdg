@@ -148,8 +148,8 @@ ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state;
     /* If allComponents is set on the OutputSpec, then for any duplicate fields, the subsystems
-     * take priority, otherwise the fields held by PrognosticData itself. Note that merge will not
-     * overwrite existing keys, so the first one that exists will survive.
+     * take priority, otherwise the fields held by PrognosticData itself. Note that std::map::merge
+     * will not overwrite existing keys, so the first one that exists will survive.
      */
     if (os.allComponents()) {
         state.merge(pAtmBdy->getStateRecursive(os));
