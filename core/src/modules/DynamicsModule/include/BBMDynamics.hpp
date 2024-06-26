@@ -22,6 +22,7 @@ public:
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
 private:
     // TODO: How to get the template parameters here?
     BBMDynamicsKernel<6> kernel;
