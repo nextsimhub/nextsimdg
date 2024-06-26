@@ -197,7 +197,10 @@ void Model::writeRestartFile()
     Logged::notice(std::string("  Writing state-based restart file: ") + formattedFileName + '\n');
     // Copy the configuration from the ModelState to the ModelMetadata
     ConfigMap modelConfig = getConfig();
-    modelConfig.merge(pData.getStateRecursive(true).config);
+    // Create an OutputSpec that is all fields, all components
+    OutputSpec os;
+    os.setAllComponents();
+    modelConfig.merge(pData.getStateRecursive(os).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
     m_etadata.setConfig(modelConfig);
     // Get the model state from PrognosticData and add the coordinates.
