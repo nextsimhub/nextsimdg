@@ -110,7 +110,7 @@ public:
      * @param name the name of the requested field.
      *
      */
-    virtual ModelArray getDG0Data(const std::string& name)
+    virtual ModelArray getDG0Data(const std::string& name) const
     {
         HField data(ModelArray::Type::H);
         if (name == hiceName) {
@@ -129,7 +129,7 @@ public:
      *
      * @param name the name of the requested field.
      */
-    ModelArray getDGData(const std::string& name)
+    ModelArray getDGData(const std::string& name) const
     {
 
         if (name == hiceName) {

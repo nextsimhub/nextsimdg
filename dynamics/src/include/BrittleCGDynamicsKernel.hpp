@@ -133,7 +133,7 @@ public:
         }
     }
 
-    ModelArray getDG0Data(const std::string& name) override
+    ModelArray getDG0Data(const std::string& name) const override
     {
         if (name == damageName) {
             ModelArray data(ModelArray::Type::H);

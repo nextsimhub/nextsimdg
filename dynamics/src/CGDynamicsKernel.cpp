@@ -82,7 +82,7 @@ void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const Model
 }
 
 template <int DGadvection>
-ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name)
+ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
 {
     if (name == uName) {
         ModelArray data(ModelArray::Type::U);

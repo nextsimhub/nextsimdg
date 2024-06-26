@@ -40,7 +40,7 @@ public:
     virtual ~CGDynamicsKernel() = default;
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
     void setData(const std::string& name, const ModelArray& data) override;
-    ModelArray getDG0Data(const std::string& name) override;
+    ModelArray getDG0Data(const std::string& name) const override;
     void prepareIteration(const DataMap& data) override;
     void projectVelocityToStrain() override;
     void stressDivergence() override;
