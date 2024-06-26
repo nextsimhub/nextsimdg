@@ -24,6 +24,8 @@
 #define TEST_FILE_SOURCE .
 #endif
 
+extern template class Module::Module<Nextsim::IFluxCalculation>;
+
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ERA5Atmosphere");
