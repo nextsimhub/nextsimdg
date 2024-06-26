@@ -51,7 +51,7 @@ size_t NT = NT0;
 
 bool WRITE_VTK = false; //!< set to true for vtk output
 
-double TOL = 1.e-4; //!< tolerance for checking test results
+double TOL = 1.e-7; //!< tolerance for checking test results
 
 /*!
  *  Description of the test case
@@ -258,7 +258,7 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh)
     }
 }
 
-template <int DG> bool run(const std::array<std::array<double, 4>, 3>& exact)
+template <int DG> bool run(const std::array<std::array<double, 6>, 3>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
 
@@ -294,14 +294,11 @@ TEST_CASE("Advection Periodic Boundary Conditions")
     std::cout << "DG\tNT\tNX\tmass\t\terror\t\texact\t\tpassed" << std::endl;
     std::cout << std::setprecision(4) << std::scientific;
 
-    std::array<std::array<double, 4>, 3> exact = // Exact values taken 12.12.2022
-        { std::array<double, 4>({ 1.0391624414762417e+00, 1.1501064166196422e+00,
-              1.0716061327988471e+00, 9.5401958993610814e-01 }),
-            std::array<double, 4>({ 1.0612603302304859e+00, 7.7495581371153321e-01,
-                5.2118230019043099e-01, 3.5890562267355358e-01 }),
-            std::array<double, 4>({ 6.0748693509577401e-01, 4.1527390403823250e-01,
-                3.0257967665165653e-01, 2.2100034857331666e-01 }) };
-
+    std::array<std::array<double, 6>, 3> exact = // Exact values taken 26/06/2024
+      { std::array<double,6>({1.0338503986019776e+00,1.1451366598186576e+00,1.0681593193338463e+00,9.5252231195653514e-01,8.1458581892610948e-01,6.8950068528265862e-01}),
+	std::array<double,6>({1.0618882222552408e+00,7.7511490432906593e-01,5.2182522412941823e-01,3.5902410728004258e-01,2.6109655891908934e-01,1.9431647351962186e-01}),
+	std::array<double,6>({6.1221633288436406e-01,4.1515677607536206e-01,3.0256496304997554e-01,2.2095605759224748e-01,1.6356635995171517e-01,1.2110580882455481e-01})};
+    
     REQUIRE(run<1>(exact) == true);
     REQUIRE(run<3>(exact) == true);
     REQUIRE(run<6>(exact) == true);
