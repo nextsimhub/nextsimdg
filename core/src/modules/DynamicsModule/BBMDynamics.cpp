@@ -85,6 +85,7 @@ ModelState BBMDynamics::getStateRecursive(const OutputSpec& os) const
         state.merge({
             {hiceName, kernel.getDG0Data(hiceName)},
             {ciceName, kernel.getDG0Data(ciceName)},
+            {damageName, kernel.getDG0Data(damageName)},
         });
     }
     return state;
