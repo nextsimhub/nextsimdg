@@ -1208,6 +1208,17 @@ void Xios::setFileSplitFreq(const std::string fileId, const std::string freq)
 }
 
 /*!
+ * Set the mode of a file with a given ID
+ *
+ * @param the file ID
+ * @param file mode to set
+ */
+void Xios::setFileMode(const std::string fileId, const std::string mode)
+{
+    cxios_set_file_mode(getFile(fileId), mode.c_str(), mode.length());
+}
+
+/*!
  * Get the name of a file with a given ID
  *
  * @param the file ID
@@ -1288,6 +1299,21 @@ std::string Xios::getFileSplitFreq(const std::string fileId)
 }
 
 /*!
+ * Get the mode of a file with a given ID
+ *
+ * @param the file ID
+ * @return mode of the corresponding file
+ */
+std::string Xios::getFileMode(const std::string fileId)
+{
+    char cStr[cStrLen];
+    cxios_get_file_mode(getFile(fileId), cStr, cStrLen);
+    std::string mode(cStr, cStrLen);
+    boost::algorithm::trim_right(mode);
+    return mode;
+}
+
+/*!
  * Get all field IDs associated with a given file
  *
  * @param the file ID
@@ -1303,7 +1329,7 @@ std::vector<std::string> Xios::fileGetFieldIds(const std::string fileId)
     return fieldIds;
 }
 
-/*!
+/*
  * Associate a field with a file
  *
  * @param the file ID

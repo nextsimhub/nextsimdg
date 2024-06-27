@@ -80,6 +80,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     const std::string splitFreq { "1ts" };
     xios_handler.setFileSplitFreq(fileId, splitFreq);
     REQUIRE(xios_handler.getFileSplitFreq(fileId) == splitFreq);
+    // File mode
+    const std::string mode { "write" };
+    xios_handler.setFileMode(fileId, mode);
+    REQUIRE(xios_handler.getFileMode(fileId) == mode);
     // Add field
     xios_handler.fileAddField(fileId, "field_A");
     std::vector<std::string> fieldIds = xios_handler.fileGetFieldIds(fileId);
