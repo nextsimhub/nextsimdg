@@ -16,6 +16,8 @@
 
 #include <iostream>
 
+namespace Nextsim {
+
 /*!
  * TestXiosAxis
  *
@@ -29,19 +31,19 @@ MPI_TEST_CASE("TestXiosAxis", 2)
 {
 
     // Enable XIOS in the 'config'
-    Nextsim::Configurator::clearStreams();
+    Configurator::clearStreams();
     std::stringstream config;
     config << "[xios]" << std::endl << "enable = true" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Nextsim::Configurator::addStream(std::move(pcstream));
+    Configurator::addStream(std::move(pcstream));
 
     // Initialize an Xios instance called xios_handler
-    Nextsim::Xios xios_handler;
+    Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
     REQUIRE(xios_handler.getClientMPISize() == 2);
 
     // Set timestep as a minimum
-    xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:00:00"));
+    xios_handler.setCalendarTimestep(Duration("P0-0T01:00:00"));
 
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };
@@ -63,4 +65,5 @@ MPI_TEST_CASE("TestXiosAxis", 2)
 
     xios_handler.close_context_definition();
     xios_handler.context_finalize();
+}
 }
