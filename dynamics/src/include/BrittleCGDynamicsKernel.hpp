@@ -135,11 +135,22 @@ public:
 
     ModelArray getDG0Data(const std::string& name) const override
     {
+
         if (name == damageName) {
             ModelArray data(ModelArray::Type::H);
             return DGModelArray::dg2ma(damage, data);
         } else {
             return CGDynamicsKernel<DGadvection>::getDG0Data(name);
+        }
+    }
+
+    ModelArray getDGData(const std::string& name) const override
+    {
+        if (name == damageName) {
+            ModelArray data(ModelArray::Type::DG);
+            return DGModelArray::dg2ma(damage, data);
+        } else {
+            return CGDynamicsKernel<DGadvection>::getDGData(name);
         }
     }
 

@@ -129,7 +129,7 @@ public:
      *
      * @param name the name of the requested field.
      */
-    ModelArray getDGData(const std::string& name) const
+    virtual ModelArray getDGData(const std::string& name) const
     {
 
         if (name == hiceName) {

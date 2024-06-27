@@ -80,12 +80,11 @@ ModelState BBMDynamics::getStateRecursive(const OutputSpec& os) const
     // Base class state
     ModelState state(IDynamics::getStateRecursive(os));
 
-    if (os.allComponents())
-    {
+    if (os.allComponents()) {
         state.merge({
-            {hiceName, kernel.getDG0Data(hiceName)},
-            {ciceName, kernel.getDG0Data(ciceName)},
-            {damageName, kernel.getDG0Data(damageName)},
+            { hiceName, kernel.getDGData(hiceName) },
+            { ciceName, kernel.getDGData(ciceName) },
+            { damageName, kernel.getDGData(damageName) },
         });
     }
     return state;
