@@ -98,6 +98,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xios_handler.setFileType("xios_test_input", "one_file");
     xios_handler.setFileOutputFreq("xios_test_input", "1ts");
     xios_handler.setFileMode("xios_test_input", "read");
+    xios_handler.setFileParAccess("xios_test_input", "collective");
     xios_handler.fileAddField("xios_test_input", "field_2D");
     xios_handler.fileAddField("xios_test_input", "field_3D");
     xios_handler.fileAddField("xios_test_input", "field_4D");

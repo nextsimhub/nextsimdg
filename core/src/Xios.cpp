@@ -1219,6 +1219,17 @@ void Xios::setFileMode(const std::string fileId, const std::string mode)
 }
 
 /*!
+ * Set the parallel access mode of a file with a given ID
+ *
+ * @param the file ID
+ * @param parallel access mode to set
+ */
+void Xios::setFileParAccess(const std::string fileId, const std::string parAccess)
+{
+    cxios_set_file_par_access(getFile(fileId), parAccess.c_str(), parAccess.length());
+}
+
+/*!
  * Get the name of a file with a given ID
  *
  * @param the file ID
@@ -1314,6 +1325,21 @@ std::string Xios::getFileMode(const std::string fileId)
 }
 
 /*!
+ * Get the parallel access mode of a file with a given ID
+ *
+ * @param the file ID
+ * @return parallel access mode of the corresponding file
+ */
+std::string Xios::getFileParAccess(const std::string fileId)
+{
+    char cStr[cStrLen];
+    cxios_get_file_par_access(getFile(fileId), cStr, cStrLen);
+    std::string parAccess(cStr, cStrLen);
+    boost::algorithm::trim_right(parAccess);
+    return parAccess;
+}
+
+/*!
  * Get all field IDs associated with a given file
  *
  * @param the file ID
@@ -1329,7 +1355,7 @@ std::vector<std::string> Xios::fileGetFieldIds(const std::string fileId)
     return fieldIds;
 }
 
-/*
+/*!
  * Associate a field with a file
  *
  * @param the file ID
