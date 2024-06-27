@@ -7,6 +7,18 @@
 
 #include "include/ModelArray.hpp"
 
+#ifndef DGDEGREE
+#define DGDEGREE 3
+#endif
+
+#ifndef DGSTRESSDEGREE
+#define DGSTRESSDEGREE 6
+#endif
+
+#ifndef CGDEGREE
+#define CGDEGREE 2
+#endif
+
 // A source file to detail the ModelArray dimensions and types for
 // Discontinuous Galerkin models, as well as the relationships between them.
 
@@ -21,11 +33,11 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
     { ModelArray::Dimension::Z, { "zdim", "z", 1 } },
     { ModelArray::Dimension::XVERTEX, { "xvertex", "xvertex", 1 } }, // defined as x + 1
     { ModelArray::Dimension::YVERTEX, { "yvertex", "yvertex", 1 } }, // defined as y + 1
-    { ModelArray::Dimension::XCG, { "x_cg", "x_cg", 1 } },
-    { ModelArray::Dimension::YCG, { "y_cg", "y_cg", 1 } },
+    { ModelArray::Dimension::XCG, { "x_cg", "x_cg", 2 } },
+    { ModelArray::Dimension::YCG, { "y_cg", "y_cg", 2 } },
     // The DG components are also included here to store the names
-    { ModelArray::Dimension::DG, { "dg_comp", "dg_comp", 1 } },
-    { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", "dgstress_comp", 1 } },
+    { ModelArray::Dimension::DG, { "dg_comp", "dg_comp", 3 } },
+    { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", "dgstress_comp", 6 } },
     { ModelArray::Dimension::NCOORDS, { "ncoords", "ncoords", 2 } }, // It's a two dimensional model
     // clang-format on
 };
