@@ -90,15 +90,53 @@ set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")
 set(ModuleBuilderScript "${ScriptDirectory}/module_builder.py")
 set(ModuleHeaderScript "${ScriptDirectory}/module_header.py")
 
+# Dynamics type. Defaults to DG1.
+# Available options are:
+# DG1 Discontinuous Galerkin, degree 1 (3 components)
+# DG2 Discontinuous Galerkin, degree 2 (6 components)
+set(isDG FALSE)
+
+# Replace a missing dynamics type with DG1
+if (NOT DynamicsType)
+    message("Defaulting dynamics to DG1")
+    set(DynamicsType "DG1")
+endif()
+
+if (DynamicsType STREQUAL "DG1")
+    set(isDG TRUE)
+    set(DGDegree "3")
+endif()
+
+if (DynamicsType STREQUAL "DG2")
+    set(isDG TRUE)
+    set(DGDegree "6")
+endif()
+
 # Set the components which provide source or object code to the main model
 set(CodeComponents
     "physics"
-    "dynamics"
     )
 
+# Add the DG dynamics subdirectory to the list of code components
+if (isDG)
+    set(CodeComponents
+        "${CodeComponents}"
+        "dynamics"
+        )
+endif()
+
 # The exact selection of dimensions and Types available to ModelArray
-if(True)
+if(isDG)
     set(ModelArrayStructure "discontinuousgalerkin")
+endif()
+
+# FIXME Remove me
+message("Dynamics type is ${DynamicsType}")
+if (isDG)
+    message("Dynamics is DG")
+    message("DG degree is ${DGDegree}")
+else()
+    message("Dynamics is not DG")
 endif()
 
 # Set an empty list of sources
