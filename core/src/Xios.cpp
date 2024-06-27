@@ -1338,6 +1338,51 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
         throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
     }
 }
+
+/*!
+ * Receive 2D field from XIOS server that has been read from file.
+ *
+ * @param field name
+ * @param array to read data into
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ */
+void Xios::read(const std::string fieldId, double* data, const size_t ni, const size_t nj)
+{
+    cxios_read_data_k82(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj);
+}
+
+/*!
+ * Receive 3D field from XIOS server that has been read from file.
+ *
+ * @param field name
+ * @param array to read data into
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ * @param size of 3rd dimension
+ */
+void Xios::read(
+    const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk)
+{
+    cxios_read_data_k83(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk);
+}
+
+/*!
+ * Receive 4D field from XIOS server that has been read from file.
+ *
+ * @param field name
+ * @param array to read data into
+ * @param size of 1st dimension
+ * @param size of 2nd dimension
+ * @param size of 3rd dimension
+ * @param size of 4th dimension
+ */
+void Xios::read(const std::string fieldId, double* data, const size_t ni, const size_t nj,
+    const size_t nk, const size_t nl)
+{
+    cxios_read_data_k84(
+        fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, (int)nl);
+}
 }
 
 #endif

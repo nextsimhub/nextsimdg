@@ -119,6 +119,11 @@ public:
 
     /* I/O */
     void write(const std::string fieldId, ModelArray& modelarray);
+    void read(const std::string fieldId, double* data, const size_t ni, const size_t nj);
+    void read(
+        const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk);
+    void read(const std::string fieldId, double* data, const size_t ni, const size_t nj,
+        const size_t nk, const size_t nl);
 
     enum {
         ENABLED_KEY,

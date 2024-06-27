@@ -178,6 +178,14 @@ void cxios_write_data_k83(const char* fieldid, int fieldid_size, const double* d
     int data_size1, int data_size2, int data_size3, int tileid);
 void cxios_write_data_k84(const char* fieldid, int fieldid_size, const double* data_k8,
     int data_size1, int data_size2, int data_size3, int date_size4, int tileid);
+
+// reading methods
+void cxios_read_data_k82(
+    const char* fieldid, int fieldid_size, double* data_k8, int data_size1, int data_size2);
+void cxios_read_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_size1,
+    int data_size2, int data_size3);
+void cxios_read_data_k84(const char* fieldid, int fieldid_size, double* data_k8, int data_size1,
+    int data_size2, int data_size3, int data_size4);
 };
 
 #endif
