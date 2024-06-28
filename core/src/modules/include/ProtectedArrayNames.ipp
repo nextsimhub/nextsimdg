@@ -6,6 +6,7 @@
  */
 
 // External ProtectedArray names must be unique wrt to the external SharedArray names as well
+{ "damage", "DAMAGE0" }, // Ice thickness, cell average, m
 { "hice", "H_ICE_cell" }, // Ice thickness, cell average, m
 { "cice", "C_ICE0" }, // Ice concentration
 { "hsnow", "H_SNOW_cell" }, // Snow depth, cell average, m
