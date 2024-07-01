@@ -1,8 +1,9 @@
 /*!
  * @file ProtectedArrayNames.ipp
  *
- * @date 20 Jan 2023
+ * @date 1 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 // External ProtectedArray names must be unique wrt to the external SharedArray names as well

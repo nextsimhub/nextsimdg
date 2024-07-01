@@ -1,8 +1,9 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date Jan 5, 2024
+ * @date Jul 1, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/BBMDynamics.hpp"

@@ -1,8 +1,9 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 7 Sep 2023
+ * @date 1 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef MODELCOMPONENT_HPP

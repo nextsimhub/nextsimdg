@@ -1,8 +1,8 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date Feb 29, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date Jul 1, 2024
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef BRITTLECGDYNAMICSKERNEL_HPP
