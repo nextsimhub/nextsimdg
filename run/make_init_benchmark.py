@@ -34,6 +34,8 @@ for res in [2, 4, 8, 16]:
             y = iy * res
             initializer.hice[ix, iy] = 0.3 + 0.005 * (sin(60e-3 * x) + sin(30e-3 * y))
 
+    initializer.damage[:, :] = 1.
+
     # All other variables are zero or not needed
 
     # The file is written when initializer goes out of scope
