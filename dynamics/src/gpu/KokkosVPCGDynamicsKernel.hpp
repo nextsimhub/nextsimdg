@@ -14,9 +14,6 @@
 
 #include <Kokkos_Bitset.hpp>
 
-// only for testing
-#include "../include/MEVPStressUpdateStep.hpp"
-
 namespace Nextsim {
 
 template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3 ? 2 : -1);
@@ -118,9 +115,6 @@ public:
     KokkosVPCGDynamicsKernel(const VPParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>()
         , params(paramsIn)
-    //        , PSIAdvectDevice(makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection,
-    //        NGP>)) , PSIStressDevice(makeKokkosDeviceView("PSI<DGstress, NGP>",
-    //        PSI<DGstressDegree, NGP>))
     {
     }
 
@@ -148,54 +142,13 @@ public:
         const VPParameters& _params, FloatType beta);
 
 private:
-    MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> stressStep;
     KokkosBuffers buffers;
     const VPParameters& params;
     FloatType alpha = 1500.;
     FloatType beta = 1500.;
 
-    // Step-initial ice velocity
-    CGVector<CGdegree> u0;
-    CGVector<CGdegree> v0;
-
-    void updateMomentum(const TimestepTime& tst) override
-    {
-        // Update the velocity
-        double SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
-
-        //      update by a loop.. implicit parts and h-dependent
-#pragma omp parallel for
-        for (int i = 0; i < this->u.rows(); ++i) {
-            auto uOcnRel = this->uOcean(i)
-                - this->u(i); // note the reversed sign compared to the v component
-            auto vOcnRel = this->v(i) - this->vOcean(i);
-            double absatm = sqrt(SQR(this->uAtmos(i)) + SQR(this->vAtmos(i)));
-            double absocn = sqrt(
-                SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
-
-            this->u(i) = (1.0
-                / (params.rho_ice * this->cgH(i) / this->deltaT * (1.0 + beta) // implicit parts
-                    + this->cgA(i) * params.F_ocean * absocn) // implicit parts
-                * (params.rho_ice * this->cgH(i) / this->deltaT
-                        * (beta * this->u(i) + u0(i)) // pseudo-timestepping
-                    + this->cgA(i)
-                        * (params.F_atm * absatm * this->uAtmos(i) + // atm forcing
-                            params.F_ocean * absocn * SC * this->uOcean(i)) // ocean forcing
-                    + params.rho_ice * this->cgH(i) * params.fc * vOcnRel // cor + surface
-                    + this->dStressX(i) / this->pmap->lumpedcgmass(i)));
-            this->v(i) = (1.0
-                / (params.rho_ice * this->cgH(i) / this->deltaT * (1.0 + beta) // implicit parts
-                    + this->cgA(i) * params.F_ocean * absocn) // implicit parts
-                * (params.rho_ice * this->cgH(i) / this->deltaT
-                        * (beta * this->v(i) + v0(i)) // pseudo-timestepping
-                    + this->cgA(i)
-                        * (params.F_atm * absatm * this->vAtmos(i) + // atm forcing
-                            params.F_ocean * absocn * SC * this->vOcean(i)) // ocean forcing
-                    + params.rho_ice * this->cgH(i) * params.fc
-                        * uOcnRel // here the reversed sign of uOcnRel is used
-                    + this->dStressY(i) / this->pmap->lumpedcgmass(i)));
-        }
-    }
+    // todo: change base class to remove this completely
+    void updateMomentum(const TimestepTime& tst) override { }
 };
 
 } /* namespace Nextsim */

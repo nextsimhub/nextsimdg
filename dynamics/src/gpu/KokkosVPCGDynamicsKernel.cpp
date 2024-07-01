@@ -77,10 +77,10 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
 
     std::tie(buffers.s11Host, buffers.s11Device) = makeKokkosDualView("s11", this->s11);
     std::tie(buffers.s12Host, buffers.s12Device) = makeKokkosDualView("s12", this->s12);
-    std::tie(buffers.s22Host, buffers.s22Device) = makeKokkosDualView("s11", this->s22);
+    std::tie(buffers.s22Host, buffers.s22Device) = makeKokkosDualView("s22", this->s22);
     std::tie(buffers.e11Host, buffers.e11Device) = makeKokkosDualView("e11", this->e11);
     std::tie(buffers.e12Host, buffers.e12Device) = makeKokkosDualView("e12", this->e12);
-    std::tie(buffers.e22Host, buffers.e22Device) = makeKokkosDualView("e11", this->e22);
+    std::tie(buffers.e22Host, buffers.e22Device) = makeKokkosDualView("e22", this->e22);
 
     std::tie(buffers.hiceHost, buffers.hiceDevice) = makeKokkosDualView("hice", this->hice);
     std::tie(buffers.ciceHost, buffers.ciceDevice) = makeKokkosDualView("cice", this->cice);
@@ -109,7 +109,6 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
     buffers.iMgradYDevice = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, true);
     buffers.iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, true);
     buffers.iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
-    stressStep.setPMap(this->pmap); // only needed for debugging
 
     // mesh related
     // boundary data
@@ -136,6 +135,15 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
     Kokkos::Bitset<Kokkos::DefaultExecutionSpace> landMaskTemp(nBits);
     Kokkos::deep_copy(landMaskTemp, landMaskHost);
     buffers.landMaskDevice = landMaskTemp;
+
+    // These buffers are only used internally. Thus, synchronisation with CPU only needs to happen
+    // to save/load the state. todo: read back buffers if needed in outputs
+    Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
+    Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
+    Kokkos::deep_copy(buffers.s22Device, buffers.s22Host);
+    Kokkos::deep_copy(buffers.e11Device, buffers.e11Host);
+    Kokkos::deep_copy(buffers.e12Device, buffers.e12Host);
+    Kokkos::deep_copy(buffers.e22Device, buffers.e22Host);
 }
 
 template <int DGadvection>
@@ -161,8 +169,6 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(buffers.vDevice, buffers.vHost);
     Kokkos::deep_copy(buffers.u0DeviceMut, buffers.uDevice);
     Kokkos::deep_copy(buffers.v0DeviceMut, buffers.vDevice);
-    u0 = this->u;
-    v0 = this->v;
 
     Kokkos::deep_copy(buffers.uOceanDevice, buffers.uOceanHost);
     Kokkos::deep_copy(buffers.vOceanDevice, buffers.vOceanHost);
@@ -170,25 +176,10 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(buffers.uAtmosDevice, buffers.uAtmosHost);
     Kokkos::deep_copy(buffers.vAtmosDevice, buffers.vAtmosHost);
 
-    Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
-    Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
-    Kokkos::deep_copy(buffers.s22Device, buffers.s22Host);
-    /*     Kokkos::deep_copy(buffers.e11Device, buffers.e11Host);
-         Kokkos::deep_copy(buffers.e12Device, buffers.e12Host);
-         Kokkos::deep_copy(buffers.e22Device, buffers.e22Host);*/
     Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
     Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
     Kokkos::deep_copy(buffers.cgHDevice, buffers.cgHHost);
     Kokkos::deep_copy(buffers.cgADevice, buffers.cgAHost);
-
-    auto checkDiff = [](const auto& a, const auto& b, bool detailed) {
-        if (detailed) {
-            std::cout << a.row(7) - b.row(7) << "\n";
-        }
-        auto aNorm = a.norm();
-        std::cout << "a: " << aNorm << ", b: " << b.norm()
-                  << ", (a-b)/|a|: " << (a - b).norm() / aNorm << std::endl;
-    };
 
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
         timerProj.start();
@@ -213,15 +204,16 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         applyBoundariesDevice(buffers, this->smesh->nx, this->smesh->ny);
         timerBoundary.stop();
     }
+
     Kokkos::deep_copy(buffers.uHost, buffers.uDevice);
     Kokkos::deep_copy(buffers.vHost, buffers.vDevice);
 
     timerMevp.stop();
-    timerMevp.print();
-    timerStress.print();
-    timerDivergence.print();
-    timerMomentum.print();
-    timerBoundary.print();
+    /*   timerMevp.print();
+       timerStress.print();
+       timerDivergence.print();
+       timerMomentum.print();
+       timerBoundary.print();*/
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
 }
