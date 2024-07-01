@@ -53,6 +53,8 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
 
+    double cosOceanAngle, sinOceanAngle;
+
 public:
     BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn,
         const DynamicsParameters& paramsIn)
@@ -75,6 +77,9 @@ public:
         damage.resize_by_mesh(*smesh);
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
+
+        cosOceanAngle = cos(radians * params.ocean_turning_angle);
+        sinOceanAngle = sin(radians * params.ocean_turning_angle);
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
@@ -163,9 +168,6 @@ protected:
     // Common brittle parts of the momentum solver.
     void updateMomentum(const TimestepTime& tst) override
     {
-        static const double cosOceanAngle = cos(radians * params.ocean_turning_angle);
-        static const double sinOceanAngle = sin(radians * params.ocean_turning_angle);
-
 #pragma omp parallel for
         for (size_t i = 0; i < u.rows(); ++i) {
             // FIXME dte_over_mass should include snow in the total mass
@@ -205,11 +207,11 @@ protected:
             v(i) = alpha * vIce - beta * uIce
                 + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
             v(i) *= rDenom;
-        }
 
-        // Calculate the contribution to the average velocity
-        avgU += u / nSteps;
-        avgV += v / nSteps;
+            // Calculate the contribution to the average velocity
+            avgU(i) += u(i) / nSteps;
+            avgV(i) += v(i) / nSteps;
+        }
     }
 };
 }

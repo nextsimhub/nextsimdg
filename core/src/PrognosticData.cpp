@@ -19,6 +19,7 @@ PrognosticData::PrognosticData()
     , m_conc(ModelArray::Type::H)
     , m_snow(ModelArray::Type::H)
     , m_tice(ModelArray::Type::Z)
+    , m_damage(ModelArray::Type::H)
     , pAtmBdy(0)
     , pOcnBdy(0)
     , pDynamics(0)
@@ -63,7 +64,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
         m_damage = ms.at(damageName);
     } else {
         m_damage.resize();
-        m_damage = 0.;
+        m_damage = 1.;
     }
 
     pAtmBdy->setData(ms);

@@ -11,7 +11,7 @@
 
 namespace Nextsim {
 
-static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName, damageName };
 BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)
