@@ -104,16 +104,16 @@ endif()
 
 if (DynamicsType STREQUAL "DG1")
     set(isDG TRUE)
-    set(DGDegree "3")
-    set(DGStressDegree "6")
-    set(CGDegree "2")
+    set(DGDegree 3)
+    set(DGStressDegree 6)
+    set(CGDegree 2)
 endif()
 
 if (DynamicsType STREQUAL "DG2")
     set(isDG TRUE)
-    set(DGDegree "6")
-    set(DGStressDegree "9")
-    set(CGDegree "3")
+    set(DGDegree 6)
+    set(DGStressDegree 9)
+    set(CGDegree 3)
 endif()
 
 # Set the components which provide source or object code to the main model
