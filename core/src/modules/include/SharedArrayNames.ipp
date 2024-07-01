@@ -1,11 +1,13 @@
 /*!
  * @file SharedArrayNames.ipp
  *
- * @date 20 Jan 2023
+ * @date 1 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 // External SharedArray names must be unique wrt to the external ProtectedArray names as well
+{ "damage_upd", "DAMAGE" }, // Updated ice thickness, ice average, m
 { "hice_true", "H_ICE" }, // Updated ice thickness, ice average, m
 { "cice_upd", "C_ICE" }, // Updated ice concentration
 { "hsnow_true", "H_SNOW" }, // Updated snow depth, ice average, m

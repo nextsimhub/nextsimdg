@@ -1,8 +1,9 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date Jan 5, 2024
+ * @date Jul 1, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/BBMDynamics.hpp"
@@ -11,7 +12,7 @@
 
 namespace Nextsim {
 
-static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName, damageName };
 BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)

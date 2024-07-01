@@ -1,8 +1,8 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date Feb 29, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date Jul 1, 2024
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef BRITTLECGDYNAMICSKERNEL_HPP
@@ -53,6 +53,8 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
 
+    double cosOceanAngle, sinOceanAngle;
+
 public:
     BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn,
         const DynamicsParameters& paramsIn)
@@ -73,6 +75,17 @@ public:
         stresstransport->settimesteppingscheme("rk2");
 
         damage.resize_by_mesh(*smesh);
+        avgU.resize_by_mesh(*smesh);
+        avgV.resize_by_mesh(*smesh);
+
+        cosOceanAngle = cos(radians * params.ocean_turning_angle);
+        sinOceanAngle = sin(radians * params.ocean_turning_angle);
+    }
+
+    // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
+    void prepareAdvection() override
+    {
+        dgtransport->prepareAdvection(avgU, avgV);
     }
 
     void update(const TimestepTime& tst) override
@@ -82,7 +95,7 @@ public:
         advectionAndLimits(tst);
 
         //! Perform transport step for stress
-        stresstransport->prepareAdvection(u, v);
+        stresstransport->prepareAdvection(avgU, avgV);
         stresstransport->step(tst.step.seconds(), s11);
         stresstransport->step(tst.step.seconds(), s12);
         stresstransport->step(tst.step.seconds(), s22);
@@ -97,6 +110,9 @@ public:
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
 
+        avgU.zero();
+        avgV.zero();
+
         for (size_t subStep = 0; subStep < nSteps; ++subStep) {
 
             projectVelocityToStrain();
@@ -108,11 +124,6 @@ public:
                 params, *smesh, stress, { e11, e12, e22 }, hice, cice, deltaT);
 
             stressDivergence(); // Compute divergence of stress tensor
-
-            dStressX.zero();
-            dStressY.zero();
-
-            stressDivergence();
 
             updateMomentum(tst);
 
@@ -144,8 +155,8 @@ public:
     }
 
 protected:
-    CGVector<CGdegree> avgX;
-    CGVector<CGdegree> avgY;
+    CGVector<CGdegree> avgU;
+    CGVector<CGdegree> avgV;
 
     StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
     const MEBParameters& params;
@@ -157,9 +168,6 @@ protected:
     // Common brittle parts of the momentum solver.
     void updateMomentum(const TimestepTime& tst) override
     {
-        static const double cosOceanAngle = cos(radians * params.ocean_turning_angle);
-        static const double sinOceanAngle = sin(radians * params.ocean_turning_angle);
-
 #pragma omp parallel for
         for (size_t i = 0; i < u.rows(); ++i) {
             // FIXME dte_over_mass should include snow in the total mass
@@ -199,31 +207,11 @@ protected:
             v(i) = alpha * vIce - beta * uIce
                 + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
             v(i) *= rDenom;
-        }
-        dirichletZero(u);
-        dirichletZero(v);
 
-        // Mask the land on the CG grid, using the finite volume landmask
-        static const size_t cgRowLength = CGdegree * smesh->nx + 1;
-#pragma omp parallel for
-        for (size_t eid = 0; eid < smesh->nelements; ++eid) {
-            if (smesh->landmask[eid] == 0) {
-                const size_t ex = eid % smesh->nx;
-                const size_t ey = eid / smesh->nx;
-                // Loop over CG elements for this finite volume grid cell
-                for (size_t jy = 0; jy <= CGdegree; ++jy) {
-                    for (size_t jx = 0; jx <= CGdegree; ++jx) {
-                        const size_t cgi = cgRowLength * (CGdegree * ey + jy) + CGdegree * ex + jx;
-                        u(cgi) = 0.;
-                        v(cgi) = 0.;
-                    }
-                }
-            }
+            // Calculate the contribution to the average velocity
+            avgU(i) += u(i) / nSteps;
+            avgV(i) += v(i) / nSteps;
         }
-
-        // Calculate the contribution to the average velocity
-        avgX += u / nSteps;
-        avgY += v / nSteps;
     }
 };
 }
