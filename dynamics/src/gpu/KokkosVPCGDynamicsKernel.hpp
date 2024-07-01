@@ -28,7 +28,7 @@ template <int DGadvection> class KokkosVPCGDynamicsKernel : public CGDynamicsKer
 private:
     static constexpr int NGP = NGP_DG<DGstressDegree>;
 
-    using EdgeVec = Eigen::Matrix<double, 1, NGP * NGP>;
+    using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
 
 public:
     struct KokkosBuffers {
@@ -139,7 +139,7 @@ public:
     static void projVelocityToStrain(
         const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
     static void stressUpdateHighOrder(
-        const KokkosBuffers& _buffers, const VPParameters& _params, double _alpha);
+        const KokkosBuffers& _buffers, const VPParameters& _params, FloatType _alpha);
     static void computeStressDivergence(
         const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
     static void applyBoundariesDevice(
