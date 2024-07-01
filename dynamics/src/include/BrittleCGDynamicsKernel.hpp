@@ -172,7 +172,7 @@ protected:
         for (size_t i = 0; i < u.rows(); ++i) {
             // FIXME dte_over_mass should include snow in the total mass
             const double dteOverMass = deltaT / (params.rho_ice * cgH(i));
-            // Memorized initial velocity values
+            // Memoized initial velocity values
             const double uIce = u(i);
             const double vIce = v(i);
 
