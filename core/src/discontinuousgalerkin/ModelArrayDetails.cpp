@@ -1,7 +1,7 @@
 /*!
  * @file ModelArrayDetails.cpp
  *
- * @date Oct 19, 2022
+ * @date 2 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -33,8 +33,8 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
     { ModelArray::Dimension::Z, { "zdim", "z", 1 } },
     { ModelArray::Dimension::XVERTEX, { "xvertex", "xvertex", 1 } }, // defined as x + 1
     { ModelArray::Dimension::YVERTEX, { "yvertex", "yvertex", 1 } }, // defined as y + 1
-    { ModelArray::Dimension::XCG, { "x_cg", "x_cg", 2 } },
-    { ModelArray::Dimension::YCG, { "y_cg", "y_cg", 2 } },
+    { ModelArray::Dimension::XCG, { "x_cg", "x_cg", CGDEGREE } },
+    { ModelArray::Dimension::YCG, { "y_cg", "y_cg", CGDEGREE } },
     // The DG components are also included here to store the names
     { ModelArray::Dimension::DG, { "dg_comp", "dg_comp", DGCOMP } },
     { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", "dgstress_comp", DGSTRESSCOMP } },
