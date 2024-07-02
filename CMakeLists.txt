@@ -102,6 +102,8 @@ if (NOT DynamicsType)
     set(DynamicsType "DG1")
 endif()
 
+message("Dynamics is set to ${DynamicsType}")
+
 if (DynamicsType STREQUAL "DG1")
     set(isDG TRUE)
     set(DGComp 3)
@@ -139,17 +141,6 @@ if (isDG)
     set(ModelArrayStructure "discontinuousgalerkin")
 endif()
 
-# FIXME Remove me
-message("Dynamics type is ${DynamicsType}")
-if (isDG)
-    message("Dynamics is DG")
-    message("DG components number ${DGComp}")
-    message("CG degree is ${CGDegree}")
-    message("DG stress components number ${DGStressComp}")
-else()
-    message("Dynamics is not DG")
-endif()
-
 # Set an empty list of sources
 set(NextsimSources "")
 
@@ -173,9 +164,9 @@ target_compile_definitions(nextsimlib
     PRIVATE
     $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
     $<$<BOOL:${ENABLE_XIOS}>:USE_XIOS>
-    DGCOMP="${DGComp}"
-    DGSTRESSCOMP="${DGStressComp}"
-    CGDEGREE="${CGDegree}"
+    DGCOMP=${DGComp}
+    DGSTRESSCOMP=${DGStressComp}
+    CGDEGREE=${CGDegree}
     )
 target_include_directories(nextsimlib
     PRIVATE
