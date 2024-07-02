@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.cpp
  *
- * @date 7 Sep 2023
+ * @date 2 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -27,6 +27,10 @@ static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
 static const std::string filePeriodKey = pfx + ".file_period";
+
+// Access the model.start key. There's no clean way of getting this from Model, I think.
+static const std::string modelStartKey = "model.start";
+
 template <>
 const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
     { ConfigOutput::PERIOD_KEY, periodKey },
@@ -83,8 +87,10 @@ void ConfigOutput::configure()
     }
     std::string startString = Configured::getConfiguration(keyMap.at(START_KEY), std::string(""));
     if (startString.empty()) {
-        // If you start the model before 1st January year 0, tough.
-        lastOutput.parse(defaultLastOutput);
+        startString = Configured::getConfiguration(modelStartKey, std::string(""));
+        if (startString.empty())
+            // If you start the model before 1st January year 0, tough.
+            lastOutput.parse(defaultLastOutput);
     } else {
         lastOutput.parse(startString);
         if (!everyTS) {
@@ -125,6 +131,14 @@ void ConfigOutput::configure()
         = Configured::getConfiguration(keyMap.at(FILEPERIOD_KEY), std::string("315360000000"));
     fileChangePeriod = Duration(newFilePeriodStr);
     lastFileChange = lastOutput;
+}
+
+void ConfigOutput::setModelStart(const TimePoint& modelStart)
+{
+    // Set the lastOutput time to the model start if the default value has not yet been replaced.
+    if (lastOutput == TimePoint(defaultLastOutput)) {
+        lastOutput = modelStart;
+    }
 }
 
 void ConfigOutput::outputState(const ModelMetadata& meta)
