@@ -23,7 +23,7 @@ template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::initialise(
     const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 {
-    DynamicsKernel<DGadvection, DGstressDegree>::initialise(coords, isSpherical, mask);
+    DynamicsKernel<DGadvection, DGstressComp>::initialise(coords, isSpherical, mask);
 
     //! Initialize the parametric momentum map
     pmap = new ParametricMomentumMap<CGdegree>(*smesh);
@@ -77,7 +77,7 @@ void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const Model
         DGModelArray::ma2dg(data, vtmp);
         Nextsim::Interpolations::DG2CG(*smesh, vOcean, vtmp);
     } else {
-        DynamicsKernel<DGadvection, DGstressDegree>::setData(name, data);
+        DynamicsKernel<DGadvection, DGstressComp>::setData(name, data);
     }
 }
 
@@ -95,7 +95,7 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name)
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
         return DGModelArray::dg2ma(vtmp, data);
     } else {
-        return DynamicsKernel<DGadvection, DGstressDegree>::getDG0Data(name);
+        return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
     }
 }
 
