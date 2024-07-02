@@ -1,7 +1,7 @@
 /*!
  * @file DevStep.cpp
  *
- * @date Jan 12, 2022
+ * @date 2 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -26,7 +26,13 @@ void DevStep::init()
     tryConfigure(ido);
 }
 
-void DevStep::start(const TimePoint& startTime) { lastOutput = startTime; }
+void DevStep::start(const TimePoint& startTime)
+{
+    // Set the last output time for the restart files to the model start time
+    lastOutput = startTime;
+    // Set the model start time for the diagnostic output files
+    Module::getImplementation<IDiagnosticOutput>().setModelStart(startTime);
+}
 
 void DevStep::iterate(const TimestepTime& tst)
 {
