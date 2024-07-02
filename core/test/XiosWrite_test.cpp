@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    21 June 2024
+ * @date    27 June 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the write method of the C++ interface
@@ -16,6 +16,8 @@
 
 #include <iostream>
 
+namespace Nextsim {
+
 /*!
  * TestXiosWrite
  *
@@ -29,23 +31,23 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 {
 
     // Enable XIOS in the 'config'
-    Nextsim::Configurator::clearStreams();
+    Configurator::clearStreams();
     std::stringstream config;
     config << "[xios]" << std::endl << "enable = true" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Nextsim::Configurator::addStream(std::move(pcstream));
+    Configurator::addStream(std::move(pcstream));
 
     // Initialize an Xios instance called xios_handler
-    Nextsim::Xios xios_handler;
+    Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
     const size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);
     const size_t rank = xios_handler.getClientMPIRank();
 
     // Calendar setup
-    xios_handler.setCalendarOrigin(Nextsim::TimePoint("2020-01-23T00:08:15Z"));
-    xios_handler.setCalendarStart(Nextsim::TimePoint("2023-03-17T17:11:00Z"));
-    xios_handler.setCalendarTimestep(Nextsim::Duration("P0-0T01:30:00"));
+    xios_handler.setCalendarOrigin(TimePoint("2020-01-23T00:08:15Z"));
+    xios_handler.setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
+    xios_handler.setCalendarTimestep(Duration("P0-0T01:30:00"));
 
     // Axis setup
     const int n1 = 2;
@@ -133,4 +135,5 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     delete[] field_4D;
 
     xios_handler.context_finalize();
+}
 }
