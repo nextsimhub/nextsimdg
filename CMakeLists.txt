@@ -104,13 +104,13 @@ endif()
 
 if (DynamicsType STREQUAL "DG1")
     set(isDG TRUE)
-    set(DGDegree 3)
+    set(DGComp 3)
     set(CGDegree 2)
 endif()
 
 if (DynamicsType STREQUAL "DG2")
     set(isDG TRUE)
-    set(DGDegree 6)
+    set(DGComp 6)
     set(CGDegree 2)
 endif()
 
@@ -128,9 +128,9 @@ if (isDG)
 
 # Set the number of DG stress components given the CG degree
     if (CGDegree EQUAL 1)
-        set(DGStressDegree 3)
+        set(DGStressComp 3)
     elseif(CGDegree EQUAL 2)
-        set(DGStressDegree 8)
+        set(DGStressComp 8)
     else()
         message("Invalid value of CGDegree. Valid values are 1–2")
     endif()
@@ -143,9 +143,9 @@ endif()
 message("Dynamics type is ${DynamicsType}")
 if (isDG)
     message("Dynamics is DG")
-    message("DG degree is ${DGDegree}")
-    message("DG stress degree is ${DGStressDegree}")
+    message("DG components number ${DGComp}")
     message("CG degree is ${CGDegree}")
+    message("DG stress components number ${DGStressComp}")
 else()
     message("Dynamics is not DG")
 endif()
@@ -173,8 +173,8 @@ target_compile_definitions(nextsimlib
     PRIVATE
     $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
     $<$<BOOL:${ENABLE_XIOS}>:USE_XIOS>
-    DGDEGREE="${DGDegree}"
-    DGSTRESSDEGREE="${DGStressDegree}"
+    DGCOMP="${DGComp}"
+    DGSTRESSCOMP="${DGStressComp}"
     CGDEGREE="${CGDegree}"
     )
 target_include_directories(nextsimlib

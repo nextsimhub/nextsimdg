@@ -7,12 +7,12 @@
 
 #include "include/ModelArray.hpp"
 
-#ifndef DGDEGREE
-#define DGDEGREE 3
+#ifndef DGCOMP
+#define DGCOMP 3
 #endif
 
-#ifndef DGSTRESSDEGREE
-#define DGSTRESSDEGREE 8
+#ifndef DGSTRESSCOMP
+#define DGSTRESSCOMP 8
 #endif
 
 #ifndef CGDEGREE
@@ -36,8 +36,8 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
     { ModelArray::Dimension::XCG, { "x_cg", "x_cg", 2 } },
     { ModelArray::Dimension::YCG, { "y_cg", "y_cg", 2 } },
     // The DG components are also included here to store the names
-    { ModelArray::Dimension::DG, { "dg_comp", "dg_comp", 3 } },
-    { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", "dgstress_comp", 6 } },
+    { ModelArray::Dimension::DG, { "dg_comp", "dg_comp", DGCOMP } },
+    { ModelArray::Dimension::DGSTRESS, { "dgstress_comp", "dgstress_comp", DGSTRESSCOMP } },
     { ModelArray::Dimension::NCOORDS, { "ncoords", "ncoords", 2 } }, // It's a two dimensional model
     // clang-format on
 };
