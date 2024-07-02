@@ -15,6 +15,11 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 
+#ifndef DGCOMP
+#define DGCOMP 3 // define to make red lines go away in the IDE
+#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
+#endif
+
 namespace Nextsim {
 class MEVPDynamics : public IDynamics {
 public:
@@ -25,8 +30,7 @@ public:
 
     void setData(const ModelState::DataMap&) override;
 private:
-    // TODO: How to get the template parameters here?
-    MEVPDynamicsKernel<6> kernel;
+    MEVPDynamicsKernel<DGCOMP> kernel;
     VPParameters params;
 };
 }
