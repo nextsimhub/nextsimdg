@@ -105,15 +105,13 @@ endif()
 if (DynamicsType STREQUAL "DG1")
     set(isDG TRUE)
     set(DGDegree 3)
-    set(DGStressDegree 6)
     set(CGDegree 2)
 endif()
 
 if (DynamicsType STREQUAL "DG2")
     set(isDG TRUE)
     set(DGDegree 6)
-    set(DGStressDegree 9)
-    set(CGDegree 3)
+    set(CGDegree 2)
 endif()
 
 # Set the components which provide source or object code to the main model
@@ -121,16 +119,23 @@ set(CodeComponents
     "physics"
     )
 
-# Add the DG dynamics subdirectory to the list of code components
 if (isDG)
+# Add the DG dynamics subdirectory to the list of code components
     set(CodeComponents
         "${CodeComponents}"
         "dynamics"
         )
-endif()
+
+# Set the number of DG stress components given the CG degree
+    if (CGDegree EQUAL 1)
+        set(DGStressDegree 3)
+    elseif(CGDegree EQUAL 2)
+        set(DGStressDegree 8)
+    else()
+        message("Invalid value of CGDegree. Valid values are 1–2")
+    endif()
 
 # The exact selection of dimensions and Types available to ModelArray
-if(isDG)
     set(ModelArrayStructure "discontinuousgalerkin")
 endif()
 

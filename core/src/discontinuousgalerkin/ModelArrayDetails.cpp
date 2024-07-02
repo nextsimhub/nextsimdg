@@ -12,7 +12,7 @@
 #endif
 
 #ifndef DGSTRESSDEGREE
-#define DGSTRESSDEGREE 6
+#define DGSTRESSDEGREE 8
 #endif
 
 #ifndef CGDEGREE
