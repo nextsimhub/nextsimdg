@@ -149,12 +149,14 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
 template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
-    PerfTimer timerProj("projGPU");
-    PerfTimer timerStress("stressGPU");
-    PerfTimer timerMevp("mevpGPU");
-    PerfTimer timerDivergence("divGPU");
-    PerfTimer timerMomentum("momentumGPU");
-    PerfTimer timerBoundary("bcGPU");
+    static PerfTimer timerProj("projGPU");
+    static PerfTimer timerStress("stressGPU");
+    static PerfTimer timerMevp("mevpGPU");
+    static PerfTimer timerDivergence("divGPU");
+    static PerfTimer timerMomentum("momentumGPU");
+    static PerfTimer timerBoundary("bcGPU");
+    static PerfTimer timerUpload("uploadGPU");
+    static PerfTimer timerDownload("downloadGPU");
 
     // Let DynamicsKernel handle the advection step
     DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits(tst);
@@ -163,23 +165,27 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     // The critical timestep for the VP solver is the advection timestep
     this->deltaT = tst.step.seconds();
 
-    // todo: determine fields only changed by the mevp iteration to copy them just once
     timerMevp.start();
-    Kokkos::deep_copy(buffers.uDevice, buffers.uHost);
-    Kokkos::deep_copy(buffers.vDevice, buffers.vHost);
-    Kokkos::deep_copy(buffers.u0DeviceMut, buffers.uDevice);
-    Kokkos::deep_copy(buffers.v0DeviceMut, buffers.vDevice);
+    timerUpload.start();
+    // explicit execution space enables asynchronous execution
+    auto execSpace = Kokkos::DefaultExecutionSpace();
+    Kokkos::deep_copy(execSpace, buffers.uDevice, buffers.uHost);
+    Kokkos::deep_copy(execSpace, buffers.vDevice, buffers.vHost);
+    Kokkos::deep_copy(execSpace, buffers.u0DeviceMut, buffers.uDevice);
+    Kokkos::deep_copy(execSpace, buffers.v0DeviceMut, buffers.vDevice);
 
-    Kokkos::deep_copy(buffers.uOceanDevice, buffers.uOceanHost);
-    Kokkos::deep_copy(buffers.vOceanDevice, buffers.vOceanHost);
+    Kokkos::deep_copy(execSpace, buffers.uOceanDevice, buffers.uOceanHost);
+    Kokkos::deep_copy(execSpace, buffers.vOceanDevice, buffers.vOceanHost);
 
-    Kokkos::deep_copy(buffers.uAtmosDevice, buffers.uAtmosHost);
-    Kokkos::deep_copy(buffers.vAtmosDevice, buffers.vAtmosHost);
+    Kokkos::deep_copy(execSpace, buffers.uAtmosDevice, buffers.uAtmosHost);
+    Kokkos::deep_copy(execSpace, buffers.vAtmosDevice, buffers.vAtmosHost);
 
-    Kokkos::deep_copy(buffers.hiceDevice, buffers.hiceHost);
-    Kokkos::deep_copy(buffers.ciceDevice, buffers.ciceHost);
-    Kokkos::deep_copy(buffers.cgHDevice, buffers.cgHHost);
-    Kokkos::deep_copy(buffers.cgADevice, buffers.cgAHost);
+    Kokkos::deep_copy(execSpace, buffers.hiceDevice, buffers.hiceHost);
+    Kokkos::deep_copy(execSpace, buffers.ciceDevice, buffers.ciceHost);
+    Kokkos::deep_copy(execSpace, buffers.cgHDevice, buffers.cgHHost);
+    Kokkos::deep_copy(execSpace, buffers.cgADevice, buffers.cgAHost);
+    execSpace.fence();
+    timerUpload.stop();
 
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
         timerProj.start();
@@ -205,15 +211,25 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         timerBoundary.stop();
     }
 
-    Kokkos::deep_copy(buffers.uHost, buffers.uDevice);
-    Kokkos::deep_copy(buffers.vHost, buffers.vDevice);
+    timerDownload.start();
+    Kokkos::deep_copy(execSpace, buffers.uHost, buffers.uDevice);
+    Kokkos::deep_copy(execSpace, buffers.vHost, buffers.vDevice);
+    execSpace.fence();
+    timerDownload.stop();
 
     timerMevp.stop();
-    /*   timerMevp.print();
-       timerStress.print();
-       timerDivergence.print();
-       timerMomentum.print();
-       timerBoundary.print();*/
+    static int macroStep = 0;
+    ++macroStep;
+    if (macroStep % 16 == 0) {
+        timerMevp.print();
+        timerProj.print();
+        timerStress.print();
+        timerDivergence.print();
+        timerMomentum.print();
+        timerBoundary.print();
+        timerUpload.print();
+        timerDownload.print();
+    }
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
 }
@@ -229,13 +245,6 @@ void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
     Kokkos::parallel_for(
         "projectVelocityToStrain", policy,
         KOKKOS_LAMBDA(const DeviceIndex col, const DeviceIndex row) {
-            auto u = makeEigenMap(_buffers.uDevice);
-            auto v = makeEigenMap(_buffers.vDevice);
-
-            auto e11 = makeEigenMap(_buffers.e11Device);
-            auto e12 = makeEigenMap(_buffers.e12Device);
-            auto e22 = makeEigenMap(_buffers.e22Device);
-
             const DeviceIndex dgi = nx * row + col; //!< Index of dg vector
             const DeviceIndex cgi
                 = CGdegree * cgshift * row + col * CGdegree; //!< Lower left index of cg vector
@@ -245,22 +254,29 @@ void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
                 return;
             }
 
+            const auto u = makeEigenMap(_buffers.uDevice);
+            const auto v = makeEigenMap(_buffers.vDevice);
+
+            auto e11 = makeEigenMap(_buffers.e11Device);
+            auto e12 = makeEigenMap(_buffers.e12Device);
+            auto e22 = makeEigenMap(_buffers.e22Device);
+
             // get the local x/y - velocity coefficients on the element
-            auto vx_local = cgToLocal<CGdegree>(u, cgi, cgshift);
-            auto vy_local = cgToLocal<CGdegree>(v, cgi, cgshift);
+            const auto vx_local = cgToLocal<CGdegree>(u, cgi, cgshift);
+            const auto vy_local = cgToLocal<CGdegree>(v, cgi, cgshift);
 
             // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
             // by integrating rhs and inverting with dG(stress) mass matrix
-            e11.row(dgi) = _buffers.iMgradXDevice[dgi] * vx_local;
-            //        for(int i = 0; i < 8; ++i)
-            //            e11.row(dgi)(i) = _buffers.iMgradXDevice[dgi](i,0);
-            e22.row(dgi) = _buffers.iMgradYDevice[dgi] * vy_local;
-            e12.row(dgi) = 0.5
-                * (_buffers.iMgradXDevice[dgi] * vy_local + _buffers.iMgradYDevice[dgi] * vx_local);
+            const auto iMgradX = _buffers.iMgradXDevice[dgi];
+            e11.row(dgi) = iMgradX * vx_local;
+            const auto iMgradY = _buffers.iMgradYDevice[dgi];
+            e22.row(dgi) = iMgradY * vy_local;
+            e12.row(dgi) = 0.5 * (iMgradX * vy_local + iMgradY * vx_local);
 
             if (coordinates == SPHERICAL) {
-                e11.row(dgi) -= _buffers.iMMDevice[dgi] * vy_local;
-                e12.row(dgi) += 0.5 * _buffers.iMMDevice[dgi] * vx_local;
+                const auto iMM = _buffers.iMMDevice[dgi];
+                e11.row(dgi) -= iMM * vy_local;
+                e12.row(dgi) += 0.5 * iMM * vx_local;
             }
         });
 }
@@ -458,14 +474,24 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
     const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
     using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
+//    static PerfTimer timerDivZero("divZeroGPU");
+//static PerfTimer timerDivComp("divCompGPU");
+ //   static PerfTimer timerDivDirichlet("divDirichletGPU");
     // zero buffers
-    Kokkos::parallel_for(
+ //   timerDivZero.start();
+    auto execSpace = Kokkos::DefaultExecutionSpace();
+    Kokkos::deep_copy(execSpace, _buffers.dStressXDevice,0.0);
+    Kokkos::deep_copy(execSpace, _buffers.dStressYDevice,0.0);
+  //  execSpace.fence();
+/*    Kokkos::parallel_for(
         "initStressDivergence", _buffers.dStressXDevice.extent(0),
         KOKKOS_LAMBDA(const DeviceIndex i) {
             _buffers.dStressXDevice(i) = 0.0;
             _buffers.dStressYDevice(i) = 0.0;
-        });
+        });*/
+//    timerDivZero.stop();
 
+ //   timerDivComp.start();
     // parallelization in checkerboard pattern
     for (DeviceIndex ix = 0; ix < 2; ++ix) {
         for (DeviceIndex iy = 0; iy < 2; ++iy) {
@@ -515,9 +541,19 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
                 });
         }
     }
+//    timerDivComp.stop();
     // set zero on the Dirichlet boundaries
+ //   timerDivDirichlet.start();
     dirichletZero(_buffers.dStressXDevice, nx, ny, _buffers.dirichletDevice);
     dirichletZero(_buffers.dStressYDevice, nx, ny, _buffers.dirichletDevice);
+  //  timerDivDirichlet.stop();
+    static int count = 0;
+    ++count;
+    if (count % 64 == 0) {
+    //    timerDivZero.print();
+    //    timerDivComp.print();
+    //    timerDivDirichlet.print();
+    }
     // todo: add
     // add the contributions on the periodic boundaries
     // VectorManipulations::CGAveragePeriodic(*smesh, tx);
