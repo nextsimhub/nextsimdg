@@ -24,6 +24,7 @@
 #include "include/UniformOcean.hpp"
 #include "include/constants.hpp"
 
+extern template class Module::Module<Nextsim::IIceThermodynamics>;
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("IceGrowth");
