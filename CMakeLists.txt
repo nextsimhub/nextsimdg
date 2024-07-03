@@ -90,14 +90,54 @@ set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")
 set(ModuleBuilderScript "${ScriptDirectory}/module_builder.py")
 set(ModuleHeaderScript "${ScriptDirectory}/module_header.py")
 
+# Dynamics type. Defaults to DG1.
+# Available options are:
+# DG1 Discontinuous Galerkin, degree 1 (3 components)
+# DG2 Discontinuous Galerkin, degree 2 (6 components)
+set(isDG FALSE)
+
+# Replace a missing dynamics type with DG1
+if (NOT DynamicsType)
+    message("Defaulting dynamics to DG1")
+    set(DynamicsType "DG1")
+endif()
+
+message("Dynamics is set to ${DynamicsType}")
+
+if (DynamicsType STREQUAL "DG1")
+    set(isDG TRUE)
+    set(DGComp 3)
+    set(CGDegree 2)
+endif()
+
+if (DynamicsType STREQUAL "DG2")
+    set(isDG TRUE)
+    set(DGComp 6)
+    set(CGDegree 2)
+endif()
+
 # Set the components which provide source or object code to the main model
 set(CodeComponents
     "physics"
-    "dynamics"
     )
 
+if (isDG)
+# Add the DG dynamics subdirectory to the list of code components
+    set(CodeComponents
+        "${CodeComponents}"
+        "dynamics"
+        )
+
+# Set the number of DG stress components given the CG degree
+    if (CGDegree EQUAL 1)
+        set(DGStressComp 3)
+    elseif(CGDegree EQUAL 2)
+        set(DGStressComp 8)
+    else()
+        message("Invalid value of CGDegree. Valid values are 1–2")
+    endif()
+
 # The exact selection of dimensions and Types available to ModelArray
-if(True)
     set(ModelArrayStructure "discontinuousgalerkin")
 endif()
 
@@ -124,6 +164,9 @@ target_compile_definitions(nextsimlib
     PRIVATE
     $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
     $<$<BOOL:${ENABLE_XIOS}>:USE_XIOS>
+    DGCOMP=${DGComp}
+    DGSTRESSCOMP=${DGStressComp}
+    CGDEGREE=${CGDegree}
     )
 target_include_directories(nextsimlib
     PRIVATE

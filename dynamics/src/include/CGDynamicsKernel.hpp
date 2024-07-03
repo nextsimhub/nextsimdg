@@ -10,26 +10,30 @@
 
 #include "DynamicsKernel.hpp"
 
-// Import this from the build system *somehow*
-static const int CGdegree = 2;
-static const int DGstressDegree = CG2DGSTRESS(CGdegree);
+#ifndef CGDEGREE
+#define CGDEGREE 2
+#define DGSTRESSCOMP (CG2DGSTRESS(CGDEGREE))
+#endif
+
+static const int CGdegree = CGDEGREE;
+static const int DGstressComp = DGSTRESSCOMP;
 static const int nGauss = CGdegree + 1;
 static const int CGdof = nGauss * nGauss;
 
 namespace Nextsim {
 
 template <int DGadvection>
-class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressDegree> {
+class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressComp> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressDegree>::s11;
-    using DynamicsKernel<DGadvection, DGstressDegree>::s12;
-    using DynamicsKernel<DGadvection, DGstressDegree>::s22;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e11;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e12;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e22;
-    using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
-    using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
-    using typename DynamicsKernel<DGadvection, DGstressDegree>::DataMap;
+    using DynamicsKernel<DGadvection, DGstressComp>::s11;
+    using DynamicsKernel<DGadvection, DGstressComp>::s12;
+    using DynamicsKernel<DGadvection, DGstressComp>::s22;
+    using DynamicsKernel<DGadvection, DGstressComp>::e11;
+    using DynamicsKernel<DGadvection, DGstressComp>::e12;
+    using DynamicsKernel<DGadvection, DGstressComp>::e22;
+    using DynamicsKernel<DGadvection, DGstressComp>::smesh;
+    using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using typename DynamicsKernel<DGadvection, DGstressComp>::DataMap;
 
 
 public:

@@ -12,6 +12,11 @@
 #include "include/MEBParameters.hpp"
 #include "include/IDynamics.hpp"
 
+#ifndef DGCOMP
+#define DGCOMP 3 // define to make red lines go away in the IDE
+#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
+#endif
+
 namespace Nextsim {
 
 class BBMDynamics : public IDynamics {
@@ -24,8 +29,7 @@ public:
     void setData(const ModelState::DataMap&) override;
     ModelState getStateRecursive(const OutputSpec& os) const override;
 private:
-    // TODO: How to get the template parameters here?
-    BBMDynamicsKernel<6> kernel;
+    BBMDynamicsKernel<DGCOMP> kernel;
     MEBParameters params;
 
 };

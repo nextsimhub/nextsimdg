@@ -18,10 +18,10 @@ namespace Nextsim {
 template <int DGadvection>
 class BBMDynamicsKernel : public BrittleCGDynamicsKernel<DGadvection> {
 public:
-    using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
-//using DynamicsKernel<DGadvection, DGstressDegree>::momentum;
-    using DynamicsKernel<DGadvection, DGstressDegree>::hice;
-    using DynamicsKernel<DGadvection, DGstressDegree>::cice;
+    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
+//using DynamicsKernel<DGadvection, DGstressComp>::momentum;
+    using DynamicsKernel<DGadvection, DGstressComp>::hice;
+    using DynamicsKernel<DGadvection, DGstressComp>::cice;
     using CGDynamicsKernel<DGadvection>::pmap;
     using BrittleCGDynamicsKernel<DGadvection>::damage;
     using CGDynamicsKernel<DGadvection>::initialise;
@@ -42,7 +42,7 @@ private:
     //! Brittle rheology parameters
     MEBParameters mebParams;
     // BBM stress update class
-    BBMStressUpdateStep<DGadvection, DGstressDegree, CGdegree> bbmStressStep;
+    BBMStressUpdateStep<DGadvection, DGstressComp, CGdegree> bbmStressStep;
 };
 
 } /* namespace Nextsim */
