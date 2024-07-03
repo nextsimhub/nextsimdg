@@ -17,7 +17,7 @@
 namespace Nextsim {
 
 template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3 ? 2 : -1);
-// todo: move into kokkos / gpu index
+// todo: move into kokkos / gpu namespace
 using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
 
 // The VP pseudo-timestepping momentum equation solver for CG velocities

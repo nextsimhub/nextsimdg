@@ -29,7 +29,7 @@ public:
 private:
     // TODO: How to get the template parameters here?
     // MEVPDynamicsKernel<6> kernel;
-    KokkosVPCGDynamicsKernel<6> kernel;
+    KokkosVPCGDynamicsKernel<3> kernel;
     VPParameters params;
 };
 }

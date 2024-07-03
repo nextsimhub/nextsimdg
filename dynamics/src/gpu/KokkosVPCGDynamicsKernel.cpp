@@ -474,85 +474,69 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
     const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
     using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
-//    static PerfTimer timerDivZero("divZeroGPU");
-//static PerfTimer timerDivComp("divCompGPU");
- //   static PerfTimer timerDivDirichlet("divDirichletGPU");
+    //    static PerfTimer timerDivZero("divZeroGPU");
+    // static PerfTimer timerDivComp("divCompGPU");
+    //   static PerfTimer timerDivDirichlet("divDirichletGPU");
     // zero buffers
- //   timerDivZero.start();
+    //   timerDivZero.start();
     auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(execSpace, _buffers.dStressXDevice,0.0);
-    Kokkos::deep_copy(execSpace, _buffers.dStressYDevice,0.0);
-  //  execSpace.fence();
-/*    Kokkos::parallel_for(
-        "initStressDivergence", _buffers.dStressXDevice.extent(0),
-        KOKKOS_LAMBDA(const DeviceIndex i) {
-            _buffers.dStressXDevice(i) = 0.0;
-            _buffers.dStressYDevice(i) = 0.0;
-        });*/
-//    timerDivZero.stop();
+    Kokkos::deep_copy(execSpace, _buffers.dStressXDevice, 0.0);
+    Kokkos::deep_copy(execSpace, _buffers.dStressYDevice, 0.0);
+    //  execSpace.fence();
+    //    timerDivZero.stop();
 
- //   timerDivComp.start();
-    // parallelization in checkerboard pattern
-    for (DeviceIndex ix = 0; ix < 2; ++ix) {
-        for (DeviceIndex iy = 0; iy < 2; ++iy) {
-            const DeviceIndex nx_half = nx / 2 + (ix == 0 ? nx % 2 : 0);
-            const DeviceIndex ny_half = ny / 2 + (iy == 0 ? ny % 2 : 0);
-            Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx_half, ny_half });
+    //   timerDivComp.start();
+    Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx, ny });
 
-            Kokkos::parallel_for(
-                "computeStressDivergence", policy,
-                KOKKOS_LAMBDA(const DeviceIndex jx, const DeviceIndex jy) {
-                    // actual cell index
-                    const DeviceIndex cx = jx * 2 + ix;
-                    const DeviceIndex cy = jy * 2 + iy;
-                    const DeviceIndex eid = cx + nx * cy;
-                    // only on ice!
-                    if (!_buffers.landMaskDevice.test(eid)) {
-                        return;
-                    }
+    Kokkos::parallel_for(
+        "computeStressDivergence", policy,
+        KOKKOS_LAMBDA(const DeviceIndex cx, const DeviceIndex cy) {
+            const DeviceIndex eid = cx + nx * cy;
+            // only on ice!
+            if (!_buffers.landMaskDevice.test(eid)) {
+                return;
+            }
 
-                    const auto s11 = makeEigenMap(_buffers.s11Device);
-                    const auto s12 = makeEigenMap(_buffers.s12Device);
-                    const auto s22 = makeEigenMap(_buffers.s22Device);
+            const auto s11 = makeEigenMap(_buffers.s11Device);
+            const auto s12 = makeEigenMap(_buffers.s12Device);
+            const auto s22 = makeEigenMap(_buffers.s22Device);
 
-                    const auto divS1 = _buffers.divS1Device[eid];
-                    const auto divS2 = _buffers.divS2Device[eid];
-                    CGVec tx = divS1 * s11.row(eid).transpose() + divS2 * s12.row(eid).transpose();
-                    CGVec ty = divS1 * s12.row(eid).transpose() + divS2 * s22.row(eid).transpose();
+            const auto divS1 = _buffers.divS1Device[eid];
+            const auto divS2 = _buffers.divS2Device[eid];
+            CGVec tx = divS1 * s11.row(eid).transpose() + divS2 * s12.row(eid).transpose();
+            CGVec ty = divS1 * s12.row(eid).transpose() + divS2 * s22.row(eid).transpose();
 
-                    if (coordinates == SPHERICAL) {
-                        const auto divM = _buffers.divMDevice[eid];
-                        tx += divM * s12.row(eid).transpose();
-                        ty -= divM * s11.row(eid).transpose();
-                    }
-                    const DeviceIndex cgRow = CGdegree * nx + 1;
-                    //!< lower left CG-index in element (cx,cy)
-                    const DeviceIndex cg_i = CGdegree * cgRow * cy + CGdegree * cx;
+            if (coordinates == SPHERICAL) {
+                const auto divM = _buffers.divMDevice[eid];
+                tx += divM * s12.row(eid).transpose();
+                ty -= divM * s11.row(eid).transpose();
+            }
+            const DeviceIndex cgRow = CGdegree * nx + 1;
+            //!< lower left CG-index in element (cx,cy)
+            const DeviceIndex cg_i = CGdegree * cgRow * cy + CGdegree * cx;
 
-                    // Fill the stress divergence values
-                    for (DeviceIndex row = 0; row <= CGdegree; ++row) {
-                        for (DeviceIndex col = 0; col <= CGdegree; ++col) {
-                            _buffers.dStressXDevice(cg_i + col + row * cgRow)
-                                -= tx(col + (CGdegree + 1) * row);
-                            _buffers.dStressYDevice(cg_i + col + row * cgRow)
-                                -= ty(col + (CGdegree + 1) * row);
-                        }
-                    }
-                });
-        }
-    }
-//    timerDivComp.stop();
+            // Fill the stress divergence values
+            for (DeviceIndex row = 0; row <= CGdegree; ++row) {
+                for (DeviceIndex col = 0; col <= CGdegree; ++col) {
+                    const DeviceIndex dst_idx = cg_i + col + row * cgRow;
+                    const DeviceIndex src_idx = col + (CGdegree + 1) * row;
+                    Kokkos::atomic_sub(&_buffers.dStressXDevice(dst_idx), tx(src_idx));
+                    Kokkos::atomic_sub(&_buffers.dStressYDevice(dst_idx), ty(src_idx));
+                }
+            }
+        });
+    //    timerDivComp.stop();
     // set zero on the Dirichlet boundaries
- //   timerDivDirichlet.start();
+    //   timerDivDirichlet.start();
     dirichletZero(_buffers.dStressXDevice, nx, ny, _buffers.dirichletDevice);
     dirichletZero(_buffers.dStressYDevice, nx, ny, _buffers.dirichletDevice);
-  //  timerDivDirichlet.stop();
+    //  timerDivDirichlet.stop();
     static int count = 0;
     ++count;
     if (count % 64 == 0) {
-    //    timerDivZero.print();
-    //    timerDivComp.print();
-    //    timerDivDirichlet.print();
+        //    timerDivZero.print();
+        //    timerDivComp.print();
+        //    timerDivDirichlet.print();
     }
     // todo: add
     // add the contributions on the periodic boundaries
