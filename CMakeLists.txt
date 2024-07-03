@@ -98,8 +98,8 @@ set(isDG FALSE)
 
 # Replace a missing dynamics type with DG1
 if (NOT DynamicsType)
-    message("Defaulting dynamics to DG1")
-    set(DynamicsType "DG1")
+    set(DynamicsType "DG2")
+    message("Defaulting dynamics to ${DynamicsType}")
 endif()
 
 message("Dynamics is set to ${DynamicsType}")
@@ -107,7 +107,7 @@ message("Dynamics is set to ${DynamicsType}")
 if (DynamicsType STREQUAL "DG1")
     set(isDG TRUE)
     set(DGComp 3)
-    set(CGDegree 2)
+    set(CGDegree 1)
 endif()
 
 if (DynamicsType STREQUAL "DG2")
