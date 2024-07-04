@@ -68,7 +68,7 @@ MPI_TEST_CASE("TestXiosField", 2)
     xios_handler.setFieldOperation(fieldId, operation);
     REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
     // Grid reference
-    const std::string gridRef = { "grid_2D" };
+    const std::string gridRef = { "grid_1D" };
     xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
     // Read access
