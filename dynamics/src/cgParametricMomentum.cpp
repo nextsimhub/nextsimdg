@@ -104,6 +104,8 @@ namespace Nextsim {
     // set zero on the Dirichlet boundaries
     DirichletZero(tx);
     DirichletZero(ty);
+    FreeSlipZero(tx,ty);
+    
     // add the contributions on the periodic boundaries
     VectorManipulations::CGAveragePeriodic(smesh, tx);
     VectorManipulations::CGAveragePeriodic(smesh, ty);
@@ -142,51 +144,67 @@ namespace Nextsim {
       }
   }
 
-
+  
   template <int CG>
-  void CGParametricMomentum<CG>::CheckPeriodicity(CGVector<CG>& v)
+  void CGParametricMomentum<CG>::FreeSlipZero(CGVector<CG>& vx,CGVector<CG>& vy) const
   {
-    // the two segments bottom, right, top, left, are each processed in parallel
-    for (size_t seg=0;seg<smesh.periodic.size();++seg)
+    // the four segments bottom, right, top, left, are each processed in parallel
+    for (size_t seg=0;seg<4;++seg)
       {
-	//#pragma omp parallel for
-	for (size_t i = 0; i < smesh.periodic[seg].size(); ++i) {
+#pragma omp parallel for
+        for (size_t i = 0; i < smesh.freeslip[seg].size(); ++i) {
 
-	  const size_t ptype  = smesh.periodic[seg][i][0];
-	  const size_t eid_lb = smesh.periodic[seg][i][2];
-	  const size_t eid_rt = smesh.periodic[seg][i][1];
-	
-	  size_t ix_lb = eid_lb % smesh.nx;
-	  size_t iy_lb = eid_lb / smesh.nx;
-	  size_t i0_lb = (CG * smesh.nx + 1) * CG * iy_lb + CG * ix_lb; // lower/left index in left/bottom element
-	  size_t ix_rt = eid_rt % smesh.nx;
-	  size_t iy_rt = eid_rt / smesh.nx;
-	  size_t i0_rt = (CG * smesh.nx + 1) * CG * iy_rt + CG * ix_rt; // lower/left index in right/top element
+	  const size_t eid = smesh.freeslip[seg][i];
+	  const size_t ix = eid % smesh.nx; // compute 'coordinate' of element
+	  const size_t iy = eid / smesh.nx;
 
-	  std::cout << std::setprecision(16);
-	  if (ptype == 0) // X-edge, bottom/top
+
+	  for (size_t j = 0; j < CG + 1; ++j)
 	    {
-	      for (size_t j=0;j<=CG;++j)
+	      // normal vector on edge in dof (j)
+	      const Eigen::Matrix<Nextsim::FloatType, 1, 2> normal = smesh.cgnormal<CG>(eid,seg,j);
+
+	      if (seg == 0) // bottom
 		{
-		  double check = v(i0_lb+j) - v(i0_rt+ CG * (CG * smesh.nx + 1) + j);
-		  if (fabs(check)>1.e-13)
-		    std::cout << v(i0_lb+j) - v(i0_rt+ CG * (CG * smesh.nx + 1) + j) << std::endl;
+		  const double vn =
+		    normal(0,0) * vx(iy * CG * (CG * smesh.nx + 1) + CG * ix + j, 0) +
+		    normal(0,1) * vy(iy * CG * (CG * smesh.nx + 1) + CG * ix + j, 0);
+		  vx(iy * CG * (CG * smesh.nx + 1) + CG * ix + j, 0) -= vn * normal(0,0);
+		  vy(iy * CG * (CG * smesh.nx + 1) + CG * ix + j, 0) -= vn * normal(0,1);
 		}
-	    }
-	  else if (ptype == 1) // Y-edge, left/right
-	    {
-	      for (size_t j=0;j<CG;++j)
+	      else if (seg == 1) // right
 		{
-		  double check = 		v(i0_lb+j * (CG * smesh.nx+1)) - v(i0_rt+ CG + j * (CG * smesh.nx+1));
-		  if (fabs(check)>1.e-13)
-		    std::cout << v(i0_lb+j * (CG * smesh.nx+1)) -  v(i0_rt+ CG + j * (CG * smesh.nx+1)) << std::endl;
+		  const double vn =
+		    normal(0,0) * vx(iy * CG * (CG * smesh.nx + 1) + CG * ix + CG + (CG * smesh.nx + 1) * j, 0) +
+		    normal(0,1) * vy(iy * CG * (CG * smesh.nx + 1) + CG * ix + CG + (CG * smesh.nx + 1) * j, 0);
+		  vx(iy * CG * (CG * smesh.nx + 1) + CG * ix + CG + (CG * smesh.nx + 1) * j, 0) -= vn * normal(0,0);
+		  vy(iy * CG * (CG * smesh.nx + 1) + CG * ix + CG + (CG * smesh.nx + 1) * j, 0) -= vn * normal(0,1);
 		}
+	      else if (seg == 2) // top
+		{
+		  const double vn =
+		    normal(0,0) * vx((iy + 1) * CG * (CG * smesh.nx + 1) + CG * ix + j, 0) +
+		    normal(0,1) * vy((iy + 1) * CG * (CG * smesh.nx + 1) + CG * ix + j, 0);
+		  vx((iy + 1) * CG * (CG * smesh.nx + 1) + CG * ix + j, 0) -= vn * normal(0,0);
+		  vy((iy + 1) * CG * (CG * smesh.nx + 1) + CG * ix + j, 0) -= vn * normal(0,1);
+		}
+	      else if (seg == 3) // left
+		{
+		  const double vn = 
+		    normal(0,0) * vx(iy * CG * (CG * smesh.nx + 1) + CG * ix + (CG * smesh.nx + 1) * j, 0) +
+		    normal(0,1) * vy(iy * CG * (CG * smesh.nx + 1) + CG * ix + (CG * smesh.nx + 1) * j, 0);
+		  vx(iy * CG * (CG * smesh.nx + 1) + CG * ix + (CG * smesh.nx + 1) * j, 0) -= vn * normal(0,0);
+		  vy(iy * CG * (CG * smesh.nx + 1) + CG * ix + (CG * smesh.nx + 1) * j, 0) -= vn * normal(0,1);
+		}
+	      else {
+		std::cerr << "That should not have happened!" << std::endl;
+		abort();
+	      }
 	    }
-	  else
-	    abort();
 	}
       }
   }
+
 
 // --------------------------------------------------
 
@@ -232,16 +250,15 @@ namespace Nextsim {
     
 
     double stressscale = 1.0; // 2nd-order Stress term has different scaling with the EarthRadius
-    if (smesh.CoordinateSystem == Nextsim::SPHERICAL)
-      stressscale = 1.0/Nextsim::EarthRadius/Nextsim::EarthRadius;
+    //    if (smesh.CoordinateSystem == Nextsim::SPHERICAL)
+    //      stressscale = 1.0/Nextsim::EarthRadius/Nextsim::EarthRadius;
 
     DivergenceOfStress(stressscale, tmpx, tmpy); // Compute divergence of stress tensor
     
     
 
     // Update the velocity
-    double SC = 1.0;///(1.0-pow(1.0+1.0/beta,-1.0*NT_evp));
-    
+
     //	    update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
     for (int i = 0; i < vx.rows(); ++i) {
@@ -255,7 +272,7 @@ namespace Nextsim {
 	       * (params.rho_ice * cg_H(i) / dt_adv * (beta * vx(i) + vx_mevp(i)) // pseudo-timestepping
               + cg_A(i)
                   * (params.F_atm * absatm * ax(i) + // atm forcing
-		     params.F_ocean * absocn * SC
+		     params.F_ocean * absocn 
 		     * ox(i)) // ocean forcing
 		  + params.rho_ice * cg_H(i) * params.fc
 		  * (vy(i) - oy(i)) // cor + surface
@@ -268,7 +285,7 @@ namespace Nextsim {
 	       * (params.rho_ice * cg_H(i) / dt_adv * (beta * vy(i) + vy_mevp(i)) // pseudo-timestepping
               + cg_A(i)
                   * (params.F_atm * absatm * ay(i) + // atm forcing
-		     params.F_ocean * absocn * SC
+		     params.F_ocean * absocn 
 		     * oy(i)) // ocean forcing
 		  + params.rho_ice * cg_H(i) * params.fc
 		  * (ox(i) - vx(i))
@@ -277,7 +294,9 @@ namespace Nextsim {
     }
        
        
-    DirichletZero();
+    DirichletZero(vx);
+    DirichletZero(vy);
+    FreeSlipZero(vx,vy);
     
     // Landmask
     const size_t inrow = CG*smesh.nx+1;
@@ -409,7 +428,9 @@ namespace Nextsim {
         vy(i) *= rdenom;
     }
 
-    DirichletZero();
+    DirichletZero(vx);
+    DirichletZero(vy);
+    FreeSlipZero(vx,vy);
     
 
     avg_vx += vx/NT_meb;
@@ -502,8 +523,9 @@ void CGParametricMomentum<CG>::MEBStep(const MEBParameters& params,
     
 
     
-    DirichletZero();
-    
+    DirichletZero(vx);
+    DirichletZero(vy);
+    FreeSlipZero(vx,vy);
 
     avg_vx += vx/NT_meb;
     avg_vy += vy/NT_meb;   

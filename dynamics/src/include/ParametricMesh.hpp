@@ -22,20 +22,72 @@ namespace Nextsim {
 
 inline constexpr double SQR(double x) { return x * x; }
 
+
+
+
 /*!
- * Stores the spatial mesh of the domain.
+ * Stores the spacial mesh of the domain.
  *
- * The mesh has a structured topology with nelements = nx * ny elements
- * and nnodes = (nx+1) * (ny+1) nodes.
- * Everything is sorted from lower left to upper right, using
+ * The mesh has a structured topology with 
+ *   nelements = nx * ny 
+ * elements and
+ *   nnode = (nx+1) * (ny+1)
+ * nodes.
+ * All sorting is from lower left to upper right, using
  *   cellindex = ny     * rowindex + colindex
  *   nodeindex = (ny+1) * rowindex + colindex
  *
- * Coordinates of the nnodes vertices are stored as
+ * - DGVectors are matrices of size nelements x dG, where dG is the number of
+ *   dG unknowns per element (1 for DG1, 3 for DG2, etc.)
+ * - CGVectors are vectors with entries for each degree of freedom
+ *   for CG1 the length is equal to nodeindex and for CG2
+ *   the length of the vector is (2 nx + 1)*(2 ny + 1)
  *
- *   Eigen::Matrix< NextSim::FloatType , nnodes, 2 > vertices;
+ * == Data in the Mesh
+ * 
+ *   - CooridnateSystem
+ *     either CARTESIAN or SPHERICAL. This will determine how the mesh
+ *     coordinates are interpreted in Transport and Momentum
+ *   - nx,ny,nnodes,nelements 
+ *     dimension of mesh
+ *   - Eigen::Matrix< NextSim::FloatType , nnodes, 2 > vertices;
+ *     stores the coordinates of the nodes (either in cartesian or
+ *     in lon/lat format in radians)
+ *   
+ *   - dirichlet
+ *     array of vectors for Dirichlet boundary conditions 
+ *     the outer array-index specifies which boundary is affected
+ *       0 = lower, 1 = right, 2 = top, 3 = left
+ *     the inner index refers to the element on the boundary.
+ *     Example: dirichlet[1][2]=10 means that element number 10 has
+ *              a dirichlet boundary on the top.
+ *     Dirichlet is always Dirichlet 0 for the velocity.
+ *   - freeslip
+ *     Same structure as Dirichlet. But, only the normal component of the velocity
+ *     is set to zero.
+ *   - open
+ *     Same structure as Dirichlet. 
+ *     Used to model open boundaries. This means a do-nothing (no stress)
+ *     condition in the momentum equation and a free inflow / outflow
+ *     condition in the transport. 
+ *     Default: inflow concentrations are zero.
  *
+ *   - periodic
+ *     vector of periodic edges (type PeriodicEdge)
+ *     Each periodic edge has the following information
+ *        edgeid: the index of the edge
+ *          edge parallel to X - axis: nx*iy     + ix
+ *          edge parallel to Y - axis: (nx+1)*iy + ix
+ *        eid1 / eid2: indices of the two elements at the edge
+ *          bottom/top and left/right, respectively, as seen
+ *          from the edge, if the domain would continue
+ *        eoe1 / eoe2: edge of element
+ *           rel. position of the edge in the element
+ *           0 lower, 1 right, 2 top, 3 left
  */
+
+
+
 
 typedef std::array<double, 2> Vertex;
 
@@ -62,27 +114,59 @@ public:
 
     Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
-    /*!
-     * Stores the Dirichlet boundary information
-     *
-     * Dirichlet-Information is stored in 4 vectors
-     * dirichlet[0]: List of elements that have a Dirichlet-Boundary on the bottom
-     * dirichlet[1]: List of elements that have a Dirichlet-Boundary on the right
-     * dirichlet[2]: List of elements that have a Dirichlet-Boundary on the top
-     * dirichlet[3]: List of elements that have a Dirichlet-Boundary on the left
-     *
-     * Each of the vectors is processed in parallel
-     */
+
+
+  /*!
+   * Boundary information
+   *
+   * dirichlet: velocity is zero, no flow, no edge term in advection
+   * freeslip:  normal-velocity is zero, no edge term in advection
+   * open:      normal condition for velocit, nothing in momentum in/outflow in advection
+   *
+   * each condition is an array<vector, 4> where the four vectors
+   * correspond to bottom edge of elements (0), right (1), top (2) and left (3)
+   * the vector contains those elements that are on the boundary.
+   *
+   * USE:
+   * - In Transport: 
+   *   nothing to do for dirichlet / freeslip as normal vel is zero
+   *   open:
+   * - In Momentum
+   *   nothing to do for open
+   *   for dirichlet & freeslip, velocity / normal velocity is set to zero
+   */
   std::array<std::vector<size_t>, 4> dirichlet;
+  std::array<std::vector<size_t>, 4> freeslip;
+  std::array<std::vector<size_t>, 4> open;
   
   /*! 
-     * Periodic:
-     *   [0]=0 for X-edge (bottom/top) and [0]=1 for Y-edge (left/right)
-     *   [1] the element on the left / bottom
-     *   [2] the element on the right / top
-     *   [3] the edge id
-     */
-  std::vector<std::vector<std::array<size_t, 4>>> periodic;
+   * Periodic boundaries
+   * 
+   * For each periodic edge one set of 
+   *    < edgeid, eid1, eid2, eoe1, eoe2 >
+   * eid: element-id
+   * eoe: each of element: 0=bottom, 1=right, 2=top, 3=left
+   * 
+   * edgeid corresponds to edge as seen from element eid1
+   *
+   * USE:
+   * - In Transport: edge on periodic boundary is treated as a std. edge
+   *                 between two elements, updates on both elements
+   * - in Momentum:  averaging of velocities on edge from both sides
+   * 
+   * Parallelization problem, if an element belongs to two periodic edges
+   */
+  struct PeriodicEdge
+  {
+    size_t edgeid, eid1, eid2, eoe1, eoe2;
+    void clear()
+    {edgeid=eid1=eid2=eoe1=eoe2 = -1;}
+  };
+  std::vector<PeriodicEdge> periodic;
+
+
+
+  
 
   /*!
    * Landmask for the elements. true for land, false ice
@@ -300,16 +384,26 @@ public:
      */
     double area(const size_t eid) const
     {
-        const size_t nid = eid2nid(eid);
+      const size_t nid = eid2nid(eid); // lower left node
+      const Eigen::Matrix<Nextsim::FloatType, 1, 2> e1 = edgevector(eid,eid+1);
+      const Eigen::Matrix<Nextsim::FloatType, 1, 2> e2 = edgevector(eid,eid+(nx+1));
+      const double h1 = sqrt(SQR(e1(0,0)) + SQR(e1(0,1)));
+      const double h2 = sqrt(SQR(e2(0,0)) + SQR(e2(0,1)));
+      return 0.5*(h1+h2);
 
-        const double a = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + 1, 0)).squaredNorm(); // lower
-        const double b = (vertices.block<1, 2>(nid + 1, 0) - vertices.block<1, 2>(nid + nx + 2, 0)).squaredNorm(); // right
-        const double c = (vertices.block<1, 2>(nid + 1 + nx, 0) - vertices.block<1, 2>(nid + 2 + nx, 0)).squaredNorm(); // top
-        const double d = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + nx + 1, 0)).squaredNorm(); // left
-        const double e = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + nx + 2, 0)).squaredNorm(); // diag 1
-        const double f = (vertices.block<1, 2>(nid + 1, 0) - vertices.block<1, 2>(nid + nx + 1, 0)).squaredNorm(); // diag 2
 
-        return 0.25 * sqrt(4.0 * e * f - SQR(b + d - a - c));
+
+      // replaced old version
+        // const size_t nid = eid2nid(eid);
+
+        // const double a = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + 1, 0)).squaredNorm(); // lower
+        // const double b = (vertices.block<1, 2>(nid + 1, 0) - vertices.block<1, 2>(nid + nx + 2, 0)).squaredNorm(); // right
+        // const double c = (vertices.block<1, 2>(nid + 1 + nx, 0) - vertices.block<1, 2>(nid + 2 + nx, 0)).squaredNorm(); // top
+        // const double d = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + nx + 1, 0)).squaredNorm(); // left
+        // const double e = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + nx + 2, 0)).squaredNorm(); // diag 1
+        // const double f = (vertices.block<1, 2>(nid + 1, 0) - vertices.block<1, 2>(nid + nx + 1, 0)).squaredNorm(); // diag 2
+
+        // return 0.25 * sqrt(4.0 * e * f - SQR(b + d - a - c));
     }
     /*!
      * return the mesh size (as square root of area)  of the mesh element eid
@@ -417,6 +511,117 @@ public:
 	return vertices.block<1,2>(n2,0) - vertices.block<1,2>(n1,0);
       else abort();      
     }
+
+  
+
+    /*!
+     * returns the unit normal vector on edge (e) of element (id)
+     * e=0 bottom, e=1 right, ...
+     *
+     * the normal always points to right or top (not outside!!!)
+     */
+  Eigen::Matrix<Nextsim::FloatType, 1, 2> normal(const size_t eid, const size_t e) const
+    {
+      Eigen::Matrix<Nextsim::FloatType, 1, 2> nrm;
+      // get lower left node id
+      const size_t nid = eid2nid(eid);
+      if (e==0) // bottom
+	{
+	  const Eigen::Matrix<Nextsim::FloatType, 1, 2> ev = edgevector(nid,nid+1);
+	  const double nev = ev.norm();
+	  nrm(0,0) = -ev(0,1)/nev; // rotate 90 deg left
+	  nrm(0,1) =  ev(0,0)/nev;
+	}
+      else if (e==1) // right
+	{
+	  const Eigen::Matrix<Nextsim::FloatType, 1, 2> ev = edgevector(nid+1,nid+1+(nx+1));
+	  const double nev = ev.norm(); 
+	  nrm(0,0) =  ev(0,1)/nev; // rotate 90 deg right
+	  nrm(0,1) = -ev(0,0)/nev;
+	}
+      else if (e==2) // top
+	{
+	  const Eigen::Matrix<Nextsim::FloatType, 1, 2> ev = edgevector(nid + (nx+1),nid+1 + (nx+1));
+	  const double nev = ev.norm();
+	  nrm(0,0) = -ev(0,1)/nev; // rotate 90 deg left
+	  nrm(0,1) =  ev(0,0)/nev;
+	}
+      else if (e==3) // left
+	{
+	  const Eigen::Matrix<Nextsim::FloatType, 1, 2> ev = edgevector(nid,nid+(nx+1));
+	  const double nev = ev.norm(); 
+	  nrm(0,0) =  ev(0,1)/nev; // rotate 90 deg right
+	  nrm(0,1) = -ev(0,0)/nev;
+	}
+      else
+	abort();
+      return nrm;
+    }
+    /*!
+     * returns the unit normal vector in dof (d) of edge (e) of element (id)
+     * e=0 bottom, e=1 right, ...
+     *
+     * the normal vector in dof's between two elements is the averaged normal
+     *
+     * the normal always points to right or top (not outside!!!)
+     *              
+     * d0 d1  d2       
+     * * --+-- * --+-- *
+     *         d0  d1  d2
+     */
+  template<int CGdegree>
+  Eigen::Matrix<Nextsim::FloatType, 1, 2> cgnormal(const size_t eid, const size_t e, const size_t d) const
+    {
+      Eigen::Matrix<Nextsim::FloatType, 1, 2> nrm = normal(eid,e);
+      if ((d>0) && (d<CGdegree)) // middle dof
+	return nrm;
+
+      size_t ex = eid % nx; // x-index of element
+      size_t ey = eid / nx; // y-index of element
+      if (d==0) // node towards the left (e=0 and e=2), bottom (e=1 and e=3)
+	{
+	  if ( (e==0) || (e==2) ) // bottom or top boundary
+	    {
+	      if (ex==0) // no element further left => no averaging
+		return nrm;
+	      nrm += normal(eid-1,e); // add normal of element to the left
+	    }
+	  else if ( (e==1) || (e==3) ) // left or right boundary
+	    {
+	      if (ey==0) // no element further down => no averaging
+		return nrm;
+	      nrm += normal(eid-nx,e); // add normal of element to the bottom
+	    }
+	  else abort();
+	}
+      else if (d==CGdegree) // node towards the right (e=0 and e=2), top (e=1 and e=3)
+	{
+	  if ( (e==0) || (e==2) ) // bottom or top boundary
+	    {
+	      if (ex==nx-1) // no element further right => no averaging
+		return nrm;
+	      nrm += normal(eid+1,e); // add normal of element to the right
+	    }
+	  else if ( (e==1) || (e==3) ) // left or right boundary
+	    {
+	      if (ey==ny-1) // no element further up => no averaging
+		return nrm;
+	      nrm += normal(eid+nx,e); // add normal of element to the top
+	    }
+	  else abort();
+	}
+      else abort();
+
+      const double nev = nrm.norm();
+      nrm *= 1.0/nev;
+      return nrm;
+    }
+
+
+
+
+
+  
 
     /*!
      * Copy the coordinate arrays from the arguments.

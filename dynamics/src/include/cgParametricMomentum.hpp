@@ -201,12 +201,10 @@ public:
         const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty) const;
 
     //! Sets the velocity vector to zero along the boundary
-    void DirichletZero()
-    {
-        DirichletZero(vx);
-        DirichletZero(vy);
-    }
     void DirichletZero(CGVector<CG>& v) const;
+
+    //! Sets normal component of velocity to zero along freeslip boundaries
+    void FreeSlipZero(CGVector<CG>& vx,CGVector<CG>& vy) const;
 
   /*!
    * AddPeriodic is to be called, after (sigma, Nabla Phi) is computed
@@ -218,7 +216,6 @@ public:
    * the average of them
    */
   void AveragePeriodic(CGVector<CG>& v);
-  void CheckPeriodicity(CGVector<CG>& v);
 };
 
 template <int CG>
