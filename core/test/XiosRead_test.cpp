@@ -87,14 +87,17 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xios_handler.setFieldOperation("field_2D", "instant");
     xios_handler.setFieldGridRef("field_2D", "grid_2D");
     xios_handler.setFieldReadAccess("field_2D", true);
+    xios_handler.setFieldFreqOffset("field_2D", "1ts");
     xios_handler.createField("field_3D");
     xios_handler.setFieldOperation("field_3D", "instant");
     xios_handler.setFieldGridRef("field_3D", "grid_3D");
     xios_handler.setFieldReadAccess("field_3D", true);
+    xios_handler.setFieldFreqOffset("field_3D", "1ts");
     xios_handler.createField("field_4D");
     xios_handler.setFieldOperation("field_4D", "instant");
     xios_handler.setFieldGridRef("field_4D", "grid_4D");
     xios_handler.setFieldReadAccess("field_4D", true);
+    xios_handler.setFieldFreqOffset("field_4D", "1ts");
 
     // File setup
     xios_handler.createFile("xios_test_input");
