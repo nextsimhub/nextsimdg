@@ -60,7 +60,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
-    // Damage is an optional field, and defaults to zero, if absent
+    // Damage is an optional field, and defaults to 1, if absent
     if (ms.count(damageName) > 0) {
         m_damage = ms.at(damageName);
     } else {
