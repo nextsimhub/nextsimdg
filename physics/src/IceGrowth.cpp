@@ -181,7 +181,7 @@ void IceGrowth::initializeThicknessesElement(size_t i, const TimestepTime&)
     }
 
     // reset the new ice volume array
-    newice = 0;
+    newice[i] = 0;
 }
 
 void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)

@@ -162,7 +162,7 @@ public:
 
             // INTEGRATION OF STRESS AND DAMAGE
             const Eigen::Matrix<Nextsim::FloatType, 1, nGauss * nGauss> J
-                = ParametricTools::J<3>(smesh, i);
+                = ParametricTools::J<nGauss>(smesh, i);
             // get the inverse of the mass matrix scaled with the test-functions in the gauss
             // points, with the gauss weights and with J. This is a 8 x 9 matrix
             const Eigen::Matrix<Nextsim::FloatType, DGstress, nGauss * nGauss> imass_psi
