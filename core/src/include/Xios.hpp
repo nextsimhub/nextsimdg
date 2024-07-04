@@ -101,10 +101,12 @@ public:
     void setFieldOperation(const std::string fieldId, const std::string operation);
     void setFieldGridRef(const std::string fieldId, const std::string gridRef);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
+    void setFieldFreqOffset(const std::string fieldId, const std::string freqOffset);
     std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
+    std::string getFieldFreqOffset(const std::string fieldId);
 
     /* File */
     void createFile(const std::string fileId);

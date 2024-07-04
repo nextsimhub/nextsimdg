@@ -142,14 +142,17 @@ void cxios_set_field_name(xios::CField* _ret, const char* name, int name_size);
 void cxios_set_field_operation(xios::CField* _ret, const char* operation, int operation_size);
 void cxios_set_field_grid_ref(xios::CField* _ret, const char* grid_ref, int grid_ref_size);
 void cxios_set_field_read_access(xios::CField* _ret, bool read_access);
+void cxios_set_field_freq_offset(xios::CField* _ret, cxios_duration freq_offset);
 void cxios_get_field_name(xios::CField* _ret, char* name, int name_size);
 void cxios_get_field_operation(xios::CField* _ret, char* operation, int operation_size);
 void cxios_get_field_grid_ref(xios::CField* _ret, char* grid_ref, int grid_ref_size);
 void cxios_get_field_read_access(xios::CField* _ret, bool* read_access);
+void cxios_get_field_freq_offset(xios::CField* _ret, cxios_duration* freq_offset);
 bool cxios_is_defined_field_name(xios::CField* _ret);
 bool cxios_is_defined_field_operation(xios::CField* _ret);
 bool cxios_is_defined_field_grid_ref(xios::CField* _ret);
 bool cxios_is_defined_field_read_access(xios::CField* _ret);
+bool cxios_is_defined_field_freq_offset(xios::CField* _ret);
 
 // file group methods
 void cxios_filegroup_handle_create(xios::CFileGroup** _ret, const char* _id, int _id_len);

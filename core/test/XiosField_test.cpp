@@ -77,6 +77,12 @@ MPI_TEST_CASE("TestXiosField", 2)
     xios_handler.setFieldReadAccess(fieldId, readAccess);
     REQUIRE(xios_handler.isDefinedFieldReadAccess(fieldId));
     REQUIRE(xios_handler.getFieldReadAccess(fieldId));
+    // Frequency offset
+    const std::string freqOffset = { "1ts" };
+    REQUIRE_FALSE(xios_handler.isDefinedFieldFreqOffset(fieldId));
+    xios_handler.setFieldFreqOffset(fieldId, freqOffset);
+    REQUIRE(xios_handler.isDefinedFieldFreqOffset(fieldId));
+    REQUIRE(xios_handler.getFieldFreqOffset(fieldId) == freqOffset);
 
     xios_handler.close_context_definition();
     xios_handler.context_finalize();

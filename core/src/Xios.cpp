@@ -1033,6 +1033,18 @@ void Xios::setFieldReadAccess(const std::string fieldId, const bool readAccess)
 }
 
 /*!
+ * Set the frequency offset for a field with a given ID
+ *
+ * @param the field ID
+ * @param frequency offset to set
+ */
+void Xios::setFieldFreqOffset(const std::string fieldId, const std::string freqOffset)
+{
+    cxios_set_field_freq_offset(getField(fieldId),
+        cxios_duration_convert_from_string(freqOffset.c_str(), freqOffset.length()));
+}
+
+/*!
  * Get the name of a field with a given ID
  *
  * @param the field ID
@@ -1102,6 +1114,22 @@ bool Xios::getFieldReadAccess(const std::string fieldId)
     return readAccess;
 }
 
+/*!
+ * Get the frequency offset associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return frequency offset used for the corresponding field
+ */
+std::string Xios::getFieldFreqOffset(const std::string fieldId)
+{
+    cxios_duration duration;
+    cxios_get_field_freq_offset(getField(fieldId), &duration);
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(duration, cStr, cStrLen);
+    std::string freqOffset(cStr, cStrLen);
+    boost::algorithm::trim_right(freqOffset);
+    return freqOffset;
+}
 
 /*!
  * Get the file_definition group
