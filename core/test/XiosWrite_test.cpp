@@ -88,12 +88,15 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xios_handler.createField("field_2D");
     xios_handler.setFieldOperation("field_2D", "instant");
     xios_handler.setFieldGridRef("field_2D", "grid_2D");
+    xios_handler.setFieldReadAccess("field_2D", false);
     xios_handler.createField("field_3D");
     xios_handler.setFieldOperation("field_3D", "instant");
     xios_handler.setFieldGridRef("field_3D", "grid_3D");
+    xios_handler.setFieldReadAccess("field_3D", false);
     xios_handler.createField("field_4D");
     xios_handler.setFieldOperation("field_4D", "instant");
     xios_handler.setFieldGridRef("field_4D", "grid_4D");
+    xios_handler.setFieldReadAccess("field_4D", false);
 
     // File setup
     xios_handler.createFile("xios_test_output");

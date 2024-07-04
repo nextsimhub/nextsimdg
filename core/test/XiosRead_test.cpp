@@ -1,7 +1,7 @@
 /*!
  * @file    XiosRead_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    27 June 2024
+ * @date    4 July 2024
  * @brief   Tests for XIOS read method
  * @details
  * This test is designed to test the read method of the C++ interface
@@ -86,12 +86,15 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xios_handler.createField("field_2D");
     xios_handler.setFieldOperation("field_2D", "instant");
     xios_handler.setFieldGridRef("field_2D", "grid_2D");
+    xios_handler.setFieldReadAccess("field_2D", true);
     xios_handler.createField("field_3D");
     xios_handler.setFieldOperation("field_3D", "instant");
     xios_handler.setFieldGridRef("field_3D", "grid_3D");
+    xios_handler.setFieldReadAccess("field_3D", true);
     xios_handler.createField("field_4D");
     xios_handler.setFieldOperation("field_4D", "instant");
     xios_handler.setFieldGridRef("field_4D", "grid_4D");
+    xios_handler.setFieldReadAccess("field_4D", true);
 
     // File setup
     xios_handler.createFile("xios_test_input");

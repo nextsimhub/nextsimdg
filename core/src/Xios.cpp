@@ -1022,6 +1022,17 @@ void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
 }
 
 /*!
+ * Set the read access for a field with a given ID
+ *
+ * @param the field ID
+ * @param read access to set
+ */
+void Xios::setFieldReadAccess(const std::string fieldId, const bool readAccess)
+{
+    cxios_set_field_read_access(getField(fieldId), readAccess);
+}
+
+/*!
  * Get the name of a field with a given ID
  *
  * @param the field ID
@@ -1077,6 +1088,20 @@ std::string Xios::getFieldGridRef(const std::string fieldId)
     boost::algorithm::trim_right(gridRef);
     return gridRef;
 }
+
+/*!
+ * Get the read access associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return read access used for the corresponding field
+ */
+bool Xios::getFieldReadAccess(const std::string fieldId)
+{
+    bool readAccess;
+    cxios_get_field_read_access(getField(fieldId), &readAccess);
+    return readAccess;
+}
+
 
 /*!
  * Get the file_definition group

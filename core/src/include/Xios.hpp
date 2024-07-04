@@ -100,9 +100,11 @@ public:
     void setFieldName(const std::string fieldId, const std::string name);
     void setFieldOperation(const std::string fieldId, const std::string operation);
     void setFieldGridRef(const std::string fieldId, const std::string gridRef);
+    void setFieldReadAccess(const std::string fieldId, const bool readAccess);
     std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
     std::string getFieldGridRef(const std::string fieldId);
+    bool getFieldReadAccess(const std::string fieldId);
 
     /* File */
     void createFile(const std::string fileId);
