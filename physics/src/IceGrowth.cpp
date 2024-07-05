@@ -1,8 +1,9 @@
 /*!
  * @file IceGrowth.cpp
  *
- * @date Mar 15, 2022
+ * @date Jul 5, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/IceGrowth.hpp"
