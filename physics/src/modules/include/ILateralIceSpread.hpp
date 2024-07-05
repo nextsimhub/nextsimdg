@@ -65,7 +65,6 @@ protected:
         , deltaHi(getStore())
     {
         registerModule();
-        getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RW);
     }
 
     ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth
@@ -74,9 +73,6 @@ protected:
     ModelArrayRef<Shared::H_ICE, RO> hice; // From IceGrowth
     ModelArrayRef<Shared::H_SNOW, RO> hsnow; // From Ice Growth?
     ModelArrayRef<Shared::DELTA_HICE, RO> deltaHi; // From Vertical Ice Growth
-
-    // Owned, shared arrays
-    HField deltaCi;
 };
 
 } /* namespace Nextsim */
