@@ -40,9 +40,9 @@ protected:
     {
     }
 
-    ModelArrayRef<Shared::C_ICE, RO> cice; // From IceGrowth
+    ModelArrayRef<Shared::C_ICE, RO> cice; // From prognostic data
     ModelArrayRef<Shared::DELTA_CICE, RO> deltaCi; // From LateralIceSpread
-    ModelArrayRef<Shared::DAMAGE, RW> damage; // From LateralIceSpread
+    ModelArrayRef<Shared::DAMAGE, RW> damage; // From prognostic data
 };
 
 } /* namespace Nextsim */

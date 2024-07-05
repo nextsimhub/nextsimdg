@@ -18,7 +18,9 @@ const std::map<int, std::string> Configured<ConstantHealing>::keyMap
 
 void ConstantHealing::configure()
 {
+    // the option is defined in days, but the model wants seconds
     tD = Configured::getConfiguration(keyMap.at(TD_KEY), tDDefault);
+    tD *= 86400.;
 }
 
 ModelState ConstantHealing::getStateRecursive(const Nextsim::OutputSpec& os) const
@@ -46,15 +48,18 @@ void ConstantHealing::update(const TimestepTime& tstep)
 {
     overElements(std::bind(&ConstantHealing::updateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
-        TimestepTime());
+        tstep);
 }
 
 void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
 {
+    // Only lateral growth contributes to healing, not melt(!)
+    double const lateralGrowth = std::max(0., deltaCi[i]);
+
     /* 1. Lateral ice formation
      * A weighted average of the original damage, weighted by the old concentration, and the
      * undamaged new ice damage (1), weighted by the concentration of new ice. */
-    damage[i] = (damage[i] * (cice[i] - deltaCi[i]) + deltaCi[i]) / cice[i];
+    damage[i] = (damage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
 
     /* 2. Constant healing
      * Damage healing using a constant timescale. Originally conceived as an exponential decay, but
@@ -62,7 +67,7 @@ void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
     // This is what Sylvain and Pierre did
     // damage[i] +=  damage[i] * tstep.step / tD;
 
-    // This is what neXtSIM LG is doing
+    // This is what Rampal et al. (2016) did
     damage[i] +=  tstep.step / tD;
     damage[i] = std::min(1., damage[i]);
 }
