@@ -13,7 +13,8 @@
 
 namespace Nextsim {
 
-//! A class implementing constant healing of damage (Rampal et al., 2016)
+//! A class implementing constant healing of damage following Dansereau et al. (2016) and Rampal et
+//! al. (2019)
 class ConstantHealing : public IDamageHealing, public Configured<ConstantHealing> {
 public:
     ConstantHealing()

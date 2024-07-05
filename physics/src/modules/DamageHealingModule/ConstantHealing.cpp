@@ -63,11 +63,11 @@ void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
 
     /* 2. Constant healing
      * Damage healing using a constant timescale. Originally conceived as an exponential decay, but
-     * then revised to a linear one (not documented anywhere). */
-    // This is what Sylvain and Pierre did
+     * then revised to a linear one. */
+    // This is what Sylvain and Pierre (Bouillon and Rampal, 2015)
     // damage[i] +=  damage[i] * tstep.step / tD;
 
-    // This is what Rampal et al. (2016) did
+    // This is what Véro did (Dansereau et al., 2016)
     damage[i] +=  tstep.step / tD;
     damage[i] = std::min(1., damage[i]);
 }
