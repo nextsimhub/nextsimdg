@@ -18,7 +18,9 @@ public:
     virtual ~IDamageHealing() = default;
 
     std::string getName() const override { return "DamageHealing"; }
-    void setData(const ModelState::DataMap& ms) override { }
+    void setData(const ModelState::DataMap& ms) override {
+        damage.data().resize();
+    }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override
