@@ -14,14 +14,12 @@ namespace Nextsim {
 // TODO: Replace this with a more fine grained output specification class
 class OutputSpec {
 public:
-    OutputSpec()
-    {
-        bitVector.reset();
-    }
+    OutputSpec() { bitVector.reset(); }
     OutputSpec(bool activate)
         : OutputSpec()
     {
-        if (!activate) bitVector.set(SUPPRESS_OUTPUT);
+        if (!activate)
+            bitVector.set(SUPPRESS_OUTPUT);
     }
 
     void setSuppressOutput() { bitVector.set(SUPPRESS_OUTPUT); }
@@ -29,12 +27,15 @@ public:
     operator bool() const { return !suppressOutput(); }
     void setAllComponents() { bitVector.set(ALL_COMPONENTS); }
     bool allComponents() const { return bitVector.test(ALL_COMPONENTS); }
+
 private:
+    // clang-format off
     enum {
         SUPPRESS_OUTPUT,
         ALL_COMPONENTS,
         OUTPUTSPEC_COUNT
     };
+    // clang-format on
 
     std::bitset<OUTPUTSPEC_COUNT> bitVector;
 };
