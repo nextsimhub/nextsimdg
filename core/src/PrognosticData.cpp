@@ -115,10 +115,14 @@ void PrognosticData::updatePrognosticFields()
     m_damage.setData(damageUpd);
 }
 
+// Gets all of the prognostic data, including that in the dynamics
 ModelState PrognosticData::getState() const
 {
     ModelArrayRef<Protected::SST> sst(getStore());
     ModelArrayRef<Protected::SSS> sss(getStore());
+
+    // Get the prognostic data from the dynamics, including the full dynamics state
+    ModelState dynamicsState = pDynamics->getState();
     // clang-format off
     ModelState localState = { {
                  { "mask", ModelArray(oceanMask()) }, // make a copy
@@ -131,21 +135,15 @@ ModelState PrognosticData::getState() const
              },
         {} };
     // clang-format on
-    // Get the state from the dynamics (ice velocity). This allows the
-    // dynamics to define its own dimensions for the velocity grid.
-    localState.merge(pDynamics->getState());
 
-    // Merge in the damage field, if the dynamics uses it.
-    if (pDynamics->usesDamage()) {
-        ModelState damageState = { {
-                                       { "damage", mask(m_damage) },
-                                   },
-            {} };
-        localState.merge(damageState);
-    }
-    return localState;
+    // Use the dynamics values of any duplicated fields
+    ModelState state(dynamicsState);
+    state.merge(localState);
+
+    return state;
 }
 
+// Recursively gets the data from all subcomponents
 ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state;
