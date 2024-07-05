@@ -251,7 +251,7 @@ public:
     ~PerfTimerAlt()
     {
         if constexpr (Active) {
-            std::cout << m_name << " " << m_total / m_count << " " << m_count << "\n";
+            std::cout << m_name << " " << m_total << " " << m_total / m_count << " " << m_count << "\n";
         }
     }
 
