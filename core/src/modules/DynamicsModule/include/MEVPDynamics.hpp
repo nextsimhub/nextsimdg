@@ -27,9 +27,12 @@ public:
     void setData(const ModelState::DataMap&) override;
 
 private:
-    // TODO: How to get the template parameters here?
-    // MEVPDynamicsKernel<6> kernel;
-    KokkosVPCGDynamicsKernel<3> kernel;
+// TODO: How to get the template parameters here?
+#ifdef USE_KOKKOS_KERNEL
+    KokkosVPCGDynamicsKernel<DGdof> kernel;
+#else
+    MEVPDynamicsKernel<DGdof> kernel;
+#endif
     VPParameters params;
 };
 }

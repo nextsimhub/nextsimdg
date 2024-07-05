@@ -9,7 +9,7 @@
 
 namespace Nextsim {
 
-class PerfTimer {
+template <bool Active> class PerfTimer {
 public:
     PerfTimer(const std::string& _name)
         : m_name(_name)
@@ -18,18 +18,34 @@ public:
     {
     }
 
-    void start() { m_start = std::chrono::high_resolution_clock::now(); }
+    ~PerfTimer()
+    {
+        if constexpr (Active) {
+            std::cout << m_name << " " << m_total / m_count << " " << m_count << "\n";
+        }
+    }
+
+    void start()
+    {
+        if constexpr (Active) {
+            m_start = std::chrono::high_resolution_clock::now();
+        }
+    }
     void stop()
     {
-        // ensure that gpu tasks are finished
-        Kokkos::fence();
-        auto end = std::chrono::high_resolution_clock::now();
-        ++m_count;
-        m_total += std::chrono::duration<double>(end - m_start).count();
+        if constexpr (Active) {
+            // ensure that gpu tasks are finished
+            Kokkos::fence();
+            auto end = std::chrono::high_resolution_clock::now();
+            ++m_count;
+            m_total += std::chrono::duration<double>(end - m_start).count();
+        }
     }
     void print()
     {
-        std::cout << m_name << " total: " << m_total << ", avg: " << m_total / m_count << "\n";
+        if constexpr (Active) {
+            std::cout << m_name << " total: " << m_total << ", avg: " << m_total / m_count << "\n";
+        }
     }
 
 private:
@@ -149,23 +165,23 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
 template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
-    static PerfTimer timerProj("projGPU");
-    static PerfTimer timerStress("stressGPU");
-    static PerfTimer timerMevp("mevpGPU");
-    static PerfTimer timerDivergence("divGPU");
-    static PerfTimer timerMomentum("momentumGPU");
-    static PerfTimer timerBoundary("bcGPU");
-    static PerfTimer timerUpload("uploadGPU");
-    static PerfTimer timerDownload("downloadGPU");
+    static PerfTimer<true> timerMevp("mevpGPU");
+    static PerfTimer<MEASURE_DETAILED> timerProj("projGPU");
+    static PerfTimer<MEASURE_DETAILED> timerStress("stressGPU");
+    static PerfTimer<MEASURE_DETAILED> timerDivergence("divGPU");
+    static PerfTimer<MEASURE_DETAILED> timerMomentum("momentumGPU");
+    static PerfTimer<MEASURE_DETAILED> timerBoundary("bcGPU");
+    static PerfTimer<MEASURE_DETAILED> timerUpload("uploadGPU");
+    static PerfTimer<MEASURE_DETAILED> timerDownload("downloadGPU");
 
     // Let DynamicsKernel handle the advection step
     DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits(tst);
     this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
 
+    timerMevp.start();
     // The critical timestep for the VP solver is the advection timestep
     this->deltaT = tst.step.seconds();
 
-    timerMevp.start();
     timerUpload.start();
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
@@ -184,7 +200,6 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, buffers.ciceDevice, buffers.ciceHost);
     Kokkos::deep_copy(execSpace, buffers.cgHDevice, buffers.cgHHost);
     Kokkos::deep_copy(execSpace, buffers.cgADevice, buffers.cgAHost);
-    execSpace.fence();
     timerUpload.stop();
 
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
@@ -214,7 +229,6 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerDownload.start();
     Kokkos::deep_copy(execSpace, buffers.uHost, buffers.uDevice);
     Kokkos::deep_copy(execSpace, buffers.vHost, buffers.vDevice);
-    execSpace.fence();
     timerDownload.stop();
 
     timerMevp.stop();

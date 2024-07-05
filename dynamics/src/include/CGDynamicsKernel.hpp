@@ -11,10 +11,15 @@
 #include "DynamicsKernel.hpp"
 
 // Import this from the build system *somehow*
-static const int CGdegree = 2;
-static const int DGstressDegree = CG2DGSTRESS(CGdegree);
-static const int nGauss = CGdegree + 1;
-static const int CGdof = nGauss * nGauss;
+static constexpr int CGdegree = 1;
+static constexpr int DGstressDegree = CG2DGSTRESS(CGdegree);
+static constexpr int nGauss = CGdegree + 1;
+static constexpr int CGdof = nGauss * nGauss;
+
+// for testing only
+#define USE_KOKKOS_KERNEL
+static constexpr int DGdof = 3;
+constexpr bool MEASURE_DETAILED = true;
 
 namespace Nextsim {
 

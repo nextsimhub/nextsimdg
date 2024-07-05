@@ -14,6 +14,7 @@
 #include "ParametricMap.hpp"
 #include "StressUpdateStep.hpp"
 #include "VPParameters.hpp"
+#include "stopwatch.hpp"
 
 namespace Nextsim {
 
@@ -49,44 +50,62 @@ protected:
     using CGDynamicsKernel<DGadvection>::pmap;
 
 public:
-    VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn, const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>(),
-          stressStep(stressStepIn),
-          params(static_cast<const VPParameters&>(paramsIn))
+    VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn,
+        const DynamicsParameters& paramsIn)
+        : CGDynamicsKernel<DGadvection>()
+        , stressStep(stressStepIn)
+        , params(static_cast<const VPParameters&>(paramsIn))
     {
     }
     virtual ~VPCGDynamicsKernel() = default;
     void update(const TimestepTime& tst) override
     {
+        static PerfTimerAlt<true> timerMevp("mevp");
+        static PerfTimerAlt<MEASURE_DETAILED> timerProj("proj");
+        static PerfTimerAlt<MEASURE_DETAILED> timerStress("stress");
+        static PerfTimerAlt<MEASURE_DETAILED> timerDivergence("div");
+        static PerfTimerAlt<MEASURE_DETAILED> timerMomentum("momentum");
+        static PerfTimerAlt<MEASURE_DETAILED> timerBoundary("bc");
+
         // Let DynamicsKernel handle the advection step
         DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits(tst);
 
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
 
+        timerMevp.start();
         u0 = u;
         v0 = v;
 
         // The critical timestep for the VP solver is the advection timestep
         deltaT = tst.step.seconds();
-        auto start = std::chrono::high_resolution_clock::now();
+        
         for (size_t mevpstep = 0; mevpstep < nSteps; ++mevpstep) {
-
+            timerProj.start();
             projectVelocityToStrain();
+            timerProj.stop();
 
+            timerStress.start();
             std::array<std::reference_wrapper<DGVector<DGstressDegree>>, N_TENSOR_ELEMENTS> stress
                 = { s11, s12, s22 }; // Call the step function on the StressUpdateStep class
             // Call the step function on the StressUpdateStep class
             stressStep.stressUpdateHighOrder(
                 params, *smesh, stress, { e11, e12, e22 }, hice, cice, deltaT);
+            timerStress.stop();
 
+            timerDivergence.start();
             stressDivergence(); // Compute divergence of stress tensor
+            timerDivergence.stop();
 
+            timerMomentum.start();
             updateMomentum(tst);
+            timerMomentum.stop();
 
+            timerBoundary.start();
             applyBoundaries();
+            timerBoundary.stop();
         }
-        auto stop = std::chrono::high_resolution_clock::now();
-        std::cout << std::chrono::duration<float>(stop-start).count() << "\n";
+        timerMevp.stop();
+
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
     }
