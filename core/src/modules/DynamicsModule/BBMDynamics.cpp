@@ -49,15 +49,17 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
     for (const auto entry : defaultFields) {
         // Directly add data that is supplied
         const std::string& fieldName = entry.first;
-        if (ms.count(fieldName) > 0)
+        if (ms.count(fieldName) > 0) {
             kernel.setData(fieldName, ms.at(fieldName));
-        // Fill data that is not supplied, masking if the mask is available
-        ModelArray data(entry.second.first);
-        data.resize();
-        // Fill the default value
-        data = entry.second.second;
-        // Mask the default data
-        kernel.setData(fieldName, mask(data));
+        } else {
+            // Fill data that is not supplied, masking if the mask is available
+            ModelArray data(entry.second.first);
+            data.resize();
+            // Fill the default value
+            data = entry.second.second;
+            // Mask the default data
+            kernel.setData(fieldName, mask(data));
+        }
     }
 }
 
