@@ -41,7 +41,15 @@ public:
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
     typedef std::map<typename DataMapping::first_type, typename DataMapping::second_type> DataMap;
 
-    DynamicsKernel() = default;
+    DynamicsKernel()
+        : dgtransport(nullptr)
+        , smesh(nullptr)
+        , nSteps(100)
+        , stepNumber(0)
+        , deltaT(0)
+    {
+    }
+
     virtual ~DynamicsKernel() = default;
     virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
