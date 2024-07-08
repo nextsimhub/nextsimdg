@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date Jan 5, 2024
+ * @date Jul85, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
