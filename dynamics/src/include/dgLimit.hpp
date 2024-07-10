@@ -19,7 +19,7 @@ static void LimitMax(DGVector<3>& dg, double max)
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::min(max, dg(i, 0));
-        const double l0 = 2.0*std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
+        const double l0 = 2.0 * std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
         if (l0 == 0)
             continue;
         const double ex = dg(i, 0) + l0 - max;
@@ -37,13 +37,13 @@ static void LimitMax(DGVector<6>& dg, double max)
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::min(max, dg(i, 0));
 
-        double maxvalue  = (dg.block<1, 6>(i, 0) * PSI<6, 3>).maxCoeff();
+        double maxvalue = (dg.block<1, 6>(i, 0) * PSI<6, 3>).maxCoeff();
 
-	// part coming from the nonlinearities
+        // part coming from the nonlinearities
         const double l0 = maxvalue - dg(i, 0);
-	// value to big?
+        // value to big?
         if (maxvalue > max) {
-	  // limit nonlinear part
+            // limit nonlinear part
             dg.block<1, 5>(i, 1) *= (max - dg(i, 0)) / l0;
         }
     }
@@ -56,14 +56,14 @@ static void LimitMin(DGVector<3>& dg, double min)
 #pragma omp parallel for
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::max(min, dg(i, 0));
-        const double l0 = 2.0*std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
+        const double l0 = 2.0 * std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
         if (l0 == 0)
             continue;
-	
+
         const double ex = dg(i, 0) - l0 - min;
         if (ex < 0) {
-            dg(i, 1) *= (dg(i, 0)-min) / l0;
-            dg(i, 2) *= (dg(i, 0)-min) / l0;
+            dg(i, 1) *= (dg(i, 0) - min) / l0;
+            dg(i, 2) *= (dg(i, 0) - min) / l0;
         }
     }
 }
@@ -75,10 +75,10 @@ static void LimitMin(DGVector<6>& dg, double min)
 
         double minvalue = (dg.block<1, 6>(i, 0) * PSI<6, 3>).minCoeff();
 
-	// part coming from nonlinearity
+        // part coming from nonlinearity
         const double l0 = minvalue - dg(i, 0);
         if (minvalue < min) {
-            dg.block<1, 5>(i, 1) *= (dg(i, 0)-min) / l0;
+            dg.block<1, 5>(i, 1) *= (dg(i, 0) - min) / l0;
         }
     }
 }
