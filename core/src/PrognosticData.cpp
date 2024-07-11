@@ -1,8 +1,9 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 7 Sep 2023
+ * @date 1 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/PrognosticData.hpp"
@@ -19,6 +20,7 @@ PrognosticData::PrognosticData()
     , m_conc(ModelArray::Type::H)
     , m_snow(ModelArray::Type::H)
     , m_tice(ModelArray::Type::Z)
+    , m_damage(ModelArray::Type::H)
     , pAtmBdy(0)
     , pOcnBdy(0)
     , pDynamics(0)
@@ -58,12 +60,12 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     m_conc = ms.at("cice");
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
-    // Damage is an optional field, and defaults to zero, if absent
+    // Damage is an optional field, and defaults to 1, if absent
     if (ms.count(damageName) > 0) {
         m_damage = ms.at(damageName);
     } else {
         m_damage.resize();
-        m_damage = 0.5;
+        m_damage = 1.;
     }
 
     pAtmBdy->setData(ms);

@@ -64,10 +64,41 @@ if(ENABLE_MPI)
       "${xios_EXTERNS}/blitz/"
       "${xios_EXTERNS}/rapidxml/include"
       )
-    add_executable(testXiosInit_MPI2 "XiosInit_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(testXiosInit_MPI2 PRIVATE USE_XIOS USE_MPI)
-    target_include_directories(testXiosInit_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
-    target_link_libraries(testXiosInit_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosCalendar_MPI2 "XiosCalendar_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosCalendar_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosCalendar_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosCalendar_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosAxis_MPI2 "XiosAxis_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosAxis_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosAxis_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosAxis_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosDomain_MPI2 "XiosDomain_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosDomain_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosDomain_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosDomain_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosGrid_MPI2 "XiosGrid_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosGrid_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosGrid_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosField_MPI2 "XiosField_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosField_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosField_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosField_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosFile_MPI2 "XiosFile_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosFile_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosFile_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosWrite_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
+    target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
   endif()
 else()
   add_executable(testRectGrid "RectGrid_test.cpp")

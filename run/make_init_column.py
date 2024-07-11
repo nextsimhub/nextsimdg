@@ -5,7 +5,7 @@ nsecond = 1
 nLayers = 3
 resolution = 50
 
-initializer = initMaker("init_column.nc", nfirst, nsecond, nLayers, resolution)
+initializer = initMaker("init_column.nc", nfirst, nsecond, nLayers, resolution, checkZeros=False)
 
 ice_salinity = 5  # should match Ice::s in constants.hpp
 mu: float = -0.055  # should match Water::mu in constants.hpp
