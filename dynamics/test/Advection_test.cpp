@@ -10,13 +10,10 @@
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
-#include "ParametricTools.hpp"
 #include "Tools.hpp"
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
-#include "../test/testtools.hpp"
-#include "stopwatch.hpp"
 #include <cassert>
 #include <chrono>
 #include <filesystem> // only for automatic creation of output directory
