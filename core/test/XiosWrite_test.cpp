@@ -111,6 +111,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::Z, n3);
     // Create some fake data to test writing methods
     HField field_3D(ModelArray::Type::Z);
+    // TODO: field_2D
     field_3D.resize();
     for (size_t k = 0; k < n3; ++k) {
         for (size_t j = 0; j < n2; ++j) {
@@ -119,6 +120,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
     }
+    // TODO: field_4D
     // Verify calendar step is starting from zero
     REQUIRE(xios_handler.getCalendarStep() == 0);
     // Simulate 4 iterations (timesteps)
@@ -126,7 +128,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update the current timestep
         xios_handler.updateCalendar(ts);
         // Send data to XIOS to be written to disk
+        // TODO: field_2D
         xios_handler.write("field_3D", field_3D);
+        // TODO: field_4D
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
