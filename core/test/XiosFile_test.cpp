@@ -11,6 +11,7 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
+#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Xios.hpp"
 

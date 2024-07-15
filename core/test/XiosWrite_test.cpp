@@ -106,16 +106,16 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // --- Tests for writing to file
     Module::setImplementation<IStructure>("ParametricGrid");
-    ModelArray::setDimension(ModelArray::Dimension::X, ni);
-    ModelArray::setDimension(ModelArray::Dimension::Y, nj);
-    ModelArray::setDimension(ModelArray::Dimension::Z, axis_size);
+    ModelArray::setDimension(ModelArray::Dimension::X, n1);
+    ModelArray::setDimension(ModelArray::Dimension::Y, n2);
+    ModelArray::setDimension(ModelArray::Dimension::Z, n3);
     // Create some fake data to test writing methods
-    HField field_A(ModelArray::Type::Z);
-    field_A.resize();
-    for (size_t k = 0; k < axis_size; ++k) {
-        for (size_t j = 0; j < nj; ++j) {
-            for (size_t i = 0; i < ni; ++i) {
-                field_A(i, j, k) = 1.0 * (i + ni * (j + nj * k));
+    HField field_3D(ModelArray::Type::Z);
+    field_3D.resize();
+    for (size_t k = 0; k < n3; ++k) {
+        for (size_t j = 0; j < n2; ++j) {
+            for (size_t i = 0; i < n1; ++i) {
+                field_3D(i, j, k) = 1.0 * (i + n1 * (j + n2 * k));
             }
         }
     }
@@ -126,7 +126,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update the current timestep
         xios_handler.updateCalendar(ts);
         // Send data to XIOS to be written to disk
-        xios_handler.write(fieldId, field_A);
+        xios_handler.write("field_3D", field_3D);
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
