@@ -15,8 +15,7 @@
 #if USE_XIOS
 
 #include "Configured.hpp"
-// #include "ModelArray.hpp"
-#include "StructureModule/include/ParametricGrid.hpp"
+#include "ModelArray.hpp"
 #include "Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
