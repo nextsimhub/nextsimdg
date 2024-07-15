@@ -22,6 +22,16 @@ add_executable(testCGModelArray
 target_include_directories(testCGModelArray PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}")
 target_link_libraries(testCGModelArray LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
+add_executable(testParametricMesh
+    "ParametricMesh_test.cpp"
+    "FakeSmeshData.cpp"
+    "${SRC_DIR}/ParametricMesh.cpp"
+    "${CoreDir}/ModelArray.cpp"
+    "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    )
+target_include_directories(testParametricMesh PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}")
+target_link_libraries(testParametricMesh LINK_PUBLIC doctest::doctest)
+
 
 add_executable(testAdvection Advection_test.cpp
  "${CoreDir}/ModelArray.cpp"
