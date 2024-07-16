@@ -30,7 +30,7 @@ add_executable(testParametricMesh
     "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
 target_include_directories(testParametricMesh PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}")
-target_link_libraries(testParametricMesh LINK_PUBLIC doctest::doctest)
+target_link_libraries(testParametricMesh LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
 
 add_executable(testAdvection Advection_test.cpp
