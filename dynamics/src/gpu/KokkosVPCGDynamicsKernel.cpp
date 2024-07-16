@@ -21,7 +21,8 @@ public:
     ~PerfTimer()
     {
         if constexpr (Active) {
-            std::cout << m_name << " " << m_total << " " << m_total / m_count << " " << m_count << std::endl;
+            std::cout << m_name << " " << m_total << " " << m_total / m_count << " " << m_count
+                      << std::endl;
         }
     }
 
@@ -254,11 +255,18 @@ void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
 {
     const DeviceIndex cgshift = CGdegree * nx + 1; //!< Index shift for each row
 
+#ifdef LOOP_1D
+    Kokkos::parallel_for(
+        "projectVelocityToStrain", nx * ny, KOKKOS_LAMBDA(const DeviceIndex idx) {
+            const DeviceIndex col = idx % nx;
+            const DeviceIndex row = idx / nx;
+#else
     // parallelize over 2D grid
     Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx, ny });
     Kokkos::parallel_for(
         "projectVelocityToStrain", policy,
         KOKKOS_LAMBDA(const DeviceIndex col, const DeviceIndex row) {
+#endif
             const DeviceIndex dgi = nx * row + col; //!< Index of dg vector
             const DeviceIndex cgi
                 = CGdegree * cgshift * row + col * CGdegree; //!< Lower left index of cg vector
@@ -500,11 +508,18 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
     //    timerDivZero.stop();
 
     //   timerDivComp.start();
+#ifdef LOOP_1D
+    Kokkos::parallel_for(
+        "computeStressDivergence", nx * ny, KOKKOS_LAMBDA(const DeviceIndex idx) {
+            const DeviceIndex cx = idx % nx;
+            const DeviceIndex cy = idx / nx;
+#else
     Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx, ny });
-
     Kokkos::parallel_for(
         "computeStressDivergence", policy,
         KOKKOS_LAMBDA(const DeviceIndex cx, const DeviceIndex cy) {
+
+#endif
             const DeviceIndex eid = cx + nx * cy;
             // only on ice!
             if (!_buffers.landMaskDevice.test(eid)) {

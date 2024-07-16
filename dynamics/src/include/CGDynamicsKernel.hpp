@@ -18,6 +18,7 @@ static constexpr int CGdof = nGauss * nGauss;
 
 // for testing only
 #define USE_KOKKOS_KERNEL
+#define LOOP_1D
 static constexpr int DGdof = 3;
 constexpr bool MEASURE_DETAILED = true;
 
