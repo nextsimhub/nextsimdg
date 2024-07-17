@@ -43,8 +43,8 @@ ModelState FakeSmeshData::getData()
         double y = dy * j;
         for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
             double x = dx * i;
-            state.data.at(coordsName).components({i, j})[0] = x;
-            state.data.at(coordsName).components({i, j})[1] = y;
+            state.data.at(coordsName).components({ i, j })[0] = x;
+            state.data.at(coordsName).components({ i, j })[1] = y;
         }
     }
 
@@ -57,7 +57,6 @@ ModelState FakeSmeshData::getData()
             state.data.at(yName)(i, j) = y;
         }
     }
-
 
     return state;
 }
@@ -192,6 +191,4 @@ std::vector<double> FakeSmeshData::landmask25km_NH()
     // clang-format on
 }
 
-
 }
-

@@ -37,12 +37,12 @@ TEST_CASE("DGVector from ModelArray")
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; j++) {
             for (size_t c = 0; c < DG; ++c) {
-                source.components({i, j})[c] = c + my * (j + mx * (i));
+                source.components({ i, j })[c] = c + my * (j + mx * (i));
             }
         }
     }
 
-    CHECK(source.components({14, 12})[2] == (2 + my * (12 + mx * (14))));
+    CHECK(source.components({ 14, 12 })[2] == (2 + my * (12 + mx * (14))));
 
     // Create the ParametricMesh object
     ParametricMesh smesh(CoordinateSystem);
@@ -61,8 +61,8 @@ TEST_CASE("DGVector from ModelArray")
     DGModelArray::ma2dg<DG>(source, dest);
 
     // Did it work?
-    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::DG, {14, 12});
-    REQUIRE(dest(targetPoint, 2) == source.components({14, 12})[2]);
+    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::DG, { 14, 12 });
+    REQUIRE(dest(targetPoint, 2) == source.components({ 14, 12 })[2]);
 }
 
 TEST_CASE("DGVector from ModelArray::Type::H")
@@ -103,12 +103,10 @@ TEST_CASE("DGVector from ModelArray::Type::H")
     DGModelArray::ma2dg<DG>(source, dest);
 
     // Did it work?
-    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {14, 12});
+    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 14, 12 });
     REQUIRE(dest(targetPoint, 0) == source(14, 12));
     REQUIRE(dest(targetPoint, 2) == 0.);
-
 }
-
 
 TEST_CASE("ModelArray from DGVector")
 {
@@ -136,14 +134,14 @@ TEST_CASE("ModelArray from DGVector")
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; j++) {
-            size_t index = ModelArray::indexFromLocation(ModelArray::Type::H, {i, j});
+            size_t index = ModelArray::indexFromLocation(ModelArray::Type::H, { i, j });
             for (size_t c = 0; c < DG; ++c) {
                 source(index, c) = c + my * (j + mx * (i));
             }
         }
     }
-    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {14, 12});
-    CHECK(source(targetPoint, 4) == 4 + my * (12 + mx *(14)));
+    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 14, 12 });
+    CHECK(source(targetPoint, 4) == 4 + my * (12 + mx * (14)));
 
     ModelArray::setDimensions(ModelArray::Type::DG, { nx, ny });
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
@@ -153,7 +151,7 @@ TEST_CASE("ModelArray from DGVector")
     DGModelArray::dg2ma(source, dest);
 
     // Did it work?
-    REQUIRE(dest.components({14, 12})[4] == source(targetPoint, 4));
+    REQUIRE(dest.components({ 14, 12 })[4] == source(targetPoint, 4));
 }
 
 TEST_CASE("Test with DG = 1") // (It would be a silly case to get wrong!)
@@ -181,14 +179,14 @@ TEST_CASE("Test with DG = 1") // (It would be a silly case to get wrong!)
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; j++) {
-            size_t index = ModelArray::indexFromLocation(ModelArray::Type::H, {i, j});
+            size_t index = ModelArray::indexFromLocation(ModelArray::Type::H, { i, j });
             for (size_t c = 0; c < DG; ++c) {
                 source(index, c) = j + mx * i;
             }
         }
     }
 
-    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {14, 12});
+    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 14, 12 });
     CHECK(source(targetPoint) == 12 + mx * 14);
 
     ModelArray::setDimensions(ModelArray::Type::DG, { nx, ny });
@@ -200,20 +198,19 @@ TEST_CASE("Test with DG = 1") // (It would be a silly case to get wrong!)
 
     // Did it work?
     REQUIRE(dest(14, 12) == source(targetPoint));
-    targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {12, 14});
+    targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 12, 14 });
     REQUIRE(dest(12, 14) == source(targetPoint));
 
     // Change the values
     dest *= 2.;
     dest += 1.;
 
-    targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {11, 13});
+    targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 11, 13 });
     // Make sure it is different before the copy
     REQUIRE(source(targetPoint) != dest(11, 13));
     DGModelArray::ma2dg<DG>(dest, source);
     // And identical again after
     REQUIRE(source(targetPoint) == dest(11, 13));
-
 }
 
 // Tests to and from HFields.
@@ -243,14 +240,14 @@ TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wr
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; j++) {
-            size_t index = ModelArray::indexFromLocation(ModelArray::Type::H, {i, j});
+            size_t index = ModelArray::indexFromLocation(ModelArray::Type::H, { i, j });
             for (size_t c = 0; c < DG; ++c) {
                 source(index, c) = j + mx * i + mx * my * c;
             }
         }
     }
 
-    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {14, 12});
+    size_t targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 14, 12 });
     CHECK(source(targetPoint, 0) == 12 + mx * 14);
 
     ModelArray::setDimensions(ModelArray::Type::DG, { nx, ny });
@@ -262,14 +259,14 @@ TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wr
 
     // Did it work?
     REQUIRE(dest(14, 12) == source(targetPoint, 0));
-    targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {12, 14});
+    targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 12, 14 });
     REQUIRE(dest(12, 14) == source(targetPoint, 0));
 
     // Change the values
     dest *= 2.;
     dest += 1.;
 
-    targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, {11, 13});
+    targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 11, 13 });
     // Make sure it is different before the copy
     REQUIRE(source(targetPoint, 0) != dest(11, 13));
     double retained = source(targetPoint, 1);
@@ -280,7 +277,6 @@ TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wr
     REQUIRE(source(targetPoint, 0) == dest(11, 13));
     REQUIRE(source(targetPoint, 1) == retained);
     REQUIRE(source(targetPoint, 0) != retained);
-
 }
 TEST_SUITE_END();
 
