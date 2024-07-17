@@ -22,6 +22,8 @@ add_executable(testCGModelArray
 target_include_directories(testCGModelArray PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}")
 target_link_libraries(testCGModelArray LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/25km_NH.smesh" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
 add_executable(testParametricMesh
     "ParametricMesh_test.cpp"
     "FakeSmeshData.cpp"
