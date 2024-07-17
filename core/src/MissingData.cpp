@@ -1,8 +1,9 @@
 /*!
  * @file MissingData.cpp
  *
- * @date Jun 14, 2022
+ * @date Jul 17, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/MissingData.hpp"
