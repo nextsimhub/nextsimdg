@@ -83,10 +83,7 @@ public:
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
-    void prepareAdvection() override
-    {
-        dgtransport->prepareAdvection(avgU, avgV);
-    }
+    void prepareAdvection() override { dgtransport->prepareAdvection(avgU, avgV); }
 
     void update(const TimestepTime& tst) override
     {

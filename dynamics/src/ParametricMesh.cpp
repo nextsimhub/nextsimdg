@@ -217,8 +217,7 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
 void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
 {
     landmask.resize(nelements);
-    for (size_t idx = 0; idx < mask.trueSize(); ++idx)
-    {
+    for (size_t idx = 0; idx < mask.trueSize(); ++idx) {
         landmask[idx] = (mask[idx] == 1.);
     }
 }
@@ -229,18 +228,19 @@ void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
 void ParametricMesh::dirichletFromMask()
 {
     // Edges are accessed in the order: BOTTOM, RIGHT, TOP, LEFT. See also ParametricMesh::edges.
-    const std::array<size_t, N_EDGE> startX = {0, 0, 0, 1};
-    const std::array<size_t, N_EDGE> stopX = {nx, nx - 1, nx, nx};
-    const std::array<size_t, N_EDGE> startY = {1, 0, 0, 0};
-    const std::array<size_t, N_EDGE> stopY = {ny, ny, ny - 1, ny};
-    const std::array<int, N_EDGE> deltaIdx = {-static_cast<int>(nx), 1, static_cast<int>(nx), -1};
+    const std::array<size_t, N_EDGE> startX = { 0, 0, 0, 1 };
+    const std::array<size_t, N_EDGE> stopX = { nx, nx - 1, nx, nx };
+    const std::array<size_t, N_EDGE> startY = { 1, 0, 0, 0 };
+    const std::array<size_t, N_EDGE> stopY = { ny, ny, ny - 1, ny };
+    const std::array<int, N_EDGE> deltaIdx = { -static_cast<int>(nx), 1, static_cast<int>(nx), -1 };
 
     // Loop over edges
     for (Edge edge : edges) {
         for (size_t j = startY[edge]; j < stopY[edge]; ++j) {
             for (size_t i = startX[edge]; i < stopX[edge]; ++i) {
-                size_t idx = ModelArray::indexFromLocation(ModelArray::Type::H, {i, j});
-                if (!landmask[idx]) continue;
+                size_t idx = ModelArray::indexFromLocation(ModelArray::Type::H, { i, j });
+                if (!landmask[idx])
+                    continue;
                 // mask(i, j) is ocean. Check the appropriate neighbour
                 if (!landmask[idx + deltaIdx[edge]]) {
                     dirichlet[edge].push_back(idx);
@@ -259,9 +259,9 @@ void ParametricMesh::dirichletFromMask()
 void ParametricMesh::dirichletFromEdge(Edge edge)
 {
     // BOTTOM, RIGHT, TOP, LEFT
-    const std::array<size_t, N_EDGE> start = {0, nx - 1, nelements - nx, 0};
-    const std::array<size_t, N_EDGE> stop = {nx, nelements, nelements, nelements};
-    const std::array<size_t, N_EDGE> stride = {1, nx, 1, nx};
+    const std::array<size_t, N_EDGE> start = { 0, nx - 1, nelements - nx, 0 };
+    const std::array<size_t, N_EDGE> stop = { nx, nelements, nelements, nelements };
+    const std::array<size_t, N_EDGE> stride = { 1, nx, 1, nx };
 
     for (size_t idx = start[edge]; idx < stop[edge]; idx += stride[edge]) {
         if (landmask[idx]) {

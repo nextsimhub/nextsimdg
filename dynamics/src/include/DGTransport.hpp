@@ -7,10 +7,9 @@
 #ifndef __DGTRANSPORT_HPP
 #define __DGTRANSPORT_HPP
 
+#include "ParametricMap.hpp"
 #include "cgVector.hpp"
 #include "dgVector.hpp"
-#include "ParametricMap.hpp"
-
 
 namespace Nextsim {
 
@@ -25,16 +24,13 @@ void DGTransportOperator(const ParametricMesh& smesh, const double dt, const DGV
  * template parameter DG, EDGEDOFS(DG) are number of local unknowns, that is
  * (1,2,3,6) on the cell and (1,2,3) on the edge
  */
-template <int DG>
-class DGTransport {
+template <int DG> class DGTransport {
 protected:
- 
     //! spatial mesh.
     const ParametricMesh& smesh;
 
-  //! Precomputed stencil-like matrices for efficient numerical quadrature
-  ParametricTransportMap<DG> parammap;
-
+    //! Precomputed stencil-like matrices for efficient numerical quadrature
+    ParametricTransportMap<DG> parammap;
 
     //! reference to the current velocity
     DGVector<DG> velx, vely;
@@ -72,10 +68,9 @@ protected:
     void step_rk3(const double dt, DGVector<DG>& phi);
 
 public:
-
-  DGTransport(const ParametricMesh& mesh)
-      : smesh(mesh),
-	parammap(mesh)	  
+    DGTransport(const ParametricMesh& mesh)
+        : smesh(mesh)
+        , parammap(mesh)
         , timesteppingscheme("rk2")
     {
         if (!(smesh.nelements > 0)) {
@@ -95,29 +90,17 @@ public:
         normalvel_Y.resize_by_mesh(smesh, EdgeType::Y);
         normalvel_X.resize_by_mesh(smesh, EdgeType::X);
 
-	// initialize the mapping and set up required matrices
-	parammap.InitializeAdvectionCellTerms();
-	parammap.InitializeInverseDGMassMatrix();
+        // initialize the mapping and set up required matrices
+        parammap.InitializeAdvectionCellTerms();
+        parammap.InitializeInverseDGMassMatrix();
     }
 
     // Access members
 
-    const DGVector<DG>& GetVx() const
-    {
-        return velx;
-    }
-    const DGVector<DG>& GetVy() const
-    {
-        return vely;
-    }
-    DGVector<DG>& GetVx()
-    {
-        return velx;
-    }
-    DGVector<DG>& GetVy()
-    {
-        return vely;
-    }
+    const DGVector<DG>& GetVx() const { return velx; }
+    const DGVector<DG>& GetVy() const { return vely; }
+    DGVector<DG>& GetVx() { return velx; }
+    DGVector<DG>& GetVy() { return vely; }
 
     // High level functions
     void settimesteppingscheme(const std::string tss)
@@ -138,8 +121,7 @@ public:
      * - interpolates CG velocity to DG
      * - initializes normal velocity on the edges
      */
-    template <int CG>
-    void prepareAdvection(const CGVector<CG>& cg_vx, const CGVector<CG>& cg_vy);
+    template <int CG> void prepareAdvection(const CGVector<CG>& cg_vx, const CGVector<CG>& cg_vy);
 
     /*!
      * Performs one time step transporting phi
@@ -148,31 +130,25 @@ public:
      */
     void step(const double dt, DGVector<DG>& phi);
 
-
 private:
-  /*!
-   * Several internal functions 
-   */
+    /*!
+     * Several internal functions
+     */
 
-  //! computes all integrals on the elements and the edges
-  void DGTransportOperator(const ParametricMesh& smesh, const double dt,
-							  const DGVector<DG>& vx,
-							  const DGVector<DG>& vy,
-							  const EdgeVector<EDGEDOFS(DG)>& normalvel_X,
-							  const EdgeVector<EDGEDOFS(DG)>& normalvel_Y,
-							  const DGVector<DG>& phi, DGVector<DG>& phiup);
+    //! computes all integrals on the elements and the edges
+    void DGTransportOperator(const ParametricMesh& smesh, const double dt, const DGVector<DG>& vx,
+        const DGVector<DG>& vy, const EdgeVector<EDGEDOFS(DG)>& normalvel_X,
+        const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const DGVector<DG>& phi, DGVector<DG>& phiup);
 
-  void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, 
-		   const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie);
-  void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup, const DGVector<DG>& phi, 
-		   const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie);
-    
-  void cell_term(const ParametricMesh& smesh, double dt,
-		 DGVector<DG>& phiup, const DGVector<DG>& phi,
-		 const DGVector<DG>& vx,
-		 const DGVector<DG>& vy, const size_t ic);
-  
+    void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+        const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1,
+        const size_t c2, const size_t ie);
+    void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+        const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1,
+        const size_t c2, const size_t ie);
 
+    void cell_term(const ParametricMesh& smesh, double dt, DGVector<DG>& phiup,
+        const DGVector<DG>& phi, const DGVector<DG>& vx, const DGVector<DG>& vy, const size_t ic);
 };
 
 } /* namespace Nextsim */

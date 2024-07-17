@@ -27,7 +27,8 @@ public:
 
     double time_relaxation_damage; //!< 25 days in seconds
     double compression_factor; //! \param Max pressure for damaged converging ice
-    double exponent_compression_factor; //! \param Power of ice thickness in the pressure coefficient
+    double
+        exponent_compression_factor; //! \param Power of ice thickness in the pressure coefficient
 
     // TODO missing 45\deg it goes to Compresssion
     double tan_phi; //!< \param tan_phi (double) Internal friction coefficient (mu)
@@ -53,11 +54,13 @@ public:
         damage_timescale = 1.; //<! Damage timescale
         time_relaxation_damage = 2160000.; //!< 25 days in seconds
         compression_factor = 10e3; //! \param Max pressure for damaged converging ice
-        exponent_compression_factor = 1.5; //! \param Power of ice thickness in the pressure coefficient
+        exponent_compression_factor
+            = 1.5; //! \param Power of ice thickness in the pressure coefficient
         tan_phi = 0.7; //!< \param tan_phi (double) Internal friction coefficient (mu)
         sin_phi = 0.7; //!< \param sin_phi (double) Internal friction coefficient (mu)
 
-        compr_strength = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
+        compr_strength
+            = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
         C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
     }
 };

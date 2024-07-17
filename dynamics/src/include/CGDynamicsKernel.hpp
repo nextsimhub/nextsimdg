@@ -31,7 +31,6 @@ protected:
     using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
     using typename DynamicsKernel<DGadvection, DGstressDegree>::DataMap;
 
-
 public:
     CGDynamicsKernel()
         : pmap(nullptr)
@@ -46,6 +45,7 @@ public:
     void stressDivergence() override;
     void applyBoundaries() override;
     void prepareAdvection() override;
+
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);
     void dirichletZero(CGVector<CGdegree>&) const;
@@ -70,7 +70,6 @@ protected:
     CGVector<CGdegree> vAtmos;
 
     ParametricMomentumMap<CGdegree>* pmap;
-
 };
 
 } /* namespace Nextsim */

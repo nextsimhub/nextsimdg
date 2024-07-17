@@ -51,11 +51,13 @@ namespace Interpolations {
 
     //! Computes the L2 (integral) error between the DG-Vector and an analytic function
     template <int DG>
-    double L2ErrorFunctionDG(const ParametricMesh& smesh, const DGVector<DG>& src, const Function& fct);
+    double L2ErrorFunctionDG(
+        const ParametricMesh& smesh, const DGVector<DG>& src, const Function& fct);
 
-  //! Computes the L2 (integral) error between the CG-Vector and an analytic function
+    //! Computes the L2 (integral) error between the CG-Vector and an analytic function
     template <int DG>
-    double L2ErrorFunctionCG(const ParametricMesh& smesh, const CGVector<DG>& src, const Function& fct);
+    double L2ErrorFunctionCG(
+        const ParametricMesh& smesh, const CGVector<DG>& src, const Function& fct);
 
 } /* namespace Interpolation */
 

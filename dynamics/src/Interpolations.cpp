@@ -26,7 +26,6 @@ namespace Interpolations {
 
     // ******************** Function -> DG ******************** //
 
-
     template <int DG>
     void Function2DG(const ParametricMesh& smesh, DGVector<DG>& phi, const Function& initial)
     { // 2point-gauss rule
@@ -75,47 +74,44 @@ namespace Interpolations {
     template <int CG, int DG>
     void CG2DG(const ParametricMesh& smesh, DGVector<DG>& dg, const CGVector<CG>& cg)
     {
-      assert(static_cast<long int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)) == cg.rows());
-      assert(static_cast<long int>(smesh.nx * smesh.ny) == dg.rows());
+        assert(static_cast<long int>((CG * smesh.nx + 1) * (CG * smesh.ny + 1)) == cg.rows());
+        assert(static_cast<long int>(smesh.nx * smesh.ny) == dg.rows());
 
-      const int cgshift = CG * smesh.nx + 1; //!< Index shift for each row
+        const int cgshift = CG * smesh.nx + 1; //!< Index shift for each row
 
-      // parallelize over elements
+        // parallelize over elements
 #pragma omp parallel for
-      for (size_t dgi = 0; dgi < smesh.nelements; ++dgi) {
-	size_t iy = dgi / smesh.nx; //!< y-index of element
-	size_t ix = dgi % smesh.nx; //!< x-index of element
-	  
-	size_t cgi = CG * cgshift * iy + CG * ix; //!< lower/left Index in cg vector
+        for (size_t dgi = 0; dgi < smesh.nelements; ++dgi) {
+            size_t iy = dgi / smesh.nx; //!< y-index of element
+            size_t ix = dgi % smesh.nx; //!< x-index of element
 
-	Eigen::Matrix<double, (CG == 2 ? 9 : 4), 1> cg_local; //!< the 9 local unknowns in the element
-	if (CG == 1) {
-	  cg_local << cg(cgi), cg(cgi + 1), cg(cgi + cgshift), cg(cgi + 1 + cgshift);
-	} else {
-	  cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift), cg(cgi + 1 + cgshift),
-	    cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift), cg(cgi + 1 + 2 * cgshift),
-	    cg(cgi + 2 + 2 * cgshift);
-	}
-	// solve:  (Vdg, PHI) = (Vcg, PHI) with mapping to spher. coord.
-	if (smesh.CoordinateSystem == SPHERICAL)
-	  dg.row(dgi) =
+            size_t cgi = CG * cgshift * iy + CG * ix; //!< lower/left Index in cg vector
+
+            Eigen::Matrix<double, (CG == 2 ? 9 : 4), 1>
+                cg_local; //!< the 9 local unknowns in the element
+            if (CG == 1) {
+                cg_local << cg(cgi), cg(cgi + 1), cg(cgi + cgshift), cg(cgi + 1 + cgshift);
+            } else {
+                cg_local << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift),
+                    cg(cgi + 1 + cgshift), cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift),
+                    cg(cgi + 1 + 2 * cgshift), cg(cgi + 2 + 2 * cgshift);
+            }
+            // solve:  (Vdg, PHI) = (Vcg, PHI) with mapping to spher. coord.
+            if (smesh.CoordinateSystem == SPHERICAL)
+                dg.row(dgi) =
 	    SphericalTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GAUSSPOINTS1D(DG)>
 	    * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array() *
 	       GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() *
 	       (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, dgi).row(1).array()).cos() * //! metric term
 	       (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
-	else if (smesh.CoordinateSystem == CARTESIAN)
-	  dg.row(dgi) =
+            else if (smesh.CoordinateSystem == CARTESIAN)
+                dg.row(dgi) =
 	    ParametricTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GAUSSPOINTS1D(DG)>
 	    * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array() *
 	       GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() *
 	       (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
-
-		
-      }
+        }
     }
-    
-
 
     // ******************** DG -> CG  ******************** //
 
