@@ -50,7 +50,7 @@ namespace MEB {
         const DGVector<DGs>& E12, const DGVector<DGs>& E22, const DGVector<DGa>& H,
         const DGVector<DGa>& A, DGVector<DGa>& D, const double dt_mom)
     {
-// #define NGP (DGs == 8 ? 3 : (DGs == 3 ? 2 : -1))
+//#define NGP (DGs == 8 ? 3 : (DGs == 3 ? 2 : -1))
 #define NGP 3
 
         //! Stress and Damage Update

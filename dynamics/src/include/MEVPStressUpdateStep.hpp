@@ -63,7 +63,6 @@ public:
             const LocalEdgeVector<nGauss* nGauss> DELTA = (SQR(vpParams.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array() + e12_gauss.array().square())
-
                                                               .sqrt()
                                                               .matrix();
             // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i,
@@ -73,13 +72,11 @@ public:
 
             //   //! Ice strength
             //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-
             const LocalEdgeVector<nGauss* nGauss> P
                 = (vpParams.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
                       .matrix();
 
             //   // S = S_old + 1/alpha (S(u)-S_old) = (1-1/alpha) S_old + 1/alpha S(u)
-
             s11.row(i) *= (1.0 - 1.0 / alpha);
             s12.row(i) *= (1.0 - 1.0 / alpha);
             s22.row(i) *= (1.0 - 1.0 / alpha);
@@ -102,7 +99,6 @@ public:
 
             //   S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
             // 2 eta = 2/4 * P / (2 Delta) = P / (4 Delta)
-
             s12.row(i) += pmap->iMJwPSI[i]
                 * (1.0 / alpha
                     * (P.array() / 4.0 / DELTA.array() * e12_gauss.array()).matrix().transpose());
@@ -111,7 +107,6 @@ public:
             //       += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) +
             //       E22.row(i)));
             //   S22(i, 0) -= 1.0 / alpha * 0.5 * P;
-
             s22.row(i) += pmap->iMJwPSI[i]
                 * (1.0 / alpha
                     * (P.array() / 8.0 / DELTA.array()

@@ -107,15 +107,7 @@ namespace Tools {
                 const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
                 const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
 
-                SHEAR.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse()
-                    * (PSI<S2A(DGs), NGP>
-                        * (((e11_gauss.array() - e22_gauss.array()).square()
-                               + 4.0 * e12_gauss.array().square() + 1.e-20)
-                                .sqrt()
-                                .log10()
-                            * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array())
-                              .matrix()
-                              .transpose());
+                SHEAR.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse() * (PSI<S2A(DGs), NGP> * (((e11_gauss.array() - e22_gauss.array()).square() + 4.0 * e12_gauss.array().square()+1.e-20).sqrt().log10() * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array()).matrix().transpose());
             }
         }
 
