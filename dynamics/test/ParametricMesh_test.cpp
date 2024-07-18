@@ -12,7 +12,7 @@
 
 #include "include/ParametricMesh.hpp"
 
-#include "FakeSmeshData.hpp"
+#include "../test/FakeSmeshData.hpp"
 #include "include/gridNames.hpp"
 
 #include <filesystem>

@@ -5,7 +5,7 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "FakeSmeshData.hpp"
+#include "../test/FakeSmeshData.hpp"
 
 #include "include/ModelArray.hpp"
 

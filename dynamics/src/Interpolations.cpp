@@ -98,18 +98,26 @@ namespace Interpolations {
             }
             // solve:  (Vdg, PHI) = (Vcg, PHI) with mapping to spher. coord.
             if (smesh.CoordinateSystem == SPHERICAL)
-                dg.row(dgi) =
-	    SphericalTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GAUSSPOINTS1D(DG)>
-	    * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array() *
-	       GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() *
-	       (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, dgi).row(1).array()).cos() * //! metric term
-	       (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
+                dg.row(dgi) = SphericalTools::massMatrix<DG>(smesh, dgi).inverse()
+                    * PSI<DG, GAUSSPOINTS1D(DG)>
+                    * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
+                        * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array()
+                        * (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, dgi)
+                                .row(1)
+                                .array())
+                              .cos()
+                        * //! metric term
+                        (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array())
+                          .matrix()
+                          .transpose();
             else if (smesh.CoordinateSystem == CARTESIAN)
-                dg.row(dgi) =
-	    ParametricTools::massMatrix<DG>(smesh, dgi).inverse() * PSI<DG, GAUSSPOINTS1D(DG)>
-	    * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array() *
-	       GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array() *
-	       (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array()).matrix().transpose();
+                dg.row(dgi) = ParametricTools::massMatrix<DG>(smesh, dgi).inverse()
+                    * PSI<DG, GAUSSPOINTS1D(DG)>
+                    * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
+                        * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array()
+                        * (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array())
+                          .matrix()
+                          .transpose();
         }
     }
 
