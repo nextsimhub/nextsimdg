@@ -1,0 +1,11 @@
+<map id="Nextsim::DevGridIO::dumpModelState" name="Nextsim::DevGridIO::dumpModelState">
+<area shape="rect" id="Node000001" title="Dumps the given ModelState to the given file path." alt="" coords="5,71,142,111"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_common_restart_metadata.html#acac23d06535d853768b15d4d7f46b393" title="Writes the structure type to the root of the restart file for future retrieval." alt="" coords="190,71,413,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,88,174,88,174,94,142,94"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_metadata.html#a4a4ae2da98030a0aad813f8d2c877dc5" title="Returns the string description of the model grid structure." alt="" coords="461,5,625,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="378,68,449,48,451,53,380,73"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_i_structure.html#a9bfcd49bd510b9200b9ce367f179c3d9" title="The name of the group holding the definitive structure type." alt="" coords="471,71,615,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="413,88,456,88,456,94,413,94"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_i_structure.html#a2cbb7379198e83e5e50d125b4a366a39" title="The name of the node holding the name of the structure type processed by this class." alt="" coords="477,136,609,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="380,109,463,132,461,137,378,114"/>
+</map>

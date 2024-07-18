@@ -1,0 +1,6 @@
+<map id="Nextsim::Timer::report" name="Nextsim::Timer::report">
+<area shape="rect" id="Node000001" title="Prints the status of a named timer to an ostream." alt="" coords="138,29,285,55"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="239,16,230,10,211,8,194,10,185,15,183,20,188,28,183,30,178,21,181,11,193,5,211,3,231,5,242,12"/>
+<area shape="rect" id="Node000002" href="$_timer_8cpp.html#a5aa8395270feb4cf81ea27a7c25ba308" title="Overload of the output operator for a Timer." alt="" coords="5,29,90,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,45,90,45,90,40,122,40"/>
+</map>

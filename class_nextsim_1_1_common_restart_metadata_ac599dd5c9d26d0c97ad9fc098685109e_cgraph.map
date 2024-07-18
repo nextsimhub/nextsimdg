@@ -1,0 +1,9 @@
+<map id="Nextsim::CommonRestartMetadata::writeRestartMetadata" name="Nextsim::CommonRestartMetadata::writeRestartMetadata">
+<area shape="rect" id="Node000001" title="Writes the standard restart file metadata to a metadata node." alt="" coords="5,71,229,111"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_metadata.html#a4a4ae2da98030a0aad813f8d2c877dc5" title="Returns the string description of the model grid structure." alt="" coords="277,5,441,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,68,265,48,267,53,195,73"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_metadata.html#a7cfa791d7cb1bf890e5960fc8767935b" title="Returns the current model time." alt="" coords="277,71,441,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,88,261,88,261,94,229,94"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_i_structure.html#a2cbb7379198e83e5e50d125b4a366a39" title="The name of the node holding the name of the structure type processed by this class." alt="" coords="293,136,425,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="195,109,279,132,277,137,194,114"/>
+</map>

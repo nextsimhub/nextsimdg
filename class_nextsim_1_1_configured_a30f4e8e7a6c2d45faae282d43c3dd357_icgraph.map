@@ -1,0 +1,8 @@
+<map id="Nextsim::Configured::getConfiguration" name="Nextsim::Configured::getConfiguration">
+<area shape="rect" id="Node000001" title="Returns the current configuration of the object." alt="" coords="446,23,582,64"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_logged.html#a4eaf6db964c2ee5e53bf37342fa2de28" title="Static function that configures the logger." alt="" coords="222,5,398,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="430,36,398,32,399,26,431,31"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model.html#a0f5b5a4d2b53a04bbdc7ce3f7d0bef5d" title="The configuration function." alt="" coords="5,31,174,56"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="430,46,174,46,174,41,430,41"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="206,33,175,36,174,31,206,27"/>
+</map>

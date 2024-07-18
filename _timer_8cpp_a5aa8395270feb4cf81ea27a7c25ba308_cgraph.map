@@ -1,0 +1,6 @@
+<map id="operator&lt;&lt;" name="operator&lt;&lt;">
+<area shape="rect" id="Node000001" title="Overload of the output operator for a Timer." alt="" coords="5,29,90,55"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_timer.html#a4992538b1e9162ce6d1f742b2cc4a656" title="Prints the status of a named timer to an ostream." alt="" coords="138,29,285,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,40,122,40,122,45,90,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="183,30,178,21,181,11,193,5,211,3,231,5,242,12,239,16,230,10,211,8,194,10,185,15,183,20,188,28"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="Nextsim::ModelComponent::mask" name="Nextsim::ModelComponent::mask">
+<area shape="rect" id="Node000001" title="Returns a copy of the provided ModelArray, masked according to the land&#45;ocean mask." alt="" coords="5,39,182,79"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html#a44e2bbf5b96701cd2ac6160061ffb6df" title="Returns the ocean mask." alt="" coords="230,5,406,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,43,214,38,214,44,182,49"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array.html#a3c12dc81eda239218e83edfd5d36fdbb" title="Special access function for ZFields." alt="" coords="248,71,388,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,69,233,76,232,81,181,74"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array.html#a00dcaca57d99ef9bbedd210a82fa4731" title="Returns the data at the specified one dimensional index." alt="" coords="454,37,594,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="388,77,439,69,439,74,389,82"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model_array.html#ac32b5069c62eb1d4f789498d0b150b98" title="Special access function for ZFields, common implementation version." alt="" coords="454,103,594,143"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="389,99,439,107,438,112,388,104"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_model_array.html#a430ca0d2166e14f65a8ca7c577df4fb1" title="Returns a vector&lt;size_t&gt; of the size of each dimension of this type of ModelArray." alt="" coords="642,103,783,143"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="595,120,627,120,627,126,595,126"/>
+<area shape="poly" id="edge6_Node000006_Node000006" title=" " alt="" coords="677,103,675,93,681,84,693,78,713,76,733,78,745,85,743,89,732,84,712,81,695,83,684,88,680,94,682,101"/>
+</map>

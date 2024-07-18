@@ -1,0 +1,5 @@
+<map id="Nextsim::ConfiguredBase::configure" name="Nextsim::ConfiguredBase::configure">
+<area shape="rect" id="Node000001" title="The configuration function." alt="" coords="190,5,356,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured.html#a05198b6efa6221189b6a55d6e94688b0" title="Template function for conditionally configuring classes via a pointer." alt="" coords="5,5,142,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,28,142,28,142,23,174,23"/>
+</map>

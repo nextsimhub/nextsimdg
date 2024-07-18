@@ -1,0 +1,21 @@
+<map id="Nextsim::ModelArray::resize" name="Nextsim::ModelArray::resize">
+<area shape="rect" id="Node000001" title="Conditionally updates the size of the object data buffer to match the class specification." alt="" coords="418,136,558,177"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html#a3a07628a05e282d56c594929953983f6" title=" " alt="" coords="194,5,370,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="454,127,414,93,369,61,344,49,346,44,371,57,418,89,457,123"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array.html#aa7b26c6e4ce8f977271f693047afb6d6" title="Reads and sets data from a raw buffer of double data." alt="" coords="212,71,352,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="406,133,348,115,349,109,408,128"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array.html#a9938424dba42a72b520a14f5ee16c2bd" title="Sets the value of every element in the object to the provided value." alt="" coords="212,136,352,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="403,159,352,159,352,154,403,154"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_model_array.html#a9e5e7c2c19d79267ab8d39d8a22dff68" title="Sets the number and size of the dimensions of this type of ModelArray." alt="" coords="212,201,352,242"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="408,184,349,203,348,198,406,179"/>
+<area shape="rect" id="Node000010" href="$class_nextsim_1_1_model_component.html#ae2333c88ff50bd368d707e0bc3f7bd36" title="Sets the model&#45;wide land&#45;ocean mask (for HField arrays)." alt="" coords="194,267,370,307"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="457,190,418,224,371,256,346,269,344,264,369,251,414,219,454,186"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model_array.html#a9e7bfe90029cb9f7512278811bcb9330" title="Copy constructor." alt="" coords="5,39,146,79"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="206,132,192,125,144,95,121,82,123,78,147,90,195,121,208,127"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_model_array.html#a6e8069478ff4e7c3d4c0ca927c971982" title="Assigns a double value to all elements of the object." alt="" coords="5,104,146,145"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="196,146,146,138,146,133,197,140"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_model_array.html#a76b68ea3ae6967acca47db1b6b7d4f1e" title="Copy assignment operator." alt="" coords="5,169,146,210"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="197,173,146,181,146,176,196,167"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_model_array.html#a4e7e1934eb14691d89a10d231118df68" title="Reads and sets data from another ModelArray." alt="" coords="5,235,146,275"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="208,186,195,192,171,208,147,224,123,237,121,232,144,219,168,203,192,187,206,181"/>
+</map>

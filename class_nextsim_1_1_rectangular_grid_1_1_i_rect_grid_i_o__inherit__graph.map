@@ -1,0 +1,5 @@
+<map id="Nextsim::RectangularGrid::IRectGridIO" name="Nextsim::RectangularGrid::IRectGridIO">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,165,165"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_rect_grid_i_o.html" title=" " alt="" coords="19,213,151,339"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,181,88,213,83,213,83,181"/>
+</map>

@@ -1,0 +1,21 @@
+<map id="Nextsim::ModelArrayRef&lt; arrayName, S, access &gt;" name="Nextsim::ModelArrayRef&lt; arrayName, S, access &gt;">
+<area shape="rect" id="Node000001" title="A class which provides indirect access to ModelArray." alt="" coords="1043,5,1237,505"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="5,583,219,1098"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1029,261,949,267,855,277,750,295,640,320,528,354,419,400,367,428,316,459,269,493,225,531,202,557,182,585,178,582,198,553,221,527,266,489,313,454,364,423,417,395,526,349,639,315,749,289,854,272,948,262,1028,256"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="243,583,453,1098"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="1029,266,883,288,798,307,711,333,624,367,541,411,465,465,430,497,399,531,381,556,368,585,363,582,377,554,395,528,426,493,461,461,538,407,622,362,709,328,797,302,882,282,1028,261"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="501,583,710,1098"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="1030,288,934,323,829,374,778,406,729,443,686,484,648,531,633,557,621,585,616,583,628,554,644,528,682,481,726,438,775,401,827,369,932,318,1028,283"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="748,583,977,1098"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="1034,344,994,383,954,428,919,478,890,530,872,584,867,583,885,528,914,475,950,425,990,380,1031,340"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="1043,583,1237,1098"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1143,520,1143,584,1137,584,1137,520"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="1261,583,1454,1098"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1248,380,1294,451,1330,528,1346,583,1341,584,1326,530,1289,453,1243,383"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="1478,583,1693,1098"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1251,315,1312,356,1377,406,1438,463,1492,528,1523,582,1518,585,1487,531,1435,467,1373,410,1309,360,1248,319"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="1717,583,1931,1098"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1251,298,1344,339,1449,392,1558,455,1660,527,1692,556,1719,590,1715,593,1688,560,1657,531,1555,460,1447,397,1342,344,1249,303"/>
+<area shape="rect" id="Node000010" href="$class_nextsim_1_1_model_array_ref.html" title=" " alt="" coords="1955,583,2149,1098"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="1252,269,1406,301,1497,327,1592,360,1688,401,1781,451,1868,511,1908,545,1945,582,1957,597,1953,600,1941,585,1904,549,1865,515,1778,455,1686,405,1590,365,1496,332,1405,306,1251,274"/>
+</map>

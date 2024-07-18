@@ -1,0 +1,18 @@
+<map id="Nextsim::ModelMetadata::structureName" name="Nextsim::ModelMetadata::structureName">
+<area shape="rect" id="Node000001" title="Returns the string description of the model grid structure." alt="" coords="470,104,634,145"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_common_restart_metadata.html#ac599dd5c9d26d0c97ad9fc098685109e" title="Writes the standard restart file metadata to a metadata node." alt="" coords="199,71,422,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="454,114,422,109,423,104,455,108"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_common_restart_metadata.html#acac23d06535d853768b15d4d7f46b393" title="Writes the structure type to the root of the restart file for future retrieval." alt="" coords="199,136,422,177"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="455,140,423,144,422,139,454,135"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_para_grid_i_o.html#a8b3f2df590b4c723c3136a8769d0c202" title="Writes the ModelState to a given file location from the provided model data and metadata." alt="" coords="8,5,148,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="220,69,148,48,150,43,222,63"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_rect_grid_i_o.html#ae9ee77d5df22cd49163ecbb1fcf8130a" title="Dumps the given ModelState to the given file path." alt="" coords="8,71,148,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="183,94,148,94,148,88,183,88"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_para_grid_i_o.html#a121b163c19e4db4870334d44ce7f9c94" title="Writes diagnostic data to a file." alt="" coords="5,136,151,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="222,118,152,138,150,133,221,113"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="206,131,197,125,181,109,172,93,164,77,149,61,130,49,133,44,152,57,168,74,176,91,185,106,200,121,209,126"/>
+<area shape="poly" id="edge8_Node000006_Node000004" title=" " alt="" coords="220,134,148,113,150,108,222,129"/>
+<area shape="poly" id="edge9_Node000006_Node000005" title=" " alt="" coords="183,159,151,159,151,154,183,154"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_dev_grid_i_o.html#aa91b0889121337890eb409da27753790" title="Dumps the given ModelState to the given file path." alt="" coords="10,201,146,242"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="222,184,147,205,146,200,220,179"/>
+</map>

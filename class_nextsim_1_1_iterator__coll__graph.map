@@ -1,0 +1,7 @@
+<map id="Nextsim::Iterator" name="Nextsim::Iterator">
+<area shape="rect" id="Node000001" title="A class that controls how time steps are performed." alt="" coords="5,456,157,642"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_iterator_1_1_null_iterant.html" title="A simple Iterant that does nothing." alt="" coords="25,313,138,393"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,393,84,439,79,439,79,393"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_iterator_1_1_iterant.html" title="A base class for classes that specify what happens during one timestep." alt="" coords="25,5,138,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="84,280,84,314,79,314,79,280"/>
+</map>

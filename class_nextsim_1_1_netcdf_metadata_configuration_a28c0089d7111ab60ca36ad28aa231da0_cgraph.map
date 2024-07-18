@@ -1,0 +1,5 @@
+<map id="Nextsim::NetcdfMetadataConfiguration::read" name="Nextsim::NetcdfMetadataConfiguration::read">
+<area shape="rect" id="Node000001" title="Reads the additional configuration from the provided source, which is interpreted in an implementatio..." alt="" coords="5,5,249,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configurator.html#abab5505ef80f14f069a4c2187d3761ae" title="Parses all configuration sources." alt="" coords="297,5,441,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="249,23,281,23,281,28,249,28"/>
+</map>

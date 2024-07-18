@@ -1,0 +1,5 @@
+<map id="Nextsim::ModelComponent::getStateRecursive" name="Nextsim::ModelComponent::getStateRecursive">
+<area shape="rect" id="Node000001" title="Returns the state of the ModelComponent and any ModelComponents it depends on." alt="" coords="5,5,182,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html#a73343bf9e210fda8cd17814829858d97" title="Returns a ModelState from this component." alt="" coords="230,5,406,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,23,214,23,214,28,182,28"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="Nextsim::Configured::addOption" name="Nextsim::Configured::addOption">
+<area shape="rect" id="Node000001" title="Adds an option to the per&#45;class option map." alt="" coords="190,29,326,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="288,16,276,10,258,8,240,10,230,14,226,20,228,28,223,29,221,19,227,10,239,5,258,3,278,5,290,11"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured.html#ae80fbec20e4f379dcdfce4efd1e2ddc0" title="Gets the value of the configuration with a given name from the default Configurator." alt="" coords="5,29,142,70"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="174,52,142,52,142,47,174,47"/>
+</map>

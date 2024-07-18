@@ -1,0 +1,5 @@
+<map id="Nextsim::DevStep::setData" name="Nextsim::DevStep::setData">
+<area shape="rect" id="Node000001" title="Sets the data object that will be used within the timesteps." alt="" coords="222,5,398,31"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model.html#a0f5b5a4d2b53a04bbdc7ce3f7d0bef5d" title="The configuration function." alt="" coords="5,5,174,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,21,174,21,174,16,206,16"/>
+</map>

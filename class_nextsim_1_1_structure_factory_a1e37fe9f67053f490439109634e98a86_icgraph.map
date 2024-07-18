@@ -1,0 +1,5 @@
+<map id="Nextsim::StructureFactory::fileFromState" name="Nextsim::StructureFactory::fileFromState">
+<area shape="rect" id="Node000001" title="Takes a ModelState and a template file name to write the state out to a target file path." alt="" coords="208,5,379,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_simple_output.html#a932d4d9417f9f4bf90dea63dde652914" title="Outputs the passed ModelState." alt="" coords="5,5,160,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,28,160,28,160,23,192,23"/>
+</map>

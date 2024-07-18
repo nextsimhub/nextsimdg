@@ -1,0 +1,5 @@
+<map id="Nextsim::ParametricGrid" name="Nextsim::ParametricGrid">
+<area shape="rect" id="Node000001" title="A class to hold the grid data for parameterised rectangular grids." alt="" coords="5,319,159,504"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_i_structure.html" title="Interface class for the model structure." alt="" coords="6,5,158,271"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,285,85,319,79,319,79,285"/>
+</map>

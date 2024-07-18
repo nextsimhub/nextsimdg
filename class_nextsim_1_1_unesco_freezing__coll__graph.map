@@ -1,0 +1,5 @@
+<map id="Nextsim::UnescoFreezing" name="Nextsim::UnescoFreezing">
+<area shape="rect" id="Node000001" title="The implementation class of the UNESCO model of the freezing point of." alt="" coords="5,139,167,204"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_i_freezing_point.html" title="The interface class for calculation of the freezing point of seawater." alt="" coords="11,5,161,91"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,106,89,139,83,139,83,106"/>
+</map>

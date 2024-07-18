@@ -1,0 +1,11 @@
+<map id="Nextsim::ModelArray::setData" name="Nextsim::ModelArray::setData">
+<area shape="rect" id="Node000001" title="Sets the value of every element in the object to the provided value." alt="" coords="194,104,334,145"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array.html#a9e7bfe90029cb9f7512278811bcb9330" title="Copy constructor." alt="" coords="5,5,146,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,98,144,61,120,49,122,44,147,57,215,94"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array.html#a6e8069478ff4e7c3d4c0ca927c971982" title="Assigns a double value to all elements of the object." alt="" coords="5,71,146,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,112,146,106,146,101,179,107"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array.html#a76b68ea3ae6967acca47db1b6b7d4f1e" title="Copy assignment operator." alt="" coords="5,136,146,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="179,141,146,147,146,142,178,136"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model_array.html#a4e7e1934eb14691d89a10d231118df68" title="Reads and sets data from another ModelArray." alt="" coords="5,201,146,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="214,155,147,191,122,203,119,198,144,186,211,150"/>
+</map>

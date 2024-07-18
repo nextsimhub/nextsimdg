@@ -1,0 +1,23 @@
+<map id="Nextsim::ModelArrayRef::data" name="Nextsim::ModelArrayRef::data">
+<area shape="rect" id="Node000001" title="Direct access top the underlying data array." alt="" coords="267,313,427,354"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array_ref.html#a529cbf5fedfe257c2d9e7dc22a72424d" title="Cast the reference class to a real reference to the referenced ModelArray." alt="" coords="17,5,207,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="336,299,323,246,299,181,265,116,243,86,217,60,201,49,204,44,220,56,247,82,269,113,304,179,328,244,341,297"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array_ref_3_01array_name_00_01_m_a_r_backing_store_00_01_r_w_01_4.html#a645df6cc38ebd2217243145766ad4008" title="Cast the reference class to a real reference to the referenced ModelArray." alt="" coords="5,70,219,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="329,300,311,263,286,220,254,177,217,140,200,128,203,124,220,136,259,174,290,217,315,260,334,298"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array_ref.html#ab4132354aadd702e736d48a0f5d961f3" title="Returns a ModelArray containing the per&#45;element product of the object and the provided ModelArray." alt="" coords="32,149,192,190"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="319,303,275,252,247,227,217,205,191,192,194,188,220,201,251,223,279,249,323,299"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model_array_ref.html#ac3883b6fc2577f1d241b0ed0c8121cb1" title="Returns a ModelArray containing the per&#45;element product of the object and the provided ModelArray." alt="" coords="32,215,192,255"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="295,308,218,271,184,258,186,253,220,266,297,303"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_model_array_ref.html#adecc25870efae0cd67a268f1abc9f9c4" title="Returns a ModelArray containing the per&#45;element sum of the object and the provided ModelArray." alt="" coords="32,280,192,321"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="251,323,192,314,193,309,252,318"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_model_array_ref.html#a97ffcf133ac2ac4b8e09bcd5f3fbab97" title="Returns a ModelArray containing the per&#45;element sum of the object and the provided ModelArray." alt="" coords="32,345,192,386"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="252,349,193,357,192,352,251,344"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_model_array_ref.html#aeedef5d411ac2656798f080d8b97e4ca" title="Returns a ModelArray containing the per&#45;element difference between the object and the provided ModelA..." alt="" coords="32,411,192,451"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="296,364,220,400,186,413,184,408,218,395,293,359"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_model_array_ref.html#a8f485fa83293c2ecb6c65c30b193ef62" title="Returns a ModelArray containing the per&#45;element difference between the object and the provided ModelA..." alt="" coords="32,476,192,517"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="323,368,279,418,251,443,220,465,193,478,191,474,217,461,247,439,275,414,319,364"/>
+<area shape="rect" id="Node000010" href="$class_nextsim_1_1_model_array_ref.html#a93bd31b2dc1ef09a4faa4cd59180da0b" title="Returns a ModelArray containing the per&#45;element ratio between the object and the provided ModelArray." alt="" coords="32,541,192,582"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="334,369,316,407,291,450,259,493,220,530,194,545,191,541,217,526,255,490,287,447,312,404,329,367"/>
+<area shape="rect" id="Node000011" href="$class_nextsim_1_1_model_array_ref.html#ab738157661cb3e758309960154c24372" title="Returns a ModelArray containing the per&#45;element ratio between the object and the provided ModelArray." alt="" coords="32,607,192,647"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="340,370,326,420,302,481,267,542,245,571,220,596,194,612,191,608,217,592,241,567,263,539,297,479,321,419,335,369"/>
+</map>

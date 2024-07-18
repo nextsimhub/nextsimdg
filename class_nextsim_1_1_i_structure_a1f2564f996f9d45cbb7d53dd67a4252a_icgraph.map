@@ -1,0 +1,5 @@
+<map id="Nextsim::IStructure::structureType" name="Nextsim::IStructure::structureType">
+<area shape="rect" id="Node000001" title="Returns the structure name that this class will process." alt="" coords="197,5,329,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_i_structure.html#ae6446c5cffa50f0281c1083b429f9b98" title="Checks if the passed string matches (ignoring case) the name of the structure that this class constru..." alt="" coords="5,5,149,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,28,149,28,149,23,181,23"/>
+</map>

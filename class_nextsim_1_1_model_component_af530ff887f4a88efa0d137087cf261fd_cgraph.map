@@ -1,0 +1,5 @@
+<map id="Nextsim::ModelComponent::registerExternalSharedArray" name="Nextsim::ModelComponent::registerExternalSharedArray">
+<area shape="rect" id="Node000001" title="Registers a ModelArray into a SharedArray slot from outside any ModelComponent object...." alt="" coords="5,5,193,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html#aea5d816da8b6bf703ea5ac1648c0f20e" title=" " alt="" coords="241,5,417,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,23,225,23,225,28,193,28"/>
+</map>

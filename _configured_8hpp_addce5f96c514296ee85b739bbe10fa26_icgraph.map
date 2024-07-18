@@ -1,0 +1,13 @@
+<map id="Nextsim::tryConfigure" name="Nextsim::tryConfigure">
+<area shape="rect" id="Node000001" title="Template function for conditionally configuring references." alt="" coords="434,70,577,96"/>
+<area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="541,58,529,51,506,49,484,51,473,56,471,61,476,68,472,71,465,62,469,52,483,46,506,44,530,46,543,53"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_prognostic_data.html#ac86335c408d04ad2cfb8e4b5362d0d58" title="The configuration function." alt="" coords="222,5,386,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="442,68,377,49,379,44,444,63"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_dev_step.html#affa3a69f395c91cfaa7964e6f0fa8b99" title="Initializes the model, based on some environment stored in the implementing class." alt="" coords="230,70,378,96"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="419,86,378,86,378,80,419,80"/>
+<area shape="rect" id="Node000005" href="$_configured_8hpp.html#a8880ec08a7a99226178c8ac9dd9e463d" title="Template function for conditionally configuring classes via a pointer." alt="" coords="232,120,376,145"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="436,103,360,121,359,116,435,98"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model.html#a0f5b5a4d2b53a04bbdc7ce3f7d0bef5d" title="The configuration function." alt="" coords="5,42,174,68"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="207,42,175,46,174,41,206,36"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="214,74,174,69,175,63,214,69"/>
+</map>

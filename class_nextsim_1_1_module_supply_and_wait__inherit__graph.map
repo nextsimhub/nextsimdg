@@ -1,0 +1,5 @@
+<map id="Nextsim::ModuleSupplyAndWait" name="Nextsim::ModuleSupplyAndWait">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,673,203,859"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html" title=" " alt="" coords="8,5,200,625"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,640,107,674,101,674,101,640"/>
+</map>

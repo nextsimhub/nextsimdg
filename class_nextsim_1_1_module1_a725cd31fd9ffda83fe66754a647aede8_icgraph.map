@@ -1,0 +1,5 @@
+<map id="Nextsim::Module1::getName" name="Nextsim::Module1::getName">
+<area shape="rect" id="Node000001" title="Returns the name of the component." alt="" coords="229,5,412,31"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_module1.html#af88ae5175e38c70c5c9ed5374ec6a26b" title="Set the initial data of the component from the passed ModelState." alt="" coords="5,5,181,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,21,181,21,181,16,213,16"/>
+</map>

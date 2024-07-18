@@ -1,0 +1,8 @@
+<map id="Nextsim::ModelArray::operator[]" name="Nextsim::ModelArray::operator[]">
+<area shape="rect" id="Node000001" title="Returns the data at the indices." alt="" coords="5,51,146,91"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array.html#ab563c139cce53eae1ef7c57a97736e39" title="Returns a const reference to the Eigen data." alt="" coords="194,5,334,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,52,178,44,179,49,147,57"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array.html#a430ca0d2166e14f65a8ca7c577df4fb1" title="Returns a vector&lt;size_t&gt; of the size of each dimension of this type of ModelArray." alt="" coords="194,95,334,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="147,85,179,93,178,98,145,90"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="228,95,226,85,232,76,245,70,264,68,284,70,297,77,294,81,283,76,264,73,246,75,235,80,231,86,233,93"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="Nextsim::Chrono::extraTicks" name="Nextsim::Chrono::extraTicks">
+<area shape="rect" id="Node000001" title="Adds an externally determined increment to the activation count." alt="" coords="252,29,434,55"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="385,17,371,11,343,8,318,10,304,15,301,20,308,27,303,31,296,21,300,11,316,5,343,3,373,6,387,13"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_timer.html#a22994e87439d37258efc6b39a54ef90c" title="Adds an additional time increment to a timer." alt="" coords="5,29,204,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,45,204,45,204,40,236,40"/>
+</map>

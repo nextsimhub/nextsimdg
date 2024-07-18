@@ -1,0 +1,10 @@
+<map id="Nextsim::ModelArray::components" name="Nextsim::ModelArray::components">
+<area shape="rect" id="Node000001" title="Accesses the full Discontinuous Galerkin coefficient vector at the specified location." alt="" coords="5,71,146,111"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array.html#a0723dcfccb51049d019932b11562dd05" title="Accesses the full Discontinuous Galerkin coefficient vector at the indexed location." alt="" coords="194,5,334,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,68,188,49,190,54,137,73"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array.html#ab563c139cce53eae1ef7c57a97736e39" title="Returns a const reference to the Eigen data." alt="" coords="194,71,334,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="146,88,178,88,178,94,146,94"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array.html#a430ca0d2166e14f65a8ca7c577df4fb1" title="Returns a vector&lt;size_t&gt; of the size of each dimension of this type of ModelArray." alt="" coords="194,160,334,201"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="122,110,207,150,204,155,119,114"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="228,160,226,150,232,141,245,135,264,133,284,136,297,142,294,147,283,141,264,139,246,141,235,145,231,151,233,159"/>
+</map>

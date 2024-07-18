@@ -1,0 +1,11 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$class_nextsim_1_1_mini_model_component.html" title=" " alt="" coords="5,80,206,106"/>
+<area shape="rect" id="Node000001" href="$class_nextsim_1_1_atm_in.html" title=" " alt="" coords="267,5,378,31"/>
+<area shape="poly" id="edge45_Node000000_Node000001" title=" " alt="" coords="159,72,281,29,283,34,160,77"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_coupl_in.html" title=" " alt="" coords="263,55,382,80"/>
+<area shape="poly" id="edge46_Node000000_Node000002" title=" " alt="" coords="220,77,262,72,262,77,221,82"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_ice_calc.html" title=" " alt="" coords="263,104,382,130"/>
+<area shape="poly" id="edge47_Node000000_Node000003" title=" " alt="" coords="221,103,262,108,262,113,220,108"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_ice_thermo.html" title=" " alt="" coords="254,153,391,179"/>
+<area shape="poly" id="edge48_Node000000_Node000004" title=" " alt="" coords="161,109,282,150,281,155,160,114"/>
+</map>

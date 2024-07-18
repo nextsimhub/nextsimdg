@@ -1,0 +1,11 @@
+<map id="Nextsim::ModelArray::resize" name="Nextsim::ModelArray::resize">
+<area shape="rect" id="Node000001" title="Conditionally updates the size of the object data buffer to match the class specification." alt="" coords="5,119,146,159"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array.html#a2a68a42462efa606a6c5478c7385d542" title="Returns whether this type of ModelArray has additional discontinuous Galerkin components." alt="" coords="194,29,334,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,116,204,75,207,80,122,120"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array.html#adf6af3c14b1fee8f3e47d38422d9b66d" title="Returns the total number of elements of this type of ModelArray." alt="" coords="194,119,334,159"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="146,136,178,136,178,142,146,142"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array.html#a1b240e807761e93d149cf78d03df1832" title="Returns the size of the data array of this object." alt="" coords="194,184,334,225"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="137,157,190,176,188,181,135,162"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="228,29,226,19,232,10,245,5,264,3,284,5,297,11,294,16,283,10,264,8,246,10,235,15,231,20,233,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="228,119,226,109,232,100,245,94,264,92,284,94,297,101,294,105,283,100,264,97,246,99,235,104,231,110,233,117"/>
+</map>

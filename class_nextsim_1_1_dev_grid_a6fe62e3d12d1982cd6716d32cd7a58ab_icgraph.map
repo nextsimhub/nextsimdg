@@ -1,0 +1,11 @@
+<map id="Nextsim::DevGrid::setIO" name="Nextsim::DevGrid::setIO">
+<area shape="rect" id="Node000001" title="Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO." alt="" coords="441,46,601,72"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_structure_factory.html#a1e37fe9f67053f490439109634e98a86" title="Takes a ModelState and a template file name to write the state out to a target file path." alt="" coords="222,5,393,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="425,47,393,42,394,36,426,42"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_structure_factory.html#adf5c8a3accf58e87f97ef81b5b6f1388" title="Returns the ModelState of the named restart file." alt="" coords="222,71,393,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="426,76,394,81,393,75,425,71"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_simple_output.html#a932d4d9417f9f4bf90dea63dde652914" title="Outputs the passed ModelState." alt="" coords="12,5,167,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="206,28,167,28,167,23,206,23"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model.html#a0f5b5a4d2b53a04bbdc7ce3f7d0bef5d" title="The configuration function." alt="" coords="5,78,174,104"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="206,94,174,94,174,88,206,88"/>
+</map>
