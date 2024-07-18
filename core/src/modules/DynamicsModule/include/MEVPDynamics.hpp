@@ -6,8 +6,8 @@
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
-#ifndef DYNAMICS_HPP
-#define DYNAMICS_HPP
+#ifndef MEVPDYNAMICS_HPP
+#define MEVPDYNAMICS_HPP
 
 #include "include/MEVPDynamicsKernel.hpp"
 #include "include/IDynamics.hpp"
@@ -31,4 +31,4 @@ private:
 };
 }
 
-#endif /* DYNAMICS_HPP */
+#endif /* MEVPDYNAMICS_HPP */
