@@ -1,9 +1,10 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 7 Sep 2023
+ * @date 18 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/MEVPDynamics.hpp"
