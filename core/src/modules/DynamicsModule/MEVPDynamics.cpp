@@ -26,8 +26,8 @@ void MEVPDynamics::configure()
 
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 MEVPDynamics::MEVPDynamics()
-        : IDynamics()
-        , kernel(params)
+    : IDynamics()
+    , kernel(params)
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
@@ -50,7 +50,7 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     vice = ms.at(vName);
 
     // Set the data in the kernel arrays.
-    for (const auto &fieldName : namedFields) {
+    for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
     }
 }
@@ -69,8 +69,8 @@ void MEVPDynamics::update(const TimestepTime& tst)
     kernel.setData(uOceanName, uocean.data());
     kernel.setData(vOceanName, vocean.data());
 
-    //kernel.setData(uName, uice);
-    //kernel.setData(vName, vice);
+    // kernel.setData(uName, uice);
+    // kernel.setData(vName, vice);
 
     kernel.update(tst);
 

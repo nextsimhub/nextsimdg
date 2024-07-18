@@ -20,7 +20,7 @@
 extern template class Module::Module<Nextsim::IDamageHealing>;
 
 namespace Nextsim {
-class MEVPDynamics : public IDynamics,public Configured<MEVPDynamics> {
+class MEVPDynamics : public IDynamics, public Configured<MEVPDynamics> {
 public:
     MEVPDynamics();
 
@@ -29,6 +29,7 @@ public:
 
     void setData(const ModelState::DataMap&) override;
     void configure() override;
+
 private:
     // TODO: How to get the template parameters here?
     MEVPDynamicsKernel<6> kernel;
