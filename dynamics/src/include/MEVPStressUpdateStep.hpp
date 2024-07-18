@@ -76,7 +76,6 @@ public:
                 = (vpParams.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
                       .matrix();
 
-
             //   // S = S_old + 1/alpha (S(u)-S_old) = (1-1/alpha) S_old + 1/alpha S(u)
             s11.row(i) *= (1.0 - 1.0 / alpha);
             s12.row(i) *= (1.0 - 1.0 / alpha);

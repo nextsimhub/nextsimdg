@@ -14,8 +14,7 @@
 namespace Nextsim {
 //#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
 
-template <int DG>
-class LocalDGVector : public Eigen::Matrix<double, 1, DG> {
+template <int DG> class LocalDGVector : public Eigen::Matrix<double, 1, DG> {
 public:
     // required by Eigen
     LocalDGVector()
@@ -38,8 +37,7 @@ public:
     }
 };
 
-template <int DG>
-class LocalEdgeVector : public Eigen::Matrix<double, 1, DG> {
+template <int DG> class LocalEdgeVector : public Eigen::Matrix<double, 1, DG> {
 public:
     LocalEdgeVector(void)
         : Eigen::Matrix<double, 1, DG>()
@@ -92,8 +90,7 @@ template <int DG>
 class DGVector : public Eigen::Matrix<double, Eigen::Dynamic, DG,
                      (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor> {
 public:
-    typedef Eigen::Matrix<double, Eigen::Dynamic, DG,
-        (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>
+    typedef Eigen::Matrix<double, Eigen::Dynamic, DG, (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>
         EigenDGVector;
 
     inline int dofs_in_cell() const { return DG; }
@@ -107,7 +104,10 @@ public:
     }
 
     //! resizes the vector and sets it to the mesh size
-    void resize_by_mesh(const ParametricMesh& smesh) { EigenDGVector::resize(smesh.nelements, dofs_in_cell()); }
+    void resize_by_mesh(const ParametricMesh& smesh)
+    {
+        EigenDGVector::resize(smesh.nelements, dofs_in_cell());
+    }
 
     // operations
     void zero() { EigenDGVector::setZero(); }
@@ -130,9 +130,7 @@ public:
 };
 
 //! data set to store the type of the edges
-typedef enum { none,
-    X,
-    Y } EdgeType;
+typedef enum { none, X, Y } EdgeType;
 
 /*!
  * Stores coefficients of DGdegree vector on edges
@@ -145,8 +143,7 @@ typedef enum { none,
  *
  *
  **/
-template <int DG>
-class EdgeVector : public Eigen::Matrix<double, Eigen::Dynamic, DG> {
+template <int DG> class EdgeVector : public Eigen::Matrix<double, Eigen::Dynamic, DG> {
 
 public:
     //! Number of unknowns on each edge
