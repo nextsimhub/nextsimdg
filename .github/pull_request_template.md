@@ -1,5 +1,5 @@
 # Pull Request Title
-## Fixes \#(your issue number)
+## Fixes #(your issue number)
 
 ### Task List
 - [ ] Defined the tests that specify a complete and functioning change (*It may help to create a [design specification & test specification](../../../wiki/Specification-Template)*)
@@ -15,7 +15,8 @@
 
 - *If there are important design decisions, particularly those that leverage functionality outside this change or were caused by existing limitations, they should be noted here.*
 - *If there is a design specification which relates to this PR, please provide a link to it here.*
-- *If the PR relates to an open issue issue, please link the issue to the PR by using the 'closes #issue_number' syntax.*
+- *If the PR relates to an open issue, please link the issue to the PR by using the 'closes #issue_number' syntax.*
+- *If the PR relates to several open issue, make sure to use 'closes #issue_1, closes #issue_2, etc.' syntax.*
 - *If there are any dependencies (third-party or internal downstream) which are added or impacted, please note them here. And if their limitations informed your design, please note how they did so here (particularly if this information was not captured in a design specification).*
 
 Text goes here
