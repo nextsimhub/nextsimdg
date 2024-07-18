@@ -1,9 +1,10 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 7 Sep 2023
+ * @date 18 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/MEVPDynamics.hpp"
@@ -19,10 +20,15 @@ namespace Nextsim {
 // Degrees to radians as a hex float
 static const double radians = 0x1.1df46a2529d39p-6;
 
+void MEVPDynamics::configure()
+{
+    Module::Module<Nextsim::IDamageHealing>::setImplementation("Nextsim::NoHealing");
+}
+
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 MEVPDynamics::MEVPDynamics()
-        : IDynamics()
-        , kernel(params)
+    : IDynamics()
+    , kernel(params)
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
@@ -45,7 +51,7 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     vice = ms.at(vName);
 
     // Set the data in the kernel arrays.
-    for (const auto &fieldName : namedFields) {
+    for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
     }
 }
@@ -64,8 +70,8 @@ void MEVPDynamics::update(const TimestepTime& tst)
     kernel.setData(uOceanName, uocean.data());
     kernel.setData(vOceanName, vocean.data());
 
-    //kernel.setData(uName, uice);
-    //kernel.setData(vName, vice);
+    // kernel.setData(uName, uice);
+    // kernel.setData(vName, vice);
 
     kernel.update(tst);
 

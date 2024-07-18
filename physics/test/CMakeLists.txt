@@ -71,3 +71,7 @@ target_link_libraries(testUniformOcean PRIVATE nextsimlib doctest::doctest)
 add_executable(testBenchmarkBoundaries "BenchmarkBoundaries_test.cpp")
 target_include_directories(testBenchmarkBoundaries PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule" "${ModulesRoot}/OceanBoundaryModule")
 target_link_libraries(testBenchmarkBoundaries PRIVATE nextsimlib doctest::doctest)
+
+add_executable(testDamageHealing "DamageHealing_test.cpp")
+target_include_directories(testDamageHealing PRIVATE "${ModulesRoot}/DamageHealingModule" "${ModulesRoot}/DamageHealingModule")
+target_link_libraries(testDamageHealing PRIVATE nextsimlib doctest::doctest)
