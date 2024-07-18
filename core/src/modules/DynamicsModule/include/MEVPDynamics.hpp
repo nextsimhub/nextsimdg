@@ -9,14 +9,18 @@
 #ifndef MEVPDYNAMICS_HPP
 #define MEVPDYNAMICS_HPP
 
-#include "include/MEVPDynamicsKernel.hpp"
+#include "include/IDamageHealing.hpp"
 #include "include/IDynamics.hpp"
+#include "include/MEVPDynamicsKernel.hpp"
+#include "include/Module.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 
+extern template class Module::Module<Nextsim::IDamageHealing>;
+
 namespace Nextsim {
-class MEVPDynamics : public IDynamics {
+class MEVPDynamics : public IDynamics,public Configured<MEVPDynamics> {
 public:
     MEVPDynamics();
 
@@ -24,6 +28,7 @@ public:
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
+    void configure() override;
 private:
     // TODO: How to get the template parameters here?
     MEVPDynamicsKernel<6> kernel;

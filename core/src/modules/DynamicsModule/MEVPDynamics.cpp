@@ -19,6 +19,11 @@ namespace Nextsim {
 // Degrees to radians as a hex float
 static const double radians = 0x1.1df46a2529d39p-6;
 
+void MEVPDynamics::configure()
+{
+    Module::Module<Nextsim::IDamageHealing>::setImplementation("Nextsim::NoHealing");
+}
+
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 MEVPDynamics::MEVPDynamics()
         : IDynamics()
