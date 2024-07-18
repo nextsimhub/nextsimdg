@@ -193,7 +193,7 @@ void Model::run() { iterator.run(); }
 void Model::writeRestartFile()
 {
     std::string formattedFileName = m_etadata.time().format(finalFileName);
-    pData.writeRestartFile(formattedFileName);
+    pData.writeRestartFile(formattedFileName, m_etadata);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }
