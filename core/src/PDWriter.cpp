@@ -13,14 +13,15 @@
 #include "include/StructureFactory.hpp"
 
 namespace Nextsim {
-void PrognosticData::writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const
+void PrognosticData::writeRestartFile(
+    const std::string& filePath, const ModelMetadata& metadata) const
 {
     Logged::notice(std::string("  Writing state-based restart file: ") + filePath + '\n');
 
     ConfigMap modelConfig = ModelConfig::getConfig();
     modelConfig.merge(getStateRecursive(true).config);
     modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
-    ModelMetadata meta (metadata);
+    ModelMetadata meta(metadata);
     meta.setConfig(modelConfig);
     ModelState state = getState();
     meta.affixCoordinates(state);
