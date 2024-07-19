@@ -73,7 +73,6 @@ const ModelState& ModelMetadata::extractCoordinates(const ModelState& state)
     } else {
         m_coord1 = state.data.at(longitudeName);
         m_coord2 = state.data.at(latitudeName);
-        std::cerr << "extract longitude(76,61)=" << m_coord1(76, 61) << std::endl;
     }
 
     return state;
@@ -90,7 +89,6 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
         state.data[xName] = m_coord1;
         state.data[yName] = m_coord2;
     } else {
-        std::cerr << "affix longitude(76,61)=" << m_coord1(76, 61) << std::endl;
         state.data[longitudeName] = m_coord1;
         state.data[latitudeName] = m_coord2;
     }
