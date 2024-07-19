@@ -19,5 +19,3 @@ template class DynamicsKernel<6, 3>;
 template class DynamicsKernel<6, 8>;
 
 }
-
-

@@ -15,8 +15,7 @@
 
 namespace Nextsim {
 
-template <int DGadvection>
-class BBMDynamicsKernel : public BrittleCGDynamicsKernel<DGadvection> {
+template <int DGadvection> class BBMDynamicsKernel : public BrittleCGDynamicsKernel<DGadvection> {
 public:
     using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
 //using DynamicsKernel<DGadvection, DGstressComp>::momentum;
@@ -36,7 +35,6 @@ public:
         bbmStressStep.setPMap(pmap);
         bbmStressStep.setDamage(damage);
     }
-
 
 private:
     //! Brittle rheology parameters

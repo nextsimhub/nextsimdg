@@ -14,9 +14,8 @@
 
 #include "CGModelArray.hpp"
 #include "DGModelArray.hpp"
-#include "include/gridNames.hpp"
 #include "include/Time.hpp"
-
+#include "include/gridNames.hpp"
 
 #include <string>
 #include <unordered_map>
@@ -104,7 +103,6 @@ public:
     }
 
     void update(const TimestepTime& tst) {
-
 
     };
 

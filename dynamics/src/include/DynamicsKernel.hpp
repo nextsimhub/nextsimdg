@@ -32,12 +32,10 @@
 namespace Nextsim {
 
 // forward define the class holding the potentially non-DG parts
-template <int DGdegree>
-class DynamicsInternals;
+template <int DGdegree> class DynamicsInternals;
 
 template <int DGadvection, int DGstress> class DynamicsKernel {
 public:
-
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
     typedef std::map<typename DataMapping::first_type, typename DataMapping::second_type> DataMap;
 
@@ -49,7 +47,8 @@ public:
         smesh = new ParametricMesh((isSpherical) ? Nextsim::SPHERICAL : Nextsim::CARTESIAN);
 
         smesh->coordinatesFromModelArray(coords);
-        if (isSpherical) smesh->RotatePoleToGreenland();
+        if (isSpherical)
+            smesh->RotatePoleToGreenland();
         smesh->landmaskFromModelArray(mask);
         smesh->dirichletFromMask();
         // TODO: handle periodic and open edges
@@ -71,7 +70,7 @@ public:
         s11.resize_by_mesh(*smesh);
         s12.resize_by_mesh(*smesh);
         s22.resize_by_mesh(*smesh);
-}
+    }
 
     /*!
      * @brief Sets the data from a provided ModelArray.
@@ -148,10 +147,7 @@ public:
         }
     }
 
-    virtual void update(const TimestepTime& tst)
-    {
-        ++stepNumber;
-    }
+    virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
     void advectionAndLimits(const TimestepTime& tst)
     {
@@ -215,7 +211,6 @@ protected:
     virtual void prepareAdvection() = 0;
 
 private:
-
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
     // A map from field name to the type of

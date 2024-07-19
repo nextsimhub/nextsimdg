@@ -3,7 +3,7 @@ add_subdirectory(src)
 #    add_subdirectory(test)
 #endif()
 
-add_subdirectory(tests)
+add_subdirectory(test)
 
 set(NextsimSources
     "${NextsimSources}"

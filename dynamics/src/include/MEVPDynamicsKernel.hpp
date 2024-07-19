@@ -15,8 +15,7 @@
 
 namespace Nextsim {
 
-template <int DGadvection>
-class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
+template <int DGadvection> class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
 public:
     using CGDynamicsKernel<DGadvection>::pmap;
     using CGDynamicsKernel<DGadvection>::initialise;
