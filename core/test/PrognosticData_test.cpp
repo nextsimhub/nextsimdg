@@ -24,7 +24,7 @@ extern template class Module::Module<Nextsim::IOceanBoundary>;
 
 namespace Nextsim {
 
-void PrognosticData::writeRestartFile(const std::string& filePath) const
+void PrognosticData::writeRestartFile(const std::string& filePath, const ModelMetadata&) const
 {
 }
 
