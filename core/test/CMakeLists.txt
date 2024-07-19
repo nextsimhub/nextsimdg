@@ -128,7 +128,8 @@ target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
 
 # PrognosticData (and hopefully that alone) requires code from the physics tree
 add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
-target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule")
+target_compile_definitions(testPrognosticData PRIVATE ISDG=${isDG})
+target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule" "${ModulesRoot}/StructureModule")
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
 
 if(ENABLE_MPI)
