@@ -16,6 +16,10 @@
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
+#ifdef USE_MPI
+#include "include/ParallelNetcdfFile.hpp"
+#endif
+
 #include <ncDim.h>
 #include <ncDouble.h>
 #include <ncFile.h>
