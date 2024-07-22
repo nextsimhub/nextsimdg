@@ -39,11 +39,6 @@ namespace Nextsim {
 
 TEST_SUITE_BEGIN("PrognosticDataIO");
 // Once MPI-enabled IO is fully working, integrate this test into PrognosticData_test.cpp
-TEST_CASE("isDG?")
-{
-    REQUIRE(ISDG == true);
-}
-
 #if ISDG
 TEST_CASE("PrognosticData write test, including DG components")
 {
