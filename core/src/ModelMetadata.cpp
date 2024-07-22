@@ -11,7 +11,7 @@
 #include "include/gridNames.hpp"
 
 #ifdef USE_MPI
-#include <ncFile.hpp>
+#include <ncFile.h>
 #endif
 
 namespace Nextsim {
