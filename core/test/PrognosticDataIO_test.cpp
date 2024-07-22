@@ -27,11 +27,21 @@ extern template class Module::Module<Nextsim::IOceanBoundary>;
 
 namespace Nextsim {
 
+// The CMake files uses TRUE and FALSE. Reduce these (and the CMake defaults ON & OFF) to C++ standard values
+#ifndef TRUE
+#define TRUE true
+#endif
+#ifndef FALSE
+#define FALSE false
+#endif
+#define ON true
+#define OFF false
+
 TEST_SUITE_BEGIN("PrognosticDataIO");
 // Once MPI-enabled IO is fully working, integrate this test into PrognosticData_test.cpp
 TEST_CASE("isDG?")
 {
-    REQUIRE(ISDG != 0);
+    REQUIRE(ISDG == true);
 }
 
 #if ISDG
