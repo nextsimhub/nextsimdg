@@ -11,7 +11,10 @@
 #include "include/gridNames.hpp"
 
 #ifdef USE_MPI
+#include <ncDim.h>
 #include <ncFile.h>
+#include <ncGroup.h>
+#include <ncVar.h>
 #endif
 
 namespace Nextsim {
