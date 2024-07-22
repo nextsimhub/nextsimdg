@@ -29,7 +29,7 @@ namespace Nextsim {
 
 TEST_SUITE_BEGIN("PrognosticDataIO");
 // Once MPI-enabled IO is fully working, integrate this test into PrognosticData_test.cpp
-#if isDG
+#if ISDG
 TEST_CASE("PrognosticData write test, including DG components")
 {
     std::string filename = "dg.nc";
@@ -138,7 +138,7 @@ TEST_CASE("PrognosticData write test, including DG components")
 
 }
 
-#endif // isDG
+#endif // ISDG
 TEST_SUITE_END();
 
 } /* namespace Nextsim */
