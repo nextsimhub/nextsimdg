@@ -110,22 +110,22 @@ TEST_CASE("Test periodic output")
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     tryConfigure(ido);
 
-    auto dim_x = ModelArray::Dimension::X;
-    auto start_x = ModelArray::definedDimensions.at(dim_x).start;
-    auto local_nx = ModelArray::definedDimensions.at(dim_x).localLength;
+    auto dimX = ModelArray::Dimension::X;
+    auto startX = ModelArray::definedDimensions.at(dimX).start;
+    auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
 
     for (size_t k = 0; k < nz; ++k) {
         for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < local_nx; ++i) {
-                tice(i, j, k) = 0.1 * k + 0.4 + 0.01 * (j * nx + (i + start_x));
+            for (size_t i = 0; i < localNX; ++i) {
+                tice(i, j, k) = 0.1 * k + 0.4 + 0.01 * (j * nx + (i + startX));
             }
         }
     }
     for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < local_nx; ++i) {
-            hice(i, j) = 0 + 0.01 * (j * nx + (i + start_x));
-            cice(i, j) = 0.1 + 0.01 * (j * nx + (i + start_x));
-            hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + start_x));
+        for (size_t i = 0; i < localNX; ++i) {
+            hice(i, j) = 0 + 0.01 * (j * nx + (i + startX));
+            cice(i, j) = 0.1 + 0.01 * (j * nx + (i + startX));
+            hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + startX));
         }
     }
     std::vector<std::string> diagFiles;

@@ -131,25 +131,25 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             } else {
 #ifdef USE_MPI
                 auto dimName = dim.getName();
-                size_t local_length = 0;
+                size_t localLength = 0;
                 size_t start = 0;
                 if (dimType == ModelArray::Dimension::X) {
-                    local_length = metadata.localExtentX;
+                    localLength = metadata.localExtentX;
                     start = metadata.localCornerX;
                 } else if (dimType == ModelArray::Dimension::Y) {
-                    local_length = metadata.localExtentY;
+                    localLength = metadata.localExtentY;
                     start = metadata.localCornerY;
                 } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                    local_length = metadata.localExtentX + 1;
+                    localLength = metadata.localExtentX + 1;
                     start = metadata.localCornerX;
                 } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                    local_length = metadata.localExtentY + 1;
+                    localLength = metadata.localExtentY + 1;
                     start = metadata.localCornerY;
                 } else {
-                    local_length = dim.getSize();
+                    localLength = dim.getSize();
                     start = 0;
                 }
-                ModelArray::setDimension(dimType, dim.getSize(), local_length, start);
+                ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
 #else
                 ModelArray::setDimension(dimType, dim.getSize());
 #endif
