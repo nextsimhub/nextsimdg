@@ -112,7 +112,7 @@ TEST_CASE("Test periodic output")
 
     auto dim_x = ModelArray::Dimension::X;
     auto start_x = ModelArray::definedDimensions.at(dim_x).start;
-    auto local_nx = ModelArray::definedDimensions.at(dim_x).local_length;
+    auto local_nx = ModelArray::definedDimensions.at(dim_x).localLength;
 
     for (size_t k = 0; k < nz; ++k) {
         for (size_t j = 0; j < ny; ++j) {
