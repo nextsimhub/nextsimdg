@@ -203,15 +203,13 @@ void ModelArray::setNComponents(std::map<Type, size_t> cMap)
 #ifdef USE_MPI
 void ModelArray::setDimension(
     Dimension dim, size_t global_length, size_t local_length, size_t start)
-#else
-void ModelArray::setDimension(Dimension dim, size_t global_length)
-#endif
 {
-#ifdef USE_MPI
     definedDimensions.at(dim).globalLength = global_length;
     definedDimensions.at(dim).localLength = local_length;
     definedDimensions.at(dim).start = start;
 #else
+void ModelArray::setDimension(Dimension dim, size_t global_length)
+{
     // if MPI is not used then set the local_length to be the same as the global
     definedDimensions.at(dim).global_length = global_length;
     definedDimensions.at(dim).local_length = global_length;
