@@ -105,7 +105,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xios_handler.close_context_definition();
 
     // --- Tests for writing to file
-    Module::setImplementation<IStructure>("ParametricGrid");
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ModelArray::setDimension(ModelArray::Dimension::X, n1);
     ModelArray::setDimension(ModelArray::Dimension::Y, n2);
     ModelArray::setDimension(ModelArray::Dimension::Z, n3);
