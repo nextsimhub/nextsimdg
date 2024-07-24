@@ -16,7 +16,7 @@
 #include "include/gridNames.hpp"
 
 #ifndef DGCOMP
-#define DGCOMP 3 // define to make red lines go away in the IDE
+#define DGCOMP 3 // Define to prevent errors from static analysis tools
 #error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
 #endif
 
