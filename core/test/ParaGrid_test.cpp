@@ -59,13 +59,13 @@ void initialize_test_data(HField& hfield, DGField& dgfield, HField& mask){
     hfield.resize();
     dgfield.resize();
     mask.resize();
-    auto dim_x = ModelArray::Dimension::X;
-    auto start_x = ModelArray::definedDimensions.at(dim_x).start;
-    auto local_nx = ModelArray::definedDimensions.at(dim_x).localLength;
+    auto dimX = ModelArray::Dimension::X;
+    auto startX = ModelArray::definedDimensions.at(dimX).start;
+    auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
     for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < local_nx; ++i) {
-            hfield(i, j) = j * yFactor + (i+start_x) * xFactor;
-            mask(i, j) = ((i + start_x) - nx / 2) * ((i + start_x) - nx / 2) + (j - ny / 2) * (j - ny / 2) > (nx * ny) ? 0 : 1;
+        for (size_t i = 0; i < localNX; ++i) {
+            hfield(i, j) = j * yFactor + (i+startX) * xFactor;
+            mask(i, j) = ((i + startX) - nx / 2) * ((i + startX) - nx / 2) + (j - ny / 2) * (j - ny / 2) > (nx * ny) ? 0 : 1;
             for (size_t d = 0; d < DG; ++d) {
                 dgfield.components({ i, j })[d] = hfield(i, j) + d;
             }
@@ -74,12 +74,12 @@ void initialize_test_data(HField& hfield, DGField& dgfield, HField& mask){
 };
 
 void initialize_test_coordinates(VertexField& coordinates){
-    auto dim_x_vertex = ModelArray::Dimension::XVERTEX;
-    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).localLength;
-    auto start_x_vertex = ModelArray::definedDimensions.at(dim_x_vertex).start;
-    for (size_t i = 0; i < local_nx_vertex; ++i) {
+    auto dimXVertex = ModelArray::Dimension::XVERTEX;
+    auto localNXVertex = ModelArray::definedDimensions.at(dimXVertex).localLength;
+    auto startXVertex = ModelArray::definedDimensions.at(dimXVertex).start;
+    for (size_t i = 0; i < localNXVertex; ++i) {
         for (size_t j = 0; j < ny + 1; ++j) {
-            double x = (i + start_x_vertex) - 0.5 - float(nx) / 2;
+            double x = (i + startXVertex) - 0.5 - float(nx) / 2;
             double y = j - 0.5 - float(ny) / 2;
             coordinates.components({ i, j })[0] = x * scale;
             coordinates.components({ i, j })[1] = y * scale;
@@ -156,12 +156,12 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
     // MPI domain is only split in x-direction for this test
     // the following will be set correctly with MPI ON and OFF
-    auto dim_x = ModelArray::Dimension::X;
-    auto start_x = ModelArray::definedDimensions.at(dim_x).start;
-    auto local_nx = ModelArray::definedDimensions.at(dim_x).localLength;
-    auto dim_x_vertex = ModelArray::Dimension::XVERTEX;
-    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).localLength;
-    auto start_x_vertex = ModelArray::definedDimensions.at(dim_x_vertex).start;
+    auto dimX = ModelArray::Dimension::X;
+    auto startX = ModelArray::definedDimensions.at(dimX).start;
+    auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
+    auto dimXVertex = ModelArray::Dimension::XVERTEX;
+    auto localNXVertex = ModelArray::definedDimensions.at(dimXVertex).localLength;
+    auto startXVertex = ModelArray::definedDimensions.at(dimXVertex).start;
 
     HField x;
     HField y;
@@ -170,8 +170,8 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // Element coordinates
     for (size_t j = 0; j < ny; ++j) {
         double yy = scale * (j - float(ny) / 2);
-        for (size_t i = 0; i < local_nx; ++i) {
-            double xx = scale * ((i + start_x) - float(nx) / 2);
+        for (size_t i = 0; i < localNX; ++i) {
+            double xx = scale * ((i + startX) - float(nx) / 2);
             x(i, j) = xx;
             y(i, j) = yy;
         }
@@ -211,9 +211,9 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     metadata.setMpiMetadata(test_comm);
     metadata.globalExtentX = nx;
     metadata.globalExtentY = ny;
-    metadata.localCornerX = start_x;
+    metadata.localCornerX = startX;
     metadata.localCornerY = 0;
-    metadata.localExtentX = local_nx;
+    metadata.localExtentX = localNX;
     metadata.localExtentY = ny;
 #endif
     grid.dumpModelState(state, metadata, filename, true);
@@ -250,7 +250,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ModelState ms = gridIn.getModelState(filename);
 #endif
 
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == local_nx);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == localNX);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
 
@@ -260,13 +260,13 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(ModelArray::nDimensions(ModelArray::Type::Z) == 3);
     REQUIRE(ticeRef.getType() == ModelArray::Type::Z);
     REQUIRE(ticeRef.nDimensions() == 3);
-    REQUIRE(ticeRef.dimensions()[0] == local_nx);
+    REQUIRE(ticeRef.dimensions()[0] == localNX);
     REQUIRE(ticeRef.dimensions()[1] == ny);
     REQUIRE(ticeRef.dimensions()[2] == NZLevels::get());
 
     ModelArray& hiceRef = ms.data.at(hiceName);
     REQUIRE(hiceRef.nDimensions() == 2);
-    REQUIRE(hiceRef.dimensions()[0] == local_nx);
+    REQUIRE(hiceRef.dimensions()[0] == localNX);
     REQUIRE(hiceRef.dimensions()[1] == ny);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(hiceRef.nComponents() == DG);
@@ -277,7 +277,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ModelArray& coordRef = ms.data.at(coordsName);
     REQUIRE(coordRef.nDimensions() == 2);
     REQUIRE(coordRef.nComponents() == 2);
-    REQUIRE(coordRef.dimensions()[0] == local_nx_vertex);
+    REQUIRE(coordRef.dimensions()[0] == localNXVertex);
     REQUIRE(coordRef.dimensions()[1] == ny + 1);
     REQUIRE(coordRef.components({ 3, 8 })[0] - coordRef.components({ 2, 8 })[0] == scale);
     REQUIRE(coordRef.components({ 3, 8 })[1] - coordRef.components({ 3, 7 })[1] == scale);
@@ -341,12 +341,12 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
     // MPI domain is only split in x-direction for this test
     // the following will be set correctly with MPI ON and OFF
-    auto dim_x = ModelArray::Dimension::X;
-    auto start_x = ModelArray::definedDimensions.at(dim_x).start;
-    auto local_nx = ModelArray::definedDimensions.at(dim_x).localLength;
-    auto dim_x_vertex = ModelArray::Dimension::XVERTEX;
-    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).localLength;
-    auto start_x_vertex = ModelArray::definedDimensions.at(dim_x_vertex).start;
+    auto dimX = ModelArray::Dimension::X;
+    auto startX = ModelArray::definedDimensions.at(dimX).start;
+    auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
+    auto dimXVertex = ModelArray::Dimension::XVERTEX;
+    auto localNXVertex = ModelArray::definedDimensions.at(dimXVertex).localLength;
+    auto startXVertex = ModelArray::definedDimensions.at(dimXVertex).start;
 
     HField fractional(ModelArray::Type::H);
     DGField fractionalDG(ModelArray::Type::DG);
@@ -368,8 +368,8 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     // Element coordinates
     for (size_t j = 0; j < ny; ++j) {
         double yy = scale * (j - float(ny) / 2);
-        for (size_t i = 0; i < local_nx; ++i) {
-            double xx = scale * ((i + start_x) - float(nx) / 2);
+        for (size_t i = 0; i < localNX; ++i) {
+            double xx = scale * ((i + startX) - float(nx) / 2);
             x(i, j) = xx;
             y(i, j) = yy;
         }
@@ -407,9 +407,9 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     metadata.setMpiMetadata(test_comm);
     metadata.globalExtentX = nx;
     metadata.globalExtentY = ny;
-    metadata.localCornerX = start_x;
+    metadata.localCornerX = startX;
     metadata.localCornerY = 0;
-    metadata.localExtentX = local_nx;
+    metadata.localExtentX = localNX;
     metadata.localExtentY = ny;
 #endif
 
@@ -604,8 +604,8 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     ModelState ms = gridIn.getModelState(inputFilename);
 #endif
 
-    auto local_nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == local_nx);
+    auto localNX = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == localNX);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
 }

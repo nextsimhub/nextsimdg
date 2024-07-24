@@ -276,9 +276,9 @@ public:
      * @param length The new length of the dimension.
      */
 #ifdef USE_MPI
-    static void setDimension(Dimension dim, size_t global_length, size_t local_length, size_t size);
+    static void setDimension(Dimension dim, size_t globalLength, size_t localLength, size_t size);
 #else
-    static void setDimension(Dimension dim, size_t global_length);
+    static void setDimension(Dimension dim, size_t globalLength);
 #endif
 
     //! Conditionally updates the size of the object data buffer to match the
