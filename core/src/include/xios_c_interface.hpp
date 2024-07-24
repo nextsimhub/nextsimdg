@@ -1,8 +1,8 @@
 /*!
  * @file    xios_c_interface.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    21 June 2024
- * @brief   C interface for xios library
+ * @date    24 July 2024
+ * @brief   C interface for XIOS library
  * @details
  * This interface is based on an earlier version provided by Laurent as part of
  * the https://github.com/nextsimhub/xios_cpp_toy repo. This C interface is
