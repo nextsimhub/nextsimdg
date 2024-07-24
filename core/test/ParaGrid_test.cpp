@@ -55,7 +55,7 @@ namespace Nextsim {
 
 size_t c = 0;
 
-void initialize_test_data(HField& hfield, DGField& dgfield, HField& mask){
+void initializeTestData(HField& hfield, DGField& dgfield, HField& mask){
     hfield.resize();
     dgfield.resize();
     mask.resize();
@@ -133,7 +133,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     HField fractional(ModelArray::Type::H);
     DGField fractionalDG(ModelArray::Type::DG);
     HField mask(ModelArray::Type::H);
-    initialize_test_data(fractional, fractionalDG, mask);
+    initializeTestData(fractional, fractionalDG, mask);
 
     DGField hice = fractionalDG + 10;
     DGField cice = fractionalDG + 20;
@@ -351,7 +351,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     HField fractional(ModelArray::Type::H);
     DGField fractionalDG(ModelArray::Type::DG);
     HField mask(ModelArray::Type::H);
-    initialize_test_data(fractional, fractionalDG, mask);
+    initializeTestData(fractional, fractionalDG, mask);
 
     REQUIRE(fractional.nDimensions() == 2);
 
