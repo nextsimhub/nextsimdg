@@ -61,7 +61,7 @@ void initialize_test_data(HField& hfield, DGField& dgfield, HField& mask){
     mask.resize();
     auto dim_x = ModelArray::Dimension::X;
     auto start_x = ModelArray::definedDimensions.at(dim_x).start;
-    auto local_nx = ModelArray::definedDimensions.at(dim_x).local_length;
+    auto local_nx = ModelArray::definedDimensions.at(dim_x).localLength;
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < local_nx; ++i) {
             hfield(i, j) = j * yFactor + (i+start_x) * xFactor;
@@ -75,7 +75,7 @@ void initialize_test_data(HField& hfield, DGField& dgfield, HField& mask){
 
 void initialize_test_coordinates(VertexField& coordinates){
     auto dim_x_vertex = ModelArray::Dimension::XVERTEX;
-    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).local_length;
+    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).localLength;
     auto start_x_vertex = ModelArray::definedDimensions.at(dim_x_vertex).start;
     for (size_t i = 0; i < local_nx_vertex; ++i) {
         for (size_t j = 0; j < ny + 1; ++j) {
@@ -158,9 +158,9 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // the following will be set correctly with MPI ON and OFF
     auto dim_x = ModelArray::Dimension::X;
     auto start_x = ModelArray::definedDimensions.at(dim_x).start;
-    auto local_nx = ModelArray::definedDimensions.at(dim_x).local_length;
+    auto local_nx = ModelArray::definedDimensions.at(dim_x).localLength;
     auto dim_x_vertex = ModelArray::Dimension::XVERTEX;
-    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).local_length;
+    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).localLength;
     auto start_x_vertex = ModelArray::definedDimensions.at(dim_x_vertex).start;
 
     HField x;
@@ -343,9 +343,9 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     // the following will be set correctly with MPI ON and OFF
     auto dim_x = ModelArray::Dimension::X;
     auto start_x = ModelArray::definedDimensions.at(dim_x).start;
-    auto local_nx = ModelArray::definedDimensions.at(dim_x).local_length;
+    auto local_nx = ModelArray::definedDimensions.at(dim_x).localLength;
     auto dim_x_vertex = ModelArray::Dimension::XVERTEX;
-    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).local_length;
+    auto local_nx_vertex = ModelArray::definedDimensions.at(dim_x_vertex).localLength;
     auto start_x_vertex = ModelArray::definedDimensions.at(dim_x_vertex).start;
 
     HField fractional(ModelArray::Type::H);
@@ -604,7 +604,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     ModelState ms = gridIn.getModelState(inputFilename);
 #endif
 
-    auto local_nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).local_length;
+    auto local_nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == local_nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());

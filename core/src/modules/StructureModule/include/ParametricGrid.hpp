@@ -62,7 +62,7 @@ public:
 
     int nIceLayers() const override
     {
-        return ModelArray::definedDimensions.at(ModelArray::Dimension::Z).local_length;
+        return ModelArray::definedDimensions.at(ModelArray::Dimension::Z).localLength;
     };
 
     class IParaGridIO {

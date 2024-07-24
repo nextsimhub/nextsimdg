@@ -187,7 +187,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)) {
                 auto dim = ModelArray::definedDimensions.at(dt);
                 start.push_back(dim.start);
-                count.push_back(dim.local_length);
+                count.push_back(dim.localLength);
             }
             // dims are looped in [dg], x, y, [z] order so start and count
             // order must be reveresed to match order netcdf expects
@@ -242,7 +242,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
             = ModelArray::typeDimensions.at(ModelArray::Type::H);
         for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
             indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(*riter).local_length);
+            extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
         }
 
         for (const std::string& varName : forcings) {
@@ -282,7 +282,7 @@ void ParaGridIO::dumpModelState(
     for (auto entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.global_length;
+                                               : dimSz = entry.second.globalLength;
         ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
         // TODO Do I need to add data, even if it is just integers 0...n-1?
     }
@@ -323,7 +323,7 @@ void ParaGridIO::dumpModelState(
             for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)) {
                 auto dim = entry.second.definedDimensions.at(dt);
                 start.push_back(dim.start);
-                count.push_back(dim.local_length);
+                count.push_back(dim.localLength);
             }
             // dims are looped in [dg], x, y, [z] order so start and count
             // order must be reveresed to match order netcdf expects
@@ -381,7 +381,7 @@ void ParaGridIO::writeDiagnosticTime(
     for (auto entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.global_length;
+                                               : dimSz = entry.second.globalLength;
         ncFromMAMap[dim] = (isNew) ? dataGroup.addDim(entry.second.name, dimSz)
                                    : dataGroup.getDim(entry.second.name);
     }
@@ -411,7 +411,7 @@ void ParaGridIO::writeDiagnosticTime(
             auto dim = ModelArray::definedDimensions.at(dt);
             ncDims.push_back(ncFromMAMap.at(dt));
             start.push_back(dim.start);
-            count.push_back(dim.local_length);
+            count.push_back(dim.localLength);
         }
 
         // Deal with VERTEX in each case
@@ -445,9 +445,9 @@ void ParaGridIO::writeDiagnosticTime(
         maskIndexes = { 0, 0 };
         maskExtents = { ModelArray::definedDimensions
                             .at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
-                            .local_length,
+                            .localLength,
             ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
-                .local_length };
+                .localLength };
     }
 
     // Put the time axis variable

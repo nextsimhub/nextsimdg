@@ -57,8 +57,8 @@ public:
     struct DimensionSpec {
         std::string name;
         std::string altName;
-        size_t global_length;
-        size_t local_length;
+        size_t globalLength;
+        size_t localLength;
         size_t start;
     };
     typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
@@ -235,7 +235,7 @@ public:
     //! Returns the size of the data array of this object.
     size_t trueSize() const { return m_data.rows(); }
     //! Returns the local size of a dimension
-    static size_t size(Dimension dim) { return definedDimensions.at(dim).local_length; }
+    static size_t size(Dimension dim) { return definedDimensions.at(dim).localLength; }
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
@@ -288,7 +288,7 @@ public:
         if (size() != trueSize()) {
             if (hasDoF(type)) {
                 m_data.resize(
-                    m_sz.at(type), definedDimensions.at(componentMap.at(type)).local_length);
+                    m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
             } else {
                 m_data.resize(m_sz.at(type), Eigen::NoChange);
             }
@@ -451,8 +451,8 @@ public:
     static void setNComponents(Type type, size_t nComp)
     {
         if (hasDoF(type)) {
-            definedDimensions.at(componentMap.at(type)).local_length = nComp;
-            definedDimensions.at(componentMap.at(type)).global_length = nComp;
+            definedDimensions.at(componentMap.at(type)).localLength = nComp;
+            definedDimensions.at(componentMap.at(type)).globalLength = nComp;
         }
     }
 
@@ -545,7 +545,7 @@ public:
     //! specified type of ModelArray.
     inline static size_t nComponents(const Type type)
     {
-        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).local_length : 1;
+        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).localLength : 1;
     }
     //! Returns whether this type of ModelArray has additional discontinuous
     //! Galerkin components.
