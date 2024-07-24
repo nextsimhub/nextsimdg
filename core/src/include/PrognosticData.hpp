@@ -14,6 +14,7 @@
 #include "include/IDynamics.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/IceGrowth.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
@@ -71,7 +72,7 @@ public:
      * Writes a restart file to the specified file path.
      * @param filePath the file path to write the restart file to.
      */
-    void writeRestartFile(const std::string& filePath) const;
+    void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
 
 private:
     HField m_thick;

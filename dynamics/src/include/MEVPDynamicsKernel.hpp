@@ -33,7 +33,7 @@ public:
 private:
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
-    MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> MEVPStressStep;
+    MEVPStressUpdateStep<DGadvection, DGstressComp, CGdegree> MEVPStressStep;
 };
 
 } /* namespace Nextsim */

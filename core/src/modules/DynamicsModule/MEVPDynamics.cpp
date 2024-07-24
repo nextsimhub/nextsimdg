@@ -82,4 +82,19 @@ void MEVPDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 }
 
+ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
+{
+    // Base class state
+    ModelState state(IDynamics::getStateRecursive(os));
+
+    if (os.allComponents())
+    {
+        state.merge({
+            {hiceName, kernel.getDG0Data(hiceName)},
+            {ciceName, kernel.getDG0Data(ciceName)},
+        });
+    }
+    return state;
+}
+
 }

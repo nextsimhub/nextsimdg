@@ -18,6 +18,11 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
 
+#ifndef DGCOMP
+#define DGCOMP 3 // Define to prevent errors from static analysis tools
+#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
+#endif
+
 extern template class Module::Module<Nextsim::IDamageHealing>;
 
 namespace Nextsim {
@@ -29,11 +34,11 @@ public:
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
     void configure() override;
 
 private:
-    // TODO: How to get the template parameters here?
-    MEVPDynamicsKernel<6> kernel;
+    MEVPDynamicsKernel<DGCOMP> kernel;
     VPParameters params;
 };
 }

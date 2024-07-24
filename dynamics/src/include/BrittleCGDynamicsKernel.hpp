@@ -22,21 +22,21 @@ static const double radians = 0x1.1df46a2529d39p-6;
 // The brittle momentum solver for CG velocity fields
 template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
-    using DynamicsKernel<DGadvection, DGstressDegree>::s11;
-    using DynamicsKernel<DGadvection, DGstressDegree>::s12;
-    using DynamicsKernel<DGadvection, DGstressDegree>::s22;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e11;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e12;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e22;
-    using DynamicsKernel<DGadvection, DGstressDegree>::hice;
-    using DynamicsKernel<DGadvection, DGstressDegree>::cice;
-    using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
-    using DynamicsKernel<DGadvection, DGstressDegree>::deltaT;
-    using DynamicsKernel<DGadvection, DGstressDegree>::stressDivergence;
-    using DynamicsKernel<DGadvection, DGstressDegree>::applyBoundaries;
-    using DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits;
-    using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
+    using DynamicsKernel<DGadvection, DGstressComp>::s11;
+    using DynamicsKernel<DGadvection, DGstressComp>::s12;
+    using DynamicsKernel<DGadvection, DGstressComp>::s22;
+    using DynamicsKernel<DGadvection, DGstressComp>::e11;
+    using DynamicsKernel<DGadvection, DGstressComp>::e12;
+    using DynamicsKernel<DGadvection, DGstressComp>::e22;
+    using DynamicsKernel<DGadvection, DGstressComp>::hice;
+    using DynamicsKernel<DGadvection, DGstressComp>::cice;
+    using DynamicsKernel<DGadvection, DGstressComp>::smesh;
+    using DynamicsKernel<DGadvection, DGstressComp>::deltaT;
+    using DynamicsKernel<DGadvection, DGstressComp>::stressDivergence;
+    using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
+    using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -56,7 +56,7 @@ protected:
     double cosOceanAngle, sinOceanAngle;
 
 public:
-    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn,
+    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
         const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>()
         , stressStep(stressStepIn)
@@ -71,7 +71,7 @@ public:
         CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
         //! Initialize stress transport
-        stresstransport = new Nextsim::DGTransport<DGstressDegree>(*smesh);
+        stresstransport = new Nextsim::DGTransport<DGstressComp>(*smesh);
         stresstransport->settimesteppingscheme("rk2");
 
         damage.resize_by_mesh(*smesh);
@@ -114,7 +114,7 @@ public:
 
             projectVelocityToStrain();
 
-            std::array<std::reference_wrapper<DGVector<DGstressDegree>>, N_TENSOR_ELEMENTS> stress
+            std::array<std::reference_wrapper<DGVector<DGstressComp>>, N_TENSOR_ELEMENTS> stress
                 = { s11, s12, s22 }; // Call the step function on the StressUpdateStep class
             // Call the step function on the StressUpdateStep class
             stressStep.stressUpdateHighOrder(
@@ -129,7 +129,7 @@ public:
             // Land mask
         }
         // Finally, do the base class update
-        DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
+        DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }
 
     void setData(const std::string& name, const ModelArray& data) override
@@ -141,8 +141,9 @@ public:
         }
     }
 
-    ModelArray getDG0Data(const std::string& name) override
+    ModelArray getDG0Data(const std::string& name) const override
     {
+
         if (name == damageName) {
             ModelArray data(ModelArray::Type::H);
             return DGModelArray::dg2ma(damage, data);
@@ -151,14 +152,24 @@ public:
         }
     }
 
+    ModelArray getDGData(const std::string& name) const override
+    {
+        if (name == damageName) {
+            ModelArray data(ModelArray::Type::DG);
+            return DGModelArray::dg2ma(damage, data);
+        } else {
+            return CGDynamicsKernel<DGadvection>::getDGData(name);
+        }
+    }
+
 protected:
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
 
-    StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
+    StressUpdateStep<DGadvection, DGstressComp>& stressStep;
     const MEBParameters& params;
 
-    Nextsim::DGTransport<DGstressDegree>* stresstransport;
+    Nextsim::DGTransport<DGstressComp>* stresstransport;
 
     DGVector<DGadvection> damage;
 

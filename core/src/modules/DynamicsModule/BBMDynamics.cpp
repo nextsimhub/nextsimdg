@@ -96,4 +96,35 @@ void BBMDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 }
 
+// All data for prognostic output
+ModelState BBMDynamics::getState() const
+{
+    // Get the velocities from IDynamics
+    ModelState state(IDynamics::getState());
+
+    // Kernel prognostic fields
+    state.merge({
+        { hiceName, kernel.getDGData(hiceName) },
+        { ciceName, kernel.getDGData(ciceName) },
+        { damageName, kernel.getDGData(damageName) },
+    });
+
+    return state;
+}
+
+ModelState BBMDynamics::getStateRecursive(const OutputSpec& os) const
+{
+    // Base class state
+    ModelState state(IDynamics::getStateRecursive(os));
+
+    if (os.allComponents()) {
+        state.merge({
+            { hiceName, kernel.getDGData(hiceName) },
+            { ciceName, kernel.getDGData(ciceName) },
+            { damageName, kernel.getDGData(damageName) },
+        });
+    }
+    return state;
+}
+
 } /* namespace Nextsim */

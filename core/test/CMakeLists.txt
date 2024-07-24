@@ -131,6 +131,18 @@ add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPD
 target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule")
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
 
+# PrognosticDataIO, which cannot currently be tested with MPI.
+# TODO: itegrate with the above test.
+if(ENABLE_MPI)
+  message(WARNING "testPrognosticDataIO has been temporarily disabled when running with MPI enabled")
+else()
+  add_executable(testPrognosticDataIO "PrognosticDataIO_test.cpp" "DynamicsModuleForPDtest.cpp")
+  target_compile_definitions(testPrognosticDataIO PRIVATE ISDG=${isDG})
+  target_include_directories(testPrognosticDataIO PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule" "${ModulesRoot}/StructureModule")
+  target_link_libraries(testPrognosticDataIO PRIVATE nextsimlib doctest::doctest)
+endif()
+
+
 if(ENABLE_MPI)
   message(WARNING "testConfigOutput has been temporarily disabled when running with MPI enabled")
 else()

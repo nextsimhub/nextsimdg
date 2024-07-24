@@ -42,11 +42,12 @@ void DevStep::iterate(const TimestepTime& tst)
     mData->incrementTime(tst.step);
     if ((m_restartPeriod.seconds() > 0) && (mData->time() >= lastOutput + m_restartPeriod)) {
         std::string currentFileName = mData->time().format(m_restartFileName);
-        pData->writeRestartFile(currentFileName);
+        pData->writeRestartFile(currentFileName, *mData);
         lastOutput = mData->time();
     }
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    ModelState overallState = pData->getStateRecursive(true);
+    OutputSpec os; // The default OutputSpec is all fields, but only cell average values
+    ModelState overallState = pData->getStateRecursive(os);
     overallState.merge(ConfiguredModule::getAllModuleConfigurations());
     Module::getImplementation<IDiagnosticOutput>().outputState(*mData);
 }
