@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 22 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -38,7 +38,7 @@ namespace Nextsim {
 #define OFF false
 
 TEST_SUITE_BEGIN("PrognosticDataIO");
-// Once MPI-enabled IO is fully working, integrate this test into PrognosticData_test.cpp
+// TODO Once MPI-enabled IO is fully working, integrate this test into PrognosticData_test.cpp
 #if ISDG
 TEST_CASE("PrognosticData write test, including DG components")
 {
