@@ -73,6 +73,7 @@ void BBMDynamics::update(const TimestepTime& tst)
     // set the updated ice thickness, concentration and damage
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
+    kernel.setData(hsnowName, hsnow.data());
     kernel.setData(damageName, damage);
 
     // set the forcing velocities
@@ -90,6 +91,7 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
+    hsnow.data() = kernel.getDG0Data(hsnowName);
     damage = kernel.getDG0Data(damageName);
 
     uice = kernel.getDG0Data(uName);
@@ -106,6 +108,7 @@ ModelState BBMDynamics::getState() const
     state.merge({
         { hiceName, kernel.getDGData(hiceName) },
         { ciceName, kernel.getDGData(ciceName) },
+        { hsnowName, kernel.getDGData(hsnowName) },
         { damageName, kernel.getDGData(damageName) },
     });
 
@@ -121,6 +124,7 @@ ModelState BBMDynamics::getStateRecursive(const OutputSpec& os) const
         state.merge({
             { hiceName, kernel.getDGData(hiceName) },
             { ciceName, kernel.getDGData(ciceName) },
+            { hsnowName, kernel.getDGData(hsnowName) },
             { damageName, kernel.getDGData(damageName) },
         });
     }
