@@ -82,16 +82,30 @@ void MEVPDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 }
 
+// All data for prognostic output
+ModelState MEVPDynamics::getState() const
+{
+    // Get the velocities from IDynamics
+    ModelState state(IDynamics::getState());
+
+    // Kernel prognostic fields
+    state.merge({
+        { hiceName, kernel.getDGData(hiceName) },
+        { ciceName, kernel.getDGData(ciceName) },
+    });
+
+    return state;
+}
+
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
 {
     // Base class state
     ModelState state(IDynamics::getStateRecursive(os));
 
-    if (os.allComponents())
-    {
+    if (os.allComponents()) {
         state.merge({
-            {hiceName, kernel.getDG0Data(hiceName)},
-            {ciceName, kernel.getDG0Data(ciceName)},
+            { hiceName, kernel.getDGData(hiceName) },
+            { ciceName, kernel.getDGData(ciceName) },
         });
     }
     return state;
