@@ -165,12 +165,24 @@ You might need to tell cmake which compiler to use, e.g.
 Using Dockerfiles for Development or Production Runs
 ----------------------------------------------------
 
-In the ``Dockerfiles`` directory we provide two ``Dockerfile``'s are provided.
+In the ``Dockerfiles`` directory, three ``Dockerfile``'s are provided.
 
+- ``Dockerfile.base`` - This is the base ``Dockerfile`` used to build other Docker images. It is not intended to be run by users.
 - ``Dockerfile.devenv`` - This is the ``Dockerfile`` used to build the development image (``ghcr.io/nextsimhub/nextsimdg-dev-env``), that is
-  used in the GitHub CI.
-- ``Dockerfile.production`` - This ``Dockerfile`` is based off of the development image and it
-  additionally installs ``nextsim`` so that you can run on any machine with ``docker`` installed.
+  used in the GitHub CI. Based off ``Dockerfile.base``.
+- ``Dockerfile.production`` - This ``Dockerfile`` is based off of the development image and it additionally installs ``nextsim`` (albeit not
+  configured with XIOS or MPI) so that you can run on any machine with ``docker`` installed.
+
+Base Dockerfile
+^^^^^^^^^^^^^^^
+
+The base image is not stored on the nextsimhub `GitHub container registry
+<https://github.com/orgs/nextsimhub/packages>`_ because it is not intended to be run by users.
+However, if a developer needs to rebuild the docker image, they can do so with:
+
+.. code-block:: console
+
+    docker build --file Dockerfile.base . -t ghcr.io/nextsimhub/nextsimdg-base:latest
 
 Development Dockerfile
 ^^^^^^^^^^^^^^^^^^^^^^
