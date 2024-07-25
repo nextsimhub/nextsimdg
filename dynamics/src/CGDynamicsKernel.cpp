@@ -99,6 +99,24 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) co
     }
 }
 
+template <int DGadvection>
+ModelArray CGDynamicsKernel<DGadvection>::getDGData(const std::string& name) const
+{
+    if (name == uName) {
+        ModelArray data(ModelArray::Type::DG);
+        DGVector<DGadvection> utmp(*smesh);
+        Nextsim::Interpolations::CG2DG(*smesh, utmp, u);
+        return DGModelArray::dg2ma(utmp, data);
+    } else if (name == vName) {
+        ModelArray data(ModelArray::Type::DG);
+        DGVector<DGadvection> vtmp(*smesh);
+        Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
+        return DGModelArray::dg2ma(vtmp, data);
+    } else {
+        return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
+    }
+}
+
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection()
 {
     dgtransport->prepareAdvection(u, v);

@@ -95,6 +95,8 @@ ModelState MEVPDynamics::getState() const
         { hiceName, kernel.getDGData(hiceName) },
         { ciceName, kernel.getDGData(ciceName) },
         { hsnowName, kernel.getDGData(hsnowName) },
+        { uName, kernel.getDGData(uName) },
+        { vName, kernel.getDGData(vName) },
     });
 
     return state;
@@ -110,6 +112,8 @@ ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
             { hiceName, kernel.getDGData(hiceName) },
             { ciceName, kernel.getDGData(ciceName) },
             { hsnowName, kernel.getDGData(hsnowName) },
+            { uName, kernel.getDGData(uName) },
+            { vName, kernel.getDGData(vName) },
         });
     }
     return state;
