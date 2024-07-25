@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    27 June 2024
+ * @date    24 July 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the write method of the C++ interface
@@ -11,9 +11,12 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
+#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
+#include "include/Module.hpp"
 #include "include/Xios.hpp"
 
+#include <filesystem>
 #include <iostream>
 
 namespace Nextsim {
@@ -102,37 +105,47 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     xios_handler.close_context_definition();
 
-    // --- Tests for file API
-    // create some fake data to test writing methods
-    double* field_2D = new double[n1 * n2];
-    double* field_3D = new double[n1 * n2 * n3];
-    double* field_4D = new double[n1 * n2 * n3 * n4];
-    for (size_t idx = 0; idx < n1 * n2; idx++) {
-        field_2D[idx] = 1.0 * idx;
+    // --- Tests for writing to file
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ModelArray::setDimension(ModelArray::Dimension::X, n1);
+    ModelArray::setDimension(ModelArray::Dimension::Y, n2);
+    ModelArray::setDimension(ModelArray::Dimension::Z, n3);
+    // Create some fake data to test writing methods
+    HField field_2D(ModelArray::Type::H);
+    field_2D.resize();
+    for (size_t j = 0; j < n2; ++j) {
+        for (size_t i = 0; i < n1; ++i) {
+            field_2D(i, j) = 1.0 * (i + n1 * j);
+        }
     }
-    for (size_t idx = 0; idx < n1 * n2 * n3; idx++) {
-        field_3D[idx] = 1.0 * idx;
+    HField field_3D(ModelArray::Type::Z);
+    field_3D.resize();
+    for (size_t k = 0; k < n3; ++k) {
+        for (size_t j = 0; j < n2; ++j) {
+            for (size_t i = 0; i < n1; ++i) {
+                field_3D(i, j, k) = 1.0 * (i + n1 * (j + n2 * k));
+            }
+        }
     }
-    for (size_t idx = 0; idx < n1 * n2 * n3 * n4; idx++) {
-        field_4D[idx] = 1.0 * idx;
-    }
+    // TODO: field_4D?
     // Verify calendar step is starting from zero
     REQUIRE(xios_handler.getCalendarStep() == 0);
-    // simulate 4 iterations (timesteps)
+    // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
-        // update the current timestep
+        // Update the current timestep
         xios_handler.updateCalendar(ts);
-        // send data to XIOS to be written to disk
-        xios_handler.write("field_2D", field_2D, n1, n2);
-        xios_handler.write("field_3D", field_3D, n1, n2, n3);
-        xios_handler.write("field_4D", field_4D, n1, n2, n3, n4);
+        // Send data to XIOS to be written to disk
+        xios_handler.write("field_2D", field_2D);
+        xios_handler.write("field_3D", field_3D);
+        // TODO: field_4D?
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
-    // clean up
-    delete[] field_2D;
-    delete[] field_3D;
-    delete[] field_4D;
+    // Check the file exists then remove it
+    REQUIRE(filesystem::exists("output.nc"));
+    if (rank == 0) {
+        filesystem::remove("output.nc");
+    }
 
     xios_handler.context_finalize();
 }

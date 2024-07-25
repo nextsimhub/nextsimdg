@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    21 June 2024
+ * @date    24 July 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -15,6 +15,7 @@
 #if USE_XIOS
 
 #include "Configured.hpp"
+#include "ModelArray.hpp"
 #include "Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
@@ -133,11 +134,7 @@ public:
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
     /* I/O */
-    void write(const std::string fieldId, double* data, const size_t ni, const size_t nj);
-    void write(
-        const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk);
-    void write(const std::string fieldId, double* data, const size_t ni, const size_t nj,
-        const size_t nk, const size_t nl);
+    void write(const std::string fieldId, ModelArray& modelarray);
 
     enum {
         ENABLED_KEY,

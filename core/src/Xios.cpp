@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    21 June 2024
+ * @date    24 July 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -17,6 +17,7 @@
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
 
+#include "include/ModelArray.hpp"
 #include "include/Xios.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -1273,48 +1274,27 @@ void Xios::fileAddField(const std::string fileId, const std::string fieldId)
 }
 
 /*!
- * send 2D field to xios server to be written to file.
+ * Send a field to the XIOS server to be written to file
  *
  * @param field name
- * @param data to be written
- * @param size of 1st dimension
- * @param size of 2nd dimension
+ * @param reference to the ModelArray containing the data to be written
  */
-void Xios::write(const std::string fieldId, double* data, const size_t ni, const size_t nj)
+void Xios::write(const std::string fieldId, ModelArray& modelarray)
 {
-    cxios_write_data_k82(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, -1);
-}
-
-/*!
- * send 3D field to xios server to be written to file.
- *
- * @param field name
- * @param data to be written
- * @param size of 1st dimension
- * @param size of 2nd dimension
- * @param size of 3rd dimension
- */
-void Xios::write(
-    const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk)
-{
-    cxios_write_data_k83(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, -1);
-}
-
-/*!
- * send 4D field to xios server to be written to file.
- *
- * @param field name
- * @param data to be written
- * @param size of 1st dimension
- * @param size of 2nd dimension
- * @param size of 3rd dimension
- * @param size of 4th dimension
- */
-void Xios::write(const std::string fieldId, double* data, const size_t ni, const size_t nj,
-    const size_t nk, const size_t nl)
-{
-    cxios_write_data_k84(
-        fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, (int)nl, -1);
+    auto ndim = modelarray.nDimensions();
+    auto dims = modelarray.dimensions();
+    if (ndim == 2) {
+        cxios_write_data_k82(
+            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
+    } else if (ndim == 3) {
+        cxios_write_data_k83(
+            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], dims[2], -1);
+    } else if (ndim == 4) {
+        cxios_write_data_k84(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], dims[2], dims[3], -1);
+    } else {
+        throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
+    }
 }
 }
 
