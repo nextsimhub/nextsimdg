@@ -1,6 +1,7 @@
 FROM ghcr.io/nextsimhub/nextsimdg-dev-env:latest
 
-RUN git clone https://github.com/nextsimhub/nextsimdg.git /nextsimdg
+RUN git clone https://github.com/nextsimhub/nextsimdg.git /nextsimdg/tmp
+RUN mv /nextsimdg/tmp/* /nextsimdg
 
 WORKDIR /nextsimdg/build
 
