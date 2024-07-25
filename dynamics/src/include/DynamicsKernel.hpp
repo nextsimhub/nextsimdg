@@ -63,6 +63,7 @@ public:
         // resize DG vectors
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
+        hsnow.resize_by_mesh(*smesh);
 
         e11.resize_by_mesh(*smesh);
         e12.resize_by_mesh(*smesh);
@@ -96,6 +97,8 @@ public:
             DGModelArray::ma2dg(data, hice);
         } else if (name == ciceName) {
             DGModelArray::ma2dg(data, cice);
+        } else if (name == hsnowName) {
+            DGModelArray::ma2dg(data, hsnow);
         } else {
             // All other fields get shoved in a (labelled) bucket
             DGModelArray::ma2dg(data, advectedFields[name]);
@@ -118,6 +121,8 @@ public:
             return DGModelArray::dg2ma(hice, data);
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
+        } else if (name == hsnowName) {
+            return DGModelArray::dg2ma(hsnow, data);
         } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);
@@ -141,6 +146,10 @@ public:
             DGField data(ModelArray::Type::DG);
             data.resize();
             return DGModelArray::dg2ma(cice, data);
+        } else if (name == hsnowName) {
+            DGField data(ModelArray::Type::DG);
+            data.resize();
+            return DGModelArray::dg2ma(hsnow, data);
         } else {
             // Use the stored array type to ensure the returned data has the correct type
             ModelArray::Type type = fieldType.at(name);
@@ -159,11 +168,13 @@ public:
         //! Perform transport step
         dgtransport->step(tst.step.seconds(), cice);
         dgtransport->step(tst.step.seconds(), hice);
+        dgtransport->step(tst.step.seconds(), hsnow);
 
         //! Gauss-point limiting
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
         Nextsim::LimitMin(hice, 0.0);
+        Nextsim::LimitMin(hsnow, 0.0);
     }
 
 protected:
@@ -171,6 +182,7 @@ protected:
 
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;
+    DGVector<DGadvection> hsnow;
 
     //! Vectors storing strain and stress components
     DGVector<DGstress> e11, e12, e22;

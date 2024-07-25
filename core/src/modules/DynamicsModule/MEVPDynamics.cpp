@@ -63,6 +63,7 @@ void MEVPDynamics::update(const TimestepTime& tst)
     // set the updated ice thickness and concentration
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
+    kernel.setData(hsnowName, hsnow.data());
 
     // set the forcing velocities
     kernel.setData(uWindName, uwind.data());
@@ -77,6 +78,7 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
+    hsnow.data() = kernel.getDG0Data(hsnowName);
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
@@ -92,6 +94,7 @@ ModelState MEVPDynamics::getState() const
     state.merge({
         { hiceName, kernel.getDGData(hiceName) },
         { ciceName, kernel.getDGData(ciceName) },
+        { hsnowName, kernel.getDGData(hsnowName) },
     });
 
     return state;
@@ -106,6 +109,7 @@ ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
         state.merge({
             { hiceName, kernel.getDGData(hiceName) },
             { ciceName, kernel.getDGData(ciceName) },
+            { hsnowName, kernel.getDGData(hsnowName) },
         });
     }
     return state;
