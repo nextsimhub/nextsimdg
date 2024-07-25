@@ -132,7 +132,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
     }
-    // TODO: field_4D?
+    // TODO: Implement 4D case
     // Verify calendar step is starting from zero
     REQUIRE(xios_handler.getCalendarStep() == 0);
     // Check a file with the expected name doesn't exist yet
@@ -144,7 +144,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Send data to XIOS to be written to disk
         xios_handler.write("field_2D", field_2D);
         xios_handler.write("field_3D", field_3D);
-        // TODO: field_4D?
+        // TODO: Implement 4D case
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }

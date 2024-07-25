@@ -1445,48 +1445,27 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
 }
 
 /*!
- * Receive 2D field from XIOS server that has been read from file.
+ * Receive field from XIOS server that has been read from file.
  *
  * @param field name
- * @param array to read data into
- * @param size of 1st dimension
- * @param size of 2nd dimension
+ * @param reference to the ModelArray containing the data to be written
  */
-void Xios::read(const std::string fieldId, double* data, const size_t ni, const size_t nj)
+void Xios::read(const std::string fieldId, ModelArray& modelarray)
 {
-    cxios_read_data_k82(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj);
-}
-
-/*!
- * Receive 3D field from XIOS server that has been read from file.
- *
- * @param field name
- * @param array to read data into
- * @param size of 1st dimension
- * @param size of 2nd dimension
- * @param size of 3rd dimension
- */
-void Xios::read(
-    const std::string fieldId, double* data, const size_t ni, const size_t nj, const size_t nk)
-{
-    cxios_read_data_k83(fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk);
-}
-
-/*!
- * Receive 4D field from XIOS server that has been read from file.
- *
- * @param field name
- * @param array to read data into
- * @param size of 1st dimension
- * @param size of 2nd dimension
- * @param size of 3rd dimension
- * @param size of 4th dimension
- */
-void Xios::read(const std::string fieldId, double* data, const size_t ni, const size_t nj,
-    const size_t nk, const size_t nl)
-{
-    cxios_read_data_k84(
-        fieldId.c_str(), fieldId.length(), data, (int)ni, (int)nj, (int)nk, (int)nl);
+    auto ndim = modelarray.nDimensions();
+    auto dims = modelarray.dimensions();
+    if (ndim == 2) {
+        cxios_read_data_k82(
+            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
+    } else if (ndim == 3) {
+        cxios_read_data_k83(
+            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], dims[2]);
+    } else if (ndim == 4) {
+        cxios_read_data_k84(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], dims[2], dims[3]);
+    } else {
+        throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
+    }
 }
 }
 
