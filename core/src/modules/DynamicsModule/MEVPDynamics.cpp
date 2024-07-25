@@ -25,7 +25,7 @@ void MEVPDynamics::configure()
     Module::Module<Nextsim::IDamageHealing>::setImplementation("Nextsim::NoHealing");
 }
 
-static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+static const std::vector<std::string> namedFields = { hiceName, ciceName, hsnowName, uName, vName };
 MEVPDynamics::MEVPDynamics()
     : IDynamics()
     , kernel(params)
