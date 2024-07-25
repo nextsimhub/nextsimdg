@@ -110,6 +110,8 @@ ModelState BBMDynamics::getState() const
         { ciceName, kernel.getDGData(ciceName) },
         { hsnowName, kernel.getDGData(hsnowName) },
         { damageName, kernel.getDGData(damageName) },
+        { uName, kernel.getDGData(uName) },
+        { vName, kernel.getDGData(vName) },
     });
 
     return state;
@@ -126,6 +128,8 @@ ModelState BBMDynamics::getStateRecursive(const OutputSpec& os) const
             { ciceName, kernel.getDGData(ciceName) },
             { hsnowName, kernel.getDGData(hsnowName) },
             { damageName, kernel.getDGData(damageName) },
+            { uName, kernel.getDGData(uName) },
+            { vName, kernel.getDGData(vName) },
         });
     }
     return state;
