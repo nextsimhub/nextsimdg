@@ -15,6 +15,7 @@
 #if USE_XIOS
 
 #include "Configured.hpp"
+#include "Logged.hpp"
 #include "ModelArray.hpp"
 #include "Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -63,8 +64,6 @@ public:
     void setAxisValues(const std::string axisId, std::vector<double> values);
     size_t getAxisSize(const std::string axisId);
     std::vector<double> getAxisValues(const std::string axisId);
-    bool isDefinedAxisSize(const std::string axisId);
-    bool areDefinedAxisValues(const std::string axisId);
 
     /* Domain */
     void createDomain(const std::string domainId);

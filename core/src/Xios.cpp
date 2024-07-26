@@ -300,7 +300,7 @@ xios::CAxisGroup* Xios::getAxisGroup()
     xios::CAxisGroup* group = NULL;
     cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for axis_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'axis_definition'");
     }
     return group;
 }
@@ -316,7 +316,7 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
     if (!axis) {
-        throw std::runtime_error("Xios: Null pointer for axis with ID '" + axisId + "'");
+        throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
     }
     return axis;
 }
@@ -331,7 +331,7 @@ void Xios::createAxis(const std::string axisId)
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
     if (!axis) {
-        throw std::runtime_error("Xios: Null pointer for axis with ID '" + axisId + "'");
+        throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
     }
 }
 
@@ -343,7 +343,14 @@ void Xios::createAxis(const std::string axisId)
  */
 void Xios::setAxisSize(const std::string axisId, const size_t size)
 {
-    cxios_set_axis_n_glo(getAxis(axisId), (int)size);
+    xios::CAxis* axis = getAxis(axisId);
+    if (cxios_is_defined_axis_n_glo(axis)) {
+        Logged::warning("Xios: Size already set for axis '" + axisId + "'");
+    }
+    cxios_set_axis_n_glo(axis, (int)size);
+    if (!cxios_is_defined_axis_n_glo(axis)) {
+        throw std::runtime_error("Xios: Failed to set size for axis '" + axisId + "'");
+    }
 }
 
 /*!
@@ -354,14 +361,21 @@ void Xios::setAxisSize(const std::string axisId, const size_t size)
  */
 void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
 {
-    if (!isDefinedAxisSize(axisId)) {
+    xios::CAxis* axis = getAxis(axisId);
+    if (cxios_is_defined_axis_value(axis)) {
+        Logged::warning("Xios: Values already set for axis '" + axisId + "'");
+    }
+    if (!cxios_is_defined_axis_n_glo(axis)) {
         setAxisSize(axisId, values.size());
     }
     int size = getAxisSize(axisId);
     if (size != values.size()) {
-        throw std::runtime_error("Xios: Axis size incompatible with values for '" + axisId + "'");
+        throw std::runtime_error("Xios: Size incompatible with values for axis '" + axisId + "'");
     }
-    cxios_set_axis_value(getAxis(axisId), values.data(), &size);
+    cxios_set_axis_value(axis, values.data(), &size);
+    if (!cxios_is_defined_axis_value(axis)) {
+        throw std::runtime_error("Xios: Failed to set values for axis '" + axisId + "'");
+    }
 }
 
 /*!
@@ -372,8 +386,12 @@ void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
  */
 size_t Xios::getAxisSize(const std::string axisId)
 {
+    xios::CAxis* axis = getAxis(axisId);
+    if (!cxios_is_defined_axis_n_glo(axis)) {
+        throw std::runtime_error("Xios: Undefined size for axis '" + axisId + "'");
+    }
     int size;
-    cxios_get_axis_n_glo(getAxis(axisId), &size);
+    cxios_get_axis_n_glo(axis, &size);
     return (size_t)size;
 }
 
@@ -385,34 +403,16 @@ size_t Xios::getAxisSize(const std::string axisId)
  */
 std::vector<double> Xios::getAxisValues(const std::string axisId)
 {
+    xios::CAxis* axis = getAxis(axisId);
+    if (!cxios_is_defined_axis_value(axis)) {
+        throw std::runtime_error("Xios: Undefined values for axis '" + axisId + "'");
+    }
     int size = getAxisSize(axisId);
     double* values = new double[size];
-    cxios_get_axis_value(getAxis(axisId), values, &size);
+    cxios_get_axis_value(axis, values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
-}
-
-/*!
- * Verify whether a size has been defined for a given axis ID
- *
- * @param the axis ID
- * @return `true` if the size has been set, otherwise `false`
- */
-bool Xios::isDefinedAxisSize(const std::string axisId)
-{
-    return cxios_is_defined_axis_n_glo(getAxis(axisId));
-}
-
-/*!
- * Verify whether values have been defined for a given axis ID
- *
- * @param the axis ID
- * @return `true` if the values have been set, otherwise `false`
- */
-bool Xios::areDefinedAxisValues(const std::string axisId)
-{
-    return cxios_is_defined_axis_value(getAxis(axisId));
 }
 
 /*!
