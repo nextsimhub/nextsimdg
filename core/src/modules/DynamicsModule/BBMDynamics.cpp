@@ -101,8 +101,7 @@ void BBMDynamics::update(const TimestepTime& tst)
 // All data for prognostic output
 ModelState BBMDynamics::getState() const
 {
-    // Get the velocities from IDynamics
-    ModelState state(IDynamics::getState());
+    ModelState state;
 
     // Kernel prognostic fields
     state.merge({
