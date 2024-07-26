@@ -99,7 +99,6 @@ public:
     void createGrid(const std::string gridId);
     void setGridName(const std::string gridId, const std::string name);
     std::string getGridName(const std::string gridId);
-    bool isDefinedGridName(const std::string gridId);
     void gridAddAxis(std::string axisId, const std::string domainId);
     void gridAddDomain(const std::string gridId, const std::string domainId);
     std::vector<std::string> gridGetAxisIds(const std::string gridId);

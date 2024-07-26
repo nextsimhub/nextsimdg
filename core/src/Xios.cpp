@@ -797,7 +797,7 @@ xios::CGridGroup* Xios::getGridGroup()
     xios::CGridGroup* group = NULL;
     cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for grid_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'grid_definition'");
     }
     return group;
 }
@@ -813,7 +813,7 @@ xios::CGrid* Xios::getGrid(const std::string gridId)
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
     if (!grid) {
-        throw std::runtime_error("Xios: Null pointer for grid with ID '" + gridId + "'");
+        throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
     }
     return grid;
 }
@@ -828,7 +828,7 @@ void Xios::createGrid(const std::string gridId)
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
     if (!grid) {
-        throw std::runtime_error("Xios: Null pointer for grid with ID '" + gridId + "'");
+        throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
     }
 }
 
@@ -840,8 +840,12 @@ void Xios::createGrid(const std::string gridId)
  */
 std::string Xios::getGridName(const std::string gridId)
 {
+    xios::CGrid* grid = getGrid(gridId);
+    if (!cxios_is_defined_grid_name(grid)) {
+        throw std::runtime_error("Xios: Undefined name for grid '" + gridId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_grid_name(getGrid(gridId), cStr, cStrLen);
+    cxios_get_grid_name(grid, cStr, cStrLen);
     std::string gridName(cStr, cStrLen);
     boost::algorithm::trim_right(gridName);
     return gridName;
@@ -855,18 +859,14 @@ std::string Xios::getGridName(const std::string gridId)
  */
 void Xios::setGridName(const std::string gridId, const std::string gridName)
 {
-    cxios_set_grid_name(getGrid(gridId), gridName.c_str(), gridName.length());
-}
-
-/*!
- * Verify whether a name has been defined for a given grid ID
- *
- * @param the grid ID
- * @return `true` if the name has been set, otherwise `false`
- */
-bool Xios::isDefinedGridName(const std::string gridId)
-{
-    return cxios_is_defined_grid_name(getGrid(gridId));
+    xios::CGrid* grid = getGrid(gridId);
+    if (cxios_is_defined_grid_name(grid)) {
+        Logged::warning("Xios: Overwriting name for grid '" + gridId + "'");
+    }
+    cxios_set_grid_name(grid, gridName.c_str(), gridName.length());
+    if (!cxios_is_defined_grid_name(grid)) {
+        throw std::runtime_error("Xios: Failed to set name for grid '" + gridId + "'");
+    }
 }
 
 /*!

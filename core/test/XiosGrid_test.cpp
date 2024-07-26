@@ -1,7 +1,7 @@
 /*!
  * @file    XiosGrid_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    27 June 2024
+ * @date    26 July 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -79,10 +79,8 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     const std::string gridId = { "grid_2D" };
     xios_handler.createGrid(gridId);
     // Grid name
-    REQUIRE_FALSE(xios_handler.isDefinedGridName(gridId));
     const std::string gridName = { "test_grid" };
     xios_handler.setGridName(gridId, gridName);
-    REQUIRE(xios_handler.isDefinedGridName(gridId));
     REQUIRE(xios_handler.getGridName(gridId) == gridName);
     // Add axis
     xios_handler.gridAddAxis("grid_2D", "axis_A");
