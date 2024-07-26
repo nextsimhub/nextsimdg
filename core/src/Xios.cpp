@@ -1092,7 +1092,7 @@ xios::CFileGroup* Xios::getFileGroup()
     xios::CFileGroup* group = NULL;
     cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for file_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'file_definition'");
     }
     return group;
 }
@@ -1108,7 +1108,7 @@ xios::CFile* Xios::getFile(const std::string fileId)
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
     if (!file) {
-        throw std::runtime_error("Xios: Null pointer for file with ID '" + fileId + "'");
+        throw std::runtime_error("Xios: Null pointer for file '" + fileId + "'");
     }
     return file;
 }
@@ -1121,9 +1121,18 @@ xios::CFile* Xios::getFile(const std::string fileId)
 void Xios::createFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
+    bool valid;
+    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
+    if (valid) {
+        throw std::runtime_error("Xios: File '" + fileId + "' already exists");
+    }
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
     if (!file) {
-        throw std::runtime_error("Xios: Null pointer for file with ID '" + fileId + "'");
+        throw std::runtime_error("Xios: Null pointer for file '" + fileId + "'");
+    }
+    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
+    if (!valid) {
+        throw std::runtime_error("Xios: Failed to create valid file '" + fileId + "'");
     }
 }
 
@@ -1135,7 +1144,14 @@ void Xios::createFile(const std::string fileId)
  */
 void Xios::setFileName(const std::string fileId, const std::string fileName)
 {
-    cxios_set_file_name(getFile(fileId), fileName.c_str(), fileName.length());
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_name(file)) {
+        Logged::warning("Xios: Overwriting name for file '" + fileId + "'");
+    }
+    cxios_set_file_name(file, fileName.c_str(), fileName.length());
+    if (!cxios_is_defined_file_name(file)) {
+        throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1146,7 +1162,14 @@ void Xios::setFileName(const std::string fileId, const std::string fileName)
  */
 void Xios::setFileType(const std::string fileId, const std::string fileType)
 {
-    cxios_set_file_type(getFile(fileId), fileType.c_str(), fileType.length());
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_type(file)) {
+        Logged::warning("Xios: Overwriting type for file '" + fileId + "'");
+    }
+    cxios_set_file_type(file, fileType.c_str(), fileType.length());
+    if (!cxios_is_defined_file_type(file)) {
+        throw std::runtime_error("Xios: Failed to set type for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1157,8 +1180,15 @@ void Xios::setFileType(const std::string fileId, const std::string fileType)
  */
 void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
 {
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_output_freq(file)) {
+        Logged::warning("Xios: Overwriting output frequency for file '" + fileId + "'");
+    }
     cxios_set_file_output_freq(
-        getFile(fileId), cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    if (!cxios_is_defined_file_output_freq(file)) {
+        throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1169,8 +1199,12 @@ void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
  */
 std::string Xios::getFileName(const std::string fileId)
 {
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_name(file)) {
+        throw std::runtime_error("Xios: Undefined name for file '" + fileId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_file_name(getFile(fileId), cStr, cStrLen);
+    cxios_get_file_name(file, cStr, cStrLen);
     std::string fileName(cStr, cStrLen);
     boost::algorithm::trim_right(fileName);
     return fileName;
@@ -1184,8 +1218,12 @@ std::string Xios::getFileName(const std::string fileId)
  */
 std::string Xios::getFileType(const std::string fileId)
 {
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_name(file)) {
+        throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_file_type(getFile(fileId), cStr, cStrLen);
+    cxios_get_file_type(file, cStr, cStrLen);
     std::string fileType(cStr, cStrLen);
     boost::algorithm::trim_right(fileType);
     return fileType;
@@ -1199,26 +1237,17 @@ std::string Xios::getFileType(const std::string fileId)
  */
 std::string Xios::getFileOutputFreq(const std::string fileId)
 {
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_output_freq(file)) {
+        throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
+    }
     cxios_duration duration;
-    cxios_get_file_output_freq(getFile(fileId), &duration);
+    cxios_get_file_output_freq(file, &duration);
     char cStr[cStrLen];
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
     std::string outputFreq(cStr, cStrLen);
     boost::algorithm::trim_right(outputFreq);
     return outputFreq;
-}
-
-/*!
- * Verify whether a given file ID is valid
- *
- * @param the file ID
- * @return `true` if the file ID is valid, otherwise `false`
- */
-bool Xios::validFileId(const std::string fileId)
-{
-    bool valid;
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    return valid;
 }
 
 /*!
@@ -1235,39 +1264,6 @@ std::vector<std::string> Xios::fileGetFieldIds(const std::string fileId)
         fieldIds[i] = fields[i]->getId();
     }
     return fieldIds;
-}
-
-/*!
- * Verify whether a name has been defined for a given file ID
- *
- * @param the file ID
- * @return `true` if the name has been set, otherwise `false`
- */
-bool Xios::isDefinedFileName(const std::string fileId)
-{
-    return cxios_is_defined_file_name(getFile(fileId));
-}
-
-/*!
- * Verify whether a type has been defined for a given file ID
- *
- * @param the file ID
- * @return `true` if the type has been set, otherwise `false`
- */
-bool Xios::isDefinedFileType(const std::string fileId)
-{
-    return cxios_is_defined_file_type(getFile(fileId));
-}
-
-/*!
- * Verify whether an output frequency has been defined for a given file ID
- *
- * @param the file ID
- * @return `true` if the output frequency has been set, otherwise `false`
- */
-bool Xios::isDefinedFileOutputFreq(const std::string fileId)
-{
-    return cxios_is_defined_file_output_freq(getFile(fileId));
 }
 
 /*!

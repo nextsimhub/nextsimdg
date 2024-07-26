@@ -1,7 +1,7 @@
 /*!
  * @file    XiosFile_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    26 July 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -63,25 +63,18 @@ MPI_TEST_CASE("TestXiosFile", 2)
 
     // --- Tests for file API
     const std::string fileId { "output" };
-    REQUIRE_FALSE(xios_handler.validFileId(fileId));
     xios_handler.createFile(fileId);
-    REQUIRE(xios_handler.validFileId(fileId));
     // File name
     const std::string fileName { "diagnostic" };
     xios_handler.setFileName(fileId, fileName);
-    REQUIRE(xios_handler.isDefinedFileName(fileId));
     REQUIRE(xios_handler.getFileName(fileId) == fileName);
     // File type
     const std::string fileType { "one_file" };
-    REQUIRE_FALSE(xios_handler.isDefinedFileType(fileId));
     xios_handler.setFileType(fileId, fileType);
-    REQUIRE(xios_handler.isDefinedFileType(fileId));
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
-    REQUIRE_FALSE(xios_handler.isDefinedFileOutputFreq(fileId));
     const std::string freq { "1ts" };
     xios_handler.setFileOutputFreq(fileId, freq);
-    REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
     // Add field
     xios_handler.fileAddField(fileId, "field_A");

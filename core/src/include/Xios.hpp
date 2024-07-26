@@ -112,10 +112,6 @@ public:
     std::string getFileName(const std::string fileId);
     std::string getFileType(const std::string fileId);
     std::string getFileOutputFreq(const std::string fileId);
-    bool validFileId(const std::string fileId);
-    bool isDefinedFileName(const std::string fileId);
-    bool isDefinedFileType(const std::string fileId);
-    bool isDefinedFileOutputFreq(const std::string fileId);
     void fileAddField(const std::string fileId, const std::string fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
