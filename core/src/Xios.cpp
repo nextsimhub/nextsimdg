@@ -926,7 +926,7 @@ xios::CFieldGroup* Xios::getFieldGroup()
     xios::CFieldGroup* group = NULL;
     cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for field_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'field_definition'");
     }
     return group;
 }
@@ -942,7 +942,7 @@ xios::CField* Xios::getField(const std::string fieldId)
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
     if (!field) {
-        throw std::runtime_error("Xios: Null pointer for field with ID '" + fieldId + "'");
+        throw std::runtime_error("Xios: Null pointer for field '" + fieldId + "'");
     }
     return field;
 }
@@ -957,7 +957,7 @@ void Xios::createField(const std::string fieldId)
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
     if (!field) {
-        throw std::runtime_error("Xios: Null pointer for field with ID '" + fieldId + "'");
+        throw std::runtime_error("Xios: Null pointer for field '" + fieldId + "'");
     }
 }
 
@@ -969,7 +969,14 @@ void Xios::createField(const std::string fieldId)
  */
 void Xios::setFieldName(const std::string fieldId, const std::string fieldName)
 {
-    cxios_set_field_name(getField(fieldId), fieldName.c_str(), fieldName.length());
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_name(field)) {
+        Logged::warning("Xios: Overwriting name for field '" + fieldId + "'");
+    }
+    cxios_set_field_name(field, fieldName.c_str(), fieldName.length());
+    if (!cxios_is_defined_field_name(field)) {
+        throw std::runtime_error("Xios: Failed to set name for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -980,7 +987,14 @@ void Xios::setFieldName(const std::string fieldId, const std::string fieldName)
  */
 void Xios::setFieldOperation(const std::string fieldId, const std::string operation)
 {
-    cxios_set_field_operation(getField(fieldId), operation.c_str(), operation.length());
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_operation(field)) {
+        Logged::warning("Xios: Overwriting operation for field '" + fieldId + "'");
+    }
+    cxios_set_field_operation(field, operation.c_str(), operation.length());
+    if (!cxios_is_defined_field_operation(field)) {
+        throw std::runtime_error("Xios: Failed to set operation for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -991,7 +1005,14 @@ void Xios::setFieldOperation(const std::string fieldId, const std::string operat
  */
 void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
 {
-    cxios_set_field_grid_ref(getField(fieldId), gridRef.c_str(), gridRef.length());
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_grid_ref(field)) {
+        Logged::warning("Xios: Overwriting grid reference for field '" + fieldId + "'");
+    }
+    cxios_set_field_grid_ref(field, gridRef.c_str(), gridRef.length());
+    if (!cxios_is_defined_field_grid_ref(field)) {
+        throw std::runtime_error("Xios: Failed to set grid reference for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -1002,8 +1023,12 @@ void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
  */
 std::string Xios::getFieldName(const std::string fieldId)
 {
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_name(field)) {
+        throw std::runtime_error("Xios: Undefined name for field '" + fieldId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_field_name(getField(fieldId), cStr, cStrLen);
+    cxios_get_field_name(field, cStr, cStrLen);
     std::string fieldName(cStr, cStrLen);
     boost::algorithm::trim_right(fieldName);
     return fieldName;
@@ -1017,8 +1042,12 @@ std::string Xios::getFieldName(const std::string fieldId)
  */
 std::string Xios::getFieldOperation(const std::string fieldId)
 {
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_operation(field)) {
+        throw std::runtime_error("Xios: Undefined operation for field '" + fieldId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_field_operation(getField(fieldId), cStr, cStrLen);
+    cxios_get_field_operation(field, cStr, cStrLen);
     std::string operation(cStr, cStrLen);
     boost::algorithm::trim_right(operation);
     return operation;
@@ -1032,44 +1061,15 @@ std::string Xios::getFieldOperation(const std::string fieldId)
  */
 std::string Xios::getFieldGridRef(const std::string fieldId)
 {
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_grid_ref(field)) {
+        throw std::runtime_error("Xios: Undefined grid reference for field '" + fieldId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_field_grid_ref(getField(fieldId), cStr, cStrLen);
+    cxios_get_field_grid_ref(field, cStr, cStrLen);
     std::string gridRef(cStr, cStrLen);
     boost::algorithm::trim_right(gridRef);
     return gridRef;
-}
-
-/*!
- * Verify whether a name has been defined for a given field ID
- *
- * @param the field ID
- * @return `true` if the name has been set, otherwise `false`
- */
-bool Xios::isDefinedFieldName(const std::string fieldId)
-{
-    return cxios_is_defined_field_name(getField(fieldId));
-}
-
-/*!
- * Verify whether an operation has been defined for a given field ID
- *
- * @param the field ID
- * @return `true` if the operation has been set, otherwise `false`
- */
-bool Xios::isDefinedFieldOperation(const std::string fieldId)
-{
-    return cxios_is_defined_field_operation(getField(fieldId));
-}
-
-/*!
- * Verify whether a grid reference has been defined for a given field ID
- *
- * @param the field ID
- * @return `true` if the grid reference has been set, otherwise `false`
- */
-bool Xios::isDefinedFieldGridRef(const std::string fieldId)
-{
-    return cxios_is_defined_field_grid_ref(getField(fieldId));
 }
 
 /*!

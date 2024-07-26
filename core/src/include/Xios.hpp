@@ -112,9 +112,6 @@ public:
     std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
     std::string getFieldGridRef(const std::string fieldId);
-    bool isDefinedFieldName(const std::string fieldId);
-    bool isDefinedFieldOperation(const std::string fieldId);
-    bool isDefinedFieldGridRef(const std::string fieldId);
 
     /* File */
     void createFile(const std::string fileId);
