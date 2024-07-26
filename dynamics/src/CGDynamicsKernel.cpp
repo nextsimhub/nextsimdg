@@ -113,7 +113,7 @@ ModelArray CGDynamicsKernel<DGadvection>::getDGData(const std::string& name) con
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
         return DGModelArray::dg2ma(vtmp, data);
     } else {
-        return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
+        return DynamicsKernel<DGadvection, DGstressComp>::getDGData(name);
     }
 }
 
