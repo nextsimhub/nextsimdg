@@ -21,14 +21,14 @@ ModelArray::DimensionMap ModelArray::m_dims;
 bool ModelArray::areMapsInvalid = true;
 
 ModelArray::ModelArray(const Type type)
-    : type(type)
+        : type(type)
 {
     m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
     validateMaps();
 }
 
 ModelArray::ModelArray(const ModelArray& orig)
-    : ModelArray(orig.type)
+        : ModelArray(orig.type)
 {
     setData(orig.m_data);
 }
@@ -103,11 +103,20 @@ ModelArray ModelArray::operator/(const double& x) const
     return result /= x;
 }
 
-ModelArray operator+(const double& x, const ModelArray& y) { return y + x; }
+ModelArray operator+(const double& x, const ModelArray& y)
+{
+    return y + x;
+}
 
-ModelArray operator-(const double& x, const ModelArray& y) { return -(y - x); }
+ModelArray operator-(const double& x, const ModelArray& y)
+{
+    return -(y - x);
+}
 
-ModelArray operator*(const double& x, const ModelArray& y) { return y * x; }
+ModelArray operator*(const double& x, const ModelArray& y)
+{
+    return y * x;
+}
 
 ModelArray operator/(const double& x, const ModelArray& y)
 {
@@ -180,13 +189,19 @@ void ModelArray::setData(const double* pData)
     auto out = std::copy(pData, pData + m_sz.at(type) * nComponents(), m_data.data());
 }
 
-void ModelArray::setData(const DataType& from) { m_data = from; } // setData(from.data()); }
+void ModelArray::setData(const DataType& from)
+{
+    m_data = from;
+} // setData(from.data()); }
 
-void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
+void ModelArray::setData(const ModelArray& from)
+{
+    setData(from.m_data.data());
+}
 
 void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
-    std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
+    std::vector<Dimension> &dimSpecs = typeDimensions.at(type);
     for (size_t i = 0; i < dimSpecs.size(); ++i) {
         definedDimensions.at(dimSpecs[i]).length = newDims[i];
     }
@@ -245,7 +260,7 @@ size_t ModelArray::indexFromLocation(Type type, const MultiDim& loc)
  */
 ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
 {
-    MultiDim& dims = m_dims.at(type);
+    MultiDim &dims = m_dims.at(type);
     MultiDim loc(dims.size()); // Size to the known number of dimensions
     for (size_t i = 0; i < loc.size(); ++i) {
         size_t theDim = dims[i];
@@ -267,8 +282,8 @@ void ModelArray::DimensionMap::validate()
 {
     for (auto entry : typeDimensions) {
         Type type = entry.first;
-        std::vector<size_t>& dims = m_dimensions[type];
-        std::vector<Dimension>& typeDims = entry.second;
+        std::vector<size_t> &dims = m_dimensions[type];
+        std::vector<Dimension> &typeDims = entry.second;
         dims.resize(typeDims.size());
         for (size_t i = 0; i < typeDims.size(); ++i) {
             dims[i] = definedDimensions.at(typeDims[i]).length;
@@ -280,7 +295,7 @@ void ModelArray::SizeMap::validate()
 {
     for (auto entry : typeDimensions) {
         size_t size = 1;
-        std::vector<Dimension>& typeDims = entry.second;
+        std::vector<Dimension> &typeDims = entry.second;
         for (size_t i = 0; i < typeDims.size(); ++i) {
             size *= definedDimensions.at(typeDims[i]).length;
         }
@@ -288,4 +303,15 @@ void ModelArray::SizeMap::validate()
     }
 }
 
+std::string toString(const ModelArray::Type& type)
+{
+    return ModelArray::typeNames.at(type);
+}
+
 } /* namespace Nextsim */
+
+std::ostream& operator<<(std::ostream& os, const Nextsim::ModelArray::Type& type)
+{
+    return os << Nextsim::toString(type);
+}
+

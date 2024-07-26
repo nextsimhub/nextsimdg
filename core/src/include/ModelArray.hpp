@@ -11,6 +11,7 @@
 #include <Eigen/Core>
 #include <cstddef>
 #include <map>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -47,8 +48,10 @@ const static Eigen::StorageOptions majority = Eigen::RowMajor;
 class ModelArray {
 public:
     // Forward defines make Eclipse less red and squiggly
-    enum class Type;
-    enum class Dimension;
+    enum class Type
+    ;
+    enum class Dimension
+    ;
 
 #include "include/ModelArrayDetails.hpp"
 
@@ -88,7 +91,10 @@ public:
     ModelArray(const Type type);
     //! Copy constructor
     ModelArray(const ModelArray&);
-    virtual ~ModelArray() {};
+    virtual ~ModelArray()
+    {
+    }
+    ;
 
     //! Copy assignment operator
     ModelArray& operator=(const ModelArray&);
@@ -219,29 +225,62 @@ public:
     typedef std::vector<size_t> MultiDim;
 
     //! Returns the number of dimensions of this type of ModelArray.
-    size_t nDimensions() const { return nDimensions(type); }
+    size_t nDimensions() const
+    {
+        return nDimensions(type);
+    }
     //! Returns the number of dimensions of the specified type of ModelArray.
-    static size_t nDimensions(Type type) { return m_dims.at(type).size(); }
+    static size_t nDimensions(Type type)
+    {
+        return m_dims.at(type).size();
+    }
     //! Returns a vector<size_t> of the size of each dimension of this type of ModelArray.
-    const MultiDim& dimensions() const { return dimensions(type); }
+    const MultiDim& dimensions() const
+    {
+        return dimensions(type);
+    }
     //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
-    static const MultiDim& dimensions(Type type) { return m_dims.at(type); }
+    static const MultiDim& dimensions(Type type)
+    {
+        return m_dims.at(type);
+    }
     //! Returns the total number of elements of this type of ModelArray.
-    size_t size() const { return size(type); }
+    size_t size() const
+    {
+        return size(type);
+    }
     //! Returns the total number of elements of the specified type of ModelArray.
-    static size_t size(Type type) { return m_sz.at(type); }
+    static size_t size(Type type)
+    {
+        return m_sz.at(type);
+    }
     //! Returns the size of the data array of this object.
-    size_t trueSize() const { return m_data.rows(); }
+    size_t trueSize() const
+    {
+        return m_data.rows();
+    }
     //! Returns the size of a dimension
-    static size_t size(Dimension dim) { return definedDimensions.at(dim).length; }
+    static size_t size(Dimension dim)
+    {
+        return definedDimensions.at(dim).length;
+    }
 
     //! Returns a read-only pointer to the underlying data buffer.
-    const double* getData() const { return m_data.data(); }
+    const double* getData() const
+    {
+        return m_data.data();
+    }
 
     //! Returns a const reference to the Eigen data
-    const DataType& data() const { return m_data; }
+    const DataType& data() const
+    {
+        return m_data;
+    }
     //! Returns the (enum of) the ModelArray::Type of this.
-    Type getType() const { return type; }
+    Type getType() const
+    {
+        return type;
+    }
 
     /*!
      * @brief Sets the number and size of the dimensions of a specified type of
@@ -326,33 +365,33 @@ public:
 
 private:
     // Fast special case for 1-d indexing
-    template <typename T, typename I> static inline T indexr(const T* dims, I first)
+    template<typename T, typename I> static inline T indexr(const T* dims, I first)
     {
         return static_cast<T>(first);
     }
 
     // Fast special case for 2-d indexing
-    template <typename T, typename I> static inline T indexr(const T* dims, I first, I second)
+    template<typename T, typename I> static inline T indexr(const T* dims, I first, I second)
     {
         return first + second * dims[0];
     }
 
     // Indices as separate function parameters
-    template <typename T, typename I, typename... Args>
-    static inline T indexr(const T* dims, I first, Args... args)
+    template<typename T, typename I, typename ... Args>
+    static inline T indexr(const T* dims, I first, Args ... args)
     {
         std::initializer_list<I> loc { first, args... };
         return indexrHelper(dims, loc);
     }
 
     // Indices as a Dimensions object
-    template <typename T> static T indexr(const T* dims, const ModelArray::MultiDim& loc)
+    template<typename T> static T indexr(const T* dims, const ModelArray::MultiDim& loc)
     {
         return indexrHelper(dims, loc);
     }
 
     // Generic index generator that will work on any container
-    template <typename T, typename C> static T indexrHelper(const T* dims, const C& loc)
+    template<typename T, typename C> static T indexrHelper(const T* dims, const C& loc)
     {
         size_t ndims = loc.size();
         T stride = 1;
@@ -375,7 +414,10 @@ public:
      *
      * @param i The one dimensional index of the target point.
      */
-    const double& operator[](size_t i) const { return m_data(i, 0); }
+    const double& operator[](size_t i) const
+    {
+        return m_data(i, 0);
+    }
     /*!
      * @brief Returns the data at the indices.
      *
@@ -392,7 +434,7 @@ public:
     /*!
      * @brief Returns the data at the given set of indices
      */
-    template <typename... Args> const double& operator()(Args... args) const
+    template<typename ... Args> const double& operator()(Args ... args) const
     {
         return (*this)[indexr(dimensions().data(), args...)];
     }
@@ -407,7 +449,10 @@ public:
      *
      * @param i The one dimensional index of the target point.
      */
-    double& operator[](size_t i) { return const_cast<double&>(std::as_const(*this)(i)); }
+    double& operator[](size_t i)
+    {
+        return const_cast<double&>(std::as_const(*this)(i));
+    }
     /*!
      * @brief Returns the data at the indices.
      *
@@ -423,7 +468,7 @@ public:
     //! Returns the specified point from a ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned. Non-const version.
-    template <typename... Args> double& operator()(Args... args)
+    template<typename ... Args> double& operator()(Args ... args)
     {
         return const_cast<double&>(std::as_const(*this)(args...));
     }
@@ -453,7 +498,10 @@ public:
      *
      * @param nComp the number of components to be set.
      */
-    inline void setNComponents(size_t nComp) { setNComponents(type, nComp); }
+    inline void setNComponents(size_t nComp)
+    {
+        setNComponents(type, nComp);
+    }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at
@@ -461,9 +509,15 @@ public:
      *
      * @param i one-dimensional index of the target point.
      */
-    Component components(size_t i) { return m_data.row(i); }
+    Component components(size_t i)
+    {
+        return m_data.row(i);
+    }
 
-    const ConstComponent components(size_t i) const { return m_data.row(i); }
+    const ConstComponent components(size_t i) const
+    {
+        return m_data.row(i);
+    }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at the specified location.
@@ -505,7 +559,10 @@ public:
      *
      * @param loc The multi-dimensional location to return the index for.
      */
-    size_t indexFromLocation(const MultiDim& loc) const { return indexFromLocation(type, loc); }
+    size_t indexFromLocation(const MultiDim& loc) const
+    {
+        return indexFromLocation(type, loc);
+    }
 
     /*!
      * @brief Returns the index for a given set of multi-dimensional location for the given Type.
@@ -520,7 +577,10 @@ public:
      *
      * @param index The index to return the multi-dimensional location for.
      */
-    MultiDim locationFromIndex(size_t index) const { return locationFromIndex(type, index); }
+    MultiDim locationFromIndex(size_t index) const
+    {
+        return locationFromIndex(type, index);
+    }
 
     /*!
      * @brief Returns the multi-dimensional location for a given index for the given Type.
@@ -532,7 +592,10 @@ public:
 
     //! Returns the number of discontinuous Galerkin components held in this
     //! type of ModelArray.
-    inline size_t nComponents() const { return nComponents(type); }
+    inline size_t nComponents() const
+    {
+        return nComponents(type);
+    }
     //! Returns the number of discontinuous Galerkin components held in the
     //! specified type of ModelArray.
     inline static size_t nComponents(const Type type)
@@ -541,7 +604,10 @@ public:
     }
     //! Returns whether this type of ModelArray has additional discontinuous
     //! Galerkin components.
-    inline bool hasDoF() const { return hasDoF(type); }
+    inline bool hasDoF() const
+    {
+        return hasDoF(type);
+    }
     //! Returns whether the specified type of ModelArray has additional
     //! discontinuous Galerkin components.
     static bool hasDoF(const Type type);
@@ -569,13 +635,28 @@ private:
     class SizeMap {
     public:
         SizeMap();
-        size_t& at(const Type& type) { return m_sizes.at(type); }
-        const size_t& at(const Type& type) const { return m_sizes.at(type); }
+        size_t& at(const Type& type)
+        {
+            return m_sizes.at(type);
+        }
+        const size_t& at(const Type& type) const
+        {
+            return m_sizes.at(type);
+        }
 
-        size_t& operator[](const Type& type) { return m_sizes[type]; }
-        size_t& operator[](Type&& type) { return m_sizes[type]; }
+        size_t& operator[](const Type& type)
+        {
+            return m_sizes[type];
+        }
+        size_t& operator[](Type&& type)
+        {
+            return m_sizes[type];
+        }
 
-        size_t size() const noexcept { return m_sizes.size(); }
+        size_t size() const noexcept
+        {
+            return m_sizes.size();
+        }
 
         void validate();
 
@@ -587,13 +668,28 @@ private:
     class DimensionMap {
     public:
         DimensionMap();
-        MultiDim& at(const Type& type) { return m_dimensions.at(type); }
-        const MultiDim& at(const Type& type) const { return m_dimensions.at(type); }
+        MultiDim& at(const Type& type)
+        {
+            return m_dimensions.at(type);
+        }
+        const MultiDim& at(const Type& type) const
+        {
+            return m_dimensions.at(type);
+        }
 
-        MultiDim& operator[](const Type& type) { return m_dimensions[type]; }
-        MultiDim& operator[](Type&& type) { return m_dimensions[type]; }
+        MultiDim& operator[](const Type& type)
+        {
+            return m_dimensions[type];
+        }
+        MultiDim& operator[](Type&& type)
+        {
+            return m_dimensions[type];
+        }
 
-        size_t size() const noexcept { return m_dimensions.size(); }
+        size_t size() const noexcept
+        {
+            return m_dimensions.size();
+        }
 
         void validate();
 
@@ -611,6 +707,10 @@ ModelArray operator+(const double&, const ModelArray&);
 ModelArray operator-(const double&, const ModelArray&);
 ModelArray operator*(const double&, const ModelArray&);
 ModelArray operator/(const double&, const ModelArray&);
+
+std::string toString(const ModelArray::Type& type);
 } /* namespace Nextsim */
+
+std::ostream& operator<<(std::ostream& os, const Nextsim::ModelArray::Type& type);
 
 #endif /* MODELARRAY_HPP */

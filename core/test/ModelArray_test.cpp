@@ -10,6 +10,8 @@
 
 #include "include/ModelArray.hpp"
 
+#include <sstream>
+
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ModelArray");
@@ -297,6 +299,16 @@ TEST_CASE("zIndexAndLayer")
     REQUIRE(threeD.zIndexAndLayer(ind, z) == threeD(x, y, z));
 
 }
+
+TEST_CASE("Type printing")
+{
+    REQUIRE(toString(ModelArray::Type::ONED) == ModelArray::typeNames.at(ModelArray::Type::ONED));
+
+    std::stringstream ss;
+    ss << ModelArray::Type::TWOD;
+    REQUIRE(ss.str() == ModelArray::typeNames.at(ModelArray::Type::TWOD));
+}
+
 TEST_SUITE_END();
 
 } /* namespace Nextsim */
