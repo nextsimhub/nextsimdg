@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    26 July 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -426,7 +426,7 @@ xios::CDomainGroup* Xios::getDomainGroup()
     xios::CDomainGroup* group = NULL;
     cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for domain_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'domain_definition'");
     }
     return group;
 }
@@ -442,7 +442,7 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
     if (!domain) {
-        throw std::runtime_error("Xios: Null pointer for domain with ID '" + domainId + "'");
+        throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
     }
     return domain;
 }
@@ -457,7 +457,7 @@ void Xios::createDomain(const std::string domainId)
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
     if (!domain) {
-        throw std::runtime_error("Xios: Null pointer for domain with ID '" + domainId + "'");
+        throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
     }
 }
 
@@ -469,7 +469,15 @@ void Xios::createDomain(const std::string domainId)
  */
 void Xios::setDomainLongitudeSize(const std::string domainId, const size_t size)
 {
-    cxios_set_domain_ni(getDomain(domainId), (int)size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_ni(domain)) {
+        Logged::warning("Xios: Overwriting longitude size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_ni(domain, (int)size);
+    if (!cxios_is_defined_domain_ni(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set longitude size for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -480,7 +488,14 @@ void Xios::setDomainLongitudeSize(const std::string domainId, const size_t size)
  */
 void Xios::setDomainLatitudeSize(const std::string domainId, const size_t size)
 {
-    cxios_set_domain_nj(getDomain(domainId), (int)size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_nj(domain)) {
+        Logged::warning("Xios: Overwriting global latitude size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_nj(domain, (int)size);
+    if (!cxios_is_defined_domain_nj(domain)) {
+        throw std::runtime_error("Xios: Failed to set latitude size for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -491,7 +506,15 @@ void Xios::setDomainLatitudeSize(const std::string domainId, const size_t size)
  */
 void Xios::setDomainLongitudeStart(const std::string domainId, const size_t start)
 {
-    cxios_set_domain_ibegin(getDomain(domainId), (int)start);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_ibegin(domain)) {
+        Logged::warning("Xios: Overwriting longitude start for domain '" + domainId + "'");
+    }
+    cxios_set_domain_ibegin(domain, (int)start);
+    if (!cxios_is_defined_domain_ibegin(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set longitude start for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -502,7 +525,15 @@ void Xios::setDomainLongitudeStart(const std::string domainId, const size_t star
  */
 void Xios::setDomainLatitudeStart(const std::string domainId, const size_t start)
 {
-    cxios_set_domain_jbegin(getDomain(domainId), (int)start);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_jbegin(domain)) {
+        Logged::warning("Xios: Overwriting latitude start for domain '" + domainId + "'");
+    }
+    cxios_set_domain_jbegin(domain, (int)start);
+    if (!cxios_is_defined_domain_jbegin(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set latitude start for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -513,8 +544,16 @@ void Xios::setDomainLatitudeStart(const std::string domainId, const size_t start
  */
 void Xios::setDomainLongitudeValues(const std::string domainId, std::vector<double> values)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_lonvalue_1d(domain)) {
+        Logged::warning("Xios: Overwriting longitude values for domain '" + domainId + "'");
+    }
     int size = getDomainLongitudeSize(domainId);
-    cxios_set_domain_lonvalue_1d(getDomain(domainId), values.data(), &size);
+    cxios_set_domain_lonvalue_1d(domain, values.data(), &size);
+    if (!cxios_is_defined_domain_lonvalue_1d(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set longitude values for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -525,8 +564,16 @@ void Xios::setDomainLongitudeValues(const std::string domainId, std::vector<doub
  */
 void Xios::setDomainLatitudeValues(const std::string domainId, std::vector<double> values)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_latvalue_1d(domain)) {
+        Logged::warning("Xios: Overwriting latitude values for domain '" + domainId + "'");
+    }
     int size = getDomainLatitudeSize(domainId);
-    cxios_set_domain_latvalue_1d(getDomain(domainId), values.data(), &size);
+    cxios_set_domain_latvalue_1d(domain, values.data(), &size);
+    if (!cxios_is_defined_domain_latvalue_1d(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set latitude values for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -537,7 +584,14 @@ void Xios::setDomainLatitudeValues(const std::string domainId, std::vector<doubl
  */
 void Xios::setDomainType(const std::string domainId, const std::string domainType)
 {
-    cxios_set_domain_type(getDomain(domainId), domainType.c_str(), domainType.length());
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_type(domain)) {
+        Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
+    }
+    cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
+    if (!cxios_is_defined_domain_type(domain)) {
+        throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -548,7 +602,15 @@ void Xios::setDomainType(const std::string domainId, const std::string domainTyp
  */
 void Xios::setDomainGlobalLongitudeSize(const std::string domainId, const size_t size)
 {
-    cxios_set_domain_ni_glo(getDomain(domainId), (int)size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_ni_glo(domain)) {
+        Logged::warning("Xios: Overwriting global longitude size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_ni_glo(domain, (int)size);
+    if (!cxios_is_defined_domain_ni_glo(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set global longitude size for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -559,7 +621,15 @@ void Xios::setDomainGlobalLongitudeSize(const std::string domainId, const size_t
  */
 void Xios::setDomainGlobalLatitudeSize(const std::string domainId, const size_t size)
 {
-    cxios_set_domain_nj_glo(getDomain(domainId), (int)size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_nj_glo(domain)) {
+        Logged::warning("Xios: Overwriting global latitude size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_nj_glo(domain, (int)size);
+    if (!cxios_is_defined_domain_nj_glo(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set global latitude size for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -570,8 +640,12 @@ void Xios::setDomainGlobalLatitudeSize(const std::string domainId, const size_t 
  */
 std::string Xios::getDomainType(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_type(domain)) {
+        throw std::runtime_error("Xios: Undefined type for domain '" + domainId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_domain_type(getDomain(domainId), cStr, cStrLen);
+    cxios_get_domain_type(domain, cStr, cStrLen);
     std::string domainType(cStr, cStrLen);
     boost::algorithm::trim_right(domainType);
     return domainType;
@@ -585,8 +659,13 @@ std::string Xios::getDomainType(const std::string domainId)
  */
 size_t Xios::getDomainGlobalLongitudeSize(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_ni_glo(domain)) {
+        throw std::runtime_error(
+            "Xios: Undefined global longitude size for domain '" + domainId + "'");
+    }
     int size;
-    cxios_get_domain_ni_glo(getDomain(domainId), &size);
+    cxios_get_domain_ni_glo(domain, &size);
     return (size_t)size;
 }
 
@@ -598,8 +677,13 @@ size_t Xios::getDomainGlobalLongitudeSize(const std::string domainId)
  */
 size_t Xios::getDomainGlobalLatitudeSize(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_nj_glo(domain)) {
+        throw std::runtime_error(
+            "Xios: Undefined global latitude size for domain '" + domainId + "'");
+    }
     int size;
-    cxios_get_domain_nj_glo(getDomain(domainId), &size);
+    cxios_get_domain_nj_glo(domain, &size);
     return (size_t)size;
 }
 
@@ -611,8 +695,12 @@ size_t Xios::getDomainGlobalLatitudeSize(const std::string domainId)
  */
 size_t Xios::getDomainLongitudeSize(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_ni(domain)) {
+        throw std::runtime_error("Xios: Undefined longitude size for domain '" + domainId + "'");
+    }
     int size;
-    cxios_get_domain_ni(getDomain(domainId), &size);
+    cxios_get_domain_ni(domain, &size);
     return (size_t)size;
 }
 
@@ -624,8 +712,12 @@ size_t Xios::getDomainLongitudeSize(const std::string domainId)
  */
 size_t Xios::getDomainLatitudeSize(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_nj(domain)) {
+        throw std::runtime_error("Xios: Undefined latitude size for domain '" + domainId + "'");
+    }
     int size;
-    cxios_get_domain_nj(getDomain(domainId), &size);
+    cxios_get_domain_nj(domain, &size);
     return (size_t)size;
 }
 
@@ -637,8 +729,12 @@ size_t Xios::getDomainLatitudeSize(const std::string domainId)
  */
 size_t Xios::getDomainLongitudeStart(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_ibegin(domain)) {
+        throw std::runtime_error("Xios: Undefined longitude start for domain '" + domainId + "'");
+    }
     int start;
-    cxios_get_domain_ibegin(getDomain(domainId), &start);
+    cxios_get_domain_ibegin(domain, &start);
     return (size_t)start;
 }
 
@@ -650,8 +746,12 @@ size_t Xios::getDomainLongitudeStart(const std::string domainId)
  */
 size_t Xios::getDomainLatitudeStart(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_jbegin(domain)) {
+        throw std::runtime_error("Xios: Undefined latitude start for domain '" + domainId + "'");
+    }
     int start;
-    cxios_get_domain_jbegin(getDomain(domainId), &start);
+    cxios_get_domain_jbegin(domain, &start);
     return (size_t)start;
 }
 
@@ -663,9 +763,13 @@ size_t Xios::getDomainLatitudeStart(const std::string domainId)
  */
 std::vector<double> Xios::getDomainLongitudeValues(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_lonvalue_1d(domain)) {
+        throw std::runtime_error("Xios: Undefined longitude values for domain '" + domainId + "'");
+    }
     int size = getDomainLongitudeSize(domainId);
     double* values = new double[size];
-    cxios_get_domain_lonvalue_1d(getDomain(domainId), values, &size);
+    cxios_get_domain_lonvalue_1d(domain, values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
@@ -679,111 +783,16 @@ std::vector<double> Xios::getDomainLongitudeValues(const std::string domainId)
  */
 std::vector<double> Xios::getDomainLatitudeValues(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_latvalue_1d(domain)) {
+        throw std::runtime_error("Xios: Undefined latitude values for domain '" + domainId + "'");
+    }
     int size = getDomainLatitudeSize(domainId);
     double* values = new double[size];
-    cxios_get_domain_latvalue_1d(getDomain(domainId), values, &size);
+    cxios_get_domain_latvalue_1d(domain, values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
-}
-
-/*!
- * Verify whether a type has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the type has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainType(const std::string domainId)
-{
-    return cxios_is_defined_domain_type(getDomain(domainId));
-}
-
-/*!
- * Verify whether a global longitude size has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the global longitude size has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainGlobalLongitudeSize(const std::string domainId)
-{
-    return cxios_is_defined_domain_ni_glo(getDomain(domainId));
-}
-
-/*!
- * Verify whether a global latitude size has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the global latitude size has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainGlobalLatitudeSize(const std::string domainId)
-{
-    return cxios_is_defined_domain_nj_glo(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local longitude size has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local longitude size has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainLongitudeSize(const std::string domainId)
-{
-    return cxios_is_defined_domain_ni(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local latitude size has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local latitude size has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainLatitudeSize(const std::string domainId)
-{
-    return cxios_is_defined_domain_nj(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local starting longitude has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local starting longitude has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainLongitudeStart(const std::string domainId)
-{
-    return cxios_is_defined_domain_ibegin(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local starting latitude has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local starting latitude has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainLatitudeStart(const std::string domainId)
-{
-    return cxios_is_defined_domain_jbegin(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local longitude values have been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local longitude values have been set, otherwise `false`
- */
-bool Xios::areDefinedDomainLongitudeValues(const std::string domainId)
-{
-    return cxios_is_defined_domain_lonvalue_1d(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local latitude values have been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local latitude values have been set, otherwise `false`
- */
-bool Xios::areDefinedDomainLatitudeValues(const std::string domainId)
-{
-    return cxios_is_defined_domain_latvalue_1d(getDomain(domainId));
 }
 
 /*!

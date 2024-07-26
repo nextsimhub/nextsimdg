@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    26 July 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -85,15 +85,6 @@ public:
     size_t getDomainLatitudeStart(const std::string domainId);
     std::vector<double> getDomainLongitudeValues(const std::string domainId);
     std::vector<double> getDomainLatitudeValues(const std::string domainId);
-    bool isDefinedDomainType(const std::string domainId);
-    bool isDefinedDomainGlobalLongitudeSize(const std::string domainId);
-    bool isDefinedDomainGlobalLatitudeSize(const std::string domainId);
-    bool isDefinedDomainLongitudeSize(const std::string domainId);
-    bool isDefinedDomainLatitudeSize(const std::string domainId);
-    bool isDefinedDomainLongitudeStart(const std::string domainId);
-    bool isDefinedDomainLatitudeStart(const std::string domainId);
-    bool areDefinedDomainLongitudeValues(const std::string domainId);
-    bool areDefinedDomainLatitudeValues(const std::string domainId);
 
     /* Grid */
     void createGrid(const std::string gridId);
