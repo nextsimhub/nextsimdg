@@ -1,7 +1,7 @@
 /*!
  * @file    XiosCalendar_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    31 July 2024
  * @brief   Tests for XIOS calandars
  * @details
  * This test is designed to test calendar functionality of the C++ interface
