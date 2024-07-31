@@ -203,7 +203,7 @@ void Xios::setCalendarStart(const TimePoint start)
  */
 void Xios::setCalendarTimestep(const Duration timestep)
 {
-    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, timestep.seconds(), 0.0 };
+    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, 0.0, timestep.seconds() };
     cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
     cxios_update_calendar_timestep(clientCalendar);
 }

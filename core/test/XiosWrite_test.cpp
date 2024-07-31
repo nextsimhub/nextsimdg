@@ -145,7 +145,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
     // Check the files have indeed been created then remove it
-    // FIXME: These aren't the datetimes that come out - seems to be using 54hr timestep
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
     if (rank == 0) {
