@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    31 July 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -1153,6 +1153,25 @@ void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
 }
 
 /*!
+ * Set the split frequency of a file with a given ID
+ *
+ * @param the file ID
+ * @param split frequency to set
+ */
+void Xios::setFileSplitFreq(const std::string fileId, const std::string freq)
+{
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_split_freq(file)) {
+        Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
+    }
+    cxios_set_file_split_freq(
+        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    if (!cxios_is_defined_file_split_freq(file)) {
+        throw std::runtime_error("Xios: Failed to set split frequency for file '" + fileId + "'");
+    }
+}
+
+/*!
  * Get the name of a file with a given ID
  *
  * @param the file ID
@@ -1197,6 +1216,27 @@ std::string Xios::getFileOutputFreq(const std::string fileId)
     std::string outputFreq(cStr, cStrLen);
     boost::algorithm::trim_right(outputFreq);
     return outputFreq;
+}
+
+/*!
+ * Get the split frequency of a file with a given ID
+ *
+ * @param the file ID
+ * @return split frequency of the corresponding file
+ */
+std::string Xios::getFileSplitFreq(const std::string fileId)
+{
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_split_freq(file)) {
+        throw std::runtime_error("Xios: Undefined values for file '" + fileId + "'");
+    }
+    cxios_duration duration;
+    cxios_get_file_split_freq(file, &duration);
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(duration, cStr, cStrLen);
+    std::string freq(cStr, cStrLen);
+    boost::algorithm::trim_right(freq);
+    return freq;
 }
 
 /*!

@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    31 July 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -15,6 +15,7 @@
 #if USE_XIOS
 
 #include "Configured.hpp"
+#include "Logged.hpp"
 #include "ModelArray.hpp"
 #include "Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -123,9 +124,11 @@ public:
     void setFileName(const std::string fileId, const std::string fileName);
     void setFileType(const std::string fileId, const std::string fileType);
     void setFileOutputFreq(const std::string fileId, const std::string outputFreq);
+    void setFileSplitFreq(const std::string fileId, const std::string splitFreq);
     std::string getFileName(const std::string fileId);
     std::string getFileType(const std::string fileId);
     std::string getFileOutputFreq(const std::string fileId);
+    std::string getFileSplitFreq(const std::string fileId);
     bool validFileId(const std::string fileId);
     bool isDefinedFileName(const std::string fileId);
     bool isDefinedFileType(const std::string fileId);

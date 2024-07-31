@@ -1,7 +1,7 @@
 /*!
  * @file    xios_c_interface.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    31 July 2024
  * @brief   C interface for XIOS library
  * @details
  * This interface is based on an earlier version provided by Laurent as part of
@@ -159,12 +159,15 @@ void cxios_file_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size);
 void cxios_set_file_type(xios::CFile* file_hdl, const char* type, int type_size);
 void cxios_set_file_output_freq(xios::CFile* file_hdl, cxios_duration output_freq_c);
+void cxios_set_file_split_freq(xios::CFile* file_hdl, cxios_duration split_freq_c);
 void cxios_get_file_name(xios::CFile* file_hdl, char* name, int name_size);
 void cxios_get_file_type(xios::CFile* file_hdl, char* type, int type_size);
 void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
+void cxios_get_file_split_freq(xios::CFile* file_hdl, cxios_duration* split_freq_c);
 bool cxios_is_defined_file_name(xios::CFile* file_hdl);
 bool cxios_is_defined_file_type(xios::CFile* file_hdl);
 bool cxios_is_defined_file_output_freq(xios::CFile* file_hdl);
+bool cxios_is_defined_file_split_freq(xios::CFile* file_hdl);
 void cxios_xml_tree_add_fieldtofile(
     xios::CFile* file, xios::CField** field, const char* _id, int _id_len);
 
