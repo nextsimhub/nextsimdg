@@ -53,10 +53,12 @@ void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const Model
         DGVector<DGadvection> utmp(*smesh);
         DGModelArray::ma2dg(data, utmp);
         Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
+        isAdvectionReady = false;
     } else if (name == vName) {
         DGVector<DGadvection> vtmp(*smesh);
         DGModelArray::ma2dg(data, vtmp);
         Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
+        isAdvectionReady = false;
     } else if (name == uWindName) {
         DGVector<DGadvection> utmp(*smesh);
         DGModelArray::ma2dg(data, utmp);
@@ -99,6 +101,7 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) co
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection()
 {
     dgtransport->prepareAdvection(u, v);
+    isAdvectionReady = true;
 }
 
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)

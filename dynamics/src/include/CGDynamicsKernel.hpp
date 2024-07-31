@@ -34,7 +34,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::smesh;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
     using typename DynamicsKernel<DGadvection, DGstressComp>::DataMap;
-
+    using DynamicsKernel<DGadvection, DGstressComp>::isAdvectionReady;
 public:
     CGDynamicsKernel()
         : pmap(nullptr)

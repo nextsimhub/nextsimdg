@@ -182,7 +182,8 @@ protected:
     double deltaT;
     // Advection timestep, specifically
     double deltaTAdvection;
-
+    // Has prepareAdvection been called with the current u & v fields?
+    bool isAdvectionReady;
     Nextsim::ParametricMesh* smesh;
 
     virtual void updateMomentum(const TimestepTime& tst) = 0;
