@@ -153,9 +153,11 @@ public:
     {
         prepareAdvection();
 
+        // Set the advection time step length for all advection calls
+        deltaTAdvection = tst.step.seconds();
         //! Perform transport step
-        dgtransport->step(tst.step.seconds(), cice);
-        dgtransport->step(tst.step.seconds(), hice);
+        dgtransport->step(deltaTAdvection, cice);
+        dgtransport->step(deltaTAdvection, hice);
 
         //! Gauss-point limiting
         Nextsim::LimitMax(cice, 1.0);
@@ -178,6 +180,8 @@ protected:
     size_t stepNumber = 0;
 
     double deltaT;
+    // Advection timestep, specifically
+    double deltaTAdvection;
 
     Nextsim::ParametricMesh* smesh;
 
