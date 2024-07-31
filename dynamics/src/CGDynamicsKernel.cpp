@@ -50,13 +50,10 @@ template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const ModelArray& data)
 {
     if (name == uName) {
-        // FIXME take into account possibility to restart form CG
-        // CGModelArray::ma2cg(data, u);
         DGVector<DGadvection> utmp(*smesh);
         DGModelArray::ma2dg(data, utmp);
         Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
     } else if (name == vName) {
-        // CGModelArray::ma2cg(data, v);
         DGVector<DGadvection> vtmp(*smesh);
         DGModelArray::ma2dg(data, vtmp);
         Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
