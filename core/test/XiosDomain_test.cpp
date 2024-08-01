@@ -65,27 +65,27 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     REQUIRE(xios_handler.getDomainGlobalLatitudeSize(domainId) == nj_glo);
     // Local longitude size
     const size_t ni = ni_glo / size;
-    xios_handler.setDomainLongitudeSize(domainId, ni);
-    REQUIRE(xios_handler.getDomainLongitudeSize(domainId) == ni);
+    xios_handler.setDomainLocalLongitudeSize(domainId, ni);
+    REQUIRE(xios_handler.getDomainLocalLongitudeSize(domainId) == ni);
     // Local latitude size
     const size_t nj = nj_glo;
-    xios_handler.setDomainLatitudeSize(domainId, nj);
-    REQUIRE(xios_handler.getDomainLatitudeSize(domainId) == nj);
+    xios_handler.setDomainLocalLatitudeSize(domainId, nj);
+    REQUIRE(xios_handler.getDomainLocalLatitudeSize(domainId) == nj);
     // Local longitude start
     const size_t startLon = ni * rank;
-    xios_handler.setDomainLongitudeStart(domainId, startLon);
-    REQUIRE(xios_handler.getDomainLongitudeStart(domainId) == startLon);
+    xios_handler.setDomainLocalLongitudeStart(domainId, startLon);
+    REQUIRE(xios_handler.getDomainLocalLongitudeStart(domainId) == startLon);
     // Local latitude start
     const size_t startLat = 0;
-    xios_handler.setDomainLatitudeStart(domainId, startLat);
-    REQUIRE(xios_handler.getDomainLatitudeStart(domainId) == startLat);
+    xios_handler.setDomainLocalLatitudeStart(domainId, startLat);
+    REQUIRE(xios_handler.getDomainLocalLatitudeStart(domainId) == startLat);
     // Local longitude values
     std::vector<double> vecLon(ni);
     for (size_t i = 0; i < ni; i++) {
         vecLon[i] = -180 + (rank * ni * i) * 360 / ni_glo;
     }
-    xios_handler.setDomainLongitudeValues(domainId, vecLon);
-    std::vector<double> vecLonOut = xios_handler.getDomainLongitudeValues(domainId);
+    xios_handler.setDomainLocalLongitudeValues(domainId, vecLon);
+    std::vector<double> vecLonOut = xios_handler.getDomainLocalLongitudeValues(domainId);
     for (size_t i = 0; i < ni; i++) {
         REQUIRE(vecLonOut[i] == doctest::Approx(vecLon[i]));
     }
@@ -94,8 +94,8 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     for (size_t j = 0; j < nj; j++) {
         vecLat[j] = -90 + j * 180 / nj_glo;
     }
-    xios_handler.setDomainLatitudeValues(domainId, vecLat);
-    std::vector<double> vecLatOut = xios_handler.getDomainLatitudeValues(domainId);
+    xios_handler.setDomainLocalLatitudeValues(domainId, vecLat);
+    std::vector<double> vecLatOut = xios_handler.getDomainLocalLatitudeValues(domainId);
     for (size_t j = 0; j < nj; j++) {
         REQUIRE(vecLatOut[j] == doctest::Approx(vecLat[j]));
     }

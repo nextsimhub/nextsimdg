@@ -70,21 +70,21 @@ public:
     void setDomainType(const std::string domainId, const std::string domainType);
     void setDomainGlobalLongitudeSize(const std::string domainId, const size_t size);
     void setDomainGlobalLatitudeSize(const std::string domainId, const size_t size);
-    void setDomainLongitudeSize(const std::string domainId, const size_t size);
-    void setDomainLatitudeSize(const std::string domainId, const size_t size);
-    void setDomainLongitudeStart(const std::string domainId, const size_t start);
-    void setDomainLatitudeStart(const std::string domainId, const size_t start);
-    void setDomainLongitudeValues(const std::string domainId, std::vector<double> values);
-    void setDomainLatitudeValues(const std::string domainId, std::vector<double> values);
+    void setDomainLocalLongitudeSize(const std::string domainId, const size_t size);
+    void setDomainLocalLatitudeSize(const std::string domainId, const size_t size);
+    void setDomainLocalLongitudeStart(const std::string domainId, const size_t start);
+    void setDomainLocalLatitudeStart(const std::string domainId, const size_t start);
+    void setDomainLocalLongitudeValues(const std::string domainId, std::vector<double> values);
+    void setDomainLocalLatitudeValues(const std::string domainId, std::vector<double> values);
     std::string getDomainType(const std::string domainId);
     size_t getDomainGlobalLongitudeSize(const std::string domainId);
     size_t getDomainGlobalLatitudeSize(const std::string domainId);
-    size_t getDomainLongitudeSize(const std::string domainId);
-    size_t getDomainLatitudeSize(const std::string domainId);
-    size_t getDomainLongitudeStart(const std::string domainId);
-    size_t getDomainLatitudeStart(const std::string domainId);
-    std::vector<double> getDomainLongitudeValues(const std::string domainId);
-    std::vector<double> getDomainLatitudeValues(const std::string domainId);
+    size_t getDomainLocalLongitudeSize(const std::string domainId);
+    size_t getDomainLocalLatitudeSize(const std::string domainId);
+    size_t getDomainLocalLongitudeStart(const std::string domainId);
+    size_t getDomainLocalLatitudeStart(const std::string domainId);
+    std::vector<double> getDomainLocalLongitudeValues(const std::string domainId);
+    std::vector<double> getDomainLocalLatitudeValues(const std::string domainId);
 
     /* Grid */
     void createGrid(const std::string gridId);

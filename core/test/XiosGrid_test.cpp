@@ -59,21 +59,21 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     const size_t nj_glo = 20;
     xios_handler.setDomainGlobalLatitudeSize("domain_A", nj_glo);
     const size_t ni = ni_glo / size;
-    xios_handler.setDomainLongitudeSize("domain_A", ni);
+    xios_handler.setDomainLocalLongitudeSize("domain_A", ni);
     const size_t nj = nj_glo;
-    xios_handler.setDomainLatitudeSize("domain_A", nj);
-    xios_handler.setDomainLongitudeStart("domain_A", ni * rank);
-    xios_handler.setDomainLatitudeStart("domain_A", 0);
+    xios_handler.setDomainLocalLatitudeSize("domain_A", nj);
+    xios_handler.setDomainLocalLongitudeStart("domain_A", ni * rank);
+    xios_handler.setDomainLocalLatitudeStart("domain_A", 0);
     std::vector<double> vecLon(ni);
     for (size_t i = 0; i < ni; i++) {
         vecLon[i] = -180 + (rank * ni * i) * 360 / ni_glo;
     }
-    xios_handler.setDomainLongitudeValues("domain_A", vecLon);
+    xios_handler.setDomainLocalLongitudeValues("domain_A", vecLon);
     std::vector<double> vecLat(nj);
     for (size_t j = 0; j < nj; j++) {
         vecLat[j] = -90 + j * 180 / nj_glo;
     }
-    xios_handler.setDomainLatitudeValues("domain_A", vecLat);
+    xios_handler.setDomainLocalLatitudeValues("domain_A", vecLat);
 
     // --- Tests for grid API
     const std::string gridId = { "grid_2D" };
