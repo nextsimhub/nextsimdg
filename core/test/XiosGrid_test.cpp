@@ -55,25 +55,25 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     xios_handler.createDomain("domain_A");
     xios_handler.setDomainType("domain_A", "rectilinear");
     const size_t ni_glo = 60;
-    xios_handler.setDomainGlobalLongitudeSize("domain_A", ni_glo);
+    xios_handler.setDomainGlobalXSize("domain_A", ni_glo);
     const size_t nj_glo = 20;
-    xios_handler.setDomainGlobalLatitudeSize("domain_A", nj_glo);
+    xios_handler.setDomainGlobalYSize("domain_A", nj_glo);
     const size_t ni = ni_glo / size;
-    xios_handler.setDomainLocalLongitudeSize("domain_A", ni);
+    xios_handler.setDomainLocalXSize("domain_A", ni);
     const size_t nj = nj_glo;
-    xios_handler.setDomainLocalLatitudeSize("domain_A", nj);
-    xios_handler.setDomainLocalLongitudeStart("domain_A", ni * rank);
-    xios_handler.setDomainLocalLatitudeStart("domain_A", 0);
+    xios_handler.setDomainLocalYSize("domain_A", nj);
+    xios_handler.setDomainLocalXStart("domain_A", ni * rank);
+    xios_handler.setDomainLocalYStart("domain_A", 0);
     std::vector<double> vecLon(ni);
     for (size_t i = 0; i < ni; i++) {
         vecLon[i] = -180 + (rank * ni * i) * 360 / ni_glo;
     }
-    xios_handler.setDomainLocalLongitudeValues("domain_A", vecLon);
+    xios_handler.setDomainLocalXValues("domain_A", vecLon);
     std::vector<double> vecLat(nj);
     for (size_t j = 0; j < nj; j++) {
         vecLat[j] = -90 + j * 180 / nj_glo;
     }
-    xios_handler.setDomainLocalLatitudeValues("domain_A", vecLat);
+    xios_handler.setDomainLocalYValues("domain_A", vecLat);
 
     // --- Tests for grid API
     const std::string gridId = { "grid_2D" };

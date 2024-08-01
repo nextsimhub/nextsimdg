@@ -68,23 +68,23 @@ public:
     /* Domain */
     void createDomain(const std::string domainId);
     void setDomainType(const std::string domainId, const std::string domainType);
-    void setDomainGlobalLongitudeSize(const std::string domainId, const size_t size);
-    void setDomainGlobalLatitudeSize(const std::string domainId, const size_t size);
-    void setDomainLocalLongitudeSize(const std::string domainId, const size_t size);
-    void setDomainLocalLatitudeSize(const std::string domainId, const size_t size);
-    void setDomainLocalLongitudeStart(const std::string domainId, const size_t start);
-    void setDomainLocalLatitudeStart(const std::string domainId, const size_t start);
-    void setDomainLocalLongitudeValues(const std::string domainId, std::vector<double> values);
-    void setDomainLocalLatitudeValues(const std::string domainId, std::vector<double> values);
+    void setDomainGlobalXSize(const std::string domainId, const size_t size);
+    void setDomainGlobalYSize(const std::string domainId, const size_t size);
+    void setDomainLocalXSize(const std::string domainId, const size_t size);
+    void setDomainLocalYSize(const std::string domainId, const size_t size);
+    void setDomainLocalXStart(const std::string domainId, const size_t start);
+    void setDomainLocalYStart(const std::string domainId, const size_t start);
+    void setDomainLocalXValues(const std::string domainId, std::vector<double> values);
+    void setDomainLocalYValues(const std::string domainId, std::vector<double> values);
     std::string getDomainType(const std::string domainId);
-    size_t getDomainGlobalLongitudeSize(const std::string domainId);
-    size_t getDomainGlobalLatitudeSize(const std::string domainId);
-    size_t getDomainLocalLongitudeSize(const std::string domainId);
-    size_t getDomainLocalLatitudeSize(const std::string domainId);
-    size_t getDomainLocalLongitudeStart(const std::string domainId);
-    size_t getDomainLocalLatitudeStart(const std::string domainId);
-    std::vector<double> getDomainLocalLongitudeValues(const std::string domainId);
-    std::vector<double> getDomainLocalLatitudeValues(const std::string domainId);
+    size_t getDomainGlobalXSize(const std::string domainId);
+    size_t getDomainGlobalYSize(const std::string domainId);
+    size_t getDomainLocalXSize(const std::string domainId);
+    size_t getDomainLocalYSize(const std::string domainId);
+    size_t getDomainLocalXStart(const std::string domainId);
+    size_t getDomainLocalYStart(const std::string domainId);
+    std::vector<double> getDomainLocalXValues(const std::string domainId);
+    std::vector<double> getDomainLocalYValues(const std::string domainId);
 
     /* Grid */
     void createGrid(const std::string gridId);
