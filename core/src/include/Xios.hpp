@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    26 July 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -15,6 +15,7 @@
 #if USE_XIOS
 
 #include "Configured.hpp"
+#include "Logged.hpp"
 #include "ModelArray.hpp"
 #include "Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -63,44 +64,32 @@ public:
     void setAxisValues(const std::string axisId, std::vector<double> values);
     size_t getAxisSize(const std::string axisId);
     std::vector<double> getAxisValues(const std::string axisId);
-    bool isDefinedAxisSize(const std::string axisId);
-    bool areDefinedAxisValues(const std::string axisId);
 
     /* Domain */
     void createDomain(const std::string domainId);
     void setDomainType(const std::string domainId, const std::string domainType);
-    void setDomainGlobalLongitudeSize(const std::string domainId, const size_t size);
-    void setDomainGlobalLatitudeSize(const std::string domainId, const size_t size);
-    void setDomainLongitudeSize(const std::string domainId, const size_t size);
-    void setDomainLatitudeSize(const std::string domainId, const size_t size);
-    void setDomainLongitudeStart(const std::string domainId, const size_t start);
-    void setDomainLatitudeStart(const std::string domainId, const size_t start);
-    void setDomainLongitudeValues(const std::string domainId, std::vector<double> values);
-    void setDomainLatitudeValues(const std::string domainId, std::vector<double> values);
+    void setDomainGlobalXSize(const std::string domainId, const size_t size);
+    void setDomainGlobalYSize(const std::string domainId, const size_t size);
+    void setDomainLocalXSize(const std::string domainId, const size_t size);
+    void setDomainLocalYSize(const std::string domainId, const size_t size);
+    void setDomainLocalXStart(const std::string domainId, const size_t start);
+    void setDomainLocalYStart(const std::string domainId, const size_t start);
+    void setDomainLocalXValues(const std::string domainId, std::vector<double> values);
+    void setDomainLocalYValues(const std::string domainId, std::vector<double> values);
     std::string getDomainType(const std::string domainId);
-    size_t getDomainGlobalLongitudeSize(const std::string domainId);
-    size_t getDomainGlobalLatitudeSize(const std::string domainId);
-    size_t getDomainLongitudeSize(const std::string domainId);
-    size_t getDomainLatitudeSize(const std::string domainId);
-    size_t getDomainLongitudeStart(const std::string domainId);
-    size_t getDomainLatitudeStart(const std::string domainId);
-    std::vector<double> getDomainLongitudeValues(const std::string domainId);
-    std::vector<double> getDomainLatitudeValues(const std::string domainId);
-    bool isDefinedDomainType(const std::string domainId);
-    bool isDefinedDomainGlobalLongitudeSize(const std::string domainId);
-    bool isDefinedDomainGlobalLatitudeSize(const std::string domainId);
-    bool isDefinedDomainLongitudeSize(const std::string domainId);
-    bool isDefinedDomainLatitudeSize(const std::string domainId);
-    bool isDefinedDomainLongitudeStart(const std::string domainId);
-    bool isDefinedDomainLatitudeStart(const std::string domainId);
-    bool areDefinedDomainLongitudeValues(const std::string domainId);
-    bool areDefinedDomainLatitudeValues(const std::string domainId);
+    size_t getDomainGlobalXSize(const std::string domainId);
+    size_t getDomainGlobalYSize(const std::string domainId);
+    size_t getDomainLocalXSize(const std::string domainId);
+    size_t getDomainLocalYSize(const std::string domainId);
+    size_t getDomainLocalXStart(const std::string domainId);
+    size_t getDomainLocalYStart(const std::string domainId);
+    std::vector<double> getDomainLocalXValues(const std::string domainId);
+    std::vector<double> getDomainLocalYValues(const std::string domainId);
 
     /* Grid */
     void createGrid(const std::string gridId);
     void setGridName(const std::string gridId, const std::string name);
     std::string getGridName(const std::string gridId);
-    bool isDefinedGridName(const std::string gridId);
     void gridAddAxis(std::string axisId, const std::string domainId);
     void gridAddDomain(const std::string gridId, const std::string domainId);
     std::vector<std::string> gridGetAxisIds(const std::string gridId);
@@ -114,9 +103,6 @@ public:
     std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
     std::string getFieldGridRef(const std::string fieldId);
-    bool isDefinedFieldName(const std::string fieldId);
-    bool isDefinedFieldOperation(const std::string fieldId);
-    bool isDefinedFieldGridRef(const std::string fieldId);
 
     /* File */
     void createFile(const std::string fileId);
@@ -126,10 +112,6 @@ public:
     std::string getFileName(const std::string fileId);
     std::string getFileType(const std::string fileId);
     std::string getFileOutputFreq(const std::string fileId);
-    bool validFileId(const std::string fileId);
-    bool isDefinedFileName(const std::string fileId);
-    bool isDefinedFileType(const std::string fileId);
-    bool isDefinedFileOutputFreq(const std::string fileId);
     void fileAddField(const std::string fileId, const std::string fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
