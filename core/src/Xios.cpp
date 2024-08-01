@@ -490,7 +490,7 @@ void Xios::setDomainLatitudeSize(const std::string domainId, const size_t size)
 {
     xios::CDomain* domain = getDomain(domainId);
     if (cxios_is_defined_domain_nj(domain)) {
-        Logged::warning("Xios: Overwriting global latitude size for domain '" + domainId + "'");
+        Logged::warning("Xios: Overwriting latitude size for domain '" + domainId + "'");
     }
     cxios_set_domain_nj(domain, (int)size);
     if (!cxios_is_defined_domain_nj(domain)) {
