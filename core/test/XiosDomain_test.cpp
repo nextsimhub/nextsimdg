@@ -80,24 +80,24 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     xios_handler.setDomainLocalYStart(domainId, startLat);
     REQUIRE(xios_handler.getDomainLocalYStart(domainId) == startLat);
     // Local longitude values
-    std::vector<double> vecLon(ni);
-    for (size_t i = 0; i < ni; i++) {
-        vecLon[i] = -180 + (rank * ni * i) * 360 / ni_glo;
+    std::vector<double> vx(ni);
+    for (size_t i {}; i < ni; i++) {
+        vx[i] = -180 + (rank * ni * i) * 360 / ni_glo;
     }
-    xios_handler.setDomainLocalXValues(domainId, vecLon);
-    std::vector<double> vecLonOut = xios_handler.getDomainLocalXValues(domainId);
-    for (size_t i = 0; i < ni; i++) {
-        REQUIRE(vecLonOut[i] == doctest::Approx(vecLon[i]));
+    xios_handler.setDomainLocalXValues(domainId, vx);
+    std::vector<double> vxOut = xios_handler.getDomainLocalXValues(domainId);
+    for (size_t i {}; i < ni; i++) {
+        REQUIRE(vxOut[i] == doctest::Approx(vx[i]));
     }
     // Local latitude values
-    std::vector<double> vecLat(nj);
-    for (size_t j = 0; j < nj; j++) {
-        vecLat[j] = -90 + j * 180 / nj_glo;
+    std::vector<double> vy(nj);
+    for (size_t j {}; j < nj; j++) {
+        vy[j] = -90 + j * 180 / nj_glo;
     }
-    xios_handler.setDomainLocalYValues(domainId, vecLat);
-    std::vector<double> vecLatOut = xios_handler.getDomainLocalYValues(domainId);
-    for (size_t j = 0; j < nj; j++) {
-        REQUIRE(vecLatOut[j] == doctest::Approx(vecLat[j]));
+    xios_handler.setDomainLocalYValues(domainId, vy);
+    std::vector<double> vyOut = xios_handler.getDomainLocalYValues(domainId);
+    for (size_t j {}; j < nj; j++) {
+        REQUIRE(vyOut[j] == doctest::Approx(vy[j]));
     }
 
     xios_handler.close_context_definition();
