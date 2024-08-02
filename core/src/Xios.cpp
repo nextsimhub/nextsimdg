@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    31 July 2024
+ * @date    2 August 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -583,6 +583,9 @@ void Xios::setDomainLocalXValues(const std::string domainId, std::vector<double>
     if (cxios_is_defined_domain_lonvalue_1d(domain)) {
         Logged::warning("Xios: Overwriting local x-values for domain '" + domainId + "'");
     }
+    if (!cxios_is_defined_domain_ni(domain)) {
+        setDomainLocalXSize(domainId, values.size());
+    }
     int size = getDomainLocalXSize(domainId);
     cxios_set_domain_lonvalue_1d(domain, values.data(), &size);
     if (!cxios_is_defined_domain_lonvalue_1d(domain)) {
@@ -602,6 +605,9 @@ void Xios::setDomainLocalYValues(const std::string domainId, std::vector<double>
     xios::CDomain* domain = getDomain(domainId);
     if (cxios_is_defined_domain_latvalue_1d(domain)) {
         Logged::warning("Xios: Overwriting local y-values for domain '" + domainId + "'");
+    }
+    if (!cxios_is_defined_domain_nj(domain)) {
+        setDomainLocalYSize(domainId, values.size());
     }
     int size = getDomainLocalYSize(domainId);
     cxios_set_domain_latvalue_1d(domain, values.data(), &size);
