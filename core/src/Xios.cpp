@@ -300,7 +300,7 @@ xios::CAxisGroup* Xios::getAxisGroup()
     xios::CAxisGroup* group = NULL;
     cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for axis_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'axis_definition'");
     }
     return group;
 }
@@ -316,7 +316,7 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
     if (!axis) {
-        throw std::runtime_error("Xios: Null pointer for axis with ID '" + axisId + "'");
+        throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
     }
     return axis;
 }
@@ -331,7 +331,7 @@ void Xios::createAxis(const std::string axisId)
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
     if (!axis) {
-        throw std::runtime_error("Xios: Null pointer for axis with ID '" + axisId + "'");
+        throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
     }
 }
 
@@ -343,7 +343,14 @@ void Xios::createAxis(const std::string axisId)
  */
 void Xios::setAxisSize(const std::string axisId, const size_t size)
 {
-    cxios_set_axis_n_glo(getAxis(axisId), (int)size);
+    xios::CAxis* axis = getAxis(axisId);
+    if (cxios_is_defined_axis_n_glo(axis)) {
+        Logged::warning("Xios: Size already set for axis '" + axisId + "'");
+    }
+    cxios_set_axis_n_glo(axis, (int)size);
+    if (!cxios_is_defined_axis_n_glo(axis)) {
+        throw std::runtime_error("Xios: Failed to set size for axis '" + axisId + "'");
+    }
 }
 
 /*!
@@ -354,14 +361,21 @@ void Xios::setAxisSize(const std::string axisId, const size_t size)
  */
 void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
 {
-    if (!isDefinedAxisSize(axisId)) {
+    xios::CAxis* axis = getAxis(axisId);
+    if (cxios_is_defined_axis_value(axis)) {
+        Logged::warning("Xios: Values already set for axis '" + axisId + "'");
+    }
+    if (!cxios_is_defined_axis_n_glo(axis)) {
         setAxisSize(axisId, values.size());
     }
     int size = getAxisSize(axisId);
     if (size != values.size()) {
-        throw std::runtime_error("Xios: Axis size incompatible with values for '" + axisId + "'");
+        throw std::runtime_error("Xios: Size incompatible with values for axis '" + axisId + "'");
     }
-    cxios_set_axis_value(getAxis(axisId), values.data(), &size);
+    cxios_set_axis_value(axis, values.data(), &size);
+    if (!cxios_is_defined_axis_value(axis)) {
+        throw std::runtime_error("Xios: Failed to set values for axis '" + axisId + "'");
+    }
 }
 
 /*!
@@ -372,8 +386,12 @@ void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
  */
 size_t Xios::getAxisSize(const std::string axisId)
 {
+    xios::CAxis* axis = getAxis(axisId);
+    if (!cxios_is_defined_axis_n_glo(axis)) {
+        throw std::runtime_error("Xios: Undefined size for axis '" + axisId + "'");
+    }
     int size;
-    cxios_get_axis_n_glo(getAxis(axisId), &size);
+    cxios_get_axis_n_glo(axis, &size);
     return (size_t)size;
 }
 
@@ -385,34 +403,16 @@ size_t Xios::getAxisSize(const std::string axisId)
  */
 std::vector<double> Xios::getAxisValues(const std::string axisId)
 {
+    xios::CAxis* axis = getAxis(axisId);
+    if (!cxios_is_defined_axis_value(axis)) {
+        throw std::runtime_error("Xios: Undefined values for axis '" + axisId + "'");
+    }
     int size = getAxisSize(axisId);
     double* values = new double[size];
-    cxios_get_axis_value(getAxis(axisId), values, &size);
+    cxios_get_axis_value(axis, values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
-}
-
-/*!
- * Verify whether a size has been defined for a given axis ID
- *
- * @param the axis ID
- * @return `true` if the size has been set, otherwise `false`
- */
-bool Xios::isDefinedAxisSize(const std::string axisId)
-{
-    return cxios_is_defined_axis_n_glo(getAxis(axisId));
-}
-
-/*!
- * Verify whether values have been defined for a given axis ID
- *
- * @param the axis ID
- * @return `true` if the values have been set, otherwise `false`
- */
-bool Xios::areDefinedAxisValues(const std::string axisId)
-{
-    return cxios_is_defined_axis_value(getAxis(axisId));
 }
 
 /*!
@@ -426,7 +426,7 @@ xios::CDomainGroup* Xios::getDomainGroup()
     xios::CDomainGroup* group = NULL;
     cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for domain_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'domain_definition'");
     }
     return group;
 }
@@ -442,7 +442,7 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
     if (!domain) {
-        throw std::runtime_error("Xios: Null pointer for domain with ID '" + domainId + "'");
+        throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
     }
     return domain;
 }
@@ -457,76 +457,158 @@ void Xios::createDomain(const std::string domainId)
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
     if (!domain) {
-        throw std::runtime_error("Xios: Null pointer for domain with ID '" + domainId + "'");
+        throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
     }
 }
 
 /*!
- * Set the local longitude size for a given domain
+ * Set the global number of points in the x-direction for a given domain
  *
  * @param the domain ID
- * @param the local longitude size
+ * @param the global number of points in the x-direction
  */
-void Xios::setDomainLongitudeSize(const std::string domainId, const size_t size)
+void Xios::setDomainGlobalXSize(const std::string domainId, const size_t size)
 {
-    cxios_set_domain_ni(getDomain(domainId), (int)size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_ni_glo(domain)) {
+        Logged::warning("Xios: Overwriting global x-size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_ni_glo(domain, (int)size);
+    if (!cxios_is_defined_domain_ni_glo(domain)) {
+        throw std::runtime_error("Xios: Failed to set global x-size for domain '" + domainId + "'");
+    }
 }
 
 /*!
- * Set the local latitude size for a given domain
+ * Set the global number of points in the y-direction for a given domain
  *
  * @param the domain ID
- * @param the local longitude size
+ * @param the global number of points in the y-direction
  */
-void Xios::setDomainLatitudeSize(const std::string domainId, const size_t size)
+void Xios::setDomainGlobalYSize(const std::string domainId, const size_t size)
 {
-    cxios_set_domain_nj(getDomain(domainId), (int)size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_nj_glo(domain)) {
+        Logged::warning("Xios: Overwriting global y-size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_nj_glo(domain, (int)size);
+    if (!cxios_is_defined_domain_nj_glo(domain)) {
+        throw std::runtime_error("Xios: Failed to set global y-size for domain '" + domainId + "'");
+    }
 }
 
 /*!
- * Set the local start longitude for a given domain
+ * Set the local number of points in the x-direction for a given domain
  *
  * @param the domain ID
- * @return the local start longitude
+ * @param the local number of points in the x-direction
  */
-void Xios::setDomainLongitudeStart(const std::string domainId, const size_t start)
+void Xios::setDomainLocalXSize(const std::string domainId, const size_t size)
 {
-    cxios_set_domain_ibegin(getDomain(domainId), (int)start);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_ni(domain)) {
+        Logged::warning("Xios: Overwriting local x-size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_ni(domain, (int)size);
+    if (!cxios_is_defined_domain_ni(domain)) {
+        throw std::runtime_error("Xios: Failed to set local x-size for domain '" + domainId + "'");
+    }
 }
 
 /*!
- * Set the local start latitude for a given domain
+ * Set the local number of points in the y-direction for a given domain
  *
  * @param the domain ID
- * @return the local start latitude
+ * @param the local number of points in the y-direction
  */
-void Xios::setDomainLatitudeStart(const std::string domainId, const size_t start)
+void Xios::setDomainLocalYSize(const std::string domainId, const size_t size)
 {
-    cxios_set_domain_jbegin(getDomain(domainId), (int)start);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_nj(domain)) {
+        Logged::warning("Xios: Overwriting local y-size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_nj(domain, (int)size);
+    if (!cxios_is_defined_domain_nj(domain)) {
+        throw std::runtime_error("Xios: Failed to set local y-size for domain '" + domainId + "'");
+    }
 }
 
 /*!
- * Set the local longitude values for a given domain
+ * Set the local starting x-index for a given domain
  *
  * @param the domain ID
- * @return the local longitude values
+ * @return the local starting x-index
  */
-void Xios::setDomainLongitudeValues(const std::string domainId, std::vector<double> values)
+void Xios::setDomainLocalXStart(const std::string domainId, const size_t start)
 {
-    int size = getDomainLongitudeSize(domainId);
-    cxios_set_domain_lonvalue_1d(getDomain(domainId), values.data(), &size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_ibegin(domain)) {
+        Logged::warning("Xios: Overwriting local starting x-index for domain '" + domainId + "'");
+    }
+    cxios_set_domain_ibegin(domain, (int)start);
+    if (!cxios_is_defined_domain_ibegin(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
+    }
 }
 
 /*!
- * Set the local latitude values for a given domain
+ * Set the local starting y-index for a given domain
  *
  * @param the domain ID
- * @return the local latitude values
+ * @return the local starting y-index
  */
-void Xios::setDomainLatitudeValues(const std::string domainId, std::vector<double> values)
+void Xios::setDomainLocalYStart(const std::string domainId, const size_t start)
 {
-    int size = getDomainLatitudeSize(domainId);
-    cxios_set_domain_latvalue_1d(getDomain(domainId), values.data(), &size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_jbegin(domain)) {
+        Logged::warning("Xios: Overwriting local starting y-index for domain '" + domainId + "'");
+    }
+    cxios_set_domain_jbegin(domain, (int)start);
+    if (!cxios_is_defined_domain_jbegin(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
+    }
+}
+
+/*!
+ * Set the local x-values for a given domain
+ *
+ * @param the domain ID
+ * @return the local x-values
+ */
+void Xios::setDomainLocalXValues(const std::string domainId, std::vector<double> values)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_lonvalue_1d(domain)) {
+        Logged::warning("Xios: Overwriting local x-values for domain '" + domainId + "'");
+    }
+    int size = getDomainLocalXSize(domainId);
+    cxios_set_domain_lonvalue_1d(domain, values.data(), &size);
+    if (!cxios_is_defined_domain_lonvalue_1d(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set local x-values for domain '" + domainId + "'");
+    }
+}
+
+/*!
+ * Set the local y-values for a given domain
+ *
+ * @param the domain ID
+ * @return the local y-values
+ */
+void Xios::setDomainLocalYValues(const std::string domainId, std::vector<double> values)
+{
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_latvalue_1d(domain)) {
+        Logged::warning("Xios: Overwriting local y-values for domain '" + domainId + "'");
+    }
+    int size = getDomainLocalYSize(domainId);
+    cxios_set_domain_latvalue_1d(domain, values.data(), &size);
+    if (!cxios_is_defined_domain_latvalue_1d(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set local y-values for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -537,29 +619,14 @@ void Xios::setDomainLatitudeValues(const std::string domainId, std::vector<doubl
  */
 void Xios::setDomainType(const std::string domainId, const std::string domainType)
 {
-    cxios_set_domain_type(getDomain(domainId), domainType.c_str(), domainType.length());
-}
-
-/*!
- * Set the global longitude size for a given domain
- *
- * @param the domain ID
- * @param global longitude size to set
- */
-void Xios::setDomainGlobalLongitudeSize(const std::string domainId, const size_t size)
-{
-    cxios_set_domain_ni_glo(getDomain(domainId), (int)size);
-}
-
-/*!
- * Set the global latitude size for a given domain
- *
- * @param the domain ID
- * @param global latitude size to set
- */
-void Xios::setDomainGlobalLatitudeSize(const std::string domainId, const size_t size)
-{
-    cxios_set_domain_nj_glo(getDomain(domainId), (int)size);
+    xios::CDomain* domain = getDomain(domainId);
+    if (cxios_is_defined_domain_type(domain)) {
+        Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
+    }
+    cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
+    if (!cxios_is_defined_domain_type(domain)) {
+        throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
+    }
 }
 
 /*!
@@ -570,220 +637,159 @@ void Xios::setDomainGlobalLatitudeSize(const std::string domainId, const size_t 
  */
 std::string Xios::getDomainType(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_type(domain)) {
+        throw std::runtime_error("Xios: Undefined type for domain '" + domainId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_domain_type(getDomain(domainId), cStr, cStrLen);
+    cxios_get_domain_type(domain, cStr, cStrLen);
     std::string domainType(cStr, cStrLen);
     boost::algorithm::trim_right(domainType);
     return domainType;
 }
 
 /*!
- * Get the global longitude size for a given domain
+ * Get the global number of points in the x-direction for a given domain
  *
  * @param the domain ID
- * @return the corresponding global longitude size
+ * @return the global number of points in the x-direction
  */
-size_t Xios::getDomainGlobalLongitudeSize(const std::string domainId)
+size_t Xios::getDomainGlobalXSize(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_ni_glo(domain)) {
+        throw std::runtime_error("Xios: Undefined global x-size for domain '" + domainId + "'");
+    }
     int size;
-    cxios_get_domain_ni_glo(getDomain(domainId), &size);
+    cxios_get_domain_ni_glo(domain, &size);
     return (size_t)size;
 }
 
 /*!
- * Get the global latitude size for a given domain
+ * Get the global number of points in the y-direction for a given domain
  *
  * @param the domain ID
- * @return the corresponding global latitude size
+ * @return the global number of points in the y-direction
  */
-size_t Xios::getDomainGlobalLatitudeSize(const std::string domainId)
+size_t Xios::getDomainGlobalYSize(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_nj_glo(domain)) {
+        throw std::runtime_error("Xios: Undefined global y-size for domain '" + domainId + "'");
+    }
     int size;
-    cxios_get_domain_nj_glo(getDomain(domainId), &size);
+    cxios_get_domain_nj_glo(domain, &size);
     return (size_t)size;
 }
 
 /*!
- * Get the local longitude size for a given domain
+ * Get the local number of points in the x-direction for a given domain
  *
  * @param the domain ID
- * @return the corresponding local longitude size
+ * @return the local number of points in the x-direction
  */
-size_t Xios::getDomainLongitudeSize(const std::string domainId)
+size_t Xios::getDomainLocalXSize(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_ni(domain)) {
+        throw std::runtime_error("Xios: Undefined local x-size for domain '" + domainId + "'");
+    }
     int size;
-    cxios_get_domain_ni(getDomain(domainId), &size);
+    cxios_get_domain_ni(domain, &size);
     return (size_t)size;
 }
 
 /*!
- * Get the local latitude size for a given domain
+ * Get the local number of points in the y-direction for a given domain
  *
  * @param the domain ID
- * @return the corresponding local latitude size
+ * @return the local number of points in the y-direction
  */
-size_t Xios::getDomainLatitudeSize(const std::string domainId)
+size_t Xios::getDomainLocalYSize(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_nj(domain)) {
+        throw std::runtime_error("Xios: Undefined local y-size for domain '" + domainId + "'");
+    }
     int size;
-    cxios_get_domain_nj(getDomain(domainId), &size);
+    cxios_get_domain_nj(domain, &size);
     return (size_t)size;
 }
 
 /*!
- * Get the local starting longitude for a given domain
+ * Get the local starting x-index for a given domain
  *
  * @param the domain ID
- * @return the local starting longitude of the corresponding domain
+ * @return the local starting x-index
  */
-size_t Xios::getDomainLongitudeStart(const std::string domainId)
+size_t Xios::getDomainLocalXStart(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_ibegin(domain)) {
+        throw std::runtime_error(
+            "Xios: Undefined local starting x-index for domain '" + domainId + "'");
+    }
     int start;
-    cxios_get_domain_ibegin(getDomain(domainId), &start);
+    cxios_get_domain_ibegin(domain, &start);
     return (size_t)start;
 }
 
 /*!
- * Get the local starting latitude for a given domain
+ * Get the local starting y-index for a given domain
  *
  * @param the domain ID
- * @return the local starting latitude of the corresponding domain
+ * @return the local starting y-index
  */
-size_t Xios::getDomainLatitudeStart(const std::string domainId)
+size_t Xios::getDomainLocalYStart(const std::string domainId)
 {
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_jbegin(domain)) {
+        throw std::runtime_error(
+            "Xios: Undefined local starting y-index for domain '" + domainId + "'");
+    }
     int start;
-    cxios_get_domain_jbegin(getDomain(domainId), &start);
+    cxios_get_domain_jbegin(domain, &start);
     return (size_t)start;
 }
 
 /*!
- * Get the local longitude values for a given domain
+ * Get the local x-values for a given domain
  *
  * @param the domain ID
- * @return the local longitude values of the corresponding domain
+ * @return the local x-values
  */
-std::vector<double> Xios::getDomainLongitudeValues(const std::string domainId)
+std::vector<double> Xios::getDomainLocalXValues(const std::string domainId)
 {
-    int size = getDomainLongitudeSize(domainId);
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_lonvalue_1d(domain)) {
+        throw std::runtime_error("Xios: Undefined local x-values for domain '" + domainId + "'");
+    }
+    int size = getDomainLocalXSize(domainId);
     double* values = new double[size];
-    cxios_get_domain_lonvalue_1d(getDomain(domainId), values, &size);
+    cxios_get_domain_lonvalue_1d(domain, values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
 }
 
 /*!
- * Get the local latitude values for a given domain
+ * Get the local y-values for a given domain
  *
  * @param the domain ID
- * @return the local latitude values of the corresponding domain
+ * @return the local y-values
  */
-std::vector<double> Xios::getDomainLatitudeValues(const std::string domainId)
+std::vector<double> Xios::getDomainLocalYValues(const std::string domainId)
 {
-    int size = getDomainLatitudeSize(domainId);
+    xios::CDomain* domain = getDomain(domainId);
+    if (!cxios_is_defined_domain_latvalue_1d(domain)) {
+        throw std::runtime_error("Xios: Undefined local y-values for domain '" + domainId + "'");
+    }
+    int size = getDomainLocalYSize(domainId);
     double* values = new double[size];
-    cxios_get_domain_latvalue_1d(getDomain(domainId), values, &size);
+    cxios_get_domain_latvalue_1d(domain, values, &size);
     std::vector<double> vec(values, values + size);
     delete[] values;
     return vec;
-}
-
-/*!
- * Verify whether a type has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the type has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainType(const std::string domainId)
-{
-    return cxios_is_defined_domain_type(getDomain(domainId));
-}
-
-/*!
- * Verify whether a global longitude size has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the global longitude size has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainGlobalLongitudeSize(const std::string domainId)
-{
-    return cxios_is_defined_domain_ni_glo(getDomain(domainId));
-}
-
-/*!
- * Verify whether a global latitude size has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the global latitude size has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainGlobalLatitudeSize(const std::string domainId)
-{
-    return cxios_is_defined_domain_nj_glo(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local longitude size has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local longitude size has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainLongitudeSize(const std::string domainId)
-{
-    return cxios_is_defined_domain_ni(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local latitude size has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local latitude size has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainLatitudeSize(const std::string domainId)
-{
-    return cxios_is_defined_domain_nj(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local starting longitude has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local starting longitude has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainLongitudeStart(const std::string domainId)
-{
-    return cxios_is_defined_domain_ibegin(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local starting latitude has been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local starting latitude has been set, otherwise `false`
- */
-bool Xios::isDefinedDomainLatitudeStart(const std::string domainId)
-{
-    return cxios_is_defined_domain_jbegin(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local longitude values have been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local longitude values have been set, otherwise `false`
- */
-bool Xios::areDefinedDomainLongitudeValues(const std::string domainId)
-{
-    return cxios_is_defined_domain_lonvalue_1d(getDomain(domainId));
-}
-
-/*!
- * Verify whether a local latitude values have been defined for a given domain ID
- *
- * @param the domain ID
- * @return `true` if the local latitude values have been set, otherwise `false`
- */
-bool Xios::areDefinedDomainLatitudeValues(const std::string domainId)
-{
-    return cxios_is_defined_domain_latvalue_1d(getDomain(domainId));
 }
 
 /*!
@@ -797,7 +803,7 @@ xios::CGridGroup* Xios::getGridGroup()
     xios::CGridGroup* group = NULL;
     cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for grid_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'grid_definition'");
     }
     return group;
 }
@@ -813,7 +819,7 @@ xios::CGrid* Xios::getGrid(const std::string gridId)
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
     if (!grid) {
-        throw std::runtime_error("Xios: Null pointer for grid with ID '" + gridId + "'");
+        throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
     }
     return grid;
 }
@@ -828,7 +834,7 @@ void Xios::createGrid(const std::string gridId)
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
     if (!grid) {
-        throw std::runtime_error("Xios: Null pointer for grid with ID '" + gridId + "'");
+        throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
     }
 }
 
@@ -840,8 +846,12 @@ void Xios::createGrid(const std::string gridId)
  */
 std::string Xios::getGridName(const std::string gridId)
 {
+    xios::CGrid* grid = getGrid(gridId);
+    if (!cxios_is_defined_grid_name(grid)) {
+        throw std::runtime_error("Xios: Undefined name for grid '" + gridId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_grid_name(getGrid(gridId), cStr, cStrLen);
+    cxios_get_grid_name(grid, cStr, cStrLen);
     std::string gridName(cStr, cStrLen);
     boost::algorithm::trim_right(gridName);
     return gridName;
@@ -855,18 +865,14 @@ std::string Xios::getGridName(const std::string gridId)
  */
 void Xios::setGridName(const std::string gridId, const std::string gridName)
 {
-    cxios_set_grid_name(getGrid(gridId), gridName.c_str(), gridName.length());
-}
-
-/*!
- * Verify whether a name has been defined for a given grid ID
- *
- * @param the grid ID
- * @return `true` if the name has been set, otherwise `false`
- */
-bool Xios::isDefinedGridName(const std::string gridId)
-{
-    return cxios_is_defined_grid_name(getGrid(gridId));
+    xios::CGrid* grid = getGrid(gridId);
+    if (cxios_is_defined_grid_name(grid)) {
+        Logged::warning("Xios: Overwriting name for grid '" + gridId + "'");
+    }
+    cxios_set_grid_name(grid, gridName.c_str(), gridName.length());
+    if (!cxios_is_defined_grid_name(grid)) {
+        throw std::runtime_error("Xios: Failed to set name for grid '" + gridId + "'");
+    }
 }
 
 /*!
@@ -926,7 +932,7 @@ xios::CFieldGroup* Xios::getFieldGroup()
     xios::CFieldGroup* group = NULL;
     cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for field_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'field_definition'");
     }
     return group;
 }
@@ -942,7 +948,7 @@ xios::CField* Xios::getField(const std::string fieldId)
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
     if (!field) {
-        throw std::runtime_error("Xios: Null pointer for field with ID '" + fieldId + "'");
+        throw std::runtime_error("Xios: Null pointer for field '" + fieldId + "'");
     }
     return field;
 }
@@ -957,7 +963,7 @@ void Xios::createField(const std::string fieldId)
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
     if (!field) {
-        throw std::runtime_error("Xios: Null pointer for field with ID '" + fieldId + "'");
+        throw std::runtime_error("Xios: Null pointer for field '" + fieldId + "'");
     }
 }
 
@@ -969,7 +975,14 @@ void Xios::createField(const std::string fieldId)
  */
 void Xios::setFieldName(const std::string fieldId, const std::string fieldName)
 {
-    cxios_set_field_name(getField(fieldId), fieldName.c_str(), fieldName.length());
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_name(field)) {
+        Logged::warning("Xios: Overwriting name for field '" + fieldId + "'");
+    }
+    cxios_set_field_name(field, fieldName.c_str(), fieldName.length());
+    if (!cxios_is_defined_field_name(field)) {
+        throw std::runtime_error("Xios: Failed to set name for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -980,7 +993,14 @@ void Xios::setFieldName(const std::string fieldId, const std::string fieldName)
  */
 void Xios::setFieldOperation(const std::string fieldId, const std::string operation)
 {
-    cxios_set_field_operation(getField(fieldId), operation.c_str(), operation.length());
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_operation(field)) {
+        Logged::warning("Xios: Overwriting operation for field '" + fieldId + "'");
+    }
+    cxios_set_field_operation(field, operation.c_str(), operation.length());
+    if (!cxios_is_defined_field_operation(field)) {
+        throw std::runtime_error("Xios: Failed to set operation for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -991,7 +1011,14 @@ void Xios::setFieldOperation(const std::string fieldId, const std::string operat
  */
 void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
 {
-    cxios_set_field_grid_ref(getField(fieldId), gridRef.c_str(), gridRef.length());
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_grid_ref(field)) {
+        Logged::warning("Xios: Overwriting grid reference for field '" + fieldId + "'");
+    }
+    cxios_set_field_grid_ref(field, gridRef.c_str(), gridRef.length());
+    if (!cxios_is_defined_field_grid_ref(field)) {
+        throw std::runtime_error("Xios: Failed to set grid reference for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -1002,8 +1029,12 @@ void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
  */
 std::string Xios::getFieldName(const std::string fieldId)
 {
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_name(field)) {
+        throw std::runtime_error("Xios: Undefined name for field '" + fieldId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_field_name(getField(fieldId), cStr, cStrLen);
+    cxios_get_field_name(field, cStr, cStrLen);
     std::string fieldName(cStr, cStrLen);
     boost::algorithm::trim_right(fieldName);
     return fieldName;
@@ -1017,8 +1048,12 @@ std::string Xios::getFieldName(const std::string fieldId)
  */
 std::string Xios::getFieldOperation(const std::string fieldId)
 {
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_operation(field)) {
+        throw std::runtime_error("Xios: Undefined operation for field '" + fieldId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_field_operation(getField(fieldId), cStr, cStrLen);
+    cxios_get_field_operation(field, cStr, cStrLen);
     std::string operation(cStr, cStrLen);
     boost::algorithm::trim_right(operation);
     return operation;
@@ -1032,44 +1067,15 @@ std::string Xios::getFieldOperation(const std::string fieldId)
  */
 std::string Xios::getFieldGridRef(const std::string fieldId)
 {
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_grid_ref(field)) {
+        throw std::runtime_error("Xios: Undefined grid reference for field '" + fieldId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_field_grid_ref(getField(fieldId), cStr, cStrLen);
+    cxios_get_field_grid_ref(field, cStr, cStrLen);
     std::string gridRef(cStr, cStrLen);
     boost::algorithm::trim_right(gridRef);
     return gridRef;
-}
-
-/*!
- * Verify whether a name has been defined for a given field ID
- *
- * @param the field ID
- * @return `true` if the name has been set, otherwise `false`
- */
-bool Xios::isDefinedFieldName(const std::string fieldId)
-{
-    return cxios_is_defined_field_name(getField(fieldId));
-}
-
-/*!
- * Verify whether an operation has been defined for a given field ID
- *
- * @param the field ID
- * @return `true` if the operation has been set, otherwise `false`
- */
-bool Xios::isDefinedFieldOperation(const std::string fieldId)
-{
-    return cxios_is_defined_field_operation(getField(fieldId));
-}
-
-/*!
- * Verify whether a grid reference has been defined for a given field ID
- *
- * @param the field ID
- * @return `true` if the grid reference has been set, otherwise `false`
- */
-bool Xios::isDefinedFieldGridRef(const std::string fieldId)
-{
-    return cxios_is_defined_field_grid_ref(getField(fieldId));
 }
 
 /*!
@@ -1083,7 +1089,7 @@ xios::CFileGroup* Xios::getFileGroup()
     xios::CFileGroup* group = NULL;
     cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
-        throw std::runtime_error("Xios: Null pointer for file_definition group");
+        throw std::runtime_error("Xios: Null pointer for group 'file_definition'");
     }
     return group;
 }
@@ -1099,7 +1105,7 @@ xios::CFile* Xios::getFile(const std::string fileId)
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
     if (!file) {
-        throw std::runtime_error("Xios: Null pointer for file with ID '" + fileId + "'");
+        throw std::runtime_error("Xios: Null pointer for file '" + fileId + "'");
     }
     return file;
 }
@@ -1112,9 +1118,18 @@ xios::CFile* Xios::getFile(const std::string fileId)
 void Xios::createFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
+    bool valid;
+    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
+    if (valid) {
+        throw std::runtime_error("Xios: File '" + fileId + "' already exists");
+    }
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
     if (!file) {
-        throw std::runtime_error("Xios: Null pointer for file with ID '" + fileId + "'");
+        throw std::runtime_error("Xios: Null pointer for file '" + fileId + "'");
+    }
+    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
+    if (!valid) {
+        throw std::runtime_error("Xios: Failed to create valid file '" + fileId + "'");
     }
 }
 
@@ -1126,7 +1141,14 @@ void Xios::createFile(const std::string fileId)
  */
 void Xios::setFileName(const std::string fileId, const std::string fileName)
 {
-    cxios_set_file_name(getFile(fileId), fileName.c_str(), fileName.length());
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_name(file)) {
+        Logged::warning("Xios: Overwriting name for file '" + fileId + "'");
+    }
+    cxios_set_file_name(file, fileName.c_str(), fileName.length());
+    if (!cxios_is_defined_file_name(file)) {
+        throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1137,7 +1159,14 @@ void Xios::setFileName(const std::string fileId, const std::string fileName)
  */
 void Xios::setFileType(const std::string fileId, const std::string fileType)
 {
-    cxios_set_file_type(getFile(fileId), fileType.c_str(), fileType.length());
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_type(file)) {
+        Logged::warning("Xios: Overwriting type for file '" + fileId + "'");
+    }
+    cxios_set_file_type(file, fileType.c_str(), fileType.length());
+    if (!cxios_is_defined_file_type(file)) {
+        throw std::runtime_error("Xios: Failed to set type for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1148,8 +1177,15 @@ void Xios::setFileType(const std::string fileId, const std::string fileType)
  */
 void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
 {
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_output_freq(file)) {
+        Logged::warning("Xios: Overwriting output frequency for file '" + fileId + "'");
+    }
     cxios_set_file_output_freq(
-        getFile(fileId), cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    if (!cxios_is_defined_file_output_freq(file)) {
+        throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1179,8 +1215,12 @@ void Xios::setFileSplitFreq(const std::string fileId, const std::string freq)
  */
 std::string Xios::getFileName(const std::string fileId)
 {
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_name(file)) {
+        throw std::runtime_error("Xios: Undefined name for file '" + fileId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_file_name(getFile(fileId), cStr, cStrLen);
+    cxios_get_file_name(file, cStr, cStrLen);
     std::string fileName(cStr, cStrLen);
     boost::algorithm::trim_right(fileName);
     return fileName;
@@ -1194,8 +1234,12 @@ std::string Xios::getFileName(const std::string fileId)
  */
 std::string Xios::getFileType(const std::string fileId)
 {
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_name(file)) {
+        throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_file_type(getFile(fileId), cStr, cStrLen);
+    cxios_get_file_type(file, cStr, cStrLen);
     std::string fileType(cStr, cStrLen);
     boost::algorithm::trim_right(fileType);
     return fileType;
@@ -1209,8 +1253,12 @@ std::string Xios::getFileType(const std::string fileId)
  */
 std::string Xios::getFileOutputFreq(const std::string fileId)
 {
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_output_freq(file)) {
+        throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
+    }
     cxios_duration duration;
-    cxios_get_file_output_freq(getFile(fileId), &duration);
+    cxios_get_file_output_freq(file, &duration);
     char cStr[cStrLen];
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
     std::string outputFreq(cStr, cStrLen);
@@ -1240,19 +1288,6 @@ std::string Xios::getFileSplitFreq(const std::string fileId)
 }
 
 /*!
- * Verify whether a given file ID is valid
- *
- * @param the file ID
- * @return `true` if the file ID is valid, otherwise `false`
- */
-bool Xios::validFileId(const std::string fileId)
-{
-    bool valid;
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    return valid;
-}
-
-/*!
  * Get all field IDs associated with a given file
  *
  * @param the file ID
@@ -1266,39 +1301,6 @@ std::vector<std::string> Xios::fileGetFieldIds(const std::string fileId)
         fieldIds[i] = fields[i]->getId();
     }
     return fieldIds;
-}
-
-/*!
- * Verify whether a name has been defined for a given file ID
- *
- * @param the file ID
- * @return `true` if the name has been set, otherwise `false`
- */
-bool Xios::isDefinedFileName(const std::string fileId)
-{
-    return cxios_is_defined_file_name(getFile(fileId));
-}
-
-/*!
- * Verify whether a type has been defined for a given file ID
- *
- * @param the file ID
- * @return `true` if the type has been set, otherwise `false`
- */
-bool Xios::isDefinedFileType(const std::string fileId)
-{
-    return cxios_is_defined_file_type(getFile(fileId));
-}
-
-/*!
- * Verify whether an output frequency has been defined for a given file ID
- *
- * @param the file ID
- * @return `true` if the output frequency has been set, otherwise `false`
- */
-bool Xios::isDefinedFileOutputFreq(const std::string fileId)
-{
-    return cxios_is_defined_file_output_freq(getFile(fileId));
 }
 
 /*!

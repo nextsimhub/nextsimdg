@@ -1,7 +1,7 @@
 /*!
  * @file    XiosField_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    26 July 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -61,21 +61,15 @@ MPI_TEST_CASE("TestXiosField", 2)
     xios_handler.createField(fieldId);
     // Field name
     const std::string fieldName = { "test_field" };
-    REQUIRE_FALSE(xios_handler.isDefinedFieldName(fieldId));
     xios_handler.setFieldName(fieldId, fieldName);
     REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
-    REQUIRE(xios_handler.isDefinedFieldName(fieldId));
     // Operation
     const std::string operation = { "instant" };
-    REQUIRE_FALSE(xios_handler.isDefinedFieldOperation(fieldId));
     xios_handler.setFieldOperation(fieldId, operation);
-    REQUIRE(xios_handler.isDefinedFieldOperation(fieldId));
     REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
     // Grid reference
     const std::string gridRef = { "grid_2D" };
-    REQUIRE_FALSE(xios_handler.isDefinedFieldGridRef(fieldId));
     xios_handler.setFieldGridRef(fieldId, gridRef);
-    REQUIRE(xios_handler.isDefinedFieldGridRef(fieldId));
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
 
     xios_handler.close_context_definition();

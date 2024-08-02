@@ -63,25 +63,18 @@ MPI_TEST_CASE("TestXiosFile", 2)
 
     // --- Tests for file API
     const std::string fileId { "output" };
-    REQUIRE_FALSE(xios_handler.validFileId(fileId));
     xios_handler.createFile(fileId);
-    REQUIRE(xios_handler.validFileId(fileId));
     // File name
     const std::string fileName { "diagnostic" };
     xios_handler.setFileName(fileId, fileName);
-    REQUIRE(xios_handler.isDefinedFileName(fileId));
     REQUIRE(xios_handler.getFileName(fileId) == fileName);
     // File type
     const std::string fileType { "one_file" };
-    REQUIRE_FALSE(xios_handler.isDefinedFileType(fileId));
     xios_handler.setFileType(fileId, fileType);
-    REQUIRE(xios_handler.isDefinedFileType(fileId));
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
-    REQUIRE_FALSE(xios_handler.isDefinedFileOutputFreq(fileId));
     const std::string freq { "1ts" };
     xios_handler.setFileOutputFreq(fileId, freq);
-    REQUIRE(xios_handler.isDefinedFileOutputFreq(fileId));
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
     // Split frequency
     const std::string splitFreq { "1ts" };

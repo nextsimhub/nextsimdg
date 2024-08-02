@@ -5,6 +5,11 @@ set(AllModuleSources "")
 file(GLOB ModuleSubDirs LIST_DIRECTORIES TRUE "*Module")
 
 foreach(ModuleSubDir IN LISTS ModuleSubDirs)
+    # Ignore directories without a module.cfg file
+    IF (NOT EXISTS "${ModuleSubDir}/module.cfg")
+        CONTINUE()
+    ENDIF()
+
     IF (NOT EXISTS("include/${ModuleSubDir}.hpp"))
         # Run the header python script
         EXECUTE_PROCESS(COMMAND "${Python_EXECUTABLE}" "${ModuleHeaderScript}" WORKING_DIRECTORY "${ModuleSubDir}")
