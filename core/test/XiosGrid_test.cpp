@@ -66,7 +66,7 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     xios_handler.setDomainLocalYStart("domain_A", 0);
     std::vector<double> vx { -1.0 + rank, -0.5 + rank };
     xios_handler.setDomainLocalXValues("domain_A", vx);
-    std::vector<double> vy { -1, 1 };
+    std::vector<double> vy { -1.0, 1.0 };
     xios_handler.setDomainLocalYValues("domain_A", vy);
 
     // --- Tests for grid API
