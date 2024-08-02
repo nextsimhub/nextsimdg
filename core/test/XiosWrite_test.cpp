@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    24 July 2024
+ * @date    31 July 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the write method of the C++ interface
@@ -96,12 +96,13 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xios_handler.setFieldGridRef("field_4D", "grid_4D");
 
     // File setup
-    xios_handler.createFile("output");
-    xios_handler.setFileType("output", "one_file");
-    xios_handler.setFileOutputFreq("output", "1ts");
-    xios_handler.fileAddField("output", "field_2D");
-    xios_handler.fileAddField("output", "field_3D");
-    xios_handler.fileAddField("output", "field_4D");
+    xios_handler.createFile("xios_test_output");
+    xios_handler.setFileType("xios_test_output", "one_file");
+    xios_handler.setFileOutputFreq("xios_test_output", "1ts");
+    xios_handler.setFileSplitFreq("xios_test_output", "2ts");
+    xios_handler.fileAddField("xios_test_output", "field_2D");
+    xios_handler.fileAddField("xios_test_output", "field_3D");
+    xios_handler.fileAddField("xios_test_output", "field_4D");
 
     xios_handler.close_context_definition();
 
@@ -130,6 +131,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // TODO: field_4D?
     // Verify calendar step is starting from zero
     REQUIRE(xios_handler.getCalendarStep() == 0);
+    // Check a file with the expected name doesn't exist yet
+    REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep
@@ -141,12 +144,13 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
-    // Check the file exists then remove it
-    REQUIRE(filesystem::exists("output.nc"));
+    // Check the files have indeed been created then remove it
+    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
     if (rank == 0) {
-        filesystem::remove("output.nc");
+        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
+        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
     }
-
     xios_handler.context_finalize();
 }
 }

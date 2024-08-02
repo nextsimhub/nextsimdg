@@ -1,7 +1,7 @@
 /*!
  * @file    XiosFile_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    26 July 2024
+ * @date    31 July 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -76,6 +76,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     const std::string freq { "1ts" };
     xios_handler.setFileOutputFreq(fileId, freq);
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
+    // Split frequency
+    const std::string splitFreq { "1ts" };
+    xios_handler.setFileSplitFreq(fileId, splitFreq);
+    REQUIRE(xios_handler.getFileSplitFreq(fileId) == splitFreq);
     // Add field
     xios_handler.fileAddField(fileId, "field_A");
     std::vector<std::string> fieldIds = xios_handler.fileGetFieldIds(fileId);
