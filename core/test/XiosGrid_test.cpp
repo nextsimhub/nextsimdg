@@ -54,25 +54,19 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     // Domain setup
     xios_handler.createDomain("domain_A");
     xios_handler.setDomainType("domain_A", "rectilinear");
-    const size_t ni_glo = 60;
-    xios_handler.setDomainGlobalXSize("domain_A", ni_glo);
-    const size_t nj_glo = 20;
-    xios_handler.setDomainGlobalYSize("domain_A", nj_glo);
-    const size_t ni = ni_glo / size;
-    xios_handler.setDomainLocalXSize("domain_A", ni);
-    const size_t nj = nj_glo;
-    xios_handler.setDomainLocalYSize("domain_A", nj);
-    xios_handler.setDomainLocalXStart("domain_A", ni * rank);
+    const size_t nx_glo = 4;
+    xios_handler.setDomainGlobalXSize("domain_A", nx_glo);
+    const size_t ny_glo = 2;
+    xios_handler.setDomainGlobalYSize("domain_A", ny_glo);
+    const size_t nx = nx_glo / size;
+    xios_handler.setDomainLocalXSize("domain_A", nx);
+    const size_t ny = ny_glo;
+    xios_handler.setDomainLocalYSize("domain_A", ny);
+    xios_handler.setDomainLocalXStart("domain_A", nx * rank);
     xios_handler.setDomainLocalYStart("domain_A", 0);
-    std::vector<double> vx(ni);
-    for (size_t i {}; i < ni; i++) {
-        vx[i] = -180 + (rank * ni * i) * 360 / ni_glo;
-    }
+    std::vector<double> vx { -1.0 + rank, -0.5 + rank };
     xios_handler.setDomainLocalXValues("domain_A", vx);
-    std::vector<double> vy(nj);
-    for (size_t j {}; j < nj; j++) {
-        vy[j] = -90 + j * 180 / nj_glo;
-    }
+    std::vector<double> vy { -1, 1 };
     xios_handler.setDomainLocalYValues("domain_A", vy);
 
     // --- Tests for grid API
