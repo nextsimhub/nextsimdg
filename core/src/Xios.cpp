@@ -1029,7 +1029,14 @@ void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
  */
 void Xios::setFieldReadAccess(const std::string fieldId, const bool readAccess)
 {
-    cxios_set_field_read_access(getField(fieldId), readAccess);
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_read_access(field)) {
+        Logged::warning("Xios: Overwriting read access for field '" + fieldId + "'");
+    }
+    cxios_set_field_read_access(field, readAccess);
+    if (!cxios_is_defined_field_read_access(field)) {
+        throw std::runtime_error("Xios: Failed to set read access for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -1040,8 +1047,16 @@ void Xios::setFieldReadAccess(const std::string fieldId, const bool readAccess)
  */
 void Xios::setFieldFreqOffset(const std::string fieldId, const std::string freqOffset)
 {
-    cxios_set_field_freq_offset(getField(fieldId),
-        cxios_duration_convert_from_string(freqOffset.c_str(), freqOffset.length()));
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_freq_offset(field)) {
+        Logged::warning("Xios: Overwriting frequency offset for field '" + fieldId + "'");
+    }
+    cxios_set_field_freq_offset(
+        field, cxios_duration_convert_from_string(freqOffset.c_str(), freqOffset.length()));
+    if (!cxios_is_defined_field_freq_offset(field)) {
+        throw std::runtime_error(
+            "Xios: Failed to set frequency offset for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -1109,8 +1124,12 @@ std::string Xios::getFieldGridRef(const std::string fieldId)
  */
 bool Xios::getFieldReadAccess(const std::string fieldId)
 {
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_read_access(field)) {
+        throw std::runtime_error("Xios: Undefined read access for field '" + fieldId + "'");
+    }
     bool readAccess;
-    cxios_get_field_read_access(getField(fieldId), &readAccess);
+    cxios_get_field_read_access(field, &readAccess);
     return readAccess;
 }
 
@@ -1122,8 +1141,12 @@ bool Xios::getFieldReadAccess(const std::string fieldId)
  */
 std::string Xios::getFieldFreqOffset(const std::string fieldId)
 {
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_freq_offset(field)) {
+        throw std::runtime_error("Xios: Undefined frequency offset for field '" + fieldId + "'");
+    }
     cxios_duration duration;
-    cxios_get_field_freq_offset(getField(fieldId), &duration);
+    cxios_get_field_freq_offset(field, &duration);
     char cStr[cStrLen];
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
     std::string freqOffset(cStr, cStrLen);
@@ -1268,7 +1291,14 @@ void Xios::setFileSplitFreq(const std::string fileId, const std::string freq)
  */
 void Xios::setFileMode(const std::string fileId, const std::string mode)
 {
-    cxios_set_file_mode(getFile(fileId), mode.c_str(), mode.length());
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_mode(file)) {
+        Logged::warning("Xios: Overwriting mode for file '" + fileId + "'");
+    }
+    cxios_set_file_mode(file, mode.c_str(), mode.length());
+    if (!cxios_is_defined_file_mode(file)) {
+        throw std::runtime_error("Xios: Failed to set mode for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1279,7 +1309,14 @@ void Xios::setFileMode(const std::string fileId, const std::string mode)
  */
 void Xios::setFileParAccess(const std::string fileId, const std::string parAccess)
 {
-    cxios_set_file_par_access(getFile(fileId), parAccess.c_str(), parAccess.length());
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_par_access(file)) {
+        Logged::warning("Xios: Overwriting parallel access for file '" + fileId + "'");
+    }
+    cxios_set_file_par_access(file, parAccess.c_str(), parAccess.length());
+    if (!cxios_is_defined_file_par_access(file)) {
+        throw std::runtime_error("Xios: Failed to set parallel access for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1370,8 +1407,12 @@ std::string Xios::getFileSplitFreq(const std::string fileId)
  */
 std::string Xios::getFileMode(const std::string fileId)
 {
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_mode(file)) {
+        throw std::runtime_error("Xios: Undefined mode for file '" + fileId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_file_mode(getFile(fileId), cStr, cStrLen);
+    cxios_get_file_mode(file, cStr, cStrLen);
     std::string mode(cStr, cStrLen);
     boost::algorithm::trim_right(mode);
     return mode;
@@ -1385,8 +1426,12 @@ std::string Xios::getFileMode(const std::string fileId)
  */
 std::string Xios::getFileParAccess(const std::string fileId)
 {
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_par_access(file)) {
+        throw std::runtime_error("Xios: Undefined parallel access for file '" + fileId + "'");
+    }
     char cStr[cStrLen];
-    cxios_get_file_par_access(getFile(fileId), cStr, cStrLen);
+    cxios_get_file_par_access(file, cStr, cStrLen);
     std::string parAccess(cStr, cStrLen);
     boost::algorithm::trim_right(parAccess);
     return parAccess;

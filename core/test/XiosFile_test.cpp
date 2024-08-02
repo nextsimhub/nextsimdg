@@ -85,10 +85,8 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.setFileMode(fileId, mode);
     REQUIRE(xios_handler.getFileMode(fileId) == mode);
     // File parallel access mode
-    REQUIRE_FALSE(xios_handler.isDefinedFileParAccess(fileId));
     const std::string parAccess { "collective" };
     xios_handler.setFileParAccess(fileId, parAccess);
-    REQUIRE(xios_handler.isDefinedFileParAccess(fileId));
     REQUIRE(xios_handler.getFileParAccess(fileId) == parAccess);
     // Add field
     xios_handler.fileAddField(fileId, "field_A");
