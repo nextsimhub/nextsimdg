@@ -54,20 +54,12 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     // Domain setup
     xios_handler.createDomain("domain_A");
     xios_handler.setDomainType("domain_A", "rectilinear");
-    const size_t nx_glo = 4;
-    xios_handler.setDomainGlobalXSize("domain_A", nx_glo);
-    const size_t ny_glo = 2;
-    xios_handler.setDomainGlobalYSize("domain_A", ny_glo);
-    const size_t nx = nx_glo / size;
-    xios_handler.setDomainLocalXSize("domain_A", nx);
-    const size_t ny = ny_glo;
-    xios_handler.setDomainLocalYSize("domain_A", ny);
-    xios_handler.setDomainLocalXStart("domain_A", nx * rank);
+    xios_handler.setDomainGlobalXSize("domain_A", 4);
+    xios_handler.setDomainGlobalYSize("domain_A", 2);
+    xios_handler.setDomainLocalXStart("domain_A", 2 * rank);
     xios_handler.setDomainLocalYStart("domain_A", 0);
-    std::vector<double> vx { -1.0 + rank, -0.5 + rank };
-    xios_handler.setDomainLocalXValues("domain_A", vx);
-    std::vector<double> vy { -1.0, 1.0 };
-    xios_handler.setDomainLocalYValues("domain_A", vy);
+    xios_handler.setDomainLocalXValues("domain_A", { -1.0 + rank, -0.5 + rank });
+    xios_handler.setDomainLocalYValues("domain_A", { -1.0, 1.0 });
 
     // --- Tests for grid API
     const std::string gridId = { "grid_2D" };

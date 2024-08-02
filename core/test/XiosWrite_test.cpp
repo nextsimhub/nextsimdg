@@ -55,25 +55,15 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Domain setup
     xios_handler.createDomain("xy_domain");
     xios_handler.setDomainType("xy_domain", "rectilinear");
-    const size_t nx_glo { 4 };
-    xios_handler.setDomainGlobalXSize("xy_domain", nx_glo);
-    const size_t ny_glo { 2 };
-    xios_handler.setDomainGlobalYSize("xy_domain", ny_glo);
-    const size_t nx { nx_glo / size };
-    xios_handler.setDomainLocalXSize("xy_domain", nx);
-    const size_t ny { ny_glo };
-    xios_handler.setDomainLocalYSize("xy_domain", ny);
-    xios_handler.setDomainLocalXStart("xy_domain", nx * rank);
+    xios_handler.setDomainGlobalXSize("xy_domain", 4);
+    xios_handler.setDomainGlobalYSize("xy_domain", 2);
+    xios_handler.setDomainLocalXStart("xy_domain", 2 * rank);
     xios_handler.setDomainLocalYStart("xy_domain", 0);
-    std::vector<double> vx { -1.0 + rank, -0.5 + rank };
-    xios_handler.setDomainLocalXValues("xy_domain", vx);
-    std::vector<double> vy { -1.0, 1.0 };
-    xios_handler.setDomainLocalYValues("xy_domain", vy);
+    xios_handler.setDomainLocalXValues("xy_domain", { -1.0 + rank, -0.5 + rank });
+    xios_handler.setDomainLocalYValues("xy_domain", { -1.0, 1.0 });
 
     // Axis setup
-    const int nz = 2;
     xios_handler.createAxis("z_axis");
-    xios_handler.setAxisSize("z_axis", nz);
     xios_handler.setAxisValues("z_axis", { 0.0, 1.0 });
 
     // Grid setup
@@ -106,8 +96,11 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // --- Tests for writing to file
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ModelArray::setDimension(ModelArray::Dimension::X, nx, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
+    const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
+    const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
+    const size_t nz = xios_handler.getAxisSize("z_axis");
+    ModelArray::setDimension(ModelArray::Dimension::X, xios_handler.getDomainGlobalXSize("xy_domain"), nx, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Y, xios_handler.getDomainGlobalYSize("xy_domain"), ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
     // Create some fake data to test writing methods
     HField field_2D(ModelArray::Type::H);
