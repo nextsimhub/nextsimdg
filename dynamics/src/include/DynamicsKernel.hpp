@@ -165,6 +165,44 @@ public:
         Nextsim::LimitMin(hice, 0.0);
     }
 
+    /*!
+     * Advects a ModelArray by one advection timestep.
+     *
+     * @param field Data for the field to be advected, as a ModelArray
+     * @param fieldName Name of the field to be advected.
+     */
+    ModelArray& advectField(ModelArray& maField, const std::string& fieldName)
+    {
+        // Check that advection has been prepared, if not prepare it
+        if (!isAdvectionReady) {
+            prepareAdvection();
+            // Check that the necessary calculations happened
+            if (!isAdvectionReady) {
+                throw std::runtime_error("DynamicsKernel: Failed to prepare advection.");
+            }
+        }
+
+        // Create the DGVector to hold the higher DG components, if it doesn't already exist.
+        if (advectedFields.count(fieldName) < 1) {
+            DGVector<DGadvection> newField;
+            newField.resize_by_mesh(*smesh);
+            newField.zero();
+            // copy to the map of advected fields
+            advectedFields[fieldName] = newField;
+        }
+
+        DGVector<DGadvection>& dgField = advectedFields[fieldName];
+        // Set the DG0 component
+        DGModelArray::ma2dg(maField, dgField);
+
+        // Perform the advection
+        dgtransport->step(deltaTAdvection, dgField);
+
+        // Extract the DG0 data
+        DGModelArray::dg2ma(dgField, maField);
+
+        return maField;
+    }
 protected:
     Nextsim::DGTransport<DGadvection>* dgtransport;
 
