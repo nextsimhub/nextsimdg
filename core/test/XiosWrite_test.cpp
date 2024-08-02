@@ -52,7 +52,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xios_handler.setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
     xios_handler.setCalendarTimestep(Duration("P0-0T01:30:00"));
 
-    // Domain setup
+    // Create a 4x2 horizontal domain with a partition halving the x-extent
     xios_handler.createDomain("xy_domain");
     xios_handler.setDomainType("xy_domain", "rectilinear");
     xios_handler.setDomainGlobalXSize("xy_domain", 4);
@@ -62,18 +62,18 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xios_handler.setDomainLocalXValues("xy_domain", { -1.0 + rank, -0.5 + rank });
     xios_handler.setDomainLocalYValues("xy_domain", { -1.0, 1.0 });
 
-    // Axis setup
+    // Create a vertical axis with 2 points
     xios_handler.createAxis("z_axis");
     xios_handler.setAxisValues("z_axis", { 0.0, 1.0 });
 
-    // Grid setup
+    // Create a 2D grid comprised of the xy-domain and a 3D grid which also includes the z-axis
     xios_handler.createGrid("grid_2D");
     xios_handler.gridAddDomain("grid_2D", "xy_domain");
     xios_handler.createGrid("grid_3D");
     xios_handler.gridAddDomain("grid_3D", "xy_domain");
     xios_handler.gridAddAxis("grid_3D", "z_axis");
 
-    // Field setup
+    // Create fields on the two grids
     xios_handler.createField("field_2D");
     xios_handler.setFieldOperation("field_2D", "instant");
     xios_handler.setFieldGridRef("field_2D", "grid_2D");
@@ -83,7 +83,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xios_handler.setFieldGridRef("field_3D", "grid_3D");
     xios_handler.setFieldReadAccess("field_3D", false);
 
-    // File setup
+    // Create an output file to hold data from both fields
     xios_handler.createFile("xios_test_output");
     xios_handler.setFileType("xios_test_output", "one_file");
     xios_handler.setFileOutputFreq("xios_test_output", Duration("P0-0T01:30:00"));

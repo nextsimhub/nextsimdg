@@ -49,11 +49,11 @@ MPI_TEST_CASE("TestXiosField", 2)
     Duration timestep("P0-0T01:00:00");
     xios_handler.setCalendarTimestep(timestep);
 
-    // Axis setup
+    // Create an axis with two points
     xios_handler.createAxis("axis_A");
     xios_handler.setAxisValues("axis_A", { 0.0, 1.0 });
 
-    // Grid setup
+    // Create a 1D grid comprised of the single axis
     xios_handler.createGrid("grid_1D");
     xios_handler.gridAddAxis("grid_1D", "axis_A");
 
