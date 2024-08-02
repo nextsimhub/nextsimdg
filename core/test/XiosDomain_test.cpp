@@ -87,7 +87,7 @@ MPI_TEST_CASE("TestXiosDomain", 2)
         REQUIRE(vxOut[i] == doctest::Approx(vx[i]));
     }
     // Local y-values
-    std::vector<double> vy { -1, 1 };
+    std::vector<double> vy { -1.0, 1.0 };
     xios_handler.setDomainLocalYValues(domainId, vy);
     std::vector<double> vyOut = xios_handler.getDomainLocalYValues(domainId);
     for (size_t j {}; j < ny; j++) {

@@ -53,7 +53,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
 
     // Axis setup
     xios_handler.createAxis("axis_A");
-    xios_handler.setAxisValues("axis_A", { 0, 1 });
+    xios_handler.setAxisValues("axis_A", { 0.0, 1.0 });
 
     // Grid setup
     xios_handler.createGrid("grid_1D");
