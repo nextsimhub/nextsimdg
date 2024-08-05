@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    31 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   XIOS interface header
  * @details
  *
