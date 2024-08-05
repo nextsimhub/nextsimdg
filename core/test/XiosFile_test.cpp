@@ -62,30 +62,30 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.setFieldGridRef("field_A", "grid_1D");
 
     // --- Tests for file API
-    const std::string fileId { "output" };
+    const std::string fileId = "output";
     xios_handler.createFile(fileId);
     // File name
-    const std::string fileName { "diagnostic" };
+    const std::string fileName = "diagnostic";
     xios_handler.setFileName(fileId, fileName);
     REQUIRE(xios_handler.getFileName(fileId) == fileName);
     // File type
-    const std::string fileType { "one_file" };
+    const std::string fileType = "one_file";
     xios_handler.setFileType(fileId, fileType);
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
-    const std::string freq { "1ts" };
+    const std::string freq = "1ts";
     xios_handler.setFileOutputFreq(fileId, freq);
     REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
     // Split frequency
-    const std::string splitFreq { "1ts" };
+    const std::string splitFreq = "1ts";
     xios_handler.setFileSplitFreq(fileId, splitFreq);
     REQUIRE(xios_handler.getFileSplitFreq(fileId) == splitFreq);
     // File mode
-    const std::string mode { "write" };
+    const std::string mode = "write";
     xios_handler.setFileMode(fileId, mode);
     REQUIRE(xios_handler.getFileMode(fileId) == mode);
     // File parallel access mode
-    const std::string parAccess { "collective" };
+    const std::string parAccess = "collective";
     xios_handler.setFileParAccess(fileId, parAccess);
     REQUIRE(xios_handler.getFileParAccess(fileId) == parAccess);
     // Add field

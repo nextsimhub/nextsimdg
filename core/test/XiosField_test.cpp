@@ -57,18 +57,18 @@ MPI_TEST_CASE("TestXiosField", 2)
     xios_handler.gridAddAxis("grid_1D", "axis_A");
 
     // --- Tests for field API
-    const std::string fieldId = { "field_A" };
+    const std::string fieldId = "field_A";
     xios_handler.createField(fieldId);
     // Field name
-    const std::string fieldName = { "test_field" };
+    const std::string fieldName = "test_field";
     xios_handler.setFieldName(fieldId, fieldName);
     REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
     // Operation
-    const std::string operation = { "instant" };
+    const std::string operation = "instant";
     xios_handler.setFieldOperation(fieldId, operation);
     REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
     // Grid reference
-    const std::string gridRef = { "grid_1D" };
+    const std::string gridRef = "grid_1D";
     xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
     // Read access
@@ -76,7 +76,7 @@ MPI_TEST_CASE("TestXiosField", 2)
     xios_handler.setFieldReadAccess(fieldId, readAccess);
     REQUIRE(xios_handler.getFieldReadAccess(fieldId));
     // Frequency offset
-    const std::string freqOffset = { "1ts" };
+    const std::string freqOffset = "1ts";
     xios_handler.setFieldFreqOffset(fieldId, freqOffset);
     REQUIRE(xios_handler.getFieldFreqOffset(fieldId) == freqOffset);
 
