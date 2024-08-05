@@ -1,7 +1,7 @@
 /*!
  * @file    XiosGrid_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    26 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface

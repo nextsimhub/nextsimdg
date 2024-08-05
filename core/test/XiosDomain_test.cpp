@@ -1,7 +1,7 @@
 /*!
  * @file    XiosDomain_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    26 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   Tests for XIOS domains
  * @details
  * This test is designed to test domain functionality of the C++ interface
