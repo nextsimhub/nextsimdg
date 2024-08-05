@@ -73,9 +73,9 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.setFileType(fileId, fileType);
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
-    const std::string freq { "1ts" };
-    xios_handler.setFileOutputFreq(fileId, freq);
-    REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
+    const std::string outputFreq { "1ts" };
+    xios_handler.setFileOutputFreq(fileId, outputFreq);
+    REQUIRE(xios_handler.getFileOutputFreq(fileId) == outputFreq);
     // Split frequency
     const std::string splitFreq { "1ts" };
     xios_handler.setFileSplitFreq(fileId, splitFreq);
