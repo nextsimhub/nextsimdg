@@ -1,7 +1,7 @@
 /*!
  * @file    XiosField_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    26 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -48,11 +48,11 @@ MPI_TEST_CASE("TestXiosField", 2)
     // Set timestep as a minimum
     xios_handler.setCalendarTimestep(Duration("P0-0T01:00:00"));
 
-    // Axis setup
+    // Create an axis with two points
     xios_handler.createAxis("axis_A");
-    xios_handler.setAxisValues("axis_A", { 0, 1 });
+    xios_handler.setAxisValues("axis_A", { 0.0, 1.0 });
 
-    // Grid setup
+    // Create a 1D grid comprised of the single axis
     xios_handler.createGrid("grid_1D");
     xios_handler.gridAddAxis("grid_1D", "axis_A");
 
