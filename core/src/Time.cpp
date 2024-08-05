@@ -1,7 +1,7 @@
 /*!
  * @file Time.cpp
  *
- * @date Jun 7, 2022
+ * @date 5 August, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -66,15 +66,19 @@ int julianGregorianShiftDays(int year)
     return -leaps;
 }
 
-bool isDOYFormat(const std::string& iso)
+bool isYMDFormat(const std::string& iso)
 {
     const std::regex ymd("^\\d+-\\d+-\\d+($|T)"); // Search for the month
+    return std::regex_search(iso, ymd);
+}
+
+bool isDOYFormat(const std::string& iso)
+{
     const std::regex doy("^\\d+-\\d+($|T)"); // Search for the day of year
 
-    bool isYMD = std::regex_search(iso, ymd);
     bool isDOY = std::regex_search(iso, doy);
 
-    if (!isYMD && !isDOY)
+    if (!isYMDFormat(iso) && !isDOY)
         throw std::invalid_argument("Unrecognized date format: " + iso);
 
     if (TimeOptions::useDOY() && !isDOY)
@@ -157,6 +161,10 @@ std::time_t timeFromISO(std::istream& is)
 
 Duration durationFromISO(const std::string& iso, int sign = +1)
 {
+    if (isYMDFormat(iso)) {
+        throw std::invalid_argument(
+            "Duration does not accept months as they have arbitrary length");
+    }
     bool isDOY = isDOYFormat(iso);
     std::tm tm = getTimTime(iso, isDOY);
     // Make up the time duration, analogously to mkgmtime()

@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    31 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the write method of the C++ interface
@@ -98,8 +98,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // File setup
     xios_handler.createFile("xios_test_output");
     xios_handler.setFileType("xios_test_output", "one_file");
-    xios_handler.setFileOutputFreq("xios_test_output", "1ts");
-    xios_handler.setFileSplitFreq("xios_test_output", "2ts");
+    xios_handler.setFileOutputFreq("xios_test_output", Duration("P0-0T01:30:00"));
+    xios_handler.setFileSplitFreq("xios_test_output", Duration("P0-0T03:00:00"));
     xios_handler.fileAddField("xios_test_output", "field_2D");
     xios_handler.fileAddField("xios_test_output", "field_3D");
     xios_handler.fileAddField("xios_test_output", "field_4D");
