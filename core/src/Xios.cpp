@@ -204,6 +204,17 @@ Duration Xios::convertDurationFromXios(const cxios_duration duration)
 }
 
 /*!
+ * Convert a nextSIM-DG duration object into an XIOS one.
+ *
+ * @param nextSIM-DG duration object
+ * @return XIOS version
+ */
+cxios_duration Xios::convertDurationToXios(const Duration duration)
+{
+    return cxios_duration({ 0.0, 0.0, 0.0, 0.0, 0.0, duration.seconds() });
+}
+
+/*!
  * Set calendar origin
  *
  * @param origin
@@ -232,8 +243,7 @@ void Xios::setCalendarStart(const TimePoint start)
  */
 void Xios::setCalendarTimestep(const Duration timestep)
 {
-    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, 0.0, timestep.seconds() };
-    cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
+    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
     cxios_update_calendar_timestep(clientCalendar);
 }
 
@@ -1193,8 +1203,7 @@ void Xios::setFileOutputFreq(const std::string fileId, Duration freq)
     if (cxios_is_defined_file_output_freq(file)) {
         Logged::warning("Xios: Overwriting output frequency for file '" + fileId + "'");
     }
-    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, 0.0, freq.seconds() };
-    cxios_set_file_output_freq(file, duration);
+    cxios_set_file_output_freq(file, convertDurationToXios(freq));
     if (!cxios_is_defined_file_output_freq(file)) {
         throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
     }
@@ -1212,8 +1221,7 @@ void Xios::setFileSplitFreq(const std::string fileId, Duration freq)
     if (cxios_is_defined_file_split_freq(file)) {
         Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
     }
-    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, 0.0, freq.seconds() };
-    cxios_set_file_split_freq(file, duration);
+    cxios_set_file_split_freq(file, convertDurationToXios(freq));
     if (!cxios_is_defined_file_split_freq(file)) {
         throw std::runtime_error("Xios: Failed to set split frequency for file '" + fileId + "'");
     }

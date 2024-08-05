@@ -146,6 +146,7 @@ private:
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
     std::string convertCStrToCppStr(const char* cStr, int cStrLen);
     Duration convertDurationFromXios(const cxios_duration duration);
+    cxios_duration convertDurationToXios(const Duration duration);
 
     xios::CAxisGroup* getAxisGroup();
     xios::CDomainGroup* getDomainGroup();
