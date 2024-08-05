@@ -73,13 +73,11 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.setFileType(fileId, fileType);
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
-    const std::string outputFreq { "1ts" };
-    xios_handler.setFileOutputFreq(fileId, outputFreq);
-    REQUIRE(xios_handler.getFileOutputFreq(fileId) == outputFreq);
+    xios_handler.setFileOutputFreq(fileId, Duration("P0-0T01:00:00"));
+    REQUIRE(xios_handler.getFileOutputFreq(fileId).seconds() == doctest::Approx(3600.0));
     // Split frequency
-    const std::string splitFreq { "1ts" };
-    xios_handler.setFileSplitFreq(fileId, splitFreq);
-    REQUIRE(xios_handler.getFileSplitFreq(fileId) == splitFreq);
+    xios_handler.setFileSplitFreq(fileId, Duration("P0-0T02:00:00"));
+    REQUIRE(xios_handler.getFileSplitFreq(fileId).seconds() == doctest::Approx(7200.0));
     // Add field
     xios_handler.fileAddField(fileId, "field_A");
     std::vector<std::string> fieldIds = xios_handler.fileGetFieldIds(fileId);

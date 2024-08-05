@@ -1175,14 +1175,14 @@ void Xios::setFileType(const std::string fileId, const std::string fileType)
  * @param the file ID
  * @param output frequency to set
  */
-void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
+void Xios::setFileOutputFreq(const std::string fileId, Duration freq)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_output_freq(file)) {
         Logged::warning("Xios: Overwriting output frequency for file '" + fileId + "'");
     }
-    cxios_set_file_output_freq(
-        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, 0.0, freq.seconds() };
+    cxios_set_file_output_freq(file, duration);
     if (!cxios_is_defined_file_output_freq(file)) {
         throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
     }
@@ -1194,14 +1194,14 @@ void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
  * @param the file ID
  * @param split frequency to set
  */
-void Xios::setFileSplitFreq(const std::string fileId, const std::string freq)
+void Xios::setFileSplitFreq(const std::string fileId, Duration freq)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_split_freq(file)) {
         Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
     }
-    cxios_set_file_split_freq(
-        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, 0.0, freq.seconds() };
+    cxios_set_file_split_freq(file, duration);
     if (!cxios_is_defined_file_split_freq(file)) {
         throw std::runtime_error("Xios: Failed to set split frequency for file '" + fileId + "'");
     }
@@ -1251,7 +1251,7 @@ std::string Xios::getFileType(const std::string fileId)
  * @param the file ID
  * @return the corresponding output frequency
  */
-std::string Xios::getFileOutputFreq(const std::string fileId)
+Duration Xios::getFileOutputFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_output_freq(file)) {
@@ -1261,9 +1261,10 @@ std::string Xios::getFileOutputFreq(const std::string fileId)
     cxios_get_file_output_freq(file, &duration);
     char cStr[cStrLen];
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    std::string outputFreq(cStr, cStrLen);
-    boost::algorithm::trim_right(outputFreq);
-    return outputFreq;
+    std::string freq(cStr, cStrLen);
+    boost::algorithm::trim_right(freq);
+    boost::erase_all(freq, "s");
+    return Duration(std::stod(freq));
 }
 
 /*!
@@ -1272,7 +1273,7 @@ std::string Xios::getFileOutputFreq(const std::string fileId)
  * @param the file ID
  * @return split frequency of the corresponding file
  */
-std::string Xios::getFileSplitFreq(const std::string fileId)
+Duration Xios::getFileSplitFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_split_freq(file)) {
@@ -1284,7 +1285,8 @@ std::string Xios::getFileSplitFreq(const std::string fileId)
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
     std::string freq(cStr, cStrLen);
     boost::algorithm::trim_right(freq);
-    return freq;
+    boost::erase_all(freq, "s");
+    return Duration(std::stod(freq));
 }
 
 /*!

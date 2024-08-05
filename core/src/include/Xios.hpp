@@ -108,12 +108,12 @@ public:
     void createFile(const std::string fileId);
     void setFileName(const std::string fileId, const std::string fileName);
     void setFileType(const std::string fileId, const std::string fileType);
-    void setFileOutputFreq(const std::string fileId, const std::string outputFreq);
-    void setFileSplitFreq(const std::string fileId, const std::string splitFreq);
+    void setFileOutputFreq(const std::string fileId, Duration outputFreq);
+    void setFileSplitFreq(const std::string fileId, Duration splitFreq);
     std::string getFileName(const std::string fileId);
     std::string getFileType(const std::string fileId);
-    std::string getFileOutputFreq(const std::string fileId);
-    std::string getFileSplitFreq(const std::string fileId);
+    Duration getFileOutputFreq(const std::string fileId);
+    Duration getFileSplitFreq(const std::string fileId);
     void fileAddField(const std::string fileId, const std::string fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
