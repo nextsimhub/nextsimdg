@@ -1,6 +1,6 @@
 /*!
  * @file    XiosField_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @date    21 August 2024
  * @brief   Tests for XIOS axes
  * @details
