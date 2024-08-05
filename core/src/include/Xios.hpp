@@ -100,9 +100,13 @@ public:
     void setFieldName(const std::string fieldId, const std::string name);
     void setFieldOperation(const std::string fieldId, const std::string operation);
     void setFieldGridRef(const std::string fieldId, const std::string gridRef);
+    void setFieldReadAccess(const std::string fieldId, const bool readAccess);
+    void setFieldFreqOffset(const std::string fieldId, const std::string freqOffset);
     std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
     std::string getFieldGridRef(const std::string fieldId);
+    bool getFieldReadAccess(const std::string fieldId);
+    std::string getFieldFreqOffset(const std::string fieldId);
 
     /* File */
     void createFile(const std::string fileId);
@@ -110,15 +114,20 @@ public:
     void setFileType(const std::string fileId, const std::string fileType);
     void setFileOutputFreq(const std::string fileId, const std::string outputFreq);
     void setFileSplitFreq(const std::string fileId, const std::string splitFreq);
+    void setFileMode(const std::string fileId, const std::string mode);
+    void setFileParAccess(const std::string fileId, const std::string parAccess);
     std::string getFileName(const std::string fileId);
     std::string getFileType(const std::string fileId);
     std::string getFileOutputFreq(const std::string fileId);
     std::string getFileSplitFreq(const std::string fileId);
+    std::string getFileMode(const std::string fileId);
+    std::string getFileParAccess(const std::string fileId);
     void fileAddField(const std::string fileId, const std::string fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
     /* I/O */
     void write(const std::string fieldId, ModelArray& modelarray);
+    void read(const std::string fieldId, ModelArray& modelarray);
 
     enum {
         ENABLED_KEY,
