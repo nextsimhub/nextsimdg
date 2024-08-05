@@ -189,6 +189,21 @@ std::string Xios::convertCStrToCppStr(const char* cStr, int cStrLen)
 }
 
 /*!
+ * Convert an XIOS duration object into a nextSIM-DG one.
+ *
+ * @param XIOS duration object
+ * @return nextSIM-DG version
+ */
+Duration Xios::convertDurationFromXios(const cxios_duration duration)
+{
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(duration, cStr, cStrLen);
+    std::string durationStr = convertCStrToCppStr(cStr, cStrLen);
+    boost::erase_all(durationStr, "s");
+    return Duration(std::stod(durationStr));
+}
+
+/*!
  * Set calendar origin
  *
  * @param origin
@@ -267,11 +282,7 @@ Duration Xios::getCalendarTimestep()
 {
     cxios_duration calendar_timestep;
     cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
-    char cStr[cStrLen];
-    cxios_duration_convert_to_string(calendar_timestep, cStr, cStrLen);
-    std::string durationStr = convertCStrToCppStr(cStr, cStrLen);
-    boost::erase_all(durationStr, "s");
-    return Duration(std::stod(durationStr));
+    return convertDurationFromXios(calendar_timestep);
 }
 
 /*!
@@ -1256,11 +1267,7 @@ Duration Xios::getFileOutputFreq(const std::string fileId)
     }
     cxios_duration duration;
     cxios_get_file_output_freq(file, &duration);
-    char cStr[cStrLen];
-    cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    std::string freq = convertCStrToCppStr(cStr, cStrLen);
-    boost::erase_all(freq, "s");
-    return Duration(std::stod(freq));
+    return convertDurationFromXios(duration);
 }
 
 /*!
@@ -1277,11 +1284,7 @@ Duration Xios::getFileSplitFreq(const std::string fileId)
     }
     cxios_duration duration;
     cxios_get_file_split_freq(file, &duration);
-    char cStr[cStrLen];
-    cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    std::string freq = convertCStrToCppStr(cStr, cStrLen);
-    boost::erase_all(freq, "s");
-    return Duration(std::stod(freq));
+    return convertDurationFromXios(duration);
 }
 
 /*!
