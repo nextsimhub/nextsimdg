@@ -49,7 +49,7 @@ TEST_CASE("Advect a field")
     double dx = 1000; //m
     double dy = 1000; //m
     double r0 = 40000; //m
-    double deltaT = 100; //s
+    double deltaT = 25; //s
 
     // Create the grid coordinates
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
@@ -81,6 +81,9 @@ TEST_CASE("Advect a field")
     cice.resize();
     HField hsnow(ModelArray::Type::H);
     hsnow.resize();
+    
+    // A map of the results at the target times
+    std::map<double, ModelArray> testData;
 
     HField x(ModelArray::Type::H);
     HField y(ModelArray::Type::H);
@@ -93,27 +96,44 @@ TEST_CASE("Advect a field")
     double omega = 6.28e-5;
     double hice0 = 1.;
     double cice0 = 1.;
-    double hsnow0 = 1.;
+    double hsnowA = 1.;
+    // Slope characteristics
+    double rs = 1 * dx;
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            double xx = i * dx - x0;
-            double yy = j * dy - y0;
-            double r = std::sqrt(xx * xx + yy * yy);
+            // Linear coordinates
+            double xij = i * dx - x0;
+            double yij = j * dy - y0;
+            x(i, j) = xij;
+            y(i, j) = yij;
+            // Square coordinates
+            double xx = xij * xij;
+            double yy = yij * yij;
+            // Radial coordinates
+            double rr = xx + yy;
+            double r = std::sqrt(rr);
+            // Hsnow function: cos^2 + 1
+            double hsnow0 = hsnowA * xx / rr + 1;
             if (r < r0) {
                 hice(i, j) = hice0;
                 cice(i, j) = cice0;
-                u(i, j) = -omega * yy;
-                v(i, j) = omega * xx;
+                u(i, j) = -omega * yij;
+                v(i, j) = omega * xij;
                 hsnow(i, j) = hsnow0;
             } else {
-                hice(i, j) = 0.;
-                cice(i, j) = 0.;
-                u(i, j) = 0.;
-                v(i, j) = 0.;
-                hsnow(i, j) = 0.;
+                double slope = std::max((r0 + rs - r) / rs, 0.);
+                hice(i, j) = hice0 * slope;
+                cice(i, j) = cice0 * slope;
+                // u, v are defined if there is any ice
+                if (slope > 0.) {
+                    u(i, j) = -omega * yij;
+                    v(i, j) = omega * xij;
+                } else {
+                    u(i, j) = 0.;
+                    v(i, j) = 0.;
+                }
+                hsnow(i, j) = hsnow0 * slope;
             }
-            x(i, j) = xx;
-            y(i, j) = yy;
         }
     }
     advection.setData(hiceName, hice);
@@ -121,34 +141,42 @@ TEST_CASE("Advect a field")
     advection.setData(uName, u);
     advection.setData(vName, v);
 
-    double hsnowMultiplier = 2;
-    // Modify the data to advect
-    for (size_t i = nx / 2; i < nx; ++i) {
-        hsnow(i, ny / 2) *= hsnowMultiplier;
-    }
-
-    writeDataPGM(hsnow * 100, "start.pgm");
-
-    double timeLimit = 1e4;
+    double timeLimit = 1e5;
     TimePoint origin("2024-08-01T00:00:00Z");
     // Iterate: run the DynamicsKernel update, then advect the snow
-    for (double t = 0; t < timeLimit; t += deltaT) {
+    double outPeriod = 25000;
+    double outCount = outPeriod;
+    std::vector<double> testTimes;
+    for (double t = 0; t <= timeLimit; t += deltaT) {
+        if (outCount >= outPeriod) {
+            //            writeDataPGM(tice * 100 + 255, std::to_string(std::lround(t)) + ".pgm");
+//            writeDataPGM(hsnow * 100, std::to_string(std::lround(t)) + ".pgm");
+// Store the data as a standard sinusoid: subtract the offset (1.5) and normalize the range (*2)
+            testData[t] = 2 * (hsnow - 1.5);
+            testTimes.push_back(t);
+            outCount = 0;
+        }
         TimestepTime tst = { origin + Duration(std::to_string(std::lround(t))), Duration(deltaT) };
         advection.update(tst);
         advection.advectField(hsnow, hsnowName);
-        double hsnowMax = -1.;
-        size_t hsnowMaxJ = -1;
-        size_t hsnowMaxI = (2 * nx) / 3;
-        for (size_t j = 0; j < ny; ++j) {
-            if (hsnow(hsnowMaxI, j) > hsnowMax) {
-                hsnowMax = hsnow(hsnowMaxI, j);
-                hsnowMaxJ = j;
-            }
-        }
-        std::cout << t << " s: hsnowMax = " << hsnowMax << " @ j = " << hsnowMaxJ << std::endl;
-        writeDataPGM(hsnow * 100, std::to_string(std::lround(t)) + ".pgm");
+        outCount += deltaT;
     }
 
+    // Test the collected data
+    // Compare the initial data with a quarter rotation later (should sum to ~0)
+    double sumSelf = 0.;
+    double sumQuarter = 0.;
+    double sumHalf = 0.;
+    size_t testRow = ny/3;
+    REQUIRE(testTimes.size() >= 3);
+    for (size_t i = 0; i < nx; ++i) {
+        sumSelf+= testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[0])(i, testRow);
+        sumQuarter += testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[1])(i, testRow);
+        sumHalf+= testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[2])(i, testRow);
+    }
+    double eps = 2;
+    REQUIRE(doctest::Approx(sumHalf).epsilon(eps) == sumSelf);
+    REQUIRE(doctest::Approx(sumQuarter).epsilon(eps) == 0.);
 }
 
 }
