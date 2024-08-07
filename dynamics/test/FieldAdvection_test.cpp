@@ -168,15 +168,24 @@ TEST_CASE("Advect a field")
     double sumQuarter = 0.;
     double sumHalf = 0.;
     size_t testRow = ny/3;
+    size_t ptCount = 0;
     REQUIRE(testTimes.size() >= 3);
     for (size_t i = 0; i < nx; ++i) {
-        sumSelf+= testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[0])(i, testRow);
-        sumQuarter += testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[1])(i, testRow);
-        sumHalf+= testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[2])(i, testRow);
+        // -3 is the missing data value, due to the arithmetic manipulations above
+        if (testData.at(testTimes[0])(i, testRow) != -3) {
+            ++ptCount;
+            sumSelf+= testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[0])(i, testRow);
+            sumQuarter += testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[1])(i, testRow);
+            sumHalf+= testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[2])(i, testRow);
+        }
     }
-    double eps = 2;
-    REQUIRE(doctest::Approx(sumHalf).epsilon(eps) == sumSelf);
-    REQUIRE(doctest::Approx(sumQuarter).epsilon(eps) == 0.);
+    double eps = 1e-2;
+    // Test the mean difference when the pattern is out of phase (quarter) and in phase (half)
+    // Normalize by the sum with self and the number of data points
+    // The ratio of the self sum and the sum with the in-phase pattern should be close to 1
+    REQUIRE(std::fabs(sumHalf / sumSelf - 1) / ptCount < eps);
+    // The sum of the out-of phase pattern should be close to zero
+    REQUIRE(std::fabs(sumQuarter / sumSelf) / ptCount < eps);
 }
 
 }
