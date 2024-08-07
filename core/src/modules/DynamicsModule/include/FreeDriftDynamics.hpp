@@ -55,6 +55,10 @@ public:
         uice = kernel.getDG0Data(uName);
         vice = kernel.getDG0Data(vName);
     }
+    ModelArray& advectField(ModelArray& field, const std::string& fieldName) override
+    {
+        return kernel.advectField(field, fieldName);
+    }
 
     void setData(const ModelState::DataMap& ms) override
     {

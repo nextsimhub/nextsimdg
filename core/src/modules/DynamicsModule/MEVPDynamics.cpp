@@ -82,6 +82,11 @@ void MEVPDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 }
 
+ModelArray& MEVPDynamics::advectField(ModelArray& field, const std::string& fieldName)
+{
+    return kernel.advectField(field, fieldName);
+}
+
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
 {
     // Base class state

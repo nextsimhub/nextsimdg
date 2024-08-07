@@ -65,6 +65,8 @@ public:
 
     virtual void update(const TimestepTime& tst) = 0;
 
+    virtual ModelArray& advectField(ModelArray& field, const std::string& fieldName) = 0;
+
     /*!
      * Returns whether the dynamics implementation uses the damage field.
      */

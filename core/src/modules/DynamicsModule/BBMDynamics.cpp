@@ -96,6 +96,11 @@ void BBMDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 }
 
+ModelArray& BBMDynamics::advectField(ModelArray& field, const std::string& fieldName)
+{
+    return kernel.advectField(field, fieldName);
+}
+
 // All data for prognostic output
 ModelState BBMDynamics::getState() const
 {
