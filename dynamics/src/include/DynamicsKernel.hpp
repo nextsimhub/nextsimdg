@@ -63,6 +63,8 @@ public:
         // resize DG vectors
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
+        hice.zero();
+        cice.zero();
 
         e11.resize_by_mesh(*smesh);
         e12.resize_by_mesh(*smesh);
@@ -70,6 +72,12 @@ public:
         s11.resize_by_mesh(*smesh);
         s12.resize_by_mesh(*smesh);
         s22.resize_by_mesh(*smesh);
+        e11.zero();
+        e12.zero();
+        e22.zero();
+        s11.zero();
+        s12.zero();
+        s22.zero();
     }
 
     /*!

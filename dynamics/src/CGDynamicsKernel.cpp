@@ -32,18 +32,28 @@ void CGDynamicsKernel<DGadvection>::initialise(
 
     u.resize_by_mesh(*smesh);
     v.resize_by_mesh(*smesh);
+    u.zero();
+    v.zero();
 
     cgH.resize_by_mesh(*smesh);
     cgA.resize_by_mesh(*smesh);
+    cgH.zero();
+    cgA.zero();
 
     dStressX.resize_by_mesh(*smesh);
     dStressY.resize_by_mesh(*smesh);
+    dStressX.zero();
+    dStressY.zero();
 
     uOcean.resize_by_mesh(*smesh);
     vOcean.resize_by_mesh(*smesh);
+    uOcean.zero();
+    vOcean.zero();
 
     uAtmos.resize_by_mesh(*smesh);
     vAtmos.resize_by_mesh(*smesh);
+    uAtmos.zero();
+    vAtmos.zero();
 }
 
 template <int DGadvection>

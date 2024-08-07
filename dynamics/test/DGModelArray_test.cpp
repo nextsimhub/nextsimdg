@@ -100,6 +100,7 @@ TEST_CASE("DGVector from ModelArray::Type::H")
         }
     }
     DGVector<DG> dest(smesh);
+    dest.zero(); // Zero the higher components, ma2dg does not touch them.
     DGModelArray::ma2dg<DG>(source, dest);
 
     // Did it work?

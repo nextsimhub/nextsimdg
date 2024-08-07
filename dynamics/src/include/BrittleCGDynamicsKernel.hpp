@@ -77,6 +77,9 @@ public:
         damage.resize_by_mesh(*smesh);
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
+        damage.zero();
+        avgU.zero();
+        avgV.zero();
 
         cosOceanAngle = cos(radians * params.ocean_turning_angle);
         sinOceanAngle = sin(radians * params.ocean_turning_angle);
