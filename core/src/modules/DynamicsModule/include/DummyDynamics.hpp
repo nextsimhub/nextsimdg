@@ -20,7 +20,10 @@ public:
 
     std::string getName() const override { return "DummyDynamics"; }
     void update(const TimestepTime& tst) override { };
-
+    ModelArray& advectField(ModelArray& field, const std::string& fieldName) override
+    {
+        return field;
+    }
 };
 }
 
