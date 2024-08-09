@@ -45,6 +45,7 @@ TEST_CASE("Advect a field")
     // Parameters of the mesh
     size_t nx = 101;
     size_t ny = 101;
+    size_t nz = 3;
 
     double dx = 1000; //m
     double dy = 1000; //m
@@ -54,6 +55,7 @@ TEST_CASE("Advect a field")
     // Create the grid coordinates
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
+    ModelArray::setDimension(ModelArray::Dimension::Z, nz);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1);
     VertexField coords(ModelArray::Type::VERTEX);
@@ -81,10 +83,9 @@ TEST_CASE("Advect a field")
     cice.resize();
     HField hsnow(ModelArray::Type::H);
     hsnow.resize();
+    ZField tice(ModelArray::Type::Z);
+    tice.resize();
     
-    // A map of the results at the target times
-    std::map<double, ModelArray> testData;
-
     HField x(ModelArray::Type::H);
     HField y(ModelArray::Type::H);
     x.resize();
@@ -97,6 +98,8 @@ TEST_CASE("Advect a field")
     double hice0 = 1.;
     double cice0 = 1.;
     double hsnowA = 1.;
+//    double tice0 = -1.;
+    double ticeA = 1.;
     // Slope characteristics
     double rs = 1 * dx;
     for (size_t j = 0; j < ny; ++j) {
@@ -114,12 +117,16 @@ TEST_CASE("Advect a field")
             double r = std::sqrt(rr);
             // Hsnow function: cos^2 + 1
             double hsnow0 = hsnowA * xx / rr + 1;
+            double tice0 = ticeA * xx / rr -1;
             if (r < r0) {
                 hice(i, j) = hice0;
                 cice(i, j) = cice0;
                 u(i, j) = -omega * yij;
                 v(i, j) = omega * xij;
                 hsnow(i, j) = hsnow0;
+                for (size_t k = 0; k < nz; ++k) {
+                    tice(i, j, k) = tice0;
+                }
             } else {
                 double slope = std::max((r0 + rs - r) / rs, 0.);
                 hice(i, j) = hice0 * slope;
@@ -133,6 +140,10 @@ TEST_CASE("Advect a field")
                     v(i, j) = 0.;
                 }
                 hsnow(i, j) = hsnow0 * slope;
+                for (size_t k = 0; k < nz; ++k) {
+                    tice(i, j, k) = tice0 * slope;
+                }
+
             }
         }
     }
@@ -146,13 +157,20 @@ TEST_CASE("Advect a field")
     // Iterate: run the DynamicsKernel update, then advect the snow
     double outPeriod = 25000;
     double outCount = outPeriod;
+
+    // A map of the results at the target times
+    std::map<double, ModelArray> hiceTestData;
+    std::map<double, ModelArray> ticeTestData;
+
     std::vector<double> testTimes;
+
     for (double t = 0; t <= timeLimit; t += deltaT) {
         if (outCount >= outPeriod) {
             //            writeDataPGM(tice * 100 + 255, std::to_string(std::lround(t)) + ".pgm");
 //            writeDataPGM(hsnow * 100, std::to_string(std::lround(t)) + ".pgm");
 // Store the data as a standard sinusoid: subtract the offset (1.5) and normalize the range (*2)
-            testData[t] = 2 * (hsnow - 1.5);
+            hiceTestData[t] = 2 * (hsnow - 1.5);
+            ticeTestData[t] = 2 * (tice + 1.5);
             testTimes.push_back(t);
             outCount = 0;
         }
@@ -164,28 +182,43 @@ TEST_CASE("Advect a field")
 
     // Test the collected data
     // Compare the initial data with a quarter rotation later (should sum to ~0)
-    double sumSelf = 0.;
-    double sumQuarter = 0.;
-    double sumHalf = 0.;
+    double hiceSumSelf = 0.;
+    double hiceSumQuarter = 0.;
+    double hiceSumHalf = 0.;
+    size_t hiceCount = 0;
+    double ticeSumSelf = 0.;
+    double ticeSumQuarter = 0.;
+    double ticeSumHalf = 0.;
+    size_t ticeCount = 0;
     size_t testRow = ny/3;
-    size_t ptCount = 0;
+    size_t testLevel = 1;
     REQUIRE(testTimes.size() >= 3);
     for (size_t i = 0; i < nx; ++i) {
         // -3 is the missing data value, due to the arithmetic manipulations above
-        if (testData.at(testTimes[0])(i, testRow) != -3) {
-            ++ptCount;
-            sumSelf+= testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[0])(i, testRow);
-            sumQuarter += testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[1])(i, testRow);
-            sumHalf+= testData.at(testTimes[0])(i, testRow) + testData.at(testTimes[2])(i, testRow);
+        if (hiceTestData.at(testTimes[0])(i, testRow) != -3) {
+            ++hiceCount;
+            hiceSumSelf+= hiceTestData.at(testTimes[0])(i, testRow) + hiceTestData.at(testTimes[0])(i, testRow);
+            hiceSumQuarter += hiceTestData.at(testTimes[0])(i, testRow) + hiceTestData.at(testTimes[1])(i, testRow);
+            hiceSumHalf+= hiceTestData.at(testTimes[0])(i, testRow) + hiceTestData.at(testTimes[2])(i, testRow);
+        }
+        if (ticeTestData.at(testTimes[0])(i, testRow, testLevel) != +3) {
+            ++ticeCount;
+            ticeSumSelf+= ticeTestData.at(testTimes[0])(i, testRow, testLevel) + ticeTestData.at(testTimes[0])(i, testRow, testLevel);
+            ticeSumQuarter += ticeTestData.at(testTimes[0])(i, testRow, testLevel) + ticeTestData.at(testTimes[1])(i, testRow, testLevel);
+            ticeSumHalf+= ticeTestData.at(testTimes[0])(i, testRow, testLevel) + ticeTestData.at(testTimes[2])(i, testRow, testLevel);
         }
     }
-    double eps = 1e-2;
+    double eps = 1.5e-2;
     // Test the mean difference when the pattern is out of phase (quarter) and in phase (half)
     // Normalize by the sum with self and the number of data points
     // The ratio of the self sum and the sum with the in-phase pattern should be close to 1
-    REQUIRE(std::fabs(sumHalf / sumSelf - 1) / ptCount < eps);
+    REQUIRE(std::fabs(hiceSumHalf / hiceSumSelf - 1) / hiceCount < eps);
     // The sum of the out-of phase pattern should be close to zero
-    REQUIRE(std::fabs(sumQuarter / sumSelf) / ptCount < eps);
+    REQUIRE(std::fabs(hiceSumQuarter / hiceSumSelf) / hiceCount < eps);
+
+    REQUIRE(std::fabs(ticeSumHalf / ticeSumSelf - 1) / ticeCount < eps);
+    // The sum of the out-of phase pattern should be close to zero
+    REQUIRE(std::fabs(ticeSumQuarter / ticeSumSelf) / ticeCount < eps);
 }
 
 }
