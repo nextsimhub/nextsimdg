@@ -92,6 +92,10 @@ void PrognosticData::update(const TimestepTime& tst)
     pDynamics->update(tst);
     updatePrognosticFields();
 
+    // Advect the prognostic fields not advected by the dynamics
+    pDynamics->advectField(m_snow, hsnowName);
+    pDynamics->advectField(m_tice, ticeName);
+
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
     iceGrowth.update(tst);
