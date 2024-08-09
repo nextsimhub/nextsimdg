@@ -184,6 +184,11 @@ void ModelArray::setData(const DataType& from) { m_data = from; } // setData(fro
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
+void ModelArray::setData(const DataType& data, size_t start, size_t length)
+{
+    m_data(Eigen::seq(start, length), Eigen::all) = data;
+}
+
 void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
     std::vector<Dimension>& dimSpecs = typeDimensions.at(type);

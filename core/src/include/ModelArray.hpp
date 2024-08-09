@@ -324,6 +324,8 @@ public:
      */
     void setData(const ModelArray& source);
 
+    void setData(const DataType& data, size_t start, size_t length);
+
 private:
     // Fast special case for 1-d indexing
     template <typename T, typename I> static inline T indexr(const T* dims, I first)
