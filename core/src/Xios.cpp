@@ -1260,6 +1260,11 @@ xios::CFileGroup* Xios::getFileGroup()
  */
 xios::CFile* Xios::getFile(const std::string fileId)
 {
+    bool exists;
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined file '" + fileId + "'");
+    }
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
     if (!file) {
@@ -1276,18 +1281,18 @@ xios::CFile* Xios::getFile(const std::string fileId)
 void Xios::createFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
-    bool valid;
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    if (valid) {
+    bool exists;
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (exists) {
         throw std::runtime_error("Xios: File '" + fileId + "' already exists");
     }
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
     if (!file) {
         throw std::runtime_error("Xios: Null pointer for file '" + fileId + "'");
     }
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    if (!valid) {
-        throw std::runtime_error("Xios: Failed to create valid file '" + fileId + "'");
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create file '" + fileId + "'");
     }
 }
 
@@ -1425,7 +1430,7 @@ std::string Xios::getFileName(const std::string fileId)
 std::string Xios::getFileType(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_name(file)) {
+    if (!cxios_is_defined_file_type(file)) {
         throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
     }
     char cStr[cStrLen];
@@ -1443,7 +1448,7 @@ Duration Xios::getFileOutputFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_output_freq(file)) {
-        throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
+        throw std::runtime_error("Xios: Undefined output frequency for file '" + fileId + "'");
     }
     cxios_duration duration;
     cxios_get_file_output_freq(file, &duration);
@@ -1460,7 +1465,7 @@ Duration Xios::getFileSplitFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_split_freq(file)) {
-        throw std::runtime_error("Xios: Undefined values for file '" + fileId + "'");
+        throw std::runtime_error("Xios: Undefined split frequency for file '" + fileId + "'");
     }
     cxios_duration duration;
     cxios_get_file_split_freq(file, &duration);
