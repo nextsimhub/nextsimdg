@@ -2,7 +2,7 @@
  * @file    xios_c_interface.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    5 August 2024
+ * @date    12 August 2024
  * @brief   C interface for XIOS library
  * @details
  * This interface is based on an earlier version provided by Laurent as part of
@@ -75,6 +75,7 @@ void cxios_xml_tree_add_axis(
 
 // axis methods
 void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
+void cxios_axis_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_axis_n_glo(xios::CAxis* axis_hdl, int n_glo);
 void cxios_set_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
 void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);

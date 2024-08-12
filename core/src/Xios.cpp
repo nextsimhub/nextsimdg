@@ -346,6 +346,11 @@ xios::CAxisGroup* Xios::getAxisGroup()
  */
 xios::CAxis* Xios::getAxis(const std::string axisId)
 {
+    bool exists;
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined axis '" + axisId + "'");
+    }
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
     if (!axis) {
@@ -361,10 +366,19 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
  */
 void Xios::createAxis(const std::string axisId)
 {
+    bool exists;
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Axis '" + axisId + "' already exists");
+    }
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
     if (!axis) {
         throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
+    }
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create axis '" + axisId + "'");
     }
 }
 
