@@ -881,6 +881,11 @@ xios::CGridGroup* Xios::getGridGroup()
  */
 xios::CGrid* Xios::getGrid(const std::string gridId)
 {
+    bool exists;
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined grid '" + gridId + "'");
+    }
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
     if (!grid) {
@@ -896,10 +901,19 @@ xios::CGrid* Xios::getGrid(const std::string gridId)
  */
 void Xios::createGrid(const std::string gridId)
 {
+    bool exists;
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Grid '" + gridId + "' already exists");
+    }
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
     if (!grid) {
         throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
+    }
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create grid '" + gridId + "'");
     }
 }
 

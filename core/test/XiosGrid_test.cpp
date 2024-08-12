@@ -63,9 +63,13 @@ MPI_TEST_CASE("TestXiosGrid", 2)
 
     // --- Tests for grid API
     const std::string gridId = { "grid_2D" };
+    REQUIRE_THROWS_WITH(xios_handler.getGridName(gridId), "Xios: Undefined grid 'grid_2D'");
     xios_handler.createGrid(gridId);
+    REQUIRE_THROWS_WITH(xios_handler.createGrid(gridId), "Xios: Grid 'grid_2D' already exists");
     // Grid name
     const std::string gridName = { "test_grid" };
+    REQUIRE_THROWS_WITH(
+        xios_handler.getGridName(gridId), "Xios: Undefined name for grid 'grid_2D'");
     xios_handler.setGridName(gridId, gridName);
     REQUIRE(xios_handler.getGridName(gridId) == gridName);
     // Add axis
