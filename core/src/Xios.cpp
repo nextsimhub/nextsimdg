@@ -486,6 +486,11 @@ xios::CDomainGroup* Xios::getDomainGroup()
  */
 xios::CDomain* Xios::getDomain(const std::string domainId)
 {
+    bool exists;
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined domain '" + domainId + "'");
+    }
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
     if (!domain) {
@@ -501,10 +506,19 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
  */
 void Xios::createDomain(const std::string domainId)
 {
+    bool exists;
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Domain '" + domainId + "' already exists");
+    }
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
     if (!domain) {
         throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
+    }
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
     }
 }
 

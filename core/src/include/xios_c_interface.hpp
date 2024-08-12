@@ -90,6 +90,7 @@ void cxios_xml_tree_add_domain(
 
 // domain methods
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);
+void cxios_domain_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_domain_type(xios::CDomain* domain_hdl, const char* type, int type_size);
 void cxios_set_domain_ni_glo(xios::CDomain* domain_hdl, int ni_glo);
 void cxios_set_domain_nj_glo(xios::CDomain* domain_hdl, int nj_glo);
