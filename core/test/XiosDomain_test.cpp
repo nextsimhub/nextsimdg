@@ -1,7 +1,7 @@
 /*!
  * @file    XiosDomain_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    5 August 2024
+ * @date    12 August 2024
  * @brief   Tests for XIOS domains
  * @details
  * This test is designed to test domain functionality of the C++ interface
@@ -20,7 +20,7 @@
 namespace Nextsim {
 
 /*!
- * TestXiosDomin
+ * TestXiosDomain
  *
  * This function tests the domain functionality of the C++ interface for XIOS. It
  * needs to be run with 2 ranks i.e.,
@@ -71,11 +71,11 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     const size_t ny = ny_glo;
     xios_handler.setDomainLocalYSize(domainId, ny);
     REQUIRE(xios_handler.getDomainLocalYSize(domainId) == ny);
-    // Local starting y-index
+    // Local starting x-index
     const size_t x0 = nx * rank;
     xios_handler.setDomainLocalXStart(domainId, x0);
     REQUIRE(xios_handler.getDomainLocalXStart(domainId) == x0);
-    // Local starting x-index
+    // Local starting y-index
     const size_t y0 = 0;
     xios_handler.setDomainLocalYStart(domainId, y0);
     REQUIRE(xios_handler.getDomainLocalYStart(domainId) == y0);
