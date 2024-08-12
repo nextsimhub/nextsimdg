@@ -1022,6 +1022,11 @@ xios::CFieldGroup* Xios::getFieldGroup()
  */
 xios::CField* Xios::getField(const std::string fieldId)
 {
+    bool exists;
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined field '" + fieldId + "'");
+    }
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
     if (!field) {
@@ -1037,10 +1042,19 @@ xios::CField* Xios::getField(const std::string fieldId)
  */
 void Xios::createField(const std::string fieldId)
 {
+    bool exists;
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Field '" + fieldId + "' already exists");
+    }
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
     if (!field) {
         throw std::runtime_error("Xios: Null pointer for field '" + fieldId + "'");
+    }
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
 }
 
