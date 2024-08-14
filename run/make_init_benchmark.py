@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../python')
+
 from make_init_base import initMaker
 from math import sin
 

@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../python')
+
 from make_init_base import initMaker
 
 nfirst = 1
