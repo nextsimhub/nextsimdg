@@ -32,12 +32,10 @@
 namespace Nextsim {
 
 // forward define the class holding the potentially non-DG parts
-template <int DGdegree>
-class DynamicsInternals;
+template <int DGdegree> class DynamicsInternals;
 
 template <int DGadvection, int DGstress> class DynamicsKernel {
 public:
-
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
     typedef std::map<typename DataMapping::first_type, typename DataMapping::second_type> DataMap;
 
@@ -45,14 +43,12 @@ public:
     virtual ~DynamicsKernel() = default;
     virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
-        if (isSpherical)
-            throw std::runtime_error("DG dynamics do not yet handle spherical coordinates.");
-            // TODO handle spherical coordinates
-
         //! Define the spatial mesh
-        smesh = new ParametricMesh(Nextsim::CARTESIAN);
+        smesh = new ParametricMesh((isSpherical) ? Nextsim::SPHERICAL : Nextsim::CARTESIAN);
 
         smesh->coordinatesFromModelArray(coords);
+        if (isSpherical)
+            smesh->RotatePoleToGreenland();
         smesh->landmaskFromModelArray(mask);
         smesh->dirichletFromMask();
         // TODO: handle periodic and open edges
@@ -74,7 +70,7 @@ public:
         s11.resize_by_mesh(*smesh);
         s12.resize_by_mesh(*smesh);
         s22.resize_by_mesh(*smesh);
-}
+    }
 
     /*!
      * @brief Sets the data from a provided ModelArray.
@@ -113,7 +109,7 @@ public:
      * @param name the name of the requested field.
      *
      */
-    virtual ModelArray getDG0Data(const std::string& name)
+    virtual ModelArray getDG0Data(const std::string& name) const
     {
         HField data(ModelArray::Type::H);
         if (name == hiceName) {
@@ -132,7 +128,7 @@ public:
      *
      * @param name the name of the requested field.
      */
-    ModelArray getDGData(const std::string& name)
+    virtual ModelArray getDGData(const std::string& name) const
     {
 
         if (name == hiceName) {
@@ -151,10 +147,7 @@ public:
         }
     }
 
-    virtual void update(const TimestepTime& tst)
-    {
-        ++stepNumber;
-    }
+    virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
     void advectionAndLimits(const TimestepTime& tst)
     {
@@ -206,7 +199,7 @@ protected:
     /*!
      * Calculates the divergence of the stress tensor.
      */
-    virtual void stressDivergence(const double scale) = 0;
+    virtual void stressDivergence() = 0;
     /*!
      * Apply Dirichlet and periodic boundary conditions.
      */
@@ -218,7 +211,6 @@ protected:
     virtual void prepareAdvection() = 0;
 
 private:
-
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
     // A map from field name to the type of

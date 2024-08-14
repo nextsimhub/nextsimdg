@@ -193,17 +193,7 @@ void Model::run() { iterator.run(); }
 void Model::writeRestartFile()
 {
     std::string formattedFileName = m_etadata.time().format(finalFileName);
-
-    Logged::notice(std::string("  Writing state-based restart file: ") + formattedFileName + '\n');
-    // Copy the configuration from the ModelState to the ModelMetadata
-    ConfigMap modelConfig = getConfig();
-    modelConfig.merge(pData.getStateRecursive(true).config);
-    modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
-    m_etadata.setConfig(modelConfig);
-    // Get the model state from PrognosticData and add the coordinates.
-    ModelState state = pData.getState();
-    m_etadata.affixCoordinates(state);
-    StructureFactory::fileFromState(state, m_etadata, formattedFileName, true);
+    pData.writeRestartFile(formattedFileName, m_etadata);
 }
 
 ModelMetadata& Model::metadata() { return m_etadata; }

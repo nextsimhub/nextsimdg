@@ -225,8 +225,7 @@ public:
             std::cerr << std::setw(24) << std::left << it.first << std::setw(12) << std::right
                       << it.second << std::endl;
         }
-        std::cout << std::endl
-                  << std::noshowpoint;
+        std::cout << std::endl << std::noshowpoint;
     }
 
     void print100() const

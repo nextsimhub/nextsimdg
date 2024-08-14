@@ -16,6 +16,10 @@
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
+#ifdef USE_MPI
+#include "include/ParallelNetcdfFile.hpp"
+#endif
+
 #include <ncDim.h>
 #include <ncDouble.h>
 #include <ncFile.h>
@@ -86,9 +90,9 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // Get the sizes of the four types of field
     // HField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::H, metadata);
-    // UField from hice        TODO replace with u velocity once it is present
+    // UField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::U, metadata);
-    // VField from hice        TODO replace with v velocity once it is present
+    // VField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V, metadata);
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z, metadata);
@@ -96,9 +100,9 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // Get the sizes of the four types of field
     // HField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::H);
-    // UField from hice        TODO replace with u velocity once it is present
+    // UField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::U);
-    // VField from hice        TODO replace with v velocity once it is present
+    // VField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V);
     // ZField from tice
     dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z);
@@ -173,7 +177,8 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     int ny = ModelArray::dimensions(Type::H)[1];
     int nz = ModelArray::dimensions(Type::Z)[2];
 
-    std::vector<std::string> dimensionNames = { "x", "y", "z", "t", "component", "u", "v", "w" };
+    std::vector<std::string> dimensionNames
+        = { "xdim", "ydim", "zdim", "t", "component", "u", "v", "w" };
 
     // Create the dimension data, since it has to be in the same group as the
     // data or the parent group

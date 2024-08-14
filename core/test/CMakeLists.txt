@@ -12,6 +12,9 @@ set(PHYSICS_INCLUDE_DIRS
 
 set(ModulesRoot "../src/modules")
 
+# Generate netCDF files for tests
+execute_process(COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
 include_directories(${COMMON_INCLUDE_DIRS})
 
 add_executable(testIterator "Iterator_test.cpp")
@@ -61,10 +64,41 @@ if(ENABLE_MPI)
       "${xios_EXTERNS}/blitz/"
       "${xios_EXTERNS}/rapidxml/include"
       )
-    add_executable(testXiosInit_MPI2 "XiosInit_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(testXiosInit_MPI2 PRIVATE USE_XIOS USE_MPI)
-    target_include_directories(testXiosInit_MPI2 PRIVATE "${XIOS_INCLUDE_LIST}")
-    target_link_libraries(testXiosInit_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosCalendar_MPI2 "XiosCalendar_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosCalendar_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosCalendar_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule")
+    target_link_libraries(testXiosCalendar_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosAxis_MPI2 "XiosAxis_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosAxis_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosAxis_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule")
+    target_link_libraries(testXiosAxis_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosDomain_MPI2 "XiosDomain_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosDomain_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosDomain_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule")
+    target_link_libraries(testXiosDomain_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosGrid_MPI2 "XiosGrid_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosGrid_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosGrid_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule")
+    target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosField_MPI2 "XiosField_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosField_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosField_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule")
+    target_link_libraries(testXiosField_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosFile_MPI2 "XiosFile_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosFile_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosFile_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule")
+    target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS USE_MPI)
+    target_include_directories(testXiosWrite_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule")
+    target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
   endif()
 else()
   add_executable(testRectGrid "RectGrid_test.cpp")
@@ -80,6 +114,8 @@ else()
   target_compile_definitions(testParaGrid PRIVATE TEST_FILE_SOURCE=${CMAKE_CURRENT_SOURCE_DIR})
   target_include_directories(testParaGrid PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
   target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/old_names.nc"
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif()
 
 add_executable(testModelComponent "ModelComponent_test.cpp")
@@ -94,6 +130,18 @@ target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
 add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
 target_include_directories(testPrognosticData PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule")
 target_link_libraries(testPrognosticData PRIVATE nextsimlib doctest::doctest)
+
+# PrognosticDataIO, which cannot currently be tested with MPI.
+# TODO: itegrate with the above test.
+if(ENABLE_MPI)
+  message(WARNING "testPrognosticDataIO has been temporarily disabled when running with MPI enabled")
+else()
+  add_executable(testPrognosticDataIO "PrognosticDataIO_test.cpp" "DynamicsModuleForPDtest.cpp")
+  target_compile_definitions(testPrognosticDataIO PRIVATE ISDG=${isDG})
+  target_include_directories(testPrognosticDataIO PRIVATE ${PHYSICS_INCLUDE_DIRS} ${MODEL_INCLUDE_DIR} "${ModulesRoot}/FreezingPointModule" "${ModulesRoot}/DynamicsModule" "${ModulesRoot}/StructureModule")
+  target_link_libraries(testPrognosticDataIO PRIVATE nextsimlib doctest::doctest)
+endif()
+
 
 if(ENABLE_MPI)
   message(WARNING "testConfigOutput has been temporarily disabled when running with MPI enabled")

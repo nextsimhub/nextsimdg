@@ -108,9 +108,9 @@ ks = 0.31
         n_dgstress = 1
         n_coords = 2
 
-        nLay = datagrp.createDimension("z", nLayers)
-        yDim = datagrp.createDimension("y", nfirst)
-        xDim = datagrp.createDimension("x", nsecond)
+        nLay = datagrp.createDimension("zdim", nLayers)
+        yDim = datagrp.createDimension("ydim", nfirst)
+        xDim = datagrp.createDimension("xdim", nsecond)
         yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
         xVertexDim = datagrp.createDimension("xvertex", nsecond + 1)
         ycg_dim = datagrp.createDimension("y_cg", nfirst * ncg + 1)
@@ -119,9 +119,9 @@ ks = 0.31
         dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
         n_coords_comp = datagrp.createDimension("ncoords", n_coords)
 
-        field_dims = ("y", "x")
+        field_dims = ("ydim", "xdim")
         coord_dims = ("yvertex", "xvertex", "ncoords")
-        zfield_dims = ("z", "y", "x")
+        zfield_dims = ("zdim", "ydim", "xdim")
 
         # Array coordinates
         node_lon = np.zeros((nfirst + 1, nsecond + 1))

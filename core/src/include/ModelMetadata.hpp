@@ -16,12 +16,7 @@
 #include <string>
 
 #ifdef USE_MPI
-#include <include/ParallelNetcdfFile.hpp>
 #include <mpi.h>
-#include <ncDim.h>
-#include <ncDouble.h>
-#include <ncFile.h>
-#include <ncVar.h>
 #endif
 
 namespace Nextsim {

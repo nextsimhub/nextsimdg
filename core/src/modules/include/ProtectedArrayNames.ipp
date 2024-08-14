@@ -1,11 +1,13 @@
 /*!
  * @file ProtectedArrayNames.ipp
  *
- * @date 20 Jan 2023
+ * @date 1 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 // External ProtectedArray names must be unique wrt to the external SharedArray names as well
+{ "damage", "DAMAGE0" }, // Ice thickness, cell average, m
 { "hice", "H_ICE_cell" }, // Ice thickness, cell average, m
 { "cice", "C_ICE0" }, // Ice concentration
 { "hsnow", "H_SNOW_cell" }, // Snow depth, cell average, m

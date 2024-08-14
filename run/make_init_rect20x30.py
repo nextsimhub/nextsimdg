@@ -16,11 +16,11 @@ metagrp.type = "simple_rectangular"
 
 datagrp = root.createGroup("data")
 
-xDim = datagrp.createDimension("x", nx)
-yDim = datagrp.createDimension("y", ny)
+xDim = datagrp.createDimension("xdim", nx)
+yDim = datagrp.createDimension("ydim", ny)
 nLay = datagrp.createDimension("nLayers", nLayers)
 
-hfield_dims = ("y", "x")
+hfield_dims = ("ydim", "xdim")
 
 mask = datagrp.createVariable("mask", "f8", hfield_dims)
 mask[:,::-1] = [[0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
@@ -90,7 +90,7 @@ hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
 hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
+tice = datagrp.createVariable("tice", "f8", ("nLayers", "ydim", "xdim"))
 tice[0,:,:] = -0.5 - cice[:,:]
 
 mdi = -2.**300

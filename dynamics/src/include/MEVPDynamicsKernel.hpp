@@ -15,8 +15,7 @@
 
 namespace Nextsim {
 
-template <int DGadvection>
-class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
+template <int DGadvection> class MEVPDynamicsKernel : public VPCGDynamicsKernel<DGadvection> {
 public:
     using CGDynamicsKernel<DGadvection>::pmap;
     using CGDynamicsKernel<DGadvection>::initialise;
@@ -34,7 +33,7 @@ public:
 private:
     //! Rheology-Parameters
     Nextsim::VPParameters VP;
-    MEVPStressUpdateStep<DGadvection, DGstressDegree, CGdegree> MEVPStressStep;
+    MEVPStressUpdateStep<DGadvection, DGstressComp, CGdegree> MEVPStressStep;
 };
 
 } /* namespace Nextsim */

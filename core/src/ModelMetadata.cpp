@@ -10,6 +10,13 @@
 #include "include/StructureModule.hpp"
 #include "include/gridNames.hpp"
 
+#ifdef USE_MPI
+#include <ncDim.h>
+#include <ncFile.h>
+#include <ncGroup.h>
+#include <ncVar.h>
+#endif
+
 namespace Nextsim {
 
 const std::string& ModelMetadata::structureName() const
@@ -33,6 +40,7 @@ void ModelMetadata::setMpiMetadata(MPI_Comm comm)
 
 void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 {
+    // TODO: Move the reading of the partition file to its own class
     netCDF::NcFile ncFile(partitionFile, netCDF::NcFile::read);
     int sizes = ncFile.getDim("L").getSize();
     int nBoxes = ncFile.getDim("P").getSize();
