@@ -18,7 +18,7 @@ namespace Nextsim {
 class OASISCoupledOcean : public IOceanBoundary, OASISCoupled {
 public:
     OASISCoupledOcean();
-    ~OASISCoupledOcean();
+    ~OASISCoupledOcean() { OASISCoupled::~OASISCoupled(); }
 
     std::string getName() const override { return "OASISCoupledOcean"; }
     void updateBefore(const TimestepTime& tst) override;

@@ -14,6 +14,20 @@ namespace Nextsim {
 
 class OASISCoupled {
 public:
+    ~OASISCoupled()
+    {
+        // TODO: Insert the oasis terminate call here
+        /*
+         * const std::string functionName = "~OASISCoupled";
+         * const std::string message = "couldn't terminate OASIS";
+         * const std::string file = "OASISCoupled.hpp";
+         * if ( ! oasis_c_terminate() )
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 26);
+         */
+    }
+
+    virtual std::string getName() const { return "OASISCoupled"; }
+
     virtual void setMetadata(const ModelMetadata& metadata)
     {
         // TODO: Insert OASIS initialisation calls here
@@ -27,7 +41,7 @@ public:
          * const std::string compName = "nextsim";
          * const std::string functionName = getName()+"::setMetadata";
          * const std::string message = "couldn't initialise component";
-         * const std::string file = "OASISCoupledOcean.cpp";
+         * const std::string file = "OASISCoupled.hpp";
          * const bool coupled = true;
          * if ( ! oasis_c_init_comp_with_comm(&compID, &compName.c_str(), coupled, metadata.mpiComm) )
          *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 33);
