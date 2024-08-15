@@ -32,12 +32,12 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
-const std::string test_files_dir = TEST_FILES_DIR;
-const std::string filename = test_files_dir + "/paraGrid_test.nc";
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string filename = testFilesDir + "/paraGrid_test.nc";
 const std::string diagFile = "paraGrid_diag.nc";
-const std::string date_string = "2000-01-01T00:00:00Z";
+const std::string dateString = "2000-01-01T00:00:00Z";
 #ifdef USE_MPI
-const std::string partition_filename = test_files_dir + "/partition_metadata_2.nc";
+const std::string partitionFilename = testFilesDir + "/partition_metadata_2.nc";
 #endif
 
 static const int DG = 3;
@@ -73,7 +73,7 @@ void initializeTestData(HField& hfield, DGField& dgfield, HField& mask){
     }
 };
 
-void initialize_test_coordinates(VertexField& coordinates){
+void initializeTestCoordinates(VertexField& coordinates){
     auto dimXVertex = ModelArray::Dimension::XVERTEX;
     auto localNXVertex = ModelArray::definedDimensions.at(dimXVertex).localLength;
     auto startXVertex = ModelArray::definedDimensions.at(dimXVertex).start;
@@ -149,7 +149,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     }
 
     VertexField coordinates(ModelArray::Type::VERTEX);
-    initialize_test_coordinates(coordinates);
+    initializeTestCoordinates(coordinates);
 
     REQUIRE(coordinates.components({ 3, 8 })[0] - coordinates.components({ 2, 8 })[0] == scale);
     REQUIRE(coordinates.components({ 3, 8 })[1] - coordinates.components({ 3, 7 })[1] == scale);
@@ -243,8 +243,8 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     gridIn.setIO(readIO);
 
 #ifdef USE_MPI
-    ModelMetadata metadataIn(partition_filename, test_comm);
-    metadataIn.setTime(TimePoint(date_string));
+    ModelMetadata metadataIn(partitionFilename, test_comm);
+    metadataIn.setTime(TimePoint(dateString));
     ModelState ms = gridIn.getModelState(filename, metadataIn);
 #else
     ModelState ms = gridIn.getModelState(filename);
@@ -359,7 +359,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     DGField cice = fractionalDG + 20;
 
     VertexField coordinates(ModelArray::Type::VERTEX);
-    initialize_test_coordinates(coordinates);
+    initializeTestCoordinates(coordinates);
 
     HField x;
     HField y;
@@ -533,8 +533,8 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     // MD5 hash of the current output of $ date
     std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
 #ifdef USE_MPI
-    ModelMetadata metadataIn(partition_filename, test_comm);
-    metadataIn.setTime(TimePoint(date_string));
+    ModelMetadata metadataIn(partitionFilename, test_comm);
+    metadataIn.setTime(TimePoint(dateString));
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadataIn));
 #else
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
@@ -598,7 +598,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     metadata.localCornerY = 0;
     metadata.localExtentX = 1;
     metadata.localExtentY = ny;
-    metadata.setTime(TimePoint(date_string));
+    metadata.setTime(TimePoint(dateString));
     ModelState ms = gridIn.getModelState(inputFilename, metadata);
 #else
     ModelState ms = gridIn.getModelState(inputFilename);
