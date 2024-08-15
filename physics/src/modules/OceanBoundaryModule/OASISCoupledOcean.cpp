@@ -19,33 +19,10 @@ OASISCoupledOcean::OASISCoupledOcean()
 
 void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
 {
-    // TODO: Insert OASIS initialisation calls here
-    /*
-     * These three may need to be global to the class
-     * int compID;
-     * MPI_Comm localComm;
-     * MPI_Comm coupledComm;
-     *
-     * std::string compName = "nextsim";
-     * std::string functionName = getName()+"::setMetadata";
-     * std::string message = "couldn't initialise component";
-     * std::string file = "OASISCoupledOcean.cpp";
-     * const bool coupled = true;
-     * if ( ! oasis_c_init_comp_with_comm(&compID, &compName.c_str(), coupled, metadata.mpiComm) )
-     *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 36);
-     *
-     * if ( ! oasis_c_get_localcomm(&localComm) )
-     *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 39);
-     *
-     * if ( ! oasis_c_create_couplcomm(metadata.mpiMyRank, &localComm, &coupledComm) )
-     *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 42);
-     *
-     * ... and then def_partition, def_var and end_def calls
-     *
-     * But actually, everything except def_var (and the following end_def) can be seperated out in
-     * its own OASISCoupled class, which OASISCoupledOcean and OASISCoupledAtmosphere inherit from
-     * (and OASISCoupledWaves will also inherit from).
-     */
+    // The parent class knows how to set the communicators and partitions
+    OASISCoupled::setMetadata(metadata);
+
+    // TODO: Insert OASIS def_var and end_def calls
 }
 
 void OASISCoupledOcean::updateBefore(const TimestepTime& tst)

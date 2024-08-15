@@ -10,11 +10,12 @@
 #define OASISCOUPLEDOCEAN_HPP
 
 #include "include/IOceanBoundary.hpp"
+#include "include/OASISCoupled.hpp"
 
 namespace Nextsim {
 
 //* Ocean boundary data values that are hardcoded.
-class OASISCoupledOcean : public IOceanBoundary {
+class OASISCoupledOcean : public IOceanBoundary, OASISCoupled {
 public:
     OASISCoupledOcean();
     ~OASISCoupledOcean();
