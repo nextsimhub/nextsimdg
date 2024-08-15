@@ -74,6 +74,12 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     iceGrowth.setData(ms);
 }
 
+void PrognosticData::setMetadata(const Nextsim::ModelMetadata& metadata)
+{
+    pAtmBdy->setMetadata(metadata);
+    pOcnBdy->setMetadata(metadata);
+}
+
 void PrognosticData::update(const TimestepTime& tst)
 {
     ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());

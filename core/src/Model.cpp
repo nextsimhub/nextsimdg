@@ -140,6 +140,7 @@ void Model::configure()
     modelStep.setMetadata(m_etadata);
     modelStep.setRestartDetails(restartPeriod, finalFileName);
     pData.setData(initialState.data);
+    pData.setMetadata(m_etadata);
 }
 
 ConfigMap Model::getConfig() const

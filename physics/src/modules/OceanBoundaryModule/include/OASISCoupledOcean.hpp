@@ -20,9 +20,9 @@ public:
     ~OASISCoupledOcean();
 
     std::string getName() const override { return "OASISCoupledOcean"; }
-    void setData(const ModelState::DataMap&) override;
     void updateBefore(const TimestepTime& tst) override;
     void updateAfter(const TimestepTime& tst) override;
+    void setMetadata(const ModelMetadata& metadata) override;
 };
 
 } /* namespace Nextsim */

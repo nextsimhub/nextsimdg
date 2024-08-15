@@ -7,6 +7,7 @@
 
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/Time.hpp"
 
 #ifndef IATMOSPHEREBOUNDARY_HPP
@@ -62,6 +63,7 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IAtmosphereBoundary"; }
+    virtual void setMetadata(const ModelMetadata& metadata) {}
     void setData(const ModelState::DataMap& ms) override
     {
         qia.resize();
