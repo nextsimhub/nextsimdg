@@ -44,22 +44,36 @@ public:
          * const std::string file = "OASISCoupled.hpp";
          * const bool coupled = true;
          * if ( ! oasis_c_init_comp_with_comm(&compID, &compName.c_str(), coupled, metadata.mpiComm) )
-         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 33);
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 47);
          *
          * if ( ! oasis_c_get_localcomm(&localComm) )
-         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 36);
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 50);
          *
-         * if ( ! oasis_c_create_couplcomm(metadata.mpiMyRank, &localComm, &coupledComm) )
-         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 39);
+         * const int icpl = 1;
+         * if ( ! oasis_c_create_couplcomm(icpl, &localComm, &coupledComm) )
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 54);
          */
 
         // Set the partitioning
         /* This is commented for now, as I don't have OASIS ready on my system
-         * I don't know which values paral and igSize should take(!)
-         * const std::vector<double> paral;
+         *
+         * From the manual: "vector of integers describing the local grid partition in the global
+         * index space; has a different expression depending on the type of the partition; in
+         * OASIS3-MCT, 5 types of partition are supported: Serial (no partition), Apple, Box,
+         * Orange, and Points" - it looks like we should use "Box", so partInfo[0] = 2.
+         *
+         * metdatata contains: localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX,
+         * globalExtentY;
+         *
+         * int partitionID;
+         * const int offset = metadata.localExtentX*metadata.localCornerY + metadata.localCornerX;
+         * const std::vector<int> partInfo {2, offset, metadata.localExtentX, metadata.localExtentY, metadata.globalExtentX};
+         *
+         * igSize and name are optional and seem not relevant for our setup. Using -1 and "" in the
+         * c-interface means they are not sent further when the Fortran code is called.
          * const int igSize = -1;
          * if ( ! oasis_c_def_partition(&partitionID, &paral.data(), paral.size(), igSize, &compName.c_str()) )
-         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 48);
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 76);
          *
          * def_var and end_def calls are called by the child class
          */
