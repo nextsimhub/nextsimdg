@@ -49,7 +49,7 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 
 OASISCoupledOcean::~OASISCoupledOcean()
 {
-        // TODO: Insert OASIS finalise call(s) here
+    // TODO: Insert OASIS finalise call(s) here
 }
 
 } /* namespace Nextsim */

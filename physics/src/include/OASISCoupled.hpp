@@ -14,7 +14,6 @@ namespace Nextsim {
 
 class OASISCoupled {
 public:
-
     virtual void setMetadata(const ModelMetadata& metadata)
     {
         // TODO: Insert OASIS initialisation calls here
@@ -31,13 +30,13 @@ public:
          * const std::string file = "OASISCoupledOcean.cpp";
          * const bool coupled = true;
          * if ( ! oasis_c_init_comp_with_comm(&compID, &compName.c_str(), coupled, metadata.mpiComm) )
-         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 36);
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 33);
          *
          * if ( ! oasis_c_get_localcomm(&localComm) )
-         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 39);
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 36);
          *
          * if ( ! oasis_c_create_couplcomm(metadata.mpiMyRank, &localComm, &coupledComm) )
-         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 42);
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 39);
          */
 
         // Set the partitioning
@@ -46,7 +45,7 @@ public:
          * const std::vector<double> paral;
          * const int igSize = -1;
          * if ( ! oasis_c_def_partition(&partitionID, &paral.data(), paral.size(), igSize, &compName.c_str()) )
-         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 42);
+         *     oasis_c_abort(compID, &functionName.c_str(), &message.c_str(), &file.c_str(), 48);
          *
          * def_var and end_def calls are called by the child class
          */

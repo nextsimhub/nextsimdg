@@ -16,12 +16,12 @@
 namespace Nextsim {
 
 namespace CouplingFields {
-constexpr TextTag SUBL = "SUBL"; // sublimation mass flux kg s⁻¹ m⁻²
-constexpr TextTag SNOW = "SNOW"; // snowfall mass flux kg s⁻¹ m⁻²
-constexpr TextTag RAIN = "RAIN"; // rainfall mass flux kg s⁻¹ m⁻²
-constexpr TextTag EVAP = "EVAP"; // evaporation mass flux kg s⁻¹ m⁻²
-constexpr TextTag WIND_U = "WIND_U"; // x-aligned wind component m s⁻¹
-constexpr TextTag WIND_V = "WIND_V"; // y-aligned wind component m s⁻¹
+    constexpr TextTag SUBL = "SUBL"; // sublimation mass flux kg s⁻¹ m⁻²
+    constexpr TextTag SNOW = "SNOW"; // snowfall mass flux kg s⁻¹ m⁻²
+    constexpr TextTag RAIN = "RAIN"; // rainfall mass flux kg s⁻¹ m⁻²
+    constexpr TextTag EVAP = "EVAP"; // evaporation mass flux kg s⁻¹ m⁻²
+    constexpr TextTag WIND_U = "WIND_U"; // x-aligned wind component m s⁻¹
+    constexpr TextTag WIND_V = "WIND_V"; // y-aligned wind component m s⁻¹
 
 }
 //! An interface class for the atmospheric inputs into the ice physics.
@@ -30,15 +30,15 @@ public:
     IAtmosphereBoundary()
         : qia(ModelArray::Type::H)
         , dqia_dt(ModelArray::Type::H)
-    , qow(ModelArray::Type::H)
-    , subl(ModelArray::Type::H)
-    , snow(ModelArray::Type::H)
-    , rain(ModelArray::Type::H)
-    , evap(ModelArray::Type::H)
-    , emp(ModelArray::Type::H)
-    , uwind(ModelArray::Type::U)
-    , vwind(ModelArray::Type::V)
-    , penSW(ModelArray::Type::H)
+        , qow(ModelArray::Type::H)
+        , subl(ModelArray::Type::H)
+        , snow(ModelArray::Type::H)
+        , rain(ModelArray::Type::H)
+        , evap(ModelArray::Type::H)
+        , emp(ModelArray::Type::H)
+        , uwind(ModelArray::Type::U)
+        , vwind(ModelArray::Type::V)
+        , penSW(ModelArray::Type::H)
     {
         m_couplingArrays.registerArray(CouplingFields::SUBL, &subl, RW);
         m_couplingArrays.registerArray(CouplingFields::SNOW, &snow, RW);
@@ -63,7 +63,7 @@ public:
     ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IAtmosphereBoundary"; }
-    virtual void setMetadata(const ModelMetadata& metadata) {}
+    virtual void setMetadata(const ModelMetadata& metadata) { }
     void setData(const ModelState::DataMap& ms) override
     {
         qia.resize();
@@ -81,7 +81,6 @@ public:
     virtual void update(const TimestepTime& tst) { }
 
 protected:
-
     ModelArrayReferenceStore& couplingArrays() { return m_couplingArrays; }
 
     HField qia;
