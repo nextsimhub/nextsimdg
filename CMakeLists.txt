@@ -85,6 +85,14 @@ find_package (Python COMPONENTS Interpreter)
 #"physics"
 #)
 
+# Do we want to include the OASIS interface? It'll only work if we have MPI
+if(ENABLE_MPI)
+    option(ENABLE_OASIS "Enable the OASIS interface" OFF)
+    if(ENABLE_OASIS)
+        find_package(OASIS)
+    endif ()
+endif ()
+
 # The location of the module_builder.py scripts
 set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")
 set(ModuleBuilderScript "${ScriptDirectory}/module_builder.py")
@@ -164,6 +172,7 @@ target_compile_definitions(nextsimlib
     PRIVATE
     $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
     $<$<BOOL:${ENABLE_XIOS}>:USE_XIOS>
+    $<$<BOOL:${ENABLE_OASIS}>:USE_OASIS>
     DGCOMP=${DGComp}
     DGSTRESSCOMP=${DGStressComp}
     CGDEGREE=${CGDegree}
@@ -175,14 +184,16 @@ target_include_directories(nextsimlib
     $<$<BOOL:${ENABLE_XIOS}>:${xios_INCLUDES}>
     $<$<BOOL:${ENABLE_XIOS}>:${xios_EXTERNS}/blitz/>
     $<$<BOOL:${ENABLE_XIOS}>:${xios_EXTERNS}/rapidxml/include>
+    $<$<BOOL:${ENABLE_OASIS}>:${OASIS_INCLUDES}>
     PUBLIC
     "${netCDF_INCLUDE_DIR}"
     )
 
-target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}" $<$<BOOL:${ENABLE_MPI}>:${xios_LIBRARIES}>)
+target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}" $<$<BOOL:${ENABLE_MPI}>:${xios_LIBRARIES}> $<$<BOOL:${ENABLE_OASIS}>:${OASIS_LIBRARIES}>)
 target_link_libraries(nextsimlib PUBLIC
     $<$<BOOL:${ENABLE_XIOS}>:xios>
     $<$<BOOL:${ENABLE_XIOS}>:HDF5::HDF5>
+    $<$<BOOL:${ENABLE_OASIS}>:mct mpeu psmile.MPI1 scrip oasis.cbind>
     Boost::program_options Boost::log "${NSDG_NetCDF_Library}" Eigen3::Eigen
     $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_C> $<$<BOOL:${ENABLE_MPI}>:MPI::MPI_CXX>
     "${FORTRAN_RUNTIME_LIB}"
@@ -193,6 +204,7 @@ target_compile_definitions(nextsim
     PRIVATE
     $<$<BOOL:${ENABLE_MPI}>:USE_MPI>
     $<$<BOOL:${ENABLE_XIOS}>:USE_XIOS>
+    $<$<BOOL:${ENABLE_OASIS}>:USE_OASIS>
     )
 target_include_directories(nextsim PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
