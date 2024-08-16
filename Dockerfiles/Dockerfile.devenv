@@ -2,9 +2,9 @@
 FROM spack/ubuntu-jammy:0.21 as builder
 
 # Install software from spack_devenv.yaml
-COPY spack.yaml /opt/spack-environment/spack_devenv.yaml
-RUN mkdir /opt/spack-environment \
-    && cd /opt/spack-environment \
+RUN mkdir /opt/spack-environment
+COPY spack_devenv.yaml /opt/spack-environment/spack.yaml
+RUN cd /opt/spack-environment \
     && spack env activate . \
     && spack install --fail-fast \
     && spack gc -y
