@@ -32,12 +32,12 @@ RUN cd /opt/spack-environment \
     && spack install --fail-fast \
     && spack gc -y
 
-# install perl URI lib
+# Install perl URI lib
 RUN apt update \
-    && apt install -y libany-uri-escape-perl \
+    && apt install -y --no-install-recommends libany-uri-escape-perl \
     && rm -rf /var/lib/apt/lists/*
 
-# download and install xios
+# Download and install xios
 COPY install-xios.sh .
 RUN spack env activate /opt/spack-environment \
     && bash install-xios.sh
@@ -66,13 +66,14 @@ COPY --from=builder /opt/views /opt/views
 
 # Create entrypoint script
 RUN { \
-      echo '#!/bin/sh' \
-      && echo '.' /opt/spack-environment/activate.sh \
-      && echo 'exec "$@"'; \
+      echo '#!/bin/sh'; \
+      echo '. /opt/spack-environment/activate.sh'; \
+      echo 'exec "$@"'; \
     } > /entrypoint.sh \
     && chmod a+x /entrypoint.sh \
     && ln -s /opt/views/view /opt/view \
-    && apt update && apt install -y ca-certificates python3-dev python3-netcdf4 \
+    && apt update \
+    && apt install -y --no-install-recommends ca-certificates python3-dev python3-netcdf4 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set entrypoint and default command
