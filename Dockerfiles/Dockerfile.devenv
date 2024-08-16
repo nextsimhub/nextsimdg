@@ -1,33 +1,10 @@
 # Build stage with Spack pre-installed and ready to be used
 FROM spack/ubuntu-jammy:0.21 as builder
 
-# What we want to install and how we want to install it
-# is specified in a manifest file (spack.yaml)
+# Install software from spack_devenv.yaml
+COPY spack.yaml /opt/spack-environment/spack_devenv.yaml
 RUN mkdir /opt/spack-environment \
-&&  (echo spack: \
-&&   echo '  packages:' \
-&&   echo '    all:' \
-&&   echo '      compiler: [gcc@11.4.0]' \
-&&   echo '  specs:' \
-&&   echo '  - boost@1.80.0+log+program_options' \
-&&   echo '  - cmake@3.27.7' \
-&&   echo '  - eigen@3.4.0' \
-&&   echo '  - gmake' \
-&&   echo '  - hdf5@1.14.3' \
-&&   echo '  - netcdf-c@4.9.2+mpi+parallel-netcdf' \
-&&   echo '  - netcdf-cxx4@4.3.1' \
-&&   echo '  - netcdf-fortran' \
-&&   echo '  - openmpi@4.1.6' \
-&&   echo '  - zlib-ng@2.1.4' \
-&&   echo '  concretizer:' \
-&&   echo '    unify: true' \
-&&   echo '  config:' \
-&&   echo '    install_missing_compilers: true' \
-&&   echo '    install_tree: /opt/software' \
-&&   echo '  view: /opt/views/view') > /opt/spack-environment/spack.yaml
-
-# Install the software, remove unnecessary deps
-RUN cd /opt/spack-environment \
+    && cd /opt/spack-environment \
     && spack env activate . \
     && spack install --fail-fast \
     && spack gc -y
