@@ -14,7 +14,6 @@
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
-#include <cassert>
 #include <chrono>
 #include <filesystem> // only for automatic creation of output directory
 #include <iostream>
