@@ -1,6 +1,6 @@
 /*!
  * @file AdvectionPeriodicBC_test.cpp
- * @date 10 Jul 2022
+ * @date 19 August 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
