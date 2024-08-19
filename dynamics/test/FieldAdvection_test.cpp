@@ -16,6 +16,46 @@
 
 namespace Nextsim {
 
+void writeDataPGM(const ModelArray& data, const std::string& fileName, size_t k)
+{
+    std::ofstream pgm(fileName);
+
+    // Magic number
+    pgm << "P2" << std::endl;
+    pgm << "# Ice temperature in negative centi-Celsius" << std::endl;
+    size_t nx = ModelArray::size(ModelArray::Dimension::X);
+    size_t ny = ModelArray::size(ModelArray::Dimension::Y);
+    pgm << nx << " " << ny << std::endl;
+    long maxVal = 255L;
+    pgm << maxVal << std::endl;
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            pgm << std::max(0L, std::min(maxVal, std::lround(data(i, j, k)))) << " ";
+        }
+        pgm << std::endl;
+    }
+    pgm.close();
+
+}
+
+std::pair<double, double> pseudoFT(const ModelArray& data, size_t x0, size_t y0, size_t r)
+{
+    // Sample 8 points around the circle to do a basic Fourier transform
+    const size_t nSamples = 8;
+    std::array<size_t, nSamples> xTest = { x0 + r, x0 + r, x0, x0 - r, x0 - r, x0 - r, x0, x0 + r };
+    std::array<size_t, nSamples> yTest = { y0, y0 + r, y0 + r, y0 + r, y0, y0 - r, y0 - r, y0 - r };
+    std::array<double, nSamples> cosFactor = { 1, 0, -1, 0, 1, 0, -1, 0 };
+    std::array<double, nSamples> sinFactor = { 0, 1, 0, -1, 0, 1, 0, -1 };
+
+    double cosTerm = 0;
+    double sinTerm = 0;
+    for (size_t theta = 0; theta < nSamples; ++theta) {
+        cosTerm += cosFactor[theta] * data(xTest[theta], yTest[theta]);
+        sinTerm += sinFactor[theta] * data(xTest[theta], yTest[theta]);
+    }
+    return {cosTerm, sinTerm};
+}
+
 void writeDataPGM(const ModelArray& data, const std::string& fileName)
 {
     std::ofstream pgm(fileName);
@@ -117,7 +157,7 @@ TEST_CASE("Advect a field")
             double r = std::sqrt(rr);
             // Hsnow function: cos^2 + 1
             double hsnow0 = hsnowA * xx / rr + 1;
-            double tice0 = ticeA * xx / rr -1;
+            double tice0 = ticeA * xx / rr - 1;
             if (r < r0) {
                 hice(i, j) = hice0;
                 cice(i, j) = cice0;
@@ -141,7 +181,11 @@ TEST_CASE("Advect a field")
                 }
                 hsnow(i, j) = hsnow0 * slope;
                 for (size_t k = 0; k < nz; ++k) {
-                    tice(i, j, k) = tice0 * slope;
+                    if (cice(i, j) > 0) {
+                        tice(i, j, k) = tice0;
+                    } else {
+                        tice(i, j, k) = 0.;
+                    }
                 }
 
             }
@@ -155,7 +199,7 @@ TEST_CASE("Advect a field")
     double timeLimit = 1e5;
     TimePoint origin("2024-08-01T00:00:00Z");
     // Iterate: run the DynamicsKernel update, then advect the snow
-    double outPeriod = 25000;
+    double outPeriod = 1000;
     double outCount = outPeriod;
 
     // A map of the results at the target times
@@ -166,7 +210,7 @@ TEST_CASE("Advect a field")
 
     for (double t = 0; t <= timeLimit; t += deltaT) {
         if (outCount >= outPeriod) {
-            //            writeDataPGM(tice * 100 + 255, std::to_string(std::lround(t)) + ".pgm");
+//            writeDataPGM(-tice * 100, std::to_string(std::lround(t)) + ".pgm", 1);
 //            writeDataPGM(hsnow * 100, std::to_string(std::lround(t)) + ".pgm");
 // Store the data as a standard sinusoid: subtract the offset (1.5) and normalize the range (*2)
             hiceTestData[t] = 2 * (hsnow - 1.5);
@@ -177,11 +221,27 @@ TEST_CASE("Advect a field")
         TimestepTime tst = { origin + Duration(std::to_string(std::lround(t))), Duration(deltaT) };
         advection.update(tst);
         advection.advectField(hsnow, hsnowName);
+        advection.advectField(tice, ticeName);
         outCount += deltaT;
     }
 
     // Test the collected data
     // Compare the initial data with a quarter rotation later (should sum to ~0)
+    size_t pTest = x0 / 2;
+    // Sample 8 points around the circle to do a basic Fourier transform
+    const size_t nSamples = 8;
+    std::array<size_t, nSamples> xTest = { pTest, pTest, 0, -pTest, -pTest, -pTest, 0, pTest };
+    std::array<size_t, nSamples> yTest = { 0, pTest, pTest, pTest, 0, -pTest, -pTest, -pTest };
+
+    std::vector<double> hSnowExpectedCosines = { 4 * hsnowA, -4 * hsnowA, 4 * hsnowA };
+    std::vector<double> hSnowExpectedSines = { 0, 0, 0 };
+
+    for (double testTime : testTimes) {
+
+
+
+    }
+
     double hiceSumSelf = 0.;
     double hiceSumQuarter = 0.;
     double hiceSumHalf = 0.;
