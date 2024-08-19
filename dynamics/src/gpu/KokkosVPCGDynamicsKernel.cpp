@@ -29,7 +29,8 @@ public:
     }
     void print()
     {
-        std::cout << m_name << " total: " << m_total << ", avg: " << m_total / m_count << "\n";
+        std::cout << m_name << " " << m_total << " " << m_total / m_count << " " << m_count
+                  << std::endl;
     }
 
 private:
@@ -99,7 +100,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
     buffers.PSIStressDevice
         = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressDegree, NGP>, true);
 
-    // parametric map
+    // parametric map related
     buffers.lumpedcgmassDevice
         = makeKokkosDeviceView("lumpedcgmass", this->pmap->lumpedcgmass, true);
     buffers.divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, true);
@@ -115,14 +116,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
     for (size_t i = 0; i < 4; ++i) {
         buffers.dirichletDevice[i] = makeKokkosDeviceViewMap(
             "dirichlet" + std::to_string(i), this->smesh->dirichlet[i], true);
-        //    buffers.periodicDevice[i] = makeKokkosDeviceViewMap(
-        //        "periodic" + std::to_string(i), this->smesh->periodic[i], true);
     }
-    std::cout << "periodic bcs: " << this->smesh->periodic.size() << "\n";
-    for (const auto& bc : this->smesh->periodic) {
-        std::cout << ", " << bc.size();
-    }
-    std::cout << "\n";
 
     // unfortunately there is no more direct way to initialize an Kokkos::Bitset
     const unsigned nBits = this->smesh->landmask.size();
@@ -240,11 +234,11 @@ void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
 {
     const DeviceIndex cgshift = CGdegree * nx + 1; //!< Index shift for each row
 
-    // parallelize over 2D grid
-    Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx, ny });
+    // 1D loop is much faster than 2D loop on CPU
     Kokkos::parallel_for(
-        "projectVelocityToStrain", policy,
-        KOKKOS_LAMBDA(const DeviceIndex col, const DeviceIndex row) {
+        "projectVelocityToStrain", nx * ny, KOKKOS_LAMBDA(const DeviceIndex idx) {
+            const DeviceIndex col = idx % nx;
+            const DeviceIndex row = idx / nx;
             const DeviceIndex dgi = nx * row + col; //!< Index of dg vector
             const DeviceIndex cgi
                 = CGdegree * cgshift * row + col * CGdegree; //!< Lower left index of cg vector
@@ -486,11 +480,10 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
     //    timerDivZero.stop();
 
     //   timerDivComp.start();
-    Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({ 0, 0 }, { nx, ny });
-
     Kokkos::parallel_for(
-        "computeStressDivergence", policy,
-        KOKKOS_LAMBDA(const DeviceIndex cx, const DeviceIndex cy) {
+        "computeStressDivergence", nx * ny, KOKKOS_LAMBDA(const DeviceIndex idx) {
+            const DeviceIndex cx = idx % nx;
+            const DeviceIndex cy = idx / nx;
             const DeviceIndex eid = cx + nx * cy;
             // only on ice!
             if (!_buffers.landMaskDevice.test(eid)) {
@@ -538,8 +531,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
         //    timerDivComp.print();
         //    timerDivDirichlet.print();
     }
-    // todo: add
-    // add the contributions on the periodic boundaries
+    // todo: add the contributions on the periodic boundaries
     // VectorManipulations::CGAveragePeriodic(*smesh, tx);
     //   VectorManipulations::CGAveragePeriodic(*smesh, ty);
 }
@@ -558,10 +550,8 @@ template <int DGadvection>
 void KokkosVPCGDynamicsKernel<DGadvection>::updateMomentumDevice(const TimestepTime& tst,
     const KokkosBuffers& _buffers, const VPParameters& _params, FloatType beta)
 {
-
     // Update the velocity
     const FloatType SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
-
     const FloatType deltaT = tst.step.seconds();
 
     //      update by a loop.. implicit parts and h-dependent

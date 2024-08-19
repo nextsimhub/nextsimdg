@@ -55,7 +55,6 @@ using KokkosDeviceView
                        EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
         typename Details::ToKokkosLayout<EigenMat::Options>::Type>;
 template <typename EigenMat>
-// todo make Scalar const
 using ConstKokkosDeviceView
     = Kokkos::View<typename Details::ToKokkosArrayDec<const typename EigenMat::Scalar,
                        EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
@@ -205,10 +204,9 @@ template <class DataType, class... Properties>
 KOKKOS_IMPL_FUNCTION auto makeEigenMap(const Kokkos::View<DataType, Properties...>& view)
 {
     using View = Kokkos::View<DataType, Properties...>;
-
+    static_assert(View::rank() <= 2, "Only 1D and 2D views can be converted to an Eigen map.");
     using MapType = typename Details::ToEigenMap<DataType, typename View::array_layout>::Type;
-    // Eigen::Map<typename Details::ToEigenMatrix<typename View::non_const_value_type, typename
-    // View::array_layout>::Type>;
+
     if constexpr (View::rank() == 1) {
         return MapType(view.data(), view.extent(0));
     } else {
