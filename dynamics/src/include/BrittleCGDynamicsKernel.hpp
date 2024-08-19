@@ -37,6 +37,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::isAdvectionReady;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -86,7 +87,11 @@ public:
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
-    void prepareAdvection() override { dgtransport->prepareAdvection(avgU, avgV); }
+    void prepareAdvection() override
+    {
+        dgtransport->prepareAdvection(avgU, avgV);
+        isAdvectionReady = true;
+    }
 
     void update(const TimestepTime& tst) override
     {
