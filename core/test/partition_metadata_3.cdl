@@ -1,7 +1,7 @@
 netcdf partition_metadata_3 {
 dimensions:
-	globalX = 5 ;
-	globalY = 7 ;
+	NX = 5 ;
+	NY = 7 ;
 	P = 3 ;
 	T = 2 ;
 	B = 2 ;

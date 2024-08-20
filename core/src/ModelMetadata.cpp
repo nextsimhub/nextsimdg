@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date Jun 29, 2022
+ * @date 20 August 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -49,8 +49,8 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
             + std::to_string(nBoxes) + "\n";
         throw std::runtime_error(errorMsg);
     }
-    globalExtentX = ncFile.getDim("globalX").getSize();
-    globalExtentY = ncFile.getDim("globalY").getSize();
+    globalExtentX = ncFile.getDim("NX").getSize();
+    globalExtentY = ncFile.getDim("NY").getSize();
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
     std::vector<size_t> index(1, mpiMyRank);
     bboxGroup.getVar("global_x").getVar(index, &localCornerX);
