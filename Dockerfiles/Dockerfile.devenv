@@ -3,7 +3,7 @@ FROM spack/ubuntu-jammy:0.21 AS builder
 
 # Install software from spack_devenv.yaml
 RUN mkdir /opt/spack-environment
-COPY spack_devenv.yaml /opt/spack-environment/spack.yaml
+COPY Dockerfiles/spack_devenv.yaml /opt/spack-environment/spack.yaml
 RUN cd /opt/spack-environment \
     && spack env activate . \
     && spack install --fail-fast \
