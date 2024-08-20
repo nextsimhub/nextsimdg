@@ -14,7 +14,7 @@ RUN apt update \
     && apt install -y --no-install-recommends libany-uri-escape-perl \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and install xios
+# Download and install XIOS
 COPY install-xios.sh .
 RUN spack env activate /opt/spack-environment \
     && bash install-xios.sh
