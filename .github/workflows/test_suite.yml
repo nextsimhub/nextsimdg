@@ -75,6 +75,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: build domain_decomp
+      run: |
+        . /opt/spack-environment/activate.sh
+        git checkout https://github.com/nextsimhub/domain_decomp.git
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
+
     - name: build and compile with XIOS and MPI
       run: |
         . /opt/spack-environment/activate.sh
