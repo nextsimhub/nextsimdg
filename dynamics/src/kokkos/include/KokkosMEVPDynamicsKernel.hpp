@@ -1,15 +1,17 @@
 /*!
- * @file KokkosVPCGDynamicsKernel.hpp
+ * @file KokkosMEVPDynamicsKernel.hpp
  *
  * @date Feb 2, 2024
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
-#ifndef KOKKOSVPCGDYNAMICSKERNEL_HPP
-#define KOKKOSVPCGDYNAMICSKERNEL_HPP
+// by also guarding for USE_KOKKOS this header can be safely included even 
+// when Kokkos is not enabled
+#if not defined KOKKOSMEVPDYNAMICSKERNEL_HPP && USE_KOKKOS
+#define KOKKOSMEVPDYNAMICSKERNEL_HPP
 
-#include "../include/CGDynamicsKernel.hpp"
-#include "../include/VPParameters.hpp"
+#include "../../include/CGDynamicsKernel.hpp"
+#include "../../include/VPParameters.hpp"
 #include "KokkosUtils.hpp"
 
 #include <Kokkos_Bitset.hpp>
@@ -21,7 +23,7 @@ template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3
 using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
 
 // The VP pseudo-timestepping momentum equation solver for CG velocities
-template <int DGadvection> class KokkosVPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
+template <int DGadvection> class KokkosMEVPDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 private:
     static constexpr int NGP = NGP_DG<DGstressDegree>;
 
@@ -29,7 +31,7 @@ private:
 
 public:
     struct KokkosBuffers {
-        // velocity components
+        // cG (velocity) components
         using DeviceViewCG = KokkosDeviceView<CGVector<CGdegree>>;
         using HostViewCG = KokkosHostView<CGVector<CGdegree>>;
         using ConstDeviceViewCG = ConstKokkosDeviceView<CGVector<CGdegree>>;
@@ -108,21 +110,20 @@ public:
 
         // mesh related
         std::array<KokkosDeviceMapView<size_t>, 4> dirichletDevice;
-        // std::array<KokkosDeviceMapView<std::array<size_t, 4>>,4> periodicDevice;
         Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace> landMaskDevice;
     };
 
-    KokkosVPCGDynamicsKernel(const VPParameters& paramsIn)
+    KokkosMEVPDynamicsKernel(const VPParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>()
         , params(paramsIn)
     {
     }
 
-    KokkosVPCGDynamicsKernel(const KokkosVPCGDynamicsKernel<DGadvection>&) = delete;
-    KokkosVPCGDynamicsKernel(KokkosVPCGDynamicsKernel<DGadvection>&&) = delete;
+    KokkosMEVPDynamicsKernel(const KokkosMEVPDynamicsKernel<DGadvection>&) = delete;
+    KokkosMEVPDynamicsKernel(KokkosMEVPDynamicsKernel<DGadvection>&&) = delete;
 
-    KokkosVPCGDynamicsKernel& operator=(const KokkosVPCGDynamicsKernel<DGadvection>&) = delete;
-    KokkosVPCGDynamicsKernel& operator=(KokkosVPCGDynamicsKernel<DGadvection>&&) = delete;
+    KokkosMEVPDynamicsKernel& operator=(const KokkosMEVPDynamicsKernel<DGadvection>&) = delete;
+    KokkosMEVPDynamicsKernel& operator=(KokkosMEVPDynamicsKernel<DGadvection>&&) = delete;
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
     void update(const TimestepTime& tst) override;
@@ -132,7 +133,7 @@ public:
     // cuda requires these functions to be public
     static void projVelocityToStrain(
         const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
-    static void stressUpdateHighOrder(
+    static void updateStressHighOrder(
         const KokkosBuffers& _buffers, const VPParameters& _params, FloatType _alpha);
     static void computeStressDivergence(
         const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
@@ -153,4 +154,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* KOKKOSVPCGDYNAMICSKERNEL_HPP */
+#endif /* KOKKOSMEVPDYNAMICSKERNEL_HPP */

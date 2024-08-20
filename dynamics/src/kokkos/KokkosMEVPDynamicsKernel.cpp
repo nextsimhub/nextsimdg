@@ -1,11 +1,11 @@
 /*!
- * @file KokkosVPCGDynamicsKernel.hpp
+ * @file KokkosMEVPDynamicsKernel.hpp
  *
  * @date Mai 31, 2024
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
-#include "KokkosVPCGDynamicsKernel.hpp"
+#include "include/KokkosMEVPDynamicsKernel.hpp"
 
 namespace Nextsim {
 
@@ -59,7 +59,7 @@ static KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgToLocal(
 }
 
 template <int DGadvection>
-void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
+void KokkosMEVPDynamicsKernel<DGadvection>::initialise(
     const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 {
     CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
@@ -141,7 +141,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::initialise(
 }
 
 template <int DGadvection>
-void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
+void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
     static PerfTimer timerProj("projGPU");
     static PerfTimer timerStress("stressGPU");
@@ -188,7 +188,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         timerProj.stop();
 
         timerStress.start();
-        stressUpdateHighOrder(buffers, params, alpha);
+        updateStressHighOrder(buffers, params, alpha);
         timerStress.stop();
 
         timerDivergence.start();
@@ -229,7 +229,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 }
 
 template <int DGadvection>
-void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
+void KokkosMEVPDynamicsKernel<DGadvection>::projVelocityToStrain(
     const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
     const DeviceIndex cgshift = CGdegree * nx + 1; //!< Index shift for each row
@@ -276,12 +276,12 @@ void KokkosVPCGDynamicsKernel<DGadvection>::projVelocityToStrain(
 }
 
 template <int DGadvection>
-void KokkosVPCGDynamicsKernel<DGadvection>::stressUpdateHighOrder(
+void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(
     const KokkosBuffers& _buffers, const VPParameters& _params, FloatType _alpha)
 {
     const DeviceIndex n = _buffers.s11Device.extent(0);
     Kokkos::parallel_for(
-        "stressUpdateHighOrder", n, KOKKOS_LAMBDA(const DeviceIndex i) {
+        "updateStressHighOrder", n, KOKKOS_LAMBDA(const DeviceIndex i) {
             auto s11 = makeEigenMap(_buffers.s11Device);
             auto s12 = makeEigenMap(_buffers.s12Device);
             auto s22 = makeEigenMap(_buffers.s22Device);
@@ -371,7 +371,7 @@ size_t cy)
     }
 }*/
 
-// todo: should be KokkosVPCGDynamicsKernel::DeviceViewCG
+// todo: should be KokkosMEVPDynamicsKernel::DeviceViewCG
 template <typename DeviceViewCG, typename KokkosDeviceMapView>
 void dirichletZero(DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
     const std::array<KokkosDeviceMapView, 4>& dirichlet)
@@ -464,7 +464,7 @@ periodic)
     }*/
 
 template <int DGadvection>
-void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
+void KokkosMEVPDynamicsKernel<DGadvection>::computeStressDivergence(
     const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
     using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
@@ -537,7 +537,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::computeStressDivergence(
 }
 
 template <int DGadvection>
-void KokkosVPCGDynamicsKernel<DGadvection>::applyBoundariesDevice(
+void KokkosMEVPDynamicsKernel<DGadvection>::applyBoundariesDevice(
     const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny)
 {
     dirichletZero(_buffers.uDevice, nx, ny, _buffers.dirichletDevice);
@@ -547,7 +547,7 @@ void KokkosVPCGDynamicsKernel<DGadvection>::applyBoundariesDevice(
 }
 
 template <int DGadvection>
-void KokkosVPCGDynamicsKernel<DGadvection>::updateMomentumDevice(const TimestepTime& tst,
+void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const TimestepTime& tst,
     const KokkosBuffers& _buffers, const VPParameters& _params, FloatType beta)
 {
     // Update the velocity
@@ -594,8 +594,8 @@ void KokkosVPCGDynamicsKernel<DGadvection>::updateMomentumDevice(const TimestepT
         });
 }
 
-template class KokkosVPCGDynamicsKernel<1>;
-template class KokkosVPCGDynamicsKernel<3>;
-template class KokkosVPCGDynamicsKernel<6>;
+template class KokkosMEVPDynamicsKernel<1>;
+template class KokkosMEVPDynamicsKernel<3>;
+template class KokkosMEVPDynamicsKernel<6>;
 
 } // namespace Nextsim

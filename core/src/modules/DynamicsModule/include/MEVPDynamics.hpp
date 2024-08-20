@@ -9,7 +9,7 @@
 #ifndef DYNAMICS_HPP
 #define DYNAMICS_HPP
 
-#include "gpu/KokkosVPCGDynamicsKernel.hpp"
+#include "kokkos/include/KokkosMEVPDynamicsKernel.hpp"
 #include "include/IDynamics.hpp"
 #include "include/MEVPDynamicsKernel.hpp"
 
@@ -29,7 +29,11 @@ public:
 private:
     // TODO: How to get the template parameters here?
     // MEVPDynamicsKernel<6> kernel;
-    KokkosVPCGDynamicsKernel<3> kernel;
+#ifdef USE_KOKKOS
+    KokkosMEVPDynamicsKernel<3> kernel;
+#else
+    MEVPDynamicsKernel<6> kernel;
+#endif
     VPParameters params;
 };
 }

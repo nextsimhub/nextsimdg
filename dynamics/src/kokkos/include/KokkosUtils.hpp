@@ -216,4 +216,4 @@ KOKKOS_IMPL_FUNCTION auto makeEigenMap(const Kokkos::View<DataType, Properties..
 
 } // namespace nextsim
 
-#endif /* KOKKOSVPCGDYNAMICSKERNEL_HPP */
+#endif /* KOKKOSUTILS_HPP */
