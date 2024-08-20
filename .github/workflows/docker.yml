@@ -27,6 +27,9 @@ jobs:
         with:
           files: |
             .github/workflows/docker.yml
+            Dockerfiles/Dockerfile.devenv
+            Dockerfiles/install-xios.sh
+            Dockerfiles/spack_devenv.yaml
           base_sha: develop
 
       - name: Setup Docker buildx
