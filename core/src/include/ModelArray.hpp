@@ -60,7 +60,24 @@ public:
         size_t globalLength;
         size_t localLength;
         size_t start;
+#ifdef USE_MPI
+        void setLengths(size_t globalLength, size_t localLength, size_t start)
+        {
+            this->globalLength = globalLength;
+            this->localLength = localLength;
+            this->start = start;
+        }
+#else
+        void setLengths(size_t length)
+        {
+            // if MPI is not used then localLength and globalLength are set to the same value
+            this->globalLength = length;
+            this->localLength = length;
+            this->start = 0;
+        }
+#endif
     };
+
     typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
 
     //! The dimensions that make up each defined type. Defined in ModelArrayDetails.cpp
