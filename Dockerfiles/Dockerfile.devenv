@@ -15,7 +15,7 @@ RUN apt update \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install XIOS
-COPY install-xios.sh .
+COPY Dockerfiles/install-xios.sh .
 RUN spack env activate /opt/spack-environment \
     && bash install-xios.sh
 
