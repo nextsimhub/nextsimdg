@@ -3,8 +3,8 @@ netcdf partition {
 dimensions:
         P = 1 ;
         L = 1 ;
-        globalX = 30 ;
-        globalY = 30 ;
+        NX = 30 ;
+        NY = 30 ;
 
 group: bounding_boxes {
   variables:
