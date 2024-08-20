@@ -14,16 +14,15 @@ RUN apt update \
     && apt install -y --no-install-recommends libany-uri-escape-perl \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and install XIOS
+# Download and install domain_decomp and XIOS
 COPY Dockerfiles/install-xios.sh .
 RUN spack env activate /opt/spack-environment \
-    && bash install-xios.sh
-
-# Download and install domain_decomp
-RUN git clone https://github.com/nextsimhub/domain_decomp.git /decomp \
+    && git clone https://github.com/nextsimhub/domain_decomp.git /decomp \
     && cd /decomp \
     && cmake -G "Unix Makefiles" -Bbuild -S. \
-    && cmake --build build --config Release
+    && cmake --build build --config Release \
+    && cd - \
+    && bash install-xios.sh
 
 # Strip all the binaries
 RUN find -L /opt/views/view/* -type f -exec readlink -f '{}' \; | \
