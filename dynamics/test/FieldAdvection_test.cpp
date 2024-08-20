@@ -38,23 +38,55 @@ void writeDataPGM(const ModelArray& data, const std::string& fileName, size_t k)
 
 }
 
+const static size_t nSamples = 8;
+
+std::pair<double, double> pseudoFTKernel(double data, size_t eighth) {
+    std::array<double, nSamples> cosFactor = { 1, 0, -1, 0, 1, 0, -1, 0 };
+    std::array<double, nSamples> sinFactor = { 0, 1, 0, -1, 0, 1, 0, -1 };
+
+    return {cosFactor[eighth] * data, sinFactor[eighth] * data};
+}
+
+size_t ftx(size_t x0, size_t r, size_t eighth)
+{
+    const std::array<int, nSamples> xOffset = { +1, +1, 0, -1, -1, -1, 0, +1 };
+    return x0 + r * xOffset[eighth];
+}
+
+size_t fty(size_t y0, size_t r, size_t eighth)
+{
+    const std::array<int, nSamples> yOffset = { 0, +1, +1, +1, 0, -1, -1, -1 };
+    return y0 + r * yOffset[eighth];
+}
+
 std::pair<double, double> pseudoFT(const ModelArray& data, size_t x0, size_t y0, size_t r)
 {
     // Sample 8 points around the circle to do a basic Fourier transform
-    const size_t nSamples = 8;
-    std::array<size_t, nSamples> xTest = { x0 + r, x0 + r, x0, x0 - r, x0 - r, x0 - r, x0, x0 + r };
-    std::array<size_t, nSamples> yTest = { y0, y0 + r, y0 + r, y0 + r, y0, y0 - r, y0 - r, y0 - r };
-    std::array<double, nSamples> cosFactor = { 1, 0, -1, 0, 1, 0, -1, 0 };
-    std::array<double, nSamples> sinFactor = { 0, 1, 0, -1, 0, 1, 0, -1 };
 
     double cosTerm = 0;
     double sinTerm = 0;
     for (size_t theta = 0; theta < nSamples; ++theta) {
-        cosTerm += cosFactor[theta] * data(xTest[theta], yTest[theta]);
-        sinTerm += sinFactor[theta] * data(xTest[theta], yTest[theta]);
+        auto complexTerm = pseudoFTKernel(data(ftx(x0, r, theta), fty(x0, r, theta)), theta);
+        cosTerm += complexTerm.first;
+        sinTerm += complexTerm.second;
     }
     return {cosTerm, sinTerm};
 }
+
+std::pair<double, double> pseudoFT(const ModelArray& data, size_t k, size_t x0, size_t y0, size_t r)
+{
+    // Sample 8 points around the circle to do a basic Fourier transform
+
+    double cosTerm = 0;
+    double sinTerm = 0;
+    for (size_t theta = 0; theta < nSamples; ++theta) {
+        auto complexTerm = pseudoFTKernel(data(ftx(x0, r, theta), fty(x0, r, theta), k), theta);
+        cosTerm += complexTerm.first;
+        sinTerm += complexTerm.second;
+    }
+    return {cosTerm, sinTerm};
+}
+
 
 void writeDataPGM(const ModelArray& data, const std::string& fileName)
 {
@@ -83,9 +115,9 @@ TEST_SUITE_BEGIN("Field advection");
 TEST_CASE("Advect a field")
 {
     // Parameters of the mesh
-    size_t nx = 101;
-    size_t ny = 101;
-    size_t nz = 3;
+    const size_t nx = 101;
+    const size_t ny = 101;
+    const size_t nz = 3;
 
     double dx = 1000; //m
     double dy = 1000; //m
@@ -199,24 +231,51 @@ TEST_CASE("Advect a field")
     double timeLimit = 1e5;
     TimePoint origin("2024-08-01T00:00:00Z");
     // Iterate: run the DynamicsKernel update, then advect the snow
-    double outPeriod = 1000;
+    double outPeriod = 25000;
     double outCount = outPeriod;
+    size_t nOut = 0;
 
     // A map of the results at the target times
-    std::map<double, ModelArray> hiceTestData;
-    std::map<double, ModelArray> ticeTestData;
+    std::map<double, std::pair<double, double>> hsnowExpdData;
+    std::map<double, std::pair<double, std::array<double, nz>>> ticeExpdData;
+    std::vector<double> hsnowExpdCosines = { 2 * hsnowA, -2 * hsnowA, 2 * hsnowA, -2 * hsnowA, 2 * hsnowA };
+    std::vector<double> hsnowExpdSines = { 0, 0, 0, 0, 0 };
+    std::vector<std::array<double, 3>> ticeExpdCosines = {
+            { 2 * ticeA, 2 * ticeA, 2 * ticeA },
+            { -2 * ticeA, -2 * ticeA, -2 * ticeA },
+            { 2 * ticeA, 2 * ticeA, 2 * ticeA },
+            { -2 * ticeA, -2 * ticeA, -2 * ticeA },
+            { 2 * ticeA, 2 * ticeA, 2 * ticeA },
+    };
+    std::vector<std::array<double, 3>> ticeExpdSines = {
+            { 0, 0, 0 },
+            { 0, 0, 0 },
+            { 0, 0, 0 },
+            { 0, 0, 0 },
+            { 0, 0, 0 },
+    };
 
-    std::vector<double> testTimes;
+    size_t pTest = nx / 4;
+    double testEps = 5e-2;
 
     for (double t = 0; t <= timeLimit; t += deltaT) {
         if (outCount >= outPeriod) {
-//            writeDataPGM(-tice * 100, std::to_string(std::lround(t)) + ".pgm", 1);
+//            writeDataPGM(-tice * 100, "0_" + std::to_string(std::lround(t)) + ".pgm", 0);
+//            writeDataPGM(-tice * 100, "1_" + std::to_string(std::lround(t)) + ".pgm", 1);
 //            writeDataPGM(hsnow * 100, std::to_string(std::lround(t)) + ".pgm");
-// Store the data as a standard sinusoid: subtract the offset (1.5) and normalize the range (*2)
-            hiceTestData[t] = 2 * (hsnow - 1.5);
-            ticeTestData[t] = 2 * (tice + 1.5);
-            testTimes.push_back(t);
+            auto [hsnowCos, hsnowSin] = pseudoFT(hsnow, nx/2, ny/2, pTest);
+            auto [t0Cos, t0Sin] = pseudoFT(tice, 0, nx/2, ny/2, pTest);
+            auto [t1Cos, t1Sin] = pseudoFT(tice, 1, nx/2, ny/2, pTest);
+            REQUIRE(hsnowCos == doctest::Approx(hsnowExpdCosines[nOut]).epsilon(testEps));
+            REQUIRE(hsnowSin == doctest::Approx(hsnowExpdSines[nOut]).epsilon(testEps));
+            REQUIRE(t0Cos == doctest::Approx(ticeExpdCosines[nOut][0]).epsilon(testEps));
+            REQUIRE(t0Sin == doctest::Approx(ticeExpdSines[nOut][0]).epsilon(testEps));
+            REQUIRE(t1Cos == doctest::Approx(ticeExpdCosines[nOut][1]).epsilon(testEps));
+            REQUIRE(t1Sin == doctest::Approx(ticeExpdSines[nOut][1]).epsilon(testEps));
+//            std::cout << "cosine: data=" << t0Cos << ", expected=" << ticeExpdCosines[nOut][1] << std::endl;
+//            std::cout << "sine:   data=" << t0Sin << ", expected=" << ticeExpdSines[nOut][1] << std::endl;
             outCount = 0;
+            ++nOut;
         }
         TimestepTime tst = { origin + Duration(std::to_string(std::lround(t))), Duration(deltaT) };
         advection.update(tst);
@@ -224,61 +283,6 @@ TEST_CASE("Advect a field")
         advection.advectField(tice, ticeName);
         outCount += deltaT;
     }
-
-    // Test the collected data
-    // Compare the initial data with a quarter rotation later (should sum to ~0)
-    size_t pTest = x0 / 2;
-    // Sample 8 points around the circle to do a basic Fourier transform
-    const size_t nSamples = 8;
-    std::array<size_t, nSamples> xTest = { pTest, pTest, 0, -pTest, -pTest, -pTest, 0, pTest };
-    std::array<size_t, nSamples> yTest = { 0, pTest, pTest, pTest, 0, -pTest, -pTest, -pTest };
-
-    std::vector<double> hSnowExpectedCosines = { 4 * hsnowA, -4 * hsnowA, 4 * hsnowA };
-    std::vector<double> hSnowExpectedSines = { 0, 0, 0 };
-
-    for (double testTime : testTimes) {
-
-
-
-    }
-
-    double hiceSumSelf = 0.;
-    double hiceSumQuarter = 0.;
-    double hiceSumHalf = 0.;
-    size_t hiceCount = 0;
-    double ticeSumSelf = 0.;
-    double ticeSumQuarter = 0.;
-    double ticeSumHalf = 0.;
-    size_t ticeCount = 0;
-    size_t testRow = ny/3;
-    size_t testLevel = 1;
-    REQUIRE(testTimes.size() >= 3);
-    for (size_t i = 0; i < nx; ++i) {
-        // -3 is the missing data value, due to the arithmetic manipulations above
-        if (hiceTestData.at(testTimes[0])(i, testRow) != -3) {
-            ++hiceCount;
-            hiceSumSelf+= hiceTestData.at(testTimes[0])(i, testRow) + hiceTestData.at(testTimes[0])(i, testRow);
-            hiceSumQuarter += hiceTestData.at(testTimes[0])(i, testRow) + hiceTestData.at(testTimes[1])(i, testRow);
-            hiceSumHalf+= hiceTestData.at(testTimes[0])(i, testRow) + hiceTestData.at(testTimes[2])(i, testRow);
-        }
-        if (ticeTestData.at(testTimes[0])(i, testRow, testLevel) != +3) {
-            ++ticeCount;
-            ticeSumSelf+= ticeTestData.at(testTimes[0])(i, testRow, testLevel) + ticeTestData.at(testTimes[0])(i, testRow, testLevel);
-            ticeSumQuarter += ticeTestData.at(testTimes[0])(i, testRow, testLevel) + ticeTestData.at(testTimes[1])(i, testRow, testLevel);
-            ticeSumHalf+= ticeTestData.at(testTimes[0])(i, testRow, testLevel) + ticeTestData.at(testTimes[2])(i, testRow, testLevel);
-        }
-    }
-    double eps = 1.5e-2;
-    // Test the mean difference when the pattern is out of phase (quarter) and in phase (half)
-    // Normalize by the sum with self and the number of data points
-    // The ratio of the self sum and the sum with the in-phase pattern should be close to 1
-    REQUIRE(std::fabs(hiceSumHalf / hiceSumSelf - 1) / hiceCount < eps);
-    // The sum of the out-of phase pattern should be close to zero
-    REQUIRE(std::fabs(hiceSumQuarter / hiceSumSelf) / hiceCount < eps);
-
-    REQUIRE(std::fabs(ticeSumHalf / ticeSumSelf - 1) / ticeCount < eps);
-    // The sum of the out-of phase pattern should be close to zero
-    REQUIRE(std::fabs(ticeSumQuarter / ticeSumSelf) / ticeCount < eps);
 }
 
 }
