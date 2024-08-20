@@ -1,0 +1,42 @@
+name: Periodic Docker build
+
+on:
+  # Build the Docker container whenever commits are pushed to an open PR (under conditions defined below)
+  pull_request:
+
+  # Build the Docker container at 00:00 on the first day of every 3 months
+  schedule:
+    - cron: '0 0 1 */3 *'
+
+jobs:
+  docker:
+    name: Build Docker container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        id: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine if this file changed compared with develop
+        if: ${{ !(github.event_name == 'schedule') }}
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            .github/workflows/docker.yml
+          base_sha: develop
+
+      - name: Setup Docker buildx
+        id: buildx
+        if: ${{ (steps.changed-files.outputs.any_changed == 'true') || (github.event_name == 'schedule') }}
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build container and push to ghcr
+        id: build-and-push
+        if: ${{ (steps.changed-files.outputs.any_changed == 'true') || (github.event_name == 'schedule') }}
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          no-cache: true
+          file: Dockerfiles/Dockerfile.devenv
+          tags: ghcr.io/nextsimhub/nextsim-dev-env:latest
