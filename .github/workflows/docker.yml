@@ -55,4 +55,4 @@ jobs:
           push: true
           no-cache: true
           file: Dockerfiles/Dockerfile.devenv
-          tags: ghcr.io/nextsimhub/nextsim-dev-env:latest
+          tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
