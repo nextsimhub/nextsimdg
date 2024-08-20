@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    31 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -175,6 +175,46 @@ cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, cons
 }
 
 /*!
+ * Convert a C-string to a C++ `std::string`.
+ *
+ * @param C-string
+ * @param length of C-string
+ * @return C++ string version
+ */
+std::string Xios::convertCStrToCppStr(const char* cStr, int cStrLen)
+{
+    std::string cppStr(cStr, cStrLen);
+    boost::algorithm::trim_right(cppStr);
+    return cppStr;
+}
+
+/*!
+ * Convert an XIOS duration object into a nextSIM-DG one.
+ *
+ * @param XIOS duration object
+ * @return nextSIM-DG version
+ */
+Duration Xios::convertDurationFromXios(const cxios_duration duration)
+{
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(duration, cStr, cStrLen);
+    std::string durationStr = convertCStrToCppStr(cStr, cStrLen);
+    boost::erase_all(durationStr, "s");
+    return Duration(std::stod(durationStr));
+}
+
+/*!
+ * Convert a nextSIM-DG duration object into an XIOS one.
+ *
+ * @param nextSIM-DG duration object
+ * @return XIOS version
+ */
+cxios_duration Xios::convertDurationToXios(const Duration duration)
+{
+    return cxios_duration({ 0.0, 0.0, 0.0, 0.0, 0.0, duration.seconds() });
+}
+
+/*!
  * Set calendar origin
  *
  * @param origin
@@ -203,8 +243,7 @@ void Xios::setCalendarStart(const TimePoint start)
  */
 void Xios::setCalendarTimestep(const Duration timestep)
 {
-    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, 0.0, timestep.seconds() };
-    cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
+    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
     cxios_update_calendar_timestep(clientCalendar);
 }
 
@@ -217,9 +256,7 @@ std::string Xios::getCalendarType()
 {
     char cStr[cStrLen];
     cxios_get_calendar_wrapper_type(clientCalendar, cStr, cStrLen);
-    std::string calendarType(cStr, cStrLen);
-    boost::algorithm::trim_right(calendarType);
-    return calendarType;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -255,12 +292,7 @@ Duration Xios::getCalendarTimestep()
 {
     cxios_duration calendar_timestep;
     cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
-    char cStr[cStrLen];
-    cxios_duration_convert_to_string(calendar_timestep, cStr, cStrLen);
-    std::string durationStr(cStr, cStrLen);
-    boost::algorithm::trim_right(durationStr);
-    boost::erase_all(durationStr, "s");
-    return Duration(std::stod(durationStr));
+    return convertDurationFromXios(calendar_timestep);
 }
 
 /*!
@@ -643,9 +675,7 @@ std::string Xios::getDomainType(const std::string domainId)
     }
     char cStr[cStrLen];
     cxios_get_domain_type(domain, cStr, cStrLen);
-    std::string domainType(cStr, cStrLen);
-    boost::algorithm::trim_right(domainType);
-    return domainType;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -852,9 +882,7 @@ std::string Xios::getGridName(const std::string gridId)
     }
     char cStr[cStrLen];
     cxios_get_grid_name(grid, cStr, cStrLen);
-    std::string gridName(cStr, cStrLen);
-    boost::algorithm::trim_right(gridName);
-    return gridName;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -1035,9 +1063,7 @@ std::string Xios::getFieldName(const std::string fieldId)
     }
     char cStr[cStrLen];
     cxios_get_field_name(field, cStr, cStrLen);
-    std::string fieldName(cStr, cStrLen);
-    boost::algorithm::trim_right(fieldName);
-    return fieldName;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -1054,9 +1080,7 @@ std::string Xios::getFieldOperation(const std::string fieldId)
     }
     char cStr[cStrLen];
     cxios_get_field_operation(field, cStr, cStrLen);
-    std::string operation(cStr, cStrLen);
-    boost::algorithm::trim_right(operation);
-    return operation;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -1073,9 +1097,7 @@ std::string Xios::getFieldGridRef(const std::string fieldId)
     }
     char cStr[cStrLen];
     cxios_get_field_grid_ref(field, cStr, cStrLen);
-    std::string gridRef(cStr, cStrLen);
-    boost::algorithm::trim_right(gridRef);
-    return gridRef;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -1175,14 +1197,13 @@ void Xios::setFileType(const std::string fileId, const std::string fileType)
  * @param the file ID
  * @param output frequency to set
  */
-void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
+void Xios::setFileOutputFreq(const std::string fileId, Duration freq)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_output_freq(file)) {
         Logged::warning("Xios: Overwriting output frequency for file '" + fileId + "'");
     }
-    cxios_set_file_output_freq(
-        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    cxios_set_file_output_freq(file, convertDurationToXios(freq));
     if (!cxios_is_defined_file_output_freq(file)) {
         throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
     }
@@ -1194,14 +1215,13 @@ void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
  * @param the file ID
  * @param split frequency to set
  */
-void Xios::setFileSplitFreq(const std::string fileId, const std::string freq)
+void Xios::setFileSplitFreq(const std::string fileId, Duration freq)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_split_freq(file)) {
         Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
     }
-    cxios_set_file_split_freq(
-        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    cxios_set_file_split_freq(file, convertDurationToXios(freq));
     if (!cxios_is_defined_file_split_freq(file)) {
         throw std::runtime_error("Xios: Failed to set split frequency for file '" + fileId + "'");
     }
@@ -1221,9 +1241,7 @@ std::string Xios::getFileName(const std::string fileId)
     }
     char cStr[cStrLen];
     cxios_get_file_name(file, cStr, cStrLen);
-    std::string fileName(cStr, cStrLen);
-    boost::algorithm::trim_right(fileName);
-    return fileName;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -1240,9 +1258,7 @@ std::string Xios::getFileType(const std::string fileId)
     }
     char cStr[cStrLen];
     cxios_get_file_type(file, cStr, cStrLen);
-    std::string fileType(cStr, cStrLen);
-    boost::algorithm::trim_right(fileType);
-    return fileType;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -1251,7 +1267,7 @@ std::string Xios::getFileType(const std::string fileId)
  * @param the file ID
  * @return the corresponding output frequency
  */
-std::string Xios::getFileOutputFreq(const std::string fileId)
+Duration Xios::getFileOutputFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_output_freq(file)) {
@@ -1259,11 +1275,7 @@ std::string Xios::getFileOutputFreq(const std::string fileId)
     }
     cxios_duration duration;
     cxios_get_file_output_freq(file, &duration);
-    char cStr[cStrLen];
-    cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    std::string outputFreq(cStr, cStrLen);
-    boost::algorithm::trim_right(outputFreq);
-    return outputFreq;
+    return convertDurationFromXios(duration);
 }
 
 /*!
@@ -1272,7 +1284,7 @@ std::string Xios::getFileOutputFreq(const std::string fileId)
  * @param the file ID
  * @return split frequency of the corresponding file
  */
-std::string Xios::getFileSplitFreq(const std::string fileId)
+Duration Xios::getFileSplitFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_split_freq(file)) {
@@ -1280,11 +1292,7 @@ std::string Xios::getFileSplitFreq(const std::string fileId)
     }
     cxios_duration duration;
     cxios_get_file_split_freq(file, &duration);
-    char cStr[cStrLen];
-    cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    std::string freq(cStr, cStrLen);
-    boost::algorithm::trim_right(freq);
-    return freq;
+    return convertDurationFromXios(duration);
 }
 
 /*!

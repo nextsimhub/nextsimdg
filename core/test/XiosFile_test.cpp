@@ -1,7 +1,7 @@
 /*!
  * @file    XiosFile_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    31 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -16,6 +16,8 @@
 #include "include/Xios.hpp"
 
 #include <iostream>
+
+using namespace doctest;
 
 namespace Nextsim {
 
@@ -46,7 +48,8 @@ MPI_TEST_CASE("TestXiosFile", 2)
     const size_t rank = xios_handler.getClientMPIRank();
 
     // Set timestep as a minimum
-    xios_handler.setCalendarTimestep(Duration("P0-0T01:00:00"));
+    Duration timestep("P0-0T01:30:00");
+    xios_handler.setCalendarTimestep(timestep);
 
     // Axis setup
     xios_handler.createAxis("axis_A");
@@ -73,18 +76,45 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.setFileType(fileId, fileType);
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
-    const std::string freq { "1ts" };
-    xios_handler.setFileOutputFreq(fileId, freq);
-    REQUIRE(xios_handler.getFileOutputFreq(fileId) == freq);
+    xios_handler.setFileOutputFreq(fileId, timestep);
+    REQUIRE(xios_handler.getFileOutputFreq(fileId).seconds() == 1.5 * 60 * 60);
     // Split frequency
-    const std::string splitFreq { "1ts" };
-    xios_handler.setFileSplitFreq(fileId, splitFreq);
-    REQUIRE(xios_handler.getFileSplitFreq(fileId) == splitFreq);
+    xios_handler.setFileSplitFreq(fileId, timestep);
+    REQUIRE(xios_handler.getFileSplitFreq(fileId).seconds() == 1.5 * 60 * 60);
     // Add field
     xios_handler.fileAddField(fileId, "field_A");
     std::vector<std::string> fieldIds = xios_handler.fileGetFieldIds(fileId);
     REQUIRE(fieldIds.size() == 1);
     REQUIRE(fieldIds[0] == "field_A");
+
+    // Create a new file for each time unit to check more thoroughly that XIOS interprets output
+    // frequency and split frequency correctly.
+    // (If we reused the same file then the XIOS interface would raise warnings.)
+    xios_handler.createFile("year");
+    xios_handler.setFileOutputFreq("year", Duration("P1-0T00:00:00"));
+    xios_handler.setFileSplitFreq("year", Duration("P2-0T00:00:00"));
+    REQUIRE(xios_handler.getFileOutputFreq("year").seconds() == 365 * 24 * 60 * 60);
+    REQUIRE(xios_handler.getFileSplitFreq("year").seconds() == 2 * 365 * 24 * 60 * 60);
+    xios_handler.createFile("day");
+    xios_handler.setFileOutputFreq("day", Duration("P0-1T00:00:00"));
+    xios_handler.setFileSplitFreq("day", Duration("P0-2T00:00:00"));
+    REQUIRE(xios_handler.getFileOutputFreq("day").seconds() == 24 * 60 * 60);
+    REQUIRE(xios_handler.getFileSplitFreq("day").seconds() == 2 * 24 * 60 * 60);
+    xios_handler.createFile("hour");
+    xios_handler.setFileOutputFreq("hour", Duration("P0-0T01:00:00"));
+    xios_handler.setFileSplitFreq("hour", Duration("P0-0T02:00:00"));
+    REQUIRE(xios_handler.getFileOutputFreq("hour").seconds() == 60 * 60);
+    REQUIRE(xios_handler.getFileSplitFreq("hour").seconds() == 2 * 60 * 60);
+    xios_handler.createFile("minute");
+    xios_handler.setFileOutputFreq("minute", Duration("P0-0T00:01:00"));
+    xios_handler.setFileSplitFreq("minute", Duration("P0-0T00:02:00"));
+    REQUIRE(xios_handler.getFileOutputFreq("minute").seconds() == 60);
+    REQUIRE(xios_handler.getFileSplitFreq("minute").seconds() == 2 * 60);
+    xios_handler.createFile("second");
+    xios_handler.setFileOutputFreq("second", Duration("P0-0T00:00:01"));
+    xios_handler.setFileSplitFreq("second", Duration("P0-0T00:00:02"));
+    REQUIRE(xios_handler.getFileOutputFreq("second").seconds() == 1);
+    REQUIRE(xios_handler.getFileSplitFreq("second").seconds() == 2);
 
     xios_handler.close_context_definition();
     xios_handler.context_finalize();
