@@ -1,5 +1,5 @@
 # Build stage with Spack pre-installed and ready to be used
-FROM spack/ubuntu-jammy:0.21 as builder
+FROM spack/ubuntu-jammy:0.21 AS builder
 
 # Install software from spack_devenv.yaml
 RUN mkdir /opt/spack-environment
