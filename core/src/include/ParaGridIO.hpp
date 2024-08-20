@@ -10,6 +10,9 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 
+#ifdef USE_MPI
+#include "ParallelNetcdfFile.hpp"
+#endif
 #include <map>
 #include <ncFile.h>
 #include <string>
