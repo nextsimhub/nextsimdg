@@ -26,9 +26,12 @@ public:
     virtual std::string getName() const { return "OASISCoupled"; }
 
 #ifdef USE_OASIS
-    int partitionID;
-    virtual void setMetadata(const ModelMetadata& metadata)
+    int partitionID, OASISTime;
+    void setMetadata(const ModelMetadata& metadata)
     {
+        // Set the "OASIS time" (seconds since start) to zero
+        OASISTime = 0;
+
         // Set the communicators
         // Some of these three may need to be global to the class
         int compID;
@@ -74,6 +77,10 @@ public:
 
         // def_var and end_def calls are called by the child class
     }
+
+    // Increment the "OASIS" time by the number of seconds in the time step
+    // Must be called at the end of the child class' update or updateAfter call.
+    void updateOASISTime(const TimestepTime &tst) { OASISTime += tst.step.seconds(); }
 #else
     virtual void setMetadata(const ModelMetadata& metadata)
     {

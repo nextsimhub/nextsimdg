@@ -48,27 +48,25 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
 {
     // Directly set the array values
 #ifdef USE_OASIS
-    // TODO: Replace this code with OASIS receive-calls
 
     int kinfo;
-    int date_cpl; // TODO: Figure this one out!
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
     const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
-    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SST], date_cpl, dimension0, dimension1,
+    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SST], OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sst[0], &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SSS], date_cpl, dimension0, dimension1,
+    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SSS], OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::UOCEAN], date_cpl, dimension0, dimension1,
+    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::UOCEAN], OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &u[0], &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::VOCEAN], date_cpl, dimension0, dimension1,
+    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::VOCEAN], OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &v[0], &kinfo));
 
     // TODO: Implement ssh reading and passing to dynamics!
-    //    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SSH], date_cpl, dimension0, dimension1,
+    //    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SSH], OASISTime, dimension0, dimension1,
     //                                bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
 
     // TODO: Handle mld being an optional field
@@ -93,7 +91,6 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 #ifdef USE_OASIS
     // TODO: Add OASIS send-calls here
     int kinfo;
-    int date_cpl; // TODO: Figure this one out!
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
     const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
@@ -101,29 +98,32 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     HField dummy;
     dummy.resize();
     dummy.setData(0.);
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUX], date_cpl, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUX], OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUY], date_cpl, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUY], OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::EMP], date_cpl, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::EMP], OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::QSW], date_cpl, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::QSW], OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::QNOSUN], date_cpl, dimension0, dimension1,
+    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::QNOSUN], OASISTime, dimension0, dimension1,
         1, OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::SFLX], date_cpl, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::SFLX], OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUMOD], date_cpl, dimension0, dimension1,
+    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUMOD], OASISTime, dimension0, dimension1,
         1, OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::CICE], date_cpl, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::CICE], OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+
+    // Increment the "OASIS" time by the number of seconds in the time step
+    updateOASISTime(tst);
 #else
     std::string message = __func__ + std::string(": OASIS support not compiled in.\n");
     throw std::runtime_error(message);
