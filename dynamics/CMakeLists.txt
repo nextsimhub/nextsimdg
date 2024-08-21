@@ -1,9 +1,8 @@
 add_subdirectory(src)
-#if (NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
-#    add_subdirectory(test)
-#endif()
 
-add_subdirectory(test)
+if (BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 set(NextsimSources
     "${NextsimSources}"
