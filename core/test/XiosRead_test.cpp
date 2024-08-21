@@ -1,7 +1,7 @@
 /*!
  * @file    XiosRead_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    4 July 2024
+ * @date    21 August 2024
  * @brief   Tests for XIOS read method
  * @details
  * This test is designed to test the read method of the C++ interface
@@ -50,7 +50,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Calendar setup
     xios_handler.setCalendarOrigin(TimePoint("2020-01-23T00:08:15Z"));
     xios_handler.setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
-    xios_handler.setCalendarTimestep(Duration("P0-0T01:30:00"));
+    Duration timestep("P0-0T01:30:00");
+    xios_handler.setCalendarTimestep(timestep);
 
     // Axis setup
     const int n1 = 2;
@@ -89,22 +90,22 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xios_handler.setFieldOperation("field_2D", "instant");
     xios_handler.setFieldGridRef("field_2D", "grid_2D");
     xios_handler.setFieldReadAccess("field_2D", true);
-    xios_handler.setFieldFreqOffset("field_2D", "1ts");
+    xios_handler.setFieldFreqOffset("field_2D", timestep);
     xios_handler.createField("field_3D");
     xios_handler.setFieldOperation("field_3D", "instant");
     xios_handler.setFieldGridRef("field_3D", "grid_3D");
     xios_handler.setFieldReadAccess("field_3D", true);
-    xios_handler.setFieldFreqOffset("field_3D", "1ts");
+    xios_handler.setFieldFreqOffset("field_3D", timestep);
     xios_handler.createField("field_4D");
     xios_handler.setFieldOperation("field_4D", "instant");
     xios_handler.setFieldGridRef("field_4D", "grid_4D");
     xios_handler.setFieldReadAccess("field_4D", true);
-    xios_handler.setFieldFreqOffset("field_4D", "1ts");
+    xios_handler.setFieldFreqOffset("field_4D", timestep);
 
     // File setup
     xios_handler.createFile("xios_test_input");
     xios_handler.setFileType("xios_test_input", "one_file");
-    xios_handler.setFileOutputFreq("xios_test_input", "1ts");
+    xios_handler.setFileOutputFreq("xios_test_input", timestep);
     xios_handler.setFileMode("xios_test_input", "read");
     xios_handler.setFileParAccess("xios_test_input", "collective");
     xios_handler.fileAddField("xios_test_input", "field_2D");

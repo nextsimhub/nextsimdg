@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    5 August 2024
+ * @date    21 August 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -1073,14 +1073,13 @@ void Xios::setFieldReadAccess(const std::string fieldId, const bool readAccess)
  * @param the field ID
  * @param frequency offset to set
  */
-void Xios::setFieldFreqOffset(const std::string fieldId, const std::string freqOffset)
+void Xios::setFieldFreqOffset(const std::string fieldId, const Duration freqOffset)
 {
     xios::CField* field = getField(fieldId);
     if (cxios_is_defined_field_freq_offset(field)) {
         Logged::warning("Xios: Overwriting frequency offset for field '" + fieldId + "'");
     }
-    cxios_set_field_freq_offset(
-        field, cxios_duration_convert_from_string(freqOffset.c_str(), freqOffset.length()));
+    cxios_set_field_freq_offset(field, convertDurationToXios(freqOffset));
     if (!cxios_is_defined_field_freq_offset(field)) {
         throw std::runtime_error(
             "Xios: Failed to set frequency offset for field '" + fieldId + "'");
@@ -1161,7 +1160,7 @@ bool Xios::getFieldReadAccess(const std::string fieldId)
  * @param the field ID
  * @return frequency offset used for the corresponding field
  */
-std::string Xios::getFieldFreqOffset(const std::string fieldId)
+Duration Xios::getFieldFreqOffset(const std::string fieldId)
 {
     xios::CField* field = getField(fieldId);
     if (!cxios_is_defined_field_freq_offset(field)) {
@@ -1171,9 +1170,7 @@ std::string Xios::getFieldFreqOffset(const std::string fieldId)
     cxios_get_field_freq_offset(field, &duration);
     char cStr[cStrLen];
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    std::string freqOffset(cStr, cStrLen);
-    boost::algorithm::trim_right(freqOffset);
-    return freqOffset;
+    return convertDurationFromXios(duration);;
 }
 
 /*!
@@ -1273,7 +1270,7 @@ void Xios::setFileType(const std::string fileId, const std::string fileType)
  * @param the file ID
  * @param output frequency to set
  */
-void Xios::setFileOutputFreq(const std::string fileId, Duration freq)
+void Xios::setFileOutputFreq(const std::string fileId, const Duration freq)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_output_freq(file)) {
@@ -1291,7 +1288,7 @@ void Xios::setFileOutputFreq(const std::string fileId, Duration freq)
  * @param the file ID
  * @param split frequency to set
  */
-void Xios::setFileSplitFreq(const std::string fileId, Duration freq)
+void Xios::setFileSplitFreq(const std::string fileId, const Duration freq)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_split_freq(file)) {

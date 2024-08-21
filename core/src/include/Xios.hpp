@@ -1,7 +1,7 @@
 /*!
  * @file    Xios.hpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    5 August 2024
+ * @date    21 August 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -101,19 +101,19 @@ public:
     void setFieldOperation(const std::string fieldId, const std::string operation);
     void setFieldGridRef(const std::string fieldId, const std::string gridRef);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
-    void setFieldFreqOffset(const std::string fieldId, const std::string freqOffset);
+    void setFieldFreqOffset(const std::string fieldId, const Duration freqOffset);
     std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
-    std::string getFieldFreqOffset(const std::string fieldId);
+    Duration getFieldFreqOffset(const std::string fieldId);
 
     /* File */
     void createFile(const std::string fileId);
     void setFileName(const std::string fileId, const std::string fileName);
     void setFileType(const std::string fileId, const std::string fileType);
-    void setFileOutputFreq(const std::string fileId, Duration outputFreq);
-    void setFileSplitFreq(const std::string fileId, Duration splitFreq);
+    void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
+    void setFileSplitFreq(const std::string fileId, const Duration splitFreq);
     void setFileMode(const std::string fileId, const std::string mode);
     void setFileParAccess(const std::string fileId, const std::string parAccess);
     std::string getFileName(const std::string fileId);
