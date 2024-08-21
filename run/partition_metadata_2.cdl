@@ -13,17 +13,17 @@ group: bounding_boxes {
   variables:
   	int domain_x(P) ;
   	int domain_y(P) ;
-  	int local_extent_x(P) ;
-  	int local_extent_y(P) ;
+  	int domain_extent_x(P) ;
+  	int domain_extent_y(P) ;
   data:
 
    domain_x = 0, 0 ;
 
    domain_y = 0, 16 ;
 
-   local_extent_x = 30, 30 ;
+   domain_extent_x = 30, 30 ;
 
-   local_extent_y = 16, 14 ;
+   domain_extent_y = 16, 14 ;
   } // group bounding_boxes
 
 group: connectivity {

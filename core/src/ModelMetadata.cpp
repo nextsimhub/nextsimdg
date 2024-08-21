@@ -55,8 +55,8 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
     std::vector<size_t> index(1, mpiMyRank);
     bboxGroup.getVar("domain_x").getVar(index, &localCornerX);
     bboxGroup.getVar("domain_y").getVar(index, &localCornerY);
-    bboxGroup.getVar("local_extent_x").getVar(index, &localExtentX);
-    bboxGroup.getVar("local_extent_y").getVar(index, &localExtentY);
+    bboxGroup.getVar("domain_extent_x").getVar(index, &localExtentX);
+    bboxGroup.getVar("domain_extent_y").getVar(index, &localExtentY);
     ncFile.close();
 }
 
