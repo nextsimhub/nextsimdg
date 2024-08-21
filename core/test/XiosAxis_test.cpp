@@ -1,7 +1,7 @@
 /*!
  * @file    XiosAxis_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    26 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -54,7 +54,7 @@ MPI_TEST_CASE("TestXiosAxis", 2)
     xios_handler.setAxisSize(axisId, axis_size);
     REQUIRE(xios_handler.getAxisSize(axisId) == axis_size);
     // Axis values
-    std::vector<double> axisValues { 0, 1 };
+    std::vector<double> axisValues { 0.0, 1.0 };
     xios_handler.setAxisValues(axisId, axisValues);
     std::vector<double> axis_A = xios_handler.getAxisValues(axisId);
     REQUIRE(axis_A[0] == doctest::Approx(0));

@@ -1,7 +1,7 @@
 /*!
  * @file    XiosGrid_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    26 July 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    5 August 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -47,33 +47,19 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     // Set timestep as a minimum
     xios_handler.setCalendarTimestep(Duration("P0-0T01:30:00"));
 
-    // Axis setup
-    xios_handler.createAxis("axis_A");
-    xios_handler.setAxisValues("axis_A", { 0, 1 });
+    // Create a 4x2 horizontal domain with a partition halving the x-extent
+    xios_handler.createDomain("xy_domain");
+    xios_handler.setDomainType("xy_domain", "rectilinear");
+    xios_handler.setDomainGlobalXSize("xy_domain", 4);
+    xios_handler.setDomainGlobalYSize("xy_domain", 2);
+    xios_handler.setDomainLocalXStart("xy_domain", 2 * rank);
+    xios_handler.setDomainLocalYStart("xy_domain", 0);
+    xios_handler.setDomainLocalXValues("xy_domain", { -1.0 + rank, -0.5 + rank });
+    xios_handler.setDomainLocalYValues("xy_domain", { -1.0, 1.0 });
 
-    // Domain setup
-    xios_handler.createDomain("domain_A");
-    xios_handler.setDomainType("domain_A", "rectilinear");
-    const size_t ni_glo = 60;
-    xios_handler.setDomainGlobalXSize("domain_A", ni_glo);
-    const size_t nj_glo = 20;
-    xios_handler.setDomainGlobalYSize("domain_A", nj_glo);
-    const size_t ni = ni_glo / size;
-    xios_handler.setDomainLocalXSize("domain_A", ni);
-    const size_t nj = nj_glo;
-    xios_handler.setDomainLocalYSize("domain_A", nj);
-    xios_handler.setDomainLocalXStart("domain_A", ni * rank);
-    xios_handler.setDomainLocalYStart("domain_A", 0);
-    std::vector<double> vecLon(ni);
-    for (size_t i = 0; i < ni; i++) {
-        vecLon[i] = -180 + (rank * ni * i) * 360 / ni_glo;
-    }
-    xios_handler.setDomainLocalXValues("domain_A", vecLon);
-    std::vector<double> vecLat(nj);
-    for (size_t j = 0; j < nj; j++) {
-        vecLat[j] = -90 + j * 180 / nj_glo;
-    }
-    xios_handler.setDomainLocalYValues("domain_A", vecLat);
+    // Create a vertical axis with 2 points
+    xios_handler.createAxis("z_axis");
+    xios_handler.setAxisValues("z_axis", { 0.0, 1.0 });
 
     // --- Tests for grid API
     const std::string gridId = { "grid_2D" };
@@ -83,15 +69,15 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     xios_handler.setGridName(gridId, gridName);
     REQUIRE(xios_handler.getGridName(gridId) == gridName);
     // Add axis
-    xios_handler.gridAddAxis("grid_2D", "axis_A");
+    xios_handler.gridAddAxis("grid_2D", "z_axis");
     std::vector<std::string> axisIds = xios_handler.gridGetAxisIds(gridId);
     REQUIRE(axisIds.size() == 1);
-    REQUIRE(axisIds[0] == "axis_A");
+    REQUIRE(axisIds[0] == "z_axis");
     // Add domain
-    xios_handler.gridAddDomain("grid_2D", "domain_A");
+    xios_handler.gridAddDomain("grid_2D", "xy_domain");
     std::vector<std::string> domainIds = xios_handler.gridGetDomainIds(gridId);
     REQUIRE(domainIds.size() == 1);
-    REQUIRE(domainIds[0] == "domain_A");
+    REQUIRE(domainIds[0] == "xy_domain");
 
     xios_handler.close_context_definition();
     xios_handler.context_finalize();
