@@ -3,24 +3,24 @@ netcdf partition {
 dimensions:
         P = 1 ;
         L = 1 ;
-        globalX = 30 ;
-        globalY = 30 ;
+        NX = 30 ;
+        NY = 30 ;
 
 group: bounding_boxes {
   variables:
-        int global_x(P) ;
-        int global_y(P) ;
-        int local_extent_x(P) ;
-        int local_extent_y(P) ;
+        int domain_x(P) ;
+        int domain_y(P) ;
+        int domain_extent_x(P) ;
+        int domain_extent_y(P) ;
   data:
 
-   global_x = 0 ;
+   domain_x = 0 ;
 
-   global_y = 0 ;
+   domain_y = 0 ;
 
-   local_extent_x = 30 ;
+   domain_extent_x = 30 ;
 
-   local_extent_y = 30 ;
+   domain_extent_y = 30 ;
   } // group bounding_boxes
 }
 

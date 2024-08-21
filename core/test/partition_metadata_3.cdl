@@ -1,7 +1,7 @@
 netcdf partition_metadata_3 {
 dimensions:
-	globalX = 5 ;
-	globalY = 7 ;
+	NX = 5 ;
+	NY = 7 ;
 	P = 3 ;
 	T = 2 ;
 	B = 2 ;
@@ -10,19 +10,19 @@ dimensions:
 
 group: bounding_boxes {
   variables:
-  	int global_x(P) ;
-  	int global_y(P) ;
-  	int local_extent_x(P) ;
-  	int local_extent_y(P) ;
+  	int domain_x(P) ;
+  	int domain_y(P) ;
+  	int domain_extent_x(P) ;
+  	int domain_extent_y(P) ;
   data:
 
-   global_x = 0, 0, 3 ;
+   domain_x = 0, 0, 3 ;
 
-   global_y = 0, 3, 0 ;
+   domain_y = 0, 3, 0 ;
 
-   local_extent_x = 3, 3, 2 ;
+   domain_extent_x = 3, 3, 2 ;
 
-   local_extent_y = 3, 4, 7 ;
+   domain_extent_y = 3, 4, 7 ;
   } // group bounding_boxes
 
 group: connectivity {
