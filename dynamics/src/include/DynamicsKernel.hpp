@@ -64,6 +64,8 @@ public:
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
 
+	SeasurfaceHeight.resize_by_mesh(*smesh);
+
         e11.resize_by_mesh(*smesh);
         e12.resize_by_mesh(*smesh);
         e22.resize_by_mesh(*smesh);
@@ -71,6 +73,7 @@ public:
         s12.resize_by_mesh(*smesh);
         s22.resize_by_mesh(*smesh);
     }
+
 
     /*!
      * @brief Sets the data from a provided ModelArray.
@@ -168,6 +171,9 @@ protected:
 
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;
+
+    //! Vector storing the sea surface height (only dG(0) averages)
+    DGVector<1> SeasurfaceHeight;
 
     //! Vectors storing strain and stress components
     DGVector<DGstress> e11, e12, e22;
