@@ -1,7 +1,7 @@
 /*!
  * @file    XiosFile_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    5 August 2024
+ * @date    12 August 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -66,19 +66,27 @@ MPI_TEST_CASE("TestXiosFile", 2)
 
     // --- Tests for file API
     const std::string fileId = "output";
+    REQUIRE_THROWS_WITH(xios_handler.getFileName(fileId), "Xios: Undefined file 'output'");
     xios_handler.createFile(fileId);
+    REQUIRE_THROWS_WITH(xios_handler.createFile(fileId), "Xios: File 'output' already exists");
     // File name
+    REQUIRE_THROWS_WITH(xios_handler.getFileName(fileId), "Xios: Undefined name for file 'output'");
     const std::string fileName = "diagnostic";
     xios_handler.setFileName(fileId, fileName);
     REQUIRE(xios_handler.getFileName(fileId) == fileName);
     // File type
+    REQUIRE_THROWS_WITH(xios_handler.getFileType(fileId), "Xios: Undefined type for file 'output'");
     const std::string fileType = "one_file";
     xios_handler.setFileType(fileId, fileType);
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
+    REQUIRE_THROWS_WITH(xios_handler.getFileOutputFreq(fileId),
+        "Xios: Undefined output frequency for file 'output'");
     xios_handler.setFileOutputFreq(fileId, timestep);
     REQUIRE(xios_handler.getFileOutputFreq(fileId).seconds() == 1.5 * 60 * 60);
     // Split frequency
+    REQUIRE_THROWS_WITH(
+        xios_handler.getFileSplitFreq(fileId), "Xios: Undefined split frequency for file 'output'");
     xios_handler.setFileSplitFreq(fileId, timestep);
     REQUIRE(xios_handler.getFileSplitFreq(fileId).seconds() == 1.5 * 60 * 60);
     // File mode

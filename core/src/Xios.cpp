@@ -346,6 +346,11 @@ xios::CAxisGroup* Xios::getAxisGroup()
  */
 xios::CAxis* Xios::getAxis(const std::string axisId)
 {
+    bool exists;
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined axis '" + axisId + "'");
+    }
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
     if (!axis) {
@@ -361,10 +366,19 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
  */
 void Xios::createAxis(const std::string axisId)
 {
+    bool exists;
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Axis '" + axisId + "' already exists");
+    }
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
     if (!axis) {
         throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
+    }
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create axis '" + axisId + "'");
     }
 }
 
@@ -472,6 +486,11 @@ xios::CDomainGroup* Xios::getDomainGroup()
  */
 xios::CDomain* Xios::getDomain(const std::string domainId)
 {
+    bool exists;
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined domain '" + domainId + "'");
+    }
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
     if (!domain) {
@@ -487,10 +506,19 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
  */
 void Xios::createDomain(const std::string domainId)
 {
+    bool exists;
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Domain '" + domainId + "' already exists");
+    }
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
     if (!domain) {
         throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
+    }
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
     }
 }
 
@@ -853,6 +881,11 @@ xios::CGridGroup* Xios::getGridGroup()
  */
 xios::CGrid* Xios::getGrid(const std::string gridId)
 {
+    bool exists;
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined grid '" + gridId + "'");
+    }
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
     if (!grid) {
@@ -868,10 +901,19 @@ xios::CGrid* Xios::getGrid(const std::string gridId)
  */
 void Xios::createGrid(const std::string gridId)
 {
+    bool exists;
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Grid '" + gridId + "' already exists");
+    }
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
     if (!grid) {
         throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
+    }
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create grid '" + gridId + "'");
     }
 }
 
@@ -980,6 +1022,11 @@ xios::CFieldGroup* Xios::getFieldGroup()
  */
 xios::CField* Xios::getField(const std::string fieldId)
 {
+    bool exists;
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined field '" + fieldId + "'");
+    }
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
     if (!field) {
@@ -995,10 +1042,19 @@ xios::CField* Xios::getField(const std::string fieldId)
  */
 void Xios::createField(const std::string fieldId)
 {
+    bool exists;
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Field '" + fieldId + "' already exists");
+    }
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
     if (!field) {
         throw std::runtime_error("Xios: Null pointer for field '" + fieldId + "'");
+    }
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
 }
 
@@ -1204,6 +1260,11 @@ xios::CFileGroup* Xios::getFileGroup()
  */
 xios::CFile* Xios::getFile(const std::string fileId)
 {
+    bool exists;
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined file '" + fileId + "'");
+    }
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
     if (!file) {
@@ -1220,18 +1281,18 @@ xios::CFile* Xios::getFile(const std::string fileId)
 void Xios::createFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
-    bool valid;
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    if (valid) {
+    bool exists;
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (exists) {
         throw std::runtime_error("Xios: File '" + fileId + "' already exists");
     }
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
     if (!file) {
         throw std::runtime_error("Xios: Null pointer for file '" + fileId + "'");
     }
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    if (!valid) {
-        throw std::runtime_error("Xios: Failed to create valid file '" + fileId + "'");
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create file '" + fileId + "'");
     }
 }
 
@@ -1369,7 +1430,7 @@ std::string Xios::getFileName(const std::string fileId)
 std::string Xios::getFileType(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_name(file)) {
+    if (!cxios_is_defined_file_type(file)) {
         throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
     }
     char cStr[cStrLen];
@@ -1387,7 +1448,7 @@ Duration Xios::getFileOutputFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_output_freq(file)) {
-        throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
+        throw std::runtime_error("Xios: Undefined output frequency for file '" + fileId + "'");
     }
     cxios_duration duration;
     cxios_get_file_output_freq(file, &duration);
@@ -1404,7 +1465,7 @@ Duration Xios::getFileSplitFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_split_freq(file)) {
-        throw std::runtime_error("Xios: Undefined values for file '" + fileId + "'");
+        throw std::runtime_error("Xios: Undefined split frequency for file '" + fileId + "'");
     }
     cxios_duration duration;
     cxios_get_file_split_freq(file, &duration);

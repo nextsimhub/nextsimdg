@@ -59,16 +59,24 @@ MPI_TEST_CASE("TestXiosField", 2)
 
     // --- Tests for field API
     const std::string fieldId = "field_A";
+    REQUIRE_THROWS_WITH(xios_handler.getFieldName(fieldId), "Xios: Undefined field 'field_A'");
     xios_handler.createField(fieldId);
+    REQUIRE_THROWS_WITH(xios_handler.createField(fieldId), "Xios: Field 'field_A' already exists");
     // Field name
+    REQUIRE_THROWS_WITH(
+        xios_handler.getFieldName(fieldId), "Xios: Undefined name for field 'field_A'");
     const std::string fieldName = "test_field";
     xios_handler.setFieldName(fieldId, fieldName);
     REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
     // Operation
+    REQUIRE_THROWS_WITH(
+        xios_handler.getFieldOperation(fieldId), "Xios: Undefined operation for field 'field_A'");
     const std::string operation = "instant";
     xios_handler.setFieldOperation(fieldId, operation);
     REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
     // Grid reference
+    REQUIRE_THROWS_WITH(xios_handler.getFieldGridRef(fieldId),
+        "Xios: Undefined grid reference for field 'field_A'");
     const std::string gridRef = "grid_1D";
     xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);

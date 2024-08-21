@@ -2,7 +2,7 @@
  * @file    xios_c_interface.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    5 August 2024
+ * @date    12 August 2024
  * @brief   C interface for XIOS library
  * @details
  * This interface is based on an earlier version provided by Laurent as part of
@@ -75,6 +75,7 @@ void cxios_xml_tree_add_axis(
 
 // axis methods
 void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
+void cxios_axis_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_axis_n_glo(xios::CAxis* axis_hdl, int n_glo);
 void cxios_set_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
 void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
@@ -89,6 +90,7 @@ void cxios_xml_tree_add_domain(
 
 // domain methods
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);
+void cxios_domain_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_domain_type(xios::CDomain* domain_hdl, const char* type, int type_size);
 void cxios_set_domain_ni_glo(xios::CDomain* domain_hdl, int ni_glo);
 void cxios_set_domain_nj_glo(xios::CDomain* domain_hdl, int nj_glo);
@@ -124,6 +126,7 @@ void cxios_xml_tree_add_grid(
 
 // grid methods
 void cxios_grid_handle_create(xios::CGrid** _ret, const char* _id, int _id_len);
+void cxios_grid_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_grid_name(xios::CGrid* _ret, const char* name, int name_size);
 void cxios_get_grid_name(xios::CGrid* _ret, char* name, int name_size);
 bool cxios_is_defined_grid_name(xios::CGrid* file_hdl);
@@ -139,6 +142,7 @@ void cxios_xml_tree_add_field(
 
 // field methods
 void cxios_field_handle_create(xios::CField** _ret, const char* _id, int _id_len);
+void cxios_field_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_field_name(xios::CField* _ret, const char* name, int name_size);
 void cxios_set_field_operation(xios::CField* _ret, const char* operation, int operation_size);
 void cxios_set_field_grid_ref(xios::CField* _ret, const char* grid_ref, int grid_ref_size);

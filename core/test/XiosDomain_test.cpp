@@ -49,37 +49,57 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     xios_handler.setCalendarTimestep(Duration("P0-0T01:00:00"));
 
     // --- Tests for domain API
-    const std::string domainId = { "domain_A" };
+    const std::string domainId = "domain_A";
+    REQUIRE_THROWS_WITH(xios_handler.getDomainType(domainId), "Xios: Undefined domain 'domain_A'");
     xios_handler.createDomain(domainId);
+    REQUIRE_THROWS_WITH(
+        xios_handler.createDomain(domainId), "Xios: Domain 'domain_A' already exists");
     // Domain type
-    const std::string domainType = { "rectilinear" };
+    REQUIRE_THROWS_WITH(
+        xios_handler.getDomainType(domainId), "Xios: Undefined type for domain 'domain_A'");
+    const std::string domainType = "rectilinear";
     xios_handler.setDomainType(domainId, domainType);
     REQUIRE(xios_handler.getDomainType(domainId) == domainType);
     // Global number of points in x-direction
+    REQUIRE_THROWS_WITH(xios_handler.getDomainGlobalXSize(domainId),
+        "Xios: Undefined global x-size for domain 'domain_A'");
     const size_t nx_glo = 4;
     xios_handler.setDomainGlobalXSize(domainId, nx_glo);
     REQUIRE(xios_handler.getDomainGlobalXSize(domainId) == nx_glo);
     // Global number of points in y-direction
+    REQUIRE_THROWS_WITH(xios_handler.getDomainGlobalYSize(domainId),
+        "Xios: Undefined global y-size for domain 'domain_A'");
     const size_t ny_glo = 2;
     xios_handler.setDomainGlobalYSize(domainId, ny_glo);
     REQUIRE(xios_handler.getDomainGlobalYSize(domainId) == ny_glo);
     // Local number of points in x-direction
+    REQUIRE_THROWS_WITH(xios_handler.getDomainLocalXSize(domainId),
+        "Xios: Undefined local x-size for domain 'domain_A'");
     const size_t nx = nx_glo / size;
     xios_handler.setDomainLocalXSize(domainId, nx);
     REQUIRE(xios_handler.getDomainLocalXSize(domainId) == nx);
     // Local number of points in y-direction
+    REQUIRE_THROWS_WITH(xios_handler.getDomainLocalYSize(domainId),
+        "Xios: Undefined local y-size for domain 'domain_A'");
     const size_t ny = ny_glo;
     xios_handler.setDomainLocalYSize(domainId, ny);
     REQUIRE(xios_handler.getDomainLocalYSize(domainId) == ny);
     // Local starting x-index
+    REQUIRE_THROWS_WITH(xios_handler.getDomainLocalXStart(domainId),
+        "Xios: Undefined local starting x-index for domain 'domain_A'");
     const size_t x0 = nx * rank;
     xios_handler.setDomainLocalXStart(domainId, x0);
     REQUIRE(xios_handler.getDomainLocalXStart(domainId) == x0);
     // Local starting y-index
+    REQUIRE_THROWS_WITH(xios_handler.getDomainLocalYStart(domainId),
+        "Xios: Undefined local starting y-index for domain 'domain_A'");
     const size_t y0 = 0;
     xios_handler.setDomainLocalYStart(domainId, y0);
     REQUIRE(xios_handler.getDomainLocalYStart(domainId) == y0);
     // Local x-values
+    REQUIRE_THROWS_WITH(xios_handler.getDomainLocalXValues(domainId),
+        "Xios: Undefined local x-values for domain 'domain_A'");
+    REQUIRE_THROWS_AS(xios_handler.getDomainLocalXValues(domainId), std::runtime_error);
     std::vector<double> vx { -1.0 + rank, -0.5 + rank };
     xios_handler.setDomainLocalXValues(domainId, vx);
     std::vector<double> vxOut = xios_handler.getDomainLocalXValues(domainId);
@@ -87,6 +107,8 @@ MPI_TEST_CASE("TestXiosDomain", 2)
         REQUIRE(vxOut[i] == doctest::Approx(vx[i]));
     }
     // Local y-values
+    REQUIRE_THROWS_WITH(xios_handler.getDomainLocalYValues(domainId),
+        "Xios: Undefined local y-values for domain 'domain_A'");
     std::vector<double> vy { -1.0, 1.0 };
     xios_handler.setDomainLocalYValues(domainId, vy);
     std::vector<double> vyOut = xios_handler.getDomainLocalYValues(domainId);
