@@ -21,16 +21,23 @@ set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 if(ENABLE_MPI)
     # Generate partition files needed for MPI test from respective cdl files
     add_custom_command(
-        OUTPUT partition_metadata_3.nc
+        OUTPUT partition_mask_2.nc
         COMMAND
-            ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
+            ncgen -b -o partition_mask_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_mask_2.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_mask_2.cdl
     )
     add_custom_command(
         OUTPUT partition_metadata_2.nc
         COMMAND
-            ncgen -b -o partition_metadata_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
+          mpiexec -np 2 decomp --grid ${CMAKE_CURRENT_BINARY_DIR}/partition_mask_2.nc
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/partition_mask_2.nc
+    )
+    # TODO: Do the same for partition_metadata_3
+    add_custom_command(
+        OUTPUT partition_metadata_3.nc
+        COMMAND
+            ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
     )
     add_custom_target(
         generate_partition_files
