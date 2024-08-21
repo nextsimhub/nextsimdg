@@ -1170,7 +1170,7 @@ Duration Xios::getFieldFreqOffset(const std::string fieldId)
     cxios_get_field_freq_offset(field, &duration);
     char cStr[cStrLen];
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    return convertDurationFromXios(duration);;
+    return convertDurationFromXios(duration);
 }
 
 /*!
