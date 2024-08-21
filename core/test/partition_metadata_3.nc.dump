@@ -10,15 +10,15 @@ dimensions:
 
 group: bounding_boxes {
   variables:
-  	int global_x(P) ;
-  	int global_y(P) ;
+  	int domain_x(P) ;
+  	int domain_y(P) ;
   	int local_extent_x(P) ;
   	int local_extent_y(P) ;
   data:
 
-   global_x = 0, 0, 3 ;
+   domain_x = 0, 0, 3 ;
 
-   global_y = 0, 3, 0 ;
+   domain_y = 0, 3, 0 ;
 
    local_extent_x = 3, 3, 2 ;
 
