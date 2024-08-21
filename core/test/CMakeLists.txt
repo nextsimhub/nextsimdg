@@ -19,14 +19,14 @@ include_directories(${COMMON_INCLUDE_DIRS})
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 if(ENABLE_MPI)
-# Generate partition file needed for MPI test from its dump
+# Generate partition files needed for MPI test from respective cdl files
   add_custom_command(OUTPUT partition_metadata_3.nc
       COMMAND ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
   )
   add_custom_command(OUTPUT partition_metadata_2.nc
-      COMMAND ncgen -b -o partition_metadata_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.nc.dump
-      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.nc.dump
+      COMMAND ncgen -b -o partition_metadata_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
   )
   add_custom_target(generate_partition_files ALL DEPENDS partition_metadata_3.nc partition_metadata_2.nc)
 
