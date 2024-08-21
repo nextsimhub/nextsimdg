@@ -1,7 +1,7 @@
 /*!
  * @file    XiosDomain_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    12 August 2024
+ * @date    21 August 2024
  * @brief   Tests for XIOS domains
  * @details
  * This test is designed to test domain functionality of the C++ interface
@@ -83,14 +83,14 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     std::vector<double> vx { -1.0 + rank, -0.5 + rank };
     xios_handler.setDomainLocalXValues(domainId, vx);
     std::vector<double> vxOut = xios_handler.getDomainLocalXValues(domainId);
-    for (size_t i {}; i < nx; i++) {
+    for (size_t i = 0; i < nx; i++) {
         REQUIRE(vxOut[i] == doctest::Approx(vx[i]));
     }
     // Local y-values
     std::vector<double> vy { -1.0, 1.0 };
     xios_handler.setDomainLocalYValues(domainId, vy);
     std::vector<double> vyOut = xios_handler.getDomainLocalYValues(domainId);
-    for (size_t j {}; j < ny; j++) {
+    for (size_t j = 0; j < ny; j++) {
         REQUIRE(vyOut[j] == doctest::Approx(vy[j]));
     }
 
