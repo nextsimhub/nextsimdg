@@ -65,14 +65,14 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xios_handler.setFieldGridRef("field_A", "grid_1D");
 
     // --- Tests for file API
-    const std::string fileId { "output" };
+    const std::string fileId = "output";
     xios_handler.createFile(fileId);
     // File name
-    const std::string fileName { "diagnostic" };
+    const std::string fileName = "diagnostic";
     xios_handler.setFileName(fileId, fileName);
     REQUIRE(xios_handler.getFileName(fileId) == fileName);
     // File type
-    const std::string fileType { "one_file" };
+    const std::string fileType = "one_file";
     xios_handler.setFileType(fileId, fileType);
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
@@ -81,6 +81,14 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // Split frequency
     xios_handler.setFileSplitFreq(fileId, timestep);
     REQUIRE(xios_handler.getFileSplitFreq(fileId).seconds() == 1.5 * 60 * 60);
+    // File mode
+    const std::string mode = "write";
+    xios_handler.setFileMode(fileId, mode);
+    REQUIRE(xios_handler.getFileMode(fileId) == mode);
+    // File parallel access mode
+    const std::string parAccess = "collective";
+    xios_handler.setFileParAccess(fileId, parAccess);
+    REQUIRE(xios_handler.getFileParAccess(fileId) == parAccess);
     // Add field
     xios_handler.fileAddField(fileId, "field_A");
     std::vector<std::string> fieldIds = xios_handler.fileGetFieldIds(fileId);

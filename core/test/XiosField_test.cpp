@@ -1,7 +1,7 @@
 /*!
  * @file    XiosField_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    26 July 2024
+ * @date    21 August 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -46,7 +46,8 @@ MPI_TEST_CASE("TestXiosField", 2)
     const size_t rank = xios_handler.getClientMPIRank();
 
     // Set timestep as a minimum
-    xios_handler.setCalendarTimestep(Duration("P0-0T01:00:00"));
+    Duration timestep("P0-0T01:00:00");
+    xios_handler.setCalendarTimestep(timestep);
 
     // Axis setup
     xios_handler.createAxis("axis_A");
@@ -57,20 +58,29 @@ MPI_TEST_CASE("TestXiosField", 2)
     xios_handler.gridAddAxis("grid_1D", "axis_A");
 
     // --- Tests for field API
-    const std::string fieldId = { "field_A" };
+    const std::string fieldId = "field_A";
     xios_handler.createField(fieldId);
     // Field name
-    const std::string fieldName = { "test_field" };
+    const std::string fieldName = "test_field";
     xios_handler.setFieldName(fieldId, fieldName);
     REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
     // Operation
-    const std::string operation = { "instant" };
+    const std::string operation = "instant";
     xios_handler.setFieldOperation(fieldId, operation);
     REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
     // Grid reference
-    const std::string gridRef = { "grid_2D" };
+    const std::string gridRef = "grid_1D";
     xios_handler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
+    // Read access
+    const bool readAccess(true);
+    xios_handler.setFieldReadAccess(fieldId, readAccess);
+    REQUIRE(xios_handler.getFieldReadAccess(fieldId));
+    // Frequency offset
+    Duration freqOffset = timestep;
+    xios_handler.setFieldFreqOffset(fieldId, freqOffset);
+    // TODO: Overload == for Duration
+    REQUIRE(xios_handler.getFieldFreqOffset(fieldId).seconds() == freqOffset.seconds());
 
     xios_handler.close_context_definition();
     xios_handler.context_finalize();
