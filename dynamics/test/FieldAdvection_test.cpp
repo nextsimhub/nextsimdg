@@ -16,28 +16,7 @@
 
 namespace Nextsim {
 
-void writeDataPGM(const ModelArray& data, const std::string& fileName, size_t k)
-{
-    std::ofstream pgm(fileName);
-
-    // Magic number
-    pgm << "P2" << std::endl;
-    pgm << "# Ice temperature in negative centi-Celsius" << std::endl;
-    size_t nx = ModelArray::size(ModelArray::Dimension::X);
-    size_t ny = ModelArray::size(ModelArray::Dimension::Y);
-    pgm << nx << " " << ny << std::endl;
-    long maxVal = 255L;
-    pgm << maxVal << std::endl;
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            pgm << std::max(0L, std::min(maxVal, std::lround(data(i, j, k)))) << " ";
-        }
-        pgm << std::endl;
-    }
-    pgm.close();
-
-}
-
+// Analyse the data by a hand-rolled, one frequency Fourier transform.
 const static size_t nSamples = 8;
 
 std::pair<double, double> pseudoFTKernel(double data, size_t eighth) {
@@ -86,30 +65,6 @@ std::pair<double, double> pseudoFT(const ModelArray& data, size_t k, size_t x0, 
     }
     return {cosTerm, sinTerm};
 }
-
-
-void writeDataPGM(const ModelArray& data, const std::string& fileName)
-{
-    std::ofstream pgm(fileName);
-
-    // Magic number
-    pgm << "P2" << std::endl;
-    pgm << "# Depth of snow in cm" << std::endl;
-    size_t nx = ModelArray::size(ModelArray::Dimension::X);
-    size_t ny = ModelArray::size(ModelArray::Dimension::Y);
-    pgm << nx << " " << ny << std::endl;
-    long maxVal = 255L;
-    pgm << maxVal << std::endl;
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            pgm << std::max(0L, std::min(maxVal, std::lround(data(i, j)))) << " ";
-        }
-        pgm << std::endl;
-    }
-    pgm.close();
-
-}
-
 
 TEST_SUITE_BEGIN("Field advection");
 TEST_CASE("Advect a field")
@@ -260,20 +215,18 @@ TEST_CASE("Advect a field")
 
     for (double t = 0; t <= timeLimit; t += deltaT) {
         if (outCount >= outPeriod) {
-//            writeDataPGM(-tice * 100, "0_" + std::to_string(std::lround(t)) + ".pgm", 0);
-//            writeDataPGM(-tice * 100, "1_" + std::to_string(std::lround(t)) + ".pgm", 1);
-//            writeDataPGM(hsnow * 100, std::to_string(std::lround(t)) + ".pgm");
             auto [hsnowCos, hsnowSin] = pseudoFT(hsnow, nx/2, ny/2, pTest);
             auto [t0Cos, t0Sin] = pseudoFT(tice, 0, nx/2, ny/2, pTest);
             auto [t1Cos, t1Sin] = pseudoFT(tice, 1, nx/2, ny/2, pTest);
+            auto [t2Cos, t2Sin] = pseudoFT(tice, 2, nx/2, ny/2, pTest);
             REQUIRE(hsnowCos == doctest::Approx(hsnowExpdCosines[nOut]).epsilon(testEps));
             REQUIRE(hsnowSin == doctest::Approx(hsnowExpdSines[nOut]).epsilon(testEps));
             REQUIRE(t0Cos == doctest::Approx(ticeExpdCosines[nOut][0]).epsilon(testEps));
             REQUIRE(t0Sin == doctest::Approx(ticeExpdSines[nOut][0]).epsilon(testEps));
             REQUIRE(t1Cos == doctest::Approx(ticeExpdCosines[nOut][1]).epsilon(testEps));
             REQUIRE(t1Sin == doctest::Approx(ticeExpdSines[nOut][1]).epsilon(testEps));
-//            std::cout << "cosine: data=" << t0Cos << ", expected=" << ticeExpdCosines[nOut][1] << std::endl;
-//            std::cout << "sine:   data=" << t0Sin << ", expected=" << ticeExpdSines[nOut][1] << std::endl;
+            REQUIRE(t2Cos == doctest::Approx(ticeExpdCosines[nOut][2]).epsilon(testEps));
+            REQUIRE(t2Sin == doctest::Approx(ticeExpdSines[nOut][2]).epsilon(testEps));
             outCount = 0;
             ++nOut;
         }
