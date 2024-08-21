@@ -17,7 +17,7 @@ jobs:
     - name: clang-format
       run: |
 
-        sudo apt-get update
+        sudo apt update
         sudo apt install clang-format
         cd core/src
         clang-format --dry-run -Werror *cpp include/*hpp
@@ -48,6 +48,7 @@ jobs:
     - name: run serial tests
       run: |
         . /opt/spack-environment/activate.sh
+        apt update
         apt install -y wget
         cd build
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
@@ -85,6 +86,7 @@ jobs:
     - name: run MPI tests
       run: |
         . /opt/spack-environment/activate.sh
+        apt update
         apt install -y wget
         cd build
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
