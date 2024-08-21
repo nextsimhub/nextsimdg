@@ -80,7 +80,7 @@ public:
 
     // Increment the "OASIS" time by the number of seconds in the time step
     // Must be called at the end of the child class' update or updateAfter call.
-    void updateOASISTime(const TimestepTime &tst) { OASISTime += tst.step.seconds(); }
+    void updateOASISTime(const TimestepTime& tst) { OASISTime += tst.step.seconds(); }
 #else
     virtual void setMetadata(const ModelMetadata& metadata)
     {
