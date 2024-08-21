@@ -41,15 +41,28 @@ private:
         tf[i] = Module::getImplementation<IFreezingPoint>()(sss[i]);
     }
 
-    enum couplingIdIn { SST, SSS, UOCEAN, VOCEAN, SSH, MLD }; // MLD is optional
-    enum couplingIdOut { TAUX, TAUY, TAUMOD, EMP, QNOSUN, QSW, SFLX, CICE };
+    // A map to relate the strings in the namcouple file to the numbers def_var spits out
+    std::map<std::string, int> couplingId;
+    std::string SST = "I_SST";
+    std::string SSS = "I_SSS";
+    std::string UOCEAN = "I_Uocn";
+    std::string VOCEAN = "I_Vocn";
+    std::string SSH = "I_SSH";
+    std::string MLD = "I_MLD"; // This one is optional
+    std::string TAUX = "I_taux";
+    std::string TAUY = "I_tauy";
+    std::string TAUMOD = "I_taumod";
+    std::string EMP = "I_fwflux";
+    std::string QNOSUN = "I_rsnos";
+    std::string QSW = "I_rsso";
+    std::string SFLX = "I_sfi";
+    std::string CICE = "I_conc";
 
     const std::vector<std::string> cplStringsIn
-        = { "I_SST", "I_SSS", "I_Uocn", "I_Vocn", "I_SSH", "IFrcQsr" };
+        = { SST, SSS, UOCEAN, VOCEAN, SSH  }; // MLD can be added to this one
     const std::vector<std::string> cplStringsOut
-        = { "I_taux", "I_tauy", "I_taumod", "I_fwflux", "I_rsnos", "I_rsso", "I_sfi", "I_conc" };
+        = { TAUX, TAUY, TAUMOD, EMP, QNOSUN, QSW, SFLX, CICE };
 
-    std::vector<int> cplIdIn, cplIdOut;
 };
 
 } /* namespace Nextsim */

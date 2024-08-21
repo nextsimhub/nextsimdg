@@ -21,19 +21,20 @@ void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
 #ifdef USE_OASIS
     // OASIS defining variable
 
-    /* Populate cplIdIn with return values from def_var, based on input from cplStringsIn. We assume
-     * that the coupledIdIn enum starts at zero, is continuously numbered, and is in the same order
-     * as cplStringsIn. Same story vor the input variables below. */
-    cplIdIn.resize(cplStringsIn.size());
-    for (int i = 0; i < cplStringsIn.size(); ++i) {
+    /* Populate the couplingId map with the id string and number pair. We need to do this seperately
+     * for the input (get) and output (put) variables. */
+    for (std::string idString : cplStringsIn) {
+        int idNumber;
         OASIS_CHECK_ERR(oasis_c_def_var(
-            &cplIdIn[i], cplStringsIn[i].c_str(), partitionID, bundleSize, OASIS_IN, OASIS_DOUBLE));
+            &idNumber, idString.c_str(), partitionID, bundleSize, OASIS_IN, OASIS_DOUBLE));
+        couplingId[idString] = idNumber;
     }
 
-    cplIdIn.resize(cplStringsOut.size());
-    for (int i = 0; i < cplStringsOut.size(); ++i) {
-        OASIS_CHECK_ERR(oasis_c_def_var(&cplIdOut[i], cplStringsOut[i].c_str(), partitionID,
-            bundleSize, OASIS_IN, OASIS_DOUBLE));
+    for (std::string idString : cplStringsOut) {
+        int idNumber;
+        OASIS_CHECK_ERR(oasis_c_def_var(
+            &idNumber, idString.c_str(), partitionID, bundleSize, OASIS_OUT, OASIS_DOUBLE));
+        couplingId[idString] = idNumber;
     }
 
     // OASIS finalising definition
@@ -53,24 +54,28 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
     const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
-    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SST], OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sst[0], &kinfo));
+    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SST), OASISTime, dimension0, dimension1, bundleSize,
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &sst[0], &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SSS], OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
+    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSS), OASISTime, dimension0, dimension1, bundleSize,
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::UOCEAN], OASISTime, dimension0, dimension1,
+    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(UOCEAN), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &u[0], &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::VOCEAN], OASISTime, dimension0, dimension1,
+    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOCEAN), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &v[0], &kinfo));
 
     // TODO: Implement ssh reading and passing to dynamics!
     //    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SSH], OASISTime, dimension0, dimension1,
     //                                bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
 
-    // TODO: Handle mld being an optional field
-    mld = 10.;
+    // TODO: Handle mld being an optional field with a command line option for the value
+    if (couplingId.find(SSH) != couplingId.end())
+        OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOCEAN), OASISTime, dimension0, dimension1,
+            bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &mld[0], &kinfo));
+    else
+        mld = 10.;
 
     cpml = Water::cp * Water::rho * mld;
 
@@ -98,28 +103,28 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     HField dummy;
     dummy.resize();
     dummy.setData(0.);
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUX], OASISTime, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TAUX), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUY], OASISTime, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TAUY), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::EMP], OASISTime, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMP), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::QSW], OASISTime, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QSW), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::QNOSUN], OASISTime, dimension0, dimension1,
-        1, OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
-
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::SFLX], OASISTime, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QNOSUN), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::TAUMOD], OASISTime, dimension0, dimension1,
-        1, OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(SFLX), OASISTime, dimension0, dimension1, 1,
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
-    OASIS_CHECK_ERR(oasis_c_put(cplIdOut[couplingIdOut::CICE], OASISTime, dimension0, dimension1, 1,
+    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TAUMOD), OASISTime, dimension0, dimension1, 1,
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+
+    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(CICE), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
     // Increment the "OASIS" time by the number of seconds in the time step
