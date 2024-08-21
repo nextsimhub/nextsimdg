@@ -224,13 +224,13 @@ public:
 
             DGVector<DGadvection>& dgField = advectedFields[name];
             // Set the DG0 component for the selected level (or whole field if 2D)
-            DGModelArray::ma2dg(maField, dgField, k);
+            DGModelArray::ma2dg<DGadvection>(maField, dgField, k);
 
             // Perform the advection
             dgtransport->step(deltaTAdvection, dgField);
 
             // Extract the DG0 data to the selected level (or whole field if 2D)
-            DGModelArray::dg2ma(dgField, maField, k);
+            DGModelArray::dg2ma<DGadvection>(dgField, maField, k);
         }
         return maField;
     }
