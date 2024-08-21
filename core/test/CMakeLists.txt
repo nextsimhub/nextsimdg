@@ -176,18 +176,21 @@ if(ENABLE_MPI)
 
         # Generate partition files needed for MPI test from respective cdl files
         add_custom_command(
-            OUTPUT partition_metadata_3.nc
+            OUTPUT test_mask.nc
             COMMAND
-                ncgen -b -o partition_metadata_3.nc
-                ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
+                ncgen -b -o test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/test_mask.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/test_mask.cdl
+        )
+        add_custom_target(generate_partition_masks ALL DEPENDS test_mask.nc)
+        add_custom_command(
+            OUTPUT partition_metadata_3.nc
+            COMMAND mpiexec -np 3 decomp -m mask -o xy -g test_mask.nc
+            DEPENDS test_mask.nc
         )
         add_custom_command(
             OUTPUT partition_metadata_2.nc
-            COMMAND
-                ncgen -b -o partition_metadata_2.nc
-                ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
+            COMMAND mpiexec -np 2 decomp -m mask -o xy -g test_mask.nc
+            DEPENDS test_mask.nc
         )
         add_custom_target(
             generate_partition_files
