@@ -297,6 +297,39 @@ TEST_CASE("zIndexAndLayer")
     REQUIRE(threeD.zIndexAndLayer(ind, z) == threeD(x, y, z));
 
 }
+
+// Does zeroing a 3D array actually set all elements to zero?
+TEST_CASE("Zero a ThreeDField")
+{
+    const size_t nx = 23;
+    const size_t ny = 19;
+    const size_t nz = 5;
+
+    ModelArray::setDimensions(ModelArray::Type::THREED, {nx, ny, nz});
+
+    REQUIRE(ModelArray::size(ModelArray::Dimension::X) == nx);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Y) == ny);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Z) == nz);
+
+    ThreeDField treed(ModelArray::Type::THREED);
+    treed.resize();
+
+    auto dims = treed.dimensions();
+    REQUIRE(dims[0] == nx);
+    REQUIRE(dims[1] == ny);
+    REQUIRE(dims[2] == nz);
+
+    REQUIRE(treed.trueSize() == nx * ny * nz);
+
+    treed = 0.;
+
+    double absSum = 0.;
+    // Sum the absolute value of each element. This is only equal to zero if every element is equal to zero.
+    for (size_t i = 0; i < treed.trueSize(); ++i) {
+        absSum += std::fabs(treed[i]);
+    }
+    REQUIRE(absSum == 0.);
+}
 TEST_SUITE_END();
 
 } /* namespace Nextsim */
