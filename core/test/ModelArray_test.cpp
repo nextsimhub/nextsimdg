@@ -330,6 +330,85 @@ TEST_CASE("Zero a ThreeDField")
     }
     REQUIRE(absSum == 0.);
 }
+
+// Copy a block of contiguous data, specifically a 2d slice of a 3d array
+TEST_CASE("Copying contiguous data")
+{
+    const size_t nx = 17;
+    const size_t ny = 23;
+    const size_t nz = 3;
+
+    ModelArray::setDimensions(ModelArray::Type::THREED, {nx, ny, nz});
+
+    // A 3D array and a 2D array
+    TwoDField twod(ModelArray::Type::TWOD);
+    ThreeDField threed(ModelArray::Type::THREED);
+
+    // Thoroughly check the dimensions
+    REQUIRE(ModelArray::size(ModelArray::Dimension::X) == nx);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Y) == ny);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Z) == nz);
+
+    REQUIRE(twod.dimensions()[0] == nx);
+    REQUIRE(twod.dimensions()[1] == ny);
+
+    REQUIRE(threed.dimensions()[0] == nx);
+    REQUIRE(threed.dimensions()[1] == ny);
+    REQUIRE(threed.dimensions()[2] == nz);
+
+    twod.resize();
+    threed.resize();
+    threed = 0.;
+
+    // Check the value of every element is zero
+    double absSum;
+    absSum = 0;
+    for (size_t idx = 0; idx < threed.size(); ++idx) {
+        absSum += std::fabs(threed[idx]);
+    }
+    REQUIRE(absSum == 0.);
+
+    double dx = 100;
+
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            twod(i, j) = dx * i + j;
+        }
+    }
+
+    // Assign data to the middle z level
+    ModelArray::MultiDim dims = threed.dimensions();
+    size_t size2D = dims[0] * dims[1];
+    threed.setData(twod.data(), 1 * size2D, size2D);
+
+    // Check the first level is all zeros
+    double lvl0Sum = 0;
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            lvl0Sum += std::fabs(threed(i, j, 0UL));
+        }
+    }
+    REQUIRE(lvl0Sum == 0.);
+
+    // Check the first level matches the 2D array
+    double lvl1Sum = 0;
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            lvl1Sum += std::fabs(threed(i, j, 1UL) - twod(i, j));
+        }
+    }
+    REQUIRE(lvl1Sum == 0.);
+
+    // Check the third level is all zeros
+    double lvl2Sum = 0;
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            lvl2Sum += std::fabs(threed(i, j, 2UL));
+        }
+    }
+    REQUIRE(lvl2Sum == 0.);
+
+}
 TEST_SUITE_END();
 
 } /* namespace Nextsim */
