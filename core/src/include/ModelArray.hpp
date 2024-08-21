@@ -57,8 +57,27 @@ public:
     struct DimensionSpec {
         std::string name;
         std::string altName;
-        size_t length;
+        size_t globalLength;
+        size_t localLength;
+        size_t start;
+#ifdef USE_MPI
+        void setLengths(size_t globalLength, size_t localLength, size_t start)
+        {
+            this->globalLength = globalLength;
+            this->localLength = localLength;
+            this->start = start;
+        }
+#else
+        void setLengths(size_t length)
+        {
+            // if MPI is not used then localLength and globalLength are set to the same value
+            this->globalLength = length;
+            this->localLength = length;
+            this->start = 0;
+        }
+#endif
     };
+
     typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
 
     //! The dimensions that make up each defined type. Defined in ModelArrayDetails.cpp
@@ -232,8 +251,8 @@ public:
     static size_t size(Type type) { return m_sz.at(type); }
     //! Returns the size of the data array of this object.
     size_t trueSize() const { return m_data.rows(); }
-    //! Returns the size of a dimension
-    static size_t size(Dimension dim) { return definedDimensions.at(dim).length; }
+    //! Returns the local size of a dimension
+    static size_t size(Dimension dim) { return definedDimensions.at(dim).localLength; }
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
@@ -273,7 +292,11 @@ public:
      * @param dim The dimension to be altered.
      * @param length The new length of the dimension.
      */
-    static void setDimension(Dimension dim, size_t length);
+#ifdef USE_MPI
+    static void setDimension(Dimension dim, size_t globalLength, size_t localLength, size_t size);
+#else
+    static void setDimension(Dimension dim, size_t globalLength);
+#endif
 
     //! Conditionally updates the size of the object data buffer to match the
     //! class specification.
@@ -281,7 +304,8 @@ public:
     {
         if (size() != trueSize()) {
             if (hasDoF(type)) {
-                m_data.resize(m_sz.at(type), definedDimensions.at(componentMap.at(type)).length);
+                m_data.resize(
+                    m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
             } else {
                 m_data.resize(m_sz.at(type), Eigen::NoChange);
             }
@@ -444,7 +468,8 @@ public:
     static void setNComponents(Type type, size_t nComp)
     {
         if (hasDoF(type)) {
-            definedDimensions.at(componentMap.at(type)).length = nComp;
+            definedDimensions.at(componentMap.at(type)).localLength = nComp;
+            definedDimensions.at(componentMap.at(type)).globalLength = nComp;
         }
     }
 
@@ -537,7 +562,7 @@ public:
     //! specified type of ModelArray.
     inline static size_t nComponents(const Type type)
     {
-        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).length : 1;
+        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).localLength : 1;
     }
     //! Returns whether this type of ModelArray has additional discontinuous
     //! Galerkin components.

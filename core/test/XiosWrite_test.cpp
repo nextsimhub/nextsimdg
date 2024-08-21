@@ -112,9 +112,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // --- Tests for writing to file
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ModelArray::setDimension(ModelArray::Dimension::X, n1);
-    ModelArray::setDimension(ModelArray::Dimension::Y, n2);
-    ModelArray::setDimension(ModelArray::Dimension::Z, n3);
+    ModelArray::setDimension(ModelArray::Dimension::X, n1, n1, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Y, n2, n2, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Z, n3, n3, 0);
     // Create some fake data to test writing methods
     HField field_2D(ModelArray::Type::H);
     field_2D.resize();
