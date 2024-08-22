@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+
+# An example pre-commit file for nextSIM-DG development
+
+for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|cc|h|hpp)$'); do
+  # Apply clang-format for linting
+  clang-format -i ${FILE} --verbose
+  # Update date stamp to today's date
+  sed -i "s/$(grep '\* @date' ${FILE})/ @date $(date '+%d %b %Y')/" ${FILE}
+done
