@@ -89,8 +89,8 @@ protected:
         } else if (name == vIOStressName) {
             return tauy;
         } else {
-            throw std::logic_error(std::string(__func__) + " called with an unknown argument " + name
-                                   + ". Only " + uIOStressName + " and " + vIOStressName + " are supported\n");
+            throw std::logic_error(std::string(__func__) + " called with an unknown argument "
+                + name + ". Only " + uIOStressName + " and " + vIOStressName + " are supported\n");
         }
     }
 };

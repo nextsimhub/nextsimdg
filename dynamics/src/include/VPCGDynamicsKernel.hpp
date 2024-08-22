@@ -3,7 +3,7 @@
  *
  * @date Aug 22, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
-* @author Einar Ólason <einar.olason@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef VPCGDYNAMICSKERNEL_HPP
