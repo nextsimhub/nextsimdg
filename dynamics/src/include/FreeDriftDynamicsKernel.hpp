@@ -4,7 +4,7 @@
  * Implementation of "classic free drift", where we ignore all \rho h terms in the momentum
  * equation. This is equivalent to assuming that the ice is very thin.
  *
- * @date 17 Feb 2023
+ * @date 22 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */

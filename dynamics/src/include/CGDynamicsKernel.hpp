@@ -1,8 +1,9 @@
 /*!
  * @file CGDynamicsKernel.hpp
  *
- * @date Jan 31, 2024
+ * @date Aug 22, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef CGDYNAMICSKERNEL_HPP

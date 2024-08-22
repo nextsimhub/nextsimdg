@@ -1,8 +1,9 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 7 Sep 2023
+ * @date 22 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef IDYNAMICS_HPP

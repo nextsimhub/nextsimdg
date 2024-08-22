@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 1 Jul 2024
+ * @date 22 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */

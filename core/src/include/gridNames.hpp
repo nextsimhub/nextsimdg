@@ -1,8 +1,9 @@
 /*!
  * @file gridNames.hpp
  *
- * @date Oct 24, 2022
+ * @date Aug 22, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef GRIDNAMES_HPP

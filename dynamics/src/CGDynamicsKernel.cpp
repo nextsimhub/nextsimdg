@@ -1,8 +1,9 @@
 /*!
  * @file CGDynamicsKernel.cpp
  *
- * @date Jan 26, 2024
+ * @date Aug 22, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar ÓLason <einar.olason@nersc.no>
  */
 
 /*
