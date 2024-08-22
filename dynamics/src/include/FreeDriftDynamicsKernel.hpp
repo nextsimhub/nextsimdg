@@ -76,12 +76,12 @@ protected:
 
 #pragma omp parallel for
         for (int i = 0; i < taux.rows(); ++i) {
-            double uOcnRel = u(i) - uOcean(i);
-            double vOcnRel = v(i) - vOcean(i);
-            double absocn = sqrt(SQR(uOcnRel) + SQR(vOcnRel));
+            const double uOceanRel = uOcean(i) - u(i);
+            const double vOceanRel = vOcean(i) - v(i);
+            const double cPrime = params.F_ocean * std::hypot(uOceanRel, vOceanRel);
 
-            taux(i) = params.F_ocean * absocn * uOcnRel;
-            tauy(i) = params.F_ocean * absocn * vOcnRel;
+            taux(i) = cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
+            tauy(i) = cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
         }
 
         if (name == uIOStressName) {
