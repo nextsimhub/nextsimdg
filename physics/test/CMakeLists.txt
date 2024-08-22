@@ -38,7 +38,7 @@ if(ENABLE_MPI)
     )
     target_link_libraries(testTOPAZOcn_MPI1 PRIVATE nextsimlib doctest::doctest)
 else()
-    add_executable(testERA5Atm "ERA5Atm_test.cpp")
+    add_executable(testERA5Atm "ERA5Atm_test.cpp" "../src/modules/FluxCalculationModule/module.cpp")
     target_compile_definitions(testERA5Atm PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
     target_include_directories(testERA5Atm PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
     target_link_libraries(testERA5Atm PRIVATE nextsimlib doctest::doctest)
@@ -48,7 +48,7 @@ else()
     target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
     target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testIceGrowth "IceGrowth_test.cpp")
+    add_executable(testIceGrowth "IceGrowth_test.cpp" "../src/modules/IceThermodynamicsModule/module.cpp")
     target_include_directories(
         testIceGrowth
         PRIVATE "${ModulesRoot}/OceanBoundaryModule" "${CoreModulesRoot}/FreezingPointModule"
