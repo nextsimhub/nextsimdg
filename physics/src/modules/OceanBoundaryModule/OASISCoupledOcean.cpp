@@ -137,11 +137,6 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 
 void OASISCoupledOcean::configure()
 {
-    firstLayerDepth = Configured::getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
-    if (Configured::getConfiguration(exchangeFirstLayerConfigKey, EXCHANGE_FIRST_LAYER)) {
-        cplStringsIn.push_back(MLDKey);
-    }
-
     SSTKey = Configured::getConfiguration(SSTConfigKey, SSTKeyDefault);
     SSSKey = Configured::getConfiguration(SSSConfigKey, SSSKeyDefault);
     UOceanKey = Configured::getConfiguration(UOceanConfigKey, UOceanKeyDefault);
@@ -156,6 +151,11 @@ void OASISCoupledOcean::configure()
     QSWKey = Configured::getConfiguration(QSWConfigKey, QSWKeyDefault);
     SFluxKey = Configured::getConfiguration(SFluxConfigKey, SFluxKeyDefault);
     CIceKey = Configured::getConfiguration(CIceConfigKey, CIceKeyDefault);
+
+    firstLayerDepth = Configured::getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
+    if (Configured::getConfiguration(exchangeFirstLayerConfigKey, EXCHANGE_FIRST_LAYER)) {
+        cplStringsIn.push_back(MLDKey);
+    }
 }
 
 OASISCoupledOcean::HelpMap& OASISCoupledOcean::getHelpText(HelpMap& map, bool getAll)
