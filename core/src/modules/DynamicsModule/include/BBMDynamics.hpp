@@ -9,8 +9,8 @@
 #define BBMDYNAMICS_HPP
 
 #include "include/BBMDynamicsKernel.hpp"
-#include "include/MEBParameters.hpp"
 #include "include/IDynamics.hpp"
+#include "include/MEBParameters.hpp"
 
 #ifndef DGCOMP
 #define DGCOMP 3 // Define to prevent errors from static analysis tools
@@ -28,11 +28,12 @@ public:
 
     void setData(const ModelState::DataMap&) override;
     ModelState getState() const override;
+    ModelState getState(const OutputLevel&) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override;
+
 private:
     BBMDynamicsKernel<DGCOMP> kernel;
     MEBParameters params;
-
 };
 
 } /* namespace Nextsim */
