@@ -85,20 +85,16 @@ void PrognosticData::update(const TimestepTime& tst)
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
 
-    // Fill the values of the true ice and snow thicknesses.
-    iceGrowth.initializeThicknesses();
-    // Fill the updated ice temperature array
-    ticeUpd.data().setData(m_tice);
-    pDynamics->update(tst);
+    // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
+    // IceGrowth updates its own fields during update
+    iceGrowth.update(tst);
     updatePrognosticFields();
+
+    pDynamics->update(tst);
 
     // Advect the prognostic fields not advected by the dynamics
     pDynamics->advectField(m_snow, hsnowName);
     pDynamics->advectField(m_tice, ticeName);
-
-    // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
-    // IceGrowth updates its own fields during update
-    iceGrowth.update(tst);
     updatePrognosticFields();
 
     pOcnBdy->updateAfter(tst);
