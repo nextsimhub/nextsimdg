@@ -37,6 +37,8 @@ public:
         , m_usesDamage(usesDamageIn)
     {
         getStore().registerArray(Shared::DAMAGE, &damage, RW);
+        getStore().registerArray(Protected::IO_STRESS_U, &taux, RO);
+        getStore().registerArray(Protected::IO_STRESS_V, &tauy, RO);
     }
     virtual ~IDynamics() = default;
 
