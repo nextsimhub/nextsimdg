@@ -193,7 +193,7 @@ void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
     std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
     for (size_t i = 0; i < dimSpecs.size(); ++i) {
-        definedDimensions.at(dimSpecs[i]).length = newDims[i];
+        definedDimensions.at(dimSpecs[i]).localLength = newDims[i];
     }
     validateMaps();
 }
@@ -205,9 +205,15 @@ void ModelArray::setNComponents(std::map<Type, size_t> cMap)
     }
 }
 
-void ModelArray::setDimension(Dimension dim, size_t length)
+#ifdef USE_MPI
+void ModelArray::setDimension(Dimension dim, size_t globalLength, size_t localLength, size_t start)
 {
-    definedDimensions.at(dim).length = length;
+    definedDimensions.at(dim).setLengths(globalLength, localLength, start);
+#else
+void ModelArray::setDimension(Dimension dim, size_t globalLength)
+{
+    definedDimensions.at(dim).setLengths(globalLength);
+#endif
     validateMaps();
 }
 
@@ -276,7 +282,7 @@ void ModelArray::DimensionMap::validate()
         std::vector<Dimension>& typeDims = entry.second;
         dims.resize(typeDims.size());
         for (size_t i = 0; i < typeDims.size(); ++i) {
-            dims[i] = definedDimensions.at(typeDims[i]).length;
+            dims[i] = definedDimensions.at(typeDims[i]).localLength;
         }
     }
 }
@@ -287,7 +293,7 @@ void ModelArray::SizeMap::validate()
         size_t size = 1;
         std::vector<Dimension>& typeDims = entry.second;
         for (size_t i = 0; i < typeDims.size(); ++i) {
-            size *= definedDimensions.at(typeDims[i]).length;
+            size *= definedDimensions.at(typeDims[i]).localLength;
         }
         m_sizes.at(entry.first) = size;
     }

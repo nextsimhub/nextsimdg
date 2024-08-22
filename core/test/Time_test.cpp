@@ -1,7 +1,7 @@
 /*!
  * @file Time_test.cpp
  *
- * @date Jun 7, 2022
+ * @date 5 August, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -164,6 +164,7 @@ TEST_CASE("Durations")
     Duration dur;
     // Basic values
     REQUIRE_THROWS(dur.parse("0-0-0T0:0:1"));
+    REQUIRE_THROWS(dur.parse("P0-1-0T0:0:0"));
     REQUIRE_THROWS(dur.parse(""));
     REQUIRE(dur.parse("P0-1").seconds() == 1 * days);
     REQUIRE(dur.parse("P0-0T0:0:1").seconds() == 1);
