@@ -162,6 +162,32 @@ public:
         }
     }
 
+    CGVector<CGdegree> getIceOceanStress(const std::string& name) const override
+    {
+        CGVector<CGdegree> taux, tauy;
+        taux.resizeLike(avgU);
+        tauy.resizeLike(avgV);
+
+#pragma omp parallel for
+        for (int i = 0; i < taux.rows(); ++i) {
+            double uOcnRel = avgU(i) - uOcean(i);
+            double vOcnRel = avgV(i) - vOcean(i);
+            double absocn = sqrt(SQR(uOcnRel) + SQR(vOcnRel));
+
+            taux(i) = params.F_ocean * absocn * uOcnRel;
+            tauy(i) = params.F_ocean * absocn * vOcnRel;
+        }
+
+        if (name == uIOStressName) {
+            return taux;
+        } else if (name == vIOStressName) {
+            return tauy;
+        } else {
+            throw std::logic_error(std::string(__func__) + " called with an unknown argument "
+                + name + ". Only " + uIOStressName + " and " + vIOStressName + " are supported\n");
+        }
+    }
+
 protected:
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;

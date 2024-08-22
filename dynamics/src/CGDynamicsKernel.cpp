@@ -94,6 +94,16 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) co
         DGVector<DGadvection> vtmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
         return DGModelArray::dg2ma(vtmp, data);
+    } else if (name == uIOStressName) {
+        ModelArray data(ModelArray::Type::U);
+        DGVector<DGadvection> utmp(*smesh);
+        Nextsim::Interpolations::CG2DG(*smesh, utmp, getIceOceanStress(name));
+        return DGModelArray::dg2ma(utmp, data);
+    } else if (name == vIOStressName) {
+        ModelArray data(ModelArray::Type::V);
+        DGVector<DGadvection> vtmp(*smesh);
+        Nextsim::Interpolations::CG2DG(*smesh, vtmp, getIceOceanStress(name));
+        return DGModelArray::dg2ma(vtmp, data);
     } else {
         return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
     }

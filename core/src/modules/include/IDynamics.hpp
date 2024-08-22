@@ -23,6 +23,8 @@ public:
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
         , damage(ModelArray::Type::H)
+        , taux(ModelArray::Type::H)
+        , tauy(ModelArray::Type::H)
         , hice(getStore())
         , cice(getStore())
         , hsnow(getStore())
@@ -76,12 +78,14 @@ protected:
     HField vice;
     // Updated damage array
     HField damage;
+    // Ice-ocean stress (for the coupler, mostly)
+    HField taux;
+    HField tauy;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;
     ModelArrayRef<Shared::H_SNOW, RW> hsnow;
     ModelArrayRef<Protected::DAMAGE, RO> damage0;
-    // ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
 
     // References to the forcing velocity arrays
     ModelArrayRef<Protected::WIND_U> uwind;

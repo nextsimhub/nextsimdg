@@ -50,6 +50,8 @@ public:
     void applyBoundaries() override;
     void prepareAdvection() override;
 
+    virtual CGVector<CGdegree> getIceOceanStress(const std::string& name) const = 0;
+
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);
     void dirichletZero(CGVector<CGdegree>&) const;
