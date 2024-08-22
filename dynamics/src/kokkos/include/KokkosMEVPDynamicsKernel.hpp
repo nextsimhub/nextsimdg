@@ -12,15 +12,10 @@
 
 #include "../../include/CGDynamicsKernel.hpp"
 #include "../../include/VPParameters.hpp"
+#include "include/KokkosMeshData.hpp"
 #include "KokkosUtils.hpp"
 
-#include <Kokkos_Bitset.hpp>
-
 namespace Nextsim {
-
-template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3 ? 2 : -1);
-// todo: move into kokkos / gpu namespace
-using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
 
 // The VP pseudo-timestepping momentum equation solver for CG velocities
 template <int DGadvection> class KokkosMEVPDynamicsKernel : public CGDynamicsKernel<DGadvection> {
@@ -31,35 +26,12 @@ private:
 
 public:
     struct KokkosBuffers {
-        // cG (velocity) components
-        using DeviceViewCG = KokkosDeviceView<CGVector<CGdegree>>;
-        using HostViewCG = KokkosHostView<CGVector<CGdegree>>;
-        using ConstDeviceViewCG = ConstKokkosDeviceView<CGVector<CGdegree>>;
-        DeviceViewCG uDevice;
-        HostViewCG uHost;
-        DeviceViewCG vDevice;
-        HostViewCG vHost;
         // Step-initial ice velocity
         // mutable variants are needed to copy the data but accesses on the device are all constant
         DeviceViewCG u0DeviceMut;
         DeviceViewCG v0DeviceMut;
         ConstDeviceViewCG u0Device;
         ConstDeviceViewCG v0Device;
-
-        DeviceViewCG dStressXDevice;
-        HostViewCG dStressXHost;
-        DeviceViewCG dStressYDevice;
-        HostViewCG dStressYHost;
-
-        DeviceViewCG uOceanDevice;
-        HostViewCG uOceanHost;
-        DeviceViewCG vOceanDevice;
-        HostViewCG vOceanHost;
-
-        DeviceViewCG uAtmosDevice;
-        HostViewCG uAtmosHost;
-        DeviceViewCG vAtmosDevice;
-        HostViewCG vAtmosHost;
 
         // strain and stress components
         using DeviceViewStress = KokkosDeviceView<DGVector<DGstressComp>>;
@@ -84,11 +56,6 @@ public:
         DeviceViewAdvect ciceDevice;
         HostViewAdvect ciceHost;
 
-        DeviceViewCG cgHDevice;
-        HostViewCG cgHHost;
-        DeviceViewCG cgADevice;
-        HostViewCG cgAHost;
-
         // constant matrices also need to be available on the GPU
         using PSIAdvectType = decltype(PSI<DGadvection, NGP>);
         using PSIStressType = decltype(PSI<DGstressComp, NGP>);
@@ -107,10 +74,6 @@ public:
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix> iMMDevice;
 
         KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
-
-        // mesh related
-        std::array<KokkosDeviceMapView<size_t>, 4> dirichletDevice;
-        Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace> landMaskDevice;
     };
 
     KokkosMEVPDynamicsKernel(const VPParameters& paramsIn)
@@ -128,17 +91,9 @@ public:
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
     void update(const TimestepTime& tst) override;
 
-    // todo: move kokkos stuff out of class into extra namespace?
-    // todo: rename functions that currently conflict with base class versions
     // cuda requires these functions to be public
-    static void projVelocityToStrain(
-        const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
     static void updateStressHighOrder(
         const KokkosBuffers& _buffers, const VPParameters& _params, FloatType _alpha);
-    static void computeStressDivergence(
-        const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates);
-    static void applyBoundariesDevice(
-        const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny);
     static void updateMomentumDevice(const TimestepTime& tst, const KokkosBuffers& _buffers,
         const VPParameters& _params, FloatType beta);
 

@@ -15,10 +15,10 @@
 #define DGSTRESSCOMP (CG2DGSTRESS(CGDEGREE))
 #endif
 
-static const int CGdegree = CGDEGREE;
-static const int DGstressComp = DGSTRESSCOMP;
-static const int nGauss = CGdegree + 1;
-static const int CGdof = nGauss * nGauss;
+constexpr int CGdegree = CGDEGREE;
+constexpr int DGstressComp = DGSTRESSCOMP;
+constexpr int nGauss = CGdegree + 1;
+constexpr int CGdof = nGauss * nGauss;
 
 namespace Nextsim {
 
