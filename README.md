@@ -23,7 +23,7 @@ For neXtSIM_DG we use clang-format and the [Webkit style](https://webkit.org/cod
   -  Names and values of physical constants reside in src/include/constants.hpp
   -  Runtime modifiable model parameters are set in src/options.cpp and can be set using option files.
 
-A [dedicated clang format file](https://github.com/nextsimdg/nextsimdg/blob/issue9_clang_format/src/.clang-format) has been designed for the code. You may run it loccaly and manually with the command ```clang-format -i $yourfile``` or have a plugin with your favorite code editor or implement a git pre-commit hook locally by putting this pre-commit file in your .git/hooks/. This clang formatting will also be run each time a pull request is done as part of the continuous integration. 
+A [dedicated clang format file](https://github.com/nextsimhub/nextsimdg/blob/main/.clang-format) has been designed for the code. You may run it loccaly and manually with the command ```clang-format -i $yourfile``` or have a plugin with your favorite code editor or implement a git pre-commit hook locally by putting this pre-commit file in your .git/hooks/. This clang formatting will also be run each time a pull request is done as part of the continuous integration.
 
 
 ## Commenting conventions for a nice automatic documentation
