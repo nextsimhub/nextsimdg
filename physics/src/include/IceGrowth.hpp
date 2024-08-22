@@ -1,14 +1,16 @@
 /*!
  * @file IceGrowth.hpp
  *
- * @date Mar 15, 2022
+ * @date Jul 5, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef ICEGROWTH_HPP
 #define ICEGROWTH_HPP
 
 #include "include/Configured.hpp"
+#include "include/IDamageHealing.hpp"
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/IceMinima.hpp"
@@ -67,6 +69,8 @@ private:
     std::unique_ptr<IIceThermodynamics> iVertical;
     // Lateral Growth ModuleComponent & Module
     std::unique_ptr<ILateralIceSpread> iLateral;
+    // Damage Healing ModuleComponent & Module
+    std::unique_ptr<IDamageHealing> iHealing;
 
     // Data fields
     // Owned, shared data fields

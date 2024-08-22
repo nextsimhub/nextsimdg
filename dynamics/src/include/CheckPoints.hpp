@@ -27,7 +27,8 @@ namespace CheckPoints {
     void saveData(const std::string& fileName, int n, VectorType<DG>& matrix)
     {
 
-        const static Eigen::IOFormat CSVFormat(Eigen::FullPrecision, Eigen::DontAlignCols, ", ", "\n");
+        const static Eigen::IOFormat CSVFormat(
+            Eigen::FullPrecision, Eigen::DontAlignCols, ", ", "\n");
 
         std::ostringstream ss;
         ss << fileName << "." << std::setw(5) << std::setfill('0') << n << ".txt";
@@ -39,8 +40,7 @@ namespace CheckPoints {
         file.close();
     }
 
-    template <int DG>
-    void loadData(const std::string& path, Nextsim::DGVector<DG>& matrix)
+    template <int DG> void loadData(const std::string& path, Nextsim::DGVector<DG>& matrix)
     {
 
         std::ifstream indata;
@@ -64,8 +64,7 @@ namespace CheckPoints {
                 matrix(i, j) = values[i * DG + j];
     }
 
-    template <int CG>
-    void loadData(const std::string& path, Nextsim::CGVector<CG>& matrix)
+    template <int CG> void loadData(const std::string& path, Nextsim::CGVector<CG>& matrix)
     {
 
         std::ifstream indata;

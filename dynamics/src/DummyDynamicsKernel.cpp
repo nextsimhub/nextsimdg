@@ -10,9 +10,9 @@
 namespace Nextsim {
 
 template <int CGdegree, int DGadvection>
-const std::unordered_map<std::string, ModelArray::Type> DummyDynamicsKernel<CGdegree, DGadvection>::fieldType = {
+const std::unordered_map<std::string, ModelArray::Type>
+    DummyDynamicsKernel<CGdegree, DGadvection>::fieldType = {
 
-};
-
+    };
 
 } /* namespace Nextsim */

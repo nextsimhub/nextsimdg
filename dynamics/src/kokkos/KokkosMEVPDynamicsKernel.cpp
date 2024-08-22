@@ -98,7 +98,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::initialise(
     buffers.PSIAdvectDevice
         = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, true);
     buffers.PSIStressDevice
-        = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressDegree, NGP>, true);
+        = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, true);
 
     // parametric map related
     buffers.lumpedcgmassDevice
@@ -153,7 +153,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static PerfTimer timerDownload("downloadGPU");
 
     // Let DynamicsKernel handle the advection step
-    DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits(tst);
+    DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits(tst);
     this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
 
     // The critical timestep for the VP solver is the advection timestep
@@ -225,7 +225,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         timerDownload.print();
     }
     // Finally, do the base class update
-    DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
+    DynamicsKernel<DGadvection, DGstressComp>::update(tst);
 }
 
 template <int DGadvection>

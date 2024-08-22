@@ -25,7 +25,7 @@ using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
 // The VP pseudo-timestepping momentum equation solver for CG velocities
 template <int DGadvection> class KokkosMEVPDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 private:
-    static constexpr int NGP = NGP_DG<DGstressDegree>;
+    static constexpr int NGP = NGP_DG<DGstressComp>;
 
     using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
 
@@ -62,8 +62,8 @@ public:
         HostViewCG vAtmosHost;
 
         // strain and stress components
-        using DeviceViewStress = KokkosDeviceView<DGVector<DGstressDegree>>;
-        using HostViewStress = KokkosHostView<DGVector<DGstressDegree>>;
+        using DeviceViewStress = KokkosDeviceView<DGVector<DGstressComp>>;
+        using HostViewStress = KokkosHostView<DGVector<DGstressComp>>;
         DeviceViewStress s11Device;
         HostViewStress s11Host;
         DeviceViewStress s12Device;
@@ -91,7 +91,7 @@ public:
 
         // constant matrices also need to be available on the GPU
         using PSIAdvectType = decltype(PSI<DGadvection, NGP>);
-        using PSIStressType = decltype(PSI<DGstressDegree, NGP>);
+        using PSIStressType = decltype(PSI<DGstressComp, NGP>);
         ConstKokkosDeviceView<PSIAdvectType> PSIAdvectDevice;
         ConstKokkosDeviceView<PSIStressType> PSIStressDevice;
 

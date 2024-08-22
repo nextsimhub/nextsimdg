@@ -17,11 +17,11 @@
 namespace Nextsim {
 
 template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKernel<DGadvection> {
-    using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
-    using DynamicsKernel<DGadvection, DGstressDegree>::hice;
-    using DynamicsKernel<DGadvection, DGstressDegree>::cice;
-    using DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits;
-    using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
+    using DynamicsKernel<DGadvection, DGstressComp>::hice;
+    using DynamicsKernel<DGadvection, DGstressComp>::cice;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
+    using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -61,8 +61,10 @@ protected:
 #pragma omp parallel for
         for (int i = 0; i < u.rows(); ++i) {
             // Free drift ice velocity
-            u(i) = uOcean(i) + NansenNumber * (uAtmos(i) * cosOceanAngle - vAtmos(i) * sinOceanAngle);
-            v(i) = vOcean(i) + NansenNumber * (-uAtmos(i) * sinOceanAngle + vAtmos(i) * cosOceanAngle);
+            u(i) = uOcean(i)
+                + NansenNumber * (uAtmos(i) * cosOceanAngle - vAtmos(i) * sinOceanAngle);
+            v(i) = vOcean(i)
+                + NansenNumber * (-uAtmos(i) * sinOceanAngle + vAtmos(i) * cosOceanAngle);
         }
     }
 };

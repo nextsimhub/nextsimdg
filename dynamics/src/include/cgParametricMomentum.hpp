@@ -8,6 +8,7 @@
 #define __CGPARAMETRICMOMENTUM_HPP
 
 #include "MEBParameters.hpp"
+#include "ParametricMap.hpp"
 #include "ParametricTools.hpp"
 #include "VPParameters.hpp"
 #include "cgVector.hpp"
@@ -15,25 +16,22 @@
 #include "codeGenerationCGinGauss.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
-#include "ParametricMap.hpp"
 #include "dgVisu.hpp"
 
 namespace Nextsim {
 
-  
-template <int CG>
-class CGParametricMomentum {
+template <int CG> class CGParametricMomentum {
 private:
     const ParametricMesh& smesh; //!< const-reference to the mesh
 
-  
     /*!
      * Stores precomputed values for efficient numerics on transformed mesh
      * accelerates numerics but substantial memory effort!
      */
     static constexpr int precompute_matrices = 1;
+
 public:
-  ParametricMomentumMap<CG> pmap;
+    ParametricMomentumMap<CG> pmap;
 
     //! vectors storing the velocity (node-wise)
     CGVector<CG> vx, vy;
@@ -52,7 +50,6 @@ public:
     //! old velocities. They are required during temporary vectors. Maybe we can remove them?
     CGVector<CG> vx_mevp, vy_mevp;
 
-
     //! Vector to store the CG-Version of ice concentration and ice height
     CGVector<CG> cg_A, cg_H, cg_D;
 
@@ -61,8 +58,9 @@ public:
     DGVector<CG2DGSTRESS(CG)> S11, S12, S22;
 
 public:
-  CGParametricMomentum(const ParametricMesh& sm)
-    : smesh(sm), pmap(sm)
+    CGParametricMomentum(const ParametricMesh& sm)
+        : smesh(sm)
+        , pmap(sm)
     {
         if (!(smesh.nelements > 0)) {
             std::cerr << "CGParametricMomentum: The mesh has to be initialized first!" << std::endl;
@@ -103,17 +101,16 @@ public:
         S12.resize_by_mesh(smesh);
         S22.resize_by_mesh(smesh);
 
+        /*!
+         * initialize the lumped mass
+         * At periodic boundaries, the values must be added from both sides
+         */
+        pmap.InitializeLumpedCGMassMatrix();
 
         /*!
-	 * initialize the lumped mass
-	 * At periodic boundaries, the values must be added from both sides
-	 */
-	pmap.InitializeLumpedCGMassMatrix();
-	
-	/*!
-	 * Compute matrices for performing mEVP / BBM / MEB etc. stress updates
-	 */
-	pmap.InitializeDivSMatrices();
+         * Compute matrices for performing mEVP / BBM / MEB etc. stress updates
+         */
+        pmap.InitializeDivSMatrices();
     }
 
     // Access to members
@@ -143,17 +140,17 @@ public:
     const DGVector<CG2DGSTRESS(CG)>& GetS11() const { return S11; }
     const DGVector<CG2DGSTRESS(CG)>& GetS12() const { return S12; }
     const DGVector<CG2DGSTRESS(CG)>& GetS22() const { return S22; }
-  DGVector<CG2DGSTRESS(CG)>& GetS11()  { return S11; }
-  DGVector<CG2DGSTRESS(CG)>& GetS12()  { return S12; }
-  DGVector<CG2DGSTRESS(CG)>& GetS22()  { return S22; }
-  
-  const CGVector<CG>& GetcgH() const { return cg_H; }
-  const CGVector<CG>& GetcgA() const { return cg_A; }
-  const CGVector<CG>& GetcgD() const { return cg_D; }
-   CGVector<CG>& GetcgH()  { return cg_H; }
-   CGVector<CG>& GetcgA()  { return cg_A; }
-   CGVector<CG>& GetcgD()  { return cg_D; }
-  
+    DGVector<CG2DGSTRESS(CG)>& GetS11() { return S11; }
+    DGVector<CG2DGSTRESS(CG)>& GetS12() { return S12; }
+    DGVector<CG2DGSTRESS(CG)>& GetS22() { return S22; }
+
+    const CGVector<CG>& GetcgH() const { return cg_H; }
+    const CGVector<CG>& GetcgA() const { return cg_A; }
+    const CGVector<CG>& GetcgD() const { return cg_D; }
+    CGVector<CG>& GetcgH() { return cg_H; }
+    CGVector<CG>& GetcgA() { return cg_A; }
+    CGVector<CG>& GetcgD() { return cg_D; }
+
     // High level Functions
 
     /*!
@@ -161,29 +158,24 @@ public:
      *  - store old velocity
      *  - interpoalte ice height & concentration ( & damage) to cg
      */
+    template <int DG> void prepareIteration(const DGVector<DG>& H, const DGVector<DG>& A);
     template <int DG>
-    void prepareIteration(const DGVector<DG>& H, const DGVector<DG>& A);
-    template <int DG>
-    void prepareIteration(const DGVector<DG>& H, const DGVector<DG>& A,
-        const DGVector<DG>& D);
+    void prepareIteration(const DGVector<DG>& H, const DGVector<DG>& A, const DGVector<DG>& D);
 
     //! performs one complete mEVP cycle with NT_evp subiterations
     template <int DG>
-    void mEVPStep(const VPParameters& vpparameters,
-        size_t NT_evp, double alpha, double beta,
-        double dt_adv,
-        const DGVector<DG>& H, const DGVector<DG>& A);
+    void mEVPStep(const VPParameters& vpparameters, size_t NT_evp, double alpha, double beta,
+        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A);
 
     //! performs one complete MEB timestep with NT_meb subiterations
     template <int DG>
-    void MEBStep(const MEBParameters& vpparameters, size_t NT_meb,
-        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
+    void MEBStep(const MEBParameters& vpparameters, size_t NT_meb, double dt_adv,
+        const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     //! performs one complete BBMStep timestep with NT_meb subiterations
     template <int DG>
-    void BBMStep(const MEBParameters& vpparameters, size_t NT_meb,
-        double dt_adv, const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
-
+    void BBMStep(const MEBParameters& vpparameters, size_t NT_meb, double dt_adv,
+        const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     /*!
      * The following functions take care of the interpolation and projection
@@ -197,8 +189,8 @@ public:
      */
     void DivergenceOfStress(const double scale, CGVector<CG>& tx, CGVector<CG>& ty) const;
 
-    void AddStressTensorCell(const double scale, const size_t c, const size_t cx,
-        const size_t cy, CGVector<CG>& tx, CGVector<CG>& ty) const;
+    void AddStressTensorCell(const double scale, const size_t c, const size_t cx, const size_t cy,
+        CGVector<CG>& tx, CGVector<CG>& ty) const;
 
     //! Sets the velocity vector to zero along the boundary
     void DirichletZero()
@@ -208,72 +200,75 @@ public:
     }
     void DirichletZero(CGVector<CG>& v) const;
 
-  /*!
-   * AddPeriodic is to be called, after (sigma, Nabla Phi) is computed
-   * On periodic boundaries, the contributions from both sides must be added
-   */
-  void AddPeriodic(CGVector<CG>& v);
-  /*!
-   * AveragePeriodic replaces the values on both sides by
-   * the average of them
-   */
-  void AveragePeriodic(CGVector<CG>& v);
-  void CheckPeriodicity(CGVector<CG>& v);
+    /*!
+     * AddPeriodic is to be called, after (sigma, Nabla Phi) is computed
+     * On periodic boundaries, the contributions from both sides must be added
+     */
+    void AddPeriodic(CGVector<CG>& v);
+    /*!
+     * AveragePeriodic replaces the values on both sides by
+     * the average of them
+     */
+    void AveragePeriodic(CGVector<CG>& v);
+    void CheckPeriodicity(CGVector<CG>& v);
 };
 
 template <int CG>
-void CGParametricMomentum<CG>::AddStressTensorCell(const double scale, const size_t eid, const size_t cx,
-    const size_t cy, CGVector<CG>& tmpx, CGVector<CG>& tmpy) const
+void CGParametricMomentum<CG>::AddStressTensorCell(const double scale, const size_t eid,
+    const size_t cx, const size_t cy, CGVector<CG>& tmpx, CGVector<CG>& tmpy) const
 {
-  // pick the number of Gauss points according to the degree
-  
-#define NGP (CG == 1 ? 2 : 3) 
-  
-  Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> tx = scale * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
-  Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> ty = scale * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
+    // pick the number of Gauss points according to the degree
 
-  if (smesh.CoordinateSystem == SPHERICAL) // In spherical coordinates there is the additional 'derivative term' arising from the derivative of the units
+#define NGP (CG == 1 ? 2 : 3)
+
+    Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> tx = scale
+        * (pmap.divS1[eid] * S11.row(eid).transpose() + pmap.divS2[eid] * S12.row(eid).transpose());
+    Eigen::Vector<Nextsim::FloatType, CGDOFS(CG)> ty = scale
+        * (pmap.divS1[eid] * S12.row(eid).transpose() + pmap.divS2[eid] * S22.row(eid).transpose());
+
+    if (smesh.CoordinateSystem
+        == SPHERICAL) // In spherical coordinates there is the additional 'derivative term' arising
+                      // from the derivative of the units
     {
-      tx += scale * pmap.divM[eid] * S12.row(eid).transpose();
-      ty -= scale * pmap.divM[eid] * S11.row(eid).transpose();
+        tx += scale * pmap.divM[eid] * S12.row(eid).transpose();
+        ty -= scale * pmap.divM[eid] * S11.row(eid).transpose();
     }
-  
-  const size_t CGROW = CG * smesh.nx + 1;
-  const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
-  
-  if (CG == 1) {
-    tmpx(cg_i + 0) += -tx(0);
-    tmpx(cg_i + 1) += -tx(1);
-    tmpx(cg_i + 0 + CGROW) += -tx(2);
-    tmpx(cg_i + 1 + CGROW) += -tx(3);
-    
-    tmpy(cg_i + 0) += -ty(0);
-    tmpy(cg_i + 1) += -ty(1);
-    tmpy(cg_i + 0 + CGROW) += -ty(2);
-    tmpy(cg_i + 1 + CGROW) += -ty(3);
-  } else if (CG == 2) {
-    tmpx(cg_i + 0) += -tx(0);
-    tmpx(cg_i + 1) += -tx(1);
-    tmpx(cg_i + 2) += -tx(2);
-    tmpx(cg_i + 0 + CGROW) += -tx(3);
-    tmpx(cg_i + 1 + CGROW) += -tx(4);
-    tmpx(cg_i + 2 + CGROW) += -tx(5);
-    tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
-    tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
-    tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
-    
-    tmpy(cg_i + 0) += -ty(0);
-    tmpy(cg_i + 1) += -ty(1);
-    tmpy(cg_i + 2) += -ty(2);
-    tmpy(cg_i + 0 + CGROW) += -ty(3);
-    tmpy(cg_i + 1 + CGROW) += -ty(4);
-    tmpy(cg_i + 2 + CGROW) += -ty(5);
-    tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
-    tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
-    tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
-  }
-  else
-    abort();
+
+    const size_t CGROW = CG * smesh.nx + 1;
+    const size_t cg_i = CG * CGROW * cy + CG * cx; //!< lower left CG-index in element (cx,cy)
+
+    if (CG == 1) {
+        tmpx(cg_i + 0) += -tx(0);
+        tmpx(cg_i + 1) += -tx(1);
+        tmpx(cg_i + 0 + CGROW) += -tx(2);
+        tmpx(cg_i + 1 + CGROW) += -tx(3);
+
+        tmpy(cg_i + 0) += -ty(0);
+        tmpy(cg_i + 1) += -ty(1);
+        tmpy(cg_i + 0 + CGROW) += -ty(2);
+        tmpy(cg_i + 1 + CGROW) += -ty(3);
+    } else if (CG == 2) {
+        tmpx(cg_i + 0) += -tx(0);
+        tmpx(cg_i + 1) += -tx(1);
+        tmpx(cg_i + 2) += -tx(2);
+        tmpx(cg_i + 0 + CGROW) += -tx(3);
+        tmpx(cg_i + 1 + CGROW) += -tx(4);
+        tmpx(cg_i + 2 + CGROW) += -tx(5);
+        tmpx(cg_i + 0 + CGROW * 2) += -tx(6);
+        tmpx(cg_i + 1 + CGROW * 2) += -tx(7);
+        tmpx(cg_i + 2 + CGROW * 2) += -tx(8);
+
+        tmpy(cg_i + 0) += -ty(0);
+        tmpy(cg_i + 1) += -ty(1);
+        tmpy(cg_i + 2) += -ty(2);
+        tmpy(cg_i + 0 + CGROW) += -ty(3);
+        tmpy(cg_i + 1 + CGROW) += -ty(4);
+        tmpy(cg_i + 2 + CGROW) += -ty(5);
+        tmpy(cg_i + 0 + CGROW * 2) += -ty(6);
+        tmpy(cg_i + 1 + CGROW * 2) += -ty(7);
+        tmpy(cg_i + 2 + CGROW * 2) += -ty(8);
+    } else
+        abort();
 #undef NGP
 }
 

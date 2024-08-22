@@ -46,7 +46,11 @@ public:
             {} };
     }
     ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override { return os ? getState() : ModelState(); }
+    ModelState getStateRecursive(const OutputSpec& os) const override
+    {
+        // Ensure the base class implementation of getState() is called
+        return os ? IDynamics::getState() : ModelState();
+    }
 
     std::string getName() const override { return "IDynamics"; }
     virtual void setData(const ModelState::DataMap& ms) override
@@ -77,7 +81,7 @@ protected:
     ModelArrayRef<Shared::C_ICE, RW> cice;
     ModelArrayRef<Shared::H_SNOW, RW> hsnow;
     ModelArrayRef<Protected::DAMAGE, RO> damage0;
-    //ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
+    // ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
 
     // References to the forcing velocity arrays
     ModelArrayRef<Protected::WIND_U> uwind;
@@ -100,12 +104,10 @@ protected:
             return false;
         } else {
             // Throw a runtime_error exception which can either be handled or not
-            throw std::runtime_error(
-                    "Input data must contain either Cartesian (" + xName + ", " + yName
-                            + ") or spherical (" + longitudeName + ", " + latitudeName
-                            + ") coordinates.");
+            throw std::runtime_error("Input data must contain either Cartesian (" + xName + ", "
+                + yName + ") or spherical (" + longitudeName + ", " + latitudeName
+                + ") coordinates.");
         }
-
     }
 };
 }

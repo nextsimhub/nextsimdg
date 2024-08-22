@@ -5,8 +5,12 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#ifdef USE_MPI
+#include <doctest/extensions/doctest_mpi.h>
+#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
+#endif
 
 #include "DiagnosticOutputModule/include/ConfigOutput.hpp"
 
@@ -29,19 +33,39 @@
 #include <sstream>
 #include <filesystem>
 
+const std::string test_files_dir = TEST_FILES_DIR;
+#ifdef USE_MPI
+const std::string partition_filename = test_files_dir + "/partition_metadata_2.nc";
+#endif
+
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ConfigOutput");
+#ifdef USE_MPI
+MPI_TEST_CASE("Test periodic output", 2)
+#else
 TEST_CASE("Test periodic output")
+#endif
 {
     size_t nx = 2;
     size_t ny = 5;
     size_t nz = 3;
     NZLevels::set(nz);
 
+#ifdef USE_MPI
+    if (test_rank == 0) {
+      ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 0);
+    }
+    if (test_rank == 1) {
+      ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
+    }
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
+#else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
+#endif
 
     std::stringstream config;
     config << "[Modules]" << std::endl;
@@ -79,21 +103,29 @@ TEST_CASE("Test periodic output")
     ModelMetadata meta;
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 
+#ifdef USE_MPI
+    meta.setMpiMetadata(test_comm);
+#endif
+
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     tryConfigure(ido);
 
+    auto dimX = ModelArray::Dimension::X;
+    auto startX = ModelArray::definedDimensions.at(dimX).start;
+    auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
+
     for (size_t k = 0; k < nz; ++k) {
         for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < nx; ++i) {
-                tice(i, j, k) = 0.1 * k + 0.4 + 0.01 * (j * nx + i);
+            for (size_t i = 0; i < localNX; ++i) {
+                tice(i, j, k) = 0.1 * k + 0.4 + 0.01 * (j * nx + (i + startX));
             }
         }
     }
     for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            hice(i, j) = 0 + 0.01 * (j * nx + i);
-            cice(i, j) = 0.1 + 0.01 * (j * nx + i);
-            hsnow(i, j) = 0.2 + 0.01 * (j * nx + i);
+        for (size_t i = 0; i < localNX; ++i) {
+            hice(i, j) = 0 + 0.01 * (j * nx + (i + startX));
+            cice(i, j) = 0.1 + 0.01 * (j * nx + (i + startX));
+            hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + startX));
         }
     }
     std::vector<std::string> diagFiles;

@@ -4,7 +4,6 @@
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
-
 #ifndef __CGVECTOR_HPP
 #define __CGVECTOR_HPP
 
@@ -19,8 +18,7 @@ namespace Nextsim {
  * (CGdegree*nx+1)*(CGdegree*ny+1) elements
  * Sorting lower left -> lower right -> ... -> upper right
  */
-template <int CGdegree>
-class CGVector : public Eigen::Matrix<double, Eigen::Dynamic, 1> {
+template <int CGdegree> class CGVector : public Eigen::Matrix<double, Eigen::Dynamic, 1> {
 public:
     typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EigenCGVector;
 

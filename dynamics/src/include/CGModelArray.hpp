@@ -8,8 +8,8 @@
 #ifndef CGMODELARRAY_HPP
 #define CGMODELARRAY_HPP
 
-#include "cgVector.hpp"
 #include "Interpolations.hpp"
+#include "cgVector.hpp"
 
 #include "include/ModelArray.hpp"
 
@@ -21,7 +21,7 @@ public:
     {
         cg = ma.data().matrix();
         //! Interpolation of DG0 to CGVector<CG>
-        //Nextsim::Interpolations::DG2CG(smesh, cg, ma);
+        // Nextsim::Interpolations::DG2CG(smesh, cg, ma);
         return cg;
     }
 

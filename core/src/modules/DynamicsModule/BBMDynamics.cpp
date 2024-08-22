@@ -1,8 +1,9 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date Jan 5, 2024
+ * @date Jul 1, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/BBMDynamics.hpp"
@@ -12,6 +13,9 @@
 namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {
+    { damageName, { ModelArray::Type::H, 1.0 } },
+};
 BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)
@@ -37,8 +41,25 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
     vice = ms.at(vName);
 
     // Set the data in the kernel arrays.
+    // Required data
     for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
+    }
+    // Data that can have a default value
+    for (const auto entry : defaultFields) {
+        // Directly add data that is supplied
+        const std::string& fieldName = entry.first;
+        if (ms.count(fieldName) > 0) {
+            kernel.setData(fieldName, ms.at(fieldName));
+        } else {
+            // Fill data that is not supplied, masking if the mask is available
+            ModelArray data(entry.second.first);
+            data.resize();
+            // Fill the default value
+            data = entry.second.second;
+            // Mask the default data
+            kernel.setData(fieldName, mask(data));
+        }
     }
 }
 
@@ -73,6 +94,37 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+}
+
+// All data for prognostic output
+ModelState BBMDynamics::getState() const
+{
+    // Get the velocities from IDynamics
+    ModelState state(IDynamics::getState());
+
+    // Kernel prognostic fields
+    state.merge({
+        { hiceName, kernel.getDGData(hiceName) },
+        { ciceName, kernel.getDGData(ciceName) },
+        { damageName, kernel.getDGData(damageName) },
+    });
+
+    return state;
+}
+
+ModelState BBMDynamics::getStateRecursive(const OutputSpec& os) const
+{
+    // Base class state
+    ModelState state(IDynamics::getStateRecursive(os));
+
+    if (os.allComponents()) {
+        state.merge({
+            { hiceName, kernel.getDGData(hiceName) },
+            { ciceName, kernel.getDGData(ciceName) },
+            { damageName, kernel.getDGData(damageName) },
+        });
+    }
+    return state;
 }
 
 } /* namespace Nextsim */

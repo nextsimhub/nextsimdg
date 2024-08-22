@@ -1,7 +1,7 @@
 /*!
  * @file IDiagnosticOutput.hpp
  *
- * @date May 25, 2022
+ * @date 2 Jul 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -48,6 +48,14 @@ public:
     // Define some of the ModelComponent class functions
     // No data to be set
     void setData(const ModelState::DataMap& state) { }
+
+    /*!
+     * Sets the model start time, which implementations may use to time output events.
+     *
+     * @brief modelStart the TimePoint of the start of the model run.
+     */
+    virtual void setModelStart(const TimePoint& ModelStart) { }
+
 protected:
     const std::map<std::string, std::string> externalNames;
 };

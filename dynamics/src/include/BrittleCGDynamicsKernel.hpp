@@ -1,8 +1,8 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date Feb 29, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date Jul 1, 2024
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef BRITTLECGDYNAMICSKERNEL_HPP
@@ -22,21 +22,21 @@ static const double radians = 0x1.1df46a2529d39p-6;
 // The brittle momentum solver for CG velocity fields
 template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressDegree>::nSteps;
-    using DynamicsKernel<DGadvection, DGstressDegree>::s11;
-    using DynamicsKernel<DGadvection, DGstressDegree>::s12;
-    using DynamicsKernel<DGadvection, DGstressDegree>::s22;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e11;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e12;
-    using DynamicsKernel<DGadvection, DGstressDegree>::e22;
-    using DynamicsKernel<DGadvection, DGstressDegree>::hice;
-    using DynamicsKernel<DGadvection, DGstressDegree>::cice;
-    using DynamicsKernel<DGadvection, DGstressDegree>::smesh;
-    using DynamicsKernel<DGadvection, DGstressDegree>::deltaT;
-    using DynamicsKernel<DGadvection, DGstressDegree>::stressDivergence;
-    using DynamicsKernel<DGadvection, DGstressDegree>::applyBoundaries;
-    using DynamicsKernel<DGadvection, DGstressDegree>::advectionAndLimits;
-    using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
+    using DynamicsKernel<DGadvection, DGstressComp>::s11;
+    using DynamicsKernel<DGadvection, DGstressComp>::s12;
+    using DynamicsKernel<DGadvection, DGstressComp>::s22;
+    using DynamicsKernel<DGadvection, DGstressComp>::e11;
+    using DynamicsKernel<DGadvection, DGstressComp>::e12;
+    using DynamicsKernel<DGadvection, DGstressComp>::e22;
+    using DynamicsKernel<DGadvection, DGstressComp>::hice;
+    using DynamicsKernel<DGadvection, DGstressComp>::cice;
+    using DynamicsKernel<DGadvection, DGstressComp>::smesh;
+    using DynamicsKernel<DGadvection, DGstressComp>::deltaT;
+    using DynamicsKernel<DGadvection, DGstressComp>::stressDivergence;
+    using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
+    using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -53,8 +53,10 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
 
+    double cosOceanAngle, sinOceanAngle;
+
 public:
-    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressDegree>& stressStepIn,
+    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
         const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>()
         , stressStep(stressStepIn)
@@ -69,11 +71,19 @@ public:
         CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
         //! Initialize stress transport
-        stresstransport = new Nextsim::DGTransport<DGstressDegree>(*smesh);
+        stresstransport = new Nextsim::DGTransport<DGstressComp>(*smesh);
         stresstransport->settimesteppingscheme("rk2");
 
         damage.resize_by_mesh(*smesh);
+        avgU.resize_by_mesh(*smesh);
+        avgV.resize_by_mesh(*smesh);
+
+        cosOceanAngle = cos(radians * params.ocean_turning_angle);
+        sinOceanAngle = sin(radians * params.ocean_turning_angle);
     }
+
+    // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
+    void prepareAdvection() override { dgtransport->prepareAdvection(avgU, avgV); }
 
     void update(const TimestepTime& tst) override
     {
@@ -82,7 +92,7 @@ public:
         advectionAndLimits(tst);
 
         //! Perform transport step for stress
-        stresstransport->prepareAdvection(u, v);
+        stresstransport->prepareAdvection(avgU, avgV);
         stresstransport->step(tst.step.seconds(), s11);
         stresstransport->step(tst.step.seconds(), s12);
         stresstransport->step(tst.step.seconds(), s22);
@@ -97,22 +107,20 @@ public:
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
 
+        avgU.zero();
+        avgV.zero();
+
         for (size_t subStep = 0; subStep < nSteps; ++subStep) {
 
             projectVelocityToStrain();
 
-            std::array<std::reference_wrapper<DGVector<DGstressDegree>>, N_TENSOR_ELEMENTS> stress
+            std::array<std::reference_wrapper<DGVector<DGstressComp>>, N_TENSOR_ELEMENTS> stress
                 = { s11, s12, s22 }; // Call the step function on the StressUpdateStep class
             // Call the step function on the StressUpdateStep class
             stressStep.stressUpdateHighOrder(
                 params, *smesh, stress, { e11, e12, e22 }, hice, cice, deltaT);
 
             stressDivergence(); // Compute divergence of stress tensor
-
-            dStressX.zero();
-            dStressY.zero();
-
-            stressDivergence();
 
             updateMomentum(tst);
 
@@ -121,7 +129,7 @@ public:
             // Land mask
         }
         // Finally, do the base class update
-        DynamicsKernel<DGadvection, DGstressDegree>::update(tst);
+        DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }
 
     void setData(const std::string& name, const ModelArray& data) override
@@ -133,8 +141,9 @@ public:
         }
     }
 
-    ModelArray getDG0Data(const std::string& name) override
+    ModelArray getDG0Data(const std::string& name) const override
     {
+
         if (name == damageName) {
             ModelArray data(ModelArray::Type::H);
             return DGModelArray::dg2ma(damage, data);
@@ -143,23 +152,30 @@ public:
         }
     }
 
-protected:
-    CGVector<CGdegree> avgX;
-    CGVector<CGdegree> avgY;
+    ModelArray getDGData(const std::string& name) const override
+    {
+        if (name == damageName) {
+            ModelArray data(ModelArray::Type::DG);
+            return DGModelArray::dg2ma(damage, data);
+        } else {
+            return CGDynamicsKernel<DGadvection>::getDGData(name);
+        }
+    }
 
-    StressUpdateStep<DGadvection, DGstressDegree>& stressStep;
+protected:
+    CGVector<CGdegree> avgU;
+    CGVector<CGdegree> avgV;
+
+    StressUpdateStep<DGadvection, DGstressComp>& stressStep;
     const MEBParameters& params;
 
-    Nextsim::DGTransport<DGstressDegree>* stresstransport;
+    Nextsim::DGTransport<DGstressComp>* stresstransport;
 
     DGVector<DGadvection> damage;
 
     // Common brittle parts of the momentum solver.
     void updateMomentum(const TimestepTime& tst) override
     {
-        static const double cosOceanAngle = cos(radians * params.ocean_turning_angle);
-        static const double sinOceanAngle = sin(radians * params.ocean_turning_angle);
-
 #pragma omp parallel for
         for (size_t i = 0; i < u.rows(); ++i) {
             // FIXME dte_over_mass should include snow in the total mass
@@ -199,31 +215,11 @@ protected:
             v(i) = alpha * vIce - beta * uIce
                 + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
             v(i) *= rDenom;
-        }
-        dirichletZero(u);
-        dirichletZero(v);
 
-        // Mask the land on the CG grid, using the finite volume landmask
-        static const size_t cgRowLength = CGdegree * smesh->nx + 1;
-#pragma omp parallel for
-        for (size_t eid = 0; eid < smesh->nelements; ++eid) {
-            if (smesh->landmask[eid] == 0) {
-                const size_t ex = eid % smesh->nx;
-                const size_t ey = eid / smesh->nx;
-                // Loop over CG elements for this finite volume grid cell
-                for (size_t jy = 0; jy <= CGdegree; ++jy) {
-                    for (size_t jx = 0; jx <= CGdegree; ++jx) {
-                        const size_t cgi = cgRowLength * (CGdegree * ey + jy) + CGdegree * ex + jx;
-                        u(cgi) = 0.;
-                        v(cgi) = 0.;
-                    }
-                }
-            }
+            // Calculate the contribution to the average velocity
+            avgU(i) += u(i) / nSteps;
+            avgV(i) += v(i) / nSteps;
         }
-
-        // Calculate the contribution to the average velocity
-        avgX += u / nSteps;
-        avgY += v / nSteps;
     }
 };
 }

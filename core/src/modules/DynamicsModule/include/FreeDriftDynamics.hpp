@@ -15,6 +15,11 @@
 #include "include/ModelComponent.hpp"
 #include "include/gridNames.hpp"
 
+#ifndef DGCOMP
+#define DGCOMP 3 // Define to prevent errors from static analysis tools
+#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
+#endif
+
 namespace Nextsim {
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 
@@ -74,8 +79,7 @@ public:
     }
 
 private:
-    // TODO: How to get the template parameters here?
-    FreeDriftDynamicsKernel<6> kernel;
+    FreeDriftDynamicsKernel<DGCOMP> kernel;
     DynamicsParameters params;
 };
 }

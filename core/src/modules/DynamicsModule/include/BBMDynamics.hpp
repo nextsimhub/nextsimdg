@@ -12,6 +12,11 @@
 #include "include/MEBParameters.hpp"
 #include "include/IDynamics.hpp"
 
+#ifndef DGCOMP
+#define DGCOMP 3 // Define to prevent errors from static analysis tools
+#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
+#endif
+
 namespace Nextsim {
 
 class BBMDynamics : public IDynamics {
@@ -22,9 +27,10 @@ public:
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
+    ModelState getState() const override;
+    ModelState getStateRecursive(const OutputSpec& os) const override;
 private:
-    // TODO: How to get the template parameters here?
-    BBMDynamicsKernel<6> kernel;
+    BBMDynamicsKernel<DGCOMP> kernel;
     MEBParameters params;
 
 };

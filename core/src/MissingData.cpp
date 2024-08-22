@@ -1,15 +1,16 @@
 /*!
  * @file MissingData.cpp
  *
- * @date Jun 14, 2022
+ * @date Jul 17, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/MissingData.hpp"
 
 namespace Nextsim {
 
-const double MissingData::defaultValue = -0x1p300;
+const double MissingData::defaultValue = 1.7e38;
 double MissingData::value = MissingData::defaultValue;
 
 } /* namespace Nextsim */
