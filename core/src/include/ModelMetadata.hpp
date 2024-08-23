@@ -12,7 +12,9 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
+#include <ncFile.h>
 #include <string>
+#include <vector>
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -92,13 +94,34 @@ public:
      */
     void getPartitionMetadata(std::string partitionFile);
 
+    enum Edge { BOTTOM, RIGHT, TOP, LEFT, N_EDGE };
+    // An array to allow the edges to be accessed in the correct order.
+    static constexpr std::array<Edge, N_EDGE> edges = { BOTTOM, RIGHT, TOP, LEFT };
+    std::array<std::string, N_EDGE> edgeNames = { "bottom", "right", "top", "left" };
+
     MPI_Comm mpiComm;
     int mpiSize = 0;
     int mpiMyRank = -1;
-    int localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX, globalExtentY;
+    int localCornerX, localCornerY;
+    int localExtentX, localExtentY;
+    int globalExtentX, globalExtentY;
+    // mpi rank ID and extent for each edge direction
+    std::array<std::vector<int>, N_EDGE> neighbourRanks;
+    std::array<std::vector<int>, N_EDGE> neighbourExtents;
+    std::array<std::vector<int>, N_EDGE> neighbourHaloStarts;
+    std::array<std::vector<int>, N_EDGE> neighbourRanksPeriodic;
+    std::array<std::vector<int>, N_EDGE> neighbourExtentsPeriodic;
+    std::array<std::vector<int>, N_EDGE> neighbourHaloStartsPeriodic;
 #endif
 
 private:
+    /*!
+     * @brief Read neighbour metadata from netCDF file
+     *
+     * @param netCDF file with partition metadata
+     */
+    void readNeighbourData(netCDF::NcFile& ncFile);
+
     TimePoint m_time;
     ConfigMap m_config;
 
@@ -115,6 +138,7 @@ private:
     bool hasParameters = false;
 #ifdef USE_MPI
     const std::string bboxName = "bounding_boxes";
+    const std::string neighbourName = "connectivity";
 #endif
 };
 

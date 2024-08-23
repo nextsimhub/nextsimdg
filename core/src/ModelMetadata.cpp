@@ -13,6 +13,9 @@
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
+#include "mpi.h"
+#include <cstddef>
+#include <vector>
 
 #ifdef USE_MPI
 #include <ncDim.h>
@@ -42,6 +45,75 @@ void ModelMetadata::setMpiMetadata(MPI_Comm comm)
     MPI_Comm_rank(mpiComm, &mpiMyRank);
 }
 
+void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
+{
+    netCDF::NcGroup neighbourGroup(ncFile.getGroup(neighbourName));
+    std::string varName {};
+    for (auto edge : edges) {
+        size_t nStart {}; // start point in metadata arrays
+        size_t count {}; // number of elements to read from metadata arrays
+        std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
+        std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+
+        // non-periodic neighbours
+        varName = edgeNames[edge] + "_neighbours";
+        neighbourGroup.getVar(varName).getVar(
+            { 0 }, { static_cast<size_t>(mpiSize) }, &numNeighbours[0]);
+
+        // compute start index for each process
+        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, mpiComm);
+        // how many elements to read for each process
+        count = numNeighbours[mpiMyRank];
+
+        if (count) {
+            // initialize neighbour info to zero and correct size
+            neighbourRanks[edge].resize(count, 0);
+            neighbourExtents[edge].resize(count, 0);
+            neighbourHaloStarts[edge].resize(count, 0);
+
+            varName = edgeNames[edge] + "_neighbour_ids";
+            neighbourGroup.getVar(varName).getVar({ nStart }, { count }, &neighbourRanks[edge][0]);
+
+            varName = edgeNames[edge] + "_neighbour_halos";
+            neighbourGroup.getVar(varName).getVar(
+                { nStart }, { count }, &neighbourExtents[edge][0]);
+
+            varName = edgeNames[edge] + "_neighbour_halo_starts";
+            neighbourGroup.getVar(varName).getVar(
+                { nStart }, { count }, &neighbourHaloStarts[edge][0]);
+        }
+
+        // periodic neighbours
+        varName = edgeNames[edge] + "_neighbours_periodic";
+        neighbourGroup.getVar(varName).getVar(
+            { 0 }, { static_cast<size_t>(mpiSize) }, &numNeighbours[0]);
+
+        // compute start index for each process
+        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, mpiComm);
+        // how many elements to read for each process
+        count = numNeighbours[mpiMyRank];
+
+        if (count) {
+            // initialize neighbour info to zero and correct size
+            neighbourRanksPeriodic[edge].resize(count, 0);
+            neighbourExtentsPeriodic[edge].resize(count, 0);
+            neighbourHaloStartsPeriodic[edge].resize(count, 0);
+
+            varName = edgeNames[edge] + "_neighbour_ids_periodic";
+            neighbourGroup.getVar(varName).getVar(
+                { nStart }, { count }, &neighbourRanksPeriodic[edge][0]);
+
+            varName = edgeNames[edge] + "_neighbour_halos_periodic";
+            neighbourGroup.getVar(varName).getVar(
+                { nStart }, { count }, &neighbourExtentsPeriodic[edge][0]);
+
+            varName = edgeNames[edge] + "_neighbour_halo_starts_periodic";
+            neighbourGroup.getVar(varName).getVar(
+                { nStart }, { count }, &neighbourHaloStartsPeriodic[edge][0]);
+        }
+    }
+}
+
 void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 {
     // TODO: Move the reading of the partition file to its own class
@@ -56,11 +128,15 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
     globalExtentX = ncFile.getDim("NX").getSize();
     globalExtentY = ncFile.getDim("NY").getSize();
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
-    std::vector<size_t> index(1, mpiMyRank);
-    bboxGroup.getVar("domain_x").getVar(index, &localCornerX);
-    bboxGroup.getVar("domain_y").getVar(index, &localCornerY);
-    bboxGroup.getVar("domain_extent_x").getVar(index, &localExtentX);
-    bboxGroup.getVar("domain_extent_y").getVar(index, &localExtentY);
+
+    std::vector<size_t> rank(1, mpiMyRank);
+    bboxGroup.getVar("domain_x").getVar(rank, &localCornerX);
+    bboxGroup.getVar("domain_y").getVar(rank, &localCornerY);
+    bboxGroup.getVar("domain_extent_x").getVar(rank, &localExtentX);
+    bboxGroup.getVar("domain_extent_y").getVar(rank, &localExtentY);
+
+    readNeighbourData(ncFile);
+
     ncFile.close();
 }
 
