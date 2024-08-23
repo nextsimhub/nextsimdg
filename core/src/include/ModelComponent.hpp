@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 1 Jul 2024
+ * @date 23 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -50,7 +50,7 @@ namespace Protected {
         = "EXT_SSS"; // sea surface salinity from coupling or forcing, PSU
     inline constexpr TextTag EXT_SST
         = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
-inline constexpr TextTag SSH = "SSH"; // sea surface height, m
+    inline constexpr TextTag SSH = "SSH"; // sea surface height, m
     inline constexpr TextTag EVAP_MINUS_PRECIP
         = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
     // Derived fields, calculated once per timestep

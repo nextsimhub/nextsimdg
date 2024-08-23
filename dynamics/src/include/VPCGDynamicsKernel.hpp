@@ -1,7 +1,7 @@
 /*!
  * @file VPCGDynamicsKernel.hpp
  *
- * @date Feb 2, 2024
+ * @date Aug 23, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 23 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -117,6 +117,5 @@ void ConfiguredOcean::updateAfter(const TimestepTime& tst)
     slabOcean.update(tst);
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
-
 }
 } /* namespace Nextsim */

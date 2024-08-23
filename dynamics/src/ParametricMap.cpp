@@ -1,3 +1,10 @@
+/*!
+ * @file ParametricMap.cpp
+ *
+ * @date Aug 23, 2024
+ * @author Thomas Richter <thomas.richter@ovgu.de>
+ */
+
 #include "ParametricMap.hpp"
 #include "ParametricTools.hpp"
 #include "VectorManipulations.hpp"

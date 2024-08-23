@@ -1,7 +1,7 @@
 /*!
  * @file ProtectedArrayNames.ipp
  *
- * @date 1 Jul 2024
+ * @date 23 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */

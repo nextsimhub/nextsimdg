@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date Jul 1, 2024
+ * @date Aug 23, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
