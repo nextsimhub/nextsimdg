@@ -32,10 +32,24 @@ if(ENABLE_MPI)
             ncgen -b -o partition_metadata_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
     )
+    add_custom_command(
+        OUTPUT partition_metadata_3_cb.nc partition_metadata_3_pb.nc
+        COMMAND
+            ncgen -b -o partition_metadata_3_cb.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
+        COMMAND
+            ncgen -b -o partition_metadata_3_pb.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
+            ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
+    )
     add_custom_target(
         generate_partition_files
         ALL
-        DEPENDS partition_metadata_3.nc partition_metadata_2.nc
+        DEPENDS
+            partition_metadata_3.nc
+            partition_metadata_2.nc
+            partition_metadata_3_cb.nc
+            partition_metadata_3_pb.nc
     )
 
     add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
@@ -48,6 +62,20 @@ if(ENABLE_MPI)
         PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
     )
     target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testModelMetadata_MPI3 "ModelMetadata_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(
+        testModelMetadata_MPI3
+        PRIVATE
+            USE_MPI
+            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+    )
+    target_include_directories(
+        testModelMetadata_MPI3
+        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+    )
+    target_link_libraries(testModelMetadata_MPI3 PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
     target_compile_definitions(
