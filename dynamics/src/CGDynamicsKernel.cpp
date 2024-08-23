@@ -38,7 +38,7 @@ void CGDynamicsKernel<DGadvection>::initialise(
 
     uGradSeasurfaceHeight.resize_by_mesh(*smesh);
     vGradSeasurfaceHeight.resize_by_mesh(*smesh);
-    
+
     dStressX.resize_by_mesh(*smesh);
     dStressY.resize_by_mesh(*smesh);
 
@@ -107,149 +107,141 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection(
     dgtransport->prepareAdvection(u, v);
 }
 
-template <int DGadvection> void CGDynamicsKernel<DGadvection>::ComputeGradientOfSeaSurfaceHeight(const DGVector<1>& SeasurfaceHeight)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::ComputeGradientOfSeaSurfaceHeight(
+    const DGVector<1>& seaSurfaceHeight)
 {
-  // First transform to CG1 Vector and do all computations in CG1
-  CGVector<1> cgSeasurfaceHeight(*smesh);
-  Interpolations::DG2CG(*smesh, cgSeasurfaceHeight, SeasurfaceHeight);
-  
-  CGVector<1> uGrad(*smesh);
-  CGVector<1> vGrad(*smesh);
-  uGrad.setZero();
-  vGrad.setZero();
+    // First transform to CG1 Vector and do all computations in CG1
+    CGVector<1> cgSeasurfaceHeight(*smesh);
+    Interpolations::DG2CG(*smesh, cgSeasurfaceHeight, SeasurfaceHeight);
 
-    
-  // parallelization in stripes
-  for (size_t p = 0; p < 2; ++p) {
+    CGVector<1> uGrad(*smesh);
+    CGVector<1> vGrad(*smesh);
+    uGrad.setZero();
+    vGrad.setZero();
+
+    // parallelization in stripes
+    for (size_t p = 0; p < 2; ++p) {
 #pragma omp parallel for schedule(static)
-    for (size_t cy = 0; cy < smesh->ny; ++cy) {
-      //!< loop over all cells of the mesh
-      if (cy % 2 == p) {
-	size_t eid   = smesh->nx * cy;
-	size_t cg1id = cy*(smesh->nx+1);
-	for (size_t cx = 0; cx < smesh->nx; ++cx, ++eid, ++cg1id)
-	  {
-	    // get local CG nodes
-	    Eigen::Vector<Nextsim::FloatType, 4> loc_cgSSH =
-	      {cgSeasurfaceHeight(cg1id),
-	       cgSeasurfaceHeight(cg1id+1),
-	       cgSeasurfaceHeight(cg1id+smesh->nx+1),
-	       cgSeasurfaceHeight(cg1id+smesh->nx+1+1)};
-	    
-	    // compute grad
-	    Eigen::Vector<Nextsim::FloatType, 4> tx = pmap->dX_SSH[eid] * loc_cgSSH;
-	    Eigen::Vector<Nextsim::FloatType, 4> ty = pmap->dY_SSH[eid] * loc_cgSSH;
-	    
-	    // add global vector
-	    uGrad(cg1id)   -= tx(0);
-	    uGrad(cg1id+1) -= tx(1);
-	    uGrad(cg1id+smesh->nx+1)  -= tx(2);
-	    uGrad(cg1id+smesh->nx+1+1) -= tx(3);
-	    vGrad(cg1id) -= ty(0);
-	    vGrad(cg1id+1) -= ty(1);
-	    vGrad(cg1id+smesh->nx+1) -= ty(2);
-	    vGrad(cg1id+smesh->nx+1+1) -= ty(3);
-	  }
-      }
+        for (size_t cy = 0; cy < smesh->ny; ++cy) {
+            //!< loop over all cells of the mesh
+            if (cy % 2 == p) {
+                size_t eid = smesh->nx * cy;
+                size_t cg1id = cy * (smesh->nx + 1);
+                for (size_t cx = 0; cx < smesh->nx; ++cx, ++eid, ++cg1id) {
+                    // get local CG nodes
+                    Eigen::Vector<Nextsim::FloatType, 4> loc_cgSSH = { cgSeasurfaceHeight(cg1id),
+                        cgSeasurfaceHeight(cg1id + 1), cgSeasurfaceHeight(cg1id + smesh->nx + 1),
+                        cgSeasurfaceHeight(cg1id + smesh->nx + 1 + 1) };
+
+                    // compute grad
+                    Eigen::Vector<Nextsim::FloatType, 4> tx = pmap->dX_SSH[eid] * loc_cgSSH;
+                    Eigen::Vector<Nextsim::FloatType, 4> ty = pmap->dY_SSH[eid] * loc_cgSSH;
+
+                    // add global vector
+                    uGrad(cg1id) -= tx(0);
+                    uGrad(cg1id + 1) -= tx(1);
+                    uGrad(cg1id + smesh->nx + 1) -= tx(2);
+                    uGrad(cg1id + smesh->nx + 1 + 1) -= tx(3);
+                    vGrad(cg1id) -= ty(0);
+                    vGrad(cg1id + 1) -= ty(1);
+                    vGrad(cg1id + smesh->nx + 1) -= ty(2);
+                    vGrad(cg1id + smesh->nx + 1 + 1) -= ty(3);
+                }
+            }
+        }
     }
-  }
 
     // scale with mass
 #pragma omp parallel for
-  for (size_t i=0;i<uGrad.rows();++i)
-    {
-      uGrad(i) /= pmap->lumpedcg1mass(i);
-      vGrad(i) /= pmap->lumpedcg1mass(i);
+    for (size_t i = 0; i < uGrad.rows(); ++i) {
+        uGrad(i) /= pmap->lumpedcg1mass(i);
+        vGrad(i) /= pmap->lumpedcg1mass(i);
     }
-  
-  ///// correct boundary (just extend in last elements)
-  size_t cg1row = smesh->nx+1;
-  size_t topleft = smesh->ny*cg1row;
-  for (size_t i=1;i<smesh->nx;++i) // bottom / top
-    {
-      uGrad(i) = uGrad(i+cg1row);
-      vGrad(i) = vGrad(i+cg1row);
-      uGrad(topleft+i) = uGrad(topleft+i-cg1row);
-      vGrad(topleft+i) = vGrad(topleft+i-cg1row);
-    }
-  for (size_t i=1;i<smesh->ny;++i) // left / right
-    {
-      uGrad(i*cg1row) = uGrad(i*cg1row+1);
-      vGrad(i*cg1row) = vGrad(i*cg1row+1);
-	
-      uGrad(i*cg1row+cg1row-1) = uGrad(i*cg1row+cg1row-1-1);
-      vGrad(i*cg1row+cg1row-1) = vGrad(i*cg1row+cg1row-1-1);
-    }
-  // corners
-  uGrad(0) = uGrad(cg1row+1);
-  vGrad(0) = vGrad(cg1row+1);
-  uGrad(smesh->nx) = uGrad(smesh->nx + cg1row - 1);
-  vGrad(smesh->nx) = vGrad(smesh->nx + cg1row - 1);
-  uGrad(smesh->ny*cg1row) = uGrad((smesh->ny-1)*cg1row+1);
-  vGrad(smesh->ny*cg1row) = vGrad((smesh->ny-1)*cg1row+1);
-  uGrad((smesh->ny+1)*cg1row-1) = uGrad((smesh->ny)*cg1row-1-1);
-  vGrad((smesh->ny+1)*cg1row-1) = vGrad((smesh->ny)*cg1row-1-1);
 
-  // Interpolate to CG2 (maybe own function in interpolation?)
-  if (CGDEGREE==1)
+    ///// correct boundary (just extend in last elements)
+    size_t cg1row = smesh->nx + 1;
+    size_t topleft = smesh->ny * cg1row;
+    for (size_t i = 1; i < smesh->nx; ++i) // bottom / top
     {
-      uGradSeasurfaceHeight = uGrad;
-      vGradSeasurfaceHeight = vGrad;
+        uGrad(i) = uGrad(i + cg1row);
+        vGrad(i) = vGrad(i + cg1row);
+        uGrad(topleft + i) = uGrad(topleft + i - cg1row);
+        vGrad(topleft + i) = vGrad(topleft + i - cg1row);
     }
-  else
+    for (size_t i = 1; i < smesh->ny; ++i) // left / right
     {
-      // outer nodes
-      size_t icg1 = 0;
-#pragma omp parallel for
-      for (size_t iy=0;iy<=smesh->ny;++iy)
-	{
-	  size_t icg2 = (2*smesh->nx+1)*2*iy;
-	  for (size_t ix=0;ix<=smesh->nx;++ix,++icg1,icg2+=2)
-	    {
-	      uGradSeasurfaceHeight(icg2) = uGrad(icg1);
-	      vGradSeasurfaceHeight(icg2) = vGrad(icg1);
-	    }
-	}
-      // along lines
-#pragma omp parallel for
-      for (size_t iy=0;iy<=smesh->ny;++iy) // horizontal
-	{
-	  size_t icg1 = (smesh->nx+1)*iy;
-	  size_t icg2 = (2*smesh->nx+1)*2*iy+1;
-	  for (size_t ix=0;ix<smesh->nx;++ix,++icg1,icg2+=2)
-	    {
-	      uGradSeasurfaceHeight(icg2) = 0.5 * (uGrad(icg1)+uGrad(icg1+1));
-	      vGradSeasurfaceHeight(icg2) = 0.5 * (vGrad(icg1)+vGrad(icg1+1));
-	    }
-	}
-#pragma omp parallel for
-      for (size_t iy=0;iy<smesh->ny;++iy) // vertical 
-	{
-	  size_t icg1 = (smesh->nx+1)*iy;
-	  size_t icg2 = (2*smesh->nx+1)*(2*iy+1);
-	  for (size_t ix=0;ix<=smesh->nx;++ix,++icg1,icg2+=2)
-	    {
-	      uGradSeasurfaceHeight(icg2) = 0.5 * (uGrad(icg1)+uGrad(icg1+cg1row));
-	      vGradSeasurfaceHeight(icg2) = 0.5 * (vGrad(icg1)+vGrad(icg1+cg1row));
-	    }
-	}
+        uGrad(i * cg1row) = uGrad(i * cg1row + 1);
+        vGrad(i * cg1row) = vGrad(i * cg1row + 1);
 
-      // midpoints
+        uGrad(i * cg1row + cg1row - 1) = uGrad(i * cg1row + cg1row - 1 - 1);
+        vGrad(i * cg1row + cg1row - 1) = vGrad(i * cg1row + cg1row - 1 - 1);
+    }
+    // corners
+    uGrad(0) = uGrad(cg1row + 1);
+    vGrad(0) = vGrad(cg1row + 1);
+    uGrad(smesh->nx) = uGrad(smesh->nx + cg1row - 1);
+    vGrad(smesh->nx) = vGrad(smesh->nx + cg1row - 1);
+    uGrad(smesh->ny * cg1row) = uGrad((smesh->ny - 1) * cg1row + 1);
+    vGrad(smesh->ny * cg1row) = vGrad((smesh->ny - 1) * cg1row + 1);
+    uGrad((smesh->ny + 1) * cg1row - 1) = uGrad((smesh->ny) * cg1row - 1 - 1);
+    vGrad((smesh->ny + 1) * cg1row - 1) = vGrad((smesh->ny) * cg1row - 1 - 1);
+
+    // Interpolate to CG2 (maybe own function in interpolation?)
+    if (CGDEGREE == 1) {
+        uGradSeasurfaceHeight = uGrad;
+        vGradSeasurfaceHeight = vGrad;
+    } else {
+        // outer nodes
+        size_t icg1 = 0;
 #pragma omp parallel for
-      for (size_t iy=0;iy<smesh->ny;++iy) // vertical 
-	{
-	  size_t icg1 = (smesh->nx+1)*iy;
-	  size_t icg2 = (2*smesh->nx+1)*(2*iy+1)+1;
-	  for (size_t ix=0;ix<smesh->nx;++ix,++icg1,icg2+=2)
-	    {
-	      uGradSeasurfaceHeight(icg2) = 0.25 * (uGrad(icg1)+uGrad(icg1+1)+uGrad(icg1+cg1row)+uGrad(icg1+cg1row+1));
-	      vGradSeasurfaceHeight(icg2) = 0.25 * (vGrad(icg1)+vGrad(icg1+1)+vGrad(icg1+cg1row)+vGrad(icg1+cg1row+1));
-	    }
-	}	
+        for (size_t iy = 0; iy <= smesh->ny; ++iy) {
+            size_t icg2 = (2 * smesh->nx + 1) * 2 * iy;
+            for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
+                uGradSeasurfaceHeight(icg2) = uGrad(icg1);
+                vGradSeasurfaceHeight(icg2) = vGrad(icg1);
+            }
+        }
+        // along lines
+#pragma omp parallel for
+        for (size_t iy = 0; iy <= smesh->ny; ++iy) // horizontal
+        {
+            size_t icg1 = (smesh->nx + 1) * iy;
+            size_t icg2 = (2 * smesh->nx + 1) * 2 * iy + 1;
+            for (size_t ix = 0; ix < smesh->nx; ++ix, ++icg1, icg2 += 2) {
+                uGradSeasurfaceHeight(icg2) = 0.5 * (uGrad(icg1) + uGrad(icg1 + 1));
+                vGradSeasurfaceHeight(icg2) = 0.5 * (vGrad(icg1) + vGrad(icg1 + 1));
+            }
+        }
+#pragma omp parallel for
+        for (size_t iy = 0; iy < smesh->ny; ++iy) // vertical
+        {
+            size_t icg1 = (smesh->nx + 1) * iy;
+            size_t icg2 = (2 * smesh->nx + 1) * (2 * iy + 1);
+            for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
+                uGradSeasurfaceHeight(icg2) = 0.5 * (uGrad(icg1) + uGrad(icg1 + cg1row));
+                vGradSeasurfaceHeight(icg2) = 0.5 * (vGrad(icg1) + vGrad(icg1 + cg1row));
+            }
+        }
+
+        // midpoints
+#pragma omp parallel for
+        for (size_t iy = 0; iy < smesh->ny; ++iy) // vertical
+        {
+            size_t icg1 = (smesh->nx + 1) * iy;
+            size_t icg2 = (2 * smesh->nx + 1) * (2 * iy + 1) + 1;
+            for (size_t ix = 0; ix < smesh->nx; ++ix, ++icg1, icg2 += 2) {
+                uGradSeasurfaceHeight(icg2) = 0.25
+                    * (uGrad(icg1) + uGrad(icg1 + 1) + uGrad(icg1 + cg1row)
+                        + uGrad(icg1 + cg1row + 1));
+                vGradSeasurfaceHeight(icg2) = 0.25
+                    * (vGrad(icg1) + vGrad(icg1 + 1) + vGrad(icg1 + cg1row)
+                        + vGrad(icg1 + cg1row + 1));
+            }
+        }
     }
 }
-  
-  
+
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
 {
     // interpolate ice height and concentration to local cg Variables
