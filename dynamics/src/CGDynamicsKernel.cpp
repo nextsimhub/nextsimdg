@@ -113,7 +113,7 @@ void CGDynamicsKernel<DGadvection>::ComputeGradientOfSeaSurfaceHeight(
 {
     // First transform to CG1 Vector and do all computations in CG1
     CGVector<1> cgSeasurfaceHeight(*smesh);
-    Interpolations::DG2CG(*smesh, cgSeasurfaceHeight, SeasurfaceHeight);
+    Interpolations::DG2CG(*smesh, cgSeasurfaceHeight, seaSurfaceHeight);
 
     CGVector<1> uGrad(*smesh);
     CGVector<1> vGrad(*smesh);
