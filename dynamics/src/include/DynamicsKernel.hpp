@@ -99,6 +99,8 @@ public:
         } else {
             // All other fields get shoved in a (labelled) bucket
             DGModelArray::ma2dg(data, advectedFields[name]);
+            // …and have their type annotated
+            fieldType[name] = data.getType();
         }
     }
 
@@ -140,6 +142,7 @@ public:
             data.resize();
             return DGModelArray::dg2ma(cice, data);
         } else {
+            // Use the stored array type to ensure the returned data has the correct type
             ModelArray::Type type = fieldType.at(name);
             ModelArray data(type);
             data.resize();
@@ -214,7 +217,7 @@ private:
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
     // A map from field name to the type of
-    const std::unordered_map<std::string, ModelArray::Type> fieldType;
+    std::unordered_map<std::string, ModelArray::Type> fieldType;
 };
 
 }
