@@ -82,7 +82,7 @@ public:
     /*!
      * These matrices are used to compute the gradient of the sea surface height via
      * ( gH, Phi) = ( d_[X/Y] SSH, Phi) 
-     * where SSH is CG1-representation of SeasurfaceHeight
+     * where SSH is CG1-representation of seaSurfaceHeight
      * 
      * Very similar to divS1 and divS2 but working in CG(1) vectors
      */

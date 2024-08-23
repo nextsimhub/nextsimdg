@@ -63,7 +63,7 @@ protected:
     CGVector<CGdegree> cgA;
     CGVector<CGdegree> cgH;
 
-    // CG gradient of the SeasurfaceHeight
+    // CG gradient of the seaSurfaceHeight
     CGVector<CGdegree> uGradSeasurfaceHeight;
     CGVector<CGdegree> vGradSeasurfaceHeight;
 

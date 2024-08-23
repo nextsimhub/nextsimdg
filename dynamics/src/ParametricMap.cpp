@@ -248,7 +248,7 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
             dy_cg2 = PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(0).array()
             - PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(0).array();
 
-	// same but using CG1 basis functions. Required for SeasurfaceHeight
+	// same but using CG1 basis functions. Required for seaSurfaceHeight
         const Eigen::Matrix<Nextsim::FloatType, 4, GAUSSPOINTS(CG2DGSTRESS(CG))>
             dx_cg1 = PHIx<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(1).array()
             - PHIy<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(1).array();

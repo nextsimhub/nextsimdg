@@ -24,6 +24,10 @@ void UniformOcean::setData(const ModelState::DataMap& ms)
     tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
     cpml = Water::rho * Water::cp * mld[0];
     qio = qio0;
+
+    /* It's only the SSH gradient which has an effect, so being able to sett a constant SSH is
+     * useless. */
+    ssh = 0.;
 }
 
 UniformOcean& UniformOcean::setSST(double sstIn)

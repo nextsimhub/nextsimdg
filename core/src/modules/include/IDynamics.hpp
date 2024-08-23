@@ -31,6 +31,7 @@ public:
         , vwind(getStore())
         , uocean(getStore())
         , vocean(getStore())
+        , ssh(getStore())
         , m_usesDamage(usesDamageIn)
     {
         getStore().registerArray(Shared::DAMAGE, &damage, RW);
@@ -88,6 +89,7 @@ protected:
     ModelArrayRef<Protected::WIND_V> vwind;
     ModelArrayRef<Protected::OCEAN_U> uocean;
     ModelArrayRef<Protected::OCEAN_V> vocean;
+    ModelArrayRef<Protected::SSH> ssh;
 
     // Does this implementation of the dynamics use damage?
     bool m_usesDamage;

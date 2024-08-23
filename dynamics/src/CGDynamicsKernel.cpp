@@ -259,8 +259,8 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(
     VectorManipulations::CGAveragePeriodic(*smesh, cgA);
 
     // Reinit the gradient of the sea surface height. Not done by
-    // DataMap as SeasurfaceHeight is always dG(0)
-    ComputeGradientOfSeaSurfaceHeight(DynamicsKernel<DGadvection, DGstressComp>::SeasurfaceHeight);
+    // DataMap as seaSurfaceHeight is always dG(0)
+    ComputeGradientOfSeaSurfaceHeight(DynamicsKernel<DGadvection, DGstressComp>::seaSurfaceHeight);
 
     // limit A to [0,1] and H to [0, ...)
     cgA = cgA.cwiseMin(1.0);
