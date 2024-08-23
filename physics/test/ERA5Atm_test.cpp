@@ -5,8 +5,12 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#ifdef USE_MPI
+#include <doctest/extensions/doctest_mpi.h>
+#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
+#endif
 
 #include "include/ERA5Atmosphere.hpp"
 
@@ -18,10 +22,8 @@
 #include <filesystem>
 #include <memory>
 
-#define TO_STR(s) TO_STRI(s)
-#define TO_STRI(s) #s
-#ifndef TEST_FILE_SOURCE
-#define TEST_FILE_SOURCE .
+#ifndef TEST_FILES_DIR
+#define TEST_FILES_DIR "."
 #endif
 
 extern template class Module::Module<Nextsim::IFluxCalculation>;
@@ -29,24 +31,33 @@ extern template class Module::Module<Nextsim::IFluxCalculation>;
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ERA5Atmosphere");
+#ifdef USE_MPI
+MPI_TEST_CASE("ERA5Atmosphere construction test", 1)
+#else
 TEST_CASE("ERA5Atmosphere construction test")
+#endif
 {
-    std::string filePath = "era5_test128x128.nc";
-    std::string sourceDir = TO_STR(TEST_FILE_SOURCE);
-    // Copy the test file from the test source directory to the working directory
-    if (!std::filesystem::exists(filePath)) {
-        std::filesystem::copy(sourceDir + "/" + filePath, ".");
-    }
+    const std::string filePath = "era5_test128x128.nc";
+    const std::string orig_file = std::string(TEST_FILES_DIR) + "/" + filePath;
+    std::filesystem::copy(orig_file, filePath, std::filesystem::copy_options::overwrite_existing);
+
     // In the real model, the array sizes will have been set by the restart file by this point
     size_t nx = 128;
     size_t ny = 128;
     size_t nxvertex = nx + 1;
     size_t nyvertex = ny + 1;
 
+#ifdef USE_MPI
+    ModelArray::setDimension(ModelArray::Dimension::X, nx, nx, 0);
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex, nxvertex, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex, nyvertex, 0);
+#else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex);
+#endif
 
     ERA5Atmosphere e5;
 
