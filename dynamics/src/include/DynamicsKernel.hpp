@@ -74,7 +74,6 @@ public:
         s22.resize_by_mesh(*smesh);
     }
 
-
     /*!
      * @brief Sets the data from a provided ModelArray.
      *
