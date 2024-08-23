@@ -8,10 +8,14 @@
 
 namespace Nextsim {
 
-void KokkosCGDynamicsKernel<DGadvection>::initialise()
+/*************************************************************/
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::initialise(
+    const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 {
     CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
+    // velocity
     std::tie(uHost, uDevice) = makeKokkosDualView("u", this->u);
     std::tie(vHost, vDevice) = makeKokkosDualView("v", this->v);
 
@@ -26,11 +30,53 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise()
 
     std::tie(uAtmosHost, uAtmosDevice) = makeKokkosDualView("uAtmos", this->uAtmos);
     std::tie(vAtmosHost, vAtmosDevice) = makeKokkosDualView("vAtmos", this->vAtmos);
+
+    // stress
+    std::tie(s11Host, s11Device) = makeKokkosDualView("s11", this->s11);
+    std::tie(s12Host, s12Device) = makeKokkosDualView("s12", this->s12);
+    std::tie(s22Host, s22Device) = makeKokkosDualView("s22", this->s22);
+    std::tie(e11Host, e11Device) = makeKokkosDualView("e11", this->e11);
+    std::tie(e12Host, e12Device) = makeKokkosDualView("e12", this->e12);
+    std::tie(e22Host, e22Device) = makeKokkosDualView("e22", this->e22);
+
+    assert(this->pmap);
+    divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, true);
+    divS2Device = makeKokkosDeviceViewMap("divS2", this->pmap->divS2, true);
+    divMDevice = makeKokkosDeviceViewMap("divM", this->pmap->divM, true);
+    iMgradXDevice = makeKokkosDeviceViewMap("iMgradX", this->pmap->iMgradX, true);
+    iMgradYDevice = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, true);
+    iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, true);
+
+    assert(this->smesh);
+    meshData = std::make_unique<KokkosMeshData>(this->smesh);
+}
+
+/*************************************************************/
+template <int CG, typename Vec>
+static KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgToLocal(
+    const Vec& vGlobal, DeviceIndex cgi, DeviceIndex cgShift)
+{
+    if constexpr (CG == 1) {
+        Eigen::Matrix<FloatType, CGDOFS(1), 1> vLocal;
+        vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + cgShift),
+            vGlobal(cgi + 1 + cgShift);
+        return vLocal;
+    } else {
+        Eigen::Matrix<FloatType, CGDOFS(2), 1> vLocal;
+        vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + 2), vGlobal(cgi + cgShift),
+            vGlobal(cgi + 1 + cgShift), vGlobal(cgi + 2 + cgShift), vGlobal(cgi + 2 * cgShift),
+            vGlobal(cgi + 1 + 2 * cgShift), vGlobal(cgi + 2 + 2 * cgShift);
+        return vLocal;
+    }
 }
 
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
-    const KokkosBuffers& _buffers, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
+    const ConstDeviceViewCG& uDevice, const ConstDeviceViewCG& vDevice,
+    const DeviceViewStress& e11Device, const DeviceViewStress& e12Device,
+    const DeviceViewStress& e22Device, const ConstDeviceBitset& landMaskDevice,
+    const GradMapDevice& iMgradXDevice, const GradMapDevice& iMgradYDevice,
+    const GradMapDevice& iMMDevice, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
     const DeviceIndex cgshift = CGdegree * nx + 1; //!< Index shift for each row
 
@@ -44,16 +90,16 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
                 = CGdegree * cgshift * row + col * CGdegree; //!< Lower left index of cg vector
 
             // only on ice
-            if (!_buffers.landMaskDevice.test(dgi)) {
+            if (!landMaskDevice.test(dgi)) {
                 return;
             }
 
-            const auto u = makeEigenMap(_buffers.uDevice);
-            const auto v = makeEigenMap(_buffers.vDevice);
+            const auto u = makeEigenMap(uDevice);
+            const auto v = makeEigenMap(vDevice);
 
-            auto e11 = makeEigenMap(_buffers.e11Device);
-            auto e12 = makeEigenMap(_buffers.e12Device);
-            auto e22 = makeEigenMap(_buffers.e22Device);
+            auto e11 = makeEigenMap(e11Device);
+            auto e12 = makeEigenMap(e12Device);
+            auto e22 = makeEigenMap(e22Device);
 
             // get the local x/y - velocity coefficients on the element
             const auto vx_local = cgToLocal<CGdegree>(u, cgi, cgshift);
@@ -61,24 +107,23 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
 
             // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
             // by integrating rhs and inverting with dG(stress) mass matrix
-            const auto iMgradX = _buffers.iMgradXDevice[dgi];
+            const auto iMgradX = iMgradXDevice[dgi];
             e11.row(dgi) = iMgradX * vx_local;
-            const auto iMgradY = _buffers.iMgradYDevice[dgi];
+            const auto iMgradY = iMgradYDevice[dgi];
             e22.row(dgi) = iMgradY * vy_local;
             e12.row(dgi) = 0.5 * (iMgradX * vy_local + iMgradY * vx_local);
 
             if (coordinates == SPHERICAL) {
-                const auto iMM = _buffers.iMMDevice[dgi];
+                const auto iMM = iMMDevice[dgi];
                 e11.row(dgi) -= iMM * vy_local;
                 e12.row(dgi) += 0.5 * iMM * vx_local;
             }
         });
 }
 
-// todo: should be KokkosMEVPDynamicsKernel::DeviceViewCG
-template <typename DeviceViewCG, typename KokkosDeviceMapView>
-void dirichletZero(DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
-    const std::array<KokkosDeviceMapView, 4>& dirichlet)
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::dirichletZero(const DeviceViewCG& v, DeviceIndex nx,
+    DeviceIndex ny, const KokkosMeshData::DirichletData& dirichlet)
 {
     // bot
     Kokkos::parallel_for(
@@ -198,8 +243,13 @@ size_t cy)
 }*/
 
 template <int DGadvection>
-void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergence(const KokkosBuffers& _buffers,
-    const KokkosMeshData& _meshData, DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
+void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
+    const DeviceViewCG& dStressXDevice, const DeviceViewCG& dStressYDevice,
+    const ConstDeviceViewStress& s11Device, const ConstDeviceViewStress& s12Device,
+    const ConstDeviceViewStress& s22Device, const ConstDeviceBitset& landMaskDevice,
+    const DivMapDevice& divS1Device, const DivMapDevice& divS2Device,
+    const DivMapDevice& divMDevice, const KokkosMeshData::DirichletData& dirichletDevice,
+    DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
     using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
     //    static PerfTimer timerDivZero("divZeroGPU");
@@ -208,8 +258,8 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergence(const KokkosBu
     // zero buffers
     //   timerDivZero.start();
     auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(execSpace, _buffers.dStressXDevice, 0.0);
-    Kokkos::deep_copy(execSpace, _buffers.dStressYDevice, 0.0);
+    Kokkos::deep_copy(execSpace, dStressXDevice, 0.0);
+    Kokkos::deep_copy(execSpace, dStressYDevice, 0.0);
     //  execSpace.fence();
     //    timerDivZero.stop();
 
@@ -220,21 +270,21 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergence(const KokkosBu
             const DeviceIndex cy = idx / nx;
             const DeviceIndex eid = cx + nx * cy;
             // only on ice!
-            if (!_buffers.landMaskDevice.test(eid)) {
+            if (!landMaskDevice.test(eid)) {
                 return;
             }
 
-            const auto s11 = makeEigenMap(_buffers.s11Device);
-            const auto s12 = makeEigenMap(_buffers.s12Device);
-            const auto s22 = makeEigenMap(_buffers.s22Device);
+            const auto s11 = makeEigenMap(s11Device);
+            const auto s12 = makeEigenMap(s12Device);
+            const auto s22 = makeEigenMap(s22Device);
 
-            const auto divS1 = _buffers.divS1Device[eid];
-            const auto divS2 = _buffers.divS2Device[eid];
+            const auto divS1 = divS1Device[eid];
+            const auto divS2 = divS2Device[eid];
             CGVec tx = divS1 * s11.row(eid).transpose() + divS2 * s12.row(eid).transpose();
             CGVec ty = divS1 * s12.row(eid).transpose() + divS2 * s22.row(eid).transpose();
 
             if (coordinates == SPHERICAL) {
-                const auto divM = _buffers.divMDevice[eid];
+                const auto divM = divMDevice[eid];
                 tx += divM * s12.row(eid).transpose();
                 ty -= divM * s11.row(eid).transpose();
             }
@@ -247,16 +297,16 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergence(const KokkosBu
                 for (DeviceIndex col = 0; col <= CGdegree; ++col) {
                     const DeviceIndex dst_idx = cg_i + col + row * cgRow;
                     const DeviceIndex src_idx = col + (CGdegree + 1) * row;
-                    Kokkos::atomic_sub(&_buffers.dStressXDevice(dst_idx), tx(src_idx));
-                    Kokkos::atomic_sub(&_buffers.dStressYDevice(dst_idx), ty(src_idx));
+                    Kokkos::atomic_sub(&dStressXDevice(dst_idx), tx(src_idx));
+                    Kokkos::atomic_sub(&dStressYDevice(dst_idx), ty(src_idx));
                 }
             }
         });
     //    timerDivComp.stop();
     // set zero on the Dirichlet boundaries
     //   timerDivDirichlet.start();
-    dirichletZero(_buffers.dStressXDevice, nx, ny, _meshData.dirichletDevice);
-    dirichletZero(_buffers.dStressYDevice, nx, ny, _meshData.dirichletDevice);
+    dirichletZero(dStressXDevice, nx, ny, dirichletDevice);
+    dirichletZero(dStressYDevice, nx, ny, dirichletDevice);
     //  timerDivDirichlet.stop();
     static int count = 0;
     ++count;
@@ -272,7 +322,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergence(const KokkosBu
 
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceViewCG& uDevice,
-    const DeviceViewCG& vDevice, const std::array<KokkosDeviceMapView, 4>& dirichlet,
+    const DeviceViewCG& vDevice, const KokkosMeshData::DirichletData& dirichletDevice,
     DeviceIndex nx, DeviceIndex ny)
 {
     dirichletZero(uDevice, nx, ny, dirichletDevice);
@@ -280,5 +330,9 @@ void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceView
 
     // TODO Periodic boundary conditions.
 }
+
+template class KokkosCGDynamicsKernel<1>;
+template class KokkosCGDynamicsKernel<3>;
+template class KokkosCGDynamicsKernel<6>;
 
 }

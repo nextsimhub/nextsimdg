@@ -10,15 +10,16 @@
 #include "../../include/ParametricMesh.hpp"
 #include "KokkosUtils.hpp"
 
-#include <Kokkos_Bitset.hpp>
-
 namespace Nextsim {
 
 struct KokkosMeshData {
     KokkosMeshData(const ParametricMesh& mesh);
 
-    std::array<KokkosDeviceMapView<size_t>, 4> dirichletDevice;
-    Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace> landMaskDevice;
+    using DirichletData = std::array<
+        KokkosDeviceMapView<typename decltype(ParametricMesh::dirichlet)::value_type::value_type>,
+        ParametricMesh::N_EDGE>;
+    DirichletData dirichletDevice;
+    ConstDeviceBitset landMaskDevice;
 };
 
 } // namespace nextsim

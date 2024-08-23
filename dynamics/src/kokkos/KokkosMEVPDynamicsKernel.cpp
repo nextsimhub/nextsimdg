@@ -42,42 +42,16 @@ private:
 };
 
 /*************************************************************/
-template <int CG, typename Vec>
-static KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgToLocal(
-    const Vec& vGlobal, DeviceIndex cgi, DeviceIndex cgShift)
-{
-    if constexpr (CG == 1) {
-        Eigen::Matrix<FloatType, CGDOFS(1), 1> vLocal;
-        vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + cgShift),
-            vGlobal(cgi + 1 + cgShift);
-        return vLocal;
-    } else {
-        Eigen::Matrix<FloatType, CGDOFS(2), 1> vLocal;
-        vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + 2), vGlobal(cgi + cgShift),
-            vGlobal(cgi + 1 + cgShift), vGlobal(cgi + 2 + cgShift), vGlobal(cgi + 2 * cgShift),
-            vGlobal(cgi + 1 + 2 * cgShift), vGlobal(cgi + 2 + 2 * cgShift);
-        return vLocal;
-    }
-}
-
-/*************************************************************/
 template <int DGadvection>
 void KokkosMEVPDynamicsKernel<DGadvection>::initialise(
     const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 {
-    CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
+    KokkosCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
     buffers.u0DeviceMut = makeKokkosDeviceView("u0", this->u);
     buffers.v0DeviceMut = makeKokkosDeviceView("v0", this->v);
     buffers.u0Device = buffers.u0DeviceMut;
     buffers.v0Device = buffers.v0DeviceMut;
-
-    std::tie(buffers.s11Host, buffers.s11Device) = makeKokkosDualView("s11", this->s11);
-    std::tie(buffers.s12Host, buffers.s12Device) = makeKokkosDualView("s12", this->s12);
-    std::tie(buffers.s22Host, buffers.s22Device) = makeKokkosDualView("s22", this->s22);
-    std::tie(buffers.e11Host, buffers.e11Device) = makeKokkosDualView("e11", this->e11);
-    std::tie(buffers.e12Host, buffers.e12Device) = makeKokkosDualView("e12", this->e12);
-    std::tie(buffers.e22Host, buffers.e22Device) = makeKokkosDualView("e22", this->e22);
 
     std::tie(buffers.hiceHost, buffers.hiceDevice) = makeKokkosDualView("hice", this->hice);
     std::tie(buffers.ciceHost, buffers.ciceDevice) = makeKokkosDualView("cice", this->cice);
@@ -91,15 +65,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::initialise(
     // parametric map related
     buffers.lumpedcgmassDevice
         = makeKokkosDeviceView("lumpedcgmass", this->pmap->lumpedcgmass, true);
-    buffers.divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, true);
-    buffers.divS2Device = makeKokkosDeviceViewMap("divS2", this->pmap->divS2, true);
-    buffers.divMDevice = makeKokkosDeviceViewMap("divM", this->pmap->divM, true);
-    buffers.iMgradXDevice = makeKokkosDeviceViewMap("iMgradX", this->pmap->iMgradX, true);
-    buffers.iMgradYDevice = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, true);
-    buffers.iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, true);
     buffers.iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
-
-    meshData = std::make_unique_ptr<KokkosMeshData>(*this->smesh);
 
     // These buffers are only used internally. Thus, synchronisation with CPU only needs to happen
     // to save/load the state. todo: read back buffers if needed in outputs

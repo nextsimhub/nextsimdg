@@ -9,6 +9,7 @@
 #define KOKKOSUTILS_HPP
 
 #include <Eigen/Core>
+#include <Kokkos_Bitset.hpp>
 #include <Kokkos_Core.hpp>
 
 #include <vector>
@@ -154,6 +155,33 @@ auto makeKokkosDeviceViewMap(
     }
 }
 
+using DeviceBitset = Kokkos::Bitset<Kokkos::DefaultExecutionSpace>;
+using ConstDeviceBitset = Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace>;
+/*!
+ * @brief Creates a device bitset from an std::vector<bool>.
+ *
+ * @details The resulting Bitset is mutable but it can be assigned to a ConstBitset.
+ *
+ * @param buf The host side std::vector holding the data.
+ */
+DeviceBitset makeKokkosDeviceBitset(const std::vector<bool>& buf)
+{
+    // unfortunately there is no more direct way to initialize a Kokkos::Bitset
+    const unsigned nBits = buf.size();
+    Kokkos::Bitset<Kokkos::HostSpace> bitsetHost(nBits);
+    // fill with data
+    bitsetHost.clear();
+    for (unsigned i = 0; i < nBits; ++i) {
+        if (buf[i])
+            bitsetHost.set(i);
+    }
+    // host -> device
+    Kokkos::Bitset<Kokkos::DefaultExecutionSpace> bitsetDevice(nBits);
+    Kokkos::deep_copy(bitsetDevice, bitsetHost);
+
+    return bitsetDevice;
+}
+
 namespace Details {
     // Map Kokkos layout to Eigen layout options
     template <typename KokkosLayout> struct ToEigenLayout;
@@ -165,41 +193,57 @@ namespace Details {
         static constexpr int Options = Eigen::RowMajor;
     };
 
-    template <class DataType, class Layout> struct ToEigenMatrix;
+    template <typename Scalar, int Rows, int Cols, int Options> struct ToMaybeConstMat {
+        using Type = Eigen::Matrix<Scalar, Rows, Cols, Options>;
+    };
+
+    template <typename Scalar, int Rows, int Cols, int Options>
+    struct ToMaybeConstMat<const Scalar, Rows, Cols, Options> {
+        using Type = const Eigen::Matrix<Scalar, Rows, Cols, Options>;
+    };
 
     // map kokkos array declaration to Eigen matrix
+    template <class DataType, class Layout> struct ToEigenMatrix;
+
     template <typename Scalar, class Layout> struct ToEigenMatrix<Scalar**, Layout> {
-        using Type
-            = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, ToEigenLayout<Layout>::Options>;
+        using Type = typename ToMaybeConstMat<Scalar, Eigen::Dynamic, Eigen::Dynamic,
+            ToEigenLayout<Layout>::Options>::Type;
     };
 
     template <typename Scalar, int Cols, class Layout>
     struct ToEigenMatrix<Scalar* [Cols], Layout> {
-        using Type = Eigen::Matrix<Scalar, Eigen::Dynamic, Cols,
-            (Cols == 1) ? Eigen::ColMajor : ToEigenLayout<Layout>::Options>;
+        using Type = typename ToMaybeConstMat<Scalar, Eigen::Dynamic, Cols,
+            (Cols == 1) ? Eigen::ColMajor : ToEigenLayout<Layout>::Options>::Type;
     };
 
     template <typename Scalar, int Rows, int Cols, class Layout>
     struct ToEigenMatrix<Scalar[Rows][Cols], Layout> {
-        using Type = Eigen::Matrix<Scalar, Rows, Cols,
-            (Cols == 1) ? Eigen::ColMajor : ToEigenLayout<Layout>::Options>;
+        using Type = typename ToMaybeConstMat<Scalar, Rows, Cols,
+            (Cols == 1) ? Eigen::ColMajor : ToEigenLayout<Layout>::Options>::Type;
     };
 
     template <typename Scalar, class Layout> struct ToEigenMatrix<Scalar*, Layout> {
-        using Type = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+        using Type = typename ToMaybeConstMat<Scalar, Eigen::Dynamic, 1, Eigen::ColMajor>::Type;
     };
 
     // map kokkos view spec to Eigen map
     template <class DataType, class Layout> struct ToEigenMap {
-        using Type = Eigen::Map<typename Details::ToEigenMatrix<DataType, Layout>::Type>;
+        using Type = Eigen::Map<typename ToEigenMatrix<DataType, Layout>::Type>;
     };
 
-    template <class DataType, class Layout> struct ToEigenMap<const DataType, Layout> {
-        using Type = Eigen::Map<const typename Details::ToEigenMatrix<DataType, Layout>::Type>;
-    };
+    /*    template <class DataType, class Layout> struct ToEigenMap<const
+       std::remove_pointer_t<std::remove_all_extents_t<DataType>>, Layout> { using Type =
+       Eigen::Map<const typename Details::ToEigenMatrix<DataType, Layout>::Type>;
+        };*/
 }
 
-// kokkos view -> eigen map
+/*!
+ * @brief Create an aquivalent Eigen map for a given Kokkos view.
+ *
+ * @details Supports 1D and 2D views. Constness of the underlying data is preserved.
+ *
+ * @param view The Kokkos view.
+ */
 template <class DataType, class... Properties>
 KOKKOS_IMPL_FUNCTION auto makeEigenMap(const Kokkos::View<DataType, Properties...>& view)
 {

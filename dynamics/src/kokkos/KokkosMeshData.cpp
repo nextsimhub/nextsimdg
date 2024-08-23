@@ -16,18 +16,7 @@ KokkosMeshData::KokkosMeshData(const ParametricMesh& mesh)
             = makeKokkosDeviceViewMap("dirichlet" + std::to_string(i), mesh.dirichlet[i], true);
     }
 
-    // unfortunately there is no more direct way to initialize a Kokkos::Bitset
-    const unsigned nBits = mesh.landmask.size();
-    Kokkos::Bitset<Kokkos::HostSpace> landMaskHost(nBits);
-    landMaskHost.clear();
-    for (unsigned i = 0; i < nBits; ++i) {
-        if (mesh.landmask[i])
-            landMaskHost.set(i);
-    }
-    // mutable device bitset -> const device bitset
-    Kokkos::Bitset<Kokkos::DefaultExecutionSpace> landMaskTemp(nBits);
-    Kokkos::deep_copy(landMaskTemp, landMaskHost);
-    landMaskDevice = landMaskTemp;
+    landMaskDevice = makeKokkosDeviceBitset(mesh.landmask);
 }
 
 } // namespace nextsim
