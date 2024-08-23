@@ -1,0 +1,26 @@
+name: Check formatting
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  clang-formatter:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: clang-format
+      run: |
+
+        sudo apt update
+        sudo apt install clang-format
+        for component in core dynamics physics
+        do
+          cd $component/src
+          clang-format --dry-run -Werror *cpp include/*hpp
+          cd -
+        done
