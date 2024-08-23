@@ -1,0 +1,16 @@
+<map id="Nextsim::Configured::tryConfigure" name="Nextsim::Configured::tryConfigure">
+<area shape="rect" id="Node000001" title="Template function for conditionally configuring references." alt="" coords="625,87,762,127"/>
+<area shape="rect" id="Node000002" href="$_configured_8hpp.html#addce5f96c514296ee85b739bbe10fa26" title="Template function for conditionally configuring references." alt="" coords="434,69,577,94"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="609,98,577,94,578,89,610,93"/>
+<area shape="rect" id="Node000006" href="$_configured_8hpp.html#a8880ec08a7a99226178c8ac9dd9e463d" title="Template function for conditionally configuring classes via a pointer." alt="" coords="232,120,376,145"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="610,115,376,130,376,125,609,110"/>
+<area shape="poly" id="edge6_Node000002_Node000002" title=" " alt="" coords="538,56,527,50,506,47,486,49,475,54,473,60,478,67,474,70,468,60,472,51,485,44,506,42,528,45,540,51"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_prognostic_data.html#ac86335c408d04ad2cfb8e4b5362d0d58" title="The configuration function." alt="" coords="222,5,386,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,67,379,49,380,44,443,62"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_dev_step.html#affa3a69f395c91cfaa7964e6f0fa8b99" title="Initializes the model, based on some environment stored in the implementing class." alt="" coords="230,70,378,96"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="419,85,378,85,378,80,419,80"/>
+<area shape="poly" id="edge7_Node000002_Node000006" title=" " alt="" coords="437,101,359,121,357,116,436,96"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model.html#a0f5b5a4d2b53a04bbdc7ce3f7d0bef5d" title="The configuration function." alt="" coords="5,42,174,68"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="207,42,175,46,174,41,206,36"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="214,74,174,69,175,63,214,69"/>
+</map>

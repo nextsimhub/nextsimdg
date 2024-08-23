@@ -1,0 +1,12 @@
+<map id="Nextsim::PrognosticData" name="Nextsim::PrognosticData">
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,1298,237,1723"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html" title=" " alt="" coords="5,628,197,1248"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,1263,140,1297,135,1298,131,1264"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="221,728,381,1148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="248,1163,214,1299,209,1297,243,1162"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_configured_base.html" title="A base class necessary for the tryConfigure() functions to work." alt="" coords="180,5,337,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="261,126,263,323,271,565,283,728,277,729,265,565,257,323,256,126"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="280,160,440,565"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="283,124,295,159,290,161,278,126"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="341,580,325,729,320,728,335,580"/>
+</map>

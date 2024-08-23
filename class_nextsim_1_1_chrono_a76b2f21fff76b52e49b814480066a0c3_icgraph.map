@@ -1,0 +1,5 @@
+<map id="Nextsim::Chrono::extraCpuTime" name="Nextsim::Chrono::extraCpuTime">
+<area shape="rect" id="Node000001" title="Adds an externally determined increment to the CPU clock." alt="" coords="252,5,454,31"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_timer.html#a22994e87439d37258efc6b39a54ef90c" title="Adds an additional time increment to a timer." alt="" coords="5,5,204,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,21,204,21,204,16,236,16"/>
+</map>

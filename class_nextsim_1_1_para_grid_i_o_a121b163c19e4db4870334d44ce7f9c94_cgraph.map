@@ -1,0 +1,25 @@
+<map id="Nextsim::ParaGridIO::writeDiagnosticTime" name="Nextsim::ParaGridIO::writeDiagnosticTime">
+<area shape="rect" id="Node000001" title="Writes diagnostic data to a file." alt="" coords="5,189,151,230"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_i_structure.html#a3a6ec493aeda20654e5b8101ce430e43" title="Returns the name of the data node." alt="" coords="244,5,376,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,187,130,123,161,87,197,57,228,41,231,46,200,61,165,91,134,126,93,190"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_i_structure.html#ad6722122645c3189edd359689af6d0cf" title="Returns the name of the metadata node." alt="" coords="237,71,384,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="102,187,145,154,197,122,222,112,224,117,200,127,148,158,105,191"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array.html#ab722f5869e37d23e13b4f7314ae66e4e" title="Returns the number of discontinuous Galerkin components held in this type of ModelArray." alt="" coords="240,160,380,201"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="150,198,224,188,225,194,151,203"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model_metadata.html#a7cfa791d7cb1bf890e5960fc8767935b" title="Returns the current model time." alt="" coords="470,209,634,250"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="151,210,454,223,454,228,151,215"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_common_restart_metadata.html#ac599dd5c9d26d0c97ad9fc098685109e" title="Writes the standard restart file metadata to a metadata node." alt="" coords="199,275,422,315"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="132,228,200,254,235,267,233,272,198,259,131,233"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_common_restart_metadata.html#acac23d06535d853768b15d4d7f46b393" title="Writes the structure type to the root of the restart file for future retrieval." alt="" coords="199,340,422,381"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="97,229,140,277,169,303,200,325,212,331,210,336,197,329,166,307,137,281,93,232"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="267,160,264,150,272,141,287,135,310,133,335,136,350,142,348,147,334,141,310,139,288,141,275,145,270,151,272,159"/>
+<area shape="poly" id="edge8_Node000006_Node000005" title=" " alt="" coords="387,272,458,252,460,257,389,277"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_model_metadata.html#a4a4ae2da98030a0aad813f8d2c877dc5" title="Returns the string description of the model grid structure." alt="" coords="470,275,634,315"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="422,292,454,292,454,298,422,298"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_i_structure.html#a2cbb7379198e83e5e50d125b4a366a39" title="The name of the node holding the name of the structure type processed by this class." alt="" coords="486,340,618,381"/>
+<area shape="poly" id="edge9_Node000006_Node000008" title=" " alt="" coords="389,313,472,336,470,341,387,318"/>
+<area shape="poly" id="edge11_Node000009_Node000007" title=" " alt="" coords="387,337,458,317,460,323,389,342"/>
+<area shape="poly" id="edge13_Node000009_Node000008" title=" " alt="" coords="422,358,470,358,470,363,422,363"/>
+<area shape="rect" id="Node000010" href="$class_nextsim_1_1_i_structure.html#a9bfcd49bd510b9200b9ce367f179c3d9" title="The name of the group holding the definitive structure type." alt="" coords="480,405,624,446"/>
+<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="389,379,466,400,464,405,387,384"/>
+</map>

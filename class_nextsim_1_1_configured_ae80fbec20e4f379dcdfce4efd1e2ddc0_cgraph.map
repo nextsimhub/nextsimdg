@@ -1,0 +1,9 @@
+<map id="Nextsim::Configured::getConfiguration" name="Nextsim::Configured::getConfiguration">
+<area shape="rect" id="Node000001" title="Gets the value of the configuration with a given name from the default Configurator." alt="" coords="5,75,142,115"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured.html#adf60ef61f9ca3c5c7bda782e9fc6229c" title="Adds an option to the per&#45;class option map." alt="" coords="190,29,326,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,76,174,68,175,73,143,81"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_configured.html#aee31b4c90f0dda13a3d94410c255c1db" title="Retrieves a configured value of a single option." alt="" coords="190,119,326,159"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="143,109,175,117,174,122,141,114"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="223,29,221,19,227,10,239,5,258,3,278,5,290,11,288,16,276,10,258,8,240,10,230,14,226,20,228,28"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="223,119,221,109,227,100,239,94,258,92,278,94,290,101,288,105,276,100,258,97,240,99,230,104,226,110,228,118"/>
+</map>

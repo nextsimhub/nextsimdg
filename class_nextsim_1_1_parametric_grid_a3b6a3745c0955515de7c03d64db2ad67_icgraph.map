@@ -1,0 +1,7 @@
+<map id="Nextsim::ParametricGrid::getModelState" name="Nextsim::ParametricGrid::getModelState">
+<area shape="rect" id="Node000001" title="Dumps the data to a file path." alt="" coords="441,5,603,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_structure_factory.html#adf5c8a3accf58e87f97ef81b5b6f1388" title="Returns the ModelState of the named restart file." alt="" coords="222,5,393,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="425,28,394,28,394,23,425,23"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model.html#a0f5b5a4d2b53a04bbdc7ce3f7d0bef5d" title="The configuration function." alt="" coords="5,13,174,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
+</map>

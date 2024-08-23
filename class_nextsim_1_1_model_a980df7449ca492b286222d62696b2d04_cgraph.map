@@ -1,0 +1,11 @@
+<map id="Nextsim::Model::run" name="Nextsim::Model::run">
+<area shape="rect" id="Node000001" title="Run the model." alt="" coords="5,78,140,104"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_iterator.html#a12254bc7eb0547f7450e387b9be45f5d" title="Run the Iterant over the specified time period." alt="" coords="188,78,328,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,88,172,88,172,94,140,94"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_iterator_1_1_iterant.html#a39c0d06afa0ec7f8a7c527fb30f9d39f" title=" " alt="" coords="376,5,498,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="294,75,364,49,366,54,296,80"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_iterator_1_1_iterant.html#ae1004e443012fb356f206dbeb9a71962" title=" " alt="" coords="376,71,498,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="328,88,361,88,361,94,328,94"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_iterator_1_1_iterant.html#a3e7a6ce0349425e37204946639a28366" title=" " alt="" coords="376,136,498,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="296,102,366,128,364,133,294,107"/>
+</map>

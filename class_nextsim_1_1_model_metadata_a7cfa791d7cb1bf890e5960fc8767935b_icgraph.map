@@ -1,0 +1,20 @@
+<map id="Nextsim::ModelMetadata::time" name="Nextsim::ModelMetadata::time">
+<area shape="rect" id="Node000001" title="Returns the current model time." alt="" coords="493,136,657,177"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_config_output.html#a7888ad70a89cb9a2daa8a21c1c4b3970" title="Outputs the passed ModelState." alt="" coords="258,5,408,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="539,128,495,93,444,61,408,47,410,42,446,57,498,89,542,124"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_simple_output.html#a932d4d9417f9f4bf90dea63dde652914" title="Outputs the passed ModelState." alt="" coords="256,71,410,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="482,134,410,114,412,109,484,129"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_metadata.html#ac5f5b93695819aaa3762dbfaef3b01ab" title="Sets the initial or current model time." alt="" coords="251,136,416,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="477,159,416,159,416,154,477,154"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_para_grid_i_o.html#a121b163c19e4db4870334d44ce7f9c94" title="Writes diagnostic data to a file." alt="" coords="17,193,162,234"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="485,183,445,191,295,208,163,215,163,209,294,202,445,186,484,178"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_common_restart_metadata.html#ac599dd5c9d26d0c97ad9fc098685109e" title="Writes the standard restart file metadata to a metadata node." alt="" coords="222,255,445,295"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="530,188,446,235,395,257,393,252,444,230,528,183"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model.html#a0f5b5a4d2b53a04bbdc7ce3f7d0bef5d" title="The configuration function." alt="" coords="5,144,174,169"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="235,159,174,159,174,154,235,154"/>
+<area shape="poly" id="edge9_Node000007_Node000006" title=" " alt="" coords="234,253,162,235,163,229,236,248"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_para_grid_i_o.html#a8b3f2df590b4c723c3136a8769d0c202" title="Writes the ModelState to a given file location from the provided model data and metadata." alt="" coords="19,259,160,299"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="206,280,160,281,160,275,206,274"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_rect_grid_i_o.html#ae9ee77d5df22cd49163ecbb1fcf8130a" title="Dumps the given ModelState to the given file path." alt="" coords="19,324,160,365"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="245,303,161,327,160,322,244,298"/>
+</map>

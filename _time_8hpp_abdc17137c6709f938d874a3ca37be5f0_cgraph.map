@@ -1,0 +1,7 @@
+<map id="Nextsim::mkgmtime" name="Nextsim::mkgmtime">
+<area shape="rect" id="Node000001" title="converts the std::tm struct to a std::time_t value assuming UTC." alt="" coords="5,37,142,62"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="41,38,34,28,38,18,51,12,74,10,98,13,110,20,107,24,96,18,73,15,53,17,42,22,39,28,45,35"/>
+<area shape="rect" id="Node000002" href="$_time_8hpp.html#a8e8b93d7cf45b8c2c7562e127f3c2da7" title="Returns the number of days between the Julian and Gregorian years." alt="" coords="190,29,351,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,47,174,47,174,52,142,52"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="233,29,231,19,237,10,250,5,270,3,292,5,305,11,302,16,290,10,270,8,252,10,241,15,236,20,238,28"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="Nextsim::Iterator::Iterant::start" name="Nextsim::Iterator::Iterant::start">
+<area shape="rect" id="Node000001" title=" " alt="" coords="376,5,498,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_iterator.html#a12254bc7eb0547f7450e387b9be45f5d" title="Run the Iterant over the specified time period." alt="" coords="188,13,328,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="360,28,328,28,328,23,360,23"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model.html#a980df7449ca492b286222d62696b2d04" title="Run the model." alt="" coords="5,13,140,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="172,28,140,28,140,23,172,23"/>
+</map>

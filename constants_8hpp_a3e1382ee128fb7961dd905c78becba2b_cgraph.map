@@ -1,0 +1,8 @@
+<map id="Nextsim::celsius" name="Nextsim::celsius">
+<area shape="rect" id="Node000001" title="Convert a temperature from K to ˚C." alt="" coords="5,29,122,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="36,30,31,21,34,11,45,5,64,3,83,5,93,12,91,16,81,10,63,8,47,10,38,15,36,20,41,28"/>
+<area shape="rect" id="Node000002" href="$constants_8hpp.html#a5259613a1b6c0ab902050ae5d10ed209" title="Convert a temperature from ˚C to K." alt="" coords="170,29,279,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="122,48,154,48,154,54,122,54"/>
+<area shape="poly" id="edge3_Node000002_Node000001" title=" " alt="" coords="169,36,137,36,137,31,169,31"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="197,30,192,21,195,11,206,5,224,3,244,5,254,12,251,16,242,10,224,8,208,10,199,15,197,20,201,28"/>
+</map>

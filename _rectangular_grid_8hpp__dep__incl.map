@@ -1,0 +1,18 @@
+<map id="/github/workspace/core/src/modules/include/RectangularGrid.hpp" name="/github/workspace/core/src/modules/include/RectangularGrid.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="300,5,515,61"/>
+<area shape="rect" id="Node000002" href="$_rect_grid_i_o_8cpp.html" title=" " alt="" coords="5,198,162,238"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="286,54,217,76,184,92,153,111,133,131,116,154,93,199,88,196,111,151,128,127,150,107,181,87,215,71,285,49"/>
+<area shape="rect" id="Node000003" href="$_structure_factory_8cpp.html" title=" " alt="" coords="185,198,352,238"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="398,77,382,114,359,151,332,178,304,199,301,195,329,174,355,148,377,112,393,75"/>
+<area shape="rect" id="Node000004" href="$_rect_grid_i_o_8hpp.html" title=" " alt="" coords="164,109,345,150"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="351,72,288,111,285,106,349,67"/>
+<area shape="rect" id="Node000005" href="$_rect_grid__test_8cpp.html" title=" " alt="" coords="376,198,532,238"/>
+<area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="421,75,452,197,447,198,416,77"/>
+<area shape="rect" id="Node000006" href="$_i_structure_module_8cpp.html" title=" " alt="" coords="470,109,694,150"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="473,66,547,106,544,111,470,71"/>
+<area shape="rect" id="Node000007" href="$_rectangular_grid_8cpp.html" title=" " alt="" coords="718,109,935,150"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="531,59,739,106,738,111,530,65"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="203,159,123,200,121,195,201,155"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="263,165,268,197,263,198,257,166"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="315,154,410,195,408,200,312,159"/>
+</map>

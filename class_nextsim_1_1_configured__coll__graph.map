@@ -1,0 +1,5 @@
+<map id="Nextsim::Configured&lt; C &gt;" name="Nextsim::Configured&lt; C &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,159,165,564"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured_base.html" title="A base class necessary for the tryConfigure() functions to work." alt="" coords="7,5,164,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,126,88,159,83,159,83,126"/>
+</map>

@@ -1,0 +1,35 @@
+<map id="Nextsim::ConfiguredBase" name="Nextsim::ConfiguredBase">
+<area shape="rect" id="Node000001" title="A base class necessary for the tryConfigure() functions to work." alt="" coords="428,5,585,111"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="373,628,533,1048"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="441,123,417,161,391,224,372,279,360,329,353,377,352,425,356,478,375,604,379,628,374,629,369,605,351,478,347,426,348,377,354,328,367,278,386,222,412,159,436,120"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="189,628,349,1048"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="417,104,379,130,347,162,306,217,276,267,254,314,238,360,217,461,197,590,195,629,190,628,192,589,212,460,233,358,249,312,271,264,302,214,343,158,376,126,414,100"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="5,628,165,1048"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="414,67,357,77,299,94,243,122,218,140,197,162,160,212,130,268,107,326,91,388,79,450,72,511,68,629,63,628,67,511,74,449,85,386,102,325,125,265,155,209,193,158,215,136,240,117,297,89,356,72,413,62"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="557,628,717,1048"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="573,120,601,159,663,271,701,364,726,462,748,589,748,605,740,618,732,630,720,653,715,650,727,627,736,615,743,604,743,590,720,463,696,366,658,273,596,161,569,123"/>
+<area shape="rect" id="Node000010" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="741,628,901,1048"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="600,95,647,123,690,158,784,261,818,307,846,352,869,400,888,454,927,589,926,610,916,629,904,657,899,655,911,627,920,609,921,590,883,456,864,403,841,355,814,310,780,264,686,162,644,127,597,100"/>
+<area shape="rect" id="Node000012" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="925,628,1085,1048"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="600,64,656,74,716,92,772,119,799,137,822,158,864,208,899,264,928,323,952,384,970,447,985,510,1002,628,997,629,979,511,965,448,947,386,923,325,894,266,860,211,818,162,795,141,770,124,714,97,655,79,599,69"/>
+<area shape="rect" id="Node000014" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="427,160,587,565"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="509,126,509,160,504,160,504,126"/>
+<area shape="rect" id="Node000003" href="$class_config2.html" title=" " alt="" coords="411,1248,495,1373"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="456,1063,456,1248,451,1248,451,1063"/>
+<area shape="rect" id="Node000005" href="$class_config3.html" title=" " alt="" coords="225,1248,314,1373"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="272,1063,272,1248,267,1248,267,1063"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_config_output.html" title=" " alt="" coords="15,1188,156,1433"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="88,1063,88,1188,83,1188,83,1063"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_missing_data.html" title=" " alt="" coords="568,1268,707,1353"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="640,1063,640,1268,635,1268,635,1063"/>
+<area shape="rect" id="Node000011" href="$class_nextsim_1_1_model.html" title="A class that encapsulates the whole of the model." alt="" coords="754,1188,889,1433"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="824,1063,824,1188,819,1188,819,1063"/>
+<area shape="rect" id="Node000013" href="$class_nextsim_1_1_prognostic_data.html" title=" " alt="" coords="927,1098,1083,1523"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="1008,1063,1008,1098,1003,1098,1003,1063"/>
+<area shape="poly" id="edge14_Node000014_Node000002" title=" " alt="" coords="462,581,461,590,458,629,452,628,456,589,457,580"/>
+<area shape="poly" id="edge15_Node000014_Node000004" title=" " alt="" coords="422,518,364,630,352,655,347,652,359,627,417,516"/>
+<area shape="poly" id="edge16_Node000014_Node000006" title=" " alt="" coords="416,423,357,463,295,512,234,568,179,630,167,647,163,644,175,627,230,565,291,508,354,459,412,418"/>
+<area shape="poly" id="edge17_Node000014_Node000008" title=" " alt="" coords="554,579,560,604,567,628,562,629,555,605,548,580"/>
+<area shape="poly" id="edge18_Node000014_Node000010" title=" " alt="" coords="598,455,667,536,732,627,744,648,739,650,727,630,663,540,594,459"/>
+<area shape="poly" id="edge19_Node000014_Node000012" title=" " alt="" coords="600,426,727,512,870,602,894,612,915,626,927,641,923,644,912,630,891,617,867,607,724,516,597,431"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="Nextsim::LinearFreezing" name="Nextsim::LinearFreezing">
+<area shape="rect" id="Node000001" title="The implementation class of the linear model of seawater freezing point." alt="" coords="5,139,157,204"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_i_freezing_point.html" title="The interface class for calculation of the freezing point of seawater." alt="" coords="7,5,156,91"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,106,84,139,79,139,79,106"/>
+</map>

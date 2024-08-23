@@ -1,0 +1,7 @@
+<map id="Nextsim::Configurator::clear" name="Nextsim::Configurator::clear">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,150,79"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configurator.html#a92387e7a053849100bd8185816dc00c3" title=" " alt="" coords="198,5,342,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,44,182,38,183,43,150,49"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_configurator.html#aff9c82ca9a98cf7c6a8d4f2b42a3b360" title="Sets the command line data to be parsed." alt="" coords="198,71,342,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="150,68,183,74,182,79,150,74"/>
+</map>

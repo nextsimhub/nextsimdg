@@ -1,0 +1,29 @@
+<map id="Nextsim::Configured&lt; C &gt;" name="Nextsim::Configured&lt; C &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="465,160,625,565"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="5,628,165,1048"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="453,414,387,454,314,505,243,563,179,630,167,646,163,643,175,627,239,560,311,500,384,450,451,410"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="189,628,349,1048"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="459,482,410,554,364,630,352,652,347,649,359,627,405,551,455,479"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="373,628,533,1048"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="499,580,497,590,490,629,485,628,492,589,494,579"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="557,628,717,1048"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="595,579,597,589,605,628,599,629,592,590,590,580"/>
+<area shape="rect" id="Node000011" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="741,628,901,1048"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="636,479,685,551,732,627,744,649,739,652,727,630,681,554,632,482"/>
+<area shape="rect" id="Node000013" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="925,628,1085,1048"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="640,410,707,450,780,500,852,560,915,627,928,643,923,646,911,630,848,563,776,505,704,454,637,414"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured_base.html" title="A base class necessary for the tryConfigure() functions to work." alt="" coords="467,5,624,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="548,126,548,160,543,160,543,126"/>
+<area shape="rect" id="Node000004" href="$class_config2.html" title=" " alt="" coords="43,1248,127,1373"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="88,1063,88,1248,83,1248,83,1063"/>
+<area shape="rect" id="Node000006" href="$class_config3.html" title=" " alt="" coords="225,1248,314,1373"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="272,1063,272,1248,267,1248,267,1063"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_config_output.html" title=" " alt="" coords="383,1188,524,1433"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="456,1063,456,1188,451,1188,451,1063"/>
+<area shape="rect" id="Node000010" href="$class_nextsim_1_1_missing_data.html" title=" " alt="" coords="568,1268,707,1353"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="640,1063,640,1268,635,1268,635,1063"/>
+<area shape="rect" id="Node000012" href="$class_nextsim_1_1_model.html" title="A class that encapsulates the whole of the model." alt="" coords="754,1188,889,1433"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="824,1063,824,1188,819,1188,819,1063"/>
+<area shape="rect" id="Node000014" href="$class_nextsim_1_1_prognostic_data.html" title=" " alt="" coords="927,1098,1083,1523"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="1008,1063,1008,1098,1003,1098,1003,1063"/>
+</map>

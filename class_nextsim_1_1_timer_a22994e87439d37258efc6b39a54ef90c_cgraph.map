@@ -1,0 +1,10 @@
+<map id="Nextsim::Timer::additionalTime" name="Nextsim::Timer::additionalTime">
+<area shape="rect" id="Node000001" title="Adds an additional time increment to a timer." alt="" coords="5,79,204,104"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_chrono.html#a76b2f21fff76b52e49b814480066a0c3" title="Adds an externally determined increment to the CPU clock." alt="" coords="253,5,455,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,76,251,40,277,33,278,38,252,45,143,81"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_chrono.html#adc9f97c9fb4006dd8f80d56359e4b035" title="Adds an externally determined increment to the activation count." alt="" coords="263,79,445,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,89,247,89,247,94,204,94"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_chrono.html#a03dda7cb5c18a2a812883481f81bec1a" title="Adds an externally determined increment to the wall clock." alt="" coords="252,128,456,154"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="174,102,271,122,270,127,173,108"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="313,80,305,70,309,60,326,54,354,52,385,55,400,62,398,67,383,60,354,57,327,59,313,64,310,69,317,77"/>
+</map>

@@ -1,0 +1,18 @@
+<map id="/github/workspace/core/src/include/Chrono.hpp" name="/github/workspace/core/src/include/Chrono.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="145,5,302,46"/>
+<area shape="rect" id="Node000002" href="$_timer_8cpp.html" title=" " alt="" coords="5,183,162,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,60,101,184,97,181,197,56"/>
+<area shape="rect" id="Node000003" href="$_scoped_timer_8hpp.html" title=" " alt="" coords="186,183,379,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,61,251,134,273,181,269,183,246,136,227,62"/>
+<area shape="rect" id="Node000006" href="$_timer_8hpp.html" title=" " alt="" coords="261,94,418,135"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="264,53,315,91,312,96,261,58"/>
+<area shape="rect" id="Node000004" href="$_scoped_timer_8cpp.html" title=" " alt="" coords="145,271,302,312"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="263,238,239,272,235,269,258,235"/>
+<area shape="rect" id="Node000005" href="$_scoped_timer__test_8cpp.html" title=" " alt="" coords="326,271,508,312"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="327,230,388,269,385,273,324,234"/>
+<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="268,142,143,185,141,180,266,137"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="320,149,297,184,293,181,316,146"/>
+<area shape="poly" id="edge8_Node000006_Node000005" title=" " alt="" coords="370,145,394,182,410,229,417,270,412,271,405,230,389,184,366,148"/>
+<area shape="rect" id="Node000007" href="$_timer__test_8cpp.html" title=" " alt="" coords="455,183,611,223"/>
+<area shape="poly" id="edge9_Node000006_Node000007" title=" " alt="" coords="398,139,490,180,488,185,396,144"/>
+</map>

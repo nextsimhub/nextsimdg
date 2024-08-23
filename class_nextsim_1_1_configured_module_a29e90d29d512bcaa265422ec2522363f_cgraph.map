@@ -1,0 +1,7 @@
+<map id="Nextsim::ConfiguredModule::parseConfigurator" name="Nextsim::ConfiguredModule::parseConfigurator">
+<area shape="rect" id="Node000001" title="Parse the configuration for all of the modules defined in ModuleLoader." alt="" coords="5,39,184,79"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured_module.html#a2319334a66284ea9cc9b46790b5fc1ad" title="Transforms a module name into a configuration option name." alt="" coords="232,5,410,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,43,216,38,216,44,185,48"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_configurator.html#abab5505ef80f14f069a4c2187d3761ae" title="Parses all configuration sources." alt="" coords="249,71,393,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,69,234,76,233,81,184,74"/>
+</map>

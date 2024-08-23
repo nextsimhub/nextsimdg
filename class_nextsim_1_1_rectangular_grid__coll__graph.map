@@ -1,0 +1,5 @@
+<map id="Nextsim::RectangularGrid" name="Nextsim::RectangularGrid">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,319,165,544"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_i_structure.html" title="Interface class for the model structure." alt="" coords="9,5,161,271"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,286,88,319,83,319,83,286"/>
+</map>

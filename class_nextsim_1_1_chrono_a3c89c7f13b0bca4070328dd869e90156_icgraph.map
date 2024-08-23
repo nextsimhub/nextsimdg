@@ -1,0 +1,5 @@
+<map id="Nextsim::Chrono::reset" name="Nextsim::Chrono::reset">
+<area shape="rect" id="Node000001" title="Resets all of the chronometer counters." alt="" coords="197,5,348,31"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_timer.html#a9382c24e3f96b472acf07a5ddf690e7e" title="Deletes all timers except the root, which is reset." alt="" coords="5,5,149,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,21,149,21,149,16,181,16"/>
+</map>

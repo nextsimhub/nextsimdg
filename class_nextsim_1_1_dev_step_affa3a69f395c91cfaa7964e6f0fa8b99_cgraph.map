@@ -1,0 +1,10 @@
+<map id="Nextsim::DevStep::init" name="Nextsim::DevStep::init">
+<area shape="rect" id="Node000001" title="Initializes the model, based on some environment stored in the implementing class." alt="" coords="5,54,154,80"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_i_diagnostic_output.html#a85f828dfff6ad927647875e7c59dfea5" title="Sets the output file name." alt="" coords="202,5,381,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,51,186,44,187,49,149,56"/>
+<area shape="rect" id="Node000003" href="$_configured_8hpp.html#addce5f96c514296ee85b739bbe10fa26" title="Template function for conditionally configuring references." alt="" coords="220,94,363,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="152,78,205,88,204,93,151,83"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="257,95,250,86,254,76,268,70,291,68,317,70,330,77,327,82,315,75,291,73,270,75,258,80,256,85,261,92"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_configured.html#a1976b952b6533bfd8624147f847ac042" title="Template function for conditionally configuring references." alt="" coords="429,87,565,127"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="363,104,413,104,413,110,363,110"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="Nextsim::ConfigOutput::outputState" name="Nextsim::ConfigOutput::outputState">
+<area shape="rect" id="Node000001" title="Outputs the passed ModelState." alt="" coords="5,39,156,79"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_metadata.html#a7cfa791d7cb1bf890e5960fc8767935b" title="Returns the current model time." alt="" coords="204,5,368,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,44,188,39,188,44,157,49"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array.html#a1b240e807761e93d149cf78d03df1832" title="Returns the size of the data array of this object." alt="" coords="216,71,356,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,68,201,75,200,80,156,73"/>
+</map>

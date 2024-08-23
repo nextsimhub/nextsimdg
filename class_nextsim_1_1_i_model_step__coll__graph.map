@@ -1,0 +1,5 @@
+<map id="Nextsim::IModelStep" name="Nextsim::IModelStep">
+<area shape="rect" id="Node000001" title="An interface class extending Iterator::Iterant with some file name handling." alt="" coords="5,313,149,559"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_iterator_1_1_iterant.html" title="A base class for classes that specify what happens during one timestep." alt="" coords="21,5,134,265"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,280,80,314,75,314,75,280"/>
+</map>

@@ -1,0 +1,23 @@
+<map id="Module::Module&lt; I &gt;" name="Module::Module&lt; I &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="421,5,605,311"/>
+<area shape="rect" id="Node000002" href="$class_module_1_1_module.html" title=" " alt="" coords="5,374,189,694"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="408,194,349,218,287,249,227,289,175,336,148,376,143,372,171,333,224,284,284,245,347,213,406,189"/>
+<area shape="rect" id="Node000004" href="$class_module_1_1_module.html" title=" " alt="" coords="213,374,397,694"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="415,270,370,336,352,375,347,373,366,333,410,267"/>
+<area shape="rect" id="Node000006" href="$class_module_1_1_module.html" title=" " alt="" coords="421,374,605,694"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="516,325,516,374,511,374,511,325"/>
+<area shape="rect" id="Node000008" href="$class_module_1_1_module.html" title=" " alt="" coords="629,374,813,694"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="618,246,653,288,682,333,699,373,694,375,678,336,649,291,614,250"/>
+<area shape="rect" id="Node000010" href="$class_module_1_1_module.html" title=" " alt="" coords="837,381,1021,686"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="620,197,673,222,729,253,783,290,831,333,867,380,863,383,827,336,779,294,726,257,671,226,618,201"/>
+<area shape="rect" id="Node000003" href="$class_module_1_1_diagnostic_output_module.html" title=" " alt="" coords="17,743,178,823"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="100,709,100,743,95,743,95,709"/>
+<area shape="rect" id="Node000005" href="$class_module_1_1_dynamics_module.html" title=" " alt="" coords="225,750,385,816"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="308,709,308,751,303,751,303,709"/>
+<area shape="rect" id="Node000007" href="$class_module_1_1_i_freezing_point_module.html" title=" " alt="" coords="421,750,606,816"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="516,709,516,751,511,751,511,709"/>
+<area shape="rect" id="Node000009" href="$class_module_1_1_i_structure_module.html" title=" " alt="" coords="641,750,801,816"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="724,709,724,751,719,751,719,709"/>
+<area shape="rect" id="Node000011" href="$class_module_1_1_i_test_module.html" title=" " alt="" coords="863,750,996,816"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="932,701,932,751,927,751,927,701"/>
+</map>

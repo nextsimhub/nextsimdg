@@ -1,0 +1,31 @@
+<map id="Nextsim::SimpleOutput::outputState" name="Nextsim::SimpleOutput::outputState">
+<area shape="rect" id="Node000001" title="Outputs the passed ModelState." alt="" coords="5,320,160,361"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_structure_factory.html#a1e37fe9f67053f490439109634e98a86" title="Takes a ModelState and a template file name to write the state out to a target file path." alt="" coords="210,189,382,230"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,317,150,279,206,241,218,235,221,239,209,245,153,284,108,321"/>
+<area shape="rect" id="Node000011" href="$class_nextsim_1_1_model_component.html#ab384f4494ca0d4254aa232299a75b7f8" title="Returns a const reference to the store for ProtectedArray fields." alt="" coords="208,255,384,295"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="150,317,212,298,213,303,152,322"/>
+<area shape="rect" id="Node000012" href="$class_nextsim_1_1_model_component.html#a84c402cc56d25f46d2729fe8adae5d0e" title="Returns a const reference to the store for SharedArray fields." alt="" coords="208,320,384,361"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="160,338,192,338,192,343,160,343"/>
+<area shape="rect" id="Node000013" href="$class_nextsim_1_1_logged.html#ae4f864a23a8eb5bbe9c744e3c73bd283" title="Logs a message at level::INFO, intended for informational messages that would not normally be shown." alt="" coords="223,385,368,410"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="161,358,232,378,231,383,159,364"/>
+<area shape="rect" id="Node000015" href="$class_nextsim_1_1_model_metadata.html#a7cfa791d7cb1bf890e5960fc8767935b" title="Returns the current model time." alt="" coords="214,435,378,475"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="112,359,157,390,209,421,219,426,217,430,206,425,154,394,109,363"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_dev_grid.html#a3c41fb3ff99a5300907436ab55ec4c1a" title="Dumps the data to a file path." alt="" coords="432,5,627,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="308,187,357,124,392,88,430,57,440,51,443,56,434,61,395,92,361,127,313,191"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_parametric_grid.html#a2512f8736d6e514501ced0df51b600d7" title="Dumps the data to a file path." alt="" coords="448,71,611,111"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="324,187,373,154,431,122,446,115,448,120,433,127,376,159,327,191"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_rectangular_grid.html#acc240554f42b2dc7db00514182168548" title="Dumps the data to a file path." alt="" coords="446,136,614,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="381,188,430,176,431,182,383,193"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_dev_grid.html#a6fe62e3d12d1982cd6716d32cd7a58ab" title="Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO." alt="" coords="450,201,610,226"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="382,208,434,209,434,215,382,214"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_parametric_grid.html#a63c40d1cb54a2b9b6d801bc81d283566" title=" " alt="" coords="448,251,611,291"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="377,228,435,244,434,249,375,233"/>
+<area shape="rect" id="Node000010" href="$class_nextsim_1_1_rectangular_grid.html#a820bb018dd0b73f5868489ccbfbe22e6" title="Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO." alt="" coords="446,316,614,357"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="365,228,386,241,401,256,410,272,419,287,434,301,442,306,439,311,430,305,415,290,406,275,397,260,382,245,362,233"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_i_dev_grid_i_o.html#ad8228e2cc802d7042756e5a5a0f207c9" title="Dumps the given ModelState to the given file path." alt="" coords="705,5,846,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="628,23,690,23,690,28,628,28"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_rectangular_grid_1_1_i_rect_grid_i_o.html#a372fab6beb175ef0d3430260b686c5d2" title="Dumps the given ModelState to the given file path." alt="" coords="675,136,876,177"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="614,154,660,154,660,159,614,159"/>
+<area shape="rect" id="Node000014" href="$class_nextsim_1_1_logged.html#a5f6a57e31f695910262eb85f566641ad" title="Logs a message at the given log level, or default to level::NOTICE." alt="" coords="459,385,600,410"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="369,395,443,395,443,400,369,400"/>
+</map>

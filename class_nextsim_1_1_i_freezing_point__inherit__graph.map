@@ -1,0 +1,7 @@
+<map id="Nextsim::IFreezingPoint" name="Nextsim::IFreezingPoint">
+<area shape="rect" id="Node000001" title="The interface class for calculation of the freezing point of seawater." alt="" coords="97,5,247,91"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_linear_freezing.html" title="The implementation class of the linear model of seawater freezing point." alt="" coords="5,139,157,204"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,104,107,141,103,137,130,101"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_unesco_freezing.html" title="The implementation class of the UNESCO model of the freezing point of." alt="" coords="182,139,343,204"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,101,241,137,237,141,210,104"/>
+</map>

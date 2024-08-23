@@ -1,0 +1,8 @@
+<map id="Nextsim::ModelArray::min" name="Nextsim::ModelArray::min">
+<area shape="rect" id="Node000001" title="Calculates element&#45;wise minimum of the data and the given scalar value." alt="" coords="194,46,361,72"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="312,34,301,27,277,25,256,27,245,32,242,37,248,44,244,47,237,38,241,28,255,22,277,20,302,22,315,29"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array.html#a1e39c9aa7e98fc5376832c64434c27b2" title="Clamps the values in the array to minimum values in the given array." alt="" coords="5,5,146,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,46,146,40,146,35,181,40"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_array.html#a430ed2d477cb935bcb8269ef3c336a64" title="Clamps the values in the array to the given minimum." alt="" coords="5,71,146,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="179,77,146,83,145,77,178,72"/>
+</map>

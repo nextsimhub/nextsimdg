@@ -1,0 +1,8 @@
+<map id="Nextsim::PrognosticData::configure" name="Nextsim::PrognosticData::configure">
+<area shape="rect" id="Node000001" title="The configuration function." alt="" coords="5,22,170,62"/>
+<area shape="rect" id="Node000002" href="$_configured_8hpp.html#addce5f96c514296ee85b739bbe10fa26" title="Template function for conditionally configuring references." alt="" coords="218,29,361,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,40,202,40,202,45,170,45"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="258,30,252,21,255,11,268,5,289,3,312,5,324,12,321,16,310,10,289,8,270,10,259,15,257,20,262,27"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_configured.html#a1976b952b6533bfd8624147f847ac042" title="Template function for conditionally configuring references." alt="" coords="409,22,545,62"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="361,40,394,40,394,45,361,45"/>
+</map>

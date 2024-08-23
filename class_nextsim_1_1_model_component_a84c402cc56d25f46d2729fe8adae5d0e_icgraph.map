@@ -1,0 +1,5 @@
+<map id="Nextsim::ModelComponent::getSharedArray" name="Nextsim::ModelComponent::getSharedArray">
+<area shape="rect" id="Node000001" title="Returns a const reference to the store for SharedArray fields." alt="" coords="208,5,384,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_simple_output.html#a932d4d9417f9f4bf90dea63dde652914" title="Outputs the passed ModelState." alt="" coords="5,5,160,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,28,160,28,160,23,193,23"/>
+</map>

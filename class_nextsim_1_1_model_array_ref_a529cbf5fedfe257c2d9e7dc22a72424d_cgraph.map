@@ -1,0 +1,5 @@
+<map id="Nextsim::ModelArrayRef::operator const ModelArray &amp;" name="Nextsim::ModelArrayRef::operator const ModelArray &amp;">
+<area shape="rect" id="Node000001" title="Cast the reference class to a real reference to the referenced ModelArray." alt="" coords="5,5,195,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array_ref.html#aa9dcccc437d6e2ae714d94fde0d531dd" title="Direct access top the underlying data array." alt="" coords="243,5,403,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,23,227,23,227,28,195,28"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="Nextsim::RectangularGrid::IRectGridIO::dumpModelState" name="Nextsim::RectangularGrid::IRectGridIO::dumpModelState">
+<area shape="rect" id="Node000001" title="Dumps the given ModelState to the given file path." alt="" coords="643,5,844,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_rectangular_grid.html#acc240554f42b2dc7db00514182168548" title="Dumps the data to a file path." alt="" coords="427,5,595,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="628,28,596,28,596,23,628,23"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_structure_factory.html#a1e37fe9f67053f490439109634e98a86" title="Takes a ModelState and a template file name to write the state out to a target file path." alt="" coords="208,5,379,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="412,28,379,28,379,23,412,23"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_simple_output.html#a932d4d9417f9f4bf90dea63dde652914" title="Outputs the passed ModelState." alt="" coords="5,5,160,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="192,28,160,28,160,23,192,23"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="Nextsim::MiniModelComponent" name="Nextsim::MiniModelComponent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="225,5,417,231"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_atm_in.html" title=" " alt="" coords="5,329,107,434"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,195,166,235,121,280,85,331,81,328,117,277,163,231,212,191"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_coupl_in.html" title=" " alt="" coords="131,309,242,454"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="259,245,226,310,221,308,255,243"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_ice_calc.html" title=" " alt="" coords="266,279,377,484"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="315,246,315,279,310,279,310,246"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="333,246,333,279,327,279,328,246"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_ice_thermo.html" title=" " alt="" coords="401,319,530,444"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="383,243,426,318,422,320,379,245"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="401,243,442,318,437,320,397,245"/>
+</map>

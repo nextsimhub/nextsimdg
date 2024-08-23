@@ -1,0 +1,10 @@
+<map id="Config2" name="Config2">
+<area shape="rect" id="Node000001" title=" " alt="" coords="47,1098,131,1223"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="9,628,169,1048"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,1063,92,1098,87,1098,87,1063"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_configured_base.html" title="A base class necessary for the tryConfigure() functions to work." alt="" coords="5,5,163,111"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,125,91,629,85,629,82,125"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_configured.html" title=" " alt="" coords="105,160,265,565"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="109,124,120,159,115,161,103,126"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="144,581,134,629,129,628,139,579"/>
+</map>

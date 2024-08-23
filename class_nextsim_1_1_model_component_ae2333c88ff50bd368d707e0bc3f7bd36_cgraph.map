@@ -1,0 +1,27 @@
+<map id="Nextsim::ModelComponent::setOceanMask" name="Nextsim::ModelComponent::setOceanMask">
+<area shape="rect" id="Node000001" title="Sets the model&#45;wide land&#45;ocean mask (for HField arrays)." alt="" coords="5,225,182,266"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html#ac8ca6314991e7a5bf082f5bf551205a4" title="Returns a copy of the provided ModelArray, masked according to the land&#45;ocean mask." alt="" coords="230,71,406,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,223,273,118,276,122,126,227"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_model_array.html#aa285badb50b17130ee59a88e3b55b432" title="Conditionally updates the size of the object data buffer to match the class specification." alt="" coords="248,225,388,266"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="182,243,232,243,232,248,182,248"/>
+<area shape="rect" id="Node000010" href="$class_nextsim_1_1_model_array.html#adf6af3c14b1fee8f3e47d38422d9b66d" title="Returns the total number of elements of this type of ModelArray." alt="" coords="472,315,612,355"/>
+<area shape="poly" id="edge14_Node000001_Node000010" title=" " alt="" coords="181,264,230,275,457,318,456,323,229,280,180,269"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_component.html#a44e2bbf5b96701cd2ac6160061ffb6df" title="Returns the ocean mask." alt="" coords="454,5,630,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="389,68,454,48,456,54,391,73"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array.html#a3c12dc81eda239218e83edfd5d36fdbb" title="Special access function for ZFields." alt="" coords="472,71,612,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="406,88,457,88,457,94,406,94"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_model_array.html#a00dcaca57d99ef9bbedd210a82fa4731" title="Returns the data at the specified one dimensional index." alt="" coords="678,39,819,79"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="612,78,662,70,663,75,613,83"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_model_array.html#ac32b5069c62eb1d4f789498d0b150b98" title="Special access function for ZFields, common implementation version." alt="" coords="678,104,819,145"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="613,100,664,108,663,113,612,105"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_model_array.html#a430ca0d2166e14f65a8ca7c577df4fb1" title="Returns a vector&lt;size_t&gt; of the size of each dimension of this type of ModelArray." alt="" coords="867,104,1007,145"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="819,122,851,122,851,127,819,127"/>
+<area shape="poly" id="edge7_Node000007_Node000007" title=" " alt="" coords="901,104,899,94,905,85,918,79,937,77,957,80,970,86,967,91,956,85,937,83,919,85,908,89,904,95,906,103"/>
+<area shape="rect" id="Node000009" href="$class_nextsim_1_1_model_array.html#a2a68a42462efa606a6c5478c7385d542" title="Returns whether this type of ModelArray has additional discontinuous Galerkin components." alt="" coords="472,160,612,201"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="387,223,456,203,458,208,389,228"/>
+<area shape="poly" id="edge11_Node000008_Node000010" title=" " alt="" coords="372,264,476,306,474,311,370,269"/>
+<area shape="rect" id="Node000011" href="$class_nextsim_1_1_model_array.html#a1b240e807761e93d149cf78d03df1832" title="Returns the size of the data array of this object." alt="" coords="472,225,612,266"/>
+<area shape="poly" id="edge13_Node000008_Node000011" title=" " alt="" coords="388,243,456,243,456,248,388,248"/>
+<area shape="poly" id="edge10_Node000009_Node000009" title=" " alt="" coords="503,160,501,150,508,141,521,135,542,133,565,136,578,142,576,147,563,141,542,139,523,141,511,145,506,151,508,159"/>
+<area shape="poly" id="edge12_Node000010_Node000010" title=" " alt="" coords="503,315,501,305,508,296,521,290,542,288,565,290,578,297,576,301,563,296,542,293,523,295,511,300,506,306,508,313"/>
+</map>

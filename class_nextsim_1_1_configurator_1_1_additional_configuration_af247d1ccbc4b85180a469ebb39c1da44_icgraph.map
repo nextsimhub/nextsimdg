@@ -1,0 +1,5 @@
+<map id="Nextsim::Configurator::AdditionalConfiguration::read" name="Nextsim::Configurator::AdditionalConfiguration::read">
+<area shape="rect" id="Node000001" title="Reads the additional configuration from the provided source, which is interpreted in an implementatio..." alt="" coords="231,5,421,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configurator.html#ab29115d2090d1c4f7694d1d7be34f9dd" title="Gets the additional configuration according to the supplied implementation." alt="" coords="5,5,183,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,28,183,28,183,23,215,23"/>
+</map>

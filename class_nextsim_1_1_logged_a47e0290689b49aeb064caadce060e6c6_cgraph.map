@@ -1,0 +1,5 @@
+<map id="Nextsim::Logged::warning" name="Nextsim::Logged::warning">
+<area shape="rect" id="Node000001" title="Logs a message at level::WARNING, intended for abnormal conditions that do not affect the continuing ..." alt="" coords="5,5,175,31"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_logged.html#a5f6a57e31f695910262eb85f566641ad" title="Logs a message at the given log level, or default to level::NOTICE." alt="" coords="223,5,364,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,16,207,16,207,21,175,21"/>
+</map>

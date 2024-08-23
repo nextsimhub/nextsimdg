@@ -1,0 +1,9 @@
+<map id="Nextsim::tryConfigure" name="Nextsim::tryConfigure">
+<area shape="rect" id="Node000001" title="Template function for conditionally configuring classes via a pointer." alt="" coords="5,13,149,38"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured.html#a1976b952b6533bfd8624147f847ac042" title="Template function for conditionally configuring references." alt="" coords="388,5,524,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,15,197,11,268,9,340,11,373,13,372,19,340,16,268,14,197,16,149,20"/>
+<area shape="rect" id="Node000003" href="$_configured_8hpp.html#addce5f96c514296ee85b739bbe10fa26" title="Template function for conditionally configuring references." alt="" coords="197,50,340,76"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="147,37,185,44,184,49,146,42"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="336,47,372,40,373,45,337,52"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="237,51,231,42,234,32,247,26,268,24,291,26,303,33,300,37,289,31,268,29,249,31,238,36,236,41,241,48"/>
+</map>

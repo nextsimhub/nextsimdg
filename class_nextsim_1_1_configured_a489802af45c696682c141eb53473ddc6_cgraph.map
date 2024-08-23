@@ -1,0 +1,5 @@
+<map id="Nextsim::Configured::tryGetConfiguration" name="Nextsim::Configured::tryGetConfiguration">
+<area shape="rect" id="Node000001" title="Template function for conditionally retrieving class configuration via a pointer." alt="" coords="5,5,143,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_configured_base.html#a533192f2cafa99114778075cadf8a1b3" title="Returns the current configuration of the object." alt="" coords="191,5,357,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,23,175,23,175,28,143,28"/>
+</map>

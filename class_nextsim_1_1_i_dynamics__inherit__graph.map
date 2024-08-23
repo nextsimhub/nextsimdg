@@ -1,0 +1,9 @@
+<map id="Nextsim::IDynamics" name="Nextsim::IDynamics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="111,673,239,939"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_dummy_dynamics.html" title=" " alt="" coords="5,987,173,1112"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="126,954,113,988,108,986,121,952"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_dynamics.html" title=" " alt="" coords="198,987,322,1112"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="229,952,241,986,236,988,224,954"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html" title=" " alt="" coords="79,5,271,625"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,640,177,673,172,673,172,640"/>
+</map>

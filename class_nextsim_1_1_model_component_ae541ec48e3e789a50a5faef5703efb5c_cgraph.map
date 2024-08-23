@@ -1,0 +1,5 @@
+<map id="Nextsim::ModelComponent::registerExternalProtectedArray" name="Nextsim::ModelComponent::registerExternalProtectedArray">
+<area shape="rect" id="Node000001" title="Registers a ModelArray into a ProtectedArray slot from outside any ModelComponent object...." alt="" coords="5,5,208,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_component.html#a63ebd9b992839326057fc0db6b56cffd" title=" " alt="" coords="256,5,432,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,23,240,23,240,28,208,28"/>
+</map>

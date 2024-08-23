@@ -1,0 +1,9 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$class_nextsim_1_1_i_structure.html" title="Interface class for the model structure." alt="" coords="5,55,138,80"/>
+<area shape="rect" id="Node000001" href="$class_nextsim_1_1_dev_grid.html" title="A class to hold a grid of ElementData instances in a fixed sized square grid." alt="" coords="209,5,331,31"/>
+<area shape="poly" id="edge38_Node000000_Node000001" title=" " alt="" coords="140,48,214,29,216,34,142,53"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_parametric_grid.html" title="A class to hold the grid data for parameterised rectangular grids." alt="" coords="189,55,351,80"/>
+<area shape="poly" id="edge39_Node000000_Node000002" title=" " alt="" coords="153,65,188,65,188,70,153,70"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_rectangular_grid.html" title=" " alt="" coords="186,104,354,130"/>
+<area shape="poly" id="edge40_Node000000_Node000003" title=" " alt="" coords="142,82,216,101,214,106,140,87"/>
+</map>

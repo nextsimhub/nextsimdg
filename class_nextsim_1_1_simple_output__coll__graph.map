@@ -1,0 +1,9 @@
+<map id="Nextsim::SimpleOutput" name="Nextsim::SimpleOutput">
+<area shape="rect" id="Node000001" title=" " alt="" coords="29,2578,174,2743"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_i_diagnostic_output.html" title=" " alt="" coords="16,2323,187,2528"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,2543,104,2578,99,2578,99,2543"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_model_component.html" title=" " alt="" coords="5,1674,197,2274"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,2289,104,2323,99,2323,99,2289"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_model_array.html" title="A class that holds the array data for the model." alt="" coords="7,5,195,1611"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="104,1610,104,1657,99,1657,99,1610"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="Nextsim::StructureFactory::stateFromFile" name="Nextsim::StructureFactory::stateFromFile">
+<area shape="rect" id="Node000001" title="Returns the ModelState of the named restart file." alt="" coords="5,165,177,206"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_dev_grid.html#ab950c3a5e86f2cf53280a62d7678c16f" title="Dumps the data to a file path." alt="" coords="225,5,406,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,163,156,111,188,82,223,57,233,51,236,55,226,61,192,86,160,115,111,167"/>
+<area shape="rect" id="Node000004" href="$class_nextsim_1_1_parametric_grid.html#a3b6a3745c0955515de7c03d64db2ad67" title="Dumps the data to a file path." alt="" coords="234,71,396,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="134,163,224,122,241,115,243,120,226,127,136,167"/>
+<area shape="rect" id="Node000005" href="$class_nextsim_1_1_rectangular_grid.html#a21d59e48414ee7c2f08dc75c2f92ecec" title="Dumps the data to a file path." alt="" coords="231,136,400,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="176,172,215,167,216,172,177,177"/>
+<area shape="rect" id="Node000006" href="$class_nextsim_1_1_dev_grid.html#a6fe62e3d12d1982cd6716d32cd7a58ab" title="Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO." alt="" coords="235,201,396,226"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="177,194,220,199,219,204,176,199"/>
+<area shape="rect" id="Node000007" href="$class_nextsim_1_1_parametric_grid.html#a63c40d1cb54a2b9b6d801bc81d283566" title=" " alt="" coords="234,251,396,291"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="144,204,226,237,241,242,240,247,224,241,142,209"/>
+<area shape="rect" id="Node000008" href="$class_nextsim_1_1_rectangular_grid.html#a820bb018dd0b73f5868489ccbfbe22e6" title="Sets the pointer to the class that will perform the IO. Should be an instance of DevGridIO." alt="" coords="231,316,400,357"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="113,205,162,252,193,278,226,301,237,307,234,311,223,305,190,282,158,256,109,208"/>
+<area shape="rect" id="Node000003" href="$class_nextsim_1_1_i_dev_grid_i_o.html#a7413d65a18c05e53889ba026cd6fe020" title="Generates the ModelState based on the data in the given file." alt="" coords="454,5,594,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="406,23,439,23,439,28,406,28"/>
+</map>

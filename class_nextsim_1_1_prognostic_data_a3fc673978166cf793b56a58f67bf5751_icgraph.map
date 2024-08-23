@@ -1,0 +1,5 @@
+<map id="Nextsim::PrognosticData::setData" name="Nextsim::PrognosticData::setData">
+<area shape="rect" id="Node000001" title="Set the initial data of the component from the passed ModelState." alt="" coords="222,5,386,46"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model.html#a0f5b5a4d2b53a04bbdc7ce3f7d0bef5d" title="The configuration function." alt="" coords="5,13,174,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,28,174,28,174,23,206,23"/>
+</map>

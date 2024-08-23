@@ -1,0 +1,8 @@
+<map id="Nextsim::radians" name="Nextsim::radians">
+<area shape="rect" id="Node000001" title="Convert an angle from degrees to radians." alt="" coords="175,29,292,55"/>
+<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="262,16,252,10,233,8,216,10,207,15,205,20,209,28,205,30,199,21,203,11,214,5,233,3,254,5,264,12"/>
+<area shape="rect" id="Node000002" href="$constants_8hpp.html#a953990464049c914f7bde89bbb2bb965" title="Convert an angle from radians to degrees." alt="" coords="5,29,127,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,54,127,54,127,48,159,48"/>
+<area shape="poly" id="edge3_Node000002_Node000001" title=" " alt="" coords="142,31,174,31,174,36,142,36"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="94,16,85,10,66,8,49,10,39,15,37,20,42,28,38,30,32,21,35,11,47,5,66,3,86,5,97,12"/>
+</map>

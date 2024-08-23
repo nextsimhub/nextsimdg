@@ -1,0 +1,19 @@
+<map id="/github/workspace/core/src/modules/include/IFreezingPoint.hpp" name="/github/workspace/core/src/modules/include/IFreezingPoint.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="418,5,616,61"/>
+<area shape="rect" id="Node000002" href="$_i_freezing_point_module_8hpp.html" title=" " alt="" coords="292,109,491,165"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="473,73,427,110,424,106,470,69"/>
+<area shape="rect" id="Node000004" href="$_linear_freezing_8hpp.html" title=" " alt="" coords="515,116,770,157"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="564,69,620,114,617,118,560,73"/>
+<area shape="rect" id="Node000005" href="$_prognostic_data_test_modules_2module_loader_headers_8ipp_source.html" title=" " alt="" coords="537,213,753,268"/>
+<area shape="poly" id="edge10_Node000001_Node000005" title=" " alt="" coords="632,50,724,74,760,89,783,107,792,122,794,136,791,151,783,166,759,194,728,214,725,210,756,190,779,163,786,149,789,136,787,124,779,111,757,94,722,79,631,55"/>
+<area shape="rect" id="Node000006" href="$_unesco_freezing_8hpp.html" title=" " alt="" coords="5,116,269,157"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="404,67,211,119,210,113,402,62"/>
+<area shape="rect" id="Node000003" href="$_i_freezing_point_module_8cpp.html" title=" " alt="" coords="264,220,514,261"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="393,180,392,220,387,220,388,180"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="580,166,439,222,437,217,578,161"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="646,173,647,212,642,212,641,173"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="201,161,341,217,339,222,199,166"/>
+<area shape="poly" id="edge8_Node000006_Node000005" title=" " alt="" coords="257,158,527,210,538,212,536,218,526,215,256,163"/>
+<area shape="rect" id="Node000007" href="$_prognostic_data__test_8cpp.html" title=" " alt="" coords="40,220,234,261"/>
+<area shape="poly" id="edge9_Node000006_Node000007" title=" " alt="" coords="140,173,140,220,134,220,134,173"/>
+</map>

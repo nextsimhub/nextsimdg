@@ -1,0 +1,6 @@
+<map id="Nextsim::ModelArray::max" name="Nextsim::ModelArray::max">
+<area shape="rect" id="Node000001" title="Calculates element&#45;wise maximum of the data and the given scalar value." alt="" coords="5,29,176,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="57,31,50,21,54,11,68,5,91,3,115,5,128,12,126,17,114,10,90,8,69,10,58,15,55,20,61,27"/>
+<area shape="rect" id="Node000002" href="$class_nextsim_1_1_model_array.html#a03c7d67334d795ba8ddd7a04d5ec9c77" title=" " alt="" coords="224,22,364,62"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="176,40,208,40,208,45,176,45"/>
+</map>
