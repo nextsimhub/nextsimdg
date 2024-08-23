@@ -14,6 +14,7 @@
 #include "include/Time.hpp"
 
 #include <string>
+#include <vector>
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -96,7 +97,15 @@ public:
     MPI_Comm mpiComm;
     int mpiSize = 0;
     int mpiMyRank = -1;
-    int localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX, globalExtentY;
+    int localCornerX, localCornerY;
+    int localExtentX, localExtentY;
+    int globalExtentX, globalExtentY;
+    // mpi rank ID and exten for each edge direction
+    std::vector<int> neighbourRanks[4];
+    std::vector<int> neighbourExtents[4];
+    std::vector<int> neighbourStarts[4];
+    std::vector<int> rankExtentsX;
+    std::vector<int> rankExtentsY;
 #endif
 
 private:
@@ -116,6 +125,12 @@ private:
     bool hasParameters;
 #ifdef USE_MPI
     const std::string bboxName = "bounding_boxes";
+    const std::string neighbourName = "connectivity";
+
+    enum Edge { BOTTOM, RIGHT, TOP, LEFT, N_EDGE };
+    // An array to allow the edges to be accessed in the correct order.
+    static constexpr std::array<Edge, N_EDGE> edges = { BOTTOM, RIGHT, TOP, LEFT };
+    std::vector<std::string> edgeNames = { "bottom", "right", "top", "left" };
 #endif
 };
 

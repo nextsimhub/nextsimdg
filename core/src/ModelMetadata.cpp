@@ -9,6 +9,7 @@
 
 #include "include/StructureModule.hpp"
 #include "include/gridNames.hpp"
+#include <vector>
 
 #ifdef USE_MPI
 #include <ncDim.h>
@@ -52,11 +53,49 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
     globalExtentX = ncFile.getDim("globalX").getSize();
     globalExtentY = ncFile.getDim("globalY").getSize();
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
-    std::vector<size_t> index(1, mpiMyRank);
-    bboxGroup.getVar("global_x").getVar(index, &localCornerX);
-    bboxGroup.getVar("global_y").getVar(index, &localCornerY);
-    bboxGroup.getVar("local_extent_x").getVar(index, &localExtentX);
-    bboxGroup.getVar("local_extent_y").getVar(index, &localExtentY);
+    std::vector<size_t> start(1, mpiMyRank);
+    bboxGroup.getVar("global_x").getVar(start, &localCornerX);
+    bboxGroup.getVar("global_y").getVar(start, &localCornerY);
+
+    rankExtentsX.resize(nBoxes, 0);
+    rankExtentsY.resize(nBoxes, 0);
+
+    bboxGroup.getVar("local_extent_x").getVar({ 0 }, { (size_t)nBoxes }, &rankExtentsX[0]);
+    bboxGroup.getVar("local_extent_y").getVar({ 0 }, { (size_t)nBoxes }, &rankExtentsY[0]);
+
+    localExtentX = rankExtentsX[mpiMyRank];
+    localExtentY = rankExtentsY[mpiMyRank];
+
+    netCDF::NcGroup neighbourGroup(ncFile.getGroup(neighbourName));
+    std::string tempName {};
+    for (auto edge : edges) {
+        size_t nStart {}; // start point in metadata arrays
+        size_t count {}; // number of elements to read from metadata arrays
+        std::vector<int> ranks;
+
+        tempName = edgeNames[edge] + "_start";
+        neighbourGroup.getVar(tempName).getVar(start, &nStart);
+        tempName = edgeNames[edge] + "_neighbors";
+        neighbourGroup.getVar(tempName).getVar(start, &count);
+        if (count) {
+            // initialize neighbour info to zero and correct size
+            neighbourRanks[edge].resize(count, 0);
+            neighbourExtents[edge].resize(count, 0);
+            neighbourStarts[edge].resize(count, 0);
+
+            tempName = edgeNames[edge] + "_neighbor_ids";
+            neighbourGroup.getVar(tempName).getVar({ nStart }, { count }, &neighbourRanks[edge][0]);
+
+            tempName = edgeNames[edge] + "_neighbor_halos";
+            neighbourGroup.getVar(tempName).getVar(
+                { nStart }, { count }, &neighbourExtents[edge][0]);
+
+            tempName = edgeNames[edge] + "_neighbor_start";
+            neighbourGroup.getVar(tempName).getVar(
+                { nStart }, { count }, &neighbourStarts[edge][0]);
+        }
+    }
+    printf("%d\n", neighbourRanks[BOTTOM][0]);
     ncFile.close();
 }
 
