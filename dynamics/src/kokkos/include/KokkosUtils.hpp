@@ -164,23 +164,7 @@ using ConstDeviceBitset = Kokkos::ConstBitset<Kokkos::DefaultExecutionSpace>;
  *
  * @param buf The host side std::vector holding the data.
  */
-DeviceBitset makeKokkosDeviceBitset(const std::vector<bool>& buf)
-{
-    // unfortunately there is no more direct way to initialize a Kokkos::Bitset
-    const unsigned nBits = buf.size();
-    Kokkos::Bitset<Kokkos::HostSpace> bitsetHost(nBits);
-    // fill with data
-    bitsetHost.clear();
-    for (unsigned i = 0; i < nBits; ++i) {
-        if (buf[i])
-            bitsetHost.set(i);
-    }
-    // host -> device
-    Kokkos::Bitset<Kokkos::DefaultExecutionSpace> bitsetDevice(nBits);
-    Kokkos::deep_copy(bitsetDevice, bitsetHost);
-
-    return bitsetDevice;
-}
+DeviceBitset makeKokkosDeviceBitset(const std::vector<bool>& buf);
 
 namespace Details {
     // Map Kokkos layout to Eigen layout options

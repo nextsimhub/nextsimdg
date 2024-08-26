@@ -48,33 +48,30 @@ void KokkosMEVPDynamicsKernel<DGadvection>::initialise(
 {
     KokkosCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
-    buffers.u0DeviceMut = makeKokkosDeviceView("u0", this->u);
-    buffers.v0DeviceMut = makeKokkosDeviceView("v0", this->v);
-    buffers.u0Device = buffers.u0DeviceMut;
-    buffers.v0Device = buffers.v0DeviceMut;
+    u0DeviceMut = makeKokkosDeviceView("u0", this->u);
+    v0DeviceMut = makeKokkosDeviceView("v0", this->v);
+    u0Device = u0DeviceMut;
+    v0Device = v0DeviceMut;
 
-    std::tie(buffers.hiceHost, buffers.hiceDevice) = makeKokkosDualView("hice", this->hice);
-    std::tie(buffers.ciceHost, buffers.ciceDevice) = makeKokkosDualView("cice", this->cice);
-    
+    std::tie(hiceHost, hiceDevice) = makeKokkosDualView("hice", this->hice);
+    std::tie(ciceHost, ciceDevice) = makeKokkosDualView("cice", this->cice);
+
     // does not depend on the data but it can not be allocated in the constructor
-    buffers.PSIAdvectDevice
-        = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, true);
-    buffers.PSIStressDevice
-        = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, true);
+    PSIAdvectDevice = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, true);
+    PSIStressDevice = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, true);
 
     // parametric map related
-    buffers.lumpedcgmassDevice
-        = makeKokkosDeviceView("lumpedcgmass", this->pmap->lumpedcgmass, true);
-    buffers.iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
+    lumpedcgmassDevice = makeKokkosDeviceView("lumpedcgmass", this->pmap->lumpedcgmass, true);
+    iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
 
     // These buffers are only used internally. Thus, synchronisation with CPU only needs to happen
     // to save/load the state. todo: read back buffers if needed in outputs
-    Kokkos::deep_copy(buffers.s11Device, buffers.s11Host);
-    Kokkos::deep_copy(buffers.s12Device, buffers.s12Host);
-    Kokkos::deep_copy(buffers.s22Device, buffers.s22Host);
-    Kokkos::deep_copy(buffers.e11Device, buffers.e11Host);
-    Kokkos::deep_copy(buffers.e12Device, buffers.e12Host);
-    Kokkos::deep_copy(buffers.e22Device, buffers.e22Host);
+    Kokkos::deep_copy(this->s11Device, this->s11Host);
+    Kokkos::deep_copy(this->s12Device, this->s12Host);
+    Kokkos::deep_copy(this->s22Device, this->s22Host);
+    Kokkos::deep_copy(this->e11Device, this->e11Host);
+    Kokkos::deep_copy(this->e12Device, this->e12Host);
+    Kokkos::deep_copy(this->e22Device, this->e22Host);
 }
 
 template <int DGadvection>
@@ -100,51 +97,61 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerUpload.start();
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(execSpace, buffers.uDevice, buffers.uHost);
-    Kokkos::deep_copy(execSpace, buffers.vDevice, buffers.vHost);
-    Kokkos::deep_copy(execSpace, buffers.u0DeviceMut, buffers.uDevice);
-    Kokkos::deep_copy(execSpace, buffers.v0DeviceMut, buffers.vDevice);
+    Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
+    Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
+    Kokkos::deep_copy(execSpace, this->u0DeviceMut, this->uDevice);
+    Kokkos::deep_copy(execSpace, this->v0DeviceMut, this->vDevice);
 
-    Kokkos::deep_copy(execSpace, buffers.uOceanDevice, buffers.uOceanHost);
-    Kokkos::deep_copy(execSpace, buffers.vOceanDevice, buffers.vOceanHost);
+    Kokkos::deep_copy(execSpace, this->uOceanDevice, this->uOceanHost);
+    Kokkos::deep_copy(execSpace, this->vOceanDevice, this->vOceanHost);
 
-    Kokkos::deep_copy(execSpace, buffers.uAtmosDevice, buffers.uAtmosHost);
-    Kokkos::deep_copy(execSpace, buffers.vAtmosDevice, buffers.vAtmosHost);
+    Kokkos::deep_copy(execSpace, this->uAtmosDevice, this->uAtmosHost);
+    Kokkos::deep_copy(execSpace, this->vAtmosDevice, this->vAtmosHost);
 
-    Kokkos::deep_copy(execSpace, buffers.hiceDevice, buffers.hiceHost);
-    Kokkos::deep_copy(execSpace, buffers.ciceDevice, buffers.ciceHost);
-    Kokkos::deep_copy(execSpace, buffers.cgHDevice, buffers.cgHHost);
-    Kokkos::deep_copy(execSpace, buffers.cgADevice, buffers.cgAHost);
+    Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
+    Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
+    Kokkos::deep_copy(execSpace, this->cgHDevice, this->cgHHost);
+    Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
     execSpace.fence();
     timerUpload.stop();
 
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
         timerProj.start();
-        projVelocityToStrain(
-            buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
+        Base::projectVelocityToStrainDevice(this->uDevice, this->vDevice, this->e11Device,
+            this->e12Device, this->e22Device, this->meshData->landMaskDevice, this->iMgradXDevice,
+            this->iMgradYDevice, this->iMMDevice, this->smesh->nx, this->smesh->ny,
+            this->smesh->CoordinateSystem);
         timerProj.stop();
 
         timerStress.start();
-        updateStressHighOrder(buffers, params, alpha);
+        updateStressHighOrder(this->s11Device, this->s12Device, this->s22Device, this->e11Device,
+            this->e12Device, this->e22Device, this->PSIAdvectDevice, this->PSIStressDevice,
+            this->hiceDevice, this->ciceDevice, this->iMJwPSIDevice, params, alpha);
         timerStress.stop();
 
         timerDivergence.start();
-        computeStressDivergence(
-            buffers, this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
+        Base::computeStressDivergenceDevice(this->dStressXDevice, this->dStressYDevice,
+            this->s11Device, this->s12Device, this->s22Device, this->meshData->landMaskDevice,
+            this->divS1Device, this->divS2Device, this->divMDevice, this->meshData->dirichletDevice,
+            this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
         timerDivergence.stop();
 
         timerMomentum.start();
-        updateMomentumDevice(tst, buffers, params, beta);
+        updateMomentumDevice(this->uDevice, this->vDevice, this->u0Device, this->v0Device,
+            this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
+            this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
+            this->lumpedcgmassDevice, tst, params, beta);
         timerMomentum.stop();
 
         timerBoundary.start();
-        applyBoundariesDevice(buffers, this->smesh->nx, this->smesh->ny);
+        Base::applyBoundariesDevice(this->uDevice, this->vDevice, this->meshData->dirichletDevice,
+            this->smesh->nx, this->smesh->ny);
         timerBoundary.stop();
     }
 
     timerDownload.start();
-    Kokkos::deep_copy(execSpace, buffers.uHost, buffers.uDevice);
-    Kokkos::deep_copy(execSpace, buffers.vHost, buffers.vDevice);
+    Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
+    Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
     execSpace.fence();
     timerDownload.stop();
 
@@ -166,42 +173,49 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 }
 
 template <int DGadvection>
-void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(
-    const KokkosBuffers& _buffers, const VPParameters& _params, FloatType _alpha)
+void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(const DeviceViewStress& s11Device,
+    const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
+    const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
+    const ConstDeviceViewStress& e22Device,
+    const ConstKokkosDeviceView<PSIAdvectType>& PSIAdvectDevice,
+    const ConstKokkosDeviceView<PSIStressType>& PSIStressDevice,
+    const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+    const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
+    const VPParameters& params, FloatType alpha)
 {
-    const DeviceIndex n = _buffers.s11Device.extent(0);
+    const DeviceIndex n = s11Device.extent(0);
     Kokkos::parallel_for(
         "updateStressHighOrder", n, KOKKOS_LAMBDA(const DeviceIndex i) {
-            auto s11 = makeEigenMap(_buffers.s11Device);
-            auto s12 = makeEigenMap(_buffers.s12Device);
-            auto s22 = makeEigenMap(_buffers.s22Device);
-            auto e11 = makeEigenMap(_buffers.e11Device);
-            auto e12 = makeEigenMap(_buffers.e12Device);
-            auto e22 = makeEigenMap(_buffers.e22Device);
-            auto hice = makeEigenMap(_buffers.hiceDevice);
-            auto cice = makeEigenMap(_buffers.ciceDevice);
+            auto s11 = makeEigenMap(s11Device);
+            auto s12 = makeEigenMap(s12Device);
+            auto s22 = makeEigenMap(s22Device);
+            auto e11 = makeEigenMap(e11Device);
+            auto e12 = makeEigenMap(e12Device);
+            auto e22 = makeEigenMap(e22Device);
+            auto hice = makeEigenMap(hiceDevice);
+            auto cice = makeEigenMap(ciceDevice);
 
-            auto PSIAdvect = makeEigenMap(_buffers.PSIAdvectDevice);
-            auto PSIStress = makeEigenMap(_buffers.PSIStressDevice);
+            const auto PSIAdvect = makeEigenMap(PSIAdvectDevice);
+            const auto PSIStress = makeEigenMap(PSIStressDevice);
 
             auto h_gauss = (hice.row(i) * PSIAdvect).array().max(0.0).matrix();
             auto a_gauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
 
-            EdgeVec P = (_params.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
+            EdgeVec P = (params.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
                             .matrix();
             const EdgeVec e11_gauss = e11.row(i) * PSIStress;
             const EdgeVec e12_gauss = e12.row(i) * PSIStress;
             const EdgeVec e22_gauss = e22.row(i) * PSIStress;
 
-            const auto DELTA = (_params.DeltaMin * _params.DeltaMin
+            const auto DELTA = (params.DeltaMin * params.DeltaMin
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array() + e12_gauss.array().square())
                                    .sqrt()
                                    .matrix();
 
-            const auto map = _buffers.iMJwPSIDevice[i];
+            const auto map = iMJwPSIDevice[i];
 
-            const FloatType alphaInv = 1.0 / _alpha;
+            const FloatType alphaInv = 1.0 / alpha;
             const FloatType fac = 1.0 - alphaInv;
             const EdgeVec PDelta = P.array() / DELTA.array();
             s11.row(i) = fac * s11.row(i)
@@ -233,8 +247,14 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(
 }
 
 template <int DGadvection>
-void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const TimestepTime& tst,
-    const KokkosBuffers& _buffers, const VPParameters& _params, FloatType beta)
+void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceViewCG& uDevice,
+    const DeviceViewCG& vDevice, const ConstDeviceViewCG& u0Device,
+    const ConstDeviceViewCG& v0Device, const ConstDeviceViewCG& cgHDevice,
+    const ConstDeviceViewCG& cgADevice, const ConstDeviceViewCG& uAtmosDevice,
+    const ConstDeviceViewCG& vAtmosDevice, const ConstDeviceViewCG& uOceanDevice,
+    const ConstDeviceViewCG& vOceanDevice, const ConstDeviceViewCG& dStressXDevice,
+    const ConstDeviceViewCG& dStressYDevice, const ConstDeviceViewCG& lumpedcgmassDevice,
+    const TimestepTime& tst, const VPParameters& params, FloatType beta)
 {
     // Update the velocity
     const FloatType SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
@@ -242,41 +262,35 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const TimestepT
 
     //      update by a loop.. implicit parts and h-dependent
     Kokkos::parallel_for(
-        "updateMomentum", _buffers.uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            auto uOcnRel = _buffers.uOceanDevice(i)
-                - _buffers.uDevice(i); // note the reversed sign compared to the v component
-            auto vOcnRel = _buffers.vDevice(i) - _buffers.vOceanDevice(i);
-            const FloatType absatm
-                = Kokkos::sqrt(SQR(_buffers.uAtmosDevice(i)) + SQR(_buffers.vAtmosDevice(i)));
+        "updateMomentum", uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            auto uOcnRel = uOceanDevice(i)
+                - uDevice(i); // note the reversed sign compared to the v component
+            auto vOcnRel = vDevice(i) - vOceanDevice(i);
+            const FloatType absatm = Kokkos::sqrt(SQR(uAtmosDevice(i)) + SQR(vAtmosDevice(i)));
             const FloatType absocn = Kokkos::sqrt(
                 SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
 
-            _buffers.uDevice(i) = (1.0
-                / (_params.rho_ice * _buffers.cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
-                    + _buffers.cgADevice(i) * _params.F_ocean * absocn) // implicit parts
-                * (_params.rho_ice * _buffers.cgHDevice(i) / deltaT
-                        * (beta * _buffers.uDevice(i)
-                            + _buffers.u0Device(i)) // pseudo - timestepping
-                    + _buffers.cgADevice(i)
-                        * (_params.F_atm * absatm * _buffers.uAtmosDevice(i) + // atm forcing
-                            _params.F_ocean * absocn * SC
-                                * _buffers.uOceanDevice(i)) // ocean forcing
-                    + _params.rho_ice * _buffers.cgHDevice(i) * _params.fc
-                        * vOcnRel // cor + surface
-                    + _buffers.dStressXDevice(i) / _buffers.lumpedcgmassDevice(i)));
-            _buffers.vDevice(i) = (1.0
-                / (_params.rho_ice * _buffers.cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
-                    + _buffers.cgADevice(i) * _params.F_ocean * absocn) // implicit parts
-                * (_params.rho_ice * _buffers.cgHDevice(i) / deltaT
-                        * (beta * _buffers.vDevice(i)
-                            + _buffers.v0Device(i)) // pseudo - timestepping
-                    + _buffers.cgADevice(i)
-                        * (_params.F_atm * absatm * _buffers.vAtmosDevice(i) + // atm forcing
-                            _params.F_ocean * absocn * SC
-                                * _buffers.vOceanDevice(i)) // ocean forcing
-                    + _params.rho_ice * _buffers.cgHDevice(i) * _params.fc
+            uDevice(i) = (1.0
+                / (params.rho_ice * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
+                    + cgADevice(i) * params.F_ocean * absocn) // implicit parts
+                * (params.rho_ice * cgHDevice(i) / deltaT
+                        * (beta * uDevice(i) + u0Device(i)) // pseudo - timestepping
+                    + cgADevice(i)
+                        * (params.F_atm * absatm * uAtmosDevice(i) + // atm forcing
+                            params.F_ocean * absocn * SC * uOceanDevice(i)) // ocean forcing
+                    + params.rho_ice * cgHDevice(i) * params.fc * vOcnRel // cor + surface
+                    + dStressXDevice(i) / lumpedcgmassDevice(i)));
+            vDevice(i) = (1.0
+                / (params.rho_ice * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
+                    + cgADevice(i) * params.F_ocean * absocn) // implicit parts
+                * (params.rho_ice * cgHDevice(i) / deltaT
+                        * (beta * vDevice(i) + v0Device(i)) // pseudo - timestepping
+                    + cgADevice(i)
+                        * (params.F_atm * absatm * vAtmosDevice(i) + // atm forcing
+                            params.F_ocean * absocn * SC * vOceanDevice(i)) // ocean forcing
+                    + params.rho_ice * cgHDevice(i) * params.fc
                         * uOcnRel // here the reversed sign of uOcnRel is used
-                    + _buffers.dStressYDevice(i) / _buffers.lumpedcgmassDevice(i)));
+                    + dStressYDevice(i) / lumpedcgmassDevice(i)));
         });
 }
 

@@ -48,7 +48,7 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, true);
 
     assert(this->smesh);
-    meshData = std::make_unique<KokkosMeshData>(this->smesh);
+    meshData = std::make_unique<KokkosMeshData>(*this->smesh);
 }
 
 /*************************************************************/

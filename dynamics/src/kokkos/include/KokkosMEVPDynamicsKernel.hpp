@@ -25,34 +25,19 @@ private:
     using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
 
 public:
-    struct KokkosBuffers {
-        // Step-initial ice velocity
-        // mutable variants are needed to copy the data but accesses on the device are all constant
-        using DeviceViewCG = typename KokkosCGDynamicsKernel<DGadvection>::DeviceViewCG;
-        using ConstDeviceViewCG = typename KokkosCGDynamicsKernel<DGadvection>::ConstDeviceViewCG;
-        DeviceViewCG u0DeviceMut;
-        DeviceViewCG v0DeviceMut;
-        ConstDeviceViewCG u0Device;
-        ConstDeviceViewCG v0Device;
+    using Base = KokkosCGDynamicsKernel<DGadvection>;
+    using DeviceViewCG = typename Base::DeviceViewCG;
+    using ConstDeviceViewCG = typename Base::ConstDeviceViewCG;
 
-        using DeviceViewAdvect = KokkosDeviceView<DGVector<DGadvection>>;
-        using HostViewAdvect = KokkosHostView<DGVector<DGadvection>>;
-        DeviceViewAdvect hiceDevice;
-        HostViewAdvect hiceHost;
-        DeviceViewAdvect ciceDevice;
-        HostViewAdvect ciceHost;
+    using DeviceViewAdvect = KokkosDeviceView<DGVector<DGadvection>>;
+    using HostViewAdvect = KokkosHostView<DGVector<DGadvection>>;
+    using ConstDeviceViewAdvect = ConstKokkosDeviceView<DGVector<DGadvection>>;
 
-        // constant matrices also need to be available on the GPU
-        using PSIAdvectType = decltype(PSI<DGadvection, NGP>);
-        using PSIStressType = decltype(PSI<DGstressComp, NGP>);
-        ConstKokkosDeviceView<PSIAdvectType> PSIAdvectDevice;
-        ConstKokkosDeviceView<PSIStressType> PSIStressDevice;
+    using DeviceViewStress = typename Base::DeviceViewStress;
+    using ConstDeviceViewStress = typename Base::ConstDeviceViewStress;
 
-        // parametric map precomputed transforms
-        // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
-        ConstDeviceViewCG lumpedcgmassDevice;
-        KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
-    };
+    using PSIAdvectType = decltype(PSI<DGadvection, NGP>);
+    using PSIStressType = decltype(PSI<DGstressComp, NGP>);
 
     KokkosMEVPDynamicsKernel(const VPParameters& paramsIn)
         : KokkosCGDynamicsKernel<DGadvection>()
@@ -70,13 +55,46 @@ public:
     void update(const TimestepTime& tst) override;
 
     // cuda requires these functions to be public
-    static void updateStressHighOrder(
-        const KokkosBuffers& _buffers, const VPParameters& _params, FloatType _alpha);
-    static void updateMomentumDevice(const TimestepTime& tst, const KokkosBuffers& _buffers,
-        const VPParameters& _params, FloatType beta);
+    static void updateStressHighOrder(const DeviceViewStress& s11Device,
+        const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
+        const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
+        const ConstDeviceViewStress& e22Device,
+        const ConstKokkosDeviceView<PSIAdvectType>& PSIAdvectDevice,
+        const ConstKokkosDeviceView<PSIStressType>& PSIStressType,
+        const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+        const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
+        const VPParameters& params, FloatType alpha);
+    static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
+        const ConstDeviceViewCG& u0Device, const ConstDeviceViewCG& v0Device,
+        const ConstDeviceViewCG& cgHDevice, const ConstDeviceViewCG& cgADevice,
+        const ConstDeviceViewCG& uAtmosDevice, const ConstDeviceViewCG& vAtmosDevice,
+        const ConstDeviceViewCG& uOceanDevice, const ConstDeviceViewCG& vOceanDevice,
+        const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
+        const ConstDeviceViewCG& lumpedCGMassDevice, const TimestepTime& tst,
+        const VPParameters& params, FloatType beta);
 
 private:
-    KokkosBuffers buffers;
+    // Step-initial ice velocity
+    // mutable variants are needed to copy the data but accesses on the device are all constant
+    DeviceViewCG u0DeviceMut;
+    DeviceViewCG v0DeviceMut;
+    ConstDeviceViewCG u0Device;
+    ConstDeviceViewCG v0Device;
+
+    DeviceViewAdvect hiceDevice;
+    HostViewAdvect hiceHost;
+    DeviceViewAdvect ciceDevice;
+    HostViewAdvect ciceHost;
+
+    // constant matrices also need to be available on the GPU
+    ConstKokkosDeviceView<PSIAdvectType> PSIAdvectDevice;
+    ConstKokkosDeviceView<PSIStressType> PSIStressDevice;
+
+    // parametric map precomputed transforms
+    // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
+    ConstDeviceViewCG lumpedcgmassDevice;
+    KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
+
     const VPParameters& params;
     FloatType alpha = 1500.;
     FloatType beta = 1500.;
