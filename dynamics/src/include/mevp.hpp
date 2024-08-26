@@ -24,7 +24,7 @@ namespace mEVP {
 
     template <int CG, int DGstress, int DGadvection>
     void StressUpdateHighOrder(const VPParameters& vpparameters,
-        const ParametricMomentumMap<CG>& pmap, const ParametricMesh& smesh, DGVector<DGstress>& S11,
+			       const ParametricMomentumMap<CG, DGadvection>& pmap, const ParametricMesh& smesh, DGVector<DGstress>& S11,
         DGVector<DGstress>& S12, DGVector<DGstress>& S22, const DGVector<DGstress>& E11,
         const DGVector<DGstress>& E12, const DGVector<DGstress>& E22,
         const DGVector<DGadvection>& H, const DGVector<DGadvection>& A, const double alpha,

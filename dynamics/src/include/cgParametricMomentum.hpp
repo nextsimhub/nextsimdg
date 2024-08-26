@@ -20,7 +20,7 @@
 
 namespace Nextsim {
 
-template <int CG> class CGParametricMomentum {
+  template <int CG> class CGParametricMomentum {
 private:
     const ParametricMesh& smesh; //!< const-reference to the mesh
 
@@ -31,7 +31,8 @@ private:
     static constexpr int precompute_matrices = 1;
 
 public:
-    ParametricMomentumMap<CG> pmap;
+    //! CGParametricMomentum should not be used but removed. ParametricMomentumMap needs DGadvection but this is not provided here.     
+    ParametricMomentumMap<CG,1> pmap;
 
     //! vectors storing the velocity (node-wise)
     CGVector<CG> vx, vy;
@@ -62,6 +63,8 @@ public:
         : smesh(sm)
         , pmap(sm)
     {
+      std::cerr << "CGParametricMomentum can't be used any more. It is replaced by the different Kernels. Reason is that the ParamwetricMomentumMap requires the DGadvection degree as template but this is not provided. It could be easily changed, but instead one should use the Kernel-infrastructure." << std::endl;
+      
         if (!(smesh.nelements > 0)) {
             std::cerr << "CGParametricMomentum: The mesh has to be initialized first!" << std::endl;
             abort();

@@ -43,7 +43,9 @@ namespace BBM {
      * @param dt_mom timestep for momentum subcycle
      */
     template <int CG, int DGs, int DGa>
-    void StressUpdateHighOrder(const MEBParameters& params, const ParametricMesh& smesh,
+    void StressUpdateHighOrder(const MEBParameters& params,
+			       const ParametricMomentumMap<CG, DGa>& pmap,
+			       const ParametricMesh& smesh,
         DGVector<DGs>& S11, DGVector<DGs>& S12, DGVector<DGs>& S22, const DGVector<DGs>& E11,
         const DGVector<DGs>& E12, const DGVector<DGs>& E22, const DGVector<DGa>& H,
         const DGVector<DGa>& A, DGVector<DGa>& D, const double dt_mom)
@@ -168,19 +170,23 @@ namespace BBM {
             s12_gauss.array() -= s12_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
             s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
 
-            // INTEGRATION OF STRESS AND DAMAGE
+            // // INTEGRATION OF STRESS AND DAMAGE
             const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J
                 = ParametricTools::J<3>(smesh, i);
-            // get the inverse of the mass matrix scaled with the test-functions in the gauss
-            // points, with the gauss weights and with J. This is a 8 x 9 matrix
-            const Eigen::Matrix<Nextsim::FloatType, DGs, NGP* NGP> imass_psi
-                = ParametricTools::massMatrix<DGs>(smesh, i).inverse()
-                * (PSI<DGs, NGP>.array().rowwise() * (GAUSSWEIGHTS<NGP>.array() * J.array()))
-                      .matrix();
+            // // get the inverse of the mass matrix scaled with the test-functions in the gauss
+            // // points, with the gauss weights and with J. This is a 8 x 9 matrix
+            // const Eigen::Matrix<Nextsim::FloatType, DGs, NGP* NGP> imass_psi
+            //     = ParametricTools::massMatrix<DGs>(smesh, i).inverse()
+            //     * (PSI<DGs, NGP>.array().rowwise() * (GAUSSWEIGHTS<NGP>.array() * J.array()))
+            //           .matrix();
 
-            S11.row(i) = imass_psi * s11_gauss.matrix().transpose();
-            S12.row(i) = imass_psi * s12_gauss.matrix().transpose();
-            S22.row(i) = imass_psi * s22_gauss.matrix().transpose();
+            // S11.row(i) = imass_psi * s11_gauss.matrix().transpose();
+            // S12.row(i) = imass_psi * s12_gauss.matrix().transpose();
+            // S22.row(i) = imass_psi * s22_gauss.matrix().transpose();
+
+            S11.row(i) = pmap.iMJwPSI[i] * s11_gauss.matrix().transpose();
+            S12.row(i) = pmap.iMJwPSI[i] * s12_gauss.matrix().transpose();
+            S22.row(i) = pmap.iMJwPSI[i] * s22_gauss.matrix().transpose();
 
             const Eigen::Matrix<Nextsim::FloatType, DGa, NGP* NGP> imass_psi2
                 = ParametricTools::massMatrix<DGa>(smesh, i).inverse()

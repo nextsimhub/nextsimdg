@@ -28,11 +28,14 @@ public:
     {
     }
     ~BBMStressUpdateStep() = default;
-    void stressUpdateHighOrder(const DynamicsParameters& dParams, const ParametricMesh& smesh,
+    void stressUpdateHighOrder(const DynamicsParameters& dParams,
+			       const ParametricMesh& smesh,
         SymmetricTensorVector& stress, const SymmetricTensorVector& strain,
         const DGVector<DGadvection>& h, const DGVector<DGadvection>& a,
         const double deltaT) override
     {
+      assert(pmap);
+      
         // Unwrap references
         DGVector<DGstress>& s11 = stress[I11];
         DGVector<DGstress>& s12 = stress[I12];
@@ -165,35 +168,39 @@ public:
             s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
 
             // INTEGRATION OF STRESS AND DAMAGE
-            const Eigen::Matrix<Nextsim::FloatType, 1, nGauss* nGauss> J
-                = ParametricTools::J<3>(smesh, i);
-            // get the inverse of the mass matrix scaled with the test-functions in the gauss
-            // points, with the gauss weights and with J. This is a 8 x 9 matrix
-            const Eigen::Matrix<Nextsim::FloatType, DGstress, nGauss* nGauss> imass_psi
-                = ParametricTools::massMatrix<DGstress>(smesh, i).inverse()
-                * (PSI<DGstress, nGauss>.array().rowwise()
-                    * (GAUSSWEIGHTS<nGauss>.array() * J.array()))
-                      .matrix();
+            // const Eigen::Matrix<Nextsim::FloatType, 1, nGauss* nGauss> J
+            //     = ParametricTools::J<3>(smesh, i);
+            // // get the inverse of the mass matrix scaled with the test-functions in the gauss
+            // // points, with the gauss weights and with J. This is a 8 x 9 matrix
+            // const Eigen::Matrix<Nextsim::FloatType, DGstress, nGauss* nGauss> imass_psi
+            //     = ParametricTools::massMatrix<DGstress>(smesh, i).inverse()
+            //     * (PSI<DGstress, nGauss>.array().rowwise()
+            //         * (GAUSSWEIGHTS<nGauss>.array() * J.array()))
+            //           .matrix();
 
-            s11.row(i) = imass_psi * s11Gauss.matrix().transpose();
-            s12.row(i) = imass_psi * s12Gauss.matrix().transpose();
-            s22.row(i) = imass_psi * s22Gauss.matrix().transpose();
+            // s11.row(i) = imass_psi * s11Gauss.matrix().transpose();
+            // s12.row(i) = imass_psi * s12Gauss.matrix().transpose();
+            // s22.row(i) = imass_psi * s22Gauss.matrix().transpose();
 
-            const Eigen::Matrix<Nextsim::FloatType, DGadvection, nGauss* nGauss> imass_psi2
-                = ParametricTools::massMatrix<DGadvection>(smesh, i).inverse()
-                * (PSI<DGadvection, nGauss>.array().rowwise()
-                    * (GAUSSWEIGHTS<nGauss>.array() * J.array()))
-                      .matrix();
+            s11.row(i) = pmap->iMJwPSI[i] * s11Gauss.matrix().transpose();
+            s12.row(i) = pmap->iMJwPSI[i] * s12Gauss.matrix().transpose();
+            s22.row(i) = pmap->iMJwPSI[i] * s22Gauss.matrix().transpose();
 
-            p_d->row(i) = imass_psi2 * dGauss.matrix().transpose();
+            // const Eigen::Matrix<Nextsim::FloatType, DGadvection, nGauss* nGauss> imass_psi2
+            //     = ParametricTools::massMatrix<DGadvection>(smesh, i).inverse()
+            //     * (PSI<DGadvection, nGauss>.array().rowwise()
+            //         * (GAUSSWEIGHTS<nGauss>.array() * J.array()))
+            //           .matrix();
+
+            p_d->row(i) = pmap->iMJwPSI_dam[i] * dGauss.matrix().transpose();
         }
     }
 
     void setDamage(DGVector<DGadvection>& dIn) { p_d = &dIn; }
-    void setPMap(ParametricMomentumMap<CG>* pmapIn) { pmap = pmapIn; }
+    void setPMap(ParametricMomentumMap<CG, DGadvection>* pmapIn) { pmap = pmapIn; }
 
 protected:
-    ParametricMomentumMap<CG>* pmap;
+    ParametricMomentumMap<CG, DGadvection>* pmap;
     DGVector<DGadvection>* p_d;
 };
 }

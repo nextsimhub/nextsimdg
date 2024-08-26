@@ -84,7 +84,7 @@ template <int DG> void ParametricTransportMap<DG>::InitializeInverseDGMassMatrix
 //////////////////////////////////////////////////
 
 //!
-template <int CG> void ParametricMomentumMap<CG>::InitializeLumpedCGMassMatrix()
+  template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeLumpedCGMassMatrix()
 {
     lumpedcgmass.resize_by_mesh(smesh);
 
@@ -154,13 +154,14 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeLumpedCGMassMatrix()
 }
 
 //!
-template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
+  template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatrices()
 {
     divS1.resize(smesh.nelements);
     divS2.resize(smesh.nelements);
     iMgradX.resize(smesh.nelements);
     iMgradY.resize(smesh.nelements);
     iMJwPSI.resize(smesh.nelements);
+    iMJwPSI_dam.resize(smesh.nelements);
     if (smesh.CoordinateSystem == SPHERICAL) {
         divM.resize(smesh.nelements);
         iMM.resize(smesh.nelements);
@@ -215,11 +216,20 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
             iMgradX[eid] = imass * divS1[eid].transpose();
             iMgradY[eid] = imass * divS2[eid].transpose();
 
-            // imJwPSI is used to compute nonlinear stress update???
+            // imJwPSI is used to compute nonlinear stress update
             iMJwPSI[eid] = imass
                 * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
                     * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
                       .matrix();
+	    // same but for the damage. However, we use the same number of Gausspoints as
+	    // for the DG-stress variant above for easier use in BBM Stress update	   
+	    const Eigen::Matrix<Nextsim::FloatType, DG, DG> imass_dam
+	      = ParametricTools::massMatrix<DG>(smesh, eid).inverse();
+	    iMJwPSI_dam[eid] = imass_dam
+	      * (PSI<DG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
+		 * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
+	      .matrix();
+
         } else if (smesh.CoordinateSystem == SPHERICAL) {
             // In spherical coordinates (x,y) coordinates are (lon,lat) coordinates
 
@@ -261,6 +271,16 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
                     * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
                       .matrix();
 
+	    // smae for DG advection (damage)
+	    const Eigen::Matrix<Nextsim::FloatType, DG, DG> imass_dam
+                = SphericalTools::massMatrix<DG>(smesh, eid).inverse();
+            iMJwPSI_dam[eid] = imass_dam
+                * (PSI<DG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
+                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
+                      .matrix();
+
+
+
         } else
             abort();
     }
@@ -271,7 +291,11 @@ template class ParametricTransportMap<3>;
 template class ParametricTransportMap<6>;
 template class ParametricTransportMap<8>;
 
-template class ParametricMomentumMap<1>;
-template class ParametricMomentumMap<2>;
+template class ParametricMomentumMap<1,1>;
+template class ParametricMomentumMap<2,1>;
+template class ParametricMomentumMap<1,3>;
+template class ParametricMomentumMap<2,3>;
+template class ParametricMomentumMap<1,6>;
+template class ParametricMomentumMap<2,6>;
 
 }

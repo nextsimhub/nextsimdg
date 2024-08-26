@@ -59,7 +59,7 @@ public:
  *
  * The coordiante system is encoded into the matrices
  */
-template <int CG> class ParametricMomentumMap {
+template <int CG, int DG> class ParametricMomentumMap {
     //! Reference to the map. Given with constructor
     const ParametricMesh& smesh;
 
@@ -86,13 +86,23 @@ public:
         iMgradX, iMgradY, iMM;
 
     /*!
-     * These matrices are M^-1 J w PSI_i(q)
-     * Multiplied
+     * These matrices are M^-1 J w PSI_i(q), 
+     * inverse of mass matrix (in DGstress-degree) multiplied with map J, weights w and DG Test functions,
+     * all in the GAUSS points, i.e. iMJwPSI \in R^(DGstress x Ngauss)
      */
     std::vector<Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), GAUSSPOINTS(CG2DGSTRESS(CG))>,
         Eigen::aligned_allocator<
             Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), GAUSSPOINTS(CG2DGSTRESS(CG))>>>
         iMJwPSI;
+
+    /*!
+     * These matrices are M^-1 J w PSI_i(q), 
+     * but, instead of DG-stress based on the DGAdvection (used for damage)
+     */
+    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>,
+        Eigen::aligned_allocator<
+            Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>>>
+        iMJwPSI_dam;
 
     ParametricMomentumMap(const ParametricMesh& sm)
         : smesh(sm)
