@@ -38,6 +38,8 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::cosOceanAngle;
+    using DynamicsKernel<DGadvection, DGstressComp>::sinOceanAngle;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -54,12 +56,10 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
 
-    double cosOceanAngle, sinOceanAngle;
-
 public:
     BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
         const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
+        : CGDynamicsKernel<DGadvection>(cos(radians * paramsIn.ocean_turning_angle), sin(radians * paramsIn.ocean_turning_angle), paramsIn, avgU, avgV)
         , stressStep(stressStepIn)
         , params(reinterpret_cast<const MEBParameters&>(paramsIn))
         , stresstransport(nullptr)
@@ -78,9 +78,6 @@ public:
         damage.resize_by_mesh(*smesh);
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
-
-        cosOceanAngle = cos(radians * params.ocean_turning_angle);
-        sinOceanAngle = sin(radians * params.ocean_turning_angle);
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
@@ -163,38 +160,12 @@ public:
         }
     }
 
-    CGVector<CGdegree> getIceOceanStress(const std::string& name) const override
-    {
-        CGVector<CGdegree> taux, tauy;
-        taux.resizeLike(avgU);
-        tauy.resizeLike(avgV);
-
-#pragma omp parallel for
-        for (int i = 0; i < taux.rows(); ++i) {
-            const double uOceanRel = uOcean(i) - avgU(i);
-            const double vOceanRel = vOcean(i) - avgV(i);
-            const double cPrime = params.F_ocean * std::hypot(uOceanRel, vOceanRel);
-
-            taux(i) = cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
-            tauy(i) = cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
-        }
-
-        if (name == uIOStressName) {
-            return taux;
-        } else if (name == vIOStressName) {
-            return tauy;
-        } else {
-            throw std::logic_error(std::string(__func__) + " called with an unknown argument "
-                + name + ". Only " + uIOStressName + " and " + vIOStressName + " are supported\n");
-        }
-    }
-
 protected:
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
 
     StressUpdateStep<DGadvection, DGstressComp>& stressStep;
-    const MEBParameters& params;
+    const MEBParameters params;
 
     Nextsim::DGTransport<DGstressComp>* stresstransport;
 
