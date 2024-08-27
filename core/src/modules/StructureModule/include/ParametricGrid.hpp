@@ -17,11 +17,7 @@
 
 namespace Nextsim {
 
-#ifdef USE_XIOS
-class ParaGridIO_Xios;
-#else
 class ParaGridIO;
-#endif
 
 //! A class to hold the grid data for parameterised rectangular grids.
 class ParametricGrid : public IStructure {
@@ -110,11 +106,7 @@ public:
 private:
     IParaGridIO* pio;
 
-#ifdef USE_XIOS
-    friend ParaGridIO_Xios;
-#else
     friend ParaGridIO;
-#endif
 };
 
 } /* namespace Nextsim */

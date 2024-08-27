@@ -109,11 +109,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     std::filesystem::remove(filename);
 
     ParametricGrid grid;
-#ifdef USE_XIOS
-    ParaGridIO_Xios* pio = new ParaGridIO_Xios(grid);
-#else
     ParaGridIO* pio = new ParaGridIO(grid);
-#endif
     grid.setIO(pio);
 
     // Set the dimension lengths
@@ -252,11 +248,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
     ParametricGrid gridIn;
-#ifdef USE_XIOS
-    ParaGridIO_Xios* readIO = new ParaGridIO_Xios(gridIn);
-#else
     ParaGridIO* readIO = new ParaGridIO(gridIn);
-#endif
     gridIn.setIO(readIO);
 
 #ifdef USE_MPI
@@ -325,11 +317,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     std::filesystem::remove(diagFile);
 
     ParametricGrid grid;
-#ifdef USE_XIOS
-    ParaGridIO_Xios* pio = new ParaGridIO_Xios(grid);
-#else
     ParaGridIO* pio = new ParaGridIO(grid);
-#endif
     grid.setIO(pio);
 
     NZLevels::set(nz);
@@ -548,11 +536,7 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 #endif
 {
     ParametricGrid gridIn;
-#ifdef USE_XIOS
-    ParaGridIO_Xios* readIO = new ParaGridIO_Xios(gridIn);
-#else
     ParaGridIO* readIO = new ParaGridIO(gridIn);
-#endif
     gridIn.setIO(readIO);
 
     ModelState state;
@@ -585,11 +569,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     NZLevels::set(1);
 
     ParametricGrid gridIn;
-#ifdef USE_XIOS
-    ParaGridIO_Xios* readIO = new ParaGridIO_Xios(gridIn);
-#else
     ParaGridIO* readIO = new ParaGridIO(gridIn);
-#endif
     gridIn.setIO(readIO);
 
     // Reset the array dimensions to make sure that the read function gets them correct

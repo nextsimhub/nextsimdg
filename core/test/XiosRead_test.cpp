@@ -107,9 +107,9 @@ MPI_TEST_CASE("TestXiosRead", 2)
         ModelArray::Dimension::Y, xios_handler.getDomainGlobalYSize("xy_domain"), ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
 
-    // Create ParametricGrid and ParaGridIO_Xios instances
+    // Create ParametricGrid and ParaGridIO instances
     ParametricGrid grid;
-    ParaGridIO_Xios* pio = new ParaGridIO_Xios(grid);
+    ParaGridIO* pio = new ParaGridIO(grid);
     // TODO: grid.setIO(pio);
 
     xios_handler.close_context_definition();

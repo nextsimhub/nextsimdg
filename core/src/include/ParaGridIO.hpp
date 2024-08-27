@@ -4,6 +4,7 @@
  * @date Oct 24, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
+#ifndef USE_XIOS
 
 #ifndef PARAGRIDIO_HPP
 #define PARAGRIDIO_HPP
@@ -119,3 +120,4 @@ private:
 } /* namespace Nextsim */
 
 #endif /* PARAGRIDIO_HPP */
+#endif /* not USE_XIOS */

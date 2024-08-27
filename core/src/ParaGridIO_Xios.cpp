@@ -4,11 +4,12 @@
  * @date   27 Aug, 2024
  * @author Joe Wallwork <jw2423@cam.ac.uk>
  */
+#ifdef USE_XIOS
 #include "include/ParaGridIO_Xios.hpp"
 #include <include/xios_c_interface.hpp>
 
 namespace Nextsim {
-ParaGridIO_Xios::~ParaGridIO_Xios() = default;
+ParaGridIO::~ParaGridIO() = default;
 
 // TODO: Move to ParaGridIO API below
 /*!
@@ -17,7 +18,7 @@ ParaGridIO_Xios::~ParaGridIO_Xios() = default;
  * @param field name
  * @param reference to the ModelArray containing the data to be written
  */
-void ParaGridIO_Xios::write(const std::string fieldId, ModelArray& modelarray)
+void ParaGridIO::write(const std::string fieldId, ModelArray& modelarray)
 {
     auto ndim = modelarray.nDimensions();
     auto dims = modelarray.dimensions();
@@ -42,7 +43,7 @@ void ParaGridIO_Xios::write(const std::string fieldId, ModelArray& modelarray)
  * @param field name
  * @param reference to the ModelArray containing the data to be written
  */
-void ParaGridIO_Xios::read(const std::string fieldId, ModelArray& modelarray)
+void ParaGridIO::read(const std::string fieldId, ModelArray& modelarray)
 {
     auto ndim = modelarray.nDimensions();
     auto dims = modelarray.dimensions();
@@ -65,14 +66,14 @@ void ParaGridIO_Xios::read(const std::string fieldId, ModelArray& modelarray)
  * @param filePath The file path containing the file to be read.
  */
 #ifdef USE_MPI
-ModelState ParaGridIO_Xios::getModelState(const std::string& filePath, ModelMetadata& metadata)
+ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
     // TODO: Implement
     ModelState ms;
     return ms;
 }
 #else
-ModelState ParaGridIO_Xios::getModelState(const std::string& filePath)
+ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     // TODO: Implement
     ModelState ms;
@@ -89,7 +90,7 @@ ModelState ParaGridIO_Xios::getModelState(const std::string& filePath)
  * creation model time).
  * @params filePath The path for the restart file.
  */
-void ParaGridIO_Xios::dumpModelState(
+void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
     // TODO: Implement
@@ -102,7 +103,7 @@ void ParaGridIO_Xios::dumpModelState(
  * @param time The time for which to get the forcings.
  * @param filePath Path to the file to read.
  */
-ModelState ParaGridIO_Xios::readForcingTime(
+ModelState ParaGridIO::readForcingTime(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
     // TODO: Implement
@@ -117,9 +118,10 @@ ModelState ParaGridIO_Xios::readForcingTime(
  * @param time The time of the passed data.
  * @param filePath Path of the file to write to.
  */
-void ParaGridIO_Xios::writeDiagnosticTime(
+void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
     // TODO: Implement
 }
 };
+#endif /* USE_XIOS */
