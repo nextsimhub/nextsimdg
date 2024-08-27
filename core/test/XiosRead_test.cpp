@@ -110,7 +110,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Create ParametricGrid and ParaGridIO instances
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
-    // TODO: grid.setIO(pio);
+    grid.setIO(pio);
 
     xios_handler.close_context_definition();
 
