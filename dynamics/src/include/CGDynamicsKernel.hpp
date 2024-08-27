@@ -1,7 +1,7 @@
 /*!
  * @file CGDynamicsKernel.hpp
  *
- * @date Aug 22, 2024
+ * @date 27 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -39,19 +39,17 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::sinOceanAngle;
 
 public:
-    CGDynamicsKernel(double cosOceanAngleIn,
-            double sinOceanAngleIn,
-            const DynamicsParameters& paramsIn,
-            CGVector<CGdegree>& uStressRef,
-            CGVector<CGdegree>& vStressRef)
+    CGDynamicsKernel(double cosOceanAngleIn, double sinOceanAngleIn,
+        const DynamicsParameters& paramsIn, CGVector<CGdegree>& uStressRef,
+        CGVector<CGdegree>& vStressRef)
         : DynamicsKernel<DGadvection, DGstressComp>(cosOceanAngleIn, sinOceanAngleIn, paramsIn)
         , pmap(nullptr)
         , uStress(uStressRef)
         , vStress(vStressRef)
     {
     }
-    CGDynamicsKernel(double cosOceanAngleIn, const DynamicsParameters& paramsIn,
-double sinOceanAngleIn)
+    CGDynamicsKernel(
+        double cosOceanAngleIn, const DynamicsParameters& paramsIn, double sinOceanAngleIn)
         : CGDynamicsKernel(cosOceanAngleIn, sinOceanAngleIn, paramsIn, u, v)
     {
     }
