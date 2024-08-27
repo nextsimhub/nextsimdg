@@ -101,6 +101,8 @@ template <> std::unique_ptr<{strings[class_name]}> getInstance()
 {{
     addToConfiguredModules<{strings[class_name]}, {strings[module_class_name]}>();
 }}
+
+template class {module_templ};
 """)
     source.write("""
 } /* namespace Module */
