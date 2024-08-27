@@ -4,23 +4,24 @@
  * @date   27 Aug 2024
  * @author Joe Wallwork <jw2423@cam.ac.uk>
  */
-#ifndef PARAGRIDIO_XIOS_HPP
-#define PARAGRIDIO_XIOS_HPP
+#ifdef USE_XIOS
+#ifndef PARAGRIDIO_HPP
+#define PARAGRIDIO_HPP
 
 #include "ModelArray.hpp"
 #include "StructureModule/include/ParametricGrid.hpp"
 
 namespace Nextsim {
 
-class ParaGridIO_Xios : public ParametricGrid::IParaGridIO {
+class ParaGridIO : public ParametricGrid::IParaGridIO {
 
 public:
-    ParaGridIO_Xios(ParametricGrid& grid)
+    ParaGridIO(ParametricGrid& grid)
         : IParaGridIO(grid)
     {
         // TODO: Implement this method
     }
-    virtual ~ParaGridIO_Xios();
+    virtual ~ParaGridIO();
 
     // TODO: Align the API with ParaGridIO
     void read(const std::string fileId, ModelArray& modelarray);
@@ -74,4 +75,5 @@ public:
 };
 } /* namespace Nextsim */
 
-#endif /* PARAGRIDIO_XIOS_HPP */
+#endif /* PARAGRIDIO_HPP */
+#endif /* USE_XIOS */
