@@ -9,7 +9,11 @@
 
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
+#ifdef USE_XIOS
+#include "include/ParaGridIO_Xios.hpp"
+#else
 #include "include/ParaGridIO.hpp"
+#endif
 
 namespace Nextsim {
 
@@ -60,6 +64,9 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     std::set<std::string> forcings
         = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
 
+#ifdef USE_XIOS
+    throw std::runtime_error("XIOS implementation incomplete");
+#else
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     tair = state.data.at("tair");
     tdew = state.data.at("dew2m");
@@ -73,6 +80,7 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     emp = 0; // FIXME get E - P data
 
     fluxImpl->update(tst);
+#endif
 }
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

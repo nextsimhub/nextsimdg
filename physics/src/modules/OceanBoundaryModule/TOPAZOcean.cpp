@@ -8,10 +8,14 @@
 #include "include/TOPAZOcean.hpp"
 
 #include "include/Finalizer.hpp"
-#include "include/IIceOceanHeatFlux.hpp"
 #include "include/IFreezingPoint.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
 #include "include/NextsimModule.hpp"
+#ifdef USE_XIOS
+#include "include/ParaGridIO_Xios.hpp"
+#else
 #include "include/ParaGridIO.hpp"
+#endif
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -59,6 +63,9 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     // TODO: Get more authoritative names for the forcings
     std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
 
+#ifdef USE_XIOS
+    throw std::runtime_error("XIOS implementation incomplete");
+#else
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     sstExt = state.data.at("sst");
     sssExt = state.data.at("sss");
@@ -72,6 +79,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
         TimestepTime());
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
+#endif
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
