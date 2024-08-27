@@ -38,6 +38,10 @@ public:
 
     using PSIAdvectType = decltype(PSI<DGadvection, NGP>);
     using PSIStressType = decltype(PSI<DGstressComp, NGP>);
+    // in gcc13 the signature of updateStressHighOrder is somehow incompatible between declaration
+    // and implementation if we use ConstKokkosDeviceView directly
+    using PSIAdvectView = ConstKokkosDeviceView<PSIAdvectType>;
+    using PSIStressView = ConstKokkosDeviceView<PSIStressType>;
 
     KokkosMEVPDynamicsKernel(const VPParameters& paramsIn)
         : KokkosCGDynamicsKernel<DGadvection>()
@@ -58,12 +62,11 @@ public:
     static void updateStressHighOrder(const DeviceViewStress& s11Device,
         const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
         const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
-        const ConstDeviceViewStress& e22Device,
-        const ConstKokkosDeviceView<PSIAdvectType>& PSIAdvectDevice,
-        const ConstKokkosDeviceView<PSIStressType>& PSIStressType,
-        const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+        const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
+        const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
+        const ConstDeviceViewAdvect& ciceDevice,
         const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
-        const VPParameters& params, FloatType alpha);
+        const VPParameters& params, FloatType alphaa);
     static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const ConstDeviceViewCG& u0Device, const ConstDeviceViewCG& v0Device,
         const ConstDeviceViewCG& cgHDevice, const ConstDeviceViewCG& cgADevice,

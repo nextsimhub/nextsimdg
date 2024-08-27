@@ -176,10 +176,9 @@ template <int DGadvection>
 void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(const DeviceViewStress& s11Device,
     const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
     const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
-    const ConstDeviceViewStress& e22Device,
-    const ConstKokkosDeviceView<PSIAdvectType>& PSIAdvectDevice,
-    const ConstKokkosDeviceView<PSIStressType>& PSIStressDevice,
-    const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+    const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
+    const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
+    const ConstDeviceViewAdvect& ciceDevice,
     const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
     const VPParameters& params, FloatType alpha)
 {

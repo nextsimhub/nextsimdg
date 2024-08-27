@@ -18,3 +18,4 @@ Results
 /*/test/*.nc
 /.vscode
 *__pycache__*
+lib/kokkos
