@@ -14,7 +14,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/ParaGridIO.hpp"
+#include "include/ParaGridIO_Xios.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>
@@ -127,8 +127,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Update the current timestep
         xios_handler.updateCalendar(ts);
         // Receive data from XIOS that is read from disk
-        xios_handler.read("field_2D", field_2D);
-        xios_handler.read("field_3D", field_3D);
+        pio->read("field_2D", field_2D);
+        pio->read("field_3D", field_3D);
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
