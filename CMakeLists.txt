@@ -174,9 +174,15 @@ IF (WITH_KOKKOS)
         target_compile_definitions(nextsimlib PRIVATE "EIGEN_DONT_VECTORIZE")
         # 64 bits are only emulated on GPU
         target_compile_definitions(nextsimlib PUBLIC EIGEN_DEFAULT_DENSE_INDEX_TYPE=int)
-        # disable warning caused by eigen
-        # "calling a __host__ function from a __host__ __device__ function is not allowed"
-        target_compile_options(nextsimlib PUBLIC -Xcudafe --diag_suppress=20014)#-w
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            message("Clang is currently not supported with CUDA.")
+        else()
+            # disable warning caused by eigen
+            # "calling a __host__ function from a __host__ __device__ function is not allowed"
+            # it is not sufficient to disable this for just CUDA code, i.e. with the generator expression
+            # $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=20014>
+            target_compile_options(nextsimlib PUBLIC -Xcudafe --diag_suppress=20014)
+        endif()
     endif()
     # reset to use defaults again
     unset(CMAKE_POSITION_INDEPENDENT_CODE)
