@@ -17,7 +17,6 @@
 
 #include "Configured.hpp"
 #include "Logged.hpp"
-#include "ModelArray.hpp"
 #include "Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
@@ -125,10 +124,6 @@ public:
     std::string getFileParAccess(const std::string fileId);
     void fileAddField(const std::string fileId, const std::string fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
-
-    /* I/O */
-    void write(const std::string fieldId, ModelArray& modelarray);
-    void read(const std::string fieldId, ModelArray& modelarray);
 
     enum {
         ENABLED_KEY,
