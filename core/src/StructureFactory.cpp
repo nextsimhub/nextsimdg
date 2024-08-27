@@ -5,14 +5,16 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
-
 #include "include/StructureFactory.hpp"
 
 #include "include/StructureModule.hpp"
 
-#include "include/RectGridIO.hpp"
-
+#ifdef USE_XIOS
+#include "include/ParaGridIO_Xios.hpp"
+#else
 #include "include/ParaGridIO.hpp"
+#endif
+#include "include/RectGridIO.hpp"
 
 #include <ncFile.h>
 #include <ncGroup.h>
@@ -65,7 +67,11 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
     } else if (ParametricGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
         ParametricGrid gridIn;
+#ifdef USE_XIOS
+        gridIn.setIO(new ParaGridIO_Xios(gridIn));
+#else
         gridIn.setIO(new ParaGridIO(gridIn));
+#endif
 #ifdef USE_MPI
         return gridIn.getModelState(filePath, metadata);
 #else
@@ -91,7 +97,11 @@ void StructureFactory::fileFromState(
         gridOut.dumpModelState(state, meta, filePath, isRestart);
     } else if (ParametricGrid::structureName == structureName) {
         ParametricGrid gridOut;
+#ifdef USE_XIOS
+        gridOut.setIO(new ParaGridIO_Xios(gridOut));
+#else
         gridOut.setIO(new ParaGridIO(gridOut));
+#endif
         gridOut.dumpModelState(state, meta, filePath, isRestart);
     } else {
         throw std::invalid_argument(
