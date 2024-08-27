@@ -1,7 +1,7 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date Aug 22, 2024
+ * @date 27 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -59,7 +59,8 @@ protected:
 public:
     BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
         const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>(cos(radians * paramsIn.ocean_turning_angle), sin(radians * paramsIn.ocean_turning_angle), paramsIn, avgU, avgV)
+        : CGDynamicsKernel<DGadvection>(cos(radians * paramsIn.ocean_turning_angle),
+            sin(radians * paramsIn.ocean_turning_angle), paramsIn, avgU, avgV)
         , stressStep(stressStepIn)
         , params(reinterpret_cast<const MEBParameters&>(paramsIn))
         , stresstransport(nullptr)
