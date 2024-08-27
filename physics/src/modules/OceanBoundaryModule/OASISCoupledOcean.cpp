@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.cpp
  *
- * @date Sep 26, 2022
+ * @date 27 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -40,8 +40,7 @@ void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
     // OASIS finalising definition
     OASIS_CHECK_ERR(oasis_c_enddef());
 #else
-    std::string message = __func__ + std::string(": OASIS support not compiled in.\n");
-    throw std::runtime_error(message);
+    throw std::runtime_error(std::string(__func__) + ": " + OASISError);
 #endif
 }
 
@@ -87,8 +86,7 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 
 #else
-    std::string message = __func__ + std::string(": OASIS support not compiled in.\n");
-    throw std::runtime_error(message);
+    throw std::runtime_error(std::string(__func__) + ": " + OASISError);
 #endif
 }
 
@@ -110,7 +108,7 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &emp[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QSWKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
@@ -130,8 +128,7 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     // Increment the "OASIS" time by the number of seconds in the time step
     updateOASISTime(tst);
 #else
-    std::string message = __func__ + std::string(": OASIS support not compiled in.\n");
-    throw std::runtime_error(message);
+    throw std::runtime_error(std::string(__func__) + ": " + OASISError);
 #endif
 }
 
@@ -177,7 +174,8 @@ OASISCoupledOcean::HelpMap& OASISCoupledOcean::getHelpText(HelpMap& map, bool ge
         { SSHConfigKey, ConfigType::STRING, {}, SSHKeyDefault, "",
             "The field name for sea surface height used in namcouple" },
         { MLDConfigKey, ConfigType::STRING, {}, MLDKeyDefault, "",
-            "The field name for the thickness of the first ocean layer in namcouple (if that's defined)." },
+            "The field name for the thickness of the first ocean layer in namcouple (if that's "
+            "defined)." },
         { TauXConfigKey, ConfigType::STRING, {}, TauXKeyDefault, "",
             "The field name for the x-component of ice-ocean stress in namcouple." },
         { TauYConfigKey, ConfigType::STRING, {}, TauYKeyDefault, "",

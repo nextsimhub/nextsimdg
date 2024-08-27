@@ -21,6 +21,8 @@ public:
     ~OASISCoupled() { OASIS_CHECK_ERR(!oasis_c_terminate()); }
 #else
     ~OASISCoupled() { }
+    const std::string OASISError
+        = "Cannot access OASIS interface, as OASIS support was not activated at compile time.\n";
 #endif
 
     virtual std::string getName() const { return "OASISCoupled"; }
