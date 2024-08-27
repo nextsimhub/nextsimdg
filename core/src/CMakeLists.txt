@@ -13,6 +13,7 @@ set(BaseSources
     "CommonRestartMetadata.cpp"
     "RectGridIO.cpp"
     "ParaGridIO.cpp"
+    "ParaGridIO_Xios.cpp"
     "FileCallbackCloser.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
