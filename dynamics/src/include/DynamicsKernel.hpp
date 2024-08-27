@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date Jan 5, 2024
+ * @date 27 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -33,14 +33,15 @@
 namespace Nextsim {
 
 // forward define the class holding the potentially non-DG parts
-template<int DGdegree> class DynamicsInternals;
+template <int DGdegree> class DynamicsInternals;
 
-template<int DGadvection, int DGstress> class DynamicsKernel {
+template <int DGadvection, int DGstress> class DynamicsKernel {
 public:
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
     typedef std::map<typename DataMapping::first_type, typename DataMapping::second_type> DataMap;
 
-    DynamicsKernel(double cosOceanAngleIn, double sinOceanAngleIn, const DynamicsParameters& paramsIn)
+    DynamicsKernel(
+        double cosOceanAngleIn, double sinOceanAngleIn, const DynamicsParameters& paramsIn)
         : cosOceanAngle(cosOceanAngleIn)
         , sinOceanAngle(sinOceanAngleIn)
         , baseParams(paramsIn)
@@ -157,10 +158,7 @@ public:
         }
     }
 
-    virtual void update(const TimestepTime& tst)
-    {
-        ++stepNumber;
-    }
+    virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
     void advectionAndLimits(const TimestepTime& tst)
     {
@@ -177,7 +175,7 @@ public:
     }
 
 protected:
-    Nextsim::DGTransport<DGadvection> *dgtransport;
+    Nextsim::DGTransport<DGadvection>* dgtransport;
 
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;
@@ -192,7 +190,7 @@ protected:
 
     double deltaT;
 
-    Nextsim::ParametricMesh *smesh;
+    Nextsim::ParametricMesh* smesh;
 
     // Components of the ocean turning angle
     const double cosOceanAngle = 1.;
@@ -231,6 +229,7 @@ protected:
      * Returns a const reference to the dynamics parameters
      */
     const DynamicsParameters& getParams() const { return baseParams; }
+
 private:
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
