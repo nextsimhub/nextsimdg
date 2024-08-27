@@ -1,8 +1,8 @@
 /*!
- * @file ParaGridIO.hpp
+ * @file    ParaGridIO.hpp
  *
- * @date Oct 24, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date    27 Aug 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 #ifndef USE_XIOS
 

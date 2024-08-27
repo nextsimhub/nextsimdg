@@ -1,8 +1,8 @@
 /*!
- * @file ParaGrid_test.cpp
+ * @file    ParaGrid_test.cpp
  *
- * @date Oct 27, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date    27 Aug 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "ModelArray.hpp"

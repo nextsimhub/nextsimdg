@@ -1,8 +1,8 @@
 /*!
- * @file   ParaGridIO_Xios.hpp
+ * @file    ParaGridIO_Xios.hpp
  *
- * @date   27 Aug 2024
- * @author Joe Wallwork <jw2423@cam.ac.uk>
+ * @date    27 Aug 2024
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
 #ifndef PARAGRIDIO_HPP

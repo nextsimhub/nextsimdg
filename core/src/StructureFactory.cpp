@@ -1,9 +1,9 @@
 /*!
- * @file StructureFactory.cpp
+ * @file    StructureFactory.cpp
  *
- * @date Jan 18, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Kacper Kornet <kk562@cam.ac.uk>
+ * @date    27 Aug 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Kacper Kornet <kk562@cam.ac.uk>
  */
 #include "include/StructureFactory.hpp"
 

@@ -1,8 +1,8 @@
 /*!
- * @file ERA5Atmosphere.cpp
+ * @file    ERA5Atmosphere.cpp
  *
- * @date 7 Sep 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date    27 Aug 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ERA5Atmosphere.hpp"

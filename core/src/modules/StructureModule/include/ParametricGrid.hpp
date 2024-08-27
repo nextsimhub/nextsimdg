@@ -1,9 +1,9 @@
 /*!
- * @file ParametricGrid.hpp
+ * @file    ParametricGrid.hpp
  *
- * @date Oct 24, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Kacper Kornet <kk562@cam.ac.uk>
+ * @date    27 Aug 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #ifndef PARAMETRICGRID_HPP

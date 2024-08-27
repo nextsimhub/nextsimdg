@@ -1,8 +1,8 @@
 /*!
- * @file ParaGridIO.cpp
+ * @file    ParaGridIO.cpp
  *
- * @date Oct 24, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date    27 Aug 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 #ifndef USE_XIOS
 #include "include/ParaGridIO.hpp"
