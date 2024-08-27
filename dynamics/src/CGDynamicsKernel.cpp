@@ -1,7 +1,7 @@
 /*!
  * @file CGDynamicsKernel.cpp
  *
- * @date Aug 22, 2024
+ * @date 27 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar ÓLason <einar.olason@nersc.no>
  */
@@ -298,7 +298,8 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
 }
 
 template <int DGadvection>
-std::pair<CGVector<CGdegree>, CGVector<CGdegree>> CGDynamicsKernel<DGadvection>::getIceOceanStress() const
+std::pair<CGVector<CGdegree>, CGVector<CGdegree>>
+CGDynamicsKernel<DGadvection>::getIceOceanStress() const
 {
     CGVector<CGdegree> taux, tauy;
     taux.resizeLike(uStress);
@@ -308,7 +309,8 @@ std::pair<CGVector<CGdegree>, CGVector<CGdegree>> CGDynamicsKernel<DGadvection>:
     for (int i = 0; i < taux.rows(); ++i) {
         const double uOceanRel = uOcean(i) - uStress(i);
         const double vOceanRel = vOcean(i) - vStress(i);
-        const double cPrime = DynamicsKernel<DGadvection, DGstressComp>::getParams().F_ocean * std::hypot(uOceanRel, vOceanRel);
+        const double cPrime = DynamicsKernel<DGadvection, DGstressComp>::getParams().F_ocean
+            * std::hypot(uOceanRel, vOceanRel);
 
         taux(i) = cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
         tauy(i) = cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
@@ -316,7 +318,6 @@ std::pair<CGVector<CGdegree>, CGVector<CGdegree>> CGDynamicsKernel<DGadvection>:
 
     return { taux, tauy };
 }
-
 
 // Instantiate the templates for all (1, 3, 6) degrees of DGadvection
 template class CGDynamicsKernel<1>;
