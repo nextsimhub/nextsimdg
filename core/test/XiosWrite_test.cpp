@@ -14,6 +14,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Module.hpp"
+#include "include/ParaGridIO_Xios.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>
@@ -92,16 +93,25 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xios_handler.fileAddField("xios_test_output", "field_2D");
     xios_handler.fileAddField("xios_test_output", "field_3D");
 
-    xios_handler.close_context_definition();
-
-    // --- Tests for writing to file
+    // Set ModelArray dimensions
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
     const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
     const size_t nz = xios_handler.getAxisSize("z_axis");
-    ModelArray::setDimension(ModelArray::Dimension::X, xios_handler.getDomainGlobalXSize("xy_domain"), nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, xios_handler.getDomainGlobalYSize("xy_domain"), ny, 0);
+    ModelArray::setDimension(
+        ModelArray::Dimension::X, xios_handler.getDomainGlobalXSize("xy_domain"), nx, 0);
+    ModelArray::setDimension(
+        ModelArray::Dimension::Y, xios_handler.getDomainGlobalYSize("xy_domain"), ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
+
+    // Create ParametricGrid and ParaGridIO_Xios instances
+    ParametricGrid grid;
+    ParaGridIO_Xios* pio = new ParaGridIO_Xios(grid);
+    // TODO: grid.setIO(pio);
+
+    xios_handler.close_context_definition();
+
+    // --- Tests for writing to file
     // Create some fake data to test writing methods
     HField field_2D(ModelArray::Type::H);
     field_2D.resize();
@@ -128,8 +138,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update the current timestep
         xios_handler.updateCalendar(ts);
         // Send data to XIOS to be written to disk
-        xios_handler.write("field_2D", field_2D);
-        xios_handler.write("field_3D", field_3D);
+        pio->write("field_2D", field_2D);
+        pio->write("field_3D", field_3D);
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }

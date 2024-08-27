@@ -14,6 +14,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Module.hpp"
+#include "include/ParaGridIO_Xios.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>
@@ -112,13 +113,20 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xios_handler.fileAddField("xios_test_input", "field_3D");
     xios_handler.fileAddField("xios_test_input", "field_4D");
 
-    xios_handler.close_context_definition();
-
-    // --- Tests for reading to file
+    // Set ModelArray dimensions
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ModelArray::setDimension(ModelArray::Dimension::X, n1, n1, 0);
     ModelArray::setDimension(ModelArray::Dimension::Y, n2, n2, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, n3, n3, 0);
+
+    // Create ParametricGrid and ParaGridIO_Xios instances
+    ParametricGrid grid;
+    ParaGridIO_Xios* pio = new ParaGridIO_Xios(grid);
+    // TODO: grid.setIO(pio);
+
+    xios_handler.close_context_definition();
+
+    // --- Tests for reading to file
     // Create some fake data to test writing methods
     HField field_2D(ModelArray::Type::H);
     field_2D.resize();
@@ -134,8 +142,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Update the current timestep
         xios_handler.updateCalendar(ts);
         // Receive data from XIOS that is read from disk
-        xios_handler.read("field_2D", field_2D);
-        xios_handler.read("field_3D", field_3D);
+        pio->read("field_2D", field_2D);
+        pio->read("field_3D", field_3D);
         // TODO: Implement 4D case
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
