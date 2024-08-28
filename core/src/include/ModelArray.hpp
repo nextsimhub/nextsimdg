@@ -383,6 +383,7 @@ public:
      * @param targetStartLoc The location of the target array (*this) at which copying starts.
      */
     ModelArray& setData(const ModelArray& source, MultiDim sourceStartLoc, MultiDim targetStartLoc);
+
 private:
     // Fast special case for 1-d indexing
     template <typename T, typename I> static inline T indexr(const T* dims, I first)
