@@ -204,6 +204,7 @@ public:
         DGModelArray::dg2ma<DGadvection>(dgField, maField);
         return maField;
     }
+
 protected:
     Nextsim::DGTransport<DGadvection>* dgtransport;
 

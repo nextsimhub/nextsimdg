@@ -12,7 +12,7 @@
 
 namespace Nextsim {
 
-template <int DGadvection> class AdvectionDynamicsKernel: public CGDynamicsKernel<DGadvection> {
+template <int DGadvection> class AdvectionDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 public:
     void update(const TimestepTime& tst) override
     {
