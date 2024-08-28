@@ -102,21 +102,21 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
             auto e22 = makeEigenMap(e22Device);
 
             // get the local x/y - velocity coefficients on the element
-            const auto vx_local = cgToLocal<CGdegree>(u, cgi, cgshift);
-            const auto vy_local = cgToLocal<CGdegree>(v, cgi, cgshift);
+            const auto vxLocal = cgToLocal<CGdegree>(u, cgi, cgshift);
+            const auto vyLocal = cgToLocal<CGdegree>(v, cgi, cgshift);
 
             // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
             // by integrating rhs and inverting with dG(stress) mass matrix
             const auto iMgradX = iMgradXDevice[dgi];
-            e11.row(dgi) = iMgradX * vx_local;
+            e11.row(dgi) = iMgradX * vxLocal;
             const auto iMgradY = iMgradYDevice[dgi];
-            e22.row(dgi) = iMgradY * vy_local;
-            e12.row(dgi) = 0.5 * (iMgradX * vy_local + iMgradY * vx_local);
+            e22.row(dgi) = iMgradY * vyLocal;
+            e12.row(dgi) = 0.5 * (iMgradX * vyLocal + iMgradY * vxLocal);
 
             if (coordinates == SPHERICAL) {
                 const auto iMM = iMMDevice[dgi];
-                e11.row(dgi) -= iMM * vy_local;
-                e12.row(dgi) += 0.5 * iMM * vx_local;
+                e11.row(dgi) -= iMM * vyLocal;
+                e12.row(dgi) += 0.5 * iMM * vxLocal;
             }
         });
 }

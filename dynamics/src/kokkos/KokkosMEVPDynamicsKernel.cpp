@@ -197,18 +197,18 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(const DeviceVi
             const auto PSIAdvect = makeEigenMap(PSIAdvectDevice);
             const auto PSIStress = makeEigenMap(PSIStressDevice);
 
-            auto h_gauss = (hice.row(i) * PSIAdvect).array().max(0.0).matrix();
-            auto a_gauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
+            auto hGauss = (hice.row(i) * PSIAdvect).array().max(0.0).matrix();
+            auto aGauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
 
-            EdgeVec P = (params.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
-                            .matrix();
-            const EdgeVec e11_gauss = e11.row(i) * PSIStress;
-            const EdgeVec e12_gauss = e12.row(i) * PSIStress;
-            const EdgeVec e22_gauss = e22.row(i) * PSIStress;
+            const EdgeVec P
+                = (params.Pstar * hGauss.array() * (-20.0 * (1.0 - aGauss.array())).exp()).matrix();
+            const EdgeVec e11Gauss = e11.row(i) * PSIStress;
+            const EdgeVec e12Gauss = e12.row(i) * PSIStress;
+            const EdgeVec e22Gauss = e22.row(i) * PSIStress;
 
             const auto DELTA = (params.DeltaMin * params.DeltaMin
-                + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
-                + 1.50 * e11_gauss.array() * e22_gauss.array() + e12_gauss.array().square())
+                + 1.25 * (e11Gauss.array().square() + e22Gauss.array().square())
+                + 1.50 * e11Gauss.array() * e22Gauss.array() + e12Gauss.array().square())
                                    .sqrt()
                                    .matrix();
 
@@ -221,8 +221,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(const DeviceVi
                 + (map
                     * (alphaInv
                         * (PDelta.array()
-                                * ((5.0 / 8.0) * e11_gauss.array()
-                                    + (3.0 / 8.0) * e22_gauss.array())
+                                * ((5.0 / 8.0) * e11Gauss.array() + (3.0 / 8.0) * e22Gauss.array())
                             - 0.5 * P.array())
                               .matrix()
                               .transpose()))
@@ -231,8 +230,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(const DeviceVi
                 + (map
                     * (alphaInv
                         * (PDelta.array()
-                                * ((5.0 / 8.0) * e22_gauss.array()
-                                    + (3.0 / 8.0) * e11_gauss.array())
+                                * ((5.0 / 8.0) * e22Gauss.array() + (3.0 / 8.0) * e11Gauss.array())
                             - 0.5 * P.array())
                               .matrix()
                               .transpose()))
@@ -240,7 +238,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(const DeviceVi
             s12.row(i) = fac * s12.row(i)
                 + (map
                     * (alphaInv
-                        * (PDelta.array() * (1.0 / 4.0) * e12_gauss.array()).matrix().transpose()))
+                        * (PDelta.array() * (1.0 / 4.0) * e12Gauss.array()).matrix().transpose()))
                       .transpose();
         });
 }
@@ -262,12 +260,12 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
     //      update by a loop.. implicit parts and h-dependent
     Kokkos::parallel_for(
         "updateMomentum", uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            auto uOcnRel = uOceanDevice(i)
-                - uDevice(i); // note the reversed sign compared to the v component
-            auto vOcnRel = vDevice(i) - vOceanDevice(i);
+            // note the reversed sign compared to the v component
+            const FloatType uOcnRel = uOceanDevice(i) - uDevice(i);
+            const FloatType vOcnRel = vDevice(i) - vOceanDevice(i);
             const FloatType absatm = Kokkos::sqrt(SQR(uAtmosDevice(i)) + SQR(vAtmosDevice(i)));
-            const FloatType absocn = Kokkos::sqrt(
-                SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
+            // note that the sign of uOcnRel is irrelevant here
+            const FloatType absocn = Kokkos::sqrt(SQR(uOcnRel) + SQR(vOcnRel));
 
             uDevice(i) = (1.0
                 / (params.rho_ice * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
