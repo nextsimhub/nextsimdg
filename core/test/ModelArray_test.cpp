@@ -408,6 +408,88 @@ TEST_CASE("Copying contiguous data")
     }
     REQUIRE(lvl2Sum == 0.);
 
+
+}
+// Test the setData function with source and target start indices
+TEST_CASE("Copying contiguous data II")
+{
+    const size_t nx = 13;
+    const size_t ny = 19;
+    const size_t nz = 7;
+
+    ModelArray::setDimensions(ModelArray::Type::THREED, {nx, ny, nz});
+
+    // A 3D array and a 2D array
+    TwoDField twod(ModelArray::Type::TWOD);
+    ThreeDField threed(ModelArray::Type::THREED);
+
+    // Thoroughly check the dimensions
+    REQUIRE(ModelArray::size(ModelArray::Dimension::X) == nx);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Y) == ny);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Z) == nz);
+
+    REQUIRE(twod.dimensions()[0] == nx);
+    REQUIRE(twod.dimensions()[1] == ny);
+
+    REQUIRE(threed.dimensions()[0] == nx);
+    REQUIRE(threed.dimensions()[1] == ny);
+    REQUIRE(threed.dimensions()[2] == nz);
+
+    twod.resize();
+    threed.resize();
+
+    double twod0 = 2.;
+    double threed0 = 3.;
+
+    twod = twod0;
+    threed = threed0;
+
+    // Shorter source array, filling z-level 3
+    size_t size2D = twod.size();
+    size_t k = 3;
+    threed.setData(twod, 0, 3 * size2D);
+
+    REQUIRE(threed(0UL, 0UL, 0UL) == threed0);
+    REQUIRE(threed(nx - 1, ny - 1, k - 1) == threed0);
+    REQUIRE(threed(0UL, 0UL, k) == twod0);
+    REQUIRE(threed(nx / 2, ny / 2, k) == twod0);
+    REQUIRE(threed(nx - 1, ny - 1, k) == twod0);
+    REQUIRE(threed(0UL, 0UL, k + 1) == threed0);
+    REQUIRE(threed(nx - 1, ny - 1, nz - 1) == threed0);
+
+    // Shorter target array, filling from z-level 3
+    twod0 = 4.;
+    threed0 = 5.;
+    twod = twod0;
+
+    for (size_t kk = 0; kk < nz; ++kk) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                threed(i, j, kk) = threed0 + kk;
+            }
+        }
+    }
+    REQUIRE(twod(0UL, 0UL) == twod0);
+    REQUIRE(threed(0UL, 0UL, 4UL) == threed0 + 4);
+    twod.setData(threed, 3 * size2D, 0);
+    REQUIRE(twod(0UL, 0UL) == threed0 + k);
+    REQUIRE(twod(0UL, 0UL) == threed0 + k);
+
+    // Fill something that's not a z-level
+    twod0 = 6.;
+    threed0 = 7.;
+    twod = twod0;
+    threed = threed0;
+
+    size_t sourceStart = size2D / 2;
+    size_t targetStart = threed.indexFromLocation({11, 13, 5});
+    size_t targetEnd = targetStart + size2D - sourceStart;
+    threed.setData(twod, sourceStart, targetStart);
+    REQUIRE(threed[targetStart - 1] == threed0);
+    REQUIRE(threed[targetStart] == twod0);
+    REQUIRE(threed[targetEnd - 1] == twod0);
+    REQUIRE(threed[targetEnd] == threed0);
+
 }
 TEST_SUITE_END();
 
