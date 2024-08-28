@@ -193,45 +193,15 @@ public:
             }
         }
 
-        std::map<std::string, size_t> advectedLevels;
-        size_t n2DFields = 1;
-        // Handle ModelArrays with more than 2 dimensions
-        if (maField.nDimensions() > 2) {
-            // Get the total number of higher dimensions. ModelArray::Type::H is assumed to be the
-            // size of a 2D field.
-            size_t size2D = ModelArray::size(ModelArray::Type::H);
-            size_t n2DFields = maField.size() / size2D;
-            for (size_t k = 0; k < n2DFields; ++k) {
-                std::string field2DName = fieldName + generateSuffix(k, n2DFields);
-                advectedLevels[field2DName] = k;
-            }
-        } else {
-            // Add one advected level, with level = 0
-            advectedLevels[fieldName] = 0;
-        }
+        DGVector<DGadvection>& dgField = advectedFields[fieldName];
+        // Set the DG0 component for the selected level (or whole field if 2D)
+        DGModelArray::ma2dg<DGadvection>(maField, dgField);
 
-        for (auto entry : advectedLevels) {
-            const std::string& name = entry.first;
-            const size_t k = entry.second;
-            // Create the DGVector to hold the higher DG components, if it doesn't already exist.
-            if (advectedFields.count(name) < 1) {
-                DGVector<DGadvection> newField;
-                newField.resize_by_mesh(*smesh);
-                newField.zero();
-                // copy to the map of advected fields
-                advectedFields[name] = newField;
-            }
+        // Perform the advection
+        dgtransport->step(deltaTAdvection, dgField);
 
-            DGVector<DGadvection>& dgField = advectedFields[name];
-            // Set the DG0 component for the selected level (or whole field if 2D)
-            DGModelArray::ma2dg<DGadvection>(maField, dgField, k);
-
-            // Perform the advection
-            dgtransport->step(deltaTAdvection, dgField);
-
-            // Extract the DG0 data to the selected level (or whole field if 2D)
-            DGModelArray::dg2ma<DGadvection>(dgField, maField, k);
-        }
+        // Extract the DG0 data to the selected level (or whole field if 2D)
+        DGModelArray::dg2ma<DGadvection>(dgField, maField);
         return maField;
     }
 protected:
