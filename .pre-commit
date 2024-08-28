@@ -6,5 +6,8 @@ for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|cc|h|hpp)$'); do
   # Apply clang-format for linting
   clang-format -i ${FILE} --verbose
   # Update date stamp to today's date
-  sed -i "s/$(grep '\* @date' ${FILE})/ @date $(date '+%d %b %Y')/" ${FILE}
+  LINE=$(grep '@date' ${FILE})
+  let SPACES=$(echo "${LINE}" | tr -cd ' \t' | wc -c)-4
+  NEWLINE=$(printf "%s%$((SPACES))s%s\n" " @date" " " "$(date '+%d %b %Y')")
+  sed -i "s/${LINE}/${NEWLINE}/" ${FILE}
 done
