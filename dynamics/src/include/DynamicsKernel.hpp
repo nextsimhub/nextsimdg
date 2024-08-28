@@ -259,13 +259,6 @@ private:
 
     // A map from field name to the type of
     std::unordered_map<std::string, ModelArray::Type> fieldType;
-
-    // Generates a consistent suffix for multilevel fields
-    std::string generateSuffix(size_t i, size_t n) {
-        if (n < 2) return "";
-        return "_" + std::to_string(i) + "OF" + std::to_string(n);
-    }
-
 };
 
 }
