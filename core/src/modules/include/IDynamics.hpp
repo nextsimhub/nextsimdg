@@ -65,7 +65,37 @@ public:
 
     virtual void update(const TimestepTime& tst) = 0;
 
-    virtual ModelArray& advectField(ModelArray& field, const std::string& fieldName) = 0;
+    /*!
+     * Advects a ModelArray field of any type
+     *
+     * @param field The ModelArray data to be advected
+     *
+     * @param fieldName A name for the field, to allow storage of additional information
+     */
+    ModelArray& advectField(ModelArray& field, const std::string& fieldName)
+    {
+        if (field.nDimensions() > 2) {
+            // Get the total number of higher dimensions. ModelArray::Type::H is assumed to be the
+            // size of a 2D field.
+            size_t size2D = ModelArray::size(ModelArray::Type::H);
+            size_t n2DFields = field.size() / size2D;
+            HField levelData;
+            levelData.resize();
+            for (size_t k = 0; k < n2DFields; ++k) {
+                // Copy the data of one 2D field to levelData
+                levelData.setData(field, k * size2D, 0);
+                // generate a consistent, unique name for this level
+                std::string field2DName = fieldName + generateSuffix(k, n2DFields);
+                // Advection occurs!
+                advectHField(levelData, field2DName);
+                // Copy the data of levelData back to the correct 2D field
+                field.setData(levelData, 0, k * size2D);
+            }
+            return field;
+        } else {
+            return advectHField(field, fieldName);
+        }
+    }
 
     /*!
      * Returns whether the dynamics implementation uses the damage field.
@@ -111,6 +141,19 @@ protected:
                 + ") coordinates.");
         }
     }
+
+    /*!
+     * Advects an HField, likely using the implementation's dynamics kernel
+     */
+    virtual ModelArray& advectHField(ModelArray& field, const std::string& fieldName) = 0;
+
+private:
+    // Generates a consistent suffix for multilevel fields
+    std::string generateSuffix(size_t i, size_t n) {
+        if (n < 2) return "";
+        return "_" + std::to_string(i) + "OF" + std::to_string(n);
+    }
+
 };
 }
 

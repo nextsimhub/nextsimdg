@@ -32,11 +32,13 @@ public:
 
     std::string getName() const override { return "MEVPDynamics"; }
     void update(const TimestepTime& tst) override;
-    ModelArray& advectField(ModelArray& field, const std::string& fieldName) override;
 
     void setData(const ModelState::DataMap&) override;
     ModelState getStateRecursive(const OutputSpec& os) const override;
     void configure() override;
+
+protected:
+    ModelArray& advectHField(ModelArray& field, const std::string& fieldName) override;
 
 private:
     MEVPDynamicsKernel<DGCOMP> kernel;

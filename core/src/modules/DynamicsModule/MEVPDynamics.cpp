@@ -82,7 +82,7 @@ void MEVPDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 }
 
-ModelArray& MEVPDynamics::advectField(ModelArray& field, const std::string& fieldName)
+ModelArray& MEVPDynamics::advectHField(ModelArray& field, const std::string& fieldName)
 {
     return kernel.advectField(field, fieldName);
 }

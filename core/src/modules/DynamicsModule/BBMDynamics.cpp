@@ -96,7 +96,7 @@ void BBMDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 }
 
-ModelArray& BBMDynamics::advectField(ModelArray& field, const std::string& fieldName)
+ModelArray& BBMDynamics::advectHField(ModelArray& field, const std::string& fieldName)
 {
     return kernel.advectField(field, fieldName);
 }

@@ -25,11 +25,12 @@ public:
 
     std::string getName() const override { return "BBMDynamics"; }
     void update(const TimestepTime& tst) override;
-    ModelArray& advectField(ModelArray& field, const std::string& fieldName) override;
 
     void setData(const ModelState::DataMap&) override;
     ModelState getState() const override;
     ModelState getStateRecursive(const OutputSpec& os) const override;
+protected:
+    ModelArray& advectHField(ModelArray& field, const std::string& fieldName) override;
 private:
     BBMDynamicsKernel<DGCOMP> kernel;
     MEBParameters params;
