@@ -161,6 +161,7 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
     iMgradX.resize(smesh.nelements);
     iMgradY.resize(smesh.nelements);
     iMJwPSI.resize(smesh.nelements);
+    iMJwPSIAdvect.resize(smesh.nelements);
     if (smesh.CoordinateSystem == SPHERICAL) {
         divM.resize(smesh.nelements);
         iMM.resize(smesh.nelements);
@@ -203,6 +204,11 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
 
         const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> J
             = ParametricTools::J<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid);
+
+        iMJwPSIAdvect[eid] = ParametricTools::massMatrix<DGAdvect>(smesh, eid).inverse()
+            * (PSI<DGAdvect, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
+                * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
+                  .matrix();
 
         if (smesh.CoordinateSystem == CARTESIAN) {
             // divS is used for update of stress (S, nabla Phi) in Momentum

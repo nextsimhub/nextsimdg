@@ -91,6 +91,13 @@ public:
         = Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), GAUSSPOINTS(CG2DGSTRESS(CG))>;
     std::vector<GaussMapMatrix, Eigen::aligned_allocator<GaussMapMatrix>> iMJwPSI;
 
+    // this is not the proper way to select the advection comps
+    // should be a template parameter as well and perhaps a different class
+    static constexpr int DGAdvect = CG == 1 ? 3 : 6;
+    using GaussMapAdvectMatrix
+        = Eigen::Matrix<Nextsim::FloatType, DGAdvect, GAUSSPOINTS(CG2DGSTRESS(CG))>;
+    std::vector<GaussMapAdvectMatrix, Eigen::aligned_allocator<GaussMapAdvectMatrix>> iMJwPSIAdvect;
+
     ParametricMomentumMap(const ParametricMesh& sm)
         : smesh(sm)
     {
