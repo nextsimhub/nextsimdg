@@ -9,5 +9,5 @@ for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|cc|h|hpp)$'); do
   LINE=$(grep '@date' ${FILE})
   let SPACES=$(echo "${LINE}" | tr -cd ' \t' | wc -c)-4
   NEWLINE=$(printf "%s%$((SPACES))s%s\n" " @date" " " "$(date '+%d %b %Y')")
-  sed -i "s/${LINE}/${NEWLINE}/" ${FILE}
+  sed -i~ "s/${LINE}/${NEWLINE}/" ${FILE}
 done
