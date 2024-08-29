@@ -1,0 +1,129 @@
+/*!
+ * @file KokkosBrittleCGDynamicsKernel.hpp
+ * @date August 28, 2024
+ * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ */
+
+#ifndef KOKKOSBRITTLECGDYNAMICSKERNEL_HPP
+#define KOKKOSBRITTLECGDYNAMICSKERNEL_HPP
+
+#include "../include/MEBParameters.hpp"
+#include "KokkosCGDynamicsKernel.hpp"
+
+namespace Nextsim {
+
+template <int DGadvection>
+class KokkosBrittleCGDynamicsKernel : public KokkosCGDynamicsKernel<DGadvection> {
+public:
+    using Base = KokkosCGDynamicsKernel<DGadvection>;
+
+    using DeviceViewCG = typename Base::DeviceViewCG;
+    using HostViewCG = typename Base::HostViewCG;
+    using ConstDeviceViewCG = typename Base::ConstDeviceViewCG;
+
+    using DeviceViewStress = typename Base::DeviceViewStress;
+    using ConstDeviceViewStress = typename Base::ConstDeviceViewStress;
+
+    using DeviceViewAdvect = typename Base::DeviceViewAdvect;
+    using HostViewAdvect = typename Base::HostViewAdvect;
+    using ConstDeviceViewAdvect = typename Base::ConstDeviceViewAdvect;
+
+    using PSIAdvectView = typename Base::PSIAdvectView;
+    using PSIStressView = typename Base::PSIStressView;
+
+    KokkosBrittleCGDynamicsKernel(const MEBParameters& paramsIn)
+        : params(paramsIn)
+    {
+    }
+
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
+
+    // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
+    void prepareAdvection() override { this->dgtransport->prepareAdvection(avgU, avgV); }
+
+    void update(const TimestepTime& tst) override;
+
+    // expose additional fields
+    void setData(const std::string& name, const ModelArray& data) override
+    {
+        if (name == damageName) {
+            DGModelArray::ma2dg(data, damage);
+        } else {
+            CGDynamicsKernel<DGadvection>::setData(name, data);
+        }
+    }
+
+    ModelArray getDG0Data(const std::string& name) const override
+    {
+
+        if (name == damageName) {
+            ModelArray data(ModelArray::Type::H);
+            return DGModelArray::dg2ma(damage, data);
+        } else {
+            return CGDynamicsKernel<DGadvection>::getDG0Data(name);
+        }
+    }
+
+    ModelArray getDGData(const std::string& name) const override
+    {
+        if (name == damageName) {
+            ModelArray data(ModelArray::Type::DG);
+            return DGModelArray::dg2ma(damage, data);
+        } else {
+            return CGDynamicsKernel<DGadvection>::getDGData(name);
+        }
+    }
+
+    // todo: move this into KokkosBBMDynamics
+    static void updateStressHighOrderDevice(const DeviceViewStress& s11Device,
+        const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
+        const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
+        const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
+        const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
+        const ConstDeviceViewAdvect& ciceDevice, const DeviceViewAdvect& damageDevice,
+        const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
+        const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix>&
+            iMJwPSIAdvectDevice,
+        const KokkosDeviceMapView<FloatType>& cellSizeDevice, const TimestepTime& tst,
+        const MEBParameters& params);
+
+    static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
+        const DeviceViewCG& avgUDevice, const DeviceViewCG& avgVDevice,
+        const ConstDeviceViewCG& cgHDevice, const ConstDeviceViewCG& cgADevice,
+        const ConstDeviceViewCG& uAtmosDevice, const ConstDeviceViewCG& vAtmosDevice,
+        const ConstDeviceViewCG& uOceanDevice, const ConstDeviceViewCG& vOceanDevice,
+        const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
+        const ConstDeviceViewCG& lumpedCGMassDevice, const TimestepTime& tst,
+        const MEBParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
+        DeviceIndex nSteps);
+
+protected:
+    // these values are only needed on the host because of the advection step
+    CGVector<CGdegree> avgU;
+    CGVector<CGdegree> avgV;
+
+    DGVector<DGadvection> damage;
+
+    const MEBParameters& params;
+
+    std::unique_ptr<Nextsim::DGTransport<DGstressComp>> stressTransport;
+
+    DeviceViewCG avgUDevice;
+    HostViewCG avgUHost;
+    DeviceViewCG avgVDevice;
+    HostViewCG avgVHost;
+
+    DeviceViewAdvect damageDevice;
+    HostViewAdvect damageHost;
+
+    FloatType cosOceanAngle, sinOceanAngle;
+
+    // BBM stress update related
+    KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix> iMJwPSIAdvectDevice;
+    // ParametricMesh::h()
+    KokkosDeviceMapView<FloatType> cellSizeDevice;
+};
+
+} /* namespace Nextsim */
+
+#endif /* KOKKOSMEVPDYNAMICSKERNEL_HPP */

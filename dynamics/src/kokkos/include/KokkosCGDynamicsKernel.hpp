@@ -30,6 +30,19 @@ public:
     using ConstDeviceViewStress = ConstKokkosDeviceView<DGVector<DGstressComp>>;
     // using DeviceSymmetricTensorVector = std::array<DeviceViewStress, 3>;
 
+    using DeviceViewAdvect = KokkosDeviceView<DGVector<DGadvection>>;
+    using HostViewAdvect = KokkosHostView<DGVector<DGadvection>>;
+    using ConstDeviceViewAdvect = ConstKokkosDeviceView<DGVector<DGadvection>>;
+
+    // constant matrices
+    static constexpr int NGP = NGP_DG<DGstressComp>;
+    using PSIAdvectType = decltype(PSI<DGadvection, NGP>);
+    using PSIStressType = decltype(PSI<DGstressComp, NGP>);
+    // in gcc13 the signature of updateStressHighOrder is somehow incompatible between declaration
+    // and implementation if we use ConstKokkosDeviceView directly
+    using PSIAdvectView = ConstKokkosDeviceView<PSIAdvectType>;
+    using PSIStressView = ConstKokkosDeviceView<PSIStressType>;
+
     // precomputed maps
     using DivMapDevice = KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::DivMatrix>;
     using GradMapDevice = KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix>;
@@ -57,6 +70,9 @@ public:
         const KokkosMeshData::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny);
 
 protected:
+    // currently not used
+    void updateMomentum(const TimestepTime& tst) override { }
+
     // cG (velocity) components
     DeviceViewCG uDevice;
     HostViewCG uHost;
@@ -105,6 +121,21 @@ protected:
     GradMapDevice iMgradXDevice;
     GradMapDevice iMgradYDevice;
     GradMapDevice iMMDevice;
+
+    // data that is needed by the child classes implementing stress and momentum
+    DeviceViewAdvect hiceDevice;
+    HostViewAdvect hiceHost;
+    DeviceViewAdvect ciceDevice;
+    HostViewAdvect ciceHost;
+
+    // constant matrices also need to be available on the GPU
+    PSIAdvectView PSIAdvectDevice;
+    PSIStressView PSIStressDevice;
+
+    // parametric map precomputed transforms
+    // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
+    ConstDeviceViewCG lumpedCGMassDevice;
+    KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
 
     std::unique_ptr<KokkosMeshData> meshData;
 };

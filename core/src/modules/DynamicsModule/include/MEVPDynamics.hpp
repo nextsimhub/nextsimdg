@@ -39,8 +39,6 @@ public:
     void configure() override;
 
 private:
-    // TODO: How to get the template parameters here?
-    // MEVPDynamicsKernel<6> kernel;
 #ifdef USE_KOKKOS
     KokkosMEVPDynamicsKernel<DGCOMP> kernel;
 #else

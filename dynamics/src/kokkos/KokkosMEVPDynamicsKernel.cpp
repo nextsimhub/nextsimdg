@@ -53,17 +53,6 @@ void KokkosMEVPDynamicsKernel<DGadvection>::initialise(
     u0Device = u0DeviceMut;
     v0Device = v0DeviceMut;
 
-    std::tie(hiceHost, hiceDevice) = makeKokkosDualView("hice", this->hice);
-    std::tie(ciceHost, ciceDevice) = makeKokkosDualView("cice", this->cice);
-
-    // does not depend on the data but it can not be allocated in the constructor
-    PSIAdvectDevice = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, true);
-    PSIStressDevice = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, true);
-
-    // parametric map related
-    lumpedcgmassDevice = makeKokkosDeviceView("lumpedcgmass", this->pmap->lumpedcgmass, true);
-    iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
-
     // These buffers are only used internally. Thus, synchronisation with CPU only needs to happen
     // to save/load the state. todo: read back buffers if needed in outputs
     Kokkos::deep_copy(this->s11Device, this->s11Host);
@@ -124,7 +113,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         timerProj.stop();
 
         timerStress.start();
-        updateStressHighOrder(this->s11Device, this->s12Device, this->s22Device, this->e11Device,
+        updateStressHighOrderDevice(this->s11Device, this->s12Device, this->s22Device, this->e11Device,
             this->e12Device, this->e22Device, this->PSIAdvectDevice, this->PSIStressDevice,
             this->hiceDevice, this->ciceDevice, this->iMJwPSIDevice, params, alpha);
         timerStress.stop();
@@ -140,7 +129,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         updateMomentumDevice(this->uDevice, this->vDevice, this->u0Device, this->v0Device,
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
-            this->lumpedcgmassDevice, tst, params, beta);
+            this->lumpedCGMassDevice, tst, params, beta);
         timerMomentum.stop();
 
         timerBoundary.start();
@@ -173,7 +162,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 }
 
 template <int DGadvection>
-void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrder(const DeviceViewStress& s11Device,
+void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(const DeviceViewStress& s11Device,
     const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
     const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
     const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
@@ -250,7 +239,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
     const ConstDeviceViewCG& cgADevice, const ConstDeviceViewCG& uAtmosDevice,
     const ConstDeviceViewCG& vAtmosDevice, const ConstDeviceViewCG& uOceanDevice,
     const ConstDeviceViewCG& vOceanDevice, const ConstDeviceViewCG& dStressXDevice,
-    const ConstDeviceViewCG& dStressYDevice, const ConstDeviceViewCG& lumpedcgmassDevice,
+    const ConstDeviceViewCG& dStressYDevice, const ConstDeviceViewCG& lumpedCGMassDevice,
     const TimestepTime& tst, const VPParameters& params, FloatType beta)
 {
     // Update the velocity
@@ -276,7 +265,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
                         * (params.F_atm * absatm * uAtmosDevice(i) + // atm forcing
                             params.F_ocean * absocn * SC * uOceanDevice(i)) // ocean forcing
                     + params.rho_ice * cgHDevice(i) * params.fc * vOcnRel // cor + surface
-                    + dStressXDevice(i) / lumpedcgmassDevice(i)));
+                    + dStressXDevice(i) / lumpedCGMassDevice(i)));
             vDevice(i) = (1.0
                 / (params.rho_ice * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
                     + cgADevice(i) * params.F_ocean * absocn) // implicit parts
@@ -287,7 +276,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
                             params.F_ocean * absocn * SC * vOceanDevice(i)) // ocean forcing
                     + params.rho_ice * cgHDevice(i) * params.fc
                         * uOcnRel // here the reversed sign of uOcnRel is used
-                    + dStressYDevice(i) / lumpedcgmassDevice(i)));
+                    + dStressYDevice(i) / lumpedCGMassDevice(i)));
         });
 }
 

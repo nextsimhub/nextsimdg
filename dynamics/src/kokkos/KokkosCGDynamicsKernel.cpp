@@ -47,6 +47,16 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     iMgradYDevice = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, true);
     iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, true);
 
+    // needed for stress and momentum
+    std::tie(hiceHost, hiceDevice) = makeKokkosDualView("hice", this->hice);
+    std::tie(ciceHost, ciceDevice) = makeKokkosDualView("cice", this->cice);
+
+    PSIAdvectDevice = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, true);
+    PSIStressDevice = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, true);
+
+    lumpedCGMassDevice = makeKokkosDeviceView("lumpedcgmass", this->pmap->lumpedcgmass, true);
+    iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
+
     assert(this->smesh);
     meshData = std::make_unique<KokkosMeshData>(*this->smesh);
 }

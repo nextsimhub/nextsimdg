@@ -11,6 +11,7 @@
 #include "include/BBMDynamicsKernel.hpp"
 #include "include/IDynamics.hpp"
 #include "include/MEBParameters.hpp"
+#include "kokkos/include/KokkosBrittleCGDynamicsKernel.hpp"
 
 #ifndef DGCOMP
 #define DGCOMP 3 // Define to prevent errors from static analysis tools
@@ -32,7 +33,11 @@ public:
     ModelState getStateRecursive(const OutputSpec& os) const override;
 
 private:
+#ifdef USE_KOKKOS
+    KokkosBrittleCGDynamicsKernel<DGCOMP> kernel;
+#else
     BBMDynamicsKernel<DGCOMP> kernel;
+#endif
     MEBParameters params;
 };
 
