@@ -33,6 +33,8 @@ public:
         , vocean(getStore())
         , m_usesDamage(usesDamageIn)
     {
+        getStore().registerArray(Protected::ICE_U, &uice, RO);
+        getStore().registerArray(Protected::ICE_V, &vice, RO);
         getStore().registerArray(Shared::DAMAGE, &damage, RW);
     }
     virtual ~IDynamics() = default;

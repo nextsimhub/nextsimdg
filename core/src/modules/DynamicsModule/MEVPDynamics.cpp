@@ -30,8 +30,6 @@ MEVPDynamics::MEVPDynamics()
     : IDynamics()
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)

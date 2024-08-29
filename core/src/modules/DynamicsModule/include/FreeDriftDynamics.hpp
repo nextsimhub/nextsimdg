@@ -30,8 +30,6 @@ public:
         : IDynamics()
         , kernel(params)
     {
-        getStore().registerArray(Protected::ICE_U, &uice, RO);
-        getStore().registerArray(Protected::ICE_V, &vice, RO);
     }
 
     std::string getName() const override { return "FreeDriftDynamics"; }

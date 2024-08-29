@@ -20,8 +20,6 @@ BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void BBMDynamics::setData(const ModelState::DataMap& ms)
