@@ -8,7 +8,7 @@
 #ifndef ADVECTIONDYNAMICSKERNEL_HPP
 #define ADVECTIONDYNAMICSKERNEL_HPP
 
-#include <CGDynamicsKernel.hpp>
+#include "CGDynamicsKernel.hpp"
 
 namespace Nextsim {
 
