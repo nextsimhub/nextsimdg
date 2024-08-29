@@ -193,6 +193,15 @@ public:
             }
         }
 
+        // Create the DGVector to hold the higher DG components, if it doesn't already exist.
+        if (advectedFields.count(fieldName) < 1) {
+            DGVector<DGadvection> newField;
+            newField.resize_by_mesh(*smesh);
+            newField.zero();
+            // copy to the map of advected fields
+            advectedFields[fieldName] = newField;
+        }
+
         DGVector<DGadvection>& dgField = advectedFields[fieldName];
         // Set the DG0 component for the selected level (or whole field if 2D)
         DGModelArray::ma2dg<DGadvection>(maField, dgField);

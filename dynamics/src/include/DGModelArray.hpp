@@ -19,7 +19,6 @@ class DGModelArray {
 public:
     template <int N> static DGVector<N>& ma2dg(const ModelArray& ma, DGVector<N>& dg)
     {
-        dg.zero();
         if (N == ma.components(0).size()) {
             //            assert(N == ma.components(0).size());
             dg = ma.data().matrix();
