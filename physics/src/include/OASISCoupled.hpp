@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupled.hpp
  *
- * @date Aug 15, 2024
+ * @date 29 Aug 2024
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -30,6 +30,7 @@ public:
     void setMetadata(const ModelMetadata& metadata)
     {
         // Set the "OASIS time" (seconds since start) to zero
+        // TODO: We need to figure out if this is ok to do when restarting
         OASISTime = 0;
 
         // Set the communicators
@@ -38,6 +39,7 @@ public:
         MPI_Comm localComm;
         MPI_Comm coupledComm;
 
+        // compName could be configurable, but I don't see the need
         const std::string compName = "nextsim";
         OASIS_CHECK_ERR(oasis_c_init_comp_with_comm(
             &compID, compName.c_str(), OASIS_COUPLED, metadata.mpiComm));
@@ -74,6 +76,8 @@ public:
         const int globalSize = metadata.globalExtentX * metadata.globalExtentY;
         OASIS_CHECK_ERR(oasis_c_def_partition(
             &partitionID, OASIS_Box_Params, &partInfo[0], globalSize, compName.c_str()));
+
+        // TODO: Writing out grid information should be possible, but optional
 
         // def_var and end_def calls are called by the child class
     }
