@@ -45,10 +45,6 @@ void PrognosticData::configure()
     tryConfigure(pDynamics);
 
     tryConfigure(iceGrowth);
-
-    // Mark fields for advection
-    advectedFields.insert(Shared::H_SNOW);
-    advectedFields.insert(Shared::T_ICE);
 }
 
 void PrognosticData::setData(const ModelState::DataMap& ms)

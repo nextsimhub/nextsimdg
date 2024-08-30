@@ -210,7 +210,6 @@ protected:
 
 protected:
     static ModelArray* p_oceanMaskH;
-    static std::set<std::string> advectedFields;
 
 private:
     static ModelArrayReferenceStore store;
