@@ -33,8 +33,6 @@ public:
     std::string getName() const override { return "AdvectionDynamics"; }
     void update(const TimestepTime& tst) override
     {
-        std::cout << tst.start << std::endl;
-
         // set the updated ice thickness and concentration
         kernel.setData(hiceName, hice.data());
         kernel.setData(ciceName, cice.data());
@@ -54,6 +52,7 @@ public:
         if (isSpherical) {
             coords *= radians;
         }
+
         // TODO: Some encoding of the periodic edge boundary conditions
         kernel.initialise(coords, false, ms.at(maskName));
 
@@ -155,7 +154,6 @@ TEST_CASE("Advect a 2D field")
     mask.resize();
     mask = 1.; // water/ice everywhere
 
-
     UField u(ModelArray::Type::U);
     VField v(ModelArray::Type::V);
     u.resize();
@@ -245,6 +243,13 @@ TEST_CASE("Advect a 2D field")
             {ciceName, cice},
             {hiceName, hice},
     };
+    ModelComponent::getStore().registerArray(Protected::H_ICE, &hice, RO);
+    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
+
+    HField hiceUpd(ModelArray::Type::H);
+    HField ciceUpd(ModelArray::Type::H);
+    ModelComponent::getStore().registerArray(Shared::H_ICE, &hice, RW);
+    ModelComponent::getStore().registerArray(Shared::C_ICE, &cice, RW);
 
     AdvectionDynamics advection;
     advection.setData(state);
@@ -280,10 +285,12 @@ TEST_CASE("Advect a 2D field")
     double testEps = 5e-2;
 
     for (double t = 0; t <= timeLimit; t += deltaT) {
+        // Volatile h_ice and c_ice
+        hiceUpd = hice;
+        ciceUpd = cice;
+
         if (outCount >= outPeriod) {
-//            writeDataPGM(-tice * 100, "0_" + std::to_string(std::lround(t)) + ".pgm", 0);
-//            writeDataPGM(-tice * 100, "1_" + std::to_string(std::lround(t)) + ".pgm", 1);
-//            writeDataPGM(hsnow * 100, std::to_string(std::lround(t)) + ".pgm");
+            // Test using the pseudo-FT
             auto [hsnowCos, hsnowSin] = pseudoFT(hsnow, nx/2, ny/2, pTest);
             auto [t0Cos, t0Sin] = pseudoFT(tice, 0, nx/2, ny/2, pTest);
             auto [t1Cos, t1Sin] = pseudoFT(tice, 1, nx/2, ny/2, pTest);
@@ -293,8 +300,6 @@ TEST_CASE("Advect a 2D field")
             REQUIRE(t0Sin == doctest::Approx(ticeExpdSines[nOut][0]).epsilon(testEps));
             REQUIRE(t1Cos == doctest::Approx(ticeExpdCosines[nOut][1]).epsilon(testEps));
             REQUIRE(t1Sin == doctest::Approx(ticeExpdSines[nOut][1]).epsilon(testEps));
-//            std::cout << "cosine: data=" << t0Cos << ", expected=" << ticeExpdCosines[nOut][1] << std::endl;
-//            std::cout << "sine:   data=" << t0Sin << ", expected=" << ticeExpdSines[nOut][1] << std::endl;
             outCount = 0;
             ++nOut;
         }
