@@ -134,7 +134,7 @@ TEST_CASE("Advect a 2D field")
     double dx = 1000; //m
     double dy = 1000; //m
     double r0 = 20 * dx; //m
-    double deltaT = 50; //s
+    double deltaT = 100; //s
 
     // Create the grid coordinates
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
