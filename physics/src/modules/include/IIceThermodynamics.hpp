@@ -1,16 +1,16 @@
 /*!
  * @file IIceThermodynamics.hpp
  *
- * @date Mar 16, 2022
+ * @date 30 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IICETHERMODYNAMICS_HPP
 #define IICETHERMODYNAMICS_HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/ConfigurationHelp.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -64,6 +64,7 @@ protected:
         , tf(getStore())
         , snowfall(getStore())
         , sss(getStore())
+        , qswBase(getStore())
     {
         registerModule();
 
@@ -76,6 +77,7 @@ protected:
     ModelArrayRef<Shared::H_SNOW, RW> hsnow; // From Ice Growth
     ModelArrayRef<Shared::Q_IC, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
+    ModelArrayRef<Shared::Q_SW_BASE, RW> qswBase; // Short-wave flux through the base of the ice
     ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
     ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
     ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation

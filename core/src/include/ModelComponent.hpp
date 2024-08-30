@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 1 Jul 2024
+ * @date 30 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -71,6 +71,8 @@ namespace Protected {
         = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
     inline constexpr TextTag SLAB_FDW
         = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+    inline constexpr TextTag FWFLUX = "FWFLUX"; // Fresh-water flux at the ocean surface, kg m⁻²
+    inline constexpr TextTag SFLUX = "SFLUX"; // Salt flux at the ocean surface, kg m⁻²
 }
 
 namespace Shared {
@@ -88,6 +90,9 @@ namespace Shared {
     inline constexpr TextTag DQIA_DT
         = "DQIA_DT"; // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
     inline constexpr TextTag Q_PEN_SW = "Q_PEN_SW"; // Penetrating shortwave flux W m⁻²
+    inline constexpr TextTag Q_SW_OW = "Q_SW_OW"; // Net shortwave flux at ocean surface W m⁻²
+    inline constexpr TextTag Q_SW_BASE
+        = "Q_SW_BASE"; // Net shortwave flux at the base of the ice W m⁻²
     // Mass fluxes
     inline constexpr TextTag HSNOW_MELT = "HSNOW_MELT"; // Thickness of snow that melted, m
     // Atmospheric conditions

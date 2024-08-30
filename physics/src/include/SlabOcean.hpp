@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 7 Sep 2023
+ * @date 30 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -38,9 +38,8 @@ public:
         , cice(getStore())
         , qio(getStore())
         , qow(getStore())
-        , newIce(getStore())
-        , deltaHice(getStore())
-        , deltaSmelt(getStore())
+        , fwFlux(getStore())
+        , sFlux(getStore())
     {
     }
 
@@ -82,9 +81,8 @@ private:
     ModelArrayRef<Shared::Q_IO, RW> qio;
     ModelArrayRef<Shared::Q_OW, RW> qow;
     // TODO ModelArrayRef to assimilation flux
-    ModelArrayRef<Shared::NEW_ICE, RW> newIce;
-    ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
-    ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;
+    ModelArrayRef<Protected::FWFLUX, RO> fwFlux;
+    ModelArrayRef<Protected::SFLUX, RO> sFlux;
 
     static const std::string sstSlabName;
     static const std::string sssSlabName;
