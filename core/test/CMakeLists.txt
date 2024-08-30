@@ -253,8 +253,6 @@ else()
     )
     target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
 
-    set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
-
   add_executable(testDynamicsAdvection "DynamicsAdvection_test.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp")
   target_compile_definitions(testDynamicsAdvection
     PRIVATE
