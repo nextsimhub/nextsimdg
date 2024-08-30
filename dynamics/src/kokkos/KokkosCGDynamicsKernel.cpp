@@ -112,12 +112,15 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
             auto e22 = makeEigenMap(e22Device);
 
             // get the local x/y - velocity coefficients on the element
-            const auto vxLocal = cgToLocal<CGdegree>(u, cgi, cgshift);
-            const auto vyLocal = cgToLocal<CGdegree>(v, cgi, cgshift);
+            auto vxLocal = cgToLocal<CGdegree>(u, cgi, cgshift);
+            vxLocal.setOnes();
+            auto vyLocal = cgToLocal<CGdegree>(v, cgi, cgshift);
+            vyLocal.setOnes();
 
             // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
             // by integrating rhs and inverting with dG(stress) mass matrix
-            const auto iMgradX = iMgradXDevice[dgi];
+            auto iMgradX = iMgradXDevice[dgi];
+            iMgradX.setOnes(); iMgradX *= dgi;
             e11.row(dgi) = iMgradX * vxLocal;
             const auto iMgradY = iMgradYDevice[dgi];
             e22.row(dgi) = iMgradY * vyLocal;
