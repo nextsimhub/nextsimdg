@@ -1,11 +1,11 @@
 /*!
  * @file AdvectionPeriodicBC_test.cpp
- * @date 10 Jul 2022
+ * @date 19 August 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
- #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
- #include <doctest/doctest.h>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
@@ -14,11 +14,10 @@
 #include "dgLimit.hpp"
 #include "dgVisu.hpp"
 
-#include <cassert>
-#include <chrono>
 #include <filesystem> // only for automatic creation of output directory
 #include <iostream>
-#include <vector>
+
+using namespace doctest;
 
 /*!
  * Advection test case on a ring:
@@ -165,8 +164,8 @@ public:
 
         // initial density
         Nextsim::Interpolations::Function2DG(smesh, phi, Packman());
-	Nextsim::LimitMax(phi, 1.0);
-	//	Nextsim::LimitMin(phi, 0.0);
+        Nextsim::LimitMax(phi, 1.0);
+        //	Nextsim::LimitMin(phi, 0.0);
 
         double initialmass = Nextsim::Tools::MeanValue(smesh, phi);
         // velocity field
@@ -255,13 +254,11 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh)
     }
 }
 
-template <int DG> bool run(const std::array<std::array<double, 6>, 3>& exact)
+template <int DG> void run(const std::array<std::array<double, 6>, 3>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 : -1))
-
-    bool success = true;
 
     for (int it = 0; it < 2; ++it) {
 
@@ -273,30 +270,28 @@ template <int DG> bool run(const std::array<std::array<double, 6>, 3>& exact)
 
         Test<DG> test(smesh);
         double error = test.run();
-        std::cout << error << "\t" << exact[DG2DEG(DG)][it];
-        if (fabs(error - exact[DG2DEG(DG)][it]) / exact[DG2DEG(DG)][it] < TOL){
-            std::cout << "\ttest passed" << std::endl;
-          }
-        else{
-            std::cout << "\ttest failed" << std::endl;
-            success = false;
-          }
+        std::cout << error << "\t" << exact[DG2DEG(DG)][it] << std::endl;
+        CHECK(error == Approx(exact[DG2DEG(DG)][it]).epsilon(TOL));
     }
-    return success;
 }
 
 TEST_SUITE_BEGIN("Advection Periodic Boundary Conditions");
 TEST_CASE("Advection Periodic Boundary Conditions")
 {
-    std::cout << "DG\tNT\tNX\tmass\t\terror\t\texact\t\tpassed" << std::endl;
-    std::cout << std::setprecision(4) << std::scientific;
-
     std::array<std::array<double, 6>, 3> exact = // Exact values taken 26/06/2024
-      {std::array<double,6>({1.0338503986019776e+00,1.1451366598186583e+00,1.0681593193338459e+00,9.5252231195653603e-01,8.1458581892610615e-01,6.8950068528265651e-01}),
-       std::array<double,6>({1.0949680727313791e+00,8.3851748134278226e-01,5.8501741891364523e-01,4.0006092999256893e-01,2.8493698219799068e-01,2.0801424342840474e-01}),
-       std::array<double,6>({7.1704413076190610e-01,4.6135258391583606e-01,3.2770311091970727e-01,2.3424633076579465e-01,1.7038068017215552e-01,1.2486932724366147e-01})};
-    REQUIRE(run<1>(exact) == true);
-    REQUIRE(run<3>(exact) == true);
-    REQUIRE(run<6>(exact) == true);
-     
+        { std::array<double, 6>(
+              { 1.0338503986019776e+00, 1.1451366598186583e+00, 1.0681593193338459e+00,
+                  9.5252231195653603e-01, 8.1458581892610615e-01, 6.8950068528265651e-01 }),
+            std::array<double, 6>(
+                { 1.0949680727313791e+00, 8.3851748134278226e-01, 5.8501741891364523e-01,
+                    4.0006092999256893e-01, 2.8493698219799068e-01, 2.0801424342840474e-01 }),
+            std::array<double, 6>(
+                { 7.1704413076190610e-01, 4.6135258391583606e-01, 3.2770311091970727e-01,
+                    2.3424633076579465e-01, 1.7038068017215552e-01, 1.2486932724366147e-01 }) };
+
+    std::cout << "DG\tNT\tNX\tmass\t\terror\t\texact" << std::endl;
+    std::cout << std::setprecision(4) << std::scientific;
+    run<1>(exact);
+    run<3>(exact);
+    run<6>(exact);
 }

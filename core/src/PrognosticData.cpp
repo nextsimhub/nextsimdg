@@ -95,6 +95,7 @@ void PrognosticData::update(const TimestepTime& tst)
     // Advect the prognostic fields not advected by the dynamics
     pDynamics->advectField(m_snow, hsnowName);
     pDynamics->advectField(m_tice, ticeName);
+
     updatePrognosticFields();
 
     pOcnBdy->updateAfter(tst);

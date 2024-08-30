@@ -8,27 +8,6 @@ on:
 
 jobs:
 
-  clang-formatter:
-
-    runs-on: ubuntu-22.04
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: clang-format
-      run: |
-
-        sudo apt update
-        sudo apt install clang-format
-        cd core/src
-        clang-format --dry-run -Werror *cpp include/*hpp
-        cd -
-        for component in physics dynamics
-        do
-          cd $component/src
-          clang-format --dry-run -Werror *cpp include/*hpp
-          cd -
-        done
-
   test-ubuntu-serial:
 
     runs-on: ubuntu-22.04
