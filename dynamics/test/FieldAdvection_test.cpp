@@ -70,14 +70,14 @@ TEST_SUITE_BEGIN("Field advection");
 TEST_CASE("Advect a field")
 {
     // Parameters of the mesh
-    const size_t nx = 101;
-    const size_t ny = 101;
+    const size_t nx = 51;
+    const size_t ny = 51;
     const size_t nz = 3;
 
     double dx = 1000; //m
     double dy = 1000; //m
-    double r0 = 40000; //m
-    double deltaT = 25; //s
+    double r0 = 20 * dx; //m
+    double deltaT = 50; //s
 
     // Create the grid coordinates
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
