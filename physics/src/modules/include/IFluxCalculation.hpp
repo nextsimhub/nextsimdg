@@ -1,15 +1,15 @@
 /*!
  * @file IFluxCalculation.hpp
  *
- * @date Apr 29, 2022
+ * @date 30 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IFLUXCALCULATION_HPP
 #define IFLUXCALCULATION_HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelState.hpp"
 
@@ -23,6 +23,8 @@ public:
         , qia(getStore())
         , penSW(getStore())
         , dqia_dt(getStore())
+        , Q_sw_ow(getStore())
+        , Q_sw_base(getStore())
     {
     }
     virtual ~IFluxCalculation() = default;
@@ -53,6 +55,8 @@ protected:
     ModelArrayRef<Shared::Q_IA, RW> qia;
     ModelArrayRef<Shared::Q_PEN_SW, RW> penSW;
     ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
+    ModelArrayRef<Shared::Q_SW_OW, RW> Q_sw_ow;
+    ModelArrayRef<Shared::Q_SW_BASE, RW> Q_sw_base;
 };
 }
 #endif /* IFLUXCALCULATION_HPP */

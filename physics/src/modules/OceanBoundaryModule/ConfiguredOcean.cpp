@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 30 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -110,9 +110,11 @@ void ConfiguredOcean::updateBefore(const TimestepTime& tst)
 
 void ConfiguredOcean::updateAfter(const TimestepTime& tst)
 {
+    overElements(
+        std::bind(&IOceanBoundary::mergeFluxes, this, std::placeholders::_1, std::placeholders::_2),
+        tst);
     slabOcean.update(tst);
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
-
 }
 } /* namespace Nextsim */

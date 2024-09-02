@@ -1,14 +1,14 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 30 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/TOPAZOcean.hpp"
 
-#include "include/IIceOceanHeatFlux.hpp"
 #include "include/IFreezingPoint.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
 #include "include/Module.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
@@ -49,7 +49,6 @@ void TOPAZOcean::configure()
 
     getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
-
 }
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
@@ -65,21 +64,22 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     v = state.data.at("v");
 
     cpml = Water::rho * Water::cp * mld;
-    overElements(std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1,
-                     std::placeholders::_2),
+    overElements(
+        std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
         TimestepTime());
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
-
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
 {
+    overElements(
+        std::bind(&IOceanBoundary::mergeFluxes, this, std::placeholders::_1, std::placeholders::_2),
+        tst);
     slabOcean.update(tst);
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
 }
-
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 

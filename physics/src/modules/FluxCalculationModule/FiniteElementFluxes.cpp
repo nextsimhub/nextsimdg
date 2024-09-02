@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.cpp
  *
- * @date Apr 29, 2022
+ * @date 02 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -56,7 +56,6 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
     evap.resize();
     Q_lh_ow.resize();
     Q_sh_ow.resize();
-    Q_sw_ow.resize();
     Q_lw_ow.resize();
     Q_lh_ia.resize();
     Q_sh_ia.resize();
@@ -137,22 +136,29 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     Q_lh_ia[i] = subl[i] * latentHeatIce(tice.zIndexAndLayer(i, 0));
     double dmdot_dT = dragIce_t * rho_air[i] * v_air[i] * dshice_dT[i];
     double dQlh_dT = latentHeatIce(tice.zIndexAndLayer(i, 0)) * dmdot_dT;
+
     // Sensible heat flux
     Q_sh_ia[i]
         = dragIce_t * rho_air[i] * cp_air[i] * v_air[i] * (tice.zIndexAndLayer(i, 0) - t_air[i]);
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
+
     // Shortwave flux
     double albedoValue, i0;
     std::tie(albedoValue, i0)
         = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
     Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
-    penSW[i] = sw_in[i] * (1. - albedoValue) * i0;
+    const double extinction = 0.; // TODO: Replace with de Beer's law or a module
+    penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
+    Q_sw_base[i] = sw_in[i] * (1. - albedoValue) * i0 * extinction;
+
     // Longwave flux
     Q_lw_ia[i] = stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0)) - lw_in[i];
     double dQlw_dT
         = 4 / kelvin(tice.zIndexAndLayer(i, 0)) * stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0));
+
     // Total flux
     qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
+
     // Total temperature dependence of flux
     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
 }

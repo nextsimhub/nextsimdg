@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 30 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -75,33 +75,29 @@ std::unordered_set<std::string> SlabOcean::hFields() const { return { sstSlabNam
 void SlabOcean::update(const TimestepTime& tst)
 {
     double dt = tst.step.seconds();
+
     // Slab SST update
     qdw = (sstExt - sst) * cpml / relaxationTimeT;
     HField qioMean = qio * cice; // cice at start of TS, not updated
     HField qowMean = qow * (1 - cice); // 1- cice = open water fraction
     sstSlab = sst - dt * (qioMean + qowMean - qdw) / cpml;
+
     // Slab SSS update
     HField arealDensity = cpml / Water::cp; // density times depth, or cpml divided by cp
     // This is simplified compared to the finiteelement.cpp calculation
     // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab - sssExt
     fdw = (1 - sssExt / sss) * arealDensity / relaxationTimeS;
-    // ice volume change, both laterally and vertically
-    HField deltaIceVol = newIce + deltaHice * cice;
-    // change in snow volume due to melting (should be < 0)
-    HField meltSnowVol = deltaSmelt * cice;
-    // Mass per unit area after all the changes in water volume
-    HField denominator
-        = arealDensity - deltaIceVol * Ice::rho - meltSnowVol * Ice::rhoSnow - (emp - fdw) * dt;
-    // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-    denominator.clampAbove(Water::rho);
-    // Effective ice salinity is always less than or equal to the SSS
-    HField effectiveIceSal = sss;
-    effectiveIceSal.clampBelow(Ice::s);
-    sssSlab = sss
-        + ((sss - effectiveIceSal) * Ice::rho * deltaIceVol // Change due to ice changes
-              + sss * meltSnowVol
-              + (emp - fdw) * dt) // snow melt, precipitation and nudging fluxes.
-            / denominator;
+
+    /* We use the "virtual salinity flux" approach:
+     *   \partial S / \partial t = F_{fw} S / H,
+     * where S is the ocean salinity, F_{fw} is the freshwater flux and H the mixed-layer depth. In
+     * the presence of sea ice F_{fw} S must be replaced by (S-S_i)I + S(P-E+M_s), with I and S
+     * the fresh-water flux due to ice and snow melt, respectively, and P and E, as precipitation
+     * and evaporation, respectively. Using the salt (F_s) and fresh-water fluxes (F_{fw})
+     * calculated by the IOceanBoundary class, we can write the change in ocean salinity as
+     *   \partial S / \partial t = ( S F_{fw} - 10^3 F_s ) / H
+     */
+    sssSlab = sss + (sss * (fwFlux + fdw) - 1e3 * sFlux) * dt / arealDensity;
 }
 
 } /* namespace Nextsim */
