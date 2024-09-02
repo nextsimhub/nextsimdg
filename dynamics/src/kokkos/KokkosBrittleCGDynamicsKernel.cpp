@@ -17,12 +17,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     avgV.resize_by_mesh(*this->smesh);
 
     // Degrees to radians as a hex float
-    constexpr double radians = 0x1.1df46a2529d39p-6;
+    constexpr FloatType radians = 0x1.1df46a2529d39p-6;
     cosOceanAngle = std::cos(radians * params.ocean_turning_angle);
     sinOceanAngle = std::sin(radians * params.ocean_turning_angle);
 
     std::tie(avgUHost, avgUDevice) = makeKokkosDualView("avgU", this->avgU);
-    std::tie(avgUHost, avgVDevice) = makeKokkosDualView("avgV", this->avgV);
+    std::tie(avgVHost, avgVDevice) = makeKokkosDualView("avgV", this->avgV);
 
     std::tie(damageHost, damageDevice) = makeKokkosDualView("damage", this->damage);
 
@@ -59,6 +59,9 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
+    Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
+    Kokkos::deep_copy(execSpace, avgVDevice, 0.0);
+
     Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
     Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
 
@@ -73,10 +76,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->cgHDevice, this->cgHHost);
     Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
 
-    Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
-    Kokkos::deep_copy(execSpace, avgVDevice, 0.0);
-
     Kokkos::deep_copy(execSpace, this->damageDevice, this->damageHost);
+
+    // stress is advected in the brittle model so we have to sync with the host
+    Kokkos::deep_copy(execSpace, this->s11Device, this->s11Host);
+    Kokkos::deep_copy(execSpace, this->s12Device, this->s12Host);
+    Kokkos::deep_copy(execSpace, this->s22Device, this->s22Host);
 
     for (size_t subStep = 0; subStep < this->nSteps; ++subStep) {
         Base::projectVelocityToStrainDevice(this->uDevice, this->vDevice, this->e11Device,
@@ -87,7 +92,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         updateStressHighOrderDevice(this->s11Device, this->s12Device, this->s22Device,
             this->e11Device, this->e12Device, this->e22Device, this->PSIAdvectDevice,
             this->PSIStressDevice, this->hiceDevice, this->ciceDevice, this->damageDevice,
-            this->iMJwPSIDevice, this->iMJwPSIAdvectDevice, this->cellSizeDevice, tst, params);
+            this->iMJwPSIDevice, this->iMJwPSIAdvectDevice, this->cellSizeDevice, this->deltaT,
+            params);
 
         Base::computeStressDivergenceDevice(this->dStressXDevice, this->dStressYDevice,
             this->s11Device, this->s12Device, this->s22Device, this->meshData->landMaskDevice,
@@ -97,7 +103,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         updateMomentumDevice(this->uDevice, this->vDevice, this->avgUDevice, this->avgVDevice,
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
-            this->lumpedCGMassDevice, tst, this->params, cosOceanAngle, sinOceanAngle,
+            this->lumpedCGMassDevice, this->deltaT, this->params, cosOceanAngle, sinOceanAngle,
             this->nSteps);
 
         Base::applyBoundariesDevice(this->uDevice, this->vDevice, this->meshData->dirichletDevice,
@@ -107,8 +113,13 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
     Kokkos::deep_copy(execSpace, this->avgUHost, this->avgUDevice);
-    Kokkos::deep_copy(execSpace, this->avgUHost, this->avgVDevice);
+    Kokkos::deep_copy(execSpace, this->avgVHost, this->avgVDevice);
+
     Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);
+
+    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
+    Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
+    Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);
 
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);
@@ -125,13 +136,11 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
     const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
     const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix>&
         iMJwPSIAdvectDevice,
-    const KokkosDeviceMapView<FloatType>& cellSizeDevice, const TimestepTime& tst,
+    const KokkosDeviceMapView<FloatType>& cellSizeDevice, const FloatType deltaT,
     const MEBParameters& params)
 {
     constexpr int NGP = KokkosCGDynamicsKernel<DGadvection>::NGP;
     using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
-
-    const FloatType deltaT = tst.step.seconds();
 
     Kokkos::parallel_for(
         "updateStressHighOrder", s11Device.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
@@ -207,7 +216,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                 += Dunit_factor.array() * (params.nu0 * e11Gauss.array() + e22Gauss.array());
             s12Gauss.array() += Dunit_factor.array() * e12Gauss.array() * (1. - params.nu0);
 
-            //! Implicit part of RHS (Eqn. 33)
+            // //! Implicit part of RHS (Eqn. 33)
             s11Gauss.array() *= multiplicator.array();
             s22Gauss.array() *= multiplicator.array();
             s12Gauss.array() *= multiplicator.array();
@@ -269,12 +278,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
     const ConstDeviceViewCG& uAtmosDevice, const ConstDeviceViewCG& vAtmosDevice,
     const ConstDeviceViewCG& uOceanDevice, const ConstDeviceViewCG& vOceanDevice,
     const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
-    const ConstDeviceViewCG& lumpedCGMassDevice, const TimestepTime& tst,
+    const ConstDeviceViewCG& lumpedCGMassDevice, const FloatType deltaT,
     const MEBParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
     DeviceIndex nSteps)
 {
-    const FloatType deltaT = tst.step.seconds();
-
     Kokkos::parallel_for(
         "updateMomentum", uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
             // FIXME dte_over_mass should include snow in the total mass
@@ -284,7 +291,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
             const FloatType vIce = vDevice(i);
 
             const FloatType cPrime = cgADevice(i) * params.F_ocean
-                * std::hypot(uOceanDevice(i) - uIce, vOceanDevice(i) - vIce);
+                * Kokkos::hypot(uOceanDevice(i) - uIce, vOceanDevice(i) - vIce);
 
             // FIXME grounding term tauB = cBu[i] / std::hypot(uIce, vIce) + u0
             const FloatType tauB = 0.;
@@ -298,7 +305,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
 
             // Atmospheric drag
             const FloatType dragAtm
-                = cgADevice(i) * params.F_atm * std::hypot(uAtmosDevice(i), vAtmosDevice(i));
+                = cgADevice(i) * params.F_atm * Kokkos::hypot(uAtmosDevice(i), vAtmosDevice(i));
             const FloatType tauX = dragAtm * uAtmosDevice(i)
                 + cPrime * (uOceanDevice(i) * cosOceanAngle - vOceanDevice(i) * sinOceanAngle);
             const FloatType tauY = dragAtm * vAtmosDevice(i)
@@ -325,8 +332,9 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
 template class KokkosBrittleCGDynamicsKernel<1>;
 template class KokkosBrittleCGDynamicsKernel<3>;
 template class KokkosBrittleCGDynamicsKernel<6>;*/
-// because ParametricMomentumMap<CGdegree>::iMJwPSIAdvect does not properly depend on DGadvection we can only build this version
-// since the switch is implemented in compile-time we dont really need the other versions anyway
+// because ParametricMomentumMap<CGdegree>::iMJwPSIAdvect does not properly depend on DGadvection we
+// can only build this version since the switch is implemented in compile-time we dont really need
+// the other versions anyway
 template class KokkosBrittleCGDynamicsKernel<DGCOMP>;
 
 }
