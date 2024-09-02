@@ -106,67 +106,67 @@ public:
              * \ (K:e)12 /    1 - nu^2 \  0   0  1-nu / \ e12 /
              */
 
-    //        const EdgeVec Dunit_factor
-    //            = deltaT * elasticity.array() / (1. - (params.nu0 * params.nu0));
+            const EdgeVec Dunit_factor
+                = deltaT * elasticity.array() / (1. - (params.nu0 * params.nu0));
 
             s11Gauss.array()
-                += e11Gauss.array();//Dunit_factor.array() * (e11Gauss.array() + params.nu0 * e22Gauss.array());
+                += Dunit_factor.array() * (e11Gauss.array() + params.nu0 * e22Gauss.array());
             s22Gauss.array()
-                += e22Gauss.array();//Dunit_factor.array() * (params.nu0 * e11Gauss.array() + e22Gauss.array());
-            s12Gauss.array() += e12Gauss.array();//Dunit_factor.array() * e12Gauss.array() * (1. - params.nu0);
+                +=  Dunit_factor.array() * (params.nu0 * e11Gauss.array() + e22Gauss.array());
+            s12Gauss.array() +=  Dunit_factor.array() * e12Gauss.array() * (1. - params.nu0);
 
             // //! Implicit part of RHS (Eqn. 33)
-            // s11Gauss.array() *= multiplicator.array();
-            // s22Gauss.array() *= multiplicator.array();
-            // s12Gauss.array() *= multiplicator.array();
-// 
-//             sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
-//             const EdgeVec tau = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
-//                 + s12Gauss.array().square())
-//                                     .sqrt();
-// 
-//             const FloatType scale_coef = std::sqrt(0.1 / smesh.h(i));
-// 
-//             //! Eqn. 22
-//             const EdgeVec cohesion = params.C_lab * scale_coef * hGauss.array();
-//             //! Eqn. 30
-//             const EdgeVec compr_strength = params.compr_strength * scale_coef * hGauss.array();
-// 
-//             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
-//             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
-//             EdgeVec dcrit
-//                 = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
-//                       .select(
-//                           cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
-// 
-//             // Compressive failure using Mssrs. Plante & Tremblay's formulation
-//             dcrit = (sigma_n.array() < -compr_strength.array())
-//                         .select(-compr_strength.array() / sigma_n.array(), dcrit);
-// 
-//             // Only damage when we're outside
-//             dcrit = dcrit.array().min(1.0);
-// 
-//             // Eqn. 29
-//             const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rho_ice)
-//                 / elasticity.array().sqrt();
-// 
-//             // Update damage
-//             dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-// 
-//             // Relax stress in Gassus points
-//             s11Gauss.array() -= s11Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-//             s12Gauss.array() -= s12Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-//             s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-// 
-//             // INTEGRATION OF STRESS AND DAMAGE
-//             // get the inverse of the mass matrix scaled with the test-functions in the gauss
-//             // points, with the gauss weights and with J. This is a 8 x 9 matrix
+            s11Gauss.array() *= multiplicator.array();
+            s22Gauss.array() *= multiplicator.array();
+            s12Gauss.array() *= multiplicator.array();
+
+            sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
+            const EdgeVec tau = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
+                + s12Gauss.array().square())
+                                    .sqrt();
+
+            const FloatType scale_coef = std::sqrt(0.1 / smesh.h(i));
+
+            //! Eqn. 22
+            const EdgeVec cohesion = params.C_lab * scale_coef * hGauss.array();
+            //! Eqn. 30
+            const EdgeVec compr_strength = params.compr_strength * scale_coef * hGauss.array();
+
+            // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
+            // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+            EdgeVec dcrit
+                = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
+                      .select(
+                          cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
+
+            // Compressive failure using Mssrs. Plante & Tremblay's formulation
+            dcrit = (sigma_n.array() < -compr_strength.array())
+                        .select(-compr_strength.array() / sigma_n.array(), dcrit);
+
+            // Only damage when we're outside
+            dcrit = dcrit.array().min(1.0);
+
+            // Eqn. 29
+            const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rho_ice)
+                / elasticity.array().sqrt();
+
+            // Update damage
+            dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+
+            // Relax stress in Gassus points
+            s11Gauss.array() -= s11Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            s12Gauss.array() -= s12Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+
+            // INTEGRATION OF STRESS AND DAMAGE
+            // get the inverse of the mass matrix scaled with the test-functions in the gauss
+            // points, with the gauss weights and with J. This is a 8 x 9 matrix
              const auto& iMJwPSI = pmap->iMJwPSI[i];
             s11.row(i) = iMJwPSI * s11Gauss.matrix().transpose();
             s12.row(i) = iMJwPSI * s12Gauss.matrix().transpose();
             s22.row(i) = iMJwPSI * s22Gauss.matrix().transpose();
-// 
-//             p_d->row(i) = pmap->iMJwPSIAdvect[i] * dGauss.matrix().transpose();
+ 
+             p_d->row(i) = pmap->iMJwPSIAdvect[i] * dGauss.matrix().transpose();
         }
     }
 

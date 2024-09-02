@@ -167,20 +167,17 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
             // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
             // by integrating rhs and inverting with dG(stress) mass matrix
             //
-            vx_local.setOnes();
-            vy_local.setOnes();
             auto iMgradX = pmap->iMgradX[dgi];
-            iMgradX.setOnes(); iMgradX *= dgi;
             e11.row(dgi) = iMgradX * vx_local;
         //    for(int i = 0; i < 8; ++i)
         //        e11.row(dgi)(i) = pmap->iMgradX[dgi](i,0);
             e22.row(dgi) = pmap->iMgradY[dgi] * vy_local;
             e12.row(dgi) = 0.5 * (iMgradX * vy_local + pmap->iMgradY[dgi] * vx_local);
         
-            if (smesh->CoordinateSystem == SPHERICAL) {
+       /*     if (smesh->CoordinateSystem == SPHERICAL) {
                 e11.row(dgi) -= pmap->iMM[dgi] * vy_local;
                 e12.row(dgi) += 0.5 * pmap->iMM[dgi] * vx_local;
-            }
+            }*/
         }
     }
 }

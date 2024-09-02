@@ -37,6 +37,13 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     cellSizeDevice = makeKokkosDeviceViewMap("cellSize", cellSize, true);
 }
 
+template<typename EigenMat>
+void compareMats(const char* name, const EigenMat& m1, const EigenMat& m2){
+    const FloatType norm = (m1 - m2).norm();
+    const FloatType m1Norm = m1.norm();
+    std::cout << name << " abs: " << norm << ", rel: " << norm / m1Norm << ", |m1|: " << m1Norm << std::endl;
+}
+
 template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
@@ -93,7 +100,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
         this->projectVelocityToStrain();
 
-        auto tempE11 = this->e11;
+  /*      auto tempE11 = this->e11;
         auto tempE12 = this->e12;
         auto tempE22 = this->e22;
         Kokkos::deep_copy(execSpace, this->e11Host, this->e11Device);
@@ -101,8 +108,9 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         Kokkos::deep_copy(execSpace, this->e22Host, this->e22Device);
         Kokkos::fence();
 
-        std::cout << "E: " << (tempE11 - this->e11).norm() / this->e11.norm() << " " << (tempE12 - this->e12).norm()  / this->e12.norm() << " "
-                  << (tempE22 - this->e22).norm()  / this->e22.norm() << std::endl;
+        compareMats("E11", tempE11, this->e11);
+        compareMats("E12", tempE12, this->e12);
+        compareMats("E22", tempE22, this->e22);
 
         BBMStressUpdateStep<DGadvection, DGstressComp, CGdegree> stressUpdateHost;
         stressUpdateHost.setDamage(damage);
@@ -117,32 +125,33 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
         auto tempS11 = this->s11;
         auto tempS12 = this->s12;
-        auto tempS22 = this->s22;
+        auto tempS22 = this->s22;*/
 
         updateStressHighOrderDevice(this->s11Device, this->s12Device, this->s22Device,
             this->e11Device, this->e12Device, this->e22Device, this->PSIAdvectDevice,
             this->PSIStressDevice, this->hiceDevice, this->ciceDevice, this->damageDevice,
             this->iMJwPSIDevice, this->iMJwPSIAdvectDevice, this->cellSizeDevice, this->deltaT, params);
 
-        Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
+   /*     Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
         Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
         Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);
 
-        std::cout << "S: " << (tempS11 - this->s11).norm() / this->s11.norm() << " " << (tempS12 - this->s12).norm()  / this->s12.norm() << " "
-                  << (tempS22 - this->s22).norm()  / this->s22.norm() << std::endl;
+                compareMats("S11", tempS11, this->s11);
+        compareMats("S12", tempS12, this->s12);
+        compareMats("S22", tempS22, this->s22);*/
 
         Base::computeStressDivergenceDevice(this->dStressXDevice, this->dStressYDevice,
             this->s11Device, this->s12Device, this->s22Device, this->meshData->landMaskDevice,
             this->divS1Device, this->divS2Device, this->divMDevice, this->meshData->dirichletDevice,
             this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
 
-        this->stressDivergence();
+   /*     this->stressDivergence();
         updateMomentum(tst);
 
         auto tempU = this->u;
         auto tempV = this->v;
         auto tempAvgU = this->avgU;
-        auto tempAvgV = this->avgV;
+        auto tempAvgV = this->avgV;*/
 
         updateMomentumDevice(this->uDevice, this->vDevice, this->avgUDevice, this->avgVDevice,
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
@@ -150,14 +159,15 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->lumpedCGMassDevice, this->deltaT, this->params, cosOceanAngle, sinOceanAngle,
             this->nSteps);
 
-        Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
+  /*      Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
         Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
         Kokkos::deep_copy(execSpace, this->avgUHost, this->avgUDevice);
         Kokkos::deep_copy(execSpace, this->avgVHost, this->avgVDevice);
 
-        std::cout << (tempU - this->u).norm() / this->u.norm() << " " << (tempV - this->v).norm() / this->v.norm() << " "
-                  << (tempAvgU - this->avgU).norm() / this->avgU.norm() << " " << (tempAvgV - this->avgV).norm() / this->avgV.norm()
-                  << std::endl;
+                compareMats("u", tempU, this->u);
+        compareMats("v", tempV, this->v);
+        compareMats("avgU", tempAvgU, this->avgU);
+        compareMats("avgV", tempAvgV, this->avgV);*/
 
         Base::applyBoundariesDevice(this->uDevice, this->vDevice, this->meshData->dirichletDevice,
             this->smesh->nx, this->smesh->ny);
@@ -260,67 +270,67 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
              * \ (K:e)12 /    1 - nu^2 \  0   0  1-nu / \ e12 /
              */
 
-     //       const EdgeVec Dunit_factor
-      //          = deltaT * elasticity.array() / (1. - (params.nu0 * params.nu0));
+            const EdgeVec Dunit_factor
+                = deltaT * elasticity.array() / (1. - (params.nu0 * params.nu0));
 
             s11Gauss.array()
-                += e11Gauss.array();//Dunit_factor.array() * (e11Gauss.array() + params.nu0 * e22Gauss.array());
+                += Dunit_factor.array() * (e11Gauss.array() + params.nu0 * e22Gauss.array());
             s22Gauss.array()
-                += e22Gauss.array();//Dunit_factor.array() * (params.nu0 * e11Gauss.array() + e22Gauss.array());
-            s12Gauss.array() += e12Gauss.array();//Dunit_factor.array() * e12Gauss.array() * (1. - params.nu0);
+                += Dunit_factor.array() * (params.nu0 * e11Gauss.array() + e22Gauss.array());
+            s12Gauss.array() += Dunit_factor.array() * e12Gauss.array() * (1. - params.nu0);
 
             // //! Implicit part of RHS (Eqn. 33)
-            // s11Gauss.array() *= multiplicator.array();
-            // s22Gauss.array() *= multiplicator.array();
-            // s12Gauss.array() *= multiplicator.array();
-// 
-//             sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
-//             const EdgeVec tau = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
-//                 + s12Gauss.array().square())
-//                                     .sqrt();
-// 
-//             const FloatType scale_coef = std::sqrt(0.1 / cellSizeDevice(i));
-// 
-//             //! Eqn. 22
-//             const EdgeVec cohesion = params.C_lab * scale_coef * hGauss.array();
-//             //! Eqn. 30
-//             const EdgeVec compr_strength = params.compr_strength * scale_coef * hGauss.array();
-// 
-//             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
-//             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
-//             EdgeVec dcrit
-//                 = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
-//                       .select(
-//                           cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
-// 
-//             // Compressive failure using Mssrs. Plante & Tremblay's formulation
-//             dcrit = (sigma_n.array() < -compr_strength.array())
-//                         .select(-compr_strength.array() / sigma_n.array(), dcrit);
-// 
-//             // Only damage when we're outside
-//             dcrit = dcrit.array().min(1.0);
-// 
-//             // Eqn. 29
-//             const EdgeVec td = cellSizeDevice(i)
-//                 * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
-// 
-//             // Update damage
-//             dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-// 
-//             // Relax stress in Gauss points
-//             s11Gauss.array() -= s11Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-//             s12Gauss.array() -= s12Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-//             s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-// 
-//             // INTEGRATION OF STRESS AND DAMAGE
-//             // get the inverse of the mass matrix scaled with the test-functions in the gauss
-//             // points, with the gauss weights and with J. This is a 8 x 9 matrix
+            s11Gauss.array() *= multiplicator.array();
+            s22Gauss.array() *= multiplicator.array();
+            s12Gauss.array() *= multiplicator.array();
+
+            sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
+            const EdgeVec tau = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
+                + s12Gauss.array().square())
+                                    .sqrt();
+
+            const FloatType scale_coef = std::sqrt(0.1 / cellSizeDevice(i));
+
+            //! Eqn. 22
+            const EdgeVec cohesion = params.C_lab * scale_coef * hGauss.array();
+            //! Eqn. 30
+            const EdgeVec compr_strength = params.compr_strength * scale_coef * hGauss.array();
+
+            // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
+            // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+            EdgeVec dcrit
+                = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
+                      .select(
+                          cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
+
+            // Compressive failure using Mssrs. Plante & Tremblay's formulation
+            dcrit = (sigma_n.array() < -compr_strength.array())
+                        .select(-compr_strength.array() / sigma_n.array(), dcrit);
+
+            // Only damage when we're outside
+            dcrit = dcrit.array().min(1.0);
+
+            // Eqn. 29
+            const EdgeVec td = cellSizeDevice(i)
+                * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
+
+            // Update damage
+            dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+
+            // Relax stress in Gauss points
+            s11Gauss.array() -= s11Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            s12Gauss.array() -= s12Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+
+            // INTEGRATION OF STRESS AND DAMAGE
+            // get the inverse of the mass matrix scaled with the test-functions in the gauss
+            // points, with the gauss weights and with J. This is a 8 x 9 matrix
              const auto iMJwPSI = iMJwPSIDevice[i];
             s11.row(i) = iMJwPSI * s11Gauss.matrix().transpose();
             s12.row(i) = iMJwPSI * s12Gauss.matrix().transpose();
             s22.row(i) = iMJwPSI * s22Gauss.matrix().transpose();
-// 
-//             damage.row(i) = iMJwPSIAdvectDevice[i] * dGauss.matrix().transpose();
+ 
+             damage.row(i) = iMJwPSIAdvectDevice[i] * dGauss.matrix().transpose();
         });
 }
 
