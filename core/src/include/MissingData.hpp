@@ -15,8 +15,9 @@ namespace Nextsim {
 class MissingData : public Configured<MissingData> {
 public:
     static constexpr double defaultValue = 1.7e38;
-    inline static const double& value() { return getValue(); }
-    inline static double& setValue(double mdi) { return getValue() = mdi; }
+    inline static double value() { return getValue(); }
+    inline static void setValue(double mdi) { getValue() = mdi; }
+
 private:
     inline static double& getValue()
     {
