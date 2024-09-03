@@ -10,7 +10,5 @@
 
 namespace Nextsim {
 
-const double MissingData::defaultValue = 1.7e38;
-double MissingData::value = MissingData::defaultValue;
 
 } /* namespace Nextsim */

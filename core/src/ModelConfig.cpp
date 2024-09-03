@@ -30,7 +30,7 @@ ConfigMap ModelConfig::getConfig()
         { keyMap.at(STOPTIME_KEY), stopTimeStr },
         { keyMap.at(RUNLENGTH_KEY), durationStr },
         { keyMap.at(TIMESTEP_KEY), stepStr },
-        { keyMap.at(MISSINGVALUE_KEY), MissingData::value },
+        { keyMap.at(MISSINGVALUE_KEY), MissingData::value() },
     };
     return cMap;
 }
