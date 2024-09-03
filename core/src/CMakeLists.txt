@@ -16,7 +16,6 @@ set(BaseSources
     "FileCallbackCloser.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
-    "MissingData.cpp"
     "ModelArray.cpp"
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
