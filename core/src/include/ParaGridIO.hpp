@@ -34,8 +34,7 @@ public:
 
     ParaGridIO(ParametricGrid& grid)
         : IParaGridIO(grid)
-        , openFiles(getOpenFiles())
-        , timeIndexByFile(getFileTimeIndices())
+        , openFilesAndIndices(getOpenFilesAndIndices())
     {
         if (dimCompMap.size() == 0)
             makeDimCompMap();
@@ -99,8 +98,7 @@ public:
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
 private:
-    typedef std::map<std::string, NetCDFFileType> FileMap;
-    typedef std::map<std::string, size_t> IndexMap;
+    typedef std::map<std::string, std::pair<NetCDFFileType, size_t>> FileAndIndexMap;
 
     ParaGridIO() = delete;
     ParaGridIO(const ParaGridIO& other) = delete;
@@ -119,18 +117,11 @@ private:
 
     // Existing or open files are a property of the computer outside the individual
     // class instance, so they are singletons.
-    FileMap& openFiles;
-    inline static FileMap& getOpenFiles()
+    FileAndIndexMap& openFilesAndIndices;
+    inline static FileAndIndexMap& getOpenFilesAndIndices()
     {
-        static FileMap fm;
-        return fm;
-    }
-
-    IndexMap& timeIndexByFile;
-    inline static IndexMap& getFileTimeIndices()
-    {
-        static IndexMap tm;
-        return tm;
+        static FileAndIndexMap fim;
+        return fim;
     }
 };
 

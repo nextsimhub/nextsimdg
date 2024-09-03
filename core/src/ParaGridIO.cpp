@@ -337,24 +337,27 @@ void ParaGridIO::dumpModelState(
 void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    bool isNew = openFiles.count(filePath) <= 0;
-    size_t nt = (isNew) ? 0 : ++timeIndexByFile.at(filePath);
+    bool isNew = openFilesAndIndices.count(filePath) <= 0;
+    size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
     if (isNew) {
         // Open a new file and emplace it in the map of open files.
-#ifdef USE_MPI
-        openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace, meta.mpiComm);
-#else
-        openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace);
-#endif
         // Set the initial time to be zero (assigned above)
-        timeIndexByFile[filePath] = nt;
+        // Piecewise construction is necessary to correctly construct the file handle/time index
+        // pair
+#ifdef USE_MPI
+        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
+            std::forward_as_tuple(std::piecewise_construct,
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
+                std::forward_as_tuple(nt)));
+#else
+        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
+            std::forward_as_tuple(std::piecewise_construct,
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace),
+                std::forward_as_tuple(nt)));
+#endif
     }
     // Get the file handle
-#ifdef USE_MPI
-    netCDF::NcFilePar& ncFile = openFiles.at(filePath);
-#else
-    netCDF::NcFile& ncFile = openFiles.at(filePath);
-#endif
+    NetCDFFileType& ncFile = openFilesAndIndices.at(filePath).first;
 
     // Get the netCDF groups, creating them if necessary
     netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName())
@@ -486,17 +489,16 @@ void ParaGridIO::writeDiagnosticTime(
 
 void ParaGridIO::close(const std::string& filePath)
 {
-    if (getOpenFiles().count(filePath) > 0) {
-        getOpenFiles().at(filePath).close();
-        getOpenFiles().erase(filePath);
-        getFileTimeIndices().erase(filePath);
+    if (getOpenFilesAndIndices().count(filePath) > 0) {
+        getOpenFilesAndIndices().at(filePath).first.close();
+        getOpenFilesAndIndices().erase(filePath);
     }
 }
 
 void ParaGridIO::closeAllFiles()
 {
-    while (getOpenFiles().size() > 0) {
-        close(getOpenFiles().begin()->first);
+    while (getOpenFilesAndIndices().size() > 0) {
+        close(getOpenFilesAndIndices().begin()->first);
     }
 }
 
