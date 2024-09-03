@@ -20,7 +20,7 @@ public:
 private:
     inline static double& getValue()
     {
-        static double value;
+        static double value = defaultValue;
         return value;
     }
 };
