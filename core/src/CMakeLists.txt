@@ -2,7 +2,6 @@
 
 set(BaseSources
     "Logged.cpp"
-    "Timer.cpp"
     "ModelConfig.cpp"
     "Model.cpp"
     "Iterator.cpp"
