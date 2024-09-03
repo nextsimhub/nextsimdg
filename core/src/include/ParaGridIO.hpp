@@ -26,8 +26,16 @@ namespace Nextsim {
  */
 class ParaGridIO : public ParametricGrid::IParaGridIO {
 public:
+#ifdef USE_MPI
+    typedef NetCDFFileType netCDF::NcFilePar;
+#else
+    typedef netCDF::NcFile NetCDFFileType ;
+#endif
+
     ParaGridIO(ParametricGrid& grid)
         : IParaGridIO(grid)
+        , openFiles(getOpenFiles())
+        , timeIndexByFile(getFileTimeIndices())
     {
         if (dimCompMap.size() == 0)
             makeDimCompMap();
@@ -91,6 +99,9 @@ public:
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
 private:
+    typedef std::map<std::string, NetCDFFileType> FileMap;
+    typedef std::map<std::string, size_t> IndexMap;
+
     ParaGridIO() = delete;
     ParaGridIO(const ParaGridIO& other) = delete;
     ParaGridIO& operator=(const ParaGridIO& other) = delete;
@@ -107,13 +118,20 @@ private:
     static void closeAllFiles();
 
     // Existing or open files are a property of the computer outside the individual
-    // class instance, so they are static.
-#ifdef USE_MPI
-    static std::map<std::string, netCDF::NcFilePar> openFiles;
-#else
-    static std::map<std::string, netCDF::NcFile> openFiles;
-#endif
-    static std::map<std::string, size_t> timeIndexByFile;
+    // class instance, so they are singletons.
+    FileMap& openFiles;
+    inline static FileMap& getOpenFiles()
+    {
+        static FileMap fm;
+        return fm;
+    }
+
+    IndexMap& timeIndexByFile;
+    inline static IndexMap& getFileTimeIndices()
+    {
+        static IndexMap tm;
+        return tm;
+    }
 };
 
 } /* namespace Nextsim */

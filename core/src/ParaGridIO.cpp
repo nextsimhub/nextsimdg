@@ -57,12 +57,6 @@ const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
 };
 
 std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap;
-#ifdef USE_MPI
-std::map<std::string, netCDF::NcFilePar> ParaGridIO::openFiles;
-#else
-std::map<std::string, netCDF::NcFile> ParaGridIO::openFiles;
-#endif
-std::map<std::string, size_t> ParaGridIO::timeIndexByFile;
 
 void ParaGridIO::makeDimCompMap()
 {
@@ -492,26 +486,17 @@ void ParaGridIO::writeDiagnosticTime(
 
 void ParaGridIO::close(const std::string& filePath)
 {
-    if (openFiles.count(filePath) > 0) {
-        openFiles.at(filePath).close();
-        openFiles.erase(filePath);
-        timeIndexByFile.erase(filePath);
+    if (getOpenFiles().count(filePath) > 0) {
+        getOpenFiles().at(filePath).close();
+        getOpenFiles().erase(filePath);
+        getFileTimeIndices().erase(filePath);
     }
 }
 
 void ParaGridIO::closeAllFiles()
 {
-    size_t closedFiles = 0;
-    for (const auto& [name, handle] : openFiles) {
-        if (!handle.isNull()) {
-            close(name);
-            closedFiles++;
-        }
-        /* If the following break is not checked for and performed, for some
-         * reason the iteration will continue to iterate over invalid
-         * string/NcFile pairs. */
-        if (closedFiles >= openFiles.size())
-            break;
+    while (getOpenFiles().size() > 0) {
+        close(getOpenFiles().begin()->first);
     }
 }
 
