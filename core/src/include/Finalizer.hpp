@@ -43,7 +43,8 @@ public:
      */
     inline static bool atfinalUnique(const FinalFn& fn)
     {
-        if (contains(fn)) return false;
+        if (contains(fn))
+            return false;
         atfinal(fn);
         return true;
     }
@@ -63,7 +64,8 @@ public:
     {
         auto& fns = functions();
         for (const auto& stored : fns) {
-            if (stored.target<void()>() == fn.target<void()>()) return true;
+            if (stored.target<void()>() == fn.target<void()>())
+                return true;
         }
         return false;
     }
@@ -108,6 +110,7 @@ public:
      * Eliminates all functions to be run at finalization.
      */
     inline static void clear() { functions().clear(); }
+
 private:
     typedef std::list<FinalFn> FinalFnContainer;
     inline static FinalFnContainer& functions()
