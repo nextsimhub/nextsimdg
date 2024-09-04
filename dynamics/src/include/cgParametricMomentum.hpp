@@ -32,7 +32,7 @@ private:
 
 public:
     //! CGParametricMomentum should not be used but removed. ParametricMomentumMap needs DGadvection
-    // but this is not provided here.
+    //! but this is not provided here.
     ParametricMomentumMap<CG, 1> pmap;
 
     //! vectors storing the velocity (node-wise)
