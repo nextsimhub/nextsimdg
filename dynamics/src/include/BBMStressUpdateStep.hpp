@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date Mar 1, 2024
+ * @date 04 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
