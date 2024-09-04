@@ -17,6 +17,7 @@ namespace Nextsim {
 typedef std::variant<double, unsigned, int, std::string> Fusi;
 typedef std::map<std::string, Fusi> ConfigMap;
 
+// clang-format off
 enum ConfigMapType {
     DOUBLE,
     UNSIGNED,
@@ -24,5 +25,6 @@ enum ConfigMapType {
     STRING,
     N_TYPES
 };
+// clang-format on
 }
 #endif /* CONFIGMAP_HPP */
