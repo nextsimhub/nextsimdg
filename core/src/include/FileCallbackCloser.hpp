@@ -41,7 +41,11 @@ public:
     static void clearAllClose();
 
 private:
-    static std::list<ClosingFn> closingFns;
+    static std::list<ClosingFn>& closingFns()
+    {
+        static std::list<ClosingFn> fns;
+        return fns;
+    }
 };
 } /* namespace Nextsim */
 
