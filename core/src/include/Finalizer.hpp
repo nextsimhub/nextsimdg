@@ -27,8 +27,8 @@ public:
      */
     inline static void atfinal(const FinalFn& fn)
     {
-        auto& fnSet = functions();
-        fnSet.push_front(fn);
+        auto& fns = functions();
+        fns.push_back(fn);
     }
 
     /*!
@@ -61,8 +61,8 @@ public:
      */
     inline static bool contains(const FinalFn& fn)
     {
-        auto& fnSet = functions();
-        for (const auto& stored : fnSet) {
+        auto& fns = functions();
+        for (const auto& stored : fns) {
             if (stored.target<void()>() == fn.target<void()>()) return true;
         }
         return false;
@@ -80,12 +80,22 @@ public:
     }
 
     /*!
-     * Runs the finalize functions and erases them.
+     * @brief Runs the finalize functions and erases them.
+     *
+     * @details In last-in, first-out order, the finalization functions are executed. If an
+     * exception is thrown, the throwing function will have been removed from the finalization
+     * functions, should execution be able to recover. If no exception is thrown, then there will
+     * be no finalization functions remaining. Otherwise, re-running finalize will begin execution
+     * with the function assigned previous to the one that threw the exception.
      */
     inline static void finalize()
     {
-        run();
-        clear();
+        while (!functions().empty()) {
+            auto fn = functions().back();
+            // Remove the function from the finalization list before executing it.
+            functions().pop_back();
+            fn();
+        }
     }
 
     /*!

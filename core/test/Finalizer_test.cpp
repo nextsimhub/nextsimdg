@@ -125,5 +125,8 @@ TEST_CASE("Exception")
     REQUIRE_THROWS_AS(Finalizer::finalize(), HappyTime);
     // Only one increment occurred because of the exception
     REQUIRE(TheCount::count() == 1);
+    // The executed increment and throwing function have been removed. Only one function (the
+    // second increment) should remain.
+    REQUIRE(Finalizer::count() == 1);
 }
 } /* namespace Nextsim */
