@@ -141,7 +141,7 @@ template <int CG> void CGParametricMomentum<CG>::CheckPeriodicity(CGVector<CG>& 
 {
     // the two segments bottom, right, top, left, are each processed in parallel
     for (size_t seg = 0; seg < smesh.periodic.size(); ++seg) {
-        //#pragma omp parallel for
+        // #pragma omp parallel for
         for (size_t i = 0; i < smesh.periodic[seg].size(); ++i) {
 
             const size_t ptype = smesh.periodic[seg][i][0];
@@ -216,7 +216,9 @@ void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params, const size_t
 
     // Update the stresses according to the mEVP model
 
-    std::cerr << "Fatal: Stressupdatehigherorder requires ParametricMomnetumMap with proper template parameter. See headerfile and use Kernel-infrastructure" << std::endl;
+    std::cerr << "Fatal: Stressupdatehigherorder requires ParametricMomnetumMap with proper "
+                 "template parameter. See headerfile and use Kernel-infrastructure"
+              << std::endl;
     abort();
     // Nextsim::mEVP::StressUpdateHighOrder(
     //     params, pmap, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
