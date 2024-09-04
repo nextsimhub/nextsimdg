@@ -249,6 +249,12 @@ else()
     )
     target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
 
+    add_executable(
+        testFinalizer
+        "Finalizer_test.cpp"
+    )
+    target_link_libraries(testFinalizer PRIVATE doctest::doctest)
+
     set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
 
     add_executable(
