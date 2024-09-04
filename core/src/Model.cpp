@@ -10,6 +10,7 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/DevStep.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
 #include "include/Module.hpp"
@@ -71,6 +72,7 @@ Model::Model()
 
 Model::~Model()
 {
+    Finalizer::finalize();
     /*
      * Try writing out a valid restart file. If the model and computer are in a
      * state where this can be completed, great! If they are not then the

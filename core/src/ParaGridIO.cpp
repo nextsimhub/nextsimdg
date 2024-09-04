@@ -9,6 +9,7 @@
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/FileCallbackCloser.hpp"
+#include "include/Finalizer.hpp"
 #include "include/MissingData.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
@@ -67,8 +68,7 @@ void ParaGridIO::makeDimCompMap()
     };
     // Also initialize the static map of tables and register the atexit
     // function here, since it should only ever run once
-    //    openFiles.clear();
-    std::atexit(closeAllFiles);
+    Finalizer::atfinalUnique(closeAllFiles);
     // Further one-off initialization: allow distant classes to close files via a callback.
     FileCallbackCloser::onClose(ParaGridIO::close);
 }
@@ -497,6 +497,7 @@ void ParaGridIO::close(const std::string& filePath)
 
 void ParaGridIO::closeAllFiles()
 {
+    std::cout << "ParaGridIO::closeAllFiles: closing " << getOpenFilesAndIndices().size() << " files" << std::endl;
     while (getOpenFilesAndIndices().size() > 0) {
         close(getOpenFilesAndIndices().begin()->first);
     }
