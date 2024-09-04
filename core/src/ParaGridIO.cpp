@@ -28,49 +28,53 @@
 
 namespace Nextsim {
 
-// Accept both post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
-const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
-    { "yx", ModelArray::Type::H },
-    { "ydimxdim", ModelArray::Type::H },
-    { "zyx", ModelArray::Type::Z },
-    { "zdimydimxdim", ModelArray::Type::Z },
-    { "yxdg_comp", ModelArray::Type::DG },
-    { "ydimxdimdg_comp", ModelArray::Type::DG },
-    { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
-    { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-    { "ycgxcg", ModelArray::Type::CG },
-    { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
-};
-
-// Which dimensions are DG dimension, which could be legitimately missing
-const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
-    // clang-format off
-    { ModelArray::Dimension::X, false },
-    { ModelArray::Dimension::Y, false },
-    { ModelArray::Dimension::Z, false },
-    { ModelArray::Dimension::XCG, true },
-    { ModelArray::Dimension::YCG, true },
-    { ModelArray::Dimension::DG, true },
-    { ModelArray::Dimension::DGSTRESS, true },
-    // NCOORDS is a number of components, but not in the same way as the DG components.
-    { ModelArray::Dimension::NCOORDS, false },
-    // clang-format on
-};
-
-std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap;
-
-void ParaGridIO::makeDimCompMap()
-{
-    dimCompMap = {
+ParaGridIO::ParaGridIO(ParametricGrid& grid)
+    : IParaGridIO(grid)
+    , openFilesAndIndices(getOpenFilesAndIndices())
+    , dimensionKeys({
+          // clang-format off
+          // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
+        { "yx", ModelArray::Type::H },
+        { "ydimxdim", ModelArray::Type::H },
+        { "zyx", ModelArray::Type::Z },
+        { "zdimydimxdim", ModelArray::Type::Z },
+        { "yxdg_comp", ModelArray::Type::DG },
+        { "ydimxdimdg_comp", ModelArray::Type::DG },
+        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "ycgxcg", ModelArray::Type::CG },
+        { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+          // clang-format on
+      })
+    , isDG({
+          // clang-format off
+        { ModelArray::Dimension::X, false },
+        { ModelArray::Dimension::Y, false },
+        { ModelArray::Dimension::Z, false },
+        { ModelArray::Dimension::XCG, true },
+        { ModelArray::Dimension::YCG, true },
+        { ModelArray::Dimension::DG, true },
+        { ModelArray::Dimension::DGSTRESS, true },
+        // NCOORDS is a number of components, but not in the same way as the DG components.
+        { ModelArray::Dimension::NCOORDS, false },
+          // clang-format on
+      })
+    , dimCompMap({
+          // clang-format off
         { ModelArray::componentMap.at(ModelArray::Type::DG), ModelArray::Type::DG },
         { ModelArray::componentMap.at(ModelArray::Type::DGSTRESS), ModelArray::Type::DGSTRESS },
         { ModelArray::componentMap.at(ModelArray::Type::VERTEX), ModelArray::Type::VERTEX },
-    };
-    // Also initialize the static map of tables and register the atexit
-    // function here, since it should only ever run once
-    Finalizer::atfinalUnique(closeAllFiles);
-    // Further one-off initialization: allow distant classes to close files via a callback.
-    FileCallbackCloser::onClose(ParaGridIO::close);
+          // clang-format on
+      })
+{
+    if (doOnce()) {
+    // Register the finalization function here
+        Finalizer::atfinalUnique(closeAllFiles);
+        // Since it should only ever run once, do further one-off initialization: allow distant
+        // classes to close files via a callback.
+        FileCallbackCloser::onClose(ParaGridIO::close);
+        doOnce() = false;
+    }
 }
 
 ParaGridIO::~ParaGridIO() = default;
@@ -497,7 +501,8 @@ void ParaGridIO::close(const std::string& filePath)
 
 void ParaGridIO::closeAllFiles()
 {
-    std::cout << "ParaGridIO::closeAllFiles: closing " << getOpenFilesAndIndices().size() << " files" << std::endl;
+    std::cout << "ParaGridIO::closeAllFiles: closing " << getOpenFilesAndIndices().size()
+              << " files" << std::endl;
     while (getOpenFilesAndIndices().size() > 0) {
         close(getOpenFilesAndIndices().begin()->first);
     }

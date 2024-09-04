@@ -32,13 +32,7 @@ public:
     typedef netCDF::NcFile NetCDFFileType ;
 #endif
 
-    ParaGridIO(ParametricGrid& grid)
-        : IParaGridIO(grid)
-        , openFilesAndIndices(getOpenFilesAndIndices())
-    {
-        if (dimCompMap.size() == 0)
-            makeDimCompMap();
-    }
+    ParaGridIO(ParametricGrid& grid);
     virtual ~ParaGridIO();
 
     /*!
@@ -104,10 +98,10 @@ private:
     ParaGridIO(const ParaGridIO& other) = delete;
     ParaGridIO& operator=(const ParaGridIO& other) = delete;
 
-    static const std::map<std::string, ModelArray::Type> dimensionKeys;
+    const std::map<std::string, ModelArray::Type> dimensionKeys;
 
-    static const std::map<ModelArray::Dimension, bool> isDG;
-    static std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
+    const std::map<ModelArray::Dimension, bool> isDG;
+    const std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
 
     // Ensures that static variables are created in the correct order.
     static void makeDimCompMap();
@@ -122,6 +116,11 @@ private:
     {
         static FileAndIndexMap fim;
         return fim;
+    }
+    inline static bool& doOnce()
+    {
+        static bool firstTime = true;
+        return firstTime;
     }
 };
 
