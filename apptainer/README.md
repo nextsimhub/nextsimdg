@@ -27,6 +27,7 @@ mkdir -p build
 cd build
 cmake .. \
     -DPYTHON_EXECUTABLE=$(which python) \
+    -DCMAKE_BUILD_TYPE=Release \
     -DWITH_THREADS=ON
 make -j [NUM_JOBS]
 ```
