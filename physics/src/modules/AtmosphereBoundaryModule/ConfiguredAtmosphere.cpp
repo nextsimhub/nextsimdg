@@ -30,8 +30,7 @@ static const std::string snowKey = pfx + ".snow";
 static const std::string rainKey = pfx + ".rainfall";
 static const std::string windKey = pfx + ".wind_speed";
 
-template <>
-const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
+const static std::map<int, std::string> keyMap = {
     { ConfiguredAtmosphere::TAIR_KEY, tKey },
     { ConfiguredAtmosphere::TDEW_KEY, tdewKey },
     { ConfiguredAtmosphere::PAIR_KEY, pKey },
@@ -52,7 +51,6 @@ ConfiguredAtmosphere::ConfiguredAtmosphere()
     getStore().registerArray(Protected::LW_IN, &lw_in, RO);
     getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
-
 
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {

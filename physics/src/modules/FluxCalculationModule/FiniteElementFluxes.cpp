@@ -29,8 +29,7 @@ static const double dragIce_t_default = 1.3e-3;
 static const double oceanAlbedo_default = 0.07;
 static const double i0_default = 0.17;
 
-template <>
-const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { FiniteElementFluxes::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q" },
     { FiniteElementFluxes::DRAGOCEANT_KEY, "nextsim_thermo.drag_ocean_t" },
     { FiniteElementFluxes::DRAGICET_KEY, "nextsim_thermo.drag_ice_t" },

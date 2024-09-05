@@ -17,8 +17,7 @@ std::string ERA5Atmosphere::filePath;
 static const std::string pfx = "ERA5Atmosphere";
 static const std::string fileKey = pfx + ".file";
 
-template <>
-const std::map<int, std::string> Configured<ERA5Atmosphere>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, fileKey },
 };
 

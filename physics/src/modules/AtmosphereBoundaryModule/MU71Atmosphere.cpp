@@ -11,8 +11,7 @@ double MU71Atmosphere::m_I0;
 
 static const double i0_default = 0.30;
 
-template <>
-const std::map<int, std::string> Configured<MU71Atmosphere>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { MU71Atmosphere::I0_KEY, "nextsim_thermo.I_0" },
 };
 

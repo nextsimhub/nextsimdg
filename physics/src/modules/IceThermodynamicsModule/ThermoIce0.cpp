@@ -39,8 +39,7 @@ void ThermoIce0::update(const TimestepTime& tsTime)
         tsTime);
 }
 
-template <>
-const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ThermoIce0::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
 };
 

@@ -20,8 +20,7 @@ std::string TOPAZOcean::filePath;
 static const std::string pfx = "TOPAZOcean";
 static const std::string fileKey = pfx + ".file";
 
-template <>
-const std::map<int, std::string> Configured<TOPAZOcean>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, fileKey },
 };
 

@@ -22,20 +22,13 @@
 
 namespace Nextsim {
 
-template <typename Key, typename Value>
-static std::map<Key, Value> combineMaps(std::map<Key, Value>& map1, std::map<Key, Value>& map2)
-{
-    std::map<Key, Value> map3 = map1;
-    map3.merge(map2);
-    return map3;
-}
 
 // Map of configuration that will be written to the restart file
-static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
 const std::string Model::restartOptionName = "model.init_file";
 // Map of all configuration keys for the main model, including those not to be
 // written to the restart file.
-static std::map<int, std::string> modelConfigKeyMap = {
+static const std::map<int, std::string> keyMap = {
+#include "include/ModelConfigMapElements.ipp"
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
 #ifdef USE_MPI
     { Model::PARTITIONFILE_KEY, "model.partition_file" },
@@ -48,11 +41,6 @@ static std::map<int, std::string> modelConfigKeyMap = {
     { Model::RESTARTPERIOD_KEY, "model.restart_period" },
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
-
-// Merge the configuration from ModelConfig into the Model keyMap.
-template <>
-const std::map<int, std::string> Configured<Model>::keyMap
-    = combineMaps(interimKeyMap, modelConfigKeyMap);
 
 #ifdef USE_MPI
 Model::Model(MPI_Comm comm)

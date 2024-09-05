@@ -13,8 +13,7 @@
 
 namespace Nextsim {
 
-template <>
-const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { IceGrowth::ICE_THERMODYNAMICS_KEY, "IceThermodynamicsModel" },
     { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
     { IceGrowth::MINC_KEY, "nextsim_thermo.min_conc" },
