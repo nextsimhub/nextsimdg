@@ -65,8 +65,6 @@ protected:
         , snowfall(getStore())
         , sss(getStore())
     {
-        registerModule();
-
         getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
         getStore().registerArray(Shared::T_ICE, &tice, RW);
     }

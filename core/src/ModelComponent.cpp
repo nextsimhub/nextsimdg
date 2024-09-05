@@ -11,42 +11,12 @@
 
 namespace Nextsim {
 
-std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
 ModelArrayReferenceStore ModelComponent::store;
 ModelArray* ModelComponent::p_oceanMaskH = nullptr;
 size_t ModelComponent::nOcean;
 std::vector<size_t> ModelComponent::oceanIndex;
 
 ModelComponent::ModelComponent() { noLandMask(); }
-
-void ModelComponent::setAllModuleData(const ModelState& stateIn)
-{
-    for (auto entry : registeredModules) {
-        entry.second->setData(stateIn.data);
-    }
-}
-ModelState ModelComponent::getAllModuleState()
-{
-    ModelState overallState;
-    for (auto entry : registeredModules) {
-        overallState.data.merge(entry.second->getState().data);
-    }
-    return overallState;
-}
-
-void ModelComponent::registerModule() { registeredModules[getName()] = this; }
-
-void ModelComponent::unregisterAllModules() { registeredModules.clear(); }
-
-void ModelComponent::getAllFieldNames(std::unordered_set<std::string>& uF,
-    std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF)
-{
-    for (auto entry : registeredModules) {
-        uF.merge(entry.second->uFields());
-        vF.merge(entry.second->vFields());
-        zF.merge(entry.second->zFields());
-    }
-}
 
 /*
  * This assumes that the HField array size has already been set in the restart

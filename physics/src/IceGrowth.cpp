@@ -40,7 +40,6 @@ IceGrowth::IceGrowth()
     , tf(getStore())
     , deltaHi(getStore())
 {
-    registerModule();
     getStore().registerArray(Shared::H_ICE, &hice, RW);
     getStore().registerArray(Shared::C_ICE, &cice, RW);
     getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
