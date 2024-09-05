@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date Jan 5, 2024
+ * @date 05 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -118,6 +118,18 @@ public:
             return DGModelArray::dg2ma(hice, data);
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
+        } else if (name == e11Name) {
+            return DGModelArray::dg2ma(e11, data);
+        } else if (name == e22Name) {
+            return DGModelArray::dg2ma(e22, data);
+        } else if (name == e12Name) {
+            return DGModelArray::dg2ma(e12, data);
+        } else if (name == s11Name) {
+            return DGModelArray::dg2ma(s11, data);
+        } else if (name == s22Name) {
+            return DGModelArray::dg2ma(s22, data);
+        } else if (name == s12Name) {
+            return DGModelArray::dg2ma(s12, data);
         } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);
