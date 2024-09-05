@@ -22,7 +22,6 @@
 
 namespace Nextsim {
 
-
 // Map of configuration that will be written to the restart file
 const std::string Model::restartOptionName = "model.init_file";
 // Map of all configuration keys for the main model, including those not to be
