@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 7 Sep 2023
+ * @date 05 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,6 +23,12 @@ public:
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
         , damage(ModelArray::Type::H)
+        , e11(ModelArray::Type::H)
+        , e22(ModelArray::Type::H)
+        , e12(ModelArray::Type::H)
+        , s11(ModelArray::Type::H)
+        , s22(ModelArray::Type::H)
+        , s12(ModelArray::Type::H)
         , hice(getStore())
         , cice(getStore())
         , hsnow(getStore())
@@ -61,6 +67,13 @@ public:
         if (!m_usesDamage) {
             damage = 0.;
         }
+
+        e11.resize();
+        e22.resize();
+        e12.resize();
+        s11.resize();
+        s22.resize();
+        s12.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -76,6 +89,13 @@ protected:
     HField vice;
     // Updated damage array
     HField damage;
+    // Diagnostic outputs of stress and strain
+    HField e11;
+    HField e22;
+    HField e12;
+    HField s11;
+    HField s22;
+    HField s12;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;

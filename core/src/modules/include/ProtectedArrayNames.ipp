@@ -7,7 +7,7 @@
  */
 
 // External ProtectedArray names must be unique wrt to the external SharedArray names as well
-{ "damage", "DAMAGE0" }, // Ice thickness, cell average, m
+    { "damage", "DAMAGE0" }, // Ice thickness, cell average, m
     { "hice", "H_ICE_cell" }, // Ice thickness, cell average, m
     { "cice", "C_ICE0" }, // Ice concentration
     { "hsnow", "H_SNOW_cell" }, // Snow depth, cell average, m
@@ -40,3 +40,9 @@
     { "sss_slab", "SLAB_SSS" }, // Slab ocean surface salinity PSU
     { "qdw", "SLAB_QDW" }, // Slab ocean temperature nudging heat flux, W m⁻²
     { "fdw", "SLAB_FDW" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+    { "e11", "E11" }, // The 1 1 component of strain rate, s⁻¹
+    { "e22", "E22" }, // The 2 2 component of strain rate, s⁻¹
+    { "e12", "E12" }, // The 1 2 component of strain rate, s⁻¹
+    { "s11", "S11" }, // The 1 1 component of stress, Pa
+    { "s22", "S22" }, // The 2 2 component of stress, Pa
+    { "s12", "S12" }, // The 1 2 component of stress, Pa
