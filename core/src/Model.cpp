@@ -92,8 +92,8 @@ void Model::configure()
     m_etadata.setTime(timeNow);
 
     // Configure the missing data value
-    MissingData::value
-        = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
+    MissingData::setValue(
+        Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
 
     // Parse the initial restart file name and the pattern for output restart files
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
