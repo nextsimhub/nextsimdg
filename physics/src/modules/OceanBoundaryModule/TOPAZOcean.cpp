@@ -20,7 +20,7 @@ std::string TOPAZOcean::filePath;
 static const std::string pfx = "TOPAZOcean";
 static const std::string fileKey = pfx + ".file";
 
-static const std::map<int, std::string> localKeyMap = {
+static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, fileKey },
 };
 
@@ -42,7 +42,7 @@ ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getA
 
 void TOPAZOcean::configure()
 {
-    filePath = Configured::getConfiguration(localKeyMap.at(FILEPATH_KEY), std::string());
+    filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     slabOcean.configure();
 

@@ -28,7 +28,7 @@ static const std::string mldKey = pfx + ".mld";
 static const std::string uKey = pfx + ".current_u";
 static const std::string vKey = pfx + ".current_v";
 
-static const std::map<int, std::string> localKeyMap = {
+static const std::map<int, std::string> keyMap = {
     { ConfiguredOcean::SST_KEY, sstKey },
     { ConfiguredOcean::SSS_KEY, sssKey },
     { ConfiguredOcean::MLD_KEY, mldKey },
@@ -63,11 +63,11 @@ ConfigurationHelp::HelpMap& ConfiguredOcean::getHelpRecursive(HelpMap& map, bool
 
 void ConfiguredOcean::configure()
 {
-    sst0 = Configured<ConfiguredOcean>::getConfiguration(localKeyMap.at(SST_KEY), sst0);
-    sss0 = Configured<ConfiguredOcean>::getConfiguration(localKeyMap.at(SSS_KEY), sss0);
-    mld0 = Configured<ConfiguredOcean>::getConfiguration(localKeyMap.at(MLD_KEY), mld0);
-    u0 = Configured<ConfiguredOcean>::getConfiguration(localKeyMap.at(CURRENTU_KEY), u0);
-    v0 = Configured<ConfiguredOcean>::getConfiguration(localKeyMap.at(CURRENTV_KEY), v0);
+    sst0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(SST_KEY), sst0);
+    sss0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(SSS_KEY), sss0);
+    mld0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(MLD_KEY), mld0);
+    u0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(CURRENTU_KEY), u0);
+    v0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(CURRENTV_KEY), v0);
 
     // set the external SS* arrays as part of configuration, as opposed to at construction as normal
     getStore().registerArray(Protected::EXT_SST, &sstExt, RO);

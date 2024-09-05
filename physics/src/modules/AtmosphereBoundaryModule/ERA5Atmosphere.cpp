@@ -17,7 +17,7 @@ std::string ERA5Atmosphere::filePath;
 static const std::string pfx = "ERA5Atmosphere";
 static const std::string fileKey = pfx + ".file";
 
-static const std::map<int, std::string> localKeyMap = {
+static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, fileKey },
 };
 
@@ -45,7 +45,7 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
 
 void ERA5Atmosphere::configure()
 {
-    filePath = Configured::getConfiguration(localKeyMap.at(FILEPATH_KEY), std::string());
+    filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);

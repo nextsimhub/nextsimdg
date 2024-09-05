@@ -30,7 +30,7 @@ static const std::string snowKey = pfx + ".snow";
 static const std::string rainKey = pfx + ".rainfall";
 static const std::string windKey = pfx + ".wind_speed";
 
-const static std::map<int, std::string> localKeyMap = {
+const static std::map<int, std::string> keyMap = {
     { ConfiguredAtmosphere::TAIR_KEY, tKey },
     { ConfiguredAtmosphere::TDEW_KEY, tdewKey },
     { ConfiguredAtmosphere::PAIR_KEY, pKey },
@@ -79,14 +79,14 @@ ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map,
 
 void ConfiguredAtmosphere::configure()
 {
-    tair0 = Configured::getConfiguration(localKeyMap.at(TAIR_KEY), tair0);
-    tdew0 = Configured::getConfiguration(localKeyMap.at(TDEW_KEY), tdew0);
-    pair0 = Configured::getConfiguration(localKeyMap.at(PAIR_KEY), pair0);
-    sw0 = Configured::getConfiguration(localKeyMap.at(SW_KEY), sw0);
-    lw0 = Configured::getConfiguration(localKeyMap.at(LW_KEY), lw0);
-    snowfall0 = Configured::getConfiguration(localKeyMap.at(SNOW_KEY), snowfall0);
-    rain0 = Configured::getConfiguration(localKeyMap.at(RAIN_KEY), rain0);
-    windspeed0 = Configured::getConfiguration(localKeyMap.at(WIND_KEY), windspeed0);
+    tair0 = Configured::getConfiguration(keyMap.at(TAIR_KEY), tair0);
+    tdew0 = Configured::getConfiguration(keyMap.at(TDEW_KEY), tdew0);
+    pair0 = Configured::getConfiguration(keyMap.at(PAIR_KEY), pair0);
+    sw0 = Configured::getConfiguration(keyMap.at(SW_KEY), sw0);
+    lw0 = Configured::getConfiguration(keyMap.at(LW_KEY), lw0);
+    snowfall0 = Configured::getConfiguration(keyMap.at(SNOW_KEY), snowfall0);
+    rain0 = Configured::getConfiguration(keyMap.at(RAIN_KEY), rain0);
+    windspeed0 = Configured::getConfiguration(keyMap.at(WIND_KEY), windspeed0);
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);

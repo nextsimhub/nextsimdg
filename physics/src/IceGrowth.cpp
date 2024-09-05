@@ -13,7 +13,7 @@
 
 namespace Nextsim {
 
-static const std::map<int, std::string> localKeyMap = {
+static const std::map<int, std::string> keyMap = {
     { IceGrowth::ICE_THERMODYNAMICS_KEY, "IceThermodynamicsModel" },
     { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
     { IceGrowth::MINC_KEY, "nextsim_thermo.min_conc" },
@@ -97,11 +97,11 @@ ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
 IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
 {
     map["IceGrowth"] = {
-        { localKeyMap.at(MINC_KEY), ConfigType::NUMERIC, { "0", "1" },
+        { keyMap.at(MINC_KEY), ConfigType::NUMERIC, { "0", "1" },
             std::to_string(IceMinima::cMinDefault), "", "Minimum allowed ice concentration." },
-        { localKeyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" },
+        { keyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(IceMinima::hMinDefault), "m", "Minimum allowed ice thickness." },
-        { localKeyMap.at(USE_THERMO_KEY), ConfigType::BOOLEAN, { "true", "false" }, "true", "",
+        { keyMap.at(USE_THERMO_KEY), ConfigType::BOOLEAN, { "true", "false" }, "true", "",
             "Perform ice physics calculations as part of the timestep." },
     };
     return map;
@@ -118,10 +118,10 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
 void IceGrowth::configure()
 {
     // Configure whether we actually do anything here
-    doThermo = Configured::getConfiguration(localKeyMap.at(USE_THERMO_KEY), true);
+    doThermo = Configured::getConfiguration(keyMap.at(USE_THERMO_KEY), true);
     // Configure constants
-    IceMinima::cMin = Configured::getConfiguration(localKeyMap.at(MINC_KEY), IceMinima::cMinDefault);
-    IceMinima::hMin = Configured::getConfiguration(localKeyMap.at(MINH_KEY), IceMinima::hMinDefault);
+    IceMinima::cMin = Configured::getConfiguration(keyMap.at(MINC_KEY), IceMinima::cMinDefault);
+    IceMinima::hMin = Configured::getConfiguration(keyMap.at(MINH_KEY), IceMinima::hMinDefault);
 
     // Configure the vertical and lateral growth modules
     iVertical = std::move(Module::getInstance<IIceThermodynamics>());
@@ -135,8 +135,8 @@ void IceGrowth::configure()
 ConfigMap IceGrowth::getConfiguration() const
 {
     return {
-        { localKeyMap.at(MINC_KEY), IceMinima::cMin },
-        { localKeyMap.at(MINH_KEY), IceMinima::hMin },
+        { keyMap.at(MINC_KEY), IceMinima::cMin },
+        { keyMap.at(MINH_KEY), IceMinima::hMin },
     };
 }
 

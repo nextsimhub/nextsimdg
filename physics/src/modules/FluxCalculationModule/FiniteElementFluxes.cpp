@@ -29,7 +29,7 @@ static const double dragIce_t_default = 1.3e-3;
 static const double oceanAlbedo_default = 0.07;
 static const double i0_default = 0.17;
 
-static const std::map<int, std::string> localKeyMap = {
+static const std::map<int, std::string> keyMap = {
     { FiniteElementFluxes::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q" },
     { FiniteElementFluxes::DRAGOCEANT_KEY, "nextsim_thermo.drag_ocean_t" },
     { FiniteElementFluxes::DRAGICET_KEY, "nextsim_thermo.drag_ice_t" },
@@ -42,11 +42,11 @@ void FiniteElementFluxes::configure()
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 
-    dragOcean_q = Configured::getConfiguration(localKeyMap.at(DRAGOCEANQ_KEY), dragOcean_q_default);
-    dragOcean_t = Configured::getConfiguration(localKeyMap.at(DRAGOCEANT_KEY), dragOcean_t_default);
-    dragIce_t = Configured::getConfiguration(localKeyMap.at(DRAGICET_KEY), dragIce_t_default);
-    m_oceanAlbedo = Configured::getConfiguration(localKeyMap.at(OCEANALBEDO_KEY), oceanAlbedo_default);
-    m_I0 = Configured::getConfiguration(localKeyMap.at(I0_KEY), i0_default);
+    dragOcean_q = Configured::getConfiguration(keyMap.at(DRAGOCEANQ_KEY), dragOcean_q_default);
+    dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), dragOcean_t_default);
+    dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), dragIce_t_default);
+    m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), oceanAlbedo_default);
+    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
@@ -82,17 +82,17 @@ ModelState FiniteElementFluxes::getStateRecursive(const OutputSpec& os) const
 FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, bool getAll)
 {
     map["FiniteElementFluxes"] = {
-        { localKeyMap.at(DRAGOCEANQ_KEY), ConfigType::NUMERIC, { "0", "∞" },
+        { keyMap.at(DRAGOCEANQ_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(dragOcean_q_default), "??",
             "Coefficient for evaporative mass flux calculation." },
-        { localKeyMap.at(DRAGOCEANT_KEY), ConfigType::NUMERIC, { "0", "∞" },
+        { keyMap.at(DRAGOCEANT_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(dragOcean_t_default), "??",
             "Coefficient for sensible heat flux calculation." },
-        { localKeyMap.at(DRAGICET_KEY), ConfigType::NUMERIC, { "0", "∞" },
+        { keyMap.at(DRAGICET_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(dragIce_t_default), "??", "Ice drag coefficient for heat fluxes." },
-        { localKeyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, { "0", "∞" },
+        { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(oceanAlbedo_default), "", "Shortwave albedo of open ocean water." },
-        { localKeyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
+        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
             "Transmissivity of ice." },
     };
     return map;

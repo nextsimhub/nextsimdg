@@ -23,14 +23,14 @@ static const std::string className = "SlabOcean";
 static const std::string relaxationTimeTName = "timeT";
 static const std::string relaxationTimeSName = "timeS";
 
-static const std::map<int, std::string> localKeyMap = {
+static const std::map<int, std::string> keyMap = {
     { SlabOcean::TIMET_KEY, className + "." + relaxationTimeTName },
     { SlabOcean::TIMES_KEY, className + "." + relaxationTimeSName },
 };
 void SlabOcean::configure()
 {
-    relaxationTimeT = Configured::getConfiguration(localKeyMap.at(TIMET_KEY), defaultRelaxationTime);
-    relaxationTimeS = Configured::getConfiguration(localKeyMap.at(TIMES_KEY), defaultRelaxationTime);
+    relaxationTimeT = Configured::getConfiguration(keyMap.at(TIMET_KEY), defaultRelaxationTime);
+    relaxationTimeS = Configured::getConfiguration(keyMap.at(TIMES_KEY), defaultRelaxationTime);
 
     getStore().registerArray(Protected::SLAB_QDW, &qdw, RO);
     getStore().registerArray(Protected::SLAB_FDW, &fdw, RO);
@@ -41,10 +41,10 @@ void SlabOcean::configure()
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 {
     map[className] = {
-        { localKeyMap.at(TIMET_KEY), ConfigType::NUMERIC, { "0", "∞" },
+        { keyMap.at(TIMET_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(defaultRelaxationTime), "s",
             "Relaxation time of the slab ocean to external temperature forcing." },
-        { localKeyMap.at(TIMES_KEY), ConfigType::NUMERIC, { "0", "∞" },
+        { keyMap.at(TIMES_KEY), ConfigType::NUMERIC, { "0", "∞" },
             std::to_string(defaultRelaxationTime), "s",
             "Relaxation time of the slab ocean to external salinity forcing." },
     };

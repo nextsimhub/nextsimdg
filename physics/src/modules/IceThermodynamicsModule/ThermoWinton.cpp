@@ -38,15 +38,15 @@ ThermoWinton::ThermoWinton()
     snowToIce.resize();
 }
 
-static const std::map<int, std::string> localKeyMap = {
+static const std::map<int, std::string> keyMap = {
     { ThermoWinton::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
     { ThermoWinton::FLOODING_KEY, "nextsim_thermo.doFlooding" },
 };
 
 void ThermoWinton::configure()
 {
-    kappa_s = Configured::getConfiguration(localKeyMap.at(KS_KEY), k_sDefault);
-    doFlooding = Configured::getConfiguration(localKeyMap.at(FLOODING_KEY), doFlooding);
+    kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
+    doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), doFlooding);
     NZLevels::set(nLevels);
 }
 
@@ -54,7 +54,7 @@ ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state = { {},
         {
-            { localKeyMap.at(KS_KEY), kappa_s },
+            { keyMap.at(KS_KEY), kappa_s },
         } };
     return os ? state : ModelState();
 }
@@ -62,7 +62,7 @@ ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
 ThermoWinton::HelpMap& ThermoWinton::getHelpText(HelpMap& map, bool getAll)
 {
     map["ThermoWinton"] = {
-        { localKeyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
+        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
             "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
     };
     return map;

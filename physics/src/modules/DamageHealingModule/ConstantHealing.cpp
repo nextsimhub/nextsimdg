@@ -12,25 +12,25 @@ namespace Nextsim {
 double ConstantHealing::tD = 0.;
 static const double tDDefault = 15;
 
-static const std::map<int, std::string> localKeyMap
+static const std::map<int, std::string> keyMap
     = { { ConstantHealing::TD_KEY, "ConstantHealing.td" } };
 
 void ConstantHealing::configure()
 {
     // the option is defined in days, but the model wants seconds
-    tD = Configured::getConfiguration(localKeyMap.at(TD_KEY), tDDefault);
+    tD = Configured::getConfiguration(keyMap.at(TD_KEY), tDDefault);
     tD *= 86400.;
 }
 
 ModelState ConstantHealing::getStateRecursive(const Nextsim::OutputSpec& os) const
 {
-    return { {}, { { localKeyMap.at(TD_KEY), tD } } };
+    return { {}, { { keyMap.at(TD_KEY), tD } } };
 }
 
 ConstantHealing::HelpMap& ConstantHealing::getHelpText(HelpMap& map, bool getAll)
 {
     map["ConstantHealing"]
-        = { { localKeyMap.at(TD_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(tDDefault),
+        = { { keyMap.at(TD_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(tDDefault),
             "days", "The healing time scale (t_d) for brittle rheologies" } };
     return map;
 }
