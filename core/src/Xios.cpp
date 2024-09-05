@@ -33,8 +33,7 @@
 
 namespace Nextsim {
 
-template <>
-const std::map<int, std::string> Configured<Xios>::keyMap
+static const std::map<int, std::string> keyMap
     = { { Xios::ENABLED_KEY, "xios.enable" } };
 
 /*!
