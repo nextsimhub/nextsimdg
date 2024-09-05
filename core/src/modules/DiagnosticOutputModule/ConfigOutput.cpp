@@ -31,8 +31,7 @@ static const std::string filePeriodKey = pfx + ".file_period";
 // Access the model.start key. There's no clean way of getting this from Model, I think.
 static const std::string modelStartKey = "model.start";
 
-template <>
-const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
+static const std::map<int, std::string> localKeyMap = {
     { ConfigOutput::PERIOD_KEY, periodKey },
     { ConfigOutput::START_KEY, startKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
@@ -79,13 +78,13 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpRecursive(HelpMap& map, bool ge
 }
 void ConfigOutput::configure()
 {
-    std::string periodString = Configured::getConfiguration(keyMap.at(PERIOD_KEY), std::string(""));
+    std::string periodString = Configured::getConfiguration(localKeyMap.at(PERIOD_KEY), std::string(""));
     if (periodString.empty()) {
         everyTS = true;
     } else {
         outputPeriod.parse(periodString);
     }
-    std::string startString = Configured::getConfiguration(keyMap.at(START_KEY), std::string(""));
+    std::string startString = Configured::getConfiguration(localKeyMap.at(START_KEY), std::string(""));
     if (startString.empty()) {
         startString = Configured::getConfiguration(modelStartKey, std::string(""));
         if (startString.empty())
@@ -99,7 +98,7 @@ void ConfigOutput::configure()
     }
 
     std::string outputFields
-        = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
+        = Configured::getConfiguration(localKeyMap.at(FIELDNAMES_KEY), std::string(""));
     if (outputFields == all || outputFields.empty()) { // Output *all* the fields?
         outputAllTheFields = true; // Output all the fields!
     } else {
@@ -128,7 +127,7 @@ void ConfigOutput::configure()
 
     // The default string is the number of seconds in 10000 years of 365 days
     std::string newFilePeriodStr
-        = Configured::getConfiguration(keyMap.at(FILEPERIOD_KEY), std::string("315360000000"));
+        = Configured::getConfiguration(localKeyMap.at(FILEPERIOD_KEY), std::string("315360000000"));
     fileChangePeriod = Duration(newFilePeriodStr);
     lastFileChange = lastOutput;
 }
@@ -218,9 +217,9 @@ ModelState ConfigOutput::getStateRecursive(const OutputSpec& os) const
 {
     return { {},
         {
-            { keyMap.at(PERIOD_KEY), outputPeriod.format() },
-            { keyMap.at(START_KEY), lastOutput.format() }, // FIXME Not necessarily the start date!
-            { keyMap.at(FIELDNAMES_KEY), concatenateFields(fieldsForOutput) },
+            { localKeyMap.at(PERIOD_KEY), outputPeriod.format() },
+            { localKeyMap.at(START_KEY), lastOutput.format() }, // FIXME Not necessarily the start date!
+            { localKeyMap.at(FIELDNAMES_KEY), concatenateFields(fieldsForOutput) },
         } };
 }
 
