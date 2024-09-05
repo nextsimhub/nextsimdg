@@ -170,8 +170,8 @@ public:
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
-        for (size_t i = 0; i < nOcean; ++i) {
-            fn(oceanIndex[i], tst);
+        for (size_t i : oceanIndex) {
+            fn(i, tst);
         }
     }
 
@@ -209,7 +209,6 @@ private:
         return store;
     }
 
-    static size_t nOcean;
     static std::vector<size_t> oceanIndex;
 };
 
