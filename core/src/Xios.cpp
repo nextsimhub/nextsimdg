@@ -33,8 +33,7 @@
 
 namespace Nextsim {
 
-static const std::map<int, std::string> keyMap
-    = { { Xios::ENABLED_KEY, "xios.enable" } };
+static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" } };
 
 /*!
  * Constructor
