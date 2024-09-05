@@ -30,8 +30,7 @@ static const std::string evapKey = pfx + ".evaporation";
 static const std::string uKey = pfx + ".wind_u";
 static const std::string vKey = pfx + ".wind_v";
 
-template <>
-const std::map<int, std::string> Configured<FluxConfiguredAtmosphere>::keyMap = {
+static const std::map<int, std::string> localKeyMap = {
     { FluxConfiguredAtmosphere::QIA_KEY, qiaKey },
     { FluxConfiguredAtmosphere::DQIA_DT_KEY, dqiaKey },
     { FluxConfiguredAtmosphere::QOW_KEY, qowKey },
@@ -69,15 +68,15 @@ ConfigurationHelp::HelpMap& FluxConfiguredAtmosphere::getHelpRecursive(HelpMap& 
 }
 void FluxConfiguredAtmosphere::configure()
 {
-    qia0 = Configured::getConfiguration(keyMap.at(QIA_KEY), qia0);
-    dqia_dt0 = Configured::getConfiguration(keyMap.at(DQIA_DT_KEY), dqia_dt0);
-    qow0 = Configured::getConfiguration(keyMap.at(QOW_KEY), qow0);
-    subl0 = Configured::getConfiguration(keyMap.at(SUBL_KEY), subl0);
-    snowfall0 = Configured::getConfiguration(keyMap.at(SNOW_KEY), snowfall0);
-    rain0 = Configured::getConfiguration(keyMap.at(RAIN_KEY), rain0);
-    evap0 = Configured::getConfiguration(keyMap.at(EVAP_KEY), evap0);
-    u0 = Configured::getConfiguration(keyMap.at(WINDU_KEY), u0);
-    v0 = Configured::getConfiguration(keyMap.at(WINDV_KEY), v0);
+    qia0 = Configured::getConfiguration(localKeyMap.at(QIA_KEY), qia0);
+    dqia_dt0 = Configured::getConfiguration(localKeyMap.at(DQIA_DT_KEY), dqia_dt0);
+    qow0 = Configured::getConfiguration(localKeyMap.at(QOW_KEY), qow0);
+    subl0 = Configured::getConfiguration(localKeyMap.at(SUBL_KEY), subl0);
+    snowfall0 = Configured::getConfiguration(localKeyMap.at(SNOW_KEY), snowfall0);
+    rain0 = Configured::getConfiguration(localKeyMap.at(RAIN_KEY), rain0);
+    evap0 = Configured::getConfiguration(localKeyMap.at(EVAP_KEY), evap0);
+    u0 = Configured::getConfiguration(localKeyMap.at(WINDU_KEY), u0);
+    v0 = Configured::getConfiguration(localKeyMap.at(WINDV_KEY), v0);
 }
 
 void FluxConfiguredAtmosphere::setData(const ModelState::DataMap& dm)

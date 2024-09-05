@@ -28,8 +28,7 @@ static const std::string mldKey = pfx + ".mld";
 static const std::string uKey = pfx + ".current_u";
 static const std::string vKey = pfx + ".current_v";
 
-template <>
-const std::map<int, std::string> Configured<FluxConfiguredOcean>::keyMap = {
+static const std::map<int, std::string> localKeyMap = {
     { FluxConfiguredOcean::QIO_KEY, qioKey },
     { FluxConfiguredOcean::SST_KEY, sstKey },
     { FluxConfiguredOcean::SSS_KEY, sssKey },
@@ -60,12 +59,12 @@ ConfigurationHelp::HelpMap& FluxConfiguredOcean::getHelpRecursive(HelpMap& map, 
 
 void FluxConfiguredOcean::configure()
 {
-    qio0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(QIO_KEY), qio0);
-    sst0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(SST_KEY), sst0);
-    sss0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(SSS_KEY), sss0);
-    mld0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(MLD_KEY), mld0);
-    u0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(CURRENTU_KEY), u0);
-    v0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(CURRENTV_KEY), v0);
+    qio0 = Configured<FluxConfiguredOcean>::getConfiguration(localKeyMap.at(QIO_KEY), qio0);
+    sst0 = Configured<FluxConfiguredOcean>::getConfiguration(localKeyMap.at(SST_KEY), sst0);
+    sss0 = Configured<FluxConfiguredOcean>::getConfiguration(localKeyMap.at(SSS_KEY), sss0);
+    mld0 = Configured<FluxConfiguredOcean>::getConfiguration(localKeyMap.at(MLD_KEY), mld0);
+    u0 = Configured<FluxConfiguredOcean>::getConfiguration(localKeyMap.at(CURRENTU_KEY), u0);
+    v0 = Configured<FluxConfiguredOcean>::getConfiguration(localKeyMap.at(CURRENTV_KEY), v0);
 }
 
 void FluxConfiguredOcean::setData(const ModelState::DataMap& ms)

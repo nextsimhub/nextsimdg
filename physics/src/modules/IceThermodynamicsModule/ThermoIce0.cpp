@@ -39,14 +39,13 @@ void ThermoIce0::update(const TimestepTime& tsTime)
         tsTime);
 }
 
-template <>
-const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
+static const std::map<int, std::string> localKeyMap = {
     { ThermoIce0::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
 };
 
 void ThermoIce0::configure()
 {
-    kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
+    kappa_s = Configured::getConfiguration(localKeyMap.at(KS_KEY), k_sDefault);
     NZLevels::set(nZLevels);
 }
 
@@ -54,7 +53,7 @@ ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 {
     ModelState state = { {},
         {
-            { keyMap.at(KS_KEY), kappa_s },
+            { localKeyMap.at(KS_KEY), kappa_s },
         } };
     return os ? state : ModelState();
 }
@@ -62,7 +61,7 @@ ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
 {
     map["ThermoIce0"] = {
-        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
+        { localKeyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
             "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
     };
     return map;

@@ -11,8 +11,7 @@ double MU71Atmosphere::m_I0;
 
 static const double i0_default = 0.30;
 
-template <>
-const std::map<int, std::string> Configured<MU71Atmosphere>::keyMap = {
+static const std::map<int, std::string> localKeyMap = {
     { MU71Atmosphere::I0_KEY, "nextsim_thermo.I_0" },
 };
 
@@ -21,13 +20,13 @@ void MU71Atmosphere::configure()
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 
-    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
+    m_I0 = Configured::getConfiguration(localKeyMap.at(I0_KEY), i0_default);
 }
 
 MU71Atmosphere::HelpMap& MU71Atmosphere::getHelpText(HelpMap& map, bool getAll)
 {
     map["FiniteElementFluxes"] = {
-        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
+        { localKeyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
             "Transmissivity of ice." },
     };
     return map;
