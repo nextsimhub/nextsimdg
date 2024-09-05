@@ -31,3 +31,24 @@ cmake .. \
     -DWITH_THREADS=ON
 make -j [NUM_JOBS]
 ```
+
+# Run the model
+```
+cd ../run
+```
+Link `./nextsim` from `build`
+```
+ln -s ../build/nextsim
+```
+Run with
+```
+./nextsim --config-file config_benchmark.cfg
+```
+Can also run a more realistic case, by downloading some initial conditions
+```
+wget ftp://ftp.nersc.no/nextsim/netCDF/init_25km_NH.nc
+```
+and running with the config file
+```
+./nextsim --config-file config_column.cfg
+```
