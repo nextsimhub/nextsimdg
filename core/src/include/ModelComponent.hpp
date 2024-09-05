@@ -165,7 +165,7 @@ public:
     /*!
      * @brief Returns the ModelArrayRef backing store.
      */
-    static ModelArrayReferenceStore& getStore() { return store; }
+    static ModelArrayReferenceStore& getStore() { return store(); }
 
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
@@ -203,7 +203,11 @@ protected:
     static ModelArray* p_oceanMaskH;
 
 private:
-    static ModelArrayReferenceStore store;
+    static ModelArrayReferenceStore& store()
+    {
+        static ModelArrayReferenceStore store;
+        return store;
+    }
 
     static size_t nOcean;
     static std::vector<size_t> oceanIndex;
