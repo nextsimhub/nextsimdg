@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 18 Jul 2024
+ * @date 05 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -32,6 +32,13 @@ MEVPDynamics::MEVPDynamics()
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
+
+    getStore().registerArray(Protected::E11, &e11, RO);
+    getStore().registerArray(Protected::E22, &e22, RO);
+    getStore().registerArray(Protected::E12, &e12, RO);
+    getStore().registerArray(Protected::S11, &s11, RO);
+    getStore().registerArray(Protected::S22, &s22, RO);
+    getStore().registerArray(Protected::S12, &s12, RO);
 }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
@@ -80,6 +87,14 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+
+    e11 = kernel.getDG0Data(e11Name);
+    e22 = kernel.getDG0Data(e22Name);
+    e12 = kernel.getDG0Data(e12Name);
+
+    s11 = kernel.getDG0Data(s11Name);
+    s22 = kernel.getDG0Data(s22Name);
+    s12 = kernel.getDG0Data(s12Name);
 }
 
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
@@ -87,11 +102,10 @@ ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
     // Base class state
     ModelState state(IDynamics::getStateRecursive(os));
 
-    if (os.allComponents())
-    {
+    if (os.allComponents()) {
         state.merge({
-            {hiceName, kernel.getDG0Data(hiceName)},
-            {ciceName, kernel.getDG0Data(ciceName)},
+            { hiceName, kernel.getDG0Data(hiceName) },
+            { ciceName, kernel.getDG0Data(ciceName) },
         });
     }
     return state;
