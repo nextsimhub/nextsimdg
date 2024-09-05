@@ -16,11 +16,7 @@ std::string ModelConfig::durationStr;
 std::string ModelConfig::stepStr;
 
 const std::map<int, std::string> ModelConfig::keyMap = {
-    { ModelConfig::STARTTIME_KEY, "model.start" },
-    { ModelConfig::STOPTIME_KEY, "model.stop" },
-    { ModelConfig::RUNLENGTH_KEY, "model.run_length" },
-    { ModelConfig::TIMESTEP_KEY, "model.time_step" },
-    { ModelConfig::MISSINGVALUE_KEY, "model.missing_value" },
+#include "include/ModelConfigMapElements.ipp"
 };
 
 ConfigMap ModelConfig::getConfig()

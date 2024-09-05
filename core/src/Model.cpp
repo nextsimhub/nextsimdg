@@ -22,20 +22,13 @@
 
 namespace Nextsim {
 
-template <typename Key, typename Value>
-static std::map<Key, Value> combineMaps(std::map<Key, Value>& map1, std::map<Key, Value>& map2)
-{
-    std::map<Key, Value> map3 = map1;
-    map3.merge(map2);
-    return map3;
-}
 
 // Map of configuration that will be written to the restart file
-static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
 const std::string Model::restartOptionName = "model.init_file";
 // Map of all configuration keys for the main model, including those not to be
 // written to the restart file.
-static std::map<int, std::string> modelConfigKeyMap = {
+static const std::map<int, std::string> localKeyMap = {
+#include "include/ModelConfigMapElements.ipp"
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
 #ifdef USE_MPI
     { Model::PARTITIONFILE_KEY, "model.partition_file" },
@@ -48,11 +41,6 @@ static std::map<int, std::string> modelConfigKeyMap = {
     { Model::RESTARTPERIOD_KEY, "model.restart_period" },
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
-
-// Merge the configuration from ModelConfig into the Model keyMap.
-template <>
-const std::map<int, std::string> Configured<Model>::keyMap
-    = combineMaps(interimKeyMap, modelConfigKeyMap);
 
 #ifdef USE_MPI
 Model::Model(MPI_Comm comm)
@@ -92,11 +80,11 @@ void Model::configure()
     // Store the start/stop/step configuration directly in ModelConfig before
     // parsing these values to the numerical time values used by the model.
     ModelConfig::startTimeStr
-        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
-    ModelConfig::stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
+        = Configured::getConfiguration(localKeyMap.at(STARTTIME_KEY), std::string());
+    ModelConfig::stopTimeStr = Configured::getConfiguration(localKeyMap.at(STOPTIME_KEY), std::string());
     ModelConfig::durationStr
-        = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
-    ModelConfig::stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+        = Configured::getConfiguration(localKeyMap.at(RUNLENGTH_KEY), std::string());
+    ModelConfig::stepStr = Configured::getConfiguration(localKeyMap.at(TIMESTEP_KEY), std::string());
 
     // Set the time correspond to the current (initial) model state
     TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
@@ -105,11 +93,11 @@ void Model::configure()
 
     // Configure the missing data value
     MissingData::value
-        = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
+        = Configured::getConfiguration(localKeyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
 
     // Parse the initial restart file name and the pattern for output restart files
-    initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
-    finalFileName = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), finalFileName);
+    initialFileName = Configured::getConfiguration(localKeyMap.at(RESTARTFILE_KEY), std::string());
+    finalFileName = Configured::getConfiguration(localKeyMap.at(RESTARTOUTFILE_KEY), finalFileName);
 
     pData.configure();
 
@@ -118,7 +106,7 @@ void Model::configure()
 
 #ifdef USE_MPI
     std::string partitionFile
-        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
+        = Configured::getConfiguration(localKeyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
     m_etadata.getPartitionMetadata(partitionFile);
 #endif
 
@@ -130,7 +118,7 @@ void Model::configure()
 
     // The period with which to write restart files.
     std::string restartPeriodStr
-        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
+        = Configured::getConfiguration(localKeyMap.at(RESTARTPERIOD_KEY), std::string("0"));
     restartPeriod = Duration(restartPeriodStr);
 
     // Get the coordinates from the ModelState for persistence
@@ -151,27 +139,27 @@ ConfigMap Model::getConfig() const
 Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
 {
     map["Model"] = {
-        { keyMap.at(STARTTIME_KEY), ConfigType::STRING, {}, "", "",
+        { localKeyMap.at(STARTTIME_KEY), ConfigType::STRING, {}, "", "",
             "Model start time, formatted as an ISO8601 date. "
             "Non-calendretical runs can start from year 0 or 1. " },
-        { keyMap.at(STOPTIME_KEY), ConfigType::STRING, {}, "", "",
+        { localKeyMap.at(STOPTIME_KEY), ConfigType::STRING, {}, "", "",
             "Model stop time, formatted as an ISO8601 data. "
             " Will be overridden if a model run length is set. " },
-        { keyMap.at(RUNLENGTH_KEY), ConfigType::STRING, {}, "", "",
+        { localKeyMap.at(RUNLENGTH_KEY), ConfigType::STRING, {}, "", "",
             "Model run length, formatted as an ISO8601 duration (P prefix). "
             "Overrides the stop time if set. " },
-        { keyMap.at(TIMESTEP_KEY), ConfigType::STRING, {}, "", "",
+        { localKeyMap.at(TIMESTEP_KEY), ConfigType::STRING, {}, "", "",
             "Model physics timestep, formatted as an ISO8601 duration (P prefix). " },
-        { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
+        { localKeyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the restart file to use for the run." },
-        { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
+        { localKeyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
             "The period between restart file outputs, formatted as an ISO8601 "
             "duration (P prefix) or number of seconds. A value of zero "
             "ensures no intermediate restart files are written." },
-        { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
+        { localKeyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
             "Missing data indicator used for input and output." },
 #ifdef USE_MPI
-        { keyMap.at(PARTITIONFILE_KEY), ConfigType::STRING, {}, "", "",
+        { localKeyMap.at(PARTITIONFILE_KEY), ConfigType::STRING, {}, "", "",
             "The file path to the file describing MPI domain decomposition to use for the run." },
 #endif
     };
