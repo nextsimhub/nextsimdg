@@ -20,13 +20,12 @@ apptainer shell --cleanenv nextsim_dg.sif
 ```
 
 ## Compile the code
-In the root directory of `nextsimdg`, do
+In the root directory of `nextsimdg`, do (can change the options passed to cmake)
 ```
 apptainer shell --cleanenv apptainer/nextsim_dg.sif
 mkdir -p build
 cd build
 cmake .. \
-    -DPYTHON_EXECUTABLE=$(which python) \
     -DCMAKE_BUILD_TYPE=Release \
     -DWITH_THREADS=ON
 make -j [NUM_JOBS]
