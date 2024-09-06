@@ -1,0 +1,62 @@
+Bootstrap: docker
+From: ubuntu:22.04
+Stage: build
+
+
+%files
+    conda.yml /conda/conda.yml
+
+
+%post
+    # install apt libraries
+    apt-get update --fix-missing
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        cmake \
+        git \
+        libnetcdf-c++4-dev \
+        libboost-all-dev \
+        libeigen3-dev \
+        netcdf-bin \
+        wget
+
+    # update certificates and clean up
+    update-ca-certificates
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+    # install conda
+    mkdir -p /conda
+    wget --quiet --no-check-certificate -O /conda/miniconda.sh \
+        https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    /bin/bash /conda/miniconda.sh -b -p /opt/local/conda
+
+    # create conda environment with the required python libraries installed
+    . /opt/local/conda/etc/profile.d/conda.sh
+    conda env create -f /conda/conda.yml
+
+    # clean up
+    rm -r /conda
+
+%environment
+    . /opt/local/conda/etc/profile.d/conda.sh
+    conda activate nextsim_dg
+
+%test
+    grep -q NAME=\"Ubuntu\" /etc/os-release
+    if [ $? -eq 0 ]
+    then
+        echo "Container base is Ubuntu as expected."
+    else
+        echo "Container base is not Ubuntu."
+        exit 1
+    fi
+
+%labels
+    Author Timothy Williams
+    Version v0.0.1
+
+%help
+    This is an ubuntu container with required external libraries
+    to compile and run nextsimdg

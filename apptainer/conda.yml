@@ -1,0 +1,36 @@
+name: nextsim_dg
+channels:
+  - conda-forge
+dependencies:
+  - gdal
+  - cartopy
+  - cython
+  - pip
+  - python=3.11
+  - pip:
+    - cmocean
+    - compliance-checker
+    - copernicusmarine
+    - ipdb
+    - ipython
+    - jupyter
+    - matplotlib
+    - mock
+    - netcdf4
+    - netcdftime
+    - notebook
+    - numpy
+    - pandas
+    - paramiko
+    - pillow
+    - pylatex
+    - pyproj
+    - pyshp
+    - pytest
+    - pyyaml
+    - rtree
+    - scikit-image
+    - scikit-learn
+    - scipy
+    - shapely
+    - xarray
