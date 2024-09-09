@@ -119,6 +119,9 @@ TEST_CASE("Melting conditions")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
     twin.configure();
+    HField mask(ModelArray::Type::H);
+    mask = 1;
+    twin.setOceanMask(mask);
     twin.update(tst);
     ModelArrayRef<Shared::T_ICE, RO> tice(ModelComponent::getStore());
     ModelArrayRef<Shared::Q_IC, RO> qic(ModelComponent::getStore());
@@ -225,6 +228,9 @@ TEST_CASE("Freezing conditions")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
     twin.configure();
+    HField mask(ModelArray::Type::H);
+    mask = 1;
+    twin.setOceanMask(mask);
     twin.update(tst);
 
     ModelArrayRef<Shared::T_ICE, RO> tice(ModelComponent::getStore());
@@ -344,6 +350,9 @@ TEST_CASE("No ice do nothing")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
     twin.configure();
+    HField mask(ModelArray::Type::H);
+    mask = 1;
+    twin.setOceanMask(mask);
     twin.update(tst);
 
     ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());

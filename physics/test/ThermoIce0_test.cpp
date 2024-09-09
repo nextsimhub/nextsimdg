@@ -147,10 +147,14 @@ TEST_CASE("Threshold ice")
 
     fluxData.setData(ModelState::DataMap());
 
+
     TimestepTime tst = { TimePoint("2000-01-01T00:00:00"), Duration(600) };
     ThermoIce0 ti0t;
     ti0t.configure();
     ti0t.setData(ModelState::DataMap());
+    HField mask(ModelArray::Type::H);
+    mask = 1;
+    ti0t.setOceanMask(mask);
     ti0t.update(tst);
 
     ModelArrayRef<Shared::H_ICE> hice(ModelComponent::getStore());
