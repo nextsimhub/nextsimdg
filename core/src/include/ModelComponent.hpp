@@ -215,10 +215,7 @@ private:
         static std::vector<size_t> indices;
         return indices;
     }
-    static size_t& oceanIndex(size_t i)
-    {
-        return oceanIndex()[i];
-    }
+    static size_t& oceanIndex(size_t i) { return oceanIndex()[i]; }
 
     static ModelArray& oceanMaskInternal()
     {
@@ -226,10 +223,7 @@ private:
         return mask;
     }
 
-    static bool oceanMaskInternal(size_t i)
-    {
-        return oceanMaskInternal()[i];
-    }
+    static bool oceanMaskInternal(size_t i) { return oceanMaskInternal()[i]; }
 };
 
 } /* namespace Nextsim */

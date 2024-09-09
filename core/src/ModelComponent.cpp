@@ -7,14 +7,12 @@
 
 #include "include/ModelComponent.hpp"
 
-#include "include/gridNames.hpp"
 #include "include/MissingData.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
-ModelComponent::ModelComponent()
-{
-}
+ModelComponent::ModelComponent() { }
 
 void ModelComponent::setData(const ModelState::DataMap& state)
 {
@@ -34,7 +32,8 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
     bool maskMatch = mask.trueSize() == oceanMaskInternal().trueSize();
 
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        if (!maskMatch) break;
+        if (!maskMatch)
+            break;
         maskMatch = (mask[i] == oceanMaskInternal(i));
     }
 
