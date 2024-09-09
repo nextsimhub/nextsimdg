@@ -117,9 +117,13 @@ public:
     /*!
      * @brief Set the initial data of the component from the passed ModelState.
      *
+     * @details The base class implementation will set the land mask if the 'mask' dataset is
+     * present. Otherwise no land mask will be set and noLandMask() must be called. Derived classes
+     * also set their own data in their polymorphic versions of this function.
+     *
      * @param state The ModelState containing the data to be set.
      */
-    virtual void setData(const ModelState::DataMap& state) = 0;
+    virtual void setData(const ModelState::DataMap& state);
     /*!
      * @brief Returns a ModelState from this component.
      *
@@ -199,9 +203,6 @@ protected:
      */
     static const ModelArray& oceanMask();
 
-protected:
-    static ModelArray* p_oceanMaskH;
-
 private:
     static ModelArrayReferenceStore& store()
     {
@@ -217,6 +218,17 @@ private:
     static size_t& oceanIndex(size_t i)
     {
         return oceanIndex()[i];
+    }
+
+    static ModelArray& oceanMaskInternal()
+    {
+        static ModelArray mask = ModelArray(ModelArray::Type::H);
+        return mask;
+    }
+
+    static bool oceanMaskInternal(size_t i)
+    {
+        return oceanMaskInternal()[i];
     }
 };
 

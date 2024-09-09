@@ -7,14 +7,21 @@
 
 #include "include/ModelComponent.hpp"
 
+#include "include/gridNames.hpp"
 #include "include/MissingData.hpp"
 
 namespace Nextsim {
 
-ModelArray* ModelComponent::p_oceanMaskH = nullptr;
+ModelComponent::ModelComponent()
+{
+}
 
-ModelComponent::ModelComponent() { noLandMask(); }
-
+void ModelComponent::setData(const ModelState::DataMap& state)
+{
+    if (state.count(maskName) > 0) {
+        setOceanMask(state.at(maskName));
+    }
+}
 /*
  * This assumes that the HField array size has already been set in the restart
  * reading routine. The mask, like all ModelArrays, is double precision,
@@ -22,26 +29,27 @@ ModelComponent::ModelComponent() { noLandMask(); }
  */
 void ModelComponent::setOceanMask(const ModelArray& mask)
 {
-    if (p_oceanMaskH)
-        delete p_oceanMaskH;
-    p_oceanMaskH = new ModelArray(ModelArray::Type::H);
-    ModelArray& oceanMaskH = *p_oceanMaskH;
-    oceanMaskH.resize();
-    oceanMaskH = mask;
+    // First check that the internal ocean mask has the correct allocated size. If not, then the
+    // mask definitely needs to be assigned.
+    bool maskMatch = mask.trueSize() == oceanMaskInternal().trueSize();
 
-    size_t nOcean;
+    for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
+        if (!maskMatch) break;
+        maskMatch = (mask[i] == oceanMaskInternal(i));
+    }
+
+    // If the old and new masks match, then return
+    if (maskMatch)
+        return;
+
+    // Otherwise, set the new mask and (re)calculate the ocean point to grid point mapping.
+    oceanMaskInternal() = mask;
 
     // Generate the oceanIndex to grid index mapping
-    // 1. Count the number of non-land squares
+    oceanIndex().clear();
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        if (oceanMaskH[i] > 0)
-            ++nOcean;
-    }
-    oceanIndex().resize(nOcean);
-    size_t iOceanIndex = 0;
-    for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        if (oceanMaskH[i] > 0) {
-            oceanIndex(iOceanIndex++) = i;
+        if (oceanMaskInternal(i)) {
+            oceanIndex().push_back(i);
         }
     }
 }
@@ -49,17 +57,10 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
 // Fills the nOcean and OceanIndex variables for the zero land case
 void ModelComponent::noLandMask()
 {
-    if (p_oceanMaskH)
-        delete p_oceanMaskH;
-    p_oceanMaskH = new ModelArray(ModelArray::Type::H);
-    p_oceanMaskH->resize();
-    *p_oceanMaskH = 1.; // All ocean
-
-    size_t nOcean = ModelArray::size(ModelArray::Type::H);
-    oceanIndex().resize(nOcean);
-    for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        oceanIndex(i) = i;
-    }
+    HField mask(ModelArray::Type::H);
+    mask.resize();
+    mask = 1;
+    setOceanMask(mask);
 }
 
 ModelArray ModelComponent::mask(const ModelArray& data)
@@ -90,6 +91,6 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     }
 }
 
-const ModelArray& ModelComponent::oceanMask() { return *p_oceanMaskH; }
+const ModelArray& ModelComponent::oceanMask() { return oceanMaskInternal(); }
 
 } /* namespace Nextsim */
