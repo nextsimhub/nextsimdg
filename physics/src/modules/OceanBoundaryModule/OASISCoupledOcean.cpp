@@ -46,25 +46,27 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
 #ifdef USE_OASIS
 
     int kinfo;
-    const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
-    const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
-    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSTKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sst[0], &kinfo));
+    oasis_c_get(couplingId.at(SSTKey), OASISTime, dimension0, dimension1, bundleSize, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &sst[0], &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSSKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
+    oasis_c_get(couplingId.at(SSSKey), OASISTime, dimension0, dimension1, bundleSize, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &sss[0], &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(UOceanKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &u[0], &kinfo));
+    oasis_c_get(couplingId.at(UOceanKey), OASISTime, dimension0, dimension1, bundleSize,
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &u[0], &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &v[0], &kinfo));
+    oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1, bundleSize,
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &v[0], &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
     // TODO: Implement ssh reading and passing to dynamics!
-    //    OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SSHKey], OASISTime, dimension0,
-    //    dimension1,
-    //                                bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
+    // oasis_c_get(cplIdIn[couplingIdIn::SSHKey], OASISTime, dimension0, dimension1, bundleSize,
+    //     OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo);
+    // OASIS_CHECK_ERR(kinfo);
 
     if (couplingId.find(SSHKey) != couplingId.end()) {
         OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
@@ -90,36 +92,42 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 {
 #ifdef USE_OASIS
     int kinfo;
-    const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
-    const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
     // TODO We still need the the actual data
     HField dummy;
     dummy.resize();
     dummy.setData(0.);
-    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauYKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    oasis_c_put(couplingId.at(TauYKey), OASISTime, dimension0, dimension1, 1, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QSWKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    oasis_c_put(couplingId.at(QSWKey), OASISTime, dimension0, dimension1, 1, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QNoSunKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    oasis_c_put(couplingId.at(QNoSunKey), OASISTime, dimension0, dimension1, 1, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(SFluxKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    oasis_c_put(couplingId.at(SFluxKey), OASISTime, dimension0, dimension1, 1, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauModKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    oasis_c_put(couplingId.at(TauModKey), OASISTime, dimension0, dimension1, 1, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
-    OASIS_CHECK_ERR(oasis_c_put(couplingId.at(CIceKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+    oasis_c_put(couplingId.at(CIceKey), OASISTime, dimension0, dimension1, 1, OASIS_DOUBLE,
+        OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo);
+    OASIS_CHECK_ERR(kinfo);
 
     // Increment the "OASIS" time by the number of seconds in the time step
     updateOASISTime(tst);

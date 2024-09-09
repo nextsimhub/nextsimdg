@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.hpp
  *
- * @date Sep 26, 2022
+ * @date 09 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -79,6 +79,9 @@ public:
 private:
     int bundleSize = 1; // Always "unbundled", as per the OASIS manual
     double firstLayerDepth = FIRST_LAYER_DEPTH;
+
+    const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
+    const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
     SlabOcean slabOcean;
 
