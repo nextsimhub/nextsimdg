@@ -1,6 +1,6 @@
 /*!
  * @file Model.cpp
- * @date 12 Aug 2021
+ * @date 09 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -47,6 +47,9 @@ static std::map<int, std::string> modelConfigKeyMap = {
     { Model::MISSINGVALUE_KEY, "model.missing_value" },
     { Model::RESTARTPERIOD_KEY, "model.restart_period" },
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
+#ifdef USE_OASIS
+    { Model::WRITEOASISGRID_KEY, "oasis.write_grid" },
+#endif
 };
 
 // Merge the configuration from ModelConfig into the Model keyMap.
@@ -135,6 +138,11 @@ void Model::configure()
 
     // Get the coordinates from the ModelState for persistence
     m_etadata.extractCoordinates(initialState);
+
+#ifdef USE_OASIS
+    const bool writeOasisGrid = Configured::getConfiguration(keyMap.at(WRITEOASISGRID_KEY), false);
+    m_etadata.initOasis(writeOasisGrid);
+#endif
 
     modelStep.setData(pData);
     modelStep.setMetadata(m_etadata);

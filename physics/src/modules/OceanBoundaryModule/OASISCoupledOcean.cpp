@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.cpp
  *
- * @date 27 Aug 2024
+ * @date 09 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -15,30 +15,26 @@ namespace Nextsim {
 
 void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
 {
-    // The parent class knows how to set the communicators and partitions
-    OASISCoupled::setMetadata(metadata);
-
 #ifdef USE_OASIS
     // OASIS defining variable
 
     /* Populate the couplingId map with the id string and number pair. We need to do this seperately
      * for the input (get) and output (put) variables. */
+    // TODO: coplingID should be a map of <std::string, std::pair> where the pair is idNumber and
+    // pointer to the ModelArray
     for (std::string idString : cplStringsIn) {
         int idNumber;
-        OASIS_CHECK_ERR(oasis_c_def_var(
-            &idNumber, idString.c_str(), partitionID, bundleSize, OASIS_IN, OASIS_DOUBLE));
+        OASIS_CHECK_ERR(oasis_c_def_var(&idNumber, idString.c_str(), metadata.OASISPartitionId,
+            bundleSize, OASIS_IN, OASIS_DOUBLE));
         couplingId[idString] = idNumber;
     }
 
     for (std::string idString : cplStringsOut) {
         int idNumber;
-        OASIS_CHECK_ERR(oasis_c_def_var(
-            &idNumber, idString.c_str(), partitionID, bundleSize, OASIS_OUT, OASIS_DOUBLE));
+        OASIS_CHECK_ERR(oasis_c_def_var(&idNumber, idString.c_str(), metadata.OASISPartitionId,
+            bundleSize, OASIS_OUT, OASIS_DOUBLE));
         couplingId[idString] = idNumber;
     }
-
-    // OASIS finalising definition
-    OASIS_CHECK_ERR(oasis_c_enddef());
 #else
     throw std::runtime_error(std::string(__func__) + ": " + OASISError);
 #endif
@@ -108,7 +104,7 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &emp[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QSWKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
