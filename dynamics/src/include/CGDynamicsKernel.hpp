@@ -17,9 +17,14 @@ static constexpr int nGauss = CGdegree + 1;
 static constexpr int CGdof = nGauss * nGauss;
 
 // for testing only
+// define to use the Kokkos MEVP (CPU or GPU depending on cmake options) kernel, otherwise the OpenMP CPU kernel is used
 #define USE_KOKKOS_KERNEL
+// use Kokkos 1D or 2D parallel loop for strain and divergence computation
 #define LOOP_1D
+// number of dG degrees of freedom for advection; to change the cG degree modify CGdegree above
 static constexpr int DGdof = 3;
+// measure individual operations; should be disabled to measure the full MEVP iteration because the timers introduce 
+// additional synchronization that causes a measurable slowdown
 constexpr bool MEASURE_DETAILED = true;
 
 namespace Nextsim {
@@ -37,7 +42,6 @@ protected:
     using DynamicsKernel<DGadvection, DGstressDegree>::dgtransport;
     using typename DynamicsKernel<DGadvection, DGstressDegree>::DataMap;
 
-
 public:
     CGDynamicsKernel()
         : pmap(nullptr)
@@ -52,6 +56,7 @@ public:
     void stressDivergence() override;
     void applyBoundaries() override;
     void prepareAdvection() override;
+
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);
     void dirichletZero(CGVector<CGdegree>&) const;
@@ -76,7 +81,6 @@ protected:
     CGVector<CGdegree> vAtmos;
 
     ParametricMomentumMap<CGdegree>* pmap;
-
 };
 
 } /* namespace Nextsim */
