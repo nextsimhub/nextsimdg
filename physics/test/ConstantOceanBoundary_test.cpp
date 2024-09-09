@@ -12,6 +12,7 @@
 
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
@@ -26,7 +27,10 @@ TEST_CASE("ConstantOcean Qio calculation")
     ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
     ConstantOceanBoundary cob;
 
+    HField mask(ModelArray::Type::H);
+    mask = 1;
     cob.setData(ModelState::DataMap());
+    cob.setOceanMask(mask);
     cob.updateBefore(TimestepTime());
     ModelArrayRef<Shared::Q_IO, RW> qio(ModelComponent::getStore());
 

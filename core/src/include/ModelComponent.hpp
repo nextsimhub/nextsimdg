@@ -172,6 +172,13 @@ public:
      */
     static ModelArrayReferenceStore& getStore() { return store(); }
 
+    /*!
+     * @brief Sets the model-wide land-ocean mask (for HField arrays).
+     * @param mask The HField ModelArray containing the mask data.
+     *             0/false is land, >0 is sea.
+     */
+    static void setOceanMask(const ModelArray& mask);
+
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
@@ -179,13 +186,6 @@ protected:
             fn(i, tst);
         }
     }
-
-    /*!
-     * @brief Sets the model-wide land-ocean mask (for HField arrays).
-     * @param mask The HField ModelArray containing the mask data.
-     *             0/false is land, >0 is sea.
-     */
-    static void setOceanMask(const ModelArray& mask);
 
     /*!
      * If there is no valid land mask, assume all points are ocean and
