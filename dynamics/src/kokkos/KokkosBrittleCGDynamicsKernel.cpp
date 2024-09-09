@@ -1,4 +1,5 @@
 #include "include/KokkosBrittleCGDynamicsKernel.hpp"
+#include "include/KokkosTimer.hpp"
 
 namespace Nextsim {
 
@@ -38,6 +39,15 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
 template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
+    static KokkosTimer<true> timerBBM("bbmGPU");
+    //    static KokkosTimer<DETAILED_MEASUREMENTS> timerProj("projGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerStress("stressGPU");
+    //    static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerMomentum("momentumGPU");
+    //    static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpload("uploadGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
+
     // Let DynamicsKernel handle the advection step
     this->advectionAndLimits(tst);
 
@@ -57,6 +67,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     // The timestep for the brittle solver is the solver subtimestep
     this->deltaT = tst.step.seconds() / this->nSteps;
 
+    timerBBM.start();
+    timerUpload.start();
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
     Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
@@ -82,6 +94,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->s11Device, this->s11Host);
     Kokkos::deep_copy(execSpace, this->s12Device, this->s12Host);
     Kokkos::deep_copy(execSpace, this->s22Device, this->s22Host);
+    timerUpload.stop();
 
     for (size_t subStep = 0; subStep < this->nSteps; ++subStep) {
         Base::projectVelocityToStrainDevice(this->uDevice, this->vDevice, this->e11Device,
@@ -89,27 +102,32 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->iMgradYDevice, this->iMMDevice, this->smesh->nx, this->smesh->ny,
             this->smesh->CoordinateSystem);
 
+        timerStress.start();
         updateStressHighOrderDevice(this->s11Device, this->s12Device, this->s22Device,
             this->e11Device, this->e12Device, this->e22Device, this->PSIAdvectDevice,
             this->PSIStressDevice, this->hiceDevice, this->ciceDevice, this->damageDevice,
             this->iMJwPSIDevice, this->iMJwPSIAdvectDevice, this->cellSizeDevice, this->deltaT,
             params);
+        timerStress.stop();
 
         Base::computeStressDivergenceDevice(this->dStressXDevice, this->dStressYDevice,
             this->s11Device, this->s12Device, this->s22Device, this->meshData->landMaskDevice,
             this->divS1Device, this->divS2Device, this->divMDevice, this->meshData->dirichletDevice,
             this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
 
+        timerMomentum.start();
         updateMomentumDevice(this->uDevice, this->vDevice, this->avgUDevice, this->avgVDevice,
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
             this->lumpedCGMassDevice, this->deltaT, this->params, cosOceanAngle, sinOceanAngle,
             this->nSteps);
+        timerMomentum.stop();
 
         Base::applyBoundariesDevice(this->uDevice, this->vDevice, this->meshData->dirichletDevice,
             this->smesh->nx, this->smesh->ny);
     }
 
+    timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
     Kokkos::deep_copy(execSpace, this->avgUHost, this->avgUDevice);
@@ -120,6 +138,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
     Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
     Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);
+    timerDownload.stop();
+    timerBBM.stop();
 
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);
@@ -176,19 +196,19 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             const EdgeVec expC = (params.compaction_param * (1.0 - aGauss.array())).exp().array();
 
             // Eqn. 25
-            const EdgeVec powalphaexpC
+            const auto powalphaexpC
                 = (dGauss.array() * expC.array()).pow(params.exponent_relaxation_sigma - 1);
             const EdgeVec time_viscous = params.undamaged_time_relaxation_sigma * powalphaexpC;
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const EdgeVec Pmax
+            const auto Pmax
                 = params.P0 * hGauss.array().pow(params.exponent_compression_factor) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
-            const EdgeVec tildeP
+            const auto tildeP
                 = (sigma_n.array() < 0.0)
                       .select((-Pmax.array() / sigma_n.array()).min(1.0).matrix(), 0.);
 
@@ -226,10 +246,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                 + s12Gauss.array().square())
                                     .sqrt();
 
-            const FloatType scale_coef = std::sqrt(0.1 / cellSizeDevice(i));
+            const FloatType scale_coef = Kokkos::sqrt(0.1 / cellSizeDevice(i));
 
             //! Eqn. 22
-            const EdgeVec cohesion = params.C_lab * scale_coef * hGauss.array();
+            const auto cohesion = params.C_lab * scale_coef * hGauss.array();
             //! Eqn. 30
             const EdgeVec compr_strength = params.compr_strength * scale_coef * hGauss.array();
 
@@ -248,16 +268,17 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             dcrit = dcrit.array().min(1.0);
 
             // Eqn. 29
-            const EdgeVec td = cellSizeDevice(i)
-                * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
+            const auto td = cellSizeDevice(i)
+                * Kokkos::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
 
             // Update damage
-            dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            const EdgeVec relaxFac = (1. - dcrit.array()) * deltaT / td.array();
+            dGauss.array() -= dGauss.array() * relaxFac.array();
 
             // Relax stress in Gauss points
-            s11Gauss.array() -= s11Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-            s12Gauss.array() -= s12Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-            s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            s11Gauss.array() -= s11Gauss.array() * relaxFac.array();
+            s12Gauss.array() -= s12Gauss.array() * relaxFac.array();
+            s22Gauss.array() -= s22Gauss.array() * relaxFac.array();
 
             // INTEGRATION OF STRESS AND DAMAGE
             // get the inverse of the mass matrix scaled with the test-functions in the gauss
@@ -315,17 +336,21 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
             const FloatType gradX = dStressXDevice(i) / lumpedCGMassDevice(i);
             const FloatType gradY = dStressYDevice(i) / lumpedCGMassDevice(i);
 
-            uDevice(i) = alpha * uIce + beta * vIce
-                + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));
-            uDevice(i) *= rDenom;
+            const FloatType uIceNew
+                = (alpha * uIce + beta * vIce
+                      + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY)))
+                * rDenom;
+            uDevice(i) = uIceNew;
 
-            vDevice(i) = alpha * vIce - beta * uIce
-                + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
-            vDevice(i) *= rDenom;
+            const FloatType vIceNew
+                = (alpha * vIce - beta * uIce
+                      + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX)))
+                * rDenom;
+            vDevice(i) = vIceNew;
 
             // Calculate the contribution to the average velocity
-            avgUDevice(i) += uDevice(i) / nSteps;
-            avgVDevice(i) += vDevice(i) / nSteps;
+            avgUDevice(i) += uIceNew / nSteps;
+            avgVDevice(i) += vIceNew / nSteps;
         });
 }
 /*
