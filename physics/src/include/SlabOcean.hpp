@@ -58,7 +58,6 @@ public:
     ModelState getState(const OutputLevel&) const override;
     std::string getName() const override { return "SlabOcean"; }
 
-    std::unordered_set<std::string> hFields() const override;
     void update(const TimestepTime&);
 
     static const double defaultRelaxationTime; // A default value for the relaxation time in s.

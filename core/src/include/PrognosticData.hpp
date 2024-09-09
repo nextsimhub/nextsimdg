@@ -41,14 +41,6 @@ public:
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
-    std::unordered_set<std::string> hFields() const override
-    {
-        return { "h_ice", "c_cice", "h_snow" };
-    };
-    std::unordered_set<std::string> uFields() const override { return { "u" }; }
-    std::unordered_set<std::string> vFields() const override { return { "v" }; }
-    std::unordered_set<std::string> zFields() const override { return { "tice" }; }
-
     /*!
      *  @brief Updates the state of the prognostic data for this timestep
      *

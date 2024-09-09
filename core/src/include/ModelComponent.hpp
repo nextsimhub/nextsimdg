@@ -157,6 +157,7 @@ public:
         return os ? getState() : ModelState();
     }
 
+    /*
     //! @brief Returns the names of all Type::H ModelArrays defined in this component.
     virtual std::unordered_set<std::string> hFields() const { return {}; }
     //! @brief Returns the names of all Type::U ModelArrays defined in this component.
@@ -165,7 +166,7 @@ public:
     virtual std::unordered_set<std::string> vFields() const { return {}; }
     //! @brief Returns the names of all Type::Z ModelArrays defined in this component.
     virtual std::unordered_set<std::string> zFields() const { return {}; }
-
+*/
     /*!
      * @brief Returns the ModelArrayRef backing store.
      */
@@ -185,6 +186,7 @@ protected:
      *             0/false is land, >0 is sea.
      */
     static void setOceanMask(const ModelArray& mask);
+
     /*!
      * If there is no valid land mask, assume all points are ocean and
      * initialize accordingly.

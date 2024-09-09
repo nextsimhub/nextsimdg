@@ -69,8 +69,6 @@ ModelState SlabOcean::getState() const
 }
 ModelState SlabOcean::getState(const OutputLevel&) const { return getState(); }
 
-std::unordered_set<std::string> SlabOcean::hFields() const { return { sstSlabName, sssSlabName }; }
-
 void SlabOcean::update(const TimestepTime& tst)
 {
     double dt = tst.step.seconds();
