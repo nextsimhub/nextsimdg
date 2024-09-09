@@ -17,3 +17,5 @@ Results
 *.DS_Store
 *.nc
 __pycache__/
+*.sif
+.*sw?
