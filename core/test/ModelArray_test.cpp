@@ -297,6 +297,28 @@ TEST_CASE("zIndexAndLayer")
     REQUIRE(threeD.zIndexAndLayer(ind, z) == threeD(x, y, z));
 
 }
+
+TEST_CASE("Resizing on assignment")
+{
+    const size_t nx = 23;
+    const size_t ny = 19;
+
+    ModelArray::setDimension(ModelArray::Dimension::X, nx);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny);
+
+    TwoDField to(ModelArray::Type::TWOD);
+    REQUIRE(to.size() == nx * ny);
+    // Assignment from a scalar
+    to = 2.;
+    REQUIRE(to.trueSize() == nx * ny);
+
+    // Assignment from another ModelArray
+    TwoDField too(ModelArray::Type::TWOD);
+    REQUIRE(too.size() == nx * ny);
+    too = to;
+    REQUIRE(too.trueSize() == nx * ny);
+
+}
 TEST_SUITE_END();
 
 } /* namespace Nextsim */
