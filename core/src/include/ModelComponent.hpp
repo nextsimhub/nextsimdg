@@ -170,7 +170,7 @@ public:
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
-        for (size_t i : oceanIndex) {
+        for (size_t i : oceanIndex()) {
             fn(i, tst);
         }
     }
@@ -209,7 +209,15 @@ private:
         return store;
     }
 
-    static std::vector<size_t> oceanIndex;
+    static std::vector<size_t>& oceanIndex()
+    {
+        static std::vector<size_t> indices;
+        return indices;
+    }
+    static size_t& oceanIndex(size_t i)
+    {
+        return oceanIndex()[i];
+    }
 };
 
 } /* namespace Nextsim */

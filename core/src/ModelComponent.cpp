@@ -12,7 +12,6 @@
 namespace Nextsim {
 
 ModelArray* ModelComponent::p_oceanMaskH = nullptr;
-std::vector<size_t> ModelComponent::oceanIndex;
 
 ModelComponent::ModelComponent() { noLandMask(); }
 
@@ -38,11 +37,11 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
         if (oceanMaskH[i] > 0)
             ++nOcean;
     }
-    oceanIndex.resize(nOcean);
+    oceanIndex().resize(nOcean);
     size_t iOceanIndex = 0;
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         if (oceanMaskH[i] > 0) {
-            oceanIndex[iOceanIndex++] = i;
+            oceanIndex(iOceanIndex++) = i;
         }
     }
 }
@@ -57,9 +56,9 @@ void ModelComponent::noLandMask()
     *p_oceanMaskH = 1.; // All ocean
 
     size_t nOcean = ModelArray::size(ModelArray::Type::H);
-    oceanIndex.resize(nOcean);
+    oceanIndex().resize(nOcean);
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        oceanIndex[i] = i;
+        oceanIndex(i) = i;
     }
 }
 
@@ -80,7 +79,7 @@ ModelArray ModelComponent::mask(const ModelArray& data)
         ModelArray copy = ModelArray::ZField();
         copy = MissingData::value();
         size_t nZ = data.dimensions()[data.nDimensions() - 1];
-        for (size_t i : oceanIndex) {
+        for (size_t i : oceanIndex()) {
             for (size_t k = 0; k < nZ; ++k) {
                 copy.zIndexAndLayer(i, k) = data.zIndexAndLayer(i, k);
             }
