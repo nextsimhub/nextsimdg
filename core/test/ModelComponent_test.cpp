@@ -32,9 +32,6 @@ public:
     }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
-    std::unordered_set<std::string> uFields() const override { return { "u1" }; }
-    std::unordered_set<std::string> vFields() const override { return { "v1", "v2" }; }
-    std::unordered_set<std::string> zFields() const override { return { "z1", "z2", "z3" }; }
 };
 
 class ModuleSupplyAndWait : public ModelComponent {
