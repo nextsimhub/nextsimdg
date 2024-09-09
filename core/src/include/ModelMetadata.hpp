@@ -140,7 +140,34 @@ public:
             &OASISPartitionId, OASIS_Box_Params, &partInfo[0], globalSize, compName.c_str()));
 
         // TODO: Writing out grid information should be possible, but optional
-        if (writeOasisGrid) { }
+        if (writeOasisGrid) {
+            /* This needs to be figured out, but it's not a priority. Grid writing is
+             * not necessary for the type of coupling we'll start with.
+
+            const std::string gridName = "nxts";
+
+            int flag = 1;
+            OASIS_CHECK_ERR(oasis_c_start_grids_writing(&flag));
+
+            OASIS_CHECK_ERR(oasis_c_write_grid(
+                gridName.c_str(), nx, ny, nx_loc, ny_loc, lon, lat, OASISPartitionId));
+            OASIS_CHECK_ERR(oasis_c_write_corner(
+                gridName.c_str(), nx, ny, nx_loc, ny_loc, clo, cla, OASISPartitionId));
+            OASIS_CHECK_ERR(oasis_c_write_area(
+                gridName.c_str(), nx, ny, nx_loc, ny_loc, area, OASISPartitionId));
+            OASIS_CHECK_ERR(oasis_c_write_mask(
+                gridName.c_str(), nx, ny, nx_loc, ny_loc, angle, OASISPartitionId));
+
+            std::string companion = "land area fraction";
+            OASIS_CHECK_ERR(oasis_c_write_frac(
+                                gridName.c_str(), nx, ny, nx_loc, ny_loc, mask, OASISPartitionId),
+                companion.c_str());
+            companion = "land sea mask";
+            OASIS_CHECK_ERR(oasis_c_write_mask(
+                                gridName.c_str(), nx, ny, nx_loc, ny_loc, mask, OASISPartitionId),
+                companion.c_str());
+            */
+        }
     }
 #endif
 
