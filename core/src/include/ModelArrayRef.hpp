@@ -41,7 +41,7 @@ public:
         dataReference = nullptr;
         store.getFieldAddr(fieldName.text, dataReference);
     }
-    ~ModelArrayRef() { /*store.removeReference(fieldName.text, dataReference);*/ }
+    ~ModelArrayRef() { store.removeReference(fieldName.text, dataReference); }
     ModelArrayRef(const ModelArrayRef&) = delete;
     ModelArrayRef& operator=(const ModelArrayRef&) = delete;
     /*!
@@ -99,7 +99,12 @@ public:
     }
 
     //! Direct access top the underlying data array.
-    const ModelArray& data() const { return *dataReference; }
+    const ModelArray& data() const
+    {
+        if (!dataReference)
+            throw std::logic_error("Null reference for ModelArrayRef<" + std::string(fieldName) + ", " + (isReadWrite ? "RW" : "RO") + ">");
+        return *dataReference;
+    }
     //! Cast the reference class to a real reference to the referenced ModelArray.
     operator const ModelArray&() const { return data(); }
 
@@ -207,7 +212,12 @@ public:
     }
 
     //! Direct access top the underlying data array.
-    ModelArray& data() const { return *dataReference; }
+    ModelArray& data() const
+    {
+        if (!dataReference)
+            throw std::logic_error("Null reference for ModelArrayRef<" + std::string(fieldName) + ", RW>");
+        return *dataReference;
+    }
     //! Cast the reference class to a real reference to the referenced ModelArray.
     operator ModelArray&() const { return data(); }
 

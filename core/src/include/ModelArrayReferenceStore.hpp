@@ -12,6 +12,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <iostream> // FIXME remove me
+
 struct TextTag;
 
 namespace Nextsim {
@@ -23,8 +25,10 @@ typedef const ModelArray* ModelArrayConstReference;
 
 class ModelArrayReferenceStore {
 public:
+    ~ModelArrayReferenceStore() { std::cout << this << ":" << "~ModelArrayReferenceStore" << std::endl; }
     void registerArray(const std::string& field, ModelArray* ptr, bool isReadWrite = false)
     {
+        std::cout << this << ":" << "MARS::registerArray(" << field << ")" << std::endl;
         // Clean the old array, if set
         if (storeRW.count(field)) {
             // If the pointer was in the RW array, null it
@@ -61,6 +65,7 @@ public:
 
     std::unordered_map<std::string, const ModelArray*> getAllData() const
     {
+        std::cout << this << ":" << "MARS::getAllData()" << std::endl;
         std::unordered_map<std::string, const ModelArray*> dataMap;
 
         for (auto entry : storeRW) {
@@ -75,6 +80,7 @@ public:
 private:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {
+        std::cout << this << ":" << "MARS::getFieldAddr(" << field << ")" << std::endl;
         // Add this address to the waiting list for RW fields.
         referencesRW.insert({ field, &ptr });
         return storeRW.count(field) ? ptr = storeRW.at(field) : nullptr;
@@ -82,6 +88,7 @@ private:
 
     const ModelArray* getFieldAddr(const std::string& field, ModelArrayConstReference& ptr)
     {
+        std::cout << this << ":" << "MARS::getFieldAddr(" << field << ")" << std::endl;
         referencesRO.insert({ field, &ptr });
         if (storeRO.count(field)) {
             ptr = storeRO.at(field);
@@ -96,6 +103,7 @@ private:
 
     void removeReference(const std::string& field, ModelArrayConstReference& ptr)
     {
+        std::cout << this << ":" << "MARS::removeReference(" << field << ")" << std::endl;
         auto range = referencesRO.equal_range(field);
         for (auto it = range.first; it != range.second;)
             if (it->second == &ptr)
@@ -106,6 +114,7 @@ private:
 
     void removeReference(const std::string& field, ModelArrayReference& ptr)
     {
+        std::cout << this << ":" << "MARS::getFieldAddr(" << field << ")" << std::endl;
         auto range = referencesRW.equal_range(field);
         for (auto it = range.first; it != range.second;)
             if (it->second == &ptr)

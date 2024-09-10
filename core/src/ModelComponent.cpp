@@ -12,7 +12,10 @@
 
 namespace Nextsim {
 
-ModelComponent::ModelComponent() { }
+ModelComponent::ModelComponent()
+{
+    std::cout << "Constructing a ModelComponent" << std::endl;
+}
 
 void ModelComponent::setData(const ModelState::DataMap& state)
 {
