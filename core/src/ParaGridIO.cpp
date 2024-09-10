@@ -493,6 +493,7 @@ void ParaGridIO::writeDiagnosticTime(
 void ParaGridIO::close(const std::string& filePath)
 {
     if (openFiles.count(filePath) > 0) {
+        std::cout << "Closing " << filePath << std::endl;
         openFiles.at(filePath).close();
         openFiles.erase(filePath);
         timeIndexByFile.erase(filePath);
