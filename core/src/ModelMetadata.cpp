@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 09 Sep 2024
+ * @date 10 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -15,6 +15,9 @@
 #include <ncFile.h>
 #include <ncGroup.h>
 #include <ncVar.h>
+#endif
+#ifdef USE_OASIS
+#include <oasis_c.h>
 #endif
 
 namespace Nextsim {

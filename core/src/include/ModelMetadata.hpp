@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date 09 Sep 2024
+ * @date 10 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -17,9 +17,6 @@
 
 #ifdef USE_MPI
 #include <mpi.h>
-#endif
-#ifdef USE_OASIS
-#include <oasis_c.h>
 #endif
 
 namespace Nextsim {
