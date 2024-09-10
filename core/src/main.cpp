@@ -1,6 +1,6 @@
 /*!
  * @file main.cpp
- * @date 09 Sep 2024
+ * @date 10 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -23,18 +23,8 @@
 int main(int argc, char* argv[])
 {
 #ifdef USE_MPI
-    MPI_Comm modelCommunicator;
     MPI_Init(&argc, &argv);
-#ifdef USE_OASIS
-    /* We must call these oasis routines before any MPI communication takes place, to make sure we
-     * have the right communicator, i.e. modelCommunictor and not MPI_COMM_WORLD. */
-    int compID; // Not actually used. Only useful for debugging
-    const std::string compName = "nextsim"; // Not useful for any setups we have in mind
-    OASIS_CHECK_ERR(oasis_c_init_comp(&compID, compName.c_str(), OASIS_COUPLED));
-    OASIS_CHECK_ERR(oasis_c_get_localcomm(&modelCommunicator));
-#else
-    modelCommunicator = MPI_COMM_WORLD;
-#endif // USE_OASIS
+    MPI_Comm modelCommunicator = MPI_COMM_WORLD;
 #endif // USE_MPI
 
     // Pass the command line to Configurator to handle
@@ -63,6 +53,14 @@ int main(int argc, char* argv[])
     } else {
         // Construct the Model
 #ifdef USE_MPI
+#ifdef USE_OASIS
+        /* We must call these oasis routines before any MPI communication takes place, to make sure
+         * we have the right communicator, i.e. modelCommunictor and not MPI_COMM_WORLD. */
+        int compID; // Not actually used. Only useful for debugging
+        const std::string compName = "nextsim"; // Not useful for any setups we have in mind
+        OASIS_CHECK_ERR(oasis_c_init_comp(&compID, compName.c_str(), OASIS_COUPLED));
+        OASIS_CHECK_ERR(oasis_c_get_localcomm(&modelCommunicator));
+#endif // USE_OASIS
         Nextsim::Model model(modelCommunicator);
 #else
         Nextsim::Model model;
