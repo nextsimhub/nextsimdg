@@ -156,7 +156,7 @@ if (ENABLE_OASIS)
 
         target_link_directories(nextsimlib PUBLIC ${OASIS_LIBRARIES})
         target_link_libraries(nextsimlib PUBLIC oasis.cbind mct mpeu psmile.MPI1 scrip netcdff)
-        target_include_directories(nextsimlib PRIVATE ${OASIS_INCLUDES})
+        target_include_directories(nextsimlib PUBLIC ${OASIS_INCLUDES})
     else ()
         message(FATAL_ERROR "Cannot build with OASIS support, because MPI is not enabled" .)
     endif ()
@@ -168,7 +168,7 @@ if(WITH_THREADS)
     target_link_libraries(nextsimlib PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-# Set an empty list of sources netcdf netcdfff
+# Set an empty list of sources
 set(NextsimSources "")
 # Set an empty list of include directories
 set(NextsimIncludeDirs "")
