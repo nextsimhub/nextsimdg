@@ -54,7 +54,7 @@ public:
     static void setExternalImplementation(fn generator)
     {
         spf = generator;
-        staticInstance = std::move(spf());
+        getUniqueInstance() = std::move(spf());
     }
 
     static void setImplementation(const std::string& implName)
@@ -70,7 +70,14 @@ public:
 
     static std::unique_ptr<I> getInstance() { return spf(); }
 
-    static I& getImplementation() { return *staticInstance; }
+    static std::unique_ptr<I>& getUniqueInstance() { return staticInstance; }
+
+    static I& getImplementation()
+    {
+        if (!getUniqueInstance().get())
+            throw std::logic_error("Bad reference implementation in " + moduleName());
+        return *getUniqueInstance();
+    }
 
     static std::list<std::string> listImplementations()
     {
@@ -92,6 +99,7 @@ public:
                 return entry.first;
             }
         }
+        throw std::out_of_range("Module<" + moduleName() + ">: implementation not found.");
         return ""; // spf should always be an entry in functionMap
     }
 
