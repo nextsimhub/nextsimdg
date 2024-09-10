@@ -41,7 +41,7 @@ public:
         dataReference = nullptr;
         store.getFieldAddr(fieldName.text, dataReference);
     }
-    ~ModelArrayRef() { store.removeReference(fieldName.text, dataReference); }
+    ~ModelArrayRef() { /*store.removeReference(fieldName.text, dataReference);*/ }
     ModelArrayRef(const ModelArrayRef&) = delete;
     ModelArrayRef& operator=(const ModelArrayRef&) = delete;
     /*!
