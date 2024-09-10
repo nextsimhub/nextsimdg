@@ -28,13 +28,7 @@ public:
     using HostViewAdvect = typename Base::HostViewAdvect;
     using ConstDeviceViewAdvect = typename Base::ConstDeviceViewAdvect;
 
-    using PSIAdvectView = typename Base::PSIAdvectView;
-    using PSIStressView = typename Base::PSIStressView;
-
-    KokkosBrittleCGDynamicsKernel(const MEBParameters& paramsIn)
-        : params(paramsIn)
-    {
-    }
+    KokkosBrittleCGDynamicsKernel(const MEBParameters& paramsIn);
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
@@ -44,48 +38,9 @@ public:
     void update(const TimestepTime& tst) override;
 
     // expose additional fields
-    void setData(const std::string& name, const ModelArray& data) override
-    {
-        if (name == damageName) {
-            DGModelArray::ma2dg(data, damage);
-        } else {
-            CGDynamicsKernel<DGadvection>::setData(name, data);
-        }
-    }
-
-    ModelArray getDG0Data(const std::string& name) const override
-    {
-
-        if (name == damageName) {
-            ModelArray data(ModelArray::Type::H);
-            return DGModelArray::dg2ma(damage, data);
-        } else {
-            return CGDynamicsKernel<DGadvection>::getDG0Data(name);
-        }
-    }
-
-    ModelArray getDGData(const std::string& name) const override
-    {
-        if (name == damageName) {
-            ModelArray data(ModelArray::Type::DG);
-            return DGModelArray::dg2ma(damage, data);
-        } else {
-            return CGDynamicsKernel<DGadvection>::getDGData(name);
-        }
-    }
-
-    // todo: move this into KokkosBBMDynamics
-    static void updateStressHighOrderDevice(const DeviceViewStress& s11Device,
-        const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
-        const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
-        const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
-        const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
-        const ConstDeviceViewAdvect& ciceDevice, const DeviceViewAdvect& damageDevice,
-        const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
-        const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix>&
-            iMJwPSIAdvectDevice,
-        const KokkosDeviceMapView<FloatType>& cellSizeDevice, const FloatType deltaT,
-        const MEBParameters& params);
+    void setData(const std::string& name, const ModelArray& data) override;
+    ModelArray getDG0Data(const std::string& name) const override;
+    ModelArray getDGData(const std::string& name) const override;
 
     static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const DeviceViewCG& avgUDevice, const DeviceViewCG& avgVDevice,
@@ -98,6 +53,14 @@ public:
         DeviceIndex nSteps);
 
 protected:
+    virtual void updateStressHighOrderDevice(const DeviceViewStress& s11Device,
+        const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
+        const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
+        const ConstDeviceViewStress& e22Device, const ConstDeviceViewAdvect& hiceDevice,
+        const ConstDeviceViewAdvect& ciceDevice, const DeviceViewAdvect& damageDevice,
+        const FloatType deltaT)
+        = 0;
+
     // these values are only needed on the host because of the advection step
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
@@ -117,11 +80,6 @@ protected:
     HostViewAdvect damageHost;
 
     FloatType cosOceanAngle, sinOceanAngle;
-
-    // BBM stress update related
-    KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix> iMJwPSIAdvectDevice;
-    // ParametricMesh::h()
-    KokkosDeviceMapView<FloatType> cellSizeDevice;
 };
 
 } /* namespace Nextsim */
