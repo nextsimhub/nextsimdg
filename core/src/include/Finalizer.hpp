@@ -19,13 +19,13 @@ namespace Nextsim {
 
 class Finalizer {
 public:
-    typedef std::function<void()> FinalFn;
+    using FinalFn = std::function<void()>;
 
     /*!
      * Adds a function to be called at finalization. Functions are ordered last-in, first out.
      * @param fn The function to be added. Must have void() signature.
      */
-    inline static void atfinal(const FinalFn& fn)
+    inline static void registerFunc(const FinalFn& fn)
     {
         auto& fns = functions();
         fns.push_back(fn);
@@ -41,11 +41,11 @@ public:
      * @param fn The function to be added. Must have void() signature.
      * @return true if the function was added, false if it already existed and was not added.
      */
-    inline static bool atfinalUnique(const FinalFn& fn)
+    inline static bool registerUnique(const FinalFn& fn)
     {
         if (contains(fn))
             return false;
-        atfinal(fn);
+        registerFunc(fn);
         return true;
     }
 
@@ -68,17 +68,6 @@ public:
                 return true;
         }
         return false;
-    }
-
-    /*!
-     * @brief Runs the finalize functions without erasing all the functions.
-     */
-    inline static void run()
-    {
-        auto& fns = functions();
-        for (auto& fn : fns) {
-            fn();
-        }
     }
 
     /*!
@@ -109,7 +98,7 @@ public:
     /*!
      * Eliminates all functions to be run at finalization.
      */
-    inline static void clear() { functions().clear(); }
+//    inline static void clear() { functions().clear(); }
 
 private:
     typedef std::list<FinalFn> FinalFnContainer;
