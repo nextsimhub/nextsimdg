@@ -25,11 +25,7 @@ public:
      * Adds a function to be called at finalization. Functions are ordered last-in, first out.
      * @param fn The function to be added. Must have void() signature.
      */
-    inline static void registerFunc(const FinalFn& fn)
-    {
-        auto& fns = functions();
-        fns.push_back(fn);
-    }
+    static void registerFunc(const FinalFn& fn);
 
     /*!
      * @brief Adds a function to be called at finalization unless it will already be called at
@@ -41,13 +37,7 @@ public:
      * @param fn The function to be added. Must have void() signature.
      * @return true if the function was added, false if it already existed and was not added.
      */
-    inline static bool registerUnique(const FinalFn& fn)
-    {
-        if (contains(fn))
-            return false;
-        registerFunc(fn);
-        return true;
-    }
+    static bool registerUnique(const FinalFn& fn);
 
     /*!
      * @brief Returns whether a function will already be called at finalization.
@@ -60,15 +50,7 @@ public:
      * is not.
      *
      */
-    inline static bool contains(const FinalFn& fn)
-    {
-        auto& fns = functions();
-        for (const auto& stored : fns) {
-            if (stored == fn)
-                return true;
-        }
-        return false;
-    }
+    static bool contains(const FinalFn& fn);
 
     /*!
      * @brief Runs the finalize functions and erases them.
@@ -79,34 +61,20 @@ public:
      * be no finalization functions remaining. Otherwise, re-running finalize will begin execution
      * with the function assigned previous to the one that threw the exception.
      */
-    inline static void finalize()
-    {
-        while (!functions().empty()) {
-            auto fn = functions().back();
-            // Remove the function from the finalization list before executing it.
-            functions().pop_back();
-            fn();
-        }
-    }
+    static void finalize();
 
     /*!
      * Returns the number of finalize functions that will be run.
      * @return the number of finalize functions that will be run.
      */
-    inline static size_t count() { return functions().size(); }
-
-    /*!
-     * Eliminates all functions to be run at finalization.
-     */
-//    inline static void clear() { functions().clear(); }
+    static size_t count();
 
 private:
     typedef std::list<FinalFn> FinalFnContainer;
-    inline static FinalFnContainer& functions()
-    {
-        static FinalFnContainer set;
-        return set;
-    }
+    /*!
+     * Returns a reference to a static container of the finalizer functions.
+     */
+    static FinalFnContainer& functions();
 };
 
 } /* namespace Nextsim */

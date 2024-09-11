@@ -252,6 +252,7 @@ else()
     add_executable(
         testFinalizer
         "Finalizer_test.cpp"
+        "../../core/src/Finalizer.cpp"
     )
     target_link_libraries(testFinalizer PRIVATE doctest::doctest)
 
