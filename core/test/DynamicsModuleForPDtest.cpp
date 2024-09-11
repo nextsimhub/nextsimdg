@@ -29,9 +29,9 @@ Module<Nextsim::IDynamics>::fn& Module<Nextsim::IDynamics>::getGenerationFunctio
     static fn thePtr = functionMap().at(DUMMYDYNAMICS);
     return thePtr;
 }
-template <>
-std::unique_ptr<Nextsim::IDynamics> Module<Nextsim::IDynamics>::staticInstance
-    = std::move(newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics>());
+//template <>
+//std::unique_ptr<Nextsim::IDynamics> Module<Nextsim::IDynamics>::staticInstance
+//    = std::move(newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics>());
 
 template <> std::string Module<Nextsim::IDynamics>::moduleName() { return "Nextsim::IDynamics"; }
 

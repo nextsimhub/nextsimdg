@@ -71,9 +71,6 @@ template <>
     static fn ptr = functionMap().at({impl_strings[default_impl]});
     return ptr;
 }}
-template <>
-std::unique_ptr<{strings[class_name]}> {module_templ}::staticInstance
-    = std::move({module_templ}::getGenerationFunction()());
 
 template <> std::string {module_templ}::moduleName() {{ return \"{strings[module_class_name]}\"; }}
 

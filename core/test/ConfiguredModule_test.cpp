@@ -41,7 +41,7 @@ template <> Module<ITest>::fn& Module<ITest>::getGenerationFunction()
     static fn ptr = functionMap().at(IMPL1);
     return ptr;
 }
-template <> std::unique_ptr<ITest> Module<ITest>::staticInstance = std::move(Module<ITest>::getGenerationFunction()());
+//template <> std::unique_ptr<ITest> Module<ITest>::staticInstance = std::move(Module<ITest>::getGenerationFunction()());
 template <> std::string Module<ITest>::moduleName() { return "ITest"; };
 template <> std::unique_ptr<ITest> getInstance<ITest>() { return getInstTemplate<ITest, ITestModule>(); };
 template <> ITest& getImplementation<ITest>() { return getImplTemplate<ITest, ITestModule>(); };

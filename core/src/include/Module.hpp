@@ -48,7 +48,6 @@ template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 template <typename I> class Module {
 public:
-//    typedef std::function<std::unique_ptr<I>()> fn;
     using fn = std::unique_ptr<I>(*)();
     using map = std::map<std::string, fn>;
 
@@ -71,7 +70,11 @@ public:
 
     static std::unique_ptr<I> getInstance() { return getGenerationFunction()(); }
 
-    static std::unique_ptr<I>& getUniqueInstance() { return staticInstance; }
+    static std::unique_ptr<I>& getUniqueInstance()
+    {
+        static std::unique_ptr<I> staticInstance = std::move(getInstance());
+        return staticInstance;
+    }
 
     static I& getImplementation()
     {
@@ -107,7 +110,7 @@ public:
 
 private:
     static fn& getGenerationFunction();
-    static std::unique_ptr<I> staticInstance;
+//    static std::unique_ptr<I> staticInstance;
     static const map& functionMap();
 };
 
