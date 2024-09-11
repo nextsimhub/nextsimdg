@@ -24,7 +24,11 @@ const Module<Nextsim::IDynamics>::map& Module<Nextsim::IDynamics>::functionMap()
 }
 
 template <>
-Module<Nextsim::IDynamics>::fn Module<Nextsim::IDynamics>::spf = functionMap().at(DUMMYDYNAMICS);
+Module<Nextsim::IDynamics>::fn& Module<Nextsim::IDynamics>::getGenerationFunction()
+{
+    static fn thePtr = functionMap().at(DUMMYDYNAMICS);
+    return thePtr;
+}
 template <>
 std::unique_ptr<Nextsim::IDynamics> Module<Nextsim::IDynamics>::staticInstance
     = std::move(newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics>());

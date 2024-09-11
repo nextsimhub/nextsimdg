@@ -48,13 +48,14 @@ template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 template <typename I> class Module {
 public:
-    typedef std::function<std::unique_ptr<I>()> fn;
-    typedef std::map<std::string, fn> map;
+//    typedef std::function<std::unique_ptr<I>()> fn;
+    using fn = std::unique_ptr<I>(*)();
+    using map = std::map<std::string, fn>;
 
     static void setExternalImplementation(fn generator)
     {
-        spf = generator;
-        getUniqueInstance() = std::move(spf());
+        getGenerationFunction() = generator;
+        getUniqueInstance() = std::move(getGenerationFunction()());
     }
 
     static void setImplementation(const std::string& implName)
@@ -68,7 +69,7 @@ public:
         }
     }
 
-    static std::unique_ptr<I> getInstance() { return spf(); }
+    static std::unique_ptr<I> getInstance() { return getGenerationFunction()(); }
 
     static std::unique_ptr<I>& getUniqueInstance() { return staticInstance; }
 
@@ -92,21 +93,20 @@ public:
     {
         typedef std::unique_ptr<I>(fnType)();
         // The name is not cached, so find the function in the map which
-        // corresponds to spf. The hairy code is derived from
-        // https://stackoverflow.com/a/35920804
+        // corresponds to getGenerationFunction.
         for (const auto& entry : functionMap()) {
-            if (*entry.second.template target<fnType*>() == *spf.template target<fnType*>()) {
+            if (entry.second == getGenerationFunction()) {
                 return entry.first;
             }
         }
         throw std::out_of_range("Module<" + moduleName() + ">: implementation not found.");
-        return ""; // spf should always be an entry in functionMap
+        return ""; // getGenerationFunction should always be an entry in functionMap
     }
 
     static std::string moduleName();
 
 private:
-    static fn spf;
+    static fn& getGenerationFunction();
     static std::unique_ptr<I> staticInstance;
     static const map& functionMap();
 };

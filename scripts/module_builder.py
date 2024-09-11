@@ -66,10 +66,14 @@ const {module_templ}::map& {module_templ}::functionMap()
 }}
 
 template <>
-{module_templ}::fn {module_templ}::spf = functionMap().at({impl_strings[default_impl]});
+{module_templ}::fn& {module_templ}::getGenerationFunction()
+{{
+    static fn ptr = functionMap().at({impl_strings[default_impl]});
+    return ptr;
+}}
 template <>
 std::unique_ptr<{strings[class_name]}> {module_templ}::staticInstance
-    = std::move({module_templ}::spf());
+    = std::move({module_templ}::getGenerationFunction()());
 
 template <> std::string {module_templ}::moduleName() {{ return \"{strings[module_class_name]}\"; }}
 
