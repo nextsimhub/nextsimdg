@@ -15,12 +15,16 @@ namespace Module {
 const std::string DUMMYDYNAMICS = "Nextsim::DummyDynamics";
 
 template <>
-Module<Nextsim::IDynamics>::map Module<Nextsim::IDynamics>::functionMap = {
-    { DUMMYDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics> },
-};
+const Module<Nextsim::IDynamics>::map& Module<Nextsim::IDynamics>::functionMap()
+{
+    static const map theMap = {
+            { DUMMYDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics> },
+    };
+    return theMap;
+}
 
 template <>
-Module<Nextsim::IDynamics>::fn Module<Nextsim::IDynamics>::spf = functionMap.at(DUMMYDYNAMICS);
+Module<Nextsim::IDynamics>::fn Module<Nextsim::IDynamics>::spf = functionMap().at(DUMMYDYNAMICS);
 template <>
 std::unique_ptr<Nextsim::IDynamics> Module<Nextsim::IDynamics>::staticInstance
     = std::move(newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics>());

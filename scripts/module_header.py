@@ -34,7 +34,6 @@ def write_header_file(header, strings):
 
 namespace Module {{
 
-template <> Module<{strings[class_name]}>::map Module<{strings[class_name]}>::functionMap;
 class {strings[module_class_name]} : public Module<{strings[class_name]}> {{
     struct Constructor {{
         Constructor();

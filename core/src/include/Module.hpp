@@ -61,7 +61,7 @@ public:
     {
         // setExternalImplementation() holds the common functionality
         try {
-            setExternalImplementation(functionMap.at(implName));
+            setExternalImplementation(functionMap().at(implName));
         } catch (const std::out_of_range& oor) {
             std::throw_with_nested(std::runtime_error(
                 "No implementation named " + implName + " found for Module " + moduleName()));
@@ -82,7 +82,7 @@ public:
     static std::list<std::string> listImplementations()
     {
         std::list<std::string> keys;
-        for (auto entry : functionMap) {
+        for (const auto& entry : functionMap()) {
             keys.push_back(entry.first);
         }
         return keys;
@@ -94,7 +94,7 @@ public:
         // The name is not cached, so find the function in the map which
         // corresponds to spf. The hairy code is derived from
         // https://stackoverflow.com/a/35920804
-        for (auto entry : functionMap) {
+        for (const auto& entry : functionMap()) {
             if (*entry.second.template target<fnType*>() == *spf.template target<fnType*>()) {
                 return entry.first;
             }
@@ -108,7 +108,7 @@ public:
 private:
     static fn spf;
     static std::unique_ptr<I> staticInstance;
-    static map functionMap;
+    static const map& functionMap();
 };
 
 template <typename I, typename M> void addToConfiguredModules()

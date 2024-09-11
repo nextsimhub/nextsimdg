@@ -52,16 +52,21 @@ namespace Module {
     for section in valid_impl_sections:
         impl_strings[section] = config[section][file_prefix_str].upper()
         source.write(f"const std::string {impl_strings[section]} = \"{section}\";\n")
+    mapVarName = "theMap"
     source.write(f"""
 template <>
-{module_templ}::map {module_templ}::functionMap = {{
+const {module_templ}::map& {module_templ}::functionMap()
+{{
+    static const map {mapVarName} = {{
 """)
     for section in valid_impl_sections:
-        source.write(f"    {{ {impl_strings[section]}, newImpl<{strings[class_name]}, {section}> }},\n")
-    source.write(f"""}};
+        source.write(f"        {{ {impl_strings[section]}, newImpl<{strings[class_name]}, {section}> }},\n")
+    source.write(f"""    }};
+    return {mapVarName};
+}}
 
 template <>
-{module_templ}::fn {module_templ}::spf = functionMap.at({impl_strings[default_impl]});
+{module_templ}::fn {module_templ}::spf = functionMap().at({impl_strings[default_impl]});
 template <>
 std::unique_ptr<{strings[class_name]}> {module_templ}::staticInstance
     = std::move({module_templ}::spf());

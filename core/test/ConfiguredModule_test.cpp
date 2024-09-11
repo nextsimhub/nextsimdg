@@ -28,11 +28,15 @@ const std::string IMPL1 = "Impl1";
 const std::string IMPL2 = "Impl2";
 
 template <>
-Module<ITest>::map Module<ITest>::functionMap = {
+const Module<ITest>::map& Module<ITest>::functionMap()
+{
+    static const map theMap = {
         {IMPL1, newImpl<ITest, Impl1>},
         {IMPL2, newImpl<ITest, Impl2>},
-};
-template <> Module<ITest>::fn Module<ITest>::spf = functionMap.at(IMPL1);
+    };
+    return theMap;
+}
+template <> Module<ITest>::fn Module<ITest>::spf = functionMap().at(IMPL1);
 template <> std::unique_ptr<ITest> Module<ITest>::staticInstance = std::move(Module<ITest>::spf());
 template <> std::string Module<ITest>::moduleName() { return "ITest"; };
 template <> std::unique_ptr<ITest> getInstance<ITest>() { return getInstTemplate<ITest, ITestModule>(); };
