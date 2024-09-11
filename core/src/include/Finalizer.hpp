@@ -19,7 +19,7 @@ namespace Nextsim {
 
 class Finalizer {
 public:
-    using FinalFn = std::function<void()>;
+    using FinalFn = void(*)();
 
     /*!
      * Adds a function to be called at finalization. Functions are ordered last-in, first out.
@@ -64,7 +64,7 @@ public:
     {
         auto& fns = functions();
         for (const auto& stored : fns) {
-            if (stored.target<void()>() == fn.target<void()>())
+            if (stored == fn)
                 return true;
         }
         return false;

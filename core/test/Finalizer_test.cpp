@@ -60,8 +60,8 @@ TEST_CASE("Duplicate functions")
     REQUIRE(TheCount::count() == 0);
 //    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
-    Finalizer::registerFunc(TheCount::increment);
-    Finalizer::registerFunc(TheCount::increment);
+    Finalizer::registerFunc(Earl::incr);
+    Finalizer::registerFunc(Earl::incr);
     REQUIRE(Finalizer::count() == 2);
     Finalizer::finalize();
     REQUIRE(TheCount::count() == 2);
@@ -73,9 +73,9 @@ TEST_CASE("Unique functions")
     REQUIRE(TheCount::count() == 0);
 //    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
-    Finalizer::registerUnique(TheCount::increment);
-    REQUIRE(Finalizer::contains(TheCount::increment));
-    Finalizer::registerUnique(TheCount::increment);
+    Finalizer::registerUnique(Earl::incr);
+    REQUIRE(Finalizer::contains(Earl::incr));
+    Finalizer::registerUnique(Earl::incr);
     REQUIRE(Finalizer::count() == 1);
     Finalizer::finalize();
     REQUIRE(TheCount::count() == 1);
@@ -87,8 +87,8 @@ TEST_CASE("Finalize")
     REQUIRE(TheCount::count() == 0);
 //    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
-    Finalizer::registerFunc(TheCount::increment);
-    Finalizer::registerFunc(TheCount::increment);
+    Finalizer::registerFunc(Earl::incr);
+    Finalizer::registerFunc(Earl::incr);
     REQUIRE(Finalizer::count() == 2);
     Finalizer::finalize();
     REQUIRE(Finalizer::count() == 0);
@@ -105,9 +105,9 @@ TEST_CASE("Exception")
     REQUIRE(TheCount::count() == 0);
 //    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
-    Finalizer::registerFunc(TheCount::increment);
+    Finalizer::registerFunc(Earl::incr);
     Finalizer::registerFunc(throwHappy);
-    Finalizer::registerFunc(TheCount::increment);
+    Finalizer::registerFunc(Earl::incr);
     REQUIRE(Finalizer::count() == 3);
     REQUIRE_THROWS_AS(Finalizer::finalize(), HappyTime);
     // Only one increment occurred because of the exception
