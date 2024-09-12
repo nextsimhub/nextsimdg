@@ -39,8 +39,6 @@ TEST_CASE("Thermodynamic healing")
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::parseConfigurator();
-
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()

@@ -41,8 +41,6 @@ TEST_CASE("New ice formation")
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::parseConfigurator();
-
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
         AtmosphereBoundary()
@@ -126,8 +124,6 @@ TEST_CASE("Melting conditions")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     class AtmosphericBoundary : public IAtmosphereBoundary {
     public:
@@ -222,8 +218,6 @@ TEST_CASE("Freezing conditions")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
@@ -418,8 +412,6 @@ TEST_CASE("Zero thickness")
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::parseConfigurator();
-
     class AtmosphericBoundary : public IAtmosphereBoundary {
     public:
         AtmosphericBoundary()
@@ -524,8 +516,6 @@ TEST_CASE("Turn off thermo")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:

@@ -43,8 +43,6 @@ TEST_CASE("Melting conditions")
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::parseConfigurator();
-
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
     UniformOcean ocnBdy(-1., 32., 10.25);
@@ -179,8 +177,6 @@ TEST_CASE("Freezing conditions")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 

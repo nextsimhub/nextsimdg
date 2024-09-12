@@ -44,8 +44,6 @@ TEST_CASE("Melting conditions")
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::parseConfigurator();
-
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {
     public:
@@ -147,8 +145,6 @@ TEST_CASE("Freezing conditions")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {
@@ -254,8 +250,6 @@ TEST_CASE("No ice do nothing")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {
