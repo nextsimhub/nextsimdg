@@ -41,6 +41,7 @@ def write_source_file(source, config, strings):
     # Use the provided path to the Module header file
     source.write(f"#include \"{strings[header_file_path_str]}\"\n")
     source.write("\n")
+#    source.write(f"#include \"{strings[interface_prefix_str]}{strings[file_prefix_str]}.{header_suffix}\"\n")
     for section in valid_impl_sections:
         source.write(f"#include \"{os.path.join(strings[internal_header_dir], config[section][file_prefix_str])}.{header_suffix}\"\n")
     source.write("""
@@ -100,12 +101,6 @@ template <> void setImplementation<{strings[class_name]}>(const std::string& imp
 template <> std::unique_ptr<{strings[class_name]}> getInstance()
 {{
     return getInstTemplate<{strings[class_name]}, {strings[module_class_name]}>();
-}}
-
-{strings[module_class_name]}::Constructor {strings[module_class_name]}::ctor;
-{strings[module_class_name]}::Constructor::Constructor()
-{{
-    addToConfiguredModules<{strings[class_name]}, {strings[module_class_name]}>();
 }}
 
 template class {module_templ};

@@ -49,8 +49,6 @@ TEST_CASE("PrognosticData call order test")
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::parseConfigurator();
-
     class OceanData : public IOceanBoundary {
     public:
         OceanData()

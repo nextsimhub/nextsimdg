@@ -20,6 +20,21 @@
 
 namespace Module {
 
+/*!
+ * A class that records the names of all Modules in this executable.
+ */
+class ImplementationNames {
+public:
+    static const std::map<std::string, std::string>& getAll() { return getMap(); }
+    static void set(const std::string& interface, const std::string& implementation) { getMap().insert({ interface, implementation }); }
+private:
+    static std::map<std::string, std::string>& getMap()
+    {
+        static std::map<std::string, std::string> cache;
+        return cache;
+    }
+};
+
 template <typename I> std::unique_ptr<I> getInstance();
 
 template <typename I> I& getImplementation();
@@ -62,6 +77,7 @@ public:
         // setExternalImplementation() holds the common functionality
         try {
             setExternalImplementation(functionMap().at(implName));
+            ImplementationNames::set(moduleName(), implName);
         } catch (const std::out_of_range& oor) {
             std::throw_with_nested(std::runtime_error(
                 "No implementation named " + implName + " found for Module " + moduleName()));
@@ -74,7 +90,7 @@ public:
             isConfigured() = true;
             std::string implName = Nextsim::ConfiguredModule::getImpl(moduleName());
             if (!implName.empty()) {
-                getGenerationFunction() = functionMap().at(implName);
+                setImplementation(implName);
             }
         }
         return getGenerationFunction()();
@@ -129,12 +145,6 @@ private:
         return isConfiguredBool;
     }
 };
-
-template <typename I, typename M> void addToConfiguredModules()
-{
-    Nextsim::ConfiguredModule::configureModule(
-        Module<I>::moduleName(), M::setImplementation, M::implementation);
-}
 
 template <typename I> std::string implementation() { return Module<I>::implementation(); }
 

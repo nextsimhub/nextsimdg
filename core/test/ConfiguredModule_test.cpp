@@ -11,44 +11,17 @@
 #include <doctest/doctest.h>
 
 #include "ArgV.hpp"
-#include "moduleTestClasses.hpp"
 #include "include/Configurator.hpp"
 #include "include/Module.hpp"
 
 #include <istream>
 #include <memory>
 
-// Module classes for the test classes
+// Module namespace to emulate how the names are defined with real Modules
 namespace Module {
-class ITestModule : public Module<ITest>
-{
-};
-
 const std::string IMPL1 = "Impl1";
 const std::string IMPL2 = "Impl2";
-
-template <>
-const Module<ITest>::map& Module<ITest>::functionMap()
-{
-    static const map theMap = {
-        {IMPL1, newImpl<ITest, Impl1>},
-        {IMPL2, newImpl<ITest, Impl2>},
-    };
-    return theMap;
-}
-template <> Module<ITest>::fn& Module<ITest>::getGenerationFunction()
-{
-    static fn ptr = functionMap().at(IMPL1);
-    return ptr;
-}
-//template <> std::unique_ptr<ITest> Module<ITest>::staticInstance = std::move(Module<ITest>::getGenerationFunction()());
-template <> std::string Module<ITest>::moduleName() { return "ITest"; };
-template <> std::unique_ptr<ITest> getInstance<ITest>() { return getInstTemplate<ITest, ITestModule>(); };
-template <> ITest& getImplementation<ITest>() { return getImplTemplate<ITest, ITestModule>(); };
-template <> void setImplementation<ITest>(const std::string& implName)
-{
-    setImplTemplate<ITestModule>(implName);
-};
+const std::string ANOTHERIMPL = "AnotherImpl";
 }
 
 namespace Nextsim {
@@ -63,14 +36,7 @@ TEST_CASE("Configure a module")
 
     Configurator::setCommandLine(argvee.argc(), argvee());
 
-    ConfiguredModule::setConfiguredModules({
-        {Module::Module<ITest>::moduleName(), {Module::setImplementation<ITest>, Module::implementation<ITest>}},
-    });
-    ConfiguredModule::parseConfigurator();
-
-    ITest& impler = Module::getImplementation<ITest>();
-
-    REQUIRE(impler() == 1);
+    REQUIRE(ConfiguredModule::getImpl("ITest") == Module::IMPL1);
 }
 
 TEST_CASE("Configure a module from a stream")
@@ -78,60 +44,25 @@ TEST_CASE("Configure a module from a stream")
     Configurator::clear();
     std::stringstream config;
     config << "[Modules]" << std::endl
-            << "ITest = Impl2" << std::endl;
-
+            << "ITest = Impl2" << std::endl
+            << "ITest2 = AnotherImpl" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::setConfiguredModules({
-        {Module::Module<ITest>::moduleName(), {Module::setImplementation<ITest>, Module::implementation<ITest>}},
-    });
-    ConfiguredModule::parseConfigurator();
+    REQUIRE(ConfiguredModule::getImpl("ITest") == Module::IMPL2);
+    // Since no real Modules are instantiated, set the module names manually
+    Module::ImplementationNames::set("ITest", Module::IMPL2);
+    REQUIRE(ConfiguredModule::getImpl("ITest2") == Module::ANOTHERIMPL);
+    Module::ImplementationNames::set("ITest2", Module::ANOTHERIMPL);
 
-    ITest& impler = Module::getImplementation<ITest>();
-    REQUIRE(impler() == 2);
+    ConfigMap cfgMap = ConfiguredModule::getAllModuleConfigurations();
+    REQUIRE(cfgMap.size() == 2);
+    REQUIRE(std::get<std::string>(cfgMap.at("ITest")) == Module::IMPL2);
+    REQUIRE(std::get<std::string>(cfgMap.at("ITest2")) == Module::ANOTHERIMPL);
 }
 
-TEST_CASE("Don't configure a module from a stream")
-{
-    Configurator::clear();
-    std::stringstream config;
-    config << "[Modules]" << std::endl
-            << "ITestNotReally = NotImpl2" << std::endl;
 
-    Module::setImplementation<ITest>("Impl2");
 
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::setConfiguredModules({
-        {Module::Module<ITest>::moduleName(), {Module::setImplementation<ITest>, Module::implementation<ITest>}},
-    });
-    // Parse the available modules. This should not change the implementation
-    // to the default.
-    ConfiguredModule::parseConfigurator();
-
-    ITest& impler = Module::getImplementation<ITest>();
-    REQUIRE(impler() == 2);
-}
-
-TEST_CASE("Configure a module with an incorrect name")
-{
-    Configurator::clear();
-    std::stringstream config;
-    config << "[Modules]" << std::endl
-            << "ITest = Optometry" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::setConfiguredModules({
-        {Module::Module<ITest>::moduleName(), {Module::setImplementation<ITest>, Module::implementation<ITest>}},
-    });
-    // Should throw a domain_error as "Optometry" is not a valid implementation.
-    REQUIRE_THROWS(ConfiguredModule::parseConfigurator());
-
-}
 TEST_SUITE_END();
 
 }

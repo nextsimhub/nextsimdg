@@ -48,10 +48,10 @@ template <> std::unique_ptr<Nextsim::IDynamics> getInstance()
 {
     return getInstTemplate<Nextsim::IDynamics, DynamicsModule>();
 }
-DynamicsModule::Constructor DynamicsModule::ctor;
-DynamicsModule::Constructor::Constructor()
-{
-    addToConfiguredModules<Nextsim::IDynamics, DynamicsModule>();
-}
+//DynamicsModule::Constructor DynamicsModule::ctor;
+//DynamicsModule::Constructor::Constructor()
+//{
+//    addToConfiguredModules<Nextsim::IDynamics, DynamicsModule>();
+//}
 
 } /* namespace Module */

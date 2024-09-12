@@ -81,8 +81,6 @@ TEST_CASE("Test periodic output")
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::parseConfigurator();
-
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     HField hice(ModelArray::Type::H);

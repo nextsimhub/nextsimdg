@@ -27,19 +27,13 @@ def write_header_file(header, strings):
 #ifndef {guard_macro}
 #define {guard_macro}
 
-#include "include/ConfiguredModule.hpp"
 #include "include/Module.hpp"
 
 #include "{strings[interface_prefix_str]}{strings[file_prefix_str]}.{header_suffix}"
 
 namespace Module {{
 
-class {strings[module_class_name]} : public Module<{strings[class_name]}> {{
-    struct Constructor {{
-        Constructor();
-    }};
-    static Constructor ctor;
-}};
+class {strings[module_class_name]} : public Module<{strings[class_name]}> {{ }};
 
 }} /* namespace Module */
 
