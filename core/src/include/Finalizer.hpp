@@ -13,13 +13,11 @@
 #include <set>
 #include <vector>
 
-#include <iostream> // FIXME remove me
-
 namespace Nextsim {
 
 class Finalizer {
 public:
-    using FinalFn = void(*)();
+    using FinalFn = void (*)();
 
     /*!
      * Adds a function to be called at finalization. Functions are ordered last-in, first out.
