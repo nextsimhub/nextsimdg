@@ -19,10 +19,11 @@ const std::string ConfiguredModule::MODULE_PREFIX = "Modules";
 
 ConfiguredModule::map ConfiguredModule::configuredModules;
 
+// A default string that can never be a valid C++ class name
+static const std::string defaultStr = "+++DEFAULT+++";
+
 void ConfiguredModule::parseConfigurator()
 {
-    // A default string that can never be a valid C++ class name
-    std::string defaultStr = "+++DEFAULT+++";
     // Construct a new options map
     boost::program_options::options_description opt;
 
@@ -60,9 +61,26 @@ void ConfiguredModule::configureModule(const std::string& mod, const fn& setter,
     configuredModules[mod] = { setter, getter };
 }
 
-std::string ConfiguredModule::getModuleConfiguration(const std::string& module)
+std::string ConfiguredModule::getImpl(const std::string& module)
 {
-    return configuredModules[module].second();
+    if (cachedImplementations().count(module))
+        return cachedImplementations().at(module);
+    else {
+        boost::program_options::options_description opt;
+
+        opt.add_options()(addPrefix(module).c_str(),
+                boost::program_options::value<std::string>()->default_value(defaultStr),
+                ("Load an implementation of " + module).c_str());
+
+        std::string implString = Configurator::parse(opt)[addPrefix(module)].as<std::string>();
+        // Only do anything if the retrieved option is not the default value
+        if (implString != defaultStr) {
+            cachedImplementations()[module] = implString;
+            return implString;
+        } else {
+            return "";
+        }
+    }
 }
 
 ConfigMap ConfiguredModule::getAllModuleConfigurations()

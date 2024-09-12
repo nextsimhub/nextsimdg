@@ -68,7 +68,17 @@ public:
         }
     }
 
-    static std::unique_ptr<I> getInstance() { return getGenerationFunction()(); }
+    static std::unique_ptr<I> getInstance()
+    {
+        if (!isConfigured()) {
+            isConfigured() = true;
+            std::string implName = Nextsim::ConfiguredModule::getImpl(moduleName());
+            if (!implName.empty()) {
+                getGenerationFunction() = functionMap().at(implName);
+            }
+        }
+        return getGenerationFunction()();
+    }
 
     static std::unique_ptr<I>& getUniqueInstance()
     {
@@ -112,6 +122,12 @@ private:
     static fn& getGenerationFunction();
 //    static std::unique_ptr<I> staticInstance;
     static const map& functionMap();
+
+    static bool& isConfigured()
+    {
+        static bool isConfiguredBool = false;
+        return isConfiguredBool;
+    }
 };
 
 template <typename I, typename M> void addToConfiguredModules()

@@ -54,7 +54,18 @@ public:
      *
      * @param interface the name of the module to be checked.
      */
-    static std::string getModuleConfiguration(const std::string& interface);
+    inline static std::string getModuleConfiguration(const std::string& interface)
+    {
+        return getImpl(interface);
+    }
+
+    /*!
+     * Gets the implementation name for a named module.
+     * Returns an empty string if there is no such module.
+     *
+     * @param interface the name of the module to be checked.
+     */
+    static std::string getImpl(const std::string& interface);
 
     /*!
      * Returns a map from interface name to implementation name for all modules
@@ -74,6 +85,12 @@ public:
 
 private:
     static map configuredModules;
+
+    static std::map<std::string, std::string>& cachedImplementations()
+    {
+        static std::map<std::string, std::string> cache;
+        return cache;
+    }
 };
 
 } /* namespace Nextsim */
