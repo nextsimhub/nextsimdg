@@ -13,7 +13,9 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/IFluxCalculation.hpp"
 #include "include/IFreezingPoint.hpp"
+#include "include/IIceAlbedo.hpp"
 #include "include/Module.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/UniformOcean.hpp"
@@ -27,12 +29,10 @@ TEST_CASE("ConfiguredAtmosphere melting test")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing")
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo")
+    Module::Module<IFluxCalculation>::setImplementation("Nextsim::FiniteElementFluxes")
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "Nextsim::IFreezingPoint = Nextsim::UnescoFreezing" << std::endl;
-    config << "Nextsim::IIceAlbedo = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << "Nextsim::IFluxCalculation = Nextsim::FiniteElementFluxes" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;

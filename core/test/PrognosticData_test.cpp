@@ -19,6 +19,7 @@
 #include "include/constants.hpp"
 
 #include <sstream>
+#include <iostream>
 
 extern template class Module::Module<Nextsim::IOceanBoundary>;
 
@@ -32,10 +33,8 @@ TEST_CASE("PrognosticData call order test")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::setImplementation<IAtmosphereBoundary>("Nextsim::ConfiguredAtmosphere");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "AtmosphereBoundaryModule = Nextsim::ConfiguredAtmosphere" << std::endl;
-    config << std::endl;
     config << "[ConfiguredAtmosphere]" << std::endl;
     config << "t_air = 3" << std::endl;
     config << "t_dew = 2" << std::endl;
@@ -70,9 +69,11 @@ TEST_CASE("PrognosticData call order test")
         void updateAfter(const TimestepTime& tst) override { }
     } ocnBdy;
     ocnBdy.setData(ModelState().data);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     Module::Module<IOceanBoundary>::setExternalImplementation(
         Module::newImpl<IOceanBoundary, OceanData>);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     HField zeroData;
     zeroData.resize();
@@ -80,6 +81,7 @@ TEST_CASE("PrognosticData call order test")
     ZField zeroDataZ;
     zeroDataZ.resize();
     zeroDataZ[0] = 0.;
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     ModelState::DataMap initialData = {
         { "cice", zeroData },
@@ -87,14 +89,21 @@ TEST_CASE("PrognosticData call order test")
         { "hsnow", zeroData },
         { "tice", zeroDataZ },
     };
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     PrognosticData pData;
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     pData.configure();
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     pData.setData(initialData);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     TimestepTime tst = { TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0") };
     pData.update(tst);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     ModelArrayRef<Shared::Q_OW> qow(ModelComponent::getStore());
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     double prec = 1e-5;
     // Correct value

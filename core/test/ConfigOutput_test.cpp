@@ -67,10 +67,8 @@ TEST_CASE("Test periodic output")
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
 #endif
 
+    Module::Module<IDiagnosticOutput>::setImplementation("Nextsim::ConfigOutput");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "DiagnosticOutputModule = Nextsim::ConfigOutput" << std::endl;
-    config << std::endl;
     config << "[ConfigOutput]" << std::endl;
     config << "period = 3600" << std::endl; // Output every hour
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
