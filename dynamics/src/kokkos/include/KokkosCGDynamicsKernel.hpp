@@ -14,8 +14,6 @@ namespace Nextsim {
 
 template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3 ? 2 : -1);
 
-using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
-
 template <int DGadvection> class KokkosCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 public:
     // common types for Kokkos buffers

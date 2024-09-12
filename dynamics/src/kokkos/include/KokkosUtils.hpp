@@ -16,6 +16,8 @@
 
 namespace Nextsim {
 
+using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
+
 namespace Details {
     // Map Eigen matrix template parameters to the equivalent kokkos array type declaration.
     template <typename Scalar, int Rows, int Cols> struct ToKokkosArrayDec {

@@ -148,9 +148,9 @@ template <> Eigen::Matrix<Nextsim::FloatType, 1, 3> topedgeofcell(const DGVector
 // the length-element J is already included!
 //
 // The way to compute the normal vector does not differ between
-// the Cartesian and the Sperical version. This is, since the normal
+// the Cartesian and the Spherical version. This is, since the normal
 // is not the actual normal but a scaled version of it. The weight
-// that is missing is corrected in the two fucntions
+// that is missing is corrected in the two functions
 // edge_term_X and edge_term_Y. Here, we omit the scaling with
 // cos(theta) and simple use ds = |J| as length scale
 // (instead of ds = (d_theta^2 + cos(theta)^2 d_phi^2)^1/2
