@@ -76,21 +76,31 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());
 
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     pOcnBdy->updateBefore(tst);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
+    std::cout << Module::Module<IAtmosphereBoundary>::moduleName() << " is " << Module::implementation<IAtmosphereBoundary>() << std::endl;
     pAtmBdy->update(tst);
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     iceGrowth.update(tst);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     updatePrognosticFields();
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     pDynamics->update(tst);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     updatePrognosticFields();
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     pOcnBdy->updateAfter(tst);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 }
 
 void PrognosticData::updatePrognosticFields()

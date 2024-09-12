@@ -158,9 +158,13 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
 
 void FiniteElementFluxes::update(const TimestepTime& tst)
 {
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     updateAtmosphere(tst); // common atmospheric values
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     updateOW(tst); // qow
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     updateIce(tst); // qia & dqia/dT
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 }
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
@@ -189,19 +193,31 @@ void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
 {
     // Specific humidity of...
     // ...the air
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
+    std::cout << "sh_air.size()=" << sh_air.trueSize() << " ";
+    std::cout << "t_dew2.size()=" << t_dew2.data().trueSize() << " ";
+    std::cout << "p_air.size()=" << p_air.data().trueSize() << std::endl;
     sh_air[i] = FiniteElementSpecHum::water()(t_dew2[i], p_air[i]);
     // ...over the open ocean
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     sh_water[i] = FiniteElementSpecHum::water()(sst[i], p_air[i], sss[i]);
     // ...over the ice
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     std::pair<double, double> iceData
         = FiniteElementSpecHum::ice().valueAndDerivative(tice.zIndexAndLayer(i, 0), p_air[i]);
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     sh_ice[i] = iceData.first;
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     dshice_dT[i] = iceData.second;
     // Density of the wet air
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     double Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
     // Heat capacity of the wet air
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
     cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
+    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 }
 
 double FiniteElementFluxes::latentHeatWater(double temperature)
