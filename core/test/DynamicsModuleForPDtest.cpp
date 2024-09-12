@@ -38,15 +38,15 @@ template <> std::string Module<Nextsim::IDynamics>::moduleName() { return "Nexts
 template <> HelpMap& getHelpRecursive<Nextsim::IDynamics>(HelpMap& map, bool getAll) { return map; }
 template <> Nextsim::IDynamics& getImplementation<Nextsim::IDynamics>()
 {
-    return getImplTemplate<Nextsim::IDynamics, DynamicsModule>();
+    return Module<Nextsim::IDynamics>::getImplementation();
 }
 template <> void setImplementation<Nextsim::IDynamics>(const std::string& implName)
 {
-    setImplTemplate<DynamicsModule>(implName);
+    Module<Nextsim::IDynamics>::setImplementation(implName);
 }
 template <> std::unique_ptr<Nextsim::IDynamics> getInstance()
 {
-    return getInstTemplate<Nextsim::IDynamics, DynamicsModule>();
+    return Module<Nextsim::IDynamics>::getInstance();
 }
 //DynamicsModule::Constructor DynamicsModule::ctor;
 //DynamicsModule::Constructor::Constructor()

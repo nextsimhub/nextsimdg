@@ -27,6 +27,7 @@ class ImplementationNames {
 public:
     static const std::map<std::string, std::string>& getAll() { return getMap(); }
     static void set(const std::string& interface, const std::string& implementation) { getMap().insert({ interface, implementation }); }
+    static std::string get(const std::string& interface) { return getMap().at(interface); }
 private:
     static std::map<std::string, std::string>& getMap()
     {
@@ -34,6 +35,8 @@ private:
         return cache;
     }
 };
+
+template <typename I> class Module;
 
 template <typename I> std::unique_ptr<I> getInstance();
 
@@ -45,15 +48,6 @@ template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
 {
     return std::unique_ptr<Int>(new Imp);
 }
-
-template <typename I, typename M> I& getImplTemplate() { return M::getImplementation(); }
-
-template <typename M> void setImplTemplate(const std::string& implName)
-{
-    M::setImplementation(implName);
-}
-
-template <typename I, typename M> std::unique_ptr<I> getInstTemplate() { return M::getInstance(); }
 
 typedef std::list<Nextsim::ConfigurationHelp> OptionMap;
 typedef std::map<std::string, OptionMap> HelpMap;
@@ -77,7 +71,7 @@ public:
         // setExternalImplementation() holds the common functionality
         try {
             setExternalImplementation(functionMap().at(implName));
-            ImplementationNames::set(moduleName(), implName);
+            ImplementationNames::set(moduleName(), implementation());
         } catch (const std::out_of_range& oor) {
             std::throw_with_nested(std::runtime_error(
                 "No implementation named " + implName + " found for Module " + moduleName()));

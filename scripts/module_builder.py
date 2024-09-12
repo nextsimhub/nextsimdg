@@ -92,15 +92,15 @@ template <> HelpMap& getHelpRecursive<{strings[class_name]}>(HelpMap& map, bool 
 }}
 template <> {strings[class_name]}& getImplementation<{strings[class_name]}>()
 {{
-    return getImplTemplate<{strings[class_name]}, {strings[module_class_name]}>();
+    return Module<{strings[class_name]}>::getImplementation();
 }}
 template <> void setImplementation<{strings[class_name]}>(const std::string& implName)
 {{
-    setImplTemplate<{strings[module_class_name]}>(implName);
+    Module<{strings[class_name]}>::setImplementation(implName);
 }}
-template <> std::unique_ptr<{strings[class_name]}> getInstance()
+template <> std::unique_ptr<{strings[class_name]}> getInstance<{strings[class_name]}>()
 {{
-    return getInstTemplate<{strings[class_name]}, {strings[module_class_name]}>();
+    return Module<{strings[class_name]}>::getInstance();
 }}
 
 template class {module_templ};
