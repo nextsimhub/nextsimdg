@@ -37,11 +37,10 @@ def write_source_file(source, config, strings):
                     default_impl = section
 
     module_templ = f"Module<{strings[class_name]}>"
-
     # Use the provided path to the Module header file
 #    source.write(f"#include \"{strings[header_file_path_str]}\"\n")
 #    source.write("\n")
-    module_file = f"Module.{header_suffix}"
+    module_file = f"NextsimModule.{header_suffix}"
     source.write(f"#include \"{os.path.join(strings[internal_header_dir], strings[interface_prefix_str])}{strings[file_prefix_str]}.{header_suffix}\"\n")
     source.write(f"#include \"{os.path.join(strings[internal_header_dir], module_file)}\"\n")
     for section in valid_impl_sections:
@@ -77,7 +76,9 @@ template <>
 
 template <> std::string {module_templ}::moduleName() {{ return \"{strings[module_class_name]}\"; }}
 
-template <> HelpMap& getHelpRecursive<{strings[class_name]}>(HelpMap& map, bool getAll)
+using ConfigType = Nextsim::ConfigurationHelp::ConfigType;
+
+template <> HelpMap& {module_templ}::getHelpRecursive(HelpMap& map, bool getAll)
 {{
     const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
     map[pfx].push_back({{ pfx + "." + {module_templ}::moduleName(), ConfigType::MODULE,

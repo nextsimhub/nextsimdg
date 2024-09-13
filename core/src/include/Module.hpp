@@ -8,10 +8,6 @@
 #ifndef MODULE_HPP
 #define MODULE_HPP
 
-#include "include/ConfigurationHelp.hpp"
-#include "include/ConfiguredModule.hpp"
-
-#include <functional>
 #include <list>
 #include <map>
 #include <memory>
@@ -41,26 +37,27 @@ private:
     }
 };
 
-template <typename I> class Module;
+template <typename I, typename C, typename H> class Module;
 
-template <typename I> std::unique_ptr<I> getInstance() { return Module<I>::getInstance(); }
+template <typename I, typename C, typename H> std::unique_ptr<I> getInstance() { return Module<I, C, H>::getInstance(); }
 
-template <typename I> I& getImplementation() { return Module<I>::getImplementation(); }
+template <typename I, typename C, typename H> I& getImplementation() { return Module<I, C, H>::getImplementation(); }
 
-template <typename I> void setImplementation(const std::string& impl) { Module<I>::setImplementation(impl); }
+template <typename I, typename C, typename H> void setImplementation(const std::string& impl) { Module<I, C, H>::setImplementation(impl); }
 
 template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
 {
     return std::unique_ptr<Int>(new Imp);
 }
 
-using OptionMap = std::list<Nextsim::ConfigurationHelp>;
-using HelpMap = std::map<std::string, OptionMap>;
-using ConfigType = Nextsim::ConfigurationHelp::ConfigType;
+template <typename I, typename C, typename H> H& getHelpRecursive(H& map, bool getAll)
+{
+    return Module<I, C, H>::getHelpRecursive(map, getAll);
+}
 
-template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+template <typename I, typename C, typename H> std::string implementation() { return Module<I, C, H>::implementation(); }
 
-template <typename I> class Module {
+template <typename I, typename C, typename H> class Module {
 public:
     using fn = std::unique_ptr<I> (*)();
     using map = std::map<std::string, fn>;
@@ -115,6 +112,8 @@ public:
 
     static std::string moduleName();
 
+    static H& getHelpRecursive(H& helpMap, bool getAll);
+
 private:
     static fn& getGenerationFunction();
     static const map& functionMap();
@@ -129,7 +128,7 @@ private:
     {
         if (!isConfigured()) {
             isConfigured() = true;
-            std::string implName = Nextsim::ConfiguredModule::getImpl(moduleName());
+            std::string implName = C::getImpl(moduleName());
             if (!implName.empty()) {
                 setImplementation(implName, setStaticInstance);
             }
@@ -156,8 +155,6 @@ private:
             getUniqueInstance() = std::move(getGenerationFunction()());
     }
 };
-
-template <typename I> std::string implementation() { return Module<I>::implementation(); }
 
 }
 #endif /* MODULE_HPP */
