@@ -54,8 +54,8 @@ template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
     return std::unique_ptr<Int>(new Imp);
 }
 
-typedef std::list<Nextsim::ConfigurationHelp> OptionMap;
-typedef std::map<std::string, OptionMap> HelpMap;
+using OptionMap = std::list<Nextsim::ConfigurationHelp>;
+using HelpMap = std::map<std::string, OptionMap>;
 using ConfigType = Nextsim::ConfigurationHelp::ConfigType;
 
 template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
