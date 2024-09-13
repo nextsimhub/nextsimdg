@@ -26,8 +26,12 @@ namespace Module {
 class ImplementationNames {
 public:
     static const std::map<std::string, std::string>& getAll() { return getMap(); }
-    static void set(const std::string& interface, const std::string& implementation) { getMap().insert({ interface, implementation }); }
+    static void set(const std::string& interface, const std::string& implementation)
+    {
+        getMap().insert({ interface, implementation });
+    }
     static std::string get(const std::string& interface) { return getMap().at(interface); }
+
 private:
     static std::map<std::string, std::string>& getMap()
     {
@@ -57,7 +61,7 @@ template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 template <typename I> class Module {
 public:
-    using fn = std::unique_ptr<I>(*)();
+    using fn = std::unique_ptr<I> (*)();
     using map = std::map<std::string, fn>;
 
     static void setExternalImplementation(fn generator)
@@ -130,7 +134,6 @@ public:
 
 private:
     static fn& getGenerationFunction();
-//    static std::unique_ptr<I> staticInstance;
     static const map& functionMap();
 
     static bool& isConfigured()
