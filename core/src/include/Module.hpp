@@ -25,17 +25,18 @@ namespace Module {
  */
 class ImplementationNames {
 public:
-    static const std::map<std::string, std::string>& getAll() { return getMap(); }
+    using Container = std::map<std::string, std::string>;
+    static const Container& getAll() { return getNames(); }
     static void set(const std::string& interface, const std::string& implementation)
     {
-        getMap().insert({ interface, implementation });
+        getNames().insert({ interface, implementation });
     }
-    static std::string get(const std::string& interface) { return getMap().at(interface); }
+    static std::string get(const std::string& interface) { return getNames().at(interface); }
 
 private:
-    static std::map<std::string, std::string>& getMap()
+    static Container& getNames()
     {
-        static std::map<std::string, std::string> cache;
+        static Container cache;
         return cache;
     }
 };
@@ -66,37 +67,19 @@ public:
 
     static void setExternalImplementation(fn generator)
     {
-        getGenerationFunction() = generator;
-        getUniqueInstance() = std::move(getGenerationFunction()());
+        setExternalImplementation(generator, true);
     }
 
     static void setImplementation(const std::string& implName)
     {
-        // setExternalImplementation() holds the common functionality
-        try {
-            setExternalImplementation(functionMap().at(implName));
-            ImplementationNames::set(moduleName(), implementation());
-        } catch (const std::out_of_range& oor) {
-            std::throw_with_nested(std::runtime_error(
-                "No implementation named " + implName + " found for Module " + moduleName()));
-        }
+        setImplementation(implName, true);
     }
 
-    static std::unique_ptr<I> getInstance()
-    {
-        if (!isConfigured()) {
-            isConfigured() = true;
-            std::string implName = Nextsim::ConfiguredModule::getImpl(moduleName());
-            if (!implName.empty()) {
-                setImplementation(implName);
-            }
-        }
-        return getGenerationFunction()();
-    }
+    static std::unique_ptr<I> getInstance() { return getInstance(true); }
 
     static std::unique_ptr<I>& getUniqueInstance()
     {
-        static std::unique_ptr<I> staticInstance = std::move(getInstance());
+        static std::unique_ptr<I> staticInstance = std::move(getInstance(false));
         return staticInstance;
     }
 
@@ -140,6 +123,37 @@ private:
     {
         static bool isConfiguredBool = false;
         return isConfiguredBool;
+    }
+
+    static std::unique_ptr<I> getInstance(bool setStaticInstance)
+    {
+        if (!isConfigured()) {
+            isConfigured() = true;
+            std::string implName = Nextsim::ConfiguredModule::getImpl(moduleName());
+            if (!implName.empty()) {
+                setImplementation(implName, setStaticInstance);
+            }
+        }
+        return getGenerationFunction()();
+    }
+
+    static void setImplementation(const std::string& implName, bool setStaticInstance)
+    {
+        // setExternalImplementation() holds the common functionality
+        try {
+            setExternalImplementation(functionMap().at(implName), setStaticInstance);
+            ImplementationNames::set(moduleName(), implementation());
+        } catch (const std::out_of_range& oor) {
+            std::throw_with_nested(std::runtime_error(
+                "No implementation named " + implName + " found for Module " + moduleName()));
+        }
+    }
+
+    static void setExternalImplementation(fn generator, bool setStaticInstance)
+    {
+        getGenerationFunction() = generator;
+        if (setStaticInstance)
+            getUniqueInstance() = std::move(getGenerationFunction()());
     }
 };
 
