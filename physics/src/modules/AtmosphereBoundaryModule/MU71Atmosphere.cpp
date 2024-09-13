@@ -3,7 +3,9 @@
 //
 
 #include "include/MU71Atmosphere.hpp"
-#include "include/IceAlbedoModule.hpp"
+
+#include "include/IIceAlbedo.hpp"
+#include "include/Module.hpp"
 
 namespace Nextsim {
 

@@ -5,7 +5,8 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/DynamicsModule.hpp"
+#include "include/IDynamics.hpp"
+#include "include/Module.hpp"
 
 #include "include/DummyDynamics.hpp"
 
@@ -29,9 +30,6 @@ Module<Nextsim::IDynamics>::fn& Module<Nextsim::IDynamics>::getGenerationFunctio
     static fn thePtr = functionMap().at(DUMMYDYNAMICS);
     return thePtr;
 }
-//template <>
-//std::unique_ptr<Nextsim::IDynamics> Module<Nextsim::IDynamics>::staticInstance
-//    = std::move(newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics>());
 
 template <> std::string Module<Nextsim::IDynamics>::moduleName() { return "Nextsim::IDynamics"; }
 
@@ -48,10 +46,5 @@ template <> std::unique_ptr<Nextsim::IDynamics> getInstance()
 {
     return Module<Nextsim::IDynamics>::getInstance();
 }
-//DynamicsModule::Constructor DynamicsModule::ctor;
-//DynamicsModule::Constructor::Constructor()
-//{
-//    addToConfiguredModules<Nextsim::IDynamics, DynamicsModule>();
-//}
 
 } /* namespace Module */

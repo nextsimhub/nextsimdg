@@ -19,7 +19,8 @@
 #include "include/NZLevels.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
-#include "include/StructureModule.hpp"
+#include "include/IStructure.hpp"
+#include "include/Module.hpp"
 #include "include/gridNames.hpp"
 
 #include <cmath>

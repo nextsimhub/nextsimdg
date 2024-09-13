@@ -39,9 +39,11 @@ def write_source_file(source, config, strings):
     module_templ = f"Module<{strings[class_name]}>"
 
     # Use the provided path to the Module header file
-    source.write(f"#include \"{strings[header_file_path_str]}\"\n")
-    source.write("\n")
-#    source.write(f"#include \"{strings[interface_prefix_str]}{strings[file_prefix_str]}.{header_suffix}\"\n")
+#    source.write(f"#include \"{strings[header_file_path_str]}\"\n")
+#    source.write("\n")
+    module_file = f"Module.{header_suffix}"
+    source.write(f"#include \"{os.path.join(strings[internal_header_dir], strings[interface_prefix_str])}{strings[file_prefix_str]}.{header_suffix}\"\n")
+    source.write(f"#include \"{os.path.join(strings[internal_header_dir], module_file)}\"\n")
     for section in valid_impl_sections:
         source.write(f"#include \"{os.path.join(strings[internal_header_dir], config[section][file_prefix_str])}.{header_suffix}\"\n")
     source.write("""

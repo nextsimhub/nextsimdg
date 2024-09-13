@@ -8,7 +8,8 @@
 
 #include "include/StructureFactory.hpp"
 
-#include "include/StructureModule.hpp"
+#include "include/IStructure.hpp"
+#include "include/Module.hpp"
 
 #include "include/RectGridIO.hpp"
 
