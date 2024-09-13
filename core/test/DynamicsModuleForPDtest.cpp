@@ -34,17 +34,5 @@ Module<Nextsim::IDynamics>::fn& Module<Nextsim::IDynamics>::getGenerationFunctio
 template <> std::string Module<Nextsim::IDynamics>::moduleName() { return "Nextsim::IDynamics"; }
 
 template <> HelpMap& getHelpRecursive<Nextsim::IDynamics>(HelpMap& map, bool getAll) { return map; }
-template <> Nextsim::IDynamics& getImplementation<Nextsim::IDynamics>()
-{
-    return Module<Nextsim::IDynamics>::getImplementation();
-}
-template <> void setImplementation<Nextsim::IDynamics>(const std::string& implName)
-{
-    Module<Nextsim::IDynamics>::setImplementation(implName);
-}
-template <> std::unique_ptr<Nextsim::IDynamics> getInstance()
-{
-    return Module<Nextsim::IDynamics>::getInstance();
-}
 
 } /* namespace Module */

@@ -43,11 +43,11 @@ private:
 
 template <typename I> class Module;
 
-template <typename I> std::unique_ptr<I> getInstance();
+template <typename I> std::unique_ptr<I> getInstance() { return Module<I>::getInstance(); }
 
-template <typename I> I& getImplementation();
+template <typename I> I& getImplementation() { return Module<I>::getImplementation(); }
 
-template <typename I> void setImplementation(const std::string&);
+template <typename I> void setImplementation(const std::string& impl) { Module<I>::setImplementation(impl); }
 
 template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
 {
