@@ -13,7 +13,8 @@
 namespace Nextsim {
 enum struct TimeSteppingScheme { RK1, RK2, RK3 };
 
-#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
+template<int DG>
+constexpr int EDGE_DOFS = (DG == 1) ? 1 : ((DG == 3) ? 2 : 3);
 
 template <int DG> class KokkosDGTransport {
 public:
@@ -21,8 +22,8 @@ public:
     using HostViewDG = KokkosHostView<DGVector<DG>>;
     using ConstDeviceViewDG = ConstKokkosDeviceView<DGVector<DG>>;
 
-    using DeviceViewEdge = KokkosDeviceView<EdgeVector<EDGEDOFS(DG)>>;
-    using ConstDeviceViewEdge = ConstKokkosDeviceView<EdgeVector<EDGEDOFS(DG)>>;
+    using DeviceViewEdge = KokkosDeviceView<EdgeVector<EDGE_DOFS<DG>>>;
+    using ConstDeviceViewEdge = ConstKokkosDeviceView<EdgeVector<EDGE_DOFS<DG>>>;
 
     /*!
      * Sets the normal-velocity vector on the edges
