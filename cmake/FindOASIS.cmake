@@ -9,7 +9,7 @@ get_filename_component (OASIS_LIBRARIES "${OASIS_LIBRARIES}" PATH)
 set (OASIS_DIR "${OASIS_LIBRARIES}/../")
 cmake_path(NORMAL_PATH OASIS_DIR)
 
-find_path (OASIS_INCLUDES NAMES oasis_c.h HINTS ${OASIS_DIR}/inc)
+find_path (OASIS_INCLUDES NAMES oasis_c.h HINTS ${OASIS_DIR}/include)
 
 # handle the QUIETLY and REQUIRED arguments and set OASIS_FOUND to TRUE if all listed variables are TRUE
 include (FindPackageHandleStandardArgs)
