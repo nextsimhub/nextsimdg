@@ -90,13 +90,11 @@ void ConfiguredAtmosphere::configure()
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
-    std::cout << Module::Module<IFluxCalculation>::moduleName() << " is " << Module::implementation<IFluxCalculation>() << std::endl;
 
 }
 
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
-    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
 
     IAtmosphereBoundary::setData(dm);
     tair.resize();
@@ -105,8 +103,6 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     sw_in.resize();
     lw_in.resize();
     wind.resize();
-    std::cout << __FILE__ << ":" << __LINE__ << std::endl;
-    std::cout << "p_air.size()=" << pair.trueSize() << std::endl;
 
     tair = tair0;
     tdew = tdew0;
