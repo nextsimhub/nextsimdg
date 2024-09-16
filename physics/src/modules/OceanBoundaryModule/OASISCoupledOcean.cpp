@@ -60,11 +60,11 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &v[0], &kinfo));
 
     // TODO: Implement ssh reading and passing to dynamics!
-    // OASIS_CHECK_ERR(oasis_c_get(cplIdIn[couplingIdIn::SSHKey], OASISTime, dimension0, dimension1,
+    // OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSHKey), OASISTime, dimension0, dimension1,
     //     bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
 
-    if (couplingId.find(SSHKey) != couplingId.end()) {
-        OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
+    if (couplingId.find(MLDKey) != couplingId.end()) {
+        OASIS_CHECK_ERR(oasis_c_get(couplingId.at(MLDKey), OASISTime, dimension0, dimension1,
             bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &mld[0], &kinfo));
     } else {
         mld = firstLayerDepth;
@@ -91,7 +91,7 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     // TODO We still need the the actual data
     HField dummy;
     dummy.resize();
-    dummy.setData(0.);
+    dummy.setData(184.);
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
 
