@@ -1,8 +1,8 @@
 /*!
- * @file ParaGrid_test.cpp
+ * @file    ParaGrid_test.cpp
  *
- * @date Oct 27, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date    27 Aug 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "ModelArray.hpp"
@@ -17,7 +17,11 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/NZLevels.hpp"
+#ifdef USE_XIOS
+#include "include/ParaGridIO_Xios.hpp"
+#else
 #include "include/ParaGridIO.hpp"
+#endif
 #include "include/ParametricGrid.hpp"
 #include "include/StructureModule.hpp"
 #include "include/gridNames.hpp"
@@ -55,7 +59,8 @@ namespace Nextsim {
 
 size_t c = 0;
 
-void initializeTestData(HField& hfield, DGField& dgfield, HField& mask){
+void initializeTestData(HField& hfield, DGField& dgfield, HField& mask)
+{
     hfield.resize();
     dgfield.resize();
     mask.resize();
@@ -64,8 +69,12 @@ void initializeTestData(HField& hfield, DGField& dgfield, HField& mask){
     auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < localNX; ++i) {
-            hfield(i, j) = j * yFactor + (i+startX) * xFactor;
-            mask(i, j) = ((i + startX) - nx / 2) * ((i + startX) - nx / 2) + (j - ny / 2) * (j - ny / 2) > (nx * ny) ? 0 : 1;
+            hfield(i, j) = j * yFactor + (i + startX) * xFactor;
+            mask(i, j)
+                = ((i + startX) - nx / 2) * ((i + startX) - nx / 2) + (j - ny / 2) * (j - ny / 2)
+                    > (nx * ny)
+                ? 0
+                : 1;
             for (size_t d = 0; d < DG; ++d) {
                 dgfield.components({ i, j })[d] = hfield(i, j) + d;
             }
@@ -73,7 +82,8 @@ void initializeTestData(HField& hfield, DGField& dgfield, HField& mask){
     }
 };
 
-void initializeTestCoordinates(VertexField& coordinates){
+void initializeTestCoordinates(VertexField& coordinates)
+{
     auto dimXVertex = ModelArray::Dimension::XVERTEX;
     auto localNXVertex = ModelArray::definedDimensions.at(dimXVertex).localLength;
     auto startXVertex = ModelArray::definedDimensions.at(dimXVertex).start;
@@ -105,15 +115,14 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // Set the dimension lengths
     NZLevels::set(nz);
 
-
 #ifdef USE_MPI
     if (test_rank == 0) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
-      ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
     }
     if (test_rank == 1) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
-      ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
@@ -295,7 +304,6 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     std::filesystem::remove(filename);
 }
 
-
 #ifdef USE_MPI
 MPI_TEST_CASE("Write a diagnostic ParaGrid file", 2)
 #else
@@ -308,7 +316,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
     std::filesystem::remove(diagFile);
 
-
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
@@ -317,12 +324,12 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
 #ifdef USE_MPI
     if (test_rank == 0) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
-      ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
     }
     if (test_rank == 1) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
-      ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
@@ -395,7 +402,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
                               },
         {} };
 
-
     ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
@@ -429,10 +435,11 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
         grid.dumpModelState(state, metadata, diagFile, false);
     }
+#ifndef USE_XIOS
     pio->close(diagFile);
+#endif
 
     REQUIRE(std::filesystem::exists(std::filesystem::path(diagFile)));
-
 
     // What do we have in the file?
     netCDF::NcFile ncFile(diagFile, netCDF::NcFile::read);
@@ -493,10 +500,10 @@ TEST_CASE("Test array ordering")
 
 #ifdef USE_MPI
     if (test_rank == 0) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
     }
     if (test_rank == 1) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 4);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 4);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
@@ -512,10 +519,14 @@ TEST_CASE("Test array ordering")
     std::set<std::string> fields = { fieldName };
     TimePoint time;
 
+#ifdef USE_XIOS
+    throw std::runtime_error("XIOS implementation incomplete"); // TODO
+#else
     ModelState state = ParaGridIO::readForcingTimeStatic(fields, time, inputFilename);
     REQUIRE(state.data.count(fieldName) > 0);
     index2d = state.data.at(fieldName);
     REQUIRE(index2d(3, 5) == 35);
+#endif
 }
 
 #ifdef USE_MPI
@@ -539,7 +550,6 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 #else
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
 #endif
-
 }
 
 #ifdef USE_MPI

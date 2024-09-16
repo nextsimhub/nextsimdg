@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    21 August 2024
+ * @date    27 Aug 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the write method of the C++ interface
@@ -14,6 +14,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Module.hpp"
+#include "include/ParaGridIO_Xios.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>
@@ -50,7 +51,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Calendar setup
     xios_handler.setCalendarOrigin(TimePoint("2020-01-23T00:08:15Z"));
     xios_handler.setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
-    xios_handler.setCalendarTimestep(Duration("P0-0T01:30:00"));
+    Duration timestep("P0-0T01:30:00");
+    xios_handler.setCalendarTimestep(timestep);
 
     // Create a 4x2 horizontal domain with a partition halving the x-extent
     xios_handler.createDomain("xy_domain");
@@ -86,22 +88,31 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Create an output file to hold data from both fields
     xios_handler.createFile("xios_test_output");
     xios_handler.setFileType("xios_test_output", "one_file");
-    xios_handler.setFileOutputFreq("xios_test_output", Duration("P0-0T01:30:00"));
+    xios_handler.setFileOutputFreq("xios_test_output", timestep);
     xios_handler.setFileSplitFreq("xios_test_output", Duration("P0-0T03:00:00"));
     xios_handler.setFileMode("xios_test_output", "write");
     xios_handler.fileAddField("xios_test_output", "field_2D");
     xios_handler.fileAddField("xios_test_output", "field_3D");
 
-    xios_handler.close_context_definition();
-
-    // --- Tests for writing to file
+    // Set ModelArray dimensions
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
     const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
     const size_t nz = xios_handler.getAxisSize("z_axis");
-    ModelArray::setDimension(ModelArray::Dimension::X, xios_handler.getDomainGlobalXSize("xy_domain"), nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, xios_handler.getDomainGlobalYSize("xy_domain"), ny, 0);
+    ModelArray::setDimension(
+        ModelArray::Dimension::X, xios_handler.getDomainGlobalXSize("xy_domain"), nx, 0);
+    ModelArray::setDimension(
+        ModelArray::Dimension::Y, xios_handler.getDomainGlobalYSize("xy_domain"), ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
+
+    // Create ParametricGrid and ParaGridIO instances
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
+
+    xios_handler.close_context_definition();
+
+    // --- Tests for writing to file
     // Create some fake data to test writing methods
     HField field_2D(ModelArray::Type::H);
     field_2D.resize();
@@ -128,8 +139,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update the current timestep
         xios_handler.updateCalendar(ts);
         // Send data to XIOS to be written to disk
-        xios_handler.write("field_2D", field_2D);
-        xios_handler.write("field_3D", field_3D);
+        pio->write("field_2D", field_2D);
+        pio->write("field_3D", field_3D);
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
