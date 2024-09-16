@@ -99,11 +99,10 @@ public:
 
     static HelpMap& getHelpRecursive(HelpMap& helpMap, bool getAll);
 
-//protected:
+private:
     static fn& getGenerationFunction();
     static const map& functionMap();
 
-private:
     static bool& isConfigured()
     {
         static bool isConfiguredBool = false;
