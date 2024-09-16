@@ -141,9 +141,14 @@ void OASISCoupledOcean::configure()
     CIceKey = Configured::getConfiguration(CIceConfigKey, CIceKeyDefault);
 
     firstLayerDepth = Configured::getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
+
+    cplStringsIn
+      = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey };
     if (Configured::getConfiguration(exchangeFirstLayerConfigKey, EXCHANGE_FIRST_LAYER)) {
         cplStringsIn.push_back(MLDKey);
     }
+    cplStringsOut
+      = { TauXKey, TauYKey, TauModKey, EMPKey, QNoSunKey, QSWKey, SFluxKey, CIceKey };
 }
 
 OASISCoupledOcean::HelpMap& OASISCoupledOcean::getHelpText(HelpMap& map, bool getAll)
