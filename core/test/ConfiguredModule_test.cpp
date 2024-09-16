@@ -13,6 +13,8 @@
 #include "ArgV.hpp"
 #include "include/Configurator.hpp"
 
+#include "include/NextsimModule.hpp"
+
 #include <istream>
 #include <memory>
 

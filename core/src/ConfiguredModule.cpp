@@ -8,7 +8,7 @@
 #include "include/ConfiguredModule.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 
 #include <boost/program_options.hpp>
 #include <stdexcept>
