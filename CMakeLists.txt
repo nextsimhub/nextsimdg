@@ -9,6 +9,7 @@ project(nextsim_dg)
 option(WITH_THREADS "Build with support for openmp" OFF)
 option(ENABLE_MPI "Enable distributed-memory parallelization with MPI" OFF)
 option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
+option(ENABLE_OASIS "Enable the OASIS interface" OFF)
 option(BUILD_TESTS "Build the tests" ON)
 set(DynamicsType
     "DG2"
@@ -149,6 +150,23 @@ if(ENABLE_XIOS)
         PRIVATE ${xios_INCLUDES} ${xios_EXTERNS}/blitz/ ${xios_EXTERNS}/rapidxml/include
     )
 endif()
+
+# Do we want to include the OASIS interface? It'll only work if we have MPI
+if (ENABLE_OASIS)
+    if (ENABLE_MPI)
+        message(STATUS "Building with OASIS support")
+        find_package(OASIS REQUIRED)
+        pkg_search_module(NETCDF REQUIRED netcdf-fortran)
+        target_compile_definitions(nextsimlib PUBLIC USE_OASIS)
+
+        target_link_directories(nextsimlib PUBLIC ${NETCDF_LIBRARY_DIRS})
+        target_link_directories(nextsimlib PUBLIC ${OASIS_LIBRARIES})
+        target_link_libraries(nextsimlib PUBLIC oasis.cbind mct mpeu psmile.MPI1 scrip netcdff netcdf)
+        target_include_directories(nextsimlib PUBLIC ${OASIS_INCLUDES})
+    else ()
+        message(FATAL_ERROR "Cannot build with OASIS support, because MPI is not enabled" .)
+    endif ()
+endif ()
 
 # OpenMP
 if(WITH_THREADS)

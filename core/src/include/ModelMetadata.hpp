@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date Jun 29, 2022
+ * @date 10 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -40,6 +40,10 @@ public:
 
     // We need to force default constructor also
     ModelMetadata() = default;
+#endif
+
+#ifdef USE_OASIS
+    int OASISPartitionId;
 #endif
 
     /*!
@@ -97,6 +101,10 @@ public:
     int mpiSize = 0;
     int mpiMyRank = -1;
     int localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX, globalExtentY;
+#endif
+
+#ifdef USE_OASIS
+    void initOasis(const bool writeOasisGrid);
 #endif
 
 private:

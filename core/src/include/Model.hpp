@@ -1,6 +1,6 @@
 /*!
  * @file Model.hpp
- * @date 12 Aug 2021
+ * @date 09 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -49,6 +49,9 @@ public:
         // Other Model configuration keys, not to be written to the restart file.
         RESTARTPERIOD_KEY,
         RESTARTOUTFILE_KEY,
+#ifdef USE_OASIS
+        WRITEOASISGRID_KEY,
+#endif
     };
 
     ConfigMap getConfig() const;

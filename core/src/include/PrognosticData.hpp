@@ -38,6 +38,8 @@ public:
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override;
 
+    void setMetadata(const ModelMetadata& metadata);
+
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
