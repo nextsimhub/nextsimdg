@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace Modules {
+namespace Module {
 
 /*!
  * A class that records the names of all Modules in this executable.
@@ -42,26 +42,26 @@ template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
     return std::unique_ptr<Int>(new Imp);
 }
 
-template <typename I, typename C, typename H> class Module {
+template <typename I> class Module {
 public:
     using fn = std::unique_ptr<I> (*)();
     using map = std::map<std::string, fn>;
 
     static void setExternalImplementation(fn generator)
     {
-        setExternalImplementation(generator, true);
+        setExternalImplementationInternal(generator, true);
     }
 
     static void setImplementation(const std::string& implName)
     {
-        setImplementation(implName, true);
+        setImplementationInternal(implName, true);
     }
 
-    static std::unique_ptr<I> getInstance() { return getInstance(true); }
+    static std::unique_ptr<I> getInstance() { return getInstanceInternal(true); }
 
     static std::unique_ptr<I>& getUniqueInstance()
     {
-        static std::unique_ptr<I> staticInstance = std::move(getInstance(false));
+        static std::unique_ptr<I> staticInstance = std::move(getInstanceInternal(false));
         return staticInstance;
     }
 
@@ -97,35 +97,36 @@ public:
 
     static std::string moduleName();
 
-    static H& getHelpRecursive(H& helpMap, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& helpMap, bool getAll);
 
-private:
+//protected:
     static fn& getGenerationFunction();
     static const map& functionMap();
 
+private:
     static bool& isConfigured()
     {
         static bool isConfiguredBool = false;
         return isConfiguredBool;
     }
 
-    static std::unique_ptr<I> getInstance(bool setStaticInstance)
+    static std::unique_ptr<I> getInstanceInternal(bool setStaticInstance)
     {
         if (!isConfigured()) {
             isConfigured() = true;
-            std::string implName = C::getImpl(moduleName());
+            std::string implName = Config::getImpl(moduleName());
             if (!implName.empty()) {
-                setImplementation(implName, setStaticInstance);
+                setImplementationInternal(implName, setStaticInstance);
             }
         }
         return getGenerationFunction()();
     }
 
-    static void setImplementation(const std::string& implName, bool setStaticInstance)
+    static void setImplementationInternal(const std::string& implName, bool setStaticInstance)
     {
         // setExternalImplementation() holds the common functionality
         try {
-            setExternalImplementation(functionMap().at(implName), setStaticInstance);
+            setExternalImplementationInternal(functionMap().at(implName), setStaticInstance);
             ImplementationNames::set(moduleName(), implementation());
         } catch (const std::out_of_range& oor) {
             std::throw_with_nested(std::runtime_error(
@@ -133,13 +134,19 @@ private:
         }
     }
 
-    static void setExternalImplementation(fn generator, bool setStaticInstance)
+    static void setExternalImplementationInternal(fn generator, bool setStaticInstance)
     {
         getGenerationFunction() = generator;
         if (setStaticInstance)
             getUniqueInstance() = std::move(getGenerationFunction()());
     }
 };
+
+template <typename I> std::unique_ptr<I> getInstance();
+template <typename I> I& getImplementation();
+template <typename I> void setImplementation(const std::string& impl);
+template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+template <typename I> std::string implementation();
 
 }
 #endif /* MODULE_HPP */
