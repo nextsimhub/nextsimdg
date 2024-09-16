@@ -6,7 +6,7 @@
  */
 
 #include "include/IDynamics.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 
 #include "include/DummyDynamics.hpp"
 

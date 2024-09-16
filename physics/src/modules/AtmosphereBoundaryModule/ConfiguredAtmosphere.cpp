@@ -7,7 +7,7 @@
 
 #include "include/ConfiguredAtmosphere.hpp"
 
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 
 namespace Nextsim {
 

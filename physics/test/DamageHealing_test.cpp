@@ -8,7 +8,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/IDamageHealing.hpp"
 
 extern template class Module::Module<Nextsim::IDamageHealing>;

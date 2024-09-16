@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace Module {
+namespace Modules {
 
 /*!
  * A class that records the names of all Modules in this executable.
@@ -37,25 +37,10 @@ private:
     }
 };
 
-template <typename I, typename C, typename H> class Module;
-
-template <typename I, typename C, typename H> std::unique_ptr<I> getInstance() { return Module<I, C, H>::getInstance(); }
-
-template <typename I, typename C, typename H> I& getImplementation() { return Module<I, C, H>::getImplementation(); }
-
-template <typename I, typename C, typename H> void setImplementation(const std::string& impl) { Module<I, C, H>::setImplementation(impl); }
-
 template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
 {
     return std::unique_ptr<Int>(new Imp);
 }
-
-template <typename I, typename C, typename H> H& getHelpRecursive(H& map, bool getAll)
-{
-    return Module<I, C, H>::getHelpRecursive(map, getAll);
-}
-
-template <typename I, typename C, typename H> std::string implementation() { return Module<I, C, H>::implementation(); }
 
 template <typename I, typename C, typename H> class Module {
 public:

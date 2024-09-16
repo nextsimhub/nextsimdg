@@ -9,7 +9,7 @@
 #include "include/StructureFactory.hpp"
 
 #include "include/IStructure.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 
 #include "include/RectGridIO.hpp"
 

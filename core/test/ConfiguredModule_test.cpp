@@ -12,7 +12,6 @@
 
 #include "ArgV.hpp"
 #include "include/Configurator.hpp"
-#include "include/Module.hpp"
 
 #include <istream>
 #include <memory>
@@ -60,8 +59,6 @@ TEST_CASE("Configure a module from a stream")
     REQUIRE(std::get<std::string>(cfgMap.at("ITest")) == Module::IMPL2);
     REQUIRE(std::get<std::string>(cfgMap.at("ITest2")) == Module::ANOTHERIMPL);
 }
-
-
 
 TEST_SUITE_END();
 

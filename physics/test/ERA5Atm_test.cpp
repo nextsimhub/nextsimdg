@@ -16,7 +16,7 @@
 
 #include "include/IFluxCalculation.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 
 #include <filesystem>

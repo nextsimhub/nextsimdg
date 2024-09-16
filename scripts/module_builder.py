@@ -37,6 +37,9 @@ def write_source_file(source, config, strings):
                     default_impl = section
 
     module_templ = f"Module<{strings[class_name]}>"
+    h_class = "HelpMap"
+    c_class = "Nextsim::ConfigurationMap"
+    full_template_args = f"{strings[class_name]}, {c_class}, {h_class}"
     # Use the provided path to the Module header file
 #    source.write(f"#include \"{strings[header_file_path_str]}\"\n")
 #    source.write("\n")
@@ -92,6 +95,31 @@ template <> HelpMap& {module_templ}::getHelpRecursive(HelpMap& map, bool getAll)
             source.write(f"    {section}::getHelpRecursive(map, getAll);\n")
     source.write(f"""
     return map;
+}}
+
+template <> std::unique_ptr<{strings[class_name]}> getInstance<{strings[class_name]}>()
+{{
+    return {module_templ}::getInstance();
+}}
+
+template <> {strings[class_name]}& getImplementation<{strings[class_name]}>()
+{{
+    return {module_templ}::getImplementation();
+}}
+
+template <> void setImplementation<{strings[class_name]}>(const std::string& impl)
+{{
+    {module_templ}::setImplementation(impl);
+}}
+
+template <> {h_class}& getHelpRecursive<{strings[class_name]}>({h_class}& map, bool getAll)
+{{
+    return {module_templ}::getHelpRecursive(map, getAll);
+}}
+
+template <> std::string implementation<{strings[class_name]}>()
+{{
+    return {module_templ}::implementation();
 }}
 
 template class {module_templ};

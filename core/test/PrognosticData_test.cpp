@@ -14,7 +14,7 @@
 
 #include "include/ConfiguredModule.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/constants.hpp"
 

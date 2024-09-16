@@ -20,7 +20,7 @@
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/IStructure.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <cmath>

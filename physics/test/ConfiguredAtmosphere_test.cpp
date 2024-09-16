@@ -16,7 +16,7 @@
 #include "include/IFluxCalculation.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceAlbedo.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/UniformOcean.hpp"
 #include "include/constants.hpp"

@@ -9,7 +9,7 @@
 
 #include "include/FiniteElementSpecHum.hpp"
 #include "include/IIceAlbedo.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
 #include <memory>

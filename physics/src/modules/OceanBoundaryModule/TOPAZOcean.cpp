@@ -9,7 +9,7 @@
 
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/IFreezingPoint.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
 

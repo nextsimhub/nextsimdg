@@ -9,7 +9,7 @@
 
 #include "include/ConfiguredModule.hpp"
 #include "include/IDiagnosticOutput.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 namespace Nextsim {
 
 DevStep::DevStep()
