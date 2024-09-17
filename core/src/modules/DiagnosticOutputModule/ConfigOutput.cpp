@@ -17,7 +17,7 @@
 namespace Nextsim {
 
 const std::string ConfigOutput::all = "ALL";
-const std::string ConfigOutput::defaultLastOutput = "1970-01-01T00:00:00Z";
+const std::string ConfigOutput::defaultLastOutput = "0000-01-01T00:00:00Z";
 
 static const std::regex ncSuffix(".nc$");
 
