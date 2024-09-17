@@ -63,8 +63,7 @@ private:
     }
 
     // Make all Module<>s a friend
-    template<class Int>
-    friend class Module;
+    template <class Int> friend class Module;
 };
 
 template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
