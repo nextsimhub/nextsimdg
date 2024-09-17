@@ -75,10 +75,9 @@ const {module_templ}::map& {module_templ}::functionMap()
 }}
 
 template <>
-{module_templ}::fn& {module_templ}::getGenerationFunction()
+std::string {module_templ}::getDefaultImplementationName()
 {{
-    static fn ptr = functionMap().at({strings[module_class_name]}::{impl_strings[default_impl]});
-    return ptr;
+    return {strings[module_class_name]}::{impl_strings[default_impl]};
 }}
 
 template <> std::string {module_templ}::moduleName() {{ return \"{strings[module_class_name]}\"; }}

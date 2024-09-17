@@ -130,7 +130,13 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& helpMap, bool getAll);
 
 private:
-    static fn& getGenerationFunction();
+    static std::string getDefaultImplementationName();
+    static fn& getGenerationFunction()
+    {
+        static fn ptr = functionMap().at(getDefaultImplementationName());
+        return ptr;
+    }
+
     static const map& functionMap();
 
     static bool& isConfigured()
