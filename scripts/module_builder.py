@@ -53,10 +53,14 @@ def write_source_file(source, config, strings):
 
 namespace Module {
 """)
+    source.write(f"""
+namespace {strings[module_class_name]} {{
+""")
     impl_strings = {}
     for section in valid_impl_sections:
         impl_strings[section] = config[section][file_prefix_str].upper()
         source.write(f"const std::string {impl_strings[section]} = \"{section}\";\n")
+    source.write("}\n") # End of the module-specific namespace
     mapVarName = "theMap"
     source.write(f"""
 template <>
@@ -65,7 +69,7 @@ const {module_templ}::map& {module_templ}::functionMap()
     static const map {mapVarName} = {{
 """)
     for section in valid_impl_sections:
-        source.write(f"        {{ {impl_strings[section]}, newImpl<{strings[class_name]}, {section}> }},\n")
+        source.write(f"        {{ {strings[module_class_name]}::{impl_strings[section]}, newImpl<{strings[class_name]}, {section}> }},\n")
     source.write(f"""    }};
     return {mapVarName};
 }}
@@ -73,7 +77,7 @@ const {module_templ}::map& {module_templ}::functionMap()
 template <>
 {module_templ}::fn& {module_templ}::getGenerationFunction()
 {{
-    static fn ptr = functionMap().at({impl_strings[default_impl]});
+    static fn ptr = functionMap().at({strings[module_class_name]}::{impl_strings[default_impl]});
     return ptr;
 }}
 
@@ -87,8 +91,8 @@ template <> HelpMap& {module_templ}::getHelpRecursive(HelpMap& map, bool getAll)
     map[pfx].push_back({{ pfx + "." + {module_templ}::moduleName(), ConfigType::MODULE,
         {{ """)
     for section in valid_impl_sections:
-        source.write(f"{impl_strings[section]}, ")
-    source.write(f"}}, {impl_strings[default_impl]}, \"\",\n")
+        source.write(f"{strings[module_class_name]}::{impl_strings[section]}, ")
+    source.write(f"}}, {strings[module_class_name]}::{impl_strings[default_impl]}, \"\",\n")
     source.write(f"        \"{config[module_section_str][description_str]}\" }});\n")
     for section in valid_impl_sections:
         if (has_help_str in config[section]) and (config[section][has_help_str] == true_str):
