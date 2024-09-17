@@ -22,19 +22,49 @@ namespace Module {
 class ImplementationNames {
 public:
     using Container = std::map<std::string, std::string>;
-    static const Container& getAll() { return getNames(); }
-    static void set(const std::string& interface, const std::string& implementation)
+    /*!
+     * Returns a map between module name and current implementation name for all modules.
+     */
+    static Container getAll()
     {
-        getNames().insert({ interface, implementation });
+        Container nameMap;
+        for (auto entry : getNames()) {
+            nameMap[entry.first()] = entry.second();
+        }
+        return nameMap;
     }
-    static std::string get(const std::string& interface) { return getNames().at(interface); }
+
+    /*!
+     * Returns the implementation name of the named interface, else throws a std::out_of_range
+     * exception.
+     */
+    static std::string get(const std::string& interface)
+    {
+        for (auto entry : getNames()) {
+            if (entry.first() == interface) {
+                return entry.second();
+            }
+        }
+        throw std::out_of_range("No module found with name " + interface);
+    }
 
 private:
-    static Container& getNames()
+    using fn = std::string (*)();
+    using InternalContainer = std::list<std::pair<fn, fn>>;
+    static InternalContainer& getNames()
     {
-        static Container cache;
+        static InternalContainer cache;
         return cache;
     }
+
+    static void set(fn intFunctionPtr, fn impFunctionPtr)
+    {
+        getNames().push_back({ intFunctionPtr, impFunctionPtr });
+    }
+
+    // Make all Module<>s a friend
+    template<class Int>
+    friend class Module;
 };
 
 template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
@@ -126,7 +156,7 @@ private:
         // setExternalImplementation() holds the common functionality
         try {
             setExternalImplementationInternal(functionMap().at(implName), setStaticInstance);
-            ImplementationNames::set(moduleName(), implementation());
+            ImplementationNames::set(moduleName, implementation);
         } catch (const std::out_of_range& oor) {
             std::throw_with_nested(std::runtime_error(
                 "No implementation named " + implName + " found for Module " + moduleName()));
