@@ -150,8 +150,11 @@ public:
                 return entry.first;
             }
         }
-        throw std::out_of_range("Module<" + moduleName() + ">: implementation not found.");
-        return ""; // getGenerationFunction should always be an entry in functionMap
+        /*
+         *  If the generation function is not found in the function map, assume an external
+         *  implementation and return an empty string.
+         */
+        return "";
     }
 
     //! Returns a string containing the name of the module.
