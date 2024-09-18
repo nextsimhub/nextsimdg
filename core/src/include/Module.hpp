@@ -76,24 +76,47 @@ public:
     using fn = std::unique_ptr<I> (*)();
     using map = std::map<std::string, fn>;
 
+    /*!
+     * Sets the function to generate new instances of an implementation not included in the
+     * relevant module.cfg file.
+     *
+     * @param generator A pointer to a function that returns a std::unique_ptr to an instance of
+     * the template class.
+     */
     static void setExternalImplementation(fn generator)
     {
         setExternalImplementationInternal(generator, true);
     }
 
+    /*!
+     * Sets the implementation of this module to one of the named implementations in the module.cfg
+     * file.
+     *
+     * @param implName A string containing a name matching one of the implementations defined in
+     * module.cfg.
+     */
     static void setImplementation(const std::string& implName)
     {
         setImplementationInternal(implName, true);
     }
 
+    /*!
+     * Returns a std::unique_ptr to a new instance of the current implementation.
+     */
     static std::unique_ptr<I> getInstance() { return getInstanceInternal(true); }
 
+    /*!
+     * Returns a std::unique_ptr to the static instance of the current implementation.
+     */
     static std::unique_ptr<I>& getUniqueInstance()
     {
         static std::unique_ptr<I> staticInstance = std::move(getInstanceInternal(false));
         return staticInstance;
     }
 
+    /*!
+     * Returns a reference to the static instance of the current implementation.
+     */
     static I& getImplementation()
     {
         if (!getUniqueInstance().get())
@@ -101,6 +124,9 @@ public:
         return *getUniqueInstance();
     }
 
+    /*!
+     * Returns a list of all the implementations named in the relevant module.cfg file.
+     */
     static std::list<std::string> listImplementations()
     {
         std::list<std::string> keys;
@@ -110,6 +136,10 @@ public:
         return keys;
     }
 
+    /*!
+     * Returns the name of the current implementation , if it is listed in the relevant module.cfg
+     * file. Otherwise returns an empty string.
+     */
     static std::string implementation()
     {
         typedef std::unique_ptr<I>(fnType)();
@@ -124,8 +154,11 @@ public:
         return ""; // getGenerationFunction should always be an entry in functionMap
     }
 
+    //! Returns a string containing the name of the module.
     static std::string moduleName();
 
+    //! Adds help information to the argument help map, according to the boolean getAll argument.
+    //! Implementation dependent.
     static HelpMap& getHelpRecursive(HelpMap& helpMap, bool getAll);
 
 private:
