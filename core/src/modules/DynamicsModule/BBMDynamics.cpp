@@ -23,12 +23,7 @@ BBMDynamics::BBMDynamics()
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
 
-    getStore().registerArray(Protected::E11, &e11, RO);
-    getStore().registerArray(Protected::E22, &e22, RO);
-    getStore().registerArray(Protected::E12, &e12, RO);
-    getStore().registerArray(Protected::S11, &s11, RO);
-    getStore().registerArray(Protected::S22, &s22, RO);
-    getStore().registerArray(Protected::S12, &s12, RO);
+    getStore().registerArray(Protected::SHEAR, &shear, RO);
 }
 
 void BBMDynamics::setData(const ModelState::DataMap& ms)
@@ -99,13 +94,7 @@ void BBMDynamics::update(const TimestepTime& tst)
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
 
-    e11 = kernel.getDG0Data(e11Name);
-    e22 = kernel.getDG0Data(e22Name);
-    e12 = kernel.getDG0Data(e12Name);
-
-    s11 = kernel.getDG0Data(s11Name);
-    s22 = kernel.getDG0Data(s22Name);
-    s12 = kernel.getDG0Data(s12Name);
+    shear = kernel.getDG0Data(shearName);
 }
 
 // All data for prognostic output

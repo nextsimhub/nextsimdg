@@ -63,12 +63,7 @@ namespace Protected {
         = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
     inline constexpr TextTag SLAB_FDW
         = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
-    inline constexpr TextTag E11 = "E11"; // The 1 1 component of strain rate, s⁻¹
-    inline constexpr TextTag E22 = "E22"; // The 2 2 component of strain rate, s⁻¹
-    inline constexpr TextTag E12 = "E12"; // The 1 2 component of strain rate, s⁻¹
-    inline constexpr TextTag S11 = "S11"; // The 1 1 component of stress, Pa
-    inline constexpr TextTag S22 = "S22"; // The 2 2 component of stress, Pa
-    inline constexpr TextTag S12 = "S12"; // The 1 2 component of stress, Pa
+    inline constexpr TextTag SHEAR = "SHEAR"; // Instantanious share rate, s⁻¹
 }
 
 namespace Shared {
