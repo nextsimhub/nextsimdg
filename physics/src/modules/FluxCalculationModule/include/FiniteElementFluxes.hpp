@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.hpp
  *
- * @date Apr 29, 2022
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -44,7 +44,6 @@ public:
         , p_air(getStore())
         , v_air(getStore())
         , h_snow(getStore())
-        , h_snow_true(getStore())
         , cice(getStore())
         , tice(getStore())
         , sw_in(getStore())
@@ -110,11 +109,9 @@ private:
     ModelArrayRef<Protected::DEW_2M> t_dew2;
     ModelArrayRef<Protected::P_AIR> p_air;
     ModelArrayRef<Protected::WIND_SPEED> v_air;
-    ModelArrayRef<Protected::H_SNOW> h_snow; // cell-averaged value
-    ModelArrayRef<Protected::HTRUE_SNOW>
-        h_snow_true; // cell-averaged value
-    ModelArrayRef<Protected::C_ICE> cice;
-    ModelArrayRef<Protected::T_ICE> tice;
+    ModelArrayRef<Shared::H_SNOW, RO> h_snow; // cell-averaged value
+    ModelArrayRef<Shared::C_ICE, RO> cice;
+    ModelArrayRef<Shared::T_ICE, RO> tice;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Protected::LW_IN> lw_in;
 

@@ -1,7 +1,7 @@
 /*!
  * @file HiblerSpread.hpp
  *
- * @date Apr 5, 2022
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -34,8 +34,8 @@ public:
     static HelpMap& getHelpRecursive(HelpMap&, bool getAll);
 
     void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double newIce,
-        double& cice, double& qow, double& deltaCfreeze) override;
-    void melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double& cice,
+        double cice, double& qow, double& deltaCfreeze) override;
+    void melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double cice,
         double& qow, double& deltaCmelt) override;
 
 private:

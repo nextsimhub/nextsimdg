@@ -1,7 +1,7 @@
 /*!
  * @file ConstantOceanBoundary_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,7 +23,7 @@ TEST_CASE("ConstantOcean Qio calculation")
 
     HField cice(ModelArray::Type::H);
     cice = 1.0; // Need some ice if Qio is to be calculated
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE, &cice, RO);
     ConstantOceanBoundary cob;
 
     cob.setData(ModelState::DataMap());

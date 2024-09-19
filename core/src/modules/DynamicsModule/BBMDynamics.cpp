@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date 05 Sep 2024
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -74,13 +74,10 @@ void BBMDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
 
-    // Fill the updated damage array with the initial value
-    damage = damage0.data();
-
     // set the updated ice thickness, concentration and damage
     kernel.setData(hiceName, hice.data());
     kernel.setData(ciceName, cice.data());
-    kernel.setData(damageName, damage);
+    kernel.setData(damageName, damage.data());
 
     // set the forcing velocities
     kernel.setData(uWindName, uwind.data());
@@ -97,7 +94,7 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
-    damage = kernel.getDG0Data(damageName);
+    damage.data() = kernel.getDG0Data(damageName);
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);

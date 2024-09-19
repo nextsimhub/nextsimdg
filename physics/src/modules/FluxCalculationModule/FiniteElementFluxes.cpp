@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.cpp
  *
- * @date Apr 29, 2022
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -143,8 +143,9 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
     // Shortwave flux
     double albedoValue, i0;
+    const double h_snow_true = cice[i] > 0 ? h_snow[i]/cice[i] : 0.;
     std::tie(albedoValue, i0)
-        = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
+        = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true, m_I0);
     Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
     penSW[i] = sw_in[i] * (1. - albedoValue) * i0;
     // Longwave flux

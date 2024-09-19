@@ -1,7 +1,7 @@
 /*!
  * @file ILateralIceSpread.hpp
  *
- * @date Jul 5, 2022
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -40,7 +40,7 @@ public:
      * @param deltaCFreeze The change in concentration due to freezing.
      */
     virtual void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
-        double newIce, double& cice, double& qow, double& deltaCfreeze)
+        double newIce, double cice, double& qow, double& deltaCfreeze)
         = 0;
     /*!
      * Updates the lateral melting of ice for the timestep.
@@ -54,7 +54,7 @@ public:
      * @param deltaCmelt The change in concentration due to melting.
      */
     virtual void melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
-        double& cice, double& qow, double& deltaCmelt)
+        double cice, double& qow, double& deltaCmelt)
         = 0;
 
 protected:

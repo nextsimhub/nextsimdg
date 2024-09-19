@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -50,7 +50,7 @@ TEST_CASE("Test Qdw")
     HField cice(ModelArray::Type::H);
     double cice0 = 0.5;
     cice = cice0;
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE, &cice, RO);
 
     HField data0(ModelArray::Type::H);
     data0 = 0;
@@ -128,7 +128,7 @@ TEST_CASE("Test Fdw")
     data0 = 0;
     ModelComponent::getStore().registerArray(Shared::Q_IO, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::Q_OW, &data0, RW);
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &data0, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE, &data0, RO);
     ModelComponent::getStore().registerArray(Shared::DELTA_HICE, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::NEW_ICE, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &data0, RW);

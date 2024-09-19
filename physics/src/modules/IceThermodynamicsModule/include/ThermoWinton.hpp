@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWinton.hpp
  *
- * @date Sep 30, 2022
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -45,11 +45,12 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    ModelArrayRef<Protected::HTRUE_ICE> oldHi;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Shared::SUBLIM, RO> subl;
 
     static const double cVol;
+    static const double bulkLHFusionSnow;
+    static const double bulkLHFusionIce;
     static bool doFlooding;
     static const double seaIceTf;
     static double kappa_s;

@@ -7,11 +7,6 @@
  */
 
 // External ProtectedArray names must be unique wrt to the external SharedArray names as well
-{ "damage", "DAMAGE0" }, // Ice thickness, cell average, m
-{ "hice", "H_ICE_cell" }, // Ice thickness, cell average, m
-{ "cice", "C_ICE0" }, // Ice concentration
-{ "hsnow", "H_SNOW_cell" }, // Snow depth, cell average, m
-{ "tice", "T_ICE0" }, // Ice temperature, ˚C
 { "tair", "T_AIR" }, // Air temperature, ˚C
 { "dew2m", "DEW_2M" }, // Dew point at 2 m, ˚C
 { "pair", "P_AIR" }, // sea level air pressure, Pa

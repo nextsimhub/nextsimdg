@@ -1,7 +1,7 @@
 /*!
  * @file IDamageHealing.hpp
  *
- * @date Jun 3, 2024
+ * @date 19 Sep 2024
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -18,9 +18,7 @@ public:
     virtual ~IDamageHealing() = default;
 
     std::string getName() const override { return "DamageHealing"; }
-    void setData(const ModelState::DataMap& ms) override {
-        damage.data().resize();
-    }
+    void setData(const ModelState::DataMap & ms) override {}
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override

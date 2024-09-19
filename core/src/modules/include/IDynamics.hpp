@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 05 Sep 2024
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -22,7 +22,7 @@ public:
     IDynamics(bool usesDamageIn)
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
-        , damage(ModelArray::Type::H)
+        , damage(getStore())
         , e11(ModelArray::Type::H)
         , e22(ModelArray::Type::H)
         , e12(ModelArray::Type::H)
@@ -32,14 +32,12 @@ public:
         , hice(getStore())
         , cice(getStore())
         , hsnow(getStore())
-        , damage0(getStore())
         , uwind(getStore())
         , vwind(getStore())
         , uocean(getStore())
         , vocean(getStore())
         , m_usesDamage(usesDamageIn)
     {
-        getStore().registerArray(Shared::DAMAGE, &damage, RW);
     }
     virtual ~IDynamics() = default;
 
@@ -63,9 +61,8 @@ public:
     {
         uice.resize();
         vice.resize();
-        damage.resize();
         if (!m_usesDamage) {
-            damage = 0.;
+            damage.data() = 1.;
         }
 
         e11.resize();
@@ -87,8 +84,6 @@ protected:
     // Shared ice velocity arrays
     HField uice;
     HField vice;
-    // Updated damage array
-    HField damage;
     // Diagnostic outputs of stress and strain
     HField e11;
     HField e22;
@@ -100,7 +95,7 @@ protected:
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;
     ModelArrayRef<Shared::H_SNOW, RW> hsnow;
-    ModelArrayRef<Protected::DAMAGE, RO> damage0;
+    ModelArrayRef<Shared::DAMAGE, RW> damage;
     // ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
 
     // References to the forcing velocity arrays

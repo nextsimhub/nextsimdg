@@ -19,6 +19,9 @@ iceDraught = (hice * rho + hsnow * rhoSnow) / rhoOcean
 # Some simple diagnostics
 print('hice  max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(hice.max(), hice.min(), hice.mean()))
 print('hsnow max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(hsnow.max(), hsnow.min(), hsnow.mean()))
+print('tsurf max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(tice[:, 0].max(), tice[:, 0].min(), tice[:, 0].mean()))
+print('t1    max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(tice[:, 1].max(), tice[:, 1].min(), tice[:, 1].mean()))
+print('t2    max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}'.format(tice[:, 2].max(), tice[:, 2].min(), tice[:, 2].mean()))
 
 # Figure showing temperature evolution, cf,. Winton (2000) figure 2
 plt.figure(1)

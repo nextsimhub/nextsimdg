@@ -47,9 +47,9 @@ private:
      */
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    ModelArrayRef<Protected::T_ICE> tice;
-    ModelArrayRef<Protected::HTRUE_SNOW>
-        h_snow_true; // cell-averaged value
+    ModelArrayRef<Shared::T_ICE> tice;
+    ModelArrayRef<Shared::H_SNOW, RO> hsnow; // cell-averaged value
+    ModelArrayRef<Shared::C_ICE, RO> cice; // cell-averaged value
 
     /*!
      * @brief A function to calculate the snow fall according tu Maykut and Untersteiner (1971)

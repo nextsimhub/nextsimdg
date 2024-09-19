@@ -7,11 +7,11 @@
  */
 
 // External SharedArray names must be unique wrt to the external ProtectedArray names as well
-{ "damage_upd", "DAMAGE" }, // Updated ice thickness, ice average, m
-{ "hice_true", "H_ICE" }, // Updated ice thickness, ice average, m
-{ "cice_upd", "C_ICE" }, // Updated ice concentration
-{ "hsnow_true", "H_SNOW" }, // Updated snow depth, ice average, m
-{ "tice_upd", "T_ICE" }, // Updated ice temperatures, ˚C
+{ "damage", "DAMAGE" }, // Updated ice thickness, ice average, m
+{ "hice", "H_ICE" }, // Updated ice thickness, ice average, m
+{ "cice", "C_ICE" }, // Updated ice concentration
+{ "hsnow", "H_SNOW" }, // Updated snow depth, ice average, m
+{ "tice", "T_ICE" }, // Updated ice temperatures, ˚C
 { "qia", "Q_IA" }, // Ice to atmosphere heat flux W m⁻²
 { "qic", "Q_IC" }, // Ice conduction heat flux W m⁻²
 { "qio", "Q_IO" }, // Ice to ocean heat flux W m⁻²

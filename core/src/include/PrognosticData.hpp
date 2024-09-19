@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.hpp
  *
- * @date Mar 1, 2022
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -92,8 +92,6 @@ private:
 
     IDynamics* pDynamics;
     IceGrowth iceGrowth;
-
-    void updatePrognosticFields();
 };
 
 } /* namespace Nextsim */

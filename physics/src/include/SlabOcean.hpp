@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 7 Sep 2023
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -78,7 +78,7 @@ private:
     ModelArrayRef<Protected::MLD> mld;
     ModelArrayRef<Protected::ML_BULK_CP> cpml;
     ModelArrayRef<Protected::EVAP_MINUS_PRECIP> emp;
-    ModelArrayRef<Protected::C_ICE> cice;
+    ModelArrayRef<Shared::C_ICE, RO> cice;
     ModelArrayRef<Shared::Q_IO, RW> qio;
     ModelArrayRef<Shared::Q_OW, RW> qow;
     // TODO ModelArrayRef to assimilation flux

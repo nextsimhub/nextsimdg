@@ -42,7 +42,8 @@ MU71Atmosphere::HelpMap& MU71Atmosphere::getHelpRecursive(HelpMap& map, bool get
 MU71Atmosphere::MU71Atmosphere()
     : iIceAlbedoImpl(nullptr)
     , tice(getStore())
-    , h_snow_true(getStore())
+    , hsnow(getStore())
+    , cice(getStore())
     , q_sw(monthlyCubicBSpline(swTable))
     , q_lw(monthlyCubicBSpline(lwTable))
     , q_sh(monthlyCubicBSpline(shTable))
@@ -68,8 +69,9 @@ void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
 
     double albedoValue, i0;
     double sw_in = convFactor * q_sw(dayOfYear, isLeap);
+    const double h_snow_true = cice[i] > 0 ? hsnow[i]/cice[i] : 0.;
     std::tie(albedoValue, i0)
-        = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
+        = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true, m_I0);
     double qsw = -sw_in * (1. - albedoValue) * (1. - i0);
     penSW[i] = sw_in * (1. - albedoValue) * i0;
     qia[i] = -convFactor
@@ -81,8 +83,8 @@ void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
     dqia_dt[i] = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
 
     // Only snowfall if we're not melting
-    if ((h_snow_true[i] > 0 && tice.zIndexAndLayer(i, 0) < 0.)
-        || (h_snow_true[i] == 0 && tice.zIndexAndLayer(i, 0) < -Ice::s * Water::mu))
+    if ((h_snow_true > 0 && tice.zIndexAndLayer(i, 0) < 0.)
+        || (h_snow_true == 0 && tice.zIndexAndLayer(i, 0) < -Ice::s * Water::mu))
         snow[i] = snowfall();
     else
         snow[i] = 0.;

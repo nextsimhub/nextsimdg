@@ -1,7 +1,7 @@
 /*!
  * @file HiblerSpread.cpp
  *
- * @date Apr 5, 2022
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -52,14 +52,14 @@ HiblerSpread::HelpMap& HiblerSpread::getHelpRecursive(HelpMap& map, bool getAll)
 }
 
 void HiblerSpread::freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
-    double newIce, double& cice, double& qow, double& deltaCfreeze)
+    double newIce, double cice, double& qow, double& deltaCfreeze)
 {
     static const double ooh0 = 1. / h0;
     deltaCfreeze = newIce * ooh0;
 }
 
 void HiblerSpread::melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
-    double& cice, double& qow, double& deltaCmelt)
+    double cice, double& qow, double& deltaCmelt)
 {
     if (cice < 1) {
         deltaCmelt = deltaHi * cice * phiM / hice;

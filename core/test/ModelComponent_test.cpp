@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent_test.cpp
  *
- * @date Feb 28, 2022
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -59,7 +59,7 @@ public:
         , cice_ref(getStore())
     {
         registerModule();
-        getStore().registerArray(Protected::H_ICE, &hice, RO);
+        getStore().registerArray(Shared::H_ICE, &hice, RO);
     }
     void setData(const ModelState::DataMap& ms) override { hice[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
@@ -77,7 +77,7 @@ public:
 
 private:
     HField hice;
-    ModelArrayRef<Protected::C_ICE> cice_ref;
+    ModelArrayRef<Shared::C_ICE> cice_ref;
 };
 
 class ModuleRequestAndSupply : public ModelComponent {
@@ -87,7 +87,7 @@ public:
         , hice_ref(getStore())
     {
         registerModule();
-        getStore().registerArray(Protected::C_ICE, &cice, RO);
+        getStore().registerArray(Shared::C_ICE, &cice, RO);
     }
     void setData(const ModelState::DataMap& ms) override { cice[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
@@ -105,7 +105,7 @@ public:
 
 private:
     HField cice;
-    ModelArrayRef<Protected::H_ICE> hice_ref;
+    ModelArrayRef<Shared::H_ICE> hice_ref;
 };
 
 TEST_SUITE_BEGIN("ModelComponent");

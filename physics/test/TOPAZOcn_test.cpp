@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atm_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -71,7 +71,7 @@ TEST_CASE("TOPAZOcean test")
     // The Qio calculation requires c_ice data
     HField cice(ModelArray::Type::H);
     cice = 0.;
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE, &cice, RO);
 
     // Get the forcing fields at time 0
     topaz.updateBefore(tst);

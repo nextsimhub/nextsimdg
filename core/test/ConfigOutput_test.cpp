@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 11 May 2023
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -95,10 +95,10 @@ TEST_CASE("Test periodic output")
     hsnow.resize();
     tice.resize();
 
-    ModelComponent::getStore().registerArray(Protected::H_ICE, &hice);
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
-    ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
-    ModelComponent::getStore().registerArray(Protected::T_ICE, &tice);
+    ModelComponent::getStore().registerArray(Shared::H_ICE, &hice);
+    ModelComponent::getStore().registerArray(Shared::C_ICE, &cice);
+    ModelComponent::getStore().registerArray(Shared::H_SNOW, &hsnow);
+    ModelComponent::getStore().registerArray(Shared::T_ICE, &tice);
 
     ModelMetadata meta;
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));

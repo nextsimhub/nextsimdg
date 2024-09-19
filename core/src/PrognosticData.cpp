@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 1 Jul 2024
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -26,11 +26,11 @@ PrognosticData::PrognosticData()
     , pDynamics(0)
 
 {
-    getStore().registerArray(Protected::H_ICE, &m_thick, RO);
-    getStore().registerArray(Protected::C_ICE, &m_conc, RO);
-    getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
-    getStore().registerArray(Protected::T_ICE, &m_tice, RO);
-    getStore().registerArray(Protected::DAMAGE, &m_damage, RO);
+    getStore().registerArray(Shared::H_ICE, &m_thick, RW);
+    getStore().registerArray(Shared::C_ICE, &m_conc, RW);
+    getStore().registerArray(Shared::H_SNOW, &m_snow, RW);
+    getStore().registerArray(Shared::T_ICE, &m_tice, RW);
+    getStore().registerArray(Shared::DAMAGE, &m_damage, RW);
 }
 
 void PrognosticData::configure()
@@ -76,40 +76,13 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
-    ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());
-
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
 
-    // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
-    // IceGrowth updates its own fields during update
     iceGrowth.update(tst);
-    updatePrognosticFields();
-
     pDynamics->update(tst);
 
-    updatePrognosticFields();
-
     pOcnBdy->updateAfter(tst);
-}
-
-void PrognosticData::updatePrognosticFields()
-{
-    ModelArrayRef<Shared::H_ICE, RO> hiceTrueUpd(getStore());
-    ModelArrayRef<Shared::C_ICE, RO> ciceUpd(getStore());
-    ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
-    ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
-    ModelArrayRef<Shared::DAMAGE, RO> damageUpd(getStore());
-
-    // Calculate the cell average thicknesses
-    HField hiceUpd = hiceTrueUpd * ciceUpd;
-    HField hsnowUpd = hsnowTrueUpd * ciceUpd;
-
-    m_thick.setData(hiceUpd);
-    m_conc.setData(ciceUpd);
-    m_snow.setData(hsnowUpd);
-    m_tice.setData(ticeUpd);
-    m_damage.setData(damageUpd);
 }
 
 // Gets all of the prognostic data, including that in the dynamics
