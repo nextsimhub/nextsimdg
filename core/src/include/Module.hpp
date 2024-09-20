@@ -110,7 +110,8 @@ public:
      */
     static std::unique_ptr<I>& getUniqueInstance(bool suppressInit = false)
     {
-        static std::unique_ptr<I> staticInstance = std::move((suppressInit) ? std::unique_ptr<I>(nullptr) : getInstanceInternal(false));
+        static std::unique_ptr<I> staticInstance
+            = std::move((suppressInit) ? std::unique_ptr<I>(nullptr) : getInstanceInternal(false));
         return staticInstance;
     }
 
