@@ -208,9 +208,14 @@ protected:
 private:
     static ModelArrayReferenceStore& store()
     {
-        static ModelArrayReferenceStore store;
+        return *storePtr();
+    }
+    static ModelArrayReferenceStore* storePtr()
+    {
+        static ModelArrayReferenceStore* store = new ModelArrayReferenceStore;
         return store;
     }
+
 
     static std::vector<size_t>& oceanIndex()
     {
