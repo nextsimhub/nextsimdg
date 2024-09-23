@@ -42,7 +42,7 @@ endif()
 add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost COMPONENTS program_options log REQUIRED)
 
-find_package(Catch2 REQUIRED)
+#find_package(Catch2 REQUIRED)
 find_package(Eigen3 3.4 REQUIRED)
 
 # To add netCDF to a target:
