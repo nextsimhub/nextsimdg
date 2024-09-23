@@ -27,7 +27,7 @@ bool Finalizer::contains(const FinalFn& fn)
 {
     auto& fns = functions();
     for (const auto& stored : fns) {
-        if (stored == fn)
+        if (stored.target<void()>() == fn.target<void()>())
             return true;
     }
     return false;
@@ -36,10 +36,10 @@ bool Finalizer::contains(const FinalFn& fn)
 void Finalizer::finalize()
 {
     while (!functions().empty()) {
-        auto fn = functions().back();
-        // Remove the function from the finalization list before executing it.
+        // Execute the last function in the list
+        functions().back()();
+        // Remove the function from the finalization list.
         functions().pop_back();
-        fn();
     }
 }
 

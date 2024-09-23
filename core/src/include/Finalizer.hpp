@@ -17,8 +17,7 @@ namespace Nextsim {
 
 class Finalizer {
 public:
-    using FinalFn = void (*)();
-
+    using FinalFn = std::function<void()>;
     /*!
      * Adds a function to be called at finalization. Functions are ordered last-in, first out.
      * @param fn The function to be added. Must have void() signature.
