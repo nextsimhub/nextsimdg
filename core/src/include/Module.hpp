@@ -1,7 +1,7 @@
 /*!
  * @file Module.hpp
  *
- * @date Feb 14, 2022
+ * @date 23 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -164,6 +164,15 @@ public:
     //! Adds help information to the argument help map, according to the boolean getAll argument.
     //! Implementation dependent.
     static HelpMap& getHelpRecursive(HelpMap& helpMap, bool getAll);
+
+    /*!
+     * Finalizes the Module by setting both pointers to nullptr.
+     */
+    static void finalize()
+    {
+        getUniqueInstance(true) = nullptr;
+        getGenerationFunction() = nullptr;
+    }
 
 private:
     static std::string getDefaultImplementationName();
