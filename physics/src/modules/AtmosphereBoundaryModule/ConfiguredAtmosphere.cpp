@@ -7,7 +7,7 @@
 
 #include "include/ConfiguredAtmosphere.hpp"
 
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 
 namespace Nextsim {
 
@@ -90,10 +90,12 @@ void ConfiguredAtmosphere::configure()
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
+
 }
 
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
+
     IAtmosphereBoundary::setData(dm);
     tair.resize();
     tdew.resize();

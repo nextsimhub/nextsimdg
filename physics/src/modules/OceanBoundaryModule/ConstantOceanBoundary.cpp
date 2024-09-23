@@ -7,7 +7,7 @@
 
 #include "include/ConstantOceanBoundary.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {

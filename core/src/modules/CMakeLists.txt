@@ -10,14 +10,6 @@ foreach(ModuleSubDir IN LISTS ModuleSubDirs)
         continue()
     endif()
 
-    if(NOT EXISTS ("include/${ModuleSubDir}.hpp"))
-        # Run the header python script
-        execute_process(
-            COMMAND "${Python_EXECUTABLE}" "${ModuleHeaderScript}"
-            WORKING_DIRECTORY "${ModuleSubDir}"
-        )
-    endif()
-
     # Run the source python script
     execute_process(
         COMMAND "${Python_EXECUTABLE}" "${ModuleBuilderScript}"

@@ -16,7 +16,7 @@
 
 #include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/UniformOcean.hpp"
