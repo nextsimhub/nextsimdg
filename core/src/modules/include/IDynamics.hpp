@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 7 Sep 2023
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,6 +23,7 @@ public:
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
         , damage(ModelArray::Type::H)
+        , shear(ModelArray::Type::H)
         , hice(getStore())
         , cice(getStore())
         , hsnow(getStore())
@@ -61,6 +62,8 @@ public:
         if (!m_usesDamage) {
             damage = 0.;
         }
+
+        shear.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -76,6 +79,8 @@ protected:
     HField vice;
     // Updated damage array
     HField damage;
+    // Diagnostic outputs of shear
+    HField shear;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;

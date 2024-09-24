@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 18 Jul 2024
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -32,6 +32,8 @@ MEVPDynamics::MEVPDynamics()
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
+
+    getStore().registerArray(Protected::SHEAR, &shear, RO);
 }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
@@ -80,6 +82,8 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+
+    shear = kernel.getDG0Data(shearName);
 }
 
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
@@ -87,11 +91,10 @@ ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
     // Base class state
     ModelState state(IDynamics::getStateRecursive(os));
 
-    if (os.allComponents())
-    {
+    if (os.allComponents()) {
         state.merge({
-            {hiceName, kernel.getDG0Data(hiceName)},
-            {ciceName, kernel.getDG0Data(ciceName)},
+            { hiceName, kernel.getDG0Data(hiceName) },
+            { ciceName, kernel.getDG0Data(ciceName) },
         });
     }
     return state;

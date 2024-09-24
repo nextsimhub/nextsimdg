@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date Jul 1, 2024
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -22,6 +22,8 @@ BBMDynamics::BBMDynamics()
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
+
+    getStore().registerArray(Protected::SHEAR, &shear, RO);
 }
 
 void BBMDynamics::setData(const ModelState::DataMap& ms)
@@ -94,6 +96,8 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+
+    shear = kernel.getDG0Data(shearName);
 }
 
 // All data for prognostic output

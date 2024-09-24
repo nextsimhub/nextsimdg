@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date Jan 5, 2024
+ * @date 19 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -118,6 +118,8 @@ public:
             return DGModelArray::dg2ma(hice, data);
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
+        } else if (name == shearName) {
+            return DGModelArray::dg2ma(Tools::Shear(*smesh,e11,e12,e22), data);
         } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);
