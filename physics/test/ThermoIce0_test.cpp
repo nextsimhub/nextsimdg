@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0Temperature_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,8 +9,8 @@
 #include <doctest/doctest.h>
 #include <sstream>
 
-#include "include/ThermoIce0.hpp"
 #include "include/IFluxCalculation.hpp"
+#include "include/ThermoIce0.hpp"
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
@@ -158,7 +158,6 @@ TEST_CASE("Threshold ice")
     REQUIRE(hice[0] == 0.);
     ModelArrayRef<Shared::C_ICE> cice(ModelComponent::getStore());
     REQUIRE(cice[0] == 0.);
-
 }
 TEST_SUITE_END();
 }

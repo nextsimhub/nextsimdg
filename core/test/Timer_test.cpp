@@ -1,7 +1,7 @@
 /*!
  * @file Timer_test.cpp
  *
- * @date Oct 27, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain
  */
 
@@ -86,4 +86,3 @@ TEST_CASE("Test the scope dependent timer")
     std::cout << Nextsim::Timer::main << std::endl;
 }
 TEST_SUITE_END();
-

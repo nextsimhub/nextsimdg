@@ -1,7 +1,7 @@
 /*!
  * @file SMUIceAlbedo.hpp
  *
- * @date Sep 28, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -24,7 +24,8 @@ class SMUIceAlbedo : public IIceAlbedo {
      * @param i0 The fraction of short-wave radiation that can penetrate bare ice (not taking snow
      * cover into account).
      */
-    std::tuple<double, double> surfaceShortWaveBalance(double temperature, double snowThickness, double i0);
+    std::tuple<double, double> surfaceShortWaveBalance(
+        double temperature, double snowThickness, double i0);
 };
 
 }

@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 18 Jul 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -87,11 +87,10 @@ ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
     // Base class state
     ModelState state(IDynamics::getStateRecursive(os));
 
-    if (os.allComponents())
-    {
+    if (os.allComponents()) {
         state.merge({
-            {hiceName, kernel.getDG0Data(hiceName)},
-            {ciceName, kernel.getDG0Data(ciceName)},
+            { hiceName, kernel.getDG0Data(hiceName) },
+            { ciceName, kernel.getDG0Data(ciceName) },
         });
     }
     return state;
