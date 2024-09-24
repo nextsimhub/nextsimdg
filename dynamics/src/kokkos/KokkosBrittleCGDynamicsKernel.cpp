@@ -17,8 +17,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     KokkosCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
     //! Initialize stress transport
-    stressTransport = std::make_unique<Nextsim::DGTransport<DGstressComp>>(*this->smesh);
+    stressTransport = std::make_unique<DGTransport<DGstressComp>>(*this->smesh);
     stressTransport->settimesteppingscheme("rk2");
+
+    stressTransportDevice = std::make_unique<KokkosDGTransport<DGstressComp>>(*this->smesh, *this->meshData);
 
     damage.resize_by_mesh(*this->smesh);
     avgU.resize_by_mesh(*this->smesh);
@@ -55,6 +57,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     stressTransport->step(tst.step.seconds(), this->s11);
     stressTransport->step(tst.step.seconds(), this->s12);
     stressTransport->step(tst.step.seconds(), this->s22);
+
+    stressTransportDevice->prepareAdvection(avgU, avgV);
 
     // Transport and limits for damage
     this->dgtransport->step(tst.step.seconds(), damage);

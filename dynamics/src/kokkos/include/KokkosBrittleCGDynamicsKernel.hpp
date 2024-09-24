@@ -9,6 +9,7 @@
 
 #include "../include/MEBParameters.hpp"
 #include "KokkosCGDynamicsKernel.hpp"
+#include "KokkosDGTransport.hpp"
 
 namespace Nextsim {
 
@@ -69,7 +70,8 @@ protected:
 
     const MEBParameters& params;
 
-    std::unique_ptr<Nextsim::DGTransport<DGstressComp>> stressTransport;
+    std::unique_ptr<DGTransport<DGstressComp>> stressTransport;
+    std::unique_ptr<KokkosDGTransport<DGstressComp>> stressTransportDevice;
 
     DeviceViewCG avgUDevice;
     HostViewCG avgUHost;

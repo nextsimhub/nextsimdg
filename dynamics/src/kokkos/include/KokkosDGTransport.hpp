@@ -16,7 +16,7 @@ enum struct TimeSteppingScheme { RK1, RK2, RK3 };
 template<int DG>
 constexpr int EDGE_DOFS = (DG == 1) ? 1 : ((DG == 3) ? 2 : 3);
 
-template <int DG> class KokkosDGTransport {
+template <int DG> class KokkosDGTransport : DGTransport<DG> {
 public:
     using DeviceViewDG = KokkosDeviceView<DGVector<DG>>;
     using HostViewDG = KokkosHostView<DGVector<DG>>;
@@ -25,10 +25,11 @@ public:
     using DeviceViewEdge = KokkosDeviceView<EdgeVector<EDGE_DOFS<DG>>>;
     using ConstDeviceViewEdge = ConstKokkosDeviceView<EdgeVector<EDGE_DOFS<DG>>>;
 
+    KokkosDGTransport(const ParametricMesh& smesh, const KokkosMeshData& kokkosMeshDevice);
     /*!
-     * Sets the normal-velocity vector on the edges
-     * The normal velocity is scaled with the length of the edge,
-     * this already serves as the integraiton weight
+     * Sets the normal-velocity vector on the edges.
+     * The normal velocity is scaled with the length of the edge.
+     * This already serves as the integration weight.
      */
     void reinitNormalVelocity();
 
@@ -40,12 +41,12 @@ public:
     template <int CG> void prepareAdvection(const CGVector<CG>& cgU, const CGVector<CG>& cgV);
     void step(FloatType dt);
 
-    static void reinitNormalVelocityDevice(const DeviceViewEdge& normalVelX,
-        const DeviceViewEdge& normalVelY, const ConstDeviceViewDG& velX,
-        const ConstDeviceViewDG& velY, const ConstDeviceBitset& landMaskDevice, DeviceIndex nx,
-        DeviceIndex ny, const KokkosMeshData::DirichletData& dirichletDevice);
+    static void reinitNormalVelocityDevice(const DeviceViewEdge& normalVelXDevice,
+        const DeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& velXDevice,
+        const ConstDeviceViewDG& velYDevice, const KokkosMeshData& meshDevice);
 
 private:
+    const KokkosMeshData& meshDevice;
     TimeSteppingScheme timeSteppingScheme;
 
     // current velocity
