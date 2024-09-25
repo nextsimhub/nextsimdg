@@ -5,6 +5,7 @@
  */
 
 #include "include/KokkosDGTransport.hpp"
+#include "../include/ParametricTools.hpp"
 
 namespace Nextsim {
 
@@ -20,6 +21,36 @@ KokkosDGTransport<DG>::KokkosDGTransport(
 
     normalVelX = makeKokkosDeviceView("normalVelX", this->normalvel_X);
     normalVelY = makeKokkosDeviceView("normalVelY", this->normalvel_Y);
+
+    // parametric map
+    std::vector<CG2DGMatrix> cG2DGMatrix;
+    cG2DGMatrix.resize(smesh.nelements);
+    for (size_t dgi = 0; dgi < smesh.nelements; ++dgi) {
+        if (smesh.CoordinateSystem == CARTESIAN) {
+            cG2DGMatrix[dgi] = ((ParametricTools::massMatrix<DG>(smesh, dgi).inverse()
+                                    * (PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise()
+                                        * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
+                                            * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array())
+                                              .array())
+                                          .matrix())
+                * PHI<CGDEGREE, GAUSSPOINTS1D(DG)>.transpose());
+        } else {
+            cG2DGMatrix[dgi]
+                = ((ParametricTools::massMatrix<DG>(smesh, dgi).inverse()
+                       * (PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise()
+                           * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
+                               * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array()
+                               * ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(
+                                   smesh, dgi)
+                                     .row(1)
+                                     .array()
+                                     .cos())
+                                 .array())
+                             .matrix())
+                    * PHI<CGDEGREE, GAUSSPOINTS1D(DG)>.transpose());
+        }
+    }
+    cG2DGMatrixDevice = makeKokkosDeviceViewMap("cG2DGMatrix", cG2DGMatrix, true);
 }
 
 //! returns the localization of the cell vector to the edges
@@ -194,6 +225,7 @@ KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, 1, 3> topEdgeOfCell(
         cv(eid, 1) + 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7), cv(eid, 3) + 0.5 * cv(eid, 6));
 }
 
+// add local vector to global row atomically
 template <typename T, int Comps, class... Properties>
 KOKKOS_IMPL_FUNCTION static void addRowAtomic(const Kokkos::View<T* [Comps], Properties...>& dst,
     const Eigen::Matrix<T, 1, Comps>& src, DeviceIndex row)
@@ -202,7 +234,7 @@ KOKKOS_IMPL_FUNCTION static void addRowAtomic(const Kokkos::View<T* [Comps], Pro
         Kokkos::atomic_add(&dst(row, i), src(i));
     }
 }
-
+// special case because a 1D kokkos view expects only one index
 template <typename T, class... Properties>
 KOKKOS_IMPL_FUNCTION static void addRowAtomic(
     const Kokkos::View<T*, Properties...>& dst, const Eigen::Matrix<T, 1, 1>& src, DeviceIndex row)
@@ -353,13 +385,17 @@ template <typename Mat> void compare(const std::string& name, const Mat& m1, con
 
 template <int DG>
 template <int CG>
-void KokkosDGTransport<DG>::prepareAdvection(const CGVector<CG>& cgU, const CGVector<CG>& cgV)
+void KokkosDGTransport<DG>::prepareAdvection(const CGVector<CG>& cgU, const CGVector<CG>& cgV,
+    const KokkosDeviceView<CGVector<CG>>& cgUDevice,
+    const KokkosDeviceView<CGVector<CG>>& cgVDevice)
 {
     DGTransport<DG>::prepareAdvection(cgU, cgV);
-    auto velXHost = makeKokkosHostView(this->velx);
+/*    auto velXHost = makeKokkosHostView(this->velx);
     auto velYHost = makeKokkosHostView(this->vely);
     Kokkos::deep_copy(velX, velXHost);
-    Kokkos::deep_copy(velY, velYHost);
+    Kokkos::deep_copy(velY, velYHost);*/
+    cG2DGDevice(cG2DGMatrixDevice, meshDevice.nx, meshDevice.ny, velX, cgUDevice);
+    cG2DGDevice(cG2DGMatrixDevice, meshDevice.nx, meshDevice.ny, velY, cgVDevice);
     reinitNormalVelocityDevice(normalVelX, normalVelY, velX, velY, meshDevice);
 
     auto tempX = this->normalvel_X;
@@ -372,17 +408,51 @@ void KokkosDGTransport<DG>::prepareAdvection(const CGVector<CG>& cgU, const CGVe
     compare("normalVelY", tempY, this->normalvel_Y);
 }
 
+template <int DG>
+void KokkosDGTransport<DG>::cG2DGDevice(const KokkosDeviceMapView<CG2DGMatrix>& cG2DGMatrixDevice,
+    DeviceIndex nx, DeviceIndex ny, const DeviceViewDG& dgDevice,
+    const ConstKokkosDeviceView<CGVector<CGDEGREE>>& cgDevice)
+{
+    constexpr int CG = CGDEGREE;
+//    assert((CG * nx + 1) * (CG * ny + 1) == cg.rows());
+//    assert(nx * ny == dg.rows());
+
+    const int cgshift = CG * nx + 1; //!< Index shift for each row
+
+    Kokkos::parallel_for(
+        "CG2DG", nx * ny, KOKKOS_LAMBDA(const DeviceIndex dgi) {
+            const DeviceIndex iy = dgi / nx; //!< y-index of element
+            const DeviceIndex ix = dgi % nx; //!< x-index of element
+            const DeviceIndex cgi = CG * cgshift * iy + CG * ix; //!< lower/left Index in cg vector
+
+            Eigen::Matrix<FloatType, (CG == 2 ? 9 : 4), 1>
+                cgLocal; //!< the local unknowns in the element
+            // we need to use cgDevice outside of the constexpr branch for implicit capture
+            const auto& cg = cgDevice;
+            if constexpr (CG == 1) {
+                cgLocal << cg(cgi), cg(cgi + 1), cg(cgi + cgshift), cg(cgi + 1 + cgshift);
+            } else {
+                cgLocal << cg(cgi), cg(cgi + 1), cg(cgi + 2), cg(cgi + cgshift),
+                    cg(cgi + 1 + cgshift), cg(cgi + 2 + cgshift), cg(cgi + 2 * cgshift),
+                    cg(cgi + 1 + 2 * cgshift), cg(cgi + 2 + 2 * cgshift);
+            }
+            // solve:  (Vdg, PHI) = (Vcg, PHI) with mapping to spher. coord.
+            auto dg = makeEigenMap(dgDevice);
+            dg.row(dgi) = cG2DGMatrixDevice[dgi] * cgLocal;
+        });
+}
+
 template class KokkosDGTransport<1>;
 template class KokkosDGTransport<3>;
 template class KokkosDGTransport<6>;
 template class KokkosDGTransport<8>;
 
 template void KokkosDGTransport<1>::prepareAdvection(
-    const CGVector<CGDEGREE>& cgU, const CGVector<CGDEGREE>& cgV);
+    const CGVector<CGDEGREE>& cgU, const CGVector<CGDEGREE>& cgV, const KokkosDeviceView<CGVector<CGDEGREE>>& cgUDevice, const KokkosDeviceView<CGVector<CGDEGREE>>& cgVDevice);
 template void KokkosDGTransport<3>::prepareAdvection(
-    const CGVector<CGDEGREE>& cgU, const CGVector<CGDEGREE>& cgV);
+    const CGVector<CGDEGREE>& cgU, const CGVector<CGDEGREE>& cgV, const KokkosDeviceView<CGVector<CGDEGREE>>& cgUDevice, const KokkosDeviceView<CGVector<CGDEGREE>>& cgVDevice);
 template void KokkosDGTransport<6>::prepareAdvection(
-    const CGVector<CGDEGREE>& cgU, const CGVector<CGDEGREE>& cgV);
+    const CGVector<CGDEGREE>& cgU, const CGVector<CGDEGREE>& cgV, const KokkosDeviceView<CGVector<CGDEGREE>>& cgUDevice, const KokkosDeviceView<CGVector<CGDEGREE>>& cgVDevice);
 template void KokkosDGTransport<8>::prepareAdvection(
-    const CGVector<CGDEGREE>& cgU, const CGVector<CGDEGREE>& cgV);
+    const CGVector<CGDEGREE>& cgU, const CGVector<CGDEGREE>& cgV, const KokkosDeviceView<CGVector<CGDEGREE>>& cgUDevice, const KokkosDeviceView<CGVector<CGDEGREE>>& cgVDevice);
 }

@@ -58,7 +58,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     stressTransport->step(tst.step.seconds(), this->s12);
     stressTransport->step(tst.step.seconds(), this->s22);
 
-    stressTransportDevice->prepareAdvection(avgU, avgV);
+    stressTransportDevice->prepareAdvection(avgU, avgV, avgUDevice, avgVDevice);
 
     // Transport and limits for damage
     this->dgtransport->step(tst.step.seconds(), damage);

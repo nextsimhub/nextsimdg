@@ -7,14 +7,13 @@
 #ifndef __KOKKOSDGTRANSPORT_HPP
 #define __KOKKOSDGTRANSPORT_HPP
 
-#include "KokkosMeshData.hpp"
 #include "../include/DGTransport.hpp"
+#include "KokkosMeshData.hpp"
 
 namespace Nextsim {
 enum struct TimeSteppingScheme { RK1, RK2, RK3 };
 
-template<int DG>
-constexpr int EDGE_DOFS = (DG == 1) ? 1 : ((DG == 3) ? 2 : 3);
+template <int DG> constexpr int EDGE_DOFS = (DG == 1) ? 1 : ((DG == 3) ? 2 : 3);
 
 template <int DG> class KokkosDGTransport : DGTransport<DG> {
 public:
@@ -24,6 +23,9 @@ public:
 
     using DeviceViewEdge = KokkosDeviceView<EdgeVector<EDGE_DOFS<DG>>>;
     using ConstDeviceViewEdge = ConstKokkosDeviceView<EdgeVector<EDGE_DOFS<DG>>>;
+
+    // parametric map
+    using CG2DGMatrix = Eigen::Matrix<FloatType, DG, CGDEGREE == 2 ? 9 : 4>;
 
     KokkosDGTransport(const ParametricMesh& smesh, const KokkosMeshData& kokkosMeshDevice);
     /*!
@@ -38,8 +40,13 @@ public:
      * - interpolates CG velocity to DG
      * - initializes normal velocity on the edges
      */
-    template <int CG> void prepareAdvection(const CGVector<CG>& cgU, const CGVector<CG>& cgV);
+    template <int CG> void prepareAdvection(const CGVector<CG>& cgU, const CGVector<CG>& cgV,
+        const KokkosDeviceView<CGVector<CG>>& cgUDevice, const KokkosDeviceView<CGVector<CG>>& cgVDevice);
     void step(FloatType dt);
+
+    static void cG2DGDevice(const KokkosDeviceMapView<CG2DGMatrix>& cG2DGMatrixDevice,
+        DeviceIndex nx, DeviceIndex ny, const DeviceViewDG& dg,
+        const ConstKokkosDeviceView<CGVector<CGDEGREE>>& cg);
 
     static void reinitNormalVelocityDevice(const DeviceViewEdge& normalVelXDevice,
         const DeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& velXDevice,
@@ -61,6 +68,14 @@ private:
     DeviceViewDG tmp1;
     DeviceViewDG tmp2;
     DeviceViewDG tmp3;
+
+    // precomputed maps from ParametricTransportMap
+    // KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, GAUSSPOINTS(DG)>> advectionCellTermXDevice;
+    // KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, GAUSSPOINTS(DG)>> advectionCellTermYDevice;
+
+    //! The inverse of the dG mass matrix
+    // KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>> inverseDGMassMatrixDevice;
+    KokkosDeviceMapView<CG2DGMatrix> cG2DGMatrixDevice;
 };
 }
 

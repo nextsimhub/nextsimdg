@@ -70,7 +70,6 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
     Kokkos::deep_copy(execSpace, this->cgHDevice, this->cgHHost);
     Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
-    execSpace.fence();
     timerUpload.stop();
 
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
