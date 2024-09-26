@@ -59,6 +59,9 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
 
     assert(this->smesh);
     meshData = std::make_unique<KokkosMeshData>(*this->smesh);
+    cG2DGAdvectInterpolator
+        = std::make_unique<Interpolations::KokkosCG2DGInterpolator<DGadvection, CGdegree>>(
+            *this->smesh);
 }
 
 /*************************************************************/

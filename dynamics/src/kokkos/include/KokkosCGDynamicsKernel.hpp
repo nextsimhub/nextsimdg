@@ -8,6 +8,7 @@
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
 #include "../../include/CGDynamicsKernel.hpp"
+#include "KokkosInterpolations.hpp"
 #include "KokkosMeshData.hpp"
 
 namespace Nextsim {
@@ -135,7 +136,10 @@ protected:
     ConstDeviceViewCG lumpedCGMassDevice;
     KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
 
+    // held as a pointer because these objects are initialized by their constructors
     std::unique_ptr<KokkosMeshData> meshData;
+    std::unique_ptr<Interpolations::KokkosCG2DGInterpolator<DGadvection, CGdegree>>
+        cG2DGAdvectInterpolator;
 };
 
 }

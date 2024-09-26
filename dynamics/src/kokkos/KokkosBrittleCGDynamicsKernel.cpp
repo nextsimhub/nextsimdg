@@ -20,7 +20,11 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     stressTransport = std::make_unique<DGTransport<DGstressComp>>(*this->smesh);
     stressTransport->settimesteppingscheme("rk2");
 
-    stressTransportDevice = std::make_unique<KokkosDGTransport<DGstressComp>>(*this->smesh, *this->meshData);
+    cG2DGStressInterpolator
+        = std::make_unique<Interpolations::KokkosCG2DGInterpolator<DGstressComp, CGdegree>>(
+            *this->smesh);
+    stressTransportDevice
+        = std::make_unique<KokkosDGTransport<DGstressComp>>(*this->smesh, *this->meshData, *cG2DGStressInterpolator);
 
     damage.resize_by_mesh(*this->smesh);
     avgU.resize_by_mesh(*this->smesh);

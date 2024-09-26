@@ -72,6 +72,8 @@ protected:
 
     std::unique_ptr<DGTransport<DGstressComp>> stressTransport;
     std::unique_ptr<KokkosDGTransport<DGstressComp>> stressTransportDevice;
+    std::unique_ptr<Interpolations::KokkosCG2DGInterpolator<DGstressComp, CGdegree>>
+        cG2DGStressInterpolator;
 
     DeviceViewCG avgUDevice;
     HostViewCG avgUHost;

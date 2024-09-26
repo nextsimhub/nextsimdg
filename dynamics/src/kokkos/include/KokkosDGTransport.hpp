@@ -8,7 +8,9 @@
 #define __KOKKOSDGTRANSPORT_HPP
 
 #include "../include/DGTransport.hpp"
+#include "../include/CGDynamicsKernel.hpp" // for degree defines
 #include "KokkosMeshData.hpp"
+#include "KokkosInterpolations.hpp"
 
 namespace Nextsim {
 enum struct TimeSteppingScheme { RK1, RK2, RK3 };
@@ -24,10 +26,8 @@ public:
     using DeviceViewEdge = KokkosDeviceView<EdgeVector<EDGE_DOFS<DG>>>;
     using ConstDeviceViewEdge = ConstKokkosDeviceView<EdgeVector<EDGE_DOFS<DG>>>;
 
-    // parametric map
-    using CG2DGMatrix = Eigen::Matrix<FloatType, DG, CGDEGREE == 2 ? 9 : 4>;
-
-    KokkosDGTransport(const ParametricMesh& smesh, const KokkosMeshData& kokkosMeshDevice);
+    KokkosDGTransport(const ParametricMesh& smesh, const KokkosMeshData& _meshDevice,
+        const Interpolations::KokkosCG2DGInterpolator<DG, CGdegree>& _cG2DGInterpolator);
     /*!
      * Sets the normal-velocity vector on the edges.
      * The normal velocity is scaled with the length of the edge.
@@ -40,13 +40,10 @@ public:
      * - interpolates CG velocity to DG
      * - initializes normal velocity on the edges
      */
-    template <int CG> void prepareAdvection(const CGVector<CG>& cgU, const CGVector<CG>& cgV,
-        const KokkosDeviceView<CGVector<CG>>& cgUDevice, const KokkosDeviceView<CGVector<CG>>& cgVDevice);
+    void prepareAdvection(const CGVector<CGdegree>& cgU, const CGVector<CGdegree>& cgV,
+        const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
+        const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
     void step(FloatType dt);
-
-    static void cG2DGDevice(const KokkosDeviceMapView<CG2DGMatrix>& cG2DGMatrixDevice,
-        DeviceIndex nx, DeviceIndex ny, const DeviceViewDG& dg,
-        const ConstKokkosDeviceView<CGVector<CGDEGREE>>& cg);
 
     static void reinitNormalVelocityDevice(const DeviceViewEdge& normalVelXDevice,
         const DeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& velXDevice,
@@ -54,6 +51,7 @@ public:
 
 private:
     const KokkosMeshData& meshDevice;
+    const Interpolations::KokkosCG2DGInterpolator<DG, CGdegree>& cG2DGInterpolator;
     TimeSteppingScheme timeSteppingScheme;
 
     // current velocity
@@ -75,7 +73,6 @@ private:
 
     //! The inverse of the dG mass matrix
     // KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>> inverseDGMassMatrixDevice;
-    KokkosDeviceMapView<CG2DGMatrix> cG2DGMatrixDevice;
 };
 }
 
