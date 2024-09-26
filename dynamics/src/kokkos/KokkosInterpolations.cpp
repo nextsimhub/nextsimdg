@@ -10,6 +10,7 @@ namespace Interpolations {
         , ny(smesh.ny)
         , nelements(smesh.nelements)
     {
+		// much easier to do the pre-computation on CPU
         std::vector<CG2DGMatrix> cG2DGMatrix;
         cG2DGMatrix.resize(smesh.nelements);
 		#pragma omp parallel for
