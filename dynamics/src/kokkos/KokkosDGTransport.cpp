@@ -16,6 +16,7 @@ KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh,
     : DGTransport<DG>(smesh)
     , meshDevice(_meshDevice)
     , cG2DGInterpolator(_cG2DGInterpolator)
+    , timeSteppingScheme(TimeSteppingScheme::RK2)
 {
     // todo: initialize without hostTransport
     velX = makeKokkosDeviceView("velX", this->velx);
@@ -33,7 +34,6 @@ KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh,
         = makeKokkosDeviceViewMap("advectionCellTermX", this->parammap.AdvectionCellTermX, true);
     advectionCellTermYDevice
         = makeKokkosDeviceViewMap("advectionCellTermY", this->parammap.AdvectionCellTermY, true);
-
     inverseDGMassMatrixDevice
         = makeKokkosDeviceViewMap("inverseDGMassMatrix", this->parammap.InverseDGMassMatrix, true);
 }
@@ -283,20 +283,12 @@ void KokkosDGTransport<DG>::reinitNormalVelocityDevice(const DeviceViewEdge& nor
                     + tangentBottom(0, 0) * bottomEdgeOfCell(velYDevice, cx));
             addRowAtomic(normalVelXDevice, vel1, cx);
 
-            /*    normalVelX.row(cx) += 0.5
-                    * (-tangentBottom(0, 1) * bottomEdgeOfCell(velXDevice, cx)
-                        + tangentBottom(0, 0) * bottomEdgeOfCell(velYDevice, cx));*/
-
             // un-normed tangent vector of top edge (pointing right). normal is (-y,x)
             const LocalVec<2> tangentTop = mesh.edgeVector(nx + mesh.nx + 1, nx + mesh.nx + 2);
             const LocalVec<EDGE_DOFS> vel2 = 0.5
                 * (-tangentTop(0, 1) * topEdgeOfCell(velXDevice, cx)
                     + tangentTop(0, 0) * topEdgeOfCell(velYDevice, cx));
             addRowAtomic(normalVelXDevice, vel2, cx + mesh.nx);
-
-            /*   normalVelX.row(cx + mesh.nx) += 0.5
-                   * (-tangentTop(0, 1) * topEdgeOfCell(velXDevice, cx)
-                       + tangentTop(0, 0) * topEdgeOfCell(velYDevice, cx));*/
         });
 
     // Take care of the boundaries. Usually, the normal velocity is the average velocity
@@ -351,44 +343,188 @@ template <typename Mat> void compare(const std::string& name, const Mat& m1, con
 }
 
 /*************************************************************/
+template <int DG> void KokkosDGTransport<DG>::setTimeSteppingScheme(TimeSteppingScheme tss)
+{
+    timeSteppingScheme = tss;
+}
+
+/*************************************************************/
 template <int DG>
-// template <int CG>
-void KokkosDGTransport<DG>::prepareAdvection(const CGVector<CGdegree>& cgU,
-    const CGVector<CGdegree>& cgV, const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
+void KokkosDGTransport<DG>::prepareAdvection(const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
     const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice)
 {
-    DGTransport<DG>::prepareAdvection(cgU, cgV);
-    /*    auto velXHost = makeKokkosHostView(this->velx);
-        auto velYHost = makeKokkosHostView(this->vely);
-        Kokkos::deep_copy(velX, velXHost);
-        Kokkos::deep_copy(velY, velYHost);*/
     // todo: try interpolation in batches to fuse the kernels
     cG2DGInterpolator(velX, cgUDevice);
     cG2DGInterpolator(velY, cgVDevice);
     reinitNormalVelocityDevice(normalVelX, normalVelY, velX, velY, meshDevice);
-
-    auto tempX = this->normalvel_X;
-    auto tempY = this->normalvel_Y;
-    auto normalVelXHost = makeKokkosHostView(this->normalvel_X);
-    auto normalVelYHost = makeKokkosHostView(this->normalvel_Y);
-    Kokkos::deep_copy(normalVelXHost, normalVelX);
-    Kokkos::deep_copy(normalVelYHost, normalVelY);
-    compare("normalVelX", tempX, this->normalvel_X);
-    compare("normalVelY", tempY, this->normalvel_Y);
 }
 
 /*************************************************************/
-template <int DG> void KokkosDGTransport<DG>::step(FloatType dt, DGVector<DG>& phi)
+template <int DG> void KokkosDGTransport<DG>::step(FloatType dt, const DeviceViewDG& phiDevice)
 {
-    this->step_rk1(dt, phi);
+/*    auto [phiHost, phiDevice] = makeKokkosDualView("phi", phi, true);
+    Kokkos::deep_copy(phiDevice, phiHost);
+    this->step_rk3(dt, phi);*/
 
-    auto [phiHost, phiDevice] = makeKokkosDualView("phi", phi, true);
+    assert(phiDevice.size() == mesh.nx * mesh.ny * DG);
+
+    switch (timeSteppingScheme) {
+    case TimeSteppingScheme::RK1:
+        stepRK1(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
+            advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice,
+            meshDevice);
+        break;
+    case TimeSteppingScheme::RK2:
+        stepRK2(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1, tmpRes2,
+            advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice,
+            meshDevice);
+        break;
+    case TimeSteppingScheme::RK3:
+        stepRK3(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1, tmpRes2, tmpRes3,
+            advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice,
+            meshDevice);
+        break;
+    }
+
+ /*   auto resGPU = phi;
+    auto tmpRes1Host = makeKokkosHostView(resGPU);
+    Kokkos::deep_copy(tmpRes1Host, phiDevice);
+    compare("phi", phi, resGPU);*/
+}
+
+template <int DG>
+void KokkosDGTransport<DG>::stepRK1(FloatType dt, const ConstDeviceViewDG& velXDevice,
+    const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
+    const ConstDeviceViewEdge& normalVelYDevice, const DeviceViewDG& phiDevice,
+    const DeviceViewDG& tmpRes1,
+    const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
+    const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
+    const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
+    const KokkosMeshData& meshDevice)
+{
     dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
         advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
-    auto resGPU = this->tmp1;
-    auto tmpRes1Host = makeKokkosHostView(resGPU);
-    Kokkos::deep_copy(tmpRes1Host, tmpRes1);
-    compare("tmp1", this->tmp1, resGPU);
+
+    if constexpr (DG == 1) {
+        Kokkos::parallel_for(
+            "add", phiDevice.size(),
+            KOKKOS_LAMBDA(const DeviceIndex eid) { phiDevice(eid) += tmpRes1(eid); });
+    } else {
+        Kokkos::parallel_for(
+            "add", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex i) {
+                const DeviceIndex eid = i / DG;
+                const DeviceIndex ci = i % DG;
+                phiDevice(eid, ci) += tmpRes1(eid, ci);
+            });
+    }
+}
+
+template <int DG>
+void KokkosDGTransport<DG>::stepRK2(FloatType dt, const ConstDeviceViewDG& velXDevice,
+    const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
+    const ConstDeviceViewEdge& normalVelYDevice, const DeviceViewDG& phiDevice,
+    const DeviceViewDG& tmpRes1, const DeviceViewDG& tmpRes2,
+    const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
+    const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
+    const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
+    const KokkosMeshData& meshDevice)
+{
+    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
+        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+
+    if constexpr (DG == 1) {
+        Kokkos::parallel_for(
+            "add", phiDevice.size(),
+            KOKKOS_LAMBDA(const DeviceIndex eid) { phiDevice(eid) += tmpRes1(eid); });
+    } else {
+        Kokkos::parallel_for(
+            "add", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex i) {
+                const DeviceIndex eid = i / DG;
+                const DeviceIndex ci = i % DG;
+                phiDevice(eid, ci) += tmpRes1(eid, ci);
+            });
+    }
+
+    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes2,
+        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+
+    if constexpr (DG == 1) {
+        Kokkos::parallel_for(
+            "add2", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex eid) {
+                phiDevice(eid) += 0.5 * (tmpRes2(eid) - tmpRes1(eid));
+            });
+    } else {
+        Kokkos::parallel_for(
+            "add2", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex i) {
+                const DeviceIndex eid = i / DG;
+                const DeviceIndex ci = i % DG;
+                phiDevice(eid, ci) += 0.5 * (tmpRes2(eid, ci) - tmpRes1(eid, ci));
+            });
+    }
+}
+
+template <int DG>
+void KokkosDGTransport<DG>::stepRK3(FloatType dt, const ConstDeviceViewDG& velXDevice,
+    const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
+    const ConstDeviceViewEdge& normalVelYDevice, const DeviceViewDG& phiDevice,
+    const DeviceViewDG& tmpRes1, const DeviceViewDG& tmpRes2, const DeviceViewDG& tmpRes3,
+    const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
+    const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
+    const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
+    const KokkosMeshData& meshDevice)
+{
+    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
+        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+
+    if constexpr (DG == 1) {
+        Kokkos::parallel_for(
+            "add", phiDevice.size(),
+            KOKKOS_LAMBDA(const DeviceIndex eid) { tmpRes1(eid) += phiDevice(eid); });
+    } else {
+        Kokkos::parallel_for(
+            "add", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex i) {
+                const DeviceIndex eid = i / DG;
+                const DeviceIndex ci = i % DG;
+                tmpRes1(eid, ci) += phiDevice(eid, ci);
+            });
+    }
+
+    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, tmpRes1, tmpRes2,
+        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+
+    if constexpr (DG == 1) {
+        Kokkos::parallel_for(
+            "add2", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex eid) {
+                tmpRes2(eid) = 0.25 * (tmpRes2(eid) + tmpRes1(eid)) + 0.75 * phiDevice(eid);
+            });
+    } else {
+        Kokkos::parallel_for(
+            "add2", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex i) {
+                const DeviceIndex eid = i / DG;
+                const DeviceIndex ci = i % DG;
+                tmpRes2(eid, ci)
+                    = 0.25 * (tmpRes2(eid, ci) + tmpRes1(eid, ci)) + 0.75 * phiDevice(eid, ci);
+            });
+    }
+
+    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, tmpRes2, tmpRes3,
+        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+
+    if constexpr (DG == 1) {
+        Kokkos::parallel_for(
+            "add3", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex eid) {
+                phiDevice(eid)
+                    = 1.0 / 3.0 * phiDevice(eid) + 2.0 / 3.0 * (tmpRes2(eid) + tmpRes3(eid));
+            });
+    } else {
+        Kokkos::parallel_for(
+            "add3", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex i) {
+                const DeviceIndex eid = i / DG;
+                const DeviceIndex ci = i % DG;
+                phiDevice(eid, ci) = 1.0 / 3.0 * phiDevice(eid, ci)
+                    + 2.0 / 3.0 * (tmpRes2(eid, ci) + tmpRes3(eid, ci));
+            });
+    }
 }
 
 /*************************************************************/
@@ -436,11 +572,12 @@ void KokkosDGTransport<DG>::addCellTermsDevice(FloatType dt, const ConstDeviceVi
     }
 }
 
+/*************************************************************/
 template <int DG>
 void KokkosDGTransport<DG>::addEdgeXTermsDevice(FloatType dt,
-    const ConstDeviceViewEdge& normalVelXDevice, const ConstDeviceViewEdge& normalVelYDevice,
-    const ConstDeviceViewDG& phiDevice, const DeviceViewDG& phiupDevice,
-    const ConstDeviceBitset& landMaskDevice, DeviceIndex nx, DeviceIndex ny)
+    const ConstDeviceViewEdge& normalVelXDevice, const ConstDeviceViewDG& phiDevice,
+    const DeviceViewDG& phiupDevice, const ConstDeviceBitset& landMaskDevice, DeviceIndex nx,
+    DeviceIndex ny)
 {
     // branch needs to be outside because it interferes with lambda implicit captures
     if constexpr (DG == 1) {
@@ -488,7 +625,7 @@ void KokkosDGTransport<DG>::addEdgeXTermsDevice(FloatType dt,
                     return;
                 }
                 // only inner edges
-                if (iy+1 >= ny) {
+                if (iy + 1 >= ny) {
                     return;
                 }
 
@@ -506,6 +643,166 @@ void KokkosDGTransport<DG>::addEdgeXTermsDevice(FloatType dt,
 }
 
 template <int DG>
+void KokkosDGTransport<DG>::addEdgeYTermsDevice(FloatType dt,
+    const ConstDeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& phiDevice,
+    const DeviceViewDG& phiupDevice, const ConstDeviceBitset& landMaskDevice, DeviceIndex nx,
+    DeviceIndex ny)
+{
+    // branch needs to be outside because it interferes with lambda implicit captures
+    if constexpr (DG == 1) {
+        Kokkos::parallel_for(
+            "edgeTermY", phiDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex eid) {
+                const DeviceIndex ix = eid % nx;
+                const DeviceIndex iy = eid / nx;
+                const DeviceIndex c1 = eid;
+                const DeviceIndex c2 = c1 + 1;
+                // first index of inner velocity in row
+                const DeviceIndex ie = iy * (nx + 1) + 1 + ix;
+
+                if (!landMaskDevice.test(c1) || !landMaskDevice.test(c2)) {
+                    return;
+                }
+                // only inner edges
+                if (iy >= ny) {
+                    return;
+                }
+
+                const FloatType left = phiDevice(c1);
+                const FloatType right = phiDevice(c2);
+                const FloatType vel = normalVelYDevice(ie);
+
+                // max and min would not compile if the float literal type is not the same as
+                // FloatType
+                constexpr FloatType zero = 0;
+                Kokkos::atomic_sub(&phiupDevice(c1),
+                    dt * (std::max(vel, zero) * left + std::min(vel, zero) * right));
+                Kokkos::atomic_add(&phiupDevice(c2),
+                    dt * (std::max(vel, zero) * left + std::min(vel, zero) * right));
+            });
+    } else {
+        const auto PSIe1D = PSIe<EDGE_DOFS, GP1D>;
+        const auto PSIew1 = PSIe_w<DG, GP1D, 1>;
+        const auto PSIew3 = PSIe_w<DG, GP1D, 3>;
+        Kokkos::parallel_for(
+            "edgeTermX", phiDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex eid) {
+                const DeviceIndex ix = eid % nx;
+                const DeviceIndex iy = eid / nx;
+                const DeviceIndex c1 = eid;
+                const DeviceIndex c2 = c1 + 1;
+                // first index of inner velocity in row
+                const DeviceIndex ie = iy * (nx + 1) + 1 + ix;
+
+                if (!landMaskDevice.test(c1) || !landMaskDevice.test(c2)) {
+                    return;
+                }
+                // only inner edges
+                if (ix + 1 >= nx) {
+                    return;
+                }
+
+                const auto normalVelY = makeEigenMap(normalVelYDevice);
+                const LocalVec<GP1D> velGauss = normalVelY.row(ie) * PSIe1D;
+
+                const LocalVec<GP1D> tmp = (velGauss.array().max(0)
+                        * (rightEdgeOfCell(phiDevice, c1) * PSIe1D).array()
+                    + velGauss.array().min(0) * (leftEdgeOfCell(phiDevice, c2) * PSIe1D).array());
+
+                addRowAtomic(phiupDevice, (-dt * tmp * PSIew1).eval(), c1);
+                addRowAtomic(phiupDevice, (dt * tmp * PSIew3).eval(), c2);
+            });
+    }
+}
+
+/*************************************************************/
+template <int DG>
+void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
+    const ConstDeviceViewEdge& normalVelXDevice, const ConstDeviceViewEdge& normalVelYDevice,
+    const ConstDeviceViewDG& phiDevice, const DeviceViewDG& phiupDevice,
+    const KokkosMeshData& meshDevice)
+{
+    const auto PSIeE = PSIe<EDGE_DOFS, EDGE_DOFS>;
+    // bot
+    const auto PSIew0 = PSIe_w<DG, EDGE_DOFS, 0>;
+    Kokkos::parallel_for(
+        "dirichletTermBot", meshDevice.dirichletDevice[0].extent(0),
+        KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex eid = meshDevice.dirichletDevice[0][i];
+            //    const DeviceIndex ix = eid % meshDevice.nx; // compute coordinates of element
+            //    const DeviceIndex iy = eid / meshDevice.nx;
+            const DeviceIndex c = eid;
+            const DeviceIndex e = eid;
+
+            const auto normalVelX = makeEigenMap(normalVelXDevice);
+            const LocalVec<EDGE_DOFS> velGauss = normalVelX.row(e) * PSIeE;
+            const LocalVec<EDGE_DOFS> tmp
+                = (bottomEdgeOfCell(phiDevice, c) * PSIeE).array() * (-velGauss.array()).max(0);
+
+            auto phiup = makeEigenMap(phiupDevice);
+            phiup.row(c) -= dt * tmp * PSIew0;
+        });
+
+    // right
+    const auto PSIew1 = PSIe_w<DG, EDGE_DOFS, 1>;
+    Kokkos::parallel_for(
+        "dirichletTermRight", meshDevice.dirichletDevice[1].extent(0),
+        KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex eid = meshDevice.dirichletDevice[1][i];
+            const DeviceIndex ix = eid % meshDevice.nx; // compute coordinates of element
+            const DeviceIndex iy = eid / meshDevice.nx;
+            const DeviceIndex c = eid;
+            const DeviceIndex e = (meshDevice.nx + 1) * iy + ix + 1;
+
+            const auto normalVelY = makeEigenMap(normalVelYDevice);
+            const LocalVec<EDGE_DOFS> velGauss = normalVelY.row(e) * PSIeE;
+            const LocalVec<EDGE_DOFS> tmp
+                = (rightEdgeOfCell(phiDevice, c) * PSIeE).array() * velGauss.array().max(0);
+
+            auto phiup = makeEigenMap(phiupDevice);
+            phiup.row(c) -= dt * tmp * PSIew1;
+        });
+
+    // top
+    const auto PSIew2 = PSIe_w<DG, EDGE_DOFS, 2>;
+    Kokkos::parallel_for(
+        "dirichletTermTop", meshDevice.dirichletDevice[2].extent(0),
+        KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex eid = meshDevice.dirichletDevice[2][i];
+            const DeviceIndex ix = eid % meshDevice.nx; // compute coordinates of element
+            const DeviceIndex iy = eid / meshDevice.nx;
+            const DeviceIndex c = eid;
+            const DeviceIndex e = meshDevice.nx * (iy + 1) + ix;
+
+            const auto normalVelX = makeEigenMap(normalVelXDevice);
+            const LocalVec<EDGE_DOFS> velGauss = normalVelX.row(e) * PSIeE;
+            const LocalVec<EDGE_DOFS> tmp
+                = (topEdgeOfCell(phiDevice, c) * PSIeE).array() * velGauss.array().max(0);
+
+            auto phiup = makeEigenMap(phiupDevice);
+            phiup.row(c) -= dt * tmp * PSIew2;
+        });
+
+    // left
+    const auto PSIew3 = PSIe_w<DG, EDGE_DOFS, 3>;
+    Kokkos::parallel_for(
+        "dirichletTermLeft", meshDevice.dirichletDevice[3].extent(0),
+        KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex eid = meshDevice.dirichletDevice[3][i];
+            const DeviceIndex ix = eid % meshDevice.nx; // compute coordinates of element
+            const DeviceIndex iy = eid / meshDevice.nx;
+            const DeviceIndex c = eid;
+            const DeviceIndex e = (meshDevice.nx + 1) * iy + ix;
+
+            const auto normalVelY = makeEigenMap(normalVelYDevice);
+            const LocalVec<EDGE_DOFS> velGauss = normalVelY.row(e) * PSIeE;
+            const LocalVec<EDGE_DOFS> tmp
+                = (leftEdgeOfCell(phiDevice, c) * PSIeE).array() * (-velGauss.array()).max(0);
+
+            auto phiup = makeEigenMap(phiupDevice);
+            phiup.row(c) -= dt * tmp * PSIew3;
+        });
+}
+
+template <int DG>
 void KokkosDGTransport<DG>::dGTransportOperatorDevice(FloatType dt,
     const ConstDeviceViewDG& velXDevice, const ConstDeviceViewDG& velYDevice,
     const ConstDeviceViewEdge& normalVelXDevice, const ConstDeviceViewEdge& normalVelYDevice,
@@ -520,8 +817,20 @@ void KokkosDGTransport<DG>::dGTransportOperatorDevice(FloatType dt,
     addCellTermsDevice(dt, velXDevice, velYDevice, phiDevice, phiupDevice, advectionCellTermXDevice,
         advectionCellTermYDevice, meshDevice.landMaskDevice);
 
-    addEdgeXTermsDevice(dt, normalVelXDevice, normalVelYDevice, phiDevice, phiupDevice,
-        meshDevice.landMaskDevice, meshDevice.nx, meshDevice.ny);
+    addEdgeXTermsDevice(dt, normalVelXDevice, phiDevice, phiupDevice, meshDevice.landMaskDevice,
+        meshDevice.nx, meshDevice.ny);
+
+    addEdgeYTermsDevice(dt, normalVelYDevice, phiDevice, phiupDevice, meshDevice.landMaskDevice,
+        meshDevice.nx, meshDevice.ny);
+
+    addBoundaryTermsDevice(
+        dt, normalVelXDevice, normalVelYDevice, phiDevice, phiupDevice, meshDevice);
+
+    Kokkos::parallel_for(
+        "inverseMap", meshDevice.nx * meshDevice.ny, KOKKOS_LAMBDA(const DeviceIndex eid) {
+            auto phiup = makeEigenMap(phiupDevice);
+            phiup.row(eid) = inverseDGMassMatrixDevice[eid] * phiup.row(eid).transpose();
+        });
 }
 
 template class KokkosDGTransport<1>;

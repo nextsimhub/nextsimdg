@@ -17,14 +17,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     KokkosCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
     //! Initialize stress transport
-    stressTransport = std::make_unique<DGTransport<DGstressComp>>(*this->smesh);
-    stressTransport->settimesteppingscheme("rk2");
-
     cG2DGStressInterpolator
         = std::make_unique<Interpolations::KokkosCG2DGInterpolator<DGstressComp, CGdegree>>(
             *this->smesh);
-    stressTransportDevice
-        = std::make_unique<KokkosDGTransport<DGstressComp>>(*this->smesh, *this->meshData, *cG2DGStressInterpolator);
+    stressTransportDevice = std::make_unique<KokkosDGTransport<DGstressComp>>(
+        *this->smesh, *this->meshData, *cG2DGStressInterpolator);
+    stressTransportDevice->setTimeSteppingScheme(TimeSteppingScheme::RK2);
 
     damage.resize_by_mesh(*this->smesh);
     avgU.resize_by_mesh(*this->smesh);
@@ -41,6 +39,14 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     std::tie(damageHost, damageDevice) = makeKokkosDualView("damage", this->damage);
 }
 
+template <typename Mat> void compare(const std::string& name, const Mat& m1, const Mat& m2)
+{
+    FloatType normRef = m1.norm();
+    FloatType normDiff = (m1 - m2).norm();
+    std::cout << name << " - abs: " << normDiff << ", rel: " << normDiff / normRef
+              << ", norm: " << normRef << std::endl;
+}
+
 template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
@@ -52,23 +58,24 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     //    static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerUpload("uploadGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvectStress("advectStressGPU");
 
     // Let DynamicsKernel handle the advection step
     this->advectionAndLimits(tst);
 
-    //! Perform transport step for stress
-    stressTransport->prepareAdvection(avgU, avgV);
-    stressTransport->step(tst.step.seconds(), this->s11);
-    stressTransport->step(tst.step.seconds(), this->s12);
-    stressTransport->step(tst.step.seconds(), this->s22);
-
-    stressTransportDevice->prepareAdvection(avgU, avgV, avgUDevice, avgVDevice);
-    stressTransportDevice->step(tst.step.seconds(), this->s22);
-
     // Transport and limits for damage
-    this->dgtransport->step(tst.step.seconds(), damage);
+    const double dt = tst.step.seconds();
+    this->dgtransport->step(dt, damage);
     Nextsim::LimitMax(damage, 1.0);
     Nextsim::LimitMin(damage, 1e-12);
+
+    //! Perform transport step for stress
+    timerAdvectStress.start();
+    stressTransportDevice->prepareAdvection(avgUDevice, avgVDevice);
+    stressTransportDevice->step(dt, this->s11Device);
+    stressTransportDevice->step(dt, this->s12Device);
+    stressTransportDevice->step(dt, this->s22Device);
+    timerAdvectStress.stop();
 
     this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
 
@@ -97,11 +104,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
 
     Kokkos::deep_copy(execSpace, this->damageDevice, this->damageHost);
-
-    // stress is advected in the brittle model so we have to sync with the host
-    Kokkos::deep_copy(execSpace, this->s11Device, this->s11Host);
-    Kokkos::deep_copy(execSpace, this->s12Device, this->s12Host);
-    Kokkos::deep_copy(execSpace, this->s22Device, this->s22Host);
     timerUpload.stop();
 
     for (size_t subStep = 0; subStep < this->nSteps; ++subStep) {
@@ -141,9 +143,9 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);
 
-    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
-    Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
-    Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);
+    /*    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
+        Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
+        Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);*/
     timerDownload.stop();
     timerBBM.stop();
 

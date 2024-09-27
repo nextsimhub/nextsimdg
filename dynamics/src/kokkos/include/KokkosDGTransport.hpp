@@ -38,24 +38,19 @@ public:
 
     KokkosDGTransport(const ParametricMesh& smesh, const KokkosMeshData& _meshDevice,
         const Interpolations::KokkosCG2DGInterpolator<DG, CGdegree>& _cG2DGInterpolator);
-    /*!
-     * Sets the normal-velocity vector on the edges.
-     * The normal velocity is scaled with the length of the edge.
-     * This already serves as the integration weight.
-     */
-    void reinitNormalVelocity();
 
+    void setTimeSteppingScheme(TimeSteppingScheme tss);
     /*!
      * Prepares the advection step:
      * - interpolates CG velocity to DG
      * - initializes normal velocity on the edges
      */
-    void prepareAdvection(const CGVector<CGdegree>& cgU, const CGVector<CGdegree>& cgV,
-        const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
+    void prepareAdvection(const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
         const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
 
-    void step(FloatType dt, DGVector<DG>& phi);
+    void step(FloatType dt, const DeviceViewDG& phiDevice);
 
+    // internal methods, only public because cuda needs it
     static void reinitNormalVelocityDevice(const DeviceViewEdge& normalVelXDevice,
         const DeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& velXDevice,
         const ConstDeviceViewDG& velYDevice, const KokkosMeshData& meshDevice);
@@ -68,14 +63,48 @@ public:
         const ConstDeviceBitset& landMaskDevice);
 
     void addEdgeXTermsDevice(FloatType dt, const ConstDeviceViewEdge& normalVelXDevice,
+        const ConstDeviceViewDG& phiDevice, const DeviceViewDG& phiupDevice,
+        const ConstDeviceBitset& landMaskDevice, DeviceIndex nx, DeviceIndex ny);
+
+    void addEdgeYTermsDevice(FloatType dt, const ConstDeviceViewEdge& normalVelYDevice,
+        const ConstDeviceViewDG& phiDevice, const DeviceViewDG& phiupDevice,
+        const ConstDeviceBitset& landMaskDevice, DeviceIndex nx, DeviceIndex ny);
+
+    void addBoundaryTermsDevice(FloatType dt, const ConstDeviceViewEdge& normalVelXDevice,
         const ConstDeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& phiDevice,
-        const DeviceViewDG& phiupDevice, const ConstDeviceBitset& landMaskDevice, DeviceIndex nx,
-        DeviceIndex ny);
+        const DeviceViewDG& phiupDevice, const KokkosMeshData& meshDevice);
 
     void dGTransportOperatorDevice(FloatType dt, const ConstDeviceViewDG& velXDevice,
         const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
         const ConstDeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& phiDevice,
         const DeviceViewDG& phiupDevice,
+        const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
+        const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
+        const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
+        const KokkosMeshData& meshDevice);
+
+    void stepRK1(FloatType dt, const ConstDeviceViewDG& velXDevice,
+        const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
+        const ConstDeviceViewEdge& normalVelYDevice, const DeviceViewDG& phiDevice,
+        const DeviceViewDG& tmpRes1,
+        const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
+        const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
+        const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
+        const KokkosMeshData& meshDevice);
+
+    void stepRK2(FloatType dt, const ConstDeviceViewDG& velXDevice,
+        const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
+        const ConstDeviceViewEdge& normalVelYDevice, const DeviceViewDG& phiDevice,
+        const DeviceViewDG& tmpRes1, const DeviceViewDG& tmpRes2,
+        const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
+        const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
+        const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
+        const KokkosMeshData& meshDevice);
+
+    void stepRK3(FloatType dt, const ConstDeviceViewDG& velXDevice,
+        const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
+        const ConstDeviceViewEdge& normalVelYDevice, const DeviceViewDG& phiDevice,
+        const DeviceViewDG& tmpRes1, const DeviceViewDG& tmpRes2, const DeviceViewDG& tmpRes3,
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
         const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
