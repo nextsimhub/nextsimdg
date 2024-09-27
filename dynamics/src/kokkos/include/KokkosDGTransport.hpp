@@ -45,8 +45,8 @@ public:
      * - interpolates CG velocity to DG
      * - initializes normal velocity on the edges
      */
-    void prepareAdvection(const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
-        const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
+    void prepareAdvection(const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
+        const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
 
     void step(FloatType dt, const DeviceViewDG& phiDevice);
 

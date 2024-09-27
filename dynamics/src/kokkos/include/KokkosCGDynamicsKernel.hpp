@@ -10,6 +10,7 @@
 #include "../../include/CGDynamicsKernel.hpp"
 #include "KokkosInterpolations.hpp"
 #include "KokkosMeshData.hpp"
+#include "KokkosDGTransport.hpp"
 
 namespace Nextsim {
 
@@ -47,6 +48,10 @@ public:
     using GradMapDevice = KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix>;
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
+
+    void advectAndLimit(const FloatType dt,
+        const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
+        const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
 
     static void dirichletZero(const DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
         const KokkosMeshData::DirichletData& dirichlet);
@@ -140,6 +145,7 @@ protected:
     std::unique_ptr<KokkosMeshData> meshData;
     std::unique_ptr<Interpolations::KokkosCG2DGInterpolator<DGadvection, CGdegree>>
         cG2DGAdvectInterpolator;
+    std::unique_ptr<KokkosDGTransport<DGadvection>> dGTransportDevice;
 };
 
 }

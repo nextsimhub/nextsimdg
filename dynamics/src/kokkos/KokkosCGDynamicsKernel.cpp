@@ -5,6 +5,7 @@
  */
 
 #include "include/KokkosCGDynamicsKernel.hpp"
+#include "include/KokkosDGLimit.hpp"
 
 namespace Nextsim {
 
@@ -62,6 +63,26 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     cG2DGAdvectInterpolator
         = std::make_unique<Interpolations::KokkosCG2DGInterpolator<DGadvection, CGdegree>>(
             *this->smesh);
+    dGTransportDevice = std::make_unique<KokkosDGTransport<DGadvection>>(
+        *this->smesh, *this->meshData, *cG2DGAdvectInterpolator);
+}
+
+/*************************************************************/
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt,
+    const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
+    const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice)
+{
+    dGTransportDevice->prepareAdvection(cgUDevice, cgVDevice);
+
+    //! Perform transport step
+    dGTransportDevice->step(dt, ciceDevice);
+    dGTransportDevice->step(dt, hiceDevice);
+
+    //! Gauss-point limiting
+    limitMax(ciceDevice, 1.0);
+    limitMin(ciceDevice, 0.0);
+    limitMin(hiceDevice, 0.0);
 }
 
 /*************************************************************/

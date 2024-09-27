@@ -1,5 +1,6 @@
 #include "include/KokkosBrittleCGDynamicsKernel.hpp"
 #include "include/KokkosTimer.hpp"
+#include "include/KokkosDGLimit.hpp"
 
 namespace Nextsim {
 
@@ -60,34 +61,9 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvectStress("advectStressGPU");
 
-    // Let DynamicsKernel handle the advection step
-    this->advectionAndLimits(tst);
-
-    // Transport and limits for damage
-    const double dt = tst.step.seconds();
-    this->dgtransport->step(dt, damage);
-    Nextsim::LimitMax(damage, 1.0);
-    Nextsim::LimitMin(damage, 1e-12);
-
-    //! Perform transport step for stress
-    timerAdvectStress.start();
-    stressTransportDevice->prepareAdvection(avgUDevice, avgVDevice);
-    stressTransportDevice->step(dt, this->s11Device);
-    stressTransportDevice->step(dt, this->s12Device);
-    stressTransportDevice->step(dt, this->s22Device);
-    timerAdvectStress.stop();
-
-    this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
-
-    // The timestep for the brittle solver is the solver subtimestep
-    this->deltaT = tst.step.seconds() / this->nSteps;
-
-    timerBBM.start();
     timerUpload.start();
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
-    Kokkos::deep_copy(execSpace, avgVDevice, 0.0);
 
     Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
     Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
@@ -100,11 +76,38 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
     Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
-    Kokkos::deep_copy(execSpace, this->cgHDevice, this->cgHHost);
-    Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
 
     Kokkos::deep_copy(execSpace, this->damageDevice, this->damageHost);
     timerUpload.stop();
+
+    const double dt = tst.step.seconds();
+    // Let DynamicsKernel handle the advection step
+    this->advectAndLimit(dt, avgUDevice, avgVDevice);
+
+    // Transport and limits for damage
+    this->dGTransportDevice->step(dt, damageDevice);
+    limitMax(damageDevice, 1.0);
+    limitMin(damageDevice, 1e-12);
+
+    //! Perform transport step for stress
+    timerAdvectStress.start();
+    stressTransportDevice->prepareAdvection(avgUDevice, avgVDevice);
+    stressTransportDevice->step(dt, this->s11Device);
+    stressTransportDevice->step(dt, this->s12Device);
+    stressTransportDevice->step(dt, this->s22Device);
+    timerAdvectStress.stop();
+
+    // dg -> cg still happens on the host
+    this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
+    Kokkos::deep_copy(execSpace, this->cgHDevice, this->cgHHost);
+    Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
+
+    // The timestep for the brittle solver is the solver subtimestep
+    this->deltaT = tst.step.seconds() / this->nSteps;
+
+    timerBBM.start();
+    Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
+    Kokkos::deep_copy(execSpace, avgVDevice, 0.0);
 
     for (size_t subStep = 0; subStep < this->nSteps; ++subStep) {
         Base::projectVelocityToStrainDevice(this->uDevice, this->vDevice, this->e11Device,
@@ -138,8 +141,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
-    Kokkos::deep_copy(execSpace, this->avgUHost, this->avgUDevice);
-    Kokkos::deep_copy(execSpace, this->avgVHost, this->avgVDevice);
+//    Kokkos::deep_copy(execSpace, this->avgUHost, this->avgUDevice);
+//    Kokkos::deep_copy(execSpace, this->avgVHost, this->avgVDevice);
 
     Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);
 

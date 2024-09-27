@@ -350,8 +350,8 @@ template <int DG> void KokkosDGTransport<DG>::setTimeSteppingScheme(TimeStepping
 
 /*************************************************************/
 template <int DG>
-void KokkosDGTransport<DG>::prepareAdvection(const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
-    const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice)
+void KokkosDGTransport<DG>::prepareAdvection(const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
+    const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice)
 {
     // todo: try interpolation in batches to fuse the kernels
     cG2DGInterpolator(velX, cgUDevice);

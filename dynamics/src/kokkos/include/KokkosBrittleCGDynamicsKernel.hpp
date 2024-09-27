@@ -33,8 +33,8 @@ public:
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
-    // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
-    void prepareAdvection() override { this->dgtransport->prepareAdvection(avgU, avgV); }
+    // not used, see KokkosCGDynamicsKernel::advectAndLimit
+    void prepareAdvection() override { }
 
     void update(const TimestepTime& tst) override;
 
