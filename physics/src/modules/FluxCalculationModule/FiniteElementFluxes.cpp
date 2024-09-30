@@ -7,6 +7,7 @@
 
 #include "include/FiniteElementFluxes.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/FiniteElementSpecHum.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/NextsimModule.hpp"
@@ -40,6 +41,8 @@ static const std::map<int, std::string> keyMap = {
 
 void FiniteElementFluxes::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceAlbedo>);
+
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 

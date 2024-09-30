@@ -8,6 +8,7 @@
 
 #include "include/StructureFactory.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
 
@@ -52,6 +53,8 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath, ModelMet
 ModelState StructureFactory::stateFromFile(const std::string& filePath)
 #endif
 {
+    Finalizer::registerUnique(Module::finalize<IStructure>);
+
     std::string structureName = structureNameFromFile(filePath);
     // TODO There must be a better way
     if (RectangularGrid::structureName == structureName) {

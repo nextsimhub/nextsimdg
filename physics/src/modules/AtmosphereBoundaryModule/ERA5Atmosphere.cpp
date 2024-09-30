@@ -7,6 +7,7 @@
 
 #include "include/ERA5Atmosphere.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 
@@ -45,6 +46,8 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
 
 void ERA5Atmosphere::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
+
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();

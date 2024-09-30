@@ -7,6 +7,7 @@
 
 #include "include/ConfiguredAtmosphere.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 
 namespace Nextsim {
@@ -88,6 +89,7 @@ void ConfiguredAtmosphere::configure()
     rain0 = Configured::getConfiguration(keyMap.at(RAIN_KEY), rain0);
     windspeed0 = Configured::getConfiguration(keyMap.at(WIND_KEY), windspeed0);
 
+    Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
 

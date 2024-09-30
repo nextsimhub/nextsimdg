@@ -8,6 +8,7 @@
 
 #include "include/IceGrowth.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
@@ -117,6 +118,10 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
 
 void IceGrowth::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceThermodynamics>);
+    Finalizer::registerUnique(Module::finalize<ILateralIceSpread>);
+    Finalizer::registerUnique(Module::finalize<IDamageHealing>);
+
     // Configure whether we actually do anything here
     doThermo = Configured::getConfiguration(keyMap.at(USE_THERMO_KEY), true);
     // Configure constants

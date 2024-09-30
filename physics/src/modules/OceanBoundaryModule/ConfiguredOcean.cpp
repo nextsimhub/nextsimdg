@@ -7,6 +7,7 @@
 
 #include "include/ConfiguredOcean.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/ModelArrayRef.hpp"
@@ -63,6 +64,9 @@ ConfigurationHelp::HelpMap& ConfiguredOcean::getHelpRecursive(HelpMap& map, bool
 
 void ConfiguredOcean::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
+    Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
+
     sst0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(SST_KEY), sst0);
     sss0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(SSS_KEY), sss0);
     mld0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(MLD_KEY), mld0);

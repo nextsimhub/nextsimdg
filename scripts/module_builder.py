@@ -125,6 +125,11 @@ template <> std::string implementation<{strings[class_name]}>()
     return {module_templ}::implementation();
 }}
 
+template <> void finalize<{strings[class_name]}>()
+{{
+    return {module_templ}::finalize();
+}}
+
 template class {module_templ};
 """)
     source.write("""
