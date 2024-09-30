@@ -1,6 +1,6 @@
 #include "include/KokkosBrittleCGDynamicsKernel.hpp"
-#include "include/KokkosTimer.hpp"
 #include "include/KokkosDGLimit.hpp"
+#include "include/KokkosTimer.hpp"
 
 namespace Nextsim {
 
@@ -103,7 +103,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
 
     // The timestep for the brittle solver is the solver subtimestep
-    this->deltaT = tst.step.seconds() / this->nSteps;
+    this->deltaT = dt / this->nSteps;
 
     timerBBM.start();
     Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
@@ -141,9 +141,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
-//    Kokkos::deep_copy(execSpace, this->avgUHost, this->avgUDevice);
-//    Kokkos::deep_copy(execSpace, this->avgVHost, this->avgVDevice);
 
+    // since these fields are advected on gpu they have to be copied back
+    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
+    Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
     Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);
 
     /*    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
