@@ -44,14 +44,6 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerUpload("uploadGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
 
-    // Let DynamicsKernel handle the advection step
-    DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits(tst);
-    this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
-
-    // The critical timestep for the VP solver is the advection timestep
-    this->deltaT = tst.step.seconds();
-
-    timerMevp.start();
     timerUpload.start();
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
@@ -68,9 +60,23 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
     Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
+    timerUpload.stop();
+
+    this->advectAndLimit(tst.step.seconds(), this->uDevice, this->vDevice);
+    // since these fields are advected on gpu they have to be copied back
+    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
+    Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
+    Kokkos::fence();
+
+    // dg -> cg still happens on the host
+    this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
     Kokkos::deep_copy(execSpace, this->cgHDevice, this->cgHHost);
     Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
-    timerUpload.stop();
+
+    // The critical timestep for the VP solver is the advection timestep
+    this->deltaT = tst.step.seconds();
+
+    timerMevp.start();
 
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
         timerProj.start();

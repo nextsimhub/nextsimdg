@@ -80,7 +80,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->damageDevice, this->damageHost);
     timerUpload.stop();
 
-    const double dt = tst.step.seconds();
+    const FloatType dt = tst.step.seconds();
     // Let DynamicsKernel handle the advection step
     this->advectAndLimit(dt, avgUDevice, avgVDevice);
 
@@ -96,6 +96,11 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     stressTransportDevice->step(dt, this->s12Device);
     stressTransportDevice->step(dt, this->s22Device);
     timerAdvectStress.stop();
+
+    // since these fields are advected on gpu they have to be copied back for prepareIteration
+    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
+    Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
+    Kokkos::fence();
 
     // dg -> cg still happens on the host
     this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
@@ -142,11 +147,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
 
-    // since these fields are advected on gpu they have to be copied back
-    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
-    Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
     Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);
-
     /*    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
         Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
         Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);*/
