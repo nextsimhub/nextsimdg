@@ -63,6 +63,9 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     cG2DGAdvectInterpolator
         = std::make_unique<Interpolations::KokkosCG2DGInterpolator<DGadvection, CGdegree>>(
             *this->smesh);
+    dG2CGAdvectInterpolator
+        = std::make_unique<Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>>(
+            *this->smesh);
     dGTransportDevice = std::make_unique<KokkosDGTransport<DGadvection>>(
         *this->smesh, *this->meshData, *cG2DGAdvectInterpolator);
 }
@@ -83,6 +86,30 @@ void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt,
     limitMax(ciceDevice, 1.0);
     limitMin(ciceDevice, 0.0);
     limitMin(hiceDevice, 0.0);
+}
+
+/*************************************************************/
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::prepareIterationDevice(const DeviceViewCG& cgHDevice,
+    const DeviceViewCG& cgADevice, const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+    const Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>& dG2CGInterpolator)
+{
+    // interpolate ice height and concentration to local cg Variables
+    dG2CGInterpolator(cgHDevice, hiceDevice);
+    // VectorManipulations::CGAveragePeriodic(*smesh, cgH);
+    dG2CGInterpolator(cgADevice, ciceDevice);
+    // VectorManipulations::CGAveragePeriodic(*smesh, cgA);
+
+    // limit A to [0,1] and H to [0, ...)
+    Kokkos::parallel_for(
+        "limitCGA", cgADevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
+            cgADevice(idx) = std::clamp(
+                cgADevice(idx), static_cast<FloatType>(1.e-4), static_cast<FloatType>(1.0));
+        });
+    Kokkos::parallel_for(
+        "limitCGH", cgADevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
+            cgHDevice(idx) = std::max(cgHDevice(idx), static_cast<FloatType>(1.e-4));
+        });
 }
 
 /*************************************************************/

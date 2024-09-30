@@ -8,9 +8,9 @@
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
 #include "../../include/CGDynamicsKernel.hpp"
+#include "KokkosDGTransport.hpp"
 #include "KokkosInterpolations.hpp"
 #include "KokkosMeshData.hpp"
-#include "KokkosDGTransport.hpp"
 
 namespace Nextsim {
 
@@ -52,6 +52,10 @@ public:
     void advectAndLimit(const FloatType dt,
         const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
         const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
+
+    static void prepareIterationDevice(const DeviceViewCG& cgHDevice, const DeviceViewCG& cgADevice,
+        const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+        const Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>& dG2CGInterpolator);
 
     static void dirichletZero(const DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
         const KokkosMeshData::DirichletData& dirichlet);
@@ -145,6 +149,8 @@ protected:
     std::unique_ptr<KokkosMeshData> meshData;
     std::unique_ptr<Interpolations::KokkosCG2DGInterpolator<DGadvection, CGdegree>>
         cG2DGAdvectInterpolator;
+    std::unique_ptr<Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>>
+        dG2CGAdvectInterpolator;
     std::unique_ptr<KokkosDGTransport<DGadvection>> dGTransportDevice;
 };
 

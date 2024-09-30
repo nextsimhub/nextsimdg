@@ -63,15 +63,9 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerUpload.stop();
 
     this->advectAndLimit(tst.step.seconds(), this->uDevice, this->vDevice);
-    // since these fields are advected on gpu they have to be copied back
-    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
-    Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
-    Kokkos::fence();
 
-    // dg -> cg still happens on the host
-    this->prepareIteration({ { hiceName, this->hice }, { ciceName, this->cice } });
-    Kokkos::deep_copy(execSpace, this->cgHDevice, this->cgHHost);
-    Kokkos::deep_copy(execSpace, this->cgADevice, this->cgAHost);
+    Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
+        this->ciceDevice, *this->dG2CGAdvectInterpolator);
 
     // The critical timestep for the VP solver is the advection timestep
     this->deltaT = tst.step.seconds();
@@ -115,6 +109,9 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
+
+    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
+    Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
     timerDownload.stop();
 
     timerMevp.stop();
