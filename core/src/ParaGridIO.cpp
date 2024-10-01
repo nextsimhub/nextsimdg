@@ -9,6 +9,7 @@
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/FileCallbackCloser.hpp"
+#include "include/Finalizer.hpp"
 #include "include/MissingData.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
@@ -27,56 +28,53 @@
 
 namespace Nextsim {
 
-// Accept both post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
-const std::map<std::string, ModelArray::Type> ParaGridIO::dimensionKeys = {
-    { "yx", ModelArray::Type::H },
-    { "ydimxdim", ModelArray::Type::H },
-    { "zyx", ModelArray::Type::Z },
-    { "zdimydimxdim", ModelArray::Type::Z },
-    { "yxdg_comp", ModelArray::Type::DG },
-    { "ydimxdimdg_comp", ModelArray::Type::DG },
-    { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
-    { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-    { "ycgxcg", ModelArray::Type::CG },
-    { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
-};
-
-// Which dimensions are DG dimension, which could be legitimately missing
-const std::map<ModelArray::Dimension, bool> ParaGridIO::isDG = {
-    // clang-format off
-    { ModelArray::Dimension::X, false },
-    { ModelArray::Dimension::Y, false },
-    { ModelArray::Dimension::Z, false },
-    { ModelArray::Dimension::XCG, true },
-    { ModelArray::Dimension::YCG, true },
-    { ModelArray::Dimension::DG, true },
-    { ModelArray::Dimension::DGSTRESS, true },
-    // NCOORDS is a number of components, but not in the same way as the DG components.
-    { ModelArray::Dimension::NCOORDS, false },
-    // clang-format on
-};
-
-std::map<ModelArray::Dimension, ModelArray::Type> ParaGridIO::dimCompMap;
-#ifdef USE_MPI
-std::map<std::string, netCDF::NcFilePar> ParaGridIO::openFiles;
-#else
-std::map<std::string, netCDF::NcFile> ParaGridIO::openFiles;
-#endif
-std::map<std::string, size_t> ParaGridIO::timeIndexByFile;
-
-void ParaGridIO::makeDimCompMap()
-{
-    dimCompMap = {
+ParaGridIO::ParaGridIO(ParametricGrid& grid)
+    : IParaGridIO(grid)
+    , openFilesAndIndices(getOpenFilesAndIndices())
+    , dimensionKeys({
+          // clang-format off
+          // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
+        { "yx", ModelArray::Type::H },
+        { "ydimxdim", ModelArray::Type::H },
+        { "zyx", ModelArray::Type::Z },
+        { "zdimydimxdim", ModelArray::Type::Z },
+        { "yxdg_comp", ModelArray::Type::DG },
+        { "ydimxdimdg_comp", ModelArray::Type::DG },
+        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "ycgxcg", ModelArray::Type::CG },
+        { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+          // clang-format on
+      })
+    , isDG({
+          // clang-format off
+        { ModelArray::Dimension::X, false },
+        { ModelArray::Dimension::Y, false },
+        { ModelArray::Dimension::Z, false },
+        { ModelArray::Dimension::XCG, true },
+        { ModelArray::Dimension::YCG, true },
+        { ModelArray::Dimension::DG, true },
+        { ModelArray::Dimension::DGSTRESS, true },
+        // NCOORDS is a number of components, but not in the same way as the DG components.
+        { ModelArray::Dimension::NCOORDS, false },
+          // clang-format on
+      })
+    , dimCompMap({
+          // clang-format off
         { ModelArray::componentMap.at(ModelArray::Type::DG), ModelArray::Type::DG },
         { ModelArray::componentMap.at(ModelArray::Type::DGSTRESS), ModelArray::Type::DGSTRESS },
         { ModelArray::componentMap.at(ModelArray::Type::VERTEX), ModelArray::Type::VERTEX },
-    };
-    // Also initialize the static map of tables and register the atexit
-    // function here, since it should only ever run once
-    //    openFiles.clear();
-    std::atexit(closeAllFiles);
-    // Further one-off initialization: allow distant classes to close files via a callback.
-    FileCallbackCloser::onClose(ParaGridIO::close);
+          // clang-format on
+      })
+{
+    if (doOnce()) {
+    // Register the finalization function here
+        Finalizer::atfinalUnique(closeAllFiles);
+        // Since it should only ever run once, do further one-off initialization: allow distant
+        // classes to close files via a callback.
+        FileCallbackCloser::onClose(ParaGridIO::close);
+        doOnce() = false;
+    }
 }
 
 ParaGridIO::~ParaGridIO() = default;
@@ -343,24 +341,27 @@ void ParaGridIO::dumpModelState(
 void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    bool isNew = openFiles.count(filePath) <= 0;
-    size_t nt = (isNew) ? 0 : ++timeIndexByFile.at(filePath);
+    bool isNew = openFilesAndIndices.count(filePath) <= 0;
+    size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
     if (isNew) {
         // Open a new file and emplace it in the map of open files.
-#ifdef USE_MPI
-        openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace, meta.mpiComm);
-#else
-        openFiles.try_emplace(filePath, filePath, netCDF::NcFile::replace);
-#endif
         // Set the initial time to be zero (assigned above)
-        timeIndexByFile[filePath] = nt;
+        // Piecewise construction is necessary to correctly construct the file handle/time index
+        // pair
+#ifdef USE_MPI
+        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
+            std::forward_as_tuple(std::piecewise_construct,
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
+                std::forward_as_tuple(nt)));
+#else
+        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
+            std::forward_as_tuple(std::piecewise_construct,
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace),
+                std::forward_as_tuple(nt)));
+#endif
     }
     // Get the file handle
-#ifdef USE_MPI
-    netCDF::NcFilePar& ncFile = openFiles.at(filePath);
-#else
-    netCDF::NcFile& ncFile = openFiles.at(filePath);
-#endif
+    NetCDFFileType& ncFile = openFilesAndIndices.at(filePath).first;
 
     // Get the netCDF groups, creating them if necessary
     netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName())
@@ -492,26 +493,18 @@ void ParaGridIO::writeDiagnosticTime(
 
 void ParaGridIO::close(const std::string& filePath)
 {
-    if (openFiles.count(filePath) > 0) {
-        openFiles.at(filePath).close();
-        openFiles.erase(filePath);
-        timeIndexByFile.erase(filePath);
+    if (getOpenFilesAndIndices().count(filePath) > 0) {
+        getOpenFilesAndIndices().at(filePath).first.close();
+        getOpenFilesAndIndices().erase(filePath);
     }
 }
 
 void ParaGridIO::closeAllFiles()
 {
-    size_t closedFiles = 0;
-    for (const auto& [name, handle] : openFiles) {
-        if (!handle.isNull()) {
-            close(name);
-            closedFiles++;
-        }
-        /* If the following break is not checked for and performed, for some
-         * reason the iteration will continue to iterate over invalid
-         * string/NcFile pairs. */
-        if (closedFiles >= openFiles.size())
-            break;
+    std::cout << "ParaGridIO::closeAllFiles: closing " << getOpenFilesAndIndices().size()
+              << " files" << std::endl;
+    while (getOpenFilesAndIndices().size() > 0) {
+        close(getOpenFilesAndIndices().begin()->first);
     }
 }
 

@@ -26,12 +26,13 @@ namespace Nextsim {
  */
 class ParaGridIO : public ParametricGrid::IParaGridIO {
 public:
-    ParaGridIO(ParametricGrid& grid)
-        : IParaGridIO(grid)
-    {
-        if (dimCompMap.size() == 0)
-            makeDimCompMap();
-    }
+#ifdef USE_MPI
+    typedef NetCDFFileType netCDF::NcFilePar;
+#else
+    typedef netCDF::NcFile NetCDFFileType ;
+#endif
+
+    ParaGridIO(ParametricGrid& grid);
     virtual ~ParaGridIO();
 
     /*!
@@ -91,14 +92,16 @@ public:
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
 private:
+    typedef std::map<std::string, std::pair<NetCDFFileType, size_t>> FileAndIndexMap;
+
     ParaGridIO() = delete;
     ParaGridIO(const ParaGridIO& other) = delete;
     ParaGridIO& operator=(const ParaGridIO& other) = delete;
 
-    static const std::map<std::string, ModelArray::Type> dimensionKeys;
+    const std::map<std::string, ModelArray::Type> dimensionKeys;
 
-    static const std::map<ModelArray::Dimension, bool> isDG;
-    static std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
+    const std::map<ModelArray::Dimension, bool> isDG;
+    const std::map<ModelArray::Dimension, ModelArray::Type> dimCompMap;
 
     // Ensures that static variables are created in the correct order.
     static void makeDimCompMap();
@@ -107,13 +110,18 @@ private:
     static void closeAllFiles();
 
     // Existing or open files are a property of the computer outside the individual
-    // class instance, so they are static.
-#ifdef USE_MPI
-    static std::map<std::string, netCDF::NcFilePar> openFiles;
-#else
-    static std::map<std::string, netCDF::NcFile> openFiles;
-#endif
-    static std::map<std::string, size_t> timeIndexByFile;
+    // class instance, so they are singletons.
+    FileAndIndexMap& openFilesAndIndices;
+    inline static FileAndIndexMap& getOpenFilesAndIndices()
+    {
+        static FileAndIndexMap fim;
+        return fim;
+    }
+    inline static bool& doOnce()
+    {
+        static bool firstTime = true;
+        return firstTime;
+    }
 };
 
 } /* namespace Nextsim */
