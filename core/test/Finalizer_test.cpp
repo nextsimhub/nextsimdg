@@ -81,6 +81,43 @@ TEST_CASE("Unique functions")
     REQUIRE(TheCount::count() == 1);
 }
 
+template <typename T>
+class Module {
+public:
+  static void finalize()
+  {
+    std::cout << "Finalizing " << moduleName() << std::endl;
+  }
+
+  static std::string moduleName();
+};
+
+template <typename T>
+void finalize() { Module<T>::finalize(); }
+
+class Class1;
+class Class2;
+
+template<>
+std::string Module<Class1>::moduleName() { return "Class1"; }
+
+template<>
+std::string Module<Class2>::moduleName() { return "Class2"; }
+
+TEST_CASE("Function templates")
+{
+    // Different instantiations of the same function template should be different.
+    Finalizer::registerUnique(finalize<Class1>);
+    REQUIRE(Finalizer::count() == 1);
+    Finalizer::registerUnique(finalize<Class1>);
+    REQUIRE(Finalizer::count() == 1);
+    Finalizer::registerUnique(finalize<Class2>);
+    REQUIRE(Finalizer::count() == 2);
+    Finalizer::finalize();
+    REQUIRE(Finalizer::count() == 0);
+
+}
+
 TEST_CASE("Finalize")
 {
     TheCount::reset();
