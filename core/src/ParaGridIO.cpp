@@ -68,7 +68,7 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
       })
 {
     if (doOnce()) {
-    // Register the finalization function here
+        // Register the finalization function here
         Finalizer::atfinalUnique(closeAllFiles);
         // Since it should only ever run once, do further one-off initialization: allow distant
         // classes to close files via a callback.
