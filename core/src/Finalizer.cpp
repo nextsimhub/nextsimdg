@@ -27,8 +27,8 @@ bool Finalizer::contains(const FinalFn& fn)
 {
     auto& fns = functions();
     for (const auto& stored : fns) {
-        // Compare function pointer addresses
-        if (stored.target<FnType*>() == fn.target<FnType*>())
+        // Compare function addresses
+        if (*stored.target<FnType*>() == *fn.target<FnType*>())
             return true;
     }
     return false;
