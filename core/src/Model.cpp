@@ -57,9 +57,7 @@ Model::Model()
     finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
 }
 
-Model::~Model()
-{
-}
+Model::~Model() { }
 
 void Model::configure()
 {
