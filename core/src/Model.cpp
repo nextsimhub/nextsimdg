@@ -10,6 +10,7 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/DevStep.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
 #include "include/NextsimModule.hpp"
@@ -58,17 +59,6 @@ Model::Model()
 
 Model::~Model()
 {
-    /*
-     * Try writing out a valid restart file. If the model and computer are in a
-     * state where this can be completed, great! If they are not then the
-     * restart file is unlikely to be valid or otherwise stored properly, and
-     * we abandon the writing.
-     */
-    try {
-        writeRestartFile();
-    } catch (std::exception& e) {
-        // If there are any exceptions at all, fail without writing
-    }
 }
 
 void Model::configure()
@@ -174,7 +164,12 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     return map;
 }
 
-void Model::run() { iterator.run(); }
+void Model::run()
+{
+    iterator.run();
+    writeRestartFile();
+    Finalizer::finalize();
+}
 
 //! Write a restart file for the model.
 void Model::writeRestartFile()

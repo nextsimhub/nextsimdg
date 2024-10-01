@@ -6,6 +6,8 @@
  */
 
 #include "include/ConstantOceanBoundary.hpp"
+
+#include "include/Finalizer.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
@@ -18,6 +20,8 @@ ConstantOceanBoundary::ConstantOceanBoundary()
 
 void ConstantOceanBoundary::setData(const ModelState::DataMap& ms)
 {
+    Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
+
     IOceanBoundary::setData(ms);
     // Directly set the array values
     sss = 32.;

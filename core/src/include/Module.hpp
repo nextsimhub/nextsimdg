@@ -227,6 +227,7 @@ template <typename I> I& getImplementation();
 template <typename I> void setImplementation(const std::string& impl);
 template <typename I> HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 template <typename I> std::string implementation();
+template <typename I> void finalize();
 
 }
 #endif /* MODULE_HPP */

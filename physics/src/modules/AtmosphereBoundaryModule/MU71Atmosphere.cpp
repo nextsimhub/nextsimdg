@@ -4,6 +4,7 @@
 
 #include "include/MU71Atmosphere.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/NextsimModule.hpp"
 
@@ -19,6 +20,7 @@ static const std::map<int, std::string> keyMap = {
 
 void MU71Atmosphere::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceAlbedo>);
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 
