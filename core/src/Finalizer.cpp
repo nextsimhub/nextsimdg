@@ -27,8 +27,8 @@ bool Finalizer::contains(const FinalFn& fn)
 {
     auto& fns = functions();
     for (const auto& stored : fns) {
-        // Compare function pointer addresses
-        if (stored.target<FnType*>() == fn.target<FnType*>())
+        // Compare function addresses
+        if (*stored.target<FnType*>() == *fn.target<FnType*>())
             return true;
     }
     return false;
@@ -37,8 +37,14 @@ bool Finalizer::contains(const FinalFn& fn)
 void Finalizer::finalize()
 {
     while (!functions().empty()) {
-        // Execute the last function in the list
-        functions().back()();
+        try {
+            // Execute the last function in the list
+            functions().back()();
+        } catch (const std::exception& e) {
+            // Remove the function from the finalization list even if an exception was thrown.
+            functions().pop_back();
+            throw;
+        }
         // Remove the function from the finalization list.
         functions().pop_back();
     }
