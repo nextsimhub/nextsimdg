@@ -8,8 +8,9 @@
 
 #include "include/PrognosticData.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
@@ -35,6 +36,11 @@ PrognosticData::PrognosticData()
 
 void PrognosticData::configure()
 {
+    // Register finalizers before calling configure.
+    Finalizer::registerUnique(Module::finalize<IAtmosphereBoundary>);
+    Finalizer::registerUnique(Module::finalize<IOceanBoundary>);
+    Finalizer::registerUnique(Module::finalize<IDynamics>);
+
     pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
     tryConfigure(pAtmBdy);
 

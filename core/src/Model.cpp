@@ -13,7 +13,7 @@
 #include "include/Finalizer.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>
@@ -23,20 +23,12 @@
 
 namespace Nextsim {
 
-template <typename Key, typename Value>
-static std::map<Key, Value> combineMaps(std::map<Key, Value>& map1, std::map<Key, Value>& map2)
-{
-    std::map<Key, Value> map3 = map1;
-    map3.merge(map2);
-    return map3;
-}
-
 // Map of configuration that will be written to the restart file
-static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
 const std::string Model::restartOptionName = "model.init_file";
 // Map of all configuration keys for the main model, including those not to be
 // written to the restart file.
-static std::map<int, std::string> modelConfigKeyMap = {
+static const std::map<int, std::string> keyMap = {
+#include "include/ModelConfigMapElements.ipp"
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
 #ifdef USE_MPI
     { Model::PARTITIONFILE_KEY, "model.partition_file" },
@@ -49,11 +41,6 @@ static std::map<int, std::string> modelConfigKeyMap = {
     { Model::RESTARTPERIOD_KEY, "model.restart_period" },
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
-
-// Merge the configuration from ModelConfig into the Model keyMap.
-template <>
-const std::map<int, std::string> Configured<Model>::keyMap
-    = combineMaps(interimKeyMap, modelConfigKeyMap);
 
 #ifdef USE_MPI
 Model::Model(MPI_Comm comm)
@@ -70,21 +57,7 @@ Model::Model()
     finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
 }
 
-Model::~Model()
-{
-    Finalizer::finalize();
-    /*
-     * Try writing out a valid restart file. If the model and computer are in a
-     * state where this can be completed, great! If they are not then the
-     * restart file is unlikely to be valid or otherwise stored properly, and
-     * we abandon the writing.
-     */
-    try {
-        writeRestartFile();
-    } catch (std::exception& e) {
-        // If there are any exceptions at all, fail without writing
-    }
-}
+Model::~Model() { }
 
 void Model::configure()
 {
@@ -106,8 +79,8 @@ void Model::configure()
     m_etadata.setTime(timeNow);
 
     // Configure the missing data value
-    MissingData::value
-        = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
+    MissingData::setValue(
+        Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
 
     // Parse the initial restart file name and the pattern for output restart files
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
@@ -189,7 +162,12 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     return map;
 }
 
-void Model::run() { iterator.run(); }
+void Model::run()
+{
+    iterator.run();
+    writeRestartFile();
+    Finalizer::finalize();
+}
 
 //! Write a restart file for the model.
 void Model::writeRestartFile()

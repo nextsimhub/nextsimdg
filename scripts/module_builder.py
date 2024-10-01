@@ -37,10 +37,15 @@ def write_source_file(source, config, strings):
                     default_impl = section
 
     module_templ = f"Module<{strings[class_name]}>"
-
+    h_class = "HelpMap"
+    c_class = "Nextsim::ConfigurationMap"
+    full_template_args = f"{strings[class_name]}, {c_class}, {h_class}"
     # Use the provided path to the Module header file
-    source.write(f"#include \"{strings[header_file_path_str]}\"\n")
-    source.write("\n")
+#    source.write(f"#include \"{strings[header_file_path_str]}\"\n")
+#    source.write("\n")
+    module_file = f"NextsimModule.{header_suffix}"
+    source.write(f"#include \"{os.path.join(strings[internal_header_dir], strings[interface_prefix_str])}{strings[file_prefix_str]}.{header_suffix}\"\n")
+    source.write(f"#include \"{os.path.join(strings[internal_header_dir], module_file)}\"\n")
     for section in valid_impl_sections:
         source.write(f"#include \"{os.path.join(strings[internal_header_dir], config[section][file_prefix_str])}.{header_suffix}\"\n")
     source.write("""
@@ -48,34 +53,45 @@ def write_source_file(source, config, strings):
 
 namespace Module {
 """)
+    source.write(f"""
+namespace {strings[module_class_name]} {{
+""")
     impl_strings = {}
     for section in valid_impl_sections:
         impl_strings[section] = config[section][file_prefix_str].upper()
         source.write(f"const std::string {impl_strings[section]} = \"{section}\";\n")
+    source.write("}\n") # End of the module-specific namespace
+    mapVarName = "theMap"
     source.write(f"""
 template <>
-{module_templ}::map {module_templ}::functionMap = {{
+const {module_templ}::map& {module_templ}::functionMap()
+{{
+    static const map {mapVarName} = {{
 """)
     for section in valid_impl_sections:
-        source.write(f"    {{ {impl_strings[section]}, newImpl<{strings[class_name]}, {section}> }},\n")
-    source.write(f"""}};
+        source.write(f"        {{ {strings[module_class_name]}::{impl_strings[section]}, newImpl<{strings[class_name]}, {section}> }},\n")
+    source.write(f"""    }};
+    return {mapVarName};
+}}
 
 template <>
-{module_templ}::fn {module_templ}::spf = functionMap.at({impl_strings[default_impl]});
-template <>
-std::unique_ptr<{strings[class_name]}> {module_templ}::staticInstance
-    = std::move({module_templ}::spf());
+std::string {module_templ}::getDefaultImplementationName()
+{{
+    return {strings[module_class_name]}::{impl_strings[default_impl]};
+}}
 
 template <> std::string {module_templ}::moduleName() {{ return \"{strings[module_class_name]}\"; }}
 
-template <> HelpMap& getHelpRecursive<{strings[class_name]}>(HelpMap& map, bool getAll)
+using ConfigType = Nextsim::ConfigurationHelp::ConfigType;
+
+template <> HelpMap& {module_templ}::getHelpRecursive(HelpMap& map, bool getAll)
 {{
     const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;
     map[pfx].push_back({{ pfx + "." + {module_templ}::moduleName(), ConfigType::MODULE,
         {{ """)
     for section in valid_impl_sections:
-        source.write(f"{impl_strings[section]}, ")
-    source.write(f"}}, {impl_strings[default_impl]}, \"\",\n")
+        source.write(f"{strings[module_class_name]}::{impl_strings[section]}, ")
+    source.write(f"}}, {strings[module_class_name]}::{impl_strings[default_impl]}, \"\",\n")
     source.write(f"        \"{config[module_section_str][description_str]}\" }});\n")
     for section in valid_impl_sections:
         if (has_help_str in config[section]) and (config[section][has_help_str] == true_str):
@@ -83,23 +99,35 @@ template <> HelpMap& getHelpRecursive<{strings[class_name]}>(HelpMap& map, bool 
     source.write(f"""
     return map;
 }}
-template <> {strings[class_name]}& getImplementation<{strings[class_name]}>()
+
+template <> std::unique_ptr<{strings[class_name]}> getInstance<{strings[class_name]}>()
 {{
-    return getImplTemplate<{strings[class_name]}, {strings[module_class_name]}>();
-}}
-template <> void setImplementation<{strings[class_name]}>(const std::string& implName)
-{{
-    setImplTemplate<{strings[module_class_name]}>(implName);
-}}
-template <> std::unique_ptr<{strings[class_name]}> getInstance()
-{{
-    return getInstTemplate<{strings[class_name]}, {strings[module_class_name]}>();
+    return {module_templ}::getInstance();
 }}
 
-{strings[module_class_name]}::Constructor {strings[module_class_name]}::ctor;
-{strings[module_class_name]}::Constructor::Constructor()
+template <> {strings[class_name]}& getImplementation<{strings[class_name]}>()
 {{
-    addToConfiguredModules<{strings[class_name]}, {strings[module_class_name]}>();
+    return {module_templ}::getImplementation();
+}}
+
+template <> void setImplementation<{strings[class_name]}>(const std::string& impl)
+{{
+    {module_templ}::setImplementation(impl);
+}}
+
+template <> {h_class}& getHelpRecursive<{strings[class_name]}>({h_class}& map, bool getAll)
+{{
+    return {module_templ}::getHelpRecursive(map, getAll);
+}}
+
+template <> std::string implementation<{strings[class_name]}>()
+{{
+    return {module_templ}::implementation();
+}}
+
+template <> void finalize<{strings[class_name]}>()
+{{
+    return {module_templ}::finalize();
 }}
 
 template class {module_templ};

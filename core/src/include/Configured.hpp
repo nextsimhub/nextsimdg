@@ -135,9 +135,6 @@ public:
     //! Clear the configuration map. Usually used only in test suites.
     static void clearConfigurationMap() { singleOptions.clear(); }
 
-    //! A per-class static map to provide compile-time checking of configuration keys.
-    static const std::map<int, std::string> keyMap;
-
 protected:
     /*!
      * @brief Adds an option to the per-class option map.

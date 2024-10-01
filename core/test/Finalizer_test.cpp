@@ -54,28 +54,16 @@ public:
 void throwHappy() { throw HappyTime(); }
 
 TEST_SUITE_BEGIN("ModelFinalizer");
-TEST_CASE("Run final function")
-{
-    TheCount::reset();
-    REQUIRE(TheCount::count() == 0);
-    Finalizer::atfinal(TheCount::increment);
-    REQUIRE(Finalizer::count() == 1);
-    Finalizer::run();
-    REQUIRE(Finalizer::count() == 1);
-    REQUIRE(TheCount::count() == 1);
-}
-
 TEST_CASE("Duplicate functions")
 {
     TheCount::reset();
     REQUIRE(TheCount::count() == 0);
-    Finalizer::clear();
+//    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
-    Finalizer::atfinal(TheCount::increment);
-    Finalizer::atfinal(TheCount::increment);
+    Finalizer::registerFunc(Earl::incr);
+    Finalizer::registerFunc(Earl::incr);
     REQUIRE(Finalizer::count() == 2);
-    Finalizer::run();
-    REQUIRE(Finalizer::count() == 2);
+    Finalizer::finalize();
     REQUIRE(TheCount::count() == 2);
 }
 
@@ -83,14 +71,13 @@ TEST_CASE("Unique functions")
 {
     TheCount::reset();
     REQUIRE(TheCount::count() == 0);
-    Finalizer::clear();
+//    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
-    Finalizer::atfinalUnique(TheCount::increment);
-    REQUIRE(Finalizer::contains(TheCount::increment));
-    Finalizer::atfinalUnique(TheCount::increment);
+    Finalizer::registerUnique(Earl::incr);
+    REQUIRE(Finalizer::contains(Earl::incr));
+    Finalizer::registerUnique(Earl::incr);
     REQUIRE(Finalizer::count() == 1);
-    Finalizer::run();
-    REQUIRE(Finalizer::count() == 1);
+    Finalizer::finalize();
     REQUIRE(TheCount::count() == 1);
 }
 
@@ -98,10 +85,10 @@ TEST_CASE("Finalize")
 {
     TheCount::reset();
     REQUIRE(TheCount::count() == 0);
-    Finalizer::clear();
+//    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
-    Finalizer::atfinal(TheCount::increment);
-    Finalizer::atfinal(TheCount::increment);
+    Finalizer::registerFunc(Earl::incr);
+    Finalizer::registerFunc(Earl::incr);
     REQUIRE(Finalizer::count() == 2);
     Finalizer::finalize();
     REQUIRE(Finalizer::count() == 0);
@@ -116,11 +103,11 @@ TEST_CASE("Exception")
 {
     TheCount::reset();
     REQUIRE(TheCount::count() == 0);
-    Finalizer::clear();
+//    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
-    Finalizer::atfinal(TheCount::increment);
-    Finalizer::atfinal(throwHappy);
-    Finalizer::atfinal(TheCount::increment);
+    Finalizer::registerFunc(Earl::incr);
+    Finalizer::registerFunc(throwHappy);
+    Finalizer::registerFunc(Earl::incr);
     REQUIRE(Finalizer::count() == 3);
     REQUIRE_THROWS_AS(Finalizer::finalize(), HappyTime);
     // Only one increment occurred because of the exception

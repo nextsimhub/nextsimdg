@@ -16,7 +16,7 @@
 
 #include "include/IFluxCalculation.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 
 #include <filesystem>
@@ -29,6 +29,22 @@
 extern template class Module::Module<Nextsim::IFluxCalculation>;
 
 namespace Nextsim {
+
+// Null flux calculation
+class NullFlux : public IFluxCalculation {
+public:
+    NullFlux()
+    : IFluxCalculation()
+    {
+    }
+    void update(const TimestepTime&) override { }
+
+} nullFlux;
+
+std::unique_ptr<IFluxCalculation> setNullFlux()
+{
+    return std::make_unique<NullFlux>();
+}
 
 TEST_SUITE_BEGIN("ERA5Atmosphere");
 #ifdef USE_MPI
@@ -61,19 +77,7 @@ TEST_CASE("ERA5Atmosphere construction test")
 
     ERA5Atmosphere e5;
 
-    // Null flux calculation
-    class NullFlux : public IFluxCalculation {
-    public:
-        NullFlux()
-            : IFluxCalculation()
-        {
-        }
-        void update(const TimestepTime&) override { }
-
-    } nullFlux;
-
-    Module::Module<IFluxCalculation>::setExternalImplementation(
-        []() { return std::make_unique<NullFlux>(); });
+    Module::Module<IFluxCalculation>::setExternalImplementation(setNullFlux);
 
     e5.configure();
     e5.setFilePath(filePath);
