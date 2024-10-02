@@ -27,9 +27,9 @@ namespace Nextsim {
 class ParaGridIO : public ParametricGrid::IParaGridIO {
 public:
 #ifdef USE_MPI
-    typedef NetCDFFileType netCDF::NcFilePar;
+    using NetCDFFileType = netCDF::NcFilePar;
 #else
-    typedef netCDF::NcFile NetCDFFileType;
+    using NetCDFFileType =  netCDF::NcFile;
 #endif
 
     ParaGridIO(ParametricGrid& grid);
