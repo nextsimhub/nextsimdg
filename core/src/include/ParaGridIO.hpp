@@ -29,7 +29,7 @@ public:
 #ifdef USE_MPI
     using NetCDFFileType = netCDF::NcFilePar;
 #else
-    using NetCDFFileType =  netCDF::NcFile;
+    using NetCDFFileType = netCDF::NcFile;
 #endif
 
     ParaGridIO(ParametricGrid& grid);
