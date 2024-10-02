@@ -37,6 +37,9 @@ public:
     ModelState getStateRecursive(const OutputSpec& os) const override;
     void configure() override;
 
+protected:
+    ModelArray& advectHField(ModelArray& field, const std::string& fieldName) override;
+
 private:
     MEVPDynamicsKernel<DGCOMP> kernel;
     VPParameters params;

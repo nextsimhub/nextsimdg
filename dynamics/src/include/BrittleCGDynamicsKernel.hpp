@@ -37,6 +37,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::isAdvectionReady;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -77,13 +78,20 @@ public:
         damage.resize_by_mesh(*smesh);
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
+        damage.zero();
+        avgU.zero();
+        avgV.zero();
 
         cosOceanAngle = cos(radians * params.ocean_turning_angle);
         sinOceanAngle = sin(radians * params.ocean_turning_angle);
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
-    void prepareAdvection() override { dgtransport->prepareAdvection(avgU, avgV); }
+    void prepareAdvection() override
+    {
+        dgtransport->prepareAdvection(avgU, avgV);
+        isAdvectionReady = true;
+    }
 
     void update(const TimestepTime& tst) override
     {

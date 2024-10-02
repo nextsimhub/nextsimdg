@@ -348,6 +348,42 @@ public:
      */
     void setData(const ModelArray& source);
 
+    void setData(const DataType& data, size_t start, size_t length);
+
+    /*!
+     * @brief Reads and sets the data from another ModelArray, from arbitrary start
+     * locations in both ModelArrays.
+     *
+     * @details Given a source ModelArray, and an index within it, set the data in this, the
+     * target ModelArray, starting at a different initial index. The data are sequential in both
+     * cases. The amount of data set runs to the end of either of the ModelArrays. It is guaranteed
+     * that neither will have their cursor index run out of bounds. Conversely, the amount of data
+     * copied is also limited only by the minimum of the amount of data after the start index in
+     * each of the arrays.
+     *
+     * @param source The ModelArray providing the data.
+     * @param sourceStartIndex The index of the source array at which copying starts.
+     * @param targetStartIndex The index of the target array (*this) at which copying starts.
+     */
+    ModelArray& setData(const ModelArray& source, size_t sourceStartIndex, size_t targetStartIndex);
+
+    /*!
+     * @brief Reads and sets the data from another ModelArray, from arbitrary start
+     * locations in both ModelArrays.
+     *
+     * @details Given a source ModelArray, and a location within it, set the data in this, the
+     * target ModelArray, starting at a different initial location. The data are sequential in both
+     * cases. The amount of data set runs to the end of either of the ModelArrays. It is guaranteed
+     * that neither will have their cursor index run out of bounds. Conversely, the amount of data
+     * copied is also limited only by the minimum of the amount of data after the start location in
+     * each of the arrays.
+     *
+     * @param source The ModelArray providing the data.
+     * @param sourceStartLoc The location of the source array at which copying starts.
+     * @param targetStartLoc The location of the target array (*this) at which copying starts.
+     */
+    ModelArray& setData(const ModelArray& source, MultiDim sourceStartLoc, MultiDim targetStartLoc);
+
 private:
     // Fast special case for 1-d indexing
     template <typename T, typename I> static inline T indexr(const T* dims, I first)

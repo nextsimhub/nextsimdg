@@ -30,8 +30,6 @@ public:
         : IDynamics()
         , kernel(params)
     {
-        getStore().registerArray(Protected::ICE_U, &uice, RO);
-        getStore().registerArray(Protected::ICE_V, &vice, RO);
     }
 
     std::string getName() const override { return "FreeDriftDynamics"; }
@@ -55,7 +53,6 @@ public:
         uice = kernel.getDG0Data(uName);
         vice = kernel.getDG0Data(vName);
     }
-
     void setData(const ModelState::DataMap& ms) override
     {
         // Degrees to radians as a hex float
@@ -76,6 +73,12 @@ public:
         for (const auto& fieldName : namedFields) {
             kernel.setData(fieldName, ms.at(fieldName));
         }
+    }
+
+protected:
+    ModelArray& advectHField(ModelArray& field, const std::string& fieldName) override
+    {
+        return kernel.advectField(field, fieldName);
     }
 
 private:

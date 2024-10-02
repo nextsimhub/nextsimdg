@@ -63,6 +63,8 @@ public:
         // resize DG vectors
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
+        hice.zero();
+        cice.zero();
 
         e11.resize_by_mesh(*smesh);
         e12.resize_by_mesh(*smesh);
@@ -70,6 +72,12 @@ public:
         s11.resize_by_mesh(*smesh);
         s12.resize_by_mesh(*smesh);
         s22.resize_by_mesh(*smesh);
+        e11.zero();
+        e12.zero();
+        e22.zero();
+        s11.zero();
+        s12.zero();
+        s22.zero();
     }
 
     /*!
@@ -156,14 +164,54 @@ public:
     {
         prepareAdvection();
 
+        // Set the advection time step length for all advection calls
+        deltaTAdvection = tst.step.seconds();
         //! Perform transport step
-        dgtransport->step(tst.step.seconds(), cice);
-        dgtransport->step(tst.step.seconds(), hice);
+        dgtransport->step(deltaTAdvection, cice);
+        dgtransport->step(deltaTAdvection, hice);
 
         //! Gauss-point limiting
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
         Nextsim::LimitMin(hice, 0.0);
+    }
+
+    /*!
+     * Advects a ModelArray by one advection timestep.
+     *
+     * @param field Data for the field to be advected, as a ModelArray
+     * @param fieldName Name of the field to be advected.
+     */
+    ModelArray& advectField(ModelArray& maField, const std::string& fieldName)
+    {
+        // Check that advection has been prepared, if not prepare it
+        if (!isAdvectionReady) {
+            prepareAdvection();
+            // Check that the necessary calculations happened
+            if (!isAdvectionReady) {
+                throw std::runtime_error("DynamicsKernel: Failed to prepare advection.");
+            }
+        }
+
+        // Create the DGVector to hold the higher DG components, if it doesn't already exist.
+        if (advectedFields.count(fieldName) < 1) {
+            DGVector<DGadvection> newField;
+            newField.resize_by_mesh(*smesh);
+            newField.zero();
+            // copy to the map of advected fields
+            advectedFields[fieldName] = newField;
+        }
+
+        DGVector<DGadvection>& dgField = advectedFields[fieldName];
+        // Set the DG0 component for the selected level (or whole field if 2D)
+        DGModelArray::ma2dg<DGadvection>(maField, dgField);
+
+        // Perform the advection
+        dgtransport->step(deltaTAdvection, dgField);
+
+        // Extract the DG0 data to the selected level (or whole field if 2D)
+        DGModelArray::dg2ma<DGadvection>(dgField, maField);
+        return maField;
     }
 
 protected:
@@ -181,7 +229,10 @@ protected:
     size_t stepNumber = 0;
 
     double deltaT;
-
+    // Advection timestep, specifically
+    double deltaTAdvection;
+    // Has prepareAdvection been called with the current u & v fields?
+    bool isAdvectionReady;
     Nextsim::ParametricMesh* smesh;
 
     virtual void updateMomentum(const TimestepTime& tst) = 0;

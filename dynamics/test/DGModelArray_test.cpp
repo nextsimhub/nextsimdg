@@ -100,6 +100,7 @@ TEST_CASE("DGVector from ModelArray::Type::H")
         }
     }
     DGVector<DG> dest(smesh);
+    dest.zero();
     DGModelArray::ma2dg<DG>(source, dest);
 
     // Did it work?

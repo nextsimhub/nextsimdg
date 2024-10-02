@@ -297,6 +297,200 @@ TEST_CASE("zIndexAndLayer")
     REQUIRE(threeD.zIndexAndLayer(ind, z) == threeD(x, y, z));
 
 }
+
+// Does zeroing a 3D array actually set all elements to zero?
+TEST_CASE("Zero a ThreeDField")
+{
+    const size_t nx = 23;
+    const size_t ny = 19;
+    const size_t nz = 5;
+
+    ModelArray::setDimensions(ModelArray::Type::THREED, {nx, ny, nz});
+
+    REQUIRE(ModelArray::size(ModelArray::Dimension::X) == nx);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Y) == ny);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Z) == nz);
+
+    ThreeDField treed(ModelArray::Type::THREED);
+    treed.resize();
+
+    auto dims = treed.dimensions();
+    REQUIRE(dims[0] == nx);
+    REQUIRE(dims[1] == ny);
+    REQUIRE(dims[2] == nz);
+
+    REQUIRE(treed.trueSize() == nx * ny * nz);
+
+    treed = 0.;
+
+    double absSum = 0.;
+    // Sum the absolute value of each element. This is only equal to zero if every element is equal to zero.
+    for (size_t i = 0; i < treed.trueSize(); ++i) {
+        absSum += std::fabs(treed[i]);
+    }
+    REQUIRE(absSum == 0.);
+}
+
+// Copy a block of contiguous data, specifically a 2d slice of a 3d array
+TEST_CASE("Copying contiguous data")
+{
+    const size_t nx = 17;
+    const size_t ny = 23;
+    const size_t nz = 3;
+
+    ModelArray::setDimensions(ModelArray::Type::THREED, {nx, ny, nz});
+
+    // A 3D array and a 2D array
+    TwoDField twod(ModelArray::Type::TWOD);
+    ThreeDField threed(ModelArray::Type::THREED);
+
+    // Thoroughly check the dimensions
+    REQUIRE(ModelArray::size(ModelArray::Dimension::X) == nx);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Y) == ny);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Z) == nz);
+
+    REQUIRE(twod.dimensions()[0] == nx);
+    REQUIRE(twod.dimensions()[1] == ny);
+
+    REQUIRE(threed.dimensions()[0] == nx);
+    REQUIRE(threed.dimensions()[1] == ny);
+    REQUIRE(threed.dimensions()[2] == nz);
+
+    twod.resize();
+    threed.resize();
+    threed = 0.;
+
+    // Check the value of every element is zero
+    double absSum;
+    absSum = 0;
+    for (size_t idx = 0; idx < threed.size(); ++idx) {
+        absSum += std::fabs(threed[idx]);
+    }
+    REQUIRE(absSum == 0.);
+
+    double dx = 100;
+
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            twod(i, j) = dx * i + j;
+        }
+    }
+
+    // Assign data to the middle z level
+    ModelArray::MultiDim dims = threed.dimensions();
+    size_t size2D = dims[0] * dims[1];
+    threed.setData(twod.data(), 1 * size2D, size2D);
+
+    // Check the first level is all zeros
+    double lvl0Sum = 0;
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            lvl0Sum += std::fabs(threed(i, j, 0UL));
+        }
+    }
+    REQUIRE(lvl0Sum == 0.);
+
+    // Check the first level matches the 2D array
+    double lvl1Sum = 0;
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            lvl1Sum += std::fabs(threed(i, j, 1UL) - twod(i, j));
+        }
+    }
+    REQUIRE(lvl1Sum == 0.);
+
+    // Check the third level is all zeros
+    double lvl2Sum = 0;
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            lvl2Sum += std::fabs(threed(i, j, 2UL));
+        }
+    }
+    REQUIRE(lvl2Sum == 0.);
+
+
+}
+// Test the setData function with source and target start indices
+TEST_CASE("Copying contiguous data II")
+{
+    const size_t nx = 13;
+    const size_t ny = 19;
+    const size_t nz = 7;
+
+    ModelArray::setDimensions(ModelArray::Type::THREED, {nx, ny, nz});
+
+    // A 3D array and a 2D array
+    TwoDField twod(ModelArray::Type::TWOD);
+    ThreeDField threed(ModelArray::Type::THREED);
+
+    // Thoroughly check the dimensions
+    REQUIRE(ModelArray::size(ModelArray::Dimension::X) == nx);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Y) == ny);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::Z) == nz);
+
+    REQUIRE(twod.dimensions()[0] == nx);
+    REQUIRE(twod.dimensions()[1] == ny);
+
+    REQUIRE(threed.dimensions()[0] == nx);
+    REQUIRE(threed.dimensions()[1] == ny);
+    REQUIRE(threed.dimensions()[2] == nz);
+
+    twod.resize();
+    threed.resize();
+
+    double twod0 = 2.;
+    double threed0 = 3.;
+
+    twod = twod0;
+    threed = threed0;
+
+    // Shorter source array, filling z-level 3
+    size_t size2D = twod.size();
+    size_t k = 3;
+    threed.setData(twod, 0, 3 * size2D);
+
+    REQUIRE(threed(0UL, 0UL, 0UL) == threed0);
+    REQUIRE(threed(nx - 1, ny - 1, k - 1) == threed0);
+    REQUIRE(threed(0UL, 0UL, k) == twod0);
+    REQUIRE(threed(nx / 2, ny / 2, k) == twod0);
+    REQUIRE(threed(nx - 1, ny - 1, k) == twod0);
+    REQUIRE(threed(0UL, 0UL, k + 1) == threed0);
+    REQUIRE(threed(nx - 1, ny - 1, nz - 1) == threed0);
+
+    // Shorter target array, filling from z-level 3
+    twod0 = 4.;
+    threed0 = 5.;
+    twod = twod0;
+
+    for (size_t kk = 0; kk < nz; ++kk) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                threed(i, j, kk) = threed0 + kk;
+            }
+        }
+    }
+    REQUIRE(twod(0UL, 0UL) == twod0);
+    REQUIRE(threed(0UL, 0UL, 4UL) == threed0 + 4);
+    twod.setData(threed, 3 * size2D, 0);
+    REQUIRE(twod(0UL, 0UL) == threed0 + k);
+    REQUIRE(twod(0UL, 0UL) == threed0 + k);
+
+    // Fill something that's not a z-level
+    twod0 = 6.;
+    threed0 = 7.;
+    twod = twod0;
+    threed = threed0;
+
+    size_t sourceStart = size2D / 2;
+    size_t targetStart = threed.indexFromLocation({11, 13, 5});
+    size_t targetEnd = targetStart + size2D - sourceStart;
+    threed.setData(twod, sourceStart, targetStart);
+    REQUIRE(threed[targetStart - 1] == threed0);
+    REQUIRE(threed[targetStart] == twod0);
+    REQUIRE(threed[targetEnd - 1] == twod0);
+    REQUIRE(threed[targetEnd] == threed0);
+
+}
 TEST_SUITE_END();
 
 } /* namespace Nextsim */

@@ -30,8 +30,6 @@ MEVPDynamics::MEVPDynamics()
     : IDynamics()
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
@@ -80,6 +78,11 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+}
+
+ModelArray& MEVPDynamics::advectHField(ModelArray& field, const std::string& fieldName)
+{
+    return kernel.advectField(field, fieldName);
 }
 
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const

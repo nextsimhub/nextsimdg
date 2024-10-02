@@ -7,6 +7,10 @@ set(COMMON_INCLUDE_DIRS
 
 set(PHYSICS_INCLUDE_DIRS "../../physics/src" "../../physics/src/modules")
 
+set(DYNAMICS_INCLUDE_DIRS
+    "../../dynamics/src"
+    )
+
 set(ModulesRoot "../src/modules")
 
 # Generate netCDF files for tests
@@ -249,8 +253,17 @@ else()
     )
     target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
 
-    set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
+  add_executable(testDynamicsAdvection "DynamicsAdvection_test.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp")
+  target_compile_definitions(testDynamicsAdvection
+    PRIVATE
+    DGCOMP=${DGComp}
+    DGSTRESSCOMP=${DGStressComp}
+    CGDEGREE=${CGDegree}
+    )
+  target_include_directories(testDynamicsAdvection PRIVATE "../src" "${DYNAMICS_INCLUDE_DIRS}" "${MODEL_INCLUDE_DIR}")
+  target_link_libraries(testDynamicsAdvection PRIVATE nextsimlib doctest::doctest Eigen3::Eigen)
 
+  set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
     add_executable(
         testModelArray
         "ModelArray_test.cpp"

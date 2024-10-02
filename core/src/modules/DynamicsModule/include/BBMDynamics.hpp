@@ -29,6 +29,8 @@ public:
     void setData(const ModelState::DataMap&) override;
     ModelState getState() const override;
     ModelState getStateRecursive(const OutputSpec& os) const override;
+protected:
+    ModelArray& advectHField(ModelArray& field, const std::string& fieldName) override;
 private:
     BBMDynamicsKernel<DGCOMP> kernel;
     MEBParameters params;

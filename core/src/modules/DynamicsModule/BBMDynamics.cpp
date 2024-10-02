@@ -20,8 +20,6 @@ BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void BBMDynamics::setData(const ModelState::DataMap& ms)
@@ -94,6 +92,11 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+}
+
+ModelArray& BBMDynamics::advectHField(ModelArray& field, const std::string& fieldName)
+{
+    return kernel.advectField(field, fieldName);
 }
 
 // All data for prognostic output

@@ -19,8 +19,16 @@ public:
     DummyDynamics() = default;
 
     std::string getName() const override { return "DummyDynamics"; }
-    void update(const TimestepTime& tst) override { };
-
+    void update(const TimestepTime& tst) override
+    {
+        uice = 0.;
+        vice = 0.;
+    };
+protected:
+    ModelArray& advectHField(ModelArray& field, const std::string& fieldName) override
+    {
+        return field;
+    }
 };
 }
 
