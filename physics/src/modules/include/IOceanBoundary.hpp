@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date Aug 23 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -89,7 +89,7 @@ protected:
     HField cpml; // Heat capacity of the mixed layer, J K⁻¹ m²
     UField u; // x(east)-ward ocean current, m s⁻¹
     VField v; // y(north)-ward ocean current, m s⁻¹
-    VField ssh; // sea surface height, m
+    HField ssh; // sea surface height, m
 
     ModelArrayReferenceStore m_couplingArrays;
 };
