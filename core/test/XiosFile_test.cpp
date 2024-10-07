@@ -1,7 +1,7 @@
 /*!
  * @file    XiosFile_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    5 August 2024
+ * @date    12 August 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -51,36 +51,52 @@ MPI_TEST_CASE("TestXiosFile", 2)
     Duration timestep("P0-0T01:30:00");
     xios_handler.setCalendarTimestep(timestep);
 
-    // Axis setup
+    // Create a simple axis with two points
     xios_handler.createAxis("axis_A");
-    xios_handler.setAxisValues("axis_A", { 0, 1 });
+    xios_handler.setAxisValues("axis_A", { 0.0, 1.0 });
 
-    // Grid setup
+    // Create a 1D grid comprised of the single axis
     xios_handler.createGrid("grid_1D");
     xios_handler.gridAddAxis("grid_1D", "axis_A");
 
-    // Field setup
+    // Create a field on the 1D grid
     xios_handler.createField("field_A");
     xios_handler.setFieldOperation("field_A", "instant");
     xios_handler.setFieldGridRef("field_A", "grid_1D");
 
     // --- Tests for file API
-    const std::string fileId { "output" };
+    const std::string fileId = "output";
+    REQUIRE_THROWS_WITH(xios_handler.getFileName(fileId), "Xios: Undefined file 'output'");
     xios_handler.createFile(fileId);
+    REQUIRE_THROWS_WITH(xios_handler.createFile(fileId), "Xios: File 'output' already exists");
     // File name
-    const std::string fileName { "diagnostic" };
+    REQUIRE_THROWS_WITH(xios_handler.getFileName(fileId), "Xios: Undefined name for file 'output'");
+    const std::string fileName = "diagnostic";
     xios_handler.setFileName(fileId, fileName);
     REQUIRE(xios_handler.getFileName(fileId) == fileName);
     // File type
-    const std::string fileType { "one_file" };
+    REQUIRE_THROWS_WITH(xios_handler.getFileType(fileId), "Xios: Undefined type for file 'output'");
+    const std::string fileType = "one_file";
     xios_handler.setFileType(fileId, fileType);
     REQUIRE(xios_handler.getFileType(fileId) == fileType);
     // Output frequency
+    REQUIRE_THROWS_WITH(xios_handler.getFileOutputFreq(fileId),
+        "Xios: Undefined output frequency for file 'output'");
     xios_handler.setFileOutputFreq(fileId, timestep);
     REQUIRE(xios_handler.getFileOutputFreq(fileId).seconds() == 1.5 * 60 * 60);
     // Split frequency
+    REQUIRE_THROWS_WITH(
+        xios_handler.getFileSplitFreq(fileId), "Xios: Undefined split frequency for file 'output'");
     xios_handler.setFileSplitFreq(fileId, timestep);
     REQUIRE(xios_handler.getFileSplitFreq(fileId).seconds() == 1.5 * 60 * 60);
+    // File mode
+    const std::string mode = "write";
+    xios_handler.setFileMode(fileId, mode);
+    REQUIRE(xios_handler.getFileMode(fileId) == mode);
+    // File parallel access mode
+    const std::string parAccess = "collective";
+    xios_handler.setFileParAccess(fileId, parAccess);
+    REQUIRE(xios_handler.getFileParAccess(fileId) == parAccess);
     // Add field
     xios_handler.fileAddField(fileId, "field_A");
     std::vector<std::string> fieldIds = xios_handler.fileGetFieldIds(fileId);

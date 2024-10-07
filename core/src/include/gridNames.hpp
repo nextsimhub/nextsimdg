@@ -3,6 +3,7 @@
  *
  * @date Aug 23, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef GRIDNAMES_HPP
@@ -29,6 +30,9 @@ static const std::string vWindName = "vwind";
 static const std::string uOceanName = "uocean";
 static const std::string vOceanName = "vocean";
 static const std::string sshName = "ssh";
+
+static const std::string uIOStressName = "uiostress";
+static const std::string vIOStressName = "viostress";
 
 static const std::string coordsName = "coords";
 static const std::string latitudeName = "latitude";

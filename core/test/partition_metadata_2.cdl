@@ -1,13 +1,12 @@
-// partition_metadata_2.cdl
 netcdf partition_metadata_2 {
 dimensions:
-	NX = 30 ;
-	NY = 30 ;
+	NX = 10 ;
+	NY = 9 ;
 	P = 2 ;
-	T = UNLIMITED ; // (0 currently)
-	B = UNLIMITED ; // (0 currently)
-	L = 1 ;
-	R = 1 ;
+	T = 1 ;
+	B = 1 ;
+	L = UNLIMITED ; // (0 currently)
+	R = UNLIMITED ; // (0 currently)
 
 group: bounding_boxes {
   variables:
@@ -17,13 +16,13 @@ group: bounding_boxes {
   	int domain_extent_y(P) ;
   data:
 
-   domain_x = 0, 0 ;
+   domain_x = 0, 4 ;
 
-   domain_y = 0, 16 ;
+   domain_y = 0, 0 ;
 
-   domain_extent_x = 30, 30 ;
+   domain_extent_x = 4, 6 ;
 
-   domain_extent_y = 16, 14 ;
+   domain_extent_y = 9, 9 ;
   } // group bounding_boxes
 
 group: connectivity {
@@ -42,21 +41,20 @@ group: connectivity {
   	int right_neighbor_halos(R) ;
   data:
 
-   top_neighbors = 0, 0 ;
+   top_neighbors = 0, 1 ;
 
-   bottom_neighbors = 0, 0 ;
+   top_neighbor_ids = 0 ;
 
-   left_neighbors = 0, 1 ;
+   top_neighbor_halos = 9 ;
 
-   left_neighbor_ids = 0 ;
+   bottom_neighbors = 1, 0 ;
 
-   left_neighbor_halos = 30 ;
+   bottom_neighbor_ids = 1 ;
 
-   right_neighbors = 1, 0 ;
+   bottom_neighbor_halos = 9 ;
 
-   right_neighbor_ids = 1 ;
+   left_neighbors = 0, 0 ;
 
-   right_neighbor_halos = 30 ;
+   right_neighbors = 0, 0 ;
   } // group connectivity
 }
-

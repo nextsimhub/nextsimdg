@@ -10,6 +10,9 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 
+#ifdef USE_MPI
+#include "ParallelNetcdfFile.hpp"
+#endif
 #include <map>
 #include <ncFile.h>
 #include <string>
@@ -35,7 +38,11 @@ public:
      * Retrieves the ModelState from a restart file of the parametric_grid type.
      * @param filePath The file path containing the file to be read.
      */
+#ifdef USE_MPI
+    ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override;
+#else
     ModelState getModelState(const std::string& filePath) override;
+#endif
 
     /*!
      * @brief Writes the ModelState to a given file location from the provided
@@ -101,7 +108,11 @@ private:
 
     // Existing or open files are a property of the computer outside the individual
     // class instance, so they are static.
+#ifdef USE_MPI
+    static std::map<std::string, netCDF::NcFilePar> openFiles;
+#else
     static std::map<std::string, netCDF::NcFile> openFiles;
+#endif
     static std::map<std::string, size_t> timeIndexByFile;
 };
 

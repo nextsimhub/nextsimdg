@@ -1,8 +1,9 @@
 /*!
  * @file CGDynamicsKernel.hpp
  *
- * @date Jan 31, 2024
+ * @date 27 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef CGDYNAMICSKERNEL_HPP
@@ -34,10 +35,22 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::smesh;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
     using typename DynamicsKernel<DGadvection, DGstressComp>::DataMap;
+    using DynamicsKernel<DGadvection, DGstressComp>::cosOceanAngle;
+    using DynamicsKernel<DGadvection, DGstressComp>::sinOceanAngle;
 
 public:
-    CGDynamicsKernel()
-        : pmap(nullptr)
+    CGDynamicsKernel(double cosOceanAngleIn, double sinOceanAngleIn,
+        const DynamicsParameters& paramsIn, CGVector<CGdegree>& uStressRef,
+        CGVector<CGdegree>& vStressRef)
+        : DynamicsKernel<DGadvection, DGstressComp>(cosOceanAngleIn, sinOceanAngleIn, paramsIn)
+        , pmap(nullptr)
+        , uStress(uStressRef)
+        , vStress(vStressRef)
+    {
+    }
+    CGDynamicsKernel(
+        double cosOceanAngleIn, const DynamicsParameters& paramsIn, double sinOceanAngleIn)
+        : CGDynamicsKernel(cosOceanAngleIn, sinOceanAngleIn, paramsIn, u, v)
     {
     }
     virtual ~CGDynamicsKernel() = default;
@@ -51,6 +64,8 @@ public:
     void stressDivergence() override;
     void applyBoundaries() override;
     void prepareAdvection() override;
+
+    virtual std::pair<CGVector<CGdegree>, CGVector<CGdegree>> getIceOceanStress() const;
 
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);
@@ -78,6 +93,10 @@ protected:
     // Atmospheric wind velocity
     CGVector<CGdegree> uAtmos;
     CGVector<CGdegree> vAtmos;
+
+    // Velocities used to calculate ice-ocean stress. The references must be set in derived classes.
+    CGVector<CGdegree>& uStress;
+    CGVector<CGdegree>& vStress;
 
     ParametricMomentumMap<CGdegree>* pmap;
 };

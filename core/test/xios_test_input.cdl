@@ -1,0 +1,392 @@
+netcdf input {
+dimensions:
+	axis_nbounds = 2 ;
+	axis_A = 2 ;
+	axis_B = 3 ;
+	axis_C = 4 ;
+	axis_D = 5 ;
+	time_counter = UNLIMITED ; // (4 currently)
+variables:
+	float axis_A(axis_A) ;
+		axis_A:name = "axis_A" ;
+	float axis_B(axis_B) ;
+		axis_B:name = "axis_B" ;
+	float axis_C(axis_C) ;
+		axis_C:name = "axis_C" ;
+	float axis_D(axis_D) ;
+		axis_D:name = "axis_D" ;
+	double time_instant(time_counter) ;
+		time_instant:standard_name = "time" ;
+		time_instant:long_name = "Time axis" ;
+		time_instant:calendar = "gregorian" ;
+		time_instant:units = "seconds since 2020-01-23 00:08:15" ;
+		time_instant:time_origin = "2020-01-23 00:08:15" ;
+		time_instant:bounds = "time_instant_bounds" ;
+	double time_instant_bounds(time_counter, axis_nbounds) ;
+	double time_counter(time_counter) ;
+		time_counter:axis = "T" ;
+		time_counter:standard_name = "time" ;
+		time_counter:long_name = "Time axis" ;
+		time_counter:calendar = "gregorian" ;
+		time_counter:units = "seconds since 2020-01-23 00:08:15" ;
+		time_counter:time_origin = "2020-01-23 00:08:15" ;
+		time_counter:bounds = "time_counter_bounds" ;
+	double time_counter_bounds(time_counter, axis_nbounds) ;
+	float field_2D(time_counter, axis_B, axis_A) ;
+		field_2D:online_operation = "instant" ;
+		field_2D:interval_operation = "5400 min" ;
+		field_2D:interval_write = "5400 min" ;
+		field_2D:cell_methods = "time: point" ;
+		field_2D:coordinates = "time_instant" ;
+	float field_3D(time_counter, axis_C, axis_B, axis_A) ;
+		field_3D:online_operation = "instant" ;
+		field_3D:interval_operation = "5400 min" ;
+		field_3D:interval_write = "5400 min" ;
+		field_3D:cell_methods = "time: point" ;
+		field_3D:coordinates = "time_instant" ;
+	float field_4D(time_counter, axis_D, axis_C, axis_B, axis_A) ;
+		field_4D:online_operation = "instant" ;
+		field_4D:interval_operation = "5400 min" ;
+		field_4D:interval_write = "5400 min" ;
+		field_4D:cell_methods = "time: point" ;
+		field_4D:coordinates = "time_instant" ;
+
+// global attributes:
+		:name = "input" ;
+		:description = "Created by xios" ;
+		:title = "Created by xios" ;
+		:Conventions = "CF-1.6" ;
+		:timeStamp = "2024-Jun-27 17:39:59 GMT" ;
+		:uuid = "3c5d57c2-a779-4728-9365-b991e8602cc5" ;
+data:
+
+ axis_A = 0, 1 ;
+
+ axis_B = 0, 1, 2 ;
+
+ axis_C = 0, 1, 2, 3 ;
+
+ axis_D = 0, 1, 2, 3, 4 ;
+
+ time_instant = 99658965, 99982965, 100306965, 100630965 ;
+
+ time_instant_bounds =
+  99658965, 99658965,
+  99982965, 99982965,
+  100306965, 100306965,
+  100630965, 100630965 ;
+
+ time_counter = 99658965, 99982965, 100306965, 100630965 ;
+
+ time_counter_bounds =
+  99658965, 99658965,
+  99982965, 99982965,
+  100306965, 100306965,
+  100630965, 100630965 ;
+
+ field_2D =
+  0, 1,
+  2, 3,
+  4, 5,
+  0, 1,
+  2, 3,
+  4, 5,
+  0, 1,
+  2, 3,
+  4, 5,
+  0, 1,
+  2, 3,
+  4, 5 ;
+
+ field_3D =
+  0, 1,
+  2, 3,
+  4, 5,
+  6, 7,
+  8, 9,
+  10, 11,
+  12, 13,
+  14, 15,
+  16, 17,
+  18, 19,
+  20, 21,
+  22, 23,
+  0, 1,
+  2, 3,
+  4, 5,
+  6, 7,
+  8, 9,
+  10, 11,
+  12, 13,
+  14, 15,
+  16, 17,
+  18, 19,
+  20, 21,
+  22, 23,
+  0, 1,
+  2, 3,
+  4, 5,
+  6, 7,
+  8, 9,
+  10, 11,
+  12, 13,
+  14, 15,
+  16, 17,
+  18, 19,
+  20, 21,
+  22, 23,
+  0, 1,
+  2, 3,
+  4, 5,
+  6, 7,
+  8, 9,
+  10, 11,
+  12, 13,
+  14, 15,
+  16, 17,
+  18, 19,
+  20, 21,
+  22, 23 ;
+
+ field_4D =
+  0, 1,
+  2, 3,
+  4, 5,
+  6, 7,
+  8, 9,
+  10, 11,
+  12, 13,
+  14, 15,
+  16, 17,
+  18, 19,
+  20, 21,
+  22, 23,
+  24, 25,
+  26, 27,
+  28, 29,
+  30, 31,
+  32, 33,
+  34, 35,
+  36, 37,
+  38, 39,
+  40, 41,
+  42, 43,
+  44, 45,
+  46, 47,
+  48, 49,
+  50, 51,
+  52, 53,
+  54, 55,
+  56, 57,
+  58, 59,
+  60, 61,
+  62, 63,
+  64, 65,
+  66, 67,
+  68, 69,
+  70, 71,
+  72, 73,
+  74, 75,
+  76, 77,
+  78, 79,
+  80, 81,
+  82, 83,
+  84, 85,
+  86, 87,
+  88, 89,
+  90, 91,
+  92, 93,
+  94, 95,
+  96, 97,
+  98, 99,
+  100, 101,
+  102, 103,
+  104, 105,
+  106, 107,
+  108, 109,
+  110, 111,
+  112, 113,
+  114, 115,
+  116, 117,
+  118, 119,
+  0, 1,
+  2, 3,
+  4, 5,
+  6, 7,
+  8, 9,
+  10, 11,
+  12, 13,
+  14, 15,
+  16, 17,
+  18, 19,
+  20, 21,
+  22, 23,
+  24, 25,
+  26, 27,
+  28, 29,
+  30, 31,
+  32, 33,
+  34, 35,
+  36, 37,
+  38, 39,
+  40, 41,
+  42, 43,
+  44, 45,
+  46, 47,
+  48, 49,
+  50, 51,
+  52, 53,
+  54, 55,
+  56, 57,
+  58, 59,
+  60, 61,
+  62, 63,
+  64, 65,
+  66, 67,
+  68, 69,
+  70, 71,
+  72, 73,
+  74, 75,
+  76, 77,
+  78, 79,
+  80, 81,
+  82, 83,
+  84, 85,
+  86, 87,
+  88, 89,
+  90, 91,
+  92, 93,
+  94, 95,
+  96, 97,
+  98, 99,
+  100, 101,
+  102, 103,
+  104, 105,
+  106, 107,
+  108, 109,
+  110, 111,
+  112, 113,
+  114, 115,
+  116, 117,
+  118, 119,
+  0, 1,
+  2, 3,
+  4, 5,
+  6, 7,
+  8, 9,
+  10, 11,
+  12, 13,
+  14, 15,
+  16, 17,
+  18, 19,
+  20, 21,
+  22, 23,
+  24, 25,
+  26, 27,
+  28, 29,
+  30, 31,
+  32, 33,
+  34, 35,
+  36, 37,
+  38, 39,
+  40, 41,
+  42, 43,
+  44, 45,
+  46, 47,
+  48, 49,
+  50, 51,
+  52, 53,
+  54, 55,
+  56, 57,
+  58, 59,
+  60, 61,
+  62, 63,
+  64, 65,
+  66, 67,
+  68, 69,
+  70, 71,
+  72, 73,
+  74, 75,
+  76, 77,
+  78, 79,
+  80, 81,
+  82, 83,
+  84, 85,
+  86, 87,
+  88, 89,
+  90, 91,
+  92, 93,
+  94, 95,
+  96, 97,
+  98, 99,
+  100, 101,
+  102, 103,
+  104, 105,
+  106, 107,
+  108, 109,
+  110, 111,
+  112, 113,
+  114, 115,
+  116, 117,
+  118, 119,
+  0, 1,
+  2, 3,
+  4, 5,
+  6, 7,
+  8, 9,
+  10, 11,
+  12, 13,
+  14, 15,
+  16, 17,
+  18, 19,
+  20, 21,
+  22, 23,
+  24, 25,
+  26, 27,
+  28, 29,
+  30, 31,
+  32, 33,
+  34, 35,
+  36, 37,
+  38, 39,
+  40, 41,
+  42, 43,
+  44, 45,
+  46, 47,
+  48, 49,
+  50, 51,
+  52, 53,
+  54, 55,
+  56, 57,
+  58, 59,
+  60, 61,
+  62, 63,
+  64, 65,
+  66, 67,
+  68, 69,
+  70, 71,
+  72, 73,
+  74, 75,
+  76, 77,
+  78, 79,
+  80, 81,
+  82, 83,
+  84, 85,
+  86, 87,
+  88, 89,
+  90, 91,
+  92, 93,
+  94, 95,
+  96, 97,
+  98, 99,
+  100, 101,
+  102, 103,
+  104, 105,
+  106, 107,
+  108, 109,
+  110, 111,
+  112, 113,
+  114, 115,
+  116, 117,
+  118, 119 ;
+}

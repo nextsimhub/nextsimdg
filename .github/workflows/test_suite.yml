@@ -8,27 +8,6 @@ on:
 
 jobs:
 
-  clang-formatter:
-
-    runs-on: ubuntu-22.04
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: clang-format
-      run: |
-
-        sudo apt-get update
-        sudo apt install clang-format
-        cd core/src
-        clang-format --dry-run -Werror *cpp include/*hpp
-        cd -
-        for component in physics dynamics
-        do
-          cd $component/src
-          clang-format --dry-run -Werror *cpp include/*hpp
-          cd -
-        done
-
   test-ubuntu-serial:
 
     runs-on: ubuntu-22.04
@@ -48,13 +27,14 @@ jobs:
     - name: run serial tests
       run: |
         . /opt/spack-environment/activate.sh
+        apt update
         apt install -y wget
         cd build
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         for component in core physics dynamics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f | grep -vP "_MPI\d*$")
+            for file in $(find test* -maxdepth 0 -type f)
             do
               echo $file
               ./$file
@@ -85,13 +65,14 @@ jobs:
     - name: run MPI tests
       run: |
         . /opt/spack-environment/activate.sh
+        apt update
         apt install -y wget
         cd build
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         for component in core physics dynamics
         do
             cd $component/test
-            for file in $(find test* -maxdepth 0 -type f | grep -P "_MPI\d+$")
+            for file in $(find test* -maxdepth 0 -type f)
             do
               echo $file
               nprocs=$(echo $file | sed -r "s/.*MPI([0-9]+)/\1/")
