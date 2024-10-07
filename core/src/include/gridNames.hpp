@@ -1,8 +1,9 @@
 /*!
  * @file gridNames.hpp
  *
- * @date Oct 24, 2022
+ * @date Aug 22, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef GRIDNAMES_HPP
@@ -28,6 +29,9 @@ static const std::string uWindName = "uwind";
 static const std::string vWindName = "vwind";
 static const std::string uOceanName = "uocean";
 static const std::string vOceanName = "vocean";
+
+static const std::string uIOStressName = "uiostress";
+static const std::string vIOStressName = "viostress";
 
 static const std::string coordsName = "coords";
 static const std::string latitudeName = "latitude";

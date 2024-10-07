@@ -40,4 +40,6 @@
 { "sss_slab", "SLAB_SSS" }, // Slab ocean surface salinity PSU
 { "qdw", "SLAB_QDW" }, // Slab ocean temperature nudging heat flux, W m⁻²
 { "fdw", "SLAB_FDW" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+{ "taux", "IO_STRESS_U" }, // Ice-ocean stress x(east) direction, Pa
+{ "tauy", "IO_STRESS_V" }, // Ice-ocean stress x(east) direction, Pa
 
