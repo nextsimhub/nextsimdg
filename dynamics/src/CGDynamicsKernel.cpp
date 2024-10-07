@@ -1,8 +1,9 @@
 /*!
  * @file CGDynamicsKernel.cpp
  *
- * @date Jan 26, 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar ÓLason <einar.olason@nersc.no>
  */
 
 /*
@@ -93,6 +94,16 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) co
         ModelArray data(ModelArray::Type::V);
         DGVector<DGadvection> vtmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
+        return DGModelArray::dg2ma(vtmp, data);
+    } else if (name == uIOStressName) {
+        ModelArray data(ModelArray::Type::U);
+        DGVector<DGadvection> utmp(*smesh);
+        Nextsim::Interpolations::CG2DG(*smesh, utmp, getIceOceanStress().first);
+        return DGModelArray::dg2ma(utmp, data);
+    } else if (name == vIOStressName) {
+        ModelArray data(ModelArray::Type::V);
+        DGVector<DGadvection> vtmp(*smesh);
+        Nextsim::Interpolations::CG2DG(*smesh, vtmp, getIceOceanStress().second);
         return DGModelArray::dg2ma(vtmp, data);
     } else {
         return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
@@ -284,6 +295,28 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
     dirichletZero(u);
     dirichletZero(v);
     // TODO Periodic boundary conditions.
+}
+
+template <int DGadvection>
+std::pair<CGVector<CGdegree>, CGVector<CGdegree>>
+CGDynamicsKernel<DGadvection>::getIceOceanStress() const
+{
+    CGVector<CGdegree> taux, tauy;
+    taux.resizeLike(uStress);
+    tauy.resizeLike(vStress);
+
+#pragma omp parallel for
+    for (int i = 0; i < taux.rows(); ++i) {
+        const double uOceanRel = uOcean(i) - uStress(i);
+        const double vOceanRel = vOcean(i) - vStress(i);
+        const double cPrime = DynamicsKernel<DGadvection, DGstressComp>::getParams().F_ocean
+            * std::hypot(uOceanRel, vOceanRel);
+
+        taux(i) = cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
+        tauy(i) = cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
+    }
+
+    return { taux, tauy };
 }
 
 // Instantiate the templates for all (1, 3, 6) degrees of DGadvection

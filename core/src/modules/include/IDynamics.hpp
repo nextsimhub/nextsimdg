@@ -1,8 +1,9 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 7 Sep 2023
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef IDYNAMICS_HPP
@@ -23,6 +24,8 @@ public:
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
         , damage(ModelArray::Type::H)
+        , taux(ModelArray::Type::H)
+        , tauy(ModelArray::Type::H)
         , hice(getStore())
         , cice(getStore())
         , hsnow(getStore())
@@ -34,6 +37,8 @@ public:
         , m_usesDamage(usesDamageIn)
     {
         getStore().registerArray(Shared::DAMAGE, &damage, RW);
+        getStore().registerArray(Protected::IO_STRESS_U, &taux, RO);
+        getStore().registerArray(Protected::IO_STRESS_V, &tauy, RO);
     }
     virtual ~IDynamics() = default;
 
@@ -76,12 +81,14 @@ protected:
     HField vice;
     // Updated damage array
     HField damage;
+    // Ice-ocean stress (for the coupler, mostly)
+    HField taux;
+    HField tauy;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;
     ModelArrayRef<Shared::H_SNOW, RW> hsnow;
     ModelArrayRef<Protected::DAMAGE, RO> damage0;
-    // ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
 
     // References to the forcing velocity arrays
     ModelArrayRef<Protected::WIND_U> uwind;

@@ -1,8 +1,9 @@
 /*!
  * @file VPCGDynamicsKernel.hpp
  *
- * @date Feb 2, 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef VPCGDYNAMICSKERNEL_HPP
@@ -51,11 +52,13 @@ protected:
 public:
     VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
         const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
+        // Note that the ocean turning angle is explicitly zero at present
+        : CGDynamicsKernel<DGadvection>(1., 0., paramsIn, u, v)
         , stressStep(stressStepIn)
         , params(reinterpret_cast<const VPParameters&>(paramsIn))
     {
     }
+
     virtual ~VPCGDynamicsKernel() = default;
     void update(const TimestepTime& tst) override
     {
@@ -92,7 +95,7 @@ public:
 
 protected:
     StressUpdateStep<DGadvection, DGstressComp>& stressStep;
-    const VPParameters& params;
+    const VPParameters params;
     const double alpha = 1500.;
     const double beta = 1500.;
 
