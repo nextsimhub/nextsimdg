@@ -1,18 +1,18 @@
 /*!
  * @file FiniteElementFluxes.hpp
  *
- * @date Apr 29, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FINITEELEMENTFLUXES_HPP
 #define FINITEELEMENTFLUXES_HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
@@ -111,8 +111,7 @@ private:
     ModelArrayRef<Protected::P_AIR> p_air;
     ModelArrayRef<Protected::WIND_SPEED> v_air;
     ModelArrayRef<Protected::H_SNOW> h_snow; // cell-averaged value
-    ModelArrayRef<Protected::HTRUE_SNOW>
-        h_snow_true; // cell-averaged value
+    ModelArrayRef<Protected::HTRUE_SNOW> h_snow_true; // cell-averaged value
     ModelArrayRef<Protected::C_ICE> cice;
     ModelArrayRef<Protected::T_ICE> tice;
     ModelArrayRef<Protected::SW_IN> sw_in;

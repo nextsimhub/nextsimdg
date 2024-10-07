@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 11 May 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -30,8 +30,8 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
-#include <sstream>
 #include <filesystem>
+#include <sstream>
 
 const std::string test_files_dir = TEST_FILES_DIR;
 #ifdef USE_MPI
@@ -54,10 +54,10 @@ TEST_CASE("Test periodic output")
 
 #ifdef USE_MPI
     if (test_rank == 0) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 0);
     }
     if (test_rank == 1) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);

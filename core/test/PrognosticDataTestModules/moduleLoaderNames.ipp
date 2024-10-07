@@ -1,8 +1,7 @@
-    m_availableImplementationNames = {
+m_availableImplementationNames = {
+    { "Nextsim::IFreezingPoint",
         {
-        "Nextsim::IFreezingPoint", {
             "Nextsim::LinearFreezing",
             "Nextsim::UnescoFreezing",
-            }
-        },
-    };
+        } },
+};

@@ -1,7 +1,7 @@
 /*!
  * @file SimpleOutput.hpp
  *
- * @date May 25, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -25,6 +25,7 @@ public:
     // No configuration in getState
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
+
 private:
     std::string m_filePrefix;
 };
