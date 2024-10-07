@@ -30,8 +30,7 @@ static const std::string evapKey = pfx + ".evaporation";
 static const std::string uKey = pfx + ".wind_u";
 static const std::string vKey = pfx + ".wind_v";
 
-template <>
-const std::map<int, std::string> Configured<FluxConfiguredAtmosphere>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { FluxConfiguredAtmosphere::QIA_KEY, qiaKey },
     { FluxConfiguredAtmosphere::DQIA_DT_KEY, dqiaKey },
     { FluxConfiguredAtmosphere::QOW_KEY, qowKey },

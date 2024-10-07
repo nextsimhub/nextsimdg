@@ -13,14 +13,15 @@
 #include "include/ThermoWinton.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/ConfiguredModule.hpp"
 #include "include/constants.hpp"
 #include "include/IAtmosphereBoundary.hpp"
-#include "include/FreezingPointModule.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/IIceAlbedo.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 #include "include/UniformOcean.hpp"
 
@@ -32,19 +33,15 @@ TEST_CASE("Melting conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {
@@ -136,19 +133,15 @@ TEST_CASE("Freezing conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {
@@ -243,19 +236,15 @@ TEST_CASE("No ice do nothing")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {

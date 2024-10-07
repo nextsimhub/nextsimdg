@@ -37,8 +37,6 @@ int main(int argc, char* argv[])
     } catch (const std::exception& e) {
         // Do nothing. If there is no additional configuration to be parse, ignore it.
     }
-    // Parse the configuration to load those that are explicitly configured
-    Nextsim::ConfiguredModule::parseConfigurator();
 
     if (!cmdLine.configHelp().empty()) {
         Nextsim::Model::HelpMap map;

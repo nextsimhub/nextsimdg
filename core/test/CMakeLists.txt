@@ -196,12 +196,6 @@ else()
     add_executable(testConfiguredModule "ConfiguredModule_test.cpp" "ArgV.cpp")
     target_link_libraries(testConfiguredModule PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testTimer "Timer_test.cpp")
-    target_link_libraries(testTimer PRIVATE nextsimlib doctest::doctest)
-
-    add_executable(testScopedTimer "ScopedTimer_test.cpp" "../src/ScopedTimer.cpp")
-    target_link_libraries(testScopedTimer PRIVATE nextsimlib doctest::doctest)
-
     add_executable(testTimeClasses "Time_test.cpp")
     target_link_libraries(testTimeClasses PRIVATE nextsimlib doctest::doctest)
 
@@ -248,6 +242,13 @@ else()
         "../../core/src/FileCallbackCloser.cpp"
     )
     target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
+
+    add_executable(
+        testFinalizer
+        "Finalizer_test.cpp"
+        "../../core/src/Finalizer.cpp"
+    )
+    target_link_libraries(testFinalizer PRIVATE doctest::doctest)
 
     set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
 

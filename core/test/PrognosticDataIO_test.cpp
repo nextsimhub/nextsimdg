@@ -15,7 +15,7 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/StructureFactory.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/constants.hpp"

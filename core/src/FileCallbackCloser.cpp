@@ -9,16 +9,14 @@
 
 namespace Nextsim {
 
-std::list<FileCallbackCloser::ClosingFn> FileCallbackCloser::closingFns;
-
-void FileCallbackCloser::onClose(FileCallbackCloser::ClosingFn fn) { closingFns.push_back(fn); }
+void FileCallbackCloser::onClose(FileCallbackCloser::ClosingFn fn) { closingFns().push_back(fn); }
 
 void FileCallbackCloser::close(const std::string& filename)
 {
-    for (auto& fn : closingFns) {
+    for (auto& fn : closingFns()) {
         fn(filename);
     }
 }
 
-void FileCallbackCloser::clearAllClose() { closingFns.clear(); }
+void FileCallbackCloser::clearAllClose() { closingFns().clear(); }
 } /* namespace Nextsim */

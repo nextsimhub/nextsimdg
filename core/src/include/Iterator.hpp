@@ -66,7 +66,7 @@ public:
     void run();
 
 private:
-    Iterant* iterant; // FIXME smart pointer
+    Iterant* iterant;
     TimePoint startTime;
     TimePoint stopTime;
     Duration timestep;
@@ -114,11 +114,7 @@ public:
         inline void iterate(const TimestepTime& dt) {};
         inline void stop(const TimePoint& stopTime) {};
     };
-
-    //! A static instance of the NullIterant class.
-    static NullIterant nullIterant;
 };
-
 } /* namespace Nextsim */
 
 #endif /* SRC_INCLUDE_ITERATOR_HPP */

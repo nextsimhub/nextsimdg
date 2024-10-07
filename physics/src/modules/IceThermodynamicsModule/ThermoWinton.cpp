@@ -38,8 +38,7 @@ ThermoWinton::ThermoWinton()
     snowToIce.resize();
 }
 
-template <>
-const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ThermoWinton::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
     { ThermoWinton::FLOODING_KEY, "nextsim_thermo.doFlooding" },
 };

@@ -10,12 +10,7 @@
 
 namespace Nextsim {
 
-Iterator::NullIterant Iterator::nullIterant;
-
-Iterator::Iterator()
-    : iterant(&nullIterant)
-{
-}
+Iterator::Iterator() { iterant = new NullIterant(); }
 
 Iterator::Iterator(Iterant* iterant)
     : iterant(iterant)

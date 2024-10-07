@@ -13,7 +13,7 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>
