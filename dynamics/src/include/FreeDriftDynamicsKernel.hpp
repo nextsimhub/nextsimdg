@@ -4,7 +4,7 @@
  * Implementation of "classic free drift", where we ignore all \rho h terms in the momentum
  * equation. This is equivalent to assuming that the ice is very thin.
  *
- * @date 27 Aug 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -36,7 +36,7 @@ template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKern
 public:
     FreeDriftDynamicsKernel(const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>(cos(radians * paramsIn.ocean_turning_angle),
-            sin(radians * paramsIn.ocean_turning_angle), paramsIn, u, v)
+              sin(radians * paramsIn.ocean_turning_angle), paramsIn, u, v)
         , params(paramsIn)
     {
     }

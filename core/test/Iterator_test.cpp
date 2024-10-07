@@ -1,6 +1,6 @@
 /*!
  * @file Iterator_test.cpp
- * @date 12 Aug 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -32,19 +32,14 @@ public:
     int stopCount;
 };
 
-template<typename T>
-T zeroTime();
+template <typename T> T zeroTime();
 
-template<>
+template <>
 std::chrono::time_point<Iterator::Clock> zeroTime<std::chrono::time_point<Iterator::Clock>>()
 {
     return Iterator::Clock::now();
 }
-template<>
-size_t zeroTime<size_t>()
-{
-    return 0;
-}
+template <> size_t zeroTime<size_t>() { return 0; }
 
 TEST_SUITE_BEGIN("Iterator");
 TEST_CASE("Count iterator testing")
