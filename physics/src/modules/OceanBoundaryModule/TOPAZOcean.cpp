@@ -54,7 +54,7 @@ void TOPAZOcean::configure()
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
+    std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v", "ssh" };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     sstExt = state.data.at("sst");
@@ -62,6 +62,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     mld = state.data.at("mld");
     u = state.data.at("u");
     v = state.data.at("v");
+    ssh = state.data.at("ssh");
 
     cpml = Water::rho * Water::cp * mld;
     overElements(

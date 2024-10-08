@@ -1,7 +1,7 @@
 /*!
  * @file ConstantOceanBoundary.cpp
  *
- * @date Sep 26, 2022
+ * @date Aug 23, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -29,6 +29,7 @@ void ConstantOceanBoundary::setData(const ModelState::DataMap& ms)
     sst = tf32; // Tf == SST ensures that there is no ice-ocean heat flux
     cpml = Water::cp * Water::rho * mld;
     qio = 0.;
+    ssh = 0.;
 }
 
 void ConstantOceanBoundary::updateBefore(const TimestepTime& tst)

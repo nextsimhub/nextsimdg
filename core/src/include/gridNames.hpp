@@ -29,6 +29,7 @@ static const std::string uWindName = "uwind";
 static const std::string vWindName = "vwind";
 static const std::string uOceanName = "uocean";
 static const std::string vOceanName = "vocean";
+static const std::string sshName = "ssh";
 
 static const std::string uIOStressName = "uiostress";
 static const std::string vIOStressName = "viostress";

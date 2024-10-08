@@ -43,6 +43,8 @@ protected:
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
+    using CGDynamicsKernel<DGadvection>::uGradSeasurfaceHeight;
+    using CGDynamicsKernel<DGadvection>::vGradSeasurfaceHeight;
     using CGDynamicsKernel<DGadvection>::uAtmos;
     using CGDynamicsKernel<DGadvection>::vAtmos;
     using CGDynamicsKernel<DGadvection>::uOcean;
@@ -204,8 +206,10 @@ protected:
                 + cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
 
             // Stress gradient
-            const double gradX = dStressX(i) / pmap->lumpedcgmass(i);
-            const double gradY = dStressY(i) / pmap->lumpedcgmass(i);
+            const double gradX = dStressX(i) / pmap->lumpedcgmass(i)
+                - params.rho_ice * cgH(i) * params.gravity * uGradSeasurfaceHeight(i);
+            const double gradY = dStressY(i) / pmap->lumpedcgmass(i)
+                - params.rho_ice * cgH(i) * params.gravity * vGradSeasurfaceHeight(i);
 
             u(i) = alpha * uIce + beta * vIce
                 + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));
