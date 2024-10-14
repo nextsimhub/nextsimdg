@@ -27,6 +27,8 @@ public:
 
     double ocean_turning_angle; //!< Ocean turning angle
 
+    double gravity; //!< gravity parameter
+
     DynamicsParameters()
     {
         rho_ice = 900.0; //!< Sea ice density
@@ -43,6 +45,8 @@ public:
 
         ocean_turning_angle = 25.; //!< Ocean turning angle
         ocean_turning_angle = 0.0; // FIXME decide between ocean turning angles
+
+        gravity = 9.81; //!< gravity parameter
     }
 };
 }

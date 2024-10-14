@@ -51,20 +51,20 @@ public:
             // Here, one should check if it is enough to use a 2-point Gauss rule.
             // We're dealing with dG2, 3-point Gauss should be required.
 
-            const LocalEdgeVector<nGauss* nGauss> h_gauss
+            const LocalEdgeVector<nGauss * nGauss> h_gauss
                 = (h.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).matrix();
-            const LocalEdgeVector<nGauss* nGauss> a_gauss
+            const LocalEdgeVector<nGauss * nGauss> a_gauss
                 = (a.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).min(1.0).matrix();
 
-            const LocalEdgeVector<nGauss* nGauss> e11_gauss = e11.row(i) * PSI<DGstress, nGauss>;
-            const LocalEdgeVector<nGauss* nGauss> e12_gauss = e12.row(i) * PSI<DGstress, nGauss>;
-            const LocalEdgeVector<nGauss* nGauss> e22_gauss = e22.row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss * nGauss> e11_gauss = e11.row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss * nGauss> e12_gauss = e12.row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss * nGauss> e22_gauss = e22.row(i) * PSI<DGstress, nGauss>;
 
-            const LocalEdgeVector<nGauss* nGauss> DELTA = (SQR(vpParams.DeltaMin)
+            const LocalEdgeVector<nGauss * nGauss> DELTA = (SQR(vpParams.DeltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array() + e12_gauss.array().square())
-                                                              .sqrt()
-                                                              .matrix();
+                                                               .sqrt()
+                                                               .matrix();
             // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i,
             // 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
@@ -72,7 +72,7 @@ public:
 
             //   //! Ice strength
             //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
-            const LocalEdgeVector<nGauss* nGauss> P
+            const LocalEdgeVector<nGauss * nGauss> P
                 = (vpParams.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
                       .matrix();
 

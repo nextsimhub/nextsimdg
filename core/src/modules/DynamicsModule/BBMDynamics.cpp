@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date Jul 1, 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -80,6 +80,7 @@ void BBMDynamics::update(const TimestepTime& tst)
     kernel.setData(vWindName, vwind.data());
     kernel.setData(uOceanName, uocean.data());
     kernel.setData(vOceanName, vocean.data());
+    kernel.setData(sshName, ssh.data());
 
     /*
      * Ice velocity components are stored in the dynamics, and not changed by the model outside the
@@ -94,6 +95,9 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+
+    taux = kernel.getDG0Data(uIOStressName);
+    tauy = kernel.getDG0Data(vIOStressName);
 }
 
 // All data for prognostic output

@@ -1,12 +1,7 @@
 static Nextsim::IFreezingPoint* p_IFreezingPoint;
-template<>
-Nextsim::IFreezingPoint& ModuleLoader::getImplementation()
-{
-    return *p_IFreezingPoint;
-}
+template <> Nextsim::IFreezingPoint& ModuleLoader::getImplementation() { return *p_IFreezingPoint; }
 std::unique_ptr<Nextsim::IFreezingPoint> (*pf_IFreezingPoint)();
-template<>
-std::unique_ptr<Nextsim::IFreezingPoint> ModuleLoader::getInstance() const
+template <> std::unique_ptr<Nextsim::IFreezingPoint> ModuleLoader::getInstance() const
 {
     return (*pf_IFreezingPoint)();
 }

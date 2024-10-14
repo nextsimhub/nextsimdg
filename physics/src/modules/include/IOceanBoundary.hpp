@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date Sep 12, 2022
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -13,11 +13,12 @@
 namespace Nextsim {
 
 namespace CouplingFields {
-constexpr TextTag SST = "SST"; // sea surface temperature ˚C
-constexpr TextTag SSS = "SSS"; // sea surface salinity PSU
-constexpr TextTag MLD = "MLD"; // Mixed layer or slab ocean depth m
-constexpr TextTag OCEAN_U = "U"; // x(east)-ward ocean current m s⁻¹
-constexpr TextTag OCEAN_V = "V"; // y(north)-ward ocean current m s⁻¹
+    constexpr TextTag SST = "SST"; // sea surface temperature ˚C
+    constexpr TextTag SSS = "SSS"; // sea surface salinity PSU
+    constexpr TextTag MLD = "MLD"; // Mixed layer or slab ocean depth m
+    constexpr TextTag OCEAN_U = "U"; // x(east)-ward ocean current m s⁻¹
+    constexpr TextTag OCEAN_V = "V"; // y(north)-ward ocean current m s⁻¹
+    constexpr TextTag SSH = "SSH"; // sea surface height, m
 }
 //! An interface class for the oceanic inputs into the ice physics.
 class IOceanBoundary : public ModelComponent {
@@ -37,6 +38,7 @@ public:
         getStore().registerArray(Protected::TF, &tf, RO);
         getStore().registerArray(Protected::OCEAN_U, &u, RO);
         getStore().registerArray(Protected::OCEAN_V, &v, RO);
+        getStore().registerArray(Protected::SSH, &ssh, RO);
     }
     virtual ~IOceanBoundary() = default;
 
@@ -54,6 +56,7 @@ public:
         tf.resize();
         u.resize();
         v.resize();
+        ssh.resize();
 
         if (ms.count("sst")) {
             sst = ms.at("sst");
@@ -86,6 +89,7 @@ protected:
     HField cpml; // Heat capacity of the mixed layer, J K⁻¹ m²
     UField u; // x(east)-ward ocean current, m s⁻¹
     VField v; // y(north)-ward ocean current, m s⁻¹
+    HField ssh; // sea surface height, m
 
     ModelArrayReferenceStore m_couplingArrays;
 };

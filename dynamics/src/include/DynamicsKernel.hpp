@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date Jan 5, 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,6 +9,7 @@
 #define DYNAMICSKERNEL_HPP
 
 #include "DGTransport.hpp"
+#include "DynamicsParameters.hpp"
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
@@ -39,7 +40,14 @@ public:
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
     typedef std::map<typename DataMapping::first_type, typename DataMapping::second_type> DataMap;
 
-    DynamicsKernel() = default;
+    DynamicsKernel(
+        double cosOceanAngleIn, double sinOceanAngleIn, const DynamicsParameters& paramsIn)
+        : cosOceanAngle(cosOceanAngleIn)
+        , sinOceanAngle(sinOceanAngleIn)
+        , baseParams(paramsIn)
+        , deltaT(0.)
+    {
+    }
     virtual ~DynamicsKernel() = default;
     virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
@@ -63,6 +71,8 @@ public:
         // resize DG vectors
         hice.resize_by_mesh(*smesh);
         cice.resize_by_mesh(*smesh);
+
+        seaSurfaceHeight.resize_by_mesh(*smesh);
 
         e11.resize_by_mesh(*smesh);
         e12.resize_by_mesh(*smesh);
@@ -96,6 +106,8 @@ public:
             DGModelArray::ma2dg(data, hice);
         } else if (name == ciceName) {
             DGModelArray::ma2dg(data, cice);
+        } else if (name == sshName) {
+            DGModelArray::ma2dg(data, seaSurfaceHeight);
         } else {
             // All other fields get shoved in a (labelled) bucket
             DGModelArray::ma2dg(data, advectedFields[name]);
@@ -172,6 +184,9 @@ protected:
     DGVector<DGadvection> hice;
     DGVector<DGadvection> cice;
 
+    //! Vector storing the sea surface height (only dG(0) averages)
+    DGVector<1> seaSurfaceHeight;
+
     //! Vectors storing strain and stress components
     DGVector<DGstress> e11, e12, e22;
     DGVector<DGstress> s11, s12, s22;
@@ -183,6 +198,10 @@ protected:
     double deltaT;
 
     Nextsim::ParametricMesh* smesh;
+
+    // Components of the ocean turning angle
+    const double cosOceanAngle = 1.;
+    const double sinOceanAngle = 0.;
 
     virtual void updateMomentum(const TimestepTime& tst) = 0;
 
@@ -213,11 +232,18 @@ protected:
      */
     virtual void prepareAdvection() = 0;
 
+    /*!
+     * Returns a const reference to the dynamics parameters
+     */
+    const DynamicsParameters& getParams() const { return baseParams; }
+
 private:
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
     // A map from field name to the type of
     std::unordered_map<std::string, ModelArray::Type> fieldType;
+
+    const DynamicsParameters& baseParams;
 };
 
 }
