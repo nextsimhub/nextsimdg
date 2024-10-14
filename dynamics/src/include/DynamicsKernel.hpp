@@ -107,6 +107,7 @@ public:
         } else if (name == ciceName) {
             DGModelArray::ma2dg(data, cice);
         } else if (name == sshName) {
+            seaSurfaceHeight.zero();
             DGModelArray::ma2dg(data, seaSurfaceHeight);
         } else {
             // All other fields get shoved in a (labelled) bucket
