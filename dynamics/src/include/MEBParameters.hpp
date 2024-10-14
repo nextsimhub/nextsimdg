@@ -1,6 +1,6 @@
 /*!
  * @file MEBParameters.hpp
- * @date 18 Jan 2024
+ * @date 14 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -61,7 +61,7 @@ public:
 
         compr_strength
             = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
-        C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
+        C_lab = 1.7e6; //! \param C_lab (double) Test [Pa]
     }
 };
 
