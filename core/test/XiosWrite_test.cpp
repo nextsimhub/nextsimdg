@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    21 August 2024
+ * @date    24 Sep 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the write method of the C++ interface
@@ -99,8 +99,10 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
     const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
     const size_t nz = xios_handler.getAxisSize("z_axis");
-    ModelArray::setDimension(ModelArray::Dimension::X, xios_handler.getDomainGlobalXSize("xy_domain"), nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, xios_handler.getDomainGlobalYSize("xy_domain"), ny, 0);
+    ModelArray::setDimension(
+        ModelArray::Dimension::X, xios_handler.getDomainGlobalXSize("xy_domain"), nx, 0);
+    ModelArray::setDimension(
+        ModelArray::Dimension::Y, xios_handler.getDomainGlobalYSize("xy_domain"), ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
     // Create some fake data to test writing methods
     HField field_2D(ModelArray::Type::H);

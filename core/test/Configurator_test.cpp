@@ -1,7 +1,7 @@
 /*!
  * @file Configurator_test.cpp
  *
- * @date Oct 8, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -62,15 +62,15 @@ private:
 };
 
 const std::map<int, std::string> keyMap2 = {
-        {Config2::VALUE_KEY, "config.value"},
-        {Config2::NAME_KEY, "config.name"},
+    {Config2::VALUE_KEY, "config.value"},
+    {Config2::NAME_KEY, "config.name"},
 };
 
 Config2::Config2()
     : value(0)
 {
-addOption<int>(keyMap2.at(VALUE_KEY), -1);
-addOption<std::string>(keyMap2.at(NAME_KEY), "");
+    addOption<int>(keyMap2.at(VALUE_KEY), -1);
+    addOption<std::string>(keyMap2.at(NAME_KEY), "");
 }
 
 void Config2::configure()
@@ -79,7 +79,6 @@ void Config2::configure()
     name = retrieveValue<std::string>(keyMap2.at(NAME_KEY));
 }
 
-
 class Config3 : public Nextsim::Configured<Config3> {
 public:
     enum {
@@ -87,10 +86,10 @@ public:
         WEIGHT_KEY,
     };
     Config3()
-    : value(0)
-    , weight(0.)
-{
-}
+        : value(0)
+        , weight(0.)
+    {
+    }
     int getValue() { return value; }
     double getWeight() { return weight; }
 
@@ -196,7 +195,6 @@ TEST_CASE("Parse config streams for two overlapping class, try")
     Config3::clearConfigurationMap();
     Config2 config;
     Config3 confih;
-
 
     int target = 69105;
     std::string targetName = "Zork II";

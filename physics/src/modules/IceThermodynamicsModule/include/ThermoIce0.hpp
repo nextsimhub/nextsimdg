@@ -1,16 +1,16 @@
 /*!
  * @file ThermoIce0.hpp
  *
- * @date Mar 17, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef THERMOICE0HPP
 #define THERMOICE0HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
+#include "include/ModelArrayRef.hpp"
 namespace Nextsim {
 
 //! A class implementing IIceThermodynamics as the ThermoIce0 model.

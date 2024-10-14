@@ -1,8 +1,9 @@
 /*!
  * @file VPCGDynamicsKernel.hpp
  *
- * @date Feb 2, 2024
+ * @date Aug 23, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef VPCGDYNAMICSKERNEL_HPP
@@ -36,6 +37,8 @@ protected:
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
+    using CGDynamicsKernel<DGadvection>::uGradSeasurfaceHeight;
+    using CGDynamicsKernel<DGadvection>::vGradSeasurfaceHeight;
     using CGDynamicsKernel<DGadvection>::uAtmos;
     using CGDynamicsKernel<DGadvection>::vAtmos;
     using CGDynamicsKernel<DGadvection>::uOcean;
@@ -51,11 +54,13 @@ protected:
 public:
     VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
         const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
+        // Note that the ocean turning angle is explicitly zero at present
+        : CGDynamicsKernel<DGadvection>(1., 0., paramsIn, u, v)
         , stressStep(stressStepIn)
         , params(reinterpret_cast<const VPParameters&>(paramsIn))
     {
     }
+
     virtual ~VPCGDynamicsKernel() = default;
     void update(const TimestepTime& tst) override
     {
@@ -92,7 +97,7 @@ public:
 
 protected:
     StressUpdateStep<DGadvection, DGstressComp>& stressStep;
-    const VPParameters& params;
+    const VPParameters params;
     const double alpha = 1500.;
     const double beta = 1500.;
 
@@ -122,7 +127,9 @@ protected:
                     + cgA(i)
                         * (params.F_atm * absatm * uAtmos(i) + // atm forcing
                             params.F_ocean * absocn * SC * uOcean(i)) // ocean forcing
-                    + params.rho_ice * cgH(i) * params.fc * vOcnRel // cor + surface
+                    - params.rho_ice * cgH(i) * params.fc * u(i) // Coriolis
+                    - params.rho_ice * cgH(i) * params.gravity
+                        * uGradSeasurfaceHeight(i) // sea surface
                     + dStressX(i) / pmap->lumpedcgmass(i)));
             v(i) = (1.0
                 / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
@@ -132,7 +139,10 @@ protected:
                         * (params.F_atm * absatm * vAtmos(i) + // atm forcing
                             params.F_ocean * absocn * SC * vOcean(i)) // ocean forcing
                     + params.rho_ice * cgH(i) * params.fc
-                        * uOcnRel // here the reversed sign of uOcnRel is used
+                        * v(i) // Coriolis -  here the reversed sign of uOcnRel is used
+                    - params.rho_ice * cgH(i) * params.gravity
+                        * vGradSeasurfaceHeight(i) // sea surface
+
                     + dStressY(i) / pmap->lumpedcgmass(i)));
         }
     }

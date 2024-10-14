@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -49,7 +49,8 @@ TEST_CASE("Melting conditions")
 
     class AtmosphereData : public ModelComponent {
     public:
-        AtmosphereData() {
+        AtmosphereData()
+        {
             getStore().registerArray(Protected::T_AIR, &tair, RO);
             getStore().registerArray(Protected::DEW_2M, &tdew, RO);
             getStore().registerArray(Protected::P_AIR, &pair, RO);
@@ -98,7 +99,6 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Protected::T_ICE, &tice0, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
-
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -118,7 +118,7 @@ TEST_CASE("Melting conditions")
         HField cice;
         HField hsnow;
         HField tice0;
-        HField hice0;  // ice averaged ice thickness
+        HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -250,7 +250,7 @@ TEST_CASE("Freezing conditions")
         HField cice;
         HField hsnow;
         HField tice0;
-        HField hice0;  // ice averaged ice thickness
+        HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
 
         ModelState getState() const override { return ModelState(); }

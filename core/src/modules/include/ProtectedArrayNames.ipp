@@ -1,7 +1,7 @@
 /*!
  * @file ProtectedArrayNames.ipp
  *
- * @date 1 Jul 2024
+ * @date 23 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -40,4 +40,6 @@
 { "sss_slab", "SLAB_SSS" }, // Slab ocean surface salinity PSU
 { "qdw", "SLAB_QDW" }, // Slab ocean temperature nudging heat flux, W m⁻²
 { "fdw", "SLAB_FDW" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
-
+{ "ssh", "SSH" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+{ "taux", "IO_STRESS_U" }, // Ice-ocean stress x(east) direction, Pa
+{ "tauy", "IO_STRESS_V" }, // Ice-ocean stress x(east) direction, Pa

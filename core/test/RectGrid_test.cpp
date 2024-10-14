@@ -1,7 +1,7 @@
 /*!
  * @file RectGrid_test.cpp
  *
- * @date Feb 8, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -12,17 +12,15 @@
 #include <doctest/doctest.h>
 #endif
 
-
 #include "include/CommonRestartMetadata.hpp"
-#include "include/NZLevels.hpp"
-#include "include/RectangularGrid.hpp"
-#include "include/RectGridIO.hpp"
 #include "include/IStructure.hpp"
+#include "include/NZLevels.hpp"
+#include "include/RectGridIO.hpp"
+#include "include/RectangularGrid.hpp"
 #include "include/gridNames.hpp"
 
 #include <cstdio>
 #include <fstream>
-
 
 const std::string test_files_dir = TEST_FILES_DIR;
 const std::string filename = test_files_dir + "/RectGrid_test.nc";
@@ -50,7 +48,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     double yFactor = 0.01;
     double xFactor = 0.0001;
 
-// Create data for reference file
+    // Create data for reference file
     NZLevels::set(1);
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
     ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, NZLevels::get() });
@@ -60,7 +58,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     for (int j = 0; j < ny; ++j) {
         for (int i = 0; i < nx; ++i) {
             fractional(i, j) = j * yFactor + i * xFactor;
-            mask(i, j) = (i - nx / 2)*(i - nx/2) + (j - ny / 2) * (j - ny / 2)  > (nx * ny) ? 0 : 1;
+            mask(i, j)
+                = (i - nx / 2) * (i - nx / 2) + (j - ny / 2) * (j - ny / 2) > (nx * ny) ? 0 : 1;
         }
     }
 
@@ -74,13 +73,14 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     ZField tice = ModelArray::ZField();
     tice.setData(ticeValue);
 
-    ModelState state = {{
-        { "mask", mask },
-        { "hice", hice },
-        { "cice", cice },
-        { "hsnow", hsnow },
-        { "tice", tice },
-    }, {}};
+    ModelState state = { {
+                             { "mask", mask },
+                             { "hice", hice },
+                             { "cice", cice },
+                             { "hsnow", hsnow },
+                             { "tice", tice },
+                         },
+        {} };
 
     ModelMetadata metadata;
     metadata.setTime(TimePoint(date_string));
@@ -100,10 +100,10 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     }
     // Use a temporary state to set the coordinates
     ModelState coordState = { {
-            {xName, x},
-            {yName, y},
-    }, {}
-    };
+                                  { xName, x },
+                                  { yName, y },
+                              },
+        {} };
     metadata.extractCoordinates(coordState);
     // Then immediately extract them to the output state
     metadata.affixCoordinates(state);
@@ -115,7 +115,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     int colour = MPI_UNDEFINED, key = 0;
     MPI_Comm rank0Comm;
 
-    if(metadata.mpiMyRank ==0) {
+    if (metadata.mpiMyRank == 0) {
         colour = 0;
     }
     MPI_Comm_split(test_comm, colour, key, &rank0Comm);
@@ -136,9 +136,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     grid.dumpModelState(state, metadata, filename);
 #endif
 
-
-// Reset dimensions so it is possible to check if they
-// are read correctly from refeence file
+    // Reset dimensions so it is possible to check if they
+    // are read correctly from refeence file
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
@@ -146,7 +145,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     size_t targetX = 1;
     size_t targetY = 2;
 
-// Read reference file
+    // Read reference file
     gridIn.setIO(new RectGridIO(grid));
 #ifdef USE_MPI
     ModelMetadata metadataIn(partition_filename, test_comm);
@@ -169,7 +168,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
 #endif
 #ifdef USE_MPI
-    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201 + metadataIn.localCornerY * yFactor + metadataIn.localCornerX * xFactor);
+    REQUIRE(ms.data.at("hice")(targetX, targetY)
+        == 1.0201 + metadataIn.localCornerY * yFactor + metadataIn.localCornerX * xFactor);
 #else
     REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201);
 #endif
@@ -178,7 +178,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
     REQUIRE(ticeIn.dimensions()[2] == 1);
 #ifdef USE_MPI
-    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201 - metadataIn.localCornerY * yFactor - metadataIn.localCornerX * xFactor);
+    REQUIRE(ticeIn(targetX, targetY, 0U)
+        == -1.0201 - metadataIn.localCornerY * yFactor - metadataIn.localCornerX * xFactor);
 #else
     REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201);
 #endif
@@ -187,7 +188,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.count(xName) > 0);
     REQUIRE(ms.data.count(yName) > 0);
 #ifdef USE_MPI
-    REQUIRE(ms.data.at(xName)(1, 0) == dx * (metadataIn.localCornerX +1));
+    REQUIRE(ms.data.at(xName)(1, 0) == dx * (metadataIn.localCornerX + 1));
     REQUIRE(ms.data.at(xName)(0, 1) == dx * metadataIn.localCornerX);
     REQUIRE(ms.data.at(yName)(0, 1) == dy * (metadataIn.localCornerY + 1));
 #else

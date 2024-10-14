@@ -1,7 +1,7 @@
 /*!
  * @file IDiagnosticOutput.hpp
  *
- * @date 2 Jul 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -18,15 +18,16 @@ namespace Nextsim {
 class IDiagnosticOutput : public ModelComponent {
 public:
     IDiagnosticOutput()
-    : externalNames ({
-        /*
-         * Using a pair of .ipp files to allow definitions of the externally visible
-         * names of the fields to defined outside of an actual source file, even if the
-         * definition file has a slightly odd format.
-         */
+        : externalNames({
+    /*
+     * Using a pair of .ipp files to allow definitions of the externally visible
+     * names of the fields to defined outside of an actual source file, even if the
+     * definition file has a slightly odd format.
+     */
 #include "include/ProtectedArrayNames.ipp"
 #include "include/SharedArrayNames.ipp"
-        })    {
+          })
+    {
     }
     virtual ~IDiagnosticOutput() = default;
 

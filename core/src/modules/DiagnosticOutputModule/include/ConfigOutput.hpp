@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.hpp
  *
- * @date 2 Jul 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -40,7 +40,6 @@ public:
     void setModelStart(const TimePoint& modelStart) override;
     void outputState(const ModelMetadata& meta) override;
 
-
     // ModelComponent overrides
     inline std::string getName() const override { return "ConfigOutput"; };
     inline void setData(const ModelState::DataMap&) override {};
@@ -71,7 +70,6 @@ private:
     static const std::string defaultLastOutput;
 
     std::map<std::string, std::string> reverseExternalNames;
-
 };
 
 } /* namespace Nextsim */

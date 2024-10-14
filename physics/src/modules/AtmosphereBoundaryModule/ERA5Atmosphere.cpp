@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -57,7 +57,8 @@ void ERA5Atmosphere::configure()
 void ERA5Atmosphere::update(const TimestepTime& tst)
 {
     // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
+    std::set<std::string> forcings
+        = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     tair = state.data.at("tair");

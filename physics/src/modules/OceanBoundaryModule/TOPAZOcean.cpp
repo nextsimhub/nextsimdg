@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -52,13 +52,12 @@ void TOPAZOcean::configure()
 
     getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
-
 }
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
+    std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v", "ssh" };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     sstExt = state.data.at("sst");
@@ -66,14 +65,14 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     mld = state.data.at("mld");
     u = state.data.at("u");
     v = state.data.at("v");
+    ssh = state.data.at("ssh");
 
     cpml = Water::rho * Water::cp * mld;
-    overElements(std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1,
-                     std::placeholders::_2),
+    overElements(
+        std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
         TimestepTime());
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
-
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
@@ -82,7 +81,6 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
 }
-
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 

@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 18 Jul 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -69,6 +69,7 @@ void MEVPDynamics::update(const TimestepTime& tst)
     kernel.setData(vWindName, vwind.data());
     kernel.setData(uOceanName, uocean.data());
     kernel.setData(vOceanName, vocean.data());
+    kernel.setData(sshName, ssh.data());
 
     // kernel.setData(uName, uice);
     // kernel.setData(vName, vice);
@@ -80,6 +81,9 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+
+    taux = kernel.getDG0Data(uIOStressName);
+    tauy = kernel.getDG0Data(vIOStressName);
 }
 
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
@@ -87,11 +91,10 @@ ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
     // Base class state
     ModelState state(IDynamics::getStateRecursive(os));
 
-    if (os.allComponents())
-    {
+    if (os.allComponents()) {
         state.merge({
-            {hiceName, kernel.getDG0Data(hiceName)},
-            {ciceName, kernel.getDG0Data(ciceName)},
+            { hiceName, kernel.getDG0Data(hiceName) },
+            { ciceName, kernel.getDG0Data(ciceName) },
         });
     }
     return state;

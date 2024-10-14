@@ -4,7 +4,7 @@
  * Implementation of "classic free drift", where we ignore all \rho h terms in the momentum
  * equation. This is equivalent to assuming that the ice is very thin.
  *
- * @date 17 Feb 2023
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -22,6 +22,8 @@ template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKern
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::cosOceanAngle;
+    using DynamicsKernel<DGadvection, DGstressComp>::sinOceanAngle;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -33,7 +35,8 @@ template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKern
 
 public:
     FreeDriftDynamicsKernel(const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
+        : CGDynamicsKernel<DGadvection>(cos(radians * paramsIn.ocean_turning_angle),
+              sin(radians * paramsIn.ocean_turning_angle), paramsIn, u, v)
         , params(paramsIn)
     {
     }
@@ -50,10 +53,8 @@ public:
     };
 
 protected:
-    const DynamicsParameters& params;
+    const DynamicsParameters params;
 
-    const double cosOceanAngle = cos(radians * params.ocean_turning_angle);
-    const double sinOceanAngle = sin(radians * params.ocean_turning_angle);
     const double NansenNumber = sqrt(params.F_atm / params.F_ocean);
 
     void updateMomentum(const TimestepTime& tst) override

@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredAtmosphere.cpp
  *
- * @date Aug 31, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -43,7 +43,7 @@ const static std::map<int, std::string> keyMap = {
 };
 
 ConfiguredAtmosphere::ConfiguredAtmosphere()
-: fluxImpl(0)
+    : fluxImpl(0)
 {
     getStore().registerArray(Protected::T_AIR, &tair, RO);
     getStore().registerArray(Protected::DEW_2M, &tdew, RO);
@@ -118,9 +118,6 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     fluxImpl->setData(dm);
 }
 
-void ConfiguredAtmosphere::update(const TimestepTime& tst)
-{
-    fluxImpl->update(tst);
-}
+void ConfiguredAtmosphere::update(const TimestepTime& tst) { fluxImpl->update(tst); }
 
 } /* namespace Nextsim */

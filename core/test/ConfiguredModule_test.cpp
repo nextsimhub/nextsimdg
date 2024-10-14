@@ -1,7 +1,7 @@
 /*
  * @file ConfiguredModule_test.cpp
  *
- * @date Oct 21, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -99,7 +99,7 @@ TEST_CASE("Configure a module")
     Configurator::clear();
 
     // Create the fake command line, selecting the Impl1 implementation
-    ArgV argvee({"cmtest", "--Modules.ITest=Impl1"});
+    ArgV argvee({ "cmtest", "--Modules.ITest=Impl1" });
 
     Configurator::setCommandLine(argvee.argc(), argvee());
 

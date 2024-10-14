@@ -3,7 +3,7 @@
  *
  * This class has no corresponding implementation, just this header file
  *
- * @date Jul 18, 2024
+ * @date 24 Sep 2024
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -23,10 +23,7 @@ public:
     }
     virtual ~NoHealing() = default;
 
-    ModelState getStateRecursive(const OutputSpec& os) const override
-    {
-        return ModelState();
-    };
+    ModelState getStateRecursive(const OutputSpec& os) const override { return ModelState(); };
 
     // Do nothing when update is called.
     void update(const TimestepTime& tstep) override {};

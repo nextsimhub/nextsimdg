@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -95,6 +95,10 @@ void ConfiguredOcean::setData(const ModelState::DataMap& ms)
     v = v0;
     tf = Module::getImplementation<IFreezingPoint>()(sssExt[0]);
     cpml = Water::rho * Water::cp * mld[0];
+
+    /* It's only the SSH gradient which has an effect, so being able to sett a constant SSH is
+     * useless. */
+    ssh = 0.;
 
     slabOcean.setData(ms);
 

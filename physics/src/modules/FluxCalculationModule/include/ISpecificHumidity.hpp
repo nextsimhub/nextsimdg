@@ -1,7 +1,7 @@
 /*
  * @file ISpecificHumidity.hpp
  *
- * @date May 2, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -39,8 +39,8 @@ public:
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
      */
-    virtual std::pair<double, double> valueAndDerivative(
-        double temperature, double pressure) const = 0;
+    virtual std::pair<double, double> valueAndDerivative(double temperature, double pressure) const
+        = 0;
     /*!
      * @brief Calculates humidity and its temperature dependence over sea
      * water.
@@ -50,7 +50,8 @@ public:
      * @param salinity Salinity of the liquid water [PSU]
      */
     virtual std::pair<double, double> valueAndDerivative(
-        double temperature, double pressure, double salinity) const = 0;
+        double temperature, double pressure, double salinity) const
+        = 0;
 };
 
 } /* namespace Nextsim */

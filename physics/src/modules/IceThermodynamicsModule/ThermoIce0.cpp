@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date Mar 17, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -129,7 +129,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     hice[i] += deltaHi[i];
 
     // Then add snowfall back on top if there's still ice
-    if ( hice[i] > 0. )
+    if (hice[i] > 0.)
         hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Amount of melting (only) at the top and bottom of the ice
