@@ -170,7 +170,7 @@ namespace BBM {
             s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();
 
             // // INTEGRATION OF STRESS AND DAMAGE
-            const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J
+            const Eigen::Matrix<Nextsim::FloatType, 1, NGP * NGP> J
                 = ParametricTools::J<3>(smesh, i);
             // // get the inverse of the mass matrix scaled with the test-functions in the gauss
             // // points, with the gauss weights and with J. This is a 8 x 9 matrix
