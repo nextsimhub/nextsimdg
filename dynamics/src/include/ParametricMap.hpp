@@ -1,6 +1,6 @@
 /*!
  * @file    ParametricMap.hpp
- * @date 04 Sep 2024
+ * @date    Dec 13, 2022
  * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 

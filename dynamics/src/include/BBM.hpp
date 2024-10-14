@@ -1,6 +1,6 @@
 /*!
  * @file BBM.hpp
- * @date 04 Sep 2024
+ * @date 24 Sep 2024
  * @author Einar Olason <Einar.Olason@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
