@@ -98,7 +98,7 @@ protected:
     CGVector<CGdegree>& uStress;
     CGVector<CGdegree>& vStress;
 
-    ParametricMomentumMap<CGdegree>* pmap;
+    ParametricMomentumMap<CGdegree, DGadvection>* pmap;
 };
 
 } /* namespace Nextsim */

@@ -116,10 +116,10 @@ public:
                           .transpose());
         }
     }
-    void setPMap(ParametricMomentumMap<CG>* pmapIn) { pmap = pmapIn; }
+    void setPMap(ParametricMomentumMap<CG, DGadvection>* pmapIn) { pmap = pmapIn; }
 
 protected:
-    ParametricMomentumMap<CG>* pmap;
+    ParametricMomentumMap<CG, DGadvection>* pmap;
 
 private:
     //! MEVP parameters
