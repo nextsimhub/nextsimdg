@@ -111,7 +111,7 @@ public:
     static std::unique_ptr<I>& getUniqueInstance(bool suppressInit = false)
     {
         static std::unique_ptr<I> staticInstance
-            = std::move((suppressInit) ? std::unique_ptr<I>(nullptr) : getInstanceInternal(false));
+            = (suppressInit) ? std::unique_ptr<I>(nullptr) : getInstanceInternal(false);
         return staticInstance;
     }
 
@@ -218,7 +218,7 @@ private:
     {
         getGenerationFunction() = generator;
         if (setStaticInstance)
-            getUniqueInstance(true) = std::move(getGenerationFunction()());
+            getUniqueInstance(true) = getGenerationFunction()();
     }
 };
 
