@@ -294,4 +294,15 @@ void ModelArray::SizeMap::validate()
     }
 }
 
+//! Returns the name of the array type
+std::string name(const ModelArray::Type& type)
+{
+    return ModelArray::typeNames.at(type);
+}
+
 } /* namespace Nextsim */
+
+std::ostream& operator<<(std::ostream& os, const Nextsim::ModelArray::Type& type)
+{
+    return os << Nextsim::name(type);
+}

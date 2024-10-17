@@ -11,6 +11,7 @@
 #include <Eigen/Core>
 #include <cstddef>
 #include <map>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -636,6 +637,10 @@ ModelArray operator+(const double&, const ModelArray&);
 ModelArray operator-(const double&, const ModelArray&);
 ModelArray operator*(const double&, const ModelArray&);
 ModelArray operator/(const double&, const ModelArray&);
+
+std::string name(const ModelArray::Type& type);
 } /* namespace Nextsim */
+
+std::ostream& operator<<(std::ostream& os, const Nextsim::ModelArray::Type& type);
 
 #endif /* MODELARRAY_HPP */
