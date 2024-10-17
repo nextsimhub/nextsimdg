@@ -67,14 +67,18 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
           // clang-format on
       })
 {
-    if (doOnce()) {
-        // Register the finalization function here
-        Finalizer::registerUnique(closeAllFiles);
-        // Since it should only ever run once, do further one-off initialization: allow distant
-        // classes to close files via a callback.
-        FileCallbackCloser::onClose(ParaGridIO::close);
-        doOnce() = false;
-    }
+    static bool doneOnce = doOnce();
+}
+
+bool ParaGridIO::doOnce()
+{
+       // Register the finalization function here
+       Finalizer::registerUnique(closeAllFiles);
+       // Since it should only ever run once, do further one-off initialization: allow distant
+       // classes to close files via a callback.
+       FileCallbackCloser::onClose(close);
+
+       return true;
 }
 
 ParaGridIO::~ParaGridIO() = default;

@@ -117,11 +117,9 @@ private:
         static FileAndIndexMap fim;
         return fim;
     }
-    inline static bool& doOnce()
-    {
-        static bool firstTime = true;
-        return firstTime;
-    }
+
+    //! Performs some one-time initialization for the class. Returns true.
+    static bool doOnce();
 };
 
 } /* namespace Nextsim */
