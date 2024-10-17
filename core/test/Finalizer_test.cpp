@@ -12,15 +12,6 @@
 
 namespace Nextsim {
 
-// A mock Model class. Does nothing except call copy the behaviour of the real
-// Model class in its destructor
-class Model
-{
-public:
-    Model() = default;
-    ~Model() { Finalizer::finalize(); }
-};
-
 class TheCount
 {
 public:
@@ -58,7 +49,6 @@ TEST_CASE("Duplicate functions")
 {
     TheCount::reset();
     REQUIRE(TheCount::count() == 0);
-//    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
     Finalizer::registerFunc(Earl::incr);
     Finalizer::registerFunc(Earl::incr);
@@ -71,7 +61,6 @@ TEST_CASE("Unique functions")
 {
     TheCount::reset();
     REQUIRE(TheCount::count() == 0);
-//    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
     Finalizer::registerUnique(Earl::incr);
     REQUIRE(Finalizer::contains(Earl::incr));
@@ -85,7 +74,6 @@ TEST_CASE("Finalize")
 {
     TheCount::reset();
     REQUIRE(TheCount::count() == 0);
-//    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
     Finalizer::registerFunc(Earl::incr);
     Finalizer::registerFunc(Earl::incr);
@@ -103,7 +91,6 @@ TEST_CASE("Exception")
 {
     TheCount::reset();
     REQUIRE(TheCount::count() == 0);
-//    Finalizer::clear();
     REQUIRE(Finalizer::count() == 0);
     Finalizer::registerFunc(Earl::incr);
     Finalizer::registerFunc(throwHappy);
