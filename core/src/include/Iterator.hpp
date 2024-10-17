@@ -23,8 +23,8 @@ public:
     Iterator() = delete;
 
     //! Construct a new Iterator given a pointer to an Iterant.
-    Iterator(Iterant& iterant):
-        iterant(iterant)
+    Iterator(Iterant& iterant)
+        : iterant(iterant)
     {
     }
 
