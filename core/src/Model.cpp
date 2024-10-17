@@ -46,8 +46,8 @@ static const std::map<int, std::string> keyMap = {
 Model::Model(MPI_Comm comm)
 #else
 Model::Model()
-    : iterator(modelStep)
 #endif
+    : iterator(modelStep)
 {
 #ifdef USE_MPI
     m_etadata.setMpiMetadata(comm);
