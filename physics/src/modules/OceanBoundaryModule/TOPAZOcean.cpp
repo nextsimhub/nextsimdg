@@ -12,7 +12,7 @@
 #include "include/Module.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
-#include "include/gridnames.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
