@@ -120,7 +120,7 @@ public:
      */
     static I& getImplementation()
     {
-        if (!getUniqueInstance().get())
+        if (!getUniqueInstance())
             throw std::logic_error("Bad reference implementation in " + moduleName());
         return *getUniqueInstance();
     }
