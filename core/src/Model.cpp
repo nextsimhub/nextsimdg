@@ -45,15 +45,13 @@ static const std::map<int, std::string> keyMap = {
 #ifdef USE_MPI
 Model::Model(MPI_Comm comm)
 #else
-Model::Model()
+Model::Model():
+    iterator(modelStep)
 #endif
 {
 #ifdef USE_MPI
     m_etadata.setMpiMetadata(comm);
 #endif
-
-    iterator.setIterant(&modelStep);
-
     finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
 }
 

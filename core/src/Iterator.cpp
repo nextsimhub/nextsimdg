@@ -10,15 +10,6 @@
 
 namespace Nextsim {
 
-Iterator::Iterator() { iterant = new NullIterant(); }
-
-Iterator::Iterator(Iterant* iterant)
-    : iterant(iterant)
-{
-}
-
-void Iterator::setIterant(Iterant* iterant) { this->iterant = iterant; }
-
 void Iterator::setStartStopStep(TimePoint startTime, TimePoint stopTime, Duration timestep)
 {
     this->startTime = startTime;
@@ -48,14 +39,14 @@ TimePoint Iterator::parseAndSet(const std::string& startTimeStr, const std::stri
 
 void Iterator::run()
 {
-    iterant->start(startTime);
+    iterant.start(startTime);
 
     for (auto t = startTime; t < stopTime; t += timestep) {
         TimestepTime tsTime = { t, timestep };
-        iterant->iterate(tsTime);
+        iterant.iterate(tsTime);
     }
 
-    iterant->stop(stopTime);
+    iterant.stop(stopTime);
 }
 
 } /* namespace Nextsim */

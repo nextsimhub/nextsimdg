@@ -45,7 +45,7 @@ TEST_SUITE_BEGIN("Iterator");
 TEST_CASE("Count iterator testing")
 {
     Counterant cant = Counterant();
-    Iterator iterator = Iterator(&cant);
+    Iterator iterator(cant);
 
     int nSteps = 5;
 
