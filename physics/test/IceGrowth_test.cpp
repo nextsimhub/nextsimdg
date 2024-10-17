@@ -12,13 +12,12 @@
 #include "include/IceGrowth.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/ConfiguredModule.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/UniformOcean.hpp"
@@ -33,15 +32,9 @@ TEST_CASE("New ice formation")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
@@ -95,11 +88,13 @@ TEST_CASE("New ice formation")
     } proData;
     proData.setData(ModelState().data);
 
-    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
-
     UniformOcean ocnBdy(-1.5, 32., 10.25);
     ocnBdy.setQio(124.689);
     ocnBdy.setData(ModelState().data);
+
+    HField damage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     IceGrowth ig;
@@ -119,15 +114,8 @@ TEST_CASE("Melting conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
 
     class AtmosphericBoundary : public IAtmosphereBoundary {
     public:
@@ -188,6 +176,10 @@ TEST_CASE("Melting conditions")
     ocnBdy.setQio(53717.8);
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
@@ -215,15 +207,8 @@ TEST_CASE("Freezing conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
 
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
@@ -282,6 +267,10 @@ TEST_CASE("Freezing conditions")
     UniformOcean ocnBdy(-1.75, 32., 10.25);
     ocnBdy.setQio(73.9465);
     ocnBdy.setData(ModelState().data);
+
+    HField damage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
@@ -376,6 +365,10 @@ TEST_CASE("Dummy ice")
     ocnBdy.setQio(0.);
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
     IceGrowth ig;
@@ -410,15 +403,8 @@ TEST_CASE("Zero thickness")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
 
     class AtmosphericBoundary : public IAtmosphereBoundary {
     public:
@@ -477,6 +463,10 @@ TEST_CASE("Zero thickness")
     ocnBdy.setQio(53717.8); // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+
     class ZeroThicknessIce : public IIceThermodynamics {
         void setData(const ModelState::DataMap&) override { }
         void update(const TimestepTime& tsTime) override
@@ -514,18 +504,14 @@ TEST_CASE("Turn off thermo")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-    config << std::endl;
     config << "[nextsim_thermo]" << std::endl;
     config << "use_thermo_forcing = false" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
@@ -603,6 +589,10 @@ TEST_CASE("Turn off thermo")
         void updateAfter(const TimestepTime& tst) override { }
     } ocnBdy;
     ocnBdy.setData(ModelState().data);
+
+    HField damage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;

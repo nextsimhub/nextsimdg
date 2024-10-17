@@ -7,7 +7,8 @@
 
 #include "include/ConfiguredAtmosphere.hpp"
 
-#include "include/Module.hpp"
+#include "include/Finalizer.hpp"
+#include "include/NextsimModule.hpp"
 
 namespace Nextsim {
 
@@ -30,8 +31,7 @@ static const std::string snowKey = pfx + ".snow";
 static const std::string rainKey = pfx + ".rainfall";
 static const std::string windKey = pfx + ".wind_speed";
 
-template <>
-const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
+const static std::map<int, std::string> keyMap = {
     { ConfiguredAtmosphere::TAIR_KEY, tKey },
     { ConfiguredAtmosphere::TDEW_KEY, tdewKey },
     { ConfiguredAtmosphere::PAIR_KEY, pKey },
@@ -89,12 +89,15 @@ void ConfiguredAtmosphere::configure()
     rain0 = Configured::getConfiguration(keyMap.at(RAIN_KEY), rain0);
     windspeed0 = Configured::getConfiguration(keyMap.at(WIND_KEY), windspeed0);
 
+    Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
+
 }
 
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
+
     IAtmosphereBoundary::setData(dm);
     tair.resize();
     tdew.resize();

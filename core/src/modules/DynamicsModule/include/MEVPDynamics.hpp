@@ -13,7 +13,7 @@
 #include "include/IDamageHealing.hpp"
 #include "include/IDynamics.hpp"
 #include "include/MEVPDynamicsKernel.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"

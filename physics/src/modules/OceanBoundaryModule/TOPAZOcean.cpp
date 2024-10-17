@@ -7,9 +7,10 @@
 
 #include "include/TOPAZOcean.hpp"
 
-#include "include/IFreezingPoint.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/Module.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
 
@@ -20,8 +21,7 @@ std::string TOPAZOcean::filePath;
 static const std::string pfx = "TOPAZOcean";
 static const std::string fileKey = pfx + ".file";
 
-template <>
-const std::map<int, std::string> Configured<TOPAZOcean>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, fileKey },
 };
 
@@ -43,6 +43,9 @@ ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getA
 
 void TOPAZOcean::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
+    Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
+
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     slabOcean.configure();

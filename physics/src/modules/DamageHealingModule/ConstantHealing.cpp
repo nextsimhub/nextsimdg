@@ -12,8 +12,7 @@ namespace Nextsim {
 double ConstantHealing::tD = 0.;
 static const double tDDefault = 15;
 
-template <>
-const std::map<int, std::string> Configured<ConstantHealing>::keyMap
+static const std::map<int, std::string> keyMap
     = { { ConstantHealing::TD_KEY, "ConstantHealing.td" } };
 
 void ConstantHealing::configure()
