@@ -62,7 +62,11 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     mld = state.data.at("mld");
     u = state.data.at("u");
     v = state.data.at("v");
-    ssh = state.data.at("ssh");
+    if (state.data.count("ssh")) {
+        ssh = state.data.at("ssh");
+    } else {
+        ssh = 0.;
+    }
 
     cpml = Water::rho * Water::cp * mld;
     overElements(
