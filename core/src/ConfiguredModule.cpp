@@ -17,9 +17,6 @@ namespace Nextsim {
 
 const std::string ConfiguredModule::MODULE_PREFIX = "Modules";
 
-// A default string that can never be a valid C++ class name
-static const std::string defaultStr = "+++DEFAULT+++";
-
 std::string ConfiguredModule::addPrefix(const std::string& moduleName)
 {
     return MODULE_PREFIX + "." + moduleName;
@@ -30,16 +27,12 @@ std::string ConfiguredModule::getImpl(const std::string& module)
     boost::program_options::options_description opt;
 
     opt.add_options()(addPrefix(module).c_str(),
-        boost::program_options::value<std::string>()->default_value(defaultStr),
+        boost::program_options::value<std::string>()->default_value(""),
         ("Load an implementation of " + module).c_str());
 
     std::string implString = Configurator::parse(opt)[addPrefix(module)].as<std::string>();
     // Only do anything if the retrieved option is not the default value
-    if (implString != defaultStr) {
-        return implString;
-    } else {
-        return "";
-    }
+    return implString;
 }
 
 ConfigMap ConfiguredModule::getAllModuleConfigurations()
