@@ -49,15 +49,15 @@ public:
     }
 
 private:
-    using fn = std::string (*)();
-    using InternalContainer = std::list<std::pair<fn, fn>>;
+    using Fn = std::string (*)();
+    using InternalContainer = std::list<std::pair<Fn, Fn>>;
     static InternalContainer& getNames()
     {
         static InternalContainer cache;
         return cache;
     }
 
-    static void set(fn intFunctionPtr, fn impFunctionPtr)
+    static void set(Fn intFunctionPtr, Fn impFunctionPtr)
     {
         getNames().push_back({ intFunctionPtr, impFunctionPtr });
     }
@@ -73,8 +73,8 @@ template <typename Int, typename Imp> std::unique_ptr<Int> newImpl()
 
 template <typename I> class Module {
 public:
-    using fn = std::unique_ptr<I> (*)();
-    using map = std::map<std::string, fn>;
+    using Fn = std::unique_ptr<I> (*)();
+    using Map = std::map<std::string, Fn>;
 
     /*!
      * Sets the function to generate new instances of an implementation not included in the
@@ -83,7 +83,7 @@ public:
      * @param generator A pointer to a function that returns a std::unique_ptr to an instance of
      * the template class.
      */
-    static void setExternalImplementation(fn generator)
+    static void setExternalImplementation(Fn generator)
     {
         setExternalImplementationInternal(generator, true);
     }
@@ -176,13 +176,13 @@ public:
 
 private:
     static std::string getDefaultImplementationName();
-    static fn& getGenerationFunction()
+    static Fn& getGenerationFunction()
     {
-        static fn ptr = functionMap().at(getDefaultImplementationName());
+        static Fn ptr = functionMap().at(getDefaultImplementationName());
         return ptr;
     }
 
-    static const map& functionMap();
+    static const Map& functionMap();
 
     static bool& isConfigured()
     {
@@ -214,7 +214,7 @@ private:
         }
     }
 
-    static void setExternalImplementationInternal(fn generator, bool setStaticInstance)
+    static void setExternalImplementationInternal(Fn generator, bool setStaticInstance)
     {
         getGenerationFunction() = generator;
         if (setStaticInstance)

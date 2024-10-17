@@ -41,9 +41,9 @@ const std::string IMPL2 = "Impl2";
 const std::string ANOTHERIMPL = "AnotherImpl";
 
 template <>
-const Module<Test::ITest>::map& Module<Test::ITest>::functionMap()
+const Module<Test::ITest>::Map& Module<Test::ITest>::functionMap()
 {
-    static const map theMap = {
+    static const Map theMap = {
         { DEFAULTIMPL, newImpl<Test::ITest, Test::DefaultImpl> },
         { IMPL1, newImpl<Test::ITest, Test::Impl1> },
         { IMPL2, newImpl<Test::ITest, Test::Impl2> },
@@ -52,9 +52,9 @@ const Module<Test::ITest>::map& Module<Test::ITest>::functionMap()
 }
 
 template <>
-Module<Test::ITest>::fn& Module<Test::ITest>::getGenerationFunction()
+Module<Test::ITest>::Fn& Module<Test::ITest>::getGenerationFunction()
 {
-    static fn ptr = functionMap().at(DEFAULTIMPL);
+    static Fn ptr = functionMap().at(DEFAULTIMPL);
     return ptr;
 }
 
@@ -66,9 +66,9 @@ template <> HelpMap& Module<Test::ITest>::getHelpRecursive(HelpMap& map, bool ge
 }
 
 template <>
-const Module<Test::ITest2>::map& Module<Test::ITest2>::functionMap()
+const Module<Test::ITest2>::Map& Module<Test::ITest2>::functionMap()
 {
-    static const map theMap = {
+    static const Map theMap = {
         { DEFAULTIMPL, newImpl<Test::ITest2, Test::DefaultImpl_2> },
         { ANOTHERIMPL, newImpl<Test::ITest2, Test::AnotherImpl> },
     };
@@ -76,9 +76,9 @@ const Module<Test::ITest2>::map& Module<Test::ITest2>::functionMap()
 }
 
 template <>
-Module<Test::ITest2>::fn& Module<Test::ITest2>::getGenerationFunction()
+Module<Test::ITest2>::Fn& Module<Test::ITest2>::getGenerationFunction()
 {
-    static fn ptr = functionMap().at(DEFAULTIMPL);
+    static Fn ptr = functionMap().at(DEFAULTIMPL);
     return ptr;
 }
 

@@ -64,9 +64,9 @@ namespace {strings[module_class_name]} {{
     mapVarName = "theMap"
     source.write(f"""
 template <>
-const {module_templ}::map& {module_templ}::functionMap()
+const {module_templ}::Map& {module_templ}::functionMap()
 {{
-    static const map {mapVarName} = {{
+    static const Map {mapVarName} = {{
 """)
     for section in valid_impl_sections:
         source.write(f"        {{ {strings[module_class_name]}::{impl_strings[section]}, newImpl<{strings[class_name]}, {section}> }},\n")

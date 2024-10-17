@@ -16,18 +16,18 @@ namespace Module {
 const std::string DUMMYDYNAMICS = "Nextsim::DummyDynamics";
 
 template <>
-const Module<Nextsim::IDynamics>::map& Module<Nextsim::IDynamics>::functionMap()
+const Module<Nextsim::IDynamics>::Map& Module<Nextsim::IDynamics>::functionMap()
 {
-    static const map theMap = {
+    static const Map theMap = {
             { DUMMYDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::DummyDynamics> },
     };
     return theMap;
 }
 
 template <>
-Module<Nextsim::IDynamics>::fn& Module<Nextsim::IDynamics>::getGenerationFunction()
+Module<Nextsim::IDynamics>::Fn& Module<Nextsim::IDynamics>::getGenerationFunction()
 {
-    static fn thePtr = functionMap().at(DUMMYDYNAMICS);
+    static Fn thePtr = functionMap().at(DUMMYDYNAMICS);
     return thePtr;
 }
 
