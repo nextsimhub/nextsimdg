@@ -8,8 +8,9 @@
 #include "include/DevStep.hpp"
 
 #include "include/ConfiguredModule.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IDiagnosticOutput.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 namespace Nextsim {
 
 DevStep::DevStep()
@@ -21,6 +22,7 @@ DevStep::DevStep()
 
 void DevStep::init()
 {
+    Finalizer::registerUnique(Module::finalize<IDiagnosticOutput>);
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     ido.setFilenamePrefix("diagnostic");
     tryConfigure(ido);

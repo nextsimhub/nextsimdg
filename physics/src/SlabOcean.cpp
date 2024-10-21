@@ -23,8 +23,7 @@ static const std::string className = "SlabOcean";
 static const std::string relaxationTimeTName = "timeT";
 static const std::string relaxationTimeSName = "timeS";
 
-template <>
-const std::map<int, std::string> Configured<SlabOcean>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { SlabOcean::TIMET_KEY, className + "." + relaxationTimeTName },
     { SlabOcean::TIMES_KEY, className + "." + relaxationTimeSName },
 };

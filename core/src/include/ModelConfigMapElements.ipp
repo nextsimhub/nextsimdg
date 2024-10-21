@@ -1,0 +1,5 @@
+    { ModelConfig::STARTTIME_KEY, "model.start" },
+    { ModelConfig::STOPTIME_KEY, "model.stop" },
+    { ModelConfig::RUNLENGTH_KEY, "model.run_length" },
+    { ModelConfig::TIMESTEP_KEY, "model.time_step" },
+    { ModelConfig::MISSINGVALUE_KEY, "model.missing_value" },

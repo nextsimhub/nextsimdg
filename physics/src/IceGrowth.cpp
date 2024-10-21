@@ -8,13 +8,13 @@
 
 #include "include/IceGrowth.hpp"
 
-#include "include/Module.hpp"
+#include "include/Finalizer.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
-template <>
-const std::map<int, std::string> Configured<IceGrowth>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { IceGrowth::ICE_THERMODYNAMICS_KEY, "IceThermodynamicsModel" },
     { IceGrowth::LATERAL_GROWTH_KEY, "LateralIceModel" },
     { IceGrowth::MINC_KEY, "nextsim_thermo.min_conc" },
@@ -118,6 +118,10 @@ IceGrowth::HelpMap& IceGrowth::getHelpRecursive(HelpMap& map, bool getAll)
 
 void IceGrowth::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceThermodynamics>);
+    Finalizer::registerUnique(Module::finalize<ILateralIceSpread>);
+    Finalizer::registerUnique(Module::finalize<IDamageHealing>);
+
     // Configure whether we actually do anything here
     doThermo = Configured::getConfiguration(keyMap.at(USE_THERMO_KEY), true);
     // Configure constants
