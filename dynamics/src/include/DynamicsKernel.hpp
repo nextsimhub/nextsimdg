@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date 07 Oct 2024
+ * @date 22 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,7 +9,6 @@
 #define DYNAMICSKERNEL_HPP
 
 #include "DGTransport.hpp"
-#include "DynamicsParameters.hpp"
 #include "Interpolations.hpp"
 #include "ParametricMesh.hpp"
 #include "ParametricTools.hpp"
@@ -40,14 +39,7 @@ public:
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
     typedef std::map<typename DataMapping::first_type, typename DataMapping::second_type> DataMap;
 
-    DynamicsKernel(
-        double cosOceanAngleIn, double sinOceanAngleIn, const DynamicsParameters& paramsIn)
-        : cosOceanAngle(cosOceanAngleIn)
-        , sinOceanAngle(sinOceanAngleIn)
-        , baseParams(paramsIn)
-        , deltaT(0.)
-    {
-    }
+    DynamicsKernel() = default;
     virtual ~DynamicsKernel() = default;
     virtual void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask)
     {
@@ -200,10 +192,6 @@ protected:
 
     Nextsim::ParametricMesh* smesh;
 
-    // Components of the ocean turning angle
-    const double cosOceanAngle = 1.;
-    const double sinOceanAngle = 0.;
-
     virtual void updateMomentum(const TimestepTime& tst) = 0;
 
     // Pass through functions to the common momentum solver class
@@ -233,18 +221,11 @@ protected:
      */
     virtual void prepareAdvection() = 0;
 
-    /*!
-     * Returns a const reference to the dynamics parameters
-     */
-    const DynamicsParameters& getParams() const { return baseParams; }
-
 private:
     std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
 
     // A map from field name to the type of
     std::unordered_map<std::string, ModelArray::Type> fieldType;
-
-    const DynamicsParameters& baseParams;
 };
 
 }
