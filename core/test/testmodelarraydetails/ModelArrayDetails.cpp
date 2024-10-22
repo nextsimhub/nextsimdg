@@ -62,23 +62,23 @@ bool ModelArray::hasDoF(const Type type) { return false; }
 
 ModelArray::SizeMap::SizeMap()
     : m_sizes({
-        { Type::ONED, 1 },
-        { Type::TWOD, 1 },
-        { Type::ZUFIELD, 1 },
-        { Type::THREED, 1 },
-        { Type::FOURD, 1 },
-    })
+          { Type::ONED, 1 },
+          { Type::TWOD, 1 },
+          { Type::ZUFIELD, 1 },
+          { Type::THREED, 1 },
+          { Type::FOURD, 1 },
+      })
 {
 }
 
 ModelArray::DimensionMap::DimensionMap()
     : m_dimensions({
-        { Type::ONED, { 1 } },
-        { Type::TWOD, { 1, 1 } },
-        { Type::ZUFIELD, { 1, 1 } },
-        { Type::THREED, { 1, 1, 1 } },
-        { Type::FOURD, { 1, 1, 1, 1 } },
-    })
+          { Type::ONED, { 1 } },
+          { Type::TWOD, { 1, 1 } },
+          { Type::ZUFIELD, { 1, 1 } },
+          { Type::THREED, { 1, 1, 1 } },
+          { Type::FOURD, { 1, 1, 1, 1 } },
+      })
 {
 }
 

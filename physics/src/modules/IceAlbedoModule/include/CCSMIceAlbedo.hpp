@@ -8,8 +8,8 @@
 #ifndef CCSMICEALBEDO_HPP
 #define CCSMICEALBEDO_HPP
 
-#include "include/IIceAlbedo.hpp"
 #include "include/Configured.hpp"
+#include "include/IIceAlbedo.hpp"
 
 namespace Nextsim {
 
@@ -24,7 +24,8 @@ public:
      * @param i0 The fraction of short-wave radiation that can penetrate bare ice (not taking snow
      * cover into account).
      */
-    std::tuple<double, double> surfaceShortWaveBalance(double temperature, double snowThickness, double i0) override;
+    std::tuple<double, double> surfaceShortWaveBalance(
+        double temperature, double snowThickness, double i0) override;
 
     void configure() override;
 

@@ -8,8 +8,8 @@
 #ifndef IFLUXCALCULATION_HPP
 #define IFLUXCALCULATION_HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelState.hpp"
 

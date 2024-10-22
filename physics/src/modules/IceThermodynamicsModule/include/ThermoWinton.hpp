@@ -8,9 +8,9 @@
 #ifndef THERMOWINTON_HPP
 #define THERMOWINTON_HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
+#include "include/ModelArrayRef.hpp"
 
 namespace Nextsim {
 

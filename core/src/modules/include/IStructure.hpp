@@ -44,9 +44,7 @@ public:
      * @brief Returns the ModelState stored in the file
      */
 #ifdef USE_MPI
-    virtual ModelState getModelState(
-        const std::string& filePath, ModelMetadata& metadata)
-        = 0;
+    virtual ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) = 0;
 #else
     virtual ModelState getModelState(const std::string& filePath) = 0;
 #endif
@@ -80,8 +78,9 @@ public:
      * @param state The ModelState data
      * @param filePath The path to attempt to write the data to.
      */
-    virtual void dumpModelState(
-        const ModelState& state, const ModelMetadata& metadata, const std::string& filePath, bool isRestart) const = 0;
+    virtual void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
+        const std::string& filePath, bool isRestart) const
+        = 0;
 
     // Node names in the default structure
 

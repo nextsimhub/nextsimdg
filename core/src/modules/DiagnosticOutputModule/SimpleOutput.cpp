@@ -22,15 +22,15 @@ void SimpleOutput::outputState(const ModelMetadata& meta)
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
     // Some MPI-IO implemenetations does not like colon in file names
     std::replace(timeFileName.begin(), timeFileName.end(), ':', '_');
-    Logged::info("Outputting "
-        + std::to_string(externalNames.size()) + " fields to "
-        + timeFileName + "\n");
+    Logged::info(
+        "Outputting " + std::to_string(externalNames.size()) + " fields to " + timeFileName + "\n");
 
     // Create the output by iterating over all fields referenced in ModelState
     ModelState state;
     auto storeData = ModelComponent::getStore().getAllData();
     for (auto entry : storeData) {
-        if (entry.second) state.data[entry.first] = *entry.second;
+        if (entry.second)
+            state.data[entry.first] = *entry.second;
     }
     StructureFactory::fileFromState(state, meta, timeFileName);
 }

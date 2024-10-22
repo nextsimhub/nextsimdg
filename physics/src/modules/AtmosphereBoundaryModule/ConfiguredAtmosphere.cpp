@@ -43,7 +43,7 @@ const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
 };
 
 ConfiguredAtmosphere::ConfiguredAtmosphere()
-: fluxImpl(0)
+    : fluxImpl(0)
 {
     getStore().registerArray(Protected::T_AIR, &tair, RO);
     getStore().registerArray(Protected::DEW_2M, &tdew, RO);
@@ -52,7 +52,6 @@ ConfiguredAtmosphere::ConfiguredAtmosphere()
     getStore().registerArray(Protected::LW_IN, &lw_in, RO);
     getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
-
 
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
@@ -116,9 +115,6 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     fluxImpl->setData(dm);
 }
 
-void ConfiguredAtmosphere::update(const TimestepTime& tst)
-{
-    fluxImpl->update(tst);
-}
+void ConfiguredAtmosphere::update(const TimestepTime& tst) { fluxImpl->update(tst); }
 
 } /* namespace Nextsim */

@@ -86,4 +86,3 @@ TEST_CASE("Test the scope dependent timer")
     std::cout << Nextsim::Timer::main << std::endl;
 }
 TEST_SUITE_END();
-

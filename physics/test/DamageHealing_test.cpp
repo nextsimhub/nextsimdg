@@ -8,8 +8,8 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "include/Module.hpp"
 #include "include/IDamageHealing.hpp"
+#include "include/Module.hpp"
 
 extern template class Module::Module<Nextsim::IDamageHealing>;
 namespace Nextsim {
@@ -55,7 +55,7 @@ TEST_CASE("Thermodynamic healing")
         {
             noLandMask();
             cice = 0.5;
-            deltaCi= 0.0;
+            deltaCi = 0.0;
             damage = 0.5;
         }
 
@@ -82,7 +82,7 @@ TEST_CASE("Thermodynamic healing")
 
     iceState.damage = 0.99;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] <= 1. );
+    REQUIRE(iceState.damage[0] <= 1.);
     REQUIRE(iceState.damage[0] == doctest::Approx(1.).epsilon(prec));
 }
 
@@ -119,7 +119,7 @@ TEST_CASE("New ice formation")
         {
             noLandMask();
             cice = 0.5;
-            deltaCi= 0.1;
+            deltaCi = 0.1;
             damage = 0.5;
         }
 

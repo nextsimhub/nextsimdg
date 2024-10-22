@@ -65,9 +65,10 @@ public:
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
-        return {{
-            { "hice", hice },
-        }, {}};
+        return { {
+                     { "hice", hice },
+                 },
+            {} };
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -93,9 +94,10 @@ public:
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getState() const override
     {
-        return {{
-            { "cice", cice },
-        }, {}};
+        return { {
+                     { "cice", cice },
+                 },
+            {} };
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -132,9 +134,10 @@ public:
     std::string getName() const override { return "SemiShared"; }
     ModelState getState() const override
     {
-        return {{
-            { "qic", qic },
-        }, {}};
+        return { {
+                     { "qic", qic },
+                 },
+            {} };
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
@@ -160,9 +163,10 @@ public:
     std::string getName() const override { return "Shared"; }
     ModelState getState() const override
     {
-        return {{
-            { "qio", qio },
-        }, {}};
+        return { {
+                     { "qio", qio },
+                 },
+            {} };
     }
     ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 

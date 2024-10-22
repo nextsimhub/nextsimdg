@@ -23,7 +23,6 @@
 namespace Nextsim {
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 
-
 class FreeDriftDynamics : public IDynamics {
 public:
     FreeDriftDynamics()

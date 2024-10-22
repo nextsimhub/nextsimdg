@@ -27,7 +27,7 @@ namespace VectorManipulations {
     {
         // the two segments bottom, right, top, left, are each processed in parallel
         for (size_t seg = 0; seg < smesh.periodic.size(); ++seg) {
-            //#pragma omp parallel for
+            // #pragma omp parallel for
             for (size_t i = 0; i < smesh.periodic[seg].size(); ++i) {
 
                 const size_t ptype = smesh.periodic[seg][i][0];
@@ -68,7 +68,7 @@ namespace VectorManipulations {
     {
         // the two segments bottom, right, top, left, are each processed in parallel
         for (size_t seg = 0; seg < smesh.periodic.size(); ++seg) {
-            //#pragma omp parallel for
+            // #pragma omp parallel for
             for (size_t i = 0; i < smesh.periodic[seg].size(); ++i) {
 
                 const size_t ptype = smesh.periodic[seg][i][0];

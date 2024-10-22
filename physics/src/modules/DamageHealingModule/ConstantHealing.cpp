@@ -68,7 +68,7 @@ void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
     // damage[i] +=  damage[i] * tstep.step / tD;
 
     // This is what Véro did (Dansereau et al., 2016)
-    damage[i] +=  tstep.step / tD;
+    damage[i] += tstep.step / tD;
     damage[i] = std::min(1., damage[i]);
 }
 

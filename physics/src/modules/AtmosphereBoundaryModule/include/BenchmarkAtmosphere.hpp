@@ -15,8 +15,9 @@ namespace Nextsim {
 class BenchmarkAtmosphere : public IAtmosphereBoundary {
 public:
     BenchmarkAtmosphere()
-    : IAtmosphereBoundary()
-    {}
+        : IAtmosphereBoundary()
+    {
+    }
     ~BenchmarkAtmosphere() = default;
 
     void setData(const ModelState::DataMap&) override;

@@ -8,8 +8,8 @@
 #ifndef IICEOCEANHEATFLUX_HPP
 #define IICEOCEANHEATFLUX_HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 

@@ -39,8 +39,8 @@ public:
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
      */
-    virtual std::pair<double, double> valueAndDerivative(
-        double temperature, double pressure) const = 0;
+    virtual std::pair<double, double> valueAndDerivative(double temperature, double pressure) const
+        = 0;
     /*!
      * @brief Calculates humidity and its temperature dependence over sea
      * water.
@@ -50,7 +50,8 @@ public:
      * @param salinity Salinity of the liquid water [PSU]
      */
     virtual std::pair<double, double> valueAndDerivative(
-        double temperature, double pressure, double salinity) const = 0;
+        double temperature, double pressure, double salinity) const
+        = 0;
 };
 
 } /* namespace Nextsim */

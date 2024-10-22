@@ -160,7 +160,8 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
         // If the internal to external name lookup table is still empty, fill it
         if (reverseExternalNames.empty()) {
             for (auto entry : externalNames) {
-                // Add the reverse lookup between external and internal names, if one has not been added
+                // Add the reverse lookup between external and internal names, if one has not been
+                // added
                 if (!reverseExternalNames.count(entry.second)) {
                     reverseExternalNames[entry.second] = entry.first;
                 }
@@ -181,12 +182,12 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
     } else {
         // Filter only the given fields to the output state
         for (const auto& fieldExtName : fieldsForOutput) {
-            if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName)) && storeData.at(externalNames.at(fieldExtName))) {
-                    state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
+            if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
+                && storeData.at(externalNames.at(fieldExtName))) {
+                state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
             }
         }
     }
-
 
     /*
      * Produce output either:
@@ -195,9 +196,8 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
      *      last output time.
      */
     Duration timeSinceOutput = meta.time() - lastOutput;
-    if (timeSinceOutput.seconds() > 0 && (
-            everyTS ||
-            std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
+    if (timeSinceOutput.seconds() > 0
+        && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
         StructureFactory::fileFromState(state, meta, currentFileName, false);
