@@ -74,7 +74,7 @@ public:
         CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
         //! Initialize stress transport
-        stresstransport = new Nextsim::DGTransport<DGstressComp>(*smesh);
+        stresstransport = std::make_unique<Nextsim::DGTransport<DGstressComp>>(*smesh);
         stresstransport->settimesteppingscheme("rk2");
 
         damage.resize_by_mesh(*smesh);
@@ -198,7 +198,7 @@ protected:
     StressUpdateStep<DGadvection, DGstressComp>& stressStep;
     const MEBParameters& params;
 
-    Nextsim::DGTransport<DGstressComp>* stresstransport;
+    std::unique_ptr<DGTransport<DGstressComp>> stresstransport;
 
     DGVector<DGadvection> damage;
 

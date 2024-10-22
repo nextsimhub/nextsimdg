@@ -27,7 +27,7 @@ public:
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
     {
         CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
-        MEVPStressStep.setPMap(pmap);
+        MEVPStressStep.setPMap(pmap.get());
     }
 
 private:
