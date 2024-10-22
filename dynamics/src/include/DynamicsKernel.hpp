@@ -131,6 +131,8 @@ public:
             return DGModelArray::dg2ma(hice, data);
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
+        } else if (name == shearName) {
+            return DGModelArray::dg2ma(Tools::Shear(*smesh, e11, e12, e22), data);
         } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);

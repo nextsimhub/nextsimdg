@@ -189,12 +189,10 @@ protected:
                 = cgA(i) * params.F_ocean * std::hypot(uOcean(i) - uIce, vOcean(i) - vIce);
 
             // FIXME grounding term tauB = cBu[i] / std::hypot(uIce, vIce) + u0
+            /* FIXME: Need latitude here. Then sinOceanAngle is replaced by
+             * std::copysign(sin_ocean_turning_angle, lat[i]) ); */
             const double tauB = 0.;
             const double alpha = 1 + dteOverMass * (cPrime * cosOceanAngle + tauB);
-            /* FIXME latitude needed for spherical cases
-             * const double beta = deltaT * params.fc +
-             * dteOverMass * cPrime * std::copysign(sinOceanAngle, lat[i]);
-             */
             const double beta = deltaT * params.fc + dteOverMass * cPrime * sinOceanAngle;
             const double rDenom = 1 / (SQR(alpha) + SQR(beta));
 

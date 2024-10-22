@@ -24,6 +24,7 @@ public:
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
         , damage(ModelArray::Type::H)
+        , shear(ModelArray::Type::H)
         , taux(ModelArray::Type::H)
         , tauy(ModelArray::Type::H)
         , hice(getStore())
@@ -67,6 +68,8 @@ public:
         if (!m_usesDamage) {
             damage = 0.;
         }
+
+        shear.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -82,6 +85,8 @@ protected:
     HField vice;
     // Updated damage array
     HField damage;
+    // Diagnostic outputs of shear
+    HField shear;
     // Ice-ocean stress (for the coupler, mostly)
     HField taux;
     HField tauy;

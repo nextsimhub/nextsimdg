@@ -43,3 +43,4 @@
 { "ssh", "SSH" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
 { "taux", "IO_STRESS_U" }, // Ice-ocean stress x(east) direction, Pa
 { "tauy", "IO_STRESS_V" }, // Ice-ocean stress x(east) direction, Pa
+{ "shear", "SHEAR" }, // The instantaneous share rate, s⁻¹

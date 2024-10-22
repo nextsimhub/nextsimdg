@@ -32,6 +32,8 @@ MEVPDynamics::MEVPDynamics()
 {
     getStore().registerArray(Protected::ICE_U, &uice, RO);
     getStore().registerArray(Protected::ICE_V, &vice, RO);
+
+    getStore().registerArray(Protected::SHEAR, &shear, RO);
 }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
@@ -81,6 +83,8 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+
+    shear = kernel.getDG0Data(shearName);
 
     taux = kernel.getDG0Data(uIOStressName);
     tauy = kernel.getDG0Data(vIOStressName);
