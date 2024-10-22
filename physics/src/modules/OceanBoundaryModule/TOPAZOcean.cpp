@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 24 Sep 2024
+ * @date 17 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -14,6 +14,7 @@
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
@@ -58,15 +59,19 @@ void TOPAZOcean::configure()
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v", "ssh" };
+    std::set<std::string> forcings = { sstName, sssName, "mld", uName, vName, sshName };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    sstExt = state.data.at("sst");
-    sssExt = state.data.at("sss");
-    mld = state.data.at("mld");
-    u = state.data.at("u");
-    v = state.data.at("v");
-    ssh = state.data.at("ssh");
+    sstExt = state.data.at(sstName);
+    sssExt = state.data.at(sssName);
+    mld = state.data.at(mldName);
+    u = state.data.at(uName);
+    v = state.data.at(vName);
+    if (state.data.count(sshName)) {
+        ssh = state.data.at(sshName);
+    } else {
+        ssh = 0.;
+    }
 
     cpml = Water::rho * Water::cp * mld;
     overElements(
