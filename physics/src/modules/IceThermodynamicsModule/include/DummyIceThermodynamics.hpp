@@ -1,7 +1,7 @@
 /*!
  * @file DummyIceThermodynamics.hpp
  *
- * @date 18 Apr 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

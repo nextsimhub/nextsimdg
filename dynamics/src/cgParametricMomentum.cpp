@@ -1,6 +1,6 @@
 /*!
  * @file ParametricMomentum.cpp
- * @date 1 Mar 2022
+ * @date 24 Sep 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -216,8 +216,12 @@ void CGParametricMomentum<CG>::mEVPStep(const VPParameters& params, const size_t
 
     // Update the stresses according to the mEVP model
 
-    Nextsim::mEVP::StressUpdateHighOrder(
-        params, pmap, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
+    std::cerr << "Fatal: Stressupdatehigherorder requires ParametricMomnetumMap with proper "
+                 "template parameter. See headerfile and use Kernel-infrastructure"
+              << std::endl;
+    abort();
+    // Nextsim::mEVP::StressUpdateHighOrder(
+    //     params, pmap, smesh, S11, S12, S22, E11, E12, E22, H, A, alpha, beta);
 
     // Compute the divergence of the stress tensor
 

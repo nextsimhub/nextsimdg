@@ -1,14 +1,14 @@
 /*!
  * @file FluxConfiguredOcean.cpp
  *
- * @date Sep 29, 2022
+ * @date Aug 23, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/FluxConfiguredOcean.hpp"
 
 #include "include/IFreezingPoint.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -28,8 +28,7 @@ static const std::string mldKey = pfx + ".mld";
 static const std::string uKey = pfx + ".current_u";
 static const std::string vKey = pfx + ".current_v";
 
-template <>
-const std::map<int, std::string> Configured<FluxConfiguredOcean>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { FluxConfiguredOcean::QIO_KEY, qioKey },
     { FluxConfiguredOcean::SST_KEY, sstKey },
     { FluxConfiguredOcean::SSS_KEY, sssKey },
@@ -79,6 +78,10 @@ void FluxConfiguredOcean::setData(const ModelState::DataMap& ms)
     v = v0;
     tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
     cpml = Water::rho * Water::cp * mld[0];
+
+    /* It's only the SSH gradient which has an effect, so being able to sett a constant SSH is
+     * useless. */
+    ssh = 0.;
 }
 
 } /* namespace Nextsim */

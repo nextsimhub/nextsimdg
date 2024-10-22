@@ -1,13 +1,14 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ERA5Atmosphere.hpp"
 
-#include "include/Module.hpp"
+#include "include/Finalizer.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 
 namespace Nextsim {
@@ -17,8 +18,7 @@ std::string ERA5Atmosphere::filePath;
 static const std::string pfx = "ERA5Atmosphere";
 static const std::string fileKey = pfx + ".file";
 
-template <>
-const std::map<int, std::string> Configured<ERA5Atmosphere>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, fileKey },
 };
 
@@ -46,6 +46,8 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
 
 void ERA5Atmosphere::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
+
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();

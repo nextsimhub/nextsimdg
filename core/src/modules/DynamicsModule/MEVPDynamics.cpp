@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 19 Sep 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -71,6 +71,7 @@ void MEVPDynamics::update(const TimestepTime& tst)
     kernel.setData(vWindName, vwind.data());
     kernel.setData(uOceanName, uocean.data());
     kernel.setData(vOceanName, vocean.data());
+    kernel.setData(sshName, ssh.data());
 
     // kernel.setData(uName, uice);
     // kernel.setData(vName, vice);
@@ -84,6 +85,9 @@ void MEVPDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 
     shear = kernel.getDG0Data(shearName);
+
+    taux = kernel.getDG0Data(uIOStressName);
+    tauy = kernel.getDG0Data(vIOStressName);
 }
 
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const

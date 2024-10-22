@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData_test.cpp
  *
- * @date 22 Jul 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -15,7 +15,7 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/StructureFactory.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/constants.hpp"

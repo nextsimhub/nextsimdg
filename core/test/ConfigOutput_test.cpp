@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 11 May 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -21,7 +21,7 @@
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
@@ -67,10 +67,8 @@ TEST_CASE("Test periodic output")
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
 #endif
 
+    Module::Module<IDiagnosticOutput>::setImplementation("Nextsim::ConfigOutput");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "DiagnosticOutputModule = Nextsim::ConfigOutput" << std::endl;
-    config << std::endl;
     config << "[ConfigOutput]" << std::endl;
     config << "period = 3600" << std::endl; // Output every hour
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
@@ -80,8 +78,6 @@ TEST_CASE("Test periodic output")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 

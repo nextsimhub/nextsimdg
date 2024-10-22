@@ -1,16 +1,17 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date Mar 17, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ThermoIce0.hpp"
 
-#include "include/FreezingPointModule.hpp"
+#include "include/IFreezingPoint.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/IceMinima.hpp"
 #include "include/ModelArray.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/NZLevels.hpp"
 #include "include/constants.hpp"
 
@@ -38,8 +39,7 @@ void ThermoIce0::update(const TimestepTime& tsTime)
         tsTime);
 }
 
-template <>
-const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ThermoIce0::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
 };
 

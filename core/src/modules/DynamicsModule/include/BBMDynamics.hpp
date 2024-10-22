@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.hpp
  *
- * @date Jan 5, 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

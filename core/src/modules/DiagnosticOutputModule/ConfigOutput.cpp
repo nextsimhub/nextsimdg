@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.cpp
  *
- * @date 2 Jul 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -31,8 +31,7 @@ static const std::string filePeriodKey = pfx + ".file_period";
 // Access the model.start key. There's no clean way of getting this from Model, I think.
 static const std::string modelStartKey = "model.start";
 
-template <>
-const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ConfigOutput::PERIOD_KEY, periodKey },
     { ConfigOutput::START_KEY, startKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },

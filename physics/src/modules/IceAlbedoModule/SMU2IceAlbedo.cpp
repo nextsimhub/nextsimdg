@@ -1,7 +1,7 @@
 /*!
  * @file SMU2IceAlbedo.cpp
  *
- * @date Sep 22, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

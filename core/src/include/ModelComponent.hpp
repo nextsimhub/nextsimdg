@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 19 Sep 2024
+ * @date 07 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -50,6 +50,7 @@ namespace Protected {
         = "EXT_SSS"; // sea surface salinity from coupling or forcing, PSU
     inline constexpr TextTag EXT_SST
         = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
+    inline constexpr TextTag SSH = "SSH"; // sea surface height, m
     inline constexpr TextTag EVAP_MINUS_PRECIP
         = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
     // Derived fields, calculated once per timestep
@@ -64,6 +65,8 @@ namespace Protected {
     inline constexpr TextTag WIND_V = "WIND_V"; // y(north)-ward component of wind, m s⁻¹
     inline constexpr TextTag ICE_U = "ICE_U"; // x(east)-ward ice velocity, m s⁻¹
     inline constexpr TextTag ICE_V = "ICE_V"; // y(north)-ward ice velocity, m s⁻¹
+    inline constexpr TextTag IO_STRESS_U = "IO_STRESS_U"; // x(east)-ward ice-ocean stress, Pa
+    inline constexpr TextTag IO_STRESS_V = "IO_STRESS_V"; // y(north)-ward ice-ocean stress, Pa
     // Slab ocean fields
     inline constexpr TextTag SLAB_SST = "SLAB_SST"; // Slab ocean sea surface temperature, ˚C
     inline constexpr TextTag SLAB_SSS = "SLAB_SSS"; // Slab ocean sea surface salinity, ˚C

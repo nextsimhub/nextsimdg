@@ -1,6 +1,6 @@
 /*!
  * @file    ParametricTools.hpp
- * @date    July 10, 2022
+ * @date    24 Sep 2024
  * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 

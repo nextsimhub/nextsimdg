@@ -1,7 +1,7 @@
 /*!
  * @file RectGrid_test.cpp
  *
- * @date Feb 8, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

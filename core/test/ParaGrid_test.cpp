@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date Oct 27, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -19,7 +19,8 @@
 #include "include/NZLevels.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
-#include "include/StructureModule.hpp"
+#include "include/IStructure.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <cmath>

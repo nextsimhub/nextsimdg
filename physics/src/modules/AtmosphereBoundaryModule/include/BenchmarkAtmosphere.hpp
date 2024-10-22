@@ -1,7 +1,7 @@
 /*!
  * @file BenchmarkAtmosphere.hpp
  *
- * @date 19 Apr 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

@@ -1,13 +1,14 @@
 /*!
  * @file DamageHealing_test.cpp
  *
- * @date Jul 4, 2024
+ * @date 24 Sep 2024
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
+#include "include/NextsimModule.hpp"
 #include "include/IDamageHealing.hpp"
 #include "include/Module.hpp"
 
@@ -28,18 +29,14 @@ TEST_CASE("Thermodynamic healing")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::Module<IDamageHealing>::setImplementation("Nextsim::ConstantHealing");
     std::stringstream config;
 
-    config << "[Modules]" << std::endl;
-    config << "DamageHealingModule = Nextsim::ConstantHealing" << std::endl;
-    config << std::endl;
     config << "[ConstantHealing]" << std::endl;
     config << "td = 20" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     class PrognosticData : public ModelComponent {
     public:

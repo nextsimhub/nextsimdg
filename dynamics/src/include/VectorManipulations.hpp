@@ -1,6 +1,6 @@
 /*!
  * @file VectorManupulations.hpp
- * @date 9 Juli 2022
+ * @date 24 Sep 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 

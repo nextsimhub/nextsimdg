@@ -3,7 +3,10 @@
 //
 
 #include "include/MU71Atmosphere.hpp"
-#include "include/IceAlbedoModule.hpp"
+
+#include "include/Finalizer.hpp"
+#include "include/IIceAlbedo.hpp"
+#include "include/NextsimModule.hpp"
 
 namespace Nextsim {
 
@@ -11,13 +14,13 @@ double MU71Atmosphere::m_I0;
 
 static const double i0_default = 0.30;
 
-template <>
-const std::map<int, std::string> Configured<MU71Atmosphere>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { MU71Atmosphere::I0_KEY, "nextsim_thermo.I_0" },
 };
 
 void MU71Atmosphere::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceAlbedo>);
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 

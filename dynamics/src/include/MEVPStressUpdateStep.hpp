@@ -1,7 +1,7 @@
 /*!
  * @file MEVPStressUpdateStep.hpp
  *
- * @date Feb 1, 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -116,10 +116,10 @@ public:
                           .transpose());
         }
     }
-    void setPMap(ParametricMomentumMap<CG>* pmapIn) { pmap = pmapIn; }
+    void setPMap(ParametricMomentumMap<CG, DGadvection>* pmapIn) { pmap = pmapIn; }
 
 protected:
-    ParametricMomentumMap<CG>* pmap;
+    ParametricMomentumMap<CG, DGadvection>* pmap;
 
 private:
     //! MEVP parameters

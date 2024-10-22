@@ -1,15 +1,17 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/TOPAZOcean.hpp"
 
+#include "include/Finalizer.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
 
@@ -20,8 +22,7 @@ std::string TOPAZOcean::filePath;
 static const std::string pfx = "TOPAZOcean";
 static const std::string fileKey = pfx + ".file";
 
-template <>
-const std::map<int, std::string> Configured<TOPAZOcean>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, fileKey },
 };
 
@@ -43,6 +44,9 @@ ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getA
 
 void TOPAZOcean::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
+    Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
+
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     slabOcean.configure();
@@ -54,7 +58,7 @@ void TOPAZOcean::configure()
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
+    std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v", "ssh" };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     sstExt = state.data.at("sst");
@@ -62,6 +66,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     mld = state.data.at("mld");
     u = state.data.at("u");
     v = state.data.at("v");
+    ssh = state.data.at("ssh");
 
     cpml = Water::rho * Water::cp * mld;
     overElements(

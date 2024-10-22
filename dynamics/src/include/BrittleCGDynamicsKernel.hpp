@@ -1,7 +1,8 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date Jul 1, 2024
+ * @date 07 Oct 2024
+ * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -37,9 +38,13 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::cosOceanAngle;
+    using DynamicsKernel<DGadvection, DGstressComp>::sinOceanAngle;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
+    using CGDynamicsKernel<DGadvection>::uGradSeasurfaceHeight;
+    using CGDynamicsKernel<DGadvection>::vGradSeasurfaceHeight;
     using CGDynamicsKernel<DGadvection>::uAtmos;
     using CGDynamicsKernel<DGadvection>::vAtmos;
     using CGDynamicsKernel<DGadvection>::uOcean;
@@ -53,12 +58,11 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
 
-    double cosOceanAngle, sinOceanAngle;
-
 public:
     BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
         const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
+        : CGDynamicsKernel<DGadvection>(cos(radians * paramsIn.ocean_turning_angle),
+              sin(radians * paramsIn.ocean_turning_angle), paramsIn, avgU, avgV)
         , stressStep(stressStepIn)
         , params(reinterpret_cast<const MEBParameters&>(paramsIn))
         , stresstransport(nullptr)
@@ -77,9 +81,6 @@ public:
         damage.resize_by_mesh(*smesh);
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
-
-        cosOceanAngle = cos(radians * params.ocean_turning_angle);
-        sinOceanAngle = sin(radians * params.ocean_turning_angle);
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
@@ -167,7 +168,7 @@ protected:
     CGVector<CGdegree> avgV;
 
     StressUpdateStep<DGadvection, DGstressComp>& stressStep;
-    const MEBParameters& params;
+    const MEBParameters params;
 
     Nextsim::DGTransport<DGstressComp>* stresstransport;
 
@@ -203,8 +204,10 @@ protected:
                 + cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
 
             // Stress gradient
-            const double gradX = dStressX(i) / pmap->lumpedcgmass(i);
-            const double gradY = dStressY(i) / pmap->lumpedcgmass(i);
+            const double gradX = dStressX(i) / pmap->lumpedcgmass(i)
+                - params.rho_ice * cgH(i) * params.gravity * uGradSeasurfaceHeight(i);
+            const double gradY = dStressY(i) / pmap->lumpedcgmass(i)
+                - params.rho_ice * cgH(i) * params.gravity * vGradSeasurfaceHeight(i);
 
             u(i) = alpha * uIce + beta * vIce
                 + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));

@@ -1,3 +1,10 @@
+/*!
+ * @file ParametricMap.cpp
+ *
+ * @date Aug 23, 2024
+ * @author Thomas Richter <thomas.richter@ovgu.de>
+ */
+
 #include "ParametricMap.hpp"
 #include "ParametricTools.hpp"
 #include "VectorManipulations.hpp"
@@ -84,8 +91,10 @@ template <int DG> void ParametricTransportMap<DG>::InitializeInverseDGMassMatrix
 //////////////////////////////////////////////////
 
 //!
-template <int CG> void ParametricMomentumMap<CG>::InitializeLumpedCGMassMatrix()
+template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeLumpedCGMassMatrix()
 {
+    // Compute lumped mass matric for cG(CG)
+
     lumpedcgmass.resize_by_mesh(smesh);
 
     lumpedcgmass.zero();
@@ -151,16 +160,62 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeLumpedCGMassMatrix()
             }
     }
     //    VectorManipulations::CGAddPeriodic(smesh, lumpedcgmass);
+
+    // Build the cG1 mass matrix. If CG=1 this is redundant. But CG=2 is standard.
+    lumpedcg1mass.resize_by_mesh(smesh);
+    lumpedcg1mass.zero();
+
+    for (size_t p = 0; p < 2; ++p) // for parallelization
+    {
+#pragma omp parallel for
+        for (size_t iy = p; iy < smesh.ny; iy += 2)
+            for (size_t ix = 0; ix < smesh.nx; ++ix) {
+                size_t eid = smesh.nx * iy + ix;
+
+                Eigen::Vector<Nextsim::FloatType, 4> Meid;
+
+                if (smesh.CoordinateSystem == CARTESIAN) {
+                    const Eigen::Matrix<Nextsim::FloatType, 1, 2 * 2> J
+                        = ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS<2>.array();
+
+                    Meid = PHI<1, 2> * J.transpose();
+                } else if (smesh.CoordinateSystem == SPHERICAL) {
+                    const Eigen::Matrix<Nextsim::FloatType, 1, 2 * 2> cos_lat
+                        = (ParametricTools::getGaussPointsInElement<2>(smesh, eid).row(1).array())
+                              .cos();
+
+                    const Eigen::Matrix<Nextsim::FloatType, 1, 2 * 2> J
+                        = ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS<2>.array()
+                        * cos_lat.array();
+
+                    Meid = PHI<1, 2> * J.transpose();
+                } else
+                    abort();
+
+                // index of first dof in element
+                const size_t sy = smesh.nx + 1;
+                const size_t n0 = iy * sy + ix;
+
+                lumpedcg1mass(n0, 0) += Meid(0);
+                lumpedcg1mass(n0 + 1, 0) += Meid(1);
+
+                lumpedcg1mass(n0 + sy, 0) += Meid(2);
+                lumpedcg1mass(n0 + 1 + sy, 0) += Meid(3);
+            }
+    }
 }
 
 //!
-template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
+template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatrices()
 {
+    dX_SSH.resize(smesh.nelements);
+    dY_SSH.resize(smesh.nelements);
     divS1.resize(smesh.nelements);
     divS2.resize(smesh.nelements);
     iMgradX.resize(smesh.nelements);
     iMgradY.resize(smesh.nelements);
     iMJwPSI.resize(smesh.nelements);
+    iMJwPSI_dam.resize(smesh.nelements);
     if (smesh.CoordinateSystem == SPHERICAL) {
         divM.resize(smesh.nelements);
         iMM.resize(smesh.nelements);
@@ -198,8 +253,14 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
             dy_cg2 = PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(0).array()
             - PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(0).array();
 
-        // PSI83 is the DG-Basis-function in the guass-point
-        // PSI83_{iq} = PSI_i(q)   [ should be called DG_in_GAUSS ]
+        // same but using CG1 basis functions. Required for seaSurfaceHeight
+        const Eigen::Matrix<Nextsim::FloatType, 4, GAUSSPOINTS(CG2DGSTRESS(CG))> dx_cg1
+            = PHIx<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(1).array()
+            - PHIy<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(1).array();
+
+        const Eigen::Matrix<Nextsim::FloatType, 4, GAUSSPOINTS(CG2DGSTRESS(CG))> dy_cg1
+            = PHIy<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(0).array()
+            - PHIx<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(0).array();
 
         const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> J
             = ParametricTools::J<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid);
@@ -209,17 +270,31 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
             divS1[eid] = dx_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
             divS2[eid] = dy_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
 
+            // dX_SSH and dY_SSH are used to compute the gradient of the sea surface height
+            // they store (d_[x/y] PHI_j, PHI_i)
+            dX_SSH[eid] = dx_cg1 * PHI<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+            dY_SSH[eid] = dy_cg1 * PHI<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+
             // iMgradX/Y (inverse-Mass-gradient X/Y) is used to project strain rate from CG to DG
             const Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), CG2DGSTRESS(CG)> imass
                 = ParametricTools::massMatrix<CG2DGSTRESS(CG)>(smesh, eid).inverse();
             iMgradX[eid] = imass * divS1[eid].transpose();
             iMgradY[eid] = imass * divS2[eid].transpose();
 
-            // imJwPSI is used to compute nonlinear stress update???
+            // imJwPSI is used to compute nonlinear stress update
             iMJwPSI[eid] = imass
                 * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
                     * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
                       .matrix();
+            // same but for the damage. However, we use the same number of Gausspoints as
+            // for the DG-stress variant above for easier use in BBM Stress update
+            const Eigen::Matrix<Nextsim::FloatType, DG, DG> imass_dam
+                = ParametricTools::massMatrix<DG>(smesh, eid).inverse();
+            iMJwPSI_dam[eid] = imass_dam
+                * (PSI<DG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
+                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
+                      .matrix();
+
         } else if (smesh.CoordinateSystem == SPHERICAL) {
             // In spherical coordinates (x,y) coordinates are (lon,lat) coordinates
 
@@ -250,6 +325,12 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
                 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose()
                 / Nextsim::EarthRadius;
 
+            // same for CG1 (Sea-Surface Height)
+            dX_SSH[eid] = dx_cg1 * PHI<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose()
+                / Nextsim::EarthRadius;
+            dY_SSH[eid] = (dy_cg1.array().rowwise() * cos_lat.array()).matrix()
+                * PHI<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose() / Nextsim::EarthRadius;
+
             const Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), CG2DGSTRESS(CG)> imass
                 = SphericalTools::massMatrix<CG2DGSTRESS(CG)>(smesh, eid).inverse();
             iMgradX[eid] = imass * divS1[eid].transpose();
@@ -258,6 +339,14 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
 
             iMJwPSI[eid] = imass
                 * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
+                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
+                      .matrix();
+
+            // smae for DG advection (damage)
+            const Eigen::Matrix<Nextsim::FloatType, DG, DG> imass_dam
+                = SphericalTools::massMatrix<DG>(smesh, eid).inverse();
+            iMJwPSI_dam[eid] = imass_dam
+                * (PSI<DG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
                     * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
                       .matrix();
 
@@ -271,7 +360,11 @@ template class ParametricTransportMap<3>;
 template class ParametricTransportMap<6>;
 template class ParametricTransportMap<8>;
 
-template class ParametricMomentumMap<1>;
-template class ParametricMomentumMap<2>;
+template class ParametricMomentumMap<1, 1>;
+template class ParametricMomentumMap<2, 1>;
+template class ParametricMomentumMap<1, 3>;
+template class ParametricMomentumMap<2, 3>;
+template class ParametricMomentumMap<1, 6>;
+template class ParametricMomentumMap<2, 6>;
 
 }

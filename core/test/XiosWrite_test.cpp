@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    21 August 2024
+ * @date    24 Sep 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the write method of the C++ interface
@@ -13,7 +13,7 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>

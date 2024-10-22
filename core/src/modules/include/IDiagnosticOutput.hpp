@@ -1,7 +1,7 @@
 /*!
  * @file IDiagnosticOutput.hpp
  *
- * @date 2 Jul 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0Temperature_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -14,10 +14,11 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/FreezingPointModule.hpp"
+#include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {

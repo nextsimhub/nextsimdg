@@ -1,7 +1,7 @@
 /*!
  * @file ModelArrayDetails.hpp
  *
- * @date Oct 19, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

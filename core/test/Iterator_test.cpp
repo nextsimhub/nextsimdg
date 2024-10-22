@@ -1,6 +1,6 @@
 /*!
  * @file Iterator_test.cpp
- * @date 12 Aug 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -45,7 +45,7 @@ TEST_SUITE_BEGIN("Iterator");
 TEST_CASE("Count iterator testing")
 {
     Counterant cant = Counterant();
-    Iterator iterator = Iterator(&cant);
+    Iterator iterator(cant);
 
     int nSteps = 5;
 
