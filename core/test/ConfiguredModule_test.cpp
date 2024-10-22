@@ -17,7 +17,6 @@ using HelpMap = int;
 using Config = Nextsim::ConfiguredModule;
 
 #include "include/Module.hpp"
-#include "moduleTestClasses.hpp"
 
 #include <istream>
 #include <memory>
@@ -111,15 +110,16 @@ TEST_CASE("Configure a module from a stream")
 {
     Configurator::clear();
     std::stringstream config;
-    config << "[Modules]" << std::endl << "ITest = Impl2" << std::endl
+    config << "[Modules]" << std::endl
+            << "ITest = Impl2" << std::endl
             << "ITest2 = AnotherImpl" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
     REQUIRE(ConfiguredModule::getImpl("ITest") == Module::IMPL2);
-     Module::Module<Test::ITest>::setImplementation(ConfiguredModule::getImpl("ITest"));
+    Module::Module<Test::ITest>::setImplementation(ConfiguredModule::getImpl("ITest"));
     REQUIRE(ConfiguredModule::getImpl("ITest2") == Module::ANOTHERIMPL);
-     Module::Module<Test::ITest2>::setImplementation(ConfiguredModule::getImpl("ITest2"));
+    Module::Module<Test::ITest2>::setImplementation(ConfiguredModule::getImpl("ITest2"));
 
     // Tests Module::ImplementationNames, too
     ConfigMap cfgMap = ConfiguredModule::getAllModuleConfigurations();

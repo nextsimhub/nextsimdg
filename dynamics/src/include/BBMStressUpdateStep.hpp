@@ -167,11 +167,11 @@ public:
             s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
 
             // INTEGRATION OF STRESS AND DAMAGE
-            // const Eigen::Matrix<Nextsim::FloatType, 1, nGauss * nGauss> J
+            // const Eigen::Matrix<Nextsim::FloatType, 1, nGauss* nGauss> J
             //     = ParametricTools::J<3>(smesh, i);
             // // get the inverse of the mass matrix scaled with the test-functions in the gauss
             // // points, with the gauss weights and with J. This is a 8 x 9 matrix
-            // const Eigen::Matrix<Nextsim::FloatType, DGstress, nGauss * nGauss> imass_psi
+            // const Eigen::Matrix<Nextsim::FloatType, DGstress, nGauss* nGauss> imass_psi
             //     = ParametricTools::massMatrix<DGstress>(smesh, i).inverse()
             //     * (PSI<DGstress, nGauss>.array().rowwise()
             //         * (GAUSSWEIGHTS<nGauss>.array() * J.array()))

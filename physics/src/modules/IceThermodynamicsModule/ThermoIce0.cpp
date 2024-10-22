@@ -7,6 +7,7 @@
 
 #include "include/ThermoIce0.hpp"
 
+#include "include/IceMinima.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/IceMinima.hpp"

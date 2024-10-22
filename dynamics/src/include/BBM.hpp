@@ -174,7 +174,7 @@ namespace BBM {
                 = ParametricTools::J<3>(smesh, i);
             // // get the inverse of the mass matrix scaled with the test-functions in the gauss
             // // points, with the gauss weights and with J. This is a 8 x 9 matrix
-            // const Eigen::Matrix<Nextsim::FloatType, DGs, NGP * NGP> imass_psi
+            // const Eigen::Matrix<Nextsim::FloatType, DGs, NGP* NGP> imass_psi
             //     = ParametricTools::massMatrix<DGs>(smesh, i).inverse()
             //     * (PSI<DGs, NGP>.array().rowwise() * (GAUSSWEIGHTS<NGP>.array() * J.array()))
             //           .matrix();
