@@ -61,7 +61,7 @@ public:
 
         compr_strength
             = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
-        C_lab = 2.0e6; //! \param C_lab (double) Test [Pa]
+        C_lab = 5.0e6; //! \param C_lab (double) Test [Pa]
     }
 };
 
