@@ -1,7 +1,7 @@
 /*!
  * @file VPCGDynamicsKernel.hpp
  *
- * @date Aug 23, 2024
+ * @date 22 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -54,13 +54,11 @@ protected:
 public:
     VPCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
         const DynamicsParameters& paramsIn)
-        // Note that the ocean turning angle is explicitly zero at present
-        : CGDynamicsKernel<DGadvection>(1., 0., paramsIn, u, v)
+        : CGDynamicsKernel<DGadvection>()
         , stressStep(stressStepIn)
         , params(reinterpret_cast<const VPParameters&>(paramsIn))
     {
     }
-
     virtual ~VPCGDynamicsKernel() = default;
     void update(const TimestepTime& tst) override
     {
@@ -95,9 +93,35 @@ public:
         DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }
 
+    CGVector<CGdegree> getIceOceanStress(const std::string& name) const override
+    {
+        CGVector<CGdegree> taux, tauy;
+        taux.resizeLike(u);
+        tauy.resizeLike(v);
+
+#pragma omp parallel for
+        for (int i = 0; i < taux.rows(); ++i) {
+            double uOcnRel = u(i) - uOcean(i);
+            double vOcnRel = v(i) - vOcean(i);
+            double absocn = sqrt(SQR(uOcnRel) + SQR(vOcnRel));
+
+            taux(i) = params.F_ocean * absocn * uOcnRel;
+            tauy(i) = params.F_ocean * absocn * vOcnRel;
+        }
+
+        if (name == uIOStressName) {
+            return taux;
+        } else if (name == vIOStressName) {
+            return tauy;
+        } else {
+            throw std::logic_error(std::string(__func__) + " called with an unknown argument "
+                + name + ". Only " + uIOStressName + " and " + vIOStressName + " are supported\n");
+        }
+    }
+
 protected:
     StressUpdateStep<DGadvection, DGstressComp>& stressStep;
-    const VPParameters params;
+    const VPParameters& params;
     const double alpha = 1500.;
     const double beta = 1500.;
 
