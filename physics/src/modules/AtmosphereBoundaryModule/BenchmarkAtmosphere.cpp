@@ -37,13 +37,14 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
     }
     // length of 1 day in seconds
     constexpr double oneday = 24.0 * 60.0 * 60.0;
-    // maximum wind velocity of the cyclone
-    constexpr double vMax = 30.0;
 
     // number of days elapsed since t0
     Duration elapsedTime = tst.start - t0;
     double timeFraction = elapsedTime.seconds() / oneday;
     double cycloneDuration = 5.; // days
+
+    // maximum wind velocity of the cyclone
+    double vMax = 30.0*std::min(1., 6*3600.*elapsedTime.seconds());
 
     // cyclone parameters
     const double A = 1e-5;
