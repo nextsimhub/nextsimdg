@@ -52,14 +52,16 @@ template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
     static KokkosTimer<true> timerBBM("bbmGPU");
-    //    static KokkosTimer<DETAILED_MEASUREMENTS> timerProj("projGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerProj("projGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerStress("stressGPU");
-    //    static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerMomentum("momentumGPU");
-    //    static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerUpload("uploadGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvectStress("advectStressGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvection("advectionGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerPrepIt("prepItGPU");
 
     timerUpload.start();
     // explicit execution space enables asynchronous execution
@@ -81,24 +83,28 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerUpload.stop();
 
     const FloatType dt = tst.step.seconds();
+    timerAdvection.start();
     // Let DynamicsKernel handle the advection step
     this->advectAndLimit(dt, avgUDevice, avgVDevice);
+    timerAdvection.stop();
 
+    timerAdvectStress.start();
     // Transport and limits for damage
     this->dGTransportDevice->step(dt, damageDevice);
     limitMax(damageDevice, 1.0);
     limitMin(damageDevice, 1e-12);
 
     //! Perform transport step for stress
-    timerAdvectStress.start();
     stressTransportDevice->prepareAdvection(avgUDevice, avgVDevice);
     stressTransportDevice->step(dt, this->s11Device);
     stressTransportDevice->step(dt, this->s12Device);
     stressTransportDevice->step(dt, this->s22Device);
     timerAdvectStress.stop();
 
+    timerPrepIt.start();
     Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
         this->ciceDevice, *this->dG2CGAdvectInterpolator);
+    timerPrepIt.stop();
 
     // The timestep for the brittle solver is the solver subtimestep
     this->deltaT = dt / this->nSteps;
@@ -108,10 +114,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, avgVDevice, 0.0);
 
     for (size_t subStep = 0; subStep < this->nSteps; ++subStep) {
+        timerProj.start();
         Base::projectVelocityToStrainDevice(this->uDevice, this->vDevice, this->e11Device,
             this->e12Device, this->e22Device, this->meshData->landMaskDevice, this->iMgradXDevice,
             this->iMgradYDevice, this->iMMDevice, this->smesh->nx, this->smesh->ny,
             this->smesh->CoordinateSystem);
+        timerProj.stop();
 
         timerStress.start();
         updateStressHighOrderDevice(this->s11Device, this->s12Device, this->s22Device,
@@ -119,10 +127,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->damageDevice, this->deltaT);
         timerStress.stop();
 
+        timerDivergence.start();
         Base::computeStressDivergenceDevice(this->dStressXDevice, this->dStressYDevice,
             this->s11Device, this->s12Device, this->s22Device, this->meshData->landMaskDevice,
             this->divS1Device, this->divS2Device, this->divMDevice, this->meshData->dirichletDevice,
             this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
+        timerDivergence.stop();
 
         timerMomentum.start();
         updateMomentumDevice(this->uDevice, this->vDevice, this->avgUDevice, this->avgVDevice,
@@ -132,8 +142,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->nSteps);
         timerMomentum.stop();
 
+        timerBoundary.start();
         Base::applyBoundariesDevice(this->uDevice, this->vDevice, this->meshData->dirichletDevice,
             this->smesh->nx, this->smesh->ny);
+        timerBoundary.stop();
     }
 
     timerDownload.start();

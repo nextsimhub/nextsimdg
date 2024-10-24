@@ -43,6 +43,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerUpload("uploadGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvection("advectionGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerPrepIt("prepItGPU");
 
     timerUpload.start();
     // explicit execution space enables asynchronous execution
@@ -62,10 +64,14 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
     timerUpload.stop();
 
+    timerAdvection.start();
     this->advectAndLimit(tst.step.seconds(), this->uDevice, this->vDevice);
+    timerAdvection.stop();
 
+    timerPrepIt.start();
     Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
         this->ciceDevice, *this->dG2CGAdvectInterpolator);
+    timerPrepIt.stop();
 
     // The critical timestep for the VP solver is the advection timestep
     this->deltaT = tst.step.seconds();
