@@ -362,11 +362,7 @@ void KokkosDGTransport<DG>::prepareAdvection(const ConstKokkosDeviceView<CGVecto
 /*************************************************************/
 template <int DG> void KokkosDGTransport<DG>::step(FloatType dt, const DeviceViewDG& phiDevice)
 {
-/*    auto [phiHost, phiDevice] = makeKokkosDualView("phi", phi, true);
-    Kokkos::deep_copy(phiDevice, phiHost);
-    this->step_rk3(dt, phi);*/
-
-    assert(phiDevice.size() == mesh.nx * mesh.ny * DG);
+    assert(phiDevice.size() == meshDevice.nx * meshDevice.ny * DG);
 
     switch (timeSteppingScheme) {
     case TimeSteppingScheme::RK1:
@@ -385,11 +381,6 @@ template <int DG> void KokkosDGTransport<DG>::step(FloatType dt, const DeviceVie
             meshDevice);
         break;
     }
-
- /*   auto resGPU = phi;
-    auto tmpRes1Host = makeKokkosHostView(resGPU);
-    Kokkos::deep_copy(tmpRes1Host, phiDevice);
-    compare("phi", phi, resGPU);*/
 }
 
 template <int DG>
