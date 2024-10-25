@@ -40,7 +40,8 @@ namespace Interpolations {
                         * PHI<CG, GAUSSPOINTS1D(DG)>.transpose());
             }
         }
-        cG2DGMatrixDevice = makeKokkosDeviceViewMap("cG2DGMatrix", cG2DGMatrix, true);
+        cG2DGMatrixDevice
+            = makeKokkosDeviceViewMap("cG2DGMatrix", cG2DGMatrix, MakeViewOptions::ALWAYS_COPY);
     }
 
     template <int DG, int CG>
@@ -96,8 +97,8 @@ namespace Interpolations {
     }
 
     template <int CG, int DG>
-    void KokkosDG2CGInterpolator<CG, DG>::operator()(
-        const KokkosDeviceView<CGVector<CG>>& dest, const ConstKokkosDeviceView<DGVector<DG>>& src) const
+    void KokkosDG2CGInterpolator<CG, DG>::operator()(const KokkosDeviceView<CGVector<CG>>& dest,
+        const ConstKokkosDeviceView<DGVector<DG>>& src) const
     {
         assert(src.extent(0) == static_cast<int>(nx * ny));
         assert(dest.extent(0) == static_cast<int>((CG * nx + 1) * (CG * ny + 1)));

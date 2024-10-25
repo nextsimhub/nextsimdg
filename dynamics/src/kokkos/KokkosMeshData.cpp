@@ -14,12 +14,12 @@ KokkosMeshData::KokkosMeshData(const ParametricMesh& mesh)
     , ny(mesh.ny)
 {
     // vertices
-    vertices = makeKokkosDeviceView("vertices", mesh.vertices, true);
+    vertices = makeKokkosDeviceView("vertices", mesh.vertices, MakeViewOptions::DEVICE_COPY);
 
     // boundary data
     for (int i = 0; i < ParametricMesh::Edge::N_EDGE; ++i) {
-        dirichletDevice[i]
-            = makeKokkosDeviceViewMap("dirichlet" + std::to_string(i), mesh.dirichlet[i], true);
+        dirichletDevice[i] = makeKokkosDeviceViewMap(
+            "dirichlet" + std::to_string(i), mesh.dirichlet[i], MakeViewOptions::DEVICE_COPY);
     }
 
     landMaskDevice = makeKokkosDeviceBitset(mesh.landmask);

@@ -30,12 +30,12 @@ KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh,
     tmpRes3 = makeKokkosDeviceView("tmpRes3", this->tmp3);
 
     // parametric map
-    advectionCellTermXDevice
-        = makeKokkosDeviceViewMap("advectionCellTermX", this->parammap.AdvectionCellTermX, true);
-    advectionCellTermYDevice
-        = makeKokkosDeviceViewMap("advectionCellTermY", this->parammap.AdvectionCellTermY, true);
-    inverseDGMassMatrixDevice
-        = makeKokkosDeviceViewMap("inverseDGMassMatrix", this->parammap.InverseDGMassMatrix, true);
+    advectionCellTermXDevice = makeKokkosDeviceViewMap(
+        "advectionCellTermX", this->parammap.AdvectionCellTermX, MakeViewOptions::DEVICE_COPY);
+    advectionCellTermYDevice = makeKokkosDeviceViewMap(
+        "advectionCellTermY", this->parammap.AdvectionCellTermY, MakeViewOptions::DEVICE_COPY);
+    inverseDGMassMatrixDevice = makeKokkosDeviceViewMap(
+        "inverseDGMassMatrix", this->parammap.InverseDGMassMatrix, MakeViewOptions::DEVICE_COPY);
 }
 
 //! returns the localization of the cell vector to the edges
@@ -350,7 +350,8 @@ template <int DG> void KokkosDGTransport<DG>::setTimeSteppingScheme(TimeStepping
 
 /*************************************************************/
 template <int DG>
-void KokkosDGTransport<DG>::prepareAdvection(const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
+void KokkosDGTransport<DG>::prepareAdvection(
+    const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
     const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice)
 {
     // todo: try interpolation in batches to fuse the kernels

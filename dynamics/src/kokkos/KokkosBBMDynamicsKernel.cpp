@@ -20,12 +20,13 @@ void KokkosBBMDynamicsKernel<DGadvection>::initialise(
 {
     KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
-    iMJwPSIAdvectDevice = makeKokkosDeviceViewMap("iMJwPSIAdvect", this->pmap->iMJwPSIAdvect, true);
+    iMJwPSIAdvectDevice = makeKokkosDeviceViewMap(
+        "iMJwPSIAdvect", this->pmap->iMJwPSIAdvect, MakeViewOptions::DEVICE_COPY);
     std::vector<FloatType> cellSize(this->smesh->nelements);
     for (size_t i = 0; i < this->smesh->nelements; ++i) {
         cellSize[i] = this->smesh->h(i);
     }
-    cellSizeDevice = makeKokkosDeviceViewMap("cellSize", cellSize, true);
+    cellSizeDevice = makeKokkosDeviceViewMap("cellSize", cellSize, MakeViewOptions::ALWAYS_COPY);
 }
 
 template <int DGadvection>

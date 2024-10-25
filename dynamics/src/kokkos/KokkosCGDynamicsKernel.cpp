@@ -41,22 +41,28 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     std::tie(e22Host, e22Device) = makeKokkosDualView("e22", this->e22);
 
     assert(this->pmap);
-    divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, true);
-    divS2Device = makeKokkosDeviceViewMap("divS2", this->pmap->divS2, true);
-    divMDevice = makeKokkosDeviceViewMap("divM", this->pmap->divM, true);
-    iMgradXDevice = makeKokkosDeviceViewMap("iMgradX", this->pmap->iMgradX, true);
-    iMgradYDevice = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, true);
-    iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, true);
+    divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, MakeViewOptions::DEVICE_COPY);
+    divS2Device = makeKokkosDeviceViewMap("divS2", this->pmap->divS2, MakeViewOptions::DEVICE_COPY);
+    divMDevice = makeKokkosDeviceViewMap("divM", this->pmap->divM, MakeViewOptions::DEVICE_COPY);
+    iMgradXDevice
+        = makeKokkosDeviceViewMap("iMgradX", this->pmap->iMgradX, MakeViewOptions::DEVICE_COPY);
+    iMgradYDevice
+        = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, MakeViewOptions::DEVICE_COPY);
+    iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, MakeViewOptions::DEVICE_COPY);
 
     // needed for stress and momentum
     std::tie(hiceHost, hiceDevice) = makeKokkosDualView("hice", this->hice);
     std::tie(ciceHost, ciceDevice) = makeKokkosDualView("cice", this->cice);
 
-    PSIAdvectDevice = makeKokkosDeviceView("PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, true);
-    PSIStressDevice = makeKokkosDeviceView("PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, true);
+    PSIAdvectDevice = makeKokkosDeviceView(
+        "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, MakeViewOptions::DEVICE_COPY);
+    PSIStressDevice = makeKokkosDeviceView(
+        "PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, MakeViewOptions::DEVICE_COPY);
 
-    lumpedCGMassDevice = makeKokkosDeviceView("lumpedcgmass", this->pmap->lumpedcgmass, true);
-    iMJwPSIDevice = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, true);
+    lumpedCGMassDevice = makeKokkosDeviceView(
+        "lumpedcgmass", this->pmap->lumpedcgmass, MakeViewOptions::DEVICE_COPY);
+    iMJwPSIDevice
+        = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, MakeViewOptions::DEVICE_COPY);
 
     assert(this->smesh);
     meshData = std::make_unique<KokkosMeshData>(*this->smesh);
@@ -91,7 +97,8 @@ void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt,
 /*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::prepareIterationDevice(const DeviceViewCG& cgHDevice,
-    const DeviceViewCG& cgADevice, const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+    const DeviceViewCG& cgADevice, const ConstDeviceViewAdvect& hiceDevice,
+    const ConstDeviceViewAdvect& ciceDevice,
     const Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>& dG2CGInterpolator)
 {
     // interpolate ice height and concentration to local cg Variables
