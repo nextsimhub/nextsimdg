@@ -79,6 +79,10 @@ using KokkosHostView =
  */
 template <typename EigenMat> auto makeKokkosHostView(EigenMat& mat)
 {
+    if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
+        return KokkosHostView<EigenMat>(
+            const_cast<typename EigenMat::Scalar*>(mat.data()), mat.rows() * mat.cols());
+    }
     return KokkosHostView<EigenMat>(
         const_cast<typename EigenMat::Scalar*>(mat.data()), mat.rows(), mat.cols());
 }
@@ -109,8 +113,17 @@ auto makeKokkosDeviceView(
                       Kokkos::HostSpace>) {
         return makeKokkosHostView(mat);
     } else {
-        auto deviceView = KokkosDeviceView<EigenMat>(
-            Kokkos::ViewAllocateWithoutInitializing(name), mat.rows(), mat.cols());
+        auto deviceView = [&]() {
+            // 1D matrix. Using a two arg constructor works in both cases works but kokkos
+            // complains when debugging is enabled.
+            if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
+                return KokkosDeviceView<EigenMat>(
+                    Kokkos::ViewAllocateWithoutInitializing(name), mat.rows() * mat.cols());
+            } else {
+                return KokkosDeviceView<EigenMat>(
+                    Kokkos::ViewAllocateWithoutInitializing(name), mat.rows(), mat.cols());
+            }
+        }();
 
         if (opts != MakeViewOptions::NO_COPY) {
             auto hostView = makeKokkosHostView(mat);
