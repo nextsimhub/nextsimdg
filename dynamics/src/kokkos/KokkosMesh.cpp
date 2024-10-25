@@ -1,14 +1,14 @@
 /*!
- * @file KokkosMeshData.cpp
+ * @file KokkosMesh.cpp
  * @date August 22, 2024
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
-#include "include/KokkosMeshData.hpp"
+#include "include/KokkosMesh.hpp"
 
 namespace Nextsim {
 
-KokkosMeshData::KokkosMeshData(const ParametricMesh& mesh)
+KokkosMesh::KokkosMesh(const ParametricMesh& mesh)
     : coordinateSystem(mesh.CoordinateSystem)
     , nx(mesh.nx)
     , ny(mesh.ny)
@@ -25,7 +25,7 @@ KokkosMeshData::KokkosMeshData(const ParametricMesh& mesh)
     landMaskDevice = makeKokkosDeviceBitset(mesh.landmask);
 }
 /*
-KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, 1, 2> KokkosMeshData::edgeVector(
+KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, 1, 2> KokkosMesh::edgeVector(
     DeviceIndex n1, DeviceIndex n2) const
 {
     Eigen::Matrix<FloatType, 1, 2> dv;

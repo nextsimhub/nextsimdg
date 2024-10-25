@@ -12,8 +12,8 @@
 
 namespace Nextsim {
 
-struct KokkosMeshData {
-    KokkosMeshData(const ParametricMesh& mesh);
+struct KokkosMesh {
+    KokkosMesh(const ParametricMesh& mesh);
 
     using ConstDeviceViewVertex = ConstKokkosDeviceView<decltype(ParametricMesh::vertices)>;
     ConstDeviceViewVertex vertices;

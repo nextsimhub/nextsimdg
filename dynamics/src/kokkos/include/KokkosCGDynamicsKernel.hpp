@@ -10,7 +10,7 @@
 #include "../../include/CGDynamicsKernel.hpp"
 #include "KokkosDGTransport.hpp"
 #include "KokkosInterpolations.hpp"
-#include "KokkosMeshData.hpp"
+#include "KokkosMesh.hpp"
 
 namespace Nextsim {
 
@@ -58,7 +58,7 @@ public:
         const Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>& dG2CGInterpolator);
 
     static void dirichletZero(const DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
-        const KokkosMeshData::DirichletData& dirichlet);
+        const KokkosMesh::DirichletData& dirichlet);
     // cuda requires these functions to be public but they should only be needed by the concrete
     // dynamics (like protected)
     static void projectVelocityToStrainDevice(const ConstDeviceViewCG& uDevice,
@@ -72,10 +72,10 @@ public:
         const ConstDeviceViewStress& s12Device, const ConstDeviceViewStress& s22Device,
         const ConstDeviceBitset& landMaskDevice, const DivMapDevice& divS1Device,
         const DivMapDevice& divS2Device, const DivMapDevice& divMDevice,
-        const KokkosMeshData::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny,
+        const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny,
         COORDINATES coordinates);
     static void applyBoundariesDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
-        const KokkosMeshData::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny);
+        const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny);
 
 protected:
     // currently not used
@@ -146,7 +146,7 @@ protected:
     KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
 
     // held as a pointer because these objects are initialized by their constructors
-    std::unique_ptr<KokkosMeshData> meshData;
+    std::unique_ptr<KokkosMesh> meshData;
     std::unique_ptr<Interpolations::KokkosCG2DGInterpolator<DGadvection, CGdegree>>
         cG2DGAdvectInterpolator;
     std::unique_ptr<Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>>

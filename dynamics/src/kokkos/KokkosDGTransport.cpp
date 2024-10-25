@@ -11,7 +11,7 @@ namespace Nextsim {
 
 template <int DG>
 KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh,
-    const KokkosMeshData& _meshDevice,
+    const KokkosMesh& _meshDevice,
     const Interpolations::KokkosCG2DGInterpolator<DG, CGdegree>& _cG2DGInterpolator)
     : DGTransport<DG>(smesh)
     , meshDevice(_meshDevice)
@@ -216,7 +216,7 @@ KOKKOS_IMPL_FUNCTION static void addRowAtomic(const Kokkos::View<T*, Properties.
 template <int DG>
 void KokkosDGTransport<DG>::reinitNormalVelocityDevice(const DeviceViewEdge& normalVelXDevice,
     const DeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& velXDevice,
-    const ConstDeviceViewDG& velYDevice, const KokkosMeshData& mesh)
+    const ConstDeviceViewDG& velYDevice, const KokkosMesh& mesh)
 {
     auto execSpace = Kokkos::DefaultExecutionSpace();
     Kokkos::deep_copy(execSpace, normalVelXDevice, 0.0);
@@ -392,7 +392,7 @@ void KokkosDGTransport<DG>::stepRK1(FloatType dt, const ConstDeviceViewDG& velXD
     const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
     const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
     const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
-    const KokkosMeshData& meshDevice)
+    const KokkosMesh& meshDevice)
 {
     dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
         advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
@@ -419,7 +419,7 @@ void KokkosDGTransport<DG>::stepRK2(FloatType dt, const ConstDeviceViewDG& velXD
     const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
     const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
     const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
-    const KokkosMeshData& meshDevice)
+    const KokkosMesh& meshDevice)
 {
     dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
         advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
@@ -463,7 +463,7 @@ void KokkosDGTransport<DG>::stepRK3(FloatType dt, const ConstDeviceViewDG& velXD
     const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
     const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
     const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
-    const KokkosMeshData& meshDevice)
+    const KokkosMesh& meshDevice)
 {
     dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
         advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
@@ -710,7 +710,7 @@ template <int DG>
 void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
     const ConstDeviceViewEdge& normalVelXDevice, const ConstDeviceViewEdge& normalVelYDevice,
     const ConstDeviceViewDG& phiDevice, const DeviceViewDG& phiupDevice,
-    const KokkosMeshData& meshDevice)
+    const KokkosMesh& meshDevice)
 {
     const auto PSIeE = PSIe<EDGE_DOFS, EDGE_DOFS>;
     // bot
@@ -802,7 +802,7 @@ void KokkosDGTransport<DG>::dGTransportOperatorDevice(FloatType dt,
     const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
     const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
     const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
-    const KokkosMeshData& meshDevice)
+    const KokkosMesh& meshDevice)
 {
     Kokkos::deep_copy(phiupDevice, 0.0);
 

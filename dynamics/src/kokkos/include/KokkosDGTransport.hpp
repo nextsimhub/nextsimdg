@@ -10,7 +10,7 @@
 #include "../include/CGDynamicsKernel.hpp" // for degree defines
 #include "../include/DGTransport.hpp"
 #include "KokkosInterpolations.hpp"
-#include "KokkosMeshData.hpp"
+#include "KokkosMesh.hpp"
 
 namespace Nextsim {
 enum struct TimeSteppingScheme { RK1, RK2, RK3 };
@@ -36,7 +36,7 @@ public:
     static constexpr int GP1D = GAUSSPOINTS1D(DG);
     using AdvectionCellTerm = Eigen::Matrix<FloatType, DG, GP>;
 
-    KokkosDGTransport(const ParametricMesh& smesh, const KokkosMeshData& _meshDevice,
+    KokkosDGTransport(const ParametricMesh& smesh, const KokkosMesh& _meshDevice,
         const Interpolations::KokkosCG2DGInterpolator<DG, CGdegree>& _cG2DGInterpolator);
 
     void setTimeSteppingScheme(TimeSteppingScheme tss);
@@ -53,7 +53,7 @@ public:
     // internal methods, only public because cuda needs it
     static void reinitNormalVelocityDevice(const DeviceViewEdge& normalVelXDevice,
         const DeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& velXDevice,
-        const ConstDeviceViewDG& velYDevice, const KokkosMeshData& meshDevice);
+        const ConstDeviceViewDG& velYDevice, const KokkosMesh& meshDevice);
 
     void addCellTermsDevice(FloatType dt, const ConstDeviceViewDG& velXDevice,
         const ConstDeviceViewDG& velYDevice, const ConstDeviceViewDG& phiDevice,
@@ -72,7 +72,7 @@ public:
 
     void addBoundaryTermsDevice(FloatType dt, const ConstDeviceViewEdge& normalVelXDevice,
         const ConstDeviceViewEdge& normalVelYDevice, const ConstDeviceViewDG& phiDevice,
-        const DeviceViewDG& phiupDevice, const KokkosMeshData& meshDevice);
+        const DeviceViewDG& phiupDevice, const KokkosMesh& meshDevice);
 
     void dGTransportOperatorDevice(FloatType dt, const ConstDeviceViewDG& velXDevice,
         const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
@@ -81,7 +81,7 @@ public:
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
         const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
-        const KokkosMeshData& meshDevice);
+        const KokkosMesh& meshDevice);
 
     void stepRK1(FloatType dt, const ConstDeviceViewDG& velXDevice,
         const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
@@ -90,7 +90,7 @@ public:
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
         const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
-        const KokkosMeshData& meshDevice);
+        const KokkosMesh& meshDevice);
 
     void stepRK2(FloatType dt, const ConstDeviceViewDG& velXDevice,
         const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
@@ -99,7 +99,7 @@ public:
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
         const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
-        const KokkosMeshData& meshDevice);
+        const KokkosMesh& meshDevice);
 
     void stepRK3(FloatType dt, const ConstDeviceViewDG& velXDevice,
         const ConstDeviceViewDG& velYDevice, const ConstDeviceViewEdge& normalVelXDevice,
@@ -108,10 +108,10 @@ public:
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermXDevice,
         const KokkosDeviceMapView<AdvectionCellTerm>& advectionCellTermYDevice,
         const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
-        const KokkosMeshData& meshDevice);
+        const KokkosMesh& meshDevice);
 
 private:
-    const KokkosMeshData& meshDevice;
+    const KokkosMesh& meshDevice;
     const Interpolations::KokkosCG2DGInterpolator<DG, CGdegree>& cG2DGInterpolator;
     TimeSteppingScheme timeSteppingScheme;
 

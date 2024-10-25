@@ -65,7 +65,7 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, MakeViewOptions::DEVICE_COPY);
 
     assert(this->smesh);
-    meshData = std::make_unique<KokkosMeshData>(*this->smesh);
+    meshData = std::make_unique<KokkosMesh>(*this->smesh);
     cG2DGAdvectInterpolator
         = std::make_unique<Interpolations::KokkosCG2DGInterpolator<DGadvection, CGdegree>>(
             *this->smesh);
@@ -191,7 +191,7 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
 
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::dirichletZero(const DeviceViewCG& v, DeviceIndex nx,
-    DeviceIndex ny, const KokkosMeshData::DirichletData& dirichlet)
+    DeviceIndex ny, const KokkosMesh::DirichletData& dirichlet)
 {
     // bot
     Kokkos::parallel_for(
@@ -316,7 +316,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     const ConstDeviceViewStress& s11Device, const ConstDeviceViewStress& s12Device,
     const ConstDeviceViewStress& s22Device, const ConstDeviceBitset& landMaskDevice,
     const DivMapDevice& divS1Device, const DivMapDevice& divS2Device,
-    const DivMapDevice& divMDevice, const KokkosMeshData::DirichletData& dirichletDevice,
+    const DivMapDevice& divMDevice, const KokkosMesh::DirichletData& dirichletDevice,
     DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
 {
     using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
@@ -390,7 +390,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
 
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceViewCG& uDevice,
-    const DeviceViewCG& vDevice, const KokkosMeshData::DirichletData& dirichletDevice,
+    const DeviceViewCG& vDevice, const KokkosMesh::DirichletData& dirichletDevice,
     DeviceIndex nx, DeviceIndex ny)
 {
     dirichletZero(uDevice, nx, ny, dirichletDevice);
