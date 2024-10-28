@@ -1,7 +1,7 @@
 /*!
  * @file BenchmarkAtmosphere.cpp
  *
- * @date 24 Sep 2024
+ * @date 28 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -44,7 +44,7 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
     double cycloneDuration = 5.; // days
 
     // maximum wind velocity of the cyclone
-    double vMax = 30.0*std::min(1., 6*3600.*elapsedTime.seconds());
+    double vMax = 30.0 * std::min(1., elapsedTime.seconds() / (6. * 3600.));
 
     // cyclone parameters
     const double A = 1e-5;
