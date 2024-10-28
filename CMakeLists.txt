@@ -169,11 +169,13 @@ IF (WITH_KOKKOS)
     target_link_libraries(nextsimlib PUBLIC Kokkos::kokkos)
     target_compile_definitions(nextsimlib PUBLIC USE_KOKKOS)
     
-    if (Kokkos_ENABLE_CUDA)
-        # intrinsic implementations are not compatible with cuda
+    if (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_ROCM)
+        # Eigen's intrinsic based implementations are not valid on GPU
         target_compile_definitions(nextsimlib PRIVATE "EIGEN_DONT_VECTORIZE")
-        # 64 bits are only emulated on GPU
+        # 64 bit ints are only emulated so it is better to use a smaller type 
         target_compile_definitions(nextsimlib PUBLIC EIGEN_DEFAULT_DENSE_INDEX_TYPE=int)
+    endif()
+    if (Kokkos_ENABLE_CUDA)
         if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             message("Clang is currently not supported with CUDA.")
         else()
@@ -183,6 +185,11 @@ IF (WITH_KOKKOS)
             # $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=20014>
             target_compile_options(nextsimlib PUBLIC -Xcudafe --diag_suppress=20014)
         endif()
+    endif()
+    # stdandard is not set correctly for amdclang based on just the target property
+    # does not matter for versions >=17 because c++17 is the default
+    if (Kokkos_ENABLE_ROCM AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_compile_options(nextsimlib PUBLIC -std=c++17)
     endif()
     # reset to use defaults again
     unset(CMAKE_POSITION_INDEPENDENT_CODE)
