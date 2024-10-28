@@ -15,6 +15,10 @@
 #include "ParametricMap.hpp"
 #include "StressUpdateStep.hpp"
 
+#include <filesystem>
+#include "Tools.hpp"
+#include "dgVisu.hpp"
+
 namespace Nextsim {
 
 // Degrees to radians as a hex float
@@ -83,6 +87,9 @@ public:
 
         cosOceanAngle = cos(radians * params.ocean_turning_angle);
         sinOceanAngle = sin(radians * params.ocean_turning_angle);
+
+        timestep = 0;
+        std::filesystem::create_directory(resultsdir);
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
@@ -133,6 +140,31 @@ public:
         }
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressComp>::update(tst);
+
+        timestep++;
+        double T_vtk = 4. * 60.0 * 60.0; // every 4 hours
+        size_t NT_vtk = T_vtk / tst.step.seconds() + 1.e-4;
+
+        if ((timestep % NT_vtk == 0)) {
+            std::cout << "VTK output\n";
+
+            int printstep = timestep / NT_vtk + 1.e-4;
+            Nextsim::VTK::write_cg_velocity(resultsdir + "/vel", printstep, u, v, *smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/A", printstep, cice, *smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/H", printstep, hice, *smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/D", printstep, damage, *smesh);
+            // Nextsim::VTK::write_dg(resultsdir + "/S11", printstep, momentum.GetS11(), smesh);
+            // Nextsim::VTK::write_dg(resultsdir + "/S12", printstep, momentum.GetS12(), smesh);
+            // Nextsim::VTK::write_dg(resultsdir + "/S22", printstep, momentum.GetS22(), smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/Div", printstep,
+                Nextsim::Tools::TensorInvI(*smesh, e11, e12, e22), *smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/Shear", printstep,
+                Nextsim::Tools::Shear(*smesh, e11, e12, e22), *smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/sigma_n", printstep,
+                Nextsim::Tools::TensorInvI(*smesh, s11, s12, s22), *smesh);
+            Nextsim::VTK::write_dg(resultsdir + "/tau", printstep,
+                Nextsim::Tools::TensorInvII(*smesh, s11, s12, s22), *smesh);
+        }
     }
 
     void setData(const std::string& name, const ModelArray& data) override
@@ -192,6 +224,9 @@ public:
     }
 
 protected:
+    int timestep;
+    std::string resultsdir = "VTK_out";
+
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
 
