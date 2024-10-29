@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 1 Jul 2024
+ * @date 29 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -82,13 +82,14 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
-    ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());
+    ModelArrayRef<Shared::DAMAGE, RW> damageUpd(getStore());
 
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
+    damageUpd.data().setData(m_damage);
     iceGrowth.update(tst);
     updatePrognosticFields();
 
