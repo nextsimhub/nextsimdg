@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date 24 Sep 2024
+ * @date 29 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -167,31 +167,33 @@ public:
             s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
 
             // INTEGRATION OF STRESS AND DAMAGE
-            // const Eigen::Matrix<Nextsim::FloatType, 1, nGauss* nGauss> J
-            //     = ParametricTools::J<3>(smesh, i);
-            // // get the inverse of the mass matrix scaled with the test-functions in the gauss
-            // // points, with the gauss weights and with J. This is a 8 x 9 matrix
-            // const Eigen::Matrix<Nextsim::FloatType, DGstress, nGauss* nGauss> imass_psi
-            //     = ParametricTools::massMatrix<DGstress>(smesh, i).inverse()
-            //     * (PSI<DGstress, nGauss>.array().rowwise()
-            //         * (GAUSSWEIGHTS<nGauss>.array() * J.array()))
-            //           .matrix();
+            const Eigen::Matrix<Nextsim::FloatType, 1, nGauss * nGauss> J
+                = ParametricTools::J<3>(smesh, i);
+            // get the inverse of the mass matrix scaled with the test-functions in the gauss
+            // points, with the gauss weights and with J. This is a 8 x 9 matrix
+            const Eigen::Matrix<Nextsim::FloatType, DGstress, nGauss * nGauss> imass_psi
+                = ParametricTools::massMatrix<DGstress>(smesh, i).inverse()
+                * (PSI<DGstress, nGauss>.array().rowwise()
+                    * (GAUSSWEIGHTS<nGauss>.array() * J.array()))
+                      .matrix();
 
-            // s11.row(i) = imass_psi * s11Gauss.matrix().transpose();
-            // s12.row(i) = imass_psi * s12Gauss.matrix().transpose();
-            // s22.row(i) = imass_psi * s22Gauss.matrix().transpose();
+            s11.row(i) = imass_psi * s11Gauss.matrix().transpose();
+            s12.row(i) = imass_psi * s12Gauss.matrix().transpose();
+            s22.row(i) = imass_psi * s22Gauss.matrix().transpose();
 
-            s11.row(i) = pmap->iMJwPSI[i] * s11Gauss.matrix().transpose();
-            s12.row(i) = pmap->iMJwPSI[i] * s12Gauss.matrix().transpose();
-            s22.row(i) = pmap->iMJwPSI[i] * s22Gauss.matrix().transpose();
+            // s11.row(i) = pmap->iMJwPSI[i] * s11Gauss.matrix().transpose();
+            // s12.row(i) = pmap->iMJwPSI[i] * s12Gauss.matrix().transpose();
+            // s22.row(i) = pmap->iMJwPSI[i] * s22Gauss.matrix().transpose();
 
-            // const Eigen::Matrix<Nextsim::FloatType, DGadvection, nGauss* nGauss> imass_psi2
-            //     = ParametricTools::massMatrix<DGadvection>(smesh, i).inverse()
-            //     * (PSI<DGadvection, nGauss>.array().rowwise()
-            //         * (GAUSSWEIGHTS<nGauss>.array() * J.array()))
-            //           .matrix();
+            const Eigen::Matrix<Nextsim::FloatType, DGadvection, nGauss * nGauss> imass_psi2
+                = ParametricTools::massMatrix<DGadvection>(smesh, i).inverse()
+                * (PSI<DGadvection, nGauss>.array().rowwise()
+                    * (GAUSSWEIGHTS<nGauss>.array() * J.array()))
+                      .matrix();
 
-            p_d->row(i) = pmap->iMJwPSI_dam[i] * dGauss.matrix().transpose();
+            p_d->row(i) = imass_psi2 * dGauss.matrix().transpose();
+
+            // p_d->row(i) = pmap->iMJwPSI_dam[i] * dGauss.matrix().transpose();
         }
     }
 
