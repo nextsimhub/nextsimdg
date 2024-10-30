@@ -1,7 +1,7 @@
 /*!
  * @file ConstantHealing.hpp
  *
- * @date Jun 3, 2024
+ * @date 24 Sep 2024
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -12,8 +12,7 @@ namespace Nextsim {
 double ConstantHealing::tD = 0.;
 static const double tDDefault = 15;
 
-template <>
-const std::map<int, std::string> Configured<ConstantHealing>::keyMap
+static const std::map<int, std::string> keyMap
     = { { ConstantHealing::TD_KEY, "ConstantHealing.td" } };
 
 void ConstantHealing::configure()
@@ -68,7 +67,7 @@ void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
     // damage[i] +=  damage[i] * tstep.step / tD;
 
     // This is what Véro did (Dansereau et al., 2016)
-    damage[i] +=  tstep.step / tD;
+    damage[i] += tstep.step / tD;
     damage[i] = std::min(1., damage[i]);
 }
 

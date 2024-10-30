@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 11 May 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -21,7 +21,7 @@
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
@@ -30,8 +30,8 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
-#include <sstream>
 #include <filesystem>
+#include <sstream>
 
 const std::string test_files_dir = TEST_FILES_DIR;
 #ifdef USE_MPI
@@ -54,10 +54,10 @@ TEST_CASE("Test periodic output")
 
 #ifdef USE_MPI
     if (test_rank == 0) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 0);
     }
     if (test_rank == 1) {
-      ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
@@ -67,10 +67,8 @@ TEST_CASE("Test periodic output")
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
 #endif
 
+    Module::Module<IDiagnosticOutput>::setImplementation("Nextsim::ConfigOutput");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "DiagnosticOutputModule = Nextsim::ConfigOutput" << std::endl;
-    config << std::endl;
     config << "[ConfigOutput]" << std::endl;
     config << "period = 3600" << std::endl; // Output every hour
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
@@ -80,8 +78,6 @@ TEST_CASE("Test periodic output")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 

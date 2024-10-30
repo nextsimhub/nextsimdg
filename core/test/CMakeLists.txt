@@ -200,12 +200,6 @@ else()
     add_executable(testConfiguredModule "ConfiguredModule_test.cpp" "ArgV.cpp")
     target_link_libraries(testConfiguredModule PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testTimer "Timer_test.cpp")
-    target_link_libraries(testTimer PRIVATE nextsimlib doctest::doctest)
-
-    add_executable(testScopedTimer "ScopedTimer_test.cpp" "../src/ScopedTimer.cpp")
-    target_link_libraries(testScopedTimer PRIVATE nextsimlib doctest::doctest)
-
     add_executable(testTimeClasses "Time_test.cpp")
     target_link_libraries(testTimeClasses PRIVATE nextsimlib doctest::doctest)
 
@@ -253,17 +247,24 @@ else()
     )
     target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
 
-  add_executable(testDynamicsAdvection "DynamicsAdvection_test.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp")
-  target_compile_definitions(testDynamicsAdvection
-    PRIVATE
-    DGCOMP=${DGComp}
-    DGSTRESSCOMP=${DGStressComp}
-    CGDEGREE=${CGDegree}
+    add_executable(testDynamicsAdvection "DynamicsAdvection_test.cpp" "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp")
+    target_compile_definitions(testDynamicsAdvection
+        PRIVATE
+        DGCOMP=${DGComp}
+        DGSTRESSCOMP=${DGStressComp}
+        CGDEGREE=${CGDegree}
     )
-  target_include_directories(testDynamicsAdvection PRIVATE "../src" "${DYNAMICS_INCLUDE_DIRS}" "${MODEL_INCLUDE_DIR}")
-  target_link_libraries(testDynamicsAdvection PRIVATE nextsimlib doctest::doctest Eigen3::Eigen)
+    target_include_directories(testDynamicsAdvection PRIVATE "../src" "${DYNAMICS_INCLUDE_DIRS}" "${MODEL_INCLUDE_DIR}")
+    target_link_libraries(testDynamicsAdvection PRIVATE nextsimlib doctest::doctest Eigen3::Eigen)
 
-  set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
+    add_executable(
+        testFinalizer
+        "Finalizer_test.cpp"
+        "../../core/src/Finalizer.cpp"
+    )
+    target_link_libraries(testFinalizer PRIVATE doctest::doctest)
+
+    set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
     add_executable(
         testModelArray
         "ModelArray_test.cpp"

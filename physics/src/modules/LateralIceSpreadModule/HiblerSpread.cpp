@@ -15,8 +15,7 @@ double HiblerSpread::phiM = 0;
 static const double h0Default = 0.25;
 static const double phimDefault = 0.5;
 
-template <>
-const std::map<int, std::string> Configured<HiblerSpread>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { HiblerSpread::H0_KEY, "Hibler.h0" },
     { HiblerSpread::PHIM_KEY, "Hibler.phiM" },
 };

@@ -1,13 +1,14 @@
 /*!
  * @file ConfiguredAtmosphere.cpp
  *
- * @date Aug 31, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ConfiguredAtmosphere.hpp"
 
-#include "include/Module.hpp"
+#include "include/Finalizer.hpp"
+#include "include/NextsimModule.hpp"
 
 namespace Nextsim {
 
@@ -30,8 +31,7 @@ static const std::string snowKey = pfx + ".snow";
 static const std::string rainKey = pfx + ".rainfall";
 static const std::string windKey = pfx + ".wind_speed";
 
-template <>
-const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
+const static std::map<int, std::string> keyMap = {
     { ConfiguredAtmosphere::TAIR_KEY, tKey },
     { ConfiguredAtmosphere::TDEW_KEY, tdewKey },
     { ConfiguredAtmosphere::PAIR_KEY, pKey },
@@ -43,7 +43,7 @@ const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
 };
 
 ConfiguredAtmosphere::ConfiguredAtmosphere()
-: fluxImpl(0)
+    : fluxImpl(0)
 {
     getStore().registerArray(Protected::T_AIR, &tair, RO);
     getStore().registerArray(Protected::DEW_2M, &tdew, RO);
@@ -52,7 +52,6 @@ ConfiguredAtmosphere::ConfiguredAtmosphere()
     getStore().registerArray(Protected::LW_IN, &lw_in, RO);
     getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
-
 
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
@@ -90,12 +89,15 @@ void ConfiguredAtmosphere::configure()
     rain0 = Configured::getConfiguration(keyMap.at(RAIN_KEY), rain0);
     windspeed0 = Configured::getConfiguration(keyMap.at(WIND_KEY), windspeed0);
 
+    Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
+
 }
 
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
+
     IAtmosphereBoundary::setData(dm);
     tair.resize();
     tdew.resize();
@@ -116,9 +118,6 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     fluxImpl->setData(dm);
 }
 
-void ConfiguredAtmosphere::update(const TimestepTime& tst)
-{
-    fluxImpl->update(tst);
-}
+void ConfiguredAtmosphere::update(const TimestepTime& tst) { fluxImpl->update(tst); }
 
 } /* namespace Nextsim */

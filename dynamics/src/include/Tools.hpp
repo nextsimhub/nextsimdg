@@ -1,6 +1,6 @@
 /*!
  * @file Tools.hpp
- * @date 1 Mar 2022
+ * @date 24 Sep 2024
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
@@ -27,7 +27,7 @@ namespace Tools {
         double mass = 0;
         if (smesh.CoordinateSystem == SPHERICAL) {
             for (int i = 0; i < smesh.nelements; ++i) {
-                const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> cos_lat
+                const Eigen::Matrix<Nextsim::FloatType, 1, NGP * NGP> cos_lat
                     = (ParametricTools::getGaussPointsInElement<NGP>(smesh, i).row(1).array())
                           .cos();
                 mass += ((phi.row(i) * PSI<DG, NGP>).array() * cos_lat.array()
@@ -69,11 +69,11 @@ namespace Tools {
                 DELTA.row(i).setZero();
             else {
 
-                const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
-                const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
-                const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
+                const LocalEdgeVector<NGP * NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
+                const LocalEdgeVector<NGP * NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
+                const LocalEdgeVector<NGP * NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
 
-                const LocalEdgeVector<NGP* NGP> delta_gauss
+                const LocalEdgeVector<NGP * NGP> delta_gauss
                     = (DeltaMin * DeltaMin
                           + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                           + 1.50 * e11_gauss.array() * e22_gauss.array()
@@ -103,11 +103,19 @@ namespace Tools {
                 SHEAR.row(i).setZero();
             else {
 
-                const LocalEdgeVector<NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
-                const LocalEdgeVector<NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
-                const LocalEdgeVector<NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
+                const LocalEdgeVector<NGP * NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
+                const LocalEdgeVector<NGP * NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
+                const LocalEdgeVector<NGP * NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
 
-                SHEAR.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse() * (PSI<S2A(DGs), NGP> * (((e11_gauss.array() - e22_gauss.array()).square() + 4.0 * e12_gauss.array().square()+1.e-20).sqrt().log10() * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array()).matrix().transpose());
+                SHEAR.row(i) = ParametricTools::massMatrix<S2A(DGs)>(smesh, i).inverse()
+                    * (PSI<S2A(DGs), NGP>
+                        * (((e11_gauss.array() - e22_gauss.array()).square()
+                               + 4.0 * e12_gauss.array().square() + 1.e-20)
+                                .sqrt()
+                                .log10()
+                            * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array())
+                              .matrix()
+                              .transpose());
             }
         }
 

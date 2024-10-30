@@ -1,15 +1,15 @@
 /*!
  * @file HiblerSpread.hpp
  *
- * @date Apr 5, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef HIBLERSPREAD_HPP
 #define HIBLERSPREAD_HPP
 
-#include "include/ILateralIceSpread.hpp"
 #include "include/Configured.hpp"
+#include "include/ILateralIceSpread.hpp"
 
 namespace Nextsim {
 

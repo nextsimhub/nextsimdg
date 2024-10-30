@@ -48,19 +48,19 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
 
     for (auto entry : metadata.m_config) {
         switch (entry.second.index()) {
-        case (CONFIGMAP_DOUBLE): {
+        case (ConfigMapType::DOUBLE): {
             configGroup.putAtt(entry.first, netCDF::ncDouble, *std::get_if<double>(&entry.second));
             break;
         }
-        case (CONFIGMAP_UNSIGNED): {
+        case (ConfigMapType::UNSIGNED): {
             configGroup.putAtt(entry.first, netCDF::ncUint, *std::get_if<unsigned>(&entry.second));
             break;
         }
-        case (CONFIGMAP_INT): {
+        case (ConfigMapType::INT): {
             configGroup.putAtt(entry.first, netCDF::ncInt, *std::get_if<int>(&entry.second));
             break;
         }
-        case (CONFIGMAP_STRING): {
+        case (ConfigMapType::STRING): {
             std::string extring = std::get<std::string>(entry.second);
             configGroup.putAtt(entry.first, std::get<std::string>(entry.second));
             break;

@@ -57,8 +57,13 @@ endif()
 find_package(Eigen3 3.4 REQUIRED)
 target_link_libraries(nextsimlib PUBLIC Eigen3::Eigen)
 
-set(Python_FIND_VIRTUALENV FIRST)
-find_package(Python COMPONENTS Interpreter)
+if(DEFINED PYTHON_EXECUTABLE)
+    set(Python_EXECUTABLE PYTHON_EXECUTABLE CACHE STRING "")
+else()
+    set(Python_FIND_VIRTUALENV FIRST)
+    find_package(Python COMPONENTS Interpreter)
+endif()
+
 
 # The location of the module_builder.py scripts
 set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")

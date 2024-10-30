@@ -1,6 +1,6 @@
 /*!
  * @file MEB.hpp
- * @date 1 Mar 2022
+ * @date 24 Sep 2024
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
@@ -50,7 +50,7 @@ namespace MEB {
         const DGVector<DGs>& E12, const DGVector<DGs>& E22, const DGVector<DGa>& H,
         const DGVector<DGa>& A, DGVector<DGa>& D, const double dt_mom)
     {
-//#define NGP (DGs == 8 ? 3 : (DGs == 3 ? 2 : -1))
+// #define NGP (DGs == 8 ? 3 : (DGs == 3 ? 2 : -1))
 #define NGP 3
 
         //! Stress and Damage Update
@@ -58,29 +58,29 @@ namespace MEB {
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            const Eigen::Matrix<double, 1, NGP* NGP> h_gauss
+            const Eigen::Matrix<double, 1, NGP * NGP> h_gauss
                 = (H.row(i) * PSI<DGa, NGP>).array().max(0.0).matrix();
-            const Eigen::Matrix<double, 1, NGP* NGP> a_gauss
+            const Eigen::Matrix<double, 1, NGP * NGP> a_gauss
                 = (A.row(i) * PSI<DGa, NGP>).array().max(0.0).min(1.0).matrix();
-            Eigen::Matrix<double, 1, NGP* NGP> d_gauss
+            Eigen::Matrix<double, 1, NGP * NGP> d_gauss
                 = (D.row(i) * PSI<DGa, NGP>).array().max(1e-12).min(1.0).matrix();
 
-            const Eigen::Matrix<double, 1, NGP* NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
-            const Eigen::Matrix<double, 1, NGP* NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
-            const Eigen::Matrix<double, 1, NGP* NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
+            const Eigen::Matrix<double, 1, NGP * NGP> e11_gauss = E11.row(i) * PSI<DGs, NGP>;
+            const Eigen::Matrix<double, 1, NGP * NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
+            const Eigen::Matrix<double, 1, NGP * NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
 
-            Eigen::Matrix<double, 1, NGP* NGP> s11_gauss = S11.row(i) * PSI<DGs, NGP>;
-            Eigen::Matrix<double, 1, NGP* NGP> s12_gauss = S12.row(i) * PSI<DGs, NGP>;
-            Eigen::Matrix<double, 1, NGP* NGP> s22_gauss = S22.row(i) * PSI<DGs, NGP>;
+            Eigen::Matrix<double, 1, NGP * NGP> s11_gauss = S11.row(i) * PSI<DGs, NGP>;
+            Eigen::Matrix<double, 1, NGP * NGP> s12_gauss = S12.row(i) * PSI<DGs, NGP>;
+            Eigen::Matrix<double, 1, NGP * NGP> s22_gauss = S22.row(i) * PSI<DGs, NGP>;
 
             //! exp(-C(1-A))
-            const Eigen::Matrix<double, 1, NGP* NGP> expC
+            const Eigen::Matrix<double, 1, NGP * NGP> expC
                 = (params.compaction_param * (1.0 - a_gauss.array())).exp().array();
 
             // Eqn. 20
-            Eigen::Matrix<double, 1, NGP* NGP> powalpha
+            Eigen::Matrix<double, 1, NGP * NGP> powalpha
                 = (d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
-            const Eigen::Matrix<double, 1, NGP* NGP> time_viscous
+            const Eigen::Matrix<double, 1, NGP * NGP> time_viscous
                 = (params.undamaged_time_relaxation_sigma * powalpha.array()).matrix();
 
             // Eqn. 4: first factor on RHS
@@ -88,11 +88,11 @@ namespace MEB {
 
             //! MEB
             // 1. / (1. + dt / lambda)
-            Eigen::Matrix<double, 1, NGP* NGP> multiplicator
+            Eigen::Matrix<double, 1, NGP * NGP> multiplicator
                 = (1. / (1. + dt_mom / time_viscous.array())).matrix();
 
             //! Eqn. 24
-            const Eigen::Matrix<double, 1, NGP* NGP> elasticity
+            const Eigen::Matrix<double, 1, NGP * NGP> elasticity
                 = h_gauss.array() * params.young * d_gauss.array() * expC.array();
 
             // Eqn. 4: first factor on RHS
@@ -124,17 +124,17 @@ namespace MEB {
             s22_gauss.array() *= multiplicator.array();
 
             //! Current normal and tangent stress for the evaluation Mohr-Couloumb (Eqn 13)
-            const Eigen::Matrix<double, 1, NGP* NGP> sigma_n
+            const Eigen::Matrix<double, 1, NGP * NGP> sigma_n
                 = 0.5 * (s11_gauss.array() + s22_gauss.array());
-            const Eigen::Matrix<double, 1, NGP* NGP> tau
+            const Eigen::Matrix<double, 1, NGP * NGP> tau
                 = (0.25 * (s11_gauss.array() - s22_gauss.array()).square()
                     + s12_gauss.array().square())
                       .sqrt();
 
-            Eigen::Matrix<double, 1, NGP* NGP> dcrit = Eigen::Matrix<double, 1, NGP * NGP>::Ones();
+            Eigen::Matrix<double, 1, NGP * NGP> dcrit = Eigen::Matrix<double, 1, NGP * NGP>::Ones();
 
             // Fixed Cohesion
-            const Eigen::Matrix<double, 1, NGP* NGP> cohesion = params.c0 * h_gauss.array();
+            const Eigen::Matrix<double, 1, NGP * NGP> cohesion = params.c0 * h_gauss.array();
 
             //! This is not part of Dansereau et al. 2016
             const double scale_coef = std::sqrt(0.1 / smesh.h(i));
@@ -165,11 +165,11 @@ namespace MEB {
             s22_gauss.array() -= s22_gauss.array() * (1. - dcrit.array()) * dt_mom / td;
 
             // INTEGRATION OF STRESS AND DAMAGE
-            const Eigen::Matrix<Nextsim::FloatType, 1, NGP* NGP> J
+            const Eigen::Matrix<Nextsim::FloatType, 1, NGP * NGP> J
                 = ParametricTools::J<3>(smesh, i);
             // get the inverse of the mass matrix scaled with the test-functions in the gauss
             // points, with the gauss weights and with J. This is a 8 x 9 matrix
-            const Eigen::Matrix<Nextsim::FloatType, DGs, NGP* NGP> imass_psi
+            const Eigen::Matrix<Nextsim::FloatType, DGs, NGP * NGP> imass_psi
                 = ParametricTools::massMatrix<DGs>(smesh, i).inverse()
                 * (PSI<DGs, NGP>.array().rowwise() * (GAUSSWEIGHTS<NGP>.array() * J.array()))
                       .matrix();
@@ -178,7 +178,7 @@ namespace MEB {
             S12.row(i) = imass_psi * s12_gauss.matrix().transpose();
             S22.row(i) = imass_psi * s22_gauss.matrix().transpose();
 
-            const Eigen::Matrix<Nextsim::FloatType, DGa, NGP* NGP> imass_psi2
+            const Eigen::Matrix<Nextsim::FloatType, DGa, NGP * NGP> imass_psi2
                 = ParametricTools::massMatrix<DGa>(smesh, i).inverse()
                 * (PSI<DGa, NGP>.array().rowwise() * (GAUSSWEIGHTS<NGP>.array() * J.array()))
                       .matrix();

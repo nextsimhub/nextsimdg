@@ -17,6 +17,7 @@ Below are some conventions that every contributors to this model must apply in o
 ## Coding conventions
 
 For neXtSIM_DG we use clang-format and the [Webkit style](https://webkit.org/code-style-guidelines/), with a 100 character line length limit.
+  -  We use `clang-format` version 18
   -  neXtSIM is written using ISO C++17
   -  All array operations should be done using std::vectors - not C-style arrays
   -  The use of C-style pointers, new, and delete is strongly discouraged

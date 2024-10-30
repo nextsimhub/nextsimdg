@@ -7,6 +7,8 @@
 #ifndef SRC_INCLUDE_ITERATOR_HPP
 #define SRC_INCLUDE_ITERATOR_HPP
 
+#include <memory>
+
 #include "Logged.hpp"
 #include "Time.hpp"
 
@@ -18,16 +20,13 @@ public:
     typedef TimePoint::Clock Clock;
     class Iterant;
 
-    Iterator();
-    //! Construct a new Iterator given a pointer to an Iterant.
-    Iterator(Iterant* iterant);
+    Iterator() = delete;
 
-    /*!
-     * @brief Sets the iterant to be iterated using a pointer.
-     *
-     * @param iterant The Iterant that defines a single timestep of the model.
-     */
-    void setIterant(Iterant* iterant);
+    //! Construct a new Iterator given a pointer to an Iterant.
+    Iterator(Iterant& iterant)
+        : iterant(iterant)
+    {
+    }
 
     /*!
      * @brief Sets the time parameters as a start time, stop time and timestep
@@ -66,7 +65,7 @@ public:
     void run();
 
 private:
-    Iterant* iterant; // FIXME smart pointer
+    Iterant& iterant;
     TimePoint startTime;
     TimePoint stopTime;
     Duration timestep;
@@ -106,19 +105,7 @@ public:
          */
         virtual void stop(const TimePoint& stopTime) = 0;
     };
-
-    //! A simple Iterant that does nothing.
-    class NullIterant : public Iterant {
-        inline void init() {};
-        inline void start(const TimePoint& startTime) {};
-        inline void iterate(const TimestepTime& dt) {};
-        inline void stop(const TimePoint& stopTime) {};
-    };
-
-    //! A static instance of the NullIterant class.
-    static NullIterant nullIterant;
 };
-
 } /* namespace Nextsim */
 
 #endif /* SRC_INCLUDE_ITERATOR_HPP */
