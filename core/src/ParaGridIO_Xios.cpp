@@ -68,16 +68,14 @@ void ParaGridIO::read(const std::string fieldId, ModelArray& modelarray)
 #ifdef USE_MPI
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
-    // TODO-JGW: Implement
     ModelState ms;
+    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
     return ms;
 }
 #else
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
-    // TODO-JGW: Implement
-    ModelState ms;
-    return ms;
+    throw std::invalid_argument("XIOS cannot be used without MPI");
 }
 #endif
 
@@ -93,7 +91,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    // TODO-JGW: Implement
+    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
 }
 
 /*!
@@ -106,8 +104,8 @@ void ParaGridIO::dumpModelState(
 ModelState ParaGridIO::readForcingTime(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    // TODO-JGW: Implement
     ModelState ms;
+    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
     return ms;
 }
 
@@ -121,7 +119,7 @@ ModelState ParaGridIO::readForcingTime(
 void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    // TODO-JGW: Implement
+    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
 }
 };
 #endif /* USE_XIOS */
