@@ -521,7 +521,7 @@ TEST_CASE("Test array ordering")
     TimePoint time;
 
 #ifdef USE_XIOS
-    throw std::runtime_error("XIOS implementation incomplete"); // TODO
+    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW
 #else
     ModelState state = ParaGridIO::readForcingTimeStatic(fields, time, inputFilename);
     REQUIRE(state.data.count(fieldName) > 0);

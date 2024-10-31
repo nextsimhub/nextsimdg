@@ -64,7 +64,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
 
 #ifdef USE_XIOS
-    throw std::runtime_error("XIOS implementation incomplete");
+    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW
 #else
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     sstExt = state.data.at("sst");
