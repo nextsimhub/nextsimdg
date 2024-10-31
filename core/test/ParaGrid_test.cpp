@@ -1,8 +1,8 @@
 /*!
- * @file ParaGrid_test.cpp
+ * @file    ParaGrid_test.cpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date    31 Oct 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "ModelArray.hpp"
@@ -22,9 +22,9 @@
 #else
 #include "include/ParaGridIO.hpp"
 #endif
-#include "include/ParametricGrid.hpp"
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
+#include "include/ParametricGrid.hpp"
 #include "include/gridNames.hpp"
 
 #include <cmath>

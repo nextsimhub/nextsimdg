@@ -1,8 +1,8 @@
 /*!
- * @file TOPAZOcean.cpp
+ * @file    TOPAZOcean.cpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @date    31 Oct 2024
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/TOPAZOcean.hpp"
