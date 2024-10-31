@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 31 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -21,8 +21,8 @@
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/NextsimModule.hpp"
 #include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -144,7 +144,7 @@ TEST_CASE("Test periodic output")
             hsnow += hourIncr;
             ModelState state;
 
-            ido.outputState(meta);
+            ido.outputState(meta); // FIXME-JGW: XIOS impl fails here
             meta.incrementTime(Duration(3600.));
         }
     }

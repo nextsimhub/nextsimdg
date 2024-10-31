@@ -255,7 +255,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 #ifdef USE_MPI
     ModelMetadata metadataIn(partitionFilename, test_comm);
     metadataIn.setTime(TimePoint(dateString));
-    ModelState ms = gridIn.getModelState(filename, metadataIn);
+    ModelState ms = gridIn.getModelState(filename, metadataIn); // FIXME-JGW: XIOS impl fails here
 #else
     ModelState ms = gridIn.getModelState(filename);
 #endif
@@ -520,14 +520,11 @@ TEST_CASE("Test array ordering")
     std::set<std::string> fields = { fieldName };
     TimePoint time;
 
-#ifdef USE_XIOS
-    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW
-#else
+    // FIXME-JGW: XIOS impl fails here
     ModelState state = ParaGridIO::readForcingTimeStatic(fields, time, inputFilename);
     REQUIRE(state.data.count(fieldName) > 0);
     index2d = state.data.at(fieldName);
     REQUIRE(index2d(3, 5) == 35);
-#endif
 }
 
 #ifdef USE_MPI
@@ -610,7 +607,8 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     metadata.localExtentX = 1;
     metadata.localExtentY = ny;
     metadata.setTime(TimePoint(dateString));
-    ModelState ms = gridIn.getModelState(inputFilename, metadata);
+    ModelState ms
+        = gridIn.getModelState(inputFilename, metadata); // FIXME-JGW: XIOS impl fails here
 #else
     ModelState ms = gridIn.getModelState(inputFilename);
 #endif

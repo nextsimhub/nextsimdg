@@ -78,6 +78,14 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
 #endif
 }
 
+ModelState ParaGridIO::readForcingTimeStatic(
+    const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
+{
+    ModelState state;
+    throw std::runtime_error("XIOS implementation of readForcingTimeStatic incomplete"); // TODO-JGW
+    return state;
+}
+
 /*!
  * @brief Writes the ModelState to a given file location from the provided
  * model data and metadata.

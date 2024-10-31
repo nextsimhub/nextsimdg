@@ -63,9 +63,6 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     // TODO: Get more authoritative names for the forcings
     std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
 
-#ifdef USE_XIOS
-    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW
-#else
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     sstExt = state.data.at("sst");
     sssExt = state.data.at("sss");
@@ -79,7 +76,6 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
         TimestepTime());
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
-#endif
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)

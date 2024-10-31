@@ -72,6 +72,9 @@ public:
      */
     void writeDiagnosticTime(
         const ModelState& state, const ModelMetadata& meta, const std::string& filePath) override;
+
+    static ModelState readForcingTimeStatic(
+        const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 };
 } /* namespace Nextsim */
 
