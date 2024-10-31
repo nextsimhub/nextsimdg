@@ -73,7 +73,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
     ModelState ms;
-    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
+    throw std::runtime_error("XIOS implementation of getModelState incomplete"); // TODO-JGW
     return ms;
 #endif
 }
@@ -90,7 +90,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
+    throw std::runtime_error("XIOS implementation of dumpModelState incomplete"); // TODO-JGW
 }
 
 /*!
@@ -104,7 +104,7 @@ ModelState ParaGridIO::readForcingTime(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
     ModelState ms;
-    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
+    throw std::runtime_error("XIOS implementation of readForcingTime incomplete"); // TODO-JGW
     return ms;
 }
 
@@ -118,7 +118,7 @@ ModelState ParaGridIO::readForcingTime(
 void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
+    throw std::runtime_error("XIOS implementation of writeDiagnosticTime incomplete"); // TODO-JGW
 }
 };
 #endif /* USE_XIOS */
