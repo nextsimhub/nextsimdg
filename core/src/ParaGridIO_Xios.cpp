@@ -65,19 +65,18 @@ void ParaGridIO::read(const std::string fieldId, ModelArray& modelarray)
  * Retrieves the ModelState from a restart file of the parametric_grid type.
  * @param filePath The file path containing the file to be read.
  */
-#ifdef USE_MPI
+#ifndef USE_MPI
+ModelState ParaGridIO::getModelState(const std::string& filePath)
+{
+    throw std::invalid_argument("XIOS cannot be used without MPI");
+#else
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
     ModelState ms;
     throw std::runtime_error("XIOS implementation incomplete"); // TODO-JGW: Implement this method
     return ms;
-}
-#else
-ModelState ParaGridIO::getModelState(const std::string& filePath)
-{
-    throw std::invalid_argument("XIOS cannot be used without MPI");
-}
 #endif
+}
 
 /*!
  * @brief Writes the ModelState to a given file location from the provided
