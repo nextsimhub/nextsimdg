@@ -86,10 +86,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
     ModelState state;
 
     std::string fileId = ((std::filesystem::path)filePath).replace_extension();
-    // TODO: xiosHandler.createFile(fileId);
-    // TODO: xiosHandler.setFileType(fileId, "one_file");
-    // TODO: xiosHandler.setFileMode(fileId, "read");
-    // TODO: ...
+    xiosHandler.createFile(fileId);
+    xiosHandler.setFileType(fileId, "one_file");
+    xiosHandler.setFileMode(fileId, "read");
     throw std::runtime_error("XIOS implementation of getModelState incomplete"); // TODO-JGW
     return state;
 #endif
@@ -116,10 +115,9 @@ void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
     std::string fileId = ((std::filesystem::path)filePath).replace_extension();
-    // TODO: xiosHandler.createFile(fileId);
-    // TODO: xiosHandler.setFileType(fileId, "one_file");
-    // TODO: xiosHandler.setFileMode(fileId, "write");
-    // TODO: ...
+    xiosHandler.createFile(fileId);
+    xiosHandler.setFileType(fileId, "one_file");
+    xiosHandler.setFileMode(fileId, "write");
     throw std::runtime_error("XIOS implementation of dumpModelState incomplete"); // TODO-JGW
 }
 
