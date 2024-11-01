@@ -11,6 +11,13 @@
 #include <filesystem>
 
 namespace Nextsim {
+
+ParaGridIO::ParaGridIO(ParametricGrid& grid)
+    : IParaGridIO(grid)
+{
+    // TODO-JGW: Implement this method
+}
+
 ParaGridIO::~ParaGridIO() = default;
 
 // TODO-JGW: Move to ParaGridIO API below
