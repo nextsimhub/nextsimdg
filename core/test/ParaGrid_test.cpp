@@ -106,13 +106,32 @@ MPI_TEST_CASE("Write and read a ModelState-based ParaGrid restart file", 2)
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 #endif
 {
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-
     std::filesystem::remove(filename);
 
+#ifdef USE_XIOS
+    // Enable XIOS in the 'config'
+    // TODO: Create a utility for this
+    Configurator::clearStreams();
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+#endif
+
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
+
+#ifdef USE_XIOS
+    // Create a reference for the Xios handler object associated with the ParaGridIO instance
+    Xios& xios_handler = pio->xiosHandler;
+    REQUIRE(xios_handler.isInitialized());
+
+    // Set timestep as a minimum
+    xios_handler.setCalendarTimestep(Duration(3600));
+#endif
 
     // Set the dimension lengths
     NZLevels::set(nz);
@@ -312,15 +331,33 @@ MPI_TEST_CASE("Write a diagnostic ParaGrid file", 2)
 TEST_CASE("Write a diagnostic ParaGrid file")
 #endif
 {
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-
-    REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
-
     std::filesystem::remove(diagFile);
 
+#ifdef USE_XIOS
+    // Enable XIOS in the 'config'
+    // TODO: Create a utility for this
+    Configurator::clearStreams();
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+#endif
+
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
+
+#ifdef USE_XIOS
+    // Create a reference for the Xios handler object associated with the ParaGridIO instance
+    Xios& xios_handler = pio->xiosHandler;
+    REQUIRE(xios_handler.isInitialized());
+
+    // Set timestep as a minimum
+    xios_handler.setCalendarTimestep(Duration(3600));
+#endif
 
     NZLevels::set(nz);
 
@@ -534,9 +571,31 @@ MPI_TEST_CASE("Check an exception is thrown for an invalid file name", 2)
 TEST_CASE("Check an exception is thrown for an invalid file name")
 #endif
 {
+#ifdef USE_XIOS
+    // Enable XIOS in the 'config'
+    // TODO: Create a utility for this
+    Configurator::clearStreams();
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+#endif
+
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
     ParametricGrid gridIn;
     ParaGridIO* readIO = new ParaGridIO(gridIn);
     gridIn.setIO(readIO);
+
+#ifdef USE_XIOS
+    // Create a reference for the Xios handler object associated with the ParaGridIO instance
+    Xios& xios_handler = readIO->xiosHandler;
+    REQUIRE(xios_handler.isInitialized());
+
+    // Set timestep as a minimum
+    xios_handler.setCalendarTimestep(Duration(3600));
+#endif
 
     ModelState state;
 
@@ -559,17 +618,35 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 {
     std::string inputFilename = std::string(TEST_FILE_SOURCE) + "/old_names.nc";
 
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+#ifdef USE_XIOS
+    // Enable XIOS in the 'config'
+    // TODO: Create a utility for this
+    Configurator::clearStreams();
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+#endif
 
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
+    ParametricGrid gridIn;
+    ParaGridIO* readIO = new ParaGridIO(gridIn);
+    gridIn.setIO(readIO);
+
+#ifdef USE_XIOS
+    // Create a reference for the Xios handler object associated with the ParaGridIO instance
+    Xios& xios_handler = readIO->xiosHandler;
+    REQUIRE(xios_handler.isInitialized());
+
+    // Set timestep as a minimum
+    xios_handler.setCalendarTimestep(Duration(3600));
+#endif
 
     size_t nx = 2;
     size_t ny = 1;
     NZLevels::set(1);
-
-    ParametricGrid gridIn;
-    ParaGridIO* readIO = new ParaGridIO(gridIn);
-    gridIn.setIO(readIO);
 
     // Reset the array dimensions to make sure that the read function gets them correct
 #ifdef USE_MPI
