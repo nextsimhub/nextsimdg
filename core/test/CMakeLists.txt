@@ -49,28 +49,6 @@ if(ENABLE_MPI)
     )
     target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testParaGrid_MPI2
-        PRIVATE
-            USE_MPI
-            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-    )
-    target_include_directories(
-        testParaGrid_MPI2
-        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-    )
-    target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
-
-    add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testConfigOutput_MPI2
-        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    )
-    target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
-    target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
-
     if(ENABLE_XIOS)
         file(
             CREATE_LINK
@@ -153,6 +131,59 @@ if(ENABLE_MPI)
             PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+        # --- Tests using ParaGridIO_Xios
+
+        add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testParaGrid_MPI2
+            PRIVATE
+                USE_MPI
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+                TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_include_directories(
+            testParaGrid_MPI2
+            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testConfigOutput_MPI2
+            PRIVATE USE_MPI USE_XIOS TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(testConfigOutput_MPI2
+            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}")
+        target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+      else()
+
+        # --- Tests using ParaGridIO
+        #
+        add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testParaGrid_MPI2
+            PRIVATE
+                USE_MPI
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+                TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_include_directories(
+            testParaGrid_MPI2
+            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testConfigOutput_MPI2
+            PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
+        target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
+
     endif()
 else()
     add_executable(testRectGrid "RectGrid_test.cpp")

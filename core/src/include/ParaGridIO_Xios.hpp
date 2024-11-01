@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.hpp
  *
- * @date    31 Oct 2024
+ * @date    01 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -10,6 +10,7 @@
 
 #include "ModelArray.hpp"
 #include "StructureModule/include/ParametricGrid.hpp"
+#include "include/Xios.hpp"
 
 namespace Nextsim {
 
@@ -75,6 +76,8 @@ public:
 
     static ModelState readForcingTimeStatic(
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
+
+    // Xios xiosHandler;
 };
 } /* namespace Nextsim */
 

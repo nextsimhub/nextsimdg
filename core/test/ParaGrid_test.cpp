@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGrid_test.cpp
  *
- * @date    31 Oct 2024
+ * @date    01 Nov 2024
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,6 +9,7 @@
 #include <cstdlib>
 #ifdef USE_MPI
 #include <doctest/extensions/doctest_mpi.h>
+#undef INFO
 #else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
