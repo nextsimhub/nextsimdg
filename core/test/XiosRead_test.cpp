@@ -46,9 +46,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Initialize an Xios instance called xios_handler
-    // TODO: Create XIOS handler along with ParaGridIO instance
-    Xios xios_handler;
+    // Create a reference for the Xios handler object associated with the ParaGridIO instance
+    Xios& xios_handler = pio->xiosHandler;
     REQUIRE(xios_handler.isInitialized());
     const size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);

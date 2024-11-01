@@ -1,7 +1,7 @@
 /*!
  * @file    XiosAxis_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    12 August 2024
+ * @date    01 Nov 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -13,7 +13,8 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
-#include "include/Xios.hpp"
+#include "include/NextsimModule.hpp"
+#include "include/ParaGridIO_Xios.hpp"
 
 #include <iostream>
 
@@ -38,8 +39,14 @@ MPI_TEST_CASE("TestXiosAxis", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Initialize an Xios instance called xios_handler
-    Xios xios_handler;
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
+
+    // Create a reference for the Xios handler object associated with the ParaGridIO instance
+    Xios& xios_handler = pio->xiosHandler;
     REQUIRE(xios_handler.isInitialized());
     REQUIRE(xios_handler.getClientMPISize() == 2);
 

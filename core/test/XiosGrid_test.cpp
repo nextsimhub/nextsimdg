@@ -11,8 +11,10 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
+#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
-#include "include/Xios.hpp"
+#include "include/NextsimModule.hpp"
+#include "include/ParaGridIO_Xios.hpp"
 
 #include <iostream>
 
@@ -37,8 +39,14 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Initialize an Xios instance called xios_handler
-    Xios xios_handler;
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
+
+    // Create a reference for the Xios handler object associated with the ParaGridIO instance
+    Xios& xios_handler = pio->xiosHandler;
     REQUIRE(xios_handler.isInitialized());
     const size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);

@@ -77,7 +77,8 @@ public:
     static ModelState readForcingTimeStatic(
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
-    // Xios xiosHandler;
+    // XIOS handler object
+    Xios xiosHandler;
 };
 } /* namespace Nextsim */
 
