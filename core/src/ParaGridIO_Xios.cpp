@@ -1,12 +1,14 @@
 /*!
  * @file    ParaGridIO_Xios.cpp
  *
- * @date    31 Oct 2024
+ * @date    01 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
 #include "include/ParaGridIO_Xios.hpp"
 #include <include/xios_c_interface.hpp>
+
+#include <filesystem>
 
 namespace Nextsim {
 ParaGridIO::~ParaGridIO() = default;
@@ -68,13 +70,21 @@ void ParaGridIO::read(const std::string fieldId, ModelArray& modelarray)
 #ifndef USE_MPI
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
+    ModelState state;
     throw std::invalid_argument("XIOS cannot be used without MPI");
+    return state;
 #else
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
-    ModelState ms;
+    ModelState state;
+
+    std::string fileId = ((std::filesystem::path)filePath).replace_extension();
+    // TODO: xiosHandler.createFile(fileId);
+    // TODO: xiosHandler.setFileType(fileId, "one_file");
+    // TODO: xiosHandler.setFileMode(fileId, "read");
+    // TODO: ...
     throw std::runtime_error("XIOS implementation of getModelState incomplete"); // TODO-JGW
-    return ms;
+    return state;
 #endif
 }
 
@@ -98,6 +108,11 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
+    std::string fileId = ((std::filesystem::path)filePath).replace_extension();
+    // TODO: xiosHandler.createFile(fileId);
+    // TODO: xiosHandler.setFileType(fileId, "one_file");
+    // TODO: xiosHandler.setFileMode(fileId, "write");
+    // TODO: ...
     throw std::runtime_error("XIOS implementation of dumpModelState incomplete"); // TODO-JGW
 }
 
