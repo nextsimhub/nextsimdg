@@ -16,8 +16,6 @@
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO_Xios.hpp"
 
-#include <iostream>
-
 namespace Nextsim {
 
 /*!

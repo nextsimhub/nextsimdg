@@ -16,8 +16,6 @@
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO_Xios.hpp"
 
-#include <iostream>
-
 namespace Nextsim {
 
 /*!
@@ -31,7 +29,6 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosInitialization", 2)
 {
-
     // Enable XIOS in the 'config'
     Configurator::clearStreams();
     std::stringstream config;
