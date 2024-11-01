@@ -30,6 +30,7 @@ namespace Nextsim {
 MPI_TEST_CASE("TestXiosInitialization", 2)
 {
     // Enable XIOS in the 'config'
+    // TODO: Create a utility for this
     Configurator::clearStreams();
     std::stringstream config;
     config << "[xios]" << std::endl << "enable = true" << std::endl;
