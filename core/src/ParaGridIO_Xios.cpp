@@ -85,6 +85,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
 {
     ModelState state;
 
+    if (!std::filesystem::exists(filePath)) {
+        throw std::invalid_argument("ParaGridIO_Xios: File " + filePath + " does not exist");
+    }
     std::string fileId = ((std::filesystem::path)filePath).replace_extension();
     xiosHandler.createFile(fileId);
     xiosHandler.setFileType(fileId, "one_file");
