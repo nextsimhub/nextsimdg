@@ -86,6 +86,8 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     kernel.update(tst);
 
+    advectHField(hsnow, hsnowName);
+
     hice.data() = kernel.getDG0Data(hiceName);
     cice.data() = kernel.getDG0Data(ciceName);
     damage = kernel.getDG0Data(damageName);
