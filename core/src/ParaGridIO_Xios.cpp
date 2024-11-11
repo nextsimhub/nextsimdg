@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.cpp
  *
- * @date    01 Nov 2024
+ * @date    11 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -74,13 +74,6 @@ void ParaGridIO::read(const std::string fieldId, ModelArray& modelarray)
  * Retrieves the ModelState from a restart file of the parametric_grid type.
  * @param filePath The file path containing the file to be read.
  */
-#ifndef USE_MPI
-ModelState ParaGridIO::getModelState(const std::string& filePath)
-{
-    ModelState state;
-    throw std::invalid_argument("XIOS cannot be used without MPI");
-    return state;
-#else
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
     ModelState state;
@@ -94,7 +87,6 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
     xiosHandler.setFileMode(fileId, "read");
     throw std::runtime_error("XIOS implementation of getModelState incomplete"); // TODO-JGW
     return state;
-#endif
 }
 
 ModelState ParaGridIO::readForcingTimeStatic(

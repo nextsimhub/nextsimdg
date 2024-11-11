@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.hpp
  *
- * @date    01 Nov 2024
+ * @date    11 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -29,11 +29,7 @@ public:
      * Retrieves the ModelState from a restart file of the parametric_grid type.
      * @param filePath The file path containing the file to be read.
      */
-#ifdef USE_MPI
     ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override;
-#else
-    ModelState getModelState(const std::string& filePath) override;
-#endif
 
     // TODO-JGW: Align the API with ParaGridIO
     /*!
