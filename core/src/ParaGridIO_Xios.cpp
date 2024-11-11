@@ -6,6 +6,8 @@
  */
 #ifdef USE_XIOS
 #include "include/ParaGridIO_Xios.hpp"
+#include "include/NZLevels.hpp"
+
 #include <include/xios_c_interface.hpp>
 
 #include <filesystem>
@@ -85,6 +87,88 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
     xiosHandler.createFile(fileId);
     xiosHandler.setFileType(fileId, "one_file");
     xiosHandler.setFileMode(fileId, "read");
+
+    // Determine Axes and Domains
+    std::cout << "enter for loop" << std::endl;
+    for (auto entry : ModelArray::definedDimensions) {
+        auto dimType = entry.first;
+        // if (dimCompMap.count(dimType) > 0)
+        //     // TODO Assertions that DG in the file equals the compile time DG in the model. See
+        //     // #205
+        //     continue;
+
+        // TODO: WIP
+        ModelArray::DimensionSpec& dimensionSpec = entry.second;
+        const std::string name = dimensionSpec.name;
+        const std::string altName = dimensionSpec.altName;
+        const size_t globalLength = dimensionSpec.globalLength;
+        const size_t localLength = dimensionSpec.localLength;
+        const size_t start = dimensionSpec.start;
+        std::cout << "name: " << name << std::endl;
+        std::cout << "altName: " << altName << std::endl;
+
+        // // Find dimensions in the netCDF file by their name in the ModelArray details
+        // netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
+        // // Also check the old name
+        // if (dim.isNull()) {
+        //     dim = dataGroup.getDim(dimensionSpec.altName);
+        // }
+        // // If we didn't find a dimension with the dimensions name or altName, throw.
+        // if (dim.isNull()) {
+        //     throw std::out_of_range(
+        //         std::string("No netCDF dimension found corresponding to the dimension named ")
+        //         + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
+        // }
+        if (dimType == ModelArray::Dimension::Z) {
+            // A special case, as the number of levels in the file might not be
+            // the number that the selected ice thermodynamics requires.
+            const size_t nz = NZLevels::get();
+            ModelArray::setDimension(dimType, nz, nz, 0);
+            xiosHandler.createAxis("z_axis");
+            xiosHandler.setAxisSize("z_axis", nz);
+            // TODO: xiosHandler.setAxisValues("z_axis", ...);
+        } else {
+            // auto dimName = dim.getName();
+            size_t globalLength = 0;
+            size_t localLength = 0;
+            size_t start = 0;
+            if (dimType == ModelArray::Dimension::X) {
+                globalLength = metadata.globalExtentX;
+                localLength = metadata.localExtentX;
+                start = metadata.localCornerX;
+                xiosHandler.createDomain("xy_domain"); // TODO-JGW: Check for existence
+                xiosHandler.setDomainGlobalXSize("xy_domain", globalLength);
+                xiosHandler.setDomainLocalXSize("xy_domain", localLength);
+                xiosHandler.setDomainLocalXStart("xy_domain", start);
+            } else if (dimType == ModelArray::Dimension::Y) {
+                globalLength = metadata.globalExtentY;
+                localLength = metadata.localExtentY;
+                start = metadata.localCornerY;
+                // xiosHandler.createDomain("xy_domain"); // TODO-JGW: Check for existence
+                xiosHandler.setDomainGlobalYSize("xy_domain", globalLength);
+                xiosHandler.setDomainLocalYSize("xy_domain", localLength);
+                xiosHandler.setDomainLocalYStart("xy_domain", start);
+            } else if (dimType == ModelArray::Dimension::XVERTEX) {
+                globalLength = metadata.globalExtentX + 1;
+                localLength = metadata.localExtentX + 1;
+                start = metadata.localCornerX;
+                // TODO-JGW: set up XIOS attributes
+            } else if (dimType == ModelArray::Dimension::YVERTEX) {
+                globalLength = metadata.globalExtentY + 1;
+                localLength = metadata.localExtentY + 1;
+                start = metadata.localCornerY;
+                // TODO-JGW: set up XIOS attributes
+            } else {
+                // localLength = dim.getSize();
+                start = 0;
+                throw std::runtime_error("dimType not yet accounted for"); // TODO-JGW
+            }
+            ModelArray::setDimension(dimType, globalLength, localLength, start);
+        }
+    }
+    std::cout << "exit for loop" << std::endl << std::endl;
+    // TODO: Set fields?
+    // TODO: Call read method
     throw std::runtime_error("XIOS implementation of getModelState incomplete"); // TODO-JGW
     return state;
 }
