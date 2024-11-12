@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO.cpp
  *
- * @date    31 Oct 2024
+ * @date    12 Nov 2024
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 #ifndef USE_XIOS
@@ -28,7 +28,7 @@
 
 namespace Nextsim {
 
-ParaGridIO::ParaGridIO(ParametricGrid& grid)
+ParaGridIO::ParaGridIO(ParametricGrid& grid, const std::string contextId)
     : IParaGridIO(grid)
     , openFilesAndIndices(getOpenFilesAndIndices())
     , dimensionKeys({

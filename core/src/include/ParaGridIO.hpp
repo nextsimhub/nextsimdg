@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO.hpp
  *
- * @date    31 Oct 2024
+ * @date    12 Nov 2024
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 #ifndef USE_XIOS
@@ -33,7 +33,7 @@ public:
     using NetCDFFileType = netCDF::NcFile;
 #endif
 
-    ParaGridIO(ParametricGrid& grid);
+    ParaGridIO(ParametricGrid& grid, const std::string contextId = "nextSIM-DG");
     virtual ~ParaGridIO();
 
     /*!
