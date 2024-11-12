@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.cpp
  *
- * @date    11 Nov 2024
+ * @date    12 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -15,8 +15,9 @@
 
 namespace Nextsim {
 
-ParaGridIO::ParaGridIO(ParametricGrid& grid)
+ParaGridIO::ParaGridIO(ParametricGrid& grid, const std::string contextId)
     : IParaGridIO(grid)
+    , xiosHandler(contextId)
 {
     // TODO-JGW: Implement this method
 }

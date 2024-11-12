@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGrid_test.cpp
  *
- * @date    01 Nov 2024
+ * @date    12 Nov 2024
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -121,7 +121,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
+    ParaGridIO* pio = new ParaGridIO(grid, "test1.1");
     grid.setIO(pio);
 
 #ifdef USE_XIOS
@@ -269,7 +269,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
     ParametricGrid gridIn;
-    ParaGridIO* readIO = new ParaGridIO(gridIn);
+    ParaGridIO* readIO = new ParaGridIO(gridIn, "test1.2");
     gridIn.setIO(readIO);
 
 #ifdef USE_MPI
@@ -347,7 +347,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
     ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
+    ParaGridIO* pio = new ParaGridIO(grid, "test2");
     grid.setIO(pio);
 
 #ifdef USE_XIOS
@@ -585,7 +585,7 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
     ParametricGrid gridIn;
-    ParaGridIO* readIO = new ParaGridIO(gridIn);
+    ParaGridIO* readIO = new ParaGridIO(gridIn, "test4");
     gridIn.setIO(readIO);
 
 #ifdef USE_XIOS
@@ -632,7 +632,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
     ParametricGrid gridIn;
-    ParaGridIO* readIO = new ParaGridIO(gridIn);
+    ParaGridIO* readIO = new ParaGridIO(gridIn, "test5");
     gridIn.setIO(readIO);
 
 #ifdef USE_XIOS

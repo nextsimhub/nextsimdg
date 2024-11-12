@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.hpp
  *
- * @date    11 Nov 2024
+ * @date    12 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -17,7 +17,7 @@ namespace Nextsim {
 class ParaGridIO : public ParametricGrid::IParaGridIO {
 
 public:
-    ParaGridIO(ParametricGrid& grid);
+    ParaGridIO(ParametricGrid& grid, const std::string contextId = "nextSIM-DG");
     virtual ~ParaGridIO();
 
     // TODO-JGW: Align the API with ParaGridIO

@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    01 Nov 2024
+ * @date    12 Nov 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -39,7 +39,11 @@ static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.en
  *
  * Configure an XIOS server
  */
-Xios::Xios() { configure(); }
+Xios::Xios(const std::string contextId)
+{
+    _contextId = contextId;
+    configure();
+}
 
 //! Destructor
 Xios::~Xios() { finalize(); }
@@ -97,9 +101,8 @@ void Xios::configureServer(const std::string calendarType)
     MPI_Comm_rank(clientComm, &mpi_rank);
     MPI_Comm_size(clientComm, &mpi_size);
 
-    // Initialize 'nextSIM-DG' context
-    contextId = "nextSIM-DG";
-    cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
+    // Initialize context
+    cxios_context_initialize(_contextId.c_str(), _contextId.length(), &clientComm_F);
 
     // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
@@ -125,7 +128,7 @@ int Xios::getClientMPIRank() { return mpi_rank; }
 bool Xios::isInitialized()
 {
     bool init = false;
-    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+    cxios_context_is_initialized(_contextId.c_str(), _contextId.length(), &init);
     return init;
 }
 
