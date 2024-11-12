@@ -7,6 +7,7 @@
 #ifdef USE_XIOS
 #include "include/ParaGridIO_Xios.hpp"
 #include "include/NZLevels.hpp"
+#include "include/gridNames.hpp"
 
 #include <include/xios_c_interface.hpp>
 
@@ -193,10 +194,42 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
+    // Setup XIOS File attribute
     std::string fileId = ((std::filesystem::path)filePath).replace_extension();
     xiosHandler.createFile(fileId);
     xiosHandler.setFileType(fileId, "one_file");
     xiosHandler.setFileMode(fileId, "write");
+    // xiosHandler.setFileOutputFreq(fieldId, timestep)
+    // xiosHandler.setFileSplitFreq(fieldId, Duration(...))
+
+    // NOTE: ModelState.data provides a map from strings to ModelArrays
+
+    // TODO: Deduce Axes, Domains and Grids
+
+    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
+        sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
+        uName, vName, damageName }; // TODO and others
+    // If the above fields are found in the supplied ModelState, output them
+    for (auto entry : state.data) {
+        if (restartFields.count(entry.first)) {
+            std::string fieldId = entry.first;
+            std::cout << "fieldId: " << fieldId << std::endl;
+            ModelArray field = entry.second;
+
+            // Setup XIOS Field attribute and associate it with the File
+            xiosHandler.createField(fieldId);
+            xiosHandler.setFieldOperation(fieldId, "instant");
+            // xiosHandler.setFieldGridRef(fieldId, ...);
+            xiosHandler.setFieldReadAccess(fieldId, false);
+            xiosHandler.fileAddField(fileId, fieldId);
+
+            // Send data to XIOS to be written to disk
+            // FIXME: Doesn't throw an error, but doesn't write a file either. May be because Axes,
+            // Domains and Grids weren't created but may also be because contexts haven't been
+            // handled correctly?
+            write(fieldId, field);
+        }
+    }
     throw std::runtime_error("XIOS implementation of dumpModelState incomplete"); // TODO-JGW
 }
 
