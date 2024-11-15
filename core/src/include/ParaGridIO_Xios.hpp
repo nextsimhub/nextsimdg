@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.hpp
  *
- * @date    12 Nov 2024
+ * @date    15 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -69,8 +69,13 @@ public:
     static ModelState readForcingTimeStatic(
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
-    // XIOS handler object
+    // XIOS handler object // TODO-JGW: Make private
     Xios xiosHandler;
+
+private:
+    void setupXios(const ModelState& state, const ModelMetadata& meta, const std::string& filePath);
+
+    bool _xiosSetup = false;
 };
 } /* namespace Nextsim */
 

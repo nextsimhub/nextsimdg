@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.cpp
  *
- * @date    12 Nov 2024
+ * @date    15 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -75,11 +75,60 @@ void ParaGridIO::read(const std::string fieldId, ModelArray& modelarray)
 }
 
 /*!
+ * Setup the Axis, Domain, Grid, Field, and File attributes required by XIOS based on the
+ * ModelState, ModelMetadata, and FilePath provided.
+ *
+ * @params state The model state and configuration object.
+ * @params metadata The model metadata (principally the initial file creation model time).
+ * @params filePath The path for the restart file.
+ */
+void ParaGridIO::setupXios(
+    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+{
+    if (_xiosSetup) {
+        return;
+    }
+
+    // Setup XIOS File attribute
+    std::string fileId = ((std::filesystem::path)filePath).replace_extension();
+    xiosHandler.createFile(fileId);
+    xiosHandler.setFileType(fileId, "one_file");
+    xiosHandler.setFileMode(fileId, "write");
+    Duration timestep = xiosHandler.getCalendarTimestep();
+    xiosHandler.setFileOutputFreq(fileId, timestep); // TODO-JGW: Set actual output freq
+    // xiosHandler.setFileSplitFreq(fileId, Duration(...));
+
+    // Loop over fields in the ModelState and create XIOS Field attributes for each
+    for (auto entry : state.data) {
+        std::string fieldId = entry.first;
+        std::cout << "DEBUG: Creating field with fieldId=" << fieldId << std::endl;
+        ModelArray field = entry.second;
+
+        // Setup XIOS Field attribute and associate it with the File
+        xiosHandler.createField(fieldId);
+        xiosHandler.setFieldOperation(fieldId, "instant");
+        // xiosHandler.setFieldGridRef(fieldId, ...);  // TODO-JGW
+        xiosHandler.setFieldReadAccess(fieldId, false);
+        xiosHandler.fileAddField(fileId, fieldId);
+    }
+
+    // TODO-JGW: Set up Axes
+    // TODO-JGW: Set up Domains
+    // TODO-JGW: Set up Grids
+    // TODO-JGW: Set up Fields
+
+    // Mark XIOS setup complete
+    xiosHandler.close_context_definition();
+    _xiosSetup = true;
+}
+
+/*!
  * Retrieves the ModelState from a restart file of the parametric_grid type.
  * @param filePath The file path containing the file to be read.
  */
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
+    // TODO-JGW: Use setupXios
     ModelState state;
 
     if (!std::filesystem::exists(filePath)) {
@@ -91,7 +140,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
     xiosHandler.setFileMode(fileId, "read");
 
     // Determine Axes and Domains
-    std::cout << "enter for loop" << std::endl;
+    std::cout << "DEBUG getModelState: entering for loop" << std::endl;
     for (auto entry : ModelArray::definedDimensions) {
         auto dimType = entry.first;
         // if (dimCompMap.count(dimType) > 0)
@@ -106,8 +155,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
         const size_t globalLength = dimensionSpec.globalLength;
         const size_t localLength = dimensionSpec.localLength;
         const size_t start = dimensionSpec.start;
-        std::cout << "name: " << name << std::endl;
-        std::cout << "altName: " << altName << std::endl;
+        std::cout << "DEBUG getModelState: name: " << name << std::endl;
+        std::cout << "DEBUG getModelState: altName: " << altName << std::endl;
 
         // // Find dimensions in the netCDF file by their name in the ModelArray details
         // netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
@@ -168,7 +217,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
             ModelArray::setDimension(dimType, globalLength, localLength, start);
         }
     }
-    std::cout << "exit for loop" << std::endl << std::endl;
+    std::cout << "DEBUG getModelState: exiting for loop" << std::endl << std::endl;
     // TODO: Set fields?
     // TODO: Call read method
     throw std::runtime_error("XIOS implementation of getModelState incomplete"); // TODO-JGW
@@ -195,42 +244,29 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    // Setup XIOS File attribute
-    std::string fileId = ((std::filesystem::path)filePath).replace_extension();
-    xiosHandler.createFile(fileId);
-    xiosHandler.setFileType(fileId, "one_file");
-    xiosHandler.setFileMode(fileId, "write");
-    // xiosHandler.setFileOutputFreq(fieldId, timestep)
-    // xiosHandler.setFileSplitFreq(fieldId, Duration(...))
-
-    // NOTE: ModelState.data provides a map from strings to ModelArrays
-
-    // TODO: Deduce Axes, Domains and Grids
+    // Setup the XIOS context if it hasn't been already
+    setupXios(state, meta, filePath);
 
     std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
         sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
         uName, vName, damageName }; // TODO and others
     // If the above fields are found in the supplied ModelState, output them
+    std::cout << "DEBUG dumpModelState: entering for loop" << std::endl;
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
             std::string fieldId = entry.first;
-            std::cout << "fieldId: " << fieldId << std::endl;
             ModelArray field = entry.second;
-
-            // Setup XIOS Field attribute and associate it with the File
-            xiosHandler.createField(fieldId);
-            xiosHandler.setFieldOperation(fieldId, "instant");
-            // xiosHandler.setFieldGridRef(fieldId, ...);
-            xiosHandler.setFieldReadAccess(fieldId, false);
-            xiosHandler.fileAddField(fileId, fieldId);
 
             // Send data to XIOS to be written to disk
             // FIXME: Doesn't throw an error, but doesn't write a file either. May be because Axes,
             // Domains and Grids weren't created but may also be because contexts haven't been
             // handled correctly?
+            std::cout << "DEBUG dumpModelState: writing fieldId=" << fieldId << std::endl;
             write(fieldId, field);
+            std::cout << "DEBUG dumpModelState: wrote fieldId=" << fieldId << std::endl;
         }
     }
+    std::cout << "DEBUG dumpModelState: exiting for loop" << std::endl;
     throw std::runtime_error("XIOS implementation of dumpModelState incomplete"); // TODO-JGW
 }
 
