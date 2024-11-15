@@ -89,6 +89,36 @@ void ParaGridIO::setupXios(
         return;
     }
 
+    // Setup XIOS Domain attribute with special domainId 'xy_domain' that creates grid_2D along
+    // with it
+    xiosHandler.createDomain("xy_domain");
+    xiosHandler.setDomainType("xy_domain", "rectilinear");
+    for (auto entry : ModelArray::definedDimensions) {
+        auto dimType = entry.first;
+        ModelArray::DimensionSpec& dimensionSpec = entry.second;
+        const std::string name = dimensionSpec.name;
+        std::cout << "DEBUG setupXios: found dimension with name: " << name << std::endl;
+        if (name == "xdim") {
+            std::cout << "DEBUG setupXios: setting x-attrs of xy_domain: " << name << std::endl;
+            xiosHandler.setDomainGlobalXSize("xy_domain", dimensionSpec.globalLength);
+            xiosHandler.setDomainLocalXSize("xy_domain", dimensionSpec.localLength);
+            xiosHandler.setDomainLocalXStart("xy_domain", dimensionSpec.start);
+        } else if (name == "ydim") {
+            std::cout << "DEBUG setupXios: setting y-attrs of xy_domain: " << name << std::endl;
+            xiosHandler.setDomainGlobalYSize("xy_domain", dimensionSpec.globalLength);
+            xiosHandler.setDomainLocalYSize("xy_domain", dimensionSpec.localLength);
+            xiosHandler.setDomainLocalYStart("xy_domain", dimensionSpec.start);
+        }
+        // TODO-JGW: What about *vertex, *_cg, dg_comp, dgstress_comp, ncoords?
+    }
+    // xiosHandler.setDomainLocalXValues("xy_domain", ...); // TODO-JGW
+    // xiosHandler.setDomainLocalYValues("xy_domain", ...); // TODO-JGW
+
+    // Setup XIOS Axis attribute with special axisId 'z_axis' that creates grid_3D along with it
+    xiosHandler.createAxis("z_axis");
+    // xiosHandler.setAxisSize("z_axis", ...); // TODO-JGW
+    // xiosHandler.setAxisValues("z_axis", ...); // TODO-JGW
+
     // Setup XIOS File attribute
     std::string fileId = ((std::filesystem::path)filePath).replace_extension();
     xiosHandler.createFile(fileId);
@@ -107,15 +137,11 @@ void ParaGridIO::setupXios(
         // Setup XIOS Field attribute and associate it with the File
         xiosHandler.createField(fieldId);
         xiosHandler.setFieldOperation(fieldId, "instant");
-        // xiosHandler.setFieldGridRef(fieldId, ...);  // TODO-JGW
+        xiosHandler.setFieldGridRef(fieldId, "grid_2D");
+        // xiosHandler.setFieldGridRef(fieldId, "grid_3D"); // TODO-JGW: Account for 3D fields
         xiosHandler.setFieldReadAccess(fieldId, false);
         xiosHandler.fileAddField(fileId, fieldId);
     }
-
-    // TODO-JGW: Set up Axes
-    // TODO-JGW: Set up Domains
-    // TODO-JGW: Set up Grids
-    // TODO-JGW: Set up Fields
 
     // Mark XIOS setup complete
     xiosHandler.close_context_definition();
@@ -251,11 +277,14 @@ void ParaGridIO::dumpModelState(
         sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
         uName, vName, damageName }; // TODO and others
     // If the above fields are found in the supplied ModelState, output them
+    std::cout << "DEBUG dumpModelState: time=" << meta.time() << std::endl;
     std::cout << "DEBUG dumpModelState: entering for loop" << std::endl;
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
             std::string fieldId = entry.first;
             ModelArray field = entry.second;
+            std::cout << "DEBUG dumpModelState: fieldId=" << fieldId << " has name "
+                      << xiosHandler.getFieldName(fieldId) << std::endl;
 
             // Send data to XIOS to be written to disk
             // FIXME: Doesn't throw an error, but doesn't write a file either. May be because Axes,
