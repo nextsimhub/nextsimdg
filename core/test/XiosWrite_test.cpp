@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    01 Nov 2024
+ * @date    15 Nov 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the write method of the C++ interface
@@ -104,6 +104,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // Create fields on the two grids
     // TODO: Create field along with HField
+    // TODO: Use field names from amongst those found in restarts
     xios_handler.createField("field_2D");
     xios_handler.setFieldOperation("field_2D", "instant");
     xios_handler.setFieldGridRef("field_2D", "grid_2D"); // NOTE: grid_2D auto-generated
@@ -134,6 +135,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update the current timestep
         xios_handler.updateCalendar(ts);
         // Send data to XIOS to be written to disk
+        // TODO: Call pio->dumpModelState
         pio->write("field_2D", field_2D);
         pio->write("field_3D", field_3D);
         // Verify timestep
