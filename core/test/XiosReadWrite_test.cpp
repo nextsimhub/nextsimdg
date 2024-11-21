@@ -37,22 +37,16 @@ std::string formatId(const std::string label, const int dim)
  *
  * The function assumes two MPI ranks.
  *
+ * @param xios_handler Pointer to an Xios handler class
  * @param dim The number of spatial dimensions
  * @param read If true, set up for file reading test, otherwise for file writing test
  * @return Appropriately configured Xios handler class instance
  */
-Xios setupXiosHandler(int dim, bool read)
+void setupXiosHandler(Xios* xios_handler, int dim, bool read) // TODO-JGW: Pull PIO def outside
 {
     if ((dim != 2) && (dim != 3)) {
         throw std::invalid_argument("Test only implemented for 2D and 3D cases");
     }
-    std::string label;
-    if (read) {
-        label = "read";
-    } else {
-        label = "write";
-    }
-    const std::string contextId = formatId(label, dim);
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
@@ -60,10 +54,8 @@ Xios setupXiosHandler(int dim, bool read)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Initialize an Xios instance called xios_handler
-    // TODO: Create XIOS handler along with ParaGridIO instance
-    Xios xios_handler(contextId);
-    pio->xiosHandler = &xios_handler;
+    // Check configuration of Xios handler
+    pio->xiosHandler = xios_handler;
     REQUIRE(pio->xiosHandler->isInitialized());
     const size_t size = pio->xiosHandler->getClientMPISize();
     REQUIRE(size == 2);
@@ -135,7 +127,6 @@ Xios setupXiosHandler(int dim, bool read)
     pio->xiosHandler->fileAddField(fileId, fieldId);
 
     pio->xiosHandler->close_context_definition();
-    return xios_handler;
 }
 
 /*!
@@ -182,7 +173,9 @@ void assertIsClose(double val1, double val2) { REQUIRE(val1 == doctest::Approx(v
  */
 MPI_TEST_CASE("TestXiosRead_2D", 2)
 {
-    Xios xios_handler = setupXiosHandler(2, true);
+    // TODO: Create XIOS handler along with ParaGridIO instance
+    Xios xios_handler("read_2D");
+    setupXiosHandler(&xios_handler, 2, true);
 
     // Create a HField instance to read the data into
     HField field_2D(ModelArray::Type::H);
@@ -208,7 +201,9 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
  */
 MPI_TEST_CASE("TestXiosRead_3D", 2)
 {
-    Xios xios_handler = setupXiosHandler(3, true);
+    // TODO: Create XIOS handler along with ParaGridIO instance
+    Xios xios_handler("read_3D");
+    setupXiosHandler(&xios_handler, 3, true);
 
     // Create a HField instance to read the data into
     HField field_3D(ModelArray::Type::Z);
@@ -272,7 +267,9 @@ void testFileWrite(Xios* xios_handler, HField& field_A, const std::string fieldI
  */
 MPI_TEST_CASE("TestXiosWrite_2D", 2)
 {
-    Xios xios_handler = setupXiosHandler(2, false);
+    // TODO: Create XIOS handler along with ParaGridIO instance
+    Xios xios_handler("write_2D");
+    setupXiosHandler(&xios_handler, 2, false);
 
     // Create some fake data to test writing methods
     HField field_2D(ModelArray::Type::H);
@@ -296,7 +293,9 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
  */
 MPI_TEST_CASE("TestXiosWrite_3D", 2)
 {
-    Xios xios_handler = setupXiosHandler(3, false);
+    // TODO: Create XIOS handler along with ParaGridIO instance
+    Xios xios_handler("write_3D");
+    setupXiosHandler(&xios_handler, 3, false);
 
     // Create some fake data to test writing methods
     HField field_3D(ModelArray::Type::Z);
