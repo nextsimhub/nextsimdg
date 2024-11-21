@@ -15,15 +15,15 @@
 
 namespace Nextsim {
 
-ParaGridIO::ParaGridIO(ParametricGrid& grid, const std::string contextId)
-    : IParaGridIO(grid)
-{
-    // Xios* xiosHandler = new Xios(contextId);
-    // if (!xiosHandler->isInitialized()) {
-    //     throw std::runtime_error(
-    //         "Failed to initialize Xios handler object with contextId " + contextId);
-    // }
-}
+// ParaGridIO::ParaGridIO(ParametricGrid& grid, const std::string contextId)
+//     : IParaGridIO(grid)
+// {
+//     Xios* xiosHandler = new Xios(contextId);
+//     if (!xiosHandler->isInitialized()) {
+//         throw std::runtime_error(
+//             "Failed to initialize Xios handler object with contextId " + contextId);
+//     }
+// }
 
 // ParaGridIO::~ParaGridIO() { delete xiosHandler; }
 ParaGridIO::~ParaGridIO() = default;

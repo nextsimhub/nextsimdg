@@ -57,7 +57,7 @@ Xios setupXiosHandler(int dim, bool read)
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid, contextId);
+    ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
     // Initialize an Xios instance called xios_handler

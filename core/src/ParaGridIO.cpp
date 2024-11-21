@@ -71,11 +71,6 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
     static bool doneOnce = doOnce();
 }
 
-ParaGridIO::ParaGridIO(ParametricGrid& grid, const std::string contextId)
-{
-    throw std::invalid_argument("contextId unused unless nextSIM-DG is build with XIOS");
-}
-
 bool ParaGridIO::doOnce()
 {
     // Register the finalization function here

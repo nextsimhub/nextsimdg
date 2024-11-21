@@ -34,7 +34,6 @@ public:
 #endif
 
     ParaGridIO(ParametricGrid& grid);
-    ParaGridIO(ParametricGrid& grid, const std::string contextId);
     virtual ~ParaGridIO();
 
     /*!

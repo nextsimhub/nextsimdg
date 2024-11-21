@@ -17,7 +17,8 @@ namespace Nextsim {
 class ParaGridIO : public ParametricGrid::IParaGridIO {
 
 public:
-    ParaGridIO(ParametricGrid& grid, const std::string contextId = "nextSIM-DG");
+    ParaGridIO(ParametricGrid& grid)
+        : IParaGridIO(grid) {};
     virtual ~ParaGridIO();
 
     // TODO-JGW: Align the API with ParaGridIO
