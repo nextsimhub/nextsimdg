@@ -66,7 +66,7 @@ public:
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
     // XIOS handler object // TODO-JGW: Make private
-    Xios* xiosHandler;
+    // Xios* xiosHandler;
 
 private:
     void setupXios(const ModelState& state, const ModelMetadata& meta, const std::string& filePath);
