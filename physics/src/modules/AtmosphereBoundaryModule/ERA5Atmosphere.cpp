@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 24 Sep 2024
+ * @date 21 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,7 +9,11 @@
 
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
+#ifdef USE_XIOS
+#include "include/ParaGridIO_Xios.hpp"
+#else
 #include "include/ParaGridIO.hpp"
+#endif
 
 namespace Nextsim {
 

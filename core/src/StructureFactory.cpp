@@ -14,7 +14,11 @@
 
 #include "include/RectGridIO.hpp"
 
+#ifdef USE_XIOS
+#include "include/ParaGridIO_Xios.hpp"
+#else
 #include "include/ParaGridIO.hpp"
+#endif
 
 #include <ncFile.h>
 #include <ncGroup.h>

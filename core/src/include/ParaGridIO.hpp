@@ -1,10 +1,11 @@
 /*!
  * @file ParaGridIO.hpp
  *
- * @date Oct 24, 2022
+ * @date 21 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#ifndef USE_XIOS
 #ifndef PARAGRIDIO_HPP
 #define PARAGRIDIO_HPP
 
@@ -33,6 +34,7 @@ public:
 #endif
 
     ParaGridIO(ParametricGrid& grid);
+    ParaGridIO(ParametricGrid& grid, const std::string contextId);
     virtual ~ParaGridIO();
 
     /*!
@@ -125,3 +127,4 @@ private:
 } /* namespace Nextsim */
 
 #endif /* PARAGRIDIO_HPP */
+#endif /* not USE_XIOS */

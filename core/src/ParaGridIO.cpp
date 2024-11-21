@@ -1,10 +1,11 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date Oct 24, 2022
+ * @date 21 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#ifndef USE_XIOS
 #include "include/ParaGridIO.hpp"
 
 #include "include/CommonRestartMetadata.hpp"
@@ -68,6 +69,11 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
       })
 {
     static bool doneOnce = doOnce();
+}
+
+ParaGridIO::ParaGridIO(ParametricGrid& grid, const std::string contextId)
+{
+    throw std::invalid_argument("contextId unused unless nextSIM-DG is build with XIOS");
 }
 
 bool ParaGridIO::doOnce()
@@ -513,3 +519,4 @@ void ParaGridIO::closeAllFiles()
 }
 
 } /* namespace Nextsim */
+#endif /* not USE_XIOS */

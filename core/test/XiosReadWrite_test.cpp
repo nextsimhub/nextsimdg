@@ -1,7 +1,7 @@
 /*!
  * @file    XiosReadWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 Nov 2024
+ * @date    21 Nov 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the read and write methods of the C++
@@ -13,7 +13,7 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/ParaGridIO.hpp"
+#include "include/ParaGridIO_Xios.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>
