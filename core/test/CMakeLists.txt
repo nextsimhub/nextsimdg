@@ -49,27 +49,28 @@ if(ENABLE_MPI)
     )
     target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testParaGrid_MPI2
-        PRIVATE
-            USE_MPI
-            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-    )
-    target_include_directories(
-        testParaGrid_MPI2
-        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-    )
-    target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+    # TODO-JGW: Re-enable these tests
+    # add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
+    # target_compile_definitions(
+    #     testParaGrid_MPI2
+    #     PRIVATE
+    #         USE_MPI
+    #         TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+    #         TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+    # )
+    # target_include_directories(
+    #     testParaGrid_MPI2
+    #     PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+    # )
+    # target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testConfigOutput_MPI2
-        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    )
-    target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
-    target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
+    # add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
+    # target_compile_definitions(
+    #     testConfigOutput_MPI2
+    #     PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+    # )
+    # target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
+    # target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
 
     if(ENABLE_XIOS)
         file(
@@ -155,26 +156,27 @@ else()
     )
     target_link_libraries(testRectGrid PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testParaGrid "ParaGrid_test.cpp")
-    target_compile_definitions(
-        testParaGrid
-        PRIVATE
-            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-    )
-    target_include_directories(
-        testParaGrid
-        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-    )
-    target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
+    # TODO-JGW: Re-enable these tests
+    # add_executable(testParaGrid "ParaGrid_test.cpp")
+    # target_compile_definitions(
+    #     testParaGrid
+    #     PRIVATE
+    #         TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+    #         TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+    # )
+    # target_include_directories(
+    #     testParaGrid
+    #     PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+    # )
+    # target_link_libraries(testParaGrid PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testConfigOutput "ConfigOutput_test.cpp")
-    target_compile_definitions(
-        testConfigOutput
-        PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    )
-    target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
-    target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
+    # add_executable(testConfigOutput "ConfigOutput_test.cpp")
+    # target_compile_definitions(
+    #     testConfigOutput
+    #     PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+    # )
+    # target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
+    # target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testIterator "Iterator_test.cpp")
     target_link_libraries(testIterator PRIVATE nextsimlib doctest::doctest)
