@@ -12,6 +12,29 @@
 
 namespace Nextsim {
 
+double BenchmarkAtmosphere::spinupTime = 0; // Time to spin up the atmosphere [h]
+
+static const std::string pfx = "BenchmarkAtmosphere";
+static const std::string spinKey = pfx + ".spinup";
+static const std::map<int, std::string> keyMap = {
+    { BenchmarkAtmosphere::SPINUP_KEY, spinKey}
+};
+
+ConfigurationHelp::HelpMap& BenchmarkAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    map[pfx] = {
+        { spinKey, ConfigType::NUMERIC, { "0", "∞" }, ConfigurationHelp::toString(spinupTime), "hours",
+            "Time to spin the atmospheric forcing up from rest to full stregnth"},
+    };
+
+    return map;
+}
+
+void BenchmarkAtmosphere::configure()
+{
+    spinupTime = Configured::getConfiguration(keyMap.at(SPINUP_KEY), spinupTime);
+}
+
 void BenchmarkAtmosphere::setData(const ModelState::DataMap& ms)
 {
     IAtmosphereBoundary::setData(ms);
@@ -44,7 +67,7 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
     double cycloneDuration = 5.; // days
 
     // maximum wind velocity of the cyclone
-    double vMax = 30.0*std::min(1., elapsedTime.seconds() / (6*3600.) );
+    double vMax = 30.0*std::min(1., elapsedTime.seconds() / (spinupTime*3600.) );
 
     // cyclone parameters
     const double A = 1e-5;
