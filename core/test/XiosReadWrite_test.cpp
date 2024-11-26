@@ -90,7 +90,8 @@ void setupXiosHandler(Xios* xios_handler, int dim, bool read)
     } else {
         fileId = "xios_test_output";
     }
-    pio->setupXios(state, meta, fileId);
+    const std::string filename = fileId + ".nc";
+    pio->setupXios(state, meta, filename, read);
 
     // Create fields on the two grids
     // TODO: Create field along with HField
@@ -102,23 +103,6 @@ void setupXiosHandler(Xios* xios_handler, int dim, bool read)
     pio->xiosHandler->setFieldReadAccess(fieldId, read);
     pio->xiosHandler->setFieldFreqOffset(fieldId, timestep);
 
-    // Create an file for reading/writing of field data
-    std::string fileId;
-    if (read) {
-        fileId = "xios_test_input";
-    } else {
-        fileId = "xios_test_output";
-    }
-    pio->xiosHandler->createFile(fileId);
-    pio->xiosHandler->setFileType(fileId, "one_file");
-    pio->xiosHandler->setFileOutputFreq(fileId, timestep);
-    if (read) {
-        pio->xiosHandler->setFileMode(fileId, "read");
-        pio->xiosHandler->setFileParAccess("xios_test_input", "collective");
-    } else {
-        pio->xiosHandler->setFileMode(fileId, "write");
-        pio->xiosHandler->setFileSplitFreq(fileId, Duration("P0-0T03:00:00"));
-    }
     pio->xiosHandler->fileAddField(fileId, fieldId);
 
     pio->xiosHandler->close_context_definition();

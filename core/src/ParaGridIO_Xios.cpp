@@ -36,8 +36,8 @@ ParaGridIO::~ParaGridIO() = default;
  * @params metadata The model metadata (principally the initial file creation model time).
  * @params filePath The path for the restart file.
  */
-void ParaGridIO::setupXios(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+void ParaGridIO::setupXios(const ModelState& state, const ModelMetadata& meta,
+    const std::string& filePath, const bool read)
 {
     if (_xiosSetup) {
         return;
@@ -75,14 +75,20 @@ void ParaGridIO::setupXios(
         // TODO: What about *vertex, *_cg, dg_comp, dgstress_comp, ncoords?
     }
 
-    // // Setup XIOS File attribute
-    // std::string fileId = ((std::filesystem::path)filePath).replace_extension();
-    // xiosHandler->createFile(fileId);
-    // xiosHandler->setFileType(fileId, "one_file");
-    // xiosHandler->setFileMode(fileId, "write");
-    // Duration timestep = xiosHandler->getCalendarTimestep();
-    // xiosHandler->setFileOutputFreq(fileId, timestep); // TODO-JGW: Set actual output freq
-    // // xiosHandler->setFileSplitFreq(fileId, Duration(...));
+    // Setup XIOS File attribute
+    std::string fileId = ((std::filesystem::path)filePath).replace_extension();
+    xiosHandler->createFile(fileId);
+    xiosHandler->setFileType(fileId, "one_file");
+    if (read) {
+        xiosHandler->setFileMode(fileId, "read");
+        xiosHandler->setFileParAccess(fileId, "collective");
+    } else {
+        xiosHandler->setFileMode(fileId, "write");
+        xiosHandler->setFileSplitFreq(fileId, Duration("P0-0T03:00:00")); // TODO-JGW: Set properly
+    }
+    Duration timestep = xiosHandler->getCalendarTimestep();
+    xiosHandler->setFileOutputFreq(fileId, timestep); // TODO-JGW: Set actual output freq
+    // xiosHandler->setFileSplitFreq(fileId, Duration(...));
 
     // // Loop over fields in the ModelState and create XIOS Field attributes for each
     // for (auto entry : state.data) {

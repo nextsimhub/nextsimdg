@@ -70,7 +70,8 @@ public:
     Xios* xiosHandler;
 
     // TODO-JGW: Make this method private
-    void setupXios(const ModelState& state, const ModelMetadata& meta, const std::string& filePath);
+    void setupXios(const ModelState& state, const ModelMetadata& meta, const std::string& filePath,
+        const bool read);
 
 private:
     // void setupXios(const ModelState& state, const ModelMetadata& meta, const std::string&
