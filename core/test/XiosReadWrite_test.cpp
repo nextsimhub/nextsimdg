@@ -115,9 +115,9 @@ ModelState setupXiosHandler(Xios* xios_handler, int dim, bool read)
  * Test file reading for the Xios handler configuration in setupXiosHandler.
  *
  * @param xios_handler Pointer to Xios handler class instance configured using setupXiosHandler
- * @param field_A Reference to nextSIM-DG HField instance to test reading from file
+ * @param state Reference to ModelState instance containing fields to be read from file
  */
-void readFile(Xios* xios_handler, HField& field_A, const std::string fieldId)
+void readFile(Xios* xios_handler, ModelState& state)
 {
     // Verify calendar step is starting from zero
     REQUIRE(xios_handler->getCalendarStep() == 0);
@@ -130,7 +130,9 @@ void readFile(Xios* xios_handler, HField& field_A, const std::string fieldId)
         // Update the current timestep
         xios_handler->updateCalendar(ts);
         // Receive data from XIOS that is read from disk
-        xios_handler->read(fieldId, field_A);
+        for (auto& entry : state.data) {
+            xios_handler->read(entry.first, entry.second);
+        }
         // Verify timestep
         REQUIRE(xios_handler->getCalendarStep() == ts);
     }
@@ -157,16 +159,15 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
 {
     // TODO: Create XIOS handler along with ParaGridIO instance
     const std::string contextId = "read_2D";
-    const std::string fieldId = "field_2D";
     Xios xios_handler(contextId);
 
     ModelState state = setupXiosHandler(&xios_handler, 2, true);
-    ModelArray field_2D = state.data[fieldId];
 
     // Verify fields are read in correctly
-    readFile(&xios_handler, field_2D, fieldId);
+    readFile(&xios_handler, state);
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
     const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
+    ModelArray field_2D = state.data["field_2D"];
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             assertIsClose(field_2D(i, j), i + nx * j);
@@ -185,17 +186,16 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
 {
     // TODO: Create XIOS handler along with ParaGridIO instance
     const std::string contextId = "read_3D";
-    const std::string fieldId = "field_3D";
     Xios xios_handler(contextId);
 
     ModelState state = setupXiosHandler(&xios_handler, 3, true);
-    ModelArray field_3D = state.data[fieldId];
 
     // Verify fields are read in correctly
-    readFile(&xios_handler, field_3D, fieldId);
+    readFile(&xios_handler, state);
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
     const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
     const size_t nz = xios_handler.getAxisSize("z_axis");
+    ModelArray field_3D = state.data["field_3D"];
     for (size_t k = 0; k < nz; ++k) {
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {

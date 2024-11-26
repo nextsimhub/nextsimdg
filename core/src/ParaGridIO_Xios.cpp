@@ -248,9 +248,10 @@ void ParaGridIO::dumpModelState(
     // std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
     //     sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName,
     //     gridAzimuthName, uName, vName, damageName }; // TODO and others
-    // // If the above fields are found in the supplied ModelState, output them
-    // std::cout << "DEBUG dumpModelState: time=" << meta.time() << std::endl;
-    // std::cout << "DEBUG dumpModelState: entering for loop" << std::endl;
+    std::set<std::string> restartFields = { "field_2D", "field_3D" }; // TODO-JGW: Switch to above
+    // If the above fields are found in the supplied ModelState, output them
+    std::cout << "DEBUG dumpModelState: time=" << meta.time() << std::endl;
+    std::cout << "DEBUG dumpModelState: entering for loop" << std::endl;
     // for (auto entry : state.data) {
     //     if (restartFields.count(entry.first)) {
     //         std::string fieldId = entry.first;
@@ -268,7 +269,7 @@ void ParaGridIO::dumpModelState(
     //         std::cout << "DEBUG dumpModelState: wrote fieldId=" << fieldId << std::endl;
     //     }
     // }
-    // std::cout << "DEBUG dumpModelState: exiting for loop" << std::endl;
+    std::cout << "DEBUG dumpModelState: exiting for loop" << std::endl;
     throw std::runtime_error("XIOS implementation of dumpModelState incomplete"); // TODO-JGW
 }
 
