@@ -106,13 +106,13 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
 /*!
  * Test file reading for the Xios handler configuration in setupXiosHandler.
  *
- * @param xios_handler Pointer to Xios handler class instance configured using setupXiosHandler
+ * @param pio Pointer to ParaGridIO instance with Xios handler configured using setupXiosHandler
  * @param state Reference to ModelState instance containing fields to be read from file
  */
-void readFile(Xios* xios_handler, ModelState& state)
+void readFile(ParaGridIO* pio, ModelState& state)
 {
     // Verify calendar step is starting from zero
-    REQUIRE(xios_handler->getCalendarStep() == 0);
+    REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
 
     // Check the input file exists
     REQUIRE(std::filesystem::exists("xios_test_input.nc"));
@@ -120,13 +120,13 @@ void readFile(Xios* xios_handler, ModelState& state)
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep
-        xios_handler->updateCalendar(ts);
+        pio->xiosHandler->updateCalendar(ts);
         // Receive data from XIOS that is read from disk
         for (auto& entry : state.data) {
-            xios_handler->read(entry.first, entry.second);
+            pio->xiosHandler->read(entry.first, entry.second);
         }
         // Verify timestep
-        REQUIRE(xios_handler->getCalendarStep() == ts);
+        REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
     }
 }
 
@@ -162,7 +162,7 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
     ModelState state = setupXiosHandler(pio, 2, true);
 
     // Verify fields are read in correctly
-    readFile(&xios_handler, state);
+    readFile(pio, state);
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
     const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
     ModelArray field_2D = state.data["field_2D"];
@@ -195,7 +195,7 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
     ModelState state = setupXiosHandler(pio, 3, true);
 
     // Verify fields are read in correctly
-    readFile(&xios_handler, state);
+    readFile(pio, state);
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
     const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
     const size_t nz = xios_handler.getAxisSize("z_axis");
@@ -213,13 +213,13 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
 /*!
  * Test file writing for the Xios handler configuration in setupXiosHandler.
  *
- * @param xios_handler Pointer to Xios handler class instance configured using setupXiosHandler
+ * @param pio Pointer to ParaGridIO instance with Xios handler configured using setupXiosHandler
  * @param state Reference to ModelState instance containing fields to be written to file
  */
-void testFileWrite(Xios* xios_handler, ModelState& state)
+void testFileWrite(ParaGridIO* pio, ModelState& state)
 {
     // Verify calendar step is starting from zero
-    REQUIRE(xios_handler->getCalendarStep() == 0);
+    REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
 
     // Check a file with the expected name doesn't exist yet
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
@@ -227,24 +227,24 @@ void testFileWrite(Xios* xios_handler, ModelState& state)
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep
-        xios_handler->updateCalendar(ts);
+        pio->xiosHandler->updateCalendar(ts);
         // Send data to XIOS to be written to disk
         for (auto& entry : state.data) {
-            xios_handler->write(entry.first, entry.second);
+            pio->xiosHandler->write(entry.first, entry.second);
         }
         // Verify timestep
-        REQUIRE(xios_handler->getCalendarStep() == ts);
+        REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
     }
 
     // Check the files have indeed been created then remove it
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
-    if (xios_handler->getClientMPIRank() == 0) {
+    if (pio->xiosHandler->getClientMPIRank() == 0) {
         std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
         std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
     }
 
-    xios_handler->context_finalize();
+    pio->xiosHandler->context_finalize();
 }
 
 /*!
@@ -278,7 +278,7 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
         }
     }
 
-    testFileWrite(&xios_handler, state);
+    testFileWrite(pio, state);
 }
 
 /*!
@@ -315,7 +315,7 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
         }
     }
 
-    testFileWrite(&xios_handler, state);
+    testFileWrite(pio, state);
 }
 
 // TODO: Consider adding 4D test cases
