@@ -40,7 +40,7 @@ std::string formatId(const std::string label, const int dim)
  * @param pio Pointer to a ParaGridIO instance whose associated Xios handler class we will setup
  * @param dim The number of spatial dimensions
  * @param read If true, set up for file reading test, otherwise for file writing test
- * @return Appropriately configured Xios handler class instance
+ * @return ModelState instance containing fields to be read/written to/from file
  */
 ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
 {
@@ -57,8 +57,7 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
     // Calendar setup
     pio->xiosHandler->setCalendarOrigin(TimePoint("2020-01-23T00:08:15Z"));
     pio->xiosHandler->setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
-    Duration timestep("P0-0T01:30:00");
-    pio->xiosHandler->setCalendarTimestep(timestep);
+    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
 
     // Set ModelArray dimensions corresponding to a 4x2 horizontal domain with a partition halving
     // the x-extent and a vertical axis with 2 points
@@ -91,15 +90,13 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
                   },
             {} };
     }
-    ModelMetadata meta; // TODO-JGW: Set up properly
-    std::string fileId;
+    std::string filename;
     if (read) {
-        fileId = "xios_test_input";
+        filename = "xios_test_input.nc";
     } else {
-        fileId = "xios_test_output";
+        filename = "xios_test_output.nc";
     }
-    const std::string filename = fileId + ".nc";
-    pio->setupXios(state, meta, filename, read); // TODO-JGW: Eventually drop this (called in class)
+    pio->setupXios(state, filename, read); // TODO-JGW: Eventually drop this (called in class)
     return state;
 }
 

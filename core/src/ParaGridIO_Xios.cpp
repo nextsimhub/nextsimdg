@@ -33,11 +33,9 @@ ParaGridIO::~ParaGridIO() = default;
  * ModelState, ModelMetadata, and FilePath provided.
  *
  * @params state The model state and configuration object.
- * @params metadata The model metadata (principally the initial file creation model time).
  * @params filePath The path for the restart file.
  */
-void ParaGridIO::setupXios(const ModelState& state, const ModelMetadata& meta,
-    const std::string& filePath, const bool read)
+void ParaGridIO::setupXios(const ModelState& state, const std::string& filePath, const bool read)
 {
     if (_xiosSetup) {
         return;
@@ -126,7 +124,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
     ModelState state;
 
     // Setup the XIOS context if it hasn't been already
-    setupXios(state, metadata, filePath, true);
+    setupXios(state, filePath, true);
 
     // if (!std::filesystem::exists(filePath)) {
     //     throw std::invalid_argument("ParaGridIO_Xios: File " + filePath + " does not exist");
@@ -243,7 +241,7 @@ void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
     // Setup the XIOS context if it hasn't been already
-    setupXios(state, meta, filePath, false);
+    setupXios(state, filePath, false);
 
     // std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
     //     sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName,
