@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.hpp
  *
- * @date    21 Nov 2024
+ * @date    26 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -69,8 +69,12 @@ public:
     // XIOS handler object // TODO-JGW: Make private
     Xios* xiosHandler;
 
-private:
+    // TODO-JGW: Make this method private
     void setupXios(const ModelState& state, const ModelMetadata& meta, const std::string& filePath);
+
+private:
+    // void setupXios(const ModelState& state, const ModelMetadata& meta, const std::string&
+    // filePath);
 
     bool _xiosSetup = false;
 };
