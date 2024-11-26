@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    21 August 2024
+ * @date    19 Nov 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -18,7 +18,6 @@
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
 
-#include "include/ModelArray.hpp"
 #include "include/Xios.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -33,16 +32,28 @@
 
 namespace Nextsim {
 
-template <>
-const std::map<int, std::string> Configured<Xios>::keyMap
-    = { { Xios::ENABLED_KEY, "xios.enable" } };
+static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" } };
+
+//! Enable XIOS in the 'config'
+void enableXios()
+{
+    Configurator::clearStreams();
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+}
 
 /*!
  * Constructor
  *
  * Configure an XIOS server
  */
-Xios::Xios() { configure(); }
+Xios::Xios(const std::string contextId)
+{
+    _contextId = contextId;
+    configure();
+}
 
 //! Destructor
 Xios::~Xios() { finalize(); }
@@ -63,7 +74,7 @@ void Xios::context_finalize()
     }
 }
 
-//! Close context and finialize server
+//! Finalize XIOS server
 void Xios::finalize()
 {
     if (isEnabled) {
@@ -101,12 +112,13 @@ void Xios::configureServer(const std::string calendarType)
     MPI_Comm_size(clientComm, &mpi_size);
 
     // Initialize 'nextSIM-DG' context
-    contextId = "nextSIM-DG";
-    cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
+    cxios_context_initialize(_contextId.c_str(), _contextId.length(), &clientComm_F);
 
     // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
+    cxios_duration timestep { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 };
+    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
     cxios_create_calendar(clientCalendar);
 }
 
@@ -127,8 +139,8 @@ int Xios::getClientMPIRank() { return mpi_rank; }
  */
 bool Xios::isInitialized()
 {
-    bool init { false };
-    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+    bool init = false;
+    cxios_context_is_initialized(_contextId.c_str(), _contextId.length(), &init);
     return init;
 }
 
@@ -329,7 +341,7 @@ void Xios::updateCalendar(const int stepNumber) { cxios_update_calendar(stepNumb
  */
 xios::CAxisGroup* Xios::getAxisGroup()
 {
-    const std::string groupId = { "axis_definition" };
+    const std::string groupId = "axis_definition";
     xios::CAxisGroup* group = NULL;
     cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -360,7 +372,10 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
 }
 
 /*!
- * Create an axis with some ID
+ * Create an axis with some ID.
+ *
+ * If the axis ID is 'z_axis' and a domain called 'xy_domain' exists then a grid called 'grid_3D'
+ * will automatically be created with this axis and that domain.
  *
  * @param the axis ID
  */
@@ -379,6 +394,15 @@ void Xios::createAxis(const std::string axisId)
     cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create axis '" + axisId + "'");
+    }
+    if (axisId == "z_axis") {
+        std::string domainId = "xy_domain";
+        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+        if (exists) {
+            createGrid("grid_3D");
+            gridAddDomain("grid_3D", "xy_domain");
+            gridAddAxis("grid_3D", "z_axis");
+        }
     }
 }
 
@@ -469,7 +493,7 @@ std::vector<double> Xios::getAxisValues(const std::string axisId)
  */
 xios::CDomainGroup* Xios::getDomainGroup()
 {
-    const std::string groupId = { "domain_definition" };
+    const std::string groupId = "domain_definition";
     xios::CDomainGroup* group = NULL;
     cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -500,7 +524,11 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
 }
 
 /*!
- * Create a domain with some ID
+ * Create a domain with some ID.
+ *
+ * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
+ * this domain. If an axis called 'z_axis' also exists then a grid called 'grid_3D' will
+ * automatically be created with this domain and that axis.
  *
  * @param the domain ID
  */
@@ -519,6 +547,17 @@ void Xios::createDomain(const std::string domainId)
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
+    }
+    if (domainId == "xy_domain") {
+        createGrid("grid_2D");
+        gridAddDomain("grid_2D", "xy_domain");
+        std::string axisId = "z_axis";
+        cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+        if (exists) {
+            createGrid("grid_3D");
+            gridAddDomain("grid_3D", "xy_domain");
+            gridAddAxis("grid_3D", "z_axis");
+        }
     }
 }
 
@@ -864,7 +903,7 @@ std::vector<double> Xios::getDomainLocalYValues(const std::string domainId)
  */
 xios::CGridGroup* Xios::getGridGroup()
 {
-    const std::string groupId = { "grid_definition" };
+    const std::string groupId = "grid_definition";
     xios::CGridGroup* group = NULL;
     cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -1005,7 +1044,7 @@ std::vector<std::string> Xios::gridGetDomainIds(const std::string gridId)
  */
 xios::CFieldGroup* Xios::getFieldGroup()
 {
-    const std::string groupId = { "field_definition" };
+    const std::string groupId = "field_definition";
     xios::CFieldGroup* group = NULL;
     cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -1243,7 +1282,7 @@ Duration Xios::getFieldFreqOffset(const std::string fieldId)
  */
 xios::CFileGroup* Xios::getFileGroup()
 {
-    const std::string groupId = { "file_definition" };
+    const std::string groupId = "file_definition";
     xios::CFileGroup* group = NULL;
     cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {

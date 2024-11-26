@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.hpp
  *
- * @date Jan 5, 2024
+ * @date 19 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,8 +9,8 @@
 #define BBMDYNAMICS_HPP
 
 #include "include/BBMDynamicsKernel.hpp"
+#include "include/BBMParameters.hpp"
 #include "include/IDynamics.hpp"
-#include "include/MEBParameters.hpp"
 #include "kokkos/include/KokkosBBMDynamicsKernel.hpp"
 
 #ifndef DGCOMP
@@ -20,7 +20,7 @@
 
 namespace Nextsim {
 
-class BBMDynamics : public IDynamics {
+class BBMDynamics : public IDynamics, public Configured<BBMDynamics> {
 public:
     BBMDynamics();
 
@@ -29,8 +29,33 @@ public:
 
     void setData(const ModelState::DataMap&) override;
     ModelState getState() const override;
-    ModelState getState(const OutputLevel&) const override { return getState(); }
+     ModelState getState(const OutputLevel&) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override;
+    void configure() override;
+
+    enum {
+        C_KEY,
+        NU_KEY,
+        YOUNG_KEY,
+        P0_KEY,
+        LAMBDA0_KEY,
+        ALPHA_KEY,
+        EXPPMAX_KEY,
+        MU_KEY,
+        NMAX_KEY,
+        CLAB_KEY,
+        NSTEPS_KEY,
+        RHOI_KEY,
+        RHOA_KEY,
+        RHOO_KEY,
+        CATM_KEY,
+        COCEAN_KEY,
+        FC_KEY,
+        ANGLE_KEY,
+    };
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap&, bool getAll);
 
 private:
 #ifdef USE_KOKKOS
@@ -38,7 +63,7 @@ private:
 #else
     BBMDynamicsKernel<DGCOMP> kernel;
 #endif
-    MEBParameters params;
+    BBMParameters params;
 };
 
 } /* namespace Nextsim */

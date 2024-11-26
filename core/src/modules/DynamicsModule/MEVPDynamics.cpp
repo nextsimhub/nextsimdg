@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 18 Jul 2024
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -11,7 +11,6 @@
 
 #include "include/gridNames.hpp"
 
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -20,9 +19,38 @@ namespace Nextsim {
 // Degrees to radians as a hex float
 static const double radians = 0x1.1df46a2529d39p-6;
 
+// TODO: We should use getName() here, but it isn't static.
+static const std::string prefix = "MEVPDynamics"; // MEVPDynamics::getName();
+static const std::map<int, std::string> keyMap = {
+    { MEVPDynamics::PSTAR_KEY, prefix + ".Pstar" },
+    { MEVPDynamics::DELTA_KEY, prefix + ".DeltaMin" },
+    { MEVPDynamics::C_KEY, prefix + ".C" },
+    { MEVPDynamics::NSTEPS_KEY, prefix + ".nsteps" },
+    { MEVPDynamics::RHOI_KEY, prefix + ".rho_ice" },
+    { MEVPDynamics::RHOA_KEY, prefix + ".rho_atm" },
+    { MEVPDynamics::RHOO_KEY, prefix + ".rho_ocean" },
+    { MEVPDynamics::CATM_KEY, prefix + ".drag_atm" },
+    { MEVPDynamics::COCEAN_KEY, prefix + ".drag_ocean" },
+    { MEVPDynamics::FC_KEY, prefix + ".Coriolis_parameter" },
+    { MEVPDynamics::ANGLE_KEY, prefix + ".ocean_turning_angle" },
+};
+
 void MEVPDynamics::configure()
 {
     Module::Module<Nextsim::IDamageHealing>::setImplementation("Nextsim::NoHealing");
+
+    params.pStar = Configured::getConfiguration(keyMap.at(PSTAR_KEY), pStarDefault);
+    params.deltaMin = Configured::getConfiguration(keyMap.at(DELTA_KEY), deltaMinDefault);
+    params.compactionParam = Configured::getConfiguration(keyMap.at(C_KEY), compactionParamDefault);
+    params.nSteps = Configured::getConfiguration(keyMap.at(NSTEPS_KEY), nStepsDefault);
+    params.rhoIce = Configured::getConfiguration(keyMap.at(RHOI_KEY), rhoIceDefault);
+    params.rhoAtm = Configured::getConfiguration(keyMap.at(RHOA_KEY), rhoAtmDefault);
+    params.rhoOcean = Configured::getConfiguration(keyMap.at(RHOO_KEY), rhoOceanDefault);
+    params.CAtm = Configured::getConfiguration(keyMap.at(CATM_KEY), CAtmDefault);
+    params.COcean = Configured::getConfiguration(keyMap.at(COCEAN_KEY), COceanDefault);
+    params.fc = Configured::getConfiguration(keyMap.at(FC_KEY), fcDefault);
+    params.oceanTurningAngle
+        = Configured::getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
 }
 
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
@@ -87,14 +115,53 @@ ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
     // Base class state
     ModelState state(IDynamics::getStateRecursive(os));
 
-    if (os.allComponents())
-    {
+    if (os.allComponents()) {
         state.merge({
-            {hiceName, kernel.getDG0Data(hiceName)},
-            {ciceName, kernel.getDG0Data(ciceName)},
+            { hiceName, kernel.getDG0Data(hiceName) },
+            { ciceName, kernel.getDG0Data(ciceName) },
         });
     }
     return state;
+}
+
+MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)
+{
+    map["MEVPDynamics"] = {
+        { keyMap.at(PSTAR_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(pStarDefault), "Pa", "The sea-ice strength parameter P*" },
+        { keyMap.at(DELTA_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(deltaMinDefault), "1/s",
+            "Capping value of the 𝛥 variable" },
+        { keyMap.at(C_KEY), ConfigType::NUMERIC, { "-∞", "0" },
+            ConfigurationHelp::toString(compactionParamDefault), "[None]",
+            "The compaction parameter C" },
+        { keyMap.at(NSTEPS_KEY), ConfigType::NUMERIC, { "1", "∞" },
+            ConfigurationHelp::toString(nStepsDefault), "[No unit]",
+            "The number of sub-cycling steps" },
+        { keyMap.at(RHOI_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(rhoIceDefault), "kg/m^3", "Density of sea ice" },
+        { keyMap.at(RHOA_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(rhoAtmDefault), "kg/m^3", "Density of air" },
+        { keyMap.at(RHOO_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(rhoOceanDefault), "kg/m^3", "Density of ocean" },
+        { keyMap.at(CATM_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(CAtmDefault), "[No unit]",
+            "Ice-atmosphere drag coefficient" },
+        { keyMap.at(COCEAN_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(COceanDefault), "[No unit]", "Ice-ocean drag coefficient" },
+        { keyMap.at(FC_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(fcDefault), "[No unit]",
+            "Coriolis parameter (constant across the domain)" },
+        { keyMap.at(ANGLE_KEY), ConfigType::NUMERIC, { "0", "90" },
+            ConfigurationHelp::toString(oceanTurningAngleDefault), "degrees",
+            "Oceanic turning angle" },
+    };
+    return map;
+}
+
+MEVPDynamics::HelpMap& MEVPDynamics::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    return getHelpText(map, getAll);
 }
 
 }

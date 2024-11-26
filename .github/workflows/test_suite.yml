@@ -8,27 +8,6 @@ on:
 
 jobs:
 
-  clang-formatter:
-
-    runs-on: ubuntu-22.04
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: clang-format
-      run: |
-
-        sudo apt update
-        sudo apt install clang-format
-        cd core/src
-        clang-format --dry-run -Werror *cpp include/*hpp
-        cd -
-        for component in physics dynamics
-        do
-          cd $component/src
-          clang-format --dry-run -Werror *cpp include/*hpp
-          cd -
-        done
-
   test-ubuntu-serial:
 
     runs-on: ubuntu-22.04
@@ -42,8 +21,13 @@ jobs:
       run: |
         . /opt/spack-environment/activate.sh
         mkdir -p build && cd build
-        cmake ..
+        cmake -DCMAKE_BUILD_TYPE=Release ..
         make -j 4
+
+    - name: installs for python tests
+      run: |
+        pip install numpy
+        pip install netCDF4
 
     - name: run serial tests
       run: |
@@ -65,6 +49,7 @@ jobs:
         mv ../test .
         cd test
         python3 ThermoIntegration_test.py
+        ./run_test_jan2010_integration_test.sh python3
         cd -
 
   test-ubuntu-mpi:
@@ -131,7 +116,7 @@ jobs:
         mkdir -p build
         cd build
         # added Python_ROOT_DIR to help cmake find correct Python in the mac VM
-        cmake -DENABLE_MPI=OFF -DENABLE_XIOS=OFF -DPython_ROOT_DIR=/Library/Frameworks/Python.framework/Versions/Current/bin ..
+        cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF -DPython_ROOT_DIR=/Library/Frameworks/Python.framework/Versions/Current/bin ..
         make -j 4
     - name: run serial tests
       run: |
@@ -149,4 +134,5 @@ jobs:
         mv ../test .
         cd test
         python ThermoIntegration_test.py
+        ./run_test_jan2010_integration_test.sh python
         cd -

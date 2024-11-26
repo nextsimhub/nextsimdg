@@ -1,6 +1,6 @@
 /*!
  * @file Advection_test.cpp
- * @date 10 Jul 2022
+ * @date 19 August 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -14,11 +14,11 @@
 #include "dgLimiters.hpp"
 #include "dgVisu.hpp"
 
-#include <cassert>
-#include <chrono>
 #include <filesystem> // only for automatic creation of output directory
 #include <iostream>
 #include <vector>
+
+using namespace doctest;
 
 bool WRITE_VTK = false; //!< set to true for vtk output
 int WRITE_EVERY = 5;
@@ -240,12 +240,11 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh, const double Lx, const
     // no other boundaries.
 }
 
-template <int DG> bool run(double distort, const std::array<std::array<double, 6>, 3>& exact)
+template <int DG> void run(double distort, const std::array<std::array<double, 6>, 3>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN); // 0 means no output
 
 #define DG2DEG(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 : -1))
-    bool success = true;
     for (int it = 0; it < 2; ++it) {
 
         // set number of elements in x- and y-direction
@@ -260,23 +259,10 @@ template <int DG> bool run(double distort, const std::array<std::array<double, 6
 
         Test<DG> test(smesh);
         double error = test.run();
-        std::cout << error << "\t" << exact[DG2DEG(DG)][it];
-        if (fabs(error - exact[DG2DEG(DG)][it]) / exact[DG2DEG(DG)][it] < TOL){
-            std::cout << "\ttest passed" << std::endl;
-            }
-        else{
-            std::cout << "\ttest failed" << std::endl;
-            success = false;}
+        std::cout << error << "\t" << exact[DG2DEG(DG)][it] << std::endl;
+        CHECK(error == Approx(exact[DG2DEG(DG)][it]).epsilon(TOL));
     }
-    return success;
 }
-
-
-
-
-
-
-
 
 TEST_SUITE_BEGIN("Advection");
 TEST_CASE("Advection")
@@ -285,27 +271,38 @@ TEST_CASE("Advection")
 
     // Exact values taken 25/06/2024 after some plausibility check of the results
     // and by checking the theoretical order of convergence to be expected
-    std::array<std::array<double, 6>, 3> exact = 
-        { std::array<double, 6>({ 5.1256149074257538e-02,4.8288256703303903e-02,4.3105635248809886e-02,3.5793986049422598e-02,2.6937487824223016e-02,1.8456775604583933e-02 }),
-	  std::array<double, 6>({ 2.9450967798560313e-02,1.3427281824939470e-02,5.8574889800512000e-03,2.2756813704797301e-03,7.3564079504566610e-04,1.9177169540867740e-04}),
-	  std::array<double, 6>({ 9.9340386651904228e-03,4.0274889287136816e-03,1.2400186092664943e-03,2.8460130790583933e-04,4.5459555769938981e-05,4.6851425365137733e-06})};
+    std::array<std::array<double, 6>, 3> exact
+        = { std::array<double, 6>(
+                { 5.1256149074257538e-02, 4.8288256703303903e-02, 4.3105635248809886e-02,
+                    3.5793986049422598e-02, 2.6937487824223016e-02, 1.8456775604583933e-02 }),
+              std::array<double, 6>(
+                  { 2.9450967798560313e-02, 1.3427281824939470e-02, 5.8574889800512000e-03,
+                      2.2756813704797301e-03, 7.3564079504566610e-04, 1.9177169540867740e-04 }),
+              std::array<double, 6>(
+                  { 9.9340386651904228e-03, 4.0274889287136816e-03, 1.2400186092664943e-03,
+                      2.8460130790583933e-04, 4.5459555769938981e-05, 4.6851425365137733e-06 }) };
 
-    std::cout << std::endl << "DG\tNT\tNX\tmass loss\terror\t\texact\t\tpassed" << std::endl;
-    REQUIRE(run<1>(0.0, exact) == true);
-    REQUIRE(run<3>(0.0, exact) == true);
-    REQUIRE(run<6>(0.0, exact) == true);
+    std::cout << std::endl << "DG\tNT\tNX\tmass loss\terror\t\texact" << std::endl;
+    run<1>(0.0, exact);
+    run<3>(0.0, exact);
+    run<6>(0.0, exact);
 }
 TEST_CASE("Distorted Mesh")
 {
-    std::array<std::array<double, 6>, 3> exact =
-      { std::array<double, 6>({5.0958748236875594e-02,4.8461087243594887e-02,4.3918572621094686e-02,3.7038043078562323e-02,2.8334464207979679e-02,1.9666196904181983e-02  }),
-        std::array<double, 6>({3.2033423984965226e-02,1.5639052766007147e-02,6.7926997203524983e-03,2.7369916393700151e-03,9.2109964949992139e-04,2.5128064874203957e-04  }),
-        std::array<double, 6>({1.1830071142946669e-02,4.9207680503709564e-03,1.5831512504162868e-03,3.8869595113351363e-04,6.7162895595772516e-05,7.5853786764529606e-06})};
+    std::array<std::array<double, 6>, 3> exact
+        = { std::array<double, 6>(
+                { 5.0958748236875594e-02, 4.8461087243594887e-02, 4.3918572621094686e-02,
+                    3.7038043078562323e-02, 2.8334464207979679e-02, 1.9666196904181983e-02 }),
+              std::array<double, 6>(
+                  { 3.2033423984965226e-02, 1.5639052766007147e-02, 6.7926997203524983e-03,
+                      2.7369916393700151e-03, 9.2109964949992139e-04, 2.5128064874203957e-04 }),
+              std::array<double, 6>(
+                  { 1.1830071142946669e-02, 4.9207680503709564e-03, 1.5831512504162868e-03,
+                      3.8869595113351363e-04, 6.7162895595772516e-05, 7.5853786764529606e-06 }) };
 
     std::cout << std::endl << "Distorted mesh" << std::endl;
-    std::cout << "DG\tNT\tNX\tmass loss\terror\t\texact\t\tpassed" << std::endl;
-    REQUIRE(run<1>(0.05, exact) == true);
-    REQUIRE(run<3>(0.05, exact) == true);
-    REQUIRE(run<6>(0.05, exact) == true);
-
+    std::cout << "DG\tNT\tNX\tmass loss\terror\t\texact" << std::endl;
+    run<1>(0.05, exact);
+    run<3>(0.05, exact);
+    run<6>(0.05, exact);
 }

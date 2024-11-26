@@ -166,12 +166,12 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(const De
             auto aGauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
 
             const EdgeVec P
-                = (params.Pstar * hGauss.array() * (-20.0 * (1.0 - aGauss.array())).exp()).matrix();
+                = (params.pStar * hGauss.array() * (-20.0 * (1.0 - aGauss.array())).exp()).matrix();
             const EdgeVec e11Gauss = e11.row(i) * PSIStress;
             const EdgeVec e12Gauss = e12.row(i) * PSIStress;
             const EdgeVec e22Gauss = e22.row(i) * PSIStress;
 
-            const auto DELTA = (params.DeltaMin * params.DeltaMin
+            const auto DELTA = (params.deltaMin * params.deltaMin
                 + 1.25 * (e11Gauss.array().square() + e22Gauss.array().square())
                 + 1.50 * e11Gauss.array() * e22Gauss.array() + e12Gauss.array().square())
                                    .sqrt()
@@ -221,6 +221,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
     // Update the velocity
     const FloatType SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
     const FloatType deltaT = tst.step.seconds();
+    const FloatType FOcean = params.COcean * params.rhoOcean;
+        const FloatType FAtm = params.CAtm * params.rhoAtm;
 
     //      update by a loop.. implicit parts and h-dependent
     Kokkos::parallel_for(
@@ -233,24 +235,24 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
             const FloatType absocn = Kokkos::sqrt(SQR(uOcnRel) + SQR(vOcnRel));
 
             uDevice(i) = (1.0
-                / (params.rho_ice * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
-                    + cgADevice(i) * params.F_ocean * absocn) // implicit parts
-                * (params.rho_ice * cgHDevice(i) / deltaT
+                / (params.rhoIce * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
+                    + cgADevice(i) * FOcean * absocn) // implicit parts
+                * (params.rhoIce * cgHDevice(i) / deltaT
                         * (beta * uDevice(i) + u0Device(i)) // pseudo - timestepping
                     + cgADevice(i)
-                        * (params.F_atm * absatm * uAtmosDevice(i) + // atm forcing
-                            params.F_ocean * absocn * SC * uOceanDevice(i)) // ocean forcing
-                    + params.rho_ice * cgHDevice(i) * params.fc * vOcnRel // cor + surface
+                        * (FAtm * absatm * uAtmosDevice(i) + // atm forcing
+                            FOcean * absocn * SC * uOceanDevice(i)) // ocean forcing
+                    + params.rhoIce * cgHDevice(i) * params.fc * vOcnRel // cor + surface
                     + dStressXDevice(i) / lumpedCGMassDevice(i)));
             vDevice(i) = (1.0
-                / (params.rho_ice * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
-                    + cgADevice(i) * params.F_ocean * absocn) // implicit parts
-                * (params.rho_ice * cgHDevice(i) / deltaT
+                / (params.rhoIce * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
+                    + cgADevice(i) * FOcean * absocn) // implicit parts
+                * (params.rhoIce * cgHDevice(i) / deltaT
                         * (beta * vDevice(i) + v0Device(i)) // pseudo - timestepping
                     + cgADevice(i)
-                        * (params.F_atm * absatm * vAtmosDevice(i) + // atm forcing
-                            params.F_ocean * absocn * SC * vOceanDevice(i)) // ocean forcing
-                    + params.rho_ice * cgHDevice(i) * params.fc
+                        * (FAtm * absatm * vAtmosDevice(i) + // atm forcing
+                            FOcean * absocn * SC * vOceanDevice(i)) // ocean forcing
+                    + params.rhoIce * cgHDevice(i) * params.fc
                         * uOcnRel // here the reversed sign of uOcnRel is used
                     + dStressYDevice(i) / lumpedCGMassDevice(i)));
         });

@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date Sep 12, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -13,11 +13,11 @@
 namespace Nextsim {
 
 namespace CouplingFields {
-constexpr TextTag SST = "SST"; // sea surface temperature ˚C
-constexpr TextTag SSS = "SSS"; // sea surface salinity PSU
-constexpr TextTag MLD = "MLD"; // Mixed layer or slab ocean depth m
-constexpr TextTag OCEAN_U = "U"; // x(east)-ward ocean current m s⁻¹
-constexpr TextTag OCEAN_V = "V"; // y(north)-ward ocean current m s⁻¹
+    constexpr TextTag SST = "SST"; // sea surface temperature ˚C
+    constexpr TextTag SSS = "SSS"; // sea surface salinity PSU
+    constexpr TextTag MLD = "MLD"; // Mixed layer or slab ocean depth m
+    constexpr TextTag OCEAN_U = "U"; // x(east)-ward ocean current m s⁻¹
+    constexpr TextTag OCEAN_V = "V"; // y(north)-ward ocean current m s⁻¹
 }
 //! An interface class for the oceanic inputs into the ice physics.
 class IOceanBoundary : public ModelComponent {

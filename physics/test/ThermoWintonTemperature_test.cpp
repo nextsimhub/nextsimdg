@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWintonTemperature_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -13,16 +13,18 @@
 #include "include/ThermoWinton.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/ConfiguredModule.hpp"
 #include "include/constants.hpp"
 #include "include/IAtmosphereBoundary.hpp"
-#include "include/FreezingPointModule.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/IIceAlbedo.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 #include "include/UniformOcean.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
@@ -32,19 +34,15 @@ TEST_CASE("Melting conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {
@@ -97,7 +95,7 @@ TEST_CASE("Melting conditions")
     } initCond;
     initCond.setData(ModelState().data);
 
-    UniformOcean oceanData(-1, 32., 4.29151e7/(Water::rho * Water::cp));
+    UniformOcean oceanData(-1, 32., 4.29151e7 / (Water::rho * Water::cp));
     oceanData.setQio(53717.8);
     oceanData.setData(ModelState().data);
 
@@ -136,19 +134,15 @@ TEST_CASE("Freezing conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {
@@ -204,7 +198,7 @@ TEST_CASE("Freezing conditions")
     } atmoState;
     atmoState.setData(ModelState().data);
 
-    UniformOcean oceanData(-1.75, 32., 4.29151e7/(Water::rho * Water::cp));
+    UniformOcean oceanData(-1.75, 32., 4.29151e7 / (Water::rho * Water::cp));
     oceanData.setQio(73.9465);
     oceanData.setData(ModelState().data);
 
@@ -243,19 +237,15 @@ TEST_CASE("No ice do nothing")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     ThermoWinton twin;
     class IceTemperatureData : public ModelComponent {

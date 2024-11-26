@@ -1,7 +1,7 @@
 /*!
  * @file FluxConfiguredAtmosphere.cpp
  *
- * @date Sep 29, 2022
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -30,8 +30,7 @@ static const std::string evapKey = pfx + ".evaporation";
 static const std::string uKey = pfx + ".wind_u";
 static const std::string vKey = pfx + ".wind_v";
 
-template <>
-const std::map<int, std::string> Configured<FluxConfiguredAtmosphere>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { FluxConfiguredAtmosphere::QIA_KEY, qiaKey },
     { FluxConfiguredAtmosphere::DQIA_DT_KEY, dqiaKey },
     { FluxConfiguredAtmosphere::QOW_KEY, qowKey },
@@ -46,23 +45,23 @@ const std::map<int, std::string> Configured<FluxConfiguredAtmosphere>::keyMap = 
 ConfigurationHelp::HelpMap& FluxConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { qiaKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(qia0), "",
+        { qiaKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(qia0), "",
             "Total ice to atmosphere heat flux (W m⁻²)." },
-        { dqiaKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(dqia_dt0), "",
+        { dqiaKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(dqia_dt0), "",
             "Derivative of the ice atmosphere heat flux with respect to temperature (W m⁻² K⁻¹)." },
-        { qowKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(qow0), "",
+        { qowKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(qow0), "",
             "Total open water to atmosphere heat flux (W m⁻²)." },
-        { sublKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(subl0), "",
+        { sublKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(subl0), "",
             "Sublimation mass flux from snow to vapour (kg s⁻¹ m⁻²)." },
-        { snowKey, ConfigType::NUMERIC, { "0", "∞" }, std::to_string(snowfall0), "",
+        { snowKey, ConfigType::NUMERIC, { "0", "∞" }, ConfigurationHelp::toString(snowfall0), "",
             "Snowfall mass flux (kg s⁻¹ m⁻²)." },
-        { rainKey, ConfigType::NUMERIC, { "0", "∞" }, std::to_string(rain0), "",
+        { rainKey, ConfigType::NUMERIC, { "0", "∞" }, ConfigurationHelp::toString(rain0), "",
             "Rainfall mass flux (kg s⁻¹ m⁻²)." },
-        { evapKey, ConfigType::NUMERIC, { "0", "∞" }, std::to_string(subl0), "",
+        { evapKey, ConfigType::NUMERIC, { "0", "∞" }, ConfigurationHelp::toString(subl0), "",
             "Evaporation mass flux (kg s⁻¹ m⁻²)." },
-        { uKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(u0), "",
+        { uKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(u0), "",
             "Component of wind in the x (eastward) direction (m s⁻¹)." },
-        { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(v0), "",
+        { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(v0), "",
             "Component of wind in the y (northward) direction (m s⁻¹)." },
     };
     return map;

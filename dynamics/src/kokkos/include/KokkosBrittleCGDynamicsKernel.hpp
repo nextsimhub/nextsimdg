@@ -7,7 +7,7 @@
 #ifndef KOKKOSBRITTLECGDYNAMICSKERNEL_HPP
 #define KOKKOSBRITTLECGDYNAMICSKERNEL_HPP
 
-#include "../include/MEBParameters.hpp"
+#include "../include/BBMParameters.hpp"
 #include "KokkosCGDynamicsKernel.hpp"
 #include "KokkosDGTransport.hpp"
 
@@ -29,7 +29,7 @@ public:
     using HostViewAdvect = typename Base::HostViewAdvect;
     using ConstDeviceViewAdvect = typename Base::ConstDeviceViewAdvect;
 
-    KokkosBrittleCGDynamicsKernel(const MEBParameters& paramsIn);
+    KokkosBrittleCGDynamicsKernel(const BBMParameters& paramsIn);
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
@@ -53,7 +53,7 @@ public:
         const ConstDeviceViewCG& uOceanDevice, const ConstDeviceViewCG& vOceanDevice,
         const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
         const ConstDeviceViewCG& lumpedCGMassDevice, const FloatType deltaT,
-        const MEBParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
+        const BBMParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
         DeviceIndex nSteps);
 
 protected:
@@ -71,7 +71,7 @@ protected:
 
     DGVector<DGadvection> damage;
 
-    const MEBParameters& params;
+    const BBMParameters& params;
 
     std::unique_ptr<KokkosDGTransport<DGstressComp>> stressTransportDevice;
     std::unique_ptr<Interpolations::KokkosCG2DGInterpolator<DGstressComp, CGdegree>>

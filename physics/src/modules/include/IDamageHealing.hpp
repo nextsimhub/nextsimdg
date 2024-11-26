@@ -1,7 +1,7 @@
 /*!
  * @file IDamageHealing.hpp
  *
- * @date Jun 3, 2024
+ * @date 21 Nov 2024
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -18,9 +18,7 @@ public:
     virtual ~IDamageHealing() = default;
 
     std::string getName() const override { return "DamageHealing"; }
-    void setData(const ModelState::DataMap& ms) override {
-        damage.data().resize();
-    }
+    void setData(const ModelState::DataMap& ms) override { damage.data().resize(); }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override
@@ -39,12 +37,14 @@ protected:
         : cice(getStore())
         , deltaCi(getStore())
         , damage(getStore())
+        , oldDamage(getStore())
     {
     }
 
     ModelArrayRef<Shared::C_ICE, RO> cice; // From prognostic data
     ModelArrayRef<Shared::DELTA_CICE, RO> deltaCi; // From LateralIceSpread
     ModelArrayRef<Shared::DAMAGE, RW> damage; // From prognostic data
+    ModelArrayRef<Protected::DAMAGE, RO> oldDamage; // From prognostic data
 };
 
 } /* namespace Nextsim */

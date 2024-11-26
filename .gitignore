@@ -15,7 +15,10 @@ Results
 *.vtk
 *.smesh
 *.DS_Store
-/*/test/*.nc
+*.nc
 /.vscode
 *__pycache__*
 lib/kokkos
+*.sif
+.*sw?
+/run/*.cdl

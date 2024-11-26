@@ -6,7 +6,7 @@ namespace Nextsim {
 
 template <int DGadvection>
 KokkosBrittleCGDynamicsKernel<DGadvection>::KokkosBrittleCGDynamicsKernel(
-    const MEBParameters& paramsIn)
+    const BBMParameters& paramsIn)
     : params(paramsIn)
 {
 }
@@ -31,8 +31,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
 
     // Degrees to radians as a hex float
     constexpr FloatType radians = 0x1.1df46a2529d39p-6;
-    cosOceanAngle = std::cos(radians * params.ocean_turning_angle);
-    sinOceanAngle = std::sin(radians * params.ocean_turning_angle);
+    cosOceanAngle = std::cos(radians * params.oceanTurningAngle);
+    sinOceanAngle = std::sin(radians * params.oceanTurningAngle);
 
     std::tie(avgUHost, avgUDevice) = makeKokkosDualView("avgU", this->avgU);
     std::tie(avgVHost, avgVDevice) = makeKokkosDualView("avgV", this->avgV);
@@ -206,18 +206,21 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
     const ConstDeviceViewCG& uOceanDevice, const ConstDeviceViewCG& vOceanDevice,
     const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
     const ConstDeviceViewCG& lumpedCGMassDevice, const FloatType deltaT,
-    const MEBParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
+    const BBMParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
     DeviceIndex nSteps)
 {
+    const FloatType FOcean = params.COcean * params.rhoOcean;
+    const FloatType FAtm = params.CAtm * params.rhoAtm;
+
     Kokkos::parallel_for(
         "updateMomentum", uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
             // FIXME dte_over_mass should include snow in the total mass
-            const FloatType dteOverMass = deltaT / (params.rho_ice * cgHDevice(i));
+            const FloatType dteOverMass = deltaT / (params.rhoIce * cgHDevice(i));
             // Memoized initial velocity values
             const FloatType uIce = uDevice(i);
             const FloatType vIce = vDevice(i);
 
-            const FloatType cPrime = cgADevice(i) * params.F_ocean
+            const FloatType cPrime = cgADevice(i) * FOcean
                 * Kokkos::hypot(uOceanDevice(i) - uIce, vOceanDevice(i) - vIce);
 
             // FIXME grounding term tauB = cBu[i] / std::hypot(uIce, vIce) + u0
@@ -232,7 +235,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
 
             // Atmospheric drag
             const FloatType dragAtm
-                = cgADevice(i) * params.F_atm * Kokkos::hypot(uAtmosDevice(i), vAtmosDevice(i));
+                = cgADevice(i) * FAtm * Kokkos::hypot(uAtmosDevice(i), vAtmosDevice(i));
             const FloatType tauX = dragAtm * uAtmosDevice(i)
                 + cPrime * (uOceanDevice(i) * cosOceanAngle - vOceanDevice(i) * sinOceanAngle);
             const FloatType tauY = dragAtm * vAtmosDevice(i)

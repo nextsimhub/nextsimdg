@@ -1,7 +1,7 @@
 /*!
  * @file DummyDynamics.hpp
  *
- * @date 6 Jan 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -19,8 +19,7 @@ public:
     DummyDynamics() = default;
 
     std::string getName() const override { return "DummyDynamics"; }
-    void update(const TimestepTime& tst) override { };
-
+    void update(const TimestepTime& tst) override {};
 };
 }
 

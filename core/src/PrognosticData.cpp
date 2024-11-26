@@ -1,15 +1,16 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 1 Jul 2024
+ * @date 21 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/PrognosticData.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
@@ -35,6 +36,11 @@ PrognosticData::PrognosticData()
 
 void PrognosticData::configure()
 {
+    // Register finalizers before calling configure.
+    Finalizer::registerUnique(Module::finalize<IAtmosphereBoundary>);
+    Finalizer::registerUnique(Module::finalize<IOceanBoundary>);
+    Finalizer::registerUnique(Module::finalize<IDynamics>);
+
     pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
     tryConfigure(pAtmBdy);
 
@@ -76,21 +82,16 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
-    ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());
-
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
-
-    // Fill the values of the true ice and snow thicknesses.
-    iceGrowth.initializeThicknesses();
-    // Fill the updated ice temperature array
-    ticeUpd.data().setData(m_tice);
-    pDynamics->update(tst);
-    updatePrognosticFields();
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
     iceGrowth.update(tst);
+    updatePrognosticFields();
+
+    pDynamics->update(tst);
+
     updatePrognosticFields();
 
     pOcnBdy->updateAfter(tst);

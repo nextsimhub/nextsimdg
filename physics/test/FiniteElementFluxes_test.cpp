@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -17,7 +17,7 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/UniformOcean.hpp"
@@ -31,19 +31,16 @@ TEST_CASE("Melting conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
+
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
@@ -52,7 +49,8 @@ TEST_CASE("Melting conditions")
 
     class AtmosphereData : public ModelComponent {
     public:
-        AtmosphereData() {
+        AtmosphereData()
+        {
             getStore().registerArray(Protected::T_AIR, &tair, RO);
             getStore().registerArray(Protected::DEW_2M, &tdew, RO);
             getStore().registerArray(Protected::P_AIR, &pair, RO);
@@ -101,7 +99,6 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Protected::T_ICE, &tice0, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
-
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -121,7 +118,7 @@ TEST_CASE("Melting conditions")
         HField cice;
         HField hsnow;
         HField tice0;
-        HField hice0;  // ice averaged ice thickness
+        HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -168,19 +165,15 @@ TEST_CASE("Freezing conditions")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
@@ -257,7 +250,7 @@ TEST_CASE("Freezing conditions")
         HField cice;
         HField hsnow;
         HField tice0;
-        HField hice0;  // ice averaged ice thickness
+        HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
 
         ModelState getState() const override { return ModelState(); }

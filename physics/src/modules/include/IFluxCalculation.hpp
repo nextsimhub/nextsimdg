@@ -1,15 +1,15 @@
 /*!
  * @file IFluxCalculation.hpp
  *
- * @date Apr 29, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IFLUXCALCULATION_HPP
 #define IFLUXCALCULATION_HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/Configured.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelState.hpp"
 

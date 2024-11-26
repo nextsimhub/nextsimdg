@@ -1,13 +1,13 @@
 /*!
  * @file cgParametricMomentum.hpp
- * @date 5 August 2022
+ * @date 09 Nov 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __CGPARAMETRICMOMENTUM_HPP
 #define __CGPARAMETRICMOMENTUM_HPP
 
-#include "MEBParameters.hpp"
+#include "BBMParameters.hpp"
 #include "ParametricMap.hpp"
 #include "ParametricTools.hpp"
 #include "VPParameters.hpp"
@@ -169,12 +169,12 @@ public:
 
     //! performs one complete MEB timestep with NT_meb subiterations
     template <int DG>
-    void MEBStep(const MEBParameters& vpparameters, size_t NT_meb, double dt_adv,
+    void MEBStep(const BBMParameters& vpparameters, size_t NT_meb, double dt_adv,
         const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     //! performs one complete BBMStep timestep with NT_meb subiterations
     template <int DG>
-    void BBMStep(const MEBParameters& vpparameters, size_t NT_meb, double dt_adv,
+    void BBMStep(const BBMParameters& vpparameters, size_t NT_meb, double dt_adv,
         const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     /*!

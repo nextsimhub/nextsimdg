@@ -24,7 +24,7 @@ public:
     using PSIAdvectView = typename KokkosCGDynamicsKernel<DGadvection>::PSIAdvectView;
     using PSIStressView = typename KokkosCGDynamicsKernel<DGadvection>::PSIStressView;
 
-    KokkosBBMDynamicsKernel(const MEBParameters& paramsIn);
+    KokkosBBMDynamicsKernel(const BBMParameters& paramsIn);
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
@@ -38,7 +38,7 @@ public:
         const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix>&
             iMJwPSIAdvectDevice,
         const KokkosDeviceMapView<FloatType>& cellSizeDevice, const FloatType deltaT,
-        const MEBParameters& params);
+        const BBMParameters& params);
 
 protected:
     void updateStressHighOrderDevice(const DeviceViewStress& s11Device,

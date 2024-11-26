@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date Mar 1, 2024
+ * @date 19 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,7 +10,7 @@
 
 #include "include/StressUpdateStep.hpp"
 
-#include "include/MEBParameters.hpp"
+#include "include/BBMParameters.hpp"
 #include "include/ParametricMap.hpp"
 #include "include/codeGenerationDGinGauss.hpp"
 
@@ -47,7 +47,7 @@ public:
         DGVector<DGstress>& e12 = strain[I12];
         DGVector<DGstress>& e22 = strain[I22];
 
-        const MEBParameters& params = reinterpret_cast<const MEBParameters&>(dParams);
+        const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
 
 //! Stress and Damage Update
 #pragma omp parallel for
@@ -72,17 +72,15 @@ public:
             EdgeVec sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
 
             //! exp(-C(1-A))
-            const EdgeVec expC = (params.compaction_param * (1.0 - aGauss.array())).exp().array();
+            const EdgeVec expC = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
 
             // Eqn. 25
-            const EdgeVec powalphaexpC
-                = (dGauss.array() * expC.array()).pow(params.exponent_relaxation_sigma - 1);
-            const EdgeVec time_viscous = params.undamaged_time_relaxation_sigma * powalphaexpC;
+            const EdgeVec powalphaexpC = (dGauss.array() * expC.array()).pow(params.alpha - 1);
+            const EdgeVec time_viscous = params.lambda0 * powalphaexpC;
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const EdgeVec Pmax
-                = params.P0 * hGauss.array().pow(params.exponent_compression_factor) * expC.array();
+            const EdgeVec Pmax = params.P0 * hGauss.array().pow(params.expPMax) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
@@ -128,16 +126,15 @@ public:
             const FloatType scale_coef = std::sqrt(0.1 / smesh.h(i));
 
             //! Eqn. 22
-            const EdgeVec cohesion = params.C_lab * scale_coef * hGauss.array();
+            const EdgeVec cohesion = params.cLab * scale_coef * hGauss.array();
             //! Eqn. 30
-            const EdgeVec compr_strength = params.compr_strength * scale_coef * hGauss.array();
+            const EdgeVec compr_strength = params.comprCap * scale_coef * hGauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
             EdgeVec dcrit
-                = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
-                      .select(
-                          cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
+                = (tau.array() + params.mu * sigma_n.array() > 0.)
+                      .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength.array())
@@ -147,7 +144,7 @@ public:
             dcrit = dcrit.array().min(1.0);
 
             // Eqn. 29
-            const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rho_ice)
+            const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
                 / elasticity.array().sqrt();
 
             // Update damage

@@ -1,7 +1,7 @@
 /*!
  * @file    XiosCalendar_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    5 August 2024
+ * @date    19 Nov 2024
  * @brief   Tests for XIOS calandars
  * @details
  * This test is designed to test calendar functionality of the C++ interface
@@ -12,10 +12,7 @@
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
-#include "include/Configurator.hpp"
 #include "include/Xios.hpp"
-
-#include <iostream>
 
 namespace Nextsim {
 
@@ -30,13 +27,7 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosInitialization", 2)
 {
-
-    // Enable XIOS in the 'config'
-    Configurator::clearStreams();
-    std::stringstream config;
-    config << "[xios]" << std::endl << "enable = true" << std::endl;
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
+    enableXios();
 
     // Initialize an Xios instance called xios_handler
     Xios xios_handler;

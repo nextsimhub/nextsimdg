@@ -1,7 +1,7 @@
 /*!
- * @file ModelData.cpp
+ * @file   ModelArray.cpp
  *
- * @date Feb 24, 2022
+ * @date   Feb 24, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -203,6 +203,9 @@ void ModelArray::setNComponents(std::map<Type, size_t> cMap)
 #ifdef USE_MPI
 void ModelArray::setDimension(Dimension dim, size_t globalLength, size_t localLength, size_t start)
 {
+    if ((dim == ModelArray::Dimension::Z) && (globalLength != localLength)) {
+        throw std::invalid_argument("Parallelism in the vertical not supported.");
+    }
     definedDimensions.at(dim).setLengths(globalLength, localLength, start);
 #else
 void ModelArray::setDimension(Dimension dim, size_t globalLength)

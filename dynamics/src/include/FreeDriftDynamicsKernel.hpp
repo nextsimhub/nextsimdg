@@ -4,7 +4,7 @@
  * Implementation of "classic free drift", where we ignore all \rho h terms in the momentum
  * equation. This is equivalent to assuming that the ice is very thin.
  *
- * @date 17 Feb 2023
+ * @date 19 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -52,9 +52,11 @@ public:
 protected:
     const DynamicsParameters& params;
 
-    const double cosOceanAngle = cos(radians * params.ocean_turning_angle);
-    const double sinOceanAngle = sin(radians * params.ocean_turning_angle);
-    const double NansenNumber = sqrt(params.F_atm / params.F_ocean);
+    const double cosOceanAngle = cos(radians * params.oceanTurningAngle);
+    const double sinOceanAngle = sin(radians * params.oceanTurningAngle);
+    const double FOcean = params.COcean * params.rhoOcean;
+    const double FAtm = params.CAtm * params.rhoAtm;
+    const double NansenNumber = sqrt(FAtm / FOcean);
 
     void updateMomentum(const TimestepTime& tst) override
     {

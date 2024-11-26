@@ -1,7 +1,7 @@
 /*!
  * @file ConstantHealing.hpp
  *
- * @date Jun 3, 2024
+ * @date 21 Nov 2024
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -12,8 +12,7 @@ namespace Nextsim {
 double ConstantHealing::tD = 0.;
 static const double tDDefault = 15;
 
-template <>
-const std::map<int, std::string> Configured<ConstantHealing>::keyMap
+static const std::map<int, std::string> keyMap
     = { { ConstantHealing::TD_KEY, "ConstantHealing.td" } };
 
 void ConstantHealing::configure()
@@ -30,9 +29,9 @@ ModelState ConstantHealing::getStateRecursive(const Nextsim::OutputSpec& os) con
 
 ConstantHealing::HelpMap& ConstantHealing::getHelpText(HelpMap& map, bool getAll)
 {
-    map["ConstantHealing"]
-        = { { keyMap.at(TD_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(tDDefault),
-            "days", "The healing time scale (t_d) for brittle rheologies" } };
+    map["ConstantHealing"] = { { keyMap.at(TD_KEY), ConfigType::NUMERIC, { "0", "∞" },
+        ConfigurationHelp::toString(tDDefault), "days",
+        "The healing time scale (t_d) for brittle rheologies" } };
     return map;
 }
 
@@ -59,7 +58,7 @@ void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
     /* 1. Lateral ice formation
      * A weighted average of the original damage, weighted by the old concentration, and the
      * undamaged new ice damage (1), weighted by the concentration of new ice. */
-    damage[i] = (damage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
+    damage[i] = (oldDamage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
 
     /* 2. Constant healing
      * Damage healing using a constant timescale. Originally conceived as an exponential decay, but
@@ -68,7 +67,7 @@ void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
     // damage[i] +=  damage[i] * tstep.step / tD;
 
     // This is what Véro did (Dansereau et al., 2016)
-    damage[i] +=  tstep.step / tD;
+    damage[i] += tstep.step / tD;
     damage[i] = std::min(1., damage[i]);
 }
 
