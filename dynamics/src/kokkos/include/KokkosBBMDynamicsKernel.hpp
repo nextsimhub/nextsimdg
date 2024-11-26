@@ -4,7 +4,7 @@
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
-#ifndef KOKKOSBBMDYNAMICSKERNEL_HPP
+#if not defined KOKKOSBBMDYNAMICSKERNEL_HPP && USE_KOKKOS
 #define KOKKOSBBMDYNAMICSKERNEL_HPP
 
 #include "KokkosBrittleCGDynamicsKernel.hpp"
