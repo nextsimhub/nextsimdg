@@ -88,53 +88,32 @@ void ParaGridIO::setupXios(const ModelState& state, const ModelMetadata& meta,
     }
     Duration timestep = xiosHandler->getCalendarTimestep();
     xiosHandler->setFileOutputFreq(fileId, timestep); // TODO-JGW: Set actual output freq
-    // xiosHandler->setFileSplitFreq(fileId, Duration(...));
+    // xiosHandler->setFileSplitFreq(fileId, Duration(...)); // TODO: Allow setting this
 
     // Loop over fields in the ModelState and create XIOS Field attributes for each
     for (auto entry : state.data) {
         std::string fieldId = entry.first;
         ModelArray field = entry.second;
+        // std::cout << "DEBUG setupXios: Creating field with fieldId=" << fieldId << std::endl;
 
-        //     // Set local x- and y-values of the XIOS Domain
-        //     if (fieldId == "x") {
-        //         std::vector<double> xValues {};
-        //         std::cout << "DEBUG setupXios: x field data:" << std::endl;
-        //         // TODO-JGW: Look up how ordering works
-        //         for (int i = meta.localCornerX; i < meta.localCornerX + meta.localExtentX; i +=
-        //         2) {
-        //             std::cout << field.data()(i, 0) << ", " << std::endl;
-        //             xValues.push_back(field.data()(i, 0));
-        //         }
-        //         xiosHandler->setDomainLocalXValues("xy_domain", xValues);
-        //         continue;
-        //     } else if (fieldId == "y") {
-        //         std::vector<double> yValues {};
-        //         std::cout << "DEBUG setupXios: y field data:" << std::endl;
-        //         // TODO-JGW: Look up how ordering works
-        //         for (int i = meta.localCornerY; i < meta.localCornerY + meta.localExtentY; i +=
-        //         2) {
-        //             std::cout << field.data()(i, 0) << ", " << std::endl;
-        //             yValues.push_back(field.data()(i, 0));
-        //         }
-        //         xiosHandler->setDomainLocalYValues("xy_domain", yValues);
-        //         continue;
-        //     } else if (fieldId == "z") {
-        //         // xiosHandler->setAxisValues("z_axis", ...); // TODO-JGW
-        //         continue;
-        //     }
-        //     std::cout << "DEBUG setupXios: Creating field with fieldId=" << fieldId << std::endl;
-
-        // // Setup XIOS Field attribute and associate it with the File
-        // xiosHandler->createField(fieldId);
-        // xiosHandler->setFieldOperation(fieldId, "instant");
-        // xiosHandler->setFieldGridRef(fieldId, "grid_2D");
-        // // xiosHandler->setFieldGridRef(fieldId, "grid_3D"); // TODO-JGW: Account for 3D fields
-        // xiosHandler->setFieldReadAccess(fieldId, read);
-        // xiosHandler->fileAddField(fileId, fieldId);
+        // Setup XIOS Field attribute and associate it with the File
+        xiosHandler->createField(fieldId);
+        xiosHandler->setFieldOperation(fieldId, "instant");
+        // TODO-JGW: Properly account for dimension
+        if (fieldId == "field_2D") {
+            xiosHandler->setFieldGridRef(fieldId, "grid_2D");
+        } else if (fieldId == "field_3D") {
+            xiosHandler->setFieldGridRef(fieldId, "grid_3D");
+        } else {
+            throw std::invalid_argument("ParaGridIO_Xios: field ID must be field_2D or field_3D");
+        }
+        xiosHandler->setFieldReadAccess(fieldId, read);
+        xiosHandler->setFieldFreqOffset(fieldId, timestep); // TODO-JGW: Allow customisation
+        xiosHandler->fileAddField(fileId, fieldId);
     }
 
     // Mark XIOS setup complete
-    // xiosHandler->close_context_definition();
+    xiosHandler->close_context_definition();
     _xiosSetup = true;
 }
 
