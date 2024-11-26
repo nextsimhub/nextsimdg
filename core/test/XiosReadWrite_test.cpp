@@ -1,7 +1,7 @@
 /*!
  * @file    XiosReadWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    21 Nov 2024
+ * @date    26 Nov 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the read and write methods of the C++
@@ -42,14 +42,15 @@ std::string formatId(const std::string label, const int dim)
  * @param read If true, set up for file reading test, otherwise for file writing test
  * @return Appropriately configured Xios handler class instance
  */
-void setupXiosHandler(Xios* xios_handler, int dim, bool read) // TODO-JGW: Pull PIO def outside
+void setupXiosHandler(Xios* xios_handler, int dim, bool read)
 {
     if ((dim != 2) && (dim != 3)) {
         throw std::invalid_argument("Test only implemented for 2D and 3D cases");
     }
 
     // Create ParametricGrid and ParaGridIO instances
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    Module::setImplementation<IStructure>(
+        "Nextsim::ParametricGrid"); // TODO-JGW: Why can't I pull PIO out?
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
