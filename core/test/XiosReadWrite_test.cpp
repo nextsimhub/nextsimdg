@@ -37,26 +37,18 @@ std::string formatId(const std::string label, const int dim)
  *
  * The function assumes two MPI ranks.
  *
- * @param xios_handler Pointer to an Xios handler class
+ * @param pio Pointer to a ParaGridIO instance whose associated Xios handler class we will setup
  * @param dim The number of spatial dimensions
  * @param read If true, set up for file reading test, otherwise for file writing test
  * @return Appropriately configured Xios handler class instance
  */
-ModelState setupXiosHandler(Xios* xios_handler, int dim, bool read)
+ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
 {
     if ((dim != 2) && (dim != 3)) {
         throw std::invalid_argument("Test only implemented for 2D and 3D cases");
     }
 
-    // Create ParametricGrid and ParaGridIO instances
-    Module::setImplementation<IStructure>(
-        "Nextsim::ParametricGrid"); // TODO-JGW: Why can't I pull PIO out?
-    ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
-    grid.setIO(pio);
-
     // Check configuration of Xios handler
-    pio->xiosHandler = xios_handler;
     REQUIRE(pio->xiosHandler->isInitialized());
     const size_t size = pio->xiosHandler->getClientMPISize();
     REQUIRE(size == 2);
@@ -161,7 +153,13 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
     const std::string contextId = "read_2D";
     Xios xios_handler(contextId);
 
-    ModelState state = setupXiosHandler(&xios_handler, 2, true);
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
+    pio->xiosHandler = &xios_handler;
+    ModelState state = setupXiosHandler(pio, 2, true);
 
     // Verify fields are read in correctly
     readFile(&xios_handler, state);
@@ -188,7 +186,13 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
     const std::string contextId = "read_3D";
     Xios xios_handler(contextId);
 
-    ModelState state = setupXiosHandler(&xios_handler, 3, true);
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
+    pio->xiosHandler = &xios_handler;
+    ModelState state = setupXiosHandler(pio, 3, true);
 
     // Verify fields are read in correctly
     readFile(&xios_handler, state);
@@ -256,7 +260,13 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     const std::string fieldId = "field_2D";
     Xios xios_handler(contextId);
 
-    ModelState state = setupXiosHandler(&xios_handler, 2, false);
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
+    pio->xiosHandler = &xios_handler;
+    ModelState state = setupXiosHandler(pio, 2, false);
     ModelArray field_2D = state.data[fieldId];
 
     // Create some fake data to test writing methods
@@ -284,7 +294,13 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
     const std::string fieldId = "field_3D";
     Xios xios_handler(contextId);
 
-    ModelState state = setupXiosHandler(&xios_handler, 3, false);
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
+    pio->xiosHandler = &xios_handler;
+    ModelState state = setupXiosHandler(pio, 3, false);
     ModelArray field_3D = state.data[fieldId];
 
     // Create some fake data to test writing methods
