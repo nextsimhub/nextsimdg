@@ -210,9 +210,9 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
  * Test file writing for the Xios handler configuration in setupXiosHandler.
  *
  * @param xios_handler Pointer to Xios handler class instance configured using setupXiosHandler
- * @param field_A Reference to nextSIM-DG HField instance to test writing to file
+ * @param state Reference to ModelState instance containing fields to be written to file
  */
-void testFileWrite(Xios* xios_handler, HField& field_A, const std::string fieldId)
+void testFileWrite(Xios* xios_handler, ModelState& state)
 {
     // Verify calendar step is starting from zero
     REQUIRE(xios_handler->getCalendarStep() == 0);
@@ -225,7 +225,9 @@ void testFileWrite(Xios* xios_handler, HField& field_A, const std::string fieldI
         // Update the current timestep
         xios_handler->updateCalendar(ts);
         // Send data to XIOS to be written to disk
-        xios_handler->write(fieldId, field_A);
+        for (auto& entry : state.data) {
+            xios_handler->write(entry.first, entry.second);
+        }
         // Verify timestep
         REQUIRE(xios_handler->getCalendarStep() == ts);
     }
@@ -266,7 +268,7 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
         }
     }
 
-    testFileWrite(&xios_handler, field_2D, fieldId);
+    testFileWrite(&xios_handler, state);
 }
 
 /*!
@@ -297,7 +299,7 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
         }
     }
 
-    testFileWrite(&xios_handler, field_3D, fieldId);
+    testFileWrite(&xios_handler, state);
 }
 
 // TODO: Consider adding 4D test cases
