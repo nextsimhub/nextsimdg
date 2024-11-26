@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 19 Sep 2024
+ * @date 26 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -24,6 +24,9 @@ public:
         , vice(ModelArray::Type::H)
         , damage(ModelArray::Type::H)
         , shear(ModelArray::Type::H)
+        , divergence(ModelArray::Type::H)
+        , sigmaI(ModelArray::Type::H)
+        , sigmaII(ModelArray::Type::H)
         , hice(getStore())
         , cice(getStore())
         , hsnow(getStore())
@@ -64,6 +67,9 @@ public:
         }
 
         shear.resize();
+        divergence.resize();
+        sigmaI.resize();
+        sigmaII.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -79,8 +85,11 @@ protected:
     HField vice;
     // Updated damage array
     HField damage;
-    // Diagnostic outputs of shear
+    // Diagnostic outputs of shear, divergence and the stress invariants
     HField shear;
+    HField divergence;
+    HField sigmaI;
+    HField sigmaII;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;

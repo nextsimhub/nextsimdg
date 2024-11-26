@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date 19 Sep 2024
+ * @date 26 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -121,7 +121,13 @@ public:
         } else if (name == ciceName) {
             return DGModelArray::dg2ma(cice, data);
         } else if (name == shearName) {
-            return DGModelArray::dg2ma(Tools::Shear(*smesh,e11,e12,e22), data);
+            return DGModelArray::dg2ma(Tools::Shear(*smesh, e11, e12, e22), data);
+        } else if (name == divergenceName) {
+            return DGModelArray::dg2ma(Tools::TensorInvI(*smesh, e11, e12, e22), data);
+        } else if (name == sigmaIName) {
+            return DGModelArray::dg2ma(Tools::TensorInvI(*smesh, s11, s12, s22), data);
+        } else if (name == sigmaIIName) {
+            return DGModelArray::dg2ma(Tools::TensorInvII(*smesh, s11, s12, s22), data);
         } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);

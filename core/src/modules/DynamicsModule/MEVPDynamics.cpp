@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 20 Nov 2024
+ * @date 26 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -62,6 +62,9 @@ MEVPDynamics::MEVPDynamics()
     getStore().registerArray(Protected::ICE_V, &vice, RO);
 
     getStore().registerArray(Protected::SHEAR, &shear, RO);
+    getStore().registerArray(Protected::DIV, &divergence, RO);
+    getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
+    getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
 }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
@@ -112,6 +115,9 @@ void MEVPDynamics::update(const TimestepTime& tst)
     vice = kernel.getDG0Data(vName);
 
     shear = kernel.getDG0Data(shearName);
+    divergence = kernel.getDG0Data(divergenceName);
+    sigmaI = kernel.getDG0Data(sigmaIName);
+    sigmaII = kernel.getDG0Data(sigmaIIName);
 }
 
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const

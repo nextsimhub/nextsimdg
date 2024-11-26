@@ -41,3 +41,6 @@
     { "qdw", "SLAB_QDW" }, // Slab ocean temperature nudging heat flux, W m⁻²
     { "fdw", "SLAB_FDW" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
     { "shear", "SHEAR" }, // The instantaneous share rate, s⁻¹
+    { "divergence", "DIV" }, // The instantaneous divergence, s⁻¹
+    { "sigma_I", "SIGMAI" }, // The first stress invariant, Pa
+    { "sigma_II", "SIGMAII" }, // The first stress invariant, Pa
