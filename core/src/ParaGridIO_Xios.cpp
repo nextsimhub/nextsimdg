@@ -251,26 +251,10 @@ void ParaGridIO::dumpModelState(
     std::set<std::string> restartFields = { "field_2D", "field_3D" }; // TODO-JGW: Switch to above
     // If the above fields are found in the supplied ModelState, output them
     std::cout << "DEBUG dumpModelState: time=" << meta.time() << std::endl;
-    std::cout << "DEBUG dumpModelState: entering for loop" << std::endl;
-    // for (auto entry : state.data) {
-    //     if (restartFields.count(entry.first)) {
-    //         std::string fieldId = entry.first;
-    //         ModelArray field = entry.second;
-    //         std::cout << "DEBUG dumpModelState: fieldId=" << fieldId << " has name "
-    //                   << xiosHandler->getFieldName(fieldId) << std::endl;
-
-    //         // Send data to XIOS to be written to disk
-    //         // FIXME: Doesn't throw an error, but doesn't write a file either. May be because
-    //         Axes,
-    //         // Domains and Grids weren't created but may also be because contexts haven't been
-    //         // handled correctly?
-    //         std::cout << "DEBUG dumpModelState: writing fieldId=" << fieldId << std::endl;
-    //         // TODO: write(fieldId, field);
-    //         std::cout << "DEBUG dumpModelState: wrote fieldId=" << fieldId << std::endl;
-    //     }
-    // }
-    std::cout << "DEBUG dumpModelState: exiting for loop" << std::endl;
-    throw std::runtime_error("XIOS implementation of dumpModelState incomplete"); // TODO-JGW
+    // TODO-JGW: Update calendar timestep based on meta
+    for (auto entry : state.data) {
+        xiosHandler->write(entry.first, entry.second);
+    }
 }
 
 /*!

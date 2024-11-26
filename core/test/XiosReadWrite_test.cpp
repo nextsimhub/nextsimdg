@@ -99,7 +99,7 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
         fileId = "xios_test_output";
     }
     const std::string filename = fileId + ".nc";
-    pio->setupXios(state, meta, filename, read);
+    pio->setupXios(state, meta, filename, read); // TODO-JGW: Eventually drop this (called in class)
     return state;
 }
 
@@ -111,6 +111,8 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
  */
 void readFile(ParaGridIO* pio, ModelState& state)
 {
+    // TODO-JGW: Use getModelState
+
     // Verify calendar step is starting from zero
     REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
 
@@ -229,9 +231,8 @@ void testFileWrite(ParaGridIO* pio, ModelState& state)
         // Update the current timestep
         pio->xiosHandler->updateCalendar(ts);
         // Send data to XIOS to be written to disk
-        for (auto& entry : state.data) {
-            pio->xiosHandler->write(entry.first, entry.second);
-        }
+        ModelMetadata meta; // TODO-JGW: Set up properly (used to update calendar)
+        pio->dumpModelState(state, meta, "xios_test_output.nc");
         // Verify timestep
         REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
     }
