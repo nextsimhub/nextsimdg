@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.cpp
  *
- * @date    21 Nov 2024
+ * @date    26 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -39,42 +39,41 @@ ParaGridIO::~ParaGridIO() = default;
 void ParaGridIO::setupXios(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    // if (_xiosSetup) {
-    //     return;
-    // }
+    if (_xiosSetup) {
+        return;
+    }
 
-    // // Setup XIOS Domain attribute with special domainId 'xy_domain' that creates grid_2D along
-    // // with it
-    // xiosHandler->createDomain("xy_domain");
-    // xiosHandler->setDomainType("xy_domain", "rectilinear");
-    // for (auto entry : ModelArray::definedDimensions) {
-    //     auto dimType = entry.first;
-    //     ModelArray::DimensionSpec& dimensionSpec = entry.second;
-    //     const std::string name = dimensionSpec.name;
-    //     std::cout << "DEBUG setupXios: found dimension with name: " << name << std::endl;
-    //     if (name == "xdim") {
-    //         std::cout << "DEBUG setupXios: setting x-attrs of xy_domain: " << name << std::endl;
-    //         xiosHandler->setDomainGlobalXSize("xy_domain", dimensionSpec.globalLength);
-    //         xiosHandler->setDomainLocalXSize("xy_domain", dimensionSpec.localLength);
-    //         xiosHandler->setDomainLocalXStart("xy_domain", dimensionSpec.start);
-    //     } else if (name == "ydim") {
-    //         std::cout << "DEBUG setupXios: setting y-attrs of xy_domain: " << name << std::endl;
-    //         xiosHandler->setDomainGlobalYSize("xy_domain", dimensionSpec.globalLength);
-    //         xiosHandler->setDomainLocalYSize("xy_domain", dimensionSpec.localLength);
-    //         xiosHandler->setDomainLocalYStart("xy_domain", dimensionSpec.start);
-    //     } else if (name == "zdim") {
-    //         // Setup XIOS Axis attribute with special axisId 'z_axis' that creates grid_3D along
-    //         // with it
-    //         std::cout << "DEBUG setupXios: setting attrs of z_axis: " << name << std::endl;
-    //         xiosHandler->createAxis("z_axis");
-    //         xiosHandler->setAxisSize("z_axis", dimensionSpec.globalLength);
-    //         if (dimensionSpec.globalLength != dimensionSpec.localLength) {
-    //             throw std::runtime_error("ParaGridIO_Xios: Inconsistent dimensionSpec for
-    //             z-axis");
-    //         }
-    //     }
-    //     // TODO-JGW: What about *vertex, *_cg, dg_comp, dgstress_comp, ncoords?
-    // }
+    // Setup XIOS Domain attribute with special domainId 'xy_domain' that creates grid_2D along
+    // with it
+    xiosHandler->createDomain("xy_domain");
+    xiosHandler->setDomainType("xy_domain", "rectilinear");
+    for (auto entry : ModelArray::definedDimensions) {
+        auto dimType = entry.first;
+        ModelArray::DimensionSpec& dimensionSpec = entry.second;
+        const std::string name = dimensionSpec.name;
+        // std::cout << "DEBUG setupXios: found dimension with name: " << name << std::endl;
+        if (name == "xdim") {
+            // std::cout << "DEBUG setupXios: setting x-attrs of xy_domain: " << name << std::endl;
+            xiosHandler->setDomainGlobalXSize("xy_domain", dimensionSpec.globalLength);
+            xiosHandler->setDomainLocalXSize("xy_domain", dimensionSpec.localLength);
+            xiosHandler->setDomainLocalXStart("xy_domain", dimensionSpec.start);
+        } else if (name == "ydim") {
+            // std::cout << "DEBUG setupXios: setting y-attrs of xy_domain: " << name << std::endl;
+            xiosHandler->setDomainGlobalYSize("xy_domain", dimensionSpec.globalLength);
+            xiosHandler->setDomainLocalYSize("xy_domain", dimensionSpec.localLength);
+            xiosHandler->setDomainLocalYStart("xy_domain", dimensionSpec.start);
+        } else if (name == "zdim") {
+            // Setup XIOS Axis attribute with special axisId 'z_axis' that creates grid_3D along
+            // with it
+            // std::cout << "DEBUG setupXios: setting attrs of z_axis: " << name << std::endl;
+            xiosHandler->createAxis("z_axis");
+            xiosHandler->setAxisSize("z_axis", dimensionSpec.globalLength);
+            if (dimensionSpec.globalLength != dimensionSpec.localLength) {
+                throw std::runtime_error("ParaGridIO_Xios: Inconsistent dimensionSpec for z-axis");
+            }
+        }
+        // TODO: What about *vertex, *_cg, dg_comp, dgstress_comp, ncoords?
+    }
 
     // // Setup XIOS File attribute
     // std::string fileId = ((std::filesystem::path)filePath).replace_extension();
@@ -126,9 +125,9 @@ void ParaGridIO::setupXios(
     //     xiosHandler->fileAddField(fileId, fieldId);
     // }
 
-    // // Mark XIOS setup complete
+    // Mark XIOS setup complete
     // xiosHandler->close_context_definition();
-    // _xiosSetup = true;
+    _xiosSetup = true;
 }
 
 /*!

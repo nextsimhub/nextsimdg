@@ -68,7 +68,8 @@ void setupXiosHandler(Xios* xios_handler, int dim, bool read)
     Duration timestep("P0-0T01:30:00");
     pio->xiosHandler->setCalendarTimestep(timestep);
 
-    // Set ModelArray dimensions
+    // Set ModelArray dimensions corresponding to a 4x2 horizontal domain with a partition halving
+    // the x-extent and a vertical axis with 2 points
     const size_t nx_glo = 4;
     const size_t ny_glo = 2;
     const size_t nx = 2;
@@ -80,23 +81,16 @@ void setupXiosHandler(Xios* xios_handler, int dim, bool read)
         ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
     }
 
-    // Create a 4x2 horizontal domain with a partition halving the x-extent
-    // TODO: Set local and global domain sizes upon calling ModelArray::setDimension for X and Y
-    pio->xiosHandler->createDomain("xy_domain");
-    pio->xiosHandler->setDomainType("xy_domain", "rectilinear");
-    pio->xiosHandler->setDomainGlobalXSize("xy_domain", nx_glo);
-    pio->xiosHandler->setDomainGlobalYSize("xy_domain", ny_glo);
-    pio->xiosHandler->setDomainLocalXStart("xy_domain", 2 * rank);
-    pio->xiosHandler->setDomainLocalYStart("xy_domain", 0);
-    pio->xiosHandler->setDomainLocalXValues("xy_domain", { -1.0 + rank, -0.5 + rank });
-    pio->xiosHandler->setDomainLocalYValues("xy_domain", { -1.0, 1.0 });
-
-    if (dim == 3) {
-        // Create a vertical axis with 2 points
-        // TODO: Set axis size upon calling ModelArray::setDimension for Z
-        pio->xiosHandler->createAxis("z_axis");
-        pio->xiosHandler->setAxisValues("z_axis", { 0.0, 1.0 });
+    // TODO-JGW: setupXios should be called from dumpModelState or getModelState
+    ModelState state; // TODO-JGW: Set up properly
+    ModelMetadata meta; // TODO-JGW: Set up properly
+    std::string fileId;
+    if (read) {
+        fileId = "xios_test_input";
+    } else {
+        fileId = "xios_test_output";
     }
+    pio->setupXios(state, meta, fileId);
 
     // Create fields on the two grids
     // TODO: Create field along with HField
