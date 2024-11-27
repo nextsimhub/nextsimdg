@@ -26,7 +26,7 @@ namespace Interpolations {
                         * PHI<CG, GAUSSPOINTS1D(DG)>.transpose());
             } else {
                 cG2DGMatrix[dgi]
-                    = ((ParametricTools::massMatrix<DG>(smesh, dgi).inverse()
+                    = ((SphericalTools::massMatrix<DG>(smesh, dgi).inverse()
                            * (PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise()
                                * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
                                    * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array()
