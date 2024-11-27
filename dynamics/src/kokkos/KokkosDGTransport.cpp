@@ -241,7 +241,6 @@ void KokkosDGTransport<DG>::reinitNormalVelocityDevice(const DeviceViewEdge& nor
             const DeviceIndex ey = ix + iy * (mesh.nx + 1);
             const DeviceIndex cy = ix + iy * mesh.nx; // first cell index in row
 
-            // todo: check if this write has a race-condition
             // un-normed tangent vector of left edge (pointing up). normal is (y,-x)
             const LocalVec<2> tangentLeft = mesh.edgeVector(ey, ey + mesh.nx + 1);
             const LocalVec<EDGE_DOFS> vel1 = 0.5

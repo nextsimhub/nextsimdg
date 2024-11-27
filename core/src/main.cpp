@@ -64,9 +64,6 @@ int main(int argc, char* argv[])
     }
 
 #ifdef USE_KOKKOS
-    // todo: fix kokkos buffer lifetimes
-    // kernels currently have static lifetimes as part of Nextsim::ConfiguredModule
-    // so the destructor will be called too late
     Kokkos::finalize();
 #endif
 #ifdef USE_MPI
