@@ -205,11 +205,6 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
         const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> J
             = ParametricTools::J<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid);
 
-        iMJwPSIAdvect[eid] = ParametricTools::massMatrix<DGAdvect>(smesh, eid).inverse()
-            * (PSI<DGAdvect, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
-                * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
-                  .matrix();
-
         if (smesh.CoordinateSystem == CARTESIAN) {
             // divS is used for update of stress (S, nabla Phi) in Momentum
             divS1[eid] = dx_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
@@ -224,6 +219,11 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
             // imJwPSI is used to compute nonlinear stress update???
             iMJwPSI[eid] = imass
                 * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
+                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
+                      .matrix();
+
+            iMJwPSIAdvect[eid] = ParametricTools::massMatrix<DGAdvect>(smesh, eid).inverse()
+                * (PSI<DGAdvect, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
                     * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
                       .matrix();
         } else if (smesh.CoordinateSystem == SPHERICAL) {
@@ -264,7 +264,14 @@ template <int CG> void ParametricMomentumMap<CG>::InitializeDivSMatrices()
 
             iMJwPSI[eid] = imass
                 * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
-                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
+                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()
+                        * cos_lat.array()))
+                      .matrix();
+
+            iMJwPSIAdvect[eid] = SphericalTools::massMatrix<DGAdvect>(smesh, eid).inverse()
+                * (PSI<DGAdvect, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
+                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()
+                        * cos_lat.array()))
                       .matrix();
 
         } else
