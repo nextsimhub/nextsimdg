@@ -11,6 +11,7 @@ if(NOT ENABLE_MPI)
         testDGModelArray
         "DGModelArray_test.cpp"
         "${CoreDir}/ModelArray.cpp"
+        "${CoreDir}/ModelArraySlice.cpp"
         "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
     target_include_directories(
@@ -23,6 +24,7 @@ if(NOT ENABLE_MPI)
         testCGModelArray
         "CGModelArray_test.cpp"
         "${CoreDir}/ModelArray.cpp"
+        "${CoreDir}/ModelArraySlice.cpp"
         "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
     target_include_directories(
@@ -39,6 +41,7 @@ if(NOT ENABLE_MPI)
         "FakeSmeshData.cpp"
         "${SRC_DIR}/ParametricMesh.cpp"
         "${CoreDir}/ModelArray.cpp"
+        "${CoreDir}/ModelArraySlice.cpp"
         "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
     )
     target_include_directories(

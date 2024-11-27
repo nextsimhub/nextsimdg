@@ -1,7 +1,7 @@
 /*!
  * @file    XiosRead_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    21 August 2024
+ * @date    01 Nov 2024
  * @brief   Tests for XIOS read method
  * @details
  * This test is designed to test the read method of the C++ interface
@@ -14,6 +14,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/NextsimModule.hpp"
+#include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>
@@ -40,7 +41,14 @@ MPI_TEST_CASE("TestXiosRead", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Create ParametricGrid and ParaGridIO instances
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
+
     // Initialize an Xios instance called xios_handler
+    // TODO: Create XIOS handler along with ParaGridIO instance
     Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
     const size_t size = xios_handler.getClientMPISize();
@@ -53,54 +61,50 @@ MPI_TEST_CASE("TestXiosRead", 2)
     Duration timestep("P0-0T01:30:00");
     xios_handler.setCalendarTimestep(timestep);
 
-    // Axis setup
-    const int n1 = 2;
-    const int n2 = 3;
-    const int n3 = 4;
-    const int n4 = 5;
-    xios_handler.createAxis("axis_A");
-    xios_handler.setAxisSize("axis_A", n1);
-    xios_handler.setAxisValues("axis_A", { 0, 1 });
-    xios_handler.createAxis("axis_B");
-    xios_handler.setAxisSize("axis_B", n2);
-    xios_handler.setAxisValues("axis_B", { 0, 1, 2 });
-    xios_handler.createAxis("axis_C");
-    xios_handler.setAxisSize("axis_C", n3);
-    xios_handler.setAxisValues("axis_C", { 0, 1, 2, 3 });
-    xios_handler.createAxis("axis_D");
-    xios_handler.setAxisSize("axis_D", n4);
-    xios_handler.setAxisValues("axis_D", { 0, 1, 2, 3, 4 });
+    // Set ModelArray dimensions
+    const size_t nx_glo = 4;
+    const size_t ny_glo = 2;
+    const size_t nx = 2;
+    const size_t ny = 2;
+    const size_t nz = 2;
+    ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
+    ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
 
-    // Grid setup
-    xios_handler.createGrid("grid_2D");
-    xios_handler.gridAddAxis("grid_2D", "axis_A");
-    xios_handler.gridAddAxis("grid_2D", "axis_B");
-    xios_handler.createGrid("grid_3D");
-    xios_handler.gridAddAxis("grid_3D", "axis_A");
-    xios_handler.gridAddAxis("grid_3D", "axis_B");
-    xios_handler.gridAddAxis("grid_3D", "axis_C");
-    xios_handler.createGrid("grid_4D");
-    xios_handler.gridAddAxis("grid_4D", "axis_A");
-    xios_handler.gridAddAxis("grid_4D", "axis_B");
-    xios_handler.gridAddAxis("grid_4D", "axis_C");
-    xios_handler.gridAddAxis("grid_4D", "axis_D");
+    // Create a 4x2 horizontal domain with a partition halving the x-extent
+    // TODO: Set local and global domain sizes upon calling ModelArray::setDimension for X and Y
+    xios_handler.createDomain("xy_domain");
+    xios_handler.setDomainType("xy_domain", "rectilinear");
+    xios_handler.setDomainGlobalXSize("xy_domain", nx_glo);
+    xios_handler.setDomainGlobalYSize("xy_domain", ny_glo);
+    xios_handler.setDomainLocalXStart("xy_domain", 2 * rank);
+    xios_handler.setDomainLocalYStart("xy_domain", 0);
+    xios_handler.setDomainLocalXValues("xy_domain", { -1.0 + rank, -0.5 + rank });
+    xios_handler.setDomainLocalYValues("xy_domain", { -1.0, 1.0 });
+
+    // Create a vertical axis with 2 points
+    // TODO: Set axis size upon calling ModelArray::setDimension for Z
+    xios_handler.createAxis("z_axis");
+    xios_handler.setAxisValues("z_axis", { 0.0, 1.0 });
+
+    // Create some fake data to test writing methods
+    HField field_2D(ModelArray::Type::H);
+    field_2D.resize();
+    HField field_3D(ModelArray::Type::Z);
+    field_3D.resize();
 
     // Field setup
+    // TODO: Create field along with HField
     xios_handler.createField("field_2D");
     xios_handler.setFieldOperation("field_2D", "instant");
-    xios_handler.setFieldGridRef("field_2D", "grid_2D");
+    xios_handler.setFieldGridRef("field_2D", "grid_2D"); // NOTE: grid_2D auto-generated
     xios_handler.setFieldReadAccess("field_2D", true);
     xios_handler.setFieldFreqOffset("field_2D", timestep);
     xios_handler.createField("field_3D");
     xios_handler.setFieldOperation("field_3D", "instant");
-    xios_handler.setFieldGridRef("field_3D", "grid_3D");
+    xios_handler.setFieldGridRef("field_3D", "grid_3D"); // NOTE: grid_3D auto-generated
     xios_handler.setFieldReadAccess("field_3D", true);
     xios_handler.setFieldFreqOffset("field_3D", timestep);
-    xios_handler.createField("field_4D");
-    xios_handler.setFieldOperation("field_4D", "instant");
-    xios_handler.setFieldGridRef("field_4D", "grid_4D");
-    xios_handler.setFieldReadAccess("field_4D", true);
-    xios_handler.setFieldFreqOffset("field_4D", timestep);
 
     // File setup
     xios_handler.createFile("xios_test_input");
@@ -110,21 +114,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xios_handler.setFileParAccess("xios_test_input", "collective");
     xios_handler.fileAddField("xios_test_input", "field_2D");
     xios_handler.fileAddField("xios_test_input", "field_3D");
-    xios_handler.fileAddField("xios_test_input", "field_4D");
 
     xios_handler.close_context_definition();
 
     // --- Tests for reading to file
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ModelArray::setDimension(ModelArray::Dimension::X, n1, n1, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, n2, n2, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Z, n3, n3, 0);
-    // Create some fake data to test writing methods
-    HField field_2D(ModelArray::Type::H);
-    field_2D.resize();
-    HField field_3D(ModelArray::Type::Z);
-    field_3D.resize();
-    // TODO: Implement 4D case
     // Verify calendar step is starting from zero
     REQUIRE(xios_handler.getCalendarStep() == 0);
     // Check the input file exists
@@ -136,24 +129,24 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Receive data from XIOS that is read from disk
         xios_handler.read("field_2D", field_2D);
         xios_handler.read("field_3D", field_3D);
-        // TODO: Implement 4D case
         // Verify timestep
         REQUIRE(xios_handler.getCalendarStep() == ts);
     }
     // Verify fields have been read in correctly
-    for (size_t j = 0; j < n2; ++j) {
-        for (size_t i = 0; i < n1; ++i) {
-            REQUIRE(field_2D(i, j) == doctest::Approx(1.0 * (i + n1 * j)));
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            REQUIRE(field_2D(i, j) == doctest::Approx(1.0 * (i + nx * j)));
         }
     }
-    for (size_t k = 0; k < n3; ++k) {
-        for (size_t j = 0; j < n2; ++j) {
-            for (size_t i = 0; i < n1; ++i) {
-                REQUIRE(field_3D(i, j, k) == doctest::Approx(1.0 * (i + n1 * (j + n2 * k))));
+    for (size_t k = 0; k < nz; ++k) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                REQUIRE(field_3D(i, j, k) == doctest::Approx(1.0 * (i + nx * (j + ny * k))));
             }
         }
     }
-
     xios_handler.context_finalize();
+
+    // TODO: Consider adding a 4D test case
 }
 }
