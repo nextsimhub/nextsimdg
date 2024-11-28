@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.cpp
  *
- * @date    26 Nov 2024
+ * @date    28 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -249,7 +249,6 @@ void ParaGridIO::dumpModelState(
     std::set<std::string> restartFields = { "field_2D", "field_3D" }; // TODO-JGW: Switch to above
     // If the above fields are found in the supplied ModelState, output them
     std::cout << "DEBUG dumpModelState: time=" << meta.time() << std::endl;
-    // TODO-JGW: Update calendar timestep based on meta
     for (auto entry : state.data) {
         xiosHandler->write(entry.first, entry.second);
     }

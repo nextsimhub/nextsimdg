@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.hpp
  *
- * @date    26 Nov 2024
+ * @date    28 Nov 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -10,7 +10,6 @@
 
 #include "ModelArray.hpp"
 #include "StructureModule/include/ParametricGrid.hpp"
-#include "include/Xios.hpp"
 
 namespace Nextsim {
 

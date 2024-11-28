@@ -1,7 +1,7 @@
 /*!
  * @file    XiosReadWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    26 Nov 2024
+ * @date    28 Nov 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the read and write methods of the C++
@@ -224,17 +224,18 @@ void testFileWrite(ParaGridIO* pio, ModelState& state)
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
     // Simulate 4 iterations (timesteps)
+    ModelMetadata metadata;
+    metadata.setTime(pio->xiosHandler->getCalendarStart());
+    Duration timestep = pio->xiosHandler->getCalendarTimestep(); // FIXME: Undefined??
     for (int ts = 1; ts <= 4; ts++) {
-        // Update the current timestep
-        pio->xiosHandler->updateCalendar(ts);
-        // Send data to XIOS to be written to disk
-        ModelMetadata meta; // TODO-JGW: Set up properly (used to update calendar)
-        pio->dumpModelState(state, meta, "xios_test_output.nc");
-        // Verify timestep
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
         REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
+        // Send data to XIOS to be written to disk
+        pio->dumpModelState(state, metadata, "xios_test_output.nc");
     }
 
-    // Check the files have indeed been created then remove it
+    // Check the files have indeed been created then remove them
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
     if (pio->xiosHandler->getClientMPIRank() == 0) {

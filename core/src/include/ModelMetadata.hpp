@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date Jun 29, 2022
+ * @date 28 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -12,6 +12,9 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 
 #include <string>
 
@@ -53,7 +56,7 @@ public:
      *
      * @param step Duration of the time increment to add.
      */
-    inline void incrementTime(const Duration& step) { m_time += step; }
+    void incrementTime(const Duration& step);
     //! Returns the current model time.
     inline const TimePoint& time() const { return m_time; }
 
@@ -100,6 +103,9 @@ public:
 #endif
 
 private:
+#ifdef USE_XIOS
+    Xios* xiosHandler;
+#endif
     TimePoint m_time;
     ConfigMap m_config;
 
