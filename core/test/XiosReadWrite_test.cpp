@@ -108,6 +108,7 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
  */
 void readFile(ParaGridIO* pio, ModelState& state)
 {
+    REQUIRE(pio->xiosHandler->isInitialized());
     // TODO-JGW: Use getModelState
 
     // Verify calendar step is starting from zero
@@ -217,6 +218,8 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
  */
 void testFileWrite(ParaGridIO* pio, ModelState& state)
 {
+    REQUIRE(pio->xiosHandler->isInitialized());
+
     // Verify calendar step is starting from zero
     REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
 
