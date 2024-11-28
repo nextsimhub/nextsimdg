@@ -2,6 +2,12 @@
 
 if(ENABLE_XIOS)
     set(ParaGridIO_Impl "ParaGridIO_Xios")
+    set(XIOS_INCLUDE_LIST
+        "${xios_INCLUDES}"
+        "${xios_EXTERNS}/blitz/"
+        "${xios_EXTERNS}/rapidxml/include"
+    )
+    set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${XIOS_INCLUDE_LIST}")
 else()
     set(ParaGridIO_Impl "ParaGridIO")
 endif()

@@ -38,58 +38,57 @@ if(ENABLE_MPI)
         DEPENDS partition_metadata_3.nc partition_metadata_2.nc
     )
 
-    add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testRectGrid_MPI3
-        PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    )
-    target_include_directories(
-        testRectGrid_MPI3
-        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-    )
-    target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
-
-    # TODO-JGW: Re-enable these tests
-    # add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
-    # target_compile_definitions(
-    #     testParaGrid_MPI2
-    #     PRIVATE
-    #         USE_MPI
-    #         TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    #         TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-    # )
-    # target_include_directories(
-    #     testParaGrid_MPI2
-    #     PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-    # )
-    # target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
-
-    # add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
-    # target_compile_definitions(
-    #     testConfigOutput_MPI2
-    #     PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    # )
-    # target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
-    # target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
-
     if(ENABLE_XIOS)
-        file(
-            CREATE_LINK
-                "${CMAKE_SOURCE_DIR}/core/test/iodef.xml"
-                "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml"
-            SYMBOLIC
-        )
         add_custom_command(
             OUTPUT xios_test_input.nc
             COMMAND ncgen -o xios_test_input.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
+        file(
+            CREATE_LINK
+                "${CMAKE_SOURCE_DIR}/core/test/iodef.xml"
+                "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml"
+            SYMBOLIC
+        )
         set(XIOS_INCLUDE_LIST
             "${xios_INCLUDES}"
             "${xios_EXTERNS}/blitz/"
             "${xios_EXTERNS}/rapidxml/include"
         )
+
+        add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testRectGrid_MPI3
+            PRIVATE USE_XIOS TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(
+            testRectGrid_MPI3
+            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
+        # TODO-JGW: Re-enable these tests
+        # add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
+        # target_compile_definitions(
+        #     testParaGrid_MPI2
+        #     PRIVATE
+        #         USE_MPI USE_XIOS
+        #         TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        #         TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        # )
+        # target_include_directories(
+        #     testParaGrid_MPI2
+        #     PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+        # )
+        # target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+        # add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
+        # target_compile_definitions(
+        #     testConfigOutput_MPI2
+        #     PRIVATE USE_MPI USE_XIOS TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        # )
+        # target_include_directories(testConfigOutput_MPI2 PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}")
+        # target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosCalendar_MPI2 "XiosCalendar_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosCalendar_MPI2 PRIVATE USE_XIOS)
