@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    21 Nov 2024
+ * @date    28 Nov 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -304,6 +304,9 @@ TimePoint Xios::getCalendarStart()
 Duration Xios::getCalendarTimestep()
 {
     cxios_duration calendar_timestep;
+    if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
+        throw std::runtime_error("XIOS: Calendar timestep undefined.");
+    }
     cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
     return convertDurationFromXios(calendar_timestep);
 }
