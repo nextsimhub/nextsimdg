@@ -9,6 +9,8 @@
 #define IDYNAMICS_HPP
 
 #include "include/ModelComponent.hpp"
+#include "include/ModelArraySlice.hpp"
+#include "include/Slice.hpp"
 #include "include/Time.hpp"
 #include "include/gridNames.hpp"
 
@@ -76,7 +78,9 @@ public:
      */
     ModelArray& advectField(ModelArray& field, const std::string& fieldName)
     {
-        if (field.nDimensions() > 2) {
+        switch (field.nDimensions()) {
+        case 3:
+        {
             // Get the total number of higher dimensions. ModelArray::Type::H is assumed to be the
             // size of a 2D field.
             size_t size2D = ModelArray::size(ModelArray::Type::H);
@@ -84,18 +88,24 @@ public:
             HField levelData;
             levelData.resize();
             for (size_t k = 0; k < n2DFields; ++k) {
+                ArraySlicer::Slice sliceK {{{{}}, {{}}, {k}}};
                 // Copy the data of one 2D field to levelData
-                levelData.setData(field, k * size2D, 0);
+                levelData = field[sliceK];
                 // generate a consistent, unique name for this level
                 std::string field2DName = fieldName + generateSuffix(k, n2DFields);
                 // Advection occurs!
                 advectHField(levelData, field2DName);
                 // Copy the data of levelData back to the correct 2D field
-                field.setData(levelData, 0, k * size2D);
+                field[sliceK] = levelData;
             }
             return field;
-        } else {
+        }
+            break;
+        case 2:
             return advectHField(field, fieldName);
+            break;
+        default:
+            throw std::domain_error("IDynamics::advectFild(): advection of fields with < 2 or > 3 dimensions is not currently supported.");
         }
     }
 

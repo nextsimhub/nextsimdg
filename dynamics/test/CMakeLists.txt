@@ -85,6 +85,7 @@ if(NOT ENABLE_MPI)
         "${SRC_DIR}/Interpolations.cpp"
         "${SRC_DIR}/ParametricMap.cpp"
         "${CoreDir}/ModelArray.cpp"
+        "${CoreDir}/ModelArraySlice.cpp"
         "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
         "${CoreDir}/Time.cpp"
     )
