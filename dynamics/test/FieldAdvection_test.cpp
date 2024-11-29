@@ -169,14 +169,14 @@ TEST_CASE("Advect a field")
     double timeLimit = 1e5;
     TimePoint origin("2024-08-01T00:00:00Z");
     // Iterate: run the DynamicsKernel update, then advect the snow
-    double outPeriod = 25000;
+    double outPeriod = 12500;
     double outCount = outPeriod;
     size_t nOut = 0;
 
     // A map of the results at the target times
     std::map<double, std::pair<double, double>> hsnowExpdData;
-    std::vector<double> hsnowExpdCosines = { 2 * hsnowA, -2 * hsnowA, 2 * hsnowA, -2 * hsnowA, 2 * hsnowA };
-    std::vector<double> hsnowExpdSines = { 0, 0, 0, 0, 0 };
+    std::vector<double> hsnowExpdCosines = { 2 * hsnowA, 0, -2 * hsnowA, 0, 2 * hsnowA, 0, -2 * hsnowA, 0, 2 * hsnowA };
+    std::vector<double> hsnowExpdSines = { 0, 2 * hsnowA, 0, -2 * hsnowA, 0, 2 * hsnowA, 0, -2 * hsnowA, 0 };
 
     size_t pTest = nx / 4;
     double testEps = 5e-2;
