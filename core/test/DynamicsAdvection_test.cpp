@@ -257,27 +257,35 @@ TEST_CASE("Advect a 2D field")
     double timeLimit = 1e5;
     TimePoint origin("2024-08-01T00:00:00Z");
     // Iterate: run the DynamicsKernel update, then advect the snow
-    double outPeriod = 25000;
+    double outPeriod = 12500;
     double outCount = outPeriod;
     size_t nOut = 0;
 
     // A map of the results at the target times
     std::map<double, std::pair<double, double>> hsnowExpdData;
     std::map<double, std::pair<double, std::array<double, nz>>> ticeExpdData;
-    std::vector<double> hsnowExpdCosines = { 2 * hsnowA, -2 * hsnowA, 2 * hsnowA, -2 * hsnowA, 2 * hsnowA };
-    std::vector<double> hsnowExpdSines = { 0, 0, 0, 0, 0 };
-    std::vector<std::array<double, 3>> ticeExpdCosines = {
+    std::vector<double> hsnowExpdCosines = { 2 * hsnowA, 0, -2 * hsnowA, 0, 2 * hsnowA, 0, -2 * hsnowA, 0, 2 * hsnowA };
+    std::vector<double> hsnowExpdSines = { 0, 2 * hsnowA, 0, -2 * hsnowA, 0, 2 * hsnowA, 0, -2 * hsnowA, 0 };
+    std::vector<std::array<double, nz>> ticeExpdCosines = {
             { 2 * ticeA, 2 * ticeA, 2 * ticeA },
+            { 0, 0, 0 },
             { -2 * ticeA, -2 * ticeA, -2 * ticeA },
+            { 0, 0, 0 },
             { 2 * ticeA, 2 * ticeA, 2 * ticeA },
+            { 0, 0, 0 },
             { -2 * ticeA, -2 * ticeA, -2 * ticeA },
+            { 0, 0, 0 },
             { 2 * ticeA, 2 * ticeA, 2 * ticeA },
     };
-    std::vector<std::array<double, 3>> ticeExpdSines = {
+    std::vector<std::array<double, nz>> ticeExpdSines = {
             { 0, 0, 0 },
+            { 2 * ticeA, 2 * ticeA, 2 * ticeA },
             { 0, 0, 0 },
+            { -2 * ticeA, -2 * ticeA, -2 * ticeA },
             { 0, 0, 0 },
+            { 2 * ticeA, 2 * ticeA, 2 * ticeA },
             { 0, 0, 0 },
+            { -2 * ticeA, -2 * ticeA, -2 * ticeA },
             { 0, 0, 0 },
     };
 
