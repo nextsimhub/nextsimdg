@@ -2,7 +2,7 @@
  * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    21 August 2024
+ * @date    18 Nov 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -27,9 +27,11 @@
 
 namespace Nextsim {
 
+void enableXios();
+
 class Xios : public Configured<Xios> {
 public:
-    Xios();
+    Xios(const std::string contextId = "nextSIM-DG");
     ~Xios();
 
     /* Initialization and finalization */
@@ -144,7 +146,7 @@ private:
     bool isEnabled;
 
     std::string clientId;
-    std::string contextId;
+    std::string _contextId;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;

@@ -1,13 +1,13 @@
 /*!
  * @file MEB.hpp
- * @date 24 Sep 2024
+ * @date 19 Nov 2024
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef __MEB_HPP
 #define __MEB_HPP
 
-#include "MEBParameters.hpp"
+#include "BBMParameters.hpp"
 #include "ParametricTools.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
@@ -45,7 +45,7 @@ namespace MEB {
      * @param dt_mom timestep for momentum subcycle
      */
     template <int CG, int DGs, int DGa>
-    void StressUpdateHighOrder(const MEBParameters& params, const ParametricMesh& smesh,
+    void StressUpdateHighOrder(const BBMParameters& params, const ParametricMesh& smesh,
         DGVector<DGs>& S11, DGVector<DGs>& S12, DGVector<DGs>& S22, const DGVector<DGs>& E11,
         const DGVector<DGs>& E12, const DGVector<DGs>& E22, const DGVector<DGa>& H,
         const DGVector<DGa>& A, DGVector<DGa>& D, const double dt_mom)
@@ -75,13 +75,12 @@ namespace MEB {
 
             //! exp(-C(1-A))
             const Eigen::Matrix<double, 1, NGP * NGP> expC
-                = (params.compaction_param * (1.0 - a_gauss.array())).exp().array();
+                = (params.compactionParam * (1.0 - a_gauss.array())).exp().array();
 
             // Eqn. 20
-            Eigen::Matrix<double, 1, NGP * NGP> powalpha
-                = (d_gauss.array()).pow(params.exponent_relaxation_sigma - 1.);
+            Eigen::Matrix<double, 1, NGP * NGP> powalpha = (d_gauss.array()).pow(params.alpha - 1.);
             const Eigen::Matrix<double, 1, NGP * NGP> time_viscous
-                = (params.undamaged_time_relaxation_sigma * powalpha.array()).matrix();
+                = (params.lambda0 * powalpha.array()).matrix();
 
             // Eqn. 4: first factor on RHS
             const double Dunit_factor = 1. / (1. - (params.nu0 * params.nu0));
@@ -138,13 +137,12 @@ namespace MEB {
 
             //! This is not part of Dansereau et al. 2016
             const double scale_coef = std::sqrt(0.1 / smesh.h(i));
-            const double compr_strength = params.compr_strength * scale_coef;
+            const double compr_strength = params.comprCap * scale_coef;
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
-            // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
-            dcrit = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
-                        .select(cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()),
-                            1.);
+            // sigma_s + mu*sigma_n < 0 is always inside, but gives dcrit < 0
+            dcrit = (tau.array() + params.mu * sigma_n.array() > 0.)
+                        .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength)

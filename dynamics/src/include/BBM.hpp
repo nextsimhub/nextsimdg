@@ -1,6 +1,6 @@
 /*!
  * @file BBM.hpp
- * @date 24 Sep 2024
+ * @date 19 Nov 2024
  * @author Einar Olason <Einar.Olason@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -8,7 +8,7 @@
 #ifndef __BBM_HPP
 #define __BBM_HPP
 
-#include "MEBParameters.hpp"
+#include "BBMParameters.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgVector.hpp"
 
@@ -43,7 +43,7 @@ namespace BBM {
      * @param dt_mom timestep for momentum subcycle
      */
     template <int CG, int DGs, int DGa>
-    void StressUpdateHighOrder(const MEBParameters& params, const ParametricMesh& smesh,
+    void StressUpdateHighOrder(const BBMParameters& params, const ParametricMesh& smesh,
         DGVector<DGs>& S11, DGVector<DGs>& S12, DGVector<DGs>& S22, const DGVector<DGs>& E11,
         const DGVector<DGs>& E12, const DGVector<DGs>& E22, const DGVector<DGa>& H,
         const DGVector<DGa>& A, DGVector<DGa>& D, const double dt_mom)
@@ -78,18 +78,17 @@ namespace BBM {
 
             //! exp(-C(1-A))
             const Eigen::Matrix<double, 1, NGP * NGP> expC
-                = (params.compaction_param * (1.0 - a_gauss.array())).exp().array();
+                = (params.compactionParam * (1.0 - a_gauss.array())).exp().array();
 
             // Eqn. 25
             const Eigen::Matrix<double, 1, NGP * NGP> powalphaexpC
-                = (d_gauss.array() * expC.array()).pow(params.exponent_relaxation_sigma - 1);
-            const Eigen::Matrix<double, 1, NGP * NGP> time_viscous
-                = params.undamaged_time_relaxation_sigma * powalphaexpC;
+                = (d_gauss.array() * expC.array()).pow(params.alpha - 1);
+            const Eigen::Matrix<double, 1, NGP * NGP> time_viscous = params.lambda0 * powalphaexpC;
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const Eigen::Matrix<double, 1, NGP * NGP> Pmax = params.P0
-                * h_gauss.array().pow(params.exponent_compression_factor) * expC.array();
+            const Eigen::Matrix<double, 1, NGP * NGP> Pmax
+                = params.P0 * h_gauss.array().pow(params.expPMax) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
@@ -137,17 +136,16 @@ namespace BBM {
 
             //! Eqn. 22
             const Eigen::Matrix<double, 1, NGP * NGP> cohesion
-                = params.C_lab * scale_coef * h_gauss.array();
+                = params.cLab * scale_coef * h_gauss.array();
             //! Eqn. 30
             const Eigen::Matrix<double, 1, NGP * NGP> compr_strength
-                = params.compr_strength * scale_coef * h_gauss.array();
+                = params.comprCap * scale_coef * h_gauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
-            // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+            // sigma_s + mu*sigma_n < 0 is always inside, but gives dcrit < 0
             Eigen::Matrix<double, 1, NGP * NGP> dcrit
-                = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
-                      .select(
-                          cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
+                = (tau.array() + params.mu * sigma_n.array() > 0.)
+                      .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength.array())
@@ -158,7 +156,7 @@ namespace BBM {
 
             // Eqn. 29
             const Eigen::Matrix<double, 1, NGP * NGP> td = smesh.h(i)
-                * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
+                * std::sqrt(2. * (1. + params.nu0) * params.rhoIce) / elasticity.array().sqrt();
 
             // Update damage
             d_gauss.array() -= d_gauss.array() * (1. - dcrit.array()) * dt_mom / td.array();

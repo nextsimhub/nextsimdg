@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth_test.cpp
  *
- * @date Apr 8, 2022
+ * @date 22 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -93,8 +93,10 @@ TEST_CASE("New ice formation")
     ocnBdy.setData(ModelState().data);
 
     HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
     damage = 1;
     ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     IceGrowth ig;
@@ -177,8 +179,10 @@ TEST_CASE("Melting conditions")
     ocnBdy.setData(ModelState().data);
 
     HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
     damage = 1;
     ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
@@ -269,8 +273,10 @@ TEST_CASE("Freezing conditions")
     ocnBdy.setData(ModelState().data);
 
     HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
     damage = 1;
     ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
@@ -366,8 +372,10 @@ TEST_CASE("Dummy ice")
     ocnBdy.setData(ModelState().data);
 
     HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
     damage = 1;
     ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
@@ -464,8 +472,10 @@ TEST_CASE("Zero thickness")
     ocnBdy.setData(ModelState().data);
 
     HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
     damage = 1;
     ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     class ZeroThicknessIce : public IIceThermodynamics {
         void setData(const ModelState::DataMap&) override { }
@@ -591,8 +601,10 @@ TEST_CASE("Turn off thermo")
     ocnBdy.setData(ModelState().data);
 
     HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
     damage = 1;
     ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;

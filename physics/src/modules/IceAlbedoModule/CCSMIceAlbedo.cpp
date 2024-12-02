@@ -1,7 +1,7 @@
 /*!
  * @file CCSMIceAlbedo.cpp
  *
- * @date 24 Sep 2024
+ * @date 20 Nov 2024
  * @author Tim Spain
  */
 
@@ -60,10 +60,10 @@ ConfigMap CCSMIceAlbedo::getConfiguration() const
 CCSMIceAlbedo::HelpMap& CCSMIceAlbedo::getHelpText(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { iceAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, std::to_string(ICE_ALBEDO0), "",
-            "Albedo of snow-free ice." },
-        { snowAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, std::to_string(SNOW_ALBEDO0), "",
-            "Albedo of snow." },
+        { iceAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, ConfigurationHelp::toString(ICE_ALBEDO0),
+            "", "Albedo of snow-free ice." },
+        { snowAlbedoKey, ConfigType::NUMERIC, { "0", "1" },
+            ConfigurationHelp::toString(SNOW_ALBEDO0), "", "Albedo of snow." },
     };
     return map;
 }

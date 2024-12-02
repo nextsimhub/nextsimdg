@@ -1,7 +1,7 @@
 /*!
  * @file HiblerSpread.cpp
  *
- * @date Apr 5, 2022
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -38,10 +38,10 @@ ModelState HiblerSpread::getStateRecursive(const OutputSpec& os) const
 HiblerSpread::HelpMap& HiblerSpread::getHelpText(HelpMap& map, bool getAll)
 {
     map["HiblerSpread"] = {
-        { keyMap.at(H0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(h0Default), "m",
-            "The thickness of newly frozen ice." },
-        { keyMap.at(PHIM_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(phimDefault), "",
-            "Power-law exponent for melting ice." },
+        { keyMap.at(H0_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(h0Default), "m", "The thickness of newly frozen ice." },
+        { keyMap.at(PHIM_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(phimDefault), "", "Power-law exponent for melting ice." },
     };
     return map;
 }

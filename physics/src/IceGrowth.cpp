@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth.cpp
  *
- * @date Jul 5, 2022
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -99,9 +99,11 @@ IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)
 {
     map["IceGrowth"] = {
         { keyMap.at(MINC_KEY), ConfigType::NUMERIC, { "0", "1" },
-            std::to_string(IceMinima::cMinDefault), "", "Minimum allowed ice concentration." },
+            ConfigurationHelp::toString(IceMinima::cMinDefault), "",
+            "Minimum allowed ice concentration." },
         { keyMap.at(MINH_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(IceMinima::hMinDefault), "m", "Minimum allowed ice thickness." },
+            ConfigurationHelp::toString(IceMinima::hMinDefault), "m",
+            "Minimum allowed ice thickness." },
         { keyMap.at(USE_THERMO_KEY), ConfigType::BOOLEAN, { "true", "false" }, "true", "",
             "Perform ice physics calculations as part of the timestep." },
     };

@@ -1,6 +1,6 @@
 /*!
  * @file mevp.hpp
- * @date 24 Sep 2024
+ * @date 19 Nov 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -48,27 +48,27 @@ namespace mEVP {
             const LocalEdgeVector<NGP * NGP> e12_gauss = E12.row(i) * PSI<DGstress, NGP>;
             const LocalEdgeVector<NGP * NGP> e22_gauss = E22.row(i) * PSI<DGstress, NGP>;
 
-            const LocalEdgeVector<NGP * NGP> DELTA = (SQR(vpparameters.DeltaMin)
+            const LocalEdgeVector<NGP * NGP> DELTA = (SQR(vpparameters.deltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array() + e12_gauss.array().square())
                                                          .sqrt()
                                                          .matrix();
-            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i,
+            // double DELTA = sqrt(SQR(vpparameters.deltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i,
             // 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            //   double P = vpparameters.pStar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
             const LocalEdgeVector<NGP * NGP> P
-                = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
+                = (vpparameters.pStar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
                       .matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.deltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();
@@ -154,27 +154,27 @@ namespace mEVP {
             const LocalEdgeVector<NGP * NGP> e12_gauss = E12.row(i) * PSI<DGs, NGP>;
             const LocalEdgeVector<NGP * NGP> e22_gauss = E22.row(i) * PSI<DGs, NGP>;
 
-            const LocalEdgeVector<NGP * NGP> DELTA = (SQR(vpparameters.DeltaMin)
+            const LocalEdgeVector<NGP * NGP> DELTA = (SQR(vpparameters.deltaMin)
                 + 1.25 * (e11_gauss.array().square() + e22_gauss.array().square())
                 + 1.50 * e11_gauss.array() * e22_gauss.array() + e12_gauss.array().square())
                                                          .sqrt()
                                                          .matrix();
-            // double DELTA = sqrt(SQR(vpparameters.DeltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i,
+            // double DELTA = sqrt(SQR(vpparameters.deltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i,
             // 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = vpparameters.Pstar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            //   double P = vpparameters.pStar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
             const LocalEdgeVector<NGP * NGP> P
-                = (vpparameters.Pstar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
+                = (vpparameters.pStar * h_gauss.array() * (-20.0 * (1.0 - a_gauss.array())).exp())
                       .matrix();
 
             // //   double zeta = P / 2.0 / DELTA;
             // //   double eta = zeta / 4;
 
             // //   // replacement pressure
-            // //   P = P * DELTA / (vpparameters.DeltaMin + DELTA);
+            // //   P = P * DELTA / (vpparameters.deltaMin + DELTA);
 
             // std::cout << P << std::endl << DELTA << std::endl;
             // abort();

@@ -1,7 +1,7 @@
 /*!
  * @file VPCGDynamicsKernel.hpp
  *
- * @date Feb 2, 2024
+ * @date 19 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -20,7 +20,6 @@ namespace Nextsim {
 // The VP pseudo-timestepping momentum equation solver for CG velocities
 template <int DGadvection> class VPCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
     using DynamicsKernel<DGadvection, DGstressComp>::s11;
     using DynamicsKernel<DGadvection, DGstressComp>::s12;
     using DynamicsKernel<DGadvection, DGstressComp>::s22;
@@ -70,7 +69,7 @@ public:
         // The critical timestep for the VP solver is the advection timestep
         deltaT = tst.step.seconds();
 
-        for (size_t mevpstep = 0; mevpstep < nSteps; ++mevpstep) {
+        for (size_t mevpstep = 0; mevpstep < params.nSteps; ++mevpstep) {
 
             projectVelocityToStrain();
 
@@ -106,6 +105,9 @@ protected:
         // Update the velocity
         double SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
 
+        const double FOcean = params.COcean * params.rhoOcean;
+        const double FAtm = params.CAtm * params.rhoAtm;
+
         //      update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
         for (int i = 0; i < u.rows(); ++i) {
@@ -116,22 +118,22 @@ protected:
                 SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
 
             u(i) = (1.0
-                / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
-                    + cgA(i) * params.F_ocean * absocn) // implicit parts
-                * (params.rho_ice * cgH(i) / deltaT * (beta * u(i) + u0(i)) // pseudo-timestepping
+                / (params.rhoIce * cgH(i) / deltaT * (1.0 + beta) // implicit parts
+                    + cgA(i) * FOcean * absocn) // implicit parts
+                * (params.rhoIce * cgH(i) / deltaT * (beta * u(i) + u0(i)) // pseudo-timestepping
                     + cgA(i)
-                        * (params.F_atm * absatm * uAtmos(i) + // atm forcing
-                            params.F_ocean * absocn * SC * uOcean(i)) // ocean forcing
-                    + params.rho_ice * cgH(i) * params.fc * vOcnRel // cor + surface
+                        * (FAtm * absatm * uAtmos(i) + // atm forcing
+                            FOcean * absocn * SC * uOcean(i)) // ocean forcing
+                    + params.rhoIce * cgH(i) * params.fc * vOcnRel // cor + surface
                     + dStressX(i) / pmap->lumpedcgmass(i)));
             v(i) = (1.0
-                / (params.rho_ice * cgH(i) / deltaT * (1.0 + beta) // implicit parts
-                    + cgA(i) * params.F_ocean * absocn) // implicit parts
-                * (params.rho_ice * cgH(i) / deltaT * (beta * v(i) + v0(i)) // pseudo-timestepping
+                / (params.rhoIce * cgH(i) / deltaT * (1.0 + beta) // implicit parts
+                    + cgA(i) * FOcean * absocn) // implicit parts
+                * (params.rhoIce * cgH(i) / deltaT * (beta * v(i) + v0(i)) // pseudo-timestepping
                     + cgA(i)
-                        * (params.F_atm * absatm * vAtmos(i) + // atm forcing
-                            params.F_ocean * absocn * SC * vOcean(i)) // ocean forcing
-                    + params.rho_ice * cgH(i) * params.fc
+                        * (FAtm * absatm * vAtmos(i) + // atm forcing
+                            FOcean * absocn * SC * vOcean(i)) // ocean forcing
+                    + params.rhoIce * cgH(i) * params.fc
                         * uOcnRel // here the reversed sign of uOcnRel is used
                     + dStressY(i) / pmap->lumpedcgmass(i)));
         }

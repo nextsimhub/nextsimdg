@@ -37,10 +37,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::isAdvectionReady;
 
 public:
-    CGDynamicsKernel()
-        : pmap(nullptr)
-    {
-    }
+    CGDynamicsKernel() { }
     virtual ~CGDynamicsKernel() = default;
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
     void setData(const std::string& name, const ModelArray& data) override;
@@ -74,7 +71,7 @@ protected:
     CGVector<CGdegree> uAtmos;
     CGVector<CGdegree> vAtmos;
 
-    ParametricMomentumMap<CGdegree>* pmap;
+    std::unique_ptr<ParametricMomentumMap<CGdegree>> pmap;
 };
 
 } /* namespace Nextsim */

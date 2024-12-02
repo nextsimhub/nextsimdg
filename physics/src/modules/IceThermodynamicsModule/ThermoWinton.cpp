@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWinton.cpp
  *
- * @date Sep 30, 2022
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -62,8 +62,8 @@ ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
 ThermoWinton::HelpMap& ThermoWinton::getHelpText(HelpMap& map, bool getAll)
 {
     map["ThermoWinton"] = {
-        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
-            "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
+        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(k_sDefault), "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
     };
     return map;
 }

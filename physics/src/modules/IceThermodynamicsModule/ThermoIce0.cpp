@@ -1,19 +1,18 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date 24 Sep 2024
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ThermoIce0.hpp"
 
-#include "include/IceMinima.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/IceMinima.hpp"
 #include "include/ModelArray.hpp"
-#include "include/NextsimModule.hpp"
 #include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -62,8 +61,8 @@ ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
 ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
 {
     map["ThermoIce0"] = {
-        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
-            "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
+        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(k_sDefault), "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
     };
     return map;
 }

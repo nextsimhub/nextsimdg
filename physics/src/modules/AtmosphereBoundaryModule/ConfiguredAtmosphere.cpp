@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredAtmosphere.cpp
  *
- * @date 24 Sep 2024
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -56,22 +56,22 @@ ConfiguredAtmosphere::ConfiguredAtmosphere()
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { tKey, ConfigType::NUMERIC, { "-210", "374" }, std::to_string(tair0), "",
+        { tKey, ConfigType::NUMERIC, { "-210", "374" }, ConfigurationHelp::toString(tair0), "",
             "Air temperature at 2 m (˚C)." },
-        { tdewKey, ConfigType::NUMERIC, { "-273", "374" }, std::to_string(tdew0), "",
+        { tdewKey, ConfigType::NUMERIC, { "-273", "374" }, ConfigurationHelp::toString(tdew0), "",
             "Dew point temperature at 2 m (˚C)." },
-        { pKey, ConfigType::NUMERIC, { "0", "3395800" }, std::to_string(pair0), "",
+        { pKey, ConfigType::NUMERIC, { "0", "3395800" }, ConfigurationHelp::toString(pair0), "",
             "Surface air pressure (Pa)." },
-        { swKey, ConfigType::NUMERIC, { "0", "1.390e122" }, std::to_string(sw0), "",
+        { swKey, ConfigType::NUMERIC, { "0", "1.390e122" }, ConfigurationHelp::toString(sw0), "",
             "Downward solar radiation (W m⁻²)." },
-        { lwKey, ConfigType::NUMERIC, { "0", "1.390e122" }, std::to_string(lw0), "",
+        { lwKey, ConfigType::NUMERIC, { "0", "1.390e122" }, ConfigurationHelp::toString(lw0), "",
             "Downward non-solar radiation (W m⁻²)." },
-        { snowKey, ConfigType::NUMERIC, { "0", "2.998e8" }, std::to_string(snowfall0), "",
-            "Snowfall mass flux (kg s⁻¹ m⁻²)." },
-        { rainKey, ConfigType::NUMERIC, { "0", "2.998e8" }, std::to_string(rain0), "",
+        { snowKey, ConfigType::NUMERIC, { "0", "2.998e8" }, ConfigurationHelp::toString(snowfall0),
+            "", "Snowfall mass flux (kg s⁻¹ m⁻²)." },
+        { rainKey, ConfigType::NUMERIC, { "0", "2.998e8" }, ConfigurationHelp::toString(rain0), "",
             "Rainfall mass flux (kg s⁻¹ m⁻²)." },
-        { windKey, ConfigType::NUMERIC, { "0", "2.998e8" }, std::to_string(windspeed0), "",
-            "Windspeed (m s⁻¹)." },
+        { windKey, ConfigType::NUMERIC, { "0", "2.998e8" }, ConfigurationHelp::toString(windspeed0),
+            "", "Windspeed (m s⁻¹)." },
     };
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
@@ -92,7 +92,6 @@ void ConfiguredAtmosphere::configure()
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
-
 }
 
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)

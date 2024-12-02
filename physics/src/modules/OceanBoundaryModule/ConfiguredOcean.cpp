@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredOcean.cpp
  *
- * @date 24 Sep 2024
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -46,15 +46,15 @@ ConfiguredOcean::ConfiguredOcean()
 ConfigurationHelp::HelpMap& ConfiguredOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { sstKey, ConfigType::NUMERIC, { "-273", "374" }, std::to_string(sst0), "",
+        { sstKey, ConfigType::NUMERIC, { "-273", "374" }, ConfigurationHelp::toString(sst0), "",
             "Sea surface temperature (˚C)." },
-        { sssKey, ConfigType::NUMERIC, { "0", "1000" }, std::to_string(sss0), "",
+        { sssKey, ConfigType::NUMERIC, { "0", "1000" }, ConfigurationHelp::toString(sss0), "",
             "Sea surface salinity (PSU)." },
-        { mldKey, ConfigType::NUMERIC, { "0", "10984" }, std::to_string(mld0), "",
+        { mldKey, ConfigType::NUMERIC, { "0", "10984" }, ConfigurationHelp::toString(mld0), "",
             "Mixed layer depth (m)." },
-        { uKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(u0), "",
+        { uKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(u0), "",
             "Ocean current in the x (eastward) direction (m s⁻¹)." },
-        { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(v0), "",
+        { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(v0), "",
             "Ocean current in the y (northward) direction (m s⁻¹)." },
     };
     Module::getHelpRecursive<IIceOceanHeatFlux>(map, getAll);

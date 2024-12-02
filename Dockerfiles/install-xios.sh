@@ -3,10 +3,10 @@
 # use svn to obtain current version of xios
 cd /
 installdir="xios"
-svn checkout http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk $installdir
+svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS/trunk $installdir
 cd $installdir
 
-cat <<EOF > arch/arch-GCC_LINUX.path
+cat <<EOF >arch/arch-GCC_LINUX.path
 NETCDF_INCDIR="-I \$NETCDF_INC_DIR -I \$NETCDFFORT_INC_DIR"
 NETCDF_LIBDIR="-L \$NETCDF_LIB_DIR -L \$NETCDFFORT_LIB_DIR"
 NETCDF_LIB="-lnetcdff -lnetcdf"
@@ -28,7 +28,7 @@ OASIS_LIBDIR="-L\$PWD/../../oasis3-mct/BLD/lib"
 OASIS_LIB="-lpsmile.MPI1 -lscrip -lmct -lmpeu"
 EOF
 
-cat <<EOF > arch/arch-GCC_LINUX.env
+cat <<EOF >arch/arch-GCC_LINUX.env
 export HDF5_INC_DIR=\$(pkg-config --variable=prefix hdf5)/include
 export HDF5_LIB_DIR=\$(pkg-config --variable=prefix hdf5)/lib
 
@@ -42,7 +42,7 @@ export BOOST_INC_DIR=\$HOME/boost
 export BOOST_LIB_DIR=\$HOME/boost
 EOF
 
-cat <<EOF > arch/arch-GCC_LINUX.fcm
+cat <<EOF >arch/arch-GCC_LINUX.fcm
 ################################################################################
 ###################                Projet XIOS               ###################
 ################################################################################
@@ -71,5 +71,5 @@ EOF
 
 ./make_xios --arch GCC_LINUX --job 8 --full --debug
 rm -r /xios/obj /xios/bin/generic_testcase.exe /xios/src /xios/tools \
-    /xios/inputs /xios/doc /xios/arch /xios/xios_test_suite /xios/flags \
-    /xios/generic_testcase /xios/ppsrc /xios/done
+  /xios/inputs /xios/doc /xios/arch /xios/xios_test_suite /xios/flags \
+  /xios/generic_testcase /xios/ppsrc /xios/done

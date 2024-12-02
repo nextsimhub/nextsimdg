@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    01 Nov 2024
+ * @date    19 Nov 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -34,12 +34,26 @@ namespace Nextsim {
 
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" } };
 
+//! Enable XIOS in the 'config'
+void enableXios()
+{
+    Configurator::clearStreams();
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+}
+
 /*!
  * Constructor
  *
  * Configure an XIOS server
  */
-Xios::Xios() { configure(); }
+Xios::Xios(const std::string contextId)
+{
+    _contextId = contextId;
+    configure();
+}
 
 //! Destructor
 Xios::~Xios() { finalize(); }
@@ -60,7 +74,7 @@ void Xios::context_finalize()
     }
 }
 
-//! Close context and finialize server
+//! Finalize XIOS server
 void Xios::finalize()
 {
     if (isEnabled) {
@@ -98,12 +112,13 @@ void Xios::configureServer(const std::string calendarType)
     MPI_Comm_size(clientComm, &mpi_size);
 
     // Initialize 'nextSIM-DG' context
-    contextId = "nextSIM-DG";
-    cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
+    cxios_context_initialize(_contextId.c_str(), _contextId.length(), &clientComm_F);
 
     // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
+    cxios_duration timestep { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 };
+    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
     cxios_create_calendar(clientCalendar);
 }
 
@@ -125,7 +140,7 @@ int Xios::getClientMPIRank() { return mpi_rank; }
 bool Xios::isInitialized()
 {
     bool init = false;
-    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+    cxios_context_is_initialized(_contextId.c_str(), _contextId.length(), &init);
     return init;
 }
 

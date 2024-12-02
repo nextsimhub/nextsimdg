@@ -26,7 +26,7 @@ void CGDynamicsKernel<DGadvection>::initialise(
     DynamicsKernel<DGadvection, DGstressComp>::initialise(coords, isSpherical, mask);
 
     //! Initialize the parametric momentum map
-    pmap = new ParametricMomentumMap<CGdegree>(*smesh);
+    pmap = std::make_unique<ParametricMomentumMap<CGdegree>>(*smesh);
     pmap->InitializeLumpedCGMassMatrix();
     pmap->InitializeDivSMatrices();
 

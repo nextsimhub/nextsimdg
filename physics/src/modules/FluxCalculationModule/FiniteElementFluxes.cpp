@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.cpp
  *
- * @date Apr 29, 2022
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -87,17 +87,19 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, boo
 {
     map["FiniteElementFluxes"] = {
         { keyMap.at(DRAGOCEANQ_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(dragOcean_q_default), "??",
+            ConfigurationHelp::toString(dragOcean_q_default), "??",
             "Coefficient for evaporative mass flux calculation." },
         { keyMap.at(DRAGOCEANT_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(dragOcean_t_default), "??",
+            ConfigurationHelp::toString(dragOcean_t_default), "??",
             "Coefficient for sensible heat flux calculation." },
         { keyMap.at(DRAGICET_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(dragIce_t_default), "??", "Ice drag coefficient for heat fluxes." },
+            ConfigurationHelp::toString(dragIce_t_default), "??",
+            "Ice drag coefficient for heat fluxes." },
         { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(oceanAlbedo_default), "", "Shortwave albedo of open ocean water." },
-        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
-            "Transmissivity of ice." },
+            ConfigurationHelp::toString(oceanAlbedo_default), "",
+            "Shortwave albedo of open ocean water." },
+        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(i0_default), "", "Transmissivity of ice." },
     };
     return map;
 }

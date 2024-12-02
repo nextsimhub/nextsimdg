@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date 24 Sep 2024
+ * @date 19 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,7 +10,7 @@
 
 #include "include/StressUpdateStep.hpp"
 
-#include "include/MEBParameters.hpp"
+#include "include/BBMParameters.hpp"
 #include "include/ParametricMap.hpp"
 #include "include/codeGenerationDGinGauss.hpp"
 
@@ -42,9 +42,10 @@ public:
         DGVector<DGstress>& e12 = strain[I12];
         DGVector<DGstress>& e22 = strain[I22];
 
-        const MEBParameters& params = reinterpret_cast<const MEBParameters&>(dParams);
+        const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
         // Number of Gauss points
         const size_t nGauss = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
+
 //! Stress and Damage Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
@@ -74,18 +75,18 @@ public:
 
             //! exp(-C(1-A))
             const Eigen::Matrix<double, 1, nGauss * nGauss> expC
-                = (params.compaction_param * (1.0 - aGauss.array())).exp().array();
+                = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
 
             // Eqn. 25
             const Eigen::Matrix<double, 1, nGauss * nGauss> powalphaexpC
-                = (dGauss.array() * expC.array()).pow(params.exponent_relaxation_sigma - 1);
+                = (dGauss.array() * expC.array()).pow(params.alpha - 1);
             const Eigen::Matrix<double, 1, nGauss * nGauss> time_viscous
-                = params.undamaged_time_relaxation_sigma * powalphaexpC;
+                = params.lambda0 * powalphaexpC;
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
             const Eigen::Matrix<double, 1, nGauss * nGauss> Pmax
-                = params.P0 * hGauss.array().pow(params.exponent_compression_factor) * expC.array();
+                = params.P0 * hGauss.array().pow(params.expPMax) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
@@ -133,17 +134,16 @@ public:
 
             //! Eqn. 22
             const Eigen::Matrix<double, 1, nGauss * nGauss> cohesion
-                = params.C_lab * scale_coef * hGauss.array();
+                = params.cLab * scale_coef * hGauss.array();
             //! Eqn. 30
             const Eigen::Matrix<double, 1, nGauss * nGauss> compr_strength
-                = params.compr_strength * scale_coef * hGauss.array();
+                = params.comprCap * scale_coef * hGauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
-            // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+            // sigma_s + mu*sigma_n < 0 is always inside, but gives dcrit < 0
             Eigen::Matrix<double, 1, nGauss * nGauss> dcrit
-                = (tau.array() + params.tan_phi * sigma_n.array() > 0.)
-                      .select(
-                          cohesion.array() / (tau.array() + params.tan_phi * sigma_n.array()), 1.);
+                = (tau.array() + params.mu * sigma_n.array() > 0.)
+                      .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength.array())
@@ -154,7 +154,7 @@ public:
 
             // Eqn. 29
             const Eigen::Matrix<double, 1, nGauss * nGauss> td = smesh.h(i)
-                * std::sqrt(2. * (1. + params.nu0) * params.rho_ice) / elasticity.array().sqrt();
+                * std::sqrt(2. * (1. + params.nu0) * params.rhoIce) / elasticity.array().sqrt();
 
             // Update damage
             dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();

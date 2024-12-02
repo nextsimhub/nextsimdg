@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -42,10 +42,10 @@ SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 {
     map[className] = {
         { keyMap.at(TIMET_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(defaultRelaxationTime), "s",
+            ConfigurationHelp::toString(defaultRelaxationTime), "s",
             "Relaxation time of the slab ocean to external temperature forcing." },
         { keyMap.at(TIMES_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(defaultRelaxationTime), "s",
+            ConfigurationHelp::toString(defaultRelaxationTime), "s",
             "Relaxation time of the slab ocean to external salinity forcing." },
     };
     return map;

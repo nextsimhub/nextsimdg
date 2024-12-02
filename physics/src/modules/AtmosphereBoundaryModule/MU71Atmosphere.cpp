@@ -30,8 +30,8 @@ void MU71Atmosphere::configure()
 MU71Atmosphere::HelpMap& MU71Atmosphere::getHelpText(HelpMap& map, bool getAll)
 {
     map["FiniteElementFluxes"] = {
-        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
-            "Transmissivity of ice." },
+        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(i0_default), "", "Transmissivity of ice." },
     };
     return map;
 }
