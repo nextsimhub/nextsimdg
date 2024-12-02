@@ -519,4 +519,3 @@ inline std::ostream& operator<<(std::ostream& os, const SliceIter& si) { return 
 #undef ceil
 
 #endif /* SLICE_HPP */
-
