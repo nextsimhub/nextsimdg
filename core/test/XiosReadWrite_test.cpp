@@ -67,10 +67,6 @@ Xios setupXiosHandler(int dim, bool read)
     REQUIRE(size == 2);
     const size_t rank = xios_handler.getClientMPIRank();
 
-    // Calendar setup
-    xios_handler.setCalendarOrigin(TimePoint("2020-01-23T00:08:15Z"));
-    xios_handler.setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
-
     // Set ModelArray dimensions
     const size_t nx_glo = 4;
     const size_t ny_glo = 2;
