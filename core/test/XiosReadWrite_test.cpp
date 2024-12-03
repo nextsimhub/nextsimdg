@@ -210,36 +210,6 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
 }
 
 /*!
- * Test file writing for the Xios handler configuration in setupState.
- *
- * @param pio Pointer to ParaGridIO instance with Xios handler configured using setupState
- * @param state Reference to ModelState instance containing fields to be written to file
- * @param metadata Reference to ModelMetadata instance containing time
- */
-void testFileWrite(ParaGridIO* pio, ModelState& state, ModelMetadata& metadata)
-{
-    // Simulate 4 iterations (timesteps)
-    Duration timestep = pio->xiosHandler->getCalendarTimestep(); // FIXME: Undefined??
-    for (int ts = 1; ts <= 4; ts++) {
-        // Update the current timestep and verify it's updated in XIOS
-        metadata.incrementTime(timestep);
-        REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
-        // Send data to XIOS to be written to disk
-        pio->dumpModelState(state, metadata, "xios_test_output.nc");
-    }
-
-    // Check the files have indeed been created then remove them
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
-    if (pio->xiosHandler->getClientMPIRank() == 0) {
-        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
-        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
-    }
-
-    pio->xiosHandler->context_finalize();
-}
-
-/*!
  * TestXiosWrite_2D
  *
  * This function tests the file writing functionality of the C++ interface for XIOS for fields with
@@ -283,7 +253,25 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     ModelMetadata metadata;
     metadata.setTime(pio->xiosHandler->getCalendarStart());
 
-    testFileWrite(pio, state, metadata);
+    // Simulate 4 iterations (timesteps)
+    Duration timestep = pio->xiosHandler->getCalendarTimestep(); // FIXME: Undefined??
+    for (int ts = 1; ts <= 4; ts++) {
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
+        // Send data to XIOS to be written to disk
+        pio->dumpModelState(state, metadata, "xios_test_output.nc");
+    }
+
+    // Check the files have indeed been created then remove them
+    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
+    if (pio->xiosHandler->getClientMPIRank() == 0) {
+        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
+        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
+    }
+
+    pio->xiosHandler->context_finalize();
 }
 
 /*!
@@ -333,7 +321,26 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
     ModelMetadata metadata;
     metadata.setTime(pio->xiosHandler->getCalendarStart());
 
-    testFileWrite(pio, state, metadata);
+    // Simulate 4 iterations (timesteps)
+    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
+    Duration timestep = pio->xiosHandler->getCalendarTimestep(); // FIXME: Undefined??
+    for (int ts = 1; ts <= 4; ts++) {
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
+        // Send data to XIOS to be written to disk
+        pio->dumpModelState(state, metadata, "xios_test_output.nc");
+    }
+
+    // Check the files have indeed been created then remove them
+    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
+    if (pio->xiosHandler->getClientMPIRank() == 0) {
+        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
+        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
+    }
+
+    pio->xiosHandler->context_finalize();
 }
 
 // TODO: Consider adding 4D test cases
