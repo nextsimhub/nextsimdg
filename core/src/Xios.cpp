@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 Nov 2024
+ * @date    03 Dec 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -45,13 +45,17 @@ void enableXios()
 }
 
 /*!
- * Constructor
+ * Constructor: Configure an XIOS server
  *
- * Configure an XIOS server
+ * @param timestep Timestep to use for the model
+ * @param contextId ID for the XIOS context
+ * @param calendarType Type of calendar to use
  */
-Xios::Xios(const std::string contextId)
+Xios::Xios(const std::string timestep, const std::string contextId, const std::string calendarType)
 {
+    _calendarType = calendarType;
     _contextId = contextId;
+    _timestep = Duration(timestep);
     configure();
 }
 
@@ -99,7 +103,7 @@ void Xios::configure()
 }
 
 //! Configure calendar settings
-void Xios::configureServer(const std::string calendarType)
+void Xios::configureServer()
 {
     // Initialize XIOS Server process and store MPI communicator
     clientId = "client";
@@ -116,10 +120,10 @@ void Xios::configureServer(const std::string calendarType)
 
     // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
-    cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
-    cxios_duration timestep { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 };
-    cxios_set_calendar_wrapper_timestep(clientCalendar, timestep);
+    cxios_set_calendar_wrapper_type(clientCalendar, _calendarType.c_str(), _calendarType.length());
+    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(_timestep));
     cxios_create_calendar(clientCalendar);
+    cxios_update_calendar_timestep(clientCalendar);
 }
 
 /*!

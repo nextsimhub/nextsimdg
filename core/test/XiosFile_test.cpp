@@ -1,7 +1,7 @@
 /*!
  * @file    XiosFile_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 Nov 2024
+ * @date    03 Dec 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -32,15 +32,11 @@ MPI_TEST_CASE("TestXiosFile", 2)
     enableXios();
 
     // Initialize an Xios instance called xios_handler
-    Xios xios_handler;
+    Xios xios_handler("P0-0T01:30:00");
     REQUIRE(xios_handler.isInitialized());
     const size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);
     const size_t rank = xios_handler.getClientMPIRank();
-
-    // Set timestep as a minimum
-    Duration timestep("P0-0T01:30:00");
-    xios_handler.setCalendarTimestep(timestep);
 
     // Create a simple axis with two points
     xios_handler.createAxis("axis_A");
@@ -73,6 +69,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // Output frequency
     REQUIRE_THROWS_WITH(xios_handler.getFileOutputFreq(fileId),
         "Xios: Undefined output frequency for file 'output'");
+    Duration timestep = xios_handler.getCalendarTimestep();
     xios_handler.setFileOutputFreq(fileId, timestep);
     REQUIRE(xios_handler.getFileOutputFreq(fileId).seconds() == 1.5 * 60 * 60);
     // Split frequency

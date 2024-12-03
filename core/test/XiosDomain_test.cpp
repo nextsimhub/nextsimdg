@@ -1,7 +1,7 @@
 /*!
  * @file    XiosDomain_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 Nov 2024
+ * @date    03 Dec 2024
  * @brief   Tests for XIOS domains
  * @details
  * This test is designed to test domain functionality of the C++ interface
@@ -35,9 +35,6 @@ MPI_TEST_CASE("TestXiosDomain", 2)
     const size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);
     const size_t rank = xios_handler.getClientMPIRank();
-
-    // Set timestep as a minimum
-    xios_handler.setCalendarTimestep(Duration("P0-0T01:00:00"));
 
     // --- Tests for domain API
     const std::string domainId = "domain_A";

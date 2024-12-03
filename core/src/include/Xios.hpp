@@ -2,7 +2,7 @@
  * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    18 Nov 2024
+ * @date    03 Dec 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -31,7 +31,8 @@ void enableXios();
 
 class Xios : public Configured<Xios> {
 public:
-    Xios(const std::string contextId = "nextSIM-DG");
+    Xios(const std::string timestep = "P0-0T01:00:00", const std::string contextId = "nextSIM-DG",
+        const std::string calendarType = "Gregorian");
     ~Xios();
 
     /* Initialization and finalization */
@@ -42,7 +43,7 @@ public:
 
     /* Configuration */
     void configure() override;
-    void configureServer(const std::string calendarType = "Gregorian");
+    void configureServer();
 
     /* MPI decomposition */
     int getClientMPISize();
@@ -146,7 +147,9 @@ private:
     bool isEnabled;
 
     std::string clientId;
+    std::string _calendarType;
     std::string _contextId;
+    Duration _timestep;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
