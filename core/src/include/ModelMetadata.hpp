@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date 28 Nov 2024
+ * @date 03 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -102,10 +102,11 @@ public:
     int localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX, globalExtentY;
 #endif
 
-private:
 #ifdef USE_XIOS
-    Xios* xiosHandler;
+    Xios* xiosHandler; // TODO-JGW: Make private with setXiosHandler method
 #endif
+
+private:
     TimePoint m_time;
     ConfigMap m_config;
 

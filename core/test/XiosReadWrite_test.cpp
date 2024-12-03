@@ -252,8 +252,10 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     // Create ModelMetadata instance
     ModelMetadata metadata;
     metadata.setTime(pio->xiosHandler->getCalendarStart());
+    metadata.xiosHandler = pio->xiosHandler;
 
     // Simulate 4 iterations (timesteps)
+    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
     Duration timestep = pio->xiosHandler->getCalendarTimestep(); // FIXME: Undefined??
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep and verify it's updated in XIOS
@@ -320,6 +322,7 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
     // Create ModelMetadata instance
     ModelMetadata metadata;
     metadata.setTime(pio->xiosHandler->getCalendarStart());
+    metadata.xiosHandler = pio->xiosHandler;
 
     // Simulate 4 iterations (timesteps)
     pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
