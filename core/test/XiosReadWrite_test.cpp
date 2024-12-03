@@ -96,14 +96,7 @@ ModelState setupState(ParaGridIO* pio, int dim, bool read)
  */
 void readFile(ParaGridIO* pio, ModelState& state)
 {
-    REQUIRE(pio->xiosHandler->isInitialized());
     // TODO-JGW: Use getModelState
-
-    // Verify calendar step is starting from zero
-    REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
-
-    // Check the input file exists
-    REQUIRE(std::filesystem::exists("xios_test_input.nc"));
 
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
@@ -147,6 +140,13 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
     pio->xiosHandler = &xios_handler;
+
+    // Checks
+    REQUIRE(pio->xiosHandler->isInitialized());
+    REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
+    REQUIRE(std::filesystem::exists("xios_test_input.nc"));
+
+    // Create ModelState and extract ModelArray
     ModelState state = setupState(pio, 2, true);
     pio->setupXios(
         state, "xios_test_input.nc", true); // TODO-JGW: Eventually drop this (called in class)
@@ -182,6 +182,13 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
     pio->xiosHandler = &xios_handler;
+
+    // Checks
+    REQUIRE(pio->xiosHandler->isInitialized());
+    REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
+    REQUIRE(std::filesystem::exists("xios_test_input.nc"));
+
+    // Create ModelState and extract ModelArray
     ModelState state = setupState(pio, 3, true);
     pio->setupXios(
         state, "xios_test_input.nc", true); // TODO-JGW: Eventually drop this (called in class)
@@ -210,13 +217,6 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
  */
 void testFileWrite(ParaGridIO* pio, ModelState& state)
 {
-    REQUIRE(pio->xiosHandler->isInitialized());
-
-    // Verify calendar step is starting from zero
-    REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
-
-    // Check a file with the expected name doesn't exist yet
-    REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
     // Simulate 4 iterations (timesteps)
     ModelMetadata metadata;
@@ -260,6 +260,13 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
     pio->xiosHandler = &xios_handler;
+
+    // Checks
+    REQUIRE(pio->xiosHandler->isInitialized());
+    REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
+    REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
+
+    // Create ModelState and extract ModelArray
     ModelState state = setupState(pio, 2, false);
     pio->setupXios(
         state, "xios_test_output.nc", false); // TODO-JGW: Eventually drop this (called in class)
@@ -296,6 +303,13 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
     pio->xiosHandler = &xios_handler;
+
+    // Checks
+    REQUIRE(pio->xiosHandler->isInitialized());
+    REQUIRE(pio->xiosHandler->getCalendarStep() == 0);
+    REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
+
+    // Create ModelState and extract ModelArray
     ModelState state = setupState(pio, 3, false);
     pio->setupXios(
         state, "xios_test_output.nc", false); // TODO-JGW: Eventually drop this (called in class)
