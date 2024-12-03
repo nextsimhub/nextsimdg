@@ -1,7 +1,7 @@
 /*!
  * @file    XiosReadWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    28 Nov 2024
+ * @date    03 Dec 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the read and write methods of the C++
@@ -57,7 +57,6 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
     // Calendar setup
     pio->xiosHandler->setCalendarOrigin(TimePoint("2020-01-23T00:08:15Z"));
     pio->xiosHandler->setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
-    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
 
     // Set ModelArray dimensions corresponding to a 4x2 horizontal domain with a partition halving
     // the x-extent and a vertical axis with 2 points
@@ -151,7 +150,7 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
 {
     // TODO: Create XIOS handler along with ParaGridIO instance
     const std::string contextId = "read_2D";
-    Xios xios_handler(contextId);
+    Xios xios_handler("P0-0T01:30:00", contextId);
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
@@ -184,7 +183,7 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
 {
     // TODO: Create XIOS handler along with ParaGridIO instance
     const std::string contextId = "read_3D";
-    Xios xios_handler(contextId);
+    Xios xios_handler("P0-0T01:30:00", contextId);
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
@@ -260,7 +259,7 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     // TODO: Create XIOS handler along with ParaGridIO instance
     const std::string contextId = "write_2D";
     const std::string fieldId = "field_2D";
-    Xios xios_handler(contextId);
+    Xios xios_handler("P0-0T01:30:00", contextId);
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
@@ -292,9 +291,9 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
 MPI_TEST_CASE("TestXiosWrite_3D", 2)
 {
     // TODO: Create XIOS handler along with ParaGridIO instance
-    const std::string contextId = "write_3D";
+    const std::string contextId = "write_3D"
     const std::string fieldId = "field_3D";
-    Xios xios_handler(contextId);
+    Xios xios_handler("P0-0T01:30:00", contextId);
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
