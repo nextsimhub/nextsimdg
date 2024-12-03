@@ -291,7 +291,7 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
 MPI_TEST_CASE("TestXiosWrite_3D", 2)
 {
     // TODO: Create XIOS handler along with ParaGridIO instance
-    const std::string contextId = "write_3D"
+    const std::string contextId = "write_3D";
     const std::string fieldId = "field_3D";
     Xios xios_handler("P0-0T01:30:00", contextId);
 
