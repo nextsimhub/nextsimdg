@@ -33,16 +33,16 @@ std::string formatId(const std::string label, const int dim)
 }
 
 /*!
- * Set up the XIOS handler class for testing file reading and writing.
+ * Set up a ModelState instance for testing file reading and writing.
  *
  * The function assumes two MPI ranks.
  *
- * @param pio Pointer to a ParaGridIO instance whose associated Xios handler class we will setup
+ * @param pio Pointer to a ParaGridIO instance with an associated Xios handler class
  * @param dim The number of spatial dimensions
  * @param read If true, set up for file reading test, otherwise for file writing test
  * @return ModelState instance containing fields to be read/written to/from file
  */
-ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
+ModelState setupState(ParaGridIO* pio, int dim, bool read)
 {
     if ((dim != 2) && (dim != 3)) {
         throw std::invalid_argument("Test only implemented for 2D and 3D cases");
@@ -67,7 +67,7 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
         ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
     }
 
-    // TODO-JGW: setupXios should be called from dumpModelState or getModelState
+    // Setup ModelState with a single field as specified above
     const std::string fieldId = formatId("field", dim);
     ModelState state;
     if (dim == 2) {
@@ -89,9 +89,9 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
 }
 
 /*!
- * Test file reading for the Xios handler configuration in setupXiosHandler.
+ * Test file reading for the Xios handler configuration in setupState.
  *
- * @param pio Pointer to ParaGridIO instance with Xios handler configured using setupXiosHandler
+ * @param pio Pointer to ParaGridIO instance with Xios handler configured using setupState
  * @param state Reference to ModelState instance containing fields to be read from file
  */
 void readFile(ParaGridIO* pio, ModelState& state)
@@ -147,7 +147,7 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
     pio->xiosHandler = &xios_handler;
-    ModelState state = setupXiosHandler(pio, 2, true);
+    ModelState state = setupState(pio, 2, true);
     pio->setupXios(
         state, "xios_test_input.nc", true); // TODO-JGW: Eventually drop this (called in class)
 
@@ -182,7 +182,7 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
     pio->xiosHandler = &xios_handler;
-    ModelState state = setupXiosHandler(pio, 3, true);
+    ModelState state = setupState(pio, 3, true);
     pio->setupXios(
         state, "xios_test_input.nc", true); // TODO-JGW: Eventually drop this (called in class)
 
@@ -203,9 +203,9 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
 }
 
 /*!
- * Test file writing for the Xios handler configuration in setupXiosHandler.
+ * Test file writing for the Xios handler configuration in setupState.
  *
- * @param pio Pointer to ParaGridIO instance with Xios handler configured using setupXiosHandler
+ * @param pio Pointer to ParaGridIO instance with Xios handler configured using setupState
  * @param state Reference to ModelState instance containing fields to be written to file
  */
 void testFileWrite(ParaGridIO* pio, ModelState& state)
@@ -260,7 +260,7 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
     pio->xiosHandler = &xios_handler;
-    ModelState state = setupXiosHandler(pio, 2, false);
+    ModelState state = setupState(pio, 2, false);
     pio->setupXios(
         state, "xios_test_output.nc", false); // TODO-JGW: Eventually drop this (called in class)
     ModelArray field_2D = state.data[fieldId];
@@ -296,7 +296,7 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
     pio->xiosHandler = &xios_handler;
-    ModelState state = setupXiosHandler(pio, 3, false);
+    ModelState state = setupState(pio, 3, false);
     pio->setupXios(
         state, "xios_test_output.nc", false); // TODO-JGW: Eventually drop this (called in class)
     ModelArray field_3D = state.data[fieldId];
