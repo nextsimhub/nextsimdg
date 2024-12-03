@@ -103,10 +103,18 @@ public:
 #endif
 
 #ifdef USE_XIOS
-    Xios* xiosHandler; // TODO-JGW: Make private with setXiosHandler method
+    /*!
+     * @brief Set pointer to Xios handler instance.
+     *
+     * @param xiosPtr pointer to set
+     */
+    void setXiosHandler(Xios* xiosPtr) { xiosHandler = xiosPtr; }
 #endif
 
 private:
+#ifdef USE_XIOS
+    Xios* xiosHandler;
+#endif
     TimePoint m_time;
     ConfigMap m_config;
 

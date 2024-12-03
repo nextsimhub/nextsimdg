@@ -227,7 +227,7 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
-    pio->xiosHandler = &xios_handler;
+    pio->setXiosHandler(&xios_handler);
 
     // Checks
     REQUIRE(pio->xiosHandler->isInitialized());
@@ -252,11 +252,13 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     // Create ModelMetadata instance
     ModelMetadata metadata;
     metadata.setTime(pio->xiosHandler->getCalendarStart());
-    metadata.xiosHandler = pio->xiosHandler;
+    metadata.setXiosHandler(pio->xiosHandler);
+
+    // FIXME: Why is timestep undefined??
+    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
+    Duration timestep = pio->xiosHandler->getCalendarTimestep();
 
     // Simulate 4 iterations (timesteps)
-    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
-    Duration timestep = pio->xiosHandler->getCalendarTimestep(); // FIXME: Undefined??
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
@@ -294,7 +296,7 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
-    pio->xiosHandler = &xios_handler;
+    pio->setXiosHandler(&xios_handler);
 
     // Checks
     REQUIRE(pio->xiosHandler->isInitialized());
@@ -322,11 +324,13 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
     // Create ModelMetadata instance
     ModelMetadata metadata;
     metadata.setTime(pio->xiosHandler->getCalendarStart());
-    metadata.xiosHandler = pio->xiosHandler;
+    metadata.setXiosHandler(pio->xiosHandler);
+
+    // FIXME: Why is timestep undefined??
+    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
+    Duration timestep = pio->xiosHandler->getCalendarTimestep();
 
     // Simulate 4 iterations (timesteps)
-    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
-    Duration timestep = pio->xiosHandler->getCalendarTimestep(); // FIXME: Undefined??
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);

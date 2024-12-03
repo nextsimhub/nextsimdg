@@ -65,11 +65,17 @@ public:
     static ModelState readForcingTimeStatic(
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
-    // XIOS handler object // TODO-JGW: Make private with setXiosHandler method
-    Xios* xiosHandler;
-
     // TODO-JGW: Make this method private
     void setupXios(const ModelState& state, const std::string& filePath, const bool read);
+
+    // XIOS handler object
+    Xios* xiosHandler;
+    /*!
+     * @brief Set pointer to Xios handler instance.
+     *
+     * @param xiosPtr pointer to set
+     */
+    void setXiosHandler(Xios* xiosPtr) { xiosHandler = xiosPtr; }
 
 private:
     // void setupXios(const ModelState& state, const ModelMetadata& meta, const std::string&
