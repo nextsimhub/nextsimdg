@@ -214,13 +214,11 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
  *
  * @param pio Pointer to ParaGridIO instance with Xios handler configured using setupState
  * @param state Reference to ModelState instance containing fields to be written to file
+ * @param metadata Reference to ModelMetadata instance containing time
  */
-void testFileWrite(ParaGridIO* pio, ModelState& state)
+void testFileWrite(ParaGridIO* pio, ModelState& state, ModelMetadata& metadata)
 {
-
     // Simulate 4 iterations (timesteps)
-    ModelMetadata metadata;
-    metadata.setTime(pio->xiosHandler->getCalendarStart());
     Duration timestep = pio->xiosHandler->getCalendarTimestep(); // FIXME: Undefined??
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep and verify it's updated in XIOS
@@ -281,7 +279,11 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
         }
     }
 
-    testFileWrite(pio, state);
+    // Create ModelMetadata instance
+    ModelMetadata metadata;
+    metadata.setTime(pio->xiosHandler->getCalendarStart());
+
+    testFileWrite(pio, state, metadata);
 }
 
 /*!
@@ -327,7 +329,11 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
         }
     }
 
-    testFileWrite(pio, state);
+    // Create ModelMetadata instance
+    ModelMetadata metadata;
+    metadata.setTime(pio->xiosHandler->getCalendarStart());
+
+    testFileWrite(pio, state, metadata);
 }
 
 // TODO: Consider adding 4D test cases
