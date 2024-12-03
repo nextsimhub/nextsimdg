@@ -124,6 +124,10 @@ void Xios::configureServer()
     cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(_timestep));
     cxios_create_calendar(clientCalendar);
     cxios_update_calendar_timestep(clientCalendar);
+
+    // Set default calendar origin and start // TODO: Pick something sensible
+    setCalendarOrigin(TimePoint("2020-01-23T00:08:15Z"));
+    setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
 }
 
 /*!

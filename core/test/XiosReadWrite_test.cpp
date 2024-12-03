@@ -54,9 +54,6 @@ ModelState setupXiosHandler(ParaGridIO* pio, int dim, bool read)
     REQUIRE(size == 2);
     const size_t rank = pio->xiosHandler->getClientMPIRank();
 
-    // Calendar setup
-    pio->xiosHandler->setCalendarOrigin(TimePoint("2020-01-23T00:08:15Z"));
-    pio->xiosHandler->setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
 
     // Set ModelArray dimensions corresponding to a 4x2 horizontal domain with a partition halving
     // the x-extent and a vertical axis with 2 points
