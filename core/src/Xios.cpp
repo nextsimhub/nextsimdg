@@ -261,7 +261,7 @@ void Xios::setCalendarStart(const TimePoint start)
 void Xios::setCalendarTimestep(const Duration timestep)
 {
     if (cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
-        throw std::runtime_error("Xios: Calendar timestep has already been defined.");
+        Logged::warning("Xios: Calendar timestep already set");
     }
     cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
     cxios_update_calendar_timestep(clientCalendar);
