@@ -80,16 +80,24 @@ void readFile(ParaGridIO* pio, ModelState& state)
 {
     // TODO-JGW: Use getModelState
 
+    // Create ModelMetadata instance
+    ModelMetadata metadata;
+    metadata.setTime(pio->xiosHandler->getCalendarStart());
+    metadata.setXiosHandler(pio->xiosHandler);
+
+    // FIXME: Why is timestep undefined??
+    pio->xiosHandler->setCalendarTimestep(Duration("P0-0T01:30:00"));
+    Duration timestep = pio->xiosHandler->getCalendarTimestep();
+
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
-        // Update the current timestep
-        pio->xiosHandler->updateCalendar(ts);
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
         // Receive data from XIOS that is read from disk
         for (auto& entry : state.data) {
             pio->xiosHandler->read(entry.first, entry.second);
         }
-        // Verify timestep
-        REQUIRE(pio->xiosHandler->getCalendarStep() == ts);
     }
 }
 
