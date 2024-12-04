@@ -1,7 +1,7 @@
 /*!
  * @file    ParaGridIO_Xios.cpp
  *
- * @date    28 Nov 2024
+ * @date    04 Dec 2024
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 #ifdef USE_XIOS
@@ -39,6 +39,9 @@ void ParaGridIO::setupXios(const ModelState& state, const std::string& filePath,
 {
     if (_xiosSetup) {
         return;
+    }
+    if (!xiosHandler->isInitialized()) {
+        throw std::runtime_error("ParaGridIO_Xios: XIOS handler uninitialized");
     }
 
     // Setup XIOS Domain attribute with special domainId 'xy_domain' that creates grid_2D along
@@ -121,10 +124,11 @@ void ParaGridIO::setupXios(const ModelState& state, const std::string& filePath,
  */
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
-    ModelState state;
+    if (!_xiosSetup) {
+        throw std::runtime_error("ParaGridIO_Xios: XIOS handler has not been set up");
+    }
 
-    // Setup the XIOS context if it hasn't been already
-    setupXios(state, filePath, true);
+    ModelState state;
 
     // if (!std::filesystem::exists(filePath)) {
     //     throw std::invalid_argument("ParaGridIO_Xios: File " + filePath + " does not exist");
@@ -240,8 +244,9 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
-    // Setup the XIOS context if it hasn't been already
-    setupXios(state, filePath, false);
+    if (!_xiosSetup) {
+        throw std::runtime_error("Xios has not been set up");
+    }
 
     // std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
     //     sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName,

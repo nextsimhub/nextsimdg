@@ -1,7 +1,7 @@
 /*!
  * @file    XiosReadWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    03 Dec 2024
+ * @date    04 Dec 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the read and write methods of the C++
@@ -47,12 +47,6 @@ ModelState setupState(ParaGridIO* pio, int dim, bool read)
     if ((dim != 2) && (dim != 3)) {
         throw std::invalid_argument("Test only implemented for 2D and 3D cases");
     }
-
-    // Check configuration of Xios handler
-    REQUIRE(pio->xiosHandler->isInitialized());
-    const size_t size = pio->xiosHandler->getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = pio->xiosHandler->getClientMPIRank();
 
     // Set ModelArray dimensions corresponding to a 4x2 horizontal domain with a partition halving
     // the x-extent and a vertical axis with 2 points
@@ -148,8 +142,9 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
 
     // Create ModelState and extract ModelArray
     ModelState state = setupState(pio, 2, true);
-    pio->setupXios(
-        state, "xios_test_input.nc", true); // TODO-JGW: Eventually drop this (called in class)
+
+    // Setup XIOS handler class
+    pio->setupXios(state, "xios_test_input.nc", true);
 
     // Verify fields are read in correctly
     readFile(pio, state);
@@ -190,8 +185,9 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
 
     // Create ModelState and extract ModelArray
     ModelState state = setupState(pio, 3, true);
-    pio->setupXios(
-        state, "xios_test_input.nc", true); // TODO-JGW: Eventually drop this (called in class)
+
+    // Setup XIOS handler class
+    pio->setupXios(state, "xios_test_input.nc", true);
 
     // Verify fields are read in correctly
     readFile(pio, state);
@@ -236,9 +232,10 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
 
     // Create ModelState and extract ModelArray
     ModelState state = setupState(pio, 2, false);
-    pio->setupXios(
-        state, "xios_test_output.nc", false); // TODO-JGW: Eventually drop this (called in class)
     ModelArray field_2D = state.data[fieldId];
+
+    // Setup XIOS handler class
+    pio->setupXios(state, "xios_test_output.nc", false);
 
     // Create some fake data to test writing methods
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
@@ -305,9 +302,10 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
 
     // Create ModelState and extract ModelArray
     ModelState state = setupState(pio, 3, false);
-    pio->setupXios(
-        state, "xios_test_output.nc", false); // TODO-JGW: Eventually drop this (called in class)
     ModelArray field_3D = state.data[fieldId];
+
+    // Setup XIOS handler class
+    pio->setupXios(state, "xios_test_output.nc", false);
 
     // Create some fake data to test writing methods
     const size_t nx = xios_handler.getDomainLocalXSize("xy_domain");
