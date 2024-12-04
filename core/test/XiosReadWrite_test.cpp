@@ -21,18 +21,6 @@
 namespace Nextsim {
 
 /*!
- * Create a formatted attribute ID.
- *
- * @param label Label to use for the attribute format
- * @param dim Spatial dimensions
- * @return "<label>_<dim>D"
- */
-std::string formatId(const std::string label, const int dim)
-{
-    return (boost::format("%1$s_%2$1dD") % label % dim).str();
-}
-
-/*!
  * Set up a ModelState instance for testing file reading and writing.
  *
  * The function assumes two MPI ranks.
@@ -40,9 +28,10 @@ std::string formatId(const std::string label, const int dim)
  * @param pio Pointer to a ParaGridIO instance with an associated Xios handler class
  * @param dim The number of spatial dimensions
  * @param read If true, set up for file reading test, otherwise for file writing test
+ * @param fieldId ID of the field to be constructed (according to both nextSIM-DG and XIOS)
  * @return ModelState instance containing fields to be read/written to/from file
  */
-ModelState setupState(ParaGridIO* pio, int dim, bool read)
+ModelState setupState(ParaGridIO* pio, int dim, bool read, const std::string fieldId)
 {
     if ((dim != 2) && (dim != 3)) {
         throw std::invalid_argument("Test only implemented for 2D and 3D cases");
@@ -62,7 +51,6 @@ ModelState setupState(ParaGridIO* pio, int dim, bool read)
     }
 
     // Setup ModelState with a single field as specified above
-    const std::string fieldId = formatId("field", dim);
     ModelState state;
     if (dim == 2) {
         HField field_2D(ModelArray::Type::H);
@@ -126,6 +114,7 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
 {
     // TODO: Create XIOS handler along with ParaGridIO instance
     const std::string contextId = "read_2D";
+    const std::string fieldId = "field_2D";
     Xios xios_handler("P0-0T01:30:00", contextId);
 
     // Create ParametricGrid and ParaGridIO instances
@@ -141,7 +130,7 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
     REQUIRE(std::filesystem::exists("xios_test_input.nc"));
 
     // Create ModelState and extract ModelArray
-    ModelState state = setupState(pio, 2, true);
+    ModelState state = setupState(pio, 2, true, fieldId);
 
     // Setup XIOS handler class
     pio->setupXios(state, "xios_test_input.nc", true);
@@ -169,6 +158,7 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
 {
     // TODO: Create XIOS handler along with ParaGridIO instance
     const std::string contextId = "read_3D";
+    const std::string fieldId = "field_3D";
     Xios xios_handler("P0-0T01:30:00", contextId);
 
     // Create ParametricGrid and ParaGridIO instances
@@ -184,7 +174,7 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
     REQUIRE(std::filesystem::exists("xios_test_input.nc"));
 
     // Create ModelState and extract ModelArray
-    ModelState state = setupState(pio, 3, true);
+    ModelState state = setupState(pio, 3, true, fieldId);
 
     // Setup XIOS handler class
     pio->setupXios(state, "xios_test_input.nc", true);
@@ -231,7 +221,7 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
     // Create ModelState and extract ModelArray
-    ModelState state = setupState(pio, 2, false);
+    ModelState state = setupState(pio, 2, false, fieldId);
     ModelArray field_2D = state.data[fieldId];
 
     // Setup XIOS handler class
@@ -301,7 +291,7 @@ MPI_TEST_CASE("TestXiosWrite_3D", 2)
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
     // Create ModelState and extract ModelArray
-    ModelState state = setupState(pio, 3, false);
+    ModelState state = setupState(pio, 3, false, fieldId);
     ModelArray field_3D = state.data[fieldId];
 
     // Setup XIOS handler class
