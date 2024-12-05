@@ -175,7 +175,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                     + dimKey);
             }
             ModelArray::Type type = dimensionKeys.at(dimKey);
-            state.data[varName] = ModelArray(type);
+            state.data.emplace(varName, type);
             ModelArray& data = state.data.at(varName);
             data.resize();
 
