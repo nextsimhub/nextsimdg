@@ -37,10 +37,9 @@ public:
      * @param comm MPI communicator
      */
     ModelMetadata(std::string partitionFile, MPI_Comm comm);
-
-    // We need to force default constructor also
-    ModelMetadata() = default;
 #endif
+
+    ModelMetadata();
 
     /*!
      * @brief Sets the initial or current model time

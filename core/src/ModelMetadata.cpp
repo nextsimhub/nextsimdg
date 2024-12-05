@@ -20,6 +20,16 @@
 
 namespace Nextsim {
 
+ModelMetadata::ModelMetadata()
+    : m_vertexCoords(ModelArray::Type::VERTEX)
+    , m_coord1(ModelArray::Type::H)
+    , m_coord2(ModelArray::Type::H)
+    , m_gridAzimuth(ModelArray::Type::H)
+    , isCartesian(false)
+    , hasParameters(false)
+    {
+    }
+
 const std::string& ModelMetadata::structureName() const
 {
     return Module::getImplementation<IStructure>().structureType();
