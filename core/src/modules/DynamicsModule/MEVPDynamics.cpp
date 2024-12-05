@@ -68,7 +68,7 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 
     bool isSpherical = checkSpherical(ms);
 
-    ModelArray coords = ms.at(coordsName);
+    ModelArray coords(ms.at(coordsName));
     if (isSpherical) {
         coords *= radians;
     }
