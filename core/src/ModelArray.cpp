@@ -14,6 +14,8 @@
 #include <string>
 #include <utility>
 
+#include <iostream> // FIXME remove me
+
 namespace Nextsim {
 
 ModelArray::SizeMap ModelArray::m_sz;
@@ -35,7 +37,8 @@ ModelArray::ModelArray(const ModelArray& orig)
 
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
-    type = orig.type;
+    if (type == orig.type)
+        resize();
     setData(orig.m_data);
 
     return *this;
@@ -168,6 +171,16 @@ ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
     return *this;
 }
 
+template<ModelArray::Type SourceType, ModelArray::Type TargetType>
+static void copyData(const ModelArray& source, ModelArray& target)
+{
+    if (SourceType == TargetType) {
+        target.setData(source.data());
+    } else {
+        throw std::length_error("ModelArray::copyData: Size mismatch when copying ModelArray::DataType arrays.");
+    }
+}
+
 void ModelArray::setData(double value)
 {
     resize();
@@ -183,7 +196,7 @@ void ModelArray::setData(const double* pData)
 void ModelArray::setData(const DataType& from)
 {
     if (m_data.size() != from.size())
-        throw std::length_error("Size mismatch when copying ModelArray::DataType arrays.");
+        throw std::length_error("ModelArray::setData(const DataType&): Size mismatch when copying ModelArray::DataType arrays.");
     m_data = from;
 }
 

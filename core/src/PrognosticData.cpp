@@ -62,13 +62,25 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
         noLandMask();
     }
 
-    m_thick = ms.at("hice");
-    m_conc = ms.at("cice");
+    if (ms.at(hiceName).getType() == ModelArray::Type::DG) {
+        ModelArray::transformData<ModelArray::Type::DG, ModelArray::Type::H>(ms.at(hiceName), m_thick);
+    } else {
+        m_thick = ms.at(hiceName);
+    }
+    if (ms.at(ciceName).getType() == ModelArray::Type::DG) {
+        ModelArray::transformData<ModelArray::Type::DG, ModelArray::Type::H>(ms.at(ciceName), m_conc);
+    } else {
+        m_conc = ms.at(ciceName);
+    }
     m_tice = ms.at("tice");
     m_snow = ms.at("hsnow");
     // Damage is an optional field, and defaults to 1, if absent
     if (ms.count(damageName) > 0) {
-        m_damage = ms.at(damageName);
+        if (ms.at(damageName).getType() == ModelArray::Type::DG) {
+            ModelArray::transformData<ModelArray::Type::DG, ModelArray::Type::H>(ms.at(damageName), m_damage);
+        } else {
+            m_damage = ms.at(damageName);
+        }
     } else {
         m_damage.resize();
         m_damage = 1.;

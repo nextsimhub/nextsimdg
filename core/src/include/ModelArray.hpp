@@ -50,6 +50,16 @@ public:
     enum class Type;
     enum class Dimension;
 
+    /*!
+     * Transforms data between two ModelArray types. Specializations can be added to ModelArrayDetails.
+     */
+    template <ModelArray::Type SourceType, ModelArray::Type SinkType>
+    static void transformData(const ModelArray& source, ModelArray& sink)
+    {
+        // The unspecialized version just calls the setData function with a DataType argument
+        sink.setData(source.data());
+    }
+
 #include "include/ModelArrayDetails.hpp"
 
     static const int N_DEFINED_DIMENSIONS = static_cast<int>(Dimension::COUNT);
@@ -636,6 +646,11 @@ ModelArray operator+(const double&, const ModelArray&);
 ModelArray operator-(const double&, const ModelArray&);
 ModelArray operator*(const double&, const ModelArray&);
 ModelArray operator/(const double&, const ModelArray&);
+
+inline std::ostream& operator<<(std::ostream& os, const ModelArray::Type& type)
+{
+    return os << ModelArray::typeNames.at(type);
+}
 } /* namespace Nextsim */
 
 #endif /* MODELARRAY_HPP */

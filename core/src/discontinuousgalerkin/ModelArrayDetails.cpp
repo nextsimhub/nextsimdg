@@ -7,6 +7,8 @@
 
 #include "include/ModelArray.hpp"
 
+#include <iostream>
+
 #ifndef DGCOMP
 #define DGCOMP 3
 #endif
@@ -134,5 +136,11 @@ const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap
     { Type::DGSTRESS, Dimension::DGSTRESS },
     { Type::VERTEX, Dimension::NCOORDS },
 };
+
+template <>
+void ModelArray::transformData<ModelArray::Type::DG, ModelArray::Type::H>(const ModelArray& source, ModelArray& sink)
+{
+    sink.m_data = source.m_data.col(0);
+}
 
 }

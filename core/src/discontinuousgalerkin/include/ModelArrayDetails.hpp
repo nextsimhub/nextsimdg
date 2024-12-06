@@ -38,4 +38,7 @@ static ModelArray CGField() { return ModelArray(Type::CG); }
 
 const static size_t nCoords;
 
+template <>
+void transformData<ModelArray::Type::DG, ModelArray::Type::H>(const ModelArray& source, ModelArray& sink);
+
 #endif /* MODELARRAYDETAILS_HPP */
