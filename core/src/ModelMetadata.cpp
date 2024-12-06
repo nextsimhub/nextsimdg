@@ -100,17 +100,19 @@ const ModelState& ModelMetadata::extractCoordinates(const ModelState& state)
 ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
 {
     if (hasParameters) {
-        state.data[coordsName] = m_vertexCoords;
-        state.data[gridAzimuthName] = m_gridAzimuth;
+        state.data.emplace(coordsName, m_vertexCoords);
+        state.data.emplace(gridAzimuthName, m_gridAzimuth);
     }
 
+    std::pair<std::string, std::string> coordNames;
     if (isCartesian) {
-        state.data[xName] = m_coord1;
-        state.data[yName] = m_coord2;
+        coordNames = {xName, yName};
     } else {
-        state.data[longitudeName] = m_coord1;
-        state.data[latitudeName] = m_coord2;
+        coordNames = {longitudeName, latitudeName};
     }
+    state.data.emplace(coordNames.first, m_coord1);
+    state.data.emplace(coordNames.second, m_coord2);
+
     return state;
 }
 } /* namespace Nextsim */
