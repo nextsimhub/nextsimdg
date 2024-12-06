@@ -107,7 +107,7 @@ ModelArray ModelComponent::mask(const ModelArray& data)
         break;
     }
     case (ModelArray::Type::Z): {
-        ModelArray copy = ModelArray::ZField();
+        ModelArray copy(ModelArray::Type::Z);
         copy = MissingData::value();
         size_t nZ = data.dimensions()[data.nDimensions() - 1];
         for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
