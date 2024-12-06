@@ -86,7 +86,7 @@ protected:
     ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
     ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
-    HField tice;
+    ZField tice;
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
