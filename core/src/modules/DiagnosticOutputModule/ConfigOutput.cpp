@@ -172,9 +172,9 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
         for (auto entry : storeData) {
             if (entry.second && entry.second->trueSize()) {
                 if (reverseExternalNames.count(entry.first)) {
-                    state.data[reverseExternalNames.at(entry.first)] = *entry.second;
+                    state.data.emplace(reverseExternalNames.at(entry.first), *entry.second);
                 } else {
-                    state.data[entry.first] = *entry.second;
+                    state.data.emplace(entry.first, *entry.second);
                 }
             }
         }
@@ -183,7 +183,7 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
         for (const auto& fieldExtName : fieldsForOutput) {
             if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
                 && storeData.at(externalNames.at(fieldExtName))) {
-                state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
+                state.data.emplace(fieldExtName, *storeData.at(externalNames.at(fieldExtName)));
             }
         }
     }
