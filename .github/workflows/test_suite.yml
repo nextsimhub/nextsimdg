@@ -50,9 +50,43 @@ jobs:
         cd test
         python3 ThermoIntegration_test.py
         ./run_test_jan2010_integration_test.sh python3
-        cd -
 
-  test-ubuntu-mpi:
+  test-ubuntu-mpi-noxios:
+
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build and compile with MPI but not XIOS
+      run: |
+        . /opt/spack-environment/activate.sh
+        mkdir -p build && cd build
+        cmake -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
+        make -j 4
+
+    - name: run MPI tests
+      run: |
+        . /opt/spack-environment/activate.sh
+        apt update
+        apt install -y wget
+        cd build
+        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
+        for component in core physics dynamics
+        do
+            cd $component/test
+            for file in $(find test* -maxdepth 0 -type f)
+            do
+              echo $file
+              nprocs=$(echo $file | sed -r "s/.*MPI([0-9]+)/\1/")
+              mpirun --allow-run-as-root --oversubscribe -n $nprocs ./$file
+            done
+            cd -
+        done
+
+  test-ubuntu-mpi-xios:
 
     runs-on: ubuntu-22.04
     container:
@@ -86,7 +120,6 @@ jobs:
             done
             cd -
         done
-        cd -
 
   test-mac-serial:
 
@@ -138,4 +171,3 @@ jobs:
         cd test
         python ThermoIntegration_test.py
         ./run_test_jan2010_integration_test.sh python
-        cd -
