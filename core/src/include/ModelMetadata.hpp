@@ -130,7 +130,7 @@ private:
     const std::string bboxName = "bounding_boxes";
 #endif
 #ifdef USE_XIOS
-    Xios* xiosHandler;
+    Xios* xiosHandler = nullptr;
 #endif
 };
 
