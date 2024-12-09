@@ -208,6 +208,10 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
         {} };
 
     ModelMetadata metadata;
+#ifdef USE_XIOS
+    Xios xiosHandler("test1");
+    metadata.setXiosHandler(&xiosHandler);
+#endif
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState
@@ -401,6 +405,10 @@ TEST_CASE("Write a diagnostic ParaGrid file")
         {} };
 
     ModelMetadata metadata;
+#ifdef USE_XIOS
+    Xios xiosHandler("test2");
+    metadata.setXiosHandler(&xiosHandler);
+#endif
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState
@@ -537,6 +545,10 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
 #ifdef USE_MPI
     ModelMetadata metadataIn(partitionFilename, test_comm);
+#ifdef USE_XIOS
+    Xios xiosHandler("test4");
+    metadataIn.setXiosHandler(&xiosHandler);
+#endif
     metadataIn.setTime(TimePoint(dateString));
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadataIn));
 #else
@@ -588,6 +600,10 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 
 #ifdef USE_MPI
     ModelMetadata metadata;
+#ifdef USE_XIOS
+    Xios xiosHandler("test5");
+    metadata.setXiosHandler(&xiosHandler);
+#endif
     metadata.setMpiMetadata(test_comm);
     if (metadata.mpiMyRank == 0) {
         metadata.localCornerX = 0;

@@ -84,6 +84,10 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
         {} };
 
     ModelMetadata metadata;
+#ifdef USE_XIOS
+    Xios xiosHandler;
+    metadata.setXiosHandler(&xiosHandler);
+#endif
     metadata.setTime(TimePoint(date_string));
     // Use x & y coordinates
     ModelArray x(ModelArray::Type::H);

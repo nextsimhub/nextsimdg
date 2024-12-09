@@ -98,8 +98,11 @@ TEST_CASE("Test periodic output")
     ModelComponent::getStore().registerArray(Protected::T_ICE, &tice);
 
     ModelMetadata meta;
+#ifdef USE_XIOS
+    Xios xiosHandler;
+    meta.setXiosHandler(&xiosHandler);
+#endif
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
-
 #ifdef USE_MPI
     meta.setMpiMetadata(test_comm);
 #endif
