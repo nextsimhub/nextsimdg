@@ -1,7 +1,7 @@
 /*!
  * @file    XiosCalendar_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    04 Dec 2024
+ * @date    10 Dec 2024
  * @brief   Tests for XIOS calandars
  * @details
  * This test is designed to test calendar functionality of the C++ interface
@@ -64,7 +64,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xios_handler.getCurrentDate(false) == "2023-03-17 17:11:00");
 
     // -- Tests that the timestep is set up correctly
-    xios_handler.updateCalendar(1);
+    xios_handler.setCalendarStep(1);
     REQUIRE(xios_handler.getCurrentDate() == "2023-03-17T18:41:00Z");
 
     xios_handler.context_finalize();

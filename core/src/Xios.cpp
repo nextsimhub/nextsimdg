@@ -272,6 +272,18 @@ void Xios::setCalendarTimestep(const Duration timestep)
 }
 
 /*!
+ * Update XIOS calendar iteration/step number to some value
+ *
+ * @param Step number to update to
+ */
+void Xios::setCalendarStep(const int stepNumber) { cxios_update_calendar(stepNumber); }
+
+/*!
+ * Increment XIOS' calendar iteration/step number by one.
+ */
+void Xios::incrementCalendar() { setCalendarStep(getCalendarStep() + 1); }
+
+/*!
  * Get calendar type
  *
  * @return calendar type
@@ -346,18 +358,6 @@ std::string Xios::getCurrentDate(const bool isoFormat)
     cxios_get_current_date(&xiosDate);
     return convertXiosDatetimeToString(xiosDate, isoFormat);
 }
-
-/*!
- * Update XIOS calendar iteration/step number
- *
- * @param current step number
- */
-void Xios::updateCalendar(const int stepNumber) { cxios_update_calendar(stepNumber); }
-
-/*!
- * Increment XIOS' calendar iteration/step number by one.
- */
-void Xios::incrementCalendar() { updateCalendar(getCalendarStep() + 1); }
 
 /*!
  * Get the axis_definition group

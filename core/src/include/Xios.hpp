@@ -55,6 +55,7 @@ public:
     void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
     void setCalendarTimestep(const Duration timestep);
+    void setCalendarStep(const int stepNumber);
     void incrementCalendar();
     std::string getCalendarType();
     TimePoint getCalendarOrigin();
@@ -62,7 +63,6 @@ public:
     Duration getCalendarTimestep();
     int getCalendarStep();
     std::string getCurrentDate(const bool isoFormat = true);
-    void updateCalendar(const int stepNumber);
 
     /* Axis */
     void createAxis(const std::string axisId);

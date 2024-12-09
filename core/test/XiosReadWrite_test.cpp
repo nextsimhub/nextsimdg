@@ -1,7 +1,7 @@
 /*!
  * @file    XiosReadWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    04 Dec 2024
+ * @date    10 Dec 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the read and write methods of the C++
@@ -148,7 +148,7 @@ void readFile(Xios* xios_handler, HField& field_A, const std::string fieldId)
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep
-        xios_handler->updateCalendar(ts);
+        xios_handler->setCalendarStep(ts);
         // Receive data from XIOS that is read from disk
         xios_handler->read(fieldId, field_A);
         // Verify timestep
@@ -239,7 +239,7 @@ void testFileWrite(Xios* xios_handler, HField& field_A, const std::string fieldI
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep
-        xios_handler->updateCalendar(ts);
+        xios_handler->setCalendarStep(ts);
         // Send data to XIOS to be written to disk
         xios_handler->write(fieldId, field_A);
         // Verify timestep
