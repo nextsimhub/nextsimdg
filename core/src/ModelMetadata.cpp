@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 21 August 2024
+ * @date 09 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -103,4 +103,13 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
     }
     return state;
 }
+
+void ModelMetadata::incrementTime(const Duration& step)
+{
+    m_time += step;
+#ifdef USE_XIOS
+    xiosHandler->incrementCalendar();
+#endif
+}
+
 } /* namespace Nextsim */

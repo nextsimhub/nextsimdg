@@ -355,6 +355,11 @@ std::string Xios::getCurrentDate(const bool isoFormat)
 void Xios::updateCalendar(const int stepNumber) { cxios_update_calendar(stepNumber); }
 
 /*!
+ * Increment XIOS' calendar iteration/step number by one.
+ */
+void Xios::incrementCalendar() { updateCalendar(getCalendarStep() + 1); }
+
+/*!
  * Get the axis_definition group
  *
  * @return a pointer to the XIOS CAxisGroup object

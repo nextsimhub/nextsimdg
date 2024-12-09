@@ -2,7 +2,7 @@
  * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    04 Dec 2024
+ * @date    10 Dec 2024
  * @brief   XIOS interface header
  * @details
  *
@@ -55,6 +55,7 @@ public:
     void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
     void setCalendarTimestep(const Duration timestep);
+    void incrementCalendar();
     std::string getCalendarType();
     TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
