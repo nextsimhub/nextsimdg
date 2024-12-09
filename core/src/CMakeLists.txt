@@ -1,5 +1,14 @@
 # Sources for the main neXtSIM model
 
+if(ENABLE_XIOS)
+    set(XIOS_INCLUDE_LIST
+        "${xios_INCLUDES}"
+        "${xios_EXTERNS}/blitz/"
+        "${xios_EXTERNS}/rapidxml/include"
+    )
+    set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${XIOS_INCLUDE_LIST}")
+endif()
+
 set(BaseSources
     "Logged.cpp"
     "ModelConfig.cpp"

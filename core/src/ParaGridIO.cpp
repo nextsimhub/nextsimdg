@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date Oct 24, 2022
+ * @date 09 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -227,7 +227,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
         std::vector<double> timeVec(timeDim.getSize());
         timeVar.getVar(timeVec.data());
         // Get the index of the largest TimePoint less than the target.
-        targetTIndex = std::find_if(begin(timeVec), end(timeVec), [time](double t) {
+        targetTIndex = std::find_if(std::begin(timeVec), std::end(timeVec), [time](double t) {
             return (TimePoint() + Duration(t)) > time;
         }) - timeVec.begin();
         // Rather than the first that is greater than, get the last that is less

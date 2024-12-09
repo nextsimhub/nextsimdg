@@ -1,12 +1,13 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 09 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifdef USE_MPI
 #include <doctest/extensions/doctest_mpi.h>
+#undef INFO
 #else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
@@ -21,8 +22,8 @@
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/NextsimModule.hpp"
 #include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
