@@ -50,7 +50,7 @@ public:
      *
      * @param time TimePoint instance encoding the current time.
      */
-    inline void setTime(const TimePoint& time) { m_time = time; }
+    void setTime(const TimePoint& time);
     /*!
      * @brief Increments the model time metadata value.
      *

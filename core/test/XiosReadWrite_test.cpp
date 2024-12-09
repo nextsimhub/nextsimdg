@@ -147,8 +147,8 @@ void readFile(Xios* xios_handler, HField& field_A, const std::string fieldId)
 
     // Create ModelMetadata instance
     ModelMetadata metadata;
-    metadata.setTime(xios_handler->getCalendarStart());
     metadata.setXiosHandler(xios_handler);
+    metadata.setTime(xios_handler->getCalendarStart());
 
     // FIXME: Why is timestep undefined?
     xios_handler->setCalendarTimestep(Duration("P0-0T01:30:00")); // Shouldn't be necessary
@@ -246,8 +246,8 @@ void testFileWrite(Xios* xios_handler, HField& field_A, const std::string fieldI
 
     // Create ModelMetadata instance
     ModelMetadata metadata;
-    metadata.setTime(xios_handler->getCalendarStart());
     metadata.setXiosHandler(xios_handler);
+    metadata.setTime(xios_handler->getCalendarStart());
 
     // FIXME: Why is timestep undefined?
     xios_handler->setCalendarTimestep(Duration("P0-0T01:30:00")); // Shouldn't be necessary

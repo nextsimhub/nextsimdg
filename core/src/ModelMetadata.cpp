@@ -104,10 +104,24 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
     return state;
 }
 
+void ModelMetadata::setTime(const TimePoint& time)
+{
+    m_time = time;
+#ifdef USE_XIOS
+    if (!xiosHandler->isInitialized()) {
+        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
+    }
+    xiosHandler->setCalendarStart(time);
+#endif
+}
+
 void ModelMetadata::incrementTime(const Duration& step)
 {
     m_time += step;
 #ifdef USE_XIOS
+    if (!xiosHandler->isInitialized()) {
+        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
+    }
     xiosHandler->incrementCalendar();
 #endif
 }

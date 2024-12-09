@@ -85,7 +85,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
     ModelMetadata metadata;
 #ifdef USE_XIOS
-    Xios xiosHandler;
+    Xios xiosHandler("test1a");
+    xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);
 #endif
     metadata.setTime(TimePoint(date_string));
@@ -154,6 +155,11 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     gridIn.setIO(new RectGridIO(grid));
 #ifdef USE_MPI
     ModelMetadata metadataIn(partition_filename, test_comm);
+#ifdef USE_XIOS
+    Xios xiosHandlerIn("test1b");
+    xiosHandlerIn.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
+    metadata.setXiosHandler(&xiosHandlerIn);
+#endif
     metadataIn.setTime(TimePoint(date_string));
     ModelState ms = gridIn.getModelState(filename, metadataIn);
 #else

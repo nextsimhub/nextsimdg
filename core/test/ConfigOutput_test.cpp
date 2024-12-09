@@ -99,7 +99,8 @@ TEST_CASE("Test periodic output")
 
     ModelMetadata meta;
 #ifdef USE_XIOS
-    Xios xiosHandler;
+    Xios xiosHandler("test1");
+    xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     meta.setXiosHandler(&xiosHandler);
 #endif
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
@@ -149,7 +150,7 @@ TEST_CASE("Test periodic output")
             ModelState state;
 
             ido.outputState(meta);
-            meta.incrementTime(Duration(3600.));
+            meta.incrementTime(Duration(3600.)); // FIXME: Context undefined?
         }
     }
 
