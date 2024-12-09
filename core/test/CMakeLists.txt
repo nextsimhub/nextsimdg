@@ -94,6 +94,17 @@ if(ENABLE_MPI)
             PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosReadWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
+    else()
+        add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testRectGrid_MPI3
+            PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(
+            testRectGrid_MPI3
+            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
     endif()
 
     # Generate partition files needed for MPI test from respective cdl files
@@ -114,17 +125,6 @@ if(ENABLE_MPI)
         ALL
         DEPENDS partition_metadata_3.nc partition_metadata_2.nc
     )
-
-    add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testRectGrid_MPI3
-        PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    )
-    target_include_directories(
-        testRectGrid_MPI3
-        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-    )
-    target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
     target_compile_definitions(
