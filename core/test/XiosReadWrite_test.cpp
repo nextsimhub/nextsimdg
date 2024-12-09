@@ -12,9 +12,9 @@
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
-#include "include/Xios.hpp"
 
 #include <filesystem>
 
@@ -145,14 +145,22 @@ void readFile(Xios* xios_handler, HField& field_A, const std::string fieldId)
     // Check the input file exists
     REQUIRE(std::filesystem::exists("xios_test_input.nc"));
 
+    // Create ModelMetadata instance
+    ModelMetadata metadata;
+    metadata.setTime(xios_handler->getCalendarStart());
+    metadata.setXiosHandler(xios_handler);
+
+    // FIXME: Why is timestep undefined?
+    xios_handler->setCalendarTimestep(Duration("P0-0T01:30:00")); // Shouldn't be necessary
+    Duration timestep = xios_handler->getCalendarTimestep();
+
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
-        // Update the current timestep
-        xios_handler->setCalendarStep(ts);
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(xios_handler->getCalendarStep() == ts);
         // Receive data from XIOS that is read from disk
         xios_handler->read(fieldId, field_A);
-        // Verify timestep
-        REQUIRE(xios_handler->getCalendarStep() == ts);
     }
 }
 
@@ -236,14 +244,22 @@ void testFileWrite(Xios* xios_handler, HField& field_A, const std::string fieldI
     // Check a file with the expected name doesn't exist yet
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
+    // Create ModelMetadata instance
+    ModelMetadata metadata;
+    metadata.setTime(xios_handler->getCalendarStart());
+    metadata.setXiosHandler(xios_handler);
+
+    // FIXME: Why is timestep undefined?
+    xios_handler->setCalendarTimestep(Duration("P0-0T01:30:00")); // Shouldn't be necessary
+    Duration timestep = xios_handler->getCalendarTimestep();
+
     // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
-        // Update the current timestep
-        xios_handler->setCalendarStep(ts);
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(xios_handler->getCalendarStep() == ts);
         // Send data to XIOS to be written to disk
         xios_handler->write(fieldId, field_A);
-        // Verify timestep
-        REQUIRE(xios_handler->getCalendarStep() == ts);
     }
 
     // Check the files have indeed been created then remove it
