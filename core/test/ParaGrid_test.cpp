@@ -209,6 +209,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
     ModelMetadata metadata;
 #ifdef USE_XIOS
+    enableXios();
     Xios xiosHandler("test1a");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);

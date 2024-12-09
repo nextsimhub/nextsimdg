@@ -85,11 +85,15 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
     ModelMetadata metadata;
 #ifdef USE_XIOS
+    enableXios();
     Xios xiosHandler("test1a");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);
 #endif
     metadata.setTime(TimePoint(date_string));
+#ifdef USE_XIOS
+    xiosHandler.close_context_definition();
+#endif
     // Use x & y coordinates
     ModelArray x(ModelArray::Type::H);
     ModelArray y(ModelArray::Type::H);
@@ -161,6 +165,9 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     metadata.setXiosHandler(&xiosHandlerIn);
 #endif
     metadataIn.setTime(TimePoint(date_string));
+#ifdef USE_XIOS
+    xiosHandlerIn.close_context_definition();
+#endif
     ModelState ms = gridIn.getModelState(filename, metadataIn);
 #else
     ModelState ms = gridIn.getModelState(filename);

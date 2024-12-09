@@ -99,9 +99,11 @@ TEST_CASE("Test periodic output")
 
     ModelMetadata meta;
 #ifdef USE_XIOS
+    enableXios();
     Xios xiosHandler("test1");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     meta.setXiosHandler(&xiosHandler);
+    xiosHandler.close_context_definition();
 #endif
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 #ifdef USE_MPI

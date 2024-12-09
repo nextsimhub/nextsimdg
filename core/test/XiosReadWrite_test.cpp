@@ -47,6 +47,8 @@ Xios setupXiosHandler(int dim, bool read)
         throw std::invalid_argument("Test only implemented for 2D and 3D cases");
     }
 
+    enableXios();
+
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ParametricGrid grid;
