@@ -39,7 +39,8 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
 {
     updateStressHighOrderDevice(s11Device, s12Device, s22Device, e11Device, e12Device, e22Device,
         this->PSIAdvectDevice, this->PSIStressDevice, hiceDevice, ciceDevice, damageDevice,
-        this->iMJwPSIDevice, this->iMJwPSIAdvectDevice, this->cellSizeDevice, deltaT, this->params);
+        this->meshData->landMaskDevice, this->iMJwPSIDevice, this->iMJwPSIAdvectDevice,
+        this->cellSizeDevice, deltaT, this->params);
 }
 
 template <int DGadvection>
@@ -49,7 +50,7 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
     const ConstDeviceViewStress& e12Device, const ConstDeviceViewStress& e22Device,
     const PSIAdvectView& PSIAdvectDevice, const PSIStressView& PSIStressDevice,
     const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
-    const DeviceViewAdvect& damageDevice,
+    const DeviceViewAdvect& damageDevice, const ConstDeviceBitset& landMaskDevice,
     const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
     const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix>&
         iMJwPSIAdvectDevice,
@@ -61,6 +62,10 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
 
     Kokkos::parallel_for(
         "updateStressHighOrder", s11Device.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            if (!landMaskDevice.test(i)) {
+                return;
+            }
+
             auto s11 = makeEigenMap(s11Device);
             auto s12 = makeEigenMap(s12Device);
             auto s22 = makeEigenMap(s22Device);
@@ -152,8 +157,7 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
             EdgeVec dcrit
                 = (tau.array() + params.mu * sigma_n.array() > 0.)
-                      .select(
-                          cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
+                      .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength.array())
@@ -163,8 +167,8 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             dcrit = dcrit.array().min(1.0);
 
             // Eqn. 29
-            const auto td = cellSizeDevice(i)
-                * Kokkos::sqrt(2. * (1. + params.nu0) * params.rhoIce) / elasticity.array().sqrt();
+            const auto td = cellSizeDevice(i) * Kokkos::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+                / elasticity.array().sqrt();
 
             // Update damage
             const EdgeVec relaxFac = (1. - dcrit.array()) * deltaT / td.array();

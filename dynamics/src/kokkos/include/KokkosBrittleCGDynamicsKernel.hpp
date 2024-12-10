@@ -52,9 +52,9 @@ public:
         const ConstDeviceViewCG& uAtmosDevice, const ConstDeviceViewCG& vAtmosDevice,
         const ConstDeviceViewCG& uOceanDevice, const ConstDeviceViewCG& vOceanDevice,
         const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
-        const ConstDeviceViewCG& lumpedCGMassDevice, const FloatType deltaT,
-        const BBMParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
-        DeviceIndex nSteps);
+        const ConstDeviceViewCG& lumpedCGMassDevice,
+        const FloatType deltaT, const BBMParameters& params, FloatType cosOceanAngle,
+        FloatType sinOceanAngle, DeviceIndex nSteps);
 
 protected:
     virtual void updateStressHighOrderDevice(const DeviceViewStress& s11Device,

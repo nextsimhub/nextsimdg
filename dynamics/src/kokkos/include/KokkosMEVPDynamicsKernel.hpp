@@ -61,9 +61,9 @@ public:
         const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
         const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
         const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
-        const ConstDeviceViewAdvect& ciceDevice,
+        const ConstDeviceViewAdvect& ciceDevice, const ConstDeviceBitset& landMaskDevice,
         const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
-        const VPParameters& params, FloatType alphaa);
+        const VPParameters& params, FloatType alpha);
     static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const ConstDeviceViewCG& u0Device, const ConstDeviceViewCG& v0Device,
         const ConstDeviceViewCG& cgHDevice, const ConstDeviceViewCG& cgADevice,

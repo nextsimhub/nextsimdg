@@ -151,16 +151,16 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
     // 1D loop is much faster than 2D loop on CPU
     Kokkos::parallel_for(
         "projectVelocityToStrain", nx * ny, KOKKOS_LAMBDA(const DeviceIndex idx) {
+            // only on ice
+            if (!landMaskDevice.test(idx)) {
+                return;
+            }
+
             const DeviceIndex col = idx % nx;
             const DeviceIndex row = idx / nx;
             const DeviceIndex dgi = nx * row + col; //!< Index of dg vector
             const DeviceIndex cgi
                 = CGdegree * cgshift * row + col * CGdegree; //!< Lower left index of cg vector
-
-            // only on ice
-            if (!landMaskDevice.test(dgi)) {
-                return;
-            }
 
             const auto u = makeEigenMap(uDevice);
             const auto v = makeEigenMap(vDevice);
@@ -334,13 +334,14 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     //   timerDivComp.start();
     Kokkos::parallel_for(
         "computeStressDivergence", nx * ny, KOKKOS_LAMBDA(const DeviceIndex idx) {
+            // only on ice!
+            if (!landMaskDevice.test(idx)) {
+                return;
+            }
+
             const DeviceIndex cx = idx % nx;
             const DeviceIndex cy = idx / nx;
             const DeviceIndex eid = cx + nx * cy;
-            // only on ice!
-            if (!landMaskDevice.test(eid)) {
-                return;
-            }
 
             const auto s11 = makeEigenMap(s11Device);
             const auto s12 = makeEigenMap(s12Device);

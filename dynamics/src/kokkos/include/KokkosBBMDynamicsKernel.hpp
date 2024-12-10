@@ -34,6 +34,7 @@ public:
         const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
         const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
         const ConstDeviceViewAdvect& ciceDevice, const DeviceViewAdvect& damageDevice,
+        const ConstDeviceBitset& landMaskDevice,
         const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
         const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix>&
             iMJwPSIAdvectDevice,

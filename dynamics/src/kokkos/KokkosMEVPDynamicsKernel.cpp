@@ -87,9 +87,10 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         timerProj.stop();
 
         timerStress.start();
-        updateStressHighOrderDevice(this->s11Device, this->s12Device, this->s22Device, this->e11Device,
-            this->e12Device, this->e22Device, this->PSIAdvectDevice, this->PSIStressDevice,
-            this->hiceDevice, this->ciceDevice, this->iMJwPSIDevice, params, alpha);
+        updateStressHighOrderDevice(this->s11Device, this->s12Device, this->s22Device,
+            this->e11Device, this->e12Device, this->e22Device, this->PSIAdvectDevice,
+            this->PSIStressDevice, this->hiceDevice, this->ciceDevice,
+            this->meshData->landMaskDevice, this->iMJwPSIDevice, params, alpha);
         timerStress.stop();
 
         timerDivergence.start();
@@ -121,35 +122,40 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerDownload.stop();
 
     timerMevp.stop();
-/*    static int macroStep = 0;
-    ++macroStep;
-    if (macroStep % 16 == 0) {
-        timerMevp.print();
-        timerProj.print();
-        timerStress.print();
-        timerDivergence.print();
-        timerMomentum.print();
-        timerBoundary.print();
-        timerUpload.print();
-        timerDownload.print();
-    }*/
+    /*    static int macroStep = 0;
+        ++macroStep;
+        if (macroStep % 16 == 0) {
+            timerMevp.print();
+            timerProj.print();
+            timerStress.print();
+            timerDivergence.print();
+            timerMomentum.print();
+            timerBoundary.print();
+            timerUpload.print();
+            timerDownload.print();
+        }*/
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);
 }
 
 template <int DGadvection>
-void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(const DeviceViewStress& s11Device,
-    const DeviceViewStress& s12Device, const DeviceViewStress& s22Device,
-    const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
-    const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
-    const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
-    const ConstDeviceViewAdvect& ciceDevice,
+void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
+    const DeviceViewStress& s11Device, const DeviceViewStress& s12Device,
+    const DeviceViewStress& s22Device, const ConstDeviceViewStress& e11Device,
+    const ConstDeviceViewStress& e12Device, const ConstDeviceViewStress& e22Device,
+    const PSIAdvectView& PSIAdvectDevice, const PSIStressView& PSIStressDevice,
+    const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+    const ConstDeviceBitset& landMaskDevice,
     const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
     const VPParameters& params, FloatType alpha)
 {
     const DeviceIndex n = s11Device.extent(0);
     Kokkos::parallel_for(
         "updateStressHighOrder", n, KOKKOS_LAMBDA(const DeviceIndex i) {
+            if (!landMaskDevice.test(i)) {
+                return;
+            }
+
             auto s11 = makeEigenMap(s11Device);
             auto s12 = makeEigenMap(s12Device);
             auto s22 = makeEigenMap(s22Device);
@@ -222,7 +228,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
     const FloatType SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
     const FloatType deltaT = tst.step.seconds();
     const FloatType FOcean = params.COcean * params.rhoOcean;
-        const FloatType FAtm = params.CAtm * params.rhoAtm;
+    const FloatType FAtm = params.CAtm * params.rhoAtm;
 
     //      update by a loop.. implicit parts and h-dependent
     Kokkos::parallel_for(

@@ -138,8 +138,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         updateMomentumDevice(this->uDevice, this->vDevice, this->avgUDevice, this->avgVDevice,
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
-            this->lumpedCGMassDevice, this->deltaT, this->params, cosOceanAngle, sinOceanAngle,
-            this->nSteps);
+            this->lumpedCGMassDevice, this->deltaT, this->params,
+            cosOceanAngle, sinOceanAngle, this->nSteps);
         timerMomentum.stop();
 
         timerBoundary.start();
@@ -152,7 +152,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
 
-     Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
+    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
     Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
     Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);
     /*    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
