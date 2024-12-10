@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 09 Dec 2024
+ * @date 10 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -210,7 +210,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ModelMetadata metadata;
 #ifdef USE_XIOS
     enableXios();
-    Xios xiosHandler("test1a");
+    Xios xiosHandler("P0-0T01:00:00", "test1a");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);
 #endif
@@ -258,7 +258,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 #ifdef USE_MPI
     ModelMetadata metadataIn(partitionFilename, test_comm);
 #ifdef USE_XIOS
-    Xios xiosHandlerIn("test1b");
+    Xios xiosHandlerIn("P0-0T01:00:00", "test1b");
     xiosHandlerIn.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadataIn.setXiosHandler(&xiosHandlerIn);
 #endif
@@ -413,7 +413,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
     ModelMetadata metadata;
 #ifdef USE_XIOS
-    Xios xiosHandler("test2");
+    Xios xiosHandler("P0-0T01:00:00", "test2");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);
 #endif
@@ -554,7 +554,7 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 #ifdef USE_MPI
     ModelMetadata metadataIn(partitionFilename, test_comm);
 #ifdef USE_XIOS
-    Xios xiosHandler("test4");
+    Xios xiosHandler("P0-0T01:00:00", "test4");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadataIn.setXiosHandler(&xiosHandler);
 #endif
@@ -610,7 +610,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 #ifdef USE_MPI
     ModelMetadata metadata;
 #ifdef USE_XIOS
-    Xios xiosHandler("test5");
+    Xios xiosHandler("P0-0T01:00:00", "test5");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);
 #endif
