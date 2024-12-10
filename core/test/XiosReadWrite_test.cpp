@@ -130,6 +130,11 @@ Xios setupXiosHandler(int dim, bool read)
     xios_handler.fileAddField(fileId, fieldId);
 
     xios_handler.close_context_definition();
+    // FIXME: Why do we need to re-set the calendar timestep and start here?
+    //        These are already set in the Xios constructor and the test fails if the following two
+    //        lines are moved above the close_context_definition.
+    xios_handler.setCalendarTimestep(Duration("P0-0T01:30:00"));
+    xios_handler.setCalendarStart(TimePoint("2023-03-17T17:11:00Z"));
     return xios_handler;
 }
 
@@ -152,11 +157,8 @@ void readFile(Xios* xios_handler, HField& field_A, const std::string fieldId)
     metadata.setXiosHandler(xios_handler);
     metadata.setTime(xios_handler->getCalendarStart());
 
-    // FIXME: Why is timestep undefined?
-    xios_handler->setCalendarTimestep(Duration("P0-0T01:30:00")); // Shouldn't be necessary
-    Duration timestep = xios_handler->getCalendarTimestep();
-
     // Simulate 4 iterations (timesteps)
+    Duration timestep = xios_handler->getCalendarTimestep();
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
@@ -251,11 +253,8 @@ void testFileWrite(Xios* xios_handler, HField& field_A, const std::string fieldI
     metadata.setXiosHandler(xios_handler);
     metadata.setTime(xios_handler->getCalendarStart());
 
-    // FIXME: Why is timestep undefined?
-    xios_handler->setCalendarTimestep(Duration("P0-0T01:30:00")); // Shouldn't be necessary
-    Duration timestep = xios_handler->getCalendarTimestep();
-
     // Simulate 4 iterations (timesteps)
+    Duration timestep = xios_handler->getCalendarTimestep();
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
