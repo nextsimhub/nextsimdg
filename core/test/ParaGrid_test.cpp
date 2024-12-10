@@ -213,6 +213,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     Xios xiosHandler("P0-0T01:00:00", "test1a");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);
+    xiosHandler.close_context_definition();
 #endif
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
@@ -258,9 +259,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 #ifdef USE_MPI
     ModelMetadata metadataIn(partitionFilename, test_comm);
 #ifdef USE_XIOS
-    Xios xiosHandlerIn("P0-0T01:00:00", "test1b");
-    xiosHandlerIn.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
-    metadataIn.setXiosHandler(&xiosHandlerIn);
+    metadataIn.setXiosHandler(&xiosHandler);
 #endif
     metadataIn.setTime(TimePoint(dateString));
     ModelState ms = gridIn.getModelState(filename, metadataIn);
@@ -413,9 +412,11 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
     ModelMetadata metadata;
 #ifdef USE_XIOS
+    enableXios();
     Xios xiosHandler("P0-0T01:00:00", "test2");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);
+    xiosHandler.close_context_definition();
 #endif
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
@@ -554,9 +555,11 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 #ifdef USE_MPI
     ModelMetadata metadataIn(partitionFilename, test_comm);
 #ifdef USE_XIOS
+    enableXios();
     Xios xiosHandler("P0-0T01:00:00", "test4");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadataIn.setXiosHandler(&xiosHandler);
+    xiosHandler.close_context_definition();
 #endif
     metadataIn.setTime(TimePoint(dateString));
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadataIn));
@@ -610,9 +613,11 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 #ifdef USE_MPI
     ModelMetadata metadata;
 #ifdef USE_XIOS
+    enableXios();
     Xios xiosHandler("P0-0T01:00:00", "test5");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     metadata.setXiosHandler(&xiosHandler);
+    xiosHandler.close_context_definition();
 #endif
     metadata.setMpiMetadata(test_comm);
     if (metadata.mpiMyRank == 0) {
