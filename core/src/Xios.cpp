@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    09 Dec 2024
+ * @date    10 Dec 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -37,7 +37,6 @@ static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.en
 //! Enable XIOS in the 'config'
 void enableXios()
 {
-    Configurator::clearStreams();
     std::stringstream config;
     config << "[xios]" << std::endl << "enable = true" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
