@@ -3,7 +3,7 @@
 # use svn to obtain current version of xios
 cd /
 installdir="xios"
-svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS2/trunk $installdir
+svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk $installdir
 cd $installdir
 
 cat <<EOF >arch/arch-GCC_LINUX.path
