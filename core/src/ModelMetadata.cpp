@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 09 Dec 2024
+ * @date 10 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -111,6 +111,7 @@ void ModelMetadata::setTime(const TimePoint& time)
     if (!xiosHandler->isInitialized()) {
         throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
     }
+    xiosHandler->setCalendarStep(0);
     xiosHandler->setCalendarStart(time);
 #endif
 }
