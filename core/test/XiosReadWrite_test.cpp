@@ -1,7 +1,7 @@
 /*!
  * @file    XiosReadWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    10 Dec 2024
+ * @date    11 Dec 2024
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the read and write methods of the C++
@@ -164,17 +164,6 @@ void readFile(Xios* xios_handler, HField& field_A, const std::string fieldId)
 }
 
 /*!
- * Utility for checking that two double values are approximately equal.
- *
- * Without this (i.e., if it's inlined below) the first test passes but the second one fails. The
- * same is true with any REQUIRE call.
- *
- * @param val1 the first double
- * @param val2 the second double
- */
-void assertIsClose(double val1, double val2) { REQUIRE(val1 == doctest::Approx(val2)); }
-
-/*!
  * TestXiosRead_2D
  *
  * This function tests the file reading functionality of the C++ interface for XIOS for fields with
@@ -194,7 +183,7 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
     const size_t ny = xios_handler.getDomainLocalYSize("xy_domain");
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            assertIsClose(field_2D(i, j), i + nx * j);
+            REQUIRE(field_2D(i, j) == doctest::Approx(i + nx * j));
         }
     }
     xios_handler.context_finalize();
@@ -222,7 +211,7 @@ MPI_TEST_CASE("TestXiosRead_3D", 2)
     for (size_t k = 0; k < nz; ++k) {
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
-                assertIsClose(field_3D(i, j, k), i + nx * (j + ny * k));
+                REQUIRE(field_3D(i, j, k) == doctest::Approx(i + nx * (j + ny * k)));
             }
         }
     }
