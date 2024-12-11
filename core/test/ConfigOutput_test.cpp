@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 10 Dec 2024
+ * @date 11 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -106,6 +106,7 @@ TEST_CASE("Test periodic output")
     xiosHandler.close_context_definition();
 #endif
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
+
 #ifdef USE_MPI
     meta.setMpiMetadata(test_comm);
 #endif
@@ -152,7 +153,7 @@ TEST_CASE("Test periodic output")
             ModelState state;
 
             ido.outputState(meta);
-            meta.incrementTime(Duration(3600.)); // FIXME: Context undefined?
+            meta.incrementTime(Duration(3600.));
         }
     }
 
