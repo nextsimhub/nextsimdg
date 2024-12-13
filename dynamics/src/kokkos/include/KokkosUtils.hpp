@@ -18,6 +18,25 @@ namespace Nextsim {
 
 using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
 
+template <typename ExecutionSpace> constexpr inline bool IS_GPU_EXEC_SPACE = false;
+
+#ifdef KOKKOS_ENABLE_CUDA
+template <> constexpr inline bool IS_GPU_EXEC_SPACE<Kokkos::Cuda> = true;
+#endif
+
+#ifdef KOKKOS_ENABLE_HIP
+template <> constexpr inline bool IS_GPU_EXEC_SPACE<Kokkos::HIP> = true;
+#endif
+
+// Land checks currently only improve performance on GPU. On CPU they lead to a slowdown so checks
+// should only be introduced when necessary.
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+// We can't directly use if constexpr(IS_GPU_EXEC_SPACE) in kernels because lambda capture for values only
+// appearing in constexpr branches is not supported in CUDA.
+static_assert(IS_GPU_EXEC_SPACE<Kokkos::DefaultExecutionSpace>, "expected gpu execution space");
+#define ENABLE_OPTIONAL_LAND_CHECKS
+#endif
+
 namespace Details {
     // Map Eigen matrix template parameters to the equivalent kokkos array type declaration.
     template <typename Scalar, int Rows, int Cols> struct ToKokkosArrayDec {

@@ -7,7 +7,7 @@
 
 // by also guarding for USE_KOKKOS this header can be safely included even
 // when Kokkos is not enabled
-#if not defined KOKKOSMEVPDYNAMICSKERNEL_HPP && USE_KOKKOS
+#if !defined(KOKKOSMEVPDYNAMICSKERNEL_HPP) && defined(USE_KOKKOS)
 #define KOKKOSMEVPDYNAMICSKERNEL_HPP
 
 #include "../../include/VPParameters.hpp"
