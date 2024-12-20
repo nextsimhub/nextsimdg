@@ -1,14 +1,17 @@
 ## Summary
 
 #### Deliverable
+
 A version of nextSIM-DG using the XIOS framework for model I/O.
 
 #### Request
+
 * Expertise in I/O and parallelisation.
 	* Key aspects for eventually coupling neXtSIM to a climate model (a major deliverable of SASIP) and running it at high resolutions (which is of enormous scientific interest).
 * Review PRs, discuss development strategies and decisions.
 
 #### Requirements
+
 1. XIOS must not become a compulsory dependency at this stage and, in the event that a user does not link against XIOS during the build, we revert back to the previous functionality.
 2. XIOS must be able to create nextSIM-DG outputs – a diagnostic file and a restart file – via methods which leverage XIOS and match current outputs. Production of the log file will be unchanged.
 3. XIOS must be enabled/disabled by a parameter in the config file under its own heading.
@@ -101,39 +104,9 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 * [Set `${xios_DIR}`]
 * [Spack env for nextSIM-DG, although might want to ask Tim and Einar how they have things set up on Mac]
 
-Create a `setup.sh` script in the nextSIM-DG base directory: [TODO- add it to the branch]
+Make a copy of the `setup-joe.sh` script in the nextSIM-DG base directory:
 ```sh
-#!/bin/env bash
-# ========================================================================= #
-# Activate the Python and Spack environments used by nextSIM-DG.            #
-# ========================================================================= #
-
-# Activate the Python virtual environment
-if [ ! -e "${HOME}/.virtualenvs/nextsim" ]; then
-  echo "Creating a new virtual environment in ${HOME}/.virtualenvs/nextsim."
-  mkdir -p "${HOME}/.virtualenvs"
-  python3 -m venv "${HOME}/.virtualenvs/nextsim"
-fi
-source "${HOME}/.virtualenvs/nextsim/bin/activate"
-
-# Activate the Spack environment
-if ! spack env activate -p nextsim; then
-  echo "Failed to activate Spack environment." >&2
-  exit 1
-fi
-
-# Source the environment variables for XIOS
-SOFTWARE="${HOME}/software"
-if ! source "${SOFTWARE}/nextSIM-DG/.github/xios_arch/ubuntu.env"; then
-  echo "Failed to source XIOS environment variables." >&2
-  exit 1
-fi
-
-# Set XIOS directory
-export xios_DIR="${SOFTWARE}/XIOS"
-
-# Put decomp in the path
-export PATH="${SOFTWARE}/tools/domain_decomp/build":${PATH}
+cp setup-joe.sh setup.sh
 ```
 Run
 ```sh
@@ -141,92 +114,16 @@ source setup.sh
 ```
 and check that your prompt gets prepended by `[nextsim] (nextsim)`, denoting that the Spack and Python virtual environments have been activated, respectively.
 
-Create a `build.sh` script in the base nextSIM-DG directory: [TODO- add it to the branch]
+Create a copy of the `build-joe.sh` script, too:
 ```sh
-#!/bin/env bash
-# ========================================================================= #
-# Build script for nextSIM-DG.                                              #
-# ========================================================================= #
-
-set -e # Exit immediately if a command exits with a non-zero status
-
-BUILD_DIR="build"
-
-# Check if a Python virtual environment is active
-if [ -z "${VIRTUAL_ENV}" ]; then
-  echo "No virtual environment is active. Please activate a virtual environment \
-before running this script."
-  exit 1
-fi
-
-# Check if a Spack environment is active
-if [ -z "${SPACK_ENV}" ]; then
-  echo "No Spack environment is active. Please activate a Spack environment \
-before running this script."
-  exit 1
-fi
-
-# Parse command line arguments
-FRESH_BUILD=false
-for arg in "$@"; do
-  case $arg in
-  --fresh | -f)
-    FRESH_BUILD=true
-    shift
-    ;;
-  *) ;;
-  esac
-done
-
-# Check if a fresh build is requested
-if [ "${FRESH_BUILD}" = true ]; then
-  echo "Creating a fresh build..."
-  rm -rf "${BUILD_DIR}"
-else
-  echo "Rebuilding..."
-fi
-
-# Install Python dependencies
-python3 -m pip install -r requirements.txt
-
-# Create build directory and navigate into it
-mkdir -p "${BUILD_DIR}"
-cd "${BUILD_DIR}"
-
-# Different path to XIOS if running in a Docker container
-if [ -f /.dockerenv ]; then
-  xios_DIR="/xios"
-fi
-
-# Check if cmake and make are available
-command -v cmake >/dev/null 2>&1 || {
-  echo >&2 "cmake is required but it's not installed. Aborting."
-  exit 1
-}
-command -v make >/dev/null 2>&1 || {
-  echo >&2 "make is required but it's not installed. Aborting."
-  exit 1
-}
-
-# Build the model with XIOS support in Debug mode
-cmake \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DENABLE_XIOS=ON \
-  -Dxios_DIR="${xios_DIR}" \
-  -DENABLE_MPI=ON \
-  -DCMAKE_C_COMPILER=mpicc \
-  -DCMAKE_CXX_COMPILER=mpicxx \
-  -DCMAKE_Fortran_COMPILER=mpif90 \
-  -DENABLE_OASIS=ON .. \
-  -DBUILD_TESTS=ON
-make -j8
+cp build-joe.sh build.sh
 ```
 [TODO: Add help; debug mode vs release mode]
 Run
 ```sh
 ./build.sh --help
 ```
-to see the command line options that the build script accepts.
+to see the command line options that the build script accepts. Then try building the model with your desired options.
 
 ## Useful resources
 
