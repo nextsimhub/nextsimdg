@@ -79,6 +79,28 @@ if(ENABLE_MPI)
     )
     target_link_libraries(testModelMetadata_MPI3 PRIVATE nextsimlib doctest::doctest)
 
+    # set(ModelArrayStructure "discontinuousgalerkin")
+    set(CoreDir "../../core/src/")
+
+    # set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
+    add_executable(testHaloExchange_MPI4
+      "HaloExchange_test.cpp"
+      "MainMPI.cpp"
+      "../src/ModelArray.cpp"
+      "../src/ModelArraySlice.cpp"
+      "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp"
+      )
+    target_compile_definitions(testHaloExchange_MPI4 PRIVATE USE_MPI)
+    target_include_directories(
+        testHaloExchange_MPI4 PRIVATE
+        "../src"
+        "../../dynamics/src"
+        ${MODEL_INCLUDE_DIR}
+    )
+    target_link_libraries(testHaloExchange_MPI4 PRIVATE doctest::doctest Eigen3::Eigen)
+
+    set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
+
     add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
     target_compile_definitions(
         testParaGrid_MPI2
