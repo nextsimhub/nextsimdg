@@ -138,6 +138,22 @@ if(ENABLE_MPI)
             partition_metadata_3_pb.nc
         )
 
+        add_executable(testHaloExchange_MPI3
+            "HaloExchange_test.cpp"
+            "MainMPI.cpp"
+            "../src/ModelArray.cpp"
+            "../src/ModelArraySlice.cpp"
+        )
+        target_compile_definitions(testHaloExchange_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        target_include_directories(
+            testHaloExchange_MPI3 PRIVATE
+            ${MODEL_INCLUDE_DIR}
+            "${ModulesRoot}/StructureModule"
+            "../src"
+            "../../dynamics/src"
+        )
+        target_link_libraries(testHaloExchange_MPI3 PRIVATE nextsimlib doctest::doctest)
+
         add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
             testParaGrid_MPI2

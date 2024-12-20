@@ -189,13 +189,14 @@ public:
      * @param buffer The target of the copying. The buffer type must provide a forward operator.
      *               The buffer object must provide at least as many elements as exist in the
      *               slice.
+     * @param startIndex Starting index in the target buffer where data will be copied.
      * @return A reference to the updated buffer object.
      */
-    template <typename T> T& copyToBuffer(T& buffer)
+    template <typename T> T& copyToBuffer(T& buffer, size_t startIndex = 0)
     {
         // make no especial attempt at efficiency here
         SliceIter thisIter(slice, data.dimensions());
-        auto biter = buffer.begin();
+        auto biter = std::next(buffer.begin(), startIndex);
 
         while (!thisIter.isEnd()) {
             // If the buffer ends before the slice, throw an exception
