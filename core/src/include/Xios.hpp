@@ -2,7 +2,7 @@
  * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    10 Dec 2024
+ * @date    02 Jan 2025
  * @brief   XIOS interface header
  * @details
  *
@@ -24,17 +24,36 @@
 #include <boost/format/group.hpp>
 #include <include/xios_c_interface.hpp>
 #include <mpi.h>
+#include <mutex>
 
 namespace Nextsim {
 
 void enableXios();
 
 class Xios : public Configured<Xios> {
-public:
+private:
+    static Xios* instancePtr;
+
+    // Private constructor
     Xios(const std::string dt = "P0-0T01:00:00", const std::string contextid = "nextSIM-DG",
         const std::string starttime = "1970-01-01T00:00:00Z",
         const std::string calendartype = "Gregorian");
+
+public:
+    Xios(const Xios& xiosHandler) = delete;
     ~Xios();
+
+    /* Define Xios handler Singleton */
+    inline static Xios* getInstance(const std::string dt = "P0-0T01:00:00",
+        const std::string contextId = "nextSIM-DG",
+        const std::string startTime = "1970-01-01T00:00:00Z",
+        const std::string calendarType = "Gregorian")
+    {
+        if (instancePtr == nullptr) {
+            instancePtr = new Xios(dt, contextId, startTime, calendarType);
+        }
+        return instancePtr;
+    };
 
     /* Initialization and finalization */
     void close_context_definition();
