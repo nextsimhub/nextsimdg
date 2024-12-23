@@ -18,6 +18,7 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 3. XIOS must be enabled/disabled by a parameter in the config file under its own heading.
 4. XIOS data must be managed by calls to methods provided in the `nextsim` namespace.
 
+---
 ## Background
 
 #### Current I/O approach
@@ -32,6 +33,7 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 	* The `ParaGridIO` class also implements other methods supporting these, as well as for other I/O related functionality.
 * See [this comment](https://github.com/nextsimhub/nextsimdg/issues/732#issuecomment-2469878080) for Tim's view on how things are currently set up.
 
+---
 ## Design
 
 * **Configuration**
@@ -79,6 +81,7 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 		* Dump model data
 			* Can we run the model for each grid type and produce the 'golden' output file (`restart.nc`)? (Requirement 2)
 
+---
 ## Work so far
 
 * Background investigation (Alex) - see https://github.com/nextsimhub/nextsimdg/wiki/XIOS-Integration.
@@ -92,9 +95,38 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 * Methods for converting between nextSIM-DG and XIOS' time and duration concepts (Joe).
 * ...
 
-## Still to do
+---
+## Tasks
 
-* ...
+#### Low-hanging fruit
+
+* Change the number of MPI processors for some of the XIOS unit tests so that we cover more cases than just 2 MPI ranks. e.g., `XiosCalendar_test` could use 1 MPI rank and one of the others could be modified to run with 3 MPI ranks.
+
+#### Slightly more advanced
+
+* Introduce `.cfg` files for the XIOS tests to get filepath(s), timestep, period, etc.; implement method(s) for reading such configuration files and setting the appropriate XIOS attributes ([#747](https://github.com/nextsimhub/nextsimdg/issues/747)).
+* Upgrade to XIOS3 ([#761](https://github.com/nextsimhub/nextsimdg/issues/761)).
+	* Work in progress on branch [`issue761_xios3-upgrade`](https://github.com/nextsimhub/nextsimdg/tree/issue761_xios3-upgrade).
+	* Note that the updated [`Dockerfiles/install-xios.sh`](https://github.com/nextsimhub/nextsimdg/blob/xios-handover/Dockerfiles/install-xios.sh) script on the [`xios-handover`](https://github.com/nextsimhub/nextsimdg/tree/xios-handover) branch has a line commented out for installing XIOS3. My local setup installs XIOS2 into a subdirectory called `XIOS2` and XIOS3 into a separate subdirectory called `XIOS3` in the same directory. It's then easy to switch between them by defining `XIOS` as a symlink: `ln -s $(pwd)/XIOS2 $(pwd)/XIOS` or `ln -s $(pwd)/XIOS3 $(pwd)/XIOS`, as appropriate.
+
+#### Major tasks
+
+* Reimplement `ParaGridIO` using XIOS ([#552](https://github.com/nextsimhub/nextsimdg/issues/552))
+	* Check NetCDF files written with the XIOS-driven version of `dumpModelState` are in the expected format.
+		* If not, assess what would be required and whether it would be feasible to achieve as part of the project.
+	* Implement reading of NetCDF files using an XIOS-driven version of `getModelState`.
+		- May involve basing XIOS setup on NetCDF files used for config, e.g., grid.
+		- Involves [#732](https://github.com/nextsimhub/nextsimdg/issues/732).
+
+#### Other tasks
+
+- Compare the performance of XIOS configured with XML files versus XIOS configured using the API based on NetCDF header read directly.
+- Ensure the conversion of `1M` (1 month) to 30 days is documented on the XIOS pages and the nextSIM-DG time/config file pages.
+- Investigate running XIOS on a separate thread.
+- Look into `use_oasis` option for XIOS.
+	- Also note [#640](https://github.com/nextsimhub/nextsimdg/issues/640).
+
+---
 
 ## Building nextSIM-DG with XIOS support
 
@@ -125,6 +157,7 @@ Run
 ```
 to see the command line options that the build script accepts. Then try building the model with your desired options.
 
+---
 ## Resources
 
 #### Papers
@@ -148,34 +181,3 @@ to see the command line options that the build script accepts. Then try building
 	* [wp1-meetings channel](https://nextsim-dg.slack.com/archives/C034NLGL0M6)
 * [XIOS Mattermost](https://mattermost.lsce.ipsl.fr/xios)
 	* [SASIP channel](https://mattermost.lsce.ipsl.fr/xios/channels/sasip)
-
-
-## Tasks
-
-#### Low-hanging fruit
-
-* Change the number of MPI processors for some of the XIOS unit tests so that we cover more cases than just 2 MPI ranks. e.g., `XiosCalendar_test` could use 1 MPI rank and one of the others could be modified to run with 3 MPI ranks.
-
-#### Slightly more advanced
-
-* Introduce `.cfg` files for the XIOS tests to get filepath(s), timestep, period, etc.; implement method(s) for reading such configuration files and setting the appropriate XIOS attributes ([#747](https://github.com/nextsimhub/nextsimdg/issues/747)).
-* Upgrade to XIOS3 ([#761](https://github.com/nextsimhub/nextsimdg/issues/761)).
-	* Work in progress on branch [`issue761_xios3-upgrade`](https://github.com/nextsimhub/nextsimdg/tree/issue761_xios3-upgrade).
-	* Note that the updated [`Dockerfiles/install-xios.sh`](https://github.com/nextsimhub/nextsimdg/blob/xios-handover/Dockerfiles/install-xios.sh) script on the [`xios-handover`](https://github.com/nextsimhub/nextsimdg/tree/xios-handover) branch has a line commented out for installing XIOS3. My local setup installs XIOS2 into a subdirectory called `XIOS2` and XIOS3 into a separate subdirectory called `XIOS3` in the same directory. It's then easy to switch between them by defining `XIOS` as a symlink: `ln -s $(pwd)/XIOS2 $(pwd)/XIOS` or `ln -s $(pwd)/XIOS3 $(pwd)/XIOS`, as appropriate.
-
-#### Major tasks
-
-* Reimplement `ParaGridIO` using XIOS ([#552](https://github.com/nextsimhub/nextsimdg/issues/552))
-	* Check NetCDF files written with the XIOS-driven version of `dumpModelState` are in the expected format.
-		* If not, assess what would be required and whether it would be feasible to achieve as part of the project.
-	* Implement reading of NetCDF files using an XIOS-driven version of `getModelState`.
-		- May involve basing XIOS setup on NetCDF files used for config, e.g., grid.
-		- Involves [#732](https://github.com/nextsimhub/nextsimdg/issues/732).
-
-#### Other tasks
-
-- Compare the performance of XIOS configured with XML files versus XIOS configured using the API based on NetCDF header read directly.
-- Ensure the conversion of `1M` (1 month) to 30 days is documented on the XIOS pages and the nextSIM-DG time/config file pages.
-- Investigate running XIOS on a separate thread.
-- Look into `use_oasis` option for XIOS.
-	- Also note [#640](https://github.com/nextsimhub/nextsimdg/issues/640).
