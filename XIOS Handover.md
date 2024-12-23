@@ -4,11 +4,12 @@
 
 A version of nextSIM-DG using the XIOS framework for model I/O.
 
-#### Request
+#### What is requested of ICCS RSEs
 
 * Expertise in I/O and parallelisation.
-	* Key aspects for eventually coupling neXtSIM to a climate model (a major deliverable of SASIP) and running it at high resolutions (which is of enormous scientific interest).
-* Review PRs, discuss development strategies and decisions.
+	* These are key aspects for eventually coupling nextSIM-DG to a climate model (a major deliverable of SASIP) and running it at high resolutions (which is of enormous scientific interest).
+* Review PRs.
+* Discuss development strategies and decisions.
 
 #### Requirements
 
@@ -29,7 +30,7 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 	* Reading driven by `getModelState` method of `ParaGridIO`.
 	* Writing driven by `dumpModelState` method of `ParaGridIO`.
 	* The `ParaGridIO` class also implements other methods supporting these, as well as for other I/O related functionality.
-* ...
+* See [this comment](https://github.com/nextsimhub/nextsimdg/issues/732#issuecomment-2469878080) for Tim's view on how things are currently set up.
 
 ## Design
 
@@ -80,7 +81,7 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 
 ## Work so far
 
-* Background investigation (Alex) [point to issue on this]
+* Background investigation (Alex) - see https://github.com/nextsimhub/nextsimdg/wiki/XIOS-Integration.
 * Implementation of `FindXios.cmake` file (Alex).
 * Wrapping core XIOS functions in `core/src/include/xios_c_interface.hpp`, `core/src/Xios.hpp`, and `core/src/Xios.cpp` (Tom).
 * Tests for core XIOS functionality in `core/test/XiosInit_test.cpp` (Tom).
@@ -99,8 +100,7 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 
 * XIOS has not been added on the `main` branch of nextSIM-DG, so you need to branch off of `develop`.
 * [Install XIOS2]
-* [Install XIOS3]
-* [Symlink]
+* [Symlink; note about installing XIOS3]
 * [Set `${xios_DIR}`]
 * [Spack env for nextSIM-DG, although might want to ask Tim and Einar how they have things set up on Mac]
 
@@ -118,6 +118,7 @@ Create a copy of the `build-joe.sh` script, too:
 ```sh
 cp build-joe.sh build.sh
 ```
+[TODO: Check it's working]
 [TODO: Add help; debug mode vs release mode]
 Run
 ```sh
@@ -125,17 +126,27 @@ Run
 ```
 to see the command line options that the build script accepts. Then try building the model with your desired options.
 
-## Useful resources
+## Resources
 
-* There is a [toy code](https://github.com/nextsimhub/xios_cpp_toy/blob/master/src/test_tp3.cpp) under the `nextsimhub` GitHub organisation, written by one of the XIOS developers. It demonstrates how to use some basic XIOS functionality in C++.
-* [XIOS Mattermost + SASIP channel]
+#### Papers
 * [neXtSIM paper](www.the-cryosphere.net/10/1055/2016) for the model that nextSIM-DG is a re-write of.
 * [nextSIM-DG preprint](https://doi.org/10.5194/egusphere-2023-391) for a paper on nextSIM-DG itself.
-* [Robert's GPU port paper]
-* [Original ICCS resource allocation](https://github.com/Cambridge-ICCS/ResourceAllocation/issues/28#event-12262163234)
-* [neXtSIM-DG GitHub](https://github.com/nextsimhub/nextsimdg)
+* [Robert's paper](https://dl.acm.org/doi/pdf/10.1145/3659914.3659924) on the GPU port work.
+
+#### Software
+* [nextSIM-DG GitHub](https://github.com/nextsimhub/nextsimdg)
+	* For development practices, see the README.
 * [domain_decomp GitHub](https://github.com/nextsimhub/domain_decomp)
-* [nextSIM-DG development practices]
+* There is a [toy code](https://github.com/nextsimhub/xios_cpp_toy/blob/master/src/test_tp3.cpp) under the `nextsimhub` GitHub organisation, written by one of the XIOS developers. It demonstrates how to use some basic XIOS functionality in C++.
+* [Original ICCS resource allocation](https://github.com/Cambridge-ICCS/ResourceAllocation/issues/28#event-12262163234)
+* [nextSIM-DG automatic documentation](https://nextsimhub.github.io/nextsimdg/index.html)
+* [nextSIM-DG ReadTheDocs](https://nextsim-dg.readthedocs.io/en/latest/index.html)
+* [XIOS Trac](https://forge.ipsl.fr/ioserver)
+
+#### Fora
+* [SASIP Slack]
+* [XIOS Mattermost](https://mattermost.lsce.ipsl.fr/xios)
+	* In particular, the [SASIP channel](https://mattermost.lsce.ipsl.fr/xios/channels/sasip)
 
 
 ## Tasks
@@ -144,10 +155,20 @@ to see the command line options that the build script accepts. Then try building
 
 * Change the number of MPI processors for some of the XIOS unit tests so that we cover more cases than just 2 MPI ranks. e.g., `XiosCalendar_test` could use 1 MPI rank and one of the others could be modified to run with 3 MPI ranks.
 
+#### Slightly more advanced
+
+* Introduce `.cfg` files for the XIOS tests to get filepath(s), timestep, period, etc.; implement method(s) for reading such configuration files and setting the appropriate XIOS attributes.
+
 #### Major tasks
 
-* ...
+* Check NetCDF files written with the XIOS-driven version of `dumpModelState` are in the expected format.
+	* If not, assess what would be required and whether it would be feasible to achieve as part of the project.
+* Implement reading of NetCDF files using an XIOS-driven version of `getModelState`.
+	- May involve basing XIOS setup on NetCDF files used for config, e.g., grid.
 
 #### Other tasks
 
-- Ensure the conversion of `1M` (1 month) to 30 days is documented on the XIOS pages and the nextSIM-DG time/config file pages
+- Compare the performance of XIOS configured with XML files versus XIOS configured using the API based on NetCDF header read directly.
+- Ensure the conversion of `1M` (1 month) to 30 days is documented on the XIOS pages and the nextSIM-DG time/config file pages.
+- Investigate running XIOS on a separate thread.
+- Look into `use_oasis` option for XIOS.
