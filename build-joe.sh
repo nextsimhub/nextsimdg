@@ -5,7 +5,15 @@
 
 set -e # Exit immediately if a command exits with a non-zero status
 
-BUILD_DIR="build"
+# Function to display help text
+show_help() {
+  echo "Usage: $0 [--prod | -p] [--fresh | -f] [--help | -h]"
+  echo
+  echo "Options:"
+  echo "  --prod  | -p    Compile in Release mode."
+  echo "  --fresh | -f    Create a fresh build before compiling."
+  echo "  --help  | -h    Show this help message and exit."
+}
 
 # Check if a Python virtual environment is active
 if [ -z "${VIRTUAL_ENV}" ]; then
@@ -21,17 +29,39 @@ before running this script."
   exit 1
 fi
 
+# Set the build directory
+BUILD_DIR="build"
+
 # Parse command line arguments
+PROD=false
 FRESH_BUILD=false
+HELP=false
 for arg in "$@"; do
   case $arg in
+  --prod | -p)
+    PROD=true
+    shift
+    ;;
   --fresh | -f)
     FRESH_BUILD=true
+    shift
+    ;;
+  --help | -h)
+    HELP=true
     shift
     ;;
   *) ;;
   esac
 done
+
+# Check for --help option
+if [ "${HELP}" = true ]; then
+  show_help
+  exit 0
+fi
+
+# Install Python dependencies
+python3 -m pip install -r requirements.txt
 
 # Check if a fresh build is requested
 if [ "${FRESH_BUILD}" = true ]; then
@@ -41,8 +71,10 @@ else
   echo "Rebuilding..."
 fi
 
-# Install Python dependencies
-python3 -m pip install -r requirements.txt
+# Use a different build directory in release mode
+if [ "${PROD}" = true ]; then
+  BUILD_DIR="${BUILD_DIR}_prod"
+fi
 
 # Create build directory and navigate into it
 mkdir -p "${BUILD_DIR}"
@@ -53,7 +85,7 @@ if [ -f /.dockerenv ]; then
   xios_DIR="/xios"
 fi
 
-# Check if cmake and make are available
+# Check if CMake and GNU Make are available
 command -v cmake >/dev/null 2>&1 || {
   echo >&2 "cmake is required but it's not installed. Aborting."
   exit 1
@@ -69,15 +101,31 @@ MPICC=mpicc
 MPICXX=mpicxx
 MPIF90=mpif90
 
-# Build the model with XIOS support in Debug mode
-cmake \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DENABLE_XIOS=ON \
-  -Dxios_DIR="${xios_DIR}" \
-  -DENABLE_MPI=ON \
-  -DCMAKE_C_COMPILER="${MPICC}" \
-  -DCMAKE_CXX_COMPILER="${MPICXX}" \
-  -DCMAKE_Fortran_COMPILER="${MPIF90}" \
-  -DENABLE_OASIS=ON .. \
-  -DBUILD_TESTS=ON
-make -j8
+if [ "${PROD}" = true ]; then
+  # Build the model with XIOS support in Release mode
+  cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DENABLE_XIOS=ON \
+    -Dxios_DIR="${xios_DIR}" \
+    -DENABLE_MPI=ON \
+    -DENABLE_OASIS=ON .. \
+    -DBUILD_TESTS=ON \
+    -DCMAKE_C_COMPILER="${MPICC}" \
+    -DCMAKE_CXX_COMPILER="${MPICXX}" \
+    -DCMAKE_Fortran_COMPILER="${MPIF90}"
+  make -j8
+else
+  # Build the model with XIOS support in Debug mode
+  cmake \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DENABLE_XIOS=ON \
+    -Dxios_DIR="${xios_DIR}" \
+    -DENABLE_MPI=ON \
+    -DENABLE_OASIS=ON .. \
+    -DBUILD_TESTS=ON \
+    -DCMAKE_C_COMPILER="${MPICC}" \
+    -DCMAKE_CXX_COMPILER="${MPICXX}" \
+    -DCMAKE_Fortran_COMPILER="${MPIF90}"
+  # -DCMAKE_CXX_FLAGS="-O0 -Wall -enable=all"
+  make VERBOSE=1 -j8
+fi
