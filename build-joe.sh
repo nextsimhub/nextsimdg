@@ -63,15 +63,21 @@ command -v make >/dev/null 2>&1 || {
   exit 1
 }
 
+# Provide MPI configuration
+# NOTE: Modify as appropriate
+MPICC=mpicc
+MPICXX=mpicxx
+MPIF90=mpif90
+
 # Build the model with XIOS support in Debug mode
 cmake \
   -DCMAKE_BUILD_TYPE=Debug \
   -DENABLE_XIOS=ON \
   -Dxios_DIR="${xios_DIR}" \
   -DENABLE_MPI=ON \
-  -DCMAKE_C_COMPILER=mpicc \
-  -DCMAKE_CXX_COMPILER=mpicxx \
-  -DCMAKE_Fortran_COMPILER=mpif90 \
+  -DCMAKE_C_COMPILER="${MPICC}" \
+  -DCMAKE_CXX_COMPILER="${MPICXX}" \
+  -DCMAKE_Fortran_COMPILER="${MPIF90}" \
   -DENABLE_OASIS=ON .. \
   -DBUILD_TESTS=ON
 make -j8
