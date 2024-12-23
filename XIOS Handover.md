@@ -136,27 +136,38 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 
 ## Building nextSIM-DG with XIOS support
 
-* XIOS has not been added on the `main` branch of nextSIM-DG, so you need to branch off of `develop`.
-* On the [`xios-handover`](https://github.com/nextsimhub/nextsimdg/tree/xios-handover), I've updated the [`Dockerfiles/install-xios.sh`](https://github.com/nextsimhub/nextsimdg/blob/xios-handover/Dockerfiles/install-xios.sh) script to support building XIOS2 locally. Simply move this script to the location you want to install it and run it from the command line.
-* [Spack env for nextSIM-DG, although might want to ask Tim and Einar how they have things set up on Mac]
+XIOS has not been added on the `main` branch of nextSIM-DG, so you need to branch off of `develop`. I recommend starting from this branch ([`xios-handover`](https://github.com/nextsimhub/nextsimdg/tree/xios-handover)).
+
+You will need to install various dependencies for nextSIM-DG. The approach Tom and I have been using is Spack-based, making use of the `spack.yaml` configuration file in the base nextSIM-DG directory. Given that you're building on Mac, it'd be worth asking Tim and Einar how they have things set up on their Mac laptops. In the Mac CI, we run the following:
+```sh
+brew install boost
+brew unlink pkg-config
+brew install pkgconf
+brew link --overwrite pkgconf
+brew install cmake
+brew install eigen
+brew install netcdf
+brew install netcdf-cxx
+```
 
 Make a copy of the `setup-joe.sh` script in the nextSIM-DG base directory:
 ```sh
 cp setup-joe.sh setup.sh
 ```
-* To use XIOS, you will need to define the environment variable `${xios_DIR}`. This is set in the `setup-joe.sh` script, although you'll need to modify as appropriate for the path to your XIOS installation.
+To use XIOS, you will need to define the environment variable `${xios_DIR}`. This is set in the `setup-joe.sh` script, although you'll need to modify as appropriate for the location you are going to install XIOS. You might also want to modify the script to set the location for installing the Python virtual environment for Python dependencies.
 
 Run
 ```sh
 source setup.sh
 ```
-and check that your prompt gets prepended by `[nextsim] (nextsim)`, denoting that the Spack and Python virtual environments have been activated, respectively.
+and check that your prompt gets prepended by `[nextsim] (nextsim)`, denoting that the Spack and Python virtual environments have been activated, respectively. (If you aren't using Spack then you won't get the one in square brackets.)
+
+On the [`xios-handover`](https://github.com/nextsimhub/nextsimdg/tree/xios-handover) branch, I've updated the [`Dockerfiles/install-xios.sh`](https://github.com/nextsimhub/nextsimdg/blob/xios-handover/Dockerfiles/install-xios.sh) script to support building XIOS locally. Simply move this script to the location you want to install it and run it from the command line. Make sure this location is consistent with `${xios_DIR}` in the `setup.sh` script.
 
 Create a copy of the `build-joe.sh` script, too:
 ```sh
 cp build-joe.sh build.sh
 ```
-[TODO: Add help; debug mode vs release mode]
 Run
 ```sh
 ./build.sh --help

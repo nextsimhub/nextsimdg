@@ -4,6 +4,7 @@
 # ========================================================================= #
 
 # Activate the Python virtual environment
+# NOTE: Modify as appropriate for the location you want to install the virtual environment
 if [ ! -e "${HOME}/.virtualenvs/nextsim" ]; then
   echo "Creating a new virtual environment in ${HOME}/.virtualenvs/nextsim."
   mkdir -p "${HOME}/.virtualenvs"
