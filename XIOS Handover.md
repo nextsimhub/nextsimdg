@@ -144,9 +144,11 @@ to see the command line options that the build script accepts. Then try building
 * [XIOS Trac](https://forge.ipsl.fr/ioserver)
 
 #### Fora
-* [SASIP Slack]
+* nextSIM-DG Slack
+	* [iccs-developers-meeting channel](https://nextsim-dg.slack.com/archives/C066HSPE866)
+	* [wp1-meetings channel](https://nextsim-dg.slack.com/archives/C034NLGL0M6)
 * [XIOS Mattermost](https://mattermost.lsce.ipsl.fr/xios)
-	* In particular, the [SASIP channel](https://mattermost.lsce.ipsl.fr/xios/channels/sasip)
+	* [SASIP channel](https://mattermost.lsce.ipsl.fr/xios/channels/sasip)
 
 
 ## Tasks
@@ -157,14 +159,17 @@ to see the command line options that the build script accepts. Then try building
 
 #### Slightly more advanced
 
-* Introduce `.cfg` files for the XIOS tests to get filepath(s), timestep, period, etc.; implement method(s) for reading such configuration files and setting the appropriate XIOS attributes.
+* Introduce `.cfg` files for the XIOS tests to get filepath(s), timestep, period, etc.; implement method(s) for reading such configuration files and setting the appropriate XIOS attributes ([#747](https://github.com/nextsimhub/nextsimdg/issues/747)).
+* Upgrade to XIOS3 ([#761](https://github.com/nextsimhub/nextsimdg/issues/761)).
 
 #### Major tasks
 
-* Check NetCDF files written with the XIOS-driven version of `dumpModelState` are in the expected format.
-	* If not, assess what would be required and whether it would be feasible to achieve as part of the project.
-* Implement reading of NetCDF files using an XIOS-driven version of `getModelState`.
-	- May involve basing XIOS setup on NetCDF files used for config, e.g., grid.
+* Reimplement `ParaGridIO` using XIOS ([#552](https://github.com/nextsimhub/nextsimdg/issues/552))
+	* Check NetCDF files written with the XIOS-driven version of `dumpModelState` are in the expected format.
+		* If not, assess what would be required and whether it would be feasible to achieve as part of the project.
+	* Implement reading of NetCDF files using an XIOS-driven version of `getModelState`.
+		- May involve basing XIOS setup on NetCDF files used for config, e.g., grid.
+		- Involves [#732](https://github.com/nextsimhub/nextsimdg/issues/732).
 
 #### Other tasks
 
@@ -172,3 +177,4 @@ to see the command line options that the build script accepts. Then try building
 - Ensure the conversion of `1M` (1 month) to 30 days is documented on the XIOS pages and the nextSIM-DG time/config file pages.
 - Investigate running XIOS on a separate thread.
 - Look into `use_oasis` option for XIOS.
+	- Also note [#640](https://github.com/nextsimhub/nextsimdg/issues/640).
