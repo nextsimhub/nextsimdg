@@ -99,15 +99,15 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 ## Building nextSIM-DG with XIOS support
 
 * XIOS has not been added on the `main` branch of nextSIM-DG, so you need to branch off of `develop`.
-* [Install XIOS2]
-* [Symlink; note about installing XIOS3]
-* [Set `${xios_DIR}`]
+* On the [`xios-handover`](https://github.com/nextsimhub/nextsimdg/tree/xios-handover), I've updated the [`Dockerfiles/install-xios.sh`](https://github.com/nextsimhub/nextsimdg/blob/xios-handover/Dockerfiles/install-xios.sh) script to support building XIOS2 locally. Simply move this script to the location you want to install it and run it from the command line.
 * [Spack env for nextSIM-DG, although might want to ask Tim and Einar how they have things set up on Mac]
 
 Make a copy of the `setup-joe.sh` script in the nextSIM-DG base directory:
 ```sh
 cp setup-joe.sh setup.sh
 ```
+* To use XIOS, you will need to define the environment variable `${xios_DIR}`. This is set in the `setup-joe.sh` script, although you'll need to modify as appropriate for the path to your XIOS installation.
+
 Run
 ```sh
 source setup.sh
@@ -118,7 +118,6 @@ Create a copy of the `build-joe.sh` script, too:
 ```sh
 cp build-joe.sh build.sh
 ```
-[TODO: Check it's working]
 [TODO: Add help; debug mode vs release mode]
 Run
 ```sh
@@ -161,6 +160,8 @@ to see the command line options that the build script accepts. Then try building
 
 * Introduce `.cfg` files for the XIOS tests to get filepath(s), timestep, period, etc.; implement method(s) for reading such configuration files and setting the appropriate XIOS attributes ([#747](https://github.com/nextsimhub/nextsimdg/issues/747)).
 * Upgrade to XIOS3 ([#761](https://github.com/nextsimhub/nextsimdg/issues/761)).
+	* Work in progress on branch [`issue761_xios3-upgrade`](https://github.com/nextsimhub/nextsimdg/tree/issue761_xios3-upgrade).
+	* Note that the updated [`Dockerfiles/install-xios.sh`](https://github.com/nextsimhub/nextsimdg/blob/xios-handover/Dockerfiles/install-xios.sh) script on the [`xios-handover`](https://github.com/nextsimhub/nextsimdg/tree/xios-handover) branch has a line commented out for installing XIOS3. My local setup installs XIOS2 into a subdirectory called `XIOS2` and XIOS3 into a separate subdirectory called `XIOS3` in the same directory. It's then easy to switch between them by defining `XIOS` as a symlink: `ln -s $(pwd)/XIOS2 $(pwd)/XIOS` or `ln -s $(pwd)/XIOS3 $(pwd)/XIOS`, as appropriate.
 
 #### Major tasks
 

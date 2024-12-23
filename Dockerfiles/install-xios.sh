@@ -76,18 +76,16 @@ cat <<EOF >arch/arch-GCC_LINUX.fcm
 %MAKE           gmake
 EOF
 
-# Build XIOS on a Linux operating system with the GCC compiler
-./make_xios --arch GCC_LINUX --job 8 --debug
-
-# Clean up files not needed
+./make_xios --arch GCC_LINUX --job 8 --full --debug
 rm -r \
-  /xios/arch \
-  /xios/doc \
-  /xios/done \
-  /xios/flags \
-  /xios/generic_testcase \
-  /xios/inputs \
-  /xios/obj \
-  /xios/ppsrc \
-  /xios/tools \
-  /xios/xios_test_suite
+  ${INSTALL_DIR}/arch \
+  ${INSTALL_DIR}/bin/generic_testcase.exe \
+  ${INSTALL_DIR}/doc \
+  ${INSTALL_DIR}/done \
+  ${INSTALL_DIR}/flags \
+  ${INSTALL_DIR}/generic_testcase \
+  ${INSTALL_DIR}/inputs \
+  ${INSTALL_DIR}/obj \
+  ${INSTALL_DIR}/ppsrc \
+  ${INSTALL_DIR}/tools \
+  ${INSTALL_DIR}/xios_test_suite

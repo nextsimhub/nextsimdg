@@ -25,7 +25,9 @@ if ! source "${SOFTWARE}/nextSIM-DG/.github/xios_arch/ubuntu.env"; then
 fi
 
 # Set XIOS directory
+# NOTE: Modify as appropriate for the location you installed XIOS
 export xios_DIR="${SOFTWARE}/XIOS"
 
-# Put decomp in the path
-export PATH="${SOFTWARE}/tools/domain_decomp/build":${PATH}
+# # Put decomp in the path
+# # NOTE: Modify as appropriate for the location you installed domain_decomp
+# export PATH="${SOFTWARE}/tools/domain_decomp/build":${PATH}
