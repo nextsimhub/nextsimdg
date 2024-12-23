@@ -82,18 +82,24 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 			* Can we run the model for each grid type and produce the 'golden' output file (`restart.nc`)? (Requirement 2)
 
 ---
-## Work so far
+## Key work so far
 
-* Background investigation (Alex) - see https://github.com/nextsimhub/nextsimdg/wiki/XIOS-Integration.
-* Implementation of `FindXios.cmake` file (Alex).
-* Wrapping core XIOS functions in `core/src/include/xios_c_interface.hpp`, `core/src/Xios.hpp`, and `core/src/Xios.cpp` (Tom).
-* Tests for core XIOS functionality in `core/test/XiosInit_test.cpp` (Tom).
-* Separation of concerns of `core/test/XiosInit_test.cpp` into `core/test/Xios<Calendar/Axis/Domain/Grid/Field/File/Write>_test.cpp` (Joe).
-* Wrapping XIOS reading functionality, `core/test/XiosRead_test.cpp` test (Joe).
-* Wrapping other misc XIOS functionality (Joe).
-* Use nextSIM-DG `TimePoint` and `Duration` classes in XIOS interface (Joe).
-* Methods for converting between nextSIM-DG and XIOS' time and duration concepts (Joe).
-* ...
+* Background investigation (Alex) - see [XIOS-integration](https://github.com/nextsimhub/nextsimdg/wiki/XIOS-Integration).
+* Implementation of `FindXios.cmake` file (Tom) - see [#496](https://github.com/nextsimhub/nextsimdg/pull/496).
+* Wrapping core XIOS functions in `core/src/include/xios_c_interface.hpp`, `core/src/Xios.hpp`, and `core/src/Xios.cpp` (Tom) - see [#496](https://github.com/nextsimhub/nextsimdg/pull/496).
+* Tests for core XIOS functionality in `core/test/XiosInit_test.cpp` (Tom) - see [#496](https://github.com/nextsimhub/nextsimdg/pull/496).
+* Wrap XIOS getters (Joe) - see [#555](https://github.com/nextsimhub/nextsimdg/pull/555).
+* Wrap XIOS setters (Joe) - see [#559](https://github.com/nextsimhub/nextsimdg/pull/5599).
+* Pass `ModelArray` to `Xios.write` rather than array of `double`s (Joe) - see [#575](https://github.com/nextsimhub/nextsimdg/pull/575).
+* Separation of concerns of `core/test/XiosInit_test.cpp` into `core/test/Xios<Calendar/Axis/Domain/Grid/Field/File/Write>_test.cpp` (Joe) - see [#588](https://github.com/nextsimhub/nextsimdg/pull/588).
+* Wrapping XIOS reading functionality, `core/test/XiosRead_test.cpp` test (Joe) - see [#597](https://github.com/nextsimhub/nextsimdg/pull/597).
+* Wrapping XIOS frequency splitting functionality (Joe) - see [#632](https://github.com/nextsimhub/nextsimdg/pull/632).
+* Use XIOS `Domain` for $xy$-plane and `Axis` for $z$-axis (Joe) - see [#635](https://github.com/nextsimhub/nextsimdg/pull/635).
+* Use nextSIM-DG `TimePoint` and `Duration` classes in XIOS interface (Joe) - see [#637](https://github.com/nextsimhub/nextsimdg/pull/637).
+* Prepare for setting XIOS up via nextSIM-DG (Joe) - see [#728](https://github.com/nextsimhub/nextsimdg/pull/728).
+* Handle XIOS contexts (Joe) - see [#738](https://github.com/nextsimhub/nextsimdg/pull/738).
+* [Under review] Align nextSIM-DG and XIOS calendars (Joe) - see [#757](https://github.com/nextsimhub/nextsimdg/pull/757).
+* [Under review] Set up `ParaGridIO_Xios` as a copy of `ParaGridIO` for now (Joe) - see [#758](https://github.com/nextsimhub/nextsimdg/pull/758).
 
 ---
 ## Tasks
