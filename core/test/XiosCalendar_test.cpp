@@ -1,7 +1,7 @@
 /*!
  * @file    XiosCalendar_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    10 Dec 2024
+ * @date    02 Jan 2025
  * @brief   Tests for XIOS calandars
  * @details
  * This test is designed to test calendar functionality of the C++ interface
@@ -29,45 +29,45 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
 {
     enableXios();
 
-    // Initialize an Xios instance called xios_handler
-    Xios xios_handler;
-    REQUIRE(xios_handler.isInitialized());
-    REQUIRE(xios_handler.getClientMPISize() == 2);
+    // Get the Xios singleton instance and check it's initialized
+    Xios* xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler->isInitialized());
+    REQUIRE(xiosHandler->getClientMPISize() == 2);
 
     // --- Tests for calendar API
     // Calendar type
-    REQUIRE(xios_handler.getCalendarType() == "Gregorian");
+    REQUIRE(xiosHandler->getCalendarType() == "Gregorian");
     // Calendar origin
-    REQUIRE(xios_handler.getCalendarOrigin().format() == "1970-01-01T00:00:00Z"); // Default
+    REQUIRE(xiosHandler->getCalendarOrigin().format() == "1970-01-01T00:00:00Z"); // Default
     TimePoint origin("2020-01-23T00:08:15Z");
-    xios_handler.setCalendarOrigin(origin);
-    REQUIRE(origin == xios_handler.getCalendarOrigin());
+    xiosHandler->setCalendarOrigin(origin);
+    REQUIRE(origin == xiosHandler->getCalendarOrigin());
     REQUIRE(origin.format() == "2020-01-23T00:08:15Z");
     // Calendar start
-    REQUIRE(xios_handler.getCalendarStart().format() == "1970-01-01T00:00:00Z"); // Default
+    REQUIRE(xiosHandler->getCalendarStart().format() == "1970-01-01T00:00:00Z"); // Default
     TimePoint start("2023-03-17T17:11:00Z");
-    xios_handler.setCalendarStart(start);
-    REQUIRE(start == xios_handler.getCalendarStart());
+    xiosHandler->setCalendarStart(start);
+    REQUIRE(start == xiosHandler->getCalendarStart());
     REQUIRE(start.format() == "2023-03-17T17:11:00Z");
     // Timestep
-    REQUIRE(xios_handler.getCalendarTimestep().seconds() == 3600.0); // Default
+    REQUIRE(xiosHandler->getCalendarTimestep().seconds() == 3600.0); // Default
     Duration timestep("P0-0T01:30:00");
     REQUIRE(timestep.seconds() == 5400.0);
-    xios_handler.setCalendarTimestep(timestep);
-    REQUIRE(xios_handler.getCalendarTimestep().seconds() == 5400.0);
+    xiosHandler->setCalendarTimestep(timestep);
+    REQUIRE(xiosHandler->getCalendarTimestep().seconds() == 5400.0);
 
-    xios_handler.close_context_definition();
+    xiosHandler->close_context_definition();
 
     // --- Tests for getCurrentDate method
-    REQUIRE(xios_handler.getCalendarStep() == 0);
-    REQUIRE(xios_handler.getCurrentDate() == "2023-03-17T17:11:00Z");
-    REQUIRE(xios_handler.getCurrentDate(false) == "2023-03-17 17:11:00");
+    REQUIRE(xiosHandler->getCalendarStep() == 0);
+    REQUIRE(xiosHandler->getCurrentDate() == "2023-03-17T17:11:00Z");
+    REQUIRE(xiosHandler->getCurrentDate(false) == "2023-03-17 17:11:00");
 
     // -- Tests that the timestep is set up correctly
-    xios_handler.setCalendarStep(1);
-    REQUIRE(xios_handler.getCurrentDate() == "2023-03-17T18:41:00Z");
+    xiosHandler->setCalendarStep(1);
+    REQUIRE(xiosHandler->getCurrentDate() == "2023-03-17T18:41:00Z");
 
-    xios_handler.context_finalize();
+    xiosHandler->context_finalize();
 }
 
 }
