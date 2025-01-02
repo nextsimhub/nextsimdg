@@ -99,7 +99,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler->getCalendarStep() == ts);
         // Send data to XIOS to be written to disk
-        pio->dumpModelState(state, metadata, "xios_test_output.nc");
+        grid.dumpModelState(state, metadata, "xios_test_output.nc", true);
     }
 
     // Check the files have indeed been created then remove it
