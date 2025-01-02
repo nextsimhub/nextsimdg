@@ -375,7 +375,9 @@ void ParaGridIO::dumpModelState(
         uName, vName, damageName }; // TODO and others
     // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
-        xiosHandler->write(entry.first, entry.second);
+        if (restartFields.count(entry.first)) {
+            xiosHandler->write(entry.first, entry.second);
+        }
     }
 }
 
