@@ -1,7 +1,7 @@
 /*!
  * @file    XiosReadWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    11 Dec 2024
+ * @date    02 Jan 2025
  * @brief   Tests for XIOS write method
  * @details
  * This test is designed to test the read and write methods of the C++
@@ -46,14 +46,6 @@ Xios setupXiosHandler(int dim, bool read)
     if ((dim != 2) && (dim != 3)) {
         throw std::invalid_argument("Test only implemented for 2D and 3D cases");
     }
-
-    enableXios();
-
-    // Create ParametricGrid and ParaGridIO instances
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
-    grid.setIO(pio);
 
     // Initialize an Xios instance called xios_handler
     // TODO: Create XIOS handler along with ParaGridIO instance
@@ -171,6 +163,7 @@ void readFile(Xios* xios_handler, HField& field_A, const std::string fieldId)
  */
 MPI_TEST_CASE("TestXiosRead_2D", 2)
 {
+    enableXios();
     Xios xios_handler = setupXiosHandler(2, true);
 
     // Create a HField instance to read the data into
@@ -197,6 +190,7 @@ MPI_TEST_CASE("TestXiosRead_2D", 2)
  */
 MPI_TEST_CASE("TestXiosRead_3D", 2)
 {
+    enableXios();
     Xios xios_handler = setupXiosHandler(3, true);
 
     // Create a HField instance to read the data into
@@ -266,6 +260,7 @@ void testFileWrite(Xios* xios_handler, HField& field_A, const std::string fieldI
  */
 MPI_TEST_CASE("TestXiosWrite_2D", 2)
 {
+    enableXios();
     Xios xios_handler = setupXiosHandler(2, false);
 
     // Create some fake data to test writing methods
@@ -290,6 +285,7 @@ MPI_TEST_CASE("TestXiosWrite_2D", 2)
  */
 MPI_TEST_CASE("TestXiosWrite_3D", 2)
 {
+    enableXios();
     Xios xios_handler = setupXiosHandler(3, false);
 
     // Create some fake data to test writing methods
