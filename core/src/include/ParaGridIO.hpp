@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.hpp
  *
- * @date Oct 24, 2022
+ * @date 02 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -34,6 +34,10 @@ public:
 
     ParaGridIO(ParametricGrid& grid);
     virtual ~ParaGridIO();
+
+#ifdef USE_XIOS
+    void setupXios(const ModelState& state, const std::string& filePath, const bool read);
+#endif
 
     /*!
      * Retrieves the ModelState from a restart file of the parametric_grid type.
@@ -120,6 +124,10 @@ private:
 
     //! Performs some one-time initialization for the class. Returns true.
     static bool doOnce();
+
+#ifdef USE_XIOS
+    bool xiosSetup = false;
+#endif
 };
 
 } /* namespace Nextsim */

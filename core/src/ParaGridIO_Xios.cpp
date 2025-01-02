@@ -16,6 +16,9 @@
 #include "include/MissingData.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 
 #include <ncDim.h>
 #include <ncException.h>
@@ -89,6 +92,92 @@ bool ParaGridIO::doOnce()
 }
 
 ParaGridIO::~ParaGridIO() = default;
+
+/*!
+ * Setup the Axis, Domain, Grid, Field, and File attributes required by XIOS based on the
+ * ModelState, ModelMetadata, and FilePath provided.
+ *
+ * @params state The model state and configuration object.
+ * @params filePath The path for the restart file.
+ */
+void ParaGridIO::setupXios(const ModelState& state, const std::string& filePath, const bool read)
+{
+    if (xiosSetup) {
+        return;
+    }
+    Xios* xiosHandler = Xios::getInstance();
+    if (!xiosHandler->isInitialized()) {
+        throw std::runtime_error("ParaGridIO_Xios: XIOS handler uninitialized");
+    }
+
+    // Setup XIOS Domain attribute with special domainId 'xy_domain' that creates grid_2D along
+    // with it
+    xiosHandler->createDomain("xy_domain");
+    xiosHandler->setDomainType("xy_domain", "rectilinear");
+    for (auto entry : ModelArray::definedDimensions) {
+        auto dimType = entry.first;
+        ModelArray::DimensionSpec& dimensionSpec = entry.second;
+        const std::string name = dimensionSpec.name;
+        if (name == "xdim") {
+            xiosHandler->setDomainGlobalXSize("xy_domain", dimensionSpec.globalLength);
+            xiosHandler->setDomainLocalXSize("xy_domain", dimensionSpec.localLength);
+            xiosHandler->setDomainLocalXStart("xy_domain", dimensionSpec.start);
+        } else if (name == "ydim") {
+            xiosHandler->setDomainGlobalYSize("xy_domain", dimensionSpec.globalLength);
+            xiosHandler->setDomainLocalYSize("xy_domain", dimensionSpec.localLength);
+            xiosHandler->setDomainLocalYStart("xy_domain", dimensionSpec.start);
+        } else if (name == "zdim") {
+            // Setup XIOS Axis attribute with special 'z_axis' ID that creates grid_3D along with it
+            xiosHandler->createAxis("z_axis");
+            xiosHandler->setAxisSize("z_axis", dimensionSpec.globalLength);
+            if (dimensionSpec.globalLength != dimensionSpec.localLength) {
+                throw std::runtime_error("ParaGridIO_Xios: Inconsistent dimensionSpec for z-axis");
+            }
+        }
+        // TODO: What about *vertex, *_cg, dg_comp, dgstress_comp, ncoords?
+    }
+
+    // Setup XIOS File attribute
+    std::string fileId = filePath.substr(0, filePath.find_last_of('.'));
+    // std::string fileId = ((std::filesystem::path)filePath).replace_extension();
+    xiosHandler->createFile(fileId);
+    xiosHandler->setFileType(fileId, "one_file");
+    if (read) {
+        xiosHandler->setFileMode(fileId, "read");
+        xiosHandler->setFileParAccess(fileId, "collective");
+    } else {
+        xiosHandler->setFileMode(fileId, "write");
+        xiosHandler->setFileSplitFreq(fileId, Duration("P0-0T03:00:00")); // TODO: Set properly
+    }
+    Duration timestep = xiosHandler->getCalendarTimestep();
+    xiosHandler->setFileOutputFreq(fileId, timestep); // TODO: Set actual output freq
+    // xiosHandler->setFileSplitFreq(fileId, Duration(...)); // TODO: Allow setting this
+
+    // Loop over fields in the ModelState and create XIOS Field attributes for each
+    for (auto entry : state.data) {
+        std::string fieldId = entry.first;
+        ModelArray field = entry.second;
+
+        // Setup XIOS Field attribute and associate it with the File
+        xiosHandler->createField(fieldId);
+        xiosHandler->setFieldOperation(fieldId, "instant");
+        // TODO: Properly account for dimension
+        if (fieldId == "field_2D") {
+            xiosHandler->setFieldGridRef(fieldId, "grid_2D");
+        } else if (fieldId == "field_3D") {
+            xiosHandler->setFieldGridRef(fieldId, "grid_3D");
+        } else {
+            throw std::invalid_argument("ParaGridIO_Xios: field ID must be field_2D or field_3D");
+        }
+        xiosHandler->setFieldReadAccess(fieldId, read);
+        xiosHandler->setFieldFreqOffset(fieldId, timestep); // TODO: Allow customisation
+        xiosHandler->fileAddField(fileId, fieldId);
+    }
+
+    // Mark XIOS setup complete
+    xiosHandler->close_context_definition();
+    xiosSetup = true;
+}
 
 #ifdef USE_MPI
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
@@ -277,80 +366,19 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
 {
-    // TODO: XIOS implementation
-
-#ifdef USE_MPI
-    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
-#else
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
-#endif
-
-    CommonRestartMetadata::writeStructureType(ncFile, metadata);
-    netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
-    netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
-    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
-
-    // Dump the dimensions and number of components
-    std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
-    for (auto entry : ModelArray::definedDimensions) {
-        ModelArray::Dimension dim = entry.first;
-        size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.globalLength;
-        ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
-        // TODO Do I need to add data, even if it is just integers 0...n-1?
+    if (!xiosSetup) {
+        throw std::runtime_error("Xios has not been set up");
     }
+    Xios* xiosHandler = Xios::getInstance();
 
-    // Also create the sets of dimensions to be connected to the data fields
-    std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
-    for (auto entry : ModelArray::typeDimensions) {
-        ModelArray::Type type = entry.first;
-        std::vector<netCDF::NcDim> ncDims;
-        for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
-            ModelArray::Dimension& maDim = *iter;
-            ncDims.push_back(ncFromMAMap.at(maDim));
-        }
-        dimMap[type] = ncDims;
-    }
-
-    // Everything that has components needs that dimension, too. This always varies fastest, and so
-    // is last in the vector of dimensions.
-    for (auto entry : dimCompMap) {
-        dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
-    }
-
-    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
-        uName, vName, damageName }; // TODO and others
+    // std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
+    //     sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName,
+    //     gridAzimuthName, uName, vName, damageName }; // TODO and others
+    std::set<std::string> restartFields = { "field_2D", "field_3D" }; // TODO: Switch to above
     // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
-        if (restartFields.count(entry.first)) {
-            // Get the type, then relevant vector of NetCDF dimensions
-            ModelArray::Type type = entry.second.getType();
-            std::vector<size_t> start;
-            std::vector<size_t> count;
-            if (ModelArray::hasDoF(type)) {
-                auto ncomps = entry.second.nComponents();
-                start.push_back(0);
-                count.push_back(ncomps);
-            }
-            for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)) {
-                auto dim = entry.second.definedDimensions.at(dt);
-                start.push_back(dim.start);
-                count.push_back(dim.localLength);
-            }
-            // dims are looped in [dg], x, y, [z] order so start and count
-            // order must be reveresed to match order netcdf expects
-            std::reverse(start.begin(), start.end());
-            std::reverse(count.begin(), count.end());
-
-            std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-            netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-            var.putVar(start, count, entry.second.getData());
-        }
+        xiosHandler->write(entry.first, entry.second);
     }
-
-    ncFile.close();
 }
 
 void ParaGridIO::writeDiagnosticTime(
