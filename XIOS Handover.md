@@ -84,7 +84,7 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 ---
 ## Key work so far
 
-* Background investigation (Alex) - see [XIOS-integration](https://github.com/nextsimhub/nextsimdg/wiki/XIOS-Integration).
+* Background investigation (Alex) - see [XIOS-integration](https://github.com/nextsimhub/nextsimdg/wiki/XIOS-Integration) (largely copied above).
 * Implementation of `FindXios.cmake` file (Tom) - see [#496](https://github.com/nextsimhub/nextsimdg/pull/496).
 * Wrapping core XIOS functions in `core/src/include/xios_c_interface.hpp`, `core/src/Xios.hpp`, and `core/src/Xios.cpp` (Tom) - see [#496](https://github.com/nextsimhub/nextsimdg/pull/496).
 * Tests for core XIOS functionality in `core/test/XiosInit_test.cpp` (Tom) - see [#496](https://github.com/nextsimhub/nextsimdg/pull/496).
@@ -100,6 +100,10 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 * Handle XIOS contexts (Joe) - see [#738](https://github.com/nextsimhub/nextsimdg/pull/738).
 * [Under review] Align nextSIM-DG and XIOS calendars (Joe) - see [#757](https://github.com/nextsimhub/nextsimdg/pull/757).
 * [Under review] Set up `ParaGridIO_Xios` as a copy of `ParaGridIO` for now (Joe) - see [#758](https://github.com/nextsimhub/nextsimdg/pull/758).
+* [Under review] Implement `Xios`` handler class as a singleton (Joe) - see [#763](https://github.com/nextsimhub/nextsimdg/pull/763).
+* [In progress] Implement `dumpModelState` using XIOS (Joe) - see [#767](https://github.com/nextsimhub/nextsimdg/pull/767).
+
+My current working branch is [`xios-working`](https://github.com/nextsimhub/nextsimdg/tree/xios-working).
 
 ---
 ## Tasks
@@ -117,10 +121,12 @@ A version of nextSIM-DG using the XIOS framework for model I/O.
 
 #### Major tasks
 
-* Reimplement `ParaGridIO` using XIOS ([#552](https://github.com/nextsimhub/nextsimdg/issues/552))
+* Implement `dumpModelState` (file writing) using XIOS ([#766](https://github.com/nextsimhub/nextsimdg/issues/766)).
+  * Complete [#767](https://github.com/nextsimhub/nextsimdg/pull/767) and get it merged.
+    * Currently works for XIOS tests but not ParaGrid_test.
 	* Check NetCDF files written with the XIOS-driven version of `dumpModelState` are in the expected format.
 		* If not, assess what would be required and whether it would be feasible to achieve as part of the project.
-	* Implement reading of NetCDF files using an XIOS-driven version of `getModelState`.
+* Implement `getModelState` (file reading) using XIOS ([#768](https://github.com/nextsimhub/nextsimdg/issues/768)).
 		- May involve basing XIOS setup on NetCDF files used for config, e.g., grid.
 		- Involves [#732](https://github.com/nextsimhub/nextsimdg/issues/732).
 
