@@ -1,12 +1,15 @@
 # Sources for the main neXtSIM model
 
 if(ENABLE_XIOS)
-    set(XIOS_INCLUDE_LIST
-        "${xios_INCLUDES}"
-        "${xios_EXTERNS}/blitz/"
-        "${xios_EXTERNS}/rapidxml/include"
-    )
-    set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${XIOS_INCLUDE_LIST}")
+    set(ParaGridIO_Impl "ParaGridIO_Xios.cpp")
+        set(XIOS_INCLUDE_LIST
+            "${xios_INCLUDES}"
+            "${xios_EXTERNS}/blitz/"
+            "${xios_EXTERNS}/rapidxml/include"
+        )
+        set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${XIOS_INCLUDE_LIST}")
+else()
+    set(ParaGridIO_Impl "ParaGridIO.cpp")
 endif()
 
 set(BaseSources
@@ -20,7 +23,7 @@ set(BaseSources
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
     "RectGridIO.cpp"
-    "ParaGridIO.cpp"
+    "${ParaGridIO_Impl}"
     "FileCallbackCloser.cpp"
     "Finalizer.cpp"
     "DevStep.cpp"
