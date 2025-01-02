@@ -24,7 +24,6 @@
 #include <boost/format/group.hpp>
 #include <include/xios_c_interface.hpp>
 #include <mpi.h>
-#include <mutex>
 
 namespace Nextsim {
 
