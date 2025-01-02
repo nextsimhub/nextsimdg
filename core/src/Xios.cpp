@@ -62,7 +62,14 @@ Xios::Xios(const std::string dt, const std::string contextid, const std::string 
 }
 
 //! Destructor
-Xios::~Xios() { finalize(); }
+Xios::~Xios()
+{
+    finalize();
+    if (instancePtr != nullptr) {
+        delete instancePtr;
+        instancePtr = nullptr;
+    }
+}
 
 //! Close XIOS context definition once xml config has been read and calendar settings updated
 void Xios::close_context_definition()
