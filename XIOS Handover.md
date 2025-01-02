@@ -150,6 +150,8 @@ brew install netcdf
 brew install netcdf-cxx
 ```
 
+### Setup script
+
 Make a copy of the `setup-joe.sh` script in the nextSIM-DG base directory:
 ```sh
 cp setup-joe.sh setup.sh
@@ -162,6 +164,8 @@ source setup.sh
 ```
 and check that your prompt gets prepended by `[nextsim] (nextsim)`, denoting that the Spack and Python virtual environments have been activated, respectively. (If you aren't using Spack then you won't get the one in square brackets.)
 
+### Build script
+
 On the [`xios-handover`](https://github.com/nextsimhub/nextsimdg/tree/xios-handover) branch, I've updated the [`Dockerfiles/install-xios.sh`](https://github.com/nextsimhub/nextsimdg/blob/xios-handover/Dockerfiles/install-xios.sh) script to support building XIOS locally. Simply move this script to the location you want to install it and run it from the command line. Make sure this location is consistent with `${xios_DIR}` in the `setup.sh` script.
 
 Create a copy of the `build-joe.sh` script, too:
@@ -173,6 +177,18 @@ Run
 ./build.sh --help
 ```
 to see the command line options that the build script accepts. Then try building the model with your desired options.
+
+### Test script
+
+Finally, create a copy of the `test-joe.sh` script, too:
+```sh
+cp test-joe.sh test.sh
+```
+Run
+```sh
+./test.sh --help
+```
+to see the command line options that the test script accepts. Then try running the test script with your desired options.
 
 ---
 ## Resources
