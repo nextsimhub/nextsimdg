@@ -16,6 +16,7 @@
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
+#include "include/gridNames.hpp"
 
 #include <filesystem>
 
@@ -56,27 +57,27 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::Z, nz, nz, 0);
 
     // Create some fake data to test writing methods
-    HField field_2D(ModelArray::Type::H);
-    field_2D.resize();
-    HField field_3D(ModelArray::Type::Z);
-    field_3D.resize();
+    HField hice(ModelArray::Type::H);
+    hice.resize();
+    HField cice(ModelArray::Type::Z);
+    cice.resize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            field_2D(i, j) = 1.0 * (i + nx * j);
+            hice(i, j) = 1.0 * (i + nx * j);
         }
     }
     for (size_t k = 0; k < nz; ++k) {
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
-                field_3D(i, j, k) = 1.0 * (i + nx * (j + ny * k));
+                cice(i, j, k) = 1.0 * (i + nx * (j + ny * k));
             }
         }
     }
 
     // Setup ModelState with fields above
     ModelState state = { {
-                             { "field_2D", field_2D },
-                             { "field_3D", field_3D },
+                             { hiceName, hice },
+                             { ciceName, cice },
                          },
         {} };
     pio->setupXios(state, "xios_test_output", false);

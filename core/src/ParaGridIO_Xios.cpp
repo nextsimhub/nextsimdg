@@ -161,13 +161,12 @@ void ParaGridIO::setupXios(const ModelState& state, const std::string& filePath,
         // Setup XIOS Field attribute and associate it with the File
         xiosHandler->createField(fieldId);
         xiosHandler->setFieldOperation(fieldId, "instant");
-        // TODO: Properly account for dimension
-        if (fieldId == "field_2D") {
+        if (field.nDimensions() == 2) {
             xiosHandler->setFieldGridRef(fieldId, "grid_2D");
-        } else if (fieldId == "field_3D") {
+        } else if (field.nDimensions() == 3) {
             xiosHandler->setFieldGridRef(fieldId, "grid_3D");
         } else {
-            throw std::invalid_argument("ParaGridIO_Xios: field ID must be field_2D or field_3D");
+            throw std::invalid_argument("ParaGridIO_Xios: field dimension must be 2 or 3");
         }
         xiosHandler->setFieldReadAccess(fieldId, read);
         xiosHandler->setFieldFreqOffset(fieldId, timestep); // TODO: Allow customisation
@@ -371,10 +370,9 @@ void ParaGridIO::dumpModelState(
     }
     Xios* xiosHandler = Xios::getInstance();
 
-    // std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-    //     sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName,
-    //     gridAzimuthName, uName, vName, damageName }; // TODO and others
-    std::set<std::string> restartFields = { "field_2D", "field_3D" }; // TODO: Switch to above
+    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
+        sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
+        uName, vName, damageName }; // TODO and others
     // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
         xiosHandler->write(entry.first, entry.second);
