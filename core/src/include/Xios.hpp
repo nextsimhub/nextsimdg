@@ -43,17 +43,24 @@ public:
     Xios(const Xios& xiosHandler) = delete;
     ~Xios();
 
-    /* Define Xios handler Singleton */
+    /*
+     * Define Xios handler Singleton
+     *
+     * NOTE: The arguments will only be used the first time this is called.
+     */
     inline static Xios* getInstance(const std::string dt = "P0-0T01:00:00",
         const std::string contextId = "nextSIM-DG",
         const std::string startTime = "1970-01-01T00:00:00Z",
         const std::string calendarType = "Gregorian")
     {
-        if (instancePtr == nullptr) {
+        if (isNull()) {
             instancePtr = new Xios(dt, contextId, startTime, calendarType);
         }
         return instancePtr;
     };
+
+    /* Utility for checking if the singleton has been created */
+    inline static bool isNull() { return (instancePtr == nullptr); }
 
     /* Initialization and finalization */
     void close_context_definition();

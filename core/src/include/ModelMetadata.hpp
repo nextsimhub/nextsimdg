@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date 09 Dec 2024
+ * @date 02 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -12,10 +12,6 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
-#ifdef USE_XIOS
-#include "include/Xios.hpp"
-#endif
-
 #include <string>
 
 #ifdef USE_MPI
@@ -102,15 +98,6 @@ public:
     int localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX, globalExtentY;
 #endif
 
-#ifdef USE_XIOS
-    /*
-     * @brief Set pointer to Xios handler instance.
-     *
-     * @param xiosPtr Pointer to set
-     */
-    inline void setXiosHandler(Xios* xiosPtr) { xiosHandler = xiosPtr; }
-#endif
-
 private:
     TimePoint m_time;
     ConfigMap m_config;
@@ -128,9 +115,6 @@ private:
     bool hasParameters;
 #ifdef USE_MPI
     const std::string bboxName = "bounding_boxes";
-#endif
-#ifdef USE_XIOS
-    Xios* xiosHandler = nullptr;
 #endif
 };
 
