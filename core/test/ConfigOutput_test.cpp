@@ -103,7 +103,8 @@ TEST_CASE("Test periodic output")
     ModelMetadata meta;
 #ifdef USE_XIOS
     enableXios();
-    Xios* xiosHandler = Xios::getInstance("P0-0T01:00:00", "test1");
+    Xios* xiosHandler = Xios::getInstance("P0-0T01:00:00");
+    REQUIRE(xiosHandler->isInitialized());
     xiosHandler->setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     xiosHandler->close_context_definition();
 #endif

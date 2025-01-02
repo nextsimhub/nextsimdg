@@ -105,13 +105,23 @@ MPI_TEST_CASE("Write and read a ModelState-based ParaGrid restart file", 2)
 TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 #endif
 {
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+#ifdef USE_XIOS
+    enableXios();
+#endif
 
     std::filesystem::remove(filename);
 
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
+
+#ifdef USE_XIOS
+    REQUIRE(Xios::isNull());
+    Xios* xiosHandler = Xios::getInstance("P0-0T01:00:00");
+    REQUIRE(xiosHandler->isInitialized());
+    xiosHandler->setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
+#endif
 
     // Set the dimension lengths
     NZLevels::set(nz);
@@ -210,13 +220,12 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
                               },
         {} };
 
-    ModelMetadata metadata;
 #ifdef USE_XIOS
-    enableXios();
-    Xios* xiosHandler = Xios::getInstance("P0-0T01:00:00");
-    xiosHandler->setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
-    xiosHandler->close_context_definition();
+    // TODO: The following method shouldn't need to be called by the user
+    pio->setupXios(state, filename, false);
 #endif
+
+    ModelMetadata metadata;
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState

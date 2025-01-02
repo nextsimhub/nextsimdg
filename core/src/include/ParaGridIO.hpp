@@ -36,6 +36,7 @@ public:
     virtual ~ParaGridIO();
 
 #ifdef USE_XIOS
+    // TODO: This should be private - it shouldn't be called by the user
     void setupXios(const ModelState& state, const std::string& filePath, const bool read);
 #endif
 

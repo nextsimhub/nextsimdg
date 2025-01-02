@@ -370,9 +370,9 @@ void ParaGridIO::dumpModelState(
     }
     Xios* xiosHandler = Xios::getInstance();
 
+    // TODO: coordsName, xName, yName, gridAzimuthName and others
     std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
-        uName, vName, damageName }; // TODO and others
+        sssName, maskName, longitudeName, latitudeName, uName, vName, damageName };
     // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
