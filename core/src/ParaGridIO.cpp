@@ -247,7 +247,12 @@ ModelState ParaGridIO::readForcingTimeStatic(
             extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
         }
 
+        auto availableForcings = dataGroup.getVars();
         for (const std::string& varName : forcings) {
+            // Don't try to read non-existent data
+            if (!availableForcings.count(varName)) {
+                continue;
+            }
             netCDF::NcVar var = dataGroup.getVar(varName);
             state.data[varName] = ModelArray(ModelArray::Type::H);
             ModelArray& data = state.data.at(varName);

@@ -248,10 +248,28 @@ else()
         testModelArray
         "ModelArray_test.cpp"
         "../src/ModelArray.cpp"
+        "../src/ModelArraySlice.cpp"
         "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp"
     )
     target_include_directories(testModelArray PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
     target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
+
+    add_executable(
+        testSlice
+        "Slice_test.cpp"
+    )
+    target_include_directories(testSlice PRIVATE "../src")
+    target_link_libraries(testSlice PRIVATE doctest::doctest)
+
+    add_executable(
+        testModelArraySlice
+        "ModelArraySlice_test.cpp"
+        "../src/ModelArray.cpp"
+        "../src/ModelArraySlice.cpp"
+        "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp"
+    )
+    target_include_directories(testModelArraySlice PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
+    target_link_libraries(testModelArraySlice PRIVATE doctest::doctest Eigen3::Eigen)
 
     # The help config test needs access to the full binary
     file(CREATE_LINK ${NEXTSIM_BINARY_PATH} ${CMAKE_CURRENT_BINARY_DIR}/nextsim SYMBOLIC)

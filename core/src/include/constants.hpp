@@ -1,6 +1,6 @@
 /*!
  * @file constants.hpp
- * @date Sep 14, 2021
+ * @date 05 Dec 2024
  * @author Tim Spain
  */
 
@@ -31,6 +31,12 @@ const double Tt = 273.16;
 
 //! Ratio of circumference to radius
 const double tau = 6.28318530717958647652;
+
+// degrees to radians as a hex float
+const double deg2rad = 0x1.1df46a2529d39p-6;
+
+// radians to degrees
+const double rad2deg = 0x1.ca5dc1a63c1f8p+5;
 }
 
 //! Properties of water ice around 0˚C and 101.3 kPa
@@ -131,10 +137,10 @@ inline double kelvin(double celsius) { return celsius + Water::Tf; }
 inline double celsius(double kelvin) { return kelvin - Water::Tf; }
 
 //! Convert an angle from radians to degrees
-inline double degrees(double radians) { return radians * 360 / PhysicalConstants::tau; }
+inline double degrees(double radians) { return radians * PhysicalConstants::rad2deg; }
 
 //! Convert an angle from degrees to radians
-inline double radians(double degrees) { return degrees * PhysicalConstants::tau / 360; }
+inline double radians(double degrees) { return degrees * PhysicalConstants::deg2rad; }
 
 //! Convert a pressure from Pa to mbar
 inline double mbar(double pascals) { return pascals / 100; }

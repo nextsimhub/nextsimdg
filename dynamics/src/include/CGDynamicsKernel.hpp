@@ -1,7 +1,7 @@
 /*!
  * @file CGDynamicsKernel.hpp
  *
- * @date Jan 31, 2024
+ * @date 06 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -39,13 +39,32 @@ public:
     CGDynamicsKernel() { }
     virtual ~CGDynamicsKernel() = default;
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
+
     void setData(const std::string& name, const ModelArray& data) override;
     ModelArray getDG0Data(const std::string& name) const override;
+    void ComputeGradientOfSeaSurfaceHeight(const DGVector<1>& seaSurfaceHeight);
     void prepareIteration(const DataMap& data) override;
     void projectVelocityToStrain() override;
     void stressDivergence() override;
     void applyBoundaries() override;
     void prepareAdvection() override;
+
+    virtual inline double getIceOceanStressElement(const std::string& name, const int i) const = 0;
+    CGVector<CGdegree> getIceOceanStress(const std::string& name) const
+    {
+        if (name != uIOStressName && name != vIOStressName)
+            throw std::logic_error(std::string(__func__) + " called with an unknown argument "
+                + name + ". Only " + uIOStressName + " and " + vIOStressName + " are supported\n");
+
+        CGVector<CGdegree> tau;
+        tau.resizeLike(u);
+
+#pragma omp parallel for
+        for (int i = 0; i < tau.rows(); ++i)
+            tau(i) = getIceOceanStressElement(name, i);
+
+        return tau;
+    }
 
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);
@@ -57,6 +76,10 @@ protected:
     // CG ice thickness and concentration
     CGVector<CGdegree> cgA;
     CGVector<CGdegree> cgH;
+
+    // CG gradient of the seaSurfaceHeight
+    CGVector<CGdegree> xGradSeaSurfaceHeight;
+    CGVector<CGdegree> yGradSeaSurfaceHeight;
 
     // divergence of stress
     CGVector<CGdegree> dStressX;
@@ -70,7 +93,7 @@ protected:
     CGVector<CGdegree> uAtmos;
     CGVector<CGdegree> vAtmos;
 
-    std::unique_ptr<ParametricMomentumMap<CGdegree>> pmap;
+    std::unique_ptr<ParametricMomentumMap<CGdegree, DGadvection>> pmap;
 };
 
 } /* namespace Nextsim */

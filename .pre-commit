@@ -1,6 +1,18 @@
 #!/bin/bash
 
 # An example pre-commit file for nextSIM-DG development
+#
+# To use this pre-commit hook, you will need to install:
+# * clang-format (see https://clang.llvm.org/docs/ClangFormat.html)
+# * cmake-lint (see https://github.com/cheshirekow/cmake_format)
+#
+# Then copy this file as `.git/hooks/pre-commit` to set the pre-commit hook up.
+#
+# If changes are made by the pre-commit hook then the commit will abort and you
+# will need to re-run the commit command.
+
+BEFORE=$(mktemp)
+git diff >${BEFORE}
 
 for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|cc|h|hpp)$'); do
   # Apply clang-format for linting
@@ -11,3 +23,17 @@ for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|cc|h|hpp)$'); do
   NEWLINE=$(printf "%s%$((SPACES))s%s\n" " @date" " " "$(date '+%d %b %Y')")
   sed -i~ "s/${LINE}/${NEWLINE}/" ${FILE}
 done
+
+# Apply cmake-lint for linting
+for FILE in $(git diff --cached --name-only | grep -i 'CMakeLists.txt'); do
+  cmake-lint ${FILE} -c .cmake-lint-config.py
+done
+
+# Abort commit if formatting was applied
+AFTER=$(mktemp)
+git diff >${AFTER}
+if [ "$(diff ${BEFORE} ${AFTER})" ]; then
+  echo "Aborting git commit because the pre-commit hook made changes."
+  rm ${BEFORE} ${AFTER}
+  exit 1
+fi

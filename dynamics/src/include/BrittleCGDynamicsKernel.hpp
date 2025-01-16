@@ -1,7 +1,7 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date 19 Nov 2024
+ * @date 06 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -14,11 +14,10 @@
 #include "BBMParameters.hpp"
 #include "ParametricMap.hpp"
 #include "StressUpdateStep.hpp"
+#include "include/constants.hpp"
+#include <cmath>
 
 namespace Nextsim {
-
-// Degrees to radians as a hex float
-static const double radians = 0x1.1df46a2529d39p-6;
 
 // The brittle momentum solver for CG velocity fields
 template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
@@ -41,6 +40,8 @@ protected:
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
+    using CGDynamicsKernel<DGadvection>::xGradSeaSurfaceHeight;
+    using CGDynamicsKernel<DGadvection>::yGradSeaSurfaceHeight;
     using CGDynamicsKernel<DGadvection>::uAtmos;
     using CGDynamicsKernel<DGadvection>::vAtmos;
     using CGDynamicsKernel<DGadvection>::uOcean;
@@ -79,8 +80,8 @@ public:
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
 
-        cosOceanAngle = cos(radians * params.oceanTurningAngle);
-        sinOceanAngle = sin(radians * params.oceanTurningAngle);
+        cosOceanAngle = std::cos(radians(params.oceanTurningAngle));
+        sinOceanAngle = std::sin(radians(params.oceanTurningAngle));
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
@@ -163,6 +164,22 @@ public:
         }
     }
 
+    double getIceOceanStressElement(const std::string& name, const int i) const override
+    {
+        const double FOcean = params.COcean * params.rhoOcean;
+
+        const double uOceanRel = uOcean(i) - avgU(i);
+        const double vOceanRel = vOcean(i) - avgV(i);
+        const double cPrime = FOcean * std::hypot(uOceanRel, vOceanRel);
+
+        if (name == uIOStressName)
+            return cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
+        else if (name == vIOStressName)
+            return cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
+        else
+            return std::numeric_limits<double>::quiet_NaN();
+    }
+
 protected:
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
@@ -206,8 +223,10 @@ protected:
                 + cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
 
             // Stress gradient
-            const double gradX = dStressX(i) / pmap->lumpedcgmass(i);
-            const double gradY = dStressY(i) / pmap->lumpedcgmass(i);
+            const double gradX = dStressX(i) / pmap->lumpedcgmass(i)
+                - params.rhoIce * cgH(i) * PhysicalConstants::g * xGradSeaSurfaceHeight(i);
+            const double gradY = dStressY(i) / pmap->lumpedcgmass(i)
+                - params.rhoIce * cgH(i) * PhysicalConstants::g * yGradSeaSurfaceHeight(i);
 
             u(i) = alpha * uIce + beta * vIce
                 + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));

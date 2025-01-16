@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atm_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 23 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -64,6 +64,7 @@ TEST_CASE("TOPAZOcean test")
     ModelArrayRef<Protected::MLD> mld(ModelComponent::getStore());
     ModelArrayRef<Protected::OCEAN_U> u(ModelComponent::getStore());
     ModelArrayRef<Protected::OCEAN_V> v(ModelComponent::getStore());
+    ModelArrayRef<Protected::SSH> ssh(ModelComponent::getStore());
 
     TimePoint t1("2000-01-01T00:00:00Z");
     TimestepTime tst = { t1, Duration(600) };
@@ -85,6 +86,7 @@ TEST_CASE("TOPAZOcean test")
     REQUIRE(sst(32, 32) == -0.032032);
     REQUIRE(sst(45, 35) == -(0 + targetFrac));
     REQUIRE(mld(45, 35) == (10 + targetFrac));
+    REQUIRE(ssh(45, 35) == (20 + targetFrac));
 
     TimePoint t2("2000-02-01T00:00:00Z");
     topaz.updateBefore({ t2, Duration(600) });
@@ -93,6 +95,7 @@ TEST_CASE("TOPAZOcean test")
     REQUIRE(sst(32, 32) == -0.032032 - 1);
     REQUIRE(sst(45, 35) == -(0 + targetFrac) - 1);
     REQUIRE(mld(45, 35) == (10 + targetFrac) + 1);
+    REQUIRE(ssh(45, 35) == (20 + targetFrac) + 1);
 
     TimePoint t12("2000-12-01T00:00:00Z");
     topaz.updateBefore({ t12, Duration(600) });
@@ -101,6 +104,7 @@ TEST_CASE("TOPAZOcean test")
     REQUIRE(sst(32, 32) == -0.032032 - 11);
     REQUIRE(sst(45, 35) == -(0 + targetFrac) - 11);
     REQUIRE(mld(45, 35) == (10 + targetFrac) + 11);
+    REQUIRE(ssh(45, 35) == (20 + targetFrac) + 11);
 
     // All times after the last time sample should use the last sample's data
     TimePoint t120("2010-01-01T00:00:00Z");
@@ -110,6 +114,7 @@ TEST_CASE("TOPAZOcean test")
     REQUIRE(sst(32, 32) == -0.032032 - 11);
     REQUIRE(sst(45, 35) == -(0 + targetFrac) - 11);
     REQUIRE(mld(45, 35) == (10 + targetFrac) + 11);
+    REQUIRE(ssh(45, 35) == (20 + targetFrac) + 11);
 
     std::filesystem::remove(filePath);
 }

@@ -1,6 +1,6 @@
 /*!
  * @file cgParametricMomentum.hpp
- * @date 09 Nov 2024
+ * @date 06 Dec 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -31,7 +31,9 @@ private:
     static constexpr int precompute_matrices = 1;
 
 public:
-    ParametricMomentumMap<CG> pmap;
+    //! CGParametricMomentum should not be used but removed. ParametricMomentumMap needs DGadvection
+    //! but this is not provided here.
+    ParametricMomentumMap<CG, 1> pmap;
 
     //! vectors storing the velocity (node-wise)
     CGVector<CG> vx, vy;
@@ -62,6 +64,12 @@ public:
         : smesh(sm)
         , pmap(sm)
     {
+        std::cerr << "CGParametricMomentum can't be used any more. It is replaced by the various "
+                     "dynamics kernels. ParametricMomentumMap requires the DGadvection degree as "
+                     "template but this is not available in CGParametricMomentum. Please use the "
+                     "Kernel-infrastructure instead."
+                  << std::endl;
+
         if (!(smesh.nelements > 0)) {
             std::cerr << "CGParametricMomentum: The mesh has to be initialized first!" << std::endl;
             abort();

@@ -5,6 +5,16 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+    paths:
+      - '.github/workflows/test_suite.yml'
+      - '**.cdl'
+      - '**.cfg'
+      - '**.cpp'
+      - '**.hpp'
+      - '**.py'
+      - '**.sh'
+      - '**.xml'
+      - '**CMakeLists.txt'
 
 jobs:
 
@@ -96,13 +106,16 @@ jobs:
     - uses: actions/checkout@v2
     - name: installs
       run: |
+        brew install boost
+        brew unlink pkg-config
+        brew install pkgconf
+        brew link --overwrite pkgconf
+        brew install cmake
+        brew install eigen
         brew install netcdf
         brew install netcdf-cxx
-        brew install boost
-        brew install eigen
-        brew install cmake
-        pip install numpy
         pip install netCDF4
+        pip install numpy
 
     # tmate can be used to get an interactive ssh session to the github runner
     # for debugging actions. See

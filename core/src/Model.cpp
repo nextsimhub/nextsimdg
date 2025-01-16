@@ -128,19 +128,26 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model start time, formatted as an ISO8601 date. "
             "Non-calendretical runs can start from year 0 or 1. " },
         { keyMap.at(STOPTIME_KEY), ConfigType::STRING, {}, "", "",
-            "Model stop time, formatted as an ISO8601 data. "
+            "Model stop time, formatted as an ISO8601 date. "
             " Will be overridden if a model run length is set. " },
         { keyMap.at(RUNLENGTH_KEY), ConfigType::STRING, {}, "", "",
-            "Model run length, formatted as an ISO8601 duration (P prefix). "
+            "Model run length, formatted as an ISO8601 duration (P prefix) or an integer number of "
+            "seconds. "
             "Overrides the stop time if set. " },
         { keyMap.at(TIMESTEP_KEY), ConfigType::STRING, {}, "", "",
-            "Model physics timestep, formatted as an ISO8601 duration (P prefix). " },
+            "Model physics timestep, formatted as an ISO8601 duration (P prefix) or an integer "
+            "number of seconds. " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
-            "The file path to the restart file to use for the run." },
+            "The file path to the initial restart file to be used for the run." },
         { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
             "The period between restart file outputs, formatted as an ISO8601 "
             "duration (P prefix) or number of seconds. A value of zero "
             "ensures no intermediate restart files are written." },
+        { keyMap.at(RESTARTOUTFILE_KEY), ConfigType::STRING, {}, "restart%Y-%m-%dT%H:%M:%SZ.nc", "",
+            "The file name or file name pattern to be used for the output restart files. A fixed "
+            "name can be used, which will be overwritten every time a restart checkpoint is "
+            "created. Otherwise the file name may include formatting codes supported by the C/C++ "
+            "time library to create a new file at every restart checkpoint." },
         { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
             "Missing data indicator used for input and output." },
 #ifdef USE_MPI
