@@ -11,11 +11,11 @@
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
-#include "mpi.h"
 #include <cstddef>
 #include <vector>
 
 #ifdef USE_MPI
+#include "mpi.h"
 #include <ncDim.h>
 #include <ncFile.h>
 #include <ncGroup.h>
