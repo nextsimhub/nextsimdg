@@ -1,8 +1,9 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 17 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #include "ModelArray.hpp"
@@ -16,11 +17,11 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/IStructure.hpp"
 #include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
-#include "include/IStructure.hpp"
-#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <cmath>
@@ -114,12 +115,12 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
 #ifdef USE_MPI
     if (test_rank == 0) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
-        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 0);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 5 + 1, 0);
     }
     if (test_rank == 1) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
-        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 5);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 5 + 1, 5);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
