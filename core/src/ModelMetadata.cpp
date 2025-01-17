@@ -1,8 +1,9 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 09 Apr 2025
+ * @date 17 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #include "include/ModelMetadata.hpp"
@@ -50,8 +51,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
     netCDF::NcGroup neighbourGroup(ncFile.getGroup(neighbourName));
     std::string varName {};
     for (auto edge : edges) {
-        size_t nStart {}; // start point in metadata arrays
-        size_t count {}; // number of elements to read from metadata arrays
+        size_t nStart = 0; // start point in metadata arrays
+        size_t count = 0; // number of elements to read from metadata arrays
         std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
         std::vector<int> offsets = std::vector<int>(mpiSize, 0);
 
@@ -69,7 +70,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
             // initialize neighbour info to zero and correct size
             neighbourRanks[edge].resize(count, 0);
             neighbourExtents[edge].resize(count, 0);
-            neighbourHaloStarts[edge].resize(count, 0);
+            neighbourHaloSend[edge].resize(count, 0);
+            neighbourHaloRecv[edge].resize(count, 0);
 
             varName = edgeNames[edge] + "_neighbour_ids";
             neighbourGroup.getVar(varName).getVar({ nStart }, { count }, &neighbourRanks[edge][0]);
@@ -78,9 +80,13 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
             neighbourGroup.getVar(varName).getVar(
                 { nStart }, { count }, &neighbourExtents[edge][0]);
 
-            varName = edgeNames[edge] + "_neighbour_halo_starts";
+            varName = edgeNames[edge] + "_neighbour_halo_send";
             neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourHaloStarts[edge][0]);
+                { nStart }, { count }, &neighbourHaloSend[edge][0]);
+
+            varName = edgeNames[edge] + "_neighbour_halo_recv";
+            neighbourGroup.getVar(varName).getVar(
+                { nStart }, { count }, &neighbourHaloRecv[edge][0]);
         }
 
         // periodic neighbours
@@ -97,7 +103,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
             // initialize neighbour info to zero and correct size
             neighbourRanksPeriodic[edge].resize(count, 0);
             neighbourExtentsPeriodic[edge].resize(count, 0);
-            neighbourHaloStartsPeriodic[edge].resize(count, 0);
+            neighbourHaloSendPeriodic[edge].resize(count, 0);
+            neighbourHaloRecvPeriodic[edge].resize(count, 0);
 
             varName = edgeNames[edge] + "_neighbour_ids_periodic";
             neighbourGroup.getVar(varName).getVar(
@@ -107,9 +114,13 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
             neighbourGroup.getVar(varName).getVar(
                 { nStart }, { count }, &neighbourExtentsPeriodic[edge][0]);
 
-            varName = edgeNames[edge] + "_neighbour_halo_starts_periodic";
+            varName = edgeNames[edge] + "_neighbour_halo_send_periodic";
             neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourHaloStartsPeriodic[edge][0]);
+                { nStart }, { count }, &neighbourHaloSendPeriodic[edge][0]);
+
+            varName = edgeNames[edge] + "_neighbour_halo_recv_periodic";
+            neighbourGroup.getVar(varName).getVar(
+                { nStart }, { count }, &neighbourHaloRecvPeriodic[edge][0]);
         }
     }
 }

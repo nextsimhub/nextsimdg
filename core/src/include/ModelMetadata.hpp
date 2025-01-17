@@ -1,8 +1,9 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date 02 Jan 2025
+ * @date 17 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #ifndef MODELMETADATA_HPP
@@ -108,10 +109,12 @@ public:
     // mpi rank ID and extent for each edge direction
     std::array<std::vector<int>, N_EDGE> neighbourRanks;
     std::array<std::vector<int>, N_EDGE> neighbourExtents;
-    std::array<std::vector<int>, N_EDGE> neighbourHaloStarts;
+    std::array<std::vector<int>, N_EDGE> neighbourHaloSend;
+    std::array<std::vector<int>, N_EDGE> neighbourHaloRecv;
     std::array<std::vector<int>, N_EDGE> neighbourRanksPeriodic;
     std::array<std::vector<int>, N_EDGE> neighbourExtentsPeriodic;
-    std::array<std::vector<int>, N_EDGE> neighbourHaloStartsPeriodic;
+    std::array<std::vector<int>, N_EDGE> neighbourHaloSendPeriodic;
+    std::array<std::vector<int>, N_EDGE> neighbourHaloRecvPeriodic;
 #endif
 
 private:
