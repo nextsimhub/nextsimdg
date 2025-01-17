@@ -35,9 +35,11 @@ if(ENABLE_MPI)
     add_custom_command(
         OUTPUT partition_metadata_3_cb.nc partition_metadata_3_pb.nc
         COMMAND
-            ncgen -b -o partition_metadata_3_cb.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
+            ncgen -b -o partition_metadata_3_cb.nc
+            ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
         COMMAND
-            ncgen -b -o partition_metadata_3_pb.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
+            ncgen -b -o partition_metadata_3_pb.nc
+            ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
             ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
