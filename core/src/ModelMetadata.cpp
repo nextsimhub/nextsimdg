@@ -19,6 +19,7 @@
 #include <vector>
 
 #ifdef USE_MPI
+#include "mpi.h"
 #include <ncDim.h>
 #include <ncFile.h>
 #include <ncGroup.h>
