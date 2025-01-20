@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata_test.cpp
  *
- * @date 17 Jan 2025
+ * @date 20 Jan 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -102,13 +102,13 @@ void setDGVecValue(
         for (size_t j = 0; j < smesh.ny; ++j) {
             for (size_t i = 0; i < smesh.nx; ++i) {
                 size_t pos = indexer(meshDims, std::vector<size_t>({ i, j }));
-                dgvec(pos, k) = -1.;
+                dgvec(pos, k) = value;
             }
         }
     }
 }
 
-void updateDGVec(DGVector<DG>& dgvec, std::vector<int>& recv, ParametricMesh& smesh,
+void updateDGVec(DGVector<DG>& dgvec, std::vector<double>& recv, ParametricMesh& smesh,
     std::array<size_t, 4>& edgeLengths, ModelMetadata::Edge edge)
 {
     SliceIter::MultiDim meshDims = { smesh.nx, smesh.ny };
@@ -225,8 +225,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     // create a send buffer the size of the perimeter of the domain
     // each process will populate the send buffer with their perimeter cells
     const size_t perimeterLength = 2 * localNx + 2 * localNy;
-    std::vector<int> send = std::vector<int>(perimeterLength, 0);
-    std::vector<int> recv = std::vector<int>(perimeterLength, 0);
+    std::vector<double> send = std::vector<double>(perimeterLength, 0.0);
+    std::vector<double> recv = std::vector<double>(perimeterLength, 0.0);
 
     for (auto edge : edges) {
         size_t offset = std::accumulate(edgeLengths.begin(), edgeLengths.begin() + edge, 0);
@@ -236,7 +236,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     // create a RMA memory window which all process will be able to access
     MPI_Win win;
     MPI_Win_create(
-        &send[0], perimeterLength * sizeof(int), sizeof(int), MPI_INFO_NULL, test_comm, &win);
+        &send[0], perimeterLength * sizeof(double), sizeof(double), MPI_INFO_NULL, test_comm, &win);
 
     MPI_Win_fence(MPI_MODE_NOPRECEDE, win); // Fence, no preceding RMA calls
 
@@ -254,7 +254,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
                 size_t count = metadata.neighbourExtents[edge][i];
                 size_t disp = metadata.neighbourHaloSend[edge][i];
                 size_t recvOffset = metadata.neighbourHaloRecv[edge][i];
-                MPI_Get(&recv[recvOffset], count, MPI_INT, fromRank, disp, count, MPI_INT, win);
+                MPI_Get(
+                    &recv[recvOffset], count, MPI_DOUBLE, fromRank, disp, count, MPI_DOUBLE, win);
             }
         }
     }
@@ -355,8 +356,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
     // create a send buffer the size of the perimeter of the domain
     // each process will populate the send buffer with their perimeter cells
     const size_t perimeterLength = 2 * localNx + 2 * localNy;
-    std::vector<int> send = std::vector<int>(perimeterLength, 0);
-    std::vector<int> recv = std::vector<int>(perimeterLength, 0);
+    std::vector<double> send = std::vector<double>(perimeterLength, 0.0);
+    std::vector<double> recv = std::vector<double>(perimeterLength, 0.0);
 
     for (auto edge : edges) {
         size_t offset = std::accumulate(edgeLengths.begin(), edgeLengths.begin() + edge, 0);
@@ -366,7 +367,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
     // create a RMA memory window which all process will be able to access
     MPI_Win win;
     MPI_Win_create(
-        &send[0], perimeterLength * sizeof(int), sizeof(int), MPI_INFO_NULL, test_comm, &win);
+        &send[0], perimeterLength * sizeof(double), sizeof(double), MPI_INFO_NULL, test_comm, &win);
 
     MPI_Win_fence(MPI_MODE_NOPRECEDE, win); // Fence, no preceding RMA calls
 
@@ -384,7 +385,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
                 size_t count = metadata.neighbourExtents[edge][i];
                 size_t disp = metadata.neighbourHaloSend[edge][i];
                 size_t recvOffset = metadata.neighbourHaloRecv[edge][i];
-                MPI_Get(&recv[recvOffset], count, MPI_INT, fromRank, disp, count, MPI_INT, win);
+                MPI_Get(
+                    &recv[recvOffset], count, MPI_DOUBLE, fromRank, disp, count, MPI_DOUBLE, win);
             }
         }
     }
@@ -399,7 +401,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
                 size_t count = metadata.neighbourExtentsPeriodic[edge][i];
                 size_t disp = metadata.neighbourHaloSendPeriodic[edge][i];
                 size_t recvOffset = metadata.neighbourHaloRecvPeriodic[edge][i];
-                MPI_Get(&recv[recvOffset], count, MPI_INT, fromRank, disp, count, MPI_INT, win);
+                MPI_Get(
+                    &recv[recvOffset], count, MPI_DOUBLE, fromRank, disp, count, MPI_DOUBLE, win);
             }
         }
     }
