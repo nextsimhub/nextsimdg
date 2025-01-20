@@ -56,6 +56,7 @@ if(NOT ENABLE_MPI)
         "${SRC_DIR}/ParametricMesh.cpp"
         "${CoreDir}/ModelArray.cpp"
         "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+        "${CoreDir}/ModelArraySlice.cpp"
     )
     target_include_directories(
         testParametricMeshArea
