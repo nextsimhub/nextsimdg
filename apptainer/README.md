@@ -7,7 +7,7 @@ In the `apptainer` directory, type
 ```
 sudo apptainer build nextsim_dg.sif nextsim_dg.def
 ```
-You can save the image file anywhere
+You need to build it on a computer where you have `sudo` permissions. Copy the image to the HPC after building it.
 
 ## Run the container
 To run a command inside the container, type
@@ -31,13 +31,17 @@ cmake .. \
 make -j [NUM_JOBS]
 ```
 
-# Run the model
+# Run the model from command line
 ```
 cd ../run
 ```
 Link `./nextsim` from `build`
 ```
 ln -s ../build/nextsim
+```
+If on an HPC, get an interactive compute node
+```
+srun --nodes=1 --tasks-per-node=32 --time=00:30:00 --qos=devel --account=nn2993k --pty bash -i
 ```
 Run with
 ```
