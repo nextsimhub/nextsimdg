@@ -5,13 +5,10 @@
  */
 
 #include "cgParametricMomentum.hpp"
-#include "BBM.hpp"
 #include "Interpolations.hpp"
-#include "MEB.hpp"
 #include "ParametricTools.hpp"
 #include "VectorManipulations.hpp"
 #include "dgVisu.hpp"
-#include "mevp.hpp"
 
 namespace Nextsim {
 
