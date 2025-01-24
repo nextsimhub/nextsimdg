@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 24 Sep 2024
+ * @date 24 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -14,12 +14,15 @@
 namespace Nextsim {
 
 std::string ERA5Atmosphere::filePath;
+bool ERA5Atmosphere::doChecks;
 
 static const std::string pfx = "ERA5Atmosphere";
 static const std::string fileKey = pfx + ".file";
+static const std::string checksKey = pfx + ".check_fields";
 
 static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, fileKey },
+    { ERA5Atmosphere::CHECKS_KEY, checksKey },
 };
 
 ERA5Atmosphere::ERA5Atmosphere()
@@ -38,6 +41,8 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
     map[pfx] = {
         { fileKey, ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the ERA5 forcings." },
+        { checksKey, ConfigType::BOOLEAN, {}, "false", "",
+            "Check if the inputs are physically consistent." },
     };
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
@@ -49,6 +54,20 @@ void ERA5Atmosphere::configure()
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
+    doChecks = Configured::getConfiguration(keyMap.at(CHECKS_KEY), false);
+
+    if (doChecks) {
+        // clang-format off
+        fieldsToCheck.push_back({"tair",  &tair,  std::make_pair(  -100, 80)});
+        fieldsToCheck.push_back({"tdew",  &tdew,  std::make_pair(  -100, 80)});
+        fieldsToCheck.push_back({"pair",  &pair,  std::make_pair( 700e2, 1100e2)});
+        fieldsToCheck.push_back({"sw_in", &sw_in, std::make_pair(    -1, 2e3)});
+        fieldsToCheck.push_back({"lw_in", &lw_in, std::make_pair(     0, 1e3)});
+        fieldsToCheck.push_back({"wind",  &wind,  std::make_pair(  -0.1, 150)});
+        fieldsToCheck.push_back({"uwind", &uwind, std::make_pair(  -150, 150)});
+        fieldsToCheck.push_back({"vwind", &vwind, std::make_pair(  -150, 150)});
+        // clang-format on
+    }
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);

@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.hpp
  *
- * @date Nov 25, 2022
+ * @date 24 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -26,6 +26,7 @@ public:
 
     enum {
         FILEPATH_KEY,
+        CHECKS_KEY,
     };
 
     void setData(const ModelState::DataMap&) override;
@@ -44,6 +45,7 @@ private:
     // Since the configuration is global, it makes sense for the file path to
     // be static.
     static std::string filePath;
+    static bool doChecks;
 
     HField tair;
     HField tdew;
