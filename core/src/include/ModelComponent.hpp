@@ -176,6 +176,7 @@ public:
      * @brief Returns the ModelArrayRef backing store.
      */
     static ModelArrayReferenceStore& getStore() { return store; }
+    std::vector<std::tuple<std::string, ModelArray*, std::pair<double, double>>> fieldsToCheck;
 
 protected:
     void registerModule();
@@ -211,10 +212,23 @@ protected:
      */
     static const ModelArray& oceanMask();
 
+    /*!
+     * @brief Check fields listed in toCheck. Throw a runtime_error if values are outside bounds.
+     */
+    void checkFields(const TimestepTime& tst)
+    {
+        if (!fieldsToCheck.empty())
+            overElements(std::bind(&ModelComponent::checkFieldsElement, this, std::placeholders::_1,
+                             std::placeholders::_2),
+                tst);
+    }
+
 protected:
     static ModelArray* p_oceanMaskH;
 
 private:
+    void checkFieldsElement(size_t i, const TimestepTime& tst);
+
     static ModelArrayReferenceStore store;
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
 

@@ -124,4 +124,15 @@ ModelArray ModelComponent::mask(const ModelArray& data)
 
 const ModelArray& ModelComponent::oceanMask() { return *p_oceanMaskH; }
 
+void ModelComponent::checkFieldsElement(size_t i, const TimestepTime& tst)
+{
+    for (auto const& x : fieldsToCheck) {
+        const double& value = (*std::get<1>(x))[i];
+        const std::pair<double, double>& bounds = std::get<2>(x);
+        if (value <= bounds.first || value >= bounds.second || std::isnan(value))
+            throw std::runtime_error(std::get<0>(x) + " out of bounds " + std::to_string(value)
+                + " at " + tst.start.format() + ", index " + std::to_string(i));
+    }
+}
+
 } /* namespace Nextsim */
