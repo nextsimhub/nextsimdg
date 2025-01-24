@@ -8,9 +8,10 @@
 #ifndef TOPAZOCEAN_HPP
 #define TOPAZOCEAN_HPP
 
-#include "include/IOceanBoundary.hpp"
-
 #include "include/Configured.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
+#include "include/IOceanBoundary.hpp"
 #include "include/SlabOcean.hpp"
 
 namespace Nextsim {
@@ -51,6 +52,9 @@ private:
     HField sssExt;
 
     SlabOcean slabOcean;
+
+    IIceOceanHeatFlux* pIOHeatFlux;
+    IFreezingPoint* pFreezingPoint;
 };
 
 } /* namespace Nextsim */

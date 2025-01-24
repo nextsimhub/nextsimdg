@@ -47,6 +47,12 @@ void TOPAZOcean::configure()
     Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
     Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
 
+    pIOHeatFlux = &Module::getImplementation<IIceOceanHeatFlux>();
+    tryConfigure(pIOHeatFlux);
+
+    pFreezingPoint = &Module::getImplementation<IFreezingPoint>();
+    tryConfigure(pFreezingPoint);
+
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     slabOcean.configure();
@@ -76,7 +82,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
         std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
         TimestepTime());
 
-    Module::getImplementation<IIceOceanHeatFlux>().update(tst);
+    pIOHeatFlux->update(tst);
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
@@ -99,7 +105,7 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
 
 void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst)
 {
-    tf[i] = Module::getImplementation<IFreezingPoint>()(sss[i]);
+    tf[i] = (*pFreezingPoint)(sss[i]);
 }
 
 } /* namespace Nextsim */
