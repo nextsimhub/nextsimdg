@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 06 Dec 2024
+ * @date 24 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -210,7 +210,7 @@ protected:
     /*!
      * @brief Returns the ocean mask.
      */
-    static const ModelArray& oceanMask();
+    static const ModelArray& getOceanMask();
 
     /*!
      * @brief Check fields listed in toCheck. Throw a runtime_error if values are outside bounds.
@@ -223,7 +223,6 @@ protected:
                 tst);
     }
 
-protected:
     static ModelArray* p_oceanMaskH;
 
 private:

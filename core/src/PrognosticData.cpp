@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 21 Nov 2024
+ * @date 24 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -136,7 +136,7 @@ ModelState PrognosticData::getState() const
     ModelState dynamicsState = pDynamics->getState();
     // clang-format off
     ModelState localState = { {
-                 { "mask", ModelArray(oceanMask()) }, // make a copy
+                 { "mask", ModelArray(getOceanMask()) }, // make a copy
                  { "hice", mask(m_thick) },
                  { "cice", mask(m_conc) },
                  { "hsnow", mask(m_snow) },

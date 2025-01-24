@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date Feb 28, 2022
+ * @date 24 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -64,6 +64,7 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
 
     // Generate the oceanIndex to grid index mapping
     // 1. Count the number of non-land squares
+    nOcean = 0;
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         if (oceanMaskH[i] > 0)
             ++nOcean;
@@ -103,7 +104,7 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     case (ModelArray::Type::H):
     case (ModelArray::Type::U):
     case (ModelArray::Type::V): {
-        return data * oceanMask() + MissingData::value() * (1 - oceanMask());
+        return data * getOceanMask() + MissingData::value() * (1 - getOceanMask());
         break;
     }
     case (ModelArray::Type::Z): {
@@ -122,7 +123,7 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     }
 }
 
-const ModelArray& ModelComponent::oceanMask() { return *p_oceanMaskH; }
+const ModelArray& ModelComponent::getOceanMask() { return *p_oceanMaskH; }
 
 void ModelComponent::checkFieldsElement(size_t i, const TimestepTime& tst)
 {
