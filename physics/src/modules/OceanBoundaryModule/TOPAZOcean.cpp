@@ -1,15 +1,13 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 06 Dec 2024
+ * @date 24 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/TOPAZOcean.hpp"
 
 #include "include/Finalizer.hpp"
-#include "include/IFreezingPoint.hpp"
-#include "include/IIceOceanHeatFlux.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
@@ -18,12 +16,15 @@
 namespace Nextsim {
 
 std::string TOPAZOcean::filePath;
+bool TOPAZOcean::doChecks;
 
 static const std::string pfx = "TOPAZOcean";
 static const std::string fileKey = pfx + ".file";
+static const std::string checksKey = pfx + ".check_fields";
 
 static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, fileKey },
+    { TOPAZOcean::CHECKS_KEY, checksKey },
 };
 
 TOPAZOcean::TOPAZOcean()
@@ -37,6 +38,8 @@ ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getA
     map[pfx] = {
         { fileKey, ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the TOPAZ forcings." },
+        { checksKey, ConfigType::BOOLEAN, {}, "false", "",
+            "Check if the inputs are physically consistent." },
     };
 
     return map;
@@ -54,6 +57,18 @@ void TOPAZOcean::configure()
     tryConfigure(pFreezingPoint);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
+    doChecks = Configured::getConfiguration(keyMap.at(CHECKS_KEY), false);
+
+    if (doChecks) {
+        // clang-format off
+        fieldsToCheck.push_back({"sstExt", &sstExt, std::make_pair(-5, 50)});
+        fieldsToCheck.push_back({"sssExt", &sssExt, std::make_pair(-5, 50)});
+        fieldsToCheck.push_back({"mld",    &mld,    std::make_pair( 0, 11e3)});
+        fieldsToCheck.push_back({"u",      &u,      std::make_pair(-5, 5)});
+        fieldsToCheck.push_back({"v",      &v,      std::make_pair(-5, 5)});
+        fieldsToCheck.push_back({"ssh",    &ssh,    std::make_pair(-5, 5)});
+        // clang-format on
+    }
 
     slabOcean.configure();
 
@@ -76,6 +91,8 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     } else {
         ssh = 0.;
     }
+
+    checkFields(tst);
 
     cpml = Water::rho * Water::cp * mld;
     overElements(

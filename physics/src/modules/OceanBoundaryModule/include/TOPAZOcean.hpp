@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.hpp
  *
- * @date Nov 25, 2022
+ * @date 24 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -27,6 +27,7 @@ public:
 
     enum {
         FILEPATH_KEY,
+        CHECKS_KEY,
     };
 
     void setData(const ModelState::DataMap&) override;
@@ -44,9 +45,11 @@ public:
 private:
     // Updates the freezing point of an element
     void updateTf(size_t i, const TimestepTime& tst);
+
     // Since the configuration is global, it makes sense for the file path to
     // be static.
     static std::string filePath;
+    static bool doChecks;
 
     HField sstExt;
     HField sssExt;
