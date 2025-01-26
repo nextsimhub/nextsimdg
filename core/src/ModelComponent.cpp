@@ -1,13 +1,13 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 24 Jan 2025
+ * @date 26 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelComponent.hpp"
-
 #include "include/MissingData.hpp"
+#include <cmath>
 
 namespace Nextsim {
 
@@ -130,7 +130,7 @@ void ModelComponent::checkFieldsElement(size_t i, const TimestepTime& tst)
     for (auto const& x : fieldsToCheck) {
         const double& value = (*std::get<1>(x))[i];
         const std::pair<double, double>& bounds = std::get<2>(x);
-        if (value <= bounds.first || value >= bounds.second || std::isnan(value))
+        if (value < bounds.first || value > bounds.second || std::isnan(value))
             throw std::runtime_error(std::get<0>(x) + " out of bounds " + std::to_string(value)
                 + " at " + tst.start.format() + ", index " + std::to_string(i));
     }

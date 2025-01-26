@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 24 Jan 2025
+ * @date 26 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -61,12 +61,12 @@ void TOPAZOcean::configure()
 
     if (doChecks) {
         // clang-format off
-        fieldsToCheck.push_back({"sstExt", &sstExt, std::make_pair(-5, 50)});
-        fieldsToCheck.push_back({"sssExt", &sssExt, std::make_pair(-5, 50)});
-        fieldsToCheck.push_back({"mld",    &mld,    std::make_pair( 0, 11e3)});
-        fieldsToCheck.push_back({"u",      &u,      std::make_pair(-5, 5)});
-        fieldsToCheck.push_back({"v",      &v,      std::make_pair(-5, 5)});
-        fieldsToCheck.push_back({"ssh",    &ssh,    std::make_pair(-5, 5)});
+        fieldsToCheck.push_back({"sstExt", &sstExt, std::make_pair(  -5, 50)});
+        fieldsToCheck.push_back({"sssExt", &sssExt, std::make_pair(   0, 50)});
+        fieldsToCheck.push_back({"mld",    &mld,    std::make_pair(1e-3, 11e3)});
+        fieldsToCheck.push_back({"u",      &u,      std::make_pair(  -5, 5)});
+        fieldsToCheck.push_back({"v",      &v,      std::make_pair(  -5, 5)});
+        fieldsToCheck.push_back({"ssh",    &ssh,    std::make_pair(  -5, 5)});
         // clang-format on
     }
 
@@ -92,14 +92,14 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
         ssh = 0.;
     }
 
-    checkFields(tst);
-
     cpml = Water::rho * Water::cp * mld;
     overElements(
         std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
         TimestepTime());
 
     pIOHeatFlux->update(tst);
+
+    checkFields(tst);
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
@@ -120,9 +120,6 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
     slabOcean.setData(ms);
 }
 
-void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst)
-{
-    tf[i] = (*pFreezingPoint)(sss[i]);
-}
+void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst) { tf[i] = (*pFreezingPoint)(sss[i]); }
 
 } /* namespace Nextsim */
