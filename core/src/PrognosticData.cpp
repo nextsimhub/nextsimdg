@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 24 Jan 2025
+ * @date 26 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -51,6 +51,13 @@ void PrognosticData::configure()
     tryConfigure(pDynamics);
 
     tryConfigure(iceGrowth);
+
+    // clang-format off
+    fieldsToCheck.push_back({"m_conc",   &m_conc,   std::make_pair(0, 1+1e4)});
+    fieldsToCheck.push_back({"m_damage", &m_damage, std::make_pair(0, 1+1e-4)});
+    fieldsToCheck.push_back({"m_snow",   &m_snow,   std::make_pair(0, 10)});
+    fieldsToCheck.push_back({"m_thick",  &m_thick,  std::make_pair(0, 50)});
+    // clang-format on
 }
 
 // Copies an HField from a source ModelArray that is either an HField or a DGField.
@@ -105,6 +112,8 @@ void PrognosticData::update(const TimestepTime& tst)
     updatePrognosticFields();
 
     pOcnBdy->updateAfter(tst);
+
+    checkFields(tst);
 }
 
 void PrognosticData::updatePrognosticFields()
