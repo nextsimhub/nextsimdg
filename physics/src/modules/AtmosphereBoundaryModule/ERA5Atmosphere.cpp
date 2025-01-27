@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 24 Jan 2025
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -90,6 +90,8 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     vwind = state.data.at("v");
     snow = 0; // FIXME get snow data
     emp = 0; // FIXME get E - P data
+
+    checkFields(tst);
 
     fluxImpl->update(tst);
 }
