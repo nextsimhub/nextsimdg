@@ -1,16 +1,14 @@
 /*!
  * @file Iterator.hpp
- * @date 11 Aug 2021
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SRC_INCLUDE_ITERATOR_HPP
 #define SRC_INCLUDE_ITERATOR_HPP
 
-#include <memory>
-
-#include "Logged.hpp"
 #include "Time.hpp"
+#include "include/stackTraceException.hpp"
 
 namespace Nextsim {
 
@@ -62,7 +60,7 @@ public:
     TimePoint parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
         const std::string& durationStr, const std::string& stepStr);
     //! Run the Iterant over the specified time period.
-    void run();
+    int run();
 
 private:
     Iterant& iterant;

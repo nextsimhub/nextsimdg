@@ -1,6 +1,6 @@
 /*!
  * @file main.cpp
- * @date 11 Aug 2021
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -22,6 +22,8 @@ int main(int argc, char* argv[])
 #ifdef USE_MPI
     MPI_Init(&argc, &argv);
 #endif // USE_MPI
+
+    int return_code = 0;
 
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
@@ -54,11 +56,11 @@ int main(int argc, char* argv[])
         // Apply the model configuration
         model.configure();
         // Run the Model
-        model.run();
+        return_code = model.run();
     }
 #ifdef USE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return return_code;
 }
