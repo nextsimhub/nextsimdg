@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata_test.cpp
  *
- * @date 20 Jan 2025
+ * @date 27 Jan 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -19,6 +19,7 @@
 #include "include/DGModelArray.hpp"
 #include "include/ModelArraySlice.hpp"
 #include "include/ParametricMesh.hpp"
+#include "include/dgVector.hpp"
 #include "mpi.h"
 
 namespace Nextsim {
@@ -95,12 +96,11 @@ void initializeHField(ModelArray& hfield, size_t localNx, size_t localNy, size_t
     }
 }
 
-void setDGVecValue(
-    DGVector<DG>& dgvec, ParametricMesh smesh, SliceIter::MultiDim meshDims, double value)
+void setDGVecValue(DGVector<DG>& dgvec, SliceIter::MultiDim meshDims, double value)
 {
     for (size_t k = 0; k < DG; ++k) {
-        for (size_t j = 0; j < smesh.ny; ++j) {
-            for (size_t i = 0; i < smesh.nx; ++i) {
+        for (size_t j = 0; j < meshDims[1]; ++j) {
+            for (size_t i = 0; i < meshDims[0]; ++i) {
                 size_t pos = indexer(meshDims, std::vector<size_t>({ i, j }));
                 dgvec(pos, k) = value;
             }
@@ -108,62 +108,27 @@ void setDGVecValue(
     }
 }
 
-void updateDGVec(DGVector<DG>& dgvec, std::vector<double>& recv, ParametricMesh& smesh,
-    std::array<size_t, 4>& edgeLengths, ModelMetadata::Edge edge)
+void updateDGVec(DGVector<DG>& dgvec, const std::vector<double>& recv,
+    const SliceIter::MultiDim meshDims, std::array<size_t, 4>& edgeLengths,
+    const ModelMetadata::Edge edge)
 {
-    SliceIter::MultiDim meshDims = { smesh.nx, smesh.ny };
+    SliceIter sliceIter = SliceIter(slices.at(edge), meshDims);
     size_t offset = std::accumulate(edgeLengths.begin(), edgeLengths.begin() + edge, 0);
-    switch (edge) {
-    case BOTTOM:
-        for (size_t i = 0; i < edgeLengths[edge]; ++i) {
-            size_t pos = indexer(meshDims, { i + 1, 0 });
-            dgvec(pos, 0) = recv[offset + i];
+    std::vector<size_t> edgeIndices;
+    while (!sliceIter.isEnd()) {
+        const size_t start = sliceIter.index();
+        const size_t step = sliceIter.step(0);
+        const size_t n = sliceIter.nElements(0);
+        for (int i = 0; i < n; ++i) {
+            auto idx = start + i * step;
+            edgeIndices.push_back(idx);
         }
-        break;
-    case TOP:
-        for (size_t i = 0; i < edgeLengths[edge]; ++i) {
-            size_t pos = indexer(meshDims, { i + 1, smesh.ny - 1 });
-            dgvec(pos, 0) = recv[offset + i];
-        }
-        break;
-    case LEFT:
-        for (size_t i = 0; i < edgeLengths[edge]; ++i) {
-            size_t pos = indexer(meshDims, { 0, i + 1 });
-            dgvec(pos, 0) = recv[offset + i];
-        }
-        break;
-    case RIGHT:
-        for (size_t i = 0; i < edgeLengths[edge]; ++i) {
-            size_t pos = indexer(meshDims, { smesh.nx - 1, i + 1 });
-            dgvec(pos, 0) = recv[offset + i];
-        }
-        break;
-    default:
-        break;
+        sliceIter.incrementDim(1);
     }
 
-    // Could write it this way instead???
-
-    // for (size_t i = 0; i < edgeLengths[edge]; ++i) {
-    //     size_t pos;
-    //     switch (edge) {
-    //     case BOTTOM:
-    //         pos = indexer(meshDims, { i + 1, 0 });
-    //         break;
-    //     case TOP:
-    //         pos = indexer(meshDims, { i + 1, smesh.ny - 1 });
-    //         break;
-    //     case LEFT:
-    //         pos = indexer(meshDims, { 0, i + 1 });
-    //         break;
-    //     case RIGHT:
-    //         pos = indexer(meshDims, { smesh.nx - 1, i + 1 });
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    //     dgvec(pos, 0) = recv[offset + i];
-    // }
+    for (size_t i = 0; i < edgeIndices.size() - 2; ++i) {
+        dgvec(edgeIndices[i + 1], 0) = recv[offset + i];
+    }
 }
 
 TEST_SUITE_BEGIN("Halo exchange tests");
@@ -203,7 +168,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     SliceIter::MultiDim meshDims = { smesh.nx, smesh.ny };
 
     // initialize dgvec to -1
-    setDGVecValue(dgvec, smesh, meshDims, -1.0);
+    setDGVecValue(dgvec, meshDims, -1.0);
 
     // we want to copy testfield to the central block
     Slice centreBlock(VBounds({ { 1, -1 }, { 1, -1 } }));
@@ -265,7 +230,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
 
     // populate dgvec with halo data from the recv buffer
     for (auto edge : edges) {
-        updateDGVec(dgvec, recv, smesh, edgeLengths, edge);
+        updateDGVec(dgvec, recv, meshDims, edgeLengths, edge);
     }
 
     // print to check halo cells copied correctly
@@ -334,7 +299,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
     SliceIter::MultiDim meshDims = { smesh.nx, smesh.ny };
 
     // initialize dgvec to -1
-    setDGVecValue(dgvec, smesh, meshDims, -1.0);
+    setDGVecValue(dgvec, meshDims, -1.0);
 
     // we want to copy testfield to the central block
     Slice centreBlock(VBounds({ { 1, -1 }, { 1, -1 } }));
@@ -412,7 +377,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
 
     // populate dgvec with halo data from the recv buffer
     for (auto edge : edges) {
-        updateDGVec(dgvec, recv, smesh, edgeLengths, edge);
+        updateDGVec(dgvec, recv, meshDims, edgeLengths, edge);
     }
 
     // print to check halo cells copied correctly
