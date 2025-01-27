@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.cpp
  *
- * @date 20 Nov 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -32,10 +32,8 @@ void SlabOcean::configure()
     relaxationTimeT = Configured::getConfiguration(keyMap.at(TIMET_KEY), defaultRelaxationTime);
     relaxationTimeS = Configured::getConfiguration(keyMap.at(TIMES_KEY), defaultRelaxationTime);
 
-    getStore().registerArray(Protected::SLAB_QDW, &qdw, RO);
     getStore().registerArray(Protected::SLAB_FDW, &fdw, RO);
-    getStore().registerArray(Protected::SLAB_SST, &sstSlab, RO);
-    getStore().registerArray(Protected::SLAB_SSS, &sssSlab, RO);
+    getStore().registerArray(Protected::SLAB_QDW, &qdw, RO);
 }
 
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
@@ -55,52 +53,54 @@ void SlabOcean::setData(const ModelState::DataMap& ms)
 {
     qdw.resize();
     fdw.resize();
-    sstSlab.resize();
-    sssSlab.resize();
 }
 
-ModelState SlabOcean::getState() const
-{
-    return { {
-                 { sstSlabName, sstSlab },
-                 { sssSlabName, sssSlab },
-             },
-        {} };
-}
+ModelState SlabOcean::getState() const { return { {}, { { getConfiguration() } } }; }
+
 ModelState SlabOcean::getState(const OutputLevel&) const { return getState(); }
-
-std::unordered_set<std::string> SlabOcean::hFields() const { return { sstSlabName, sssSlabName }; }
 
 void SlabOcean::update(const TimestepTime& tst)
 {
+    overElements(
+        std::bind(&SlabOcean::updateElements, this, std::placeholders::_1, std::placeholders::_2),
+        TimestepTime());
+}
+
+void SlabOcean::updateElements(size_t i, const TimestepTime& tst)
+{
     double dt = tst.step.seconds();
+
     // Slab SST update
-    qdw = (sstExt - sst) * cpml / relaxationTimeT;
-    HField qioMean = qio * cice; // cice at start of TS, not updated
-    HField qowMean = qow * (1 - cice); // 1- cice = open water fraction
-    sstSlab = sst - dt * (qioMean + qowMean - qdw) / cpml;
+    qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
+    const double qioMean = qio[i] * cice[i]; // cice at start of TS, not updated
+    const double qowMean = qow[i] * (1 - cice[i]); // 1- cice = open water fraction
+    sst[i] -= dt * (qioMean + qowMean - qdw[i]) / cpml[i];
+
     // Slab SSS update
-    HField arealDensity = cpml / Water::cp; // density times depth, or cpml divided by cp
+    const double arealDensity = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
+
     // This is simplified compared to the finiteelement.cpp calculation
     // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab - sssExt
-    fdw = (1 - sssExt / sss) * arealDensity / relaxationTimeS;
+    fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
+
     // ice volume change, both laterally and vertically
-    HField deltaIceVol = newIce + deltaHice * cice;
+    const double deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
+
     // change in snow volume due to melting (should be < 0)
-    HField meltSnowVol = deltaSmelt * cice;
+    const double meltSnowVol = deltaSmelt[i] * cice[i];
+
     // Mass per unit area after all the changes in water volume
-    HField denominator
-        = arealDensity - deltaIceVol * Ice::rho - meltSnowVol * Ice::rhoSnow - (emp - fdw) * dt;
     // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-    denominator.clampAbove(Water::rho);
+    const double denominator = std::max(Water::rho,
+        arealDensity - deltaIceVol * Ice::rho - meltSnowVol * Ice::rhoSnow
+            - (emp[i] - fdw[i]) * dt);
+
     // Effective ice salinity is always less than or equal to the SSS
-    HField effectiveIceSal = sss;
-    effectiveIceSal.clampBelow(Ice::s);
-    sssSlab = sss
-        + ((sss - effectiveIceSal) * Ice::rho * deltaIceVol // Change due to ice changes
-              + sss * meltSnowVol
-              + (emp - fdw) * dt) // snow melt, precipitation and nudging fluxes.
-            / denominator;
+    const double effectiveIceSal = std::min(Ice::s, sss[i]);
+    sss[i] += +((sss[i] - effectiveIceSal) * Ice::rho * deltaIceVol // Change due to ice changes
+                  + sss[i] * meltSnowVol
+                  + (emp[i] - fdw[i]) * dt) // snow melt, precipitation and nudging fluxes.
+        / denominator;
 }
 
 } /* namespace Nextsim */

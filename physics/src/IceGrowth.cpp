@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth.cpp
  *
- * @date 20 Nov 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -23,66 +23,39 @@ static const std::map<int, std::string> keyMap = {
 };
 
 IceGrowth::IceGrowth()
-    : hice(ModelArray::Type::H)
-    , cice(ModelArray::Type::H)
-    , hsnow(ModelArray::Type::H)
-    , hice0(ModelArray::Type::H)
-    , hsnow0(ModelArray::Type::H)
-    , newice(ModelArray::Type::H)
+    : deltaCFreeze(ModelArray::Type::H)
     , deltaCIce(ModelArray::Type::H)
-    , deltaCFreeze(ModelArray::Type::H)
     , deltaCMelt(ModelArray::Type::H)
-    , hIceCell(getStore())
-    , hSnowCell(getStore())
-    , cice0(getStore())
-    , qow(getStore())
+    , newice(ModelArray::Type::H)
+    , cice(getStore())
+    , deltaHi(getStore())
+    , hice(getStore())
+    , hsnow(getStore())
     , mixedLayerBulkHeatCapacity(getStore())
     , sst(getStore())
     , tf(getStore())
-    , deltaHi(getStore())
+    , qow(getStore())
 {
     registerModule();
-    getStore().registerArray(Shared::H_ICE, &hice, RW);
-    getStore().registerArray(Shared::C_ICE, &cice, RW);
-    getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
     getStore().registerArray(Shared::NEW_ICE, &newice, RW);
     getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
     getStore().registerArray(Shared::DELTA_CICE, &deltaCIce, RW);
-
-    getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)
 {
-    iVertical->setData(ms);
-    iLateral->setData(ms);
-    iHealing->setData(ms);
-
-    hice.resize();
-    cice.resize();
-    hsnow.resize();
-    hice0.resize();
-    hsnow0.resize();
     newice.resize();
     snowMelt.resize();
     deltaCFreeze.resize();
     deltaCMelt.resize();
     deltaCIce.resize();
+
+    iVertical->setData(ms);
+    iLateral->setData(ms);
+    iHealing->setData(ms);
 }
 
-ModelState IceGrowth::getState() const
-{
-    return { {
-                 { "hice_updated", hice },
-                 { "cice_updated", cice },
-                 { "hsnow_updated", hsnow },
-                 { "hice_initial", hice0 },
-                 { "cice_initial", cice0 },
-                 { "hsnow_initial", hsnow0 },
-             },
-        getConfiguration() };
-}
+ModelState IceGrowth::getState() const { return { {}, getConfiguration() }; }
 
 ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
 {
@@ -150,7 +123,6 @@ ConfigMap IceGrowth::getConfiguration() const
 void IceGrowth::update(const TimestepTime& tsTime)
 {
     // Copy the ice data from the prognostic fields to the modifiable fields.
-    initializeThicknesses();
     overElements(
         std::bind(&IceGrowth::applyLimits, this, std::placeholders::_1, std::placeholders::_2),
         tsTime);
@@ -172,47 +144,19 @@ void IceGrowth::update(const TimestepTime& tsTime)
     iHealing->update(tsTime);
 }
 
-void IceGrowth::initializeThicknesses()
-{
-    cice = cice0;
-    overElements(std::bind(&IceGrowth::initializeThicknessesElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        TimestepTime());
-    iVertical->initialiseTice();
-}
-
-// Divide by ice concentration to go from cell-averaged to ice-averaged values,
-// but only if ice concentration is non-zero.
-void IceGrowth::initializeThicknessesElement(size_t i, const TimestepTime&)
-{
-    deltaCIce[i] = 0;
-
-    if (cice0[i] > 0 && hIceCell[i] > 0) {
-        hice[i] = hice0[i] = hIceCell[i] / cice0[i];
-        hsnow[i] = hsnow0[i] = hSnowCell[i] / cice0[i];
-    } else {
-        hice[i] = hice0[i] = 0.;
-        hsnow[i] = hsnow0[i] = 0.;
-        cice[i] = 0.;
-    }
-
-    // reset the new ice volume array
-    newice[i] = 0;
-}
-
 void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
 {
     // Flux cooling the ocean from open water
     // TODO Add assimilation fluxes here
-    double coolingFlux = qow[i];
+    const double coolingFlux = qow[i];
     // Temperature change of the mixed layer during this timestep
-    double deltaTml = -coolingFlux / mixedLayerBulkHeatCapacity[i] * tst.step;
+    const double deltaTml = -coolingFlux / mixedLayerBulkHeatCapacity[i] * tst.step;
     // Initial temperature
-    double t0 = sst[i];
+    const double t0 = sst[i];
     // Freezing point temperature
-    double tf0 = tf[i];
+    const double tf0 = tf[i];
     // Final temperature
-    double t1 = t0 + deltaTml;
+    const double t1 = t0 + deltaTml;
 
     // deal with cooling below the freezing point
     if (t1 < tf0) {
@@ -241,8 +185,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
     iLateral->freeze(
         tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
     if (deltaHi[i] < 0) {
-        // Note that the cell-averaged hice0 is converted to a ice averaged value
-        iLateral->melt(tstep, hice0[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
+        iLateral->melt(tstep, hice[i], hsnow[i], deltaHi[i], cice[i], qow[i], deltaCMelt[i]);
     }
     deltaCIce[i] = deltaCFreeze[i] + deltaCMelt[i];
     cice[i] = (hice[i] > 0 || newice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
@@ -261,7 +204,7 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 
 void IceGrowth::applyLimits(size_t i, const TimestepTime& tstep)
 {
-    if ((0. < cice[i] && cice[i] < IceMinima::c()) || (0. < hice[i] && hice[i] < IceMinima::h())) {
+    if (cice[i] < IceMinima::c() || hice[i] < IceMinima::h()) {
         qow[i] += cice[i] * Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
         hice[i] = 0;
         cice[i] = 0;

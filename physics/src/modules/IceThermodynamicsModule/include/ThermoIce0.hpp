@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0.hpp
  *
- * @date 24 Sep 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -41,7 +41,6 @@ private:
     HField topMelt;
     HField botMelt;
     HField qic;
-    ModelArrayRef<Protected::HTRUE_ICE> oldHi;
 
     static const double freezingPointIce;
     static double kappa_s;

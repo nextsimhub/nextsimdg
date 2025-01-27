@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredOcean.cpp
  *
- * @date 06 Dec 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -110,10 +110,5 @@ void ConfiguredOcean::updateBefore(const TimestepTime& tst)
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
 
-void ConfiguredOcean::updateAfter(const TimestepTime& tst)
-{
-    slabOcean.update(tst);
-    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
-    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
-}
+void ConfiguredOcean::updateAfter(const TimestepTime& tst) { slabOcean.update(tst); }
 } /* namespace Nextsim */

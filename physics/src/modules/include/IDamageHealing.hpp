@@ -1,7 +1,7 @@
 /*!
  * @file IDamageHealing.hpp
  *
- * @date 21 Nov 2024
+ * @date 27 Jan 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -37,14 +37,12 @@ protected:
         : cice(getStore())
         , deltaCi(getStore())
         , damage(getStore())
-        , oldDamage(getStore())
     {
     }
 
     ModelArrayRef<Shared::C_ICE, RO> cice; // From prognostic data
     ModelArrayRef<Shared::DELTA_CICE, RO> deltaCi; // From LateralIceSpread
     ModelArrayRef<Shared::DAMAGE, RW> damage; // From prognostic data
-    ModelArrayRef<Protected::DAMAGE, RO> oldDamage; // From prognostic data
 };
 
 } /* namespace Nextsim */

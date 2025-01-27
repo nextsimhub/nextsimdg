@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth.hpp
  *
- * @date Jul 5, 2022
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -74,13 +74,7 @@ private:
 
     // Data fields
     // Owned, shared data fields
-    HField hice; // Updated true ice thickness, m
-    HField cice; // Updated ice concentration
-    HField hsnow; // Updated true snow thickness, m
     HField newice; // New ice over open water this timestep, m
-    HField hice0; // Timestep initial true ice thickness, m
-    HField hsnow0; // Timestep initial true snow thickness, m
-
     HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
     // Since ILateralSpread is purely per-element, hold Δcice here
     HField deltaCIce; // Change in ice concentration
@@ -88,15 +82,15 @@ private:
     HField deltaCFreeze; // New ice concentration due to freezing (+ve)
     HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
-    ModelArrayRef<Protected::H_ICE> hIceCell; // Timestep initial cell averaged ice thickness, m
-    ModelArrayRef<Protected::H_SNOW> hSnowCell; // Timestep initial cell averaged snow thickness, m
-    ModelArrayRef<Protected::C_ICE> cice0; // Timestep initial ice concentration
-    ModelArrayRef<Shared::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
+    ModelArrayRef<Protected::TF> tf; // ocean freezing point, ˚C
     ModelArrayRef<Protected::ML_BULK_CP>
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
-    ModelArrayRef<Protected::SST> sst; // sea surface temperature, ˚C
-    ModelArrayRef<Protected::TF> tf; // ocean freezing point, ˚C
+    ModelArrayRef<Shared::C_ICE, RW> cice; // ice concentration
     ModelArrayRef<Shared::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
+    ModelArrayRef<Shared::H_ICE, RW> hice; // ice thickness
+    ModelArrayRef<Shared::H_SNOW, RW> hsnow; // snow thickness
+    ModelArrayRef<Shared::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
+    ModelArrayRef<Shared::SST> sst; // sea surface temperature, ˚C
 
     bool doThermo = true; // Perform any thermodynamics calculations at all
 

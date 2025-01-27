@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 7 Sep 2023
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -24,23 +24,21 @@ namespace Nextsim {
 class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
     SlabOcean()
-        : qdw(ModelArray::Type::H)
-        , fdw(ModelArray::Type::H)
-        , sstSlab(ModelArray::Type::H)
-        , sssSlab(ModelArray::Type::H)
-        , sstExt(getStore())
-        , sssExt(getStore())
-        , sst(getStore())
-        , sss(getStore())
-        , mld(getStore())
-        , cpml(getStore())
-        , emp(getStore())
+        : fdw(ModelArray::Type::H)
+        , qdw(ModelArray::Type::H)
         , cice(getStore())
-        , qio(getStore())
-        , qow(getStore())
-        , newIce(getStore())
+        , cpml(getStore())
         , deltaHice(getStore())
         , deltaSmelt(getStore())
+        , emp(getStore())
+        , mld(getStore())
+        , newIce(getStore())
+        , qio(getStore())
+        , qow(getStore())
+        , sss(getStore())
+        , sssExt(getStore())
+        , sst(getStore())
+        , sstExt(getStore())
     {
     }
 
@@ -58,39 +56,38 @@ public:
     ModelState getState(const OutputLevel&) const override;
     std::string getName() const override { return "SlabOcean"; }
 
-    std::unordered_set<std::string> hFields() const override;
     void update(const TimestepTime&);
 
     static const double defaultRelaxationTime; // A default value for the relaxation time in s.
 
 private:
     // Owned shared fields
-    HField qdw;
     HField fdw;
-    HField sstSlab;
-    HField sssSlab;
+    HField qdw;
 
     // Input fields
-    ModelArrayRef<Protected::EXT_SST> sstExt;
+    ModelArrayRef<Protected::EVAP_MINUS_PRECIP> emp;
     ModelArrayRef<Protected::EXT_SSS> sssExt;
-    ModelArrayRef<Protected::SST> sst;
-    ModelArrayRef<Protected::SSS> sss;
+    ModelArrayRef<Protected::EXT_SST> sstExt;
     ModelArrayRef<Protected::MLD> mld;
     ModelArrayRef<Protected::ML_BULK_CP> cpml;
-    ModelArrayRef<Protected::EVAP_MINUS_PRECIP> emp;
-    ModelArrayRef<Protected::C_ICE> cice;
-    ModelArrayRef<Shared::Q_IO, RW> qio;
-    ModelArrayRef<Shared::Q_OW, RW> qow;
-    // TODO ModelArrayRef to assimilation flux
-    ModelArrayRef<Shared::NEW_ICE, RW> newIce;
+    ModelArrayRef<Shared::C_ICE> cice;
     ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
     ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;
+    ModelArrayRef<Shared::NEW_ICE, RW> newIce;
+    ModelArrayRef<Shared::Q_IO, RW> qio;
+    ModelArrayRef<Shared::Q_OW, RW> qow;
+    ModelArrayRef<Shared::SSS, RW> sss;
+    ModelArrayRef<Shared::SST, RW> sst;
+    // TODO ModelArrayRef to assimilation flux
 
     static const std::string sstSlabName;
     static const std::string sssSlabName;
 
     double relaxationTimeT = defaultRelaxationTime;
     double relaxationTimeS = defaultRelaxationTime;
+
+    void updateElements(size_t i, const TimestepTime& tst);
 };
 
 } /* namespace Nextsim */

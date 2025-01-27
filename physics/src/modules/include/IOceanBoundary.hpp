@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 05 Dec 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -31,14 +31,14 @@ public:
         m_couplingArrays.registerArray(CouplingFields::OCEAN_V, &v, RW);
 
         getStore().registerArray(Shared::Q_IO, &qio, RW);
-        getStore().registerArray(Protected::SST, &sst, RO);
-        getStore().registerArray(Protected::SSS, &sss, RO);
-        getStore().registerArray(Protected::MLD, &mld, RO);
+        getStore().registerArray(Shared::SST, &sst, RW);
+        getStore().registerArray(Shared::SSS, &sss, RW);
         getStore().registerArray(Protected::ML_BULK_CP, &cpml, RO);
-        getStore().registerArray(Protected::TF, &tf, RO);
+        getStore().registerArray(Protected::MLD, &mld, RO);
         getStore().registerArray(Protected::OCEAN_U, &u, RO);
         getStore().registerArray(Protected::OCEAN_V, &v, RO);
         getStore().registerArray(Protected::SSH, &ssh, RO);
+        getStore().registerArray(Protected::TF, &tf, RO);
     }
     virtual ~IOceanBoundary() = default;
 

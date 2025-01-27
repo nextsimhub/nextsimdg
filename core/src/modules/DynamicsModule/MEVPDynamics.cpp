@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 05 Dec 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -55,8 +55,6 @@ MEVPDynamics::MEVPDynamics()
     : IDynamics()
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)

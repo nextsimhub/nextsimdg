@@ -1,7 +1,7 @@
 /*!
  * @file IIceThermodynamics.hpp
  *
- * @date 24 Sep 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,7 +23,6 @@ public:
     std::string getName() const override { return "IceThermodynamics"; }
     void setData(const ModelState::DataMap& ms) override
     {
-        tice.resize();
         deltaHi.resize();
         snowToIce.resize();
     }
@@ -40,53 +39,49 @@ public:
      */
     virtual void update(const TimestepTime& tsTime) = 0;
 
-    virtual void initialiseTice() { tice = tice0; }
-
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
 
     virtual size_t getNZLevels() const = 0;
 
 protected:
     IIceThermodynamics()
-        : tice(ModelArray::Type::Z)
-        , deltaHi(ModelArray::Type::H)
+        : deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
-        , hice(getStore())
         , cice(getStore())
+        , dQia_dt(getStore())
+        , hice(getStore())
         , hsnow(getStore())
+        , penSw(getStore())
+        , qia(getStore())
         , qic(getStore())
         , qio(getStore())
-        , qia(getStore())
-        , dQia_dt(getStore())
-        , penSw(getStore())
-        , sublim(getStore())
-        , tice0(getStore())
-        , tf(getStore())
         , snowfall(getStore())
         , sss(getStore())
+        , sublim(getStore())
+        , tf(getStore())
+        , tice(getStore())
     {
         registerModule();
 
         getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
-        getStore().registerArray(Shared::T_ICE, &tice, RW);
     }
 
-    ModelArrayRef<Shared::H_ICE, RW> hice; // From IceGrowth
+    ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
+    ModelArrayRef<Protected::TF> tf; // Sea water freezing temperature
     ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth
+    ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
+    ModelArrayRef<Shared::H_ICE, RW> hice; // From IceGrowth
     ModelArrayRef<Shared::H_SNOW, RW> hsnow; // From Ice Growth
+    ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
     ModelArrayRef<Shared::Q_IC, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
     ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
-    ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
-    ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
     ModelArrayRef<Shared::Q_PEN_SW, RO> penSw; // From FluxCalculation
+    ModelArrayRef<Shared::T_ICE, RW> tice; // Timestep initial ice temperature
+    ModelArrayRef<Shared::SSS> sss; // From ExternalData (possibly PrognosticData)
     ModelArrayRef<Shared::SUBLIM, RO> sublim; // From AtmosphereState
-    ModelArrayRef<Protected::T_ICE> tice0; // Timestep initial ice temperature
-    ModelArrayRef<Protected::TF> tf; // Sea water freezing temperature
-    ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
-    ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
+
     // Owned, shared arrays
-    HField tice;
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;

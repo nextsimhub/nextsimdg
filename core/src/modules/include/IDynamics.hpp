@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 06 Dec 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -20,25 +20,25 @@ public:
     {
     }
     IDynamics(bool usesDamageIn)
-        : uice(ModelArray::Type::H)
-        , vice(ModelArray::Type::H)
-        , damage(ModelArray::Type::H)
-        , taux(ModelArray::Type::H)
+        : taux(ModelArray::Type::H)
         , tauy(ModelArray::Type::H)
-        , hice(getStore())
+        , uice(ModelArray::Type::H)
+        , vice(ModelArray::Type::H)
         , cice(getStore())
+        , damage(getStore())
+        , hice(getStore())
         , hsnow(getStore())
-        , damage0(getStore())
-        , uwind(getStore())
-        , vwind(getStore())
-        , uocean(getStore())
-        , vocean(getStore())
         , ssh(getStore())
+        , uocean(getStore())
+        , uwind(getStore())
+        , vocean(getStore())
+        , vwind(getStore())
         , m_usesDamage(usesDamageIn)
     {
-        getStore().registerArray(Shared::DAMAGE, &damage, RW);
         getStore().registerArray(Protected::IO_STRESS_X, &taux, RO);
         getStore().registerArray(Protected::IO_STRESS_Y, &tauy, RO);
+        getStore().registerArray(Protected::ICE_U, &uice, RO);
+        getStore().registerArray(Protected::ICE_V, &vice, RO);
     }
     virtual ~IDynamics() = default;
 
@@ -62,10 +62,6 @@ public:
     {
         uice.resize();
         vice.resize();
-        damage.resize();
-        if (!m_usesDamage) {
-            damage = 0.;
-        }
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -79,8 +75,6 @@ protected:
     // Shared ice velocity arrays
     HField uice;
     HField vice;
-    // Updated damage array
-    HField damage;
     // Ice-ocean stress (for the coupler, mostly)
     HField taux;
     HField tauy;
@@ -88,7 +82,7 @@ protected:
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;
     ModelArrayRef<Shared::H_SNOW, RW> hsnow;
-    ModelArrayRef<Protected::DAMAGE, RO> damage0;
+    ModelArrayRef<Shared::DAMAGE, RW> damage;
 
     // References to the forcing velocity arrays
     ModelArrayRef<Protected::WIND_U> uwind;

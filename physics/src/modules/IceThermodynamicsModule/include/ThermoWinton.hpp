@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWinton.hpp
  *
- * @date 24 Sep 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -45,7 +45,6 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    ModelArrayRef<Protected::HTRUE_ICE> oldHi;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Shared::SUBLIM, RO> subl;
 

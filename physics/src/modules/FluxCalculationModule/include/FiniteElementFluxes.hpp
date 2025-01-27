@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.hpp
  *
- * @date 24 Sep 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -44,7 +44,6 @@ public:
         , p_air(getStore())
         , v_air(getStore())
         , h_snow(getStore())
-        , h_snow_true(getStore())
         , cice(getStore())
         , tice(getStore())
         , sw_in(getStore())
@@ -104,18 +103,17 @@ private:
     HField sh_ice;
     HField dshice_dT;
     // Input fields
-    ModelArrayRef<Protected::SST> sst;
-    ModelArrayRef<Protected::SSS> sss;
-    ModelArrayRef<Protected::T_AIR> t_air;
+    ModelArrayRef<Shared::C_ICE> cice;
+    ModelArrayRef<Shared::H_SNOW> h_snow; // cell-averaged value
+    ModelArrayRef<Shared::SST> sst;
+    ModelArrayRef<Shared::SSS> sss;
+    ModelArrayRef<Shared::T_ICE> tice;
     ModelArrayRef<Protected::DEW_2M> t_dew2;
-    ModelArrayRef<Protected::P_AIR> p_air;
-    ModelArrayRef<Protected::WIND_SPEED> v_air;
-    ModelArrayRef<Protected::H_SNOW> h_snow; // cell-averaged value
-    ModelArrayRef<Protected::HTRUE_SNOW> h_snow_true; // cell-averaged value
-    ModelArrayRef<Protected::C_ICE> cice;
-    ModelArrayRef<Protected::T_ICE> tice;
-    ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Protected::LW_IN> lw_in;
+    ModelArrayRef<Protected::P_AIR> p_air;
+    ModelArrayRef<Protected::SW_IN> sw_in;
+    ModelArrayRef<Protected::T_AIR> t_air;
+    ModelArrayRef<Protected::WIND_SPEED> v_air;
 
     void calculateOW(size_t i, const TimestepTime& tst);
     void calculateIce(size_t i, const TimestepTime& tst);

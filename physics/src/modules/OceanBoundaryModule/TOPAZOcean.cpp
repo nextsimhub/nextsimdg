@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 06 Dec 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -79,12 +79,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
 
-void TOPAZOcean::updateAfter(const TimestepTime& tst)
-{
-    slabOcean.update(tst);
-    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
-    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
-}
+void TOPAZOcean::updateAfter(const TimestepTime& tst) { slabOcean.update(tst); }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 

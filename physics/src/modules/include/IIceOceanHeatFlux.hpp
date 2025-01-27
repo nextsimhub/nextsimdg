@@ -1,7 +1,7 @@
 /*
  * @file IIceOceanHeatFlux.hpp
  *
- * @date 24 Sep 2024
+ * @date 27 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -46,10 +46,9 @@ public:
     virtual void update(const TimestepTime&) = 0;
 
 protected:
-    ModelArrayRef<Protected::SST> sst;
     ModelArrayRef<Protected::TF> tf;
-    ModelArrayRef<Protected::C_ICE> cice;
-
+    ModelArrayRef<Shared::C_ICE> cice;
+    ModelArrayRef<Shared::SST> sst;
     ModelArrayRef<Shared::Q_IO, RW> qio;
 };
 }
