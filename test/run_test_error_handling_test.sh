@@ -26,6 +26,7 @@ echo run_integration_test.sh
 # The test passes if the model returns a non-zero exit code
 if [ $? -ne 0 ]
 then
+  echo "Success: Error caught and model exits with a non-zero exit code"
   exit 0
 else
   exit 1
