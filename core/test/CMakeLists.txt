@@ -154,6 +154,7 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testHaloExchange_MPI3 PRIVATE nextsimlib doctest::doctest)
 
+
         add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
             testParaGrid_MPI2

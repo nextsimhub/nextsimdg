@@ -19,6 +19,9 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/Finalizer.hpp"
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
@@ -142,7 +145,6 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     DGField hsnow = fractionalDG + 30;
     DGField damage = fractionalDG * 0.;
     HField sss = fractional;
-
     VertexField coordinates(ModelArray::Type::VERTEX);
     initializeTestCoordinates(coordinates);
 
@@ -246,8 +248,15 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
     ModelArray& hiceRef = ms.data.at(hiceName);
     REQUIRE(hiceRef.nDimensions() == 2);
+    // TODO need to decide how non-MPI code should be handled i.e., will we only ever run with
+    // MPI=ON? even if it's mpirun -n 1...
+#ifdef USE_MPI
+    REQUIRE(hiceRef.dimensions()[0] == localNX + 2 * Halo::haloWidth);
+    REQUIRE(hiceRef.dimensions()[1] == ny + 2 * Halo::haloWidth);
+#else
     REQUIRE(hiceRef.dimensions()[0] == localNX);
     REQUIRE(hiceRef.dimensions()[1] == ny);
+#endif
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(hiceRef.nComponents() == DG);
 
@@ -255,8 +264,13 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ModelArray& coordRef = ms.data.at(coordsName);
     REQUIRE(coordRef.nDimensions() == 2);
     REQUIRE(coordRef.nComponents() == 2);
+#ifdef USE_MPI
+    REQUIRE(coordRef.dimensions()[0] == localNXVertex + 2 * Halo::haloWidth);
+    REQUIRE(coordRef.dimensions()[1] == ny + 1 + 2 * Halo::haloWidth);
+#else
     REQUIRE(coordRef.dimensions()[0] == localNXVertex);
     REQUIRE(coordRef.dimensions()[1] == ny + 1);
+#endif
     REQUIRE(coordRef.components({ 3, 8 })[0] - coordRef.components({ 2, 8 })[0] == scale);
     REQUIRE(coordRef.components({ 3, 8 })[1] - coordRef.components({ 3, 7 })[1] == scale);
 
@@ -269,7 +283,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(yRef(3, 8) == coordRef.components({ 2, 8 })[1] + scale / 2);
 
     REQUIRE(ms.data.count(gridAzimuthName) > 0);
-    REQUIRE(ms.data.at(gridAzimuthName)(0, 0) == gridAzimuth0);
+    REQUIRE(ms.data.at(gridAzimuthName)(1, 1) == gridAzimuth0);
     std::filesystem::remove(filename);
 
     Finalizer::finalize();

@@ -20,3 +20,6 @@ __pycache__/
 *.sif
 .*sw?
 /run/*.cdl
+.cache/
+.clangd
+compile_commands.json

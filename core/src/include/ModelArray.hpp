@@ -9,6 +9,8 @@
 #define MODELARRAY_HPP
 
 #include <Eigen/Core>
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <map>
 #include <string>
@@ -294,6 +296,26 @@ public:
     const MultiDim& dimensions() const { return dimensions(type); }
     //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
     static const MultiDim& dimensions(Type type) { return m_dims.at(type); }
+#ifdef USE_MPI
+    //! Returns the total number of elements of this type of ModelArray.
+    const MultiDim innerDimensions() { return innerDimensions(type); }
+
+    //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
+    MultiDim innerDimensions(Type type)
+    {
+        using Dim = ModelArray::Dimension;
+        std::array<Dimension, 4> haloTypes = { Dim::X, Dim::Y, Dim::XVERTEX, Dim::YVERTEX };
+        auto dimTypes = typeDimensions.at(type);
+        auto dims = m_dims.at(type);
+        for (size_t i = 0; i < dims.size(); i++) {
+            if (std::count(haloTypes.begin(), haloTypes.end(), dimTypes[i])) {
+                dims[i] = dims[i] - 2;
+            }
+        }
+        return dims;
+    }
+#endif
+
     //! Returns the total number of elements of this type of ModelArray.
     size_t size() const { return size(type); }
     //! Returns the total number of elements of the specified type of ModelArray.
