@@ -60,6 +60,7 @@ jobs:
         cd test
         python3 ThermoIntegration_test.py
         ./run_test_jan2010_integration_test.sh python3
+        ./run_test_error_handling_test.sh python3
         cd -
 
   test-ubuntu-mpi:

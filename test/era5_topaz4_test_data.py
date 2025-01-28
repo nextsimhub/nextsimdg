@@ -81148,6 +81148,13 @@ def get_topaz_data(name):
             ]).reshape(ny, nx)
             
 if __name__ == "__main__":
+    # Set up the argument parsing so that we can create arroneous data
+    import argparse
+    parser = argparse.ArgumentParser(description = "Create ERA5 and TOPAZ4 data for the integration test.")
+    parser.add_argument("--errors", dest="errors", required = False, action=argparse.BooleanOptionalAction, \
+        help = "Multiply all the fields with 10 to test error handling routines.")
+    args = parser.parse_args()
+
     target_structure = "parametric_rectangular"
 
     nx = 154
@@ -81195,6 +81202,9 @@ if __name__ == "__main__":
         data = datagrp.createVariable(field_name, "f8", timefield_dims)
         data[0, :, :] = get_era_data(field_name)
         data[1, :, :] = get_era_data(field_name)
+        if args.errors:
+            data[0, :, :] = 10*data[0, :, :]
+
     era_root.close()
 
     ocean_fields = ("mld", "sss", "sst", "ssh", "u", "v")
