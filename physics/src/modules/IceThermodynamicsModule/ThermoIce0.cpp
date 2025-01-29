@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date 27 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -26,7 +26,6 @@ ThermoIce0::ThermoIce0()
     : IIceThermodynamics()
     , botMelt(ModelArray::Type::H)
     , qic(ModelArray::Type::H)
-    , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
 {
 }
@@ -74,7 +73,6 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 {
     IIceThermodynamics::setData(ms);
 
-    snowMelt.resize();
     topMelt.resize();
     botMelt.resize();
     qic.resize();
@@ -119,11 +117,11 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow;
     snowMelt[i] = snowMeltRate * tst.step;
     double snowSublRate = sublim[i] / Ice::rhoSnow;
-    double nowSnow = hs + (snowMeltRate - snowSublRate) * tst.step;
+    hs += (snowMeltRate - snowSublRate) * tst.step;
     // Use excess flux to melt ice. Non-positive value
-    double excessIceMelt = std::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
+    double excessIceMelt = std::min(hs, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
     // With the excess flux noted, clamp the snow thickness to a minimum of zero.
-    hs = std::max(nowSnow, 0.);
+    hs = std::max(hs, 0.);
 
     // Bottom melt or growth
     double iceBottomChange = (qic[i] - qio[i]) * tst.step / bulkLHFusionIce;
@@ -176,7 +174,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 
     // Return the cell averaged values
     hice[i] = hi * cice[i];
-    hsnow[i] = hs * hsnow[i];
+    hsnow[i] = hs * cice[i];
 }
 
 size_t ThermoIce0::getNZLevels() const { return nZLevels; }

@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWinton.hpp
  *
- * @date 27 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -42,7 +42,6 @@ public:
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    HField snowMelt;
     HField topMelt;
     HField botMelt;
     ModelArrayRef<Protected::SW_IN> sw_in;
@@ -53,8 +52,8 @@ private:
     static const double seaIceTf;
     static double kappa_s;
 
-    void calculateTemps(
-        double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
+    void calculateTemps(const double hi, const double hs, double& tSurf, double& tMidt,
+        double& tBotn, double& mSurf, size_t i, double dt);
 };
 
 } /* namespace Nextsim */

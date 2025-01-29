@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0.hpp
  *
- * @date 27 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -37,7 +37,6 @@ public:
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    HField snowMelt;
     HField topMelt;
     HField botMelt;
     HField qic;

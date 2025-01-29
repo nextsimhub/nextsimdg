@@ -1,7 +1,7 @@
 /*!
  * @file HiblerSpread.cpp
  *
- * @date 20 Nov 2024
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -60,8 +60,9 @@ void HiblerSpread::freeze(const TimestepTime& tstep, double hice, double hsnow, 
 void HiblerSpread::melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi,
     double& cice, double& qow, double& deltaCmelt)
 {
+    const double oldHi = (cice > 0) ? (hice / cice - deltaHi) : 0;
     if (cice < 1) {
-        deltaCmelt = deltaHi * cice * phiM / hice;
+        deltaCmelt = deltaHi * cice * phiM / oldHi;
     }
 }
 

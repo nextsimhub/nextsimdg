@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.cpp
  *
- * @date 27 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -63,7 +63,7 @@ void SlabOcean::update(const TimestepTime& tst)
 {
     overElements(
         std::bind(&SlabOcean::updateElements, this, std::placeholders::_1, std::placeholders::_2),
-        TimestepTime());
+        tst);
 }
 
 void SlabOcean::updateElements(size_t i, const TimestepTime& tst)

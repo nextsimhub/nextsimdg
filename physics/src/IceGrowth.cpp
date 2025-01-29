@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth.cpp
  *
- * @date 27 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -38,14 +38,12 @@ IceGrowth::IceGrowth()
 {
     registerModule();
     getStore().registerArray(Shared::NEW_ICE, &newice, RW);
-    getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
     getStore().registerArray(Shared::DELTA_CICE, &deltaCIce, RW);
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)
 {
     newice.resize();
-    snowMelt.resize();
     deltaCFreeze.resize();
     deltaCMelt.resize();
     deltaCIce.resize();
@@ -122,15 +120,6 @@ ConfigMap IceGrowth::getConfiguration() const
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
-    // Copy the ice data from the prognostic fields to the modifiable fields.
-    overElements(
-        std::bind(&IceGrowth::applyLimits, this, std::placeholders::_1, std::placeholders::_2),
-        tsTime);
-
-    // The snowMelt array is not currently filled with data, but it used elsewhere
-    // FIXME calculate a true value for snowMelt
-    snowMelt = 0;
-
     if (doThermo) {
         iVertical->update(tsTime);
         // new ice formation
@@ -142,6 +131,11 @@ void IceGrowth::update(const TimestepTime& tsTime)
     // Damage always heals, even if there's no active thermo
     // TODO: This should only be called for brittle rheologies
     iHealing->update(tsTime);
+
+    // Apply sensible limits
+    overElements(
+        std::bind(&IceGrowth::applyLimits, this, std::placeholders::_1, std::placeholders::_2),
+        tsTime);
 }
 
 void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
@@ -172,16 +166,11 @@ void IceGrowth::newIceFormation(size_t i, const TimestepTime& tst)
     }
 }
 
-// Update thickness with concentration
-static double updateThickness(double& thick, double newConc, double deltaC, double deltaV)
-{
-    return thick += (deltaV - thick * deltaC) / newConc;
-}
-
 void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
 {
     deltaCMelt[i] = 0;
     deltaCFreeze[i] = 0;
+    const double hsOld = (cice[i] > 0) ? hsnow[i] / cice[i] : 0;
     iLateral->freeze(
         tstep, hice[i], hsnow[i], deltaHi[i], newice[i], cice[i], qow[i], deltaCFreeze[i]);
     if (deltaHi[i] < 0) {
@@ -190,14 +179,13 @@ void IceGrowth::lateralIceSpread(size_t i, const TimestepTime& tstep)
     deltaCIce[i] = deltaCFreeze[i] + deltaCMelt[i];
     cice[i] = (hice[i] > 0 || newice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
     if (cice[i] >= IceMinima::c()) {
-        // The updated ice thickness must conserve volume
-        updateThickness(hice[i], cice[i], deltaCIce[i], newice[i]);
+        // The updated ice volume
+        hice[i] += newice[i];
         if (deltaCIce[i] < 0) {
             // Snow is lost if the concentration decreases, and energy is returned to the ocean
             qow[i] -= deltaCIce[i] * hsnow[i] * Water::Lf * Ice::rhoSnow / tstep.step;
-        } else {
-            // Update snow thickness. Currently no new snow is implemented
-            updateThickness(hsnow[i], cice[i], deltaCIce[i], 0);
+            // Conserve the snow (slab) thickness
+            hsnow[i] = hsOld * cice[i];
         }
     }
 }

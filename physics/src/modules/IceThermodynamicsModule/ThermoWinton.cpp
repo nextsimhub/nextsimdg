@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWinton.cpp
  *
- * @date 27 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -26,12 +26,10 @@ bool ThermoWinton::doFlooding = true;
 ThermoWinton::ThermoWinton()
     : IIceThermodynamics()
     , botMelt(ModelArray::Type::H)
-    , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , subl(getStore())
     , sw_in(getStore())
 {
-    snowMelt.resize();
     topMelt.resize();
     botMelt.resize();
     snowToIce.resize();
@@ -75,7 +73,6 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 {
     IIceThermodynamics::setData(state);
 
-    snowMelt.resize();
     topMelt.resize();
     botMelt.resize();
     snowToIce.resize();
@@ -136,7 +133,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 
     double surfMelt = 0; // surface melting mass loss
     // Calculate temperatures by solving the heat conduction equation
-    calculateTemps(tSurf, tUppr, tLowr, surfMelt, i, dt);
+    calculateTemps(hi, hs, tSurf, tUppr, tLowr, surfMelt, i, dt);
 
     // The ratio of ΔΗ_f T_f / c_p,ice is used a lot. Units are K²
     const double dHfTf_cp = Water::Lf * seaIceTf / Ice::cp;
@@ -295,11 +292,11 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 
     // Return the cell averaged values
     hice[i] = hi * cice[i];
-    hsnow[i] = hs * hsnow[i];
+    hsnow[i] = hs * cice[i];
 }
 
-void ThermoWinton::calculateTemps(
-    double& tSurf, double& tUppr, double& tLowr, double& mSurf, size_t i, double dt)
+void ThermoWinton::calculateTemps(const double hi, const double hs, double& tSurf, double& tUppr,
+    double& tLowr, double& mSurf, size_t i, double dt)
 {
     /*
      * Internal temperatures
@@ -307,14 +304,11 @@ void ThermoWinton::calculateTemps(
      * finally T2 Numers in parentheses refer to equations in the paper
      */
 
-    // Slab thickness
-    const double hi = hice[i] / cice[i];
-
     double tBase = tf[i]; // Freezing point of seawater with the local salinity
-    double tMelt = (hsnow[i] > 0) ? 0 : seaIceTf; // Melting point at the surface
+    double tMelt = (hs > 0) ? 0 : seaIceTf; // Melting point at the surface
 
     // First some coefficients based on temperatures from the previous time step
-    double k12 = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hsnow[i]); // (5)
+    double k12 = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hs); // (5)
     double a = qia[i] - tSurf * dQia_dt[i]; // (7)
     double b = dQia_dt[i]; // (8)
     double k32 = 2 * Ice::kappa / hi; // (10)

@@ -1,7 +1,7 @@
 /*!
  * @file IIceThermodynamics.hpp
  *
- * @date 27 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -25,6 +25,7 @@ public:
     {
         deltaHi.resize();
         snowToIce.resize();
+        snowMelt.resize();
     }
     ModelState getState() const override { return ModelState(); }
     ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -47,6 +48,7 @@ protected:
     IIceThermodynamics()
         : deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
+        , snowMelt(ModelArray::Type::H)
         , cice(getStore())
         , dQia_dt(getStore())
         , hice(getStore())
@@ -64,6 +66,7 @@ protected:
         registerModule();
 
         getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
+        getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
     }
 
     ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
@@ -83,6 +86,7 @@ protected:
 
     // Owned, shared arrays
     HField deltaHi;
+    HField snowMelt;
     // Owned, Module-private arrays
     HField snowToIce;
 };
