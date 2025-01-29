@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 27 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -58,14 +58,14 @@ void ERA5Atmosphere::configure()
 
     if (doChecks) {
         // clang-format off
-        fieldsToCheck.push_back({"tair",  &tair,  std::make_pair(  -100, 80)});
-        fieldsToCheck.push_back({"tdew",  &tdew,  std::make_pair(  -100, 80)});
-        fieldsToCheck.push_back({"pair",  &pair,  std::make_pair( 700e2, 1100e2)});
-        fieldsToCheck.push_back({"sw_in", &sw_in, std::make_pair(    -1, 2e3)});
-        fieldsToCheck.push_back({"lw_in", &lw_in, std::make_pair(     0, 1e3)});
-        fieldsToCheck.push_back({"wind",  &wind,  std::make_pair(  -0.1, 150)});
-        fieldsToCheck.push_back({"uwind", &uwind, std::make_pair(  -150, 150)});
-        fieldsToCheck.push_back({"vwind", &vwind, std::make_pair(  -150, 150)});
+        fieldsToCheck.push_back({"tair",  &tair,  {  -100, 80}});
+        fieldsToCheck.push_back({"tdew",  &tdew,  {  -100, 80}});
+        fieldsToCheck.push_back({"pair",  &pair,  { 700e2, 1100e2}});
+        fieldsToCheck.push_back({"sw_in", &sw_in, {    -1, 2e3}});
+        fieldsToCheck.push_back({"lw_in", &lw_in, {     0, 1e3}});
+        fieldsToCheck.push_back({"wind",  &wind,  {  -0.1, 150}});
+        fieldsToCheck.push_back({"uwind", &uwind, {  -150, 150}});
+        fieldsToCheck.push_back({"vwind", &vwind, {  -150, 150}});
         // clang-format on
     }
 

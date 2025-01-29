@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 26 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -53,10 +53,10 @@ void PrognosticData::configure()
     tryConfigure(iceGrowth);
 
     // clang-format off
-    fieldsToCheck.push_back({"m_conc",   &m_conc,   std::make_pair(0, 1+1e4)});
-    fieldsToCheck.push_back({"m_damage", &m_damage, std::make_pair(0, 1+1e-4)});
-    fieldsToCheck.push_back({"m_snow",   &m_snow,   std::make_pair(0, 10)});
-    fieldsToCheck.push_back({"m_thick",  &m_thick,  std::make_pair(0, 50)});
+    fieldsToCheck.push_back({ciceName,   &m_conc,   {0, 1+1e4}});
+    fieldsToCheck.push_back({damageName, &m_damage, {0, 1+1e-4}});
+    fieldsToCheck.push_back({hsnowName,  &m_snow,   {0, 10}});
+    fieldsToCheck.push_back({hiceName,   &m_thick,  {0, 50}});
     // clang-format on
 }
 

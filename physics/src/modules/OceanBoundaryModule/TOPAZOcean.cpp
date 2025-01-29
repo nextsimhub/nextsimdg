@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 26 Jan 2025
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -61,12 +61,12 @@ void TOPAZOcean::configure()
 
     if (doChecks) {
         // clang-format off
-        fieldsToCheck.push_back({"sstExt", &sstExt, std::make_pair(  -5, 50)});
-        fieldsToCheck.push_back({"sssExt", &sssExt, std::make_pair(   0, 50)});
-        fieldsToCheck.push_back({"mld",    &mld,    std::make_pair(1e-3, 11e3)});
-        fieldsToCheck.push_back({"u",      &u,      std::make_pair(  -5, 5)});
-        fieldsToCheck.push_back({"v",      &v,      std::make_pair(  -5, 5)});
-        fieldsToCheck.push_back({"ssh",    &ssh,    std::make_pair(  -5, 5)});
+        fieldsToCheck.push_back({"sstExt", &sstExt, {  -5, 50}});
+        fieldsToCheck.push_back({"sssExt", &sssExt, {   0, 50}});
+        fieldsToCheck.push_back({"mld",    &mld,    {1e-3, 11e3}});
+        fieldsToCheck.push_back({"u",      &u,      {  -5, 5}});
+        fieldsToCheck.push_back({"v",      &v,      {  -5, 5}});
+        fieldsToCheck.push_back({"ssh",    &ssh,    {  -5, 5}});
         // clang-format on
     }
 
