@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0Temperature_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -40,15 +40,12 @@ TEST_CASE("Threshold ice")
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
             getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::SST, &sst, RO);
-            getStore().registerArray(Protected::SSS, &sss, RO);
+            getStore().registerArray(Shared::SST, &sst, RO);
+            getStore().registerArray(Shared::SSS, &sss, RO);
             getStore().registerArray(Protected::TF, &tf, RO);
             getStore().registerArray(Protected::SNOW, &snow, RO);
             getStore().registerArray(Protected::ML_BULK_CP, &mlbhc, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Shared::T_ICE, &tice0, RW);
             getStore().registerArray(Shared::Q_IO, &qio, RW);
             getStore().registerArray(Shared::Q_OW, &qow, RW);
             getStore().registerArray(Shared::Q_IA, &qia, RW);
@@ -62,7 +59,6 @@ TEST_CASE("Threshold ice")
         {
             cice[0] = 0.99;
             hice[0] = 0.001 / cice[0]; // Here we are using the true thicknesses
-            hice0[0] = hice[0];
             hsnow[0] = 0.;
             sss[0] = 32.;
             sst[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
@@ -79,7 +75,6 @@ TEST_CASE("Threshold ice")
         }
 
         HField hice;
-        HField hice0;
         HField cice;
         HField hsnow;
         HField sst;

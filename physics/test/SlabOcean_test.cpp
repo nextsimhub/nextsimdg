@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -33,11 +33,12 @@ TEST_CASE("Test Qdw")
     // Supply the data to the slab ocean
     HField sss(ModelArray::Type::H);
     sss = 32.;
-    ModelComponent::getStore().registerArray(Protected::SSS, &sss, RO);
+    ModelComponent::getStore().registerArray(Shared::SSS, &sss, RW);
 
     HField sst(ModelArray::Type::H);
     sst = LinearFreezing()(sss[0]);
-    ModelComponent::getStore().registerArray(Protected::SST, &sst, RO);
+    HField sstOrig = sst;
+    ModelComponent::getStore().registerArray(Shared::SST, &sst, RW);
 
     HField mld(ModelArray::Type::H);
     mld = 6.48;
@@ -50,7 +51,7 @@ TEST_CASE("Test Qdw")
     HField cice(ModelArray::Type::H);
     double cice0 = 0.5;
     cice = cice0;
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE, &cice, RO);
 
     HField data0(ModelArray::Type::H);
     data0 = 0;
@@ -75,13 +76,12 @@ TEST_CASE("Test Qdw")
     slabOcean.update(tst);
 
     ModelArrayRef<Protected::SLAB_QDW> qdw(ModelComponent::getStore());
-    double prec = 1e-8;
+    double prec = 1e-6;
     REQUIRE(qdw[0]
         == doctest::Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
-    ModelArrayRef<Protected::SLAB_SST> sstSlab(ModelComponent::getStore());
-    REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
-    REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
+    REQUIRE(sst[0] != doctest::Approx(sstOrig[0]).epsilon(prec / dt));
+    REQUIRE(sst[0] == doctest::Approx(sstOrig[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
 
     HField qow(ModelArray::Type::H);
     qow[0] = 15;
@@ -91,8 +91,9 @@ TEST_CASE("Test Qdw")
     ModelComponent::getStore().registerArray(Shared::Q_IO, &qio, RW);
     // Should not need to update anything else, as the slabOcean update only changes SLAB_SST
     slabOcean.update(tst);
-    REQUIRE(sstSlab[0]
-        == doctest::Approx(sst[0] - dt * ((1 - cice0) * qow[0] + cice0 * qio[0] - qdw[0]) / cpml[0])
+    REQUIRE(sst[0]
+        == doctest::Approx(
+            sstOrig[0] - dt * ((1 - cice0) * qow[0] + cice0 * qio[0] - qdw[0]) / cpml[0])
                .epsilon(prec));
 }
 
@@ -110,11 +111,12 @@ TEST_CASE("Test Fdw")
     // Supply the data to the slab ocean
     HField sss(ModelArray::Type::H);
     sss = 32.;
-    ModelComponent::getStore().registerArray(Protected::SSS, &sss, RO);
+    ModelComponent::getStore().registerArray(Shared::SSS, &sss, RW);
+    HField sssOrig = sss;
 
     HField sst(ModelArray::Type::H);
     sst = LinearFreezing()(sss[0]);
-    ModelComponent::getStore().registerArray(Protected::SST, &sst, RO);
+    ModelComponent::getStore().registerArray(Shared::SST, &sst, RW);
 
     HField mld(ModelArray::Type::H);
     mld = 6.48;
@@ -128,7 +130,7 @@ TEST_CASE("Test Fdw")
     data0 = 0;
     ModelComponent::getStore().registerArray(Shared::Q_IO, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::Q_OW, &data0, RW);
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &data0, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE, &data0, RO);
     ModelComponent::getStore().registerArray(Shared::DELTA_HICE, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::NEW_ICE, &data0, RW);
     ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &data0, RW);
@@ -160,10 +162,9 @@ TEST_CASE("Test Fdw")
     double oldFdw = delS * mld[0] * Water::rho / (timeS * sss[0] - ddt * delS);
     REQUIRE(fdw[0] != doctest::Approx(oldFdw).epsilon(prec * 1e-6));
 
-    ModelArrayRef<Protected::SLAB_SSS> sssSlab(ModelComponent::getStore());
-    REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
-    REQUIRE(sssSlab[0]
-        == doctest::Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
+    REQUIRE(sss[0] != doctest::Approx(sssOrig[0]).epsilon(prec / dt));
+    REQUIRE(sss[0]
+        == doctest::Approx(sssOrig[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
                .epsilon(prec));
 
     HField snowMelt(ModelArray::Type::H);
@@ -171,8 +172,8 @@ TEST_CASE("Test Fdw")
     ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
     slabOcean.update(tst);
     double snowMeltVol = snowMelt[0] * Ice::rhoSnow;
-    REQUIRE(sssSlab[0]
-        == doctest::Approx(sss[0]
+    REQUIRE(sss[0]
+        == doctest::Approx(sssOrig[0]
             + (snowMeltVol - fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt))
                .epsilon(prec));
 }

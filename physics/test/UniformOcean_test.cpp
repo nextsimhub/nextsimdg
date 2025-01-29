@@ -1,7 +1,7 @@
 /*!
  * @file UniformOcean_test.cpp
  *
- * @date 30 Mar 2023
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -34,8 +34,8 @@ TEST_CASE("UniformOcean construction")
     UniformOcean uniOcn(sstIn, sssIn, mldIn, uIn, vIn, qioIn);
     uniOcn.setData(ModelState::DataMap());
 
-    ModelArrayRef<Protected::SST> sst(ModelComponent::getStore());
-    ModelArrayRef<Protected::SSS> sss(ModelComponent::getStore());
+    ModelArrayRef<Shared::SST> sst(ModelComponent::getStore());
+    ModelArrayRef<Shared::SSS> sss(ModelComponent::getStore());
     ModelArrayRef<Protected::MLD> mld(ModelComponent::getStore());
     ModelArrayRef<Protected::OCEAN_U> u(ModelComponent::getStore());
     ModelArrayRef<Protected::OCEAN_V> v(ModelComponent::getStore());
@@ -70,8 +70,8 @@ TEST_CASE("UniformOcean set functions")
     uniOcn.setSST(sstIn).setSSS(sssIn).setMLD(mldIn).setU(uIn).setV(vIn).setQio(qioIn);
     uniOcn.setData(ModelState::DataMap());
 
-    ModelArrayRef<Protected::SST> sst(ModelComponent::getStore());
-    ModelArrayRef<Protected::SSS> sss(ModelComponent::getStore());
+    ModelArrayRef<Shared::SST> sst(ModelComponent::getStore());
+    ModelArrayRef<Shared::SSS> sss(ModelComponent::getStore());
     ModelArrayRef<Protected::MLD> mld(ModelComponent::getStore());
     ModelArrayRef<Protected::OCEAN_U> u(ModelComponent::getStore());
     ModelArrayRef<Protected::OCEAN_V> v(ModelComponent::getStore());

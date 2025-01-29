@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWintonTemperature_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 29 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -13,7 +13,6 @@
 #include "include/ThermoWinton.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/constants.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceAlbedo.hpp"
@@ -49,13 +48,9 @@ TEST_CASE("Melting conditions")
     public:
         IceTemperatureData()
             : tice0(ModelArray::Type::Z)
-            , tice(getStore())
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::C_ICE, &cice0, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Shared::T_ICE, &tice0, RW);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
@@ -65,26 +60,17 @@ TEST_CASE("Melting conditions")
 
         void setData(const ModelState::DataMap&) override
         {
-            cice0[0] = 0.5;
-            hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
-            hsnow0[0] = 0.01 / cice0[0];
+            cice[0] = 0.5;
+            hice[0] = 0.1;
+            hsnow[0] = 0.01;
             sw_in[0] = -10.1675; // Net shortwave flux from incident 50 W/m^2
             tice0[0] = -1;
             tice0[1] = -1;
             tice0[2] = -1;
-            tice.data().setData(tice0);
-
-            hice = hice0;
-            cice = cice0;
-            hsnow = hsnow0;
         }
 
-        HField hice0;
-        HField cice0;
-        HField hsnow0;
         HField sw_in;
         ZField tice0;
-        ModelArrayRef<Shared::T_ICE, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
@@ -149,14 +135,10 @@ TEST_CASE("Freezing conditions")
     public:
         IceTemperatureData()
             : tice0(ModelArray::Type::Z)
-            , tice(getStore())
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::C_ICE, &cice0, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SNOW, &snow, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Shared::T_ICE, &tice0, RW);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
@@ -166,28 +148,19 @@ TEST_CASE("Freezing conditions")
 
         void setData(const ModelState::DataMap&) override
         {
-            cice0[0] = 0.5;
-            hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
-            hsnow0[0] = 0.01 / cice0[0];
+            cice[0] = 0.5;
+            hice[0] = 0.1;
+            hsnow[0] = 0.01;
             snow[0] = 1e-3;
             sw_in[0] = 0;
             tice0[0] = -9.;
             tice0[1] = -9.;
             tice0[2] = -9.;
-            tice.data().setData(tice0);
-
-            hice = hice0;
-            cice = cice0;
-            hsnow = hsnow0;
         }
 
-        HField hice0;
-        HField cice0;
-        HField hsnow0;
         HField snow;
         HField sw_in;
         ZField tice0;
-        ModelArrayRef<Shared::T_ICE, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
@@ -252,14 +225,10 @@ TEST_CASE("No ice do nothing")
     public:
         IceTemperatureData()
             : tice0(ModelArray::Type::Z)
-            , tice(getStore())
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::C_ICE, &cice0, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SNOW, &snow, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Shared::T_ICE, &tice0, RW);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
@@ -269,28 +238,19 @@ TEST_CASE("No ice do nothing")
 
         void setData(const ModelState::DataMap&) override
         {
-            cice0[0] = 0;
-            hice0[0] = 0;
-            hsnow0[0] = 0;
+            cice[0] = 0;
+            hice[0] = 0;
+            hsnow[0] = 0;
             snow[0] = 0;
             sw_in[0] = 0;
             tice0[0] = 0;
             tice0[1] = 0;
             tice0[2] = 0.;
-            tice.data().setData(tice0);
-
-            hice = hice0;
-            cice = cice0;
-            hsnow = hsnow0;
         }
 
-        HField hice0;
-        HField cice0;
-        HField hsnow0;
         HField snow;
         HField sw_in;
         ZField tice0;
-        ModelArrayRef<Shared::T_ICE, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
