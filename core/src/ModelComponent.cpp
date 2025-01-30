@@ -7,7 +7,6 @@
 
 #include "include/ModelComponent.hpp"
 #include "include/MissingData.hpp"
-#include "include/stackTraceException.hpp"
 #include <cmath>
 
 namespace Nextsim {

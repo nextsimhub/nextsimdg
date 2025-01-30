@@ -1,5 +1,5 @@
 /*!
- * @file stackTraceException.cpp
+ * @file StackTraceException.cpp
  * @date 30 Jan 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */

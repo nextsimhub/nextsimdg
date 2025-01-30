@@ -9,16 +9,16 @@
 #ifndef MODELCOMPONENT_HPP
 #define MODELCOMPONENT_HPP
 
+#include "ModelArrayRef.hpp"
+#include "ModelArrayReferenceStore.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
+#include "include/StackTraceException.hpp"
 #include "include/TextTag.hpp"
 #include "include/Time.hpp"
-
-#include "ModelArrayRef.hpp"
-#include "ModelArrayReferenceStore.hpp"
 #include <functional>
 #include <string>
 #include <unordered_map>
