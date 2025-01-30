@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 27 Jan 2025
+ * @date 30 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -126,17 +126,39 @@ ModelArray ModelComponent::mask(const ModelArray& data)
 
 const ModelArray& ModelComponent::getOceanMask() { return *p_oceanMaskH; }
 
+void ModelComponent::checkFields(const TimestepTime& tst)
+{
+    // numToCheck must be in scope for checkFieldElement as well
+    for (numToCheck = 0; numToCheck < fieldsToCheck.size(); ++numToCheck) {
+
+        int nLayers;
+        const int nDimensions = std::get<1>(fieldsToCheck[numToCheck])->nDimensions();
+        if (nDimensions == 3)
+            nLayers = std::get<1>(fieldsToCheck[numToCheck])->dimensions()[2];
+        else if (nDimensions == 2)
+            nLayers = 1;
+        else
+            throw std::logic_error(
+                "ModelComponent::checkFields expected a field with 2 or 3 dimensions.\n");
+
+        // layerToCheck must be in scope for checkFieldElement as well
+        for (layerToCheck = 0; layerToCheck < nLayers; ++layerToCheck)
+            overElements(std::bind(&ModelComponent::checkFieldsElement, this, std::placeholders::_1,
+                             std::placeholders::_2),
+                tst);
+    }
+}
+
 void ModelComponent::checkFieldsElement(size_t i, const TimestepTime& tst)
 {
-    for (auto const& x : fieldsToCheck) {
-        const double& value = (*std::get<1>(x))[i];
-        const std::pair<double, double>& bounds = std::get<2>(x);
-        if (value < bounds.first || value > bounds.second || std::isnan(value))
-            throw_with_trace(std::runtime_error(std::get<0>(x)
-                + " is out of bounds: " + std::to_string(value) + " is not within ["
-                + std::to_string(bounds.first) + "," + std::to_string(bounds.second) + "].\n"
-                + "Error at time step " + tst.start.format() + " and index " + std::to_string(i)));
-    }
+    const auto& x = fieldsToCheck[numToCheck];
+    const double& value = std::get<1>(x)->zIndexAndLayer(i, layerToCheck);
+    const auto& bounds = std::get<2>(x);
+    if (value < bounds.first || value > bounds.second || std::isnan(value))
+        throw_with_trace(std::runtime_error(std::get<0>(x)
+            + " is out of bounds: " + std::to_string(value) + " is not within ["
+            + std::to_string(bounds.first) + "," + std::to_string(bounds.second) + "].\n"
+            + "Error at time step " + tst.start.format() + " and index " + std::to_string(i)));
 }
 
 } /* namespace Nextsim */
