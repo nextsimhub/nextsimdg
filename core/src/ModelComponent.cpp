@@ -130,10 +130,16 @@ void ModelComponent::checkFields(const TimestepTime& tst)
     // numToCheck must be in scope for checkFieldElement as well
     for (numToCheck = 0; numToCheck < fieldsToCheck.size(); ++numToCheck) {
 
+        const ModelArray* array = std::get<1>(fieldsToCheck[numToCheck]);
+
+        // TODO: It would be nice to do this check when fieldsToCheck is populated
+        if (array->data().rows() == 0)
+            continue;
+
         int nLayers;
-        const int nDimensions = std::get<1>(fieldsToCheck[numToCheck])->nDimensions();
+        const int nDimensions = array->nDimensions();
         if (nDimensions == 3)
-            nLayers = std::get<1>(fieldsToCheck[numToCheck])->dimensions()[2];
+            nLayers = array->dimensions()[2];
         else if (nDimensions == 2)
             nLayers = 1;
         else

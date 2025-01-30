@@ -57,6 +57,8 @@ void PrognosticData::configure()
 
     // TODO: Make checking optional
     auto storeData = getStore().getAllData();
+    /* TODO: We should be able to not push_back empty ModelArrays. But they're all empty at this
+     * point it seems, so I added a check in ModelComponent::checkFields */
     for (auto& x : storeData)
         fieldsToCheck.push_back({ x.first, x.second, bounds.at(x.first) });
 }

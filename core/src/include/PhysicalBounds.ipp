@@ -57,7 +57,7 @@
 { "Q_IO", {-1e8, 1e8} }, // Ice to ocean heat flux W m⁻²
 { "Q_OW", {-1e4, 1e4} }, // Open water heat flux W m⁻²
 { "DQIA_DT", {-1e3, 1e3} }, // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
-{ "Q_PEN_SW", {-1e-6, 10} }, // Penetrating shortwave flux W m⁻²
+{ "Q_PEN_SW", {-1e-6, 100} }, // Penetrating shortwave flux W m⁻²
 { "HSNOW_MELT", {0, 0.1} }, // Thickness of snow that melted, m
 { "SUBLIM", {-1e-3, 1e-3} }, // Upward sublimation rate kg m⁻² s⁻¹
 { "DELTA_HICE", {-0.1, 0.1} }, // Change in sea ice thickness, m
