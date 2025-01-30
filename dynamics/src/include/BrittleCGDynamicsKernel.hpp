@@ -1,7 +1,7 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date 06 Dec 2024
+ * @date 30 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -114,8 +114,8 @@ public:
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
 
-        avgU.zero();
-        avgV.zero();
+        avgU.setZero();
+        avgV.setZero();
 
         for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
 
@@ -135,6 +135,11 @@ public:
 
             // Land mask
         }
+
+        // TODO: It's annoying to have to limit damage again. We need to find a better solution.
+        Nextsim::LimitMax(damage, 1.0);
+        Nextsim::LimitMin(damage, 1e-12);
+
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }
