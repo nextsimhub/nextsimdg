@@ -25,6 +25,9 @@ PrognosticData::PrognosticData()
     , pAtmBdy(0)
     , pOcnBdy(0)
     , pDynamics(0)
+    , bounds({
+#include "include/PhysicalBounds.ipp"
+      })
 
 {
     getStore().registerArray(Protected::H_ICE, &m_thick, RO);
@@ -52,13 +55,10 @@ void PrognosticData::configure()
 
     tryConfigure(iceGrowth);
 
-    // clang-format off
-    fieldsToCheck.push_back({ciceName,   &m_conc,   {  0, 1+1e4}});
-    fieldsToCheck.push_back({damageName, &m_damage, {  0, 1+1e-4}});
-    fieldsToCheck.push_back({hsnowName,  &m_snow,   {  0, 10}});
-    fieldsToCheck.push_back({hiceName,   &m_thick,  {  0, 50}});
-    fieldsToCheck.push_back({ticeName,   &m_tice,   {-80, 0}});
-    // clang-format on
+    // TODO: Make checking optional
+    auto storeData = getStore().getAllData();
+    for (auto& x : storeData)
+        fieldsToCheck.push_back({ x.first, x.second, bounds.at(x.first) });
 }
 
 // Copies an HField from a source ModelArray that is either an HField or a DGField.

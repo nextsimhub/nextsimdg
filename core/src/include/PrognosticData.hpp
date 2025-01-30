@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.hpp
  *
- * @date Mar 1, 2022
+ * @date 30 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -94,6 +94,9 @@ private:
     IceGrowth iceGrowth;
 
     void updatePrognosticFields();
+
+protected:
+    const std::map<std::string, std::pair<double, double>> bounds;
 };
 
 } /* namespace Nextsim */

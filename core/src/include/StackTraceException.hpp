@@ -1,6 +1,6 @@
 /*!
  * @file stackTraceException.cpp
- * @date 27 Jan 2025
+ * @date 30 Jan 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 

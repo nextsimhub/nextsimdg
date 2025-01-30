@@ -216,7 +216,8 @@ protected:
      * bounds.
      */
     void checkFields(const TimestepTime& tst);
-    std::vector<std::tuple<std::string, ModelArray*, std::pair<double, double>>> fieldsToCheck;
+    std::vector<std::tuple<std::string, const ModelArray*, std::pair<double, double>>>
+        fieldsToCheck;
 
     static ModelArray* p_oceanMaskH;
 
