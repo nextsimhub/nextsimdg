@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 30 Jan 2025
+ * @date 31 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -54,13 +54,6 @@ void PrognosticData::configure()
     tryConfigure(pDynamics);
 
     tryConfigure(iceGrowth);
-
-    // TODO: Make checking optional
-    auto storeData = getStore().getAllData();
-    /* TODO: We should be able to not push_back empty ModelArrays. But they're all empty at this
-     * point it seems, so I added a check in ModelComponent::checkFields */
-    for (auto& x : storeData)
-        fieldsToCheck.push_back({ x.first, x.second, bounds.at(x.first) });
 }
 
 // Copies an HField from a source ModelArray that is either an HField or a DGField.
@@ -98,6 +91,14 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pOcnBdy->setData(ms);
     pDynamics->setData(ms);
     iceGrowth.setData(ms);
+
+    // TODO: Make checking optional
+    auto storeData = getStore().getAllData();
+    for (auto& x : storeData) {
+        // Only check arrays that are in use (have been set/resized)
+        if (x.second->data().rows() != 0)
+            fieldsToCheck.push_back({ x.first, x.second, bounds.at(x.first) });
+    }
 }
 
 void PrognosticData::update(const TimestepTime& tst)

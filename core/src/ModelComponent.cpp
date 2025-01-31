@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 30 Jan 2025
+ * @date 31 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -132,15 +132,10 @@ void ModelComponent::checkFields(const TimestepTime& tst)
 
         const ModelArray* array = std::get<1>(fieldsToCheck[numToCheck]);
 
-        // TODO: It would be nice to do this check when fieldsToCheck is populated
-        if (array->data().rows() == 0)
-            continue;
-
         int nLayers;
-        const int nDimensions = array->nDimensions();
-        if (nDimensions == 3)
+        if (array->nDimensions() == 3)
             nLayers = array->dimensions()[2];
-        else if (nDimensions == 2)
+        else if (array->nDimensions() == 2)
             nLayers = 1;
         else
             throw std::logic_error(
