@@ -1,7 +1,7 @@
 /*!
  * @file ConfigurationHelp.hpp
  *
- * @date 20 Nov 2024
+ * @date 01 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -37,6 +37,14 @@ public:
         std::ostringstream output;
         output << std::setprecision(n) << input;
         return output.str();
+    }
+
+    static std::string toString(const bool input)
+    {
+        if (input)
+            return { "true" };
+        else
+            return { "false" };
     }
 };
 
