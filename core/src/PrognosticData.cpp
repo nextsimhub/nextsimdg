@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 31 Jan 2025
+ * @date 01 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -14,6 +14,20 @@
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
+
+const std::string PrognosticData::all = "ALL";
+
+static const std::string pfx = "debug";
+static const std::string fieldNamesKey = pfx + ".field_names";
+static const std::string checkFieldsKey = pfx + ".check_fields";
+
+static const std::map<int, std::string> keyMap = {
+    { PrognosticData::FIELDNAMES_KEY, fieldNamesKey },
+    { PrognosticData::CHECKFIELDS_KEY, checkFieldsKey },
+};
+
+static const std::string fieldNamesDefault = "H_ICE,C_ICE,H_SNOW,T_ICE";
+static const bool checkFieldsDefault = true;
 
 PrognosticData::PrognosticData()
     : m_dt(1)
@@ -92,12 +106,39 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pDynamics->setData(ms);
     iceGrowth.setData(ms);
 
-    // TODO: Make checking optional
-    auto storeData = getStore().getAllData();
-    for (auto& x : storeData) {
-        // Only check arrays that are in use (have been set/resized)
-        if (x.second->data().rows() != 0)
-            fieldsToCheck.push_back({ x.first, x.second, bounds.at(x.first) });
+    // Go through the user supplied list of fields and get ModelArray* for each
+    if ( getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault) )
+    {
+        std::unordered_map<std::string, const ModelArray*> storeData;
+        if (const std::string listOfFields = getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault);
+            listOfFields == all)
+        { // Check *all* the fields
+            storeData = getStore().getAllData();
+        }
+        else
+        { // Populate storeData with the fields listed
+            std::istringstream fieldStream;
+            fieldStream.str(listOfFields);
+            for (std::string fieldName; std::getline(fieldStream, fieldName, ',');)
+            {
+                if (const ModelArray* fieldPointer = getStore().getArrayRef(fieldName);
+                    fieldPointer == nullptr)
+                {
+                Logged::warning("PrognosticData: No field with the name \"" + fieldName + "\" was found.");
+                }
+                else
+                {
+                    storeData.emplace(fieldName, fieldPointer);
+                }
+            }
+        }
+
+        // Populate fieldsToCheck with user supplied fields
+        for (auto& x : storeData) {
+            // Only check arrays that are in use (have been set/resized)
+            if (x.second->data().rows() != 0)
+                fieldsToCheck.push_back({ x.first, x.second, bounds.at(x.first) });
+        }
     }
 }
 
@@ -190,13 +231,28 @@ ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
     return os ? state : ModelState();
 }
 
-PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }
+PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
+{
+
+    map["Debug"] = {
+        { fieldNamesKey, ConfigType::STRING, {}, fieldNamesDefault, "",
+            "Comma separated, space free list of fields to be checked if check_fields is true. "
+            "The special value \""
+                + all + "\" will output all available fields." },
+        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" }, ConfigurationHelp::toString(checkFieldsDefault), "",
+            "Switch to check if the fields listed in field_names are within a reasonable "
+            "physical range and not NaN." },
+    };
+    return map;
+}
+
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
 {
     Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
     Module::getHelpRecursive<IOceanBoundary>(map, getAll);
     Module::getHelpRecursive<IDynamics>(map, getAll);
     IceGrowth::getHelpRecursive(map, getAll);
+    getHelpText(map, getAll);
     return map;
 }
 

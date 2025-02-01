@@ -1,7 +1,7 @@
 /*!
  * @file MARStore.hpp
  *
- * @date 30 Aug 2023
+ * @date 01 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -70,6 +70,18 @@ public:
             dataMap.insert(entry);
         }
         return dataMap;
+    }
+
+    // For a given field name return the ModelArray pointer pointing to the data
+    const ModelArray* getArrayRef(const std::string& field)
+    {
+        if (const auto returnValue = storeRW.find(field); returnValue != storeRW.end())
+            return returnValue->second;
+
+        if (const auto returnValue = storeRO.find(field); returnValue != storeRO.end())
+            return returnValue->second;
+
+        return nullptr;
     }
 
 private:

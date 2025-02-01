@@ -29,9 +29,9 @@
 { "E-P", {-1, 1} }, // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
 { "CPML", {0,  1e11} }, // Mixed layer bulk heat capacity J K⁻¹ m⁻²
 { "TF", {-5, 0} }, // Ocean freezing temperature, ˚C
-{ "WIND_SPEED", {0, 150} }, // Wind speed, m s⁻¹
-{ "WIND_U", {-150, 150} }, // wind velocity x component, m s⁻¹
-{ "WIND_V", {-150, 150} }, // wind velocity y component, m s⁻¹
+{ "WIND_SPEED", {0, 200} }, // Wind speed, m s⁻¹
+{ "WIND_U", {-200, 200} }, // wind velocity x component, m s⁻¹
+{ "WIND_V", {-200, 200} }, // wind velocity y component, m s⁻¹
 { "HTRUE_ICE", {0, 50} }, // Ice thickness, ice average, m
 { "HTRUE_SNOW", {0, 10} }, // Snow thickness, ice average, m
 { "OCEAN_U", {-1, 1} }, // x(east)-ward ocean current, m s⁻¹

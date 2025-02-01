@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.hpp
  *
- * @date 30 Jan 2025
+ * @date 01 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -74,6 +74,11 @@ public:
      */
     void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
 
+    enum {
+        FIELDNAMES_KEY,
+        CHECKFIELDS_KEY,
+    };
+
 private:
     HField m_thick;
     HField m_conc;
@@ -94,6 +99,8 @@ private:
     IceGrowth iceGrowth;
 
     void updatePrognosticFields();
+
+    static const std::string all;
 
 protected:
     const std::map<std::string, std::pair<double, double>> bounds;
