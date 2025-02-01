@@ -41,6 +41,7 @@ PrognosticData::PrognosticData()
     , pDynamics(0)
     , bounds({
 #include "include/PhysicalBounds.ipp"
+
       })
 
 {
@@ -107,27 +108,21 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     iceGrowth.setData(ms);
 
     // Go through the user supplied list of fields and get ModelArray* for each
-    if ( getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault) )
-    {
+    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
         std::unordered_map<std::string, const ModelArray*> storeData;
-        if (const std::string listOfFields = getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault);
-            listOfFields == all)
-        { // Check *all* the fields
+        if (const std::string listOfFields
+            = getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault);
+            listOfFields == all) { // Check *all* the fields
             storeData = getStore().getAllData();
-        }
-        else
-        { // Populate storeData with the fields listed
+        } else { // Populate storeData with the fields listed
             std::istringstream fieldStream;
             fieldStream.str(listOfFields);
-            for (std::string fieldName; std::getline(fieldStream, fieldName, ',');)
-            {
+            for (std::string fieldName; std::getline(fieldStream, fieldName, ',');) {
                 if (const ModelArray* fieldPointer = getStore().getArrayRef(fieldName);
-                    fieldPointer == nullptr)
-                {
-                Logged::warning("PrognosticData: No field with the name \"" + fieldName + "\" was found.");
-                }
-                else
-                {
+                    fieldPointer == nullptr) {
+                    Logged::warning(
+                        "PrognosticData: No field with the name \"" + fieldName + "\" was found.");
+                } else {
                     storeData.emplace(fieldName, fieldPointer);
                 }
             }
@@ -239,7 +234,8 @@ PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
             "Comma separated, space free list of fields to be checked if check_fields is true. "
             "The special value \""
                 + all + "\" will output all available fields." },
-        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" }, ConfigurationHelp::toString(checkFieldsDefault), "",
+        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsDefault), "",
             "Switch to check if the fields listed in field_names are within a reasonable "
             "physical range and not NaN." },
     };
