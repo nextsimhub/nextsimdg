@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 31 Jan 2025
+ * @date 02 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -155,10 +155,10 @@ void ModelComponent::checkFieldsElement(size_t i, const TimestepTime& tst)
     const double& value = std::get<1>(x)->zIndexAndLayer(i, layerToCheck);
     const auto& bounds = std::get<2>(x);
     if (value < bounds.first || value > bounds.second || std::isnan(value))
-        throw_with_trace(std::runtime_error(std::get<0>(x)
-            + " is out of bounds: " + std::to_string(value) + " is not within ["
-            + std::to_string(bounds.first) + "," + std::to_string(bounds.second) + "].\n"
-            + "Error at time step " + tst.start.format() + " and index " + std::to_string(i)));
+        throw std::runtime_error(std::get<0>(x) + " is out of bounds: " + std::to_string(value)
+            + " is not within [" + std::to_string(bounds.first) + ","
+            + std::to_string(bounds.second) + "].\n" + "Error at time step " + tst.start.format()
+            + " and index " + std::to_string(i));
 }
 
 } /* namespace Nextsim */

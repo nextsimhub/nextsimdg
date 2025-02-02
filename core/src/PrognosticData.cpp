@@ -17,9 +17,9 @@ namespace Nextsim {
 
 const std::string PrognosticData::all = "ALL";
 
-static const std::string pfx = "debug";
-static const std::string fieldNamesKey = pfx + ".field_names";
-static const std::string checkFieldsKey = pfx + ".check_fields";
+static const std::string pfx = "PrognosticData";
+static const std::string fieldNamesKey = "debug.field_names";
+static const std::string checkFieldsKey = "debug.check_fields";
 
 static const std::map<int, std::string> keyMap = {
     { PrognosticData::FIELDNAMES_KEY, fieldNamesKey },
@@ -133,8 +133,7 @@ void PrognosticData::setFieldsToCheck()
             if (const ModelArray* fieldPointer
                 = getStore().getArrayRef(externalNames.at(fieldName));
                 fieldPointer == nullptr) {
-                Logged::warning(
-                    "PrognosticData: No field with the name \"" + fieldName + "\" was found.");
+                Logged::warning(pfx + ": No field with the name \"" + fieldName + "\" was found.");
             } else {
                 storeData.emplace(externalNames.at(fieldName), fieldPointer);
             }
@@ -152,7 +151,8 @@ void PrognosticData::setFieldsToCheck()
     for (const auto& x : storeData) {
         // Only check arrays that are in use (have been set/resized)
         if (x.second->data().rows() != 0) {
-            fieldsToCheck.push_back({ reverseNames.at(x.first), x.second, bounds.at(x.first) });
+            fieldsToCheck.push_back(
+                { pfx + ": " + reverseNames.at(x.first), x.second, bounds.at(x.first) });
         }
     }
 }

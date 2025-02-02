@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 30 Jan 2025
+ * @date 02 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -16,7 +16,6 @@
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
-#include "include/StackTraceException.hpp"
 #include "include/TextTag.hpp"
 #include "include/Time.hpp"
 #include <functional>

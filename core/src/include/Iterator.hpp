@@ -1,6 +1,6 @@
 /*!
  * @file Iterator.hpp
- * @date 30 Jan 2025
+ * @date 02 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -8,7 +8,6 @@
 #define SRC_INCLUDE_ITERATOR_HPP
 
 #include "Time.hpp"
-#include "include/StackTraceException.hpp"
 
 namespace Nextsim {
 

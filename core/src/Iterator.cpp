@@ -1,6 +1,6 @@
 /*!
  * @file Iterator.cpp
- * @date 27 Jan 2025
+ * @date 02 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -49,16 +49,6 @@ int Iterator::run()
             iterant.iterate(tsTime);
         } catch (const std::exception& e) {
             std::cerr << e.what() << '\n';
-#ifdef STACKTRACEEXCEPTION_ACTIVE
-            const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
-            if (st) {
-                std::cerr << *st << '\n';
-            }
-#else
-            std::cerr << "No stack trace available. Check your boost installation and the "
-                         "boost/stacktrace documentation."
-                      << std::endl;
-#endif
             return_code = 1;
             break;
         }
