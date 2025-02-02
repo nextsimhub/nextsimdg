@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.hpp
  *
- * @date 01 Feb 2025
+ * @date 02 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -104,6 +104,7 @@ private:
 
 protected:
     const std::map<std::string, std::pair<double, double>> bounds;
+    const std::map<std::string, std::string> externalNames;
 };
 
 } /* namespace Nextsim */
