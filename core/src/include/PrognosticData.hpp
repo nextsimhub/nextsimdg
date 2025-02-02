@@ -102,6 +102,8 @@ private:
 
     static const std::string all;
 
+    void setFieldsToCheck();
+
 protected:
     const std::map<std::string, std::pair<double, double>> bounds;
     const std::map<std::string, std::string> externalNames;

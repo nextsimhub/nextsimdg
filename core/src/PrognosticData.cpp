@@ -112,43 +112,47 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     iceGrowth.setData(ms);
 
     // Go through the user supplied list of fields and get ModelArray* for each
-    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
+    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault))
+        setFieldsToCheck();
+}
 
-        // Populate a map of field name and pointers. Either through getStore.getAllData() or from a
-        // user-supplied list
-        std::unordered_map<std::string, const ModelArray*> storeData;
-        if (const std::string listOfFields
-            = getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault);
-            listOfFields == all) { // Check *all* the fields
-            storeData = getStore().getAllData();
-        } else { // Populate storeData with the fields listed
-            std::istringstream fieldStream;
-            fieldStream.str(listOfFields);
-            for (std::string fieldName; std::getline(fieldStream, fieldName, ',');) {
-                if (const ModelArray* fieldPointer
-                    = getStore().getArrayRef(externalNames.at(fieldName));
-                    fieldPointer == nullptr) {
-                    Logged::warning(
-                        "PrognosticData: No field with the name \"" + fieldName + "\" was found.");
-                } else {
-                    storeData.emplace(externalNames.at(fieldName), fieldPointer);
-                }
+void PrognosticData::setFieldsToCheck()
+{
+
+    // Populate a map of field name and pointers. Either through getStore.getAllData() or from a
+    // user-supplied list
+    std::unordered_map<std::string, const ModelArray*> storeData;
+    if (const std::string listOfFields
+        = getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault);
+        listOfFields == all) { // Check *all* the fields
+        storeData = getStore().getAllData();
+    } else { // Populate storeData with the fields listed
+        std::istringstream fieldStream;
+        fieldStream.str(listOfFields);
+        for (std::string fieldName; std::getline(fieldStream, fieldName, ',');) {
+            if (const ModelArray* fieldPointer
+                = getStore().getArrayRef(externalNames.at(fieldName));
+                fieldPointer == nullptr) {
+                Logged::warning(
+                    "PrognosticData: No field with the name \"" + fieldName + "\" was found.");
+            } else {
+                storeData.emplace(externalNames.at(fieldName), fieldPointer);
             }
         }
+    }
 
-        // Create a reverse look up for externalNames so the user can see the "user-friendly name"
-        // in case of a crash
-        std::map<std::string, std::string> reverseNames;
-        for (const auto& ext : externalNames) {
-            reverseNames[ext.second] = ext.first;
-        }
+    // Create a reverse look up for externalNames so the user can see the "user-friendly name"
+    // in case of a crash
+    std::map<std::string, std::string> reverseNames;
+    for (const auto& ext : externalNames) {
+        reverseNames[ext.second] = ext.first;
+    }
 
-        // Populate fieldsToCheck with user supplied fields
-        for (const auto& x : storeData) {
-            // Only check arrays that are in use (have been set/resized)
-            if (x.second->data().rows() != 0) {
-                fieldsToCheck.push_back({ reverseNames.at(x.first), x.second, bounds.at(x.first) });
-            }
+    // Populate fieldsToCheck with user supplied fields
+    for (const auto& x : storeData) {
+        // Only check arrays that are in use (have been set/resized)
+        if (x.second->data().rows() != 0) {
+            fieldsToCheck.push_back({ reverseNames.at(x.first), x.second, bounds.at(x.first) });
         }
     }
 }
