@@ -111,8 +111,9 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pDynamics->setData(ms);
     iceGrowth.setData(ms);
 
-    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault))
+    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
         setFieldsToCheck();
+    }
 }
 
 // Go through the user supplied list of fields and get ModelArray* for each
