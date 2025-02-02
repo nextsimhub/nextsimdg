@@ -111,14 +111,13 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pDynamics->setData(ms);
     iceGrowth.setData(ms);
 
-    // Go through the user supplied list of fields and get ModelArray* for each
     if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault))
         setFieldsToCheck();
 }
 
+// Go through the user supplied list of fields and get ModelArray* for each
 void PrognosticData::setFieldsToCheck()
 {
-
     // Populate a map of field name and pointers. Either through getStore.getAllData() or from a
     // user-supplied list
     std::unordered_map<std::string, const ModelArray*> storeData;
