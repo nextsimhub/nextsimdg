@@ -13,11 +13,6 @@ fi
 # Arctic simulation, but with erroneous forcing data. Tests if the return code
 # is non-zero.
 
-restart_file=init_25km_NH.nc
-era5_file=25km_NH.ERA5_2010-01-01T000000_test_data.nc
-topaz_file=25km_NH.TOPAZ4_2010-01-01T000000_test_data.nc
-out_file=out.integration_test.nc
-
 $PYTHON make_init25kmNH_test_data.py
 $PYTHON era5_topaz4_test_data.py --errors
 echo run_integration_test.sh
