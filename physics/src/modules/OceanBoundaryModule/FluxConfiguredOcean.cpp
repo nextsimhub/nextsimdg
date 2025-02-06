@@ -1,7 +1,7 @@
 /*!
  * @file FluxConfiguredOcean.cpp
  *
- * @date 20 Nov 2024
+ * @date 06 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -78,6 +78,10 @@ void FluxConfiguredOcean::setData(const ModelState::DataMap& ms)
     v = v0;
     tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
     cpml = Water::rho * Water::cp * mld[0];
+
+    /* It's only the SSH gradient which has an effect, so being able to set a constant SSH is
+     * useless. */
+    ssh = 0.;
 }
 
 } /* namespace Nextsim */

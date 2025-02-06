@@ -1,7 +1,7 @@
 /*!
  * @file    XiosAxis_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 Nov 2024
+ * @date    03 Dec 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -33,9 +33,6 @@ MPI_TEST_CASE("TestXiosAxis", 2)
     Xios xios_handler;
     REQUIRE(xios_handler.isInitialized());
     REQUIRE(xios_handler.getClientMPISize() == 2);
-
-    // Set timestep as a minimum
-    xios_handler.setCalendarTimestep(Duration("P0-0T01:00:00"));
 
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };

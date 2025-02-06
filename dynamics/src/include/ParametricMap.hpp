@@ -59,13 +59,15 @@ public:
  *
  * The coordiante system is encoded into the matrices
  */
-template <int CG> class ParametricMomentumMap {
+template <int CG, int DG> class ParametricMomentumMap {
     //! Reference to the map. Given with constructor
     const ParametricMesh& smesh;
 
 public:
     //! Vector to store the lumpes mass matrix. Is directly initialized when the mesh is known
     CGVector<CG> lumpedcgmass;
+    //! Vector to store the lumpes mass matrix in CG1. Neede to compute SeasurfaceGradient
+    CGVector<1> lumpedcg1mass;
 
     /*!
      * These matrices realize the integration of (-div S, phi) = (S, nabla phi)
@@ -77,6 +79,17 @@ public:
     std::vector<DivMatrix, Eigen::aligned_allocator<DivMatrix>> divS1, divS2, divM;
 
     /*!
+     * These matrices are used to compute the gradient of the sea surface height via
+     * ( gH, Phi) = ( d_[X/Y] SSH, Phi)
+     * where SSH is CG1-representation of seaSurfaceHeight
+     *
+     * Very similar to divS1 and divS2 but working in CG(1) vectors
+     */
+    std::vector<Eigen::Matrix<Nextsim::FloatType, 4, 4>,
+        Eigen::aligned_allocator<Eigen::Matrix<Nextsim::FloatType, 4, 4>>>
+        dX_SSH, dY_SSH;
+
+    /*!
      * These matrices realize the integration of (E, \grad phi) scaled with the
      * inverse mass matrix;
      */
@@ -84,19 +97,31 @@ public:
     std::vector<GradMatrix, Eigen::aligned_allocator<GradMatrix>> iMgradX, iMgradY, iMM;
 
     /*!
-     * These matrices are M^-1 J w PSI_i(q)
-     * Multiplied
+     * These matrices are M^-1 J w PSI_i(q),
+     * inverse of mass matrix (in DGstress-degree) multiplied with map J, weights w and DG Test
+     * functions, all in the GAUSS points, i.e. iMJwPSI \in R^(DGstress x Ngauss)
      */
     using GaussMapMatrix
         = Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), GAUSSPOINTS(CG2DGSTRESS(CG))>;
     std::vector<GaussMapMatrix, Eigen::aligned_allocator<GaussMapMatrix>> iMJwPSI;
 
-    // this is not the proper way to select the advection comps
-    // should be a template parameter as well and perhaps a different class
+    /*!
+     * These matrices are M^-1 J w PSI_i(q),
+     * but, instead of DG-stress based on the DGAdvection (used for damage)
+     */
     static constexpr int DGAdvect = CG == 1 ? 3 : 6;
     using GaussMapAdvectMatrix
-        = Eigen::Matrix<Nextsim::FloatType, DGAdvect, GAUSSPOINTS(CG2DGSTRESS(CG))>;
-    std::vector<GaussMapAdvectMatrix, Eigen::aligned_allocator<GaussMapAdvectMatrix>> iMJwPSIAdvect;
+        = Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>;
+    std::vector<GaussMapAdvectMatrix, Eigen::aligned_allocator<GaussMapAdvectMatrix>> iMJwPSI_dam;
+
+    /*!
+     * These matrices are M^-1 J w PSI_i(q),
+     * but, instead of DG-stress based on the DGAdvection (used for damage)
+     */
+    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>,
+        Eigen::aligned_allocator<
+            Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>>>
+        iMJwPSI_dam;
 
     ParametricMomentumMap(const ParametricMesh& sm)
         : smesh(sm)

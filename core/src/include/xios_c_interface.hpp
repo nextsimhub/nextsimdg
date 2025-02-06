@@ -2,7 +2,7 @@
  * @file    xios_c_interface.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    12 August 2024
+ * @date    09 Dec 2024
  * @brief   C interface for XIOS library
  * @details
  * This interface is based on an earlier version provided by Laurent as part of
@@ -59,6 +59,8 @@ void cxios_get_calendar_wrapper_date_time_origin(
 void cxios_get_calendar_wrapper_type(
     xios::CCalendarWrapper* calendarWrapper_hdl, const char* type, int type_size);
 void cxios_get_current_date(cxios_date* date);
+bool cxios_is_defined_calendar_wrapper_time_origin(xios::CCalendarWrapper* calendar_wrapper_hdl);
+bool cxios_is_defined_calendar_wrapper_start_date(xios::CCalendarWrapper* calendar_wrapper_hdl);
 void cxios_update_calendar(int step);
 
 // timestep methods
@@ -66,6 +68,7 @@ void cxios_set_calendar_wrapper_timestep(
     xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration timestep_c);
 void cxios_get_calendar_wrapper_timestep(
     xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration* timestep_c);
+bool cxios_is_defined_calendar_wrapper_timestep(xios::CCalendarWrapper* calendar_wrapper_hdl);
 void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
 
 // axis group methods

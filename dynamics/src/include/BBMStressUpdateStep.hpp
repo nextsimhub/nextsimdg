@@ -33,6 +33,8 @@ public:
         const DGVector<DGadvection>& h, const DGVector<DGadvection>& a,
         const double deltaT) override
     {
+        assert(pmap);
+
         // Number of Gauss points
         static constexpr size_t NGP
             = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));

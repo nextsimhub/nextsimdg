@@ -1,0 +1,41 @@
+name: Check formatting
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '.github/workflows/linting.yml'
+      - '**.cpp'
+      - '**.hpp'
+      - '**CMakeLists.txt'
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: clang-format
+      run: |
+        sudo apt update
+        sudo apt install clang-format
+        for component in core dynamics physics
+        do
+          cd $component/src
+          clang-format --dry-run -Werror *cpp include/*hpp
+          cd -
+        done
+
+  cmake-lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: cmake-format
+      run: |
+        pip install cmakelang
+        cmake-lint $(find . -name CMakeLists.txt) -c .cmake-lint-config.py
+        # NOTE: We ignore C0103, which would enforce that variables are all-caps
+        # NOTE: We ignore C0113, which would enforce that comments are used
+        # NOTE: We set the tab size to 4
+        # NOTE: We set the maximum line length to 100

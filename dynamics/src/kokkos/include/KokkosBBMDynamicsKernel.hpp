@@ -24,6 +24,10 @@ public:
     using PSIAdvectView = typename KokkosCGDynamicsKernel<DGadvection>::PSIAdvectView;
     using PSIStressView = typename KokkosCGDynamicsKernel<DGadvection>::PSIStressView;
 
+    using GaussMapDevice = typename Base::GaussMapDevice;
+    using GaussMapAdvectDevice = KokkosDeviceMapView<
+        typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapAdvectMatrix>;
+
     KokkosBBMDynamicsKernel(const BBMParameters& paramsIn);
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
@@ -34,10 +38,8 @@ public:
         const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
         const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
         const ConstDeviceViewAdvect& ciceDevice, const DeviceViewAdvect& damageDevice,
-        const ConstDeviceBitset& landMaskDevice,
-        const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
-        const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix>&
-            iMJwPSIAdvectDevice,
+        const ConstDeviceBitset& landMaskDevice, const GaussMapDevice& iMJwPSIDevice,
+        const GaussMapAdvectDevice& iMJwPSIAdvectDevice,
         const KokkosDeviceMapView<FloatType>& cellSizeDevice, const FloatType deltaT,
         const BBMParameters& params);
 
@@ -50,7 +52,7 @@ protected:
         const FloatType deltaT) override;
 
 private:
-    KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapAdvectMatrix> iMJwPSIAdvectDevice;
+    GaussMapAdvectDevice iMJwPSIAdvectDevice;
     // ParametricMesh::h()
     KokkosDeviceMapView<FloatType> cellSizeDevice;
 };

@@ -44,14 +44,18 @@ public:
     using PSIStressView = ConstKokkosDeviceView<PSIStressType>;
 
     // precomputed maps
-    using DivMapDevice = KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::DivMatrix>;
-    using GradMapDevice = KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GradMatrix>;
+    using DivMapDevice
+        = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::DivMatrix>;
+    using GradMapDevice
+        = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::GradMatrix>;
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
     void advectAndLimit(const FloatType dt,
         const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
         const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
+
+    double getIceOceanStressElement(const std::string& name, const int i) const override;
 
     static void prepareIterationDevice(const DeviceViewCG& cgHDevice, const DeviceViewCG& cgADevice,
         const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
@@ -143,7 +147,9 @@ protected:
     // parametric map precomputed transforms
     // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
     ConstDeviceViewCG lumpedCGMassDevice;
-    KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix> iMJwPSIDevice;
+    using GaussMapDevice = KokkosDeviceMapView<
+        typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapMatrix>;
+    GaussMapDevice iMJwPSIDevice;
 
     // held as a pointer because these objects are initialized by their constructors
     std::unique_ptr<KokkosMesh> meshData;

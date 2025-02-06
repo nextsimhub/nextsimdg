@@ -1,23 +1,20 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 20 Nov 2024
+ * @date 05 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/MEVPDynamics.hpp"
-
+#include "include/constants.hpp"
 #include "include/gridNames.hpp"
 
 #include <string>
 #include <vector>
 
 namespace Nextsim {
-
-// Degrees to radians as a hex float
-static const double radians = 0x1.1df46a2529d39p-6;
 
 // TODO: We should use getName() here, but it isn't static.
 static const std::string prefix = "MEVPDynamics"; // MEVPDynamics::getName();
@@ -70,7 +67,7 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 
     ModelArray coords = ms.at(coordsName);
     if (isSpherical) {
-        coords *= radians;
+        coords *= PhysicalConstants::deg2rad;
     }
     // TODO: Some encoding of the periodic edge boundary conditions
     kernel.initialise(coords, isSpherical, ms.at(maskName));
@@ -97,6 +94,7 @@ void MEVPDynamics::update(const TimestepTime& tst)
     kernel.setData(vWindName, vwind.data());
     kernel.setData(uOceanName, uocean.data());
     kernel.setData(vOceanName, vocean.data());
+    kernel.setData(sshName, ssh.data());
 
     // kernel.setData(uName, uice);
     // kernel.setData(vName, vice);
@@ -108,6 +106,9 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
+
+    taux = kernel.getDG0Data(uIOStressName);
+    tauy = kernel.getDG0Data(vIOStressName);
 }
 
 ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const

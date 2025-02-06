@@ -5,8 +5,6 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/PrognosticData.hpp"
-
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 

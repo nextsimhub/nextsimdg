@@ -96,6 +96,16 @@ void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt,
 
 /*************************************************************/
 template <int DGadvection>
+double KokkosCGDynamicsKernel<DGadvection>::getIceOceanStressElement(
+    const std::string& name, const int i) const
+{
+    std::cerr << "ice ocean stress not implemented for kokkos" << std::endl;
+    std::abort();
+    return 0.0;
+}
+
+/*************************************************************/
+template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::prepareIterationDevice(const DeviceViewCG& cgHDevice,
     const DeviceViewCG& cgADevice, const ConstDeviceViewAdvect& hiceDevice,
     const ConstDeviceViewAdvect& ciceDevice,
@@ -391,8 +401,8 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
 
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceViewCG& uDevice,
-    const DeviceViewCG& vDevice, const KokkosMesh::DirichletData& dirichletDevice,
-    DeviceIndex nx, DeviceIndex ny)
+    const DeviceViewCG& vDevice, const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx,
+    DeviceIndex ny)
 {
     dirichletZero(uDevice, nx, ny, dirichletDevice);
     dirichletZero(vDevice, nx, ny, dirichletDevice);

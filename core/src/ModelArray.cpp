@@ -7,6 +7,8 @@
 
 #include "include/ModelArray.hpp"
 
+#include "include/ModelArraySlice.hpp"
+
 #include <algorithm>
 #include <cstdarg>
 #include <iterator>
@@ -46,6 +48,11 @@ ModelArray& ModelArray::operator=(const double& fill)
     setData(fill);
 
     return *this;
+}
+
+ModelArray& ModelArray::operator=(const ModelArraySlice& mas)
+{
+    return mas.copyToModelArray(*this);
 }
 
 ModelArray ModelArray::operator+(const ModelArray& addend) const
@@ -217,7 +224,7 @@ void ModelArray::setDimension(Dimension dim, size_t globalLength)
 
 const double& ModelArray::operator[](const MultiDim& loc) const
 {
-    return (*this)[indexr(this->dimensions().data(), loc)];
+    return (*this)[indexr(this->dimensions(), loc)];
 }
 
 double& ModelArray::operator[](const MultiDim& dims)
@@ -225,14 +232,16 @@ double& ModelArray::operator[](const MultiDim& dims)
     return const_cast<double&>(std::as_const(*this)[dims]);
 }
 
+ModelArraySlice ModelArray::operator[](const Slice& slice) { return ModelArraySlice(*this, slice); }
+
 ModelArray::Component ModelArray::components(const MultiDim& loc)
 {
-    return components(indexr(dimensions().data(), loc));
+    return components(indexr(dimensions(), loc));
 }
 
 const ModelArray::ConstComponent ModelArray::components(const MultiDim& loc) const
 {
-    return components(indexr(dimensions().data(), loc));
+    return components(indexr(dimensions(), loc));
 }
 
 /*!
@@ -243,7 +252,7 @@ const ModelArray::ConstComponent ModelArray::components(const MultiDim& loc) con
  */
 size_t ModelArray::indexFromLocation(Type type, const MultiDim& loc)
 {
-    return indexr(m_dims.at(type).data(), loc);
+    return indexr(m_dims.at(type), loc);
 }
 
 /*!

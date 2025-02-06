@@ -40,6 +40,8 @@ public:
     using PSIAdvectView = typename Base::PSIAdvectView;
     using PSIStressView = typename Base::PSIStressView;
 
+    using GaussMapDevice = typename Base::GaussMapDevice;
+
     KokkosMEVPDynamicsKernel(const VPParameters& paramsIn)
         : KokkosCGDynamicsKernel<DGadvection>()
         , params(paramsIn)
@@ -62,8 +64,7 @@ public:
         const ConstDeviceViewStress& e22Device, const PSIAdvectView& PSIAdvectDevice,
         const PSIStressView& PSIStressDevice, const ConstDeviceViewAdvect& hiceDevice,
         const ConstDeviceViewAdvect& ciceDevice, const ConstDeviceBitset& landMaskDevice,
-        const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
-        const VPParameters& params, FloatType alpha);
+        const GaussMapDevice& iMJwPSIDevice, const VPParameters& params, FloatType alpha);
     static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const ConstDeviceViewCG& u0Device, const ConstDeviceViewCG& v0Device,
         const ConstDeviceViewCG& cgHDevice, const ConstDeviceViewCG& cgADevice,

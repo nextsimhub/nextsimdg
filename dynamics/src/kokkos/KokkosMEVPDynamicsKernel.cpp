@@ -146,8 +146,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
     const PSIAdvectView& PSIAdvectDevice, const PSIStressView& PSIStressDevice,
     const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
     const ConstDeviceBitset& landMaskDevice,
-    const KokkosDeviceMapView<ParametricMomentumMap<CGdegree>::GaussMapMatrix>& iMJwPSIDevice,
-    const VPParameters& params, FloatType alpha)
+    const GaussMapDevice& iMJwPSIDevice, const VPParameters& params,
+    FloatType alpha)
 {
     const DeviceIndex n = s11Device.extent(0);
     Kokkos::parallel_for(
@@ -196,8 +196,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                         * (PDelta.array()
                                 * ((5.0 / 8.0) * e11Gauss.array() + (3.0 / 8.0) * e22Gauss.array())
                             - 0.5 * P.array())
-                              .matrix()
-                              .transpose()))
+                            .matrix()
+                            .transpose()))
                       .transpose();
             s22.row(i) = fac * s22.row(i)
                 + (map
@@ -205,8 +205,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                         * (PDelta.array()
                                 * ((5.0 / 8.0) * e22Gauss.array() + (3.0 / 8.0) * e11Gauss.array())
                             - 0.5 * P.array())
-                              .matrix()
-                              .transpose()))
+                            .matrix()
+                            .transpose()))
                       .transpose();
             s12.row(i) = fac * s12.row(i)
                 + (map

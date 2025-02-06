@@ -19,13 +19,10 @@ class DGModelArray {
 public:
     template <int N> static DGVector<N>& ma2dg(const ModelArray& ma, DGVector<N>& dg)
     {
-        dg.zero();
         if (N == ma.components(0).size()) {
-            //            assert(N == ma.components(0).size());
             dg = ma.data().matrix();
         } else {
             // Assign only to the 0 component.
-            // dg(Eigen::all, 0) = ma.data().matrix();
             dg.col(0) = ma.data().matrix();
         }
         return dg;
@@ -40,8 +37,6 @@ public:
              * takes a pointer to continuous data, the data needs to be copied
              * from the DGVector initially.
              */
-            // Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor> dg0Data = dg(Eigen::all,
-            // 0); ma.setData(dg0Data.data());
             ma.setData(dg.col(0));
         }
         return ma;
