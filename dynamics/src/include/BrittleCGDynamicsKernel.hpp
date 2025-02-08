@@ -1,7 +1,7 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date 30 Jan 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -114,8 +114,8 @@ public:
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
 
-        avgU.setZero();
-        avgV.setZero();
+        avgU.zero();
+        avgV.zero();
 
         for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
 
