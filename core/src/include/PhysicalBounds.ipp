@@ -1,7 +1,7 @@
 /*!
- * @file PrognosticData.cpp
+ * @file PhysicalBounds.ipp
  *
- * @date 30 Jan 2025
+ * @date 8 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
