@@ -1,7 +1,7 @@
 /*!
  * @file ConfigurationHelp.hpp
  *
- * @date 01 Feb 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -35,16 +35,8 @@ public:
     template <typename T> static std::string toString(const T input, const int n = 6)
     {
         std::ostringstream output;
-        output << std::setprecision(n) << input;
+        output << std::boolalpha << std::setprecision(n) << input;
         return output.str();
-    }
-
-    static std::string toString(const bool input)
-    {
-        if (input)
-            return { "true" };
-        else
-            return { "false" };
     }
 };
 
