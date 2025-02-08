@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 02 Feb 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -12,6 +12,8 @@
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
+
+#include <include/PhysicalBounds.hpp>
 
 namespace Nextsim {
 
@@ -60,13 +62,14 @@ void TOPAZOcean::configure()
     doChecks = Configured::getConfiguration(keyMap.at(CHECKS_KEY), false);
 
     if (doChecks) {
+        const PhysicalBounds bounds;
         // clang-format off
-        fieldsToCheck.push_back({pfx+": sstExt", &sstExt, {  -5, 50}});
-        fieldsToCheck.push_back({pfx+": sssExt", &sssExt, {   0, 50}});
-        fieldsToCheck.push_back({pfx+": mld",    &mld,    {1e-3, 11e3}});
-        fieldsToCheck.push_back({pfx+": u",      &u,      {  -5, 5}});
-        fieldsToCheck.push_back({pfx+": v",      &v,      {  -5, 5}});
-        fieldsToCheck.push_back({pfx+": ssh",    &ssh,    {  -5, 5}});
+        fieldsToCheck.push_back({pfx+": sstExt", &sstExt, bounds.getBounds(Protected::EXT_SST)});
+        fieldsToCheck.push_back({pfx+": sssExt", &sssExt, bounds.getBounds(Protected::EXT_SSS)});
+        fieldsToCheck.push_back({pfx+": mld",    &mld,    bounds.getBounds(Protected::MLD)});
+        fieldsToCheck.push_back({pfx+": u",      &u,      bounds.getBounds(Protected::OCEAN_U)});
+        fieldsToCheck.push_back({pfx+": v",      &v,      bounds.getBounds(Protected::OCEAN_V)});
+        fieldsToCheck.push_back({pfx+": ssh",    &ssh,    bounds.getBounds(Protected::SSH)});
         // clang-format on
     }
 

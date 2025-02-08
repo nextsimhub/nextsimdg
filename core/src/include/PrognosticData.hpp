@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.hpp
  *
- * @date 02 Feb 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,6 +9,7 @@
 #define PROGNOSTICDATA_HPP
 
 #include "ModelComponent.hpp"
+#include "PhysicalBounds.hpp"
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IDynamics.hpp"
@@ -105,7 +106,6 @@ private:
     void setFieldsToCheck();
 
 protected:
-    const std::map<std::string, std::pair<double, double>> bounds;
     const std::map<std::string, std::string> externalNames;
 };
 

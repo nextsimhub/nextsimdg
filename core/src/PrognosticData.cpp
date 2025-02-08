@@ -39,9 +39,6 @@ PrognosticData::PrognosticData()
     , pAtmBdy(0)
     , pOcnBdy(0)
     , pDynamics(0)
-    , bounds({
-#include "include/PhysicalBounds.ipp"
-      })
     , externalNames({
 #include "include/ProtectedArrayNames.ipp"
 
@@ -150,8 +147,9 @@ void PrognosticData::setFieldsToCheck()
     for (const auto& x : storeData) {
         // Only check arrays that are in use (have been set/resized)
         if (x.second->data().rows() != 0) {
+            PhysicalBounds bounds;
             fieldsToCheck.push_back(
-                { pfx + ": " + reverseNames.at(x.first), x.second, bounds.at(x.first) });
+                { pfx + ": " + reverseNames.at(x.first), x.second, bounds.getBounds(x.first) });
         }
     }
 }

@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 02 Feb 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,6 +10,8 @@
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
+
+#include <include/PhysicalBounds.hpp>
 
 namespace Nextsim {
 
@@ -57,15 +59,16 @@ void ERA5Atmosphere::configure()
     doChecks = Configured::getConfiguration(keyMap.at(CHECKS_KEY), false);
 
     if (doChecks) {
+        const PhysicalBounds bounds;
         // clang-format off
-        fieldsToCheck.push_back({pfx+": tair",  &tair,  {  -100, 80}});
-        fieldsToCheck.push_back({pfx+": tdew",  &tdew,  {  -100, 80}});
-        fieldsToCheck.push_back({pfx+": pair",  &pair,  { 700e2, 1100e2}});
-        fieldsToCheck.push_back({pfx+": sw_in", &sw_in, {    -1, 2e3}});
-        fieldsToCheck.push_back({pfx+": lw_in", &lw_in, {     0, 1e3}});
-        fieldsToCheck.push_back({pfx+": wind",  &wind,  {  -0.1, 150}});
-        fieldsToCheck.push_back({pfx+": uwind", &uwind, {  -150, 150}});
-        fieldsToCheck.push_back({pfx+": vwind", &vwind, {  -150, 150}});
+        fieldsToCheck.push_back({pfx+": tair",  &tair,  bounds.getBounds(Protected::T_AIR)});
+        fieldsToCheck.push_back({pfx+": tdew",  &tdew,  bounds.getBounds(Protected::DEW_2M)});
+        fieldsToCheck.push_back({pfx+": pair",  &pair,  bounds.getBounds(Protected::P_AIR)});
+        fieldsToCheck.push_back({pfx+": sw_in", &sw_in, bounds.getBounds(Protected::SW_IN)});
+        fieldsToCheck.push_back({pfx+": lw_in", &lw_in, bounds.getBounds(Protected::LW_IN)});
+        fieldsToCheck.push_back({pfx+": wind",  &wind,  bounds.getBounds(Protected::WIND_SPEED)});
+        fieldsToCheck.push_back({pfx+": uwind", &uwind, bounds.getBounds(Protected::WIND_U)});
+        fieldsToCheck.push_back({pfx+": vwind", &vwind, bounds.getBounds(Protected::WIND_V)});
         // clang-format on
     }
 
