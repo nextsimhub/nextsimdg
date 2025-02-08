@@ -22,6 +22,11 @@ class PhysicalBounds {
 public:
     PhysicalBounds()
     {
+        // Helper function to make the bounds.emplace code more readable
+        auto addBounds = [this](const std::string& key, double min, double max) {
+            bounds.emplace(key, std::make_pair(min, max));
+        };
+
         // Protected arrays
         // Prognostic model fields
         addBounds(Protected::C_ICE, 0, 1); // Ice concentration
@@ -89,11 +94,6 @@ public:
 
 private:
     std::map<std::string, std::pair<double, double>> bounds;
-
-    auto addBounds(const std::string& key, double min, double max)
-    {
-        bounds.emplace(key, std::make_pair(min, max));
-    };
 };
 
 }
