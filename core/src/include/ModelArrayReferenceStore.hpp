@@ -1,7 +1,7 @@
 /*!
  * @file MARStore.hpp
  *
- * @date 01 Feb 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -75,13 +75,15 @@ public:
     // For a given field name return the ModelArray pointer pointing to the data
     const ModelArray* getArrayRef(const std::string& field)
     {
-        if (const auto returnValue = storeRW.find(field); returnValue != storeRW.end())
-            return returnValue->second;
-
-        if (const auto returnValue = storeRO.find(field); returnValue != storeRO.end())
-            return returnValue->second;
-
-        return nullptr;
+        try {
+            return storeRW.at(field);
+        } catch (std::out_of_range&) {
+            try {
+                return storeRO.at(field);
+            } catch (std::out_of_range&) {
+                throw;
+            }
+        }
     }
 
 private:

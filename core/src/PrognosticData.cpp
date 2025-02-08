@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 02 Feb 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -130,12 +130,11 @@ void PrognosticData::setFieldsToCheck()
         std::istringstream fieldStream;
         fieldStream.str(listOfFields);
         for (std::string fieldName; std::getline(fieldStream, fieldName, ',');) {
-            if (const ModelArray* fieldPointer
-                = getStore().getArrayRef(externalNames.at(fieldName));
-                fieldPointer == nullptr) {
+            try {
+                storeData.emplace(externalNames.at(fieldName),
+                    getStore().getArrayRef(externalNames.at(fieldName)));
+            } catch (std::out_of_range&) {
                 Logged::warning(pfx + ": No field with the name \"" + fieldName + "\" was found.");
-            } else {
-                storeData.emplace(externalNames.at(fieldName), fieldPointer);
             }
         }
     }
