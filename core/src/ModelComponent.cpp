@@ -1,12 +1,14 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 02 Feb 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelComponent.hpp"
+
 #include "include/MissingData.hpp"
+
 #include <cmath>
 
 namespace Nextsim {

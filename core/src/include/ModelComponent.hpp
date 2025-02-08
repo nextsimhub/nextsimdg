@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 02 Feb 2025
+ * @date 08 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -9,15 +9,15 @@
 #ifndef MODELCOMPONENT_HPP
 #define MODELCOMPONENT_HPP
 
-#include "ModelArrayRef.hpp"
-#include "ModelArrayReferenceStore.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayReferenceStore.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
 #include "include/TextTag.hpp"
 #include "include/Time.hpp"
+
 #include <functional>
 #include <string>
 #include <unordered_map>
