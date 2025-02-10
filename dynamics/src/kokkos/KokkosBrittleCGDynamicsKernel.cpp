@@ -1,6 +1,7 @@
 #include "include/KokkosBrittleCGDynamicsKernel.hpp"
 #include "include/KokkosDGLimit.hpp"
 #include "include/KokkosTimer.hpp"
+#include <include/constants.hpp>
 
 namespace Nextsim {
 
@@ -84,7 +85,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     const FloatType dt = tst.step.seconds();
     timerAdvection.start();
-    // Let DynamicsKernel handle the advection step
     this->advectAndLimit(dt, avgUDevice, avgVDevice);
     timerAdvection.stop();
 
@@ -104,6 +104,17 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerPrepIt.start();
     Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
         this->ciceDevice, *this->dG2CGAdvectInterpolator);
+
+    // Reinit the gradient of the sea surface height. Not done by
+    // DataMap as seaSurfaceHeight is always dG(0).
+    // Currently done on CPU because their are no dependencies on other computations
+    this->ComputeGradientOfSeaSurfaceHeight(
+        DynamicsKernel<DGadvection, DGstressComp>::seaSurfaceHeight);
+    // auto execSpace = Kokkos::DefaultExecutionSpace();
+    Kokkos::deep_copy(
+        execSpace, this->xGradSeaSurfaceHeightDevice, this->xGradSeaSurfaceHeightHost);
+    Kokkos::deep_copy(
+        execSpace, this->yGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightHost);
     timerPrepIt.stop();
 
     // The timestep for the brittle solver is the solver subtimestep
@@ -138,8 +149,9 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         updateMomentumDevice(this->uDevice, this->vDevice, this->avgUDevice, this->avgVDevice,
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
-            this->lumpedCGMassDevice, this->deltaT, this->params,
-            cosOceanAngle, sinOceanAngle, this->nSteps);
+            this->xGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightDevice,
+            this->lumpedCGMassDevice, this->deltaT, this->params, cosOceanAngle, sinOceanAngle,
+            this->nSteps);
         timerMomentum.stop();
 
         timerBoundary.start();
@@ -205,6 +217,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
     const ConstDeviceViewCG& uAtmosDevice, const ConstDeviceViewCG& vAtmosDevice,
     const ConstDeviceViewCG& uOceanDevice, const ConstDeviceViewCG& vOceanDevice,
     const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
+    const ConstDeviceViewCG& xGradSeaSurfaceHeightDevice,
+    const ConstDeviceViewCG& yGradSeaSurfaceHeightDevice,
     const ConstDeviceViewCG& lumpedCGMassDevice, const FloatType deltaT,
     const BBMParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
     DeviceIndex nSteps)
@@ -242,8 +256,11 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
                 + cPrime * (vOceanDevice(i) * cosOceanAngle + uOceanDevice(i) * sinOceanAngle);
 
             // Stress gradient
-            const FloatType gradX = dStressXDevice(i) / lumpedCGMassDevice(i);
-            const FloatType gradY = dStressYDevice(i) / lumpedCGMassDevice(i);
+            const FloatType g = params.rhoIce * cgHDevice(i) * PhysicalConstants::g;
+            const FloatType gradX
+                = dStressXDevice(i) / lumpedCGMassDevice(i) - g * xGradSeaSurfaceHeightDevice(i);
+            const FloatType gradY
+                = dStressYDevice(i) / lumpedCGMassDevice(i) - g * yGradSeaSurfaceHeightDevice(i);
 
             const FloatType uIceNew
                 = (alpha * uIce + beta * vIce

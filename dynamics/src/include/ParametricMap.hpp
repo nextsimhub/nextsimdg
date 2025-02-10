@@ -109,19 +109,9 @@ public:
      * These matrices are M^-1 J w PSI_i(q),
      * but, instead of DG-stress based on the DGAdvection (used for damage)
      */
-    static constexpr int DGAdvect = CG == 1 ? 3 : 6;
     using GaussMapAdvectMatrix
         = Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>;
     std::vector<GaussMapAdvectMatrix, Eigen::aligned_allocator<GaussMapAdvectMatrix>> iMJwPSI_dam;
-
-    /*!
-     * These matrices are M^-1 J w PSI_i(q),
-     * but, instead of DG-stress based on the DGAdvection (used for damage)
-     */
-    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>,
-        Eigen::aligned_allocator<
-            Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>>>
-        iMJwPSI_dam;
 
     ParametricMomentumMap(const ParametricMesh& sm)
         : smesh(sm)

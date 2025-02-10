@@ -94,7 +94,6 @@ public:
 
     void update(const TimestepTime& tst) override
     {
-
         // Let DynamicsKernel handle the advection step
         advectionAndLimits(tst);
 

@@ -165,15 +165,15 @@ public:
             s12.row(i) = iMJwPSI * s12Gauss.matrix().transpose();
             s22.row(i) = iMJwPSI * s22Gauss.matrix().transpose();
 
-            p_d->row(i) = pmap->iMJwPSIAdvect[i] * dGauss.matrix().transpose();
+            p_d->row(i) = pmap->iMJwPSI_dam[i] * dGauss.matrix().transpose();
         }
     }
 
     void setDamage(DGVector<DGadvection>& dIn) { p_d = &dIn; }
-    void setPMap(ParametricMomentumMap<CG>* pmapIn) { pmap = pmapIn; }
+    void setPMap(ParametricMomentumMap<CG, DGadvection>* pmapIn) { pmap = pmapIn; }
 
 protected:
-    ParametricMomentumMap<CG>* pmap;
+    ParametricMomentumMap<CG, DGadvection>* pmap;
     DGVector<DGadvection>* p_d;
 };
 }

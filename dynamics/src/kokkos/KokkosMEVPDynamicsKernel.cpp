@@ -7,6 +7,7 @@
 
 #include "include/KokkosMEVPDynamicsKernel.hpp"
 #include "include/KokkosTimer.hpp"
+#include <include/constants.hpp>
 
 namespace Nextsim {
 
@@ -66,11 +67,21 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     timerAdvection.start();
     this->advectAndLimit(tst.step.seconds(), this->uDevice, this->vDevice);
+    /*   DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits(tst);
+        Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
+       Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);*/
     timerAdvection.stop();
 
     timerPrepIt.start();
     Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
         this->ciceDevice, *this->dG2CGAdvectInterpolator);
+    this->ComputeGradientOfSeaSurfaceHeight(
+        DynamicsKernel<DGadvection, DGstressComp>::seaSurfaceHeight);
+    // auto execSpace = Kokkos::DefaultExecutionSpace();
+    Kokkos::deep_copy(
+        execSpace, this->xGradSeaSurfaceHeightDevice, this->xGradSeaSurfaceHeightHost);
+    Kokkos::deep_copy(
+        execSpace, this->yGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightHost);
     timerPrepIt.stop();
 
     // The critical timestep for the VP solver is the advection timestep
@@ -104,6 +115,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         updateMomentumDevice(this->uDevice, this->vDevice, this->u0Device, this->v0Device,
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
+            this->xGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightDevice,
             this->lumpedCGMassDevice, tst, params, beta);
         timerMomentum.stop();
 
@@ -145,9 +157,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
     const ConstDeviceViewStress& e12Device, const ConstDeviceViewStress& e22Device,
     const PSIAdvectView& PSIAdvectDevice, const PSIStressView& PSIStressDevice,
     const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
-    const ConstDeviceBitset& landMaskDevice,
-    const GaussMapDevice& iMJwPSIDevice, const VPParameters& params,
-    FloatType alpha)
+    const ConstDeviceBitset& landMaskDevice, const GaussMapDevice& iMJwPSIDevice,
+    const VPParameters& params, FloatType alpha)
 {
     const DeviceIndex n = s11Device.extent(0);
     Kokkos::parallel_for(
@@ -173,8 +184,10 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             auto hGauss = (hice.row(i) * PSIAdvect).array().max(0.0).matrix();
             auto aGauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
 
-            const EdgeVec P
-                = (params.pStar * hGauss.array() * (-20.0 * (1.0 - aGauss.array())).exp()).matrix();
+            const EdgeVec P = (params.pStar * hGauss.array()
+                * (params.compactionParam * (1.0 - aGauss.array())).exp())
+                                  .matrix();
+
             const EdgeVec e11Gauss = e11.row(i) * PSIStress;
             const EdgeVec e12Gauss = e12.row(i) * PSIStress;
             const EdgeVec e22Gauss = e22.row(i) * PSIStress;
@@ -223,11 +236,11 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
     const ConstDeviceViewCG& cgADevice, const ConstDeviceViewCG& uAtmosDevice,
     const ConstDeviceViewCG& vAtmosDevice, const ConstDeviceViewCG& uOceanDevice,
     const ConstDeviceViewCG& vOceanDevice, const ConstDeviceViewCG& dStressXDevice,
-    const ConstDeviceViewCG& dStressYDevice, const ConstDeviceViewCG& lumpedCGMassDevice,
+    const ConstDeviceViewCG& dStressYDevice, const ConstDeviceViewCG& xGradSeaSurfaceHeightDevice,
+    const ConstDeviceViewCG& yGradSeaSurfaceHeight, const ConstDeviceViewCG& lumpedCGMassDevice,
     const TimestepTime& tst, const VPParameters& params, FloatType beta)
 {
     // Update the velocity
-    const FloatType SC = 1.0; ///(1.0-pow(1.0+1.0/beta,-1.0*nSteps));
     const FloatType deltaT = tst.step.seconds();
     const FloatType FOcean = params.COcean * params.rhoOcean;
     const FloatType FAtm = params.CAtm * params.rhoAtm;
@@ -235,34 +248,39 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
     //      update by a loop.. implicit parts and h-dependent
     Kokkos::parallel_for(
         "updateMomentum", uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            // note the reversed sign compared to the v component
-            const FloatType uOcnRel = uOceanDevice(i) - uDevice(i);
-            const FloatType vOcnRel = vDevice(i) - vOceanDevice(i);
+            const FloatType u = uDevice(i);
+            const FloatType v = vDevice(i);
+            const FloatType uOcnRel = u - uOceanDevice(i);
+            const FloatType vOcnRel = v - vOceanDevice(i);
             const FloatType absatm = Kokkos::sqrt(SQR(uAtmosDevice(i)) + SQR(vAtmosDevice(i)));
             // note that the sign of uOcnRel is irrelevant here
             const FloatType absocn = Kokkos::sqrt(SQR(uOcnRel) + SQR(vOcnRel));
 
+            // TODO: Take the sign of lat into account for Coriolis term
             uDevice(i) = (1.0
                 / (params.rhoIce * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
                     + cgADevice(i) * FOcean * absocn) // implicit parts
                 * (params.rhoIce * cgHDevice(i) / deltaT
-                        * (beta * uDevice(i) + u0Device(i)) // pseudo - timestepping
+                        * (beta * u + u0Device(i)) // pseudo - timestepping
                     + cgADevice(i)
                         * (FAtm * absatm * uAtmosDevice(i) + // atm forcing
-                            FOcean * absocn * SC * uOceanDevice(i)) // ocean forcing
-                    + params.rhoIce * cgHDevice(i) * params.fc * vOcnRel // cor + surface
-                    + dStressXDevice(i) / lumpedCGMassDevice(i)));
+                            FOcean * absocn * uOceanDevice(i)) // ocean forcing
+                    + params.rhoIce * cgHDevice(i) * params.fc * v // Coriolis
+                    - params.rhoIce * cgHDevice(i) * PhysicalConstants::g
+                        * xGradSeaSurfaceHeightDevice(i) // sea surface
+                    + dStressXDevice(i) / lumpedCGMassDevice(i))); // internal stress term
             vDevice(i) = (1.0
                 / (params.rhoIce * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
                     + cgADevice(i) * FOcean * absocn) // implicit parts
                 * (params.rhoIce * cgHDevice(i) / deltaT
-                        * (beta * vDevice(i) + v0Device(i)) // pseudo - timestepping
+                        * (beta * v + v0Device(i)) // pseudo - timestepping
                     + cgADevice(i)
                         * (FAtm * absatm * vAtmosDevice(i) + // atm forcing
-                            FOcean * absocn * SC * vOceanDevice(i)) // ocean forcing
-                    + params.rhoIce * cgHDevice(i) * params.fc
-                        * uOcnRel // here the reversed sign of uOcnRel is used
-                    + dStressYDevice(i) / lumpedCGMassDevice(i)));
+                            FOcean * absocn * vOceanDevice(i)) // ocean forcing
+                    + params.rhoIce * cgHDevice(i) * params.fc * u // Coriolis
+                    - params.rhoIce * cgHDevice(i) * PhysicalConstants::g
+                        * yGradSeaSurfaceHeight(i) // sea surface
+                    + dStressYDevice(i) / lumpedCGMassDevice(i))); // internal stress term
         });
 }
 

@@ -21,8 +21,8 @@ namespace Interpolations {
                            * (PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise()
                                * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
                                    * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array())
-                                     .array())
-                                 .matrix())
+                                   .array())
+                               .matrix())
                         * PHI<CG, GAUSSPOINTS1D(DG)>.transpose());
             } else {
                 cG2DGMatrix[dgi]
@@ -32,11 +32,11 @@ namespace Interpolations {
                                    * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array()
                                    * ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(
                                        smesh, dgi)
-                                         .row(1)
-                                         .array()
-                                         .cos())
-                                     .array())
-                                 .matrix())
+                                       .row(1)
+                                       .array()
+                                       .cos())
+                                   .array())
+                               .matrix())
                         * PHI<CG, GAUSSPOINTS1D(DG)>.transpose());
             }
         }
@@ -142,7 +142,7 @@ namespace Interpolations {
                         At(i) *= 2.0;
                 }
 
-                // implicit capture outside of
+                // for implicit capture dest has to be used outside of the constexpr branch
                 auto& cg = dest;
                 if constexpr (CG == 1) {
                     Kokkos::atomic_add(&cg(cgi), 0.25 * At(0));

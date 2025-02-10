@@ -23,6 +23,11 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     std::tie(cgHHost, cgHDevice) = makeKokkosDualView("cgH", this->cgH);
     std::tie(cgAHost, cgADevice) = makeKokkosDualView("cgA", this->cgA);
 
+    std::tie(xGradSeaSurfaceHeightHost, xGradSeaSurfaceHeightDevice)
+        = makeKokkosDualView("xGradSeaSurfaceHeight", this->xGradSeaSurfaceHeight);
+    std::tie(yGradSeaSurfaceHeightHost, yGradSeaSurfaceHeightDevice)
+        = makeKokkosDualView("yGradSeaSurfaceHeight", this->yGradSeaSurfaceHeight);
+
     std::tie(dStressXHost, dStressXDevice) = makeKokkosDualView("dStressX", this->dStressX);
     std::tie(dStressYHost, dStressYDevice) = makeKokkosDualView("dStressY", this->dStressY);
 
@@ -99,8 +104,8 @@ template <int DGadvection>
 double KokkosCGDynamicsKernel<DGadvection>::getIceOceanStressElement(
     const std::string& name, const int i) const
 {
-    std::cerr << "ice ocean stress not implemented for kokkos" << std::endl;
-    std::abort();
+//    std::cerr << "ice ocean stress not implemented for kokkos" << std::endl;
+//    std::abort();
     return 0.0;
 }
 
@@ -117,15 +122,19 @@ void KokkosCGDynamicsKernel<DGadvection>::prepareIterationDevice(const DeviceVie
     dG2CGInterpolator(cgADevice, ciceDevice);
     // VectorManipulations::CGAveragePeriodic(*smesh, cgA);
 
-    // limit A to [0,1] and H to [0, ...)
+    /* limit A to [0,1] and H to [5 cm, ...)
+     * This limit on H is equivalent to assuming that ice thinner than 5 cm is always in free drift,
+     * which is reasonable. We need a limit of the order of cm here, so that the solver remains
+     * stable. With a limit of the order of mm, we need a much smaller time step to remain stable.
+     */
     Kokkos::parallel_for(
         "limitCGA", cgADevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
             cgADevice(idx) = std::clamp(
-                cgADevice(idx), static_cast<FloatType>(1.e-4), static_cast<FloatType>(1.0));
+                cgADevice(idx), static_cast<FloatType>(0.0), static_cast<FloatType>(1.0));
         });
     Kokkos::parallel_for(
-        "limitCGH", cgADevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
-            cgHDevice(idx) = std::max(cgHDevice(idx), static_cast<FloatType>(1.e-4));
+        "limitCGH", cgHDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
+            cgHDevice(idx) = std::max(cgHDevice(idx), static_cast<FloatType>(0.05));
         });
 }
 
@@ -367,6 +376,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
                 tx += divM * s12.row(eid).transpose();
                 ty -= divM * s11.row(eid).transpose();
             }
+            
             const DeviceIndex cgRow = CGdegree * nx + 1;
             //!< lower left CG-index in element (cx,cy)
             const DeviceIndex cg_i = CGdegree * cgRow * cy + CGdegree * cx;

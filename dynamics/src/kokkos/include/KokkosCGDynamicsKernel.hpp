@@ -57,20 +57,23 @@ public:
 
     double getIceOceanStressElement(const std::string& name, const int i) const override;
 
+    // cuda requires these functions to be public but they should only be needed by the concrete
+    // dynamics (like protected)
     static void prepareIterationDevice(const DeviceViewCG& cgHDevice, const DeviceViewCG& cgADevice,
         const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
+        
         const Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>& dG2CGInterpolator);
 
     static void dirichletZero(const DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
         const KokkosMesh::DirichletData& dirichlet);
-    // cuda requires these functions to be public but they should only be needed by the concrete
-    // dynamics (like protected)
+    
     static void projectVelocityToStrainDevice(const ConstDeviceViewCG& uDevice,
         const ConstDeviceViewCG& vDevice, const DeviceViewStress& e11Device,
         const DeviceViewStress& e12Device, const DeviceViewStress& e22Device,
         const ConstDeviceBitset& landMaskDevice, const GradMapDevice& iMgradXDevice,
         const GradMapDevice& iMgradYDevice, const GradMapDevice& iMMDevice, DeviceIndex nx,
         DeviceIndex ny, COORDINATES coordinates);
+
     static void computeStressDivergenceDevice(const DeviceViewCG& dStressXDevice,
         const DeviceViewCG& dStressYDevice, const ConstDeviceViewStress& s11Device,
         const ConstDeviceViewStress& s12Device, const ConstDeviceViewStress& s22Device,
@@ -78,6 +81,7 @@ public:
         const DivMapDevice& divS2Device, const DivMapDevice& divMDevice,
         const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny,
         COORDINATES coordinates);
+
     static void applyBoundariesDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny);
 
@@ -95,6 +99,11 @@ protected:
     HostViewCG cgHHost;
     DeviceViewCG cgADevice;
     HostViewCG cgAHost;
+
+    DeviceViewCG xGradSeaSurfaceHeightDevice;
+    HostViewCG xGradSeaSurfaceHeightHost;
+    DeviceViewCG yGradSeaSurfaceHeightDevice;
+    HostViewCG yGradSeaSurfaceHeightHost;
 
     DeviceViewCG dStressXDevice;
     HostViewCG dStressXHost;
