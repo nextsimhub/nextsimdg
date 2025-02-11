@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 08 Feb 2025
+ * @date 11 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -52,11 +52,11 @@ void TOPAZOcean::configure()
     Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
     Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
 
-    pIOHeatFlux = &Module::getImplementation<IIceOceanHeatFlux>();
-    tryConfigure(pIOHeatFlux);
+    pIOHeatFlux = std::move(Module::getInstance<IIceOceanHeatFlux>());
+    tryConfigure(*pIOHeatFlux);
 
-    pFreezingPoint = &Module::getImplementation<IFreezingPoint>();
-    tryConfigure(pFreezingPoint);
+    pFreezingPoint = std::move(Module::getInstance<IFreezingPoint>());
+    tryConfigure(*pFreezingPoint);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
     doChecks = Configured::getConfiguration(keyMap.at(CHECKS_KEY), false);

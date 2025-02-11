@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.hpp
  *
- * @date 24 Jan 2025
+ * @date 11 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -56,8 +56,8 @@ private:
 
     SlabOcean slabOcean;
 
-    IIceOceanHeatFlux* pIOHeatFlux;
-    IFreezingPoint* pFreezingPoint;
+    std::unique_ptr<IIceOceanHeatFlux> pIOHeatFlux;
+    std::unique_ptr<IFreezingPoint> pFreezingPoint;
 };
 
 } /* namespace Nextsim */
