@@ -67,7 +67,8 @@ protected:
         const FloatType deltaT)
         = 0;
 
-    // these values are only needed on the host because of the advection step
+    // Average velocities are only used internally so they don't have to be mirrored on the host.
+    // They might still be useful for debugging and outputs.
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
 

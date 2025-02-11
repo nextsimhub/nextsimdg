@@ -41,6 +41,7 @@ namespace Interpolations {
             const ConstKokkosDeviceView<DGVector<DG>>& src) const;
 
     private:
+        // make a copy so that the matrix is captured by value as part of this object
         using PSILagrangeDGCGType = decltype(PSILagrange<DG, CG + 1>);
         PSILagrangeDGCGType PSILagrangeDGCG;
         DeviceIndex nx;

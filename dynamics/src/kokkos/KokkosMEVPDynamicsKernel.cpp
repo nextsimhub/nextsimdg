@@ -46,6 +46,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvection("advectionGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerPrepIt("prepItGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerSeaSurfaceGrad("seaSurfaceGrad");
 
     timerUpload.start();
     // explicit execution space enables asynchronous execution
@@ -67,21 +68,12 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     timerAdvection.start();
     this->advectAndLimit(tst.step.seconds(), this->uDevice, this->vDevice);
-    /*   DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits(tst);
-        Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
-       Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);*/
     timerAdvection.stop();
 
     timerPrepIt.start();
     Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
         this->ciceDevice, *this->dG2CGAdvectInterpolator);
-    this->ComputeGradientOfSeaSurfaceHeight(
-        DynamicsKernel<DGadvection, DGstressComp>::seaSurfaceHeight);
-    // auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(
-        execSpace, this->xGradSeaSurfaceHeightDevice, this->xGradSeaSurfaceHeightHost);
-    Kokkos::deep_copy(
-        execSpace, this->yGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightHost);
+    this->updateGradientOfSeaSurfaceHeight();
     timerPrepIt.stop();
 
     // The critical timestep for the VP solver is the advection timestep
@@ -134,18 +126,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerDownload.stop();
 
     timerMevp.stop();
-    /*    static int macroStep = 0;
-        ++macroStep;
-        if (macroStep % 16 == 0) {
-            timerMevp.print();
-            timerProj.print();
-            timerStress.print();
-            timerDivergence.print();
-            timerMomentum.print();
-            timerBoundary.print();
-            timerUpload.print();
-            timerDownload.print();
-        }*/
+
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);
 }

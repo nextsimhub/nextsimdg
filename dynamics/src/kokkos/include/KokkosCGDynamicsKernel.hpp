@@ -55,6 +55,8 @@ public:
         const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
         const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
 
+    void updateGradientOfSeaSurfaceHeight();
+
     double getIceOceanStressElement(const std::string& name, const int i) const override;
 
     // cuda requires these functions to be public but they should only be needed by the concrete

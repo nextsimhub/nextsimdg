@@ -29,11 +29,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     damage.resize_by_mesh(*this->smesh);
     avgU.resize_by_mesh(*this->smesh);
     avgV.resize_by_mesh(*this->smesh);
+    damage.zero();
+    avgU.zero();
+    avgV.zero();
 
-    // Degrees to radians as a hex float
-    constexpr FloatType radians = 0x1.1df46a2529d39p-6;
-    cosOceanAngle = std::cos(radians * params.oceanTurningAngle);
-    sinOceanAngle = std::sin(radians * params.oceanTurningAngle);
+    cosOceanAngle = std::cos(radians(params.oceanTurningAngle));
+    sinOceanAngle = std::sin(radians(params.oceanTurningAngle));
 
     std::tie(avgUHost, avgUDevice) = makeKokkosDualView("avgU", this->avgU);
     std::tie(avgVHost, avgVDevice) = makeKokkosDualView("avgV", this->avgV);
@@ -104,17 +105,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerPrepIt.start();
     Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
         this->ciceDevice, *this->dG2CGAdvectInterpolator);
-
-    // Reinit the gradient of the sea surface height. Not done by
-    // DataMap as seaSurfaceHeight is always dG(0).
-    // Currently done on CPU because their are no dependencies on other computations
-    this->ComputeGradientOfSeaSurfaceHeight(
-        DynamicsKernel<DGadvection, DGstressComp>::seaSurfaceHeight);
-    // auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(
-        execSpace, this->xGradSeaSurfaceHeightDevice, this->xGradSeaSurfaceHeightHost);
-    Kokkos::deep_copy(
-        execSpace, this->yGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightHost);
+    this->updateGradientOfSeaSurfaceHeight();
     timerPrepIt.stop();
 
     // The timestep for the brittle solver is the solver subtimestep
@@ -159,6 +150,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->smesh->nx, this->smesh->ny);
         timerBoundary.stop();
     }
+    timerBBM.stop();
 
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
@@ -171,7 +163,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
         Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);*/
     timerDownload.stop();
-    timerBBM.stop();
 
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);

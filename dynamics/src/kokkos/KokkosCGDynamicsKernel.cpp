@@ -99,14 +99,28 @@ void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt,
     limitMin(hiceDevice, 0.0);
 }
 
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
+{
+    // Reinit the gradient of the sea surface height. Not done by DataMap as seaSurfaceHeight is
+    // always dG(0). Currently done on CPU because their are no dependencies on other computations
+    // and the cost is small (<3% of dynamics with a single thread).
+    this->ComputeGradientOfSeaSurfaceHeight(this->seaSurfaceHeight);
+    auto execSpace = Kokkos::DefaultExecutionSpace();
+    Kokkos::deep_copy(
+        execSpace, this->xGradSeaSurfaceHeightDevice, this->xGradSeaSurfaceHeightHost);
+    Kokkos::deep_copy(
+        execSpace, this->yGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightHost);
+}
+
 /*************************************************************/
 template <int DGadvection>
 double KokkosCGDynamicsKernel<DGadvection>::getIceOceanStressElement(
     const std::string& name, const int i) const
 {
-//    std::cerr << "ice ocean stress not implemented for kokkos" << std::endl;
-//    std::abort();
-    return 0.0;
+    //    std::cerr << "ice ocean stress not implemented for kokkos" << std::endl;
+    //    std::abort();
+    return 1000000000.0;
 }
 
 /*************************************************************/
@@ -376,7 +390,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
                 tx += divM * s12.row(eid).transpose();
                 ty -= divM * s11.row(eid).transpose();
             }
-            
+
             const DeviceIndex cgRow = CGdegree * nx + 1;
             //!< lower left CG-index in element (cx,cy)
             const DeviceIndex cg_i = CGdegree * cgRow * cy + CGdegree * cx;
@@ -397,13 +411,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     dirichletZero(dStressXDevice, nx, ny, dirichletDevice);
     dirichletZero(dStressYDevice, nx, ny, dirichletDevice);
     //  timerDivDirichlet.stop();
-    static int count = 0;
-    ++count;
-    if (count % 64 == 0) {
-        //    timerDivZero.print();
-        //    timerDivComp.print();
-        //    timerDivDirichlet.print();
-    }
+
     // todo: add the contributions on the periodic boundaries
     // VectorManipulations::CGAveragePeriodic(*smesh, tx);
     //   VectorManipulations::CGAveragePeriodic(*smesh, ty);

@@ -51,7 +51,7 @@ namespace Interpolations {
         assert((CG * nx + 1) * (CG * ny + 1) == cgDevice.extent(0));
         assert(nelements == dgDevice.extent(0));
 
-        const int cgshift = CG * nx + 1; //!< Index shift for each row
+        const DeviceIndex cgshift = CG * nx + 1; //!< Index shift for each row
 
         // since all data is needed by the kernel we just capture this
         Kokkos::parallel_for(
@@ -103,7 +103,9 @@ namespace Interpolations {
         assert(src.extent(0) == static_cast<int>(nx * ny));
         assert(dest.extent(0) == static_cast<int>((CG * nx + 1) * (CG * ny + 1)));
 
-        Kokkos::deep_copy(dest, 0);
+        // explicit execution space enables asynchronous execution
+        auto execSpace = Kokkos::DefaultExecutionSpace();
+        Kokkos::deep_copy(execSpace, dest, 0.0);
 
         const DeviceIndex cGDofsPerRow = CG * nx + 1;
 
