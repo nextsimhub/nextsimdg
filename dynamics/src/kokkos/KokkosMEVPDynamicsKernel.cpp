@@ -42,11 +42,10 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerMomentum("momentumGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpload("uploadGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvection("advectionGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerPrepIt("prepItGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerSeaSurfaceGrad("seaSurfaceGrad");
+    static KokkosTimer<true> timerUpload("uploadGPU");
+    static KokkosTimer<true> timerDownload("downloadGPU");
+    static KokkosTimer<true> timerAdvection("advectionGPU");
+    static KokkosTimer<true> timerPrepIt("prepItGPU");
 
     timerUpload.start();
     // explicit execution space enables asynchronous execution
@@ -76,10 +75,9 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     this->updateGradientOfSeaSurfaceHeight();
     timerPrepIt.stop();
 
+    timerMevp.start();
     // The critical timestep for the VP solver is the advection timestep
     this->deltaT = tst.step.seconds();
-
-    timerMevp.start();
 
     for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
         timerProj.start();
@@ -116,6 +114,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->smesh->nx, this->smesh->ny);
         timerBoundary.stop();
     }
+    timerMevp.stop();
 
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
@@ -124,8 +123,6 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
     Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
     timerDownload.stop();
-
-    timerMevp.stop();
 
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);

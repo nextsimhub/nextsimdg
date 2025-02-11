@@ -120,7 +120,7 @@ double KokkosCGDynamicsKernel<DGadvection>::getIceOceanStressElement(
 {
     //    std::cerr << "ice ocean stress not implemented for kokkos" << std::endl;
     //    std::abort();
-    return 1000000000.0;
+    return std::numeric_limits<FloatType>::signaling_NaN();
 }
 
 /*************************************************************/

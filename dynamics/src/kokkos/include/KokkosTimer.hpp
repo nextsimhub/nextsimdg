@@ -1,6 +1,10 @@
 #ifndef KOKKOSTIMER_HPP
 #define KOKKOSTIMER_HPP
 
+#ifdef USE_KOKKOS
+#include <Kokkos_Core.hpp>
+#endif
+
 namespace Nextsim {
 
 constexpr bool DETAILED_MEASUREMENTS = true;
@@ -31,8 +35,10 @@ public:
     void stop()
     {
         if constexpr (Active) {
+#ifdef USE_KOKKOS
             // ensure that gpu tasks are finished
             Kokkos::fence();
+#endif
             auto end = std::chrono::high_resolution_clock::now();
             ++m_count;
             m_total += std::chrono::duration<double>(end - m_start).count();

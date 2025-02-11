@@ -15,6 +15,7 @@
 #include "ParametricMap.hpp"
 #include "StressUpdateStep.hpp"
 #include "include/constants.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 #include <cmath>
 
 namespace Nextsim {
@@ -94,6 +95,11 @@ public:
 
     void update(const TimestepTime& tst) override
     {
+        static KokkosTimer<true> timerBBM("bbm");
+        static KokkosTimer<true> timerAdvection("advection");
+        static KokkosTimer<true> timerPrepIt("prepIt");
+
+        timerAdvection.start();
         // Let DynamicsKernel handle the advection step
         advectionAndLimits(tst);
 
@@ -107,9 +113,13 @@ public:
         dgtransport->step(tst.step.seconds(), damage);
         Nextsim::LimitMax(damage, 1.0);
         Nextsim::LimitMin(damage, 1e-12);
+        timerAdvection.stop();
 
+        timerPrepIt.start();
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
+        timerPrepIt.stop();
 
+        timerBBM.start();
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / nSteps;
 
@@ -134,6 +144,7 @@ public:
 
             // Land mask
         }
+        timerBBM.stop();
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }

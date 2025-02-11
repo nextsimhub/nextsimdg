@@ -59,11 +59,11 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerMomentum("momentumGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpload("uploadGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerDownload("downloadGPU");
+    static KokkosTimer<true> timerUpload("uploadGPU");
+    static KokkosTimer<true> timerDownload("downloadGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvectStress("advectStressGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvection("advectionGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerPrepIt("prepItGPU");
+    static KokkosTimer<true> timerAdvection("advectionGPU");
+    static KokkosTimer<true> timerPrepIt("prepItGPU");
 
     timerUpload.start();
     // explicit execution space enables asynchronous execution
@@ -87,7 +87,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     const FloatType dt = tst.step.seconds();
     timerAdvection.start();
     this->advectAndLimit(dt, avgUDevice, avgVDevice);
-    timerAdvection.stop();
 
     timerAdvectStress.start();
     // Transport and limits for damage
@@ -101,6 +100,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     stressTransportDevice->step(dt, this->s12Device);
     stressTransportDevice->step(dt, this->s22Device);
     timerAdvectStress.stop();
+    timerAdvection.stop();
 
     timerPrepIt.start();
     Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
@@ -108,10 +108,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     this->updateGradientOfSeaSurfaceHeight();
     timerPrepIt.stop();
 
+    timerBBM.start();
     // The timestep for the brittle solver is the solver subtimestep
     this->deltaT = dt / this->nSteps;
 
-    timerBBM.start();
     Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
     Kokkos::deep_copy(execSpace, avgVDevice, 0.0);
 
