@@ -1,13 +1,13 @@
 /*!
  * @file cgParametricMomentum.hpp
- * @date 5 August 2022
+ * @date 06 Dec 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __CGPARAMETRICMOMENTUM_HPP
 #define __CGPARAMETRICMOMENTUM_HPP
 
-#include "MEBParameters.hpp"
+#include "BBMParameters.hpp"
 #include "ParametricMap.hpp"
 #include "ParametricTools.hpp"
 #include "VPParameters.hpp"
@@ -31,7 +31,9 @@ private:
     static constexpr int precompute_matrices = 1;
 
 public:
-    ParametricMomentumMap<CG> pmap;
+    //! CGParametricMomentum should not be used but removed. ParametricMomentumMap needs DGadvection
+    //! but this is not provided here.
+    ParametricMomentumMap<CG, 1> pmap;
 
     //! vectors storing the velocity (node-wise)
     CGVector<CG> vx, vy;
@@ -62,6 +64,12 @@ public:
         : smesh(sm)
         , pmap(sm)
     {
+        std::cerr << "CGParametricMomentum can't be used any more. It is replaced by the various "
+                     "dynamics kernels. ParametricMomentumMap requires the DGadvection degree as "
+                     "template but this is not available in CGParametricMomentum. Please use the "
+                     "Kernel-infrastructure instead."
+                  << std::endl;
+
         if (!(smesh.nelements > 0)) {
             std::cerr << "CGParametricMomentum: The mesh has to be initialized first!" << std::endl;
             abort();
@@ -169,12 +177,12 @@ public:
 
     //! performs one complete MEB timestep with NT_meb subiterations
     template <int DG>
-    void MEBStep(const MEBParameters& vpparameters, size_t NT_meb, double dt_adv,
+    void MEBStep(const BBMParameters& vpparameters, size_t NT_meb, double dt_adv,
         const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     //! performs one complete BBMStep timestep with NT_meb subiterations
     template <int DG>
-    void BBMStep(const MEBParameters& vpparameters, size_t NT_meb, double dt_adv,
+    void BBMStep(const BBMParameters& vpparameters, size_t NT_meb, double dt_adv,
         const DGVector<DG>& H, const DGVector<DG>& A, DGVector<DG>& D);
 
     /*!

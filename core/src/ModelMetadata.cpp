@@ -7,7 +7,8 @@
 
 #include "include/ModelMetadata.hpp"
 
-#include "include/StructureModule.hpp"
+#include "include/IStructure.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #ifdef USE_MPI

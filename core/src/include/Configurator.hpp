@@ -67,7 +67,7 @@ public:
      */
     inline static void addStream(std::unique_ptr<std::istream> pis)
     {
-        sources.push_back(std::move(pis));
+        sources().push_back(std::move(pis));
     }
     /*!
      * @brief Adds several istream sources of configuration data.
@@ -94,7 +94,7 @@ public:
     /*!
      * Removes previously assigned stream data sources, both files and istreams.
      */
-    inline static void clearStreams() { sources.clear(); }
+    inline static void clearStreams() { sources().clear(); }
 
     /*!
      * Removes all data sources, both streams and command line.
@@ -117,8 +117,8 @@ public:
      */
     inline static void setCommandLine(int argc, char* argv[])
     {
-        m_argc = argc;
-        m_argv = argv;
+        commandLine().m_argc = argc;
+        commandLine().m_argv = argv;
     }
 
     /*!
@@ -145,10 +145,21 @@ public:
         const boost::program_options::options_description& opt);
 
 private:
-    static std::vector<std::unique_ptr<std::istream>> sources;
+    static std::vector<std::unique_ptr<std::istream>>& sources()
+    {
+        static std::vector<std::unique_ptr<std::istream>> sources;
+        return sources;
+    }
 
-    static int m_argc;
-    static char** m_argv;
+    struct CommandLine {
+        int m_argc;
+        char** m_argv;
+    };
+    static CommandLine& commandLine()
+    {
+        static CommandLine cmdln;
+        return cmdln;
+    }
 
 public:
     class AdditionalConfiguration {
@@ -171,12 +182,11 @@ public:
     static void setAdditionalConfiguration(AdditionalConfiguration* pAC);
 
 private:
-    static AdditionalConfiguration* p_addConf;
-};
-
-//! A default implementation of Configurator::AdditionalConfiguration
-class NoAdditionalConfiguration : public Configurator::AdditionalConfiguration {
-    std::stringstream read(const std::string& source) override { return std::stringstream(); }
+    static AdditionalConfiguration*& addConf()
+    {
+        static AdditionalConfiguration* p_addConf = nullptr;
+        return p_addConf;
+    }
 };
 
 } /* namespace Nextsim */

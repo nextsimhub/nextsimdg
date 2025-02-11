@@ -1,15 +1,15 @@
 /*!
  * @file DamageHealing_test.cpp
  *
- * @date Jul 4, 2024
+ * @date 22 Nov 2024
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "include/Module.hpp"
 #include "include/IDamageHealing.hpp"
+#include "include/NextsimModule.hpp"
 
 extern template class Module::Module<Nextsim::IDamageHealing>;
 namespace Nextsim {
@@ -28,18 +28,14 @@ TEST_CASE("Thermodynamic healing")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::Module<IDamageHealing>::setImplementation("Nextsim::ConstantHealing");
     std::stringstream config;
 
-    config << "[Modules]" << std::endl;
-    config << "DamageHealingModule = Nextsim::ConstantHealing" << std::endl;
-    config << std::endl;
     config << "[ConstantHealing]" << std::endl;
     config << "td = 20" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     class PrognosticData : public ModelComponent {
     public:
@@ -48,6 +44,7 @@ TEST_CASE("Thermodynamic healing")
             getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RO);
             getStore().registerArray(Shared::C_ICE, &cice, RO);
             getStore().registerArray(Shared::DAMAGE, &damage, RW);
+            getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -55,13 +52,14 @@ TEST_CASE("Thermodynamic healing")
         {
             noLandMask();
             cice = 0.5;
-            deltaCi= 0.0;
-            damage = 0.5;
+            deltaCi = 0.0;
+            oldDamage = 0.5;
         }
 
         HField cice;
         HField deltaCi;
         HField damage;
+        HField oldDamage;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -76,13 +74,13 @@ TEST_CASE("Thermodynamic healing")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1T00:00:00") };
     double prec = 1e-8;
 
-    iceState.damage = 0.5;
+    iceState.oldDamage = 0.5;
     iHealing->update(tst);
     REQUIRE(iceState.damage[0] == doctest::Approx(0.55).epsilon(prec));
 
-    iceState.damage = 0.99;
+    iceState.oldDamage = 0.99;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] <= 1. );
+    REQUIRE(iceState.damage[0] <= 1.);
     REQUIRE(iceState.damage[0] == doctest::Approx(1.).epsilon(prec));
 }
 
@@ -112,6 +110,7 @@ TEST_CASE("New ice formation")
             getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RO);
             getStore().registerArray(Shared::C_ICE, &cice, RO);
             getStore().registerArray(Shared::DAMAGE, &damage, RW);
+            getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -119,13 +118,14 @@ TEST_CASE("New ice formation")
         {
             noLandMask();
             cice = 0.5;
-            deltaCi= 0.1;
-            damage = 0.5;
+            deltaCi = 0.1;
+            oldDamage = 0.5;
         }
 
         HField cice;
         HField deltaCi;
         HField damage;
+        HField oldDamage;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -140,32 +140,32 @@ TEST_CASE("New ice formation")
 
     iceState.cice = 0.6;
     iceState.deltaCi = 0.3;
-    iceState.damage = 0.;
+    iceState.oldDamage = 0.;
     iHealing->update(tst);
     REQUIRE(iceState.damage[0] == doctest::Approx(0.55).epsilon(prec));
 
     iceState.cice = 0.6;
     iceState.deltaCi = 0.3;
-    iceState.damage = 0.5;
+    iceState.oldDamage = 0.5;
     iHealing->update(tst);
     REQUIRE(iceState.damage[0] == doctest::Approx(0.80).epsilon(prec));
 
     iceState.cice = 0.5;
     iceState.deltaCi = 0.1;
-    iceState.damage = 0.5;
+    iceState.oldDamage = 0.5;
     iHealing->update(tst);
     REQUIRE(iceState.damage[0] == doctest::Approx(0.65).epsilon(prec));
 
     iceState.cice = 1.;
     iceState.deltaCi = 0.1;
-    iceState.damage = 1.;
+    iceState.oldDamage = 1.;
     iHealing->update(tst);
     REQUIRE(iceState.damage[0] <= 1.);
     REQUIRE(iceState.damage[0] <= doctest::Approx(1.).epsilon(prec));
 
     iceState.cice = 0.5;
     iceState.deltaCi = -0.5;
-    iceState.damage = 0.5;
+    iceState.oldDamage = 0.5;
     iHealing->update(tst);
     REQUIRE(iceState.damage[0] == doctest::Approx(0.55).epsilon(prec));
 }

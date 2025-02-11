@@ -1,15 +1,16 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 09 Sep 2024
+ * @date 21 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/PrognosticData.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #ifdef USE_OASIS
@@ -39,6 +40,11 @@ PrognosticData::PrognosticData()
 
 void PrognosticData::configure()
 {
+    // Register finalizers before calling configure.
+    Finalizer::registerUnique(Module::finalize<IAtmosphereBoundary>);
+    Finalizer::registerUnique(Module::finalize<IOceanBoundary>);
+    Finalizer::registerUnique(Module::finalize<IDynamics>);
+
     pAtmBdy = &Module::getImplementation<IAtmosphereBoundary>();
     tryConfigure(pAtmBdy);
 
@@ -51,22 +57,32 @@ void PrognosticData::configure()
     tryConfigure(iceGrowth);
 }
 
+// Copies an HField from a source ModelArray that is either an HField or a DGField.
+void copyMeanComponent(const ModelArray& source, ModelArray& sink)
+{
+    if (source.nComponents() > 1) {
+        sink.setData(source.data().col(0));
+    } else {
+        sink = source;
+    }
+}
+
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
 
-    if (ms.count("mask")) {
-        setOceanMask(ms.at("mask"));
+    if (ms.count(maskName)) {
+        setOceanMask(ms.at(maskName));
     } else {
         noLandMask();
     }
 
-    m_thick = ms.at("hice");
-    m_conc = ms.at("cice");
-    m_tice = ms.at("tice");
-    m_snow = ms.at("hsnow");
+    copyMeanComponent(ms.at(hiceName), m_thick);
+    copyMeanComponent(ms.at(ciceName), m_conc);
+    copyMeanComponent(ms.at(ticeName), m_tice);
+    copyMeanComponent(ms.at(hsnowName), m_snow);
     // Damage is an optional field, and defaults to 1, if absent
     if (ms.count(damageName) > 0) {
-        m_damage = ms.at(damageName);
+        copyMeanComponent(ms.at(damageName), m_damage);
     } else {
         m_damage.resize();
         m_damage = 1.;
@@ -91,21 +107,16 @@ void PrognosticData::setMetadata(const Nextsim::ModelMetadata& metadata)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
-    ModelArrayRef<Shared::T_ICE, RW> ticeUpd(getStore());
-
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
-
-    // Fill the values of the true ice and snow thicknesses.
-    iceGrowth.initializeThicknesses();
-    // Fill the updated ice temperature array
-    ticeUpd.data().setData(m_tice);
-    pDynamics->update(tst);
-    updatePrognosticFields();
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
     iceGrowth.update(tst);
+    updatePrognosticFields();
+
+    pDynamics->update(tst);
+
     updatePrognosticFields();
 
     pOcnBdy->updateAfter(tst);

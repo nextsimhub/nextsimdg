@@ -1,7 +1,7 @@
 /*!
  * @file FreeDriftDynamics.hpp
  *
- * @date 27 Mar 2023
+ * @date 19 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,7 +23,8 @@
 namespace Nextsim {
 static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
 
-
+// TODO: This class should be configurable and configure the densities, drag coefficients, Coriolis
+// parameter, and turning angle.
 class FreeDriftDynamics : public IDynamics {
 public:
     FreeDriftDynamics()

@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWinton.cpp
  *
- * @date Sep 30, 2022
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -38,8 +38,7 @@ ThermoWinton::ThermoWinton()
     snowToIce.resize();
 }
 
-template <>
-const std::map<int, std::string> Configured<ThermoWinton>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ThermoWinton::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
     { ThermoWinton::FLOODING_KEY, "nextsim_thermo.doFlooding" },
 };
@@ -63,8 +62,8 @@ ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
 ThermoWinton::HelpMap& ThermoWinton::getHelpText(HelpMap& map, bool getAll)
 {
     map["ThermoWinton"] = {
-        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
-            "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
+        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(k_sDefault), "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
     };
     return map;
 }

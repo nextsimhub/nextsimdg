@@ -1,7 +1,7 @@
 /*!
  * @file ModelArrayDetails.cpp
  *
- * @date Oct 19, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -44,11 +44,11 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
             ModelArray::Dimension::Y,
             ModelArray::Dimension::Z,
         } },
-        { ModelArray::Type::VERTEX,
-            {
-                ModelArray::Dimension::XVERTEX,
-                ModelArray::Dimension::YVERTEX,
-            } },
+    { ModelArray::Type::VERTEX,
+        {
+            ModelArray::Dimension::XVERTEX,
+            ModelArray::Dimension::YVERTEX,
+        } },
 };
 
 const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
@@ -67,25 +67,31 @@ ModelArray::ModelArray()
 bool ModelArray::hasDoF(const Type type) { return type == Type::VERTEX; }
 
 ModelArray::SizeMap::SizeMap()
-    : m_sizes({ { Type::H, 0 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 },  { Type::VERTEX, 1 }, })
+    : m_sizes({
+          { Type::H, 0 },
+          { Type::U, 0 },
+          { Type::V, 0 },
+          { Type::Z, 0 },
+          { Type::VERTEX, 1 },
+      })
 {
 }
 
 ModelArray::DimensionMap::DimensionMap()
     : m_dimensions({
-        { Type::H, { 0 } },
-        { Type::U, { 0 } },
-        { Type::V, { 0 } },
-        { Type::Z, { 0, 1 } },
-        { Type::VERTEX, { 1, 1 } },
-    })
+          { Type::H, { 0 } },
+          { Type::U, { 0 } },
+          { Type::V, { 0 } },
+          { Type::Z, { 0, 1 } },
+          { Type::VERTEX, { 1, 1 } },
+      })
 {
 }
 
 const size_t ModelArray::nCoords = 2;
 
 const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {
-        { Type::VERTEX, Dimension::NCOORDS },
+    { Type::VERTEX, Dimension::NCOORDS },
 };
 
 }

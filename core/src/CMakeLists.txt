@@ -2,7 +2,6 @@
 
 set(BaseSources
     "Logged.cpp"
-    "Timer.cpp"
     "ModelConfig.cpp"
     "Model.cpp"
     "Iterator.cpp"
@@ -14,10 +13,11 @@ set(BaseSources
     "RectGridIO.cpp"
     "ParaGridIO.cpp"
     "FileCallbackCloser.cpp"
+    "Finalizer.cpp"
     "DevStep.cpp"
     "StructureFactory.cpp"
-    "MissingData.cpp"
     "ModelArray.cpp"
+    "ModelArraySlice.cpp"
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"

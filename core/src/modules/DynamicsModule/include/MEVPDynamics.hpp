@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.hpp
  *
- * @date 18 Jul 2024
+ * @date 19 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -13,7 +13,7 @@
 #include "include/IDamageHealing.hpp"
 #include "include/IDynamics.hpp"
 #include "include/MEVPDynamicsKernel.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -36,6 +36,23 @@ public:
     void setData(const ModelState::DataMap&) override;
     ModelState getStateRecursive(const OutputSpec& os) const override;
     void configure() override;
+
+    enum {
+        PSTAR_KEY,
+        DELTA_KEY,
+        C_KEY,
+        NSTEPS_KEY,
+        RHOI_KEY,
+        RHOA_KEY,
+        RHOO_KEY,
+        CATM_KEY,
+        COCEAN_KEY,
+        FC_KEY,
+        ANGLE_KEY,
+    };
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap&, bool getAll);
 
 private:
     MEVPDynamicsKernel<DGCOMP> kernel;

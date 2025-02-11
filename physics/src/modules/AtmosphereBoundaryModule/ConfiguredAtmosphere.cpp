@@ -1,13 +1,14 @@
 /*!
  * @file ConfiguredAtmosphere.cpp
  *
- * @date Aug 31, 2022
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ConfiguredAtmosphere.hpp"
 
-#include "include/Module.hpp"
+#include "include/Finalizer.hpp"
+#include "include/NextsimModule.hpp"
 
 namespace Nextsim {
 
@@ -30,8 +31,7 @@ static const std::string snowKey = pfx + ".snow";
 static const std::string rainKey = pfx + ".rainfall";
 static const std::string windKey = pfx + ".wind_speed";
 
-template <>
-const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
+const static std::map<int, std::string> keyMap = {
     { ConfiguredAtmosphere::TAIR_KEY, tKey },
     { ConfiguredAtmosphere::TDEW_KEY, tdewKey },
     { ConfiguredAtmosphere::PAIR_KEY, pKey },
@@ -43,7 +43,7 @@ const std::map<int, std::string> Configured<ConfiguredAtmosphere>::keyMap = {
 };
 
 ConfiguredAtmosphere::ConfiguredAtmosphere()
-: fluxImpl(0)
+    : fluxImpl(0)
 {
     getStore().registerArray(Protected::T_AIR, &tair, RO);
     getStore().registerArray(Protected::DEW_2M, &tdew, RO);
@@ -53,26 +53,25 @@ ConfiguredAtmosphere::ConfiguredAtmosphere()
     getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
 
-
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { tKey, ConfigType::NUMERIC, { "-210", "374" }, std::to_string(tair0), "",
+        { tKey, ConfigType::NUMERIC, { "-210", "374" }, ConfigurationHelp::toString(tair0), "",
             "Air temperature at 2 m (˚C)." },
-        { tdewKey, ConfigType::NUMERIC, { "-273", "374" }, std::to_string(tdew0), "",
+        { tdewKey, ConfigType::NUMERIC, { "-273", "374" }, ConfigurationHelp::toString(tdew0), "",
             "Dew point temperature at 2 m (˚C)." },
-        { pKey, ConfigType::NUMERIC, { "0", "3395800" }, std::to_string(pair0), "",
+        { pKey, ConfigType::NUMERIC, { "0", "3395800" }, ConfigurationHelp::toString(pair0), "",
             "Surface air pressure (Pa)." },
-        { swKey, ConfigType::NUMERIC, { "0", "1.390e122" }, std::to_string(sw0), "",
+        { swKey, ConfigType::NUMERIC, { "0", "1.390e122" }, ConfigurationHelp::toString(sw0), "",
             "Downward solar radiation (W m⁻²)." },
-        { lwKey, ConfigType::NUMERIC, { "0", "1.390e122" }, std::to_string(lw0), "",
+        { lwKey, ConfigType::NUMERIC, { "0", "1.390e122" }, ConfigurationHelp::toString(lw0), "",
             "Downward non-solar radiation (W m⁻²)." },
-        { snowKey, ConfigType::NUMERIC, { "0", "2.998e8" }, std::to_string(snowfall0), "",
-            "Snowfall mass flux (kg s⁻¹ m⁻²)." },
-        { rainKey, ConfigType::NUMERIC, { "0", "2.998e8" }, std::to_string(rain0), "",
+        { snowKey, ConfigType::NUMERIC, { "0", "2.998e8" }, ConfigurationHelp::toString(snowfall0),
+            "", "Snowfall mass flux (kg s⁻¹ m⁻²)." },
+        { rainKey, ConfigType::NUMERIC, { "0", "2.998e8" }, ConfigurationHelp::toString(rain0), "",
             "Rainfall mass flux (kg s⁻¹ m⁻²)." },
-        { windKey, ConfigType::NUMERIC, { "0", "2.998e8" }, std::to_string(windspeed0), "",
-            "Windspeed (m s⁻¹)." },
+        { windKey, ConfigType::NUMERIC, { "0", "2.998e8" }, ConfigurationHelp::toString(windspeed0),
+            "", "Windspeed (m s⁻¹)." },
     };
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
@@ -90,12 +89,14 @@ void ConfiguredAtmosphere::configure()
     rain0 = Configured::getConfiguration(keyMap.at(RAIN_KEY), rain0);
     windspeed0 = Configured::getConfiguration(keyMap.at(WIND_KEY), windspeed0);
 
+    Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
 }
 
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
+
     IAtmosphereBoundary::setData(dm);
     tair.resize();
     tdew.resize();
@@ -116,9 +117,6 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     fluxImpl->setData(dm);
 }
 
-void ConfiguredAtmosphere::update(const TimestepTime& tst)
-{
-    fluxImpl->update(tst);
-}
+void ConfiguredAtmosphere::update(const TimestepTime& tst) { fluxImpl->update(tst); }
 
 } /* namespace Nextsim */

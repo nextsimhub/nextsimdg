@@ -5,8 +5,6 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/PrognosticData.hpp"
-
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
@@ -14,11 +12,12 @@
 
 #include "include/ConfiguredModule.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/constants.hpp"
 
 #include <sstream>
+#include <iostream>
 
 extern template class Module::Module<Nextsim::IOceanBoundary>;
 
@@ -32,10 +31,8 @@ TEST_CASE("PrognosticData call order test")
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::setImplementation<IAtmosphereBoundary>("Nextsim::ConfiguredAtmosphere");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "AtmosphereBoundaryModule = Nextsim::ConfiguredAtmosphere" << std::endl;
-    config << std::endl;
     config << "[ConfiguredAtmosphere]" << std::endl;
     config << "t_air = 3" << std::endl;
     config << "t_dew = 2" << std::endl;
@@ -48,8 +45,6 @@ TEST_CASE("PrognosticData call order test")
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     class OceanData : public IOceanBoundary {
     public:

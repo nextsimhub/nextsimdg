@@ -1,7 +1,7 @@
 /*!
  * @file ModelArrayDetails.cpp
  *
- * @date 2 Jul 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -110,21 +110,21 @@ bool ModelArray::hasDoF(const Type type)
 
 ModelArray::SizeMap::SizeMap()
     : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 },
-        { Type::DG, 0 }, { Type::DGSTRESS, 0 }, { Type::CG, 1 } })
+          { Type::DG, 0 }, { Type::DGSTRESS, 0 }, { Type::CG, 1 } })
 {
 }
 
 ModelArray::DimensionMap::DimensionMap()
     : m_dimensions({
-        { Type::H, { 0, 0 } },
-        { Type::VERTEX, { 1, 1 } },
-        { Type::U, { 0, 0 } },
-        { Type::V, { 0, 0 } },
-        { Type::Z, { 0, 0, 1 } },
-        { Type::DG, { 0, 0 } },
-        { Type::DGSTRESS, { 0, 0 } },
-        { Type::CG, { 1, 1 } },
-    })
+          { Type::H, { 0, 0 } },
+          { Type::VERTEX, { 1, 1 } },
+          { Type::U, { 0, 0 } },
+          { Type::V, { 0, 0 } },
+          { Type::Z, { 0, 0, 1 } },
+          { Type::DG, { 0, 0 } },
+          { Type::DGSTRESS, { 0, 0 } },
+          { Type::CG, { 1, 1 } },
+      })
 {
 }
 const size_t ModelArray::nCoords = 2;

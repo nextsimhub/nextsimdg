@@ -1,7 +1,7 @@
 /*!
  * @file    XiosFile_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    12 August 2024
+ * @date    03 Dec 2024
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -12,10 +12,7 @@
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
-#include "include/Configurator.hpp"
 #include "include/Xios.hpp"
-
-#include <iostream>
 
 using namespace doctest;
 
@@ -32,24 +29,14 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosFile", 2)
 {
-
-    // Enable XIOS in the 'config'
-    Configurator::clearStreams();
-    std::stringstream config;
-    config << "[xios]" << std::endl << "enable = true" << std::endl;
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
+    enableXios();
 
     // Initialize an Xios instance called xios_handler
-    Xios xios_handler;
+    Xios xios_handler("P0-0T01:30:00");
     REQUIRE(xios_handler.isInitialized());
     const size_t size = xios_handler.getClientMPISize();
     REQUIRE(size == 2);
     const size_t rank = xios_handler.getClientMPIRank();
-
-    // Set timestep as a minimum
-    Duration timestep("P0-0T01:30:00");
-    xios_handler.setCalendarTimestep(timestep);
 
     // Create a simple axis with two points
     xios_handler.createAxis("axis_A");
@@ -82,6 +69,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // Output frequency
     REQUIRE_THROWS_WITH(xios_handler.getFileOutputFreq(fileId),
         "Xios: Undefined output frequency for file 'output'");
+    Duration timestep = xios_handler.getCalendarTimestep();
     xios_handler.setFileOutputFreq(fileId, timestep);
     REQUIRE(xios_handler.getFileOutputFreq(fileId).seconds() == 1.5 * 60 * 60);
     // Split frequency

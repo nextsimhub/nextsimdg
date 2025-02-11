@@ -209,7 +209,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
         const std::string& name = entry.first;
         if (entry.second.getType() == ModelArray::Type::H && entry.second.trueSize() > 0) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
 #ifdef USE_MPI
             var.putVar(start2, size2, entry.second.getData());
 #else
@@ -217,7 +217,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
 #endif
         } else if (entry.second.getType() == ModelArray::Type::Z && entry.second.trueSize() > 0) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims3));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value);
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
 #ifdef USE_MPI
             var.putVar(start3, size3, entry.second.getData());
 #else

@@ -3,6 +3,7 @@ import numpy as np
 import numpy.ma as ma
 import time
 import math
+from pathlib import Path
 
 topaz_mdi = -32767
 
@@ -10,9 +11,9 @@ topaz_mdi = -32767
 def topaz4_source_file_name(field, unix_time):
     unix_tm = time.gmtime(unix_time)
     if field in ["u", "v"]:
-        return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_30m.nc"
+        return f"{topaz_path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_30m.nc"
     else:
-        return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
+        return f"{topaz_path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
 
 # Returns bilinearly interpolated data given array of fractional indices, when some of the data missing
 def bilinear_missing(eyes, jays, data, missing):
@@ -39,6 +40,7 @@ def bilinear_missing(eyes, jays, data, missing):
     
     return weighted_sum / sum_of_weights
 
+
 # Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates
 def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     # The TOPAZ grid is assumed and hard coded
@@ -46,10 +48,10 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     jc = 550
     
     # Scale of the map and zero longitude
-    two_r = 1 / math.radians(0.08982849)
+ #   two_r = 1 / math.radians(0.08982849)
     lon0 = math.radians(315.)
 
-    target_lat = np.radians(target_lat_deg)
+#    target_lat = np.radians(target_lat_deg)
     target_lon = np.radians(target_lon_deg)
 #    k = two_r * np.cos(target_lat) / np.sqrt(1 + np.sin(target_lat))
     # Use linear interpolation to get the target indices on the topaz grid
@@ -65,22 +67,36 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
 
 # Creates a 128 x 128 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description = "Generate an initial state file from TOPAZ4 data")
+    parser.add_argument("--grid-file", dest = "grid_file", default="25km_NH.nc", help = "Path of the NH grid file.")
+    parser.add_argument("--topaz-path", dest = "topaz_path", default=".", help = "Path containing the TOPAZ4 files.")
+    parser.add_argument("--land-mask", dest = "land_mask", default='data', help='One of "data" or "data_closed_boundary"')
+    parser.add_argument("--out-suffix", dest = "out_suffix", default='', help='Added to the name of the output file before the ending"')
+    
+    args = parser.parse_args()
+    grid_file = args.grid_file
+    topaz_path = args.topaz_path
+    land_mask = args.land_mask
+    out_suffix = args.out_suffix
 
-    grid = netCDF4.Dataset("25km_NH.nc", "r")
+    grid = netCDF4.Dataset(f"{grid_file}", "r")
     
     # Grid dimensions. Since x and y are switched between the source grid file
     # and the target restart file, the grid dimensions are nfirst and nsecond.
     # nsecond is the size of the dimension that varies fastest.
     nfirst = grid.dimensions["x"].size
     nsecond = grid.dimensions["y"].size
+    print(f"grid size: {nfirst} x {nsecond}")
     nLayers = 3
     ncg = 1
     n_dg = 1
     n_dgstress = 3
     n_coords = 2
     
-    
-    root = netCDF4.Dataset("init_25km_NH.nc", "w", format="NETCDF4")
+    grid_name = Path(grid_file).stem
+    out_name = f"init_{grid_name}{out_suffix}.nc"
+    root = netCDF4.Dataset(out_name, "w", format="NETCDF4")
     
     structure_name = "parametric_rectangular"
     structgrp = root.createGroup("structure")
@@ -145,9 +161,9 @@ if __name__ == "__main__":
     grid_azimuth_data -= 180
     grid_azimuth[:, :] = grid_azimuth_data
     
-    # Access the TOPAZ data, initally to get latitudes
+    # Access the TOPAZ data, initially to get latitudes
     source_file_name = topaz4_source_file_name("hice", data_time)
-    source_file = netCDF4.Dataset(topaz4_source_file_name("hice", data_time), "r")
+    source_file = netCDF4.Dataset(source_file_name, "r")
     source_lats = source_file["latitude"][:, :]
     lat_array = source_lats[550:, 380]
     
@@ -160,11 +176,16 @@ if __name__ == "__main__":
     mask = datagrp.createVariable("mask", "f8", field_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     mask[:, :] = 1 - ma.getmask(sst_data)
-    # Despite having the same data source, the restart file generation script 
-    # and forcing generation script have a consistent, one pixel difference
-    # at the western tip of the New Siberian Islands (100, 95).
-    # Force the land mask to be consistent.
-    mask[100, 95] = 0.0
+    
+    land_ratio = np.count_nonzero(mask) / mask.size
+    print(f"ratio of sea (active) cells to total: {land_ratio}")
+    if land_mask in ['data_closed_boundary']:
+        mask[:,0] = 0.0
+        mask[:,-1] = 0.0
+        mask[0,:] = 0.0
+        mask[-1,:] = 0.0
+        land_ratio = np.count_nonzero(mask) / mask.size
+        print(f"ratio after adjustment: {land_ratio}")
     
     # Ice concentration and thickness
     cice_data = topaz4_interpolate(element_lon, element_lat, source_file["fice"][0, :, :].squeeze(), lat_array)
@@ -206,9 +227,10 @@ if __name__ == "__main__":
 
     # Ice temperature
     tice = datagrp.createVariable("tice", "f8", zfield_dims)
-    ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
+    #ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
+    ice_melt = mu
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
-    ice_temp2d = np.fmin(sst_data, ice_melt) * isice
+    ice_temp2d = np.fmin(sst_data, ice_melt)
     tice[0, :, :] = ice_temp2d
     tice[1, :, :] = ice_temp2d
     tice[2, :, :] = ice_temp2d
@@ -223,3 +245,4 @@ if __name__ == "__main__":
     v[:, :] = 0
     
     root.close()
+    print(f'Created init file "{out_name}"')

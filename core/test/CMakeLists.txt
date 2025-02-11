@@ -138,21 +138,13 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS)
+        add_executable(testXiosReadWrite_MPI2 "XiosReadWrite_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosReadWrite_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
-            testXiosWrite_MPI2
+            testXiosReadWrite_MPI2
             PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
         )
-        target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
-
-        add_executable(testXiosRead_MPI2 "XiosRead_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosRead_MPI2 PRIVATE USE_XIOS USE_MPI)
-        target_include_directories(
-            testXiosRead_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
-        )
-        target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testXiosReadWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
     endif()
 else()
     add_executable(testRectGrid "RectGrid_test.cpp")
@@ -195,12 +187,6 @@ else()
 
     add_executable(testConfiguredModule "ConfiguredModule_test.cpp" "ArgV.cpp")
     target_link_libraries(testConfiguredModule PRIVATE nextsimlib doctest::doctest)
-
-    add_executable(testTimer "Timer_test.cpp")
-    target_link_libraries(testTimer PRIVATE nextsimlib doctest::doctest)
-
-    add_executable(testScopedTimer "ScopedTimer_test.cpp" "../src/ScopedTimer.cpp")
-    target_link_libraries(testScopedTimer PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testTimeClasses "Time_test.cpp")
     target_link_libraries(testTimeClasses PRIVATE nextsimlib doctest::doctest)
@@ -249,16 +235,41 @@ else()
     )
     target_link_libraries(testFileCallbackCloser PRIVATE doctest::doctest)
 
+    add_executable(
+        testFinalizer
+        "Finalizer_test.cpp"
+        "../../core/src/Finalizer.cpp"
+    )
+    target_link_libraries(testFinalizer PRIVATE doctest::doctest)
+
     set(MODEL_INCLUDE_DIR "./testmodelarraydetails")
 
     add_executable(
         testModelArray
         "ModelArray_test.cpp"
         "../src/ModelArray.cpp"
+        "../src/ModelArraySlice.cpp"
         "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp"
     )
     target_include_directories(testModelArray PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
     target_link_libraries(testModelArray PRIVATE doctest::doctest Eigen3::Eigen)
+
+    add_executable(
+        testSlice
+        "Slice_test.cpp"
+    )
+    target_include_directories(testSlice PRIVATE "../src")
+    target_link_libraries(testSlice PRIVATE doctest::doctest)
+
+    add_executable(
+        testModelArraySlice
+        "ModelArraySlice_test.cpp"
+        "../src/ModelArray.cpp"
+        "../src/ModelArraySlice.cpp"
+        "${MODEL_INCLUDE_DIR}/ModelArrayDetails.cpp"
+    )
+    target_include_directories(testModelArraySlice PRIVATE "../src" "${MODEL_INCLUDE_DIR}")
+    target_link_libraries(testModelArraySlice PRIVATE doctest::doctest Eigen3::Eigen)
 
     # The help config test needs access to the full binary
     file(CREATE_LINK ${NEXTSIM_BINARY_PATH} ${CMAKE_CURRENT_BINARY_DIR}/nextsim SYMBOLIC)

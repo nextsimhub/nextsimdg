@@ -1,7 +1,7 @@
 /*!
  * @file SMU2IceAlbedo.cpp
  *
- * @date Sep 22, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -17,13 +17,13 @@ namespace Nextsim {
 const double ICE_ALBEDO = 0.64;
 const double SNOW_ALBEDO = 0.85;
 
-std::tuple<double, double> SMU2IceAlbedo::surfaceShortWaveBalance(double temperature,
-        double snowThickness, double i0)
+std::tuple<double, double> SMU2IceAlbedo::surfaceShortWaveBalance(
+    double temperature, double snowThickness, double i0)
 {
     double albedo, penSW;
     if (snowThickness > 0.) {
-        albedo = std::fmin(SNOW_ALBEDO,
-                ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.4);
+        albedo
+            = std::fmin(SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.4);
         penSW = 0;
     } else {
         albedo = ICE_ALBEDO;
