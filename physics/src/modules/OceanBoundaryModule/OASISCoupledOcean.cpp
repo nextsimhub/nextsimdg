@@ -1,15 +1,17 @@
 /*!
  * @file OASISCoupledOcean.cpp
  *
- * @date 10 Sep 2024
+ * @date 12 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/OASISCoupledOcean.hpp"
+
+#include "include/Finalizer.hpp"
+#include "include/IFreezingPoint.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/Module.hpp"
-#include "include/constants.hpp"
+#include "include/NextsimModule.hpp"
 
 namespace Nextsim {
 
@@ -125,6 +127,9 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 
 void OASISCoupledOcean::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
+    Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
+
     SSTKey = Configured::getConfiguration(SSTConfigKey, SSTKeyDefault);
     SSSKey = Configured::getConfiguration(SSSConfigKey, SSSKeyDefault);
     UOceanKey = Configured::getConfiguration(UOceanConfigKey, UOceanKeyDefault);
@@ -142,13 +147,11 @@ void OASISCoupledOcean::configure()
 
     firstLayerDepth = Configured::getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
 
-    cplStringsIn
-      = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey };
+    cplStringsIn = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey };
     if (Configured::getConfiguration(exchangeFirstLayerConfigKey, EXCHANGE_FIRST_LAYER)) {
         cplStringsIn.push_back(MLDKey);
     }
-    cplStringsOut
-      = { TauXKey, TauYKey, TauModKey, EMPKey, QNoSunKey, QSWKey, SFluxKey, CIceKey };
+    cplStringsOut = { TauXKey, TauYKey, TauModKey, EMPKey, QNoSunKey, QSWKey, SFluxKey, CIceKey };
 }
 
 OASISCoupledOcean::HelpMap& OASISCoupledOcean::getHelpText(HelpMap& map, bool getAll)
@@ -198,4 +201,8 @@ OASISCoupledOcean::HelpMap& OASISCoupledOcean::getHelpRecursive(HelpMap& map, bo
     return getHelpText(map, getAll);
 }
 
+void OASISCoupledOcean::updateTf(const size_t i, const TimestepTime& tst)
+{
+    tf[i] = Module::getImplementation<IFreezingPoint>()(sss[i]);
+}
 } /* namespace Nextsim */

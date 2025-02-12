@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 10 Feb 2025
+ * @date 12 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,6 +23,8 @@ namespace Nextsim {
  */
 class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
+    SlabOcean() = delete;
+
     SlabOcean(ModelArrayReferenceStore& coupingArrays)
         : qdw(ModelArray::Type::H)
         , fdw(ModelArray::Type::H)

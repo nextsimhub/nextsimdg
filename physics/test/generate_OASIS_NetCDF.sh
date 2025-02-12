@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 InVars=(I_SST:-1.84 I_SSS:28 I_Uocn:-0.14 I_Vocn:0.71)
 # Optionally add

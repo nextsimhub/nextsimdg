@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.hpp
  *
- * @date 09 Sep 2024
+ * @date 12 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -9,11 +9,10 @@
 #ifndef OASISCOUPLEDOCEAN_HPP
 #define OASISCOUPLEDOCEAN_HPP
 
-#include "include/IFreezingPoint.hpp"
 #include "include/IOceanBoundary.hpp"
-#include "include/Module.hpp"
+
+#include "include/Configured.hpp"
 #include "include/OASISCoupled.hpp"
-#include "include/SlabOcean.hpp"
 
 namespace Nextsim {
 
@@ -56,15 +55,11 @@ static const std::string SFluxConfigKey = ".salt_flux";
 static const std::string CIceConfigKey = ".sea_ice_concentration";
 
 //* Ocean boundary data values that are hardcoded.
-class OASISCoupledOcean : public IOceanBoundary,
-                          public OASISCoupled,
-                          public Configured<OASISCoupledOcean> {
+class OASISCoupledOcean final : public IOceanBoundary,
+                                public OASISCoupled,
+                                public Configured<OASISCoupledOcean> {
 public:
-    OASISCoupledOcean()
-        : IOceanBoundary()
-    {
-    }
-    ~OASISCoupledOcean() { OASISCoupled::~OASISCoupled(); }
+    ~OASISCoupledOcean() override { OASISCoupled::~OASISCoupled(); }
 
     std::string getName() const override { return moduleName; }
     void updateBefore(const TimestepTime& tst) override;
@@ -83,12 +78,7 @@ private:
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
     const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
-    SlabOcean slabOcean;
-
-    void updateTf(size_t i, const TimestepTime& tst)
-    {
-        tf[i] = Module::getImplementation<IFreezingPoint>()(sss[i]);
-    }
+    void updateTf(size_t i, const TimestepTime& tst);
 
     // A map to relate the strings in the namcouple file to the numbers def_var spits out
     std::map<std::string, int> couplingId;
