@@ -161,7 +161,8 @@ if (ENABLE_OASIS)
 
         target_link_directories(nextsimlib PUBLIC ${NETCDF_LIBRARY_DIRS})
         target_link_directories(nextsimlib PUBLIC ${OASIS_LIBRARIES})
-        target_link_libraries(nextsimlib PUBLIC oasis.cbind mct mpeu psmile.MPI1 scrip netcdff netcdf)
+        target_link_libraries(nextsimlib
+            PUBLIC oasis.cbind mct mpeu psmile.MPI1 scrip netcdff netcdf)
         target_include_directories(nextsimlib PUBLIC ${OASIS_INCLUDES})
     else ()
         message(FATAL_ERROR "Cannot build with OASIS support, because MPI is not enabled" .)
