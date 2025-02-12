@@ -1,7 +1,7 @@
 /*!
  * @file   ModelArray.cpp
  *
- * @date   Feb 24, 2022
+ * @date   12 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -173,6 +173,13 @@ ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
 {
     m_data = this->min(minArr).m_data;
     return *this;
+}
+
+ModelArray ModelArray::sqrt()
+{
+    ModelArray sqrted = ModelArray(type);
+    sqrted.m_data.array() = m_data.array().sqrt();
+    return sqrted;
 }
 
 void ModelArray::setData(double value)

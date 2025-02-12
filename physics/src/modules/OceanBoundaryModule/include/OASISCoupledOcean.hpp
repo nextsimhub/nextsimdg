@@ -55,9 +55,9 @@ static const std::string SFluxConfigKey = ".salt_flux";
 static const std::string CIceConfigKey = ".sea_ice_concentration";
 
 //* Ocean boundary data values that are hardcoded.
-class OASISCoupledOcean final : public IOceanBoundary,
-                                public OASISCoupled,
-                                public Configured<OASISCoupledOcean> {
+class OASISCoupledOcean : public IOceanBoundary,
+                          public OASISCoupled,
+                          public Configured<OASISCoupledOcean> {
 public:
     ~OASISCoupledOcean() override { OASISCoupled::~OASISCoupled(); }
 

@@ -1,7 +1,7 @@
 /*!
  * @file   ModelArray.hpp
  *
- * @date   31 Oct 2024
+ * @date   12 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -259,6 +259,10 @@ public:
      * @param minArr the array of clamp minimum target values.
      */
     ModelArray& clampBelow(const ModelArray& minArr);
+    /*!
+     * @brief Returns the per-element square root of the array
+     */
+    ModelArray sqrt();
 
     using MultiDim = std::vector<size_t>;
 

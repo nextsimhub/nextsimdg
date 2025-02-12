@@ -1,7 +1,7 @@
 /*!
- * @file ModelData_test.cpp
+ * @file ModelArray_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 12 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -182,6 +182,9 @@ TEST_CASE("Arithmetic tests")
     OneDField negative = -rhs;
     REQUIRE(negative[0] == -3);
     REQUIRE(negative[1] == 5);
+    OneDField squareRoot = lhs.sqrt();
+    REQUIRE(squareRoot[0] == 3.);
+    REQUIRE(squareRoot[1] == std::sqrt(lhs[1]));
 
     double three = 3;
     double four = 4;

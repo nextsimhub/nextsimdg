@@ -20,7 +20,7 @@ void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
 #ifdef USE_OASIS
     // OASIS defining variable
 
-    /* Populate the couplingId map with the id string and number pair. We need to do this seperately
+    /* Populate the couplingId map with the id string and number pair. We need to do this separately
      * for the input (get) and output (put) variables. */
     // TODO: coplingID should be a map of <std::string, std::pair> where the pair is idNumber and
     // pointer to the ModelArray
@@ -61,9 +61,8 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &v[0], &kinfo));
 
-    // TODO: Implement ssh reading and passing to dynamics!
-    // OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSHKey), OASISTime, dimension0, dimension1,
-    //     bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
+    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSHKey), OASISTime, dimension0, dimension1,
+        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
 
     if (couplingId.find(MLDKey) != couplingId.end()) {
         OASIS_CHECK_ERR(oasis_c_get(couplingId.at(MLDKey), OASISTime, dimension0, dimension1,
@@ -95,28 +94,30 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     dummy.resize();
     dummy.setData(184.);
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauX[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauYKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauY[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &fwFlux[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QSWKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &qswNet[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QNoSunKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &qNoSun[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(SFluxKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &sFlux[0], OASIS_No_Restart, &kinfo));
 
+    // NEMO wants this field, even if it can be deduced from tauX and tauY
+    const HField tauMod = (tauX * tauX + tauY * tauY).sqrt();
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauModKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauMod[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(CIceKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &dummy[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &cice[0], OASIS_No_Restart, &kinfo));
 
     // Increment the "OASIS" time by the number of seconds in the time step
     updateOASISTime(tst);
@@ -130,22 +131,22 @@ void OASISCoupledOcean::configure()
     Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
     Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
 
-    SSTKey = Configured::getConfiguration(SSTConfigKey, SSTKeyDefault);
-    SSSKey = Configured::getConfiguration(SSSConfigKey, SSSKeyDefault);
-    UOceanKey = Configured::getConfiguration(UOceanConfigKey, UOceanKeyDefault);
-    VOceanKey = Configured::getConfiguration(VOceanConfigKey, VOceanKeyDefault);
-    SSHKey = Configured::getConfiguration(SSHConfigKey, SSHKeyDefault);
-    MLDKey = Configured::getConfiguration(MLDConfigKey, MLDKeyDefault);
-    TauXKey = Configured::getConfiguration(TauXConfigKey, TauXKeyDefault);
-    TauYKey = Configured::getConfiguration(TauYConfigKey, TauYKeyDefault);
-    TauModKey = Configured::getConfiguration(TauModConfigKey, TauModKeyDefault);
-    EMPKey = Configured::getConfiguration(EMPConfigKey, EMPKeyDefault);
-    QNoSunKey = Configured::getConfiguration(QNoSunConfigKey, QNoSunKeyDefault);
-    QSWKey = Configured::getConfiguration(QSWConfigKey, QSWKeyDefault);
-    SFluxKey = Configured::getConfiguration(SFluxConfigKey, SFluxKeyDefault);
-    CIceKey = Configured::getConfiguration(CIceConfigKey, CIceKeyDefault);
+    SSTKey = getConfiguration(SSTConfigKey, SSTKeyDefault);
+    SSSKey = getConfiguration(SSSConfigKey, SSSKeyDefault);
+    UOceanKey = getConfiguration(UOceanConfigKey, UOceanKeyDefault);
+    VOceanKey = getConfiguration(VOceanConfigKey, VOceanKeyDefault);
+    SSHKey = getConfiguration(SSHConfigKey, SSHKeyDefault);
+    MLDKey = getConfiguration(MLDConfigKey, MLDKeyDefault);
+    TauXKey = getConfiguration(TauXConfigKey, TauXKeyDefault);
+    TauYKey = getConfiguration(TauYConfigKey, TauYKeyDefault);
+    TauModKey = getConfiguration(TauModConfigKey, TauModKeyDefault);
+    EMPKey = getConfiguration(EMPConfigKey, EMPKeyDefault);
+    QNoSunKey = getConfiguration(QNoSunConfigKey, QNoSunKeyDefault);
+    QSWKey = getConfiguration(QSWConfigKey, QSWKeyDefault);
+    SFluxKey = getConfiguration(SFluxConfigKey, SFluxKeyDefault);
+    CIceKey = getConfiguration(CIceConfigKey, CIceKeyDefault);
 
-    firstLayerDepth = Configured::getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
+    firstLayerDepth = getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
 
     cplStringsIn = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey };
     if (Configured::getConfiguration(exchangeFirstLayerConfigKey, EXCHANGE_FIRST_LAYER)) {
