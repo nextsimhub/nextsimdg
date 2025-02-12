@@ -110,12 +110,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     timerBBM.start();
     // The timestep for the brittle solver is the solver subtimestep
-    this->deltaT = dt / this->nSteps;
+    this->deltaT = dt / params.nSteps;
 
     Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
     Kokkos::deep_copy(execSpace, avgVDevice, 0.0);
 
-    for (size_t subStep = 0; subStep < this->nSteps; ++subStep) {
+    for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
         timerProj.start();
         Base::projectVelocityToStrainDevice(this->uDevice, this->vDevice, this->e11Device,
             this->e12Device, this->e22Device, this->meshData->landMaskDevice, this->iMgradXDevice,
@@ -142,7 +142,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
             this->xGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightDevice,
             this->lumpedCGMassDevice, this->deltaT, this->params, cosOceanAngle, sinOceanAngle,
-            this->nSteps);
+            params.nSteps);
         timerMomentum.stop();
 
         timerBoundary.start();

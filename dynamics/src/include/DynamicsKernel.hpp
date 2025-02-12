@@ -196,7 +196,7 @@ protected:
     DGVector<DGstress> e11, e12, e22;
     DGVector<DGstress> s11, s12, s22;
 
-    size_t nSteps = 100;
+    size_t nSteps = 120;
 
     size_t stepNumber = 0;
 

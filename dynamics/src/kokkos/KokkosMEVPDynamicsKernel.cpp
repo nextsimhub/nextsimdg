@@ -79,7 +79,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     // The critical timestep for the VP solver is the advection timestep
     this->deltaT = tst.step.seconds();
 
-    for (size_t mevpstep = 0; mevpstep < this->nSteps; ++mevpstep) {
+    for (size_t mevpstep = 0; mevpstep < params.nSteps; ++mevpstep) {
         timerProj.start();
         Base::projectVelocityToStrainDevice(this->uDevice, this->vDevice, this->e11Device,
             this->e12Device, this->e22Device, this->meshData->landMaskDevice, this->iMgradXDevice,
