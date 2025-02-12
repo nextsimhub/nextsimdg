@@ -89,10 +89,6 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 #ifdef USE_OASIS
     int kinfo;
 
-    // TODO We still need the the actual data
-    HField dummy;
-    dummy.resize();
-    dummy.setData(184.);
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &tauX[0], OASIS_No_Restart, &kinfo));
 
