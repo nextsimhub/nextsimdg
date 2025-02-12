@@ -39,8 +39,10 @@ if(ENABLE_MPI)
     target_link_libraries(testTOPAZOcn_MPI1 PRIVATE nextsimlib doctest::doctest)
     if (ENABLE_OASIS)
         add_executable(testOASISCoupledOcean_MPI2 "OASISCoupledOcean_test.cpp" "MainMPI.cpp")
-        target_include_directories(testOASISCoupledOcean_MPI2 PRIVATE "${ModulesRoot}/OceanBoundaryModule")
-        target_compile_definitions(testOASISCoupledOcean_MPI2 PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
+        target_include_directories(testOASISCoupledOcean_MPI2
+            PRIVATE "${ModulesRoot}/OceanBoundaryModule")
+        target_compile_definitions(testOASISCoupledOcean_MPI2
+            PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
         target_link_libraries(testOASISCoupledOcean_MPI2 PRIVATE nextsimlib doctest::doctest)
     endif ()
 else()
