@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 11 Feb 2025
+ * @date 13 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -141,7 +141,9 @@ public:
         const HField meltSnowVol = deltaSmelt * cice;
         // Effective ice salinity is always less than or equal to the SSS, and here we use the right
         // units too
-        const HField effectiveIceSal = 1e-3 * sss.clampBelow(Ice::s);
+        HField effectiveIceSal = sss;
+        effectiveIceSal.clampBelow(Ice::s);
+        effectiveIceSal *= 1e-3;
 
         // Positive flux is up!
         fwFlux = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
