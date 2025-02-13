@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.hpp
  *
- * @date 12 Feb 2025
+ * @date 13 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -59,6 +59,7 @@ class OASISCoupledOcean : public IOceanBoundary,
                           public OASISCoupled,
                           public Configured<OASISCoupledOcean> {
 public:
+    OASISCoupledOcean() = default;
     ~OASISCoupledOcean() override { OASISCoupled::~OASISCoupled(); }
 
     std::string getName() const override { return moduleName; }
@@ -85,10 +86,11 @@ private:
     std::string SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey, MLDKey, TauXKey, TauYKey, TauModKey,
         EMPKey, QNoSunKey, QSWKey, SFluxKey, CIceKey;
 
-    std::vector<std::string> cplStringsIn
-        = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey }; // MLDKey can be added to this one
-    std::vector<std::string> cplStringsOut
-        = { TauXKey, TauYKey, TauModKey, EMPKey, QNoSunKey, QSWKey, SFluxKey, CIceKey };
+    // A map relating the namcouple strings to ModelArrayRef's
+    std::map<std::string, std::string> fieldTags;
+
+    std::vector<std::string> cplStringsIn;
+    std::vector<std::string> cplStringsOut;
 };
 
 } /* namespace Nextsim */
