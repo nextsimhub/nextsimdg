@@ -1,8 +1,8 @@
 #!/bin/bash
 
-InVars=(I_SST:-1.84 I_SSS:28 I_Uocn:-0.14 I_Vocn:0.71)
+InVars=(I_SST:-1.84 I_SSS:28 I_Uocn:-0.14 I_Vocn:0.71 I_SSH:14.8)
 # Optionally add
-# InVars+=(I_SSH:14.8 I_MLD:14.8)
+# InVars+=(I_MLD:14.8)
 
 OutVars=(I_taux I_tauy I_taumod I_fwflux I_rsnos I_rsso I_sfi I_conc)
 
