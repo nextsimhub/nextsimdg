@@ -18,9 +18,9 @@ namespace Nextsim {
 PrognosticData::PrognosticData()
     : m_dt(1)
     , m_snow(ModelArray::Type::H)
-    , m_damage(ModelArray::Type::H)
     , hiceAdvection(ModelArray::AdvectionType)
     , ciceAdvection(ModelArray::AdvectionType)
+    , damage(ModelArray::AdvectionType)
     , pAtmBdy(0)
     , pOcnBdy(0)
     , pDynamics(0)
@@ -29,7 +29,7 @@ PrognosticData::PrognosticData()
     getStore().registerArray(Protected::H_ICE, &hiceAdvection, RO);
     getStore().registerArray(Protected::C_ICE, &ciceAdvection, RO);
     getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
-    getStore().registerArray(Protected::DAMAGE, &m_damage, RO);
+    getStore().registerArray(Shared::DAMAGE, &damage, RW);
     getStore().registerArray(Shared::H_ICE_DG, &hiceAdvection, RW);
     getStore().registerArray(Shared::C_ICE_DG, &ciceAdvection, RW);
 }
@@ -88,18 +88,19 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
     copyMeanComponent(ms.at(hsnowName), m_snow);
     // Damage is an optional field, and defaults to 1, if absent
-    if (ms.count(damageName) > 0) {
-        copyMeanComponent(ms.at(damageName), m_damage);
-    } else {
-        m_damage.resize();
-        m_damage = 1.;
-    }
 
     // Copy the full DG data
     hiceAdvection = 0;
     ciceAdvection = 0;
+    damage = 0;
     copyAllComponents(ms.at(hiceName), hiceAdvection);
     copyAllComponents(ms.at(ciceName), ciceAdvection);
+    if (ms.count(damageName) > 0) {
+        copyAllComponents(ms.at(damageName), damage);
+    } else {
+        damage.resize();
+        damage = 1.;
+    }
 
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);

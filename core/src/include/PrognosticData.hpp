@@ -61,6 +61,7 @@ private:
     // Full DG component arrays of thickness and concentration
     AdvectedField hiceAdvection;
     AdvectedField ciceAdvection;
+    AdvectedField damage;
 
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;

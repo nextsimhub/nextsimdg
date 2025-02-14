@@ -77,12 +77,10 @@ public:
         stresstransport = std::make_unique<Nextsim::DGTransport<DGstressComp>>(*smesh);
         stresstransport->settimesteppingscheme("rk2");
 
-        damage.resize_by_mesh(*smesh);
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
 
         // Set the fields to zero. Prognostic fields will be filled from the restart file.
-        damage.zero();
         avgU.zero();
         avgV.zero();
     }
@@ -142,30 +140,18 @@ public:
     void setData(const std::string& name, const ModelArray& data) override
     {
         if (name == damageName) {
-            DGModelArray::ma2dg(data, damage);
+            throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
         } else {
             CGDynamicsKernel<DGadvection>::setData(name, data);
         }
     }
 
-    ModelArray getDG0Data(const std::string& name) const override
-    {
-
-        if (name == damageName) {
-            ModelArray data(ModelArray::Type::H);
-            return DGModelArray::dg2ma(damage, data);
-        } else {
-            return CGDynamicsKernel<DGadvection>::getDG0Data(name);
-        }
-    }
-
-    ModelArray getDGData(const std::string& name) const override
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override
     {
         if (name == damageName) {
-            ModelArray data(ModelArray::Type::DG);
-            return DGModelArray::dg2ma(damage, data);
+            damage = DGVectorHolder<DGadvection>(dgData);
         } else {
-            return CGDynamicsKernel<DGadvection>::getDGData(name);
+            CGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
         }
     }
 
@@ -178,7 +164,7 @@ protected:
 
     std::unique_ptr<DGTransport<DGstressComp>> stresstransport;
 
-    DGVector<DGadvection> damage;
+    DGVectorHolder<DGadvection> damage;
 
     // Common brittle parts of the momentum solver.
     void updateMomentum(const TimestepTime& tst) override

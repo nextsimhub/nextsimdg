@@ -22,17 +22,16 @@ public:
     IDynamics(bool usesDamageIn)
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
-        , damage(ModelArray::Type::H)
         , taux(ModelArray::Type::H)
         , tauy(ModelArray::Type::H)
         , shear(ModelArray::Type::H)
         , divergence(ModelArray::Type::H)
         , sigmaI(ModelArray::Type::H)
         , sigmaII(ModelArray::Type::H)
-        , hice(getStore())
-        , cice(getStore())
+//        , hice(getStore())
+//        , cice(getStore())
         , hsnow(getStore())
-        , damage0(getStore())
+        , damage(getStore())
         , uwind(getStore())
         , vwind(getStore())
         , uocean(getStore())
@@ -50,7 +49,6 @@ public:
         getStore().registerArray(Protected::SHEAR, &shear, RO);
         getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
         getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
-        getStore().registerArray(Shared::DAMAGE, &damage, RW);
     }
     virtual ~IDynamics() = default;
 
@@ -91,11 +89,6 @@ public:
     {
         uice.resize();
         vice.resize();
-        damage.resize();
-        if (!m_usesDamage) {
-            damage = 0.;
-        }
-
         shear.resize();
         divergence.resize();
         sigmaI.resize();
@@ -113,8 +106,6 @@ protected:
     // Shared ice velocity arrays
     HField uice;
     HField vice;
-    // Updated damage array
-    HField damage;
     // Ice-ocean stress (for the coupler, mostly)
     HField taux;
     HField tauy;
@@ -124,10 +115,10 @@ protected:
     HField sigmaI;
     HField sigmaII;
     // References to the DG0 finite volume data arrays
-    ModelArrayRef<Shared::H_ICE, RW> hice;
-    ModelArrayRef<Shared::C_ICE, RW> cice;
+//    ModelArrayRef<Shared::H_ICE, RW> hice;
+//    ModelArrayRef<Shared::C_ICE, RW> cice;
     ModelArrayRef<Shared::H_SNOW, RW> hsnow;
-    ModelArrayRef<Protected::DAMAGE, RO> damage0;
+    ModelArrayRef<Shared::DAMAGE, RW> damage;
 
     // References to the forcing velocity arrays
     ModelArrayRef<Protected::WIND_U> uwind;
