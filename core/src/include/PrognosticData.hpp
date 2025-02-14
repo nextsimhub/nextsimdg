@@ -56,13 +56,14 @@ public:
 
 private:
     ZField m_tice;
-    HField m_snow;
+//    HField m_snow;
     double m_dt;
 
     // Full DG component arrays of thickness and concentration
     AdvectedField hiceAdvection;
     AdvectedField ciceAdvection;
     AdvectedField damage;
+    AdvectedField hsnow; // cell averaged snow thickness
 
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;

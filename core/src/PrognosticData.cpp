@@ -17,11 +17,12 @@ namespace Nextsim {
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , m_snow(ModelArray::Type::H)
+//    , m_snow(ModelArray::Type::H)
     , m_tice(ModelArray::Type::Z)
     , hiceAdvection(ModelArray::AdvectionType)
     , ciceAdvection(ModelArray::AdvectionType)
     , damage(ModelArray::AdvectionType)
+    , hsnow(ModelArray::AdvectionType)
     , pAtmBdy(0)
     , pOcnBdy(0)
     , pDynamics(0)
@@ -29,11 +30,12 @@ PrognosticData::PrognosticData()
 {
     getStore().registerArray(Protected::H_ICE, &hiceAdvection, RO);
     getStore().registerArray(Protected::C_ICE, &ciceAdvection, RO);
-    getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
+    getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
     getStore().registerArray(Protected::T_ICE, &m_tice, RO);
     getStore().registerArray(Shared::DAMAGE, &damage, RW);
     getStore().registerArray(Shared::H_ICE_DG, &hiceAdvection, RW);
     getStore().registerArray(Shared::C_ICE_DG, &ciceAdvection, RW);
+    getStore().registerArray(Shared::H_SNOW_CELL, &hsnow, RW);
 }
 
 void PrognosticData::configure()
@@ -89,8 +91,6 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     }
 
     copyMeanComponent(ms.at(ticeName), m_tice);
-    copyMeanComponent(ms.at(hsnowName), m_snow);
-    // Damage is an optional field, and defaults to 1, if absent
 
     // Copy the full DG data
     hiceAdvection = 0;
@@ -98,10 +98,12 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     damage = 0;
     copyAllComponents(ms.at(hiceName), hiceAdvection);
     copyAllComponents(ms.at(ciceName), ciceAdvection);
+    copyAllComponents(ms.at(hsnowName), hsnow);
+    // Damage is an optional field, and defaults to 1 in the mean field, 0 in higher components
+    // if absent.
     if (ms.count(damageName) > 0) {
         copyAllComponents(ms.at(damageName), damage);
     } else {
-        damage.resize();
         damage.component(0) = 1.;
     }
 
@@ -109,6 +111,9 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pOcnBdy->setData(ms);
     pDynamics->setData(ms);
     iceGrowth.setData(ms);
+
+    // Set advected fields
+    pDynamics->addAdvectedField(hsnow);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
@@ -142,20 +147,15 @@ void PrognosticData::updatePrognosticFields()
     // Update the DG0 component of the DG fields
     hiceAdvection.component(0) = hiceUpd.data();
     ciceAdvection.component(0) = ciceUpd.allComponents();
-    m_snow.setData(hsnowUpd);
+    hsnow.component(0) = hsnowUpd;
+//    m_snow.setData(hsnowUpd);
     m_tice.setData(ticeUpd);
 }
 
 void PrognosticData::updateDynamicsFields()
 {
-    ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
     ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
 
-    // Calculate the cell average thicknesses
-    HField hsnowUpd;
-    hsnowUpd.setData(hsnowTrueUpd.allComponents() * ciceAdvection.component(0));
-
-    m_snow.setData(hsnowUpd);
     m_tice.setData(ticeUpd);
 }
 
@@ -173,7 +173,7 @@ ModelState PrognosticData::getState() const
                  { "hice", hiceAdvection },
                  { "cice", ciceAdvection },
                  { damageName, damage },
-                 { "hsnow", mask(m_snow) },
+                 { hsnowName, hsnow },
                  { "tice", mask(m_tice) },
                  { "sst", mask(sst) },
                  { "sss", mask(sss) },
