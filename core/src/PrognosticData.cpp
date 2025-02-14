@@ -102,7 +102,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
         copyAllComponents(ms.at(damageName), damage);
     } else {
         damage.resize();
-        damage = 1.;
+        damage.component(0) = 1.;
     }
 
     pAtmBdy->setData(ms);
