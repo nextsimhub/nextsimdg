@@ -113,7 +113,7 @@ public:
         }
     }
 
-    void setDGArray(const std::string& name, ModelArray::DataType& dgData)
+    virtual void setDGArray(const std::string& name, ModelArray::DataType& dgData)
     {
         if (name == hiceName) {
             hice = DGVectorHolder<DGadvection>(dgData);
