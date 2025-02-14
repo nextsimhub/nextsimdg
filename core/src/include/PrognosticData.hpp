@@ -55,7 +55,6 @@ public:
 
 private:
     HField m_snow;
-    HField m_damage;
     double m_dt;
 
     // Full DG component arrays of thickness and concentration
