@@ -26,7 +26,7 @@ public:
     ModelState getStateRecursive(const OutputSpec& os) const override { return ModelState(); };
 
     // Do nothing when update is called.
-    void update(const TimestepTime& tstep) override { damage = oldDamage; }
+    void update(const TimestepTime& tstep) override {}
 };
 
 }
