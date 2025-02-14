@@ -131,7 +131,6 @@ void PrognosticData::updatePrognosticFields()
     ModelArrayRef<Shared::C_ICE, RO> ciceUpd(getStore());
     ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
     ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
-    ModelArrayRef<Shared::DAMAGE, RO> damageUpd(getStore());
 
     // Calculate the cell average thicknesses
     HField hiceUpd = hiceTrueUpd * ciceUpd;
@@ -141,21 +140,18 @@ void PrognosticData::updatePrognosticFields()
     hiceAdvection.component(0) = hiceUpd.data();
     ciceAdvection.component(0) = ciceUpd.allComponents();
     m_snow.setData(hsnowUpd);
-    m_damage.setData(damageUpd);
 }
 
 void PrognosticData::updateDynamicsFields()
 {
     ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
     ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
-    ModelArrayRef<Shared::DAMAGE, RO> damageUpd(getStore());
 
     // Calculate the cell average thicknesses
     HField hsnowUpd;
     hsnowUpd.setData(hsnowTrueUpd.allComponents() * ciceAdvection.component(0));
 
     m_snow.setData(hsnowUpd);
-    m_damage.setData(damageUpd);
 }
 
 // Gets the diagnostic data from all subcomponents
