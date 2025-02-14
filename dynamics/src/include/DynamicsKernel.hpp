@@ -106,10 +106,6 @@ public:
         } else if (name == sshName) {
             DGModelArray::ma2dg(data, seaSurfaceHeight);
         } else {
-            // All other fields get shoved in a (labelled) bucket
-            DGModelArray::ma2dg(data, advectedFields[name]);
-            // …and have their type annotated
-            fieldType[name] = data.getType();
         }
     }
 
@@ -119,6 +115,15 @@ public:
             hice = DGVectorHolder<DGadvection>(dgData);
         } else if (name == ciceName) {
             cice = DGVectorHolder<DGadvection>(dgData);
+        }
+    }
+
+    template <typename C>
+    void setAdvectedFields(C& fieldContainer)
+    {
+        advectedFields.clear();
+        for (auto field : fieldContainer) {
+            advectedFields.push_back(DGVectorHolder<DGadvection>(*field));
         }
     }
 
@@ -137,7 +142,7 @@ public:
                 std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
         } else {
             // Any other named field must exist
-            return DGModelArray::dg2ma(advectedFields.at(name), data);
+            return ModelArray(ModelArray::component0Type(ModelArray::AdvectionType));
         }
     }
 
@@ -154,11 +159,7 @@ public:
             throw std::runtime_error(
                 std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
         } else {
-            // Use the stored array type to ensure the returned data has the correct type
-            ModelArray::Type type = fieldType.at(name);
-            ModelArray data(type);
-            data.resize();
-            return DGModelArray::dg2ma(advectedFields.at(name), data);
+            return ModelArray(ModelArray::AdvectionType);
         }
     }
 
@@ -176,6 +177,11 @@ public:
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
         Nextsim::LimitMin(hice, 0.0);
+
+        // Advect all other fields
+        for (DGVectorHolder<DGadvection>& field : advectedFields) {
+            dgtransport->step(tst.step.seconds(), field);
+        }
     }
 
 protected:
@@ -227,7 +233,7 @@ protected:
     virtual void prepareAdvection() = 0;
 
 private:
-    std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
+    std::vector<DGVectorHolder<DGadvection>> advectedFields;
 
     // A map from field name to the type of
     std::unordered_map<std::string, ModelArray::Type> fieldType;
