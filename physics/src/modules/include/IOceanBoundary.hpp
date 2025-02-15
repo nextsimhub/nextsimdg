@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 13 Feb 2025
+ * @date 15 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,8 +9,8 @@
 #define IOCEANBOUNDARY_HPP
 
 #include "include/ModelComponent.hpp"
-#include "include/constants.hpp"
 #include "include/ModelMetadata.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
@@ -179,7 +179,7 @@ protected:
     ModelArrayRef<Protected::C_ICE, RO> cice;
     ModelArrayRef<Protected::EVAP_MINUS_PRECIP, RO> emp;
     ModelArrayRef<Protected::IO_STRESS_X> tauXIO;
-    ModelArrayRef<Protected::IO_STRESS_X> tauYIO;
+    ModelArrayRef<Protected::IO_STRESS_Y> tauYIO;
     ModelArrayRef<Shared::NEW_ICE, RW> newIce;
     ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
     ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;

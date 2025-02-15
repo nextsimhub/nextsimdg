@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.cpp
  *
- * @date 12 Feb 2025
+ * @date 15 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -87,6 +87,8 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
 void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 {
 #ifdef USE_OASIS
+    mergeFluxes(tst);
+
     int kinfo;
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
@@ -117,6 +119,18 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 
     // Increment the "OASIS" time by the number of seconds in the time step
     updateOASISTime(tst);
+
+    /*
+    std::cout << "The OASIS output file should contain:\n";
+    std::cout << TauXKey << ": " << tauX[0] << std::endl;
+    std::cout << TauYKey << ": " << tauY[0] << std::endl;
+    std::cout << TauModKey << ": " << tauMod[0] << std::endl;
+    std::cout << EMPKey << ": " << fwFlux[0] << std::endl;
+    std::cout << QSWKey << ": " << qswNet[0] << std::endl;
+    std::cout << QNoSunKey << ": " << qNoSun[0] << std::endl;
+    std::cout << SFluxKey << ": " << sFlux[0] << std::endl;
+    std::cout << CIceKey << ": " << cice[0] << std::endl;
+    */
 #else
     throw std::runtime_error(std::string(__func__) + ": " + OASISError);
 #endif

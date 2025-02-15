@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean_test.cpp
  *
- * @date 13 Feb 2025
+ * @date 15 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -31,8 +31,45 @@ MPI_TEST_CASE("OASIS init put and get", 1)
     double sshIn = 14.8;
 
     HField cice(ModelArray::Type::H);
-    cice = 1.0;
+    cice = 0.8;
     ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
+
+    HField emp(ModelArray::Type::H);
+    emp = 1e-6;
+    ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
+
+    HField tauXIO(ModelArray::Type::H);
+    tauXIO = 3e-2;
+    ModelComponent::getStore().registerArray(Protected::IO_STRESS_X, &tauXIO);
+
+    HField tauYIO(ModelArray::Type::H);
+    tauYIO = 4e-2;
+    ModelComponent::getStore().registerArray(Protected::IO_STRESS_Y, &tauYIO);
+
+    HField newIce(ModelArray::Type::H);
+    newIce = 4e-2;
+    ModelComponent::getStore().registerArray(Shared::NEW_ICE, &newIce, RW);
+
+    HField deltaHice(ModelArray::Type::H);
+    deltaHice = 1e-4;
+    ModelComponent::getStore().registerArray(Shared::DELTA_HICE, &deltaHice, RW);
+
+    HField deltaSmelt(ModelArray::Type::H);
+    deltaSmelt = 1e-4;
+    ModelComponent::getStore().registerArray(Shared::HSNOW_MELT, &deltaSmelt, RW);
+
+    HField qow(ModelArray::Type::H);
+    qow = 100;
+    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
+
+    HField tauXOW(ModelArray::Type::H);
+    tauXOW = tauXIO;
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_X, &tauXOW, RW);
+
+    HField tauYOW(ModelArray::Type::H);
+    tauYOW = tauYIO;
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_Y, &tauYOW, RW);
+
     OASISCoupledOcean ocpl;
     ModelMetadata metadata;
     const std::vector<int> partInfo = { OASIS_Serial, 1, 1 };
@@ -44,7 +81,11 @@ MPI_TEST_CASE("OASIS init put and get", 1)
     ocpl.setMetadata(metadata);
     OASIS_CHECK_ERR(oasis_c_enddef());
 
-    ocpl.updateBefore(TimestepTime());
+    TimePoint t1("2000-01-01T00:00:00Z");
+    TimestepTime tst = { t1, Duration(600) };
+
+    ocpl.updateBefore(tst);
+
     ModelArrayRef<Protected::SST> sst(ModelComponent::getStore());
     ModelArrayRef<Protected::SSS> sss(ModelComponent::getStore());
     ModelArrayRef<Protected::OCEAN_U> u(ModelComponent::getStore());
@@ -64,7 +105,24 @@ MPI_TEST_CASE("OASIS init put and get", 1)
     REQUIRE(ssh[0] == sshIn);
     // REQUIRE(mld[0] == mldIn);
 
-    ocpl.updateAfter(TimestepTime());
+    ModelArrayRef<Shared::Q_SW_BASE, RW> qSwBase(ModelComponent::getStore());
+    qSwBase[0] = -2.;
+
+    ModelArrayRef<Shared::Q_SW_OW, RW> qswow(ModelComponent::getStore());
+    qswow[0] = -10.;
+
+    ocpl.updateAfter(tst);
+
+    /* The OASIS output file should contain:
+     * I_taux: 0.03
+     * I_tauy: 0.04
+     * I_taumod: 0.05
+     * I_fwflux: 0.0609935
+     * I_rsso: -3.6
+     * I_rsnos: -1651.14
+     * I_sfi: 0.000306278
+     * I_conc: 0.8
+     */
 
     OASIS_CHECK_ERR(oasis_c_terminate());
 }
