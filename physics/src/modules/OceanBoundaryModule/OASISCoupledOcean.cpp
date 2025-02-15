@@ -100,11 +100,13 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &fwFlux[0], OASIS_No_Restart, &kinfo));
 
+    const HField qswDown = -qswNet;
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QSWKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &qswNet[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &qswDown[0], OASIS_No_Restart, &kinfo));
 
+    const HField qNoSunDown = -qNoSun;
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QNoSunKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &qNoSun[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &qNoSunDown[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(SFluxKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &sFlux[0], OASIS_No_Restart, &kinfo));
@@ -126,8 +128,8 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     std::cout << TauYKey << ": " << tauY[0] << std::endl;
     std::cout << TauModKey << ": " << tauMod[0] << std::endl;
     std::cout << EMPKey << ": " << fwFlux[0] << std::endl;
-    std::cout << QSWKey << ": " << qswNet[0] << std::endl;
-    std::cout << QNoSunKey << ": " << qNoSun[0] << std::endl;
+    std::cout << QSWKey << ": " << qswDown[0] << std::endl;
+    std::cout << QNoSunKey << ": " << qNoSunDown[0] << std::endl;
     std::cout << SFluxKey << ": " << sFlux[0] << std::endl;
     std::cout << CIceKey << ": " << cice[0] << std::endl;
     */

@@ -39,7 +39,7 @@ MPI_TEST_CASE("OASIS init put and get", 1)
     ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
 
     HField tauXIO(ModelArray::Type::H);
-    tauXIO = 3e-2;
+    tauXIO = -3e-2;
     ModelComponent::getStore().registerArray(Protected::IO_STRESS_X, &tauXIO);
 
     HField tauYIO(ModelArray::Type::H);
@@ -114,12 +114,12 @@ MPI_TEST_CASE("OASIS init put and get", 1)
     ocpl.updateAfter(tst);
 
     /* The OASIS output file should contain:
-     * I_taux: 0.03
+     * I_taux: -0.03
      * I_tauy: 0.04
      * I_taumod: 0.05
      * I_fwflux: 0.0609935
-     * I_rsso: -3.6
-     * I_rsnos: -1651.14
+     * I_rsso: 3.6
+     * I_rsnos: 1651.14
      * I_sfi: 0.000306278
      * I_conc: 0.8
      */
