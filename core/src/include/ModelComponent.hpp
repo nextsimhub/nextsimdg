@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 08 Feb 2025
+ * @date 16 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -210,21 +210,9 @@ protected:
      */
     static const ModelArray& getOceanMask();
 
-    /*!
-     * @brief Check fields listed in fieldsToCheck. Throw a runtime_error if values are outside
-     * bounds.
-     */
-    void checkFields(const TimestepTime& tst);
-    std::vector<std::tuple<std::string, const ModelArray*, std::pair<double, double>>>
-        fieldsToCheck;
-
     static ModelArray* p_oceanMaskH;
 
 private:
-    int numToCheck;
-    int layerToCheck;
-    void checkFieldsElement(size_t i, const TimestepTime& tst);
-
     static ModelArrayReferenceStore store;
     static std::unordered_map<std::string, ModelComponent*> registeredModules;
 

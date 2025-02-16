@@ -1,14 +1,14 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 05 Dec 2024
+ * @date 16 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IOCEANBOUNDARY_HPP
 #define IOCEANBOUNDARY_HPP
 
-#include "include/ModelComponent.hpp"
+#include "include/CheckingModelComponent.hpp"
 
 namespace Nextsim {
 
@@ -21,7 +21,7 @@ namespace CouplingFields {
     constexpr TextTag SSH = "SSH"; // sea surface height, m
 }
 //! An interface class for the oceanic inputs into the ice physics.
-class IOceanBoundary : public ModelComponent {
+class IOceanBoundary : public CheckingModelComponent {
 public:
     IOceanBoundary()
     {

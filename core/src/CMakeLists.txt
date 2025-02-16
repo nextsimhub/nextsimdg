@@ -1,6 +1,7 @@
 # Sources for the main neXtSIM model
 
 set(BaseSources
+    "CheckingModelComponent.cpp"
     "Logged.cpp"
     "ModelConfig.cpp"
     "Model.cpp"

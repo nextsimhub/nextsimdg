@@ -1,15 +1,14 @@
 /*!
  * @file PrognosticData.hpp
  *
- * @date 08 Feb 2025
+ * @date 16 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef PROGNOSTICDATA_HPP
 #define PROGNOSTICDATA_HPP
 
-#include "ModelComponent.hpp"
-#include "PhysicalBounds.hpp"
+#include "CheckingModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IDynamics.hpp"
@@ -25,7 +24,7 @@ namespace Nextsim {
  * data values and handles their updates in the timestep, including all calls
  * to the variables those calculations depend on.
  */
-class PrognosticData : public ModelComponent, public Configured<PrognosticData> {
+class PrognosticData : public CheckingModelComponent, public Configured<PrognosticData> {
 public:
     PrognosticData();
     virtual ~PrognosticData() = default;
@@ -100,13 +99,6 @@ private:
     IceGrowth iceGrowth;
 
     void updatePrognosticFields();
-
-    static const std::string all;
-
-    void setFieldsToCheck();
-
-protected:
-    const std::map<std::string, std::string> externalNames;
 };
 
 } /* namespace Nextsim */

@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 08 Feb 2025
+ * @date 16 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -14,8 +14,6 @@
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
-
-const std::string PrognosticData::all = "ALL";
 
 static const std::string pfx = "PrognosticData";
 static const std::string fieldNamesKey = "debug.field_names";
@@ -36,15 +34,9 @@ PrognosticData::PrognosticData()
     , m_snow(ModelArray::Type::H)
     , m_tice(ModelArray::Type::Z)
     , m_damage(ModelArray::Type::H)
-    , pAtmBdy(0)
-    , pOcnBdy(0)
-    , pDynamics(0)
-    , externalNames({
-#include "include/ProtectedArrayNames.ipp"
-
-#include "include/SharedArrayNames.ipp"
-
-      })
+    , pAtmBdy(nullptr)
+    , pOcnBdy(nullptr)
+    , pDynamics(nullptr)
 {
     getStore().registerArray(Protected::H_ICE, &m_thick, RO);
     getStore().registerArray(Protected::C_ICE, &m_conc, RO);
@@ -109,48 +101,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     iceGrowth.setData(ms);
 
     if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
-        setFieldsToCheck();
-    }
-}
-
-// Go through the user supplied list of fields and get ModelArray* for each
-void PrognosticData::setFieldsToCheck()
-{
-    // Populate a map of field name and pointers. Either through getStore.getAllData() or from a
-    // user-supplied list
-    std::unordered_map<std::string, const ModelArray*> storeData;
-    if (const std::string listOfFields
-        = getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault);
-        listOfFields == all) { // Check *all* the fields
-        storeData = getStore().getAllData();
-    } else { // Populate storeData with the fields listed
-        std::istringstream fieldStream;
-        fieldStream.str(listOfFields);
-        for (std::string fieldName; std::getline(fieldStream, fieldName, ',');) {
-            try {
-                storeData.emplace(externalNames.at(fieldName),
-                    getStore().getArrayRef(externalNames.at(fieldName)));
-            } catch (std::out_of_range&) {
-                Logged::warning(pfx + ": No field with the name \"" + fieldName + "\" was found.");
-            }
-        }
-    }
-
-    // Create a reverse look up for externalNames so the user can see the "user-friendly name"
-    // in case of a crash
-    std::map<std::string, std::string> reverseNames;
-    for (const auto& ext : externalNames) {
-        reverseNames[ext.second] = ext.first;
-    }
-
-    // Populate fieldsToCheck with user supplied fields
-    for (const auto& x : storeData) {
-        // Only check arrays that are in use (have been set/resized)
-        if (x.second->data().rows() != 0) {
-            PhysicalBounds bounds;
-            fieldsToCheck.push_back(
-                { pfx + ": " + reverseNames.at(x.first), x.second, bounds.getBounds(x.first) });
-        }
+        setFieldsToCheck(getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault), pfx);
     }
 }
 

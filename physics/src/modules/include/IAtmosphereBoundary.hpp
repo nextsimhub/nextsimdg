@@ -1,12 +1,12 @@
 /*!
  * @file IAtmosphereBoundary.hpp
  *
- * @date 24 Sep 2024
+ * @date 16 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#include "include/CheckingModelComponent.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 #ifndef IATMOSPHEREBOUNDARY_HPP
@@ -24,7 +24,7 @@ namespace CouplingFields {
 
 }
 //! An interface class for the atmospheric inputs into the ice physics.
-class IAtmosphereBoundary : public ModelComponent {
+class IAtmosphereBoundary : public CheckingModelComponent {
 public:
     IAtmosphereBoundary()
         : qia(ModelArray::Type::H)
