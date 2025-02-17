@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.hpp
  *
- * @date 11 Feb 2025
+ * @date 17 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -25,10 +25,7 @@ public:
     TOPAZOcean();
     ~TOPAZOcean() = default;
 
-    enum {
-        FILEPATH_KEY,
-        CHECKS_KEY,
-    };
+    enum { FILEPATH_KEY, CHECKFIELDS_KEY, FIELDNAMES_KEY };
 
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "TOPAZOcean"; }
@@ -42,14 +39,16 @@ public:
 
     void setFilePath(const std::string& filePathIn);
 
+    static std::string fileKey, checkFieldsKey, fieldNamesKey;
+
 private:
     // Updates the freezing point of an element
     void updateTf(size_t i, const TimestepTime& tst);
 
     // Since the configuration is global, it makes sense for the file path to
     // be static.
-    static std::string filePath;
-    static bool doChecks;
+    static std::string filePath, pfx;
+    static bool checkFieldsDefault;
 
     HField sstExt;
     HField sssExt;

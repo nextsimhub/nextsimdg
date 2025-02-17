@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 11 Feb 2025
+ * @date 17 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -13,20 +13,21 @@
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
 
-#include <include/PhysicalBounds.hpp>
-
 namespace Nextsim {
 
 std::string TOPAZOcean::filePath;
-bool TOPAZOcean::doChecks;
 
-static const std::string pfx = "TOPAZOcean";
-static const std::string fileKey = pfx + ".file";
-static const std::string checksKey = pfx + ".check_fields";
+bool TOPAZOcean::checkFieldsDefault = false;
+
+std::string TOPAZOcean::pfx = "TOPAZOcean";
+std::string TOPAZOcean::fileKey = pfx + ".file";
+std::string TOPAZOcean::checkFieldsKey = pfx + ".check_fields";
+std::string TOPAZOcean::fieldNamesKey = pfx + "fields_names";
 
 static const std::map<int, std::string> keyMap = {
-    { TOPAZOcean::FILEPATH_KEY, fileKey },
-    { TOPAZOcean::CHECKS_KEY, checksKey },
+    { TOPAZOcean::FILEPATH_KEY, TOPAZOcean::fileKey },
+    { TOPAZOcean::FIELDNAMES_KEY, TOPAZOcean::fieldNamesKey },
+    { TOPAZOcean::CHECKFIELDS_KEY, TOPAZOcean::checkFieldsKey },
 };
 
 TOPAZOcean::TOPAZOcean()
@@ -40,8 +41,10 @@ ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getA
     map[pfx] = {
         { fileKey, ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the TOPAZ forcings." },
-        { checksKey, ConfigType::BOOLEAN, {}, "false", "",
-            "Check if the inputs are physically consistent." },
+        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsDefault), "",
+            "Switch to check if the fields listed in field_names are within a reasonable "
+            "physical range and not NaN." },
     };
 
     return map;
@@ -59,24 +62,16 @@ void TOPAZOcean::configure()
     tryConfigure(*pFreezingPoint);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
-    doChecks = Configured::getConfiguration(keyMap.at(CHECKS_KEY), false);
-
-    if (doChecks) {
-        const PhysicalBounds bounds;
-        // clang-format off
-        fieldsToCheck.push_back({pfx+": sstExt", &sstExt, bounds.getBounds(Protected::EXT_SST)});
-        fieldsToCheck.push_back({pfx+": sssExt", &sssExt, bounds.getBounds(Protected::EXT_SSS)});
-        fieldsToCheck.push_back({pfx+": mld",    &mld,    bounds.getBounds(Protected::MLD)});
-        fieldsToCheck.push_back({pfx+": u",      &u,      bounds.getBounds(Protected::OCEAN_U)});
-        fieldsToCheck.push_back({pfx+": v",      &v,      bounds.getBounds(Protected::OCEAN_V)});
-        fieldsToCheck.push_back({pfx+": ssh",    &ssh,    bounds.getBounds(Protected::SSH)});
-        // clang-format on
-    }
 
     slabOcean.configure();
 
     getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
+
+    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
+        std::string fieldNames = "sst_ext,sss_ext,mld,ocean_u,ocean_v,ssh";
+        setFieldsToCheck(fieldNames, pfx);
+    }
 }
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)

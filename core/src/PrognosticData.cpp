@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 16 Feb 2025
+ * @date 17 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -62,6 +62,10 @@ void PrognosticData::configure()
     tryConfigure(pDynamics);
 
     tryConfigure(iceGrowth);
+
+    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
+        setFieldsToCheck(getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault), pfx);
+    }
 }
 
 // Copies an HField from a source ModelArray that is either an HField or a DGField.
@@ -99,10 +103,6 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pOcnBdy->setData(ms);
     pDynamics->setData(ms);
     iceGrowth.setData(ms);
-
-    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
-        setFieldsToCheck(getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault), pfx);
-    }
 }
 
 void PrognosticData::update(const TimestepTime& tst)

@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 16 Feb 2025
+ * @date 17 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -25,6 +25,10 @@ void CheckingModelComponent::checkFields(const TimestepTime& tst)
     for (numToCheck = 0; numToCheck < fieldsToCheck.size(); ++numToCheck) {
 
         const ModelArray* array = std::get<1>(fieldsToCheck[numToCheck]);
+
+        // Only check arrays that are in use (have been set/resized)
+        if (array->data().rows() == 0)
+            continue;
 
         int nLayers;
         if (array->nDimensions() == 3)
@@ -87,12 +91,9 @@ void CheckingModelComponent::setFieldsToCheck(
 
     // Populate fieldsToCheck with user supplied fields
     for (const auto& x : storeData) {
-        // Only check arrays that are in use (have been set/resized)
-        if (x.second->data().rows() != 0) {
-            PhysicalBounds bounds;
-            fieldsToCheck.push_back(
-                { prefix + ": " + reverseNames.at(x.first), x.second, bounds.getBounds(x.first) });
-        }
+        PhysicalBounds bounds;
+        fieldsToCheck.emplace_back(
+            prefix + ": " + reverseNames.at(x.first), x.second, bounds.getBounds(x.first));
     }
 }
 

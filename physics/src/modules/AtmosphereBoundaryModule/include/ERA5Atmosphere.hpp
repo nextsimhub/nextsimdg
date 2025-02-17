@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.hpp
  *
- * @date 24 Jan 2025
+ * @date 17 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -24,10 +24,7 @@ public:
     ERA5Atmosphere();
     ~ERA5Atmosphere() = default;
 
-    enum {
-        FILEPATH_KEY,
-        CHECKS_KEY,
-    };
+    enum { FILEPATH_KEY, CHECKFIELDS_KEY, FIELDNAMES_KEY };
 
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "ERA5Atmosphere"; }
@@ -41,11 +38,13 @@ public:
 
     void setFilePath(const std::string& filePathIn);
 
+    static std::string fileKey, checkFieldsKey, fieldNamesKey;
+
 private:
     // Since the configuration is global, it makes sense for the file path to
     // be static.
-    static std::string filePath;
-    static bool doChecks;
+    static std::string filePath, pfx;
+    static bool checkFieldsDefault;
 
     HField tair;
     HField tdew;

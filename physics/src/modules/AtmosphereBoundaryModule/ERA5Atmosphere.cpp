@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 08 Feb 2025
+ * @date 17 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -16,19 +16,22 @@
 namespace Nextsim {
 
 std::string ERA5Atmosphere::filePath;
-bool ERA5Atmosphere::doChecks;
 
-static const std::string pfx = "ERA5Atmosphere";
-static const std::string fileKey = pfx + ".file";
-static const std::string checksKey = pfx + ".check_fields";
+bool ERA5Atmosphere::checkFieldsDefault = false;
+
+std::string ERA5Atmosphere::pfx = "ERA5Atmosphere";
+std::string ERA5Atmosphere::fileKey = pfx + ".file";
+std::string ERA5Atmosphere::checkFieldsKey = pfx + ".check_fields";
+std::string ERA5Atmosphere::fieldNamesKey = pfx + "fields_names";
 
 static const std::map<int, std::string> keyMap = {
-    { ERA5Atmosphere::FILEPATH_KEY, fileKey },
-    { ERA5Atmosphere::CHECKS_KEY, checksKey },
+    { ERA5Atmosphere::FILEPATH_KEY, ERA5Atmosphere::fileKey },
+    { ERA5Atmosphere::FIELDNAMES_KEY, ERA5Atmosphere::fieldNamesKey },
+    { ERA5Atmosphere::CHECKFIELDS_KEY, ERA5Atmosphere::checkFieldsKey },
 };
 
 ERA5Atmosphere::ERA5Atmosphere()
-    : fluxImpl(0)
+    : fluxImpl(nullptr)
 {
     getStore().registerArray(Protected::T_AIR, &tair, RO);
     getStore().registerArray(Protected::DEW_2M, &tdew, RO);
@@ -43,8 +46,10 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
     map[pfx] = {
         { fileKey, ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the ERA5 forcings." },
-        { checksKey, ConfigType::BOOLEAN, {}, "false", "",
-            "Check if the inputs are physically consistent." },
+        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsDefault), "",
+            "Switch to check if the fields listed in field_names are within a reasonable "
+            "physical range and not NaN." },
     };
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
@@ -56,24 +61,14 @@ void ERA5Atmosphere::configure()
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
-    doChecks = Configured::getConfiguration(keyMap.at(CHECKS_KEY), false);
-
-    if (doChecks) {
-        const PhysicalBounds bounds;
-        // clang-format off
-        fieldsToCheck.push_back({pfx+": tair",  &tair,  bounds.getBounds(Protected::T_AIR)});
-        fieldsToCheck.push_back({pfx+": tdew",  &tdew,  bounds.getBounds(Protected::DEW_2M)});
-        fieldsToCheck.push_back({pfx+": pair",  &pair,  bounds.getBounds(Protected::P_AIR)});
-        fieldsToCheck.push_back({pfx+": sw_in", &sw_in, bounds.getBounds(Protected::SW_IN)});
-        fieldsToCheck.push_back({pfx+": lw_in", &lw_in, bounds.getBounds(Protected::LW_IN)});
-        fieldsToCheck.push_back({pfx+": wind",  &wind,  bounds.getBounds(Protected::WIND_SPEED)});
-        fieldsToCheck.push_back({pfx+": uwind", &uwind, bounds.getBounds(Protected::WIND_U)});
-        fieldsToCheck.push_back({pfx+": vwind", &vwind, bounds.getBounds(Protected::WIND_V)});
-        // clang-format on
-    }
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
+
+    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
+        std::string fieldNames = "tair,dew2m,pair,sw_in,lw_in,wind_speed,wind_u,wind_v";
+        setFieldsToCheck(fieldNames, pfx);
+    }
 }
 
 void ERA5Atmosphere::update(const TimestepTime& tst)
