@@ -27,8 +27,8 @@ EOF
 
 # Create a file for defining compiler and linking flags for building XIOS
 cat <<EOF >arch/arch-GCC_LINUX.path
-NETCDF_INCDIR="-I \$NETCDF_INC_DIR -I \$NETCDFFORT_INC_DIR"
-NETCDF_LIBDIR="-L \$NETCDF_LIB_DIR -L \$NETCDFFORT_LIB_DIR"
+NETCDF_INCDIR="\$(pkg-config --cflags-only-I netcdf-fortran)"
+NETCDF_LIBDIR="\$(pkg-config --libs-only-L netcdf) \$(pkg-config --libs-only-L netcdf-fortran)"
 NETCDF_LIB="-lnetcdff -lnetcdf"
 
 MPI_INCDIR=""
