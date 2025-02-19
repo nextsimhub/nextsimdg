@@ -33,13 +33,16 @@ if(NETCDF_CXX4_FOUND)
     set(netCDF_LIB_DIR "${NETCDF_CXX4_LIBRARY_DIRS}")
 else()
     find_package(NetCDF COMPONENTS C CXX REQUIRED)
+    message(STATUS "CMAKE_HOST_SYSTEM_NAME=${CMAKE_HOST_SYSTEM_NAME}")
     set(NSDG_NetCDF_Library "${NetCDF_LIBRARIES}")
     set(netCDF_INCLUDE_DIR "${NetCDF_INCLUDE_DIRS}")
 endif()
 
 target_include_directories(nextsimlib PUBLIC "${netCDF_INCLUDE_DIR}")
 target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsimlib PUBLIC "${NSDG_NetCDF_Library}")
+set(FORTRAN_RUNTIME_LIB "-lifcore")
+message(STATUS "FORTRAN_RUNTIME_LIB = ${FORTRAN_RUNTIME_LIB}")
+target_link_libraries(nextsimlib PUBLIC "${NSDG_NetCDF_Library}" "${FORTRAN_RUNTIME_LIB}")
 
 if(BUILD_TESTS)
     # Add the doctest header library
