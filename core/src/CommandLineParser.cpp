@@ -1,8 +1,9 @@
 /*!
  * @file CommandLineParser.cpp
  *
- * @date Oct 8, 2021
+ * @date Jan 29, 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Tim Williams <timothy.williams@nersc.no>
  */
 
 #include "include/CommandLineParser.hpp"
@@ -59,6 +60,7 @@ CommandLineParser::CommandLineParser(int argc, char* argv[])
 
     // Print help and exit
     if (m_arguments.count("help") || m_arguments.empty()) {
+        opt.print(std::cout);
         std::exit(EXIT_SUCCESS);
     }
 
