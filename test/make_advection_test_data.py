@@ -35,6 +35,9 @@ cice[ice_stop-1, :] *= 0.5
 cice[:, ice_start] *= 0.5
 cice[:, ice_stop-1] *= 0.5
 
+# An array containing 1 where there is *any* ice, 0 otherwise
+ice_mask = np.clip(cice * 1000, 0., 1.)
+
 def get_data(name):
     if name == "nx":
         return nx
@@ -77,7 +80,7 @@ def get_data(name):
     elif name == "hsnow":
         hsnow1d = np.zeros((nx))
         hsnow1d[ice_start + snow_offset:ice_start + snow_offset + 2*snow_hw - 1] = [0.25, 0.5, 0.75, 1.0, 0.75, 0.5, 0.25]
-        return cice * hsnow1d
+        return cice * 0#hsnow1d
     elif name == "sss":
         return np.ones((ny, nx)) * 35
     elif name =="sst":
@@ -85,7 +88,8 @@ def get_data(name):
     elif name == "tice":
         return cice * -1.5
     elif name == "u":
-        return np.ones((ny, nx)) * 1.
+        u0 = 0.1
+        return ice_mask * u0
     elif name == "v":
         return np.zeros((ny, nx))
     
