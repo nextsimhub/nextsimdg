@@ -1,5 +1,5 @@
 /*!
- * @file ModelComponent.cpp
+ * @file CheckingModelComponent.cpp
  *
  * @date 26 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
