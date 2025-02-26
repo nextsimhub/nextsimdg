@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 16 Feb 2025
+ * @date 26 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -22,8 +22,20 @@ public:
      * bounds.
      */
     void checkFields(const TimestepTime& tst);
-    std::vector<std::tuple<std::string, const ModelArray*, std::pair<double, double>>>
-        fieldsToCheck;
+    class fieldInfo {
+    public:
+        fieldInfo(std::string n, const ModelArray* a, const std::pair<double, double>& b)
+            : name(std::move(n))
+            , arrayRef(a)
+            , bounds(b)
+        {
+        }
+
+        const std::string name;
+        const ModelArray* arrayRef;
+        const std::pair<double, double> bounds;
+    };
+    std::vector<fieldInfo> fieldsToCheck;
 
     /*!
      * @brief Populate the internal fieldsToCheck vector from a list of TextTag strings and model

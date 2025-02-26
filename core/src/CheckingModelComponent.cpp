@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 17 Feb 2025
+ * @date 26 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -24,7 +24,7 @@ void CheckingModelComponent::checkFields(const TimestepTime& tst)
     // numToCheck must be in scope for checkFieldElement as well
     for (numToCheck = 0; numToCheck < fieldsToCheck.size(); ++numToCheck) {
 
-        const ModelArray* array = std::get<1>(fieldsToCheck[numToCheck]);
+        const ModelArray* array = fieldsToCheck[numToCheck].arrayRef;
 
         // Only check arrays that are in use (have been set/resized)
         if (array->data().rows() == 0)
@@ -50,12 +50,11 @@ void CheckingModelComponent::checkFields(const TimestepTime& tst)
 void CheckingModelComponent::checkFieldsElement(size_t i, const TimestepTime& tst) const
 {
     const auto& x = fieldsToCheck[numToCheck];
-    const double& value = std::get<1>(x)->zIndexAndLayer(i, layerToCheck);
-    const auto& bounds = std::get<2>(x);
-    if (value < bounds.first || value > bounds.second || std::isnan(value))
-        throw std::runtime_error(std::get<0>(x) + " is out of bounds: " + std::to_string(value)
-            + " is not within [" + std::to_string(bounds.first) + ","
-            + std::to_string(bounds.second) + "].\n" + "Error at time step " + tst.start.format()
+    const double& value = x.arrayRef->zIndexAndLayer(i, layerToCheck);
+    if (value < x.bounds.first || value > x.bounds.second || std::isnan(value))
+        throw std::runtime_error(x.name + " is out of bounds: " + std::to_string(value)
+            + " is not within [" + std::to_string(x.bounds.first) + ","
+            + std::to_string(x.bounds.second) + "].\n" + "Error at time step " + tst.start.format()
             + " and index " + std::to_string(i));
 }
 
