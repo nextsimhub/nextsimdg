@@ -21,41 +21,37 @@ CheckingModelComponent::CheckingModelComponent()
 
 void CheckingModelComponent::checkFields(const TimestepTime& tst)
 {
-    // numToCheck must be in scope for checkFieldElement as well
-    for (numToCheck = 0; numToCheck < fieldsToCheck.size(); ++numToCheck) {
-
-        const ModelArray* array = fieldsToCheck[numToCheck].arrayRef;
-
+    for (auto& field : fieldsToCheck) {
         // Only check arrays that are in use (have been set/resized)
-        if (array->data().rows() == 0)
+        if (field.arrayRef->data().rows() == 0)
             continue;
 
-        int nLayers;
-        if (array->nDimensions() == 3)
-            nLayers = array->dimensions()[2];
-        else if (array->nDimensions() == 2)
-            nLayers = 1;
-        else
-            throw std::logic_error(
-                "ModelComponent::checkFields expected a field with 2 or 3 dimensions.\n");
+        // We need a sensible fill value for land points
+        const double fillValue = (field.bounds.second + field.bounds.first) * 0.5;
 
-        // layerToCheck must be in scope for checkFieldElement as well
-        for (layerToCheck = 0; layerToCheck < nLayers; ++layerToCheck)
-            overElements(std::bind(&CheckingModelComponent::checkFieldsElement, this,
-                             std::placeholders::_1, std::placeholders::_2),
-                tst);
+        // We need to mask the data, so that the checks don't stumble over the land mask
+        const ModelArray::DataType masked
+            = getOceanMask().data().select(field.arrayRef->data(), fillValue);
+
+        if (masked.isNaN().any()) {
+            throw std::runtime_error(
+                field.name + " contains a NaN. Error at time step " + tst.start.format());
+        }
+        if (masked.minCoeff() < field.bounds.first) {
+            int i;
+            throw std::runtime_error(field.name + " is out of bounds. "
+                + std::to_string(masked.col(0).minCoeff(&i)) + " < "
+                + std::to_string(field.bounds.first) + ". Error at index " + std::to_string(i)
+                + " and time step " + tst.start.format());
+        }
+        if (masked.maxCoeff() > field.bounds.second) {
+            int i;
+            throw std::runtime_error(field.name + " is out of bounds. "
+                + std::to_string(masked.col(0).maxCoeff(&i)) + " > "
+                + std::to_string(field.bounds.second) + ". Error at index " + std::to_string(i)
+                + " and time step " + tst.start.format());
+        }
     }
-}
-
-void CheckingModelComponent::checkFieldsElement(size_t i, const TimestepTime& tst) const
-{
-    const auto& x = fieldsToCheck[numToCheck];
-    const double& value = x.arrayRef->zIndexAndLayer(i, layerToCheck);
-    if (value < x.bounds.first || value > x.bounds.second || std::isnan(value))
-        throw std::runtime_error(x.name + " is out of bounds: " + std::to_string(value)
-            + " is not within [" + std::to_string(x.bounds.first) + ","
-            + std::to_string(x.bounds.second) + "].\n" + "Error at time step " + tst.start.format()
-            + " and index " + std::to_string(i));
 }
 
 // Go through the user supplied list of fields and get ModelArray* for each

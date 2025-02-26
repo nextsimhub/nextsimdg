@@ -47,12 +47,7 @@ public:
     static const std::string all;
 
 private:
-    int numToCheck;
-    int layerToCheck;
-    void checkFieldsElement(size_t i, const TimestepTime& tst) const;
-
     void setFieldsToCheck();
-
     std::map<std::string, std::string> externalNames;
 };
 
