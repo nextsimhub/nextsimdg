@@ -1,6 +1,6 @@
 /*!
  * @file Iterator.cpp
- * @date 02 Feb 2025
+ * @date 26 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -37,10 +37,8 @@ TimePoint Iterator::parseAndSet(const std::string& startTimeStr, const std::stri
     return startTime;
 }
 
-int Iterator::run()
+void Iterator::run()
 {
-    int return_code = 0;
-
     iterant.start(startTime);
 
     for (auto t = startTime; t < stopTime; t += timestep) {
@@ -48,15 +46,12 @@ int Iterator::run()
         try {
             iterant.iterate(tsTime);
         } catch (const std::exception& e) {
-            std::cerr << e.what() << '\n';
-            return_code = 1;
-            break;
+            iterant.stop(t);
+            throw;
         }
     }
 
     iterant.stop(stopTime);
-
-    return return_code;
 }
 
 } /* namespace Nextsim */

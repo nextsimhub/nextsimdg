@@ -1,6 +1,6 @@
 /*!
  * @file Model.hpp
- * @date 27 Jan 2025
+ * @date 26 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -57,7 +57,7 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     //! Run the model
-    int run();
+    void run();
 
     void writeRestartFile();
 

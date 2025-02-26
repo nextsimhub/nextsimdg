@@ -1,6 +1,6 @@
 /*!
  * @file Model.cpp
- * @date 27 Jan 2025
+ * @date 26 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -167,13 +167,18 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     return map;
 }
 
-int Model::run()
+void Model::run()
 {
-    const int return_code = iterator.run();
+    try {
+        iterator.run();
+    } catch (const std::exception& e) {
+        writeRestartFile();
+        Finalizer::finalize();
+        throw;
+    }
+
     writeRestartFile();
     Finalizer::finalize();
-
-    return return_code;
 }
 
 //! Write a restart file for the model.

@@ -1,6 +1,6 @@
 /*!
  * @file Iterator.hpp
- * @date 02 Feb 2025
+ * @date 26 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -59,7 +59,7 @@ public:
     TimePoint parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
         const std::string& durationStr, const std::string& stepStr);
     //! Run the Iterant over the specified time period.
-    int run();
+    void run();
 
 private:
     Iterant& iterant;

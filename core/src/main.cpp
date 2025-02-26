@@ -1,6 +1,6 @@
 /*!
  * @file main.cpp
- * @date 27 Jan 2025
+ * @date 26 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -56,7 +56,12 @@ int main(int argc, char* argv[])
         // Apply the model configuration
         model.configure();
         // Run the Model
-        return_code = model.run();
+        try {
+            model.run();
+        } catch (const std::exception& e) {
+            return_code = -1;
+            Nextsim::Logged::error(e.what());
+        }
     }
 #ifdef USE_MPI
     MPI_Finalize();
