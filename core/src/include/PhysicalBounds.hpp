@@ -1,7 +1,7 @@
 /*!
  * @file PhysicalBounds.hpp
  *
- * @date 08 Feb 2025
+ * @date 27 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -81,11 +81,15 @@ public:
         addBounds(Shared::H_ICE, 0, 50); // Updated ice thickness, ice average, m
         addBounds(Shared::H_SNOW, 0, 10); // Updated snow depth, ice average, m
         addBounds(Shared::NEW_ICE, 0, 0.1); // Volume of new ice formed [m]
+        addBounds(Shared::OW_STRESS_X, -10, 10); // x(east)-ward open ocean stress, Pa
+        addBounds(Shared::OW_STRESS_Y, -10, 10); // y(east)-ward open ocean stress, Pa
         addBounds(Shared::Q_IA, -1e4, 1e4); // Ice to atmosphere heat flux W m⁻²
         addBounds(Shared::Q_IC, -1e4, 1e4); // Ice conduction heat flux W m⁻²
         addBounds(Shared::Q_IO, -1e8, 1e8); // Ice to ocean heat flux W m⁻²
         addBounds(Shared::Q_OW, -1e4, 1e4); // Open water heat flux W m⁻²
         addBounds(Shared::Q_PEN_SW, -1e-6, 100); // Penetrating shortwave flux W m⁻²
+        addBounds(Shared::Q_SW_BASE, -10, 0); // Short-wave flux through ice base W m⁻²
+        addBounds(Shared::Q_SW_OW, -1e3, 0); // Short-wave flux into ice free ocean W m⁻²
         addBounds(Shared::SUBLIM, -1e-3, 1e-3); // Upward sublimation rate kg m⁻² s⁻¹
         addBounds(Shared::T_ICE, -100, 0); // Updated ice temperatures, ˚C
     }
