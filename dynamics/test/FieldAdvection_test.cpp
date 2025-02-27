@@ -27,6 +27,7 @@ const size_t iceT = 18;
 
 class TestData {
 public:
+    using Slice = ArraySlicer::Slice;
     TestData()
     {
     }
@@ -43,10 +44,10 @@ public:
         // Ocean everywhere
         mask = 1.;
         // Apart from the edges
-        ModelArraySlice(mask, {{{0}, {}}}) = 0.;
-        ModelArraySlice(mask, {{{-1}, {}}}) = 0.;
-        ModelArraySlice(mask, {{{}, {0}}}) = 0.;
-        ModelArraySlice(mask, {{{}, {-1}}}) = 0.;
+        mask[Slice({{0}, {}})] = 0.;
+        mask[Slice({{-1}, {}})] = 0.;
+        mask[Slice({{}, {0}})] = 0.;
+        mask[Slice({{}, {-1}})] = 0.;
 
         return mask;
     }
@@ -60,11 +61,15 @@ public:
     {
         ModelArray cice(ModelArray::Type::H);
         cice = 0.;
-        ModelArraySlice(cice, getIceAreaSlice()) = 1.;
-        ModelArraySlice(cice, {{{iceL}, {}}}) *= 0.5;
-        ModelArraySlice(cice, {{{iceR - 1}, {}}}) *= 0.5;
-        ModelArraySlice(cice, {{{}, {iceB}}}) *= 0.5;
-        ModelArraySlice(cice, {{{}, {iceT - 1}}}) *= 0.5;
+        cice[getIceAreaSlice()] = 1.;
+        Slice lSlice {{{iceL}, {}}};
+        Slice rSlice {{{iceR}, {}}};
+        Slice tSlice {{{}, {iceT}}};
+        Slice bSlice {{{}, {iceB}}};
+        cice[lSlice] = 0.5 * cice[lSlice];
+        cice[rSlice] = 0.5 * cice[rSlice];
+        cice[tSlice] = 0.5 * cice[tSlice];
+        cice[bSlice] = 0.5 * cice[bSlice];
 
         return cice;
     }
@@ -100,6 +105,15 @@ TEST_CASE("advection")
     ModelArray mask = TestData::getMask();
     REQUIRE(mask(0, 0) == 0);
     REQUIRE(mask(1, 1) == 1);
+    ModelArray cice = TestData::getCice();
+    REQUIRE(cice(0, 0) == 0);
+    REQUIRE(cice(1, 1) == 0);
+    REQUIRE(cice(2, 2) == 0.25);
+    REQUIRE(cice(3, 3) == 1.0);
+    REQUIRE(cice(17, 17) == 1.0);
+    REQUIRE(cice(18, 17) == 0.5);
+    REQUIRE(cice(19, 19) == 0);
+
 }
 TEST_SUITE_END();
 }
