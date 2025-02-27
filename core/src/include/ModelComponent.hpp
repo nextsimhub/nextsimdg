@@ -90,8 +90,13 @@ namespace Shared {
     inline constexpr TextTag DQIA_DT
         = "DQIA_DT"; // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
     inline constexpr TextTag Q_PEN_SW = "Q_PEN_SW"; // Penetrating shortwave flux W m⁻²
+    inline constexpr TextTag Q_SW_OW = "Q_SW_OW"; // Shortwave flux in open water W m⁻²
+    inline constexpr TextTag Q_SW_BASE = "Q_SW_BASE"; // Shortwave flux at the base of the ice W m⁻²
     // Mass fluxes
     inline constexpr TextTag HSNOW_MELT = "HSNOW_MELT"; // Thickness of snow that melted, m
+    // Momentum fluxes
+    inline constexpr TextTag OW_STRESS_X = "OW_STRESS_X"; // x(east)-ward open ocean stress, Pa
+    inline constexpr TextTag OW_STRESS_Y = "OW_STRESS_Y"; // y(north)-ward open ocean stress, Pa
     // Atmospheric conditions
     inline constexpr TextTag SUBLIM = "SUBLIM"; // Upward sublimation rate kg m⁻² s⁻¹
     inline constexpr TextTag DELTA_HICE = "DELTA_HICE"; // Change in sea ice thickness, m
@@ -100,6 +105,33 @@ namespace Shared {
     inline constexpr TextTag NEW_ICE = "NEW_ICE"; // Volume of new ice formed [m]
 
 }
+
+namespace CouplingFields {
+    /* Ice-ocean coupling */
+    // Receive
+    inline constexpr TextTag MLD = "MLD"; // Mixed layer or slab ocean depth m
+    inline constexpr TextTag OCEAN_U = "U"; // x(east)-ward ocean current m s⁻¹
+    inline constexpr TextTag OCEAN_V = "V"; // y(north)-ward ocean current m s⁻¹
+    inline constexpr TextTag SSH = "SSH"; // sea surface height, m
+    inline constexpr TextTag SSS = "SSS"; // sea surface salinity PSU
+    inline constexpr TextTag SST = "SST"; // sea surface temperature ˚C
+    // Send
+    inline constexpr TextTag FWFLUX = "FWFLUX"; // Fresh-water flux at the ocean surface, kg m⁻²
+    inline constexpr TextTag O_STRESS_X = "O_STRESS_X"; // x(east)-ward surface ocean stress, Pa
+    inline constexpr TextTag O_STRESS_Y = "O_STRESS_Y"; // y(north)-ward surface ocean stress, Pa
+    inline constexpr TextTag Q_SS_NO_SW = "Q_SS_NO_SW"; // Net non-solar flux at ocean surface W m⁻²
+    inline constexpr TextTag Q_SS_SW = "Q_SS_SW"; // Net shortwave flux at ocean surface W m⁻²
+    inline constexpr TextTag SFLUX = "SFLUX"; // Salt flux at the ocean surface, kg m⁻²
+
+    /* Ice-atmosphere coupling */
+    inline constexpr TextTag EVAP = "EVAP"; // evaporation mass flux kg s⁻¹ m⁻²
+    inline constexpr TextTag RAIN = "RAIN"; // rainfall mass flux kg s⁻¹ m⁻²
+    inline constexpr TextTag SNOW = "SNOW"; // snowfall mass flux kg s⁻¹ m⁻²
+    inline constexpr TextTag SUBL = "SUBL"; // sublimation mass flux kg s⁻¹ m⁻²
+    inline constexpr TextTag WIND_U = "WIND_U"; // x-aligned wind component m s⁻¹
+    inline constexpr TextTag WIND_V = "WIND_V"; // y-aligned wind component m s⁻¹
+}
+
 /*!
  * A class encapsulating a component of the model. It also provide a method of
  * communicating data between ModelComponents using enums, static arrays of

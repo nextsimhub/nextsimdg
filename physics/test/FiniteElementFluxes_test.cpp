@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 11 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -55,6 +55,8 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Protected::DEW_2M, &tdew, RO);
             getStore().registerArray(Protected::P_AIR, &pair, RO);
             getStore().registerArray(Protected::WIND_SPEED, &windSpeed, RO);
+            getStore().registerArray(Protected::WIND_U, &u_air, RO);
+            getStore().registerArray(Protected::WIND_V, &v_air, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
             getStore().registerArray(Protected::LW_IN, &lw_in, RO);
         }
@@ -64,6 +66,8 @@ TEST_CASE("Melting conditions")
             tdew.resize();
             pair.resize();
             windSpeed.resize();
+            u_air.resize();
+            v_air.resize();
             sw_in.resize();
             lw_in.resize();
 
@@ -71,6 +75,8 @@ TEST_CASE("Melting conditions")
             tdew = 2;
             pair = 100000.;
             windSpeed = 5;
+            u_air = 3;
+            v_air = 4;
             sw_in = 50;
             lw_in = 330;
         }
@@ -83,6 +89,8 @@ TEST_CASE("Melting conditions")
         HField tdew;
         HField pair;
         HField windSpeed;
+        HField u_air;
+        HField v_air;
         HField sw_in;
         HField lw_in;
         HField snowfall;
@@ -137,6 +145,14 @@ TEST_CASE("Melting conditions")
     penSW.resize();
     ModelComponent::getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
 
+    HField qsw_ow;
+    qsw_ow.resize();
+    ModelComponent::getStore().registerArray(Shared::Q_SW_OW, &qsw_ow, RW);
+
+    HField qsw_base;
+    qsw_base.resize();
+    ModelComponent::getStore().registerArray(Shared::Q_SW_BASE, &qsw_base, RW);
+
     HField dqia_dt;
     dqia_dt.resize();
     ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
@@ -144,6 +160,13 @@ TEST_CASE("Melting conditions")
     HField subl;
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
+
+    HField tauX;
+    HField tauY;
+    tauX.resize();
+    tauY.resize();
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_X, &tauX, RW);
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_Y, &tauY, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
@@ -158,6 +181,8 @@ TEST_CASE("Melting conditions")
     REQUIRE(qia[0] == doctest::Approx(-85.6364).epsilon(prec));
     REQUIRE(dqia_dt[0] == doctest::Approx(19.7016).epsilon(prec));
     REQUIRE(subl[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
+    REQUIRE(tauX[0] == doctest::Approx(1.89732e-2).epsilon(prec));
+    REQUIRE(tauY[0] == doctest::Approx(2.52976e-2).epsilon(prec));
 }
 
 TEST_CASE("Freezing conditions")
@@ -188,6 +213,8 @@ TEST_CASE("Freezing conditions")
             getStore().registerArray(Protected::DEW_2M, &tdew, RO);
             getStore().registerArray(Protected::P_AIR, &pair, RO);
             getStore().registerArray(Protected::WIND_SPEED, &windSpeed, RO);
+            getStore().registerArray(Protected::WIND_U, &u_air, RO);
+            getStore().registerArray(Protected::WIND_V, &v_air, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
             getStore().registerArray(Protected::LW_IN, &lw_in, RO);
         }
@@ -197,12 +224,16 @@ TEST_CASE("Freezing conditions")
             tdew.resize();
             pair.resize();
             windSpeed.resize();
+            u_air.resize();
+            v_air.resize();
             sw_in.resize();
             lw_in.resize();
             tair = -12;
             tdew = -12;
             pair = 100000.;
             windSpeed = 5;
+            u_air = 3;
+            v_air = 4;
             sw_in = 0;
             lw_in = 265;
         }
@@ -215,6 +246,8 @@ TEST_CASE("Freezing conditions")
         HField tdew;
         HField pair;
         HField windSpeed;
+        HField u_air;
+        HField v_air;
         HField sw_in;
         HField lw_in;
         HField snowfall;
@@ -278,6 +311,13 @@ TEST_CASE("Freezing conditions")
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
+    HField tauX;
+    HField tauY;
+    tauX.resize();
+    tauY.resize();
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_X, &tauX, RW);
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_Y, &tauY, RW);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
     FiniteElementFluxes fef;
@@ -291,6 +331,8 @@ TEST_CASE("Freezing conditions")
     REQUIRE(qia[0] == doctest::Approx(42.2955).epsilon(prec));
     REQUIRE(dqia_dt[0] == doctest::Approx(16.7615).epsilon(prec));
     REQUIRE(subl[0] == doctest::Approx(2.15132e-6).epsilon(prec));
+    REQUIRE(tauX[0] == doctest::Approx(2.00279e-2).epsilon(prec));
+    REQUIRE(tauY[0] == doctest::Approx(2.67038e-2).epsilon(prec));
 }
 TEST_SUITE_END();
 

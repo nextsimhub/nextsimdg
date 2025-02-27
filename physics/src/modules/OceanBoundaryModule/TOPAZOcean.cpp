@@ -33,6 +33,7 @@ static const std::map<int, std::string> keyMap = {
 TOPAZOcean::TOPAZOcean()
     : sstExt(ModelArray::Type::H)
     , sssExt(ModelArray::Type::H)
+    , slabOcean(m_couplingArrays)
 {
 }
 
@@ -90,7 +91,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
         ssh = 0.;
     }
 
-    cpml = Water::rho * Water::cp * mld;
+    cpml = Water::rhoOcean * Water::cp * mld;
     overElements(
         std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
         TimestepTime());
@@ -102,6 +103,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
 {
+    mergeFluxes(tst);
     slabOcean.update(tst);
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();

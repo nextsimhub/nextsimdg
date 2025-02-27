@@ -17,7 +17,6 @@ namespace Nextsim {
 
 template <int DGadvection> class BBMDynamicsKernel : public BrittleCGDynamicsKernel<DGadvection> {
 public:
-    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
     // using DynamicsKernel<DGadvection, DGstressComp>::momentum;
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
