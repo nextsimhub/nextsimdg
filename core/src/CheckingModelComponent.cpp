@@ -39,22 +39,19 @@ void CheckingModelComponent::checkFields(const TimestepTime& tst)
                 field.name + " contains a NaN. Error at time step " + tst.start.format());
         }
 
-        // Now we check the bounds and set the array index (loc) and value if we're out of bounds
+        // Now we check the bounds and set the array index (i) and value if we're out of bounds
+        size_t i;
         double value;
-        std::vector<size_t> loc;
         if (masked.data().minCoeff() < field.bounds.first) {
-            size_t i;
             value = masked.data().col(0).minCoeff(&i);
-            loc = ModelArray::locationFromIndex(masked.getType(), i);
         } else if (masked.data().maxCoeff() > field.bounds.second) {
-            size_t i;
             value = masked.data().col(0).maxCoeff(&i);
-            loc = ModelArray::locationFromIndex(masked.getType(), i);
         } else {
             continue;
         }
 
         // If we haven't continue'd (or thrown an exception) by now we have an error in the field
+        const std::vector<size_t> loc = ModelArray::locationFromIndex(masked.getType(), i);
         std::string locStr = "[";
         for (const size_t& l : loc)
             locStr += std::to_string(l) + ",";
@@ -63,7 +60,7 @@ void CheckingModelComponent::checkFields(const TimestepTime& tst)
 
         throw std::runtime_error(field.name + " is out of bounds. " + std::to_string(value)
             + " not in [" + std::to_string(field.bounds.first) + ","
-            + std::to_string(field.bounds.second) + "] . Error at index " + locStr
+            + std::to_string(field.bounds.second) + "]. Error at index " + locStr
             + " and time step " + tst.start.format());
     }
 }
