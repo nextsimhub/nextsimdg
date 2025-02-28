@@ -1,7 +1,7 @@
 /*!
  * @file PhysicalBounds.hpp
  *
- * @date 27 Feb 2025
+ * @date 28 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -89,7 +89,7 @@ public:
         addBounds(Shared::Q_OW, -1e4, 1e4); // Open water heat flux W m⁻²
         addBounds(Shared::Q_PEN_SW, -1e-6, 100); // Penetrating shortwave flux W m⁻²
         addBounds(Shared::Q_SW_BASE, -10, 0); // Short-wave flux through ice base W m⁻²
-        addBounds(Shared::Q_SW_OW, -1e3, 0); // Short-wave flux into ice free ocean W m⁻²
+        addBounds(Shared::Q_SW_OW, -1e3, 1e-6); // Short-wave flux into ice free ocean W m⁻²
         addBounds(Shared::SUBLIM, -1e-3, 1e-3); // Upward sublimation rate kg m⁻² s⁻¹
         addBounds(Shared::T_ICE, -100, 0); // Updated ice temperatures, ˚C
     }

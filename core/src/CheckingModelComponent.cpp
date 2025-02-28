@@ -1,7 +1,7 @@
 /*!
  * @file CheckingModelComponent.cpp
  *
- * @date 26 Feb 2025
+ * @date 28 Feb 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -30,27 +30,41 @@ void CheckingModelComponent::checkFields(const TimestepTime& tst)
         const double fillValue = (field.bounds.second + field.bounds.first) * 0.5;
 
         // We need to mask the data, so that the checks don't stumble over the land mask
-        const ModelArray::DataType masked
-            = getOceanMask().data().select(field.arrayRef->data(), fillValue);
+        const auto masked = mask(*field.arrayRef, fillValue);
 
-        if (masked.isNaN().any()) {
+        // Check first for NaNs. The code is different for the bounds check, because Eigen doesn't
+        // return an index for NaN-checking.
+        if (masked.data().isNaN().any()) {
             throw std::runtime_error(
                 field.name + " contains a NaN. Error at time step " + tst.start.format());
         }
-        if (masked.minCoeff() < field.bounds.first) {
-            int i;
-            throw std::runtime_error(field.name + " is out of bounds. "
-                + std::to_string(masked.col(0).minCoeff(&i)) + " < "
-                + std::to_string(field.bounds.first) + ". Error at index " + std::to_string(i)
-                + " and time step " + tst.start.format());
+
+        // Now we check the bounds and set the array index (loc) and value if we're out of bounds
+        double value;
+        std::vector<size_t> loc;
+        if (masked.data().minCoeff() < field.bounds.first) {
+            size_t i;
+            value = masked.data().col(0).minCoeff(&i);
+            loc = ModelArray::locationFromIndex(masked.getType(), i);
+        } else if (masked.data().maxCoeff() > field.bounds.second) {
+            size_t i;
+            value = masked.data().col(0).maxCoeff(&i);
+            loc = ModelArray::locationFromIndex(masked.getType(), i);
+        } else {
+            continue;
         }
-        if (masked.maxCoeff() > field.bounds.second) {
-            int i;
-            throw std::runtime_error(field.name + " is out of bounds. "
-                + std::to_string(masked.col(0).maxCoeff(&i)) + " > "
-                + std::to_string(field.bounds.second) + ". Error at index " + std::to_string(i)
-                + " and time step " + tst.start.format());
-        }
+
+        // If we haven't continue'd (or thrown an exception) by now we have an error in the field
+        std::string locStr = "[";
+        for (const size_t& l : loc)
+            locStr += std::to_string(l) + ",";
+        locStr.pop_back();
+        locStr.push_back(']');
+
+        throw std::runtime_error(field.name + " is out of bounds. " + std::to_string(value)
+            + " not in [" + std::to_string(field.bounds.first) + ","
+            + std::to_string(field.bounds.second) + "] . Error at index " + locStr
+            + " and time step " + tst.start.format());
     }
 }
 

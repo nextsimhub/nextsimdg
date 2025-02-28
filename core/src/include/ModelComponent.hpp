@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 16 Feb 2025
+ * @date 28 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -234,8 +234,9 @@ protected:
      * @brief Returns a copy of the provided ModelArray, masked according to the
      * land-ocean mask.
      * @param data The data to be masked.
+     * @param missingValue The mask value to use (defaults to MissingData::value()).
      */
-    static ModelArray mask(const ModelArray& data);
+    static ModelArray mask(const ModelArray& data, double missingValue = MissingData::value());
 
     /*!
      * @brief Returns the ocean mask.
