@@ -13,12 +13,14 @@
 #define FREEDRIFTDYNAMICSKERNEL_HPP
 
 #include "CGDynamicsKernel.hpp"
+#include "DynamicsParameters.hpp"
+#include "include/constants.hpp"
+
 #include <cmath>
 
 namespace Nextsim {
 
 template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKernel<DGadvection> {
-    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
