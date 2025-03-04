@@ -102,4 +102,23 @@ if(NOT ENABLE_MPI)
         PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}"
     )
     target_link_libraries(testAdvectionPeriodicBC LINK_PUBLIC doctest::doctest Eigen3::Eigen)
+    
+    add_executable(
+        testFieldAdvection
+        "FieldAdvection_test.cpp"
+        "${SRC_DIR}/CGDynamicsKernel.cpp"
+        "${SRC_DIR}/DGTransport.cpp"
+        "${SRC_DIR}/Interpolations.cpp"
+        "${SRC_DIR}/ParametricMap.cpp"
+        "${SRC_DIR}/ParametricMesh.cpp"
+        "${CoreDir}/ModelArray.cpp"
+        "${CoreDir}/ModelArraySlice.cpp"
+        "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+        "${CoreDir}/Time.cpp"
+    )
+    target_include_directories(
+        testFieldAdvection
+        PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}"
+    )
+    target_link_libraries(testFieldAdvection LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 endif()
