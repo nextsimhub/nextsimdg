@@ -61,12 +61,18 @@ public:
     }
     static ModelArray getCice()
     {
-        return iceWithBorders(1.0, 0.5);
+        ModelArray cice(ModelArray::Type::DG);
+        cice = 0.;
+        cice.component(0) = iceWithBorders(1.0, 0.5);
+        return cice;
     }
 
     static ModelArray getHice()
     {
-        return iceWithBorders(1.0, 0.25);
+        ModelArray hice(ModelArray::Type::DG);
+        hice = 0.;
+        hice.component(0) = iceWithBorders(1.0, 0.25);
+        return hice;
     }
     static ModelArray iceWithBorders(double centralValue, double edgeMul)
     {
@@ -135,6 +141,7 @@ TEST_CASE("advection")
     REQUIRE(cice(17, 17) == 1.0);
     REQUIRE(cice(18, 17) == 0.5);
     REQUIRE(cice(19, 19) == 0);
+    REQUIRE(cice.components({3, 3})[1] == 0.);
     ModelArray cice0 = cice;
     ModelArray hice = TestData::getHice();
     REQUIRE(hice(0, 0) == 0);
@@ -144,6 +151,7 @@ TEST_CASE("advection")
     REQUIRE(hice(17, 17) == 1.0);
     REQUIRE(hice(18, 17) == 0.25);
     REQUIRE(hice(19, 19) == 0);
+    REQUIRE(cice.components({3, 3})[1] == 0.);
     ModelArray hice0 = hice;
 
     double u0 = 10.;
@@ -179,6 +187,9 @@ TEST_CASE("advection")
     kernel.setData(uOceanName, uOcean);
     kernel.setData(vOceanName, zeroArray);
 
+    kernel.setDGArray(hiceName, hice);
+    kernel.setDGArray(ciceName, cice);
+
     double deltaT = 1200; // seconds
     TimestepTime tst;
     tst.step = deltaT;
@@ -187,17 +198,13 @@ TEST_CASE("advection")
 
     size_t nt = 50;
     for (size_t i = 0; i < nt; ++i) {
-        kernel.setData(hiceName, hice);
-        kernel.setData(ciceName, cice);
-
         kernel.update(tst);
-
-        hice = kernel.getDG0Data(hiceName);
-        cice = kernel.getDG0Data(ciceName);
 
         deltaH = hice - hice0;
         deltaC = cice - cice0;
     }
+    // Check that the DG components are actually changing
+    REQUIRE(hice.components({3, 3})[1] != 0.);
     REQUIRE(deltaC(iceL, 10) < 0.);
     REQUIRE(deltaC(iceR, 10) > 0.);
 }
