@@ -126,8 +126,6 @@ TEST_CASE("advection")
     REQUIRE(coords.components({0, 1})[0] == -0.05);
     REQUIRE(coords.components({0, 1})[1] == -0.95);
 
-
-
     // Ice extents
     ModelArray cice = TestData::getCice();
     REQUIRE(cice(0, 0) == 0);
