@@ -109,29 +109,6 @@ public:
     }
 };
 
-class TestMesh {
-    ParametricMesh getMesh()
-    {
-        ParametricMesh smesh(SPHERICAL);
-        smesh.nx = nx;
-        smesh.ny = ny;
-        smesh.nelements = nx * ny;
-        smesh.nnodes = (nx + 1) * (ny + 1);
-
-        smesh.vertices.resize(smesh.nnodes, 2);
-        double ddeg = 0.1; //˚
-        double d = PhysicalConstants::deg2rad * ddeg;
-        double lon0 = -1;
-        for (size_t ii = 0; ii < smesh.nnodes; ++ii) {
-            size_t i = ii % (nx + 1);
-            size_t j = ii / (nx + 1);
-            smesh.vertices(ii, 0) = d * (i - 0.5);
-            smesh.vertices(ii, 1) = d * (j - 0.5) + lon0;
-        }
-        return smesh;
-    }
-};
-
 TEST_SUITE_BEGIN("Field advection");
 TEST_CASE("advection")
 {
