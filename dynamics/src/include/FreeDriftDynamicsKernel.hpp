@@ -14,6 +14,7 @@
 
 #include "CGDynamicsKernel.hpp"
 #include "DynamicsParameters.hpp"
+#include "include/constants.hpp"
 
 #include <cmath>
 
