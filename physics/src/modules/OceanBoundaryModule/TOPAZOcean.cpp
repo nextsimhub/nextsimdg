@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 17 Feb 2025
+ * @date 05 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,6 +23,7 @@ std::string TOPAZOcean::pfx = "TOPAZOcean";
 std::string TOPAZOcean::fileKey = pfx + ".file";
 std::string TOPAZOcean::checkFieldsKey = pfx + ".check_fields";
 std::string TOPAZOcean::fieldNamesKey = pfx + "fields_names";
+std::string TOPAZOcean::fieldNamesDefault = "sst_ext,sss_ext,mld,ocean_u,ocean_v,ssh";
 
 static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, TOPAZOcean::fileKey },
@@ -39,14 +40,11 @@ TOPAZOcean::TOPAZOcean()
 
 ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    map[pfx] = {
-        { fileKey, ConfigType::STRING, {}, "", "",
-            "Path to the processed NetCDF file providing the TOPAZ forcings." },
-        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
-            ConfigurationHelp::toString(checkFieldsDefault), "",
-            "Switch to check if the fields listed in field_names are within a reasonable "
-            "physical range and not NaN." },
-    };
+    auto options
+        = getHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
+    options.push_back({ fileKey, ConfigType::STRING, {}, "", "",
+        "Path to the processed NetCDF file providing the TOPAZ forcings." });
+    map[pfx] = options;
 
     return map;
 }
@@ -70,8 +68,7 @@ void TOPAZOcean::configure()
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
     if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
-        std::string fieldNames = "sst_ext,sss_ext,mld,ocean_u,ocean_v,ssh";
-        setFieldsToCheck(fieldNames, pfx);
+        setFieldsToCheck(fieldNamesDefault, pfx);
     }
 }
 

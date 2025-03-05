@@ -1,14 +1,16 @@
 /*!
  * @file CheckingModelComponent.cpp
  *
- * @date 26 Feb 2025
+ * @date 05 Mar 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef CHECKINGMODELCOMPONENT_HPP
 #define CHECKINGMODELCOMPONENT_HPP
 
+#include "include/ConfigurationHelp.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/PhysicalBounds.hpp"
 
 namespace Nextsim {
 
@@ -45,6 +47,10 @@ public:
     void setFieldsToCheck(const std::string& listOfFields, const std::string& prefix);
 
     static const std::string all;
+
+    static ConfigurationHelp::OptionList getHelpList(const std::string& fieldNamesKey,
+        const std::string& fieldNamesDefault, const std::string& checkFieldsKey,
+        const bool checkFieldsDefault);
 
 private:
     void setFieldsToCheck();

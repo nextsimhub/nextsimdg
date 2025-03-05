@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 17 Feb 2025
+ * @date 05 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,6 +23,8 @@ std::string ERA5Atmosphere::pfx = "ERA5Atmosphere";
 std::string ERA5Atmosphere::fileKey = pfx + ".file";
 std::string ERA5Atmosphere::checkFieldsKey = pfx + ".check_fields";
 std::string ERA5Atmosphere::fieldNamesKey = pfx + "fields_names";
+std::string ERA5Atmosphere::fieldNamesDefault
+    = "tair,dew2m,pair,sw_in,lw_in,wind_speed,wind_u,wind_v";
 
 static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, ERA5Atmosphere::fileKey },
@@ -43,14 +45,15 @@ ERA5Atmosphere::ERA5Atmosphere()
 
 ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    map[pfx] = {
-        { fileKey, ConfigType::STRING, {}, "", "",
-            "Path to the processed NetCDF file providing the ERA5 forcings." },
-        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
-            ConfigurationHelp::toString(checkFieldsDefault), "",
-            "Switch to check if the fields listed in field_names are within a reasonable "
-            "physical range and not NaN." },
-    };
+    auto options
+        = getHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
+    options.push_back({ fileKey, ConfigType::STRING, {}, "", "",
+        "Path to the processed NetCDF file providing the ERA5 forcings." });
+    options.push_back({ checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+        ConfigurationHelp::toString(checkFieldsDefault), "",
+        "Switch to check if the fields listed in field_names are within a reasonable "
+        "physical range and not NaN." });
+    map[pfx] = options;
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
     return map;
@@ -66,8 +69,7 @@ void ERA5Atmosphere::configure()
     tryConfigure(fluxImpl);
 
     if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
-        std::string fieldNames = "tair,dew2m,pair,sw_in,lw_in,wind_speed,wind_u,wind_v";
-        setFieldsToCheck(fieldNames, pfx);
+        setFieldsToCheck(fieldNamesDefault, pfx);
     }
 }
 

@@ -1,13 +1,11 @@
 /*!
  * @file CheckingModelComponent.cpp
  *
- * @date 28 Feb 2025
+ * @date 05 Mar 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/CheckingModelComponent.hpp"
-
-#include <include/PhysicalBounds.hpp>
 
 namespace Nextsim {
 
@@ -101,6 +99,23 @@ void CheckingModelComponent::setFieldsToCheck(
         fieldsToCheck.emplace_back(
             prefix + ": " + reverseNames.at(x.first), x.second, bounds.getBounds(x.first));
     }
+}
+
+ConfigurationHelp::OptionList CheckingModelComponent::getHelpList(const std::string& fieldNamesKey,
+    const std::string& fieldNamesDefault, const std::string& checkFieldsKey,
+    const bool checkFieldsDefault)
+{
+    ConfigurationHelp::OptionList options = {
+        { fieldNamesKey, ConfigurationHelp::ConfigType::STRING, {}, fieldNamesDefault, "",
+            "Comma separated, space free list of fields to be checked if check_fields is true. "
+            "The special value \""
+                + all + "\" will output all available fields." },
+        { checkFieldsKey, ConfigurationHelp::ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsDefault), "",
+            "Switch to check if the fields listed in field_names are within a reasonable "
+            "physical range and not NaN." },
+    };
+    return options;
 }
 
 } /* namespace Nextsim */

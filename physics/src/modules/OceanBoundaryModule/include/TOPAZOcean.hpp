@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.hpp
  *
- * @date 17 Feb 2025
+ * @date 05 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -49,6 +49,7 @@ private:
     // be static.
     static std::string filePath, pfx;
     static bool checkFieldsDefault;
+    static std::string fieldNamesDefault;
 
     HField sstExt;
     HField sssExt;
