@@ -22,7 +22,7 @@ bool ERA5Atmosphere::checkFieldsDefault = false;
 std::string ERA5Atmosphere::pfx = "ERA5Atmosphere";
 std::string ERA5Atmosphere::fileKey = pfx + ".file";
 std::string ERA5Atmosphere::checkFieldsKey = pfx + ".check_fields";
-std::string ERA5Atmosphere::fieldNamesKey = pfx + "fields_names";
+std::string ERA5Atmosphere::fieldNamesKey = pfx + ".fields_names";
 std::string ERA5Atmosphere::fieldNamesDefault
     = "tair,dew2m,pair,sw_in,lw_in,wind_speed,wind_u,wind_v";
 
@@ -49,10 +49,6 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
         = getHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
     options.push_back({ fileKey, ConfigType::STRING, {}, "", "",
         "Path to the processed NetCDF file providing the ERA5 forcings." });
-    options.push_back({ checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
-        ConfigurationHelp::toString(checkFieldsDefault), "",
-        "Switch to check if the fields listed in field_names are within a reasonable "
-        "physical range and not NaN." });
     map[pfx] = options;
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 

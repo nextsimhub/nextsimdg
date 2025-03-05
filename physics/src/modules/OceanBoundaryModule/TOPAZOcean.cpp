@@ -22,7 +22,7 @@ bool TOPAZOcean::checkFieldsDefault = false;
 std::string TOPAZOcean::pfx = "TOPAZOcean";
 std::string TOPAZOcean::fileKey = pfx + ".file";
 std::string TOPAZOcean::checkFieldsKey = pfx + ".check_fields";
-std::string TOPAZOcean::fieldNamesKey = pfx + "fields_names";
+std::string TOPAZOcean::fieldNamesKey = pfx + ".fields_names";
 std::string TOPAZOcean::fieldNamesDefault = "sst_ext,sss_ext,mld,ocean_u,ocean_v,ssh";
 
 static const std::map<int, std::string> keyMap = {
