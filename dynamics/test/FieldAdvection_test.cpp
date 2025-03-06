@@ -8,6 +8,8 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
+#include "dgVectorHolder.hpp"
+#include "dgLimit.hpp"
 #include "FreeDriftDynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArraySlice.hpp"
@@ -24,6 +26,11 @@ const size_t iceL = 2;
 const size_t iceB = 2;
 const size_t iceR = 18;
 const size_t iceT = 18;
+
+const size_t snowL = 6;
+const size_t snowB = 2;
+const size_t snowR = 14;
+const size_t snowT = 18;
 
 class TestData {
 public:
@@ -97,6 +104,18 @@ public:
         return ice;
     }
 
+    static ModelArray getHsnow()
+    {
+        ModelArray hsnow(ModelArray::Type::DG);
+        hsnow = 0.;
+//        SLice midSlice =
+        hsnow[{{{snowL, snowR}, {snowB, snowT}}}] = 1.0;
+        hsnow[{{{snowL, snowR}, {snowB}}}] = 0.5;
+        hsnow[{{{snowL, snowR}, {snowT-1}}}] = 0.5;
+
+        return hsnow;
+    }
+
     static ModelArray getCoords()
     {
         double ddeg = 0.1; //˚
@@ -154,6 +173,15 @@ TEST_CASE("advection")
     REQUIRE(cice.components({3, 3})[1] == 0.);
     ModelArray hice0 = hice;
 
+    ModelArray hsnow = TestData::getHsnow();
+    REQUIRE(hsnow(0, 0) == 0.);
+    REQUIRE(hsnow(snowL-1, snowB) == 0.);
+    REQUIRE(hsnow(snowL-1, 10) == 0.);
+    REQUIRE(hsnow(snowL, 10) == 1.0);
+    REQUIRE(hsnow(snowR - 1, 10) == 1.0);
+    REQUIRE(hsnow(snowR, 10) == 0.0);
+    ModelArray hsnow0 = hsnow;
+
     double u0 = 10.;
     // Ice velocities
     ModelArray uIce = TestData::iceWithBorders(u0, 1.0);
@@ -195,18 +223,24 @@ TEST_CASE("advection")
     tst.step = deltaT;
     ModelArray deltaH;
     ModelArray deltaC;
-
+    ModelArray deltaSnow;
+    DGVectorHolder<dg> snowHolder(hsnow);
     size_t nt = 50;
     for (size_t i = 0; i < nt; ++i) {
         kernel.update(tst);
+        kernel.advectField(tst.step.seconds(), snowHolder);
+        Nextsim::LimitMin(snowHolder, 0.0);
 
         deltaH = hice - hice0;
         deltaC = cice - cice0;
+        deltaSnow = hsnow - hsnow0;
     }
     // Check that the DG components are actually changing
     REQUIRE(hice.components({3, 3})[1] != 0.);
     REQUIRE(deltaC(iceL, 10) < 0.);
     REQUIRE(deltaC(iceR, 10) > 0.);
+    REQUIRE(deltaSnow(snowL, 10) < 0.);
+    REQUIRE(deltaSnow(snowR, 10) > 0.);
 }
 TEST_SUITE_END();
 }
