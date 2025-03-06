@@ -52,6 +52,12 @@ public:
         advectionAndLimits(tst);
     };
 
+    DGVector<DGadvection>& advectField(double advectionDt, DGVector<DGadvection>& field)
+    {
+        dgtransport->step(advectionDt, field);
+        return field;
+    }
+
 protected:
     const DynamicsParameters& params;
 
