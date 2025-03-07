@@ -20,6 +20,7 @@ public:
 
     std::string getName() const override { return "DummyDynamics"; }
     void update(const TimestepTime& tst) override {};
+    void prepareAdvection() override { }
 };
 }
 

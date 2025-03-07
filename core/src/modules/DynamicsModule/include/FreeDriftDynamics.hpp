@@ -10,6 +10,7 @@
 
 #include "include/FreeDriftDynamicsKernel.hpp"
 #include "include/IDynamics.hpp"
+#include "include/dgVectorHolder.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -76,6 +77,18 @@ public:
         kernel.setDGArray(ciceName, ciceDG.allComponents());
     }
 
+    void advectField(double timestep, ModelArray& field, double lowerLimit =
+                -std::numeric_limits<double>::infinity(), double upperLimit =
+                std::numeric_limits<double>::infinity()) override
+    {
+        DGVectorHolder<DGCOMP> holder(field);
+        kernel.advectField(timestep, holder, lowerLimit, upperLimit);
+    }
+
+    void prepareAdvection() override
+    {
+        kernel.prepareAdvection();
+    }
 private:
     FreeDriftDynamicsKernel<DGCOMP> kernel;
     DynamicsParameters params;

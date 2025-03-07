@@ -24,6 +24,7 @@ public:
     BBMDynamics();
 
     std::string getName() const override { return "BBMDynamics"; }
+    void prepareAdvection() override { kernel.prepareAdvection(); }
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
