@@ -46,7 +46,8 @@ public:
         , h_snow(getStore())
         , h_snow_true(getStore())
         , cice(getStore())
-        , tice(getStore())
+//        , tice(getStore())
+        , tsurf(getStore())
         , sw_in(getStore())
         , lw_in(getStore())
     {
@@ -113,7 +114,8 @@ private:
     ModelArrayRef<Protected::H_SNOW> h_snow; // cell-averaged value
     ModelArrayRef<Protected::HTRUE_SNOW> h_snow_true; // cell-averaged value
     ModelArrayRef<Protected::C_ICE> cice;
-    ModelArrayRef<Protected::T_ICE> tice;
+//    ModelArrayRef<Protected::T_ICE> tice;
+    ModelArrayRef<Protected::T_SURF> tsurf;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Protected::LW_IN> lw_in;
 

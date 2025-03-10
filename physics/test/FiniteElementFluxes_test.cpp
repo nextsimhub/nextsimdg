@@ -97,6 +97,7 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
             getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::T_SURF, &tsurf, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
@@ -109,6 +110,7 @@ TEST_CASE("Melting conditions")
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
             tice0[0] = -1.;
+            tsurf[0] = -1.;
 
             hice0[0] = hice[0] / cice[0];
             hsnow0[0] = hsnow[0] / cice[0];
@@ -118,6 +120,7 @@ TEST_CASE("Melting conditions")
         HField cice;
         HField hsnow;
         HField tice0;
+        HField tsurf;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
         ModelState getState() const override { return ModelState(); }
@@ -229,6 +232,7 @@ TEST_CASE("Freezing conditions")
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
             getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::T_SURF, &tsurf, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
@@ -241,6 +245,7 @@ TEST_CASE("Freezing conditions")
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
             tice0[0] = -9.;
+            tsurf[0] = -9.;
 
             hice0[0] = hice[0] / cice[0];
             hsnow0[0] = hsnow[0] / cice[0];
@@ -250,6 +255,7 @@ TEST_CASE("Freezing conditions")
         HField cice;
         HField hsnow;
         HField tice0;
+        HField tsurf;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
 
