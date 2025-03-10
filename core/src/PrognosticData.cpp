@@ -91,6 +91,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     // Copy the full DG data
     hiceAdvection = 0;
     ciceAdvection = 0;
+    hsnow = 0;
     damage = 0;
     hsnow = 0;
     copyAllComponents(ms.at(hiceName), hiceAdvection);
