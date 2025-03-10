@@ -34,6 +34,7 @@ namespace Protected {
     inline constexpr TextTag C_ICE = "C_ICE0"; // Ice concentration
     inline constexpr TextTag H_SNOW = "H_SNOW_cell"; // Snow depth, cell average, m
     inline constexpr TextTag T_ICE = "T_ICE0"; // Ice temperature, ˚C
+    inline constexpr TextTag T_SURF = "T_SURF0"; // Ice surface temperature, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE0"; // Ice damage 0–1
     // External data fields
     inline constexpr TextTag T_AIR = "T_AIR"; // Air temperature, ˚C
@@ -84,6 +85,7 @@ namespace Shared {
     inline constexpr TextTag C_ICE_DG = "C_ICE_DG"; // Temporary DG cice tag
     inline constexpr TextTag H_SNOW = "H_SNOW"; // Updated snow depth, ice average, m
     inline constexpr TextTag T_ICE = "T_ICE"; // Updated ice temperatures, ˚C
+    inline constexpr TextTag T_SURF = "T_SURF"; // Updated ice surface temperature, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE"; // Updated damage 0–1
     // Heat fluxes
     inline constexpr TextTag Q_IA = "Q_IA"; // Ice to atmosphere heat flux W m⁻²
