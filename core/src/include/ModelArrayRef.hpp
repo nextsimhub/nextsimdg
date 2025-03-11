@@ -99,10 +99,10 @@ public:
      * @param hIndex the equivalent positional index in an HField array
      * @param layer the vertical layer to be accessed
      */
-    const double& zIndexAndLayer(size_t hIndex, size_t layer)
-    {
-        return dataReference->zIndexAndLayer(hIndex, layer);
-    }
+//    const double& zIndexAndLayer(size_t hIndex, size_t layer)
+//    {
+//        return dataReference->zIndexAndLayer(hIndex, layer);
+//    }
 
     //! Copies component 0 to an appropriate ModelArray type.
     operator ModelArray() const
@@ -273,10 +273,10 @@ public:
      * @param hIndex the equivalent positional index in an HField array
      * @param layer the vertical layer to be accessed
      */
-    double& zIndexAndLayer(size_t hIndex, size_t layer)
-    {
-        return dataReference->zIndexAndLayer(hIndex, layer);
-    }
+//    double& zIndexAndLayer(size_t hIndex, size_t layer)
+//    {
+//        return dataReference->zIndexAndLayer(hIndex, layer);
+//    }
 
     //! Copies component 0 to an appropriate ModelArray type.
     operator ModelArray() const

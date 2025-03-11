@@ -573,32 +573,6 @@ public:
         static TypeMap comp0Map = definedComp0Map();
         return (comp0Map.count(withComponents) > 0) ? comp0Map.at(withComponents) : withComponents;
     }
-    /*!
-     * @brief Special access function for ZFields.
-     *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    double& zIndexAndLayer(size_t hIndex, size_t layer)
-    {
-        return this->operator[](zLayerIndex(hIndex, layer));
-    }
-    /*!
-     * @brief Special access function for ZFields, const version.
-     *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    const double& zIndexAndLayer(size_t hIndex, size_t layer) const
-    {
-        return this->operator[](zLayerIndex(hIndex, layer));
-    }
 
     /*!
      * @brief Returns the index for a given set of multi-dimensional location for this array's type.

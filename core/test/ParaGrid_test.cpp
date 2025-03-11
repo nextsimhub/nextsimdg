@@ -150,7 +150,8 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     tice.resize();
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         for (size_t k = 0; k < nz; ++k) {
-            tice.zIndexAndLayer(i, k) = fractional[i] + 40 + k;
+            auto pos = Indexer::deIndexer({nx, ny}, i);
+            tice(pos[0], pos[1], k) = fractional[i] + 40 + k;
         }
     }
 
