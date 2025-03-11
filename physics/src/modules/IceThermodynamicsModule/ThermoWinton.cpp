@@ -5,11 +5,13 @@
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#include "include/Slice.hpp"
 #include "include/ThermoWinton.hpp"
 #include "include/IceMinima.hpp"
 #include "include/NZLevels.hpp"
 
 #include "include/constants.hpp"
+#include "include/gridNames.hpp"
 
 #include <cmath>
 
@@ -32,6 +34,8 @@ ThermoWinton::ThermoWinton()
     , sw_in(getStore())
     , subl(getStore())
 {
+    tInternal.resize();
+    tBottom.resize();
     snowMelt.resize();
     topMelt.resize();
     botMelt.resize();
@@ -76,18 +80,53 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 {
     IIceThermodynamics::setData(state);
 
+    tInternal.resize();
+    tBottom.resize();
     snowMelt.resize();
     topMelt.resize();
     botMelt.resize();
     snowToIce.resize();
 
-    // The Winton scheme requires three temperature levels in the ice
-    if (tice0.size() != nLevels * hice.size()) {
-        double actualLevels = static_cast<double>(tice0.size()) / hice.size();
-        throw std::length_error(std::string("The inferred number of ice temperature levels is ")
-            + std::to_string(actualLevels) + " when the Winton ice thermodynamics scheme expects "
-            + std::to_string(nLevels));
+    // Handle the various possibility for how the ice temperature is supplied
+    bool setSurface = true; // Currently set in IIceThermodynamics::setData
+    bool setInterior = false;
+    bool setBottom = false;
+
+    if (state.count("tbottom") > 0) {
+        tBottom = state.at("tbottom");
+        setBottom = true;
     }
+
+    if (state.count("tsurf") > 0) {
+        tsurf = state.at("tsurf");
+        setSurface = true;
+    }
+
+    if (state.count(ticeName) > 0) {
+        const ModelArray& ticeIn = state.at(ticeName);
+        if (!setSurface) {
+            const ArraySlicer::Slice surfSlice {{{ }, { }, {0}}};
+            tsurf = ticeIn[surfSlice];
+            setSurface = true;
+        }
+        if (!setInterior) {
+            // A Slice such that k=0 if nz=1 and k=1 if nz=3
+            const ArraySlicer::Slice interiorSlice {{{ }, { }, {ticeIn.dimensions()[2]/2}}};
+            tInternal = ticeIn[interiorSlice];
+            setInterior = true;
+        }
+        if (!setBottom) {
+            const ArraySlicer::Slice bottomSlice {{{ }, { }, {-1}}};
+            tBottom = ticeIn[bottomSlice];
+        }
+    }
+    // The Winton scheme requires three temperature levels in the ice
+//    if (tice0.size() != nLevels * hice.size()) {
+//        double actualLevels = static_cast<double>(tice0.size()) / hice.size();
+//        throw std::length_error(std::string("The inferred number of ice temperature levels is ")
+//            + std::to_string(actualLevels) + " when the Winton ice thermodynamics scheme expects "
+//            + std::to_string(nLevels));
+//    }
 }
 
 void ThermoWinton::update(const TimestepTime& tst)
@@ -111,11 +150,9 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         hice[i] = 0;
         hsnow[i] = 0;
 
-        tice.zIndexAndLayer(i, 0) = seaIceTf;
-        tice.zIndexAndLayer(i, 1) = seaIceTf;
-        tice.zIndexAndLayer(i, 2) = seaIceTf;
-
         tsurf[i] = seaIceTf;
+        tInternal[i] = seaIceTf;
+        tBottom[i] = seaIceTf;
 
         return;
     }
@@ -123,9 +160,9 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
-    double tSurf = tice0.zIndexAndLayer(i, 0); // surface temperature
-    double tUppr = tice0.zIndexAndLayer(i, 1); // upper layer temperature
-    double tLowr = tice0.zIndexAndLayer(i, 2); // lower layer temperature
+    double tSurf = tsurf[i]; // surface temperature
+    double tUppr = tInternal[i]; // upper layer temperature
+    double tLowr = tBottom[i]; // lower layer temperature
     double tBott = tf[i]; // freezing point of (local) seawater
 
     double dt = tst.step.seconds();
@@ -292,11 +329,9 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
         tLowr = seaIceTf;
     }
 
-    tice.zIndexAndLayer(i, 0) = tSurf;
-    tice.zIndexAndLayer(i, 1) = tUppr;
-    tice.zIndexAndLayer(i, 2) = tLowr;
-
     tsurf[i] = tSurf;
+    tInternal[i] = tUppr;
+    tBottom[i] = tLowr;
 }
 
 void ThermoWinton::calculateTemps(

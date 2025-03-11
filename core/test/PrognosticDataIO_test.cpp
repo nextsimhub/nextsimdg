@@ -75,7 +75,7 @@ TEST_CASE("PrognosticData write test, including DG components")
             size_t c = i * xMul + j * yMul;
             size_t idx = baseData.indexFromLocation({ i, j });
             baseData[idx] = c;
-            zData.zIndexAndLayer(idx, 0) = c;
+            zData(i, j, 0) = c;
             latitude(idx) = resn * j + 0.5 * resn;
             longitude(idx) = resn * i + 0.5 * resn;
             switch (ModelArray::nComponents(ModelArray::Type::DG)) {

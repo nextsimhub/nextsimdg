@@ -72,19 +72,19 @@ ModelArray ModelComponent::mask(const ModelArray& data)
         return data * oceanMask() + MissingData::value() * (1 - oceanMask());
         break;
     }
-    case (ModelArray::Type::Z): {
-        ModelArray copy = ModelArray::ZField();
-        copy = MissingData::value();
-        size_t nZ = data.dimensions()[data.nDimensions() - 1];
-        for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
-            size_t i = oceanIndex[iOcean];
-            for (size_t k = 0; k < nZ; ++k) {
-                copy.zIndexAndLayer(i, k) = data.zIndexAndLayer(i, k);
-            }
-        }
-        return copy;
-        break;
-    }
+//    case (ModelArray::Type::Z): {
+//        ModelArray copy = ModelArray::ZField();
+//        copy = MissingData::value();
+//        size_t nZ = data.dimensions()[data.nDimensions() - 1];
+//        for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
+//            size_t i = oceanIndex[iOcean];
+//            for (size_t k = 0; k < nZ; ++k) {
+//                copy.zIndexAndLayer(i, k) = data.zIndexAndLayer(i, k);
+//            }
+//        }
+//        return copy;
+//        break;
+//    }
     }
 }
 

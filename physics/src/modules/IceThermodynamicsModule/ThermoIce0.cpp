@@ -88,7 +88,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     if (hice[i] == 0. || cice[i] == 0.) {
         deltaHi[i] = 0.;
         snowToIce[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = freezingPointIce;
+        tsurf[i] = freezingPointIce;
 
         return;
     }
@@ -102,11 +102,12 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
-    double& tice_i = tice.zIndexAndLayer(i, 0);
+    double& tice_i = tsurf[i];
+    double tice0 = tsurf[i];
     double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]) * gamma;
-    qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
+    qic[i] = k_lSlab * (tf[i] - tice0);
     double remainingFlux = qic[i] - (qia[i] + (1. - beta) * penSw[i]);
-    tice_i = tice0.zIndexAndLayer(i, 0) + remainingFlux / (k_lSlab + dQia_dt[i]);
+    tice_i = tice0 + remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point
     // of ice or snow
@@ -169,7 +170,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         cice[i] = 0.;
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = celsius(Ice::Tm);
+        tsurf[i] = celsius(Ice::Tm);
     }
 }
 
