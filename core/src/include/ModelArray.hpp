@@ -24,6 +24,7 @@ class Slice;
 namespace Nextsim {
 
 class ModelArraySlice;
+class ConstModelArraySlice;
 /*
  * Set the storage order to row major. This matches with DGVector when there is
  * more than one DG component. If there is only one DG component (the finite
@@ -164,6 +165,7 @@ public:
      * Creates a ModelArraySlice.
      */
     ModelArraySlice operator[](const Slice&);
+    ConstModelArraySlice operator[](const Slice&) const;
 
     // ModelArray arithmetic
     //! In place addition of another ModelArray

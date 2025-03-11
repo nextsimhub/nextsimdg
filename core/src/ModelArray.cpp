@@ -233,6 +233,7 @@ double& ModelArray::operator[](const MultiDim& dims)
 }
 
 ModelArraySlice ModelArray::operator[](const Slice& slice) { return ModelArraySlice(*this, slice); }
+ConstModelArraySlice ModelArray::operator[](const Slice& slice) const { return ConstModelArraySlice(*this, slice); }
 
 ModelArray::Components ModelArray::components(const MultiDim& loc)
 {
