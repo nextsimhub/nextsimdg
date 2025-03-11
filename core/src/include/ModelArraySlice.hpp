@@ -17,6 +17,7 @@
 namespace Nextsim {
 class MASIter;
 class ModelArraySlice;
+class ConstModelArraySlice;
 std::ostream& operator<<(std::ostream& os, const MASIter& it);
 
 /*!
@@ -254,6 +255,7 @@ public:
     Slice slice;
 
     friend MASIter;
+    friend ConstModelArraySlice;
 
 private:
     static void copyBetweenMAandMASlice(
@@ -262,6 +264,26 @@ private:
     ModelArray& data;
 };
 
+class ConstModelArraySlice {
+public:
+    using Slice = ArraySlicer::Slice;
+    using SliceIter = ArraySlicer::SliceIter;
+    using iterator = MASIter;
+    ConstModelArraySlice() = delete;
+    ConstModelArraySlice(const ModelArray& ma, const Slice& sl)
+        : data(ma)
+        , slice(sl)
+    {
+    }
+
+    operator const ModelArraySlice()
+    {
+        return ModelArraySlice(const_cast<ModelArray&>(data), slice);
+    }
+private:
+    Slice slice;
+    const ModelArray& data;
+};
 } // namespace Nextsim
 
 #endif /* MODELARRAYSLICE_HPP */
