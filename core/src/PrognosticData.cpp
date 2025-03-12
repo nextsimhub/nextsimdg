@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 05 Mar 2025
+ * @date 12 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -197,7 +197,7 @@ ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
 {
     map["Debug"]
-        = getHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
+        = getCheckingHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
     return map;
 }
 

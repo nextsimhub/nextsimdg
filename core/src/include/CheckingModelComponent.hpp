@@ -1,7 +1,7 @@
 /*!
  * @file CheckingModelComponent.cpp
  *
- * @date 05 Mar 2025
+ * @date 12 Mar 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -48,7 +48,7 @@ public:
 
     static const std::string all;
 
-    static ConfigurationHelp::OptionList getHelpList(const std::string& fieldNamesKey,
+    static ConfigurationHelp::OptionList getCheckingHelpList(const std::string& fieldNamesKey,
         const std::string& fieldNamesDefault, const std::string& checkFieldsKey,
         const bool checkFieldsDefault);
 

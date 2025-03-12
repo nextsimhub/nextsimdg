@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 05 Mar 2025
+ * @date 12 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -41,7 +41,7 @@ TOPAZOcean::TOPAZOcean()
 ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
     auto options
-        = getHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
+        = getCheckingHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
     options.push_back({ fileKey, ConfigType::STRING, {}, "", "",
         "Path to the processed NetCDF file providing the TOPAZ forcings." });
     map[pfx] = options;

@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 05 Mar 2025
+ * @date 12 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -46,7 +46,7 @@ ERA5Atmosphere::ERA5Atmosphere()
 ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
     auto options
-        = getHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
+        = getCheckingHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
     options.push_back({ fileKey, ConfigType::STRING, {}, "", "",
         "Path to the processed NetCDF file providing the ERA5 forcings." });
     map[pfx] = options;

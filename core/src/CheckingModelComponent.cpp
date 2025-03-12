@@ -1,7 +1,7 @@
 /*!
  * @file CheckingModelComponent.cpp
  *
- * @date 05 Mar 2025
+ * @date 12 Mar 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -101,9 +101,9 @@ void CheckingModelComponent::setFieldsToCheck(
     }
 }
 
-ConfigurationHelp::OptionList CheckingModelComponent::getHelpList(const std::string& fieldNamesKey,
-    const std::string& fieldNamesDefault, const std::string& checkFieldsKey,
-    const bool checkFieldsDefault)
+ConfigurationHelp::OptionList CheckingModelComponent::getCheckingHelpList(
+    const std::string& fieldNamesKey, const std::string& fieldNamesDefault,
+    const std::string& checkFieldsKey, const bool checkFieldsDefault)
 {
     ConfigurationHelp::OptionList options = {
         { fieldNamesKey, ConfigurationHelp::ConfigType::STRING, {}, fieldNamesDefault, "",
