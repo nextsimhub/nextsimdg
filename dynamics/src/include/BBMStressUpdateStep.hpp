@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date 18 Feb 2025
+ * @date 12 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -47,57 +47,57 @@ public:
         const auto& params = reinterpret_cast<const BBMParameters&>(dParams);
         // Number of Gauss points
         const size_t nGauss = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
-
-        typedef Eigen::Matrix<double, 1, nGauss * nGauss> gaussPointVector;
+        const size_t nGauss2 = nGauss * nGauss;
 
 //! Stress and Damage Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            const gaussPointVector hGauss = (h.row(i) * PSI<DGadvection, nGauss>).array().max(0.0);
-            const gaussPointVector aGauss
+            const LocalEdgeVector<nGauss2> hGauss
+                = (h.row(i) * PSI<DGadvection, nGauss>).array().max(0.0);
+            const LocalEdgeVector<nGauss2> aGauss
                 = (a.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).min(1.0);
 
-            gaussPointVector dGauss
+            LocalEdgeVector<nGauss2> dGauss
                 = (p_d->row(i) * PSI<DGadvection, nGauss>).array().max(1e-12).min(1.0);
 
-            const gaussPointVector e11Gauss = e11.row(i) * PSI<DGstress, nGauss>;
-            const gaussPointVector e12Gauss = e12.row(i) * PSI<DGstress, nGauss>;
-            const gaussPointVector e22Gauss = e22.row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss2> e11Gauss = e11.row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss2> e12Gauss = e12.row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss2> e22Gauss = e22.row(i) * PSI<DGstress, nGauss>;
 
-            gaussPointVector s11Gauss = s11.row(i) * PSI<DGstress, nGauss>;
-            gaussPointVector s12Gauss = s12.row(i) * PSI<DGstress, nGauss>;
-            gaussPointVector s22Gauss = s22.row(i) * PSI<DGstress, nGauss>;
+            LocalEdgeVector<nGauss2> s11Gauss = s11.row(i) * PSI<DGstress, nGauss>;
+            LocalEdgeVector<nGauss2> s12Gauss = s12.row(i) * PSI<DGstress, nGauss>;
+            LocalEdgeVector<nGauss2> s22Gauss = s22.row(i) * PSI<DGstress, nGauss>;
 
             //! Current normal stress for the evaluation of tildeP (Eqn. 1)
-            gaussPointVector sigma_n = 0.5 * (s11Gauss + s22Gauss).array();
+            LocalEdgeVector<nGauss2> sigma_n = 0.5 * (s11Gauss + s22Gauss).array();
 
             //! exp(-C(1-A))
-            const gaussPointVector expC
+            const LocalEdgeVector<nGauss2> expC
                 = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
 
             // Eqn. 25
-            const gaussPointVector time_viscous
+            const LocalEdgeVector<nGauss2> time_viscous
                 = params.lambda0 * (dGauss.array() * expC.array()).pow(params.alpha - 1);
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const gaussPointVector Pmax
+            const LocalEdgeVector<nGauss2> Pmax
                 = params.P0 * hGauss.array().pow(params.expPMax) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
-            const gaussPointVector tildeP
+            const LocalEdgeVector<nGauss2> tildeP
                 = (sigma_n.array() < 0.0).select((-Pmax.array() / sigma_n.array()).min(1.0), 0.);
 
             // multiplicator
-            const gaussPointVector multiplicator
+            const LocalEdgeVector<nGauss2> multiplicator
                 = time_viscous.array() / (time_viscous.array() + (1. - tildeP.array()) * deltaT);
 
             //! Eqn. 9
-            const gaussPointVector elasticity
+            const LocalEdgeVector<nGauss2> elasticity
                 = hGauss.array() * params.young * dGauss.array() * expC.array();
 
             // Eqn. 12: first factor on RHS
@@ -107,7 +107,7 @@ public:
              * \ (K:e)12 /    1 - nu^2 \  0   0  1-nu / \ e12 /
              */
 
-            const gaussPointVector Dunit_factor
+            const LocalEdgeVector<nGauss2> Dunit_factor
                 = deltaT * elasticity.array() / (1. - params.nu0 * params.nu0);
 
             s11Gauss.array()
@@ -122,20 +122,21 @@ public:
             s12Gauss.array() *= multiplicator.array();
 
             sigma_n = 0.5 * (s11Gauss + s22Gauss).array();
-            const gaussPointVector tau
+            const LocalEdgeVector<nGauss2> tau
                 = (0.25 * (s11Gauss - s22Gauss).array().square() + s12Gauss.array().square())
                       .sqrt();
 
             const double scale_coef = std::sqrt(0.1 / smesh.h(i));
 
             //! Eqn. 22
-            const gaussPointVector cohesion = params.cLab * scale_coef * hGauss.array();
+            const LocalEdgeVector<nGauss2> cohesion = params.cLab * scale_coef * hGauss.array();
             //! Eqn. 30
-            const gaussPointVector compr_strength = params.comprCap * scale_coef * hGauss.array();
+            const LocalEdgeVector<nGauss2> compr_strength
+                = params.comprCap * scale_coef * hGauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + mu*sigma_n < 0 is always inside, but gives dcrit < 0
-            gaussPointVector dcrit
+            LocalEdgeVector<nGauss2> dcrit
                 = (tau.array() + params.mu * sigma_n.array() > 0.)
                       .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
@@ -147,7 +148,7 @@ public:
             dcrit = dcrit.array().min(1.0);
 
             // Eqn. 29
-            const gaussPointVector td = smesh.h(i)
+            const LocalEdgeVector<nGauss2> td = smesh.h(i)
                 * std::sqrt(2. * (1. + params.nu0) * params.rhoIce) / elasticity.array().sqrt();
 
             // Update damage
