@@ -126,19 +126,17 @@ public:
                 = (0.25 * (s11Gauss - s22Gauss).array().square() + s12Gauss.array().square())
                       .sqrt();
 
-            const double scale_coef = std::sqrt(0.1 / smesh.h(i));
-
-            //! Eqn. 22
-            const LocalEdgeVector<nGauss2> cohesion = params.cLab * scale_coef * hGauss.array();
             //! Eqn. 30
             const LocalEdgeVector<nGauss2> compr_strength
-                = params.comprCap * scale_coef * hGauss.array();
+                = params.comprCap * cohesion[i] * hGauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + mu*sigma_n < 0 is always inside, but gives dcrit < 0
             LocalEdgeVector<nGauss2> dcrit
                 = (tau.array() + params.mu * sigma_n.array() > 0.)
-                      .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
+                      .select(cohesion[i] * hGauss.array()
+                              / (tau.array() + params.mu * sigma_n.array()),
+                          1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength.array())
@@ -169,10 +167,20 @@ public:
 
     void setDamage(DGVector<DGadvection>& dIn) { p_d = &dIn; }
     void setPMap(ParametricMomentumMap<CG, DGadvection>* pmapIn) { pmap = pmapIn; }
+    void setCohesion(const BBMParameters& params, const ParametricMesh& smesh)
+    {
+        cohesion.resize(smesh.nelements);
+        for (size_t i = 0; i < smesh.nelements; ++i) {
+            //! Eqn. 22
+            const double scaleCoef = params.scaleCohesion ? std::sqrt(0.1 / smesh.h(i)) : 1.;
+            cohesion[i] = params.cohesion * scaleCoef;
+        }
+    }
 
 protected:
     ParametricMomentumMap<CG, DGadvection>* pmap;
     DGVector<DGadvection>* p_d;
+    std::vector<double> cohesion;
 };
 }
 

@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date 05 Dec 2024
+ * @date 14 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -29,7 +29,8 @@ static const std::map<int, std::string> keyMap = {
     { BBMDynamics::EXPPMAX_KEY, prefix + ".exppmax" },
     { BBMDynamics::MU_KEY, prefix + ".mu" },
     { BBMDynamics::NMAX_KEY, prefix + ".namx" },
-    { BBMDynamics::CLAB_KEY, prefix + ".clab" },
+    { BBMDynamics::CLAB_KEY, prefix + ".cohesion" },
+    { BBMDynamics::SCALEC_KEY, prefix + ".scale_cohesion" },
     { BBMDynamics::NSTEPS_KEY, prefix + ".nsteps" },
     { BBMDynamics::RHOI_KEY, prefix + ".rho_ice" },
     { BBMDynamics::RHOA_KEY, prefix + ".rho_atm" },
@@ -42,25 +43,25 @@ static const std::map<int, std::string> keyMap = {
 
 void BBMDynamics::configure()
 {
-    params.compactionParam = Configured::getConfiguration(keyMap.at(C_KEY), compactionParamDefault);
-    params.nu0 = Configured::getConfiguration(keyMap.at(NU_KEY), nu0Default);
-    params.young = Configured::getConfiguration(keyMap.at(YOUNG_KEY), youngDefault);
-    params.P0 = Configured::getConfiguration(keyMap.at(P0_KEY), P0Default);
-    params.lambda0 = Configured::getConfiguration(keyMap.at(LAMBDA0_KEY), lambda0Default);
-    params.alpha = Configured::getConfiguration(keyMap.at(ALPHA_KEY), alphaDefault);
-    params.expPMax = Configured::getConfiguration(keyMap.at(EXPPMAX_KEY), expPMaxDefault);
-    params.mu = Configured::getConfiguration(keyMap.at(MU_KEY), muDefault);
-    params.comprCap = Configured::getConfiguration(keyMap.at(NMAX_KEY), comprCapDefault);
-    params.cLab = Configured::getConfiguration(keyMap.at(CLAB_KEY), cLabDefault);
-    params.nSteps = Configured::getConfiguration(keyMap.at(NSTEPS_KEY), nStepsDefault);
-    params.rhoIce = Configured::getConfiguration(keyMap.at(RHOI_KEY), rhoIceDefault);
-    params.rhoAtm = Configured::getConfiguration(keyMap.at(RHOA_KEY), rhoAtmDefault);
-    params.rhoOcean = Configured::getConfiguration(keyMap.at(RHOO_KEY), rhoOceanDefault);
-    params.CAtm = Configured::getConfiguration(keyMap.at(CATM_KEY), CAtmDefault);
-    params.COcean = Configured::getConfiguration(keyMap.at(COCEAN_KEY), COceanDefault);
-    params.fc = Configured::getConfiguration(keyMap.at(FC_KEY), fcDefault);
-    params.oceanTurningAngle
-        = Configured::getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
+    params.compactionParam = getConfiguration(keyMap.at(C_KEY), compactionParamDefault);
+    params.nu0 = getConfiguration(keyMap.at(NU_KEY), nu0Default);
+    params.young = getConfiguration(keyMap.at(YOUNG_KEY), youngDefault);
+    params.P0 = getConfiguration(keyMap.at(P0_KEY), P0Default);
+    params.lambda0 = getConfiguration(keyMap.at(LAMBDA0_KEY), lambda0Default);
+    params.alpha = getConfiguration(keyMap.at(ALPHA_KEY), alphaDefault);
+    params.expPMax = getConfiguration(keyMap.at(EXPPMAX_KEY), expPMaxDefault);
+    params.mu = getConfiguration(keyMap.at(MU_KEY), muDefault);
+    params.comprCap = getConfiguration(keyMap.at(NMAX_KEY), comprCapDefault);
+    params.cohesion = getConfiguration(keyMap.at(CLAB_KEY), cohesionDefault);
+    params.scaleCohesion = getConfiguration(keyMap.at(SCALEC_KEY), scaleCohesionDefault);
+    params.nSteps = getConfiguration(keyMap.at(NSTEPS_KEY), nStepsDefault);
+    params.rhoIce = getConfiguration(keyMap.at(RHOI_KEY), rhoIceDefault);
+    params.rhoAtm = getConfiguration(keyMap.at(RHOA_KEY), rhoAtmDefault);
+    params.rhoOcean = getConfiguration(keyMap.at(RHOO_KEY), rhoOceanDefault);
+    params.CAtm = getConfiguration(keyMap.at(CATM_KEY), CAtmDefault);
+    params.COcean = getConfiguration(keyMap.at(COCEAN_KEY), COceanDefault);
+    params.fc = getConfiguration(keyMap.at(FC_KEY), fcDefault);
+    params.oceanTurningAngle = getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
 }
 
 BBMDynamics::BBMDynamics()
@@ -211,10 +212,13 @@ BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
             ConfigurationHelp::toString(expPMaxDefault), "[None]",
             "Internal friction coefficient, 𝜇" },
         { keyMap.at(NMAX_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(expPMaxDefault), "Pa",
-            "Maximum compressive strength (at the lab scale)" },
+            ConfigurationHelp::toString(expPMaxDefault), "",
+            "Maximum compressive strength as a multiplication factor applied to the cohesion." },
         { keyMap.at(CLAB_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(cLabDefault), "Pa", "Cohesion (at the lab scale)" },
+            ConfigurationHelp::toString(cohesionDefault), "Pa", "Cohesion" },
+        { keyMap.at(SCALEC_KEY), ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(scaleCohesionDefault), "",
+            "Scale the cohesion as sqrt of the grid size" },
         { keyMap.at(NSTEPS_KEY), ConfigType::NUMERIC, { "1", "∞" },
             ConfigurationHelp::toString(nStepsDefault), "[No unit]",
             "The number of sub-cycling steps" },

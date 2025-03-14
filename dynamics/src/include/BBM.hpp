@@ -1,6 +1,6 @@
 /*!
  * @file BBM.hpp
- * @date 06 Dec 2024
+ * @date 14 Mar 2025
  * @author Einar Olason <Einar.Olason@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -137,7 +137,7 @@ namespace BBM {
 
             //! Eqn. 22
             const Eigen::Matrix<double, 1, NGP * NGP> cohesion
-                = params.cLab * scale_coef * h_gauss.array();
+                = params.cohesion * scale_coef * h_gauss.array();
             //! Eqn. 30
             const Eigen::Matrix<double, 1, NGP * NGP> compr_strength
                 = params.comprCap * scale_coef * h_gauss.array();

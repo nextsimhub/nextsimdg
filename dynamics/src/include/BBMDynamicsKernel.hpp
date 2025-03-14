@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamicsKernel.hpp
  *
- * @date 09 Nov 2024
+ * @date 14 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -21,6 +21,7 @@ public:
     // using DynamicsKernel<DGadvection, DGstressComp>::momentum;
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
+    using DynamicsKernel<DGadvection, DGstressComp>::smesh;
     using CGDynamicsKernel<DGadvection>::pmap;
     using BrittleCGDynamicsKernel<DGadvection>::damage;
     using CGDynamicsKernel<DGadvection>::initialise;
@@ -34,11 +35,12 @@ public:
         BrittleCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
         bbmStressStep.setPMap(pmap.get());
         bbmStressStep.setDamage(damage);
+        bbmStressStep.setCohesion(bbmParams, *smesh);
     }
 
 private:
     //! Brittle rheology parameters
-    BBMParameters mebParams;
+    BBMParameters bbmParams;
     // BBM stress update class
     BBMStressUpdateStep<DGadvection, DGstressComp, CGdegree> bbmStressStep;
 };
