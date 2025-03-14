@@ -24,7 +24,7 @@ static double comprCapDefault = 1e4; //! \param comprCap (double) Maximum compre
                                      //! multiplier (cap as fraction of cohesion).
 static double cohesionDefault
     = 2e6; //! \param C_lab (double) Cohesion (at the lab scale if scaling is turned on) [Pa]
-static double scaleCohesionDefault = true; //! Scale the cohesion as sqrt of the grid size
+static bool scaleCohesionDefault = true; //! Scale the cohesion as sqrt of the grid size
 // static const int nStepsDefault = 120; //!< Number of sub-steps
 
 class BBMParameters : public DynamicsParameters {
