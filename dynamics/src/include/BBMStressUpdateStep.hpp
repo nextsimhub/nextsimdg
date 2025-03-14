@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date 12 Mar 2025
+ * @date 14 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -98,7 +98,7 @@ public:
 
             //! Eqn. 9
             const LocalEdgeVector<nGauss2> elasticity
-                = hGauss.array() * params.young * dGauss.array() * expC.array();
+                = params.young * dGauss.array() * expC.array();
 
             // Eqn. 12: first factor on RHS
             /* Stiffness matrix
@@ -108,7 +108,7 @@ public:
              */
 
             const LocalEdgeVector<nGauss2> Dunit_factor
-                = deltaT * elasticity.array() / (1. - params.nu0 * params.nu0);
+                = deltaT * hGauss.array() * elasticity.array() / (1. - params.nu0 * params.nu0);
 
             s11Gauss.array()
                 += Dunit_factor.array() * (e11Gauss.array() + params.nu0 * e22Gauss.array());
