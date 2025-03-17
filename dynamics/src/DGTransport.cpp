@@ -1,6 +1,6 @@
 /*!
  * @file DGTransport.cpp
- * @date July 10, 2022
+ * @date 17 Mar 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -230,24 +230,13 @@ template <int DG> void DGTransport<DG>::reinitnormalvelocity()
     // Take care of the boundaries. Usually, the normal velocity is the average velocity
     // from left and from the right. Hence, we get the factor 0.5 above. At boundaries,
     // the normal is set only once, from the inside. These edges must be scaled with 2.0
-
-    for (size_t seg = 0; seg < 4; ++seg) // run over the 4 segments (bot, right, top, left)
-    {
-#pragma omp parallel for
-        for (size_t i = 0; i < smesh.dirichlet[seg].size(); ++i) {
-            const size_t eid = smesh.dirichlet[seg][i]; //! The i of the boundary element
-            const size_t ix = eid % smesh.nx; //! x & y indices of the element
-            const size_t iy = eid / smesh.nx;
-
-            if (seg == 0) // bottom
-                normalvel_X.row(smesh.nx * iy + ix) *= 2.0;
-            else if (seg == 1) // right
-                normalvel_Y.row((smesh.nx + 1) * iy + ix + 1) *= 2.0;
-            else if (seg == 2) // top
-                normalvel_X.row(smesh.nx * (iy + 1) + ix) *= 2.0;
-            else if (seg == 3) // left
-                normalvel_Y.row((smesh.nx + 1) * iy + ix) *= 2.0;
-        }
+    for (size_t ix = 0; ix < smesh.nx; ++ix) {
+        normalvel_X.row(ix) *= 2;
+        normalvel_X.row(smesh.nx * smesh.ny + ix) *= 2;
+    }
+    for (size_t iy = 0; iy < smesh.ny; ++iy) {
+        normalvel_Y.row(iy * (smesh.nx + 1)) *= 2;
+        normalvel_Y.row(iy * (smesh.nx + 1) + smesh.nx) *= 2;
     }
 }
 
