@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date Oct 24, 2022
+ * @date 18 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,6 +10,7 @@
 #include "include/CommonRestartMetadata.hpp"
 #include "include/FileCallbackCloser.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Halo.hpp"
 #include "include/MissingData.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
@@ -151,7 +152,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                     localLength = dim.getSize();
                     start = 0;
                 }
-                ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+                ModelArray::setDimension(dimType, dim.getSize() + 2 * Halo::haloWidth,
+                    localLength + 2 * Halo::haloWidth, start);
 #else
                 ModelArray::setDimension(dimType, dim.getSize());
 #endif
@@ -186,17 +188,45 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 start.push_back(0);
                 count.push_back(ncomps);
             }
-            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)) {
+
+            using Dim = ModelArray::Dimension;
+            for (Dim dt : ModelArray::typeDimensions.at(type)) {
                 auto dim = ModelArray::definedDimensions.at(dt);
-                start.push_back(dim.start);
-                count.push_back(dim.localLength);
+                size_t startIndex = dim.start;
+                size_t localLength = dim.localLength;
+#ifdef USE_MPI
+                if (dt == Dim::X or dt == Dim::XVERTEX) {
+                    localLength = localLength - 2 * Halo::haloWidth;
+                } else if (dt == Dim::Y or dt == Dim::YVERTEX) {
+                    localLength = localLength - 2 * Halo::haloWidth;
+                }
+#endif
+                start.push_back(startIndex);
+                count.push_back(localLength);
             }
             // dims are looped in [dg], x, y, [z] order so start and count
             // order must be reveresed to match order netcdf expects
             std::reverse(start.begin(), start.end());
             std::reverse(count.begin(), count.end());
 
+#ifdef USE_MPI
+            // TODO
+            // at this point we should add the halo exchange logic for each modelarray
+            // need to check what happens for non-H-field modelarrays
+            // need to figure out what happens w.r.t to coords in non-periodic and periodic case
+
+            Halo halo(metadata, data);
+            // create and allocate temporary Eigen array
+            ModelArray::DataType tempData;
+            tempData.resize(halo.getInnerSize(), data.nComponents());
+            // populate temp Eigen array with data from netCDF file
+            var.getVar(start, count, tempData.data());
+            // populate inner block of modelarray with data from tempData
+            halo.populateInnerBlock(tempData);
+            halo.updateMA();
+#else
             var.getVar(start, count, &data[0]);
+#endif
         }
         ncFile.close();
     } catch (const netCDF::exceptions::NcException& nce) {

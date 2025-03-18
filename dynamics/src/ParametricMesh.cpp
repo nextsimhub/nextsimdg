@@ -1,6 +1,6 @@
 /*!
  * @file ParametricMesh.hpp
- * @date 14 Jan 2025
+ * @date 18 Mar 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -205,6 +205,7 @@ void ParametricMesh::readmesh(std::string fname)
 void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
 {
     // Fill in the array sizes from the ModelArray dimensions
+    // TODO check do we need to make any additional changes here
     nx = ModelArray::size(ModelArray::Dimension::X);
     ny = ModelArray::size(ModelArray::Dimension::Y);
     nelements = nx * ny;

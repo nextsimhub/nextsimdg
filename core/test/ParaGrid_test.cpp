@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 17 Jan 2025
+ * @date 18 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -17,6 +17,7 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/Halo.hpp"
 #include "include/IStructure.hpp"
 #include "include/NZLevels.hpp"
 #include "include/NextsimModule.hpp"
@@ -48,7 +49,7 @@ static const int CG = 2;
 
 const size_t nx = 10;
 const size_t ny = 9;
-const size_t nz = 3;
+const size_t nz = 1;
 const double yFactor = 0.01;
 const double xFactor = 0.1;
 const double scale = 1e5;
@@ -273,8 +274,15 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
     ModelArray& hiceRef = ms.data.at(hiceName);
     REQUIRE(hiceRef.nDimensions() == 2);
+    // TODO need to decide how non-MPI code should be handled i.e., will we only ever run with
+    // MPI=ON? even if it's mpirun -n 1...
+#ifdef USE_MPI
+    REQUIRE(hiceRef.dimensions()[0] == localNX + 2 * Halo::haloWidth);
+    REQUIRE(hiceRef.dimensions()[1] == ny + 2 * Halo::haloWidth);
+#else
     REQUIRE(hiceRef.dimensions()[0] == localNX);
     REQUIRE(hiceRef.dimensions()[1] == ny);
+#endif
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(hiceRef.nComponents() == DG);
 
@@ -284,8 +292,13 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ModelArray& coordRef = ms.data.at(coordsName);
     REQUIRE(coordRef.nDimensions() == 2);
     REQUIRE(coordRef.nComponents() == 2);
+#ifdef USE_MPI
+    REQUIRE(coordRef.dimensions()[0] == localNXVertex + 2 * Halo::haloWidth);
+    REQUIRE(coordRef.dimensions()[1] == ny + 1 + 2 * Halo::haloWidth);
+#else
     REQUIRE(coordRef.dimensions()[0] == localNXVertex);
     REQUIRE(coordRef.dimensions()[1] == ny + 1);
+#endif
     REQUIRE(coordRef.components({ 3, 8 })[0] - coordRef.components({ 2, 8 })[0] == scale);
     REQUIRE(coordRef.components({ 3, 8 })[1] - coordRef.components({ 3, 7 })[1] == scale);
 
@@ -298,7 +311,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(yRef(3, 8) == coordRef.components({ 2, 8 })[1] + scale / 2);
 
     REQUIRE(ms.data.count(gridAzimuthName) > 0);
-    REQUIRE(ms.data.at(gridAzimuthName)(0, 0) == gridAzimuth0);
+    REQUIRE(ms.data.at(gridAzimuthName)(1, 1) == gridAzimuth0);
     std::filesystem::remove(filename);
 }
 
@@ -558,7 +571,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 
     size_t nx = 2;
     size_t ny = 1;
-    NZLevels::set(1);
+    NZLevels::set(0);
 
     ParametricGrid gridIn;
     ParaGridIO* readIO = new ParaGridIO(gridIn);

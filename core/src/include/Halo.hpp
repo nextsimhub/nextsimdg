@@ -1,13 +1,14 @@
 /*!
  * @file Halo.hpp
  *
- * @date 28 Jan 2025
+ * @date 18 Mar 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #ifndef HALO_HPP
 #define HALO_HPP
 
+#include <iostream>
 #include <memory>
 #include <numeric>
 #include <vector>
@@ -16,8 +17,6 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelArraySlice.hpp"
 #include "include/ModelMetadata.hpp"
-#include "include/dgVector.hpp"
-#include "include/indexer.hpp"
 #include "mpi.h"
 
 #ifndef DGCOMP
@@ -44,20 +43,39 @@ public:
     /*!
      * @brief Constructs a halo object
      */
-    Halo(size_t localExtentX, size_t localExtentY, ModelMetadata& metadata)
-        : m_localExtentX(localExtentX)
-        , m_localExtentY(localExtentY)
-        , m_metadata(std::make_unique<ModelMetadata>(metadata))
-        , m_comm(metadata.mpiComm)
-        , m_haloDims({ localExtentX + 2 * m_halo_width, localExtentY + 2 * m_halo_width })
+    Halo(ModelMetadata& metadata, ModelArray& ma)
+        : m_metadata(std::make_unique<ModelMetadata>(metadata))
+        , m_ma(ma)
     {
-        m_perimeterLength = 2 * localExtentX + 2 * localExtentY;
+        m_innerNx = ma.innerDimensions()[0];
+        m_innerNy = ma.innerDimensions()[1];
+        m_perimeterLength = 2 * m_innerNx + 2 * m_innerNy;
         send.resize(m_perimeterLength, 0.0);
         recv.resize(m_perimeterLength, 0.0);
-        m_edgeLengths
-            = { localExtentX, localExtentY, localExtentX, localExtentY }; // order is Bottom
-        // Right Top Left
+        m_edgeLengths = { m_innerNx, m_innerNy, m_innerNx, m_innerNy }; // order is Bottom
+        m_comm = metadata.mpiComm;
+
+        m_outerSlices = {
+            { Edge::LEFT, VBounds({ { 0 }, { 1, m_innerNy + haloWidth } }) },
+            { Edge::RIGHT, VBounds({ { -1 }, { 1, m_innerNy + haloWidth } }) },
+            { Edge::TOP, VBounds({ { 1, m_innerNx + haloWidth }, { -1 } }) },
+            { Edge::BOTTOM, VBounds({ { 1, m_innerNx + haloWidth }, { 0 } }) },
+        };
+        m_innerSlices = {
+            { Edge::LEFT, VBounds({ { 1 }, { 1, m_innerNy + haloWidth } }) },
+            { Edge::RIGHT, VBounds({ { -2 }, { 1, m_innerNy + haloWidth } }) },
+            { Edge::TOP, VBounds({ { 1, m_innerNx + haloWidth }, { -2 } }) },
+            { Edge::BOTTOM, VBounds({ { 1, m_innerNx + haloWidth }, { 1 } }) },
+        };
+        m_innerSlicesVertexAdjusted = {
+            { Edge::LEFT, VBounds({ { 2 }, { 1, m_innerNy + haloWidth } }) },
+            { Edge::RIGHT, VBounds({ { -3 }, { 1, m_innerNy + haloWidth } }) },
+            { Edge::TOP, VBounds({ { 1, m_innerNx + haloWidth }, { -3 } }) },
+            { Edge::BOTTOM, VBounds({ { 1, m_innerNx + haloWidth }, { 2 } }) },
+        };
     }
+
+    static const size_t haloWidth = 1; // how many cells wide is the halo region
 
 private:
     using Slice = ArraySlicer::Slice;
@@ -65,24 +83,27 @@ private:
     using Edge = ModelMetadata::Edge;
     using VBounds = ArraySlicer::Slice::VBounds;
 
-    const size_t m_halo_width = 1; // how many cells wide is the halo region
     const typedef ArraySlicer::SliceIter::MultiDim MultiDim;
     const MultiDim m_haloDims;
-    size_t m_localExtentX; // local extent in x-direction
-    size_t m_localExtentY; // local extent in y-direction
+    ModelArray& m_ma; // reference to modelarray
+    size_t m_innerNx; // local extent in x-direction
+    size_t m_innerNy; // local extent in y-direction
     size_t m_perimeterLength; // length of perimeter of domain
     std::unique_ptr<ModelMetadata> m_metadata; // pointer to metadata
     std::array<size_t, Edge::N_EDGE> m_edgeLengths; // array containing length of each edge
     std::array<Edge, Edge::N_EDGE> edges = ModelMetadata::edges; // array of edge enums
-    std::map<Edge, Slice> m_slices = {
-        { Edge::LEFT, VBounds({ { 0 }, {} }) },
-        { Edge::RIGHT, VBounds({ { -1 }, {} }) },
-        { Edge::TOP, VBounds({ {}, { -1 } }) },
-        { Edge::BOTTOM, VBounds({ {}, { 0 } }) },
-    };
-
+    std::map<Edge, Slice> m_outerSlices;
+    std::map<Edge, Slice> m_innerSlices;
+    std::map<Edge, Slice> m_innerSlicesVertexAdjusted;
     MPI_Win m_win; // RMA memory window object (used for sharing send buffers between ranks)
     MPI_Comm m_comm; // RMA memory window object (used for sharing send buffers between ranks)
+
+    std::map<Edge, Edge> oppositeEdge = {
+        { Edge::LEFT, Edge::RIGHT },
+        { Edge::RIGHT, Edge::LEFT },
+        { Edge::TOP, Edge::BOTTOM },
+        { Edge::BOTTOM, Edge::TOP },
+    }; // map to opposite edge
 
     /*!
      * @brief Open memory window to exchange send buffer between MPI ranks.
@@ -113,20 +134,20 @@ private:
         MPI_Win_free(&m_win);
     }
 
-public:
-    std::vector<double> send; // buffer to store halo region that will be read by other ranks
-    std::vector<double> recv; // buffer to store halo region which is read from other ranks
-
     /*!
      * @brief Populate send buffer with halo data of the specified ModelArray
-     *
-     * @params ma ModelArray which we intend to update across MPI ranks
      */
-    void populateSendBuffer(ModelArray& ma)
+    void populateSendBuffer()
     {
         for (auto edge : ModelMetadata::edges) {
             size_t offset = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
-            ma[m_slices.at(edge)].copyToBuffer(send, offset);
+            if (m_ma.getType() == ModelArray::Type::VERTEX) {
+                // because vertex points lie along the domain boundaries we need offset the slices
+                // by and additional row/column
+                m_ma[m_innerSlicesVertexAdjusted.at(edge)].copyToBuffer(send, offset);
+            } else {
+                m_ma[m_innerSlices.at(edge)].copyToBuffer(send, offset);
+            }
         }
     }
 
@@ -150,6 +171,10 @@ public:
                     size_t count = m_metadata->neighbourExtents[edge][i];
                     size_t disp = m_metadata->neighbourHaloSend[edge][i];
                     size_t recvOffset = m_metadata->neighbourHaloRecv[edge][i];
+                    if (m_ma.getType() == ModelArray::Type::VERTEX) {
+                        vertexAdjustedPositions(
+                            count = count, disp = disp, recvOffset = recvOffset, edge = edge);
+                    }
                     MPI_Get(&recv[recvOffset], count, MPI_DOUBLE, fromRank, disp, count, MPI_DOUBLE,
                         m_win);
                 }
@@ -166,6 +191,10 @@ public:
                     size_t count = m_metadata->neighbourExtentsPeriodic[edge][i];
                     size_t disp = m_metadata->neighbourHaloSendPeriodic[edge][i];
                     size_t recvOffset = m_metadata->neighbourHaloRecvPeriodic[edge][i];
+                    if (m_ma.getType() == ModelArray::Type::VERTEX) {
+                        vertexAdjustedPositions(
+                            count = count, disp = disp, recvOffset = recvOffset, edge = edge);
+                    }
                     MPI_Get(&recv[recvOffset], count, MPI_DOUBLE, fromRank, disp, count, MPI_DOUBLE,
                         m_win);
                 }
@@ -176,54 +205,94 @@ public:
         closeMemoryWindow();
     }
 
+    void vertexAdjustedPositions(size_t& count, size_t& disp, size_t& recvOffset, Edge& edge)
+    {
+        count = count + haloWidth;
+        disp = disp + oppositeEdge.at(edge) * haloWidth;
+        recvOffset = recvOffset + edge * haloWidth;
+    }
+
+public:
+    std::vector<double> send; // buffer to store halo region that will be read by other ranks
+    std::vector<double> recv; // buffer to store halo region which is read from other ranks
+
     /*!
-     * @brief Update a DGVector with data from the recv buffer
+     * @brief Returns size of the inner flattened array
+     */
+    size_t getInnerSize() { return m_innerNx * m_innerNy; }
+
+    /*!
+     * @brief Populate inner block of ModelArray from tempData
+     *
+     * @params ma ModelArray which we intend to update across MPI ranks
+     */
+    void populateInnerBlock(ModelArray::DataType& tempData)
+    {
+        ArraySlicer::Slice::VBounds innerBlock, allBlock;
+        if (m_ma.getType() == ModelArray::Type::Z) {
+            innerBlock = { { 1, -1 }, { 1, -1 }, {} };
+            allBlock = { {}, {}, {} };
+        } else {
+            innerBlock = { { 1, -1 }, { 1, -1 } };
+            allBlock = { {}, {} };
+        }
+        ArraySlicer::SliceIter wholeBlock(allBlock, m_ma.innerDimensions());
+
+        m_ma = 0.; // TODO -- should this be removed? It does mean that mask is zero by default
+
+        // copy temp data to the central block of the main modelarray
+        m_ma[innerBlock].copyFromSlicedBuffer(tempData, wholeBlock);
+
+        auto nx = m_ma.dimensions()[0];
+        auto ny = m_ma.dimensions()[1];
+        auto numComps = m_ma.nComponents();
+        // for (size_t i = 0; i < numComps; i++) {
+        //     auto view = m_ma.m_data.col(i).reshaped<majority>(ny, nx);
+        //     std::cout << view << std::endl;
+        // }
+    }
+
+    /*!
+     * @brief Update a ModelArray with data from
      *
      * @params dgvec DGVector which we intend to update across MPI ranks based on halo cells
+     * note that the start index is offset by 1 and the loop limit is size() - 2 because
+     * the edge of each domain is 2 less than the length of the expanded halo region
+     * (see diagram below - the empty cells are skipped by going from i+1 to size()-2)
+     * ┌─┬─┬─┬─┐
+     * │ │x│x│ │
+     * ├─┼─┼─┼─┤
+     * │x│o│o│x│
+     * ├─┼─┼─┼─┤
+     * │x│o│o│x│       o = original data
+     * ├─┼─┼─┼─┤       x = mpi halo data (from recv)
+     * │ │x│x│ │ (empty) = unused data in DGVector
+     * └─┴─┴─┴─┘
      */
-    void updateDGVec(DGVector<DGCOMP>& dgvec)
+    void updateMA()
     {
+        populateSendBuffer();
+        populateRecvBuffer();
+
+        // TODO warning, currently the copy to/from part is only for the DG 0 component
         for (auto edge : edges) {
-
-            SliceIter sIter = SliceIter(m_slices.at(edge), m_haloDims);
-            std::vector<size_t> edgeIndices;
-
-            // populate edgeIndices with the indices along a given edge of the domain
-            while (!sIter.isEnd()) {
-                const size_t start = sIter.index();
-                const size_t step = sIter.step(0);
-                const size_t n = sIter.nElements(0);
-                for (int i = 0; i < n; ++i) {
-                    auto idx = start + i * step;
-                    edgeIndices.push_back(idx);
-                }
-                sIter.incrementDim(1);
-            }
-
-            // calculate offset index for the recv buffer based on current edge
-            const size_t offset
-                = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
-
-            // copy the halo region from recv buffer into the DGVector
-            for (size_t i = 0; i < edgeIndices.size() - 2; ++i) {
-                // note that the start index is offset by 1 and the loop limit is size() - 2 because
-                // the edge of each domain is 2 less than the length of the expanded halo region
-                // (see diagram below - the empty cells are skipped by going from i+1 to size()-2)
-                // ┌─┬─┬─┬─┐
-                // │ │x│x│ │
-                // ├─┼─┼─┼─┤
-                // │x│o│o│x│
-                // ├─┼─┼─┼─┤
-                // │x│o│o│x│       o = original data
-                // ├─┼─┼─┼─┤       x = mpi halo data (from recv)
-                // │ │x│x│ │ (empty) = unused data in DGVector
-                // └─┴─┴─┴─┘
-                dgvec(edgeIndices[i + 1], 0) = recv[offset + i];
-            }
+            size_t offset = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
+            m_ma[m_outerSlices.at(edge)].copyFromBuffer(recv, offset);
         }
 
         recv.clear();
         send.clear();
+
+        auto nx = m_ma.dimensions()[0];
+        auto ny = m_ma.dimensions()[1];
+        auto numComps = m_ma.nComponents();
+
+        // use eigen views to populate ModelArray with data from temporary array
+        for (size_t i = 0; i < numComps; i++) {
+            auto view = m_ma.m_data.col(i).reshaped<majority>(ny, nx);
+            std::cout << view << std::endl;
+            std::cout << "====================================" << std::endl;
+        }
     }
 };
 } // end of nextsim namespace

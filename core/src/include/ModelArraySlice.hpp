@@ -1,7 +1,7 @@
 /*!
  * @file ModelArraySlice.hpp
  *
- * @date Nov 8, 2024
+ * @date 18 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -207,6 +207,24 @@ public:
             ++biter;
         }
         return buffer;
+    }
+    /*!
+     */
+    template <typename T> void copyFromBuffer(T& buffer, size_t startIndex = 0)
+    {
+        // make no especial attempt at efficiency here
+        SliceIter thisIter(slice, data.dimensions());
+        auto biter = std::next(buffer.begin(), startIndex);
+
+        while (!thisIter.isEnd()) {
+            // If the buffer ends before the slice, throw an exception
+            if (biter == buffer.end()) {
+                throw std::length_error("ModelArraySlice::copyToBuffer(T): buffer exhausted");
+            }
+            data[thisIter.index()] = *biter;
+            ++thisIter;
+            ++biter;
+        }
     }
 
 private:

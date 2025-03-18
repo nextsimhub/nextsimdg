@@ -108,7 +108,7 @@ if(ENABLE_MPI)
     )
     target_include_directories(
         testParaGrid_MPI2
-        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule" "../../dynamics/src"
     )
     target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 
