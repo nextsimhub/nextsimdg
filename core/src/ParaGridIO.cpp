@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date 18 Mar 2025
+ * @date 19 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -223,7 +223,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             var.getVar(start, count, tempData.data());
             // populate inner block of modelarray with data from tempData
             halo.populateInnerBlock(tempData);
-            halo.updateMA();
+            halo.exchangeHalos();
 #else
             var.getVar(start, count, &data[0]);
 #endif

@@ -1,13 +1,14 @@
 /*!
  * @file Halo.hpp
  *
- * @date 18 Mar 2025
+ * @date 19 Mar 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #ifndef HALO_HPP
 #define HALO_HPP
 
+#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <numeric>
@@ -50,8 +51,13 @@ public:
         m_innerNx = ma.innerDimensions()[0];
         m_innerNy = ma.innerDimensions()[1];
         m_perimeterLength = 2 * m_innerNx + 2 * m_innerNy;
-        send.resize(m_perimeterLength, 0.0);
-        recv.resize(m_perimeterLength, 0.0);
+        m_numComps = m_ma.nComponents();
+        send.resize(m_numComps);
+        recv.resize(m_numComps);
+        for (size_t i = 0; i < m_numComps; i++) {
+            send[i].resize(m_perimeterLength, 0.0);
+            recv[i].resize(m_perimeterLength, 0.0);
+        }
         m_edgeLengths = { m_innerNx, m_innerNy, m_innerNx, m_innerNy }; // order is Bottom
         m_comm = metadata.mpiComm;
 
@@ -89,6 +95,7 @@ private:
     size_t m_innerNx; // local extent in x-direction
     size_t m_innerNy; // local extent in y-direction
     size_t m_perimeterLength; // length of perimeter of domain
+    size_t m_numComps; // number of DG components
     std::unique_ptr<ModelMetadata> m_metadata; // pointer to metadata
     std::array<size_t, Edge::N_EDGE> m_edgeLengths; // array containing length of each edge
     std::array<Edge, Edge::N_EDGE> edges = ModelMetadata::edges; // array of edge enums
@@ -111,11 +118,11 @@ private:
      * @ details this is not intended to be used manually. It should only be called as part of the
      * update method.
      */
-    void openMemoryWindow()
+    void openMemoryWindow(size_t idx)
     {
         // create a RMA memory window which all ranks will be able to access
-        MPI_Win_create(&send[0], m_perimeterLength * sizeof(double), sizeof(double), MPI_INFO_NULL,
-            m_comm, &m_win);
+        MPI_Win_create(&send[idx][0], m_perimeterLength * sizeof(double), sizeof(double),
+            MPI_INFO_NULL, m_comm, &m_win);
         // remove fence and check that no proceding RMA calls have been made
         MPI_Win_fence(MPI_MODE_NOPRECEDE, m_win);
     }
@@ -137,17 +144,30 @@ private:
     /*!
      * @brief Populate send buffer with halo data of the specified ModelArray
      */
-    void populateSendBuffer()
+    void populateSendBuffers()
     {
-        for (auto edge : ModelMetadata::edges) {
-            size_t offset = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
+        tempBuffer.resize(m_perimeterLength, m_numComps);
+        for (auto edge : edges) {
+            size_t beg = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
+            size_t num = m_edgeLengths.at(edge);
             if (m_ma.getType() == ModelArray::Type::VERTEX) {
-                // because vertex points lie along the domain boundaries we need offset the slices
-                // by and additional row/column
-                m_ma[m_innerSlicesVertexAdjusted.at(edge)].copyToBuffer(send, offset);
+                // because vertex points lie along the domain boundaries we need offset the
+                // slices by and additional row/column
+                // m_ma[m_innerSlicesVertexAdjusted.at(edge)].copyToBuffer(send[i], offset);
+                tempBuffer(Eigen::seqN(beg, num), Eigen::all)
+                    = static_cast<ModelArray::DataType>(m_ma[m_innerSlicesVertexAdjusted.at(edge)]);
             } else {
-                m_ma[m_innerSlices.at(edge)].copyToBuffer(send, offset);
+                // m_ma[m_innerSlices.at(edge)].copyToBuffer(send[i], offset);
+                tempBuffer(Eigen::seqN(beg, num), Eigen::all)
+                    = static_cast<ModelArray::DataType>(m_ma[m_innerSlices.at(edge)]);
             }
+        }
+        // we need to copy into std vector send buffer because MPI doesn't work with Eigen Arrays
+        for (size_t i = 0; i < m_numComps; i++) {
+            typedef Eigen::Map<ModelArray::DataType> MapType;
+            MapType map(send[i].data(), m_perimeterLength, 1);
+            // map is connected with the send buffer so the following line sets the data in send
+            map = tempBuffer.col(i);
         }
     }
 
@@ -155,54 +175,67 @@ private:
      * @brief Populate recv buffer with halo data from other ranks send buffers via the memory
      * window
      */
-    void populateRecvBuffer()
+    void populateRecvBuffers()
     {
 
-        // open memory window to send buffer on other ranks
-        openMemoryWindow();
+        // do halo exchange for each component
+        for (size_t comp = 0; comp < m_numComps; comp++) {
+            // open memory window to send buffer on other ranks
+            openMemoryWindow(comp);
 
-        // get non-periodic neighbours and populate recv buffer (if the exist)
-        for (auto edge : ModelMetadata::edges) {
-            auto numNeighbours = m_metadata->neighbourRanks[edge].size();
-            if (numNeighbours) {
-                // get data for each neighbour that exists along a given edge
-                for (size_t i = 0; i < numNeighbours; ++i) {
-                    int fromRank = m_metadata->neighbourRanks[edge][i];
-                    size_t count = m_metadata->neighbourExtents[edge][i];
-                    size_t disp = m_metadata->neighbourHaloSend[edge][i];
-                    size_t recvOffset = m_metadata->neighbourHaloRecv[edge][i];
-                    if (m_ma.getType() == ModelArray::Type::VERTEX) {
-                        vertexAdjustedPositions(
-                            count = count, disp = disp, recvOffset = recvOffset, edge = edge);
+            // get non-periodic neighbours and populate recv buffer (if the exist)
+            for (auto edge : edges) {
+                auto numNeighbours = m_metadata->neighbourRanks[edge].size();
+                if (numNeighbours) {
+                    // get data for each neighbour that exists along a given edge
+                    for (size_t i = 0; i < numNeighbours; ++i) {
+                        int fromRank = m_metadata->neighbourRanks[edge][i];
+                        size_t count = m_metadata->neighbourExtents[edge][i];
+                        size_t disp = m_metadata->neighbourHaloSend[edge][i];
+                        size_t recvOffset = m_metadata->neighbourHaloRecv[edge][i];
+                        if (m_ma.getType() == ModelArray::Type::VERTEX) {
+                            vertexAdjustedPositions(
+                                count = count, disp = disp, recvOffset = recvOffset, edge = edge);
+                        }
+                        MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp, count,
+                            MPI_DOUBLE, m_win);
                     }
-                    MPI_Get(&recv[recvOffset], count, MPI_DOUBLE, fromRank, disp, count, MPI_DOUBLE,
-                        m_win);
                 }
             }
-        }
 
-        // get periodic neighbours and populate recv buffer (if they exist)
-        for (auto edge : ModelMetadata::edges) {
-            auto numNeighbours = m_metadata->neighbourRanksPeriodic[edge].size();
-            if (numNeighbours) {
-                // get data for each neighbour that exists along a given edge
-                for (size_t i = 0; i < numNeighbours; ++i) {
-                    int fromRank = m_metadata->neighbourRanksPeriodic[edge][i];
-                    size_t count = m_metadata->neighbourExtentsPeriodic[edge][i];
-                    size_t disp = m_metadata->neighbourHaloSendPeriodic[edge][i];
-                    size_t recvOffset = m_metadata->neighbourHaloRecvPeriodic[edge][i];
-                    if (m_ma.getType() == ModelArray::Type::VERTEX) {
-                        vertexAdjustedPositions(
-                            count = count, disp = disp, recvOffset = recvOffset, edge = edge);
+            // get periodic neighbours and populate recv buffer (if they exist)
+            for (auto edge : edges) {
+                auto numNeighbours = m_metadata->neighbourRanksPeriodic[edge].size();
+                if (numNeighbours) {
+                    // get data for each neighbour that exists along a given edge
+                    for (size_t i = 0; i < numNeighbours; ++i) {
+                        int fromRank = m_metadata->neighbourRanksPeriodic[edge][i];
+                        size_t count = m_metadata->neighbourExtentsPeriodic[edge][i];
+                        size_t disp = m_metadata->neighbourHaloSendPeriodic[edge][i];
+                        size_t recvOffset = m_metadata->neighbourHaloRecvPeriodic[edge][i];
+                        if (m_ma.getType() == ModelArray::Type::VERTEX) {
+                            vertexAdjustedPositions(
+                                count = count, disp = disp, recvOffset = recvOffset, edge = edge);
+                        }
+                        MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp, count,
+                            MPI_DOUBLE, m_win);
                     }
-                    MPI_Get(&recv[recvOffset], count, MPI_DOUBLE, fromRank, disp, count, MPI_DOUBLE,
-                        m_win);
                 }
             }
+
+            // close memory window (essentially make sure all communications are done before moving
+            // on)
+            closeMemoryWindow();
         }
 
-        // close memory window (essentially make sure all communications are done before moving on)
-        closeMemoryWindow();
+        // copy from the recv std vector into an eigen array
+        for (size_t i = 0; i < m_numComps; i++) {
+            typedef Eigen::Map<ModelArray::DataType> MapType;
+            MapType map(recv[i].data(), m_perimeterLength, 1);
+            // map is connected with the recv buffer so the following line copies the data into
+            // tempBuffer
+            tempBuffer.col(i) = map;
+        }
     }
 
     void vertexAdjustedPositions(size_t& count, size_t& disp, size_t& recvOffset, Edge& edge)
@@ -213,8 +246,11 @@ private:
     }
 
 public:
-    std::vector<double> send; // buffer to store halo region that will be read by other ranks
-    std::vector<double> recv; // buffer to store halo region which is read from other ranks
+    std::vector<std::vector<double>>
+        send; // buffer to store halo region that will be read by other ranks
+    std::vector<std::vector<double>>
+        recv; // buffer to store halo region which is read from other ranks
+    ModelArray::DataType tempBuffer;
 
     /*!
      * @brief Returns size of the inner flattened array
@@ -242,14 +278,6 @@ public:
 
         // copy temp data to the central block of the main modelarray
         m_ma[innerBlock].copyFromSlicedBuffer(tempData, wholeBlock);
-
-        auto nx = m_ma.dimensions()[0];
-        auto ny = m_ma.dimensions()[1];
-        auto numComps = m_ma.nComponents();
-        // for (size_t i = 0; i < numComps; i++) {
-        //     auto view = m_ma.m_data.col(i).reshaped<majority>(ny, nx);
-        //     std::cout << view << std::endl;
-        // }
     }
 
     /*!
@@ -269,26 +297,24 @@ public:
      * │ │x│x│ │ (empty) = unused data in DGVector
      * └─┴─┴─┴─┘
      */
-    void updateMA()
+    void exchangeHalos()
     {
-        populateSendBuffer();
-        populateRecvBuffer();
+        populateSendBuffers();
+        populateRecvBuffers();
 
-        // TODO warning, currently the copy to/from part is only for the DG 0 component
         for (auto edge : edges) {
-            size_t offset = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
-            m_ma[m_outerSlices.at(edge)].copyFromBuffer(recv, offset);
+            size_t beg = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
+            size_t num = m_edgeLengths.at(edge);
+            // m_ma[m_outerSlices.at(edge)] = tempBuffer(Eigen::seqN(beg, num), Eigen::all);
+            m_ma[m_outerSlices.at(edge)]
+                = ModelArray::DataType(tempBuffer(Eigen::seqN(beg, num), Eigen::all));
         }
-
-        recv.clear();
-        send.clear();
 
         auto nx = m_ma.dimensions()[0];
         auto ny = m_ma.dimensions()[1];
-        auto numComps = m_ma.nComponents();
 
         // use eigen views to populate ModelArray with data from temporary array
-        for (size_t i = 0; i < numComps; i++) {
+        for (size_t i = 0; i < m_numComps; i++) {
             auto view = m_ma.m_data.col(i).reshaped<majority>(ny, nx);
             std::cout << view << std::endl;
             std::cout << "====================================" << std::endl;
