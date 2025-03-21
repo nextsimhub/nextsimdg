@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.cpp
  *
- * @date 15 Feb 2025
+ * @date 21 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -161,7 +161,7 @@ void OASISCoupledOcean::configure()
     firstLayerDepth = getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
 
     cplStringsIn = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey };
-    if (Configured::getConfiguration(exchangeFirstLayerConfigKey, EXCHANGE_FIRST_LAYER)) {
+    if (Configured::getConfiguration(exchangeFirstLayerConfigKey, exchangeFirstLayerDefault)) {
         cplStringsIn.push_back(MLDKey);
     }
     cplStringsOut = { TauXKey, TauYKey, TauModKey, EMPKey, QNoSunKey, QSWKey, SFluxKey, CIceKey };
@@ -173,7 +173,7 @@ OASISCoupledOcean::HelpMap& OASISCoupledOcean::getHelpText(HelpMap& map, bool ge
         { layerDepthConfigKey, ConfigType::NUMERIC, { "0", "∞" }, std::to_string(FIRST_LAYER_DEPTH),
             "m", "Depth of the first ocean model layer (if this is fixed)." },
         { exchangeFirstLayerConfigKey, ConfigType::BOOLEAN, { "true", "false" },
-            std::to_string(EXCHANGE_FIRST_LAYER), "",
+            std::to_string(exchangeFirstLayerDefault), "",
             "Use the thickness of the first ocean layer provided through the coupler" },
         { SSTConfigKey, ConfigType::STRING, {}, SSTKeyDefault, "",
             "The field name for sea surface temperature used in namcouple" },

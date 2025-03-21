@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.hpp
  *
- * @date 13 Feb 2025
+ * @date 21 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -22,7 +22,7 @@ static const std::string layerDepthConfigKey = moduleName + ".layer_depth";
 static const std::string exchangeFirstLayerConfigKey = moduleName + ".exchange_first_layer";
 
 static const double FIRST_LAYER_DEPTH = 1.; // There really is no sensible default here(!)
-static const bool EXCHANGE_FIRST_LAYER = false;
+static const bool exchangeFirstLayerDefault = false;
 
 static const std::string SSTKeyDefault = "I_SST";
 static const std::string SSSKeyDefault = "I_SSS";
