@@ -76,9 +76,6 @@ private:
     int bundleSize = 1; // Always "unbundled", as per the OASIS manual
     double firstLayerDepth = FIRST_LAYER_DEPTH;
 
-    const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
-    const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
-
     void updateTf(size_t i, const TimestepTime& tst);
 
     // A map to relate the strings in the namcouple file to the numbers def_var spits out

@@ -48,6 +48,8 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
 #ifdef USE_OASIS
 
     int kinfo;
+    const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
+    const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSTKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sst[0], &kinfo));
@@ -90,6 +92,8 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     mergeFluxes(tst);
 
     int kinfo;
+    const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
+    const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &tauX[0], OASIS_No_Restart, &kinfo));
