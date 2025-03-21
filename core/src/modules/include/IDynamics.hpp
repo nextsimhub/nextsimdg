@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 06 Dec 2024
+ * @date 21 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -63,6 +63,8 @@ public:
         uice.resize();
         vice.resize();
         damage.resize();
+        taux.resize();
+        tauy.resize();
         if (!m_usesDamage) {
             damage = 0.;
         }
