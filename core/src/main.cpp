@@ -67,11 +67,13 @@ int main(int argc, char* argv[])
         model.configure();
         // Run the Model
         model.run();
-    }
 #ifdef USE_MPI
 #ifdef USE_OASIS
-    OASIS_CHECK_ERR(oasis_c_terminate());
+       OASIS_CHECK_ERR(oasis_c_terminate());
 #endif
+#endif
+    }
+#ifdef USE_MPI
     MPI_Finalize();
 #endif
 
