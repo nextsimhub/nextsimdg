@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
         model.run();
 #ifdef USE_MPI
 #ifdef USE_OASIS
-       OASIS_CHECK_ERR(oasis_c_terminate());
+        OASIS_CHECK_ERR(oasis_c_terminate());
 #endif
 #endif
     }
