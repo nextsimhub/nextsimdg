@@ -44,6 +44,8 @@ void DevStep::iterate(const TimestepTime& tst)
     mData->incrementTime(tst.step);
     if ((m_restartPeriod.seconds() > 0) && (mData->time() >= lastOutput + m_restartPeriod)) {
         std::string currentFileName = mData->time().format(m_restartFileName);
+        // Some MPI-IO implementations does not like colon in file names
+        std::replace(currentFileName.begin(), currentFileName.end(), ':', '_');
         pData->writeRestartFile(currentFileName, *mData);
         lastOutput = mData->time();
     }

@@ -187,6 +187,8 @@ void Model::run()
 void Model::writeRestartFile()
 {
     std::string formattedFileName = m_etadata.time().format(finalFileName);
+    // Some MPI-IO implementations does not like colon in file names
+    std::replace(formattedFileName.begin(), formattedFileName.end(), ':', '_');
     pData.writeRestartFile(formattedFileName, m_etadata);
 }
 
