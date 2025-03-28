@@ -73,7 +73,7 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
         mld = firstLayerDepth;
     }
 
-    cpml = Water::cp * Water::rho * mld;
+    cpml = Water::rhoOcean * Water::cp * mld;
 
     overElements(
         std::bind(&OASISCoupledOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
