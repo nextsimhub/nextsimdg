@@ -1,6 +1,6 @@
 /*!
  * @file KokkosDGTransport.cpp
- * @date September 12, 2024
+ * @date 01 Apr 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -10,8 +10,7 @@
 namespace Nextsim {
 
 template <int DG>
-KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh,
-    const KokkosMesh& _meshDevice,
+KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh, const KokkosMesh& _meshDevice,
     const Interpolations::KokkosCG2DGInterpolator<DG, CGdegree>& _cG2DGInterpolator)
     : DGTransport<DG>(smesh)
     , meshDevice(_meshDevice)
@@ -293,14 +292,12 @@ void KokkosDGTransport<DG>::reinitNormalVelocityDevice(const DeviceViewEdge& nor
     // Take care of the boundaries. Usually, the normal velocity is the average velocity
     // from left and from the right. Hence, we get the factor 0.5 above. At boundaries,
     // the normal is set only once, from the inside. These edges must be scaled with 2.0
-    // todo: measure if capturing the whole KokkosMesh makes a difference here
     // bot
     Kokkos::parallel_for(
         "dirichletBot", mesh.dirichletDevice[0].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
             const DeviceIndex eid = mesh.dirichletDevice[0][i];
             const DeviceIndex ix = eid % mesh.nx; // compute coordinates of element
             const DeviceIndex iy = eid / mesh.nx;
-            // todo: check if working directly on normalVelXDevice is faster
             auto normalVelX = makeEigenMap(normalVelXDevice);
             normalVelX.row(mesh.nx * iy + ix) *= 2.0;
         });
