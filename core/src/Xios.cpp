@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    08 Apr 2025
+ * @date    10 Dec 2024
  * @brief   XIOS interface implementation
  * @details
  *
@@ -1648,7 +1648,6 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
         throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
     }
 }
-
 }
 
 #endif
