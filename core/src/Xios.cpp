@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    02 Jan 2025
+ * @date    08 Apr 2025
  * @brief   XIOS interface implementation
  * @details
  *
@@ -62,14 +62,7 @@ Xios::Xios(const std::string dt, const std::string contextid, const std::string 
 }
 
 //! Destructor
-Xios::~Xios()
-{
-    finalize();
-    if (instancePtr != nullptr) {
-        delete instancePtr;
-        instancePtr = nullptr;
-    }
-}
+Xios::~Xios() { finalize(); }
 
 //! Close XIOS context definition once xml config has been read and calendar settings updated
 void Xios::close_context_definition()
@@ -1655,9 +1648,6 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
         throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
     }
 }
-
-// Create the singleton instance
-Xios* Xios::instancePtr = nullptr;
 
 }
 

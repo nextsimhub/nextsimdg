@@ -2,7 +2,7 @@
  * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    02 Jan 2025
+ * @date    08 Apr 2025
  * @brief   XIOS interface header
  * @details
  *
@@ -31,15 +31,12 @@ void enableXios();
 
 class Xios : public Configured<Xios> {
 private:
-    static Xios* instancePtr;
-
     // Private constructor
     Xios(const std::string dt = "P0-0T01:00:00", const std::string contextid = "nextSIM-DG",
         const std::string starttime = "1970-01-01T00:00:00Z",
         const std::string calendartype = "Gregorian");
 
 public:
-    Xios(const Xios& xiosHandler) = delete;
     ~Xios();
 
     /*
@@ -47,19 +44,14 @@ public:
      *
      * NOTE: The arguments will only be used the first time this is called.
      */
-    inline static Xios* getInstance(const std::string dt = "P0-0T01:00:00",
+    inline static Xios& getInstance(const std::string dt = "P0-0T01:00:00",
         const std::string contextId = "nextSIM-DG",
         const std::string startTime = "1970-01-01T00:00:00Z",
         const std::string calendarType = "Gregorian")
     {
-        if (isNull()) {
-            instancePtr = new Xios(dt, contextId, startTime, calendarType);
-        }
-        return instancePtr;
+        static Xios instance = Xios(dt, contextId, startTime, calendarType);
+        return instance;
     };
-
-    /* Utility for checking if the singleton has been created */
-    inline static bool isNull() { return (instancePtr == nullptr); }
 
     /* Initialization and finalization */
     void close_context_definition();

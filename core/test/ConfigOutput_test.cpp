@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 02 Jan 2025
+ * @date 08 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -103,9 +103,9 @@ TEST_CASE("Test periodic output")
     ModelMetadata meta;
 #ifdef USE_XIOS
     enableXios();
-    Xios* xiosHandler = Xios::getInstance("P0-0T01:00:00", "test1");
-    xiosHandler->setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
-    xiosHandler->close_context_definition();
+    Xios& xiosHandler = Xios::getInstance("P0-0T01:00:00", "test1");
+    xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
+    xiosHandler.close_context_definition();
 #endif
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 
