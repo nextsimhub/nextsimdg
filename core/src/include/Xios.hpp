@@ -2,7 +2,7 @@
  * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    08 Apr 2025
+ * @date    09 Apr 2025
  * @brief   XIOS interface header
  * @details
  *
@@ -32,9 +32,8 @@ void enableXios();
 class Xios : public Configured<Xios> {
 private:
     // Private constructor
-    Xios(const std::string dt = "P0-0T01:00:00", const std::string contextid = "nextSIM-DG",
-        const std::string starttime = "1970-01-01T00:00:00Z",
-        const std::string calendartype = "Gregorian");
+    Xios(const std::string dt, const std::string contextId, const std::string startTime,
+        const std::string calendarType);
 
 public:
     ~Xios();
