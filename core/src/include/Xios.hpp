@@ -38,6 +38,9 @@ private:
 public:
     ~Xios();
 
+    // Prevent copying
+    Xios(const Xios&) = delete;
+
     /*
      * Define Xios handler Singleton
      *
