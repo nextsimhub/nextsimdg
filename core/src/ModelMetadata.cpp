@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 08 Apr 2025
+ * @date 09 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -111,7 +111,7 @@ void ModelMetadata::setTime(const TimePoint& time)
 {
     m_time = time;
 #ifdef USE_XIOS
-    Xios xiosHandler = Xios::getInstance();
+    Xios& xiosHandler = Xios::getInstance();
     if (!xiosHandler.isInitialized()) {
         throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
     }
@@ -123,7 +123,7 @@ void ModelMetadata::incrementTime(const Duration& step)
 {
     m_time += step;
 #ifdef USE_XIOS
-    Xios xiosHandler = Xios::getInstance();
+    Xios& xiosHandler = Xios::getInstance();
     if (!xiosHandler.isInitialized()) {
         throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
     }
