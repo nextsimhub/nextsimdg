@@ -1,7 +1,7 @@
 /*!
  * @file    XiosRead_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    08 Apr 2025
+ * @date    09 Apr 2025
  * @brief   Tests for XIOS read functionality
  * @details
  * This test is designed to test the file reading functionality of the C++
@@ -127,6 +127,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
         }
     }
     xiosHandler.context_finalize();
+    xiosHandler.finalize();
 }
 
 }

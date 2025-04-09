@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    10 Dec 2024
+ * @date    09 Apr 2025
  * @brief   XIOS interface implementation
  * @details
  *
@@ -86,6 +86,7 @@ void Xios::finalize()
     if (isEnabled) {
         cxios_finalize();
     }
+    isEnabled = false;
 }
 
 /*!

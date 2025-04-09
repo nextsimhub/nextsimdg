@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 08 Apr 2025
+ * @date 09 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -200,6 +200,9 @@ TEST_CASE("Test periodic output")
     for (auto fileName : diagFiles) {
         std::filesystem::remove(fileName);
     }
+#ifdef USE_XIOS
+    xiosHandler.finalize();
+#endif
 }
 TEST_SUITE_END();
 }

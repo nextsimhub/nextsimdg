@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 08 Apr 2025
+ * @date 09 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -309,6 +309,9 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(ms.data.count(gridAzimuthName) > 0);
     REQUIRE(ms.data.at(gridAzimuthName)(0, 0) == gridAzimuth0);
     std::filesystem::remove(filename);
+#ifdef USE_XIOS
+    xiosHandler.finalize();
+#endif
 }
 
 #ifdef USE_MPI
@@ -483,6 +486,9 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     ncFile.close();
 
     std::filesystem::remove(diagFile);
+#ifdef USE_XIOS
+    xiosHandler.finalize();
+#endif
 }
 
 #ifndef TEST_FILE_SOURCE
@@ -559,6 +565,9 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 #else
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
 #endif
+#ifdef USE_XIOS
+    xiosHandler.finalize();
+#endif
 }
 
 #ifdef USE_MPI
@@ -631,6 +640,9 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == localNX);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
+#ifdef USE_XIOS
+    xiosHandler.finalize();
+#endif
 }
 
 TEST_SUITE_END();

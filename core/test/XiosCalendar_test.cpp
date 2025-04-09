@@ -1,7 +1,7 @@
 /*!
  * @file    XiosCalendar_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    08 Apr 2025
+ * @date    09 Apr 2025
  * @brief   Tests for XIOS calandars
  * @details
  * This test is designed to test calendar functionality of the C++ interface
@@ -68,6 +68,7 @@ MPI_TEST_CASE("TestXiosInitialization", 2)
     REQUIRE(xiosHandler.getCurrentDate() == "2023-03-17T18:41:00Z");
 
     xiosHandler.context_finalize();
+    xiosHandler.finalize();
 }
 
 }
