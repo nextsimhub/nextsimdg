@@ -13,6 +13,8 @@
 #define FREEDRIFTDYNAMICSKERNEL_HPP
 
 #include "CGDynamicsKernel.hpp"
+#include "DynamicsParameters.hpp"
+
 #include <cmath>
 
 namespace Nextsim {

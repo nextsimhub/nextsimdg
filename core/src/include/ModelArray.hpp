@@ -101,8 +101,12 @@ public:
 
     using DataType = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority>;
 
-    using Component = DataType::RowXpr;
-    using ConstComponent = DataType::ConstRowXpr;
+    // Data types of all components ate a particular location.
+    using Components = DataType::RowXpr;
+    using ConstComponents = DataType::ConstRowXpr;
+    // Data types of a particular component (at all locations).
+    using Component = DataType::ColXpr;
+    using ConstComponent = DataType::ConstColXpr;
 
     /*!
      * Construct an unnamed ModelArray of Type::H
@@ -138,6 +142,24 @@ public:
      */
     ModelArray& operator=(const ModelArraySlice&);
 
+    /*!
+     * @brief Assign a DataType to an existing ModelArray.
+     *
+     * @param src The DataType object to be assigned.
+     */
+    ModelArray& operator=(const DataType& src)
+    {
+        m_data = src;
+        return *this;
+    }
+    /*!
+     * Casts the data to a DataType reference.
+     */
+    operator DataType&() { return m_data; }
+    /*!
+     * Casts the data to a const DataType reference
+     */
+    operator const DataType&() const { return m_data; }
     /*!
      * Creates a ModelArraySlice.
      */
@@ -498,18 +520,57 @@ public:
      *
      * @param i one-dimensional index of the target point.
      */
-    Component components(size_t i) { return m_data.row(i); }
+    Components components(size_t i) { return m_data.row(i); }
 
-    const ConstComponent components(size_t i) const { return m_data.row(i); }
+    const ConstComponents components(size_t i) const { return m_data.row(i); }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at the specified location.
      *
      * @param dims indexing argument of the target point.
      */
-    Component components(const MultiDim& loc);
-    const ConstComponent components(const MultiDim& loc) const;
+    Components components(const MultiDim& loc);
+    const ConstComponents components(const MultiDim& loc) const;
 
+    /*!
+     * Returns a particular component at all locations.
+     *
+     * @param comp The index of the component to be returned. Defaults to component 0.
+     */
+    Component component(size_t compo = 0) { return m_data.col(compo); }
+    const ConstComponent component(size_t compo = 0) const { return m_data.col(compo); }
+
+    /*!
+     * Implicitly converts a ModelArray to a Component, assuming component zero
+     */
+    operator Component() { return this->component(); }
+    /*!
+     * Assigns from a component to the ModelArray. Let Eigen handle size, broadcasting, &c.
+     */
+    ModelArray& operator=(const Component& src)
+    {
+        m_data = src;
+        return *this;
+    }
+    /*!
+     * Assigns from a const component to the ModelArray. Let Eigen handle size, broadcasting, &c.
+     */
+    ModelArray& operator=(const ConstComponent& src)
+    {
+        m_data = src;
+        return *this;
+    }
+    using TypeMap = std::map<ModelArray::Type, ModelArray::Type>;
+
+private:
+    static const TypeMap definedComp0Map();
+
+public:
+    static ModelArray::Type component0Type(ModelArray::Type withComponents)
+    {
+        static TypeMap comp0Map = definedComp0Map();
+        return (comp0Map.count(withComponents) > 0) ? comp0Map.at(withComponents) : withComponents;
+    }
     /*!
      * @brief Special access function for ZFields.
      *
@@ -645,6 +706,7 @@ private:
 };
 
 #include "include/ModelArrayTypedefs.hpp"
+using AdvectedField = ModelArray;
 
 // ModelArray arithmetic with doubles
 ModelArray operator+(const double&, const ModelArray&);

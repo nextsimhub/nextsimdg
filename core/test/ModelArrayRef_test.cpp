@@ -187,6 +187,109 @@ TEST_CASE("Accessing the data two ways")
     couplIn.update();
     REQUIRE(swin[0] == targetFlux);
 }
+
+TEST_CASE("Test component 0-only operations")
+{
+    ModelArray::setDimension(ModelArray::Dimension::DG, 2);
+    ModelArray dgSrc(ModelArray::Type::DG);
+    dgSrc.resize();
+    dgSrc = 5.;
+    static constexpr TextTag DG_SRC = { "DG_SRC" };
+    MiniModelComponent::getSharedArrays().registerArray(DG_SRC, &dgSrc, RO);
+    ModelArrayRef<DG_SRC> dgRef(MiniModelComponent::getSharedArrays());
+    ModelArray argument(ModelArray::Type::H);
+    argument.resize();
+    argument = 3.;
+    ModelArray sum = dgRef + argument;
+    REQUIRE(sum.getType() == ModelArray::Type::H);
+    REQUIRE(sum(0, 0) == 5. + 3.);
+
+    ModelArray difference = dgRef - argument;
+    REQUIRE(difference.getType() == ModelArray::Type::H);
+    REQUIRE(difference(0, 0) == 5. - 3.);
+
+    ModelArray product = dgRef * argument;
+    REQUIRE(product.getType() == ModelArray::Type::H);
+    REQUIRE(product(0, 0) == 5. * 3.);
+
+    ModelArray ratio = dgRef / argument;
+    REQUIRE(ratio.getType() == ModelArray::Type::H);
+    REQUIRE(ratio(0, 0) == 5. / 3.);
+
+    double scalar = 3.;
+    ModelArray sumScalar = dgRef + scalar;
+    REQUIRE(sumScalar.getType() == ModelArray::Type::H);
+    REQUIRE(sumScalar(0, 0) == 5. + 3.);
+
+    ModelArray differenceScalar = dgRef - scalar;
+    REQUIRE(differenceScalar.getType() == ModelArray::Type::H);
+    REQUIRE(differenceScalar(0, 0) == 5. - 3.);
+
+    ModelArray productScalar = dgRef * scalar;
+    REQUIRE(productScalar.getType() == ModelArray::Type::H);
+    REQUIRE(productScalar(0, 0) == 5. * 3.);
+
+    ModelArray ratioScalar = dgRef / scalar;
+    REQUIRE(ratioScalar.getType() == ModelArray::Type::H);
+    REQUIRE(ratioScalar(0, 0) == 5. / 3.);
+
+    static constexpr TextTag RW_SRC = { "RW_SRC" };
+    MiniModelComponent::getSharedArrays().registerArray(RW_SRC, &dgSrc, RW);
+    ModelArrayRef<RW_SRC, RW> rwRef(MiniModelComponent::getSharedArrays());
+    argument = 7.;
+    ModelArray sumRW = rwRef + argument;
+    REQUIRE(sumRW.getType() == ModelArray::Type::H);
+    REQUIRE(sumRW(0, 0) == 5. + 7.);
+
+    ModelArray differenceRW = rwRef - argument;
+    REQUIRE(differenceRW.getType() == ModelArray::Type::H);
+    REQUIRE(differenceRW(0, 0) == 5. - 7.);
+
+    ModelArray productRW = rwRef * argument;
+    REQUIRE(productRW.getType() == ModelArray::Type::H);
+    REQUIRE(productRW(0, 0) == 5. * 7.);
+
+    ModelArray ratioRW = rwRef / argument;
+    REQUIRE(ratioRW.getType() == ModelArray::Type::H);
+    REQUIRE(ratioRW(0, 0) == 5. / 7.);
+
+    scalar = 7.;
+    ModelArray sumRWScalar = rwRef + scalar;
+    REQUIRE(sumRWScalar.getType() == ModelArray::Type::H);
+    REQUIRE(sumRWScalar(0, 0) == 5. + 7.);
+
+    ModelArray differenceRWScalar = rwRef - scalar;
+    REQUIRE(differenceRWScalar.getType() == ModelArray::Type::H);
+    REQUIRE(differenceRWScalar(0, 0) == 5. - 7.);
+
+    ModelArray productRWScalar = rwRef * scalar;
+    REQUIRE(productRWScalar.getType() == ModelArray::Type::H);
+    REQUIRE(productRWScalar(0, 0) == 5. * 7.);
+
+    ModelArray ratioRWScalar = rwRef / scalar;
+    REQUIRE(ratioRWScalar.getType() == ModelArray::Type::H);
+    REQUIRE(ratioRWScalar(0, 0) == 5. / 7.);
+}
+
+TEST_CASE("Full component access")
+{
+    const size_t nx = 5;
+    const size_t ny = 7;
+    const size_t nDG = 3;
+    ModelArray::setDimension(ModelArray::Dimension::X, nx);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny);
+    ModelArray::setDimension(ModelArray::Dimension::DG, nDG);
+    ModelArray dgSrc(ModelArray::Type::DG);
+    dgSrc.resize();
+    dgSrc = 5.;
+    static constexpr TextTag DG_SRC = { "DG_SRC" };
+    MiniModelComponent::getSharedArrays().registerArray(DG_SRC, &dgSrc, RO);
+    ModelArrayRef<DG_SRC> dgRef(MiniModelComponent::getSharedArrays());
+    const ModelArray::DataType& eArray = dgRef.allComponents();
+    REQUIRE(eArray.rows() == nx * ny);
+    REQUIRE(eArray.cols() == nDG);
+
+}
 TEST_SUITE_END();
 
 };

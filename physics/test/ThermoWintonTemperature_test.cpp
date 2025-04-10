@@ -72,7 +72,7 @@ TEST_CASE("Melting conditions")
             tice0[0] = -1;
             tice0[1] = -1;
             tice0[2] = -1;
-            tice.data().setData(tice0);
+            tice = tice0;
 
             hice = hice0;
             cice = cice0;
@@ -174,7 +174,7 @@ TEST_CASE("Freezing conditions")
             tice0[0] = -9.;
             tice0[1] = -9.;
             tice0[2] = -9.;
-            tice.data().setData(tice0);
+            tice = tice0;
 
             hice = hice0;
             cice = cice0;
@@ -277,7 +277,7 @@ TEST_CASE("No ice do nothing")
             tice0[0] = 0;
             tice0[1] = 0;
             tice0[2] = 0.;
-            tice.data().setData(tice0);
+            tice = tice0;
 
             hice = hice0;
             cice = cice0;

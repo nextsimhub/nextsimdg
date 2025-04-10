@@ -46,14 +46,6 @@ public:
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
-    std::unordered_set<std::string> hFields() const override
-    {
-        return { "updated_hice", "updated_cice", "updated_hsnow" };
-    }
-    std::unordered_set<std::string> uFields() const override { return {}; }
-    std::unordered_set<std::string> vFields() const override { return {}; }
-    std::unordered_set<std::string> zFields() const override { return {}; }
-
     void update(const TimestepTime&);
 
     static double minimumIceThickness() { return IceMinima::h(); }

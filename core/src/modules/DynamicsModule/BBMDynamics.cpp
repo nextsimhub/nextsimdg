@@ -12,7 +12,7 @@
 
 namespace Nextsim {
 
-static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+static const std::vector<std::string> namedFields = { uName, vName };
 static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {
     { damageName, { ModelArray::Type::H, 1.0 } },
 };
@@ -108,6 +108,10 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
             kernel.setData(fieldName, mask(data));
         }
     }
+
+    // Set the DG field data
+    kernel.setDGArray(hiceName, hiceDG.allComponents());
+    kernel.setDGArray(ciceName, ciceDG.allComponents());
 }
 
 void BBMDynamics::update(const TimestepTime& tst)
@@ -115,19 +119,17 @@ void BBMDynamics::update(const TimestepTime& tst)
     std::cout << tst.start << std::endl;
 
     // Fill the updated damage array with the initial value
-    damage = damage0.data();
+    damage = damage0;
 
     // set the updated ice thickness, concentration and damage
-    kernel.setData(hiceName, hice.data());
-    kernel.setData(ciceName, cice.data());
     kernel.setData(damageName, damage);
 
     // set the forcing velocities
-    kernel.setData(uWindName, uwind.data());
-    kernel.setData(vWindName, vwind.data());
-    kernel.setData(uOceanName, uocean.data());
-    kernel.setData(vOceanName, vocean.data());
-    kernel.setData(sshName, ssh.data());
+    kernel.setData(uWindName, uwind);
+    kernel.setData(vWindName, vwind);
+    kernel.setData(uOceanName, uocean);
+    kernel.setData(vOceanName, vocean);
+    kernel.setData(sshName, ssh);
 
     /*
      * Ice velocity components are stored in the dynamics, and not changed by the model outside the
@@ -136,8 +138,6 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     kernel.update(tst);
 
-    hice.data() = kernel.getDG0Data(hiceName);
-    cice.data() = kernel.getDG0Data(ciceName);
     damage = kernel.getDG0Data(damageName);
 
     uice = kernel.getDG0Data(uName);
@@ -155,8 +155,6 @@ ModelState BBMDynamics::getState() const
 
     // Kernel prognostic fields
     state.merge({
-        { hiceName, kernel.getDGData(hiceName) },
-        { ciceName, kernel.getDGData(ciceName) },
         { damageName, kernel.getDGData(damageName) },
     });
 

@@ -234,12 +234,12 @@ double& ModelArray::operator[](const MultiDim& dims)
 
 ModelArraySlice ModelArray::operator[](const Slice& slice) { return ModelArraySlice(*this, slice); }
 
-ModelArray::Component ModelArray::components(const MultiDim& loc)
+ModelArray::Components ModelArray::components(const MultiDim& loc)
 {
     return components(indexr(dimensions(), loc));
 }
 
-const ModelArray::ConstComponent ModelArray::components(const MultiDim& loc) const
+const ModelArray::ConstComponents ModelArray::components(const MultiDim& loc) const
 {
     return components(indexr(dimensions(), loc));
 }

@@ -82,8 +82,8 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     snowToIce.resize();
 
     // The Winton scheme requires three temperature levels in the ice
-    if (tice0.data().size() != nLevels * hice.data().size()) {
-        double actualLevels = static_cast<double>(tice0.data().size()) / hice.data().size();
+    if (tice0.size() != nLevels * hice.size()) {
+        double actualLevels = static_cast<double>(tice0.size()) / hice.size();
         throw std::length_error(std::string("The inferred number of ice temperature levels is ")
             + std::to_string(actualLevels) + " when the Winton ice thermodynamics scheme expects "
             + std::to_string(nLevels));

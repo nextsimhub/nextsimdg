@@ -21,7 +21,7 @@
 #endif
 
 namespace Nextsim {
-static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+static const std::vector<std::string> namedFields = { uName, vName };
 
 // TODO: This class should be configurable and configure the densities, drag coefficients, Coriolis
 // parameter, and turning angle.
@@ -40,18 +40,11 @@ public:
     {
         std::cout << tst.start << std::endl;
 
-        // set the updated ice thickness and concentration
-        kernel.setData(hiceName, hice.data());
-        kernel.setData(ciceName, cice.data());
-
         // set the forcing velocities
-        kernel.setData(uOceanName, uocean.data());
-        kernel.setData(vOceanName, vocean.data());
+        kernel.setData(uOceanName, uocean);
+        kernel.setData(vOceanName, vocean);
 
         kernel.update(tst);
-
-        hice.data() = kernel.getDG0Data(hiceName);
-        cice.data() = kernel.getDG0Data(ciceName);
 
         uice = kernel.getDG0Data(uName);
         vice = kernel.getDG0Data(vName);
@@ -77,6 +70,10 @@ public:
         for (const auto& fieldName : namedFields) {
             kernel.setData(fieldName, ms.at(fieldName));
         }
+
+        // Set the DG field data
+        kernel.setDGArray(hiceName, hiceDG.allComponents());
+        kernel.setDGArray(ciceName, ciceDG.allComponents());
     }
 
 private:
