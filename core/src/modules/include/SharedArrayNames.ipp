@@ -9,7 +9,9 @@
 // External SharedArray names must be unique wrt to the external ProtectedArray names as well
 { "damage_upd", "DAMAGE" }, // Updated ice thickness, ice average, m
     { "hice_true", "H_ICE" }, // Updated ice thickness, ice average, m
+    { "hice_dg", "H_ICE_DG" }, // Temporary DG hice tag
     { "cice_upd", "C_ICE" }, // Updated ice concentration
+    { "cice_dg", "C_ICE_DG" }, // Temporary DG cice tag
     { "hsnow_true", "H_SNOW" }, // Updated snow depth, ice average, m
     { "tice_upd", "T_ICE" }, // Updated ice temperatures, ˚C
     { "qia", "Q_IA" }, // Ice to atmosphere heat flux W m⁻²

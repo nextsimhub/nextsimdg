@@ -1,7 +1,7 @@
 /*!
  * @file PhysicalBounds.hpp
  *
- * @date 28 Feb 2025
+ * @date 11 Apr 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -72,6 +72,7 @@ public:
 
         // Shared arrays
         addBounds(Shared::C_ICE, 0, 1); // Updated ice concentration
+        addBounds(Shared::C_ICE_DG, 0, 1); // Updated ice concentration
         addBounds(Shared::DAMAGE, 0, 1); // Updated ice thickness, ice average, m
         addBounds(Shared::DELTA_CICE, -0.1, 0.1); // Change in sea ice concentration
         addBounds(Shared::DELTA_HICE, -0.1, 0.1); // Change in sea ice thickness, m
@@ -79,6 +80,7 @@ public:
             1e3); // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
         addBounds(Shared::HSNOW_MELT, 0, 0.1); // Thickness of snow that melted, m
         addBounds(Shared::H_ICE, 0, 50); // Updated ice thickness, ice average, m
+        addBounds(Shared::H_ICE_DG, 0, 50); // Updated ice thickness, ice average, m
         addBounds(Shared::H_SNOW, 0, 10); // Updated snow depth, ice average, m
         addBounds(Shared::NEW_ICE, 0, 0.1); // Volume of new ice formed [m]
         addBounds(Shared::OW_STRESS_X, -10, 10); // x(east)-ward open ocean stress, Pa
