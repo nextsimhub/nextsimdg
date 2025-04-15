@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.hpp
  *
- * @date 19 Nov 2024
+ * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -58,12 +58,12 @@ public:
     static HelpMap& getHelpRecursive(HelpMap&, bool getAll);
 
 private:
+    BBMParameters params;
 #ifdef USE_KOKKOS
     KokkosBBMDynamicsKernel<DGCOMP> kernel;
 #else
     BBMDynamicsKernel<DGCOMP> kernel;
 #endif
-    BBMParameters params;
 };
 
 } /* namespace Nextsim */

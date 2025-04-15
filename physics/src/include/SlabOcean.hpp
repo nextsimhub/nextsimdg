@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 7 Sep 2023
+ * @date 10 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,7 +23,7 @@ namespace Nextsim {
  */
 class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
-    SlabOcean()
+    SlabOcean(ModelArrayReferenceStore& coupingArrays)
         : qdw(ModelArray::Type::H)
         , fdw(ModelArray::Type::H)
         , sstSlab(ModelArray::Type::H)
@@ -32,15 +32,11 @@ public:
         , sssExt(getStore())
         , sst(getStore())
         , sss(getStore())
-        , mld(getStore())
         , cpml(getStore())
-        , emp(getStore())
-        , cice(getStore())
-        , qio(getStore())
-        , qow(getStore())
-        , newIce(getStore())
-        , deltaHice(getStore())
-        , deltaSmelt(getStore())
+        , qswNet(coupingArrays)
+        , qNoSun(coupingArrays)
+        , fwFlux(coupingArrays)
+        , sFlux(coupingArrays)
     {
     }
 
@@ -58,7 +54,6 @@ public:
     ModelState getState(const OutputLevel&) const override;
     std::string getName() const override { return "SlabOcean"; }
 
-    std::unordered_set<std::string> hFields() const override;
     void update(const TimestepTime&);
 
     static const double defaultRelaxationTime; // A default value for the relaxation time in s.
@@ -75,16 +70,12 @@ private:
     ModelArrayRef<Protected::EXT_SSS> sssExt;
     ModelArrayRef<Protected::SST> sst;
     ModelArrayRef<Protected::SSS> sss;
-    ModelArrayRef<Protected::MLD> mld;
     ModelArrayRef<Protected::ML_BULK_CP> cpml;
-    ModelArrayRef<Protected::EVAP_MINUS_PRECIP> emp;
-    ModelArrayRef<Protected::C_ICE> cice;
-    ModelArrayRef<Shared::Q_IO, RW> qio;
-    ModelArrayRef<Shared::Q_OW, RW> qow;
+    ModelArrayRef<CouplingFields::Q_SS_SW, RO> qswNet;
+    ModelArrayRef<CouplingFields::Q_SS_NO_SW, RO> qNoSun;
+    ModelArrayRef<CouplingFields::FWFLUX, RO> fwFlux;
+    ModelArrayRef<CouplingFields::SFLUX, RO> sFlux;
     // TODO ModelArrayRef to assimilation flux
-    ModelArrayRef<Shared::NEW_ICE, RW> newIce;
-    ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
-    ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;
 
     static const std::string sstSlabName;
     static const std::string sssSlabName;

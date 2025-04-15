@@ -1,9 +1,10 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date 06 Dec 2024
+ * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
+ * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef BRITTLECGDYNAMICSKERNEL_HPP
@@ -23,7 +24,6 @@ namespace Nextsim {
 // The brittle momentum solver for CG velocity fields
 template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
     using DynamicsKernel<DGadvection, DGstressComp>::s11;
     using DynamicsKernel<DGadvection, DGstressComp>::s12;
     using DynamicsKernel<DGadvection, DGstressComp>::s22;
@@ -55,15 +55,16 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressX;
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
-
-    double cosOceanAngle, sinOceanAngle;
+    using CGDynamicsKernel<DGadvection>::updateIceOceanStress;
+    using CGDynamicsKernel<DGadvection>::cosOceanAngle;
+    using CGDynamicsKernel<DGadvection>::sinOceanAngle;
 
 public:
-    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
-        const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
+    BrittleCGDynamicsKernel(
+        StressUpdateStep<DGadvection, DGstressComp>& stressStepIn, const BBMParameters& paramsIn)
+        : CGDynamicsKernel<DGadvection>(paramsIn)
         , stressStep(stressStepIn)
-        , params(reinterpret_cast<const BBMParameters&>(paramsIn))
+        , params(paramsIn)
         , stresstransport(nullptr)
     {
     }
@@ -85,9 +86,6 @@ public:
         damage.zero();
         avgU.zero();
         avgV.zero();
-
-        cosOceanAngle = std::cos(radians(params.oceanTurningAngle));
-        sinOceanAngle = std::sin(radians(params.oceanTurningAngle));
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
@@ -121,7 +119,7 @@ public:
 
         timerBBM.start();
         // The timestep for the brittle solver is the solver subtimestep
-        deltaT = tst.step.seconds() / nSteps;
+        deltaT = tst.step.seconds() / params.nSteps;
 
         avgU.zero();
         avgV.zero();
@@ -145,6 +143,9 @@ public:
             // Land mask
         }
         timerBBM.stop();
+
+        updateIceOceanStress(avgU, avgV);
+
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }
@@ -177,22 +178,6 @@ public:
         } else {
             return CGDynamicsKernel<DGadvection>::getDGData(name);
         }
-    }
-
-    double getIceOceanStressElement(const std::string& name, const int i) const override
-    {
-        const double FOcean = params.COcean * params.rhoOcean;
-
-        const double uOceanRel = uOcean(i) - avgU(i);
-        const double vOceanRel = vOcean(i) - avgV(i);
-        const double cPrime = FOcean * std::hypot(uOceanRel, vOceanRel);
-
-        if (name == uIOStressName)
-            return cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
-        else if (name == vIOStressName)
-            return cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
-        else
-            return std::numeric_limits<double>::quiet_NaN();
     }
 
 protected:
@@ -254,8 +239,8 @@ protected:
             v(i) *= rDenom;
 
             // Calculate the contribution to the average velocity
-            avgU(i) += u(i) / nSteps;
-            avgV(i) += v(i) / nSteps;
+            avgU(i) += u(i) / params.nSteps;
+            avgV(i) += v(i) / params.nSteps;
         }
     }
 };

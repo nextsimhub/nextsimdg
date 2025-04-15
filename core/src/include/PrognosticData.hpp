@@ -41,32 +41,12 @@ public:
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
-    std::unordered_set<std::string> hFields() const override
-    {
-        return { "h_ice", "c_cice", "h_snow" };
-    };
-    std::unordered_set<std::string> uFields() const override { return { "u" }; }
-    std::unordered_set<std::string> vFields() const override { return { "v" }; }
-    std::unordered_set<std::string> zFields() const override { return { "tice" }; }
-
     /*!
      *  @brief Updates the state of the prognostic data for this timestep
      *
      *  @param tsInitialTime the time at the start of the timestep
      */
     void update(const TimestepTime& tsTime);
-
-    //! Returns a const reference to the cell-averaged ice thickness field.
-    const HField& iceThickness() { return m_thick; }
-
-    //! Returns a reference to the ice concentration field
-    const HField& iceConcentration() { return m_conc; }
-
-    //! Returns a const reference to the cell-averaged snow thickness field.
-    const HField& snowThickness() { return m_snow; }
-
-    //! Returns a const reference to the (three dimensional) ice temperature field.
-    const ZField& iceTemperature() { return m_tice; }
 
     /*!
      * Writes a restart file to the specified file path.
@@ -75,12 +55,14 @@ public:
     void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
 
 private:
-    HField m_thick;
-    HField m_conc;
     ZField m_tice;
     HField m_snow;
     HField m_damage;
     double m_dt;
+
+    // Full DG component arrays of thickness and concentration
+    AdvectedField hiceAdvection;
+    AdvectedField ciceAdvection;
 
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;
@@ -94,6 +76,7 @@ private:
     IceGrowth iceGrowth;
 
     void updatePrognosticFields();
+    void updateDynamicsFields();
 };
 
 } /* namespace Nextsim */

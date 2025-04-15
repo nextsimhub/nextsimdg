@@ -24,6 +24,8 @@ enum class Type {
     VERTEX,
 };
 
+static const Type AdvectionType = Type::H;
+
 static ModelArray HField() { return ModelArray(Type::H); }
 static ModelArray UField() { return ModelArray(Type::U); }
 static ModelArray VField() { return ModelArray(Type::V); }

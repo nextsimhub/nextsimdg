@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 05 Dec 2024
+ * @date 13 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,26 +9,56 @@
 #define IOCEANBOUNDARY_HPP
 
 #include "include/ModelComponent.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
-namespace CouplingFields {
-    constexpr TextTag SST = "SST"; // sea surface temperature ˚C
-    constexpr TextTag SSS = "SSS"; // sea surface salinity PSU
-    constexpr TextTag MLD = "MLD"; // Mixed layer or slab ocean depth m
-    constexpr TextTag OCEAN_U = "U"; // x(east)-ward ocean current m s⁻¹
-    constexpr TextTag OCEAN_V = "V"; // y(north)-ward ocean current m s⁻¹
-    constexpr TextTag SSH = "SSH"; // sea surface height, m
-}
 //! An interface class for the oceanic inputs into the ice physics.
 class IOceanBoundary : public ModelComponent {
 public:
     IOceanBoundary()
+        : qio(ModelArray::Type::H)
+        , sst(ModelArray::Type::H)
+        , sss(ModelArray::Type::H)
+        , mld(ModelArray::Type::H)
+        , cpml(ModelArray::Type::H)
+        , tf(ModelArray::Type::H)
+        , u(ModelArray::Type::H)
+        , v(ModelArray::Type::H)
+        , ssh(ModelArray::Type::H)
+        , qNoSun(ModelArray::Type::H)
+        , qswNet(ModelArray::Type::H)
+        , fwFlux(ModelArray::Type::H)
+        , sFlux(ModelArray::Type::H)
+        , qswow(ModelArray::Type::H)
+        , qswBase(ModelArray::Type::H)
+        , tauX(ModelArray::Type::H)
+        , tauY(ModelArray::Type::H)
+        , cice(getStore())
+        , emp(getStore())
+        , newIce(getStore())
+        , deltaHice(getStore())
+        , deltaSmelt(getStore())
+        , qow(getStore())
+        , tauXIO(getStore())
+        , tauYIO(getStore())
+        , tauXOW(getStore())
+        , tauYOW(getStore())
     {
-        m_couplingArrays.registerArray(CouplingFields::SST, &sst, RW);
-        m_couplingArrays.registerArray(CouplingFields::SSS, &sss, RW);
+        // Receive
+        m_couplingArrays.registerArray(CouplingFields::MLD, &mld, RW);
         m_couplingArrays.registerArray(CouplingFields::OCEAN_U, &u, RW);
         m_couplingArrays.registerArray(CouplingFields::OCEAN_V, &v, RW);
+        m_couplingArrays.registerArray(CouplingFields::SSH, &ssh, RW);
+        m_couplingArrays.registerArray(CouplingFields::SSS, &sss, RW);
+        m_couplingArrays.registerArray(CouplingFields::SST, &sst, RW);
+        // Send
+        m_couplingArrays.registerArray(CouplingFields::FWFLUX, &fwFlux, RO);
+        m_couplingArrays.registerArray(CouplingFields::O_STRESS_X, &tauX, RO);
+        m_couplingArrays.registerArray(CouplingFields::O_STRESS_Y, &tauY, RO);
+        m_couplingArrays.registerArray(CouplingFields::Q_SS_NO_SW, &qNoSun, RO);
+        m_couplingArrays.registerArray(CouplingFields::Q_SS_SW, &qswNet, RO);
+        m_couplingArrays.registerArray(CouplingFields::SFLUX, &sFlux, RO);
 
         getStore().registerArray(Shared::Q_IO, &qio, RW);
         getStore().registerArray(Protected::SST, &sst, RO);
@@ -39,6 +69,8 @@ public:
         getStore().registerArray(Protected::OCEAN_U, &u, RO);
         getStore().registerArray(Protected::OCEAN_V, &v, RO);
         getStore().registerArray(Protected::SSH, &ssh, RO);
+        getStore().registerArray(Shared::Q_SW_OW, &qswow, RW);
+        getStore().registerArray(Shared::Q_SW_BASE, &qswBase, RW);
     }
     virtual ~IOceanBoundary() = default;
 
@@ -57,6 +89,14 @@ public:
         u.resize();
         v.resize();
         ssh.resize();
+        qNoSun.resize();
+        qswNet.resize();
+        fwFlux.resize();
+        sFlux.resize();
+        qswow.resize();
+        qswBase.resize();
+        tauX.resize();
+        tauY.resize();
 
         if (ms.count("sst")) {
             sst = ms.at("sst");
@@ -80,6 +120,39 @@ public:
      */
     virtual void updateAfter(const TimestepTime& tst) = 0;
 
+    /*!
+     * Merges the ice-ocean fluxes and ocean-atmosphere fluxes into a single field to be passed to a
+     * slab-ocean implementation or an ocean model through a coupler.
+     */
+    void mergeFluxes(const TimestepTime& tst)
+    {
+        const double dt = tst.step.seconds();
+
+        // Heat fluxes - partitioned in solar and non-solar
+        qswNet = cice * qswBase + (1 - cice) * qswow;
+        qNoSun = cice * qio + (1 - cice) * qow - qswNet;
+
+        // Mass fluxes - fresh water and salt
+        // ice volume change, both laterally and vertically
+        const HField deltaIceVol = newIce + deltaHice * cice;
+        // change in snow volume due to melting (should be < 0)
+        const HField meltSnowVol = deltaSmelt * cice;
+        // Effective ice salinity is always less than or equal to the SSS, and here we use the right
+        // units too
+        HField effectiveIceSal = sss;
+        effectiveIceSal.clampBelow(Ice::s);
+        effectiveIceSal *= 1e-3;
+
+        // Positive flux is up!
+        fwFlux = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
+            + emp * (1 - cice);
+        sFlux = effectiveIceSal * Ice::rho * deltaIceVol / dt;
+
+        // Momentum fluxes
+        tauX = cice * tauXIO + (1 - cice) * tauXOW;
+        tauY = cice * tauYIO + (1 - cice) * tauYOW;
+    }
+
 protected:
     HField qio; // Ice-ocean heat flux, W m⁻²
     HField sst; // Coupled or slab ocean sea surface temperature, ˚C
@@ -90,8 +163,27 @@ protected:
     UField u; // x(east)-ward ocean current, m s⁻¹
     VField v; // y(north)-ward ocean current, m s⁻¹
     HField ssh; // sea surface height, m
+    HField qNoSun; // Net surface ocean heat flux, except short wave, W m⁻²
+    HField qswNet; // Net surface ocean shortwave flux, W m⁻²
+    HField fwFlux; // Net surface ocean fresh-water flux, kg m⁻²
+    HField sFlux; // Net surface ocean salt flux, kg m⁻²
+    HField qswow; // Shortwave flux in open water W m⁻²
+    HField qswBase; // Shortwave flux at the base of the ice W m⁻²
+    HField tauX; // x(east)-ward total ocean stress, Pa
+    HField tauY; // y(north)-ward total ocean stress, Pa
 
     ModelArrayReferenceStore m_couplingArrays;
+
+    ModelArrayRef<Protected::C_ICE, RO> cice;
+    ModelArrayRef<Protected::EVAP_MINUS_PRECIP, RO> emp;
+    ModelArrayRef<Protected::IO_STRESS_X> tauXIO;
+    ModelArrayRef<Protected::IO_STRESS_X> tauYIO;
+    ModelArrayRef<Shared::NEW_ICE, RW> newIce;
+    ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
+    ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;
+    ModelArrayRef<Shared::Q_OW, RW> qow;
+    ModelArrayRef<Shared::OW_STRESS_X, RW> tauXOW;
+    ModelArrayRef<Shared::OW_STRESS_Y, RW> tauYOW;
 };
 } /* namespace Nextsim */
 

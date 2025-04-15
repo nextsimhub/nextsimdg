@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date 20 Nov 2024
+ * @date 07 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -87,6 +87,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     if (hice[i] == 0. || cice[i] == 0.) {
         deltaHi[i] = 0.;
         snowToIce[i] = 0.;
+        tice.zIndexAndLayer(i, 0) = freezingPointIce;
 
         return;
     }

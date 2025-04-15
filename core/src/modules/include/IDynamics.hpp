@@ -35,6 +35,8 @@ public:
         , vocean(getStore())
         , ssh(getStore())
         , m_usesDamage(usesDamageIn)
+        , hiceDG(getStore())
+        , ciceDG(getStore())
     {
         getStore().registerArray(Shared::DAMAGE, &damage, RW);
         getStore().registerArray(Protected::IO_STRESS_X, &taux, RO);
@@ -99,6 +101,10 @@ protected:
 
     // Does this implementation of the dynamics use damage?
     bool m_usesDamage;
+
+    // Store the h_ice and c_ice DG fields here, rather than in the kernel.
+    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
+    ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
 
     /*
      * Checks and returns if the provided data map is spherical

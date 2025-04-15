@@ -17,21 +17,23 @@ namespace Nextsim {
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , m_thick(ModelArray::Type::H)
-    , m_conc(ModelArray::Type::H)
     , m_snow(ModelArray::Type::H)
     , m_tice(ModelArray::Type::Z)
     , m_damage(ModelArray::Type::H)
+    , hiceAdvection(ModelArray::AdvectionType)
+    , ciceAdvection(ModelArray::AdvectionType)
     , pAtmBdy(0)
     , pOcnBdy(0)
     , pDynamics(0)
 
 {
-    getStore().registerArray(Protected::H_ICE, &m_thick, RO);
-    getStore().registerArray(Protected::C_ICE, &m_conc, RO);
+    getStore().registerArray(Protected::H_ICE, &hiceAdvection, RO);
+    getStore().registerArray(Protected::C_ICE, &ciceAdvection, RO);
     getStore().registerArray(Protected::H_SNOW, &m_snow, RO);
     getStore().registerArray(Protected::T_ICE, &m_tice, RO);
     getStore().registerArray(Protected::DAMAGE, &m_damage, RO);
+    getStore().registerArray(Shared::H_ICE_DG, &hiceAdvection, RW);
+    getStore().registerArray(Shared::C_ICE_DG, &ciceAdvection, RW);
 }
 
 void PrognosticData::configure()
@@ -63,6 +65,20 @@ void copyMeanComponent(const ModelArray& source, ModelArray& sink)
     }
 }
 
+void copyAllComponents(const ModelArray& source, ModelArray& sink)
+{
+    if (source.nComponents() == sink.nComponents()) {
+        sink = source;
+    } else if (source.nComponents() == 1) {
+        sink.component(0) = source.data();
+    } else {
+        std::string err = std::string("PrognosticData::copyAllComponents: Expected 1 or ")
+            + std::to_string(sink.nComponents()) + " components, got "
+            + std::to_string(source.nComponents()) + " components.";
+        throw std::runtime_error(err);
+    }
+}
+
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
 
@@ -72,8 +88,6 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
         noLandMask();
     }
 
-    copyMeanComponent(ms.at(hiceName), m_thick);
-    copyMeanComponent(ms.at(ciceName), m_conc);
     copyMeanComponent(ms.at(ticeName), m_tice);
     copyMeanComponent(ms.at(hsnowName), m_snow);
     // Damage is an optional field, and defaults to 1, if absent
@@ -83,6 +97,12 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
         m_damage.resize();
         m_damage = 1.;
     }
+
+    // Copy the full DG data
+    hiceAdvection = 0;
+    ciceAdvection = 0;
+    copyAllComponents(ms.at(hiceName), hiceAdvection);
+    copyAllComponents(ms.at(ciceName), ciceAdvection);
 
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
@@ -102,7 +122,7 @@ void PrognosticData::update(const TimestepTime& tst)
 
     pDynamics->update(tst);
 
-    updatePrognosticFields();
+    updateDynamicsFields();
 
     pOcnBdy->updateAfter(tst);
 }
@@ -119,8 +139,24 @@ void PrognosticData::updatePrognosticFields()
     HField hiceUpd = hiceTrueUpd * ciceUpd;
     HField hsnowUpd = hsnowTrueUpd * ciceUpd;
 
-    m_thick.setData(hiceUpd);
-    m_conc.setData(ciceUpd);
+    // Update the DG0 component of the DG fields
+    hiceAdvection.component(0) = hiceUpd.data();
+    ciceAdvection.component(0) = ciceUpd.allComponents();
+    m_snow.setData(hsnowUpd);
+    m_tice.setData(ticeUpd);
+    m_damage.setData(damageUpd);
+}
+
+void PrognosticData::updateDynamicsFields()
+{
+    ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
+    ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
+    ModelArrayRef<Shared::DAMAGE, RO> damageUpd(getStore());
+
+    // Calculate the cell average thicknesses
+    HField hsnowUpd;
+    hsnowUpd.setData(hsnowTrueUpd.allComponents() * ciceAdvection.component(0));
+
     m_snow.setData(hsnowUpd);
     m_tice.setData(ticeUpd);
     m_damage.setData(damageUpd);
@@ -137,12 +173,12 @@ ModelState PrognosticData::getState() const
     // clang-format off
     ModelState localState = { {
                  { "mask", ModelArray(oceanMask()) }, // make a copy
-                 { "hice", mask(m_thick) },
-                 { "cice", mask(m_conc) },
+                 { "hice", hiceAdvection },
+                 { "cice", ciceAdvection },
                  { "hsnow", mask(m_snow) },
                  { "tice", mask(m_tice) },
-                 { "sst", mask(sst.data()) },
-                 { "sss", mask(sss.data()) },
+                 { "sst", mask(sst) },
+                 { "sss", mask(sss) },
              },
         {} };
     // clang-format on
