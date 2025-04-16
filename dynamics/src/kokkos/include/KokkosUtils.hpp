@@ -1,7 +1,7 @@
 /*!
  * @file KokkosUtils.hpp
  *
- * @date Feb 2, 2024
+ * @date 16 Apr 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -31,8 +31,8 @@ template <> constexpr inline bool IS_GPU_EXEC_SPACE<Kokkos::HIP> = true;
 // Land checks currently only improve performance on GPU. On CPU they lead to a slowdown so checks
 // should only be introduced when necessary.
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-// We can't directly use if constexpr(IS_GPU_EXEC_SPACE) in kernels because lambda capture for values only
-// appearing in constexpr branches is not supported in CUDA.
+// We can't directly use if constexpr(IS_GPU_EXEC_SPACE) in kernels because lambda capture for
+// values only appearing in constexpr branches is not supported in CUDA.
 static_assert(IS_GPU_EXEC_SPACE<Kokkos::DefaultExecutionSpace>, "expected gpu execution space");
 #define ENABLE_OPTIONAL_LAND_CHECKS
 #endif
@@ -133,7 +133,7 @@ auto makeKokkosDeviceView(
         return makeKokkosHostView(mat);
     } else {
         auto deviceView = [&]() {
-            // 1D matrix. Using a two arg constructor works in both cases works but kokkos
+            // 1D matrix. Using a two arg constructor works in both cases but kokkos
             // complains when debugging is enabled.
             if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
                 return KokkosDeviceView<EigenMat>(

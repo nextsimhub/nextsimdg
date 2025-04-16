@@ -1,6 +1,6 @@
 /*!
  * @file KokkosCGDynamicsKernel.hpp
- * @date August 22, 2024
+ * @date 16 Apr 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -49,6 +49,8 @@ public:
     using GradMapDevice
         = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::GradMatrix>;
 
+    KokkosCGDynamicsKernel(const DynamicsParameters& params);
+
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
     void advectAndLimit(const FloatType dt,
@@ -57,18 +59,15 @@ public:
 
     void updateGradientOfSeaSurfaceHeight();
 
-    double getIceOceanStressElement(const std::string& name, const int i) const override;
-
     // cuda requires these functions to be public but they should only be needed by the concrete
     // dynamics (like protected)
     static void prepareIterationDevice(const DeviceViewCG& cgHDevice, const DeviceViewCG& cgADevice,
         const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
-        
         const Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>& dG2CGInterpolator);
 
     static void dirichletZero(const DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
         const KokkosMesh::DirichletData& dirichlet);
-    
+
     static void projectVelocityToStrainDevice(const ConstDeviceViewCG& uDevice,
         const ConstDeviceViewCG& vDevice, const DeviceViewStress& e11Device,
         const DeviceViewStress& e12Device, const DeviceViewStress& e22Device,
@@ -86,6 +85,12 @@ public:
 
     static void applyBoundariesDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny);
+
+    static void updateIceOceanStressDevice(const DeviceViewCG& uIceOceanStressDevice,
+        const DeviceViewCG& vIceOceanStressDevice, const ConstDeviceViewCG& uIceDevice,
+        const ConstDeviceViewCG& vIceDevice, const ConstDeviceViewCG& uOceanDevice,
+        const ConstDeviceViewCG& vOceanDevice, const DynamicsParameters& params,
+        FloatType cosOceanAngle, FloatType sinOceanAngle);
 
 protected:
     // currently not used
@@ -121,6 +126,11 @@ protected:
     HostViewCG uAtmosHost;
     DeviceViewCG vAtmosDevice;
     HostViewCG vAtmosHost;
+
+    DeviceViewCG uIceOceanStressDevice;
+    HostViewCG uIceOceanStressHost;
+    DeviceViewCG vIceOceanStressDevice;
+    HostViewCG vIceOceanStressHost;
 
     // dG stress
     DeviceViewStress s11Device;

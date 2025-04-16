@@ -1,7 +1,7 @@
 /*!
  * @file KokkosMEVPDynamicsKernel.cpp
  *
- * @date Mai 31, 2024
+ * @date 16 Apr 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -10,6 +10,14 @@
 #include <include/constants.hpp>
 
 namespace Nextsim {
+
+/*************************************************************/
+template <int DGadvection>
+KokkosMEVPDynamicsKernel<DGadvection>::KokkosMEVPDynamicsKernel(const VPParameters& paramsIn)
+    : KokkosCGDynamicsKernel<DGadvection>(paramsIn)
+    , params(paramsIn)
+{
+}
 
 /*************************************************************/
 template <int DGadvection>
@@ -33,6 +41,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::initialise(
     Kokkos::deep_copy(this->e22Device, this->e22Host);
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
@@ -128,6 +137,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
     const DeviceViewStress& s11Device, const DeviceViewStress& s12Device,
@@ -187,8 +197,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                         * (PDelta.array()
                                 * ((5.0 / 8.0) * e11Gauss.array() + (3.0 / 8.0) * e22Gauss.array())
                             - 0.5 * P.array())
-                            .matrix()
-                            .transpose()))
+                              .matrix()
+                              .transpose()))
                       .transpose();
             s22.row(i) = fac * s22.row(i)
                 + (map
@@ -196,8 +206,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                         * (PDelta.array()
                                 * ((5.0 / 8.0) * e22Gauss.array() + (3.0 / 8.0) * e11Gauss.array())
                             - 0.5 * P.array())
-                            .matrix()
-                            .transpose()))
+                              .matrix()
+                              .transpose()))
                       .transpose();
             s12.row(i) = fac * s12.row(i)
                 + (map
@@ -207,6 +217,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
         });
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceViewCG& uDevice,
     const DeviceViewCG& vDevice, const ConstDeviceViewCG& u0Device,

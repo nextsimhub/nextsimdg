@@ -1,7 +1,7 @@
 /*!
  * @file FreeDriftDynamics.hpp
  *
- * @date 19 Nov 2024
+ * @date 16 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -52,16 +52,18 @@ public:
 
     void setData(const ModelState::DataMap& ms) override
     {
-        // Degrees to radians as a hex float
-        static const double radians = 0x1.1df46a2529d39p-6;
-
         IDynamics::setData(ms);
+
+        // Set the DG field data. Needs to be done before initialise() because the Kokkos kernel
+        // requires the actual vectors to init its views.
+        kernel.setDGArray(hiceName, hiceDG.allComponents());
+        kernel.setDGArray(ciceName, ciceDG.allComponents());
 
         bool isSpherical = checkSpherical(ms);
 
         ModelArray coords = ms.at(coordsName);
         if (isSpherical) {
-            coords *= radians;
+            coords *= PhysicalConstants::deg2rad;
         }
         // TODO: Some encoding of the periodic edge boundary conditions
         kernel.initialise(coords, false, ms.at(maskName));
@@ -70,10 +72,6 @@ public:
         for (const auto& fieldName : namedFields) {
             kernel.setData(fieldName, ms.at(fieldName));
         }
-
-        // Set the DG field data
-        kernel.setDGArray(hiceName, hiceDG.allComponents());
-        kernel.setDGArray(ciceName, ciceDG.allComponents());
     }
 
 private:

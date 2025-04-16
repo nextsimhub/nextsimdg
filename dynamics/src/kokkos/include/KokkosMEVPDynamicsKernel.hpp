@@ -1,7 +1,7 @@
 /*!
  * @file KokkosMEVPDynamicsKernel.hpp
  *
- * @date Feb 2, 2024
+ * @date 16 Apr 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -42,11 +42,7 @@ public:
 
     using GaussMapDevice = typename Base::GaussMapDevice;
 
-    KokkosMEVPDynamicsKernel(const VPParameters& paramsIn)
-        : KokkosCGDynamicsKernel<DGadvection>()
-        , params(paramsIn)
-    {
-    }
+    KokkosMEVPDynamicsKernel(const VPParameters& paramsIn);
 
     KokkosMEVPDynamicsKernel(const KokkosMEVPDynamicsKernel<DGadvection>&) = delete;
     KokkosMEVPDynamicsKernel(KokkosMEVPDynamicsKernel<DGadvection>&&) = delete;

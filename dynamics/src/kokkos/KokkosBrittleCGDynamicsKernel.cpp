@@ -1,3 +1,10 @@
+/*!
+ * @file KokkosBrittleCGDynamicsKernel.cpp
+ *
+ * @date 16 Apr 2025
+ * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ */
+
 #include "include/KokkosBrittleCGDynamicsKernel.hpp"
 #include "include/KokkosDGLimit.hpp"
 #include "include/KokkosTimer.hpp"
@@ -8,7 +15,8 @@ namespace Nextsim {
 template <int DGadvection>
 KokkosBrittleCGDynamicsKernel<DGadvection>::KokkosBrittleCGDynamicsKernel(
     const BBMParameters& paramsIn)
-    : params(paramsIn)
+    : KokkosCGDynamicsKernel<DGadvection>(paramsIn)
+    , params(paramsIn)
 {
 }
 
@@ -32,9 +40,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     damage.zero();
     avgU.zero();
     avgV.zero();
-
-    cosOceanAngle = std::cos(radians(params.oceanTurningAngle));
-    sinOceanAngle = std::sin(radians(params.oceanTurningAngle));
 
     std::tie(avgUHost, avgUDevice) = makeKokkosDualView("avgU", this->avgU);
     std::tie(avgVHost, avgVDevice) = makeKokkosDualView("avgV", this->avgV);
@@ -141,8 +146,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
             this->xGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightDevice,
-            this->lumpedCGMassDevice, this->deltaT, this->params, cosOceanAngle, sinOceanAngle,
-            params.nSteps);
+            this->lumpedCGMassDevice, this->deltaT, this->params, this->cosOceanAngle,
+            this->sinOceanAngle, params.nSteps);
         timerMomentum.stop();
 
         timerBoundary.start();
@@ -151,6 +156,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         timerBoundary.stop();
     }
     timerBBM.stop();
+
+    Base::updateIceOceanStressDevice(this->uIceOceanStressDevice, this->uIceOceanStressDevice,
+        this->avgUDevice, this->avgVDevice, this->uOceanDevice, this->vOceanDevice, this->params,
+        this->cosOceanAngle, this->sinOceanAngle);
+    Kokkos::deep_copy(execSpace, this->uIceOceanStressHost, this->uIceOceanStressDevice);
+    Kokkos::deep_copy(execSpace, this->vIceOceanStressHost, this->vIceOceanStressDevice);
 
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);

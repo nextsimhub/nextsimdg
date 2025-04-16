@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 05 Dec 2024
+ * @date 16 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -63,15 +63,21 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
-    bool isSpherical = checkSpherical(ms);
+    // Set the DG field data. Needs to be done before initialise() because the Kokkos kernel
+    // requires the actual vectors to init its views.
+    kernel.setDGArray(hiceName, hiceDG.allComponents());
+    kernel.setDGArray(ciceName, ciceDG.allComponents());
+
+    const bool isSpherical = checkSpherical(ms);
 
     ModelArray coords = ms.at(coordsName);
     if (isSpherical) {
         coords *= PhysicalConstants::deg2rad;
     }
+
     // TODO: Some encoding of the periodic edge boundary conditions
     kernel.initialise(coords, isSpherical, ms.at(maskName));
-   
+
     uice = ms.at(uName);
     vice = ms.at(vName);
 
@@ -79,10 +85,6 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
     }
-
-    // Set the DG field data
-    kernel.setDGArray(hiceName, hiceDG.allComponents());
-    kernel.setDGArray(ciceName, ciceDG.allComponents());
 }
 
 void MEVPDynamics::update(const TimestepTime& tst)

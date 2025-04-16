@@ -1,6 +1,6 @@
 /*!
  * @file KokkosCGDynamicsKernel.cpp
- * @date August 22, 2024
+ * @date 16 Apr 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -8,6 +8,12 @@
 #include "include/KokkosDGLimit.hpp"
 
 namespace Nextsim {
+/*************************************************************/
+template <int DGadvection>
+KokkosCGDynamicsKernel<DGadvection>::KokkosCGDynamicsKernel(const DynamicsParameters& params)
+    : CGDynamicsKernel<DGadvection>(params)
+{
+}
 
 /*************************************************************/
 template <int DGadvection>
@@ -37,6 +43,11 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     std::tie(uAtmosHost, uAtmosDevice) = makeKokkosDualView("uAtmos", this->uAtmos);
     std::tie(vAtmosHost, vAtmosDevice) = makeKokkosDualView("vAtmos", this->vAtmos);
 
+    std::tie(uIceOceanStressHost, uIceOceanStressDevice)
+        = makeKokkosDualView("uIceOceanStress", this->uIceOceanStress);
+    std::tie(vIceOceanStressHost, vIceOceanStressDevice)
+        = makeKokkosDualView("vIceOceanStress", this->vIceOceanStress);
+
     // stress
     std::tie(s11Host, s11Device) = makeKokkosDualView("s11", this->s11);
     std::tie(s12Host, s12Device) = makeKokkosDualView("s12", this->s12);
@@ -56,8 +67,10 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, MakeViewOptions::DEVICE_COPY);
 
     // needed for stress and momentum
-    std::tie(hiceHost, hiceDevice) = makeKokkosDualView("hice", this->hice);
-    std::tie(ciceHost, ciceDevice) = makeKokkosDualView("cice", this->cice);
+    std::tie(hiceHost, hiceDevice)
+        = makeKokkosDualView("hice", static_cast<DGVector<DGadvection>&>(this->hice));
+    std::tie(ciceHost, ciceDevice)
+        = makeKokkosDualView("cice", static_cast<DGVector<DGadvection>&>(this->cice));
 
     PSIAdvectDevice = makeKokkosDeviceView(
         "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, MakeViewOptions::DEVICE_COPY);
@@ -105,22 +118,12 @@ void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
     // Reinit the gradient of the sea surface height. Not done by DataMap as seaSurfaceHeight is
     // always dG(0). Currently done on CPU because their are no dependencies on other computations
     // and the cost is small (<3% of dynamics with a single thread).
-    this->ComputeGradientOfSeaSurfaceHeight(this->seaSurfaceHeight);
+    this->computeGradientOfSeaSurfaceHeight(this->seaSurfaceHeight);
     auto execSpace = Kokkos::DefaultExecutionSpace();
     Kokkos::deep_copy(
         execSpace, this->xGradSeaSurfaceHeightDevice, this->xGradSeaSurfaceHeightHost);
     Kokkos::deep_copy(
         execSpace, this->yGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightHost);
-}
-
-/*************************************************************/
-template <int DGadvection>
-double KokkosCGDynamicsKernel<DGadvection>::getIceOceanStressElement(
-    const std::string& name, const int i) const
-{
-    //    std::cerr << "ice ocean stress not implemented for kokkos" << std::endl;
-    //    std::abort();
-    return std::numeric_limits<FloatType>::signaling_NaN();
 }
 
 /*************************************************************/
@@ -426,6 +429,28 @@ void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceView
     dirichletZero(vDevice, nx, ny, dirichletDevice);
 
     // TODO Periodic boundary conditions.
+}
+
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::updateIceOceanStressDevice(
+    const DeviceViewCG& uIceOceanStressDevice, const DeviceViewCG& vIceOceanStressDevice,
+    const ConstDeviceViewCG& uIceDevice, const ConstDeviceViewCG& vIceDevice,
+    const ConstDeviceViewCG& uOceanDevice, const ConstDeviceViewCG& vOceanDevice,
+    const DynamicsParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle)
+{
+    const FloatType FOcean = params.COcean * params.rhoOcean;
+
+    Kokkos::parallel_for(
+        "computeStressDivergence", uIceOceanStressDevice.extent(0),
+        KOKKOS_LAMBDA(const DeviceIndex i) {
+            const FloatType uOceanRel = uOceanDevice(i) - uIceDevice(i);
+            const FloatType vOceanRel = vOceanDevice(i) - vIceDevice(i);
+            const FloatType cPrime = FOcean * Kokkos::hypot(uOceanRel, vOceanRel);
+            uIceOceanStressDevice(i)
+                = cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
+            vIceOceanStressDevice(i)
+                = cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
+        });
 }
 
 template class KokkosCGDynamicsKernel<1>;

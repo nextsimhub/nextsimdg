@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date 05 Dec 2024
+ * @date 16 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -75,7 +75,12 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
-    bool isSpherical = checkSpherical(ms);
+    // Set the DG field data. Needs to be done before initialise() because the Kokkos kernel
+    // requires the actual vectors to init its views.
+    kernel.setDGArray(hiceName, hiceDG.allComponents());
+    kernel.setDGArray(ciceName, ciceDG.allComponents());
+
+    const bool isSpherical = checkSpherical(ms);
 
     ModelArray coords = ms.at(coordsName);
     if (isSpherical) {
@@ -108,10 +113,6 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
             kernel.setData(fieldName, mask(data));
         }
     }
-
-    // Set the DG field data
-    kernel.setDGArray(hiceName, hiceDG.allComponents());
-    kernel.setDGArray(ciceName, ciceDG.allComponents());
 }
 
 void BBMDynamics::update(const TimestepTime& tst)
