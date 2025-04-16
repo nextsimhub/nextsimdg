@@ -125,6 +125,12 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     }
     timerMevp.stop();
 
+    Base::updateIceOceanStressDevice(this->uIceOceanStressDevice, this->vIceOceanStressDevice,
+        this->uDevice, this->vDevice, this->uOceanDevice, this->vOceanDevice, this->params,
+        this->cosOceanAngle, this->sinOceanAngle);
+    Kokkos::deep_copy(execSpace, this->uIceOceanStressHost, this->uIceOceanStressDevice);
+    Kokkos::deep_copy(execSpace, this->vIceOceanStressHost, this->vIceOceanStressDevice);
+
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);

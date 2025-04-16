@@ -1,6 +1,6 @@
 /*!
  * @file KokkosBrittleCGDynamicsKernel.hpp
- * @date August 28, 2024
+ * @date 16 Apr 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -87,8 +87,6 @@ protected:
 
     DeviceViewAdvect damageDevice;
     HostViewAdvect damageHost;
-
-    FloatType cosOceanAngle, sinOceanAngle;
 };
 
 } /* namespace Nextsim */

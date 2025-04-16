@@ -157,7 +157,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     }
     timerBBM.stop();
 
-    Base::updateIceOceanStressDevice(this->uIceOceanStressDevice, this->uIceOceanStressDevice,
+    Base::updateIceOceanStressDevice(this->uIceOceanStressDevice, this->vIceOceanStressDevice,
         this->avgUDevice, this->avgVDevice, this->uOceanDevice, this->vOceanDevice, this->params,
         this->cosOceanAngle, this->sinOceanAngle);
     Kokkos::deep_copy(execSpace, this->uIceOceanStressHost, this->uIceOceanStressDevice);
