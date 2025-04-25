@@ -10,6 +10,8 @@ on:
       - '**.cpp'
       - '**.hpp'
       - '**CMakeLists.txt'
+  pull_request_review:
+    branches: [ main, develop ]
 
 jobs:
   clang-format:

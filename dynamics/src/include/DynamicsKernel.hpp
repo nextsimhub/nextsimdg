@@ -33,7 +33,7 @@
 
 namespace Nextsim {
 
-// forward define the class holding the potentially non-DG parts
+// forward declare the class holding the potentially non-DG parts
 template <int DGdegree> class DynamicsInternals;
 
 template <int DGadvection, int DGstress> class DynamicsKernel {

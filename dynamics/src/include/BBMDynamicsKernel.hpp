@@ -23,7 +23,7 @@ public:
     using CGDynamicsKernel<DGadvection>::pmap;
     using BrittleCGDynamicsKernel<DGadvection>::damage;
     using CGDynamicsKernel<DGadvection>::initialise;
-    BBMDynamicsKernel(const DynamicsParameters& paramsIn)
+    BBMDynamicsKernel(const BBMParameters& paramsIn)
         : BrittleCGDynamicsKernel<DGadvection>(bbmStressStep, paramsIn)
     {
     }
@@ -36,8 +36,6 @@ public:
     }
 
 private:
-    //! Brittle rheology parameters
-    BBMParameters mebParams;
     // BBM stress update class
     BBMStressUpdateStep<DGadvection, DGstressComp, CGdegree> bbmStressStep;
 };
