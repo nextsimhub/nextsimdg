@@ -95,13 +95,20 @@ public:
         parammap.InitializeInverseDGMassMatrix();
     }
 
-    // Access members
+    // Set the DG velocity fields directly for testing
+    void setVelocities(const DGVector<DG>& vx, const DGVector<DG>& vy)
+    {
+        velx = vx;
+        vely = vy;
+    }
 
+private:
     const DGVector<DG>& GetVx() const { return velx; }
     const DGVector<DG>& GetVy() const { return vely; }
     DGVector<DG>& GetVx() { return velx; }
     DGVector<DG>& GetVy() { return vely; }
 
+public:
     // High level functions
     void settimesteppingscheme(const std::string tss)
     {

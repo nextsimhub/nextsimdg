@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.hpp
  *
- * @date 11 Feb 2025
+ * @date 25 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -124,7 +124,7 @@ private:
     void calculateAtmos(size_t i, const TimestepTime& tst);
 
     static double dragOcean_q;
-    static inline double dragOcean_m(double windSpeed);
+    static double dragOcean_m(double windSpeed);
     static double dragOcean_t;
     static double dragIce_t;
 

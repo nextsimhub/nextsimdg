@@ -80,6 +80,8 @@ namespace Shared {
     // Values of the prognostic fields updated during the timestep
     inline constexpr TextTag H_ICE = "H_ICE"; // Updated ice thickness, ice average, m
     inline constexpr TextTag C_ICE = "C_ICE"; // Updated ice concentration
+    inline constexpr TextTag H_ICE_DG = "H_ICE_DG"; // Temporary DG hice tag
+    inline constexpr TextTag C_ICE_DG = "C_ICE_DG"; // Temporary DG cice tag
     inline constexpr TextTag H_SNOW = "H_SNOW"; // Updated snow depth, ice average, m
     inline constexpr TextTag T_ICE = "T_ICE"; // Updated ice temperatures, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE"; // Updated damage 0–1
@@ -188,30 +190,12 @@ public:
         return os ? getState() : ModelState();
     }
 
-    //! @brief Returns the names of all Type::H ModelArrays defined in this component.
-    virtual std::unordered_set<std::string> hFields() const { return {}; }
-    //! @brief Returns the names of all Type::U ModelArrays defined in this component.
-    virtual std::unordered_set<std::string> uFields() const { return {}; }
-    //! @brief Returns the names of all Type::V ModelArrays defined in this component.
-    virtual std::unordered_set<std::string> vFields() const { return {}; }
-    //! @brief Returns the names of all Type::Z ModelArrays defined in this component.
-    virtual std::unordered_set<std::string> zFields() const { return {}; }
-
-    static void setAllModuleData(const ModelState& stateIn);
-    static ModelState getAllModuleState();
-    static void unregisterAllModules();
-
-    static void getAllFieldNames(std::unordered_set<std::string>& uF,
-        std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF);
-
     /*!
-     * @brief Returns the ModelArrayRef backing store.
+     * @brief Returns the ModelArrayRef backing store for column physics fields.
      */
-    static ModelArrayReferenceStore& getStore() { return store; }
+    static ModelArrayReferenceStore& getStore() { return columnPhysicsStore(); }
 
 protected:
-    void registerModule();
-
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
         for (size_t i = 0; i < nOcean; ++i) {
@@ -244,11 +228,18 @@ protected:
     static const ModelArray& oceanMask();
 
 protected:
-    static ModelArray* p_oceanMaskH;
+    static ModelArray& oceanMaskSingleton()
+    {
+        static ModelArray oceanMask;
+        return oceanMask;
+    }
 
 private:
-    static ModelArrayReferenceStore store;
-    static std::unordered_map<std::string, ModelComponent*> registeredModules;
+    static ModelArrayReferenceStore& columnPhysicsStore()
+    {
+        static ModelArrayReferenceStore store;
+        return store;
+    }
 
     static size_t nOcean;
     static std::vector<size_t> oceanIndex;

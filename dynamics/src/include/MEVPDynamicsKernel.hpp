@@ -19,7 +19,7 @@ template <int DGadvection> class MEVPDynamicsKernel : public VPCGDynamicsKernel<
 public:
     using CGDynamicsKernel<DGadvection>::pmap;
     using CGDynamicsKernel<DGadvection>::initialise;
-    MEVPDynamicsKernel(const DynamicsParameters& paramsIn)
+    MEVPDynamicsKernel(const VPParameters& paramsIn)
         : VPCGDynamicsKernel<DGadvection>(MEVPStressStep, paramsIn)
     {
     }
@@ -31,8 +31,6 @@ public:
     }
 
 private:
-    //! Rheology-Parameters
-    Nextsim::VPParameters VP;
     MEVPStressUpdateStep<DGadvection, DGstressComp, CGdegree> MEVPStressStep;
 };
 

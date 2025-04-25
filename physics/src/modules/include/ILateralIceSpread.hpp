@@ -65,7 +65,6 @@ protected:
         , hsnow(getStore())
         , deltaHi(getStore())
     {
-        registerModule();
     }
 
     ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth

@@ -197,9 +197,10 @@ ks = 0.31
         mean = 3.1189
         max = 3.3419
         min = 2.9805
-        self.assertAlmostEqual(max, self.hice.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(min, self.hice.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(mean, self.hice.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
+        hiceDG0 = self.hice[:, 0]
+        self.assertAlmostEqual(max, hiceDG0.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
+        self.assertAlmostEqual(min, hiceDG0.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
+        self.assertAlmostEqual(mean, hiceDG0.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
 
     def test_snowThickness(self):
         """

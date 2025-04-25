@@ -4,21 +4,23 @@
  * Implementation of "classic free drift", where we ignore all \rho h terms in the momentum
  * equation. This is equivalent to assuming that the ice is very thin.
  *
- * @date 06 Dec 2024
+ * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
+ * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef FREEDRIFTDYNAMICSKERNEL_HPP
 #define FREEDRIFTDYNAMICSKERNEL_HPP
 
 #include "CGDynamicsKernel.hpp"
+#include "DynamicsParameters.hpp"
+
 #include <cmath>
 
 namespace Nextsim {
 
 template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKernel<DGadvection> {
-    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
@@ -31,15 +33,27 @@ template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKern
     using CGDynamicsKernel<DGadvection>::uAtmos;
     using CGDynamicsKernel<DGadvection>::vAtmos;
     using CGDynamicsKernel<DGadvection>::applyBoundaries;
+    using CGDynamicsKernel<DGadvection>::updateIceOceanStress;
+    using CGDynamicsKernel<DGadvection>::cosOceanAngle;
+    using CGDynamicsKernel<DGadvection>::sinOceanAngle;
+    using CGDynamicsKernel<DGadvection>::baseParams;
 
 public:
     FreeDriftDynamicsKernel(const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
+        : CGDynamicsKernel<DGadvection>(paramsIn)
         , params(paramsIn)
     {
     }
 
-    virtual ~FreeDriftDynamicsKernel() = default;
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
+    {
+        DynamicsKernel<DGadvection, DGstressComp>::initialise(coords, isSpherical, mask);
+
+        // can't be done in the constructor since the param values are configured after construction
+        FOcean = baseParams.COcean * baseParams.rhoOcean;
+        FAtm = params.CAtm * params.rhoAtm;
+        NansenNumber = std::sqrt(FAtm / FOcean);
+    }
 
     void update(const TimestepTime& tst) override
     {
@@ -48,16 +62,15 @@ public:
 
         // Let DynamicsKernel handle the advection step
         advectionAndLimits(tst);
+
+        updateIceOceanStress(u, v);
     };
 
 protected:
     const DynamicsParameters& params;
-
-    const double cosOceanAngle = std::cos(radians(params.oceanTurningAngle));
-    const double sinOceanAngle = std::sin(radians(params.oceanTurningAngle));
-    const double FOcean = params.COcean * params.rhoOcean;
-    const double FAtm = params.CAtm * params.rhoAtm;
-    const double NansenNumber = std::sqrt(FAtm / FOcean);
+    double FAtm = std::numeric_limits<double>::quiet_NaN();
+    double NansenNumber = std::numeric_limits<double>::quiet_NaN();
+    double FOcean = std::numeric_limits<double>::quiet_NaN();
 
     void updateMomentum(const TimestepTime& tst) override
     {
@@ -69,22 +82,6 @@ protected:
             v(i) = vOcean(i)
                 + NansenNumber * (-uAtmos(i) * sinOceanAngle + vAtmos(i) * cosOceanAngle);
         }
-    }
-
-    double getIceOceanStressElement(const std::string& name, const int i) const override
-    {
-        const double FOcean = params.COcean * params.rhoOcean;
-
-        const double uOceanRel = uOcean(i) - u(i);
-        const double vOceanRel = vOcean(i) - v(i);
-        const double cPrime = FOcean * std::hypot(uOceanRel, vOceanRel);
-
-        if (name == uIOStressName)
-            return cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
-        else if (name == vIOStressName)
-            return cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
-        else
-            return std::numeric_limits<double>::quiet_NaN();
     }
 };
 } /* namespace Nextsim */

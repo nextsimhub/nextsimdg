@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.hpp
  *
- * @date 19 Nov 2024
+ * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -55,8 +55,8 @@ public:
     static HelpMap& getHelpRecursive(HelpMap&, bool getAll);
 
 private:
-    MEVPDynamicsKernel<DGCOMP> kernel;
     VPParameters params;
+    MEVPDynamicsKernel<DGCOMP> kernel;
 };
 }
 
