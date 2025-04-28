@@ -27,7 +27,11 @@ public:
     {
         tice.resize();
         tsurf.resize();
-        tsurf = static_cast<ModelArray>(tice0)[z0Slice];
+        if (static_cast<ModelArray>(tice0).nDimensions() == 2) {
+            tsurf = tice0;
+        } else {
+            tsurf = static_cast<ModelArray>(tice0)[z0Slice];
+        }
         deltaHi.resize();
         snowToIce.resize();
     }
