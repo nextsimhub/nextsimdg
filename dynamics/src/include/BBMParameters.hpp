@@ -1,6 +1,6 @@
 /*!
  * @file BBMParameters.hpp
- * @date 14 Mar 2025
+ * @date 28 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -42,7 +42,6 @@ public:
     double mu = muDefault;
     double comprCap = comprCapDefault;
     double cohesion = cohesionDefault;
-    int nSteps = nStepsDefault;
     bool scaleCohesion = scaleCohesionDefault;
 
     double c0 = 10e3; //! \param

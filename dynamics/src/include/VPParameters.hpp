@@ -1,6 +1,6 @@
 /*!
  * @file VPParameters.hpp
- * @date 19 Nov 2024
+ * @date 28 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
@@ -26,7 +26,6 @@ public:
     double compactionParam = compactionParamDefault;
     double pStar = pStarDefault;
     double deltaMin = deltaMinDefault;
-    int nSteps = nStepsDefault;
 };
 
 } /* namespace Nextsim */
