@@ -25,6 +25,10 @@ const double ThermoWinton::cVol = Ice::cp * Ice::rho; // bulk heat capacity of i
 const double ThermoWinton::seaIceTf = -Water::mu * Ice::s;
 bool ThermoWinton::doFlooding = true;
 
+// Names of the additional ice temperature fields
+const std::string ThermoWinton::tInteriorName = "tinterior";
+const std::string ThermoWinton::tBottomName = "tbottom";
+
 ThermoWinton::ThermoWinton()
     : IIceThermodynamics()
     , snowMelt(ModelArray::Type::H)
@@ -92,14 +96,14 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     bool setInterior = false;
     bool setBottom = false;
 
-    if (state.count("tbottom") > 0) {
-        tBottom = state.at("tbottom");
+    if (state.count(tBottomName) > 0) {
+        tBottom = state.at(tBottomName);
         setBottom = true;
     }
 
-    if (state.count("tsurf") > 0) {
-        tsurf = state.at("tsurf");
-        setSurface = true;
+    if (state.count(tInteriorName) > 0) {
+        tsurf = state.at(tInteriorName);
+        setInterior = true;
     }
 
     if (state.count(ticeName) > 0) {
