@@ -39,6 +39,9 @@ public:
 
     size_t getNZLevels() const override;
 
+    static const std::string tInteriorName;
+    static const std::string tBottomName;
+
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
@@ -55,9 +58,6 @@ private:
     static bool doFlooding;
     static const double seaIceTf;
     static double kappa_s;
-
-    static const std::string tInteriorName;
-    static const std::string tBottomName;
 
     void calculateTemps(
         double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
