@@ -1,7 +1,7 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date 27 Mar 2025
+ * @date 28 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
@@ -134,7 +134,6 @@ public:
         }
 
         updateIceOceanStress(avgU, avgV);
-
 
         // TODO: It's annoying to have to limit damage again. We need to find a better solution.
         Nextsim::LimitMax(damage, 1.0);
