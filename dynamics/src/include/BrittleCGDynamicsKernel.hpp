@@ -1,7 +1,7 @@
 /*!
  * @file BrittleCGDynamicsKernel.hpp
  *
- * @date 06 Dec 2024
+ * @date 28 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -22,7 +22,6 @@ namespace Nextsim {
 // The brittle momentum solver for CG velocity fields
 template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
     using DynamicsKernel<DGadvection, DGstressComp>::s11;
     using DynamicsKernel<DGadvection, DGstressComp>::s12;
     using DynamicsKernel<DGadvection, DGstressComp>::s22;
@@ -107,7 +106,7 @@ public:
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
 
         // The timestep for the brittle solver is the solver subtimestep
-        deltaT = tst.step.seconds() / nSteps;
+        deltaT = tst.step.seconds() / params.nSteps;
 
         avgU.zero();
         avgV.zero();
@@ -237,8 +236,8 @@ protected:
             v(i) *= rDenom;
 
             // Calculate the contribution to the average velocity
-            avgU(i) += u(i) / nSteps;
-            avgV(i) += v(i) / nSteps;
+            avgU(i) += u(i) / params.nSteps;
+            avgV(i) += v(i) / params.nSteps;
         }
     }
 };

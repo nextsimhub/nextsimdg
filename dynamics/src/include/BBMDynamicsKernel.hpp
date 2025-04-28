@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamicsKernel.hpp
  *
- * @date 14 Mar 2025
+ * @date 28 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -17,8 +17,6 @@ namespace Nextsim {
 
 template <int DGadvection> class BBMDynamicsKernel : public BrittleCGDynamicsKernel<DGadvection> {
 public:
-    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
-    // using DynamicsKernel<DGadvection, DGstressComp>::momentum;
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
     using DynamicsKernel<DGadvection, DGstressComp>::smesh;

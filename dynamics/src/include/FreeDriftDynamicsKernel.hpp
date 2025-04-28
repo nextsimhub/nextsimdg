@@ -4,7 +4,7 @@
  * Implementation of "classic free drift", where we ignore all \rho h terms in the momentum
  * equation. This is equivalent to assuming that the ice is very thin.
  *
- * @date 06 Dec 2024
+ * @date 28 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -18,7 +18,6 @@
 namespace Nextsim {
 
 template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKernel<DGadvection> {
-    using DynamicsKernel<DGadvection, DGstressComp>::nSteps;
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;

@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date 26 Nov 2024
+ * @date 28 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -192,8 +192,6 @@ protected:
     //! Vectors storing strain and stress components
     DGVector<DGstress> e11, e12, e22;
     DGVector<DGstress> s11, s12, s22;
-
-    size_t nSteps = 100;
 
     size_t stepNumber = 0;
 
