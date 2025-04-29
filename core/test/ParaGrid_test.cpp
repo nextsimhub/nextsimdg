@@ -214,7 +214,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ModelMetadata metadata;
 #ifdef USE_XIOS
     enableXios();
-    Xios& xiosHandler = Xios::getInstance("P0-0T01:00:00");
+    Xios& xiosHandler = Xios::getInstance(test_comm, "P0-0T01:00:00");
     xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
     xiosHandler.close_context_definition();
 #endif
@@ -415,7 +415,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     ModelMetadata metadata;
 #ifdef USE_XIOS
     enableXios();
-    Xios& xiosHandler = Xios::getInstance();
+    Xios& xiosHandler = Xios::getInstance(test_comm);
 #endif
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
@@ -559,7 +559,7 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     ModelMetadata metadataIn(partitionFilename, test_comm);
 #ifdef USE_XIOS
     enableXios();
-    Xios& xiosHandler = Xios::getInstance();
+    Xios& xiosHandler = Xios::getInstance(test_comm);
 #endif
     metadataIn.setTime(TimePoint(dateString));
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadataIn));
@@ -616,7 +616,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     ModelMetadata metadata;
 #ifdef USE_XIOS
     enableXios();
-    Xios& xiosHandler = Xios::getInstance();
+    Xios& xiosHandler = Xios::getInstance(test_comm);
 #endif
     metadata.setMpiMetadata(test_comm);
     if (metadata.mpiMyRank == 0) {

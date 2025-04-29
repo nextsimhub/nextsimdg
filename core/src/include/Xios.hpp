@@ -33,7 +33,7 @@ class Xios : public Configured<Xios> {
 private:
     //! Private constructor
     Xios(const std::string dt, const std::string contextId, const std::string startTime,
-        const std::string calendarType);
+        const std::string calendarType, const MPI_Comm comm);
 
     //! Performs some one-time initialization for the class. Returns true.
     static bool doOnce();
@@ -49,12 +49,12 @@ public:
      *
      * NOTE: The arguments will only be used the first time this is called.
      */
-    inline static Xios& getInstance(const std::string dt = "P0-0T01:00:00",
-        const std::string contextId = "nextSIM-DG",
+    inline static Xios& getInstance(const MPI_Comm comm = nullptr,
+        const std::string dt = "P0-0T01:00:00", const std::string contextId = "nextSIM-DG",
         const std::string startTime = "1970-01-01T00:00:00Z",
         const std::string calendarType = "Gregorian")
     {
-        static Xios instance = Xios(dt, contextId, startTime, calendarType);
+        static Xios instance = Xios(dt, contextId, startTime, calendarType, comm);
         return instance;
     };
 
@@ -174,6 +174,7 @@ private:
     std::string contextId;
     Duration timestep;
     TimePoint startTime;
+    MPI_Comm mainComm;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;

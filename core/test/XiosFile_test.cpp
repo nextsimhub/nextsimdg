@@ -33,7 +33,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     enableXios();
 
     // Get the Xios singleton instance and check it's initialized
-    Xios& xiosHandler = Xios::getInstance("P0-0T01:30:00");
+    Xios& xiosHandler = Xios::getInstance(test_comm, "P0-0T01:30:00");
     REQUIRE(xiosHandler.isInitialized());
     const size_t size = xiosHandler.getClientMPISize();
     REQUIRE(size == 2);

@@ -53,7 +53,8 @@ void enableXios()
  * @param calendartype Type of calendar to use
  */
 Xios::Xios(const std::string dt, const std::string contextid, const std::string starttime,
-    const std::string calendartype)
+    const std::string calendartype, const MPI_Comm comm)
+    : mainComm(comm)
 {
     timestep = Duration(dt);
     startTime = TimePoint(starttime);
@@ -119,7 +120,7 @@ void Xios::configureServer()
 {
     // Initialize XIOS Server process and store MPI communicator
     clientId = "client";
-    nullComm_F = MPI_Comm_c2f(MPI_COMM_NULL);
+    nullComm_F = MPI_Comm_c2f(mainComm);
     cxios_init_client(clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F);
 
     // Initialize MPI rank and size
