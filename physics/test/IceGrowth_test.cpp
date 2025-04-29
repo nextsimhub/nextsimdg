@@ -483,7 +483,7 @@ TEST_CASE("Zero thickness")
         {
             deltaHi[0] = -hice[0];
             hice[0] = 0;
-            tice[0] = 0;
+            tsurf[0] = 0;
             snowToIce[0] = 0;
         }
         size_t getNZLevels() const override { return 1; }

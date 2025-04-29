@@ -37,7 +37,6 @@ void ThermoIce0::update(const TimestepTime& tsTime)
     overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tsTime);
-    tsurf = tice;
 }
 
 static const std::map<int, std::string> keyMap = {
