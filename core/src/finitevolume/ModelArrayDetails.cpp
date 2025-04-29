@@ -17,7 +17,6 @@ namespace Nextsim {
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
     { ModelArray::Dimension::X, { "xdim", "x", 0, 0, 0 } },
     { ModelArray::Dimension::Y, { "ydim", "y", 0, 0, 0 } },
-    { ModelArray::Dimension::Z, { "zdim", "z", 1, 1, 0 } },
     { ModelArray::Dimension::XVERTEX, { "xvertex", "xvertex", 1, 1, 0 } }, // defined as x + 1
     { ModelArray::Dimension::YVERTEX, { "yvertex", "yvertex", 1, 1, 0 } }, // defined as y + 1
 };
@@ -38,12 +37,6 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
             ModelArray::Dimension::X,
             ModelArray::Dimension::Y,
         } },
-    { ModelArray::Type::Z,
-        {
-            ModelArray::Dimension::X,
-            ModelArray::Dimension::Y,
-            ModelArray::Dimension::Z,
-        } },
     { ModelArray::Type::VERTEX,
         {
             ModelArray::Dimension::XVERTEX,
@@ -55,7 +48,6 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::H, "HField" },
     { ModelArray::Type::U, "UField" },
     { ModelArray::Type::V, "VField" },
-    { ModelArray::Type::Z, "ZField" },
     { ModelArray::Type::VERTEX, "VertexField" },
 };
 
@@ -71,7 +63,6 @@ ModelArray::SizeMap::SizeMap()
           { Type::H, 0 },
           { Type::U, 0 },
           { Type::V, 0 },
-          { Type::Z, 0 },
           { Type::VERTEX, 1 },
       })
 {
@@ -82,7 +73,6 @@ ModelArray::DimensionMap::DimensionMap()
           { Type::H, { 0 } },
           { Type::U, { 0 } },
           { Type::V, { 0 } },
-          { Type::Z, { 0, 1 } },
           { Type::VERTEX, { 1, 1 } },
       })
 {

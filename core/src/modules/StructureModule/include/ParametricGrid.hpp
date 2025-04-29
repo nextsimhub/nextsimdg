@@ -60,11 +60,6 @@ public:
     }
     const std::string& structureType() const override { return structureName; };
 
-    int nIceLayers() const override
-    {
-        return ModelArray::definedDimensions.at(ModelArray::Dimension::Z).localLength;
-    };
-
     class IParaGridIO {
     public:
         IParaGridIO(ParametricGrid& grid)
