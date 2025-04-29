@@ -50,14 +50,11 @@ TEST_CASE("Melting conditions")
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
-            : tice0(ModelArray::Type::H)
-            , tice(getStore())
         {
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::C_ICE, &cice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
@@ -71,8 +68,6 @@ TEST_CASE("Melting conditions")
             hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
             hsnow0[0] = 0.01 / cice0[0];
             sw_in[0] = -10.1675; // Net shortwave flux from incident 50 W/m^2
-            tice0[0] = TICE;
-            tice = tice0;
 
             hice = hice0;
             cice = cice0;
@@ -83,8 +78,6 @@ TEST_CASE("Melting conditions")
         HField cice0;
         HField hsnow0;
         HField sw_in;
-        HField tice0;
-        ModelArrayRef<Shared::T_ICE, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
@@ -118,9 +111,11 @@ TEST_CASE("Melting conditions")
 
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
+            { tsurfName, ModelArray(ModelArray::Type::H) },
             { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
             { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
+    iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;
     iceTempState.at(ThermoWinton::tBottomName) = TICE;
 #undef TICE
@@ -160,15 +155,12 @@ TEST_CASE("Freezing conditions")
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
-            : tice0(ModelArray::Type::H)
-            , tice(getStore())
         {
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::C_ICE, &cice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SNOW, &snow, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
@@ -183,8 +175,6 @@ TEST_CASE("Freezing conditions")
             hsnow0[0] = 0.01 / cice0[0];
             snow[0] = 1e-3;
             sw_in[0] = 0;
-            tice0[0] = TICE;
-            tice = tice0;
 
             hice = hice0;
             cice = cice0;
@@ -196,8 +186,6 @@ TEST_CASE("Freezing conditions")
         HField hsnow0;
         HField snow;
         HField sw_in;
-        HField tice0;
-        ModelArrayRef<Shared::T_ICE, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
@@ -229,9 +217,11 @@ TEST_CASE("Freezing conditions")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
+            { tsurfName, ModelArray(ModelArray::Type::H) },
             { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
             { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
+    iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;
     iceTempState.at(ThermoWinton::tBottomName) = TICE;
 #undef TICE
@@ -256,7 +246,6 @@ TEST_CASE("Freezing conditions")
 TEST_CASE("No ice do nothing")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 3 });
 
     Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
     Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
@@ -273,15 +262,12 @@ TEST_CASE("No ice do nothing")
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
-            : tice0(ModelArray::Type::H)
-            , tice(getStore())
         {
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::C_ICE, &cice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SNOW, &snow, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
 
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
@@ -296,8 +282,6 @@ TEST_CASE("No ice do nothing")
             hsnow0[0] = 0;
             snow[0] = 0;
             sw_in[0] = 0;
-            tice0[0] = TICE;
-            tice = tice0;
 
             hice = hice0;
             cice = cice0;
@@ -309,8 +293,6 @@ TEST_CASE("No ice do nothing")
         HField hsnow0;
         HField snow;
         HField sw_in;
-        HField tice0;
-        ModelArrayRef<Shared::T_ICE, RW> tice; // From IIceThermodynamics
 
         HField hice;
         HField cice;
@@ -354,9 +336,11 @@ TEST_CASE("No ice do nothing")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
+            { tsurfName, ModelArray(ModelArray::Type::H) },
             { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
             { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
+    iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;
     iceTempState.at(ThermoWinton::tBottomName) = TICE;
 #undef TICE
