@@ -29,7 +29,6 @@ TEST_SUITE_BEGIN("PrognosticData");
 TEST_CASE("PrognosticData call order test")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     Module::setImplementation<IAtmosphereBoundary>("Nextsim::ConfiguredAtmosphere");
     std::stringstream config;
@@ -74,15 +73,12 @@ TEST_CASE("PrognosticData call order test")
     HField zeroData;
     zeroData.resize();
     zeroData[0] = 0.;
-    ZField zeroDataZ;
-    zeroDataZ.resize();
-    zeroDataZ[0] = 0.;
 
     ModelState::DataMap initialData = {
         { "cice", zeroData },
         { "hice", zeroData },
         { "hsnow", zeroData },
-        { "tice", zeroDataZ },
+        { "tsurf", zeroData },
     };
 
     PrognosticData pData;
