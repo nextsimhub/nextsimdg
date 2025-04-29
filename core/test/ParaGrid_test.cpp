@@ -16,7 +16,6 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
-#include "include/NZLevels.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/IStructure.hpp"

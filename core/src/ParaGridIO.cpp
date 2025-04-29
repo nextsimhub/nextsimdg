@@ -11,7 +11,6 @@
 #include "include/FileCallbackCloser.hpp"
 #include "include/Finalizer.hpp"
 #include "include/MissingData.hpp"
-#include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>

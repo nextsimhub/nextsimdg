@@ -8,7 +8,6 @@
 #include "include/Slice.hpp"
 #include "include/ThermoWinton.hpp"
 #include "include/IceMinima.hpp"
-#include "include/NZLevels.hpp"
 
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"

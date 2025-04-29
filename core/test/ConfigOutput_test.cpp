@@ -22,7 +22,6 @@
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
