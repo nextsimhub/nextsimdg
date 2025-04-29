@@ -80,4 +80,17 @@ if np.any(cice_dg0 <= cice_min) or np.any(cice_dg0 > cice_max):
     print(f"Error: ice concentration at at least one sample point is outside the range 0 ≤ c_ice ≤ 1.")
     sys.exit(8)
 
+# Test the land mask
+mask_name = "mask"
+mask = data_group[mask_name]
+print(f"mask={mask[y_lo:y_hi:y_lo, x_lo:x_hi:x_lo]}")
+
+if mask[50,50] != 1:
+    print(f"Error: Test point [50,50] is not wet.")
+    sys.exit(8)
+
+if mask[100,140] != 0:
+    print(f"Error: Test point [100,140] is not dry.")
+    sys.exit(8)
+
 print("Success: integration test passed.")

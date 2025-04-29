@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 11 Apr 2025
+ * @date 25 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -13,10 +13,15 @@
 
 namespace Nextsim {
 
-size_t ModelComponent::nOcean;
+size_t ModelComponent::nOcean = 0;
 std::vector<size_t> ModelComponent::oceanIndex;
 
-ModelComponent::ModelComponent() { noLandMask(); }
+ModelComponent::ModelComponent()
+{
+    // We only set no land mask if the mask hasn't been set by someone else.
+    if (nOcean == 0)
+        noLandMask();
+}
 
 /*
  * This assumes that the HField array size has already been set in the restart
