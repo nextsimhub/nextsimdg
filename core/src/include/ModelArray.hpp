@@ -623,20 +623,6 @@ public:
 protected:
     Type type;
 
-    /*!
-     * @brief Special access function for ZFields, common implementation version.
-     *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    size_t zLayerIndex(size_t hIndex, size_t layer) const
-    {
-        return hIndex + layer * dimensions()[0] * dimensions()[1];
-    }
-
 private:
     static bool areMapsInvalid;
     static void validateMaps();
