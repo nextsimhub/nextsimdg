@@ -27,7 +27,9 @@ public:
     void setData(const ModelState::DataMap& ms) override
     {
         tsurf.resize();
-        if (static_cast<ModelArray>(tice0).nDimensions() == 2) {
+        if (ms.count(tsurfName) > 0) {
+            tsurf = ms.at(tsurfName);
+        } else if (static_cast<ModelArray>(tice0).nDimensions() == 2) {
             tsurf = tice0;
         } else {
             tsurf = static_cast<ModelArray>(tice0)[z0Slice];
