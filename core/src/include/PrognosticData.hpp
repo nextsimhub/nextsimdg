@@ -55,8 +55,6 @@ public:
     void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
 
 private:
-    ZField m_tice;
-//    HField m_snow;
     double m_dt;
 
     // Full DG component arrays of thickness and concentration

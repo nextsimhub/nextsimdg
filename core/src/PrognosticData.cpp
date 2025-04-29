@@ -17,8 +17,6 @@ namespace Nextsim {
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-//    , m_snow(ModelArray::Type::H)
-    , m_tice(ModelArray::Type::Z)
     , hiceAdvection(ModelArray::AdvectionType)
     , ciceAdvection(ModelArray::AdvectionType)
     , damage(ModelArray::AdvectionType)
@@ -31,7 +29,6 @@ PrognosticData::PrognosticData()
     getStore().registerArray(Protected::H_ICE, &hiceAdvection, RO);
     getStore().registerArray(Protected::C_ICE, &ciceAdvection, RO);
     getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-    getStore().registerArray(Protected::T_ICE, &m_tice, RO);
     getStore().registerArray(Shared::DAMAGE, &damage, RW);
     getStore().registerArray(Shared::H_ICE_DG, &hiceAdvection, RW);
     getStore().registerArray(Shared::C_ICE_DG, &ciceAdvection, RW);
@@ -89,8 +86,6 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     } else {
         noLandMask();
     }
-
-    copyMeanComponent(ms.at(ticeName), m_tice);
 
     // Copy the full DG data
     hiceAdvection = 0;
@@ -150,15 +145,10 @@ void PrognosticData::updatePrognosticFields()
     hiceAdvection.component(0) = hiceUpd.data();
     ciceAdvection.component(0) = ciceUpd.allComponents();
     hsnow.component(0) = hsnowUpd;
-//    m_snow.setData(hsnowUpd);
-    m_tice.setData(ticeUpd);
 }
 
 void PrognosticData::updateDynamicsFields()
 {
-    ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
-
-    m_tice.setData(ticeUpd);
 }
 
 // Gets all of the prognostic data, including that in the dynamics
@@ -176,7 +166,6 @@ ModelState PrognosticData::getState() const
                  { "cice", ciceAdvection },
                  { damageName, damage },
                  { hsnowName, hsnow },
-                 { "tice", mask(m_tice) },
                  { "sst", mask(sst) },
                  { "sss", mask(sss) },
              },
