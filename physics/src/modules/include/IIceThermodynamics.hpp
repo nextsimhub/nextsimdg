@@ -26,7 +26,6 @@ public:
     std::string getName() const override { return "IceThermodynamics"; }
     void setData(const ModelState::DataMap& ms) override
     {
-        tice.resize();
         tsurf.resize();
         if (static_cast<ModelArray>(tice0).nDimensions() == 2) {
             tsurf = tice0;
@@ -54,16 +53,13 @@ public:
      */
     virtual void update(const TimestepTime& tsTime) = 0;
 
-    virtual void initialiseTice() { tice = tice0; }
-
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
 
     virtual size_t getNZLevels() const = 0;
 
 protected:
     IIceThermodynamics()
-        : tice(ModelArray::Type::Z)
-        , tsurf(ModelArray::Type::H)
+        : tsurf(ModelArray::Type::H)
         , deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
         , hice(getStore())
@@ -82,7 +78,6 @@ protected:
         , qswBase(getStore())
     {
         getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
-        getStore().registerArray(Shared::T_ICE, &tice, RW);
         getStore().registerArray(Protected::T_SURF, &tsurf, RO);
     }
 
@@ -103,7 +98,6 @@ protected:
     ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
     HField tsurf;
-    ZField tice;
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
