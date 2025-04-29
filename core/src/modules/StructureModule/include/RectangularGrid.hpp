@@ -23,14 +23,12 @@ public:
     struct GridDimensions {
         int nx;
         int ny;
-        int nz;
     };
 
     RectangularGrid()
         : pio(nullptr)
         , nx(0)
         , ny(0)
-        , nz(0)
     {
     }
 
@@ -68,13 +66,10 @@ public:
     }
     const std::string& structureType() const override { return structureName; };
 
-    int nIceLayers() const override { return nz; };
-
     void setDimensions(const GridDimensions& dims)
     {
         nx = dims.nx;
         ny = dims.ny;
-        nz = dims.nz;
     }
 
     class IRectGridIO {
@@ -116,11 +111,9 @@ public:
 private:
     int nx;
     int ny;
-    int nz; // Number of ice layers
 
     const static std::string xDimName;
     const static std::string yDimName;
-    const static std::string nIceLayersName;
 
     IRectGridIO* pio;
 

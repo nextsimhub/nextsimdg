@@ -36,8 +36,6 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
           // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
         { "yx", ModelArray::Type::H },
         { "ydimxdim", ModelArray::Type::H },
-        { "zyx", ModelArray::Type::Z },
-        { "zdimydimxdim", ModelArray::Type::Z },
         { "yxdg_comp", ModelArray::Type::DG },
         { "ydimxdimdg_comp", ModelArray::Type::DG },
         { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
@@ -50,7 +48,6 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
           // clang-format off
         { ModelArray::Dimension::X, false },
         { ModelArray::Dimension::Y, false },
-        { ModelArray::Dimension::Z, false },
         { ModelArray::Dimension::XCG, true },
         { ModelArray::Dimension::YCG, true },
         { ModelArray::Dimension::DG, true },
@@ -122,40 +119,30 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                     std::string("No netCDF dimension found corresponding to the dimension named ")
                     + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
             }
-            if (dimType == ModelArray::Dimension::Z) {
-                // A special case, as the number of levels in the file might not be
-                // the number that the selected ice thermodynamics requires.
 #ifdef USE_MPI
-                ModelArray::setDimension(dimType, NZLevels::get(), NZLevels::get(), 0);
-#else
-                ModelArray::setDimension(dimType, NZLevels::get());
-#endif
+            auto dimName = dim.getName();
+            size_t localLength = 0;
+            size_t start = 0;
+            if (dimType == ModelArray::Dimension::X) {
+                localLength = metadata.localExtentX;
+                start = metadata.localCornerX;
+            } else if (dimType == ModelArray::Dimension::Y) {
+                localLength = metadata.localExtentY;
+                start = metadata.localCornerY;
+            } else if (dimType == ModelArray::Dimension::XVERTEX) {
+                localLength = metadata.localExtentX + 1;
+                start = metadata.localCornerX;
+            } else if (dimType == ModelArray::Dimension::YVERTEX) {
+                localLength = metadata.localExtentY + 1;
+                start = metadata.localCornerY;
             } else {
-#ifdef USE_MPI
-                auto dimName = dim.getName();
-                size_t localLength = 0;
-                size_t start = 0;
-                if (dimType == ModelArray::Dimension::X) {
-                    localLength = metadata.localExtentX;
-                    start = metadata.localCornerX;
-                } else if (dimType == ModelArray::Dimension::Y) {
-                    localLength = metadata.localExtentY;
-                    start = metadata.localCornerY;
-                } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                    localLength = metadata.localExtentX + 1;
-                    start = metadata.localCornerX;
-                } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                    localLength = metadata.localExtentY + 1;
-                    start = metadata.localCornerY;
-                } else {
-                    localLength = dim.getSize();
-                    start = 0;
-                }
-                ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-#else
-                ModelArray::setDimension(dimType, dim.getSize());
-#endif
+                localLength = dim.getSize();
+                start = 0;
             }
+            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+#else
+            ModelArray::setDimension(dimType, dim.getSize());
+#endif
         }
 
         // Get all vars in the data group, and load them into a new ModelState
