@@ -27,7 +27,6 @@ TEST_CASE("Test Qdw")
     REQUIRE(dt == 1000);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     ModelArrayReferenceStore couplingArrays;
 
@@ -103,7 +102,6 @@ TEST_CASE("Test Fdw")
     REQUIRE(dt == 1000);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     ModelArrayReferenceStore couplingArrays;
 
