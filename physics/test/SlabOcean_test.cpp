@@ -27,7 +27,6 @@ TEST_CASE("Test Qdw")
     REQUIRE(dt == 1000);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     double tOffset = 0.001;
     // Supply the data to the slab ocean
@@ -104,7 +103,6 @@ TEST_CASE("Test Fdw")
     REQUIRE(dt == 1000);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     double sOffset = 0.1;
     // Supply the data to the slab ocean
