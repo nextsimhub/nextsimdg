@@ -39,7 +39,7 @@ endif()
 
 target_include_directories(nextsimlib PUBLIC "${netCDF_INCLUDE_DIR}")
 target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsimlib PUBLIC "${NSDG_NetCDF_Library}" "${FORTRAN_RUNTIME_LIB}")
+target_link_libraries(nextsimlib PUBLIC "${NSDG_NetCDF_Library}")
 
 if(BUILD_TESTS)
     # Add the doctest header library
@@ -146,6 +146,12 @@ if(ENABLE_XIOS)
         nextsimlib
         PRIVATE ${xios_INCLUDES} ${xios_EXTERNS}/blitz/ ${xios_EXTERNS}/rapidxml/include
     )
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(FORTRAN_RUNTIME_LIB "-lgfortran")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+        set(FORTRAN_RUNTIME_LIB "-lifcore")
+    endif()
+    target_link_libraries(nextsimlib PUBLIC "${FORTRAN_RUNTIME_LIB}")
 endif()
 
 # OpenMP

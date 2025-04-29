@@ -48,12 +48,17 @@ jobs:
 
     - name: installs for python tests
       run: |
+        apt -y update
+        apt install -y python3.12-venv
+        python3 -m venv ~/nextsim
+        . $HOME/nextsim/bin/activate
         pip install numpy
         pip install netCDF4
 
     - name: run serial tests
       run: |
         . /opt/spack-environment/activate.sh
+        . $HOME/nextsim/bin/activate
         apt update
         apt install -y wget
         cd build
