@@ -11,7 +11,6 @@
 #include "include/IceGrowth.hpp"
 #include "include/IceMinima.hpp"
 #include "include/ModelArray.hpp"
-#include "include/NZLevels.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 

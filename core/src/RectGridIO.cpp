@@ -13,7 +13,6 @@
 #include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
-#include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
 #ifdef USE_MPI

@@ -14,7 +14,6 @@
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/IStructure.hpp"
-#include "include/NZLevels.hpp"
 #include "include/RectGridIO.hpp"
 #include "include/RectangularGrid.hpp"
 #include "include/gridNames.hpp"
