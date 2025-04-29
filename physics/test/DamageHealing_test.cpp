@@ -26,7 +26,6 @@ TEST_CASE("Thermodynamic healing")
  */
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     Module::Module<IDamageHealing>::setImplementation("Nextsim::ConstantHealing");
     std::stringstream config;
