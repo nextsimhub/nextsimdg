@@ -60,10 +60,15 @@ void ThermoWinton::configure()
 
 ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
 {
-    ModelState state = { {},
+    ModelState state = {
+        {
+            { tInteriorName, tInternal },
+            { tBottomName, tBottom },
+        },
         {
             { keyMap.at(KS_KEY), kappa_s },
         } };
+    state.merge(IIceThermodynamics::getStateRecursive(os));
     return os ? state : ModelState();
 }
 
@@ -102,7 +107,7 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     }
 
     if (state.count(tInteriorName) > 0) {
-        tsurf = state.at(tInteriorName);
+        tInternal = state.at(tInteriorName);
         setInterior = true;
     }
 
