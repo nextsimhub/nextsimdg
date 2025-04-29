@@ -9,6 +9,7 @@
 #define IICETHERMODYNAMICS_HPP
 
 #include "include/ConfigurationHelp.hpp"
+#include "include/gridNames.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelArraySlice.hpp"
@@ -35,7 +36,12 @@ public:
         deltaHi.resize();
         snowToIce.resize();
     }
-    ModelState getState() const override { return ModelState(); }
+    ModelState getState() const override
+    {
+        return { {
+            { tsurfName, tsurf },
+        }, { } };
+    }
     ModelState getState(const OutputLevel&) const override { return getState(); }
     ModelState getStateRecursive(const OutputSpec& os) const override
     {
