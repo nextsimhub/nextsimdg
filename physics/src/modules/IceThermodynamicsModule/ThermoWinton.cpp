@@ -17,7 +17,6 @@
 
 namespace Nextsim {
 
-const size_t ThermoWinton::nLevels = 3;
 double ThermoWinton::kappa_s;
 static const double k_sDefault = 0.3096;
 
@@ -55,7 +54,6 @@ void ThermoWinton::configure()
 {
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
     doFlooding = Configured::getConfiguration(keyMap.at(FLOODING_KEY), doFlooding);
-    NZLevels::set(nLevels);
 }
 
 ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
@@ -144,8 +142,6 @@ void ThermoWinton::update(const TimestepTime& tst)
                      std::placeholders::_2),
         tst);
 }
-
-size_t ThermoWinton::getNZLevels() const { return nLevels; }
 
 void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {

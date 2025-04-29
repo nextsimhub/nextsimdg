@@ -19,7 +19,6 @@ public:
     DummyIceThermodynamics()
         : IIceThermodynamics()
     {
-        NZLevels::set(getNZLevels());
     }
     ~DummyIceThermodynamics() = default;
 
@@ -27,8 +26,6 @@ public:
 
     void setData(const ModelState::DataMap& ms) override { IIceThermodynamics::setData(ms); }
     void update(const TimestepTime& tsTime) override { }
-
-    size_t getNZLevels() const override { return 1; } // 1 is the minimum, I guess
 };
 
 } /* namespace Nextsim */
