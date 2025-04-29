@@ -37,8 +37,6 @@ public:
     void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
 
-    size_t getNZLevels() const override;
-
     static const std::string tInteriorName;
     static const std::string tBottomName;
 

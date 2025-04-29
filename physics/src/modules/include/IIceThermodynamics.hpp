@@ -55,8 +55,6 @@ public:
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
 
-    virtual size_t getNZLevels() const = 0;
-
 protected:
     IIceThermodynamics()
         : tsurf(ModelArray::Type::H)

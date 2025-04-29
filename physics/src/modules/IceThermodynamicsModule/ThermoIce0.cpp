@@ -20,7 +20,6 @@ namespace Nextsim {
 double ThermoIce0::kappa_s;
 static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
-const size_t ThermoIce0::nZLevels = 1;
 
 ThermoIce0::ThermoIce0()
     : IIceThermodynamics()
@@ -46,7 +45,6 @@ static const std::map<int, std::string> keyMap = {
 void ThermoIce0::configure()
 {
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
-    NZLevels::set(nZLevels);
 }
 
 ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
@@ -173,5 +171,4 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     }
 }
 
-size_t ThermoIce0::getNZLevels() const { return nZLevels; }
 } /* namespace Nextsim */
