@@ -102,7 +102,7 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     }
 
     if (state.count(tInteriorName) > 0) {
-        tsurf = state.at(tInteriorName);
+        tInternal = state.at(tInteriorName);
         setInterior = true;
     }
 
