@@ -148,13 +148,13 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     // Heat flux ice-atmosphere
     // Latent heat from sublimation
     Q_lh_ia[i] = subl[i] * latentHeatIce(tsurf[i]);
-    double dmdot_dT = dragIce_t * rho_air[i] * v_air[i] * dshice_dT[i];
+    double dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
     double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
 
     // Sensible heat flux
     Q_sh_ia[i]
-        = dragIce_t * rho_air[i] * cp_air[i] * v_air[i] * (tsurf[i] - t_air[i]);
-    double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
+        = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
+    double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
 
     // Shortwave flux
     double albedoValue, i0;
