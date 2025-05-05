@@ -1,7 +1,7 @@
 /*!
  * @file IDiagnosticOutput.hpp
  *
- * @date 24 Sep 2024
+ * @date 05 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -44,7 +44,7 @@ public:
      * @param state The model state to be written out.
      * @param meta The model metadata for the the given state.
      */
-    virtual void outputState(const ModelMetadata& meta) = 0;
+    virtual void outputState(const ModelMetadata& meta, const Duration& step) = 0;
 
     // Define some of the ModelComponent class functions
     // No data to be set

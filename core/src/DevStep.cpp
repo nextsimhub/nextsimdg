@@ -1,7 +1,7 @@
 /*!
  * @file DevStep.cpp
  *
- * @date 2 Jul 2024
+ * @date 05 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -51,7 +51,7 @@ void DevStep::iterate(const TimestepTime& tst)
     OutputSpec os; // The default OutputSpec is all fields, but only cell average values
     ModelState overallState = pData->getStateRecursive(os);
     overallState.merge(ConfiguredModule::getAllModuleConfigurations());
-    Module::getImplementation<IDiagnosticOutput>().outputState(*mData);
+    Module::getImplementation<IDiagnosticOutput>().outputState(*mData, tst.step);
 }
 
 void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string& fileName)

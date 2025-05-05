@@ -1,7 +1,7 @@
 /*!
  * @file SimpleOutput.cpp
  *
- * @date 24 Sep 2024
+ * @date 05 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelMetadata& meta)
+void SimpleOutput::outputState(const ModelMetadata& meta, const Duration& step)
 {
     std::stringstream startStream;
     startStream << meta.time();

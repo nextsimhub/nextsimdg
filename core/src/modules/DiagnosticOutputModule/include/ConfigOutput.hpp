@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.hpp
  *
- * @date 24 Sep 2024
+ * @date 05 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -30,6 +30,7 @@ public:
     enum {
         PERIOD_KEY,
         START_KEY,
+        SNAPSHOT_KEY,
         FIELDNAMES_KEY,
         FILENAME_KEY,
         FILEPERIOD_KEY,
@@ -38,7 +39,7 @@ public:
     // IDiagnosticOutput overrides
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
     void setModelStart(const TimePoint& modelStart) override;
-    void outputState(const ModelMetadata& meta) override;
+    void outputState(const ModelMetadata& meta, const Duration& step) override;
 
     // ModelComponent overrides
     inline std::string getName() const override { return "ConfigOutput"; };
@@ -53,15 +54,15 @@ public:
     ModelState getStateRecursive(const OutputSpec& os) const override;
 
 private:
-    std::string m_filePrefix;
+    std::string m_filePrefix {};
     Duration outputPeriod;
     bool firstOutput = true;
     bool everyTS = false;
     bool outputAllTheFields = false;
     TimePoint lastOutput;
-    std::set<std::string> fieldsForOutput;
-    std::string currentFileName;
-    std::set<std::string> internalFieldsForOutput;
+    std::set<std::string> fieldsForOutput {};
+    std::string currentFileName {};
+    std::set<std::string> internalFieldsForOutput {};
 
     TimePoint lastFileChange;
     Duration fileChangePeriod;
@@ -69,7 +70,12 @@ private:
     static const std::string all;
     static const std::string defaultLastOutput;
 
-    std::map<std::string, std::string> reverseExternalNames;
+    std::map<std::string, std::string> reverseExternalNames {};
+
+    ModelState state {};
+
+    bool snapshots = false;
+    bool resetState = true;
 };
 
 } /* namespace Nextsim */
