@@ -7,7 +7,6 @@ grid = netCDF4.Dataset("25km_NH.nc", "r")
 
 nx = grid.dimensions["x"].size
 ny = grid.dimensions["y"].size
-nLayers = 1
 ncg = 1
 n_dg = 1
 n_dgstress = 1
@@ -34,7 +33,6 @@ datagrp = root.createGroup("data")
 
 xDim = datagrp.createDimension("xdim", nx)
 yDim = datagrp.createDimension("ydim", ny)
-nLay = datagrp.createDimension("zdim", nLayers)
 xVertexDim = datagrp.createDimension("xvertex", nx + 1)
 yVertexDim = datagrp.createDimension("yvertex", ny + 1)
 xcg_dim = datagrp.createDimension("x_cg", nx * ncg + 1)
@@ -78,8 +76,13 @@ hice = datagrp.createVariable("hice", "f8", ("xdim", "ydim",))
 hice[:,:] = cice[:,:] * 2
 hsnow = datagrp.createVariable("hsnow", "f8", ("xdim", "ydim",))
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("x", "y", "z"))
-tice[:,:,0] = -0.5 - cice[:,:]
+tsurf = datagrp.createVariable("tsurf", "f8", ("xdim", "ydim"))
+tsurf[:,:] = -0.5 - cice[:,:]
+tbott = datagrp.createVariable("tbottom", "f8", ("xdim", "ydim"))
+tbott[:,:] = -1.8
+tintr = datagrp.createVariable("tinterior", "f8", ("xdim", "ydim"))
+tintr[:,:] = 0.5 * (tsurf[:,:] + tbott[:,:])
+
 sst = datagrp.createVariable("sst", "f8", ("xdim", "ydim",))
 sst[:,:] = -cice[:,:]
 sss = datagrp.createVariable("sss", "f8", ("xdim", "ydim",))
