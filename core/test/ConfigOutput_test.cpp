@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 05 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -21,8 +21,8 @@
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/NextsimModule.hpp"
 #include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -128,6 +128,7 @@ TEST_CASE("Test periodic output")
     const std::string pfx = "diag01";
     const std::string sfx = ".nc";
     const size_t hr_day = 24;
+    const Duration timeStep = Duration(3600.);
     for (size_t day = 1; day <= 20; ++day) {
         if (day > 10) {
             diagFiles.push_back(pfx + std::to_string(day) + sfx);
@@ -142,10 +143,9 @@ TEST_CASE("Test periodic output")
             hice += hourIncr;
             cice += hourIncr;
             hsnow += hourIncr;
-            ModelState state;
 
-            ido.outputState(meta);
-            meta.incrementTime(Duration(3600.));
+            ido.outputState(meta, timeStep);
+            meta.incrementTime(timeStep);
         }
     }
 
