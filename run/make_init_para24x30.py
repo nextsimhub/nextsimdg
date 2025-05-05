@@ -9,7 +9,6 @@ if __name__ == "__main__":
     # Grid dimensions. x varies fastest
     nfirst = 24
     nsecond = 30
-    nLayers = 1
     n_dg = 3
     n_dgstress = 3
     n_coords = 2
@@ -33,7 +32,6 @@ if __name__ == "__main__":
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
 
-    nLay = datagrp.createDimension("zdim", nLayers)
     yDim = datagrp.createDimension("ydim", nfirst)
     xDim = datagrp.createDimension("xdim", nsecond)
     yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
@@ -44,7 +42,6 @@ if __name__ == "__main__":
     field_dims = ("ydim", "xdim")
     dg_dims = ("ydim", "xdim", "dg_comp")
     coord_dims = ("yvertex", "xvertex", "ncoords")
-    zfield_dims = ("zdim", "ydim", "xdim")
 
     # Array coordinates
     space = 25000.0  # 25 km in metres
@@ -109,10 +106,10 @@ if __name__ == "__main__":
     sst[:, :] = mu * sss[:, :]
 
     # Ice temperature
-    tice = datagrp.createVariable("tice", "f8", zfield_dims)
+    tice = datagrp.createVariable("tsurf", "f8", field_dims)
     ice_melt = mu * 5  # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
-    tice[0, :, :] = ice_melt
+    tice[:, :] = ice_melt
 
     # Ice starts at rest
     u = datagrp.createVariable("u", "f8", dg_dims)

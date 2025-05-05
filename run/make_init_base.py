@@ -21,7 +21,7 @@ class initMaker:
         (e.g. when the program ends or at the end of a loop).
     """
 
-    def __init__(self, fname, nFirst, nSecond, nLayers, res, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
+    def __init__(self, fname, nFirst, nSecond, res, isWinston=False, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
         """
         Initialise all internal variables, except __nfirst, __nsecond, __nLayers,
         and __res to zero. All arrays are set to the right size as well.
@@ -29,7 +29,6 @@ class initMaker:
         :param fname: Name of the file to write the output into
         :param nFirst: Number of rows (first dimension)
         :param nSecond: Number of columns (seond dimension)
-        :param nLayers: Number of thermodynamics layers (third dimension)
         :param res: Model resolution [m]
         """
 
@@ -39,7 +38,6 @@ class initMaker:
         # Set the array dimensions and resolution
         self.__nFirst = nFirst
         self.__nSecond = nSecond
-        self.__nLayers = nLayers
         self.__res = res
 
         # Set all arrays to the correct size
@@ -53,7 +51,10 @@ class initMaker:
         self.azimuth = np.zeros((self.__nFirst, self.__nSecond))
         self.sss = np.zeros((self.__nFirst, self.__nSecond))
         self.sst = np.zeros((self.__nFirst, self.__nSecond))
-        self.tice = np.zeros((self.__nLayers, self.__nFirst, self.__nSecond))
+        self.tsurf = np.zeros((self.__nFirst, self.__nSecond))
+        if isWinton:
+            self.tintr = np.zeros((self.__nFirst, self.__nSecond))
+            self.tbott = np.zeros((self.__nFirst, self.__nSecond))
 
         # Set basic coordinate sizes
         self.__nCg = nCg
@@ -77,7 +78,7 @@ class initMaker:
                       ["hice", (self.hice==0).all(), self.hice.shape==(self.__nFirst,self.__nSecond)],
                       ["hsnow", (self.hsnow==0).all(), self.hsnow.shape==(self.__nFirst,self.__nSecond)],
                       ["damage", (self.damage==0).all(), self.damage.shape==(self.__nFirst,self.__nSecond)],
-                      ["tice", (self.tice==0).all(), self.tice.shape==(self.__nLayers,self.__nFirst,self.__nSecond)],
+                      ["tsurf", (self.tsurf==0).all(), self.tsurf.shape==(self.__nFirst,self.__nSecond)],
                       ["uice", (self.uice==0).all(), self.uice.shape==(self.__nFirst,self.__nSecond)],
                       ["vice", (self.vice==0).all(), self.vice.shape==(self.__nFirst,self.__nSecond)],
                       ["sss", (self.sss==0).all(), self.sss.shape==(self.__nFirst,self.__nSecond)],
@@ -114,7 +115,6 @@ class initMaker:
         metagrp.createGroup("configuration")  # But add nothing to it
         datagrp = root.createGroup("data")
 
-        datagrp.createDimension("zdim", self.__nLayers)
         datagrp.createDimension("ydim", self.__nFirst)
         datagrp.createDimension("xdim", self.__nSecond)
         datagrp.createDimension("yvertex", self.__nFirst + 1)
@@ -177,8 +177,15 @@ class initMaker:
         damage[:, :] = self.damage
 
         # Set ice temperatures
-        tice = datagrp.createVariable("tice", "f8", ("zdim", "ydim", "xdim"))
-        tice[:, :, :] = self.tice
+        tsurf = datagrp.createVariable("tsurf", "f8", ("ydim", "xdim"))
+        tsurf[:, :] = self.tice
+        if hasattr(self, "tintr"):
+            tintr = datagrp.createVariable("tinterior", "f8", ("ydim", "xdim"))
+            tintr[:, :] = self.tintr
+        if hasattr(self, "tbott"):
+            tbott = datagrp.createVariable("tbottom", "f8", ("ydim", "xdim"))
+            tbott[:, :] = self.tintr
+
 
         # Set ice velocity
         u = datagrp.createVariable("u", "f8", field_dims)
