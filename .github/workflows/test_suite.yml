@@ -32,7 +32,10 @@ jobs:
 
   test-ubuntu-serial:
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 10
+
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
 
@@ -49,7 +52,7 @@ jobs:
     - name: installs for python tests
       run: |
         apt -y update
-        apt install -y python3.12-venv
+        apt install -y python3-venv
         python3 -m venv ~/nextsim
         . $HOME/nextsim/bin/activate
         pip install numpy
@@ -81,7 +84,10 @@ jobs:
 
   test-ubuntu-mpi:
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 10
+
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
 
@@ -118,6 +124,8 @@ jobs:
   test-mac-serial:
 
     runs-on: macos-latest
+
+    timeout-minutes: 10
 
     steps:
     - uses: actions/checkout@v2

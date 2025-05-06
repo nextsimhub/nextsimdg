@@ -7,7 +7,7 @@ on:
       - .github/workflows/docker.yml
       - Dockerfiles/Dockerfile.devenv
       - Dockerfiles/install-xios.sh
-      - Dockerfiles/spack_devenv.yaml
+      - Dockerfiles/spack.yaml
 
   # Build the Docker container at 00:00 on the first day of every 3 months
   schedule:
@@ -17,6 +17,9 @@ jobs:
   docker:
     name: Build Docker container
     runs-on: ubuntu-latest
+
+    timeout-minutes: 120
+
     permissions:
       contents: read
       packages: write
