@@ -21,7 +21,7 @@ class initMaker:
         (e.g. when the program ends or at the end of a loop).
     """
 
-    def __init__(self, fname, nFirst, nSecond, res, isWinston=False, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
+    def __init__(self, fname, nFirst, nSecond, res, isWinton=False, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
         """
         Initialise all internal variables, except __nfirst, __nsecond, __nLayers,
         and __res to zero. All arrays are set to the right size as well.
@@ -178,7 +178,7 @@ class initMaker:
 
         # Set ice temperatures
         tsurf = datagrp.createVariable("tsurf", "f8", ("ydim", "xdim"))
-        tsurf[:, :] = self.tice
+        tsurf[:, :] = self.tsurf
         if hasattr(self, "tintr"):
             tintr = datagrp.createVariable("tinterior", "f8", ("ydim", "xdim"))
             tintr[:, :] = self.tintr

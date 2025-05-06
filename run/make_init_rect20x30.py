@@ -12,7 +12,6 @@ root = netCDF4.Dataset(f"init_rect{nx}x{ny}.nc", "w", format="NETCDF4")
 metagrp = root.createGroup("structure")
 metagrp.type = "simple_rectangular"
 
-
 datagrp = root.createGroup("data")
 
 xDim = datagrp.createDimension("xdim", nx)
@@ -99,7 +98,7 @@ hice[:,:] = hice[:,:] * mask[:,:] + antimask * mdi
 hice.missing_value = mdi
 hsnow[:,:] = hsnow[:,:] * mask[:,:] + antimask * mdi
 hsnow.missing_value = mdi
-tice[0,:,:] = tice[0,:,:] * mask[:,:] + antimask * mdi
-tice.missing_value = mdi
+tsurf[:,:] = tsurf[:,:] * mask[:,:] + antimask * mdi
+tsurf.missing_value = mdi
 
 root.close()
