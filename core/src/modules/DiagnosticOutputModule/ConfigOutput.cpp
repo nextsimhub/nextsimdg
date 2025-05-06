@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.cpp
  *
- * @date 05 May 2025
+ * @date 06 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -189,7 +189,7 @@ void ConfigOutput::outputState(const ModelMetadata& meta, const Duration& step)
                     /* Averaging the DG components doesn't make sense, so we only take the mean
                      * component. This does require an extra copy, though. The DG components are not
                      * masked ether, so we apply the mask to the copy. */
-                    ModelArray data;
+                    ModelArray data(entry.second->getType());
                     data.setData(entry.second->component(0));
                     if (resetState)
                         state.data[key] = mask(data) * averagingFactor;
@@ -209,8 +209,9 @@ void ConfigOutput::outputState(const ModelMetadata& meta, const Duration& step)
                     /* Averaging the DG components doesn't make sense, so we only take the mean
                      * component. This does require an extra copy, though. The DG components are not
                      * masked ether, so we apply the mask to the copy. */
-                    ModelArray data;
-                    data.setData(storeData.at(externalNames.at(fieldExtName))->component(0));
+                    const std::string& key = externalNames.at(fieldExtName);
+                    ModelArray data(storeData.at(key)->getType());
+                    data.setData(storeData.at(key)->component(0));
                     if (resetState)
                         state.data[fieldExtName] = mask(data) * averagingFactor;
                     else
