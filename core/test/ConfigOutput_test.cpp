@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 05 May 2025
+ * @date 06 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -177,7 +177,7 @@ TEST_CASE("Test periodic output")
     REQUIRE(timeDim.getSize() == hr_day);
 
     std::multimap<std::string, netCDF::NcVar> vars(dataGroup.getVars());
-    REQUIRE(vars.size() == fields.size() + 1); // +1 for the time variable
+    REQUIRE(vars.size() == fields.size() + 1 + 4); // +1 for the time variable + 4 for the coords
     for (auto field : fields) {
         REQUIRE(vars.count(field) == 1);
     }

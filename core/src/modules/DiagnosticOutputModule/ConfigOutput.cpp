@@ -232,6 +232,7 @@ void ConfigOutput::outputState(const ModelMetadata& meta, const Duration& step)
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
+        meta.affixCoordinates(state);
         StructureFactory::fileFromState(state, meta, currentFileName, false);
         lastOutput = meta.time();
         resetState = true;
