@@ -119,6 +119,8 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dataGroup.getVar(ciceName).getVar(start, size, &state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
+    state.data[tsurfName] = ModelArray::HField();
+    dataGroup.getVar(tsurfName).getVar(start, size, &state.data[tsurfName][0]);
     // coordinates on the H grid
     if (dataGroup.getVars().count(xName) > 0) {
         state.data[xName] = ModelArray::HField();
@@ -131,13 +133,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
         state.data[latitudeName] = ModelArray::HField();
         dataGroup.getVar(latitudeName).getVar(start, size, &state.data[latitudeName][0]);
     }
-
-    // Z direction is outside MPI ifdef as the domain is never decomposed in this direction
-
-    // Since the ZFierld might not have the same dimensions as the tice field
-    // in the file, a little more work is required.
-    state.data[ticeName] = ModelArray::HField();
-    dataGroup.getVar(ticeName).getVar(start, size, &state.data[ticeName][0]);
 
     ncFile.close();
     return state;

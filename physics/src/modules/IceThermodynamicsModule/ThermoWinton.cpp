@@ -124,15 +124,21 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
         if (!setBottom) {
             const ArraySlicer::Slice bottomSlice {{{ }, { }, {-1}}};
             tBottom = ticeIn[bottomSlice];
+            setBottom = true;
         }
     }
-    // The Winton scheme requires three temperature levels in the ice
-//    if (tice0.size() != nLevels * hice.size()) {
-//        double actualLevels = static_cast<double>(tice0.size()) / hice.size();
-//        throw std::length_error(std::string("The inferred number of ice temperature levels is ")
-//            + std::to_string(actualLevels) + " when the Winton ice thermodynamics scheme expects "
-//            + std::to_string(nLevels));
-//    }
+    /*
+     * Final fallback. If tinterior and tbottom and not available, and the temperatures are not
+     * provided by tice, then copy the tsurf temperature to the other two temperature fields.
+     */
+    if (!setInterior) {
+        tInternal = tsurf;
+        std::cerr << tInteriorName << " not available, copying from " << tsurfName << std::endl;
+    }
+    if (!setInterior) {
+        tBottom = tsurf;
+        std::cerr << tBottomName << " not available, copying from " << tsurfName << std::endl;
+    }
 }
 
 void ThermoWinton::update(const TimestepTime& tst)
