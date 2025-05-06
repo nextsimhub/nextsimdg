@@ -189,8 +189,13 @@ void ConfigOutput::outputState(const ModelMetadata& meta, const Duration& step)
                     /* Averaging the DG components doesn't make sense, so we only take the mean
                      * component. This does require an extra copy, though. The DG components are not
                      * masked ether, so we apply the mask to the copy. */
-                    ModelArray data(entry.second->getType());
-                    data.setData(entry.second->component(0));
+                    ModelArray data {};
+                    if (entry.second->getType() == ModelArray::Type::DG) {
+                        data = ModelArray(ModelArray::Type::H);
+                        data.setData(entry.second->component(0));
+                    } else {
+                        data = *entry.second;
+                    }
                     if (resetState)
                         state.data[key] = mask(data) * averagingFactor;
                     else
@@ -210,8 +215,13 @@ void ConfigOutput::outputState(const ModelMetadata& meta, const Duration& step)
                      * component. This does require an extra copy, though. The DG components are not
                      * masked ether, so we apply the mask to the copy. */
                     const std::string& key = externalNames.at(fieldExtName);
-                    ModelArray data(storeData.at(key)->getType());
-                    data.setData(storeData.at(key)->component(0));
+                    ModelArray data {};
+                    if (storeData.at(key)->getType() == ModelArray::Type::DG) {
+                        data = ModelArray(ModelArray::Type::H);
+                        data.setData(storeData.at(key)->component(0));
+                    } else {
+                        data = *storeData.at(key);
+                    }
                     if (resetState)
                         state.data[fieldExtName] = mask(data) * averagingFactor;
                     else
