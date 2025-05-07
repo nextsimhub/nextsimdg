@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date 14 Mar 2025
+ * @date 07 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -84,7 +84,7 @@ public:
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
             const LocalEdgeVector<nGauss2D> Pmax
-                = params.P0 * hGauss.array().pow(params.expPMax) * expC.array();
+                = params.P0 * hGauss.array().pow(params.expPMax + 1) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
