@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.hpp
  *
- * @date 14 Mar 2025
+ * @date 08 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -43,6 +43,7 @@ public:
         NMAX_KEY,
         CLAB_KEY,
         SCALEC_KEY,
+        REFSCALEC_KEY,
         NSTEPS_KEY,
         RHOI_KEY,
         RHOA_KEY,

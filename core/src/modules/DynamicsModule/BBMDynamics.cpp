@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date 14 Mar 2025
+ * @date 08 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -31,6 +31,7 @@ static const std::map<int, std::string> keyMap = {
     { BBMDynamics::NMAX_KEY, prefix + ".namx" },
     { BBMDynamics::CLAB_KEY, prefix + ".cohesion" },
     { BBMDynamics::SCALEC_KEY, prefix + ".scale_cohesion" },
+    { BBMDynamics::REFSCALEC_KEY, prefix + ".reference_scale_cohesion" },
     { BBMDynamics::NSTEPS_KEY, prefix + ".nsteps" },
     { BBMDynamics::RHOI_KEY, prefix + ".rho_ice" },
     { BBMDynamics::RHOA_KEY, prefix + ".rho_atm" },
@@ -54,6 +55,7 @@ void BBMDynamics::configure()
     params.comprCap = getConfiguration(keyMap.at(NMAX_KEY), comprCapDefault);
     params.cohesion = getConfiguration(keyMap.at(CLAB_KEY), cohesionDefault);
     params.scaleCohesion = getConfiguration(keyMap.at(SCALEC_KEY), scaleCohesionDefault);
+    params.referenceScaleC = getConfiguration(keyMap.at(REFSCALEC_KEY), referenceScaleCDefault);
     params.nSteps = getConfiguration(keyMap.at(NSTEPS_KEY), nStepsDefault);
     params.rhoIce = getConfiguration(keyMap.at(RHOI_KEY), rhoIceDefault);
     params.rhoAtm = getConfiguration(keyMap.at(RHOA_KEY), rhoAtmDefault);
@@ -219,6 +221,9 @@ BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
         { keyMap.at(SCALEC_KEY), ConfigType::BOOLEAN, { "true", "false" },
             ConfigurationHelp::toString(scaleCohesionDefault), "",
             "Scale the cohesion as sqrt of the grid size" },
+        { keyMap.at(REFSCALEC_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(referenceScaleCDefault), "m",
+            "The reference scale when scaling the cohesion as sqrt of the grid size" },
         { keyMap.at(NSTEPS_KEY), ConfigType::NUMERIC, { "1", "∞" },
             ConfigurationHelp::toString(nStepsDefault), "[No unit]",
             "The number of sub-cycling steps" },

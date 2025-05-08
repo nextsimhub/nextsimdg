@@ -170,7 +170,8 @@ public:
         cohesion.resize(smesh.nelements);
         for (size_t i = 0; i < smesh.nelements; ++i) {
             //! Eqn. 22
-            const double scaleCoef = params.scaleCohesion ? std::sqrt(0.1 / smesh.h(i)) : 1.;
+            const double scaleCoef
+                = params.scaleCohesion ? std::sqrt(params.referenceScaleC / smesh.h(i)) : 1.;
             cohesion[i] = params.cohesion * scaleCoef;
         }
     }

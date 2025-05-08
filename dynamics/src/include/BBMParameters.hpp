@@ -1,6 +1,7 @@
 /*!
  * @file BBMParameters.hpp
- * @date 28 Apr 2025
+ *
+ * @date 08 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -25,6 +26,7 @@ static double comprCapDefault = 1e4; //! \param comprCap (double) Maximum compre
 static double cohesionDefault
     = 2e6; //! \param C_lab (double) Cohesion (at the lab scale if scaling is turned on) [Pa]
 static bool scaleCohesionDefault = true; //! Scale the cohesion as sqrt of the grid size
+static double referenceScaleCDefault = 0.1; //! \param Reference scale for cohesion
 // static const int nStepsDefault = 120; //!< Number of sub-steps
 
 class BBMParameters : public DynamicsParameters {
@@ -43,6 +45,7 @@ public:
     double comprCap = comprCapDefault;
     double cohesion = cohesionDefault;
     bool scaleCohesion = scaleCohesionDefault;
+    double referenceScaleC = referenceScaleCDefault;
 
     double c0 = 10e3; //! \param
 };
