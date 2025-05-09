@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 06 May 2025
+ * @date 09 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -40,16 +40,15 @@ const std::string partition_filename = test_files_dir + "/partition_metadata_2.n
 
 namespace Nextsim {
 
-TEST_SUITE_BEGIN("ConfigOutput");
-#ifdef USE_MPI
-MPI_TEST_CASE("Test periodic output", 2)
-#else
-TEST_CASE("Test periodic output")
-#endif
+const size_t nx = 2;
+const size_t ny = 5;
+const size_t nz = 3;
+const std::string pfx = "diag01";
+const std::string sfx = ".nc";
+const size_t hr_day = 24;
+
+std::vector<std::string> writeTestFiles(const bool snapshots)
 {
-    size_t nx = 2;
-    size_t ny = 5;
-    size_t nz = 3;
     NZLevels::set(nz);
 
 #ifdef USE_MPI
@@ -70,11 +69,13 @@ TEST_CASE("Test periodic output")
     Module::Module<IDiagnosticOutput>::setImplementation("Nextsim::ConfigOutput");
     std::stringstream config;
     config << "[ConfigOutput]" << std::endl;
-    config << "period = 3600" << std::endl; // Output every hour
+    config << "period = P0-0T03:00:00" << std::endl; // Output every three hours
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
     config << "field_names = " << hiceName << "," << ciceName << "," << ticeName << std::endl;
     config << "filename = diag%m%d.nc" << std::endl;
     config << "file_period = 86400" << std::endl; // Files every day
+    if (snapshots)
+        config << "snapshots = true" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -125,9 +126,6 @@ TEST_CASE("Test periodic output")
         }
     }
     std::vector<std::string> diagFiles;
-    const std::string pfx = "diag01";
-    const std::string sfx = ".nc";
-    const size_t hr_day = 24;
     const Duration timeStep = Duration(3600.);
     for (size_t day = 1; day <= 20; ++day) {
         if (day > 10) {
@@ -154,6 +152,36 @@ TEST_CASE("Test periodic output")
         FileCallbackCloser::close(file);
     }
 
+    return diagFiles;
+}
+
+std::vector<double> getVar(
+    const int day, const std::vector<std::string>& diagFiles, const std::string& varName)
+{
+    const std::string specFile = diagFiles[day - 1 - 10]; // We only write files after day 10
+
+    // Read the netCDF file directly
+    netCDF::NcFile ncFile(specFile, netCDF::NcFile::read);
+    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
+    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
+
+    const netCDF::NcVar& var = dataGroup.getVar(varName);
+    std::vector<double> data(nx * ny * nz);
+    var.getVar(&data[0]);
+
+    return data;
+}
+
+TEST_SUITE_BEGIN("ConfigOutput");
+
+#ifdef USE_MPI
+MPI_TEST_CASE("Test periodic output", 2)
+#else
+TEST_CASE("Test periodic output")
+#endif
+{
+    std::vector<std::string> diagFiles = writeTestFiles(false);
+
     // Now test that there are 10 files, correctly named, and check that one of
     // them (diag0116.nc) contains what it should.
     for (const std::string& file : diagFiles) {
@@ -174,10 +202,10 @@ TEST_CASE("Test periodic output")
     netCDF::NcDim timeDim = dataGroup.getDim(timeName);
     // Read the time variable
     netCDF::NcVar timeVar = dataGroup.getVar(timeName);
-    REQUIRE(timeDim.getSize() == hr_day);
+    REQUIRE(timeDim.getSize() == hr_day / 3);
 
     std::multimap<std::string, netCDF::NcVar> vars(dataGroup.getVars());
-    REQUIRE(vars.size() == fields.size() + 1 + 4); // +1 for the time variable + 4 for the coords
+    REQUIRE(vars.size() == fields.size() + 1 + 2); // +1 for the time variable + 2 for the coords
     for (auto field : fields) {
         REQUIRE(vars.count(field) == 1);
     }
@@ -185,9 +213,61 @@ TEST_CASE("Test periodic output")
     REQUIRE(vars.count("hsnow") == 0);
 
     ncFile.close();
+}
+
+#ifdef USE_MPI
+MPI_TEST_CASE("Test snapshot output", 2)
+#else
+TEST_CASE("Test snapshot output")
+#endif
+{
+    std::vector<std::string> diagFiles = writeTestFiles(true);
+
+    const int day = 14;
+
+    std::vector<double> conc = getVar(day, diagFiles, "cice");
+
+    const int i = 4;
+    const int j = 1;
+    const int startX = 0;
+    // 100 per day, 1 per hour, 0.1 per variable, 0.01 per grid point
+    REQUIRE(conc[j + i]
+        == doctest::Approx((100 + 24) * day + 101 + 0.1 + 0.01 * (j * nx + (i + startX))));
 
     // Clean the testing files
-    for (auto fileName : diagFiles) {
+    for (const auto& fileName : diagFiles) {
+        std::filesystem::remove(fileName);
+    }
+}
+
+#ifdef USE_MPI
+MPI_TEST_CASE("Test averaged output", 2)
+#else
+TEST_CASE("Test averaged output")
+#endif
+{
+    std::vector<std::string> diagFiles = writeTestFiles(false);
+
+    const int day = 14;
+
+    std::vector<double> conc = getVar(day, diagFiles, "cice");
+
+    const int i = 4;
+    const int j = 1;
+    const int startX = 0;
+    // 100 per day, 1 per hour, 0.1 per variable, 0.01 per grid point
+    // First value in the average is three hours before the output and one day increment after
+    // double expectedValue = (100 + 24) * day - 1 + 0.1 + 0.01 * (j * nx + (i + startX));
+    // expectedValue *= 3; // Three outputs
+    // expectedValue += 3 + 100; // Three hour-increments and one day-increment
+    double expectedValue = (100 + 24) * day - 1 + 0.1 + 0.01 * (j * nx + (i + startX));
+    expectedValue += (100 + 24) * day + 0.1 + 0.01 * (j * nx + (i + startX));
+    expectedValue += (100 + 24) * day + 101 + 0.1 + 0.01 * (j * nx + (i + startX));
+    expectedValue /= 3; // Average over three outputs
+    REQUIRE(conc[j + i] == doctest::Approx(expectedValue));
+
+    // Clean the testing files
+    for (const auto& fileName : diagFiles) {
         std::filesystem::remove(fileName);
     }
 }
