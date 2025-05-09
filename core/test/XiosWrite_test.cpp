@@ -1,7 +1,8 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    06 May 2025
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    09 May 2025
  * @brief   Tests for XIOS write functionality
  * @details
  * This test is designed to test the file writing functionality of the C++
