@@ -261,7 +261,7 @@ TEST_CASE("Test averaged output")
     // 100 per day, 1 per hour, 0.1 per variable, 0.01 per grid point
     // First value in the average is three hours before the output and one day increment after
     const double coordComponent = 0.1 + 0.01 * (j * nx + (i + startX));
-    double expectedValue = (100 + 24) * (day - 2) + 123 + 0.1 + coordComponent;
+    double expectedValue = (100 + 24) * (day - 2) + 123 + coordComponent;
     expectedValue += (100 + 24) * (day - 1) + coordComponent;
     expectedValue += (100 + 24) * (day - 1) + 101 + coordComponent;
     expectedValue /= 3; // Average over three outputs
