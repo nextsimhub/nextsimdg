@@ -78,6 +78,9 @@ std::vector<std::string> writeTestFiles(const bool snapshots)
         config << "snapshots = true" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    /* We need to clear() the Configurator cache here, because this is called multiple times within
+     * a test */
+    Configurator::clear();
     Configurator::addStream(std::move(pcstream));
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
