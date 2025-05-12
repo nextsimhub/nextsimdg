@@ -231,7 +231,7 @@ TEST_CASE("Test periodic output")
     REQUIRE(timeDim.getSize() == hr_day / 3);
 
     std::multimap<std::string, netCDF::NcVar> vars(dataGroup.getVars());
-    REQUIRE(vars.size() == fields.size() + 1 + 2); // +1 for the time variable + 2 for the coords
+    REQUIRE(vars.size() == fields.size() + 1 + 4); // +1 for the time variable + 2 for the coords
     for (auto field : fields) {
         REQUIRE(vars.count(field) == 1);
     }
