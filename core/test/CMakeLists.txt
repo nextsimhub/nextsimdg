@@ -19,59 +19,13 @@ include_directories(${COMMON_INCLUDE_DIRS})
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 if(ENABLE_MPI)
-    # Generate partition files needed for MPI test from respective cdl files
-    add_custom_command(
-        OUTPUT partition_metadata_3.nc
-        COMMAND
-            ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
-    )
-    add_custom_command(
-        OUTPUT partition_metadata_2.nc
-        COMMAND
-            ncgen -b -o partition_metadata_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
-    )
-    add_custom_target(
-        generate_partition_files
-        ALL
-        DEPENDS partition_metadata_3.nc partition_metadata_2.nc
-    )
-
-    add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testRectGrid_MPI3
-        PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    )
-    target_include_directories(
-        testRectGrid_MPI3
-        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-    )
-    target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
-
-    add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testParaGrid_MPI2
-        PRIVATE
-            USE_MPI
-            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-    )
-    target_include_directories(
-        testParaGrid_MPI2
-        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-    )
-    target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
-
-    add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
-    target_compile_definitions(
-        testConfigOutput_MPI2
-        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-    )
-    target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
-    target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
-
     if(ENABLE_XIOS)
+        set(XIOS_INCLUDE_LIST
+            "${xios_INCLUDES}"
+            "${xios_EXTERNS}/blitz/"
+            "${xios_EXTERNS}/rapidxml/include"
+        )
+        set(MODEL_INCLUDE_DIR "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}")
         file(
             CREATE_LINK
                 "${CMAKE_SOURCE_DIR}/core/test/iodef.xml"
@@ -84,11 +38,6 @@ if(ENABLE_MPI)
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
-        set(XIOS_INCLUDE_LIST
-            "${xios_INCLUDES}"
-            "${xios_EXTERNS}/blitz/"
-            "${xios_EXTERNS}/rapidxml/include"
-        )
 
         add_executable(testXiosCalendar_MPI2 "XiosCalendar_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosCalendar_MPI2 PRIVATE USE_XIOS)
@@ -138,14 +87,74 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosReadWrite_MPI2 "XiosReadWrite_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosReadWrite_MPI2 PRIVATE USE_XIOS)
+        add_executable(testXiosRead_MPI2 "XiosRead_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosRead_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
-            testXiosReadWrite_MPI2
+            testXiosRead_MPI2
             PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
         )
-        target_link_libraries(testXiosReadWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS)
+        target_include_directories(
+            testXiosWrite_MPI2
+            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
+    else()
+        add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testRectGrid_MPI3
+            PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(
+            testRectGrid_MPI3
+            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testConfigOutput_MPI2
+            PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
+        target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
     endif()
+
+    # Generate partition files needed for MPI test from respective cdl files
+    add_custom_command(
+        OUTPUT partition_metadata_3.nc
+        COMMAND
+            ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
+    )
+    add_custom_command(
+        OUTPUT partition_metadata_2.nc
+        COMMAND
+            ncgen -b -o partition_metadata_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
+    )
+    add_custom_target(
+        generate_partition_files
+        ALL
+        DEPENDS partition_metadata_3.nc partition_metadata_2.nc
+    )
+
+    add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
+    target_compile_definitions(
+        testParaGrid_MPI2
+        PRIVATE
+            USE_MPI
+            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+    )
+    target_include_directories(
+        testParaGrid_MPI2
+        PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+    )
+    target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 else()
     add_executable(testRectGrid "RectGrid_test.cpp")
     target_compile_definitions(testRectGrid PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")

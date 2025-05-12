@@ -69,7 +69,12 @@ cat <<EOF >arch/arch-GCC_LINUX.fcm
 %MAKE           gmake
 EOF
 
-./make_xios --arch GCC_LINUX --job 8 --full --debug
+# Hack to remove a line that stops calendar attributes being accessed after the
+# context definition has been closed.
+# This should be fixed when we update to XIOS3 (see #761).
+sed -i "s/if (hasClient) CleanTree/\/\/if (hasClient) CleanTree/" src/node/context.cpp
+
+./make_xios --arch GCC_LINUX --job 8 --debug
 rm -r /xios/obj /xios/bin/generic_testcase.exe /xios/src /xios/tools \
   /xios/inputs /xios/doc /xios/arch /xios/xios_test_suite /xios/flags \
   /xios/generic_testcase /xios/ppsrc /xios/done

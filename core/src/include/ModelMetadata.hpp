@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date Jun 29, 2022
+ * @date 02 Jan 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -12,7 +12,6 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
-
 #include <string>
 
 #ifdef USE_MPI
@@ -47,13 +46,13 @@ public:
      *
      * @param time TimePoint instance encoding the current time.
      */
-    inline void setTime(const TimePoint& time) { m_time = time; }
+    void setTime(const TimePoint& time);
     /*!
      * @brief Increments the model time metadata value.
      *
      * @param step Duration of the time increment to add.
      */
-    inline void incrementTime(const Duration& step) { m_time += step; }
+    void incrementTime(const Duration& step);
     //! Returns the current model time.
     inline const TimePoint& time() const { return m_time; }
 

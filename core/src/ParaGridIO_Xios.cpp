@@ -1,8 +1,9 @@
 /*!
- * @file ParaGridIO.cpp
+ * @file ParaGridIO_Xios.cpp
  *
- * @date 09 Dec 2024
+ * @date 29 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/ParaGridIO.hpp"
@@ -10,6 +11,7 @@
 #include "include/CommonRestartMetadata.hpp"
 #include "include/FileCallbackCloser.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
@@ -28,6 +30,7 @@
 
 namespace Nextsim {
 
+// TODO: XIOS implementation
 ParaGridIO::ParaGridIO(ParametricGrid& grid)
     : IParaGridIO(grid)
     , openFilesAndIndices(getOpenFilesAndIndices())
@@ -67,11 +70,14 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
           // clang-format on
       })
 {
+    Logged::warning("XIOS integration has not yet been completed");
     static bool doneOnce = doOnce();
 }
 
 bool ParaGridIO::doOnce()
 {
+    // TODO: Setup XIOS in this method
+
     // Register the finalization function here
     Finalizer::registerUnique(closeAllFiles);
     // Since it should only ever run once, do further one-off initialization: allow distant
@@ -89,6 +95,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 #endif
 {
+    // TODO: XIOS implementation
     ModelState state;
 
     try {
@@ -210,6 +217,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
+    // TODO: XIOS implementation
+
     ModelState state;
 
     try {
@@ -247,12 +256,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
             extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
         }
 
-        auto availableForcings = dataGroup.getVars();
         for (const std::string& varName : forcings) {
-            // Don't try to read non-existent data
-            if (!availableForcings.count(varName)) {
-                continue;
-            }
             netCDF::NcVar var = dataGroup.getVar(varName);
             state.data[varName] = ModelArray(ModelArray::Type::H);
             ModelArray& data = state.data.at(varName);
@@ -272,6 +276,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
 {
+    // TODO: XIOS implementation
 
 #ifdef USE_MPI
     netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
@@ -350,6 +355,8 @@ void ParaGridIO::dumpModelState(
 void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
+    // TODO: XIOS implementation
+
     bool isNew = openFilesAndIndices.count(filePath) <= 0;
     size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
     if (isNew) {
@@ -500,6 +507,7 @@ void ParaGridIO::writeDiagnosticTime(
     }
 }
 
+// TODO: This method will likely be dropped in the XIOS implementation
 void ParaGridIO::close(const std::string& filePath)
 {
     if (getOpenFilesAndIndices().count(filePath) > 0) {
@@ -508,6 +516,7 @@ void ParaGridIO::close(const std::string& filePath)
     }
 }
 
+// TODO: This method will likely be dropped in the XIOS implementation
 void ParaGridIO::closeAllFiles()
 {
     std::cout << "ParaGridIO::closeAllFiles: closing " << getOpenFilesAndIndices().size()

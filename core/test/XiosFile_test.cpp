@@ -1,7 +1,7 @@
 /*!
  * @file    XiosFile_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    03 Dec 2024
+ * @date    06 May 2025
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -12,6 +12,8 @@
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
+#include "include/Configurator.hpp"
+#include "include/Finalizer.hpp"
 #include "include/Xios.hpp"
 
 using namespace doctest;
@@ -29,98 +31,115 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosFile", 2)
 {
+    // Enable XIOS in the 'config' and provide parameters to configure it
     enableXios();
+    std::stringstream config;
+    config << "[model]" << std::endl;
+    config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "time_step = P0-0T01:30:00" << std::endl;
+    config << "[XiosOutput]" << std::endl;
+    config << "period = P0-0T03:00:00" << std::endl;
+    config << "filename = xios_test_output" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
 
-    // Initialize an Xios instance called xios_handler
-    Xios xios_handler("P0-0T01:30:00");
-    REQUIRE(xios_handler.isInitialized());
-    const size_t size = xios_handler.getClientMPISize();
+    // Get the Xios singleton instance and check it's initialized
+    Xios& xiosHandler = Xios::getInstance("P0-0T01:30:00");
+    REQUIRE(xiosHandler.isInitialized());
+    const size_t size = xiosHandler.getClientMPISize();
     REQUIRE(size == 2);
-    const size_t rank = xios_handler.getClientMPIRank();
+    const size_t rank = xiosHandler.getClientMPIRank();
 
     // Create a simple axis with two points
-    xios_handler.createAxis("axis_A");
-    xios_handler.setAxisValues("axis_A", { 0.0, 1.0 });
+    xiosHandler.createAxis("axis_A");
+    xiosHandler.setAxisValues("axis_A", { 0.0, 1.0 });
 
     // Create a 1D grid comprised of the single axis
-    xios_handler.createGrid("grid_1D");
-    xios_handler.gridAddAxis("grid_1D", "axis_A");
+    xiosHandler.createGrid("grid_1D");
+    xiosHandler.gridAddAxis("grid_1D", "axis_A");
 
     // Create a field on the 1D grid
-    xios_handler.createField("field_A");
-    xios_handler.setFieldOperation("field_A", "instant");
-    xios_handler.setFieldGridRef("field_A", "grid_1D");
+    xiosHandler.createField("field_A");
+    xiosHandler.setFieldOperation("field_A", "instant");
+    xiosHandler.setFieldGridRef("field_A", "grid_1D");
+    xiosHandler.setFieldReadAccess("field_A", false);
 
     // --- Tests for file API
     const std::string fileId = "output";
-    REQUIRE_THROWS_WITH(xios_handler.getFileName(fileId), "Xios: Undefined file 'output'");
-    xios_handler.createFile(fileId);
-    REQUIRE_THROWS_WITH(xios_handler.createFile(fileId), "Xios: File 'output' already exists");
+    REQUIRE_THROWS_WITH(xiosHandler.getFileName(fileId), "Xios: Undefined file 'output'");
+    xiosHandler.createFile(fileId);
+    REQUIRE_THROWS_WITH(xiosHandler.createFile(fileId), "Xios: File 'output' already exists");
     // File name
-    REQUIRE_THROWS_WITH(xios_handler.getFileName(fileId), "Xios: Undefined name for file 'output'");
+    // NOTE: This is read from the XiosOutput.period entry in xios_tests.cfg when a field is added
+    // to be written (i.e., readAccess=false)
+    REQUIRE_THROWS_WITH(xiosHandler.getFileName(fileId), "Xios: Undefined name for file 'output'");
+    {
+        // Add field
+        xiosHandler.fileAddField(fileId, "field_A");
+        std::vector<std::string> fieldIds = xiosHandler.fileGetFieldIds(fileId);
+        REQUIRE(fieldIds.size() == 1);
+        REQUIRE(fieldIds[0] == "field_A");
+    }
+    REQUIRE(xiosHandler.getFileName(fileId) == "xios_test_output");
     const std::string fileName = "diagnostic";
-    xios_handler.setFileName(fileId, fileName);
-    REQUIRE(xios_handler.getFileName(fileId) == fileName);
+    xiosHandler.setFileName(fileId, fileName);
+    REQUIRE(xiosHandler.getFileName(fileId) == fileName);
     // File type
-    REQUIRE_THROWS_WITH(xios_handler.getFileType(fileId), "Xios: Undefined type for file 'output'");
+    REQUIRE_THROWS_WITH(xiosHandler.getFileType(fileId), "Xios: Undefined type for file 'output'");
     const std::string fileType = "one_file";
-    xios_handler.setFileType(fileId, fileType);
-    REQUIRE(xios_handler.getFileType(fileId) == fileType);
+    xiosHandler.setFileType(fileId, fileType);
+    REQUIRE(xiosHandler.getFileType(fileId) == fileType);
     // Output frequency
-    REQUIRE_THROWS_WITH(xios_handler.getFileOutputFreq(fileId),
-        "Xios: Undefined output frequency for file 'output'");
-    Duration timestep = xios_handler.getCalendarTimestep();
-    xios_handler.setFileOutputFreq(fileId, timestep);
-    REQUIRE(xios_handler.getFileOutputFreq(fileId).seconds() == 1.5 * 60 * 60);
+    // NOTE: This is read from the XiosOutput.period entry in xios_tests.cfg upon file creation
+    REQUIRE(xiosHandler.getFileOutputFreq(fileId).seconds() == 3.0 * 60 * 60);
+    Duration timestep = xiosHandler.getCalendarTimestep();
+    xiosHandler.setFileOutputFreq(fileId, timestep);
+    REQUIRE(xiosHandler.getFileOutputFreq(fileId).seconds() == 1.5 * 60 * 60);
     // Split frequency
     REQUIRE_THROWS_WITH(
-        xios_handler.getFileSplitFreq(fileId), "Xios: Undefined split frequency for file 'output'");
-    xios_handler.setFileSplitFreq(fileId, timestep);
-    REQUIRE(xios_handler.getFileSplitFreq(fileId).seconds() == 1.5 * 60 * 60);
+        xiosHandler.getFileSplitFreq(fileId), "Xios: Undefined split frequency for file 'output'");
+    xiosHandler.setFileSplitFreq(fileId, timestep);
+    REQUIRE(xiosHandler.getFileSplitFreq(fileId).seconds() == 1.5 * 60 * 60);
     // File mode
     const std::string mode = "write";
-    xios_handler.setFileMode(fileId, mode);
-    REQUIRE(xios_handler.getFileMode(fileId) == mode);
+    xiosHandler.setFileMode(fileId, mode);
+    REQUIRE(xiosHandler.getFileMode(fileId) == mode);
     // File parallel access mode
     const std::string parAccess = "collective";
-    xios_handler.setFileParAccess(fileId, parAccess);
-    REQUIRE(xios_handler.getFileParAccess(fileId) == parAccess);
-    // Add field
-    xios_handler.fileAddField(fileId, "field_A");
-    std::vector<std::string> fieldIds = xios_handler.fileGetFieldIds(fileId);
-    REQUIRE(fieldIds.size() == 1);
-    REQUIRE(fieldIds[0] == "field_A");
+    xiosHandler.setFileParAccess(fileId, parAccess);
+    REQUIRE(xiosHandler.getFileParAccess(fileId) == parAccess);
 
     // Create a new file for each time unit to check more thoroughly that XIOS interprets output
     // frequency and split frequency correctly.
     // (If we reused the same file then the XIOS interface would raise warnings.)
-    xios_handler.createFile("year");
-    xios_handler.setFileOutputFreq("year", Duration("P1-0T00:00:00"));
-    xios_handler.setFileSplitFreq("year", Duration("P2-0T00:00:00"));
-    REQUIRE(xios_handler.getFileOutputFreq("year").seconds() == 365 * 24 * 60 * 60);
-    REQUIRE(xios_handler.getFileSplitFreq("year").seconds() == 2 * 365 * 24 * 60 * 60);
-    xios_handler.createFile("day");
-    xios_handler.setFileOutputFreq("day", Duration("P0-1T00:00:00"));
-    xios_handler.setFileSplitFreq("day", Duration("P0-2T00:00:00"));
-    REQUIRE(xios_handler.getFileOutputFreq("day").seconds() == 24 * 60 * 60);
-    REQUIRE(xios_handler.getFileSplitFreq("day").seconds() == 2 * 24 * 60 * 60);
-    xios_handler.createFile("hour");
-    xios_handler.setFileOutputFreq("hour", Duration("P0-0T01:00:00"));
-    xios_handler.setFileSplitFreq("hour", Duration("P0-0T02:00:00"));
-    REQUIRE(xios_handler.getFileOutputFreq("hour").seconds() == 60 * 60);
-    REQUIRE(xios_handler.getFileSplitFreq("hour").seconds() == 2 * 60 * 60);
-    xios_handler.createFile("minute");
-    xios_handler.setFileOutputFreq("minute", Duration("P0-0T00:01:00"));
-    xios_handler.setFileSplitFreq("minute", Duration("P0-0T00:02:00"));
-    REQUIRE(xios_handler.getFileOutputFreq("minute").seconds() == 60);
-    REQUIRE(xios_handler.getFileSplitFreq("minute").seconds() == 2 * 60);
-    xios_handler.createFile("second");
-    xios_handler.setFileOutputFreq("second", Duration("P0-0T00:00:01"));
-    xios_handler.setFileSplitFreq("second", Duration("P0-0T00:00:02"));
-    REQUIRE(xios_handler.getFileOutputFreq("second").seconds() == 1);
-    REQUIRE(xios_handler.getFileSplitFreq("second").seconds() == 2);
+    xiosHandler.createFile("year");
+    xiosHandler.setFileOutputFreq("year", Duration("P1-0T00:00:00"));
+    xiosHandler.setFileSplitFreq("year", Duration("P2-0T00:00:00"));
+    REQUIRE(xiosHandler.getFileOutputFreq("year").seconds() == 365 * 24 * 60 * 60);
+    REQUIRE(xiosHandler.getFileSplitFreq("year").seconds() == 2 * 365 * 24 * 60 * 60);
+    xiosHandler.createFile("day");
+    xiosHandler.setFileOutputFreq("day", Duration("P0-1T00:00:00"));
+    xiosHandler.setFileSplitFreq("day", Duration("P0-2T00:00:00"));
+    REQUIRE(xiosHandler.getFileOutputFreq("day").seconds() == 24 * 60 * 60);
+    REQUIRE(xiosHandler.getFileSplitFreq("day").seconds() == 2 * 24 * 60 * 60);
+    xiosHandler.createFile("hour");
+    xiosHandler.setFileOutputFreq("hour", Duration("P0-0T01:00:00"));
+    xiosHandler.setFileSplitFreq("hour", Duration("P0-0T02:00:00"));
+    REQUIRE(xiosHandler.getFileOutputFreq("hour").seconds() == 60 * 60);
+    REQUIRE(xiosHandler.getFileSplitFreq("hour").seconds() == 2 * 60 * 60);
+    xiosHandler.createFile("minute");
+    xiosHandler.setFileOutputFreq("minute", Duration("P0-0T00:01:00"));
+    xiosHandler.setFileSplitFreq("minute", Duration("P0-0T00:02:00"));
+    REQUIRE(xiosHandler.getFileOutputFreq("minute").seconds() == 60);
+    REQUIRE(xiosHandler.getFileSplitFreq("minute").seconds() == 2 * 60);
+    xiosHandler.createFile("second");
+    xiosHandler.setFileOutputFreq("second", Duration("P0-0T00:00:01"));
+    xiosHandler.setFileSplitFreq("second", Duration("P0-0T00:00:02"));
+    REQUIRE(xiosHandler.getFileOutputFreq("second").seconds() == 1);
+    REQUIRE(xiosHandler.getFileSplitFreq("second").seconds() == 2);
 
-    xios_handler.close_context_definition();
-    xios_handler.context_finalize();
+    xiosHandler.close_context_definition();
+    xiosHandler.context_finalize();
+    Finalizer::finalize();
 }
 }

@@ -2,7 +2,7 @@
  * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    04 Dec 2024
+ * @date    06 May 2025
  * @brief   XIOS interface header
  * @details
  *
@@ -30,16 +30,35 @@ namespace Nextsim {
 void enableXios();
 
 class Xios : public Configured<Xios> {
+private:
+    //! Private constructor
+    Xios(const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian");
+
+    //! Performs some one-time initialization for the class. Returns true.
+    static bool doOnce();
+
 public:
-    Xios(const std::string dt = "P0-0T01:00:00", const std::string contextid = "nextSIM-DG",
-        const std::string starttime = "1970-01-01T00:00:00Z",
-        const std::string calendartype = "Gregorian");
     ~Xios();
+
+    //! Prevent copying
+    Xios(const Xios&) = delete;
+
+    /*
+     * Define Xios handler Singleton
+     *
+     * NOTE: The arguments will only be used the first time this is called.
+     */
+    inline static Xios& getInstance(
+        const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian")
+    {
+        static Xios instance = Xios(contextId, calendarType);
+        return instance;
+    };
 
     /* Initialization and finalization */
     void close_context_definition();
     void context_finalize();
-    void finalize();
+    static void finalize();
     bool isInitialized();
 
     /* Configuration */
@@ -55,13 +74,14 @@ public:
     void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
     void setCalendarTimestep(const Duration timestep);
+    void setCalendarStep(const int stepNumber);
+    void incrementCalendar();
     std::string getCalendarType();
     TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
     Duration getCalendarTimestep();
     int getCalendarStep();
     std::string getCurrentDate(const bool isoFormat = true);
-    void updateCalendar(const int stepNumber);
 
     /* Axis */
     void createAxis(const std::string axisId);
@@ -136,6 +156,10 @@ public:
 
     enum {
         ENABLED_KEY,
+        START_TIME_KEY,
+        TIME_STEP_KEY,
+        PERIOD_KEY,
+        OUTPUT_FILENAME_KEY,
     };
 
     /* Length of C-strings passed to XIOS */
@@ -145,8 +169,7 @@ protected:
     bool isConfigured;
 
 private:
-    bool isEnabled;
-
+    inline static bool isEnabled = false;
     std::string clientId;
     std::string calendarType;
     std::string contextId;

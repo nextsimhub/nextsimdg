@@ -2,7 +2,7 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    09 Dec 2024
+ * @date    06 May 2025
  * @brief   XIOS interface implementation
  * @details
  *
@@ -14,16 +14,27 @@
  * To enable XIOS in nextSIM-DG add the following lines to the config file.
  *   [xios]
  *   enable = true
+ *
+ * The start time, timestep, and output period will also be read from the
+ * following config file entries.
+ *   [model]
+ *   start = ...
+ *   time_step = ...
+ *   [XiosOutput]
+ *   period = ...
+ *   filename = ...
  */
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
 
+#include "include/Finalizer.hpp"
 #include "include/Xios.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
+#include <filesystem>
 #include <include/xios_c_interface.hpp>
 #include <iostream>
 #include <mpi.h>
@@ -32,34 +43,37 @@
 
 namespace Nextsim {
 
-static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" } };
+static const std::map<int, std::string> keyMap
+    = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::START_TIME_KEY, "model.start" },
+          { Xios::TIME_STEP_KEY, "model.time_step" }, { Xios::PERIOD_KEY, "XiosOutput.period" },
+          { Xios::OUTPUT_FILENAME_KEY, "XiosOutput.filename" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
 {
-    Configurator::clearStreams();
     std::stringstream config;
     config << "[xios]" << std::endl << "enable = true" << std::endl;
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
 }
 
 /*!
  * Constructor: Configure an XIOS server
  *
- * @param dt Timestep to use for the model
- * @param contextid ID for the XIOS context
- * @param starttime Datetime string for the start of the simulation
  * @param calendartype Type of calendar to use
  */
-Xios::Xios(const std::string dt, const std::string contextid, const std::string starttime,
-    const std::string calendartype)
+Xios::Xios(const std::string contextid, const std::string calendartype)
 {
-    timestep = Duration(dt);
-    startTime = TimePoint(starttime);
     contextId = contextid;
     calendarType = calendartype;
     configure();
+    static bool doneOnce = doOnce();
+}
+
+bool Xios::doOnce()
+{
+    // Register the finalization function here
+    Finalizer::registerUnique(finalize);
+    return true;
 }
 
 //! Destructor
@@ -87,6 +101,7 @@ void Xios::finalize()
     if (isEnabled) {
         cxios_finalize();
     }
+    isEnabled = false;
 }
 
 /*!
@@ -100,6 +115,27 @@ void Xios::configure()
     // Check if XIOS is enabled in the nextSIM-DG configuration
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
+
+    // Extract the start time from the model configuration
+    std::string startTimeStr;
+    istringstream(Configured::getConfiguration(keyMap.at(START_TIME_KEY), std::string()))
+        >> startTimeStr;
+    if (startTimeStr.length() == 0) {
+        Logged::warning("Xios: Setting default start: 1970-01-01T00:00:00Z");
+        startTimeStr = "1970-01-01T00:00:00Z";
+    }
+    startTime = TimePoint(startTimeStr);
+
+    // Extract the timestep from the model configuration
+    std::string timeStepStr;
+    istringstream(Configured::getConfiguration(keyMap.at(TIME_STEP_KEY), std::string()))
+        >> timeStepStr;
+    if (timeStepStr.length() == 0) {
+        Logged::warning("Xios: Setting default time_step: P0-0T01:00:00");
+        timeStepStr = "P0-0T01:00:00";
+    }
+    timestep = Duration(timeStepStr);
+
     if (isEnabled) {
         configureServer();
     }
@@ -128,8 +164,10 @@ void Xios::configureServer()
     cxios_create_calendar(clientCalendar);
     cxios_update_calendar_timestep(clientCalendar);
 
-    // Set default calendar origin and start
+    // Set default calendar origin
     setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
+
+    // Set start time from configuration file
     setCalendarStart(TimePoint(startTime));
 }
 
@@ -272,6 +310,18 @@ void Xios::setCalendarTimestep(const Duration timestep)
 }
 
 /*!
+ * Update XIOS calendar iteration/step number to some value
+ *
+ * @param Step number to update to
+ */
+void Xios::setCalendarStep(const int stepNumber) { cxios_update_calendar(stepNumber); }
+
+/*!
+ * Increment XIOS' calendar iteration/step number by one.
+ */
+void Xios::incrementCalendar() { setCalendarStep(getCalendarStep() + 1); }
+
+/*!
  * Get calendar type
  *
  * @return calendar type
@@ -346,13 +396,6 @@ std::string Xios::getCurrentDate(const bool isoFormat)
     cxios_get_current_date(&xiosDate);
     return convertXiosDatetimeToString(xiosDate, isoFormat);
 }
-
-/*!
- * Update XIOS calendar iteration/step number
- *
- * @param current step number
- */
-void Xios::updateCalendar(const int stepNumber) { cxios_update_calendar(stepNumber); }
 
 /*!
  * Get the axis_definition group
@@ -1353,6 +1396,13 @@ void Xios::createFile(const std::string fileId)
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create file '" + fileId + "'");
     }
+
+    // Set the output period based on the model configuration
+    std::string periodStr;
+    istringstream(Configured::getConfiguration(keyMap.at(PERIOD_KEY), std::string())) >> periodStr;
+    if (periodStr.length() > 0) {
+        setFileOutputFreq(fileId, Duration(periodStr));
+    }
 }
 
 /*!
@@ -1595,6 +1645,16 @@ void Xios::fileAddField(const std::string fileId, const std::string fieldId)
 {
     xios::CField* field = getField(fieldId);
     cxios_xml_tree_add_fieldtofile(getFile(fileId), &field, fieldId.c_str(), fieldId.length());
+
+    // Set the output filename based on the model configuration
+    if (!getFieldReadAccess(fieldId)) {
+        std::string outfileStr;
+        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
+            >> outfileStr;
+        if (outfileStr.length() > 0) {
+            setFileName(fileId, ((std::filesystem::path)outfileStr).replace_extension());
+        }
+    }
 }
 
 /*!

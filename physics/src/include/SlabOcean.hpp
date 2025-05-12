@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 10 Feb 2025
+ * @date 29 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -82,6 +82,10 @@ private:
 
     double relaxationTimeT = defaultRelaxationTime;
     double relaxationTimeS = defaultRelaxationTime;
+
+    double dt;
+
+    void updateElement(size_t i, const TimestepTime& tst);
 };
 
 } /* namespace Nextsim */
