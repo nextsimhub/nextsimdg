@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 09 May 2025
+ * @date 12 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -232,7 +232,7 @@ TEST_CASE("Test snapshot output")
     const int startX = 0;
     // 100 per day, 1 per hour, 0.1 per variable, 0.01 per grid point
     REQUIRE(conc[j + i]
-        == doctest::Approx((100 + 24) * day + 101 + 0.1 + 0.01 * (j * nx + (i + startX))));
+        == doctest::Approx((100 + 24) * (day - 1) + 101 + 0.1 + 0.01 * (j * nx + (i + startX))));
 
     // Clean the testing files
     for (const auto& fileName : diagFiles) {
@@ -257,12 +257,10 @@ TEST_CASE("Test averaged output")
     const int startX = 0;
     // 100 per day, 1 per hour, 0.1 per variable, 0.01 per grid point
     // First value in the average is three hours before the output and one day increment after
-    // double expectedValue = (100 + 24) * day - 1 + 0.1 + 0.01 * (j * nx + (i + startX));
-    // expectedValue *= 3; // Three outputs
-    // expectedValue += 3 + 100; // Three hour-increments and one day-increment
-    double expectedValue = (100 + 24) * day - 1 + 0.1 + 0.01 * (j * nx + (i + startX));
-    expectedValue += (100 + 24) * day + 0.1 + 0.01 * (j * nx + (i + startX));
-    expectedValue += (100 + 24) * day + 101 + 0.1 + 0.01 * (j * nx + (i + startX));
+    const double coordComponent = 0.1 + 0.01 * (j * nx + (i + startX));
+    double expectedValue = (100 + 24) * (day - 2) + 123 + 0.1 + coordComponent;
+    expectedValue += (100 + 24) * (day - 1) + coordComponent;
+    expectedValue += (100 + 24) * (day - 1) + 101 + coordComponent;
     expectedValue /= 3; // Average over three outputs
     REQUIRE(conc[j + i] == doctest::Approx(expectedValue));
 
