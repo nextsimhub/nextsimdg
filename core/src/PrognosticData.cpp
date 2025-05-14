@@ -92,6 +92,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     hiceAdvection = 0;
     ciceAdvection = 0;
     damage = 0;
+    hsnow = 0;
     copyAllComponents(ms.at(hiceName), hiceAdvection);
     copyAllComponents(ms.at(ciceName), ciceAdvection);
     copyAllComponents(ms.at(hsnowName), hsnow);
