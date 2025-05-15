@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.cpp
  *
- * @date 06 May 2025
+ * @date 15 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -101,7 +101,7 @@ void ConfigOutput::configure()
         }
     }
 
-    snapshots = getConfiguration(keyMap.at(SNAPSHOT_KEY), false);
+    snapshots = Configured::getConfiguration(keyMap.at(SNAPSHOT_KEY), false);
 
     std::string outputFields
         = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
