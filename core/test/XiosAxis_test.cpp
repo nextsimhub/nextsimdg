@@ -1,7 +1,8 @@
 /*!
  * @file    XiosAxis_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    29 Apr 2025
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    23 Apr 2025
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -21,19 +22,19 @@ namespace Nextsim {
  * TestXiosAxis
  *
  * This function tests the axis functionality of the C++ interface for XIOS. It
- * needs to be run with 2 ranks i.e.,
+ * needs to be run with 3 ranks i.e.,
  *
- * `mpirun -n 2 ./testXiosAxis_MPI2`
+ * `mpirun -n 3 ./testXiosAxis_MPI3`
  *
  */
-MPI_TEST_CASE("TestXiosAxis", 2)
+MPI_TEST_CASE("TestXiosAxis", 3)
 {
     enableXios();
 
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
+    REQUIRE(xiosHandler.getClientMPISize() == 3);
 
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };

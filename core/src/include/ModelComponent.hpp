@@ -158,37 +158,32 @@ public:
      */
     virtual void setData(const ModelState::DataMap& state) = 0;
     /*!
-     * @brief Returns a ModelState from this component.
+     * @brief Returns all data and configuration from this component.
      *
-     * @details The ModelState is map between field names and ModelArray data
-     * arrays. The intention is to merge together different ModelSatates to
-     * produce a combined state. The returned ModelState will include the
-     * states of any subsidiary components held by the object. This is the
-     * default level of output and should include all and only fields to be
-     * placed in the restart file.
+     * @details The state returned by this function contains all
+     * available data in this component and all components that it calls.
      */
-    virtual ModelState getState() const = 0;
+    virtual ModelState getStateDiagnostic() const { return getStatePrognostic(); }
     /*!
-     * @brief Returns a ModelState from this component at a specified level.
+     * @brief Returns a ModelState from this component at a specified level of detail.
      *
      * @details See the zero argument version for more details. The output
      * levels reuse those defined in the Logged class. The default level is
      * NOTICE, and only levels such as INFO, DEBUG and TRACE should be used,
      * and should provide extra diagnostic fields.
      */
-    virtual ModelState getState(const OutputLevel&) const = 0;
+    virtual ModelState getStateDiagnostic(const OutputLevel&) const { return getStateDiagnostic(); }
 
     /*!
-     * @brief Returns the state of the ModelComponent and any ModelComponents
+     * @brief Returns the state of the ModelComponent.
+     *
+     * @details Returns the state of the ModelComponent and any ModelComponents
      * it depends on.
      *
-     * @details Used to traverse the current tree of ModelComponents and return
-     * the overall model state for diagnostic output.
+     * @details The state returned by this function contains all the
+     * data necessary to restart this component and all components that it calls.
      */
-    virtual ModelState getStateRecursive(const OutputSpec& os) const
-    {
-        return os ? getState() : ModelState();
-    }
+    virtual ModelState getStatePrognostic() const { return { {}, getConfiguration() }; }
 
     /*!
      * @brief Returns the ModelArrayRef backing store for column physics fields.
@@ -226,6 +221,11 @@ protected:
      * @brief Returns the ocean mask.
      */
     static const ModelArray& oceanMask();
+
+    /*!
+     * @brief Returns a map of the configuration used by the component.
+     */
+    virtual ConfigMap getConfiguration() const { return {}; }
 
 protected:
     static ModelArray& oceanMaskSingleton()

@@ -63,6 +63,29 @@ void BBMDynamics::configure()
         = Configured::getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
 }
 
+ConfigMap BBMDynamics::getConfiguration() const
+{
+    return {
+        { keyMap.at(C_KEY), params.compactionParam },
+        { keyMap.at(NU_KEY), params.nu0 },
+        { keyMap.at(YOUNG_KEY), params.young },
+        { keyMap.at(P0_KEY), params.P0 },
+        { keyMap.at(LAMBDA0_KEY), params.lambda0 },
+        { keyMap.at(ALPHA_KEY), params.alpha },
+        { keyMap.at(EXPPMAX_KEY), params.expPMax },
+        { keyMap.at(MU_KEY), params.mu },
+        { keyMap.at(NMAX_KEY), params.comprCap },
+        { keyMap.at(CLAB_KEY), params.cLab },
+        { keyMap.at(NSTEPS_KEY), params.nSteps },
+        { keyMap.at(RHOI_KEY), params.rhoIce },
+        { keyMap.at(RHOA_KEY), params.rhoAtm },
+        { keyMap.at(RHOO_KEY), params.rhoOcean },
+        { keyMap.at(CATM_KEY), params.CAtm },
+        { keyMap.at(COCEAN_KEY), params.COcean },
+        { keyMap.at(FC_KEY), params.fc },
+        { keyMap.at(ANGLE_KEY), params.oceanTurningAngle },
+    };
+}
 BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)
@@ -145,35 +168,6 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     taux = kernel.getDG0Data(uIOStressName);
     tauy = kernel.getDG0Data(vIOStressName);
-}
-
-// All data for prognostic output
-ModelState BBMDynamics::getState() const
-{
-    // Get the velocities from IDynamics
-    ModelState state(IDynamics::getState());
-
-    // Kernel prognostic fields
-    state.merge({
-        { damageName, kernel.getDGData(damageName) },
-    });
-
-    return state;
-}
-
-ModelState BBMDynamics::getStateRecursive(const OutputSpec& os) const
-{
-    // Base class state
-    ModelState state(IDynamics::getStateRecursive(os));
-
-    if (os.allComponents()) {
-        state.merge({
-            { hiceName, kernel.getDGData(hiceName) },
-            { ciceName, kernel.getDGData(ciceName) },
-            { damageName, kernel.getDGData(damageName) },
-        });
-    }
-    return state;
 }
 
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)

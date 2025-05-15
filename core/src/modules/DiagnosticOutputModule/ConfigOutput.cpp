@@ -260,15 +260,4 @@ std::string concatenateFields(const std::set<std::string>& strSet)
     return outStr;
 }
 
-ModelState ConfigOutput::getStateRecursive(const OutputSpec& os) const
-{
-    return { {},
-        {
-            { keyMap.at(PERIOD_KEY), outputPeriod.format() },
-            { keyMap.at(START_KEY), lastOutput.format() }, // FIXME Not necessarily the start date!
-            { keyMap.at(SNAPSHOT_KEY), snapshots },
-            { keyMap.at(FIELDNAMES_KEY), concatenateFields(fieldsForOutput) },
-        } };
-}
-
 } /* namespace Nextsim */

@@ -82,9 +82,6 @@ TEST_CASE("New ice formation")
         HField cice;
         HField hsnow;
         ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -166,9 +163,6 @@ TEST_CASE("Melting conditions")
         HField cice;
         HField hsnow;
         ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -260,9 +254,6 @@ TEST_CASE("Freezing conditions")
         HField cice;
         HField hsnow;
         ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -361,9 +352,6 @@ TEST_CASE("Dummy ice")
         HField cice;
         HField hsnow;
         ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -461,9 +449,6 @@ TEST_CASE("Zero thickness")
         HField cice;
         HField hsnow;
         ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -569,9 +554,6 @@ TEST_CASE("Turn off thermo")
         HField cice;
         HField hsnow;
         ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 

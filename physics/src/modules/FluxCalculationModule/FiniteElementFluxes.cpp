@@ -53,6 +53,38 @@ void FiniteElementFluxes::configure()
     m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
+ConfigMap FiniteElementFluxes::getConfiguration() const
+{
+    return {
+        { keyMap.at(DRAGOCEANQ_KEY), dragOcean_q },
+        { keyMap.at(DRAGOCEANT_KEY), dragOcean_t },
+        { keyMap.at(DRAGICET_KEY), dragIce_t },
+        { keyMap.at(OCEANALBEDO_KEY), m_oceanAlbedo },
+        { keyMap.at(I0_KEY), m_I0 },
+    };
+}
+
+ModelState FiniteElementFluxes::getStateDiagnostic() const
+{
+    return { {
+                 { "evap", evap },
+                 { "Q_lh_ow", Q_lh_ow },
+                 { "Q_sh_ow", Q_sh_ow },
+                 { "Q_lw_ow", Q_lw_ow },
+                 { "Q_lh_ia", Q_lh_ia },
+                 { "Q_sh_ia", Q_sh_ia },
+                 { "Q_sw_ia", Q_sw_ia },
+                 { "Q_lw_ia", Q_lw_ia },
+                 { "rho_air", rho_air },
+                 { "cp_air", cp_air },
+                 { "sh_air", sh_air },
+                 { "sh_water", sh_water },
+                 { "sh_ice", sh_ice },
+                 { "dshice_dT", dshice_dT },
+             },
+        getConfiguration() };
+}
+
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
     // Data arrays can now be set to the correct size
@@ -70,16 +102,6 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
     sh_water.resize();
     sh_ice.resize();
     dshice_dT.resize();
-}
-
-ModelState FiniteElementFluxes::getState() const { return { {}, {} }; }
-
-ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
-
-ModelState FiniteElementFluxes::getStateRecursive(const OutputSpec& os) const
-{
-    ModelState state(getState());
-    return os ? state : ModelState();
 }
 
 FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, bool getAll)

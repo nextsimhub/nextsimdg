@@ -9,6 +9,7 @@
 #define IICETHERMODYNAMICS_HPP
 
 #include "include/ConfigurationHelp.hpp"
+#include "include/gridNames.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
@@ -27,12 +28,18 @@ public:
         deltaHi.resize();
         snowToIce.resize();
     }
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
+
+    ModelState getStateDiagnostic() const override
     {
-        return os ? getState() : ModelState();
+        ModelState state = { {
+            { "delta_H_ice", deltaHi },
+            { "snow_to_ice", snowToIce },
+        },
+                getConfiguration()
+        };
+        return state;
     }
+
     /*!
      * Updates the ice thermodynamic and thickness growth calculation for the timestep.
      *

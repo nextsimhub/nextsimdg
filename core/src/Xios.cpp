@@ -2,7 +2,8 @@
  * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    06 May 2025
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    12 May 2025
  * @brief   XIOS interface implementation
  * @details
  *
@@ -16,13 +17,19 @@
  *   enable = true
  *
  * The start time, timestep, and output period will also be read from the
- * following config file entries.
+ * following config file entries. (Values shown below are the defaults, while
+ * ellipses imply that no default is set.)
  *   [model]
- *   start = ...
- *   time_step = ...
+ *   start = 1970-01-01T00:00:00Z
+ *   time_step = P0-0T01:00:00
+ *   [XiosInput]
+ *   period = ...
+ *   filename = ...
+ *   field_names = ...
  *   [XiosOutput]
  *   period = ...
  *   filename = ...
+ *   field_names = ...
  */
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
@@ -43,10 +50,16 @@
 
 namespace Nextsim {
 
-static const std::map<int, std::string> keyMap
-    = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::START_TIME_KEY, "model.start" },
-          { Xios::TIME_STEP_KEY, "model.time_step" }, { Xios::PERIOD_KEY, "XiosOutput.period" },
-          { Xios::OUTPUT_FILENAME_KEY, "XiosOutput.filename" } };
+static const std::string xOutputPfx = "XiosOutput";
+static const std::string xInputPfx = "XiosInput";
+static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
+    { Xios::START_TIME_KEY, "model.start" }, { Xios::TIME_STEP_KEY, "model.time_step" },
+    { Xios::OUTPUT_PERIOD_KEY, xOutputPfx + ".period" },
+    { Xios::OUTPUT_FILENAME_KEY, xOutputPfx + ".filename" },
+    { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
+    { Xios::INPUT_PERIOD_KEY, xInputPfx + ".period" },
+    { Xios::INPUT_FILENAME_KEY, xInputPfx + ".filename" },
+    { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
@@ -63,10 +76,26 @@ void enableXios()
  */
 Xios::Xios(const std::string contextid, const std::string calendartype)
 {
+    static bool firstTime = true;
     contextId = contextid;
     calendarType = calendartype;
     configure();
     static bool doneOnce = doOnce();
+
+    // Create the input and output files (if found in the config)
+    if (firstTime) {
+        for (int key : { INPUT_FILENAME_KEY, OUTPUT_FILENAME_KEY }) {
+            std::string filenameStr;
+            istringstream(Configured::getConfiguration(keyMap.at(key), std::string()))
+                >> filenameStr;
+            if (filenameStr.length() > 0) {
+                filenameStr = ((std::filesystem::path)filenameStr).replace_extension();
+                createFile(filenameStr);
+                setFileName(filenameStr, filenameStr);
+            }
+        }
+    }
+    firstTime = false;
 }
 
 bool Xios::doOnce()
@@ -1137,6 +1166,45 @@ xios::CField* Xios::getField(const std::string fieldId)
     return field;
 }
 
+// Extract the field_names entry from the XiosInput or XiosOutput section of the config
+std::vector<std::string> Xios::configGetFieldNames(const bool reading)
+{
+    std::string fieldsStr;
+    if (reading) {
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
+            >> fieldsStr;
+    } else {
+        istringstream(
+            Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
+            >> fieldsStr;
+    }
+    std::vector<std::string> fieldNames;
+    if (fieldsStr.length() > 0) {
+        const char delim = ',';
+        std::istringstream iss(fieldsStr);
+        std::string item;
+        while (std::getline(iss, item, delim)) {
+            fieldNames.push_back(item);
+        }
+    }
+    return fieldNames;
+}
+
+// Check whether a fieldId exists in a string of field names separated by commas, as determined by
+// the map key
+bool Xios::configCheckField(const std::string fieldId, const bool reading)
+{
+    std::vector<std::string> fieldNames = configGetFieldNames(reading);
+    bool found = false;
+    for (std::string fieldName : fieldNames) {
+        if (fieldName == fieldId) {
+            found = true;
+            break;
+        }
+    }
+    return found;
+}
+
 /*!
  * Create a field with some ID
  *
@@ -1144,11 +1212,29 @@ xios::CField* Xios::getField(const std::string fieldId)
  */
 void Xios::createField(const std::string fieldId)
 {
+    // Check if the field already exists
     bool exists;
     cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
     if (exists) {
         throw std::runtime_error("Xios: Field '" + fieldId + "' already exists");
     }
+
+    // Check that the field is in the XiosOutput or XiosInput config
+    bool readAccess = configCheckField(fieldId, true);
+    bool writeAccess = configCheckField(fieldId, false);
+    if (!(readAccess || writeAccess)) {
+        throw std::runtime_error("Xios: Field '" + fieldId
+            + "' cannot be found in the XiosInput or XiosOutput config sections");
+    }
+
+    // Determine whether the field has read access
+    if (readAccess && writeAccess) {
+        throw std::runtime_error("Xios: Field '" + fieldId
+            + "' found in both the XiosInput and XiosOutput config sections");
+        // TODO: Refactor to allow a field to be both read and written
+    }
+
+    // Attempt to create the field
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
     if (!field) {
@@ -1158,6 +1244,9 @@ void Xios::createField(const std::string fieldId)
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
+
+    // Set read access based on the config
+    setFieldReadAccess(fieldId, readAccess);
 }
 
 /*!
@@ -1397,9 +1486,59 @@ void Xios::createFile(const std::string fileId)
         throw std::runtime_error("Xios: Failed to create file '" + fileId + "'");
     }
 
-    // Set the output period based on the model configuration
+    // Determine whether the file is configured for reading or writing
+    std::string inputFilenameStr;
+    istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
+        >> inputFilenameStr;
+    bool readAccess = ((inputFilenameStr.length() > 0) && (inputFilenameStr == fileId));
+    std::string outputFilenameStr;
+    istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
+        >> outputFilenameStr;
+    bool writeAccess = ((outputFilenameStr.length() > 0) && (outputFilenameStr == fileId));
+
+    // Check that the filename is in the XiosOutput or XiosInput config section, except during unit
+    // testing (with fileId beginning with 'unittest')
+    if (!(fileId.rfind("unittest", 0) == 0)) {
+        if (!(readAccess || writeAccess)) {
+            throw std::runtime_error("Xios: File '" + fileId
+                + "' cannot be found in the XiosInput or XiosOutput config sections");
+        }
+    }
+
+    // Check that the filename is not in both the XiosOutput and XiosInput config sections
+    if (readAccess && writeAccess) {
+        throw std::runtime_error("Xios: File '" + fileId
+            + "' found in both the XiosInput and XiosOutput config sections");
+        // TODO: Refactor to allow a field to be both read and written
+    }
+    if (readAccess) {
+        setFileMode(fileId, "read");
+    } else {
+        setFileMode(fileId, "write");
+    }
+
+    // Set the filename for the field based on the model configuration
+    std::string filenameStr;
+    if (readAccess) {
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
+            >> filenameStr;
+    } else {
+        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
+            >> filenameStr;
+    }
+    if (filenameStr.length() > 0) {
+        setFileName(fileId, ((std::filesystem::path)filenameStr).replace_extension());
+    }
+
+    // Set the input or output period based on the model configuration
     std::string periodStr;
-    istringstream(Configured::getConfiguration(keyMap.at(PERIOD_KEY), std::string())) >> periodStr;
+    if (readAccess) {
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_PERIOD_KEY), std::string()))
+            >> periodStr;
+    } else {
+        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_PERIOD_KEY), std::string()))
+            >> periodStr;
+    }
     if (periodStr.length() > 0) {
         setFileOutputFreq(fileId, Duration(periodStr));
     }
@@ -1645,16 +1784,6 @@ void Xios::fileAddField(const std::string fileId, const std::string fieldId)
 {
     xios::CField* field = getField(fieldId);
     cxios_xml_tree_add_fieldtofile(getFile(fileId), &field, fieldId.c_str(), fieldId.length());
-
-    // Set the output filename based on the model configuration
-    if (!getFieldReadAccess(fieldId)) {
-        std::string outfileStr;
-        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
-            >> outfileStr;
-        if (outfileStr.length() > 0) {
-            setFileName(fileId, ((std::filesystem::path)outfileStr).replace_extension());
-        }
-    }
 }
 
 /*!

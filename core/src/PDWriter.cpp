@@ -18,12 +18,10 @@ void PrognosticData::writeRestartFile(
 {
     Logged::notice(std::string("  Writing state-based restart file: ") + filePath + '\n');
 
-    ConfigMap modelConfig = ModelConfig::getConfig();
-    modelConfig.merge(getStateRecursive(true).config);
-    modelConfig.merge(ConfiguredModule::getAllModuleConfigurations());
+    ModelState state = getStatePrognostic();
+    state.merge(ModelConfig::getConfig());
+
     ModelMetadata meta(metadata);
-    meta.setConfig(modelConfig);
-    ModelState state = getState();
     meta.affixCoordinates(state);
 
     StructureFactory::fileFromState(state, meta, filePath, true);

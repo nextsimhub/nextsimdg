@@ -2,7 +2,8 @@
  * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    06 May 2025
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    12 May 2025
  * @brief   XIOS interface header
  * @details
  *
@@ -125,7 +126,6 @@ public:
     void setFieldName(const std::string fieldId, const std::string name);
     void setFieldOperation(const std::string fieldId, const std::string operation);
     void setFieldGridRef(const std::string fieldId, const std::string gridRef);
-    void setFieldReadAccess(const std::string fieldId, const bool readAccess);
     void setFieldFreqOffset(const std::string fieldId, const Duration freqOffset);
     std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
@@ -135,11 +135,9 @@ public:
 
     /* File */
     void createFile(const std::string fileId);
-    void setFileName(const std::string fileId, const std::string fileName);
     void setFileType(const std::string fileId, const std::string fileType);
     void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
     void setFileSplitFreq(const std::string fileId, const Duration splitFreq);
-    void setFileMode(const std::string fileId, const std::string mode);
     void setFileParAccess(const std::string fileId, const std::string parAccess);
     std::string getFileName(const std::string fileId);
     std::string getFileType(const std::string fileId);
@@ -158,8 +156,13 @@ public:
         ENABLED_KEY,
         START_TIME_KEY,
         TIME_STEP_KEY,
-        PERIOD_KEY,
+        READ_MODE_KEY,
+        OUTPUT_PERIOD_KEY,
         OUTPUT_FILENAME_KEY,
+        OUTPUT_FIELD_NAMES_KEY,
+        INPUT_PERIOD_KEY,
+        INPUT_FILENAME_KEY,
+        INPUT_FIELD_NAMES_KEY,
     };
 
     /* Length of C-strings passed to XIOS */
@@ -171,16 +174,17 @@ protected:
 private:
     inline static bool isEnabled = false;
     std::string clientId;
-    std::string calendarType;
     std::string contextId;
-    Duration timestep;
-    TimePoint startTime;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
     int mpi_rank { 0 };
     int mpi_size { 0 };
 
+    /* Calendar, date and duration */
+    std::string calendarType;
+    Duration timestep;
+    TimePoint startTime;
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
@@ -188,17 +192,30 @@ private:
     Duration convertDurationFromXios(const cxios_duration duration);
     cxios_duration convertDurationToXios(const Duration duration);
 
+    /* Axis */
     xios::CAxisGroup* getAxisGroup();
-    xios::CDomainGroup* getDomainGroup();
-    xios::CFieldGroup* getFieldGroup();
-    xios::CGridGroup* getGridGroup();
-    xios::CFileGroup* getFileGroup();
-
     xios::CAxis* getAxis(const std::string axisId);
+
+    /* Domain */
+    xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(const std::string domainId);
+
+    /* Field */
+    xios::CFieldGroup* getFieldGroup();
     xios::CField* getField(const std::string fieldId);
+    void setFieldReadAccess(const std::string fieldId, const bool readAccess);
+    std::vector<std::string> configGetFieldNames(const bool reading);
+    bool configCheckField(const std::string fieldId, const bool reading);
+
+    /* Grid */
+    xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
+
+    /* File */
+    xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
+    void setFileName(const std::string fileId, const std::string fileName);
+    void setFileMode(const std::string fileId, const std::string mode);
 };
 
 }

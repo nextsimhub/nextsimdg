@@ -162,55 +162,39 @@ void PrognosticData::updateDynamicsFields()
     m_damage.setData(damageUpd);
 }
 
-// Gets all of the prognostic data, including that in the dynamics
-ModelState PrognosticData::getState() const
+// Gets the diagnostic data from all subcomponents
+ModelState PrognosticData::getStateDiagnostic() const
 {
-    ModelArrayRef<Protected::SST> sst(getStore());
-    ModelArrayRef<Protected::SSS> sss(getStore());
+    ModelState state = getStatePrognostic();
 
     // Get the prognostic data from the dynamics, including the full dynamics state
-    ModelState dynamicsState = pDynamics->getState();
-    // clang-format off
-    ModelState localState = { {
-                 { "mask", ModelArray(oceanMask()) }, // make a copy
-                 { "hice", hiceAdvection },
-                 { "cice", ciceAdvection },
-                 { "hsnow", mask(m_snow) },
-                 { "tice", mask(m_tice) },
-                 { "sst", mask(sst) },
-                 { "sss", mask(sss) },
-             },
-        {} };
-    // clang-format on
-
-    // Use the dynamics values of any duplicated fields
-    ModelState state(dynamicsState);
-    state.merge(localState);
+    state.merge(pDynamics->getStateDiagnostic());
+    state.merge(iceGrowth.getStateDiagnostic());
+    state.merge(pAtmBdy->getStateDiagnostic());
+    state.merge(pOcnBdy->getStateDiagnostic());
 
     return state;
 }
 
-// Recursively gets the data from all subcomponents
-ModelState PrognosticData::getStateRecursive(const OutputSpec& os) const
+// Gets the prognostic data from all subcomponents
+ModelState PrognosticData::getStatePrognostic() const
 {
-    ModelState state;
-    /* If allComponents is set on the OutputSpec, then for any duplicate fields, the subsystems
-     * take priority, otherwise the fields held by PrognosticData itself. Note that std::map::merge
-     * will not overwrite existing keys, so the first one that exists will survive.
-     */
-    if (os.allComponents()) {
-        state.merge(pAtmBdy->getStateRecursive(os));
-        state.merge(iceGrowth.getStateRecursive(os));
-        state.merge(pDynamics->getStateRecursive(os));
-        state.merge(getState());
-    } else {
-        state.merge(getState());
-        state.merge(pAtmBdy->getStateRecursive(os));
-        state.merge(iceGrowth.getStateRecursive(os));
-        state.merge(pDynamics->getStateRecursive(os));
-    }
-    // OceanBoundary does not contribute to the output model state
-    return os ? state : ModelState();
+    ModelState state = { {
+                             { "mask", ModelArray(oceanMask()) }, // make a copy
+                             { "hice", hiceAdvection },
+                             { "cice", ciceAdvection },
+                             { "hsnow", mask(m_snow) },
+                             { "tice", mask(m_tice) },
+                         },
+        ModelComponent::getConfiguration() };
+
+    // Get the prognostic data from the dynamics, including the full dynamics state
+    state.merge(pDynamics->getStatePrognostic());
+    state.merge(iceGrowth.getStatePrognostic());
+    state.merge(pAtmBdy->getStatePrognostic());
+    state.merge(pOcnBdy->getStatePrognostic());
+
+    return state;
 }
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }

@@ -1,10 +1,11 @@
 /*!
  * @file    XiosGrid_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    29 Apr 2025
- * @brief   Tests for XIOS axes
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    23 Apr 2025
+ * @brief   Tests for XIOS grid
  * @details
- * This test is designed to test axis functionality of the C++ interface
+ * This test is designed to test grid functionality of the C++ interface
  * for XIOS.
  *
  */
@@ -20,20 +21,19 @@ namespace Nextsim {
  * TestXiosGrid
  *
  * This function tests the grid functionality of the C++ interface for XIOS. It
- * needs to be run with 2 ranks i.e.,
+ * needs to be run with 4 ranks i.e.,
  *
- * `mpirun -n 2 ./testXiosGrid_MPI2`
+ * `mpirun -n 4 ./testXiosGrid_MPI4`
  *
  */
-MPI_TEST_CASE("TestXiosGrid", 2)
+MPI_TEST_CASE("TestXiosGrid", 4)
 {
     enableXios();
-
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
     const size_t size = xiosHandler.getClientMPISize();
-    REQUIRE(size == 2);
+    REQUIRE(size == 4);
     const size_t rank = xiosHandler.getClientMPIRank();
 
     // Create a 4x2 horizontal domain with a partition halving the x-extent

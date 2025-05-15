@@ -81,8 +81,6 @@ TEST_CASE("Melting conditions")
             lw_in = 330;
         }
         std::string getName() const override { return "AtmData"; }
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
 
     private:
         HField tair;
@@ -128,8 +126,6 @@ TEST_CASE("Melting conditions")
         HField tice0;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -238,8 +234,6 @@ TEST_CASE("Freezing conditions")
             lw_in = 265;
         }
         std::string getName() const override { return "AtmData"; }
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
 
     private:
         HField tair;
@@ -286,8 +280,6 @@ TEST_CASE("Freezing conditions")
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
 
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 

@@ -67,8 +67,6 @@ TEST_CASE("Melting conditions")
         HField tice0;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -126,9 +124,6 @@ TEST_CASE("Freezing conditions")
         HField tice0;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 

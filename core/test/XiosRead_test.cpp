@@ -1,7 +1,7 @@
 /*!
  * @file    XiosRead_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    06 May 2025
+ * @date    07 May 2025
  * @brief   Tests for XIOS read functionality
  * @details
  * This test is designed to test the file reading functionality of the C++
@@ -36,8 +36,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "[XiosOutput]" << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
+    config << "[XiosInput]" << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
+    config << "filename = xios_test_input" << std::endl;
+    config << "field_names = field_2D,field_3D" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -83,21 +85,16 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xiosHandler.createField("field_2D");
     xiosHandler.setFieldOperation("field_2D", "instant");
     xiosHandler.setFieldGridRef("field_2D", "grid_2D");
-    xiosHandler.setFieldReadAccess("field_2D", true);
     Duration timestep = xiosHandler.getCalendarTimestep();
     xiosHandler.setFieldFreqOffset("field_2D", timestep);
     xiosHandler.createField("field_3D");
     xiosHandler.setFieldOperation("field_3D", "instant");
     xiosHandler.setFieldGridRef("field_3D", "grid_3D");
-    xiosHandler.setFieldReadAccess("field_3D", true);
     xiosHandler.setFieldFreqOffset("field_3D", timestep);
 
     // Create an file for reading of field data
     std::string fileId = "xios_test_input";
-    xiosHandler.createFile(fileId);
     xiosHandler.setFileType(fileId, "one_file");
-    xiosHandler.setFileOutputFreq(fileId, timestep);
-    xiosHandler.setFileMode(fileId, "read");
     xiosHandler.setFileParAccess(fileId, "collective");
     xiosHandler.fileAddField(fileId, "field_2D");
     xiosHandler.fileAddField(fileId, "field_3D");

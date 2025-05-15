@@ -74,9 +74,6 @@ public:
     }
     virtual ~IOceanBoundary() = default;
 
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-
     std::string getName() const override { return "IOceanBoundary"; }
     void setData(const ModelState::DataMap& ms) override
     {

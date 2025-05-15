@@ -1,8 +1,9 @@
 /*!
  * @file    XiosCalendar_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
  * @date    06 May 2025
- * @brief   Tests for XIOS calandars
+ * @brief   Tests for XIOS calendars
  * @details
  * This test is designed to test calendar functionality of the C++ interface
  * for XIOS.
@@ -22,12 +23,12 @@ namespace Nextsim {
  * TestXiosCalendar
  *
  * This function tests the calendar functionality of the C++ interface for XIOS. It
- * needs to be run with 2 ranks i.e.,
+ * needs to be run with 1 rank i.e.,
  *
- * `mpirun -n 2 ./testXiosCalendar_MPI2`
+ * `mpirun -n 1 ./testXiosCalendar_MPI1`
  *
  */
-MPI_TEST_CASE("TestXiosCalendar", 2)
+MPI_TEST_CASE("TestXiosCalendar", 1)
 {
     // Enable XIOS in the 'config' and provide parameters to configure it
     enableXios();
@@ -35,15 +36,13 @@ MPI_TEST_CASE("TestXiosCalendar", 2)
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
-    config << "[XiosOutput]" << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
+    REQUIRE(xiosHandler.getClientMPISize() == 1);
 
     // --- Tests for calendar API
     // Calendar type

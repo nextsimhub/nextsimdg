@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 29 Apr 2025
+ * @date 07 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -24,9 +24,6 @@
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
 #include "include/gridNames.hpp"
-#ifdef USE_XIOS
-#include "include/Xios.hpp"
-#endif
 
 #include <cmath>
 #include <filesystem>
@@ -212,12 +209,6 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
         {} };
 
     ModelMetadata metadata;
-#ifdef USE_XIOS
-    enableXios();
-    Xios& xiosHandler = Xios::getInstance("P0-0T01:00:00");
-    xiosHandler.setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z"));
-    xiosHandler.close_context_definition();
-#endif
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState
@@ -413,10 +404,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
         {} };
 
     ModelMetadata metadata;
-#ifdef USE_XIOS
-    enableXios();
-    Xios& xiosHandler = Xios::getInstance();
-#endif
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState
@@ -557,10 +544,6 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
 #ifdef USE_MPI
     ModelMetadata metadataIn(partitionFilename, test_comm);
-#ifdef USE_XIOS
-    enableXios();
-    Xios& xiosHandler = Xios::getInstance();
-#endif
     metadataIn.setTime(TimePoint(dateString));
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadataIn));
 #else
@@ -614,10 +597,6 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 
 #ifdef USE_MPI
     ModelMetadata metadata;
-#ifdef USE_XIOS
-    enableXios();
-    Xios& xiosHandler = Xios::getInstance();
-#endif
     metadata.setMpiMetadata(test_comm);
     if (metadata.mpiMyRank == 0) {
         metadata.localCornerX = 0;

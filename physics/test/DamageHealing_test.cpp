@@ -60,9 +60,6 @@ TEST_CASE("Thermodynamic healing")
         HField deltaCi;
         HField damage;
         HField oldDamage;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -126,9 +123,6 @@ TEST_CASE("New ice formation")
         HField deltaCi;
         HField damage;
         HField oldDamage;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 

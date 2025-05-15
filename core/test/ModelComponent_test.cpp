@@ -28,8 +28,6 @@ public:
     {
         throw(HappyExcept(std::string("setData for ") + getName()));
     }
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 };
 
 class ModuleSupplyAndWait : public ModelComponent {
@@ -42,14 +40,13 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { hice[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
-    ModelState getState() const override
+    ModelState getStatePrognostic() const override
     {
         return { {
                      { "hice", hice },
                  },
             {} };
     }
-    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
     const double hiceData = 1.2;
     double data() { return hice[0]; }
@@ -70,14 +67,13 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { cice[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
-    ModelState getState() const override
+    ModelState getStatePrognostic() const override
     {
         return { {
                      { "cice", cice },
                  },
             {} };
     }
-    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
     const double ciceData = 0.6;
     double data() { return cice[0]; }
@@ -109,14 +105,13 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { qic[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
-    ModelState getState() const override
+    ModelState getStatePrognostic() const override
     {
         return { {
                      { "qic", qic },
                  },
             {} };
     }
-    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
     const double qicData = 123;
     double data() { return qic[0]; }
@@ -137,14 +132,13 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { qio[0]; }
     std::string getName() const override { return "Shared"; }
-    ModelState getState() const override
+    ModelState getStatePrognostic() const override
     {
         return { {
                      { "qio", qio },
                  },
             {} };
     }
-    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
 
     const double qioData = 234;
     const double qicData = 246;

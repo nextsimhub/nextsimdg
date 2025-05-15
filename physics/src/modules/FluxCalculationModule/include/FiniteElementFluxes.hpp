@@ -62,12 +62,11 @@ public:
         I0_KEY,
     };
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
     void setData(const ModelState::DataMap&) override;
 
-    ModelState getState() const override;
-    ModelState getState(const OutputLevel&) const override;
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ModelState getStateDiagnostic() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
