@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 12 May 2025
+ * @date 15 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -45,19 +45,23 @@ namespace Nextsim {
 const size_t nx = 2;
 const size_t ny = 5;
 const size_t nz = 3;
-const std::string pfx = "diag01";
 const std::string sfx = ".nc";
 const size_t hr_day = 24;
 
-std::vector<std::string> writeTestFiles(const bool snapshots)
+#ifdef USE_MPI
+std::vector<std::string> writeTestFiles(
+    const bool snapshots, const std::string& pfx, MPI_Comm MPIComm, const int MPIRank)
+#else
+std::vector<std::string> writeTestFiles(const bool snapshots, const std::string& pfx)
+#endif
 {
     NZLevels::set(nz);
 
 #ifdef USE_MPI
-    if (test_rank == 0) {
+    if (MPIRank == 0) {
         ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 0);
     }
-    if (test_rank == 1) {
+    if (MPIRank == 1) {
         ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
@@ -74,7 +78,7 @@ std::vector<std::string> writeTestFiles(const bool snapshots)
     config << "period = P0-0T03:00:00" << std::endl; // Output every three hours
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
     config << "field_names = " << hiceName << "," << ciceName << "," << ticeName << std::endl;
-    config << "filename = diag%m%d.nc" << std::endl;
+    config << "filename = " << pfx << "%m%d.nc" << std::endl;
     config << "file_period = 86400" << std::endl; // Files every day
     if (snapshots)
         config << "snapshots = true" << std::endl;
@@ -106,7 +110,7 @@ std::vector<std::string> writeTestFiles(const bool snapshots)
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 
 #ifdef USE_MPI
-    meta.setMpiMetadata(test_comm);
+    meta.setMpiMetadata(MPIComm);
 #endif
 
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
@@ -134,7 +138,7 @@ std::vector<std::string> writeTestFiles(const bool snapshots)
     const Duration timeStep = Duration(3600.);
     for (size_t day = 1; day <= 20; ++day) {
         if (day > 10) {
-            diagFiles.push_back(pfx + std::to_string(day) + sfx);
+            diagFiles.push_back(pfx + "01" + std::to_string(day) + sfx);
         }
         double dayIncr = 100.;
         hice += dayIncr;
@@ -163,7 +167,7 @@ std::vector<std::string> writeTestFiles(const bool snapshots)
 std::vector<double> getVar(
     const int day, const std::vector<std::string>& diagFiles, const std::string& varName)
 {
-    const std::string specFile = diagFiles[day - 1 - 10]; // We only write files after day 10
+    const std::string& specFile = diagFiles[day - 1 - 10]; // We only write files after day 10
 
     // Read the netCDF file directly
     netCDF::NcFile ncFile(specFile, netCDF::NcFile::read);
@@ -185,7 +189,12 @@ MPI_TEST_CASE("Test periodic output", 2)
 TEST_CASE("Test periodic output")
 #endif
 {
-    std::vector<std::string> diagFiles = writeTestFiles(false);
+    const std::string pfx = "diag";
+#ifdef USE_MPI
+    std::vector<std::string> diagFiles = writeTestFiles(false, pfx, test_comm, test_rank);
+#else
+    std::vector<std::string> diagFiles = writeTestFiles(false, pfx);
+#endif
 
     // Now test that there are 10 files, correctly named, and check that one of
     // them (diag0116.nc) contains what it should.
@@ -218,6 +227,13 @@ TEST_CASE("Test periodic output")
     REQUIRE(vars.count("hsnow") == 0);
 
     ncFile.close();
+
+    // Clean the testing files
+    for (auto fileName : diagFiles) {
+        std::filesystem::remove(fileName);
+    }
+
+    Finalizer::finalize();
 }
 
 #ifdef USE_MPI
@@ -226,7 +242,12 @@ MPI_TEST_CASE("Test snapshot output", 2)
 TEST_CASE("Test snapshot output")
 #endif
 {
-    std::vector<std::string> diagFiles = writeTestFiles(true);
+    const std::string pfx = "snapshot";
+#ifdef USE_MPI
+    std::vector<std::string> diagFiles = writeTestFiles(true, pfx, test_comm, test_rank);
+#else
+    std::vector<std::string> diagFiles = writeTestFiles(true, pfx);
+#endif
 
     const int day = 14;
 
@@ -243,6 +264,8 @@ TEST_CASE("Test snapshot output")
     for (const auto& fileName : diagFiles) {
         std::filesystem::remove(fileName);
     }
+
+    Finalizer::finalize();
 }
 
 #ifdef USE_MPI
@@ -251,7 +274,12 @@ MPI_TEST_CASE("Test averaged output", 2)
 TEST_CASE("Test averaged output")
 #endif
 {
-    std::vector<std::string> diagFiles = writeTestFiles(false);
+    const std::string pfx = "averaged";
+#ifdef USE_MPI
+    std::vector<std::string> diagFiles = writeTestFiles(false, pfx, test_comm, test_rank);
+#else
+    std::vector<std::string> diagFiles = writeTestFiles(false, pfx);
+#endif
 
     const int day = 14;
 
@@ -276,5 +304,6 @@ TEST_CASE("Test averaged output")
 
     Finalizer::finalize();
 }
+
 TEST_SUITE_END();
 }
