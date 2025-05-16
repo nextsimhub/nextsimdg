@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 15 May 2025
+ * @date 16 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -113,11 +113,12 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
     VertexField coordsData(ModelArray::Type::VERTEX);
     coordsData = 0.;
     ModelState modelCoordinates = { {
-             { longitudeName, latlonData },
-             { latitudeName, latlonData },
-             { gridAzimuthName, latlonData },
-             { coordsName, coordsData },
-    }, { } };
+                                        { longitudeName, latlonData },
+                                        { latitudeName, latlonData },
+                                        { gridAzimuthName, latlonData },
+                                        { coordsName, coordsData },
+                                    },
+        {} };
     meta.extractCoordinates(modelCoordinates);
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 
@@ -187,7 +188,7 @@ std::vector<double> getVar(
     netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
     const netCDF::NcVar& var = dataGroup.getVar(varName);
-    std::vector<double> data(nx * ny * nz);
+    std::vector<double> data(nx * ny * 24 / 3);
     var.getVar(&data[0]);
 
     return data;
@@ -238,14 +239,10 @@ TEST_CASE("Test periodic output")
     REQUIRE(vars.count("time") == 1);
     REQUIRE(vars.count("hsnow") == 0);
 
-    ncFile.close();
-
     // Clean the testing files
     for (auto fileName : diagFiles) {
         std::filesystem::remove(fileName);
     }
-
-    Finalizer::finalize();
 }
 
 #ifdef USE_MPI
