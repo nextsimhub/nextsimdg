@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 17 Jan 2025
+ * @date 16 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -589,9 +589,14 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     ModelState ms = gridIn.getModelState(inputFilename);
 #endif
 
-    auto localNX = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
+    auto localNX = metadata.localExtentX;
+#ifdef USE_MPI
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == localNX + 2 * Halo::haloWidth);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny + 2 * Halo::haloWidth);
+#else
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == localNX);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
+#endif
 
     Finalizer::finalize();
 }

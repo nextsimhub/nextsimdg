@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date 09 Dec 2024
+ * @date 16 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -147,84 +147,82 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             ModelArray::setDimension(dimType, dim.getSize());
 #endif
         }
-    }
 
-    // Get all vars in the data group, and load them into a new ModelState
+        // Get all vars in the data group, and load them into a new ModelState
 
-    for (auto entry : dataGroup.getVars()) {
-        const std::string& varName = entry.first;
-        netCDF::NcVar& var = entry.second;
-        // Determine the type from the dimensions
-        std::vector<netCDF::NcDim> varDims = var.getDims();
-        std::string dimKey = "";
-        for (netCDF::NcDim& dim : varDims) {
-            dimKey += dim.getName();
-        }
-        if (!dimensionKeys.count(dimKey)) {
-            throw std::out_of_range(
-                std::string("No ModelArray::Type corresponds to the dimensional key ") + dimKey);
-        }
-        ModelArray::Type type = dimensionKeys.at(dimKey);
-        state.data[varName] = ModelArray(type);
-        ModelArray& data = state.data.at(varName);
-        data.resize();
-
-        std::vector<size_t> start;
-        std::vector<size_t> count;
-        if (ModelArray::hasDoF(type)) {
-            auto ncomps = data.nComponents();
-            start.push_back(0);
-            count.push_back(ncomps);
-        }
-
-        using Dim = ModelArray::Dimension;
-        for (Dim dt : ModelArray::typeDimensions.at(type)) {
-            auto dim = ModelArray::definedDimensions.at(dt);
-            size_t startIndex = dim.start;
-            size_t localLength = dim.localLength;
-#ifdef USE_MPI
-            if (dt == Dim::X or dt == Dim::XVERTEX) {
-                localLength = localLength - 2 * Halo::haloWidth;
-            } else if (dt == Dim::Y or dt == Dim::YVERTEX) {
-                localLength = localLength - 2 * Halo::haloWidth;
+        for (auto entry : dataGroup.getVars()) {
+            const std::string& varName = entry.first;
+            netCDF::NcVar& var = entry.second;
+            // Determine the type from the dimensions
+            std::vector<netCDF::NcDim> varDims = var.getDims();
+            std::string dimKey = "";
+            for (netCDF::NcDim& dim : varDims) {
+                dimKey += dim.getName();
             }
+            if (!dimensionKeys.count(dimKey)) {
+                throw std::out_of_range(
+                    std::string("No ModelArray::Type corresponds to the dimensional key ")
+                    + dimKey);
+            }
+            ModelArray::Type type = dimensionKeys.at(dimKey);
+            state.data[varName] = ModelArray(type);
+            ModelArray& data = state.data.at(varName);
+            data.resize();
+
+            std::vector<size_t> start;
+            std::vector<size_t> count;
+            if (ModelArray::hasDoF(type)) {
+                auto ncomps = data.nComponents();
+                start.push_back(0);
+                count.push_back(ncomps);
+            }
+
+            using Dim = ModelArray::Dimension;
+            for (Dim dt : ModelArray::typeDimensions.at(type)) {
+                auto dim = ModelArray::definedDimensions.at(dt);
+                size_t startIndex = dim.start;
+                size_t localLength = dim.localLength;
+#ifdef USE_MPI
+                if (dt == Dim::X or dt == Dim::XVERTEX) {
+                    localLength = localLength - 2 * Halo::haloWidth;
+                } else if (dt == Dim::Y or dt == Dim::YVERTEX) {
+                    localLength = localLength - 2 * Halo::haloWidth;
+                }
 #endif
-            start.push_back(startIndex);
-            count.push_back(localLength);
-        }
-        // dims are looped in [dg], x, y, [z] order so start and count
-        // order must be reveresed to match order netcdf expects
-        std::reverse(start.begin(), start.end());
-        std::reverse(count.begin(), count.end());
+                start.push_back(startIndex);
+                count.push_back(localLength);
+            }
+            // dims are looped in [dg], x, y, [z] order so start and count
+            // order must be reveresed to match order netcdf expects
+            std::reverse(start.begin(), start.end());
+            std::reverse(count.begin(), count.end());
 
 #ifdef USE_MPI
-        // TODO
-        // at this point we should add the halo exchange logic for each modelarray
-        // need to check what happens for non-H-field modelarrays
-        // need to figure out what happens w.r.t to coords in non-periodic and periodic case
+            // TODO
+            // at this point we should add the halo exchange logic for each modelarray
+            // need to check what happens for non-H-field modelarrays
+            // need to figure out what happens w.r.t to coords in non-periodic and periodic case
 
-        Halo halo(metadata, data);
-        // create and allocate temporary Eigen array
-        ModelArray::DataType tempData;
-        tempData.resize(halo.getInnerSize(), data.nComponents());
-        // populate temp Eigen array with data from netCDF file
-        var.getVar(start, count, tempData.data());
-        // populate inner block of modelarray with data from tempData
-        halo.populateInnerBlock(tempData);
-        halo.exchangeHalos();
+            Halo halo(metadata, data);
+            // create and allocate temporary Eigen array
+            ModelArray::DataType tempData;
+            tempData.resize(halo.getInnerSize(), data.nComponents());
+            // populate temp Eigen array with data from netCDF file
+            var.getVar(start, count, tempData.data());
+            // populate inner block of modelarray with data from tempData
+            halo.populateInnerBlock(tempData);
+            halo.exchangeHalos();
 #else
-        var.getVar(start, count, &data[0]);
+            var.getVar(start, count, &data[0]);
 #endif
+        }
+        ncFile.close();
+    } catch (const netCDF::exceptions::NcException& nce) {
+        std::string ncWhat(nce.what());
+        ncWhat += ": " + filePath;
+        throw std::runtime_error(ncWhat);
     }
-    ncFile.close();
-}
-catch (const netCDF::exceptions::NcException& nce)
-{
-    std::string ncWhat(nce.what());
-    ncWhat += ": " + filePath;
-    throw std::runtime_error(ncWhat);
-}
-return state;
+    return state;
 }
 
 ModelState ParaGridIO::readForcingTimeStatic(

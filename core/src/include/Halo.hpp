@@ -1,7 +1,7 @@
 /*!
  * @file Halo.hpp
  *
- * @date 29 Apr 2025
+ * @date 16 May 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -265,13 +265,8 @@ public:
     void populateInnerBlock(ModelArray::DataType& tempData)
     {
         ArraySlicer::Slice::VBounds innerBlock, allBlock;
-        if (m_ma.getType() == ModelArray::Type::Z) {
-            innerBlock = { { 1, -1 }, { 1, -1 }, {} };
-            allBlock = { {}, {}, {} };
-        } else {
-            innerBlock = { { 1, -1 }, { 1, -1 } };
-            allBlock = { {}, {} };
-        }
+        innerBlock = { { 1, -1 }, { 1, -1 } };
+        allBlock = { {}, {} };
         ArraySlicer::SliceIter wholeBlock(allBlock, m_ma.innerDimensions());
 
         m_ma = 0.; // TODO -- should this be removed? It does mean that mask is zero by default
