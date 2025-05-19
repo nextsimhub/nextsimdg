@@ -19,7 +19,6 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
-#include "include/NZLevels.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
@@ -49,7 +48,6 @@ static const int CG = 2;
 
 const size_t nx = 10;
 const size_t ny = 9;
-const size_t nz = 3;
 const double yFactor = 0.01;
 const double xFactor = 0.1;
 const double scale = 1e5;
@@ -111,9 +109,6 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Set the dimension lengths
-    NZLevels::set(nz);
-
 #ifdef USE_MPI
     if (test_rank == 0) {
         ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
@@ -124,12 +119,10 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
         ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, ny + 1, 0);
 #else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1);
 #endif
@@ -148,13 +141,6 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     DGField hsnow = fractionalDG + 30;
     DGField damage = fractionalDG * 0.;
     HField sss = fractional;
-    ZField tice(ModelArray::Type::Z);
-    tice.resize();
-    for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        for (size_t k = 0; k < nz; ++k) {
-            tice.zIndexAndLayer(i, k) = fractional[i] + 40 + k;
-        }
-    }
 
     VertexField coordinates(ModelArray::Type::VERTEX);
     initializeTestCoordinates(coordinates);
@@ -195,7 +181,6 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
                              { ciceName, cice },
                              { hsnowName, hsnow },
                              { damageName, damage },
-                             { ticeName, tice },
                          },
         {} };
 
@@ -232,13 +217,11 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 #ifdef USE_MPI
     ModelArray::setDimension(ModelArray::Dimension::X, 1, 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::Y, 1, 1, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Z, 1, 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 1, 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 1, 1, 0);
 #else
     ModelArray::setDimension(ModelArray::Dimension::X, 1);
     ModelArray::setDimension(ModelArray::Dimension::Y, 1);
-    ModelArray::setDimension(ModelArray::Dimension::Z, 1);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 1);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 1);
 #endif
@@ -258,19 +241,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ModelState ms = gridIn.getModelState(filename);
 #endif
 
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == localNX);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
-
     REQUIRE(ms.data.size() == state.data.size());
-
-    ModelArray& ticeRef = ms.data.at(ticeName);
-    REQUIRE(ModelArray::nDimensions(ModelArray::Type::Z) == 3);
-    REQUIRE(ticeRef.getType() == ModelArray::Type::Z);
-    REQUIRE(ticeRef.nDimensions() == 3);
-    REQUIRE(ticeRef.dimensions()[0] == localNX);
-    REQUIRE(ticeRef.dimensions()[1] == ny);
-    REQUIRE(ticeRef.dimensions()[2] == NZLevels::get());
 
     ModelArray& hiceRef = ms.data.at(hiceName);
     REQUIRE(hiceRef.nDimensions() == 2);
@@ -278,8 +249,6 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(hiceRef.dimensions()[1] == ny);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(hiceRef.nComponents() == DG);
-
-    REQUIRE(ticeRef(4, 9, 1) == tice(4, 9, 1));
 
     // Here we don't bother passing the coordinate arrays through a ModelMetadata object
     ModelArray& coordRef = ms.data.at(coordsName);
@@ -321,8 +290,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    NZLevels::set(nz);
-
 #ifdef USE_MPI
     if (test_rank == 0) {
         ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
@@ -333,12 +300,10 @@ TEST_CASE("Write a diagnostic ParaGrid file")
         ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, ny + 1, 0);
 #else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1);
 #endif
@@ -495,7 +460,6 @@ TEST_CASE("Test array ordering")
 
     size_t nx = 9;
     size_t ny = 11;
-    NZLevels::set(1);
 
     double xFactor = 10;
 
@@ -507,11 +471,9 @@ TEST_CASE("Test array ordering")
         ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 4);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
 #else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
 #endif
 
     HField index2d(ModelArray::Type::H);
@@ -567,7 +529,6 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 
     size_t nx = 2;
     size_t ny = 1;
-    NZLevels::set(1);
 
     ParametricGrid gridIn;
     ParaGridIO* readIO = new ParaGridIO(gridIn);
@@ -577,7 +538,6 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 #ifdef USE_MPI
     ModelArray::setDimension(ModelArray::Dimension::X, 1, 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::Y, 1, 1, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Z, 1, 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 1, 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 1, 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::XCG, 1, 1, 0);
@@ -585,7 +545,6 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 #else
     ModelArray::setDimension(ModelArray::Dimension::X, 1);
     ModelArray::setDimension(ModelArray::Dimension::Y, 1);
-    ModelArray::setDimension(ModelArray::Dimension::Z, 1);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, 1);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, 1);
     ModelArray::setDimension(ModelArray::Dimension::XCG, 1);
@@ -616,9 +575,8 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 #endif
 
     auto localNX = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == localNX);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == localNX);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
 
     Finalizer::finalize();
 }

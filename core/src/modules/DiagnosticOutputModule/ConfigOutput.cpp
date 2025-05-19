@@ -146,7 +146,7 @@ void ConfigOutput::setModelStart(const TimePoint& modelStart)
     }
 }
 
-void ConfigOutput::outputState(const ModelMetadata& meta, const Duration& step)
+void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata& meta, const Duration& step)
 {
     const TimePoint& time = meta.time();
     if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
@@ -160,6 +160,7 @@ void ConfigOutput::outputState(const ModelMetadata& meta, const Duration& step)
     }
 
     double averagingFactor = step.seconds() / outputPeriod.seconds();
+    ModelState state { { }, diagState.config };
     auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
@@ -204,7 +205,14 @@ void ConfigOutput::outputState(const ModelMetadata& meta, const Duration& step)
             }
         }
     } else {
-        // Filter only the given fields to the output state
+        // Filter the passed state by the field names for output
+        for (auto& entry : diagState.data) {
+            if (fieldsForOutput.count(entry.first) > 0) {
+                state.data[entry.first] = entry.second;
+            }
+        }
+
+        // Get data from the data store for any named fields that have an external name that matches.
         for (const auto& fieldExtName : fieldsForOutput) {
             if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
                 && storeData.at(externalNames.at(fieldExtName))) {

@@ -34,8 +34,6 @@ public:
     void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
 
-    size_t getNZLevels() const override;
-
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
@@ -49,8 +47,6 @@ private:
     static double kappa_s;
 
     bool doFlooding = true; // TODO: read from configuration
-
-    static const size_t nZLevels;
 };
 
 } /* namespace Nextsim */

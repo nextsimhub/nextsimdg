@@ -23,7 +23,6 @@
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/NZLevels.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
@@ -55,7 +54,8 @@ std::vector<std::string> writeTestFiles(
 std::vector<std::string> writeTestFiles(const bool snapshots, const std::string& pfx)
 #endif
 {
-    NZLevels::set(nz);
+    size_t nx = 2;
+    size_t ny = 5;
 
 #ifdef USE_MPI
     if (MPIRank == 0) {
@@ -65,11 +65,9 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
         ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get(), NZLevels::get(), 0);
 #else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
 #endif
 
     Module::Module<IDiagnosticOutput>::setImplementation("Nextsim::ConfigOutput");
@@ -77,7 +75,7 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
     config << "[ConfigOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl; // Output every three hours
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
-    config << "field_names = " << hiceName << "," << ciceName << "," << ticeName << std::endl;
+    config << "field_names = " << hiceName << "," << ciceName << "," << tsurfName << "," << "top_melt" << std::endl;
     config << "filename = " << pfx << "%m%d.nc" << std::endl;
     config << "file_period = 86400" << std::endl; // Files every day
     if (snapshots)
@@ -94,17 +92,21 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
     HField hice(ModelArray::Type::H);
     HField cice(ModelArray::Type::H);
     HField hsnow(ModelArray::Type::H);
-    ZField tice(ModelArray::Type::Z);
+    HField tsurf(ModelArray::Type::H);
+
+    // An internal diagnostic field, not made available through the data store
+    HField topMelt(ModelArray::Type::H);
 
     hice.resize();
     cice.resize();
     hsnow.resize();
-    tice.resize();
+    tsurf.resize();
+    topMelt.resize();
 
     ModelComponent::getStore().registerArray(Protected::H_ICE, &hice);
     ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
     ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
-    ModelComponent::getStore().registerArray(Protected::T_ICE, &tice);
+    ModelComponent::getStore().registerArray(Protected::T_SURF, &tsurf);
 
     ModelMetadata meta;
     // Set up the coordinates, but use arrays filled with zeros
@@ -133,18 +135,14 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
     auto startX = ModelArray::definedDimensions.at(dimX).start;
     auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
 
-    for (size_t k = 0; k < nz; ++k) {
-        for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < localNX; ++i) {
-                tice(i, j, k) = 0.1 * k + 0.4 + 0.01 * (j * nx + (i + startX));
-            }
-        }
-    }
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < localNX; ++i) {
             hice(i, j) = 0 + 0.01 * (j * nx + (i + startX));
             cice(i, j) = 0.1 + 0.01 * (j * nx + (i + startX));
             hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + startX));
+            tsurf(i, j) = 0.4 + 0.01 * (j * nx + (i + startX));
+            topMelt(i, j) = 0.6 + 0.01 * (j * nx + (i + startX));
+
         }
     }
     std::vector<std::string> diagFiles;
@@ -157,14 +155,15 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
         hice += dayIncr;
         cice += dayIncr;
         hsnow += dayIncr;
-        tice += dayIncr;
+        tsurf += dayIncr;
         for (size_t hour = 0; hour < hr_day; ++hour) {
             double hourIncr = 1;
             hice += hourIncr;
             cice += hourIncr;
             hsnow += hourIncr;
+            ModelState state = { { { "top_melt", topMelt } }, { } };
 
-            ido.outputState(meta, timeStep);
+            ido.outputState(state, meta, timeStep);
             meta.incrementTime(timeStep);
         }
     }
@@ -218,7 +217,7 @@ TEST_CASE("Test periodic output")
     REQUIRE(!std::filesystem::exists(pfx + "10" + sfx));
 
     const std::string specFile = diagFiles[5];
-    std::set<std::string> fields = { "hice", "cice", "tice" };
+    std::set<std::string> fields = { "hice", "cice", "tsurf", "top_melt" };
 
     // Read the netCDF file directly
     netCDF::NcFile ncFile(specFile, netCDF::NcFile::read);
