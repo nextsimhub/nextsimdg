@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date 08 May 2025
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -44,26 +44,29 @@ static const std::map<int, std::string> keyMap = {
 
 void BBMDynamics::configure()
 {
-    params.compactionParam = getConfiguration(keyMap.at(C_KEY), compactionParamDefault);
-    params.nu0 = getConfiguration(keyMap.at(NU_KEY), nu0Default);
-    params.young = getConfiguration(keyMap.at(YOUNG_KEY), youngDefault);
-    params.P0 = getConfiguration(keyMap.at(P0_KEY), P0Default);
-    params.lambda0 = getConfiguration(keyMap.at(LAMBDA0_KEY), lambda0Default);
-    params.alpha = getConfiguration(keyMap.at(ALPHA_KEY), alphaDefault);
-    params.expPMax = getConfiguration(keyMap.at(EXPPMAX_KEY), expPMaxDefault);
-    params.mu = getConfiguration(keyMap.at(MU_KEY), muDefault);
-    params.comprCap = getConfiguration(keyMap.at(NMAX_KEY), comprCapDefault);
-    params.cohesion = getConfiguration(keyMap.at(CLAB_KEY), cohesionDefault);
-    params.scaleCohesion = getConfiguration(keyMap.at(SCALEC_KEY), scaleCohesionDefault);
-    params.referenceScaleC = getConfiguration(keyMap.at(REFSCALEC_KEY), referenceScaleCDefault);
-    params.nSteps = getConfiguration(keyMap.at(NSTEPS_KEY), nStepsDefault);
-    params.rhoIce = getConfiguration(keyMap.at(RHOI_KEY), rhoIceDefault);
-    params.rhoAtm = getConfiguration(keyMap.at(RHOA_KEY), rhoAtmDefault);
-    params.rhoOcean = getConfiguration(keyMap.at(RHOO_KEY), rhoOceanDefault);
-    params.CAtm = getConfiguration(keyMap.at(CATM_KEY), CAtmDefault);
-    params.COcean = getConfiguration(keyMap.at(COCEAN_KEY), COceanDefault);
-    params.fc = getConfiguration(keyMap.at(FC_KEY), fcDefault);
-    params.oceanTurningAngle = getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
+    params.compactionParam = Configured::getConfiguration(keyMap.at(C_KEY), compactionParamDefault);
+    params.nu0 = Configured::getConfiguration(keyMap.at(NU_KEY), nu0Default);
+    params.young = Configured::getConfiguration(keyMap.at(YOUNG_KEY), youngDefault);
+    params.P0 = Configured::getConfiguration(keyMap.at(P0_KEY), P0Default);
+    params.lambda0 = Configured::getConfiguration(keyMap.at(LAMBDA0_KEY), lambda0Default);
+    params.alpha = Configured::getConfiguration(keyMap.at(ALPHA_KEY), alphaDefault);
+    params.expPMax = Configured::getConfiguration(keyMap.at(EXPPMAX_KEY), expPMaxDefault);
+    params.mu = Configured::getConfiguration(keyMap.at(MU_KEY), muDefault);
+    params.comprCap = Configured::getConfiguration(keyMap.at(NMAX_KEY), comprCapDefault);
+    params.cohesion = Configured::getConfiguration(keyMap.at(CLAB_KEY), cohesionDefault);
+    params.scaleCohesion
+        = Configured::getConfiguration(keyMap.at(SCALEC_KEY), scaleCohesionDefault);
+    params.referenceScaleC
+        = Configured::getConfiguration(keyMap.at(REFSCALEC_KEY), referenceScaleCDefault);
+    params.nSteps = Configured::getConfiguration(keyMap.at(NSTEPS_KEY), nStepsDefault);
+    params.rhoIce = Configured::getConfiguration(keyMap.at(RHOI_KEY), rhoIceDefault);
+    params.rhoAtm = Configured::getConfiguration(keyMap.at(RHOA_KEY), rhoAtmDefault);
+    params.rhoOcean = Configured::getConfiguration(keyMap.at(RHOO_KEY), rhoOceanDefault);
+    params.CAtm = Configured::getConfiguration(keyMap.at(CATM_KEY), CAtmDefault);
+    params.COcean = Configured::getConfiguration(keyMap.at(COCEAN_KEY), COceanDefault);
+    params.fc = Configured::getConfiguration(keyMap.at(FC_KEY), fcDefault);
+    params.oceanTurningAngle
+        = Configured::getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
 }
 
 ConfigMap BBMDynamics::getConfiguration() const
@@ -78,7 +81,9 @@ ConfigMap BBMDynamics::getConfiguration() const
         { keyMap.at(EXPPMAX_KEY), params.expPMax },
         { keyMap.at(MU_KEY), params.mu },
         { keyMap.at(NMAX_KEY), params.comprCap },
-        { keyMap.at(CLAB_KEY), params.cLab },
+        { keyMap.at(CLAB_KEY), params.cohesion },
+        { keyMap.at(SCALEC_KEY), params.scaleCohesion },
+        { keyMap.at(REFSCALEC_KEY), params.referenceScaleC },
         { keyMap.at(NSTEPS_KEY), params.nSteps },
         { keyMap.at(RHOI_KEY), params.rhoIce },
         { keyMap.at(RHOA_KEY), params.rhoAtm },
