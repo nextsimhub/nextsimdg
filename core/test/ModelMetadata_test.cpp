@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata_test.cpp
  *
- * @date 17 Jan 2025
+ * @date 19 May 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -24,7 +24,7 @@ constexpr ModelMetadata::Edge LEFT = ModelMetadata::Edge::LEFT;
 typedef std::vector<int> vec;
 
 // these tests are the same for closed boundary conditions (BC) and peridic BC
-static void testNonPeriodicBC(ModelMetadata meta, int test_rank)
+static void testNonPeriodicBC(ModelMetadata& meta, int test_rank)
 {
     if (test_rank == 0) {
         REQUIRE(meta.neighbourRanks[LEFT].size() == 0);
@@ -62,7 +62,7 @@ static void testNonPeriodicBC(ModelMetadata meta, int test_rank)
 TEST_SUITE_BEGIN("ModelMetadata");
 MPI_TEST_CASE("Test getPartitionMetadata closed boundary", 3)
 {
-    ModelMetadata meta(partitionFilenameCB, test_comm);
+    ModelMetadata& meta = ModelMetadata::getInstance(partitionFilenameCB, test_comm);
     REQUIRE(meta.mpiComm == test_comm);
     // this metadata is specific to the non-periodic boundary conditions
     testNonPeriodicBC(meta, test_rank);
@@ -78,7 +78,7 @@ MPI_TEST_CASE("Test getPartitionMetadata closed boundary", 3)
 
 MPI_TEST_CASE("Test getPartitionMetadata periodic boundary", 3)
 {
-    ModelMetadata meta(partitionFilenamePB, test_comm);
+    ModelMetadata& meta = ModelMetadata::getInstance(partitionFilenamePB, test_comm);
     REQUIRE(meta.mpiComm == test_comm);
     // this metadata should be identical to the Closed Boundary version so we check it again
     testNonPeriodicBC(meta, test_rank);

@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date 16 May 2025
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -203,7 +203,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             // need to check what happens for non-H-field modelarrays
             // need to figure out what happens w.r.t to coords in non-periodic and periodic case
 
-            Halo halo(metadata, data);
+            Halo halo(data);
             // create and allocate temporary Eigen array
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());

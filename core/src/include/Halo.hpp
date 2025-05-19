@@ -1,7 +1,7 @@
 /*!
  * @file Halo.hpp
  *
- * @date 16 May 2025
+ * @date 19 May 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -44,9 +44,9 @@ public:
     /*!
      * @brief Constructs a halo object
      */
-    Halo(ModelMetadata& metadata, ModelArray& ma)
-        : m_metadata(std::make_unique<ModelMetadata>(metadata))
-        , m_ma(ma)
+    Halo(ModelArray& ma)
+        : m_ma(ma)
+        , m_metadata(ModelMetadata::getInstance())
     {
         m_innerNx = ma.innerDimensions()[0];
         m_innerNy = ma.innerDimensions()[1];
@@ -59,7 +59,7 @@ public:
             recv[i].resize(m_perimeterLength, 0.0);
         }
         m_edgeLengths = { m_innerNx, m_innerNy, m_innerNx, m_innerNy }; // order is Bottom
-        m_comm = metadata.mpiComm;
+        m_comm = m_metadata.mpiComm;
 
         m_outerSlices = {
             { Edge::LEFT, VBounds({ { 0 }, { 1, m_innerNy + haloWidth } }) },
@@ -96,7 +96,7 @@ private:
     size_t m_innerNy; // local extent in y-direction
     size_t m_perimeterLength; // length of perimeter of domain
     size_t m_numComps; // number of DG components
-    std::unique_ptr<ModelMetadata> m_metadata; // pointer to metadata
+    ModelMetadata& m_metadata; // reference to metadata singleton
     std::array<size_t, Edge::N_EDGE> m_edgeLengths; // array containing length of each edge
     std::array<Edge, Edge::N_EDGE> edges = ModelMetadata::edges; // array of edge enums
     std::map<Edge, Slice> m_outerSlices;
@@ -185,14 +185,14 @@ private:
 
             // get non-periodic neighbours and populate recv buffer (if the exist)
             for (auto edge : edges) {
-                auto numNeighbours = m_metadata->neighbourRanks[edge].size();
+                auto numNeighbours = m_metadata.neighbourRanks[edge].size();
                 if (numNeighbours) {
                     // get data for each neighbour that exists along a given edge
                     for (size_t i = 0; i < numNeighbours; ++i) {
-                        int fromRank = m_metadata->neighbourRanks[edge][i];
-                        size_t count = m_metadata->neighbourExtents[edge][i];
-                        size_t disp = m_metadata->neighbourHaloSend[edge][i];
-                        size_t recvOffset = m_metadata->neighbourHaloRecv[edge][i];
+                        int fromRank = m_metadata.neighbourRanks[edge][i];
+                        size_t count = m_metadata.neighbourExtents[edge][i];
+                        size_t disp = m_metadata.neighbourHaloSend[edge][i];
+                        size_t recvOffset = m_metadata.neighbourHaloRecv[edge][i];
                         if (m_ma.getType() == ModelArray::Type::VERTEX) {
                             vertexAdjustedPositions(
                                 count = count, disp = disp, recvOffset = recvOffset, edge = edge);
@@ -205,14 +205,14 @@ private:
 
             // get periodic neighbours and populate recv buffer (if they exist)
             for (auto edge : edges) {
-                auto numNeighbours = m_metadata->neighbourRanksPeriodic[edge].size();
+                auto numNeighbours = m_metadata.neighbourRanksPeriodic[edge].size();
                 if (numNeighbours) {
                     // get data for each neighbour that exists along a given edge
                     for (size_t i = 0; i < numNeighbours; ++i) {
-                        int fromRank = m_metadata->neighbourRanksPeriodic[edge][i];
-                        size_t count = m_metadata->neighbourExtentsPeriodic[edge][i];
-                        size_t disp = m_metadata->neighbourHaloSendPeriodic[edge][i];
-                        size_t recvOffset = m_metadata->neighbourHaloRecvPeriodic[edge][i];
+                        int fromRank = m_metadata.neighbourRanksPeriodic[edge][i];
+                        size_t count = m_metadata.neighbourExtentsPeriodic[edge][i];
+                        size_t disp = m_metadata.neighbourHaloSendPeriodic[edge][i];
+                        size_t recvOffset = m_metadata.neighbourHaloRecvPeriodic[edge][i];
                         if (m_ma.getType() == ModelArray::Type::VERTEX) {
                             vertexAdjustedPositions(
                                 count = count, disp = disp, recvOffset = recvOffset, edge = edge);

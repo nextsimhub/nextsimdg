@@ -1,13 +1,14 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 17 Jan 2025
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #include "include/ModelMetadata.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
@@ -36,6 +37,7 @@ const std::string& ModelMetadata::structureName() const
 #ifdef USE_MPI
 ModelMetadata::ModelMetadata(std::string partitionFile, MPI_Comm comm)
 {
+    static bool doneOnce = doOnce();
     setMpiMetadata(comm);
     getPartitionMetadata(partitionFile);
 }
@@ -151,6 +153,9 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 
     ncFile.close();
 }
+#else
+
+ModelMetadata::ModelMetadata() { static bool doneOnce = doOnce(); }
 
 #endif
 
@@ -217,6 +222,15 @@ void ModelMetadata::incrementTime(const Duration& step)
     }
     xiosHandler.incrementCalendar();
 #endif
+}
+
+void ModelMetadata::finalize() { }
+
+bool ModelMetadata::doOnce()
+{
+    // Register the finalization function here
+    Finalizer::registerUnique(finalize);
+    return true;
 }
 
 } /* namespace Nextsim */

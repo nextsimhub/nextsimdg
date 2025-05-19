@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 16 May 2025
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -196,7 +196,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
                               },
         {} };
 
-    ModelMetadata metadata;
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState
@@ -237,7 +237,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     gridIn.setIO(readIO);
 
 #ifdef USE_MPI
-    ModelMetadata metadataIn(partitionFilename, test_comm);
+    ModelMetadata& metadataIn = ModelMetadata::getInstance(partitionFilename, test_comm);
     metadataIn.setTime(TimePoint(dateString));
     ModelState ms = gridIn.getModelState(filename, metadataIn);
 #else
@@ -383,7 +383,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
                               },
         {} };
 
-    ModelMetadata metadata;
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState
@@ -520,7 +520,7 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     // MD5 hash of the current output of $ date
     std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
 #ifdef USE_MPI
-    ModelMetadata metadataIn(partitionFilename, test_comm);
+    ModelMetadata& metadataIn = ModelMetadata::getInstance(partitionFilename, test_comm);
     metadataIn.setTime(TimePoint(dateString));
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadataIn));
 #else
@@ -570,7 +570,7 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
 #ifdef USE_MPI
-    ModelMetadata metadata;
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setMpiMetadata(test_comm);
     if (metadata.mpiMyRank == 0) {
         metadata.localCornerX = 0;

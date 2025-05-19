@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 06 May 2025
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -69,7 +69,8 @@ TEST_CASE("Test periodic output")
     config << "[ConfigOutput]" << std::endl;
     config << "period = 3600" << std::endl; // Output every hour
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
-    config << "field_names = " << hiceName << "," << ciceName << "," << tsurfName << "," << "top_melt" << std::endl;
+    config << "field_names = " << hiceName << "," << ciceName << "," << tsurfName << ","
+           << "top_melt" << std::endl;
     config << "filename = diag%m%d.nc" << std::endl;
     config << "file_period = 86400" << std::endl; // Files every day
 
@@ -97,18 +98,19 @@ TEST_CASE("Test periodic output")
     ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
     ModelComponent::getStore().registerArray(Protected::T_SURF, &tsurf);
 
-    ModelMetadata meta;
+    ModelMetadata& meta = ModelMetadata::getInstance();
     // Set up the coordinates, but use arrays filled with zeros
     HField latlonData(ModelArray::Type::H);
     latlonData = 0.;
     VertexField coordsData(ModelArray::Type::VERTEX);
     coordsData = 0.;
     ModelState modelCoordinates = { {
-             { longitudeName, latlonData },
-             { latitudeName, latlonData },
-             { gridAzimuthName, latlonData },
-             { coordsName, coordsData },
-    }, { } };
+                                        { longitudeName, latlonData },
+                                        { latitudeName, latlonData },
+                                        { gridAzimuthName, latlonData },
+                                        { coordsName, coordsData },
+                                    },
+        {} };
     meta.extractCoordinates(modelCoordinates);
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 
@@ -130,7 +132,6 @@ TEST_CASE("Test periodic output")
             hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + startX));
             tsurf(i, j) = 0.4 + 0.01 * (j * nx + (i + startX));
             topMelt(i, j) = 0.6 + 0.01 * (j * nx + (i + startX));
-
         }
     }
     std::vector<std::string> diagFiles;
@@ -151,7 +152,7 @@ TEST_CASE("Test periodic output")
             hice += hourIncr;
             cice += hourIncr;
             hsnow += hourIncr;
-            ModelState state = { { { "top_melt", topMelt } }, { } };
+            ModelState state = { { { "top_melt", topMelt } }, {} };
 
             ido.outputState(state, meta);
             meta.incrementTime(Duration(3600.));

@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date 17 Jan 2025
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -30,19 +30,37 @@ class CommonRestartMetadata;
  * output.
  */
 class ModelMetadata {
+private:
+#ifdef USE_MPI
+    ModelMetadata(std::string partitionFile, MPI_Comm comm);
+#else
+    ModelMetadata();
+#endif
+    // Prevent copying
+    ModelMetadata(const ModelMetadata&) = delete;
+    // ModelMetadata& operator=(const ModelMetadata&) = delete;
+
+    //! Performs some one-time initialization for the class. Returns true.
+    static bool doOnce();
+
 public:
 #ifdef USE_MPI
-    /*!
-     * @brief Construct a ModelMedata based on file with decompostion data
-     *
-     * @param partitionFile The name of file with decompostion data
-     * @param comm MPI communicator
-     */
-    ModelMetadata(std::string partitionFile, MPI_Comm comm);
-
-    // We need to force default constructor also
-    ModelMetadata() = default;
+    inline static ModelMetadata& getInstance(
+        std::string partitionFile = "partition.nc", MPI_Comm comm = nullptr)
+    {
+        static ModelMetadata instance = ModelMetadata(partitionFile, comm);
+        return instance;
+    }
+#else
+    inline static ModelMetadata& getInstance()
+    {
+        static ModelMetadata instance = ModelMetadata();
+        return instance;
+    }
 #endif
+
+    // finalize ModelMetadata
+    static void finalize();
 
     /*!
      * @brief Sets the initial or current model time

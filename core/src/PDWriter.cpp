@@ -1,7 +1,7 @@
 /*!
  * @file PDWriter.cpp
  *
- * @date 14 Apr 2023
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -21,7 +21,7 @@ void PrognosticData::writeRestartFile(
     ModelState state = getStatePrognostic();
     state.merge(ModelConfig::getConfig());
 
-    ModelMetadata meta(metadata);
+    ModelMetadata& meta = ModelMetadata::getInstance();
     meta.affixCoordinates(state);
 
     StructureFactory::fileFromState(state, meta, filePath, true);

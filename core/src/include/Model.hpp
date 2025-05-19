@@ -1,6 +1,6 @@
 /*!
  * @file Model.hpp
- * @date 12 Aug 2021
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -74,7 +74,7 @@ private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
     PrognosticData pData;
-    ModelMetadata m_etadata;
+    ModelMetadata& m_etadata = ModelMetadata::getInstance();
 
     std::string initialFileName;
     std::string finalFileName;

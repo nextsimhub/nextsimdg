@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata_test.cpp
  *
- * @date 19 Mar 2025
+ * @date 19 May 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -41,7 +41,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     // │0│ │
     // └─┴─┘ (proc id)
 
-    ModelMetadata metadata(file_cb, test_comm);
+    ModelMetadata& metadata = ModelMetadata::getInstance(file_cb, test_comm);
 
     const size_t nx = metadata.globalExtentX;
     const size_t ny = metadata.globalExtentY;
@@ -58,7 +58,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     testData.resize();
 
     // create halo for testData model array
-    Halo halo(metadata, testData);
+    Halo halo(testData);
 
     // create and allocate temporary Eigen array
     ModelArray::DataType innerData;
@@ -104,7 +104,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
     // │0│ │
     // └─┴─┘ (proc id)
 
-    ModelMetadata metadata(file_pb, test_comm);
+    ModelMetadata& metadata = ModelMetadata::getInstance(file_pb, test_comm);
 
     const size_t nx = metadata.globalExtentX;
     const size_t ny = metadata.globalExtentY;
@@ -121,7 +121,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
     testData.resize();
 
     // create halo for testData model array
-    Halo halo(metadata, testData);
+    Halo halo(testData);
 
     // create and allocate temporary Eigen array
     ModelArray::DataType innerData;

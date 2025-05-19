@@ -1,7 +1,7 @@
 /*!
  * @file RectGrid_test.cpp
  *
- * @date 09 Dec 2024
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -80,7 +80,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
                          },
         {} };
 
-    ModelMetadata metadata;
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setTime(TimePoint(date_string));
     // Use x & y coordinates
     ModelArray x(ModelArray::Type::H);
@@ -145,7 +145,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     // Read reference file
     gridIn.setIO(new RectGridIO(grid));
 #ifdef USE_MPI
-    ModelMetadata metadataIn(partition_filename, test_comm);
+    ModelMetadata& metadataIn = ModelMetadata::getInstance(partition_filename, test_comm);
     metadataIn.setTime(TimePoint(date_string));
     ModelState ms = gridIn.getModelState(filename, metadataIn);
 #else
