@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamicsKernel.hpp
  *
- * @date 09 Nov 2024
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -17,11 +17,12 @@ namespace Nextsim {
 
 template <int DGadvection> class BBMDynamicsKernel : public BrittleCGDynamicsKernel<DGadvection> {
 public:
-    // using DynamicsKernel<DGadvection, DGstressComp>::momentum;
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
+    using DynamicsKernel<DGadvection, DGstressComp>::smesh;
     using CGDynamicsKernel<DGadvection>::pmap;
     using BrittleCGDynamicsKernel<DGadvection>::damage;
+    using BrittleCGDynamicsKernel<DGadvection>::params;
     using CGDynamicsKernel<DGadvection>::initialise;
     BBMDynamicsKernel(const BBMParameters& paramsIn)
         : BrittleCGDynamicsKernel<DGadvection>(bbmStressStep, paramsIn)
@@ -33,6 +34,7 @@ public:
         BrittleCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
         bbmStressStep.setPMap(pmap.get());
         bbmStressStep.setDamage(damage);
+        bbmStressStep.setCohesion(params, *smesh);
     }
 
 private:

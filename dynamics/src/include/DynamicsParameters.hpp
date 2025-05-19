@@ -1,7 +1,6 @@
 /*!
  * @file DynamicsParameters.hpp
- *
- * @date 19 Nov 2024
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Thomas Richter <thomas.richter@ovgu.de>
  *
@@ -39,6 +38,8 @@ public:
     double fc = fcDefault;
 
     double oceanTurningAngle = oceanTurningAngleDefault;
+
+    int nSteps = nStepsDefault;
 };
 }
 

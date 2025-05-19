@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date 06 Dec 2024
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -27,7 +27,7 @@ public:
         , p_d(nullptr)
     {
     }
-    ~BBMStressUpdateStep() = default;
+    ~BBMStressUpdateStep() override = default;
     void stressUpdateHighOrder(const DynamicsParameters& dParams, const ParametricMesh& smesh,
         SymmetricTensorVector& stress, const SymmetricTensorVector& strain,
         const DGVector<DGadvection>& h, const DGVector<DGadvection>& a,
@@ -44,66 +44,64 @@ public:
         DGVector<DGstress>& e12 = strain[I12];
         DGVector<DGstress>& e22 = strain[I22];
 
-        const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
+        const auto& params = reinterpret_cast<const BBMParameters&>(dParams);
         // Number of Gauss points
-        const size_t nGauss = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
+        const size_t nGauss1D = GAUSSPOINTS1D(DGstress);
+        const size_t nGauss2D = GAUSSPOINTS(DGstress);
+
+        const double sqrtNuRhoI = std::sqrt(2. * (1. + params.nu0) * params.rhoIce);
 
 //! Stress and Damage Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            const Eigen::Matrix<double, 1, nGauss * nGauss> hGauss
-                = (h.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).matrix();
-            const Eigen::Matrix<double, 1, nGauss * nGauss> aGauss
-                = (a.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).min(1.0).matrix();
-            Eigen::Matrix<double, 1, nGauss * nGauss> dGauss
-                = (p_d->row(i) * PSI<DGadvection, nGauss>).array().max(1e-12).min(1.0).matrix();
+            const LocalEdgeVector<nGauss2D> hGauss
+                = (h.row(i) * PSI<DGadvection, nGauss1D>).array().max(0.0);
+            const LocalEdgeVector<nGauss2D> aGauss
+                = (a.row(i) * PSI<DGadvection, nGauss1D>).array().max(0.0).min(1.0);
 
-            const Eigen::Matrix<double, 1, nGauss * nGauss> e11Gauss
-                = e11.row(i) * PSI<DGstress, nGauss>;
-            const Eigen::Matrix<double, 1, nGauss * nGauss> e12Gauss
-                = e12.row(i) * PSI<DGstress, nGauss>;
-            const Eigen::Matrix<double, 1, nGauss * nGauss> e22Gauss
-                = e22.row(i) * PSI<DGstress, nGauss>;
+            LocalEdgeVector<nGauss2D> dGauss
+                = (p_d->row(i) * PSI<DGadvection, nGauss1D>).array().max(1e-12).min(1.0);
 
-            Eigen::Matrix<double, 1, nGauss * nGauss> s11Gauss = s11.row(i) * PSI<DGstress, nGauss>;
-            Eigen::Matrix<double, 1, nGauss * nGauss> s12Gauss = s12.row(i) * PSI<DGstress, nGauss>;
-            Eigen::Matrix<double, 1, nGauss * nGauss> s22Gauss = s22.row(i) * PSI<DGstress, nGauss>;
+            const LocalEdgeVector<nGauss2D> e11Gauss = e11.row(i) * PSI<DGstress, nGauss1D>;
+            const LocalEdgeVector<nGauss2D> e12Gauss = e12.row(i) * PSI<DGstress, nGauss1D>;
+            const LocalEdgeVector<nGauss2D> e22Gauss = e22.row(i) * PSI<DGstress, nGauss1D>;
+
+            LocalEdgeVector<nGauss2D> s11Gauss = s11.row(i) * PSI<DGstress, nGauss1D>;
+            LocalEdgeVector<nGauss2D> s12Gauss = s12.row(i) * PSI<DGstress, nGauss1D>;
+            LocalEdgeVector<nGauss2D> s22Gauss = s22.row(i) * PSI<DGstress, nGauss1D>;
 
             //! Current normal stress for the evaluation of tildeP (Eqn. 1)
-            Eigen::Matrix<double, 1, nGauss * nGauss> sigma_n
-                = 0.5 * (s11Gauss.array() + s22Gauss.array());
+            LocalEdgeVector<nGauss2D> sigmaN = 0.5 * (s11Gauss + s22Gauss).array();
 
             //! exp(-C(1-A))
-            const Eigen::Matrix<double, 1, nGauss * nGauss> expC
-                = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
+            const LocalEdgeVector<nGauss2D> expC
+                = (params.compactionParam * (1. - aGauss.array())).exp();
 
             // Eqn. 25
-            const Eigen::Matrix<double, 1, nGauss * nGauss> powalphaexpC
-                = (dGauss.array() * expC.array()).pow(params.alpha - 1);
-            const Eigen::Matrix<double, 1, nGauss * nGauss> time_viscous
-                = params.lambda0 * powalphaexpC;
+            const LocalEdgeVector<nGauss2D> viscousTime
+                = params.lambda0 * (dGauss.array() * expC.array()).pow(params.alpha - 1);
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const Eigen::Matrix<double, 1, nGauss * nGauss> Pmax
-                = params.P0 * hGauss.array().pow(params.expPMax) * expC.array();
+            // NB! We need to add 1 to the exponent because stress is thickness integrated
+            const LocalEdgeVector<nGauss2D> Pmax
+                = params.P0 * hGauss.array().pow(params.expPMax + 1.) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
-            const Eigen::Matrix<double, 1, nGauss * nGauss> tildeP
-                = (sigma_n.array() < 0.0)
-                      .select((-Pmax.array() / sigma_n.array()).min(1.0).matrix(), 0.);
+            const LocalEdgeVector<nGauss2D> tildeP
+                = (sigmaN.array() < 0.).select((-Pmax.array() / sigmaN.array()).min(1.), 0.);
 
             // multiplicator
-            const Eigen::Matrix<double, 1, nGauss * nGauss> multiplicator
-                = time_viscous.array() / (time_viscous.array() + (1. - tildeP.array()) * deltaT);
+            const LocalEdgeVector<nGauss2D> multiplicator
+                = viscousTime.array() / (viscousTime.array() + (1. - tildeP.array()) * deltaT);
 
             //! Eqn. 9
-            const Eigen::Matrix<double, 1, nGauss * nGauss> elasticity
-                = hGauss.array() * params.young * dGauss.array() * expC.array();
+            const LocalEdgeVector<nGauss2D> elasticity
+                = params.young * dGauss.array() * expC.array();
 
             // Eqn. 12: first factor on RHS
             /* Stiffness matrix
@@ -112,59 +110,50 @@ public:
              * \ (K:e)12 /    1 - nu^2 \  0   0  1-nu / \ e12 /
              */
 
-            const Eigen::Matrix<double, 1, nGauss * nGauss> Dunit_factor
-                = deltaT * elasticity.array() / (1. - (params.nu0 * params.nu0));
+            // NB! We multiply with h because stress is thickness integrated
+            const LocalEdgeVector<nGauss2D> KFactor
+                = deltaT * hGauss.array() * elasticity.array() / (1. - params.nu0 * params.nu0);
 
-            s11Gauss.array()
-                += Dunit_factor.array() * (e11Gauss.array() + params.nu0 * e22Gauss.array());
-            s22Gauss.array()
-                += Dunit_factor.array() * (params.nu0 * e11Gauss.array() + e22Gauss.array());
-            s12Gauss.array() += Dunit_factor.array() * e12Gauss.array() * (1. - params.nu0);
+            s11Gauss.array() += KFactor.array() * (e11Gauss + params.nu0 * e22Gauss).array();
+            s22Gauss.array() += KFactor.array() * (params.nu0 * e11Gauss + e22Gauss).array();
+            s12Gauss.array() += KFactor.array() * e12Gauss.array() * (1. - params.nu0);
 
             //! Implicit part of RHS (Eqn. 33)
             s11Gauss.array() *= multiplicator.array();
             s22Gauss.array() *= multiplicator.array();
             s12Gauss.array() *= multiplicator.array();
 
-            sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
-            const Eigen::Matrix<double, 1, nGauss * nGauss> tau
-                = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
-                    + s12Gauss.array().square())
+            sigmaN = 0.5 * (s11Gauss + s22Gauss).array();
+            const LocalEdgeVector<nGauss2D> tau
+                = (0.25 * (s11Gauss - s22Gauss).array().square() + s12Gauss.array().square())
                       .sqrt();
 
-            const double scale_coef = std::sqrt(0.1 / smesh.h(i));
-
-            //! Eqn. 22
-            const Eigen::Matrix<double, 1, nGauss * nGauss> cohesion
-                = params.cLab * scale_coef * hGauss.array();
             //! Eqn. 30
-            const Eigen::Matrix<double, 1, nGauss * nGauss> compr_strength
-                = params.comprCap * scale_coef * hGauss.array();
+            const LocalEdgeVector<nGauss2D> comprStrength
+                = params.comprCap * cohesion[i] * hGauss.array();
 
-            // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
-            // sigma_s + mu*sigma_n < 0 is always inside, but gives dcrit < 0
-            Eigen::Matrix<double, 1, nGauss * nGauss> dcrit
-                = (tau.array() + params.mu * sigma_n.array() > 0.)
-                      .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
+            // Compressive and Mohr-Coulomb failure using Messrs Plante & Tremblay's formulation
+            LocalEdgeVector<nGauss2D> dCrit
+                = (sigmaN.array() < -comprStrength.array())
+                      .select(-comprStrength.array() / sigmaN.array(),
+                          cohesion[i] * hGauss.array()
+                              / (tau.array() + params.mu * sigmaN.array()));
 
-            // Compressive failure using Mssrs. Plante & Tremblay's formulation
-            dcrit = (sigma_n.array() < -compr_strength.array())
-                        .select(-compr_strength.array() / sigma_n.array(), dcrit);
+            // Only damage when we're outside, i.e. dCrit < 1
+            // tau - mu*sigmaN < 0 is always inside but gives dCrit < 0
+            dCrit = (dCrit.array() < 0.).select(1.0, dCrit.array().min(1.));
 
-            // Only damage when we're outside
-            dcrit = dcrit.array().min(1.0);
-
-            // Eqn. 29
-            const Eigen::Matrix<double, 1, nGauss * nGauss> td = smesh.h(i)
-                * std::sqrt(2. * (1. + params.nu0) * params.rhoIce) / elasticity.array().sqrt();
+            // Eqn. 29 (but we calculate the reciprocal directly)
+            const LocalEdgeVector<nGauss2D> rtd
+                = elasticity.array().sqrt() / (smesh.h(i) * sqrtNuRhoI);
 
             // Update damage
-            dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            dGauss.array() -= dGauss.array() * (1. - dCrit.array()) * deltaT * rtd.array();
 
             // Relax stress in Gassus points
-            s11Gauss.array() -= s11Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-            s12Gauss.array() -= s12Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-            s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            s11Gauss.array() -= s11Gauss.array() * (1. - dCrit.array()) * deltaT * rtd.array();
+            s12Gauss.array() -= s12Gauss.array() * (1. - dCrit.array()) * deltaT * rtd.array();
+            s22Gauss.array() -= s22Gauss.array() * (1. - dCrit.array()) * deltaT * rtd.array();
 
             // INTEGRATION OF STRESS AND DAMAGE
             s11.row(i) = pmap->iMJwPSI[i] * s11Gauss.matrix().transpose();
@@ -176,10 +165,21 @@ public:
 
     void setDamage(DGVector<DGadvection>& dIn) { p_d = &dIn; }
     void setPMap(ParametricMomentumMap<CG, DGadvection>* pmapIn) { pmap = pmapIn; }
+    void setCohesion(const BBMParameters& params, const ParametricMesh& smesh)
+    {
+        cohesion.resize(smesh.nelements);
+        for (size_t i = 0; i < smesh.nelements; ++i) {
+            //! Eqn. 22
+            const double scaleCoef
+                = params.scaleCohesion ? std::sqrt(params.referenceScaleC / smesh.h(i)) : 1.;
+            cohesion[i] = params.cohesion * scaleCoef;
+        }
+    }
 
 protected:
     ParametricMomentumMap<CG, DGadvection>* pmap;
     DGVector<DGadvection>* p_d;
+    std::vector<double> cohesion;
 };
 }
 

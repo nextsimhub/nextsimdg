@@ -29,7 +29,9 @@ static const std::map<int, std::string> keyMap = {
     { BBMDynamics::EXPPMAX_KEY, prefix + ".exppmax" },
     { BBMDynamics::MU_KEY, prefix + ".mu" },
     { BBMDynamics::NMAX_KEY, prefix + ".namx" },
-    { BBMDynamics::CLAB_KEY, prefix + ".clab" },
+    { BBMDynamics::CLAB_KEY, prefix + ".cohesion" },
+    { BBMDynamics::SCALEC_KEY, prefix + ".scale_cohesion" },
+    { BBMDynamics::REFSCALEC_KEY, prefix + ".reference_scale_cohesion" },
     { BBMDynamics::NSTEPS_KEY, prefix + ".nsteps" },
     { BBMDynamics::RHOI_KEY, prefix + ".rho_ice" },
     { BBMDynamics::RHOA_KEY, prefix + ".rho_atm" },
@@ -51,7 +53,11 @@ void BBMDynamics::configure()
     params.expPMax = Configured::getConfiguration(keyMap.at(EXPPMAX_KEY), expPMaxDefault);
     params.mu = Configured::getConfiguration(keyMap.at(MU_KEY), muDefault);
     params.comprCap = Configured::getConfiguration(keyMap.at(NMAX_KEY), comprCapDefault);
-    params.cLab = Configured::getConfiguration(keyMap.at(CLAB_KEY), cLabDefault);
+    params.cohesion = Configured::getConfiguration(keyMap.at(CLAB_KEY), cohesionDefault);
+    params.scaleCohesion
+        = Configured::getConfiguration(keyMap.at(SCALEC_KEY), scaleCohesionDefault);
+    params.referenceScaleC
+        = Configured::getConfiguration(keyMap.at(REFSCALEC_KEY), referenceScaleCDefault);
     params.nSteps = Configured::getConfiguration(keyMap.at(NSTEPS_KEY), nStepsDefault);
     params.rhoIce = Configured::getConfiguration(keyMap.at(RHOI_KEY), rhoIceDefault);
     params.rhoAtm = Configured::getConfiguration(keyMap.at(RHOA_KEY), rhoAtmDefault);
@@ -75,7 +81,9 @@ ConfigMap BBMDynamics::getConfiguration() const
         { keyMap.at(EXPPMAX_KEY), params.expPMax },
         { keyMap.at(MU_KEY), params.mu },
         { keyMap.at(NMAX_KEY), params.comprCap },
-        { keyMap.at(CLAB_KEY), params.cLab },
+        { keyMap.at(CLAB_KEY), params.cohesion },
+        { keyMap.at(SCALEC_KEY), params.scaleCohesion },
+        { keyMap.at(REFSCALEC_KEY), params.referenceScaleC },
         { keyMap.at(NSTEPS_KEY), params.nSteps },
         { keyMap.at(RHOI_KEY), params.rhoIce },
         { keyMap.at(RHOA_KEY), params.rhoAtm },
@@ -203,10 +211,16 @@ BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
             ConfigurationHelp::toString(expPMaxDefault), "[None]",
             "Internal friction coefficient, 𝜇" },
         { keyMap.at(NMAX_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(expPMaxDefault), "Pa",
-            "Maximum compressive strength (at the lab scale)" },
+            ConfigurationHelp::toString(expPMaxDefault), "",
+            "Maximum compressive strength as a multiplication factor applied to the cohesion." },
         { keyMap.at(CLAB_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(cLabDefault), "Pa", "Cohesion (at the lab scale)" },
+            ConfigurationHelp::toString(cohesionDefault), "Pa", "Cohesion" },
+        { keyMap.at(SCALEC_KEY), ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(scaleCohesionDefault), "",
+            "Scale the cohesion as sqrt of the grid size" },
+        { keyMap.at(REFSCALEC_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(referenceScaleCDefault), "m",
+            "The reference scale when scaling the cohesion as sqrt of the grid size" },
         { keyMap.at(NSTEPS_KEY), ConfigType::NUMERIC, { "1", "∞" },
             ConfigurationHelp::toString(nStepsDefault), "[No unit]",
             "The number of sub-cycling steps" },

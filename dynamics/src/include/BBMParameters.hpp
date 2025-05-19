@@ -1,6 +1,7 @@
 /*!
  * @file BBMParameters.hpp
- * @date 19 Nov 2024
+ *
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
@@ -20,10 +21,12 @@ static double lambda0Default = 1e7; //!< \param lambda
 static int alphaDefault = 5;
 static double expPMaxDefault = 1.5; //! \param Power of ice thickness in the pressure coefficient
 static double muDefault = 0.7; //!< \param tan_phi (double) Internal friction coefficient (mu)
-static double comprCapDefault
-    = 1e10; //! \param compr_strength (double) Maximum compressive strength [N/m2]
-static double cLabDefault = 2e6; //! \param C_lab (double) Test [Pa]
-// static const int nStepsDefault = 120; //!< Number of sub-steps
+static double comprCapDefault = 1e4; //! \param comprCap (double) Maximum compressive strength
+                                     //! multiplier (cap as fraction of cohesion).
+static double cohesionDefault
+    = 2e6; //! \param C_lab (double) Cohesion (at the lab scale if scaling is turned on) [Pa]
+static bool scaleCohesionDefault = true; //! Scale the cohesion as sqrt of the grid size
+static double referenceScaleCDefault = 0.1; //! \param Reference scale for cohesion
 
 class BBMParameters : public DynamicsParameters {
 
@@ -39,8 +42,9 @@ public:
     double expPMax = expPMaxDefault;
     double mu = muDefault;
     double comprCap = comprCapDefault;
-    double cLab = cLabDefault;
-    int nSteps = nStepsDefault;
+    double cohesion = cohesionDefault;
+    bool scaleCohesion = scaleCohesionDefault;
+    double referenceScaleC = referenceScaleCDefault;
 
     double c0 = 10e3; //! \param
 };
