@@ -48,7 +48,7 @@ public:
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
     {
-        DynamicsKernel<DGadvection, DGstressComp>::initialise(coords, isSpherical, mask);
+        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
         // can't be done in the constructor since the param values are configured after construction
         FOcean = baseParams.COcean * baseParams.rhoOcean;
